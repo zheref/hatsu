@@ -307,11 +307,9 @@ and resolved. **Its terminus is the merge prompt, after five checks in order, ev
    maintainer's ruling of 2026-10-11): the not-ready verdict quoted verbatim, never called `ready`, and
    one Hatsu line carrying the recorded head and each exit-`9` call's `--json` verbatim, written into the
    body's completion checklist through `nen pr edit-body` before the prompt — the durable record that
-   hanten's rounds were the review. **Under an effective `aiReviewers: optional | off`** — read at the base and the default
-   branch's tip, the stricter applying, never the PR head — the
-   sixth stop is instead the **hanten prompt** of [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, which replaces *The sixth stop* there:
-   `failing` exactly `["rounds-owed"]` at the judged head, hanten settled, a posted bot's threads settled
-   first; the verdict quoted the same way, the Hatsu line naming the setting.
+   hanten's rounds were the review. **Under an effective `aiReviewers: optional | off`** the sixth stop
+   is instead the **hanten prompt**, its conditions, the value's source refs and the Hatsu line
+   (`aiReviewers: optional (base <sha>, default <sha>)`) all [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there.
 3. **The body** — `nen pr body-check` satisfied against the live body.
 4. **The Development links** — the guard's `0` quoted against the live PR, re-run after any
    `edit-body`; `retarget-pending` is check 1 failing (case (2)), `not-applicable` is case (3), quoted
@@ -414,7 +412,7 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | the PR becomes Ready (§ 4's three cases, the PR's own base first: (1) a PR into the default branch, with the Development guard's `0`; (2) with its `retarget-pending` line quoted; (3) with its `not-applicable` line quoted — neither line a veto) | on `branch.base` — case (1), or case (3) with the `not-applicable` line in the `0`'s place — step 6, bell and stop at the human gate (the merge prompt, never a G5); off `branch.base`, in any case, § 5's off-base report, no prompt |
 | **a round owed at head to a member of a met `round_quorum` that cannot post it** — exhausted credits, no run at head, a run that completed without a round ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *One bot reviewer suffices*) | **not a pending state** — nen fulfils it (zheref/nen#361) and the verdict reads it so; nothing is requested of that member and no cycle is spent |
 | **every `round_quorum` member unavailable at the judged head, the round row the only failing row** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The sixth stop*, (a)–(e)) | **not a pending state — no round will arrive.** End the hold and go to step 6, the sixth stop, with the not-ready verdict quoted verbatim and the Hatsu line beside it; no cycle is spent |
-| **under `aiReviewers: optional` or `off`, `failing` exactly `["rounds-owed"]` and hanten settled** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*) | **not a pending state — the round is not expected.** End the hold and go to step 6, the sixth stop, the not-ready verdict quoted verbatim and the Hatsu line naming the setting; no cycle is spent. Under `off` en never requests a bot |
+| an **effective** `aiReviewers: optional \| off` (PROCESS), its hanten prompt's conditions met ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there) | **not a pending state — the round is not expected.** End the hold and go to step 6, the sixth stop, the not-ready verdict quoted verbatim with PROCESS's Hatsu line; no cycle is spent. Under an effective `off` en never requests a bot |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
 | the PR closed unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
@@ -426,7 +424,7 @@ rather than waited on — a closed PR will not become Ready; and **the round cei
 not-ready — a round owed at head that no bound lets en request is a named impossible condition for
 the watch, not a state to poll — reported not-ready with `nen pr ready --explain` quoted and the board,
 never a raised number, never a G5; and **every quorum member unavailable** — PROCESS's *The sixth stop*,
-(a)–(e), or under `aiReviewers: optional | off` its *AI reviewers per consumer* hanten prompt — the hold ends at step 6 on the not-ready verdict, the sixth stop, which outranks the
+(a)–(e), or under an effective `aiReviewers: optional | off` its *AI reviewers per consumer* hanten prompt — the hold ends at step 6 on the not-ready verdict, the sixth stop, which outranks the
 round ceiling (the maintainer's ruling of 2026-10-11; `nen/decisions.json` row `reviewer-exhausted`). `izanagi`'s generic three-no-op stop does
 not apply to En: quiet observations claim no cycle, and three unchanged pending reads cannot terminate
 the current-head readiness promise. Three consecutive **observation errors** still stop `nen watch until`

@@ -361,19 +361,22 @@ reads are residue, named.
 judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,
 and **every reviewer that row can owe is automated** (below), the PR goes to `en` § 5's merge prompt on
 hanten's rounds. `nen pr ready`'s **not-ready verdict is quoted verbatim and
-never called `ready`**, with one Hatsu line beside it naming the setting (`aiReviewers: <value>`, nen/workflow.json),
+never called `ready`**, with one Hatsu line beside it naming the value and its source refs —
+`aiReviewers: optional (base <sha>, default <sha>)` —
 written into the body's completion checklist through `nen pr edit-body`. **Every reviewer must be
 automated — the analogue of *The sixth stop*'s (e).** nen's `rounds-owed` row owes every configured
 reviewer, and `reviewers[]` may hold a human; nen `v0.21.0` exposes no structured owed list and no
 `bot`/`kind` field on a reviewer (`src/schema/gates.ts` → `ReviewerIdentity`: `name`, `login_pattern`,
 `review_check_pattern`, `round_check_pattern`, `enrolment_check_pattern`, `bounded_policy_exempt`,
-`delivery_holistic_pass`, `approves_when_posted_at_head`). So the criterion is a declared, checkable one,
-read from the base's `nen/gates.json`: **every `reviewers[]` entry's `name` is listed in
-`round_quorum.any_of`, and its `login_pattern.pattern` is anchored (begins `^`, ends `$`)**. `any_of` is
-the repository's declaration that a reviewer is one of its interchangeable bot reviewers, and its members'
-patterns are already bound to the bot's exact logins (`docs/GATE-CONFIGURATION.md` § 3, *round_quorum*).
-Hatsu's own file qualifies (`copilot`, `^(copilot|copilot-pull-request-reviewer(\[bot\])?)$`, in
-`any_of`). Where any entry misses it, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen
+`delivery_holistic_pass`, `approves_when_posted_at_head`). So the criterion is checked against
+`nen/gates.json` at **both refs**, the base and the default branch's tip, and **must pass at both**: **every
+`reviewers[]` entry's `name` is listed in `round_quorum.any_of`, and its `login_pattern.pattern` is anchored
+(begins `^`, ends `$`)**. **It is a declaration, not a check that a reviewer is a bot**: `any_of` is the
+repository saying a reviewer is one of its interchangeable bot reviewers, and nen does not bind a pattern
+to bot logins — an anchored `^(copilot|.+)$` passes `nen schema check` and matches every login. Declaring a
+human there is the repository's own misdeclaration, the same as a broad `any_of` pattern
+(`docs/GATE-CONFIGURATION.md` § 3, *round_quorum*). Hatsu's own file qualifies (`copilot`, `^(copilot|copilot-pull-request-reviewer(\[bot\])?)$`, in
+`any_of`). Where any entry misses it at either ref, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen
 exposes the owed list or a reviewer kind. **A bot that does post is settled
 first**: its threads are answered and resolved, and an unresolved thread is `unresolved-threads`, its own
 failing row, so no prompt until then. **Nothing else is relaxed**: any other failing row — `mergeable`,
