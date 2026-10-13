@@ -903,7 +903,7 @@ REGENERATE_PR_WITH = {
 # which carries no digest step. Hatsu's own form must carry it, because its
 # every step is held in READINESS_FROZEN_STEPS (zheref/hatsu#230).
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
-  "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml"), EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
+  "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
 ).freeze
 
@@ -2115,6 +2115,14 @@ def self_test(root)
     start_step = "Start required check on the exact PR head"
     policy_step = "Enforce workflow runner policy from trusted workflow revision"
     guard_step = "Plugin-bump guard check"
+    trailer_step = TRAILER_GUARD_STEP
+    trailer_start = original.index("      - name: #{trailer_step}\n")
+    trailer_end = original.index("      - name: Finish required check on the exact PR head\n", trailer_start) if trailer_start
+    fail_policy("self-test: missing trailer step fixture") unless trailer_start && trailer_end
+    without_trailer = original[0...trailer_start] + original[trailer_end..-1]
+    File.write(plugin, without_trailer)
+    expect_rejected("forbidden trailer guard removed", /step set or order changed/) { validate_repo(tmp) }
+    File.write(plugin, original)
     # The one case whose base is refused alone: the guard leaves the job in one
     # edit and reaches a step in the next, and the two are judged together.
     unguarded = fixture_sub("step-only same-repository guard", original, /^    if: .*\n/, "")
