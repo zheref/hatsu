@@ -6,19 +6,23 @@
 # data document and the SAME reports.sections.<variant>.blocks as the HTML templates beside them, so
 # the two renders cannot disagree on which blocks a variant shows. For every variant nen/workflow.json
 # declares, this guard renders BOTH templates from templates/report-examples/<variant>.data.json
-# (with --graph templates/graph.example.json where the document carries no graph) and fails when:
+# and fails when:
 #
+#   0. a data document is not a UTF-8 JSON object, carries `graphMermaid` (a Markdown render takes it from
+#      --graph only: templates/report-examples/<variant>.graph.json, else templates/graph.example.json),
+#      or carries a newline in a value outside a `<pre>` slot (it would end its Markdown line);
 #   1. a render is refused, or the Markdown still carries a `{{`;
 #   2. the Markdown's block markers are not the declared blocks, in the declared order, or the HTML
 #      render's blocks are not that same sequence;
-#   3. the desk drops an ask, an ask carries other than exactly one star, a readiness verdict is not
+#   3. the desk drops an ask, an ask has other than exactly one starred OPTION LINE, a verdict is not
 #      quoted verbatim, a G5 blocker has no `g5-blocker` wrapper, or a gate of the register is
 #      omitted rather than shown cleared;
-#   4. an escaped value lands where GFM shows the escape literally — inside a code span or a fence —
-#      or a raw slot other than `graphMermaid` inside the mermaid fence appears in a template;
+#   4. an escaped value lands where GFM shows the escape literally — a code span, a fence or an indented
+#      code block — or a raw slot other than `graphMermaid` inside the mermaid fence is in a template;
 #   5. a GFM table row has a cell count other than its header's (a `|` in a value split it);
-#   6. the Markdown template names a token the HTML template does not (one data shape; graphMermaid,
-#      injected by --graph beside graphJson, is the one exception);
+#   6. the Markdown template names a token the HTML template does not (graphMermaid excepted), or the
+#      HTML names one the Markdown does not beyond its presentational tokens (*Class, generatedAt,
+#      graphJson);
 #   7. templates/report-examples/<variant>.md, the checked example the skills and docs/PROCESS.md
 #      § The Markdown report point at, is not byte for byte a fresh render.
 #
@@ -27,6 +31,10 @@
 # then runs this check on the repository itself. No installed copy executes it, so it is not in
 # scripts/plugin_bump_check.sh's PLUGIN_SURFACE_GLOBS; the templates and examples it guards are
 # (templates/*).
+#
+# BC-11. The check is embedded Python, owed to a nen verb (template conformance; docs/PROCESS.md
+# § Residue and owned dependencies, the spiritual-message and rikugan entry). Until the G4 port-or-waive
+# ruling, fixes only.
 #
 # USAGE
 #   scripts/report_markdown_check.sh [--root <hatsu checkout>] [--nen <binary>] [--write-examples]
@@ -50,7 +58,7 @@ while [ "$#" -gt 0 ]; do
     --root) [ "$#" -ge 2 ] || { echo "report_markdown_check.sh: --root needs a path" >&2; exit 2; }; root="$2"; shift 2 ;;
     --nen) [ "$#" -ge 2 ] || { echo "report_markdown_check.sh: --nen needs a path" >&2; exit 2; }; nen="$2"; shift 2 ;;
     --write-examples) write=1; shift ;;
-    -h|--help) sed -n '2,46p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,49p' "$0"; exit 0 ;;
     *) echo "report_markdown_check.sh: unknown argument '$1'" >&2; exit 2 ;;
   esac
 done
@@ -83,6 +91,20 @@ findings = []
 def find(msg):
     findings.append(msg)
 
+def rel(p):
+    return os.path.relpath(p, root)
+
+def read_text(path):
+    """A file's text, or None with a finding: a bad file is a finding, never a traceback."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except UnicodeDecodeError as e:
+        find(f"{rel(path)}: not UTF-8 ({e.reason} at byte {e.start})")
+    except OSError as e:
+        find(f"{rel(path)}: unreadable ({e.strerror})")
+    return None
+
 try:
     workflow = json.load(open(os.path.join(root, "nen/workflow.json"), encoding="utf-8"))
     sections = workflow["reports"]["sections"]
@@ -106,59 +128,84 @@ HTML_ANCHOR = {
     "decisions": '<section id="decisions">', "prBody": '<section id="pr-body">',
     "register": '<section id="register">', "legend": '<section id="legend">',
 }
+# Tokens only the HTML names because they are presentation there: a CSS class, the machine time in
+# a <time> attribute, the graph JSON the page lays out. Any other HTML-only token is a block the
+# Markdown dropped.
+HTML_ONLY = re.compile(r"^(.*Class|generatedAt|graphJson)$")
 BLOCK_RE = re.compile(r"^<!-- hatsu:block ([A-Za-z]+) -->$", re.M)
 ASK = "<!-- hatsu:ask -->"
+OPTION = re.compile(r"^- \*\*[A-Z]\*\* · ")
 STAR = "⭐"
 ENTITY = re.compile(r"&(amp|lt|gt|quot|#39);")
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+LIST_ITEM = re.compile(r"^ {0,3}([-*+]|\d{1,9}[.)])( |$)")
+PRE_SLOT = re.compile(r"<pre>\{\{([A-Za-z_.]+)\}\}</pre>")
 
 def esc(v):
     return html.escape("" if v is None else str(v), quote=True).replace("&#x27;", "&#39;")
 
-def render(variant, template, data, out, graph):
+def nen_render(variant, template, data, out, graph, *extra):
     argv = [nen, "report", "render", "--variant", variant, "--template", template, "--data", data,
-            "--out", out, "--repo", work]
-    if graph:
-        argv += ["--graph", graph]
-    p = subprocess.run(argv, capture_output=True, text=True)
-    return p.returncode, p.stderr.strip()
+            "--out", out, "--repo", work, "--graph", graph, *extra]
+    return subprocess.run(argv, capture_output=True, text=True)
 
 def tokens(template, data, graph, variant):
-    argv = [nen, "report", "render", "--variant", variant, "--template", template, "--data", data,
-            "--out", os.path.join(work, "dry"), "--repo", work, "--dry-run", "--json"]
-    if graph:
-        argv += ["--graph", graph]
-    p = subprocess.run(argv, capture_output=True, text=True)
+    p = nen_render(variant, template, data, os.path.join(work, "dry"), graph, "--dry-run", "--json")
     if p.returncode != 0:
         return None
     return set(json.loads(p.stdout).get("tokens", []))
 
 def regions(text):
-    """Yield (line_no, line, kind) with kind in text | fence | pre: GFM's literal regions."""
+    """Yield (line_no, line, kind): text, or one of GFM's literal regions -- a fence (and its edge),
+    an indented code block, a <pre> block."""
     fence = None
     pre = False
+    icode = False
+    in_list = False
+    prev_blank = True
     for n, line in enumerate(text.split("\n"), 1):
+        blank = not line.strip()
         if pre:
             yield n, line, "pre"
             if "</pre>" in line:
                 pre = False
+            prev_blank = blank
             continue
         if fence:
             m = FENCE.match(line)
             if m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence) and not line.strip(" `~"):
                 fence = None
                 yield n, line, "fence-edge"
-                continue
-            yield n, line, "fence"
+            else:
+                yield n, line, "fence"
+            prev_blank = blank
             continue
+        indented = line.startswith("    ") or line.startswith("\t")
+        if icode and (blank or indented):
+            yield n, line, "icode"
+            prev_blank = blank
+            continue
+        icode = False
+        if indented and not blank and prev_blank and not in_list:
+            icode = True
+            yield n, line, "icode"
+            prev_blank = False
+            continue
+        if not blank:
+            if LIST_ITEM.match(line):
+                in_list = True
+            elif not line.startswith(" "):
+                in_list = False
         m = FENCE.match(line)
         if m:
             fence = m.group(1)
             yield n, line, "fence-edge"
-            continue
-        if line.lstrip().startswith("<pre>") and "</pre>" not in line:
-            pre = True
-        yield n, line, "pre" if line.lstrip().startswith("<pre>") else "text"
+        elif line.lstrip().startswith("<pre>"):
+            pre = "</pre>" not in line
+            yield n, line, "pre"
+        else:
+            yield n, line, "text"
+        prev_blank = blank
 
 def cells(row):
     row = row.strip()
@@ -167,6 +214,18 @@ def cells(row):
     if row.endswith("|") and not row.endswith("\\|"):
         row = row[:-1]
     return len(re.split(r"(?<!\\)\|", row))
+
+def newlines(value, pre_keys, path="$"):
+    """Every string with a newline outside a <pre> slot: in the Markdown it ends the line it sits on,
+    so a value could open a forged ask or an unclosed fence."""
+    if isinstance(value, dict):
+        for k, v in value.items():
+            yield from newlines(v, pre_keys, f"{path}.{k}") if not (isinstance(v, str) and k in pre_keys) else ()
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from newlines(v, pre_keys, f"{path}[{i}]")
+    elif isinstance(value, str) and ("\n" in value or "\r" in value):
+        yield path
 
 def check_markdown(variant, md, data, where):
     if "{{" in md:
@@ -207,14 +266,15 @@ def check_markdown(variant, md, data, where):
         for i, c in enumerate(chunks, 1):
             if "gates" in data:   # a register ask ends at the next gate heading
                 c = re.split(r"^### ", c, flags=re.M)[0]
-            stars = c.count(STAR)
+            stars = sum(1 for l in c.split("\n") if OPTION.match(l) and STAR in l)
             if stars != 1:
                 find(f"{where}: ask {i} carries {stars} starred option(s); exactly one is the rule")
     # --- GFM's literal regions and tables --------------------------------------------------------
     header = None
     for n, line, kind in regions(md):
-        if kind == "fence" and ENTITY.search(line):
-            find(f"{where}:{n}: an escaped entity inside a code fence shows literally in GFM: {line.strip()[:80]}")
+        if kind in ("fence", "icode") and ENTITY.search(line):
+            what = "a code fence" if kind == "fence" else "an indented code block"
+            find(f"{where}:{n}: an escaped entity inside {what} shows literally in GFM: {line.strip()[:80]}")
         if kind != "text":
             header = None
             continue
@@ -246,20 +306,18 @@ def check_html_order(variant, page, where):
     if order != [b for b in declared if b in dict((x, 1) for _, x in seen)]:
         find(f"{where}: the HTML render's blocks run {order}, not the declared order")
 
-def check_template_static(path):
-    text = open(path, encoding="utf-8").read()
+def check_template_static(path, text):
     lines = text.split("\n")
     for n, line in enumerate(lines, 1):
         for m in re.finditer(r"\{\{\{\s*([^}]*?)\s*\}\}\}", line):
             ok = (m.group(1) == "graphMermaid" and line.strip() == m.group(0)
                   and n >= 2 and lines[n - 2].strip() == "```mermaid" and n < len(lines) and lines[n].strip() == "```")
             if not ok:
-                find(f"{os.path.relpath(path, root)}:{n}: a raw slot '{m.group(0)}' outside the mermaid fence; every other value is escaped")
+                find(f"{rel(path)}:{n}: a raw slot '{m.group(0)}' outside the mermaid fence; every other value is escaped")
         for m in re.finditer(r"(`+)([^`]*\{\{[^`]*)\1", line):
-            find(f"{os.path.relpath(path, root)}:{n}: a value inside a code span renders its escape literally: {m.group(0)[:80]}")
+            find(f"{rel(path)}:{n}: a value inside a code span renders its escape literally: {m.group(0)[:80]}")
 
 graph_default = os.path.join(root, "templates/graph.example.json")
-checked_templates = set()
 for v in variants:
     t = sections[v].get("template")
     if not t:
@@ -269,32 +327,51 @@ for v in variants:
     html_t = os.path.join(root, "templates", f"{t}.html")
     data_p = os.path.join(root, "templates/report-examples", f"{v}.data.json")
     example = os.path.join(root, "templates/report-examples", f"{v}.md")
+    own_graph = os.path.join(root, "templates/report-examples", f"{v}.graph.json")
+    graph = own_graph if os.path.isfile(own_graph) else graph_default
     missing = [p for p in (md_t, html_t, data_p) if not os.path.isfile(p)]
     if missing:
         for p in missing:
-            find(f"{os.path.relpath(p, root)}: missing for variant {v}")
+            find(f"{rel(p)}: missing for variant {v}")
         continue
-    if md_t not in checked_templates:
-        check_template_static(md_t)
-        checked_templates.add(md_t)
+    md_text = read_text(md_t)
+    data_text = read_text(data_p)
+    if md_text is None or data_text is None:
+        continue
+    check_template_static(md_t, md_text)
     try:
-        data = json.load(open(data_p, encoding="utf-8"))
+        data = json.loads(data_text)
     except ValueError as e:
-        find(f"{os.path.relpath(data_p, root)}: not JSON ({e})")
+        find(f"{rel(data_p)}: not JSON ({e})")
         continue
-    graph = None if "graphMermaid" in data else graph_default
+    if not isinstance(data, dict):
+        find(f"{rel(data_p)}: not a data document (a JSON object), but {type(data).__name__}")
+        continue
+    if "graphMermaid" in data:
+        find(f"{rel(data_p)}: carries graphMermaid; a Markdown render takes the graph from --graph only, "
+             "where nen serialises it from a validated document")
+        continue
+    pre_keys = {k.split(".")[-1] for k in PRE_SLOT.findall(md_text)}
+    for path in newlines(data, pre_keys):
+        find(f"{rel(data_p)}: {path} carries a newline outside a <pre> slot; in Markdown it ends the line it sits on")
     out_md = os.path.join(work, f"{v}.md")
     out_html = os.path.join(work, f"{v}.html")
-    rc, err = render(v, md_t, data_p, out_md, graph)
-    if rc != 0:
-        find(f"templates/{t}.md: variant {v} does not render from {os.path.relpath(data_p, root)} (exit {rc}): {err.splitlines()[0] if err else ''}")
+    p = nen_render(v, md_t, data_p, out_md, graph)
+    if p.returncode != 0:
+        err = p.stderr.strip()
+        find(f"templates/{t}.md: variant {v} does not render from {rel(data_p)} (exit {p.returncode}): {err.splitlines()[0] if err else ''}")
         continue
-    rc, err = render(v, html_t, data_p, out_html, graph)
-    if rc != 0:
-        find(f"templates/{t}.html: variant {v} does not render from the same document (exit {rc}): {err.splitlines()[0] if err else ''}")
+    p = nen_render(v, html_t, data_p, out_html, graph)
+    if p.returncode != 0:
+        err = p.stderr.strip()
+        find(f"templates/{t}.html: variant {v} does not render from the same document (exit {p.returncode}): {err.splitlines()[0] if err else ''}")
     else:
-        check_html_order(v, open(out_html, encoding="utf-8").read(), f"templates/{t}.html [{v}]")
-    md = open(out_md, encoding="utf-8").read()
+        page = read_text(out_html)
+        if page is not None:
+            check_html_order(v, page, f"templates/{t}.html [{v}]")
+    md = read_text(out_md)
+    if md is None:
+        continue
     check_markdown(v, md, data, f"templates/{t}.md [{v}]")
     tm, th = tokens(md_t, data_p, graph, v), tokens(html_t, data_p, graph, v)
     if tm is None or th is None:
@@ -303,12 +380,17 @@ for v in variants:
         extra = sorted(tm - th - {"graphMermaid"})
         if extra:
             find(f"templates/{t}.md names token(s) templates/{t}.html does not: {', '.join(extra)}; one data document feeds both")
+        dropped = sorted(x for x in th - tm if not HTML_ONLY.match(x))
+        if dropped:
+            find(f"templates/{t}.html names token(s) templates/{t}.md does not: {', '.join(dropped)}; the Markdown dropped what the page shows")
     if write:
         shutil.copy(out_md, example)
     if not os.path.isfile(example):
-        find(f"{os.path.relpath(example, root)}: the checked example for {v} is missing (run with --write-examples)")
-    elif open(example, encoding="utf-8").read() != md:
-        find(f"{os.path.relpath(example, root)}: not a fresh render of templates/{t}.md (run with --write-examples)")
+        find(f"{rel(example)}: the checked example for {v} is missing (run with --write-examples)")
+    else:
+        ex = read_text(example)
+        if ex is not None and ex != md:
+            find(f"{rel(example)}: not a fresh render of templates/{t}.md (run with --write-examples)")
 
 for f in findings:
     print(f)

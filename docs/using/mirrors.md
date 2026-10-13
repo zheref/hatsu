@@ -60,21 +60,20 @@ The ownership rule (`ours`), the `.gitignore` prohibition and the bell fallback 
 
 ## 3 · Regenerating
 
-From the repository root, one line per surface, in the same commit as the source change:
+From the repository root, in the same commit as the source change, one plain call
+(zheref/hatsu#218):
 
 ```sh
-v="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
-for s in codex cursor antigravity; do
-  case "$s" in antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;; codex) root='${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;; *) root="\${HATSU_PLUGIN_ROOT:-./.$s}" ;; esac  # the roots scripts/surface_mirror_check.sh expects; any other reads hand-edited: hooks.json
-  nen surface mirror generate --surface "$s" --source claude/skills --agents claude/agents \
-    --out "surfaces/$s" --invocation-prefix hatsu: --models nen/workflow.json \
-    --permissions contracts/permissions.json --hooks hooks/hooks.json --rules claude/rules/hatsu.md --source-surface claude \
-    --hooks-root "$root" --manifest .claude-plugin/plugin.json --stamp "$v"
-done
+bash scripts/surface_mirror_regenerate.sh --dry-run   # the three generate lines it runs, nothing written
+bash scripts/surface_mirror_regenerate.sh             # codex, cursor, antigravity at the manifest's stamp
 ```
 
-Each writes only the files whose bytes changed, deletes an orphan whose source is gone, and refuses at
-exit 2 to overwrite a file that does not carry the marker. There is no shell generator any more.
+It runs one `nen surface mirror generate` per surface with exactly the flags and hooks roots
+`scripts/surface_mirror_check.sh` checks against, read from that script rather than copied, so the
+generation and the drift check are one table. A refusal exits with nen's code and generates nothing
+after it. Each generate writes only the files whose bytes changed, deletes an orphan whose source is
+gone, and refuses at exit 2 to overwrite a file that does not carry the marker. nen is the generator;
+the script only calls it.
 
 ## 4 · The check
 

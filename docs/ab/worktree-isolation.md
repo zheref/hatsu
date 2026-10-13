@@ -83,7 +83,10 @@ and **(d)** were not exercised: this run's own boundary forbade creating a workt
 `rm -rf`.
 
 **Reading.** In this session the guard that refuses Bash shapes did not fire for a subagent's Bash
-calls, while the write guard did fire for its `Write` tool. Why the Bash guard was quiet here (a
+calls, while the write guard did fire for its `Write` tool. **So nothing here proves a form ACCEPTED
+by the Bash guard**: the `PATH=<d>/bin:$PATH` prefix ten § 2 offers in particular was never run
+against a guard that fires, and `gh_token_env.sh --path <d>/bin` (one plain call to a shipped script,
+the shape #218's own evidence saw work) is the form on record. Why the Bash guard was quiet here (a
 subagent's calls, auto mode, or a rule keyed to the session's own worktree) is **not established**;
 it is recorded as observed, never generalised into "the guard accepts these shapes". The refusals in
 § 1 stand as the shapes the skills must not need.
@@ -116,3 +119,31 @@ it is recorded as observed, never generalised into "the guard accepts these shap
 Shapes 6, 7 and 8's improvised reads and (d) were never in a skill block; PROCESS § *Residue* states
 their plain forms. `izanagi`'s `export GH_TOKEN` line is a dated transcript of a v0.3.0 run and is
 left as recorded.
+
+## 4. After the pre-PR review — 2026-10-13
+
+The four reviewers (Nobunaga, Feitan, Chrollo, Phinks) read the change at `adfe93b3`. What moved:
+
+- **`mugetsu` § 7's host re-pin** still carried shape (1) and called itself ten § 2's verb line; it is
+  now ten § 2's plain lines, its failures routed to `re-pin FAILED`, never ten § 3's halt.
+- **ten § 2's session bind** says, in the block, that `<verified>` comes only from a bootstrap that
+  exited `0` and that `ln` runs only once every line above exited `0`: the `||` the guard refuses
+  was that reading, and splitting the chain must not drop it.
+- **The totality claim was scoped.** PROCESS § *Residue and owned dependencies* now names the blocks
+  still carrying a refused shape — `murasaki` § 6's gated push (#188's required chain holds
+  `$(mktemp -d)` and `$(git rev-parse …)`), `susanoo` § 5a's announced-tag read, `izanagi`'s dated
+  transcript and `illumi.md`'s `--command` watch — and makes a refusal of any unlisted block a named
+  stop (G5). Whether #188's chain is split, shipped as a script or ruled exempt is a G4 question left
+  open.
+- **`docs/using/mirrors.md` § 3** ran its own loop and `python3`; it now runs
+  `scripts/surface_mirror_regenerate.sh`, which **sources** `scripts/surface_mirror_check.sh` for its
+  constants and hooks-root table instead of copying them (the check runs `main` only when executed).
+- **`surface_mirror_check.sh` and the regenerator** read a bare `nen` on `PATH` only: `[ -x nen ]`
+  after the `cd` into a Hatsu root resolved the root's own `nen/` directory, so no `nen` on `PATH`
+  exited `2` ("no surface verb") instead of `3`. Reproduced on the old script (`2`) and fixed (`3`),
+  a fixture case each.
+- **`gh_token_env.sh`** stops tracing before it reads the token: under `SHELLOPTS=xtrace` the old
+  wrapper printed it three times (counted on a stub `gh`), the new one never; it also execs with
+  `--` and refuses a `--path` holding `:`.
+- **hanten § 4's fallback** fires only on an **observed** refusal of the reviewer's `worktree add`,
+  never pre-emptively; WORKFLOW's isolation row and selection policy now say so.

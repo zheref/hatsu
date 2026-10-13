@@ -94,7 +94,25 @@ ran && fail "the command ran under a relative --path"
 run 125 "$base" -- --path "$fixture_root/absent" probe
 ran && fail "the command ran under a missing --path"
 run 125 "$base" -- --path
-ok "a relative, missing or valueless --path is refused at 125, nothing run"
+run 125 "$base" -- --path "$extra:/usr/bin" probe
+ran && fail "the command ran under a --path carrying ':'"
+ok "a relative, missing, valueless or ':'-carrying --path is refused at 125, nothing run"
+
+# Tracing never prints the token: SHELLOPTS=xtrace and `bash -x` both reach the wrapper.
+rm -f "$PROBE_RAN"
+code=0; out="$(env PATH="$base" SHELLOPTS=xtrace "$wrapper" probe 2>&1)" || code=$?
+[ "$code" = 0 ] || fail "the wrapper under SHELLOPTS=xtrace exited $code: $out"
+case "$out" in *"$token_value"*) fail "SHELLOPTS=xtrace printed the token" ;; esac
+code=0; out="$(env PATH="$base" bash -x "$wrapper" probe 2>&1)" || code=$?
+[ "$code" = 0 ] || fail "the wrapper under bash -x exited $code: $out"
+case "$out" in *"$token_value"*) fail "bash -x printed the token" ;; esac
+ok "SHELLOPTS=xtrace and bash -x never print the token"
+
+# A command whose name begins with '-' is the command, never exec's own flag.
+cp "$bin/probe" "$bin/-c"
+run 0 "$base" -- -- -c
+ran || fail "a command named -c did not run"
+ok "a command named -c runs as the command"
 
 run 125 "$base" --
 case "$out" in *"no command given"*) ;; *) fail "no-command refusal not named: $out" ;; esac

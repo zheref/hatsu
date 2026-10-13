@@ -115,4 +115,23 @@ code=0; out="$(NEN_BIN="$stub" "$regen" --bogus "$tree" 2>&1)" || code=$?
 [ "$code" = 2 ] || fail "an unknown option exited $code, not 2"
 ok "no nen is 3; a wrong root, an unstamped manifest, no surface verb and an unknown option are 2"
 
+# 5. A bare `nen` is looked up on PATH only: a root carrying its own nen/ directory (Hatsu does) with
+# no nen on PATH is 3, never "no surface verb" (the old `[ -x nen ]` read the directory as the binary).
+mkdir -p "$tree/nen"
+code=0; out="$(env -u NEN_BIN PATH=/usr/bin:/bin "$regen" "$tree" 2>&1)" || code=$?
+[ "$code" = 3 ] || fail "no nen on PATH with a nen/ directory in the root exited $code, not 3: $out"
+# An unreadable manifest is this script's own refusal line, not awk's.
+unread="$fixture_root/unread"; mkdir -p "$unread/claude/skills" "$unread/.claude-plugin"
+printf '{"version": "1.0.0"}\n' > "$unread/.claude-plugin/plugin.json"; chmod 000 "$unread/.claude-plugin/plugin.json"
+code=0; out="$(NEN_BIN="$stub" "$regen" "$unread" 2>&1)" || code=$?
+chmod 644 "$unread/.claude-plugin/plugin.json"
+if [ "$(id -u)" != 0 ]; then
+  [ "$code" = 2 ] || fail "an unreadable manifest exited $code, not 2"
+  case "$out" in "surface-mirror-regenerate: "*"missing or unreadable"*) ;; *) fail "the unreadable-manifest refusal is not the script's own: $out" ;; esac
+fi
+# One table: the regenerator carries no hooks-root table of its own, it sources the check's.
+! grep -q "printf %s '" "$regen" || fail "the regenerator carries its own hooks-root table"
+grep -q 'surface_mirror_check.sh"$' "$regen" || fail "the regenerator does not source the check"
+ok "a nen/ directory in the root is never read as nen (3); an unreadable manifest is refused by name; one table, sourced"
+
 echo "surface-mirror-regenerate-fixture: all $pass checks passed"
