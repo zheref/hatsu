@@ -124,8 +124,8 @@ it as an open question inside the issue rather than resolving it silently.
 ## 3. Reconcile against the backlog — the four searches
 
 Every `nen` call below that reads GitHub runs through `scripts/gh_token_env.sh` — `nen` never picks a
-token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`, a shape Claude
-Code's worktree-isolation guard refuses ([PROCESS.md](../../../docs/PROCESS.md) § *Residue*, #218):
+token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`
+([PROCESS.md](../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218):
 
 ```bash
 "$hatsu_root/scripts/gh_token_env.sh" nen issue search --target <owner/name> --subject "<text>" \
@@ -240,12 +240,13 @@ credentials, before it enters the plan. Write each draft to a file (a title thro
 heredoc, `cat > title.txt <<'EOF'`, so no `$` or backtick in it is expanded) and hand the files over:
 
 ```bash
-bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> --label draft title.txt body.md   # an issue, no pipe (#218)
+bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> title.txt body.md   # an issue: the files as arguments, no pipe (#218)
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> comment.md                                  # a comment
 ```
 
 Exit `0` (or `skipped`: the target is private, so a private name leaks nothing) → the draft may
-enter the plan, and the filed text is these files, byte for byte (`--title "$(cat title.txt)"`).
+enter the plan, and the filed text is these files, byte for byte (the title as `title.txt`'s one line, typed
+single-quoted; nen takes no title file yet).
 Exit `1` → replace each reported line's name with the legend's placeholder (`<product-repo-A>` …
 `<reference-repo>`, object ids per its object-id rule) and re-run until it reads `0`. Exit `2` →
 write nothing; report the guard's line — an unread private list is never a pass. The guard prints

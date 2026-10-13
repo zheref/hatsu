@@ -331,9 +331,12 @@ bare readiness reading when the PR can actually be driven.
 needs): the readiness **check** by itself is [`/pr-state`](../pr-state/SKILL.md)'s verb —
 
 ```bash
-# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root ten § 0 resolved, typed as that literal
-# path (one plain command per call, PROCESS § Residue, #218). None in hand: re-run ten § 0, or pass
-# --reviewers and explicit --approvers by hand (sharingan § 4). No manifest is parsed here.
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root ten § 0 printed, typed in its place
+# (ten § 0, #218). No manifest is parsed here; the two checks are one plain call each, and either
+# non-zero means no Hatsu root in hand: re-run ten § 0, or pass --reviewers and explicit
+# --approvers by hand (sharingan § 4).
+test -f "$hatsu_root/.claude-plugin/plugin.json"
+test -d "$hatsu_root/claude/skills"
 "$hatsu_root/scripts/gh_token_env.sh" nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 

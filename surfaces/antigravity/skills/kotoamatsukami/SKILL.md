@@ -293,8 +293,8 @@ nen shu ui-test --repo <path> [--lane <lane>]
 Never the runner's own command line typed from memory. Under `--json` the report is one document,
 where **`steps[].exitCode` is the runner's own code** and the top-level `exitCode` is nen's. **One
 plain call per selected row, never a loop over lanes**, and a duration is the report's own
-`durationMs`, never `$(date)` arithmetic — both shapes Claude Code's worktree-isolation guard refuses
-([PROCESS.md](../../../../docs/PROCESS.md) § *Residue*, #218).
+`durationMs`, never `$(date)` arithmetic (shape (5) of
+[PROCESS.md](../../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218).
 
 **Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs* is the authority):
 

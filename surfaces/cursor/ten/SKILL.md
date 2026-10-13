@@ -17,13 +17,13 @@ A newer checkout in front of you is named, never bound — `export HATSU_PLUGIN_
 (SURFACES § 1, #67).
 
 ```bash
-<base_dir>/../../../scripts/hatsu_root.sh <base_dir>  # the script under $HATSU_PLUGIN_ROOT/ first, then ../../../ as shown, then ../../../../; 1 = NOT INSTALLED: stop; --quoted: pasteable literal
+<base_dir>/../../../scripts/hatsu_root.sh <base_dir>  # under $HATSU_PLUGIN_ROOT/ first, else as shown, else ../../../../; 1 = NOT INSTALLED: stop; --quoted: a literal
 cat <hatsu_root>/nen/contract.json  # the path it printed
 nen schema check --repo <hatsu_root>  # once nen is on PATH
 ```
 
-**Every block's `$hatsu_root` is that printed path, typed** — one plain call per line, never an
-export (PROCESS § Residue, #218).
+**`$hatsu_root` in any skill block is that printed path, typed** — one plain call per line,
+never an export (#218).
 
 **You are the JSON parser**: `dependency.minimum`, `.pinned_ref`, `.source`, `.version_probe` and
 `.bootstrap.url` are literal values — **no `jq`, `yq`, `python`, no version from
@@ -74,22 +74,23 @@ per call) or, where the host was not bound, the session bind.
 | `5` bootstrap or verification failed | **§ 3** |
 
 **The session bind** — a private `mktemp -d` (`<d>`, the path it printed), **never a predictable
-`/tmp` path**; one plain call per line (PROCESS § Residue, #218):
+`/tmp` path**:
 
 ```bash
 mktemp -d
-curl -fsSL <dependency.bootstrap.url> -o <d>/nen-bootstrap.sh
-bash <d>/nen-bootstrap.sh --ref <pinned_ref>  # shell line: nen ABSENT; or
-nen bootstrap --ref <pinned_ref> --source <source> --script <d>/nen-bootstrap.sh  # verb line
-test -x <verified>  # the LAST stdout line; non-zero here or above → § 3, BEFORE any ln
+curl -fsSL <dependency.bootstrap.url> -o <d>/nen-bootstrap.sh  # exit ≠ 0 → § 3
+bash <d>/nen-bootstrap.sh --ref <pinned_ref>  # shell line, nen ABSENT; exit ≠ 0 → § 3, nothing linked
+nen bootstrap --ref <pinned_ref> --source <source> --script <d>/nen-bootstrap.sh  # or the verb line; same
+test -x <verified>  # the LAST stdout line of a bootstrap that EXITED 0; ≠ 0 → § 3
 mkdir -p <d>/bin
-ln -sfn <verified> <d>/bin/nen  # then prefix PATH=<d>/bin:$PATH per call
+ln -sfn <verified> <d>/bin/nen  # only once every line above exited 0
 ```
 
-- **Fetch to a file; never pipe the script into bash** (piped, it **exits `1`, a code in no
-  table**); the shell line only with nen absent; the verb line's `--script` required,
-  `--source` shape-checked; no pipe hides an exit code — non-zero is § 3, `rc` quoted, nothing
-  linked.
+- **Each line is one call, its exit read before the next** (the refused `||`).
+  **Fetch to a file; never pipe the script into bash** (piped, it **exits `1`**); the shell line
+  only with nen absent; the verb line's `--script` required, `--source` shape-checked; `rc` quoted.
+- Later calls take `<d>/bin` as `gh_token_env.sh --path <d>/bin` (recorded); a `PATH=<d>/bin:$PATH`
+  prefix is unproven against the guard (`docs/ab/worktree-isolation.md`).
 - Never copy or rename the binary. Publishing `nen` itself → the verb line for its tag
   (`mugetsu` § 7); the host link follows the repin (§ 4b, `bakuryuha`).
 
