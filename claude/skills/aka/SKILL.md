@@ -165,7 +165,7 @@ git -C <path> merge-base origin/<base> HEAD   # first publish only
 ```
 
 **No `$(…)` and no `||` to compute or branch a step** — the SHA is read, then typed — while the
-authorship gate stays chained to the write it gates (PROCESS.md § *Residue*, #218, #170).
+authorship gate stays chained to the write it gates (PROCESS.md § *Residue and owned dependencies*, #218, #170).
 
 **Step 4's check routes as § 7's step 0b does**: exit `1` reports every SHA it names, nothing is
 squashed and the maintainer decides; exit `2` is a wiring stop, the script's sentence quoted,

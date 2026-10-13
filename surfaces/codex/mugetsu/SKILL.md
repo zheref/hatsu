@@ -407,11 +407,16 @@ One block, then stop:
   that release is a halt, not a fallback:
 
   ```bash
-  d="$(mktemp -d)"; curl -fsSL <dependency.bootstrap.url with <newTag> in place of the pinned ref> -o "$d/nen-bootstrap.sh"
-  out="$(nen bootstrap --ref <newTag> --source <dependency.source> --script "$d/nen-bootstrap.sh")" || { rc=$?; repin="FAILED: rc $rc"; }   # ten § 2's verb line; NOT ten § 3's halt
-  verified="${out##*$'\n'}"; { [ -z "${rc:-}" ] && [ -x "$verified" ]; } || repin="${repin:-FAILED: not executable}"   # BEFORE any ln or PATH
-  [ -n "${repin:-}" ] || { mkdir -p "$d/bin" && ln -sfn "$verified" "$d/bin/nen" && export PATH="$d/bin:$PATH"; }   # the session bind, ten § 2
+  mktemp -d   # <d>, the path it printed
+  curl -fsSL <dependency.bootstrap.url with <newTag> in place of the pinned ref> -o <d>/nen-bootstrap.sh   # exit ≠ 0 → re-pin FAILED: rc <n>
+  nen bootstrap --ref <newTag> --source <dependency.source> --script <d>/nen-bootstrap.sh   # ten § 2's verb line; exit ≠ 0 → re-pin FAILED: rc <n>, NOT ten § 3's halt
+  test -x <verified>   # the LAST stdout line of a bootstrap that EXITED 0; ≠ 0 → re-pin FAILED: not executable
+  mkdir -p <d>/bin
+  ln -sfn <verified> <d>/bin/nen   # only once every line above exited 0; later calls take `gh_token_env.sh --path <d>/bin`
   ```
+
+  **One plain call per line, each exit read before the next** — ten § 2's session bind, line for
+  line ([PROCESS.md](../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218).
 
   **A non-zero exit is never hidden — and never a halt.** `ten` § 3 is the session-start supply-chain
   halt; here § 5 has already published, so a failed re-pin **links nothing, keeps the pre-release

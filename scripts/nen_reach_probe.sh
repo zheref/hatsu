@@ -21,8 +21,11 @@
 #   5, 7 BEHIND, ...), or 1 with nothing printed when no nen resolves. ten § 2c
 #   reads them; this script interprets nothing.
 #   125  this script failed before any shell ran: usage, a --root that is not a
-#        directory, $SHELL unset, not absolute or not executable. ten § 2c reads
-#        it as `not read (125, <this line>)`.
+#        directory, $SHELL empty, not absolute or not executable. ten § 2c reads
+#        it as `not read (125, <this line>)`. A $SHELL truly UNSET is not this
+#        case: bash fills an unset SHELL from the account's password entry at
+#        startup, so the probe asks that login shell (under `env -i` its PATH
+#        is the shell's own, and the reading follows from it).
 #
 # Fixture: scripts/nen_reach_probe_fixture.sh (lane reach-probe-guard).
 set -euo pipefail
@@ -45,7 +48,7 @@ done
 [ -d "$root" ] || die "--root '$root' is not a directory."
 
 login_shell="${SHELL:-}"
-[ -n "$login_shell" ] || die "\$SHELL is unset; the login shell cannot be asked."
+[ -n "$login_shell" ] || die "\$SHELL is empty; the login shell cannot be asked."
 case "$login_shell" in
   /*) : ;;
   *) die "\$SHELL '$login_shell' is not an absolute path." ;;

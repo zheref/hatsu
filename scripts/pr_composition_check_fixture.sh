@@ -31,7 +31,7 @@ make_tree() {
   local t="$work/$1"
   mkdir -p "$t/.claude-plugin" "$t/contracts" "$t/templates" "$t/docs" "$t/claude/skills/shibari"
   printf '%s\n' '{"version":"0.0.1"}' > "$t/.claude-plugin/plugin.json"
-  write_decl "$t" '"nen/", "schemas/"' '"docs/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
+  write_decl "$t" '"nen/", "schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
   cat > "$t/contracts/pr-body.requirements.json" <<'JSON'
 [
   {"name": "Why", "pattern": "^## Why\\s*$"},
@@ -43,6 +43,7 @@ JSON
     '```' '## Inside a fence, not a heading' '```' '' '## Agent attribution' > "$t/templates/pr-body.md"
   printf '%s\n' '# Workflow' '' '## Gate derivation' '' \
     'The sets are declared in [`contracts/pr-composition.json`](../contracts/pr-composition.json); it keeps `nen/` and `schemas/`.' '' \
+    'Rulings: [`ROSTER.md`](ROSTER.md); a `nen/decisions.json` row; the `owner/repo` slug is no path.' '' \
     '```bash' 'nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> --files <changed>' '```' '' \
     'Only `--policy-paths ""` with an empty process set too is refused.' '' '## Next section' '' 'Names `handbooks/` outside the section.' > "$t/docs/WORKFLOW.md"
   printf '%s\n' 'Reads contracts/pr-composition.json: `--spec-paths <specPaths>`.' > "$t/claude/skills/shibari/SKILL.md"
@@ -77,7 +78,7 @@ sed -i.bak 's/keeps `nen\/` and `schemas\/`/keeps `nen\/`, `schemas\/` and `hand
 run_case 'a prefix the section names but no set declares fails' 1 "$t" 'names `handbooks/`, which no declared gate set carries'
 
 t="$(make_tree decl-dropped)"
-write_decl "$t" '"nen/"' '"docs/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
+write_decl "$t" '"nen/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
 run_case 'a set member dropped from the declaration but still named in the section fails' 1 "$t" 'names `schemas/`, which no declared gate set carries'
 
 t="$(make_tree workflow-uncited)"
@@ -126,7 +127,7 @@ sed -i.bak 's/\^## Why\\\\s\*\$/^## Why(/' "$t/contracts/pr-body.requirements.js
 run_case 'an unparseable pattern fails by name' 1 "$t" "'Why' has an unparseable pattern"
 
 t="$(make_tree optional-stale)"
-write_decl "$t" '"nen/", "schemas/"' '"docs/"' 'no CHANGELOG entry: writes its own section' '"The flow", "Economics"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
+write_decl "$t" '"nen/", "schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow", "Economics"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
 run_case 'an optional heading the template no longer has fails' 1 "$t" "optional heading 'Economics' is not a heading of templates/pr-body.md"
 
 # --- the declaration's own shape ------------------------------------------------------------------
@@ -135,16 +136,55 @@ write_decl "$t" '' '' 'no CHANGELOG entry: writes its own section' '"The flow"' 
 run_case 'a gate row with both sets empty fails' 1 "$t" 'gateDerive.owner/repo has both sets empty'
 
 t="$(make_tree comma-entry)"
-write_decl "$t" '"nen/,schemas/"' '"docs/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
+write_decl "$t" '"nen/,schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
 run_case 'an entry carrying a comma fails' 1 "$t" "entry 'nen/,schemas/' is empty or carries whitespace or a comma"
 
 t="$(make_tree bad-optout)"
-write_decl "$t" '"nen/", "schemas/"' '"docs/"' 'no CHANGELOG entry:' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
+write_decl "$t" '"nen/", "schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry:' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
 run_case 'an opt-out with no reason fails' 1 "$t" 'directSection.optOut is not one `no CHANGELOG entry: <reason>` line'
 
 t="$(make_tree reader-missing)"
-write_decl "$t" '"nen/", "schemas/"' '"docs/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/tensho/SKILL.md"'
+write_decl "$t" '"nen/", "schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/tensho/SKILL.md"'
 run_case 'a reader that does not exist fails' 1 "$t" 'claude/skills/tensho/SKILL.md: listed in readers but missing'
+
+# --- hanten round 1 (zheref/hatsu#171): Phinks QA-16, Feitan, Chrollo --------------------------------
+t="$(make_tree multi-segment)"
+sed -i.bak 's/keeps `nen\/` and `schemas\/`/keeps `nen\/`, `schemas\/` and `.github\/actions\/`/' "$t/docs/WORKFLOW.md"
+run_case 'a multi-segment prefix no set declares fails' 1 "$t" 'names `.github/actions/`, which no declared gate set carries'
+
+t="$(make_tree file-uncovered)"
+sed -i.bak 's/a `nen\/decisions.json` row/a `README.md` row/' "$t/docs/WORKFLOW.md"
+run_case 'a file name no declared set covers fails' 1 "$t" 'names `README.md`, which no declared gate set covers'
+
+t="$(make_tree fenced-heading)"
+printf '%s\n' '# Workflow' '' '## Gate derivation' '' 'cites contracts/pr-composition.json' '' '```' '## not a heading, inside a fence' '```' '' 'Still the section: names `handbooks/`.' '' '## Next' > "$t/docs/WORKFLOW.md"
+run_case 'a ## line inside a fence does not end the section' 1 "$t" 'names `handbooks/`, which no declared gate set carries'
+
+t="$(make_tree leading-slash)"
+printf '%s\n' 'contracts/pr-composition.json' 'nen gate derive --policy-paths "/nen/,/schemas/" --files x' > "$t/claude/skills/shibari/SKILL.md"
+run_case 'a literal copy with a leading slash fails' 1 "$t" 'claude/skills/shibari/SKILL.md:2: --policy-paths carries a literal path list (/nen/,/schemas/)'
+
+t="$(make_tree undecodable)"
+printf 'nen gate derive --policy-paths "nen/" \377\n' > "$t/claude/skills/shibari/notes.md"
+run_case 'a scanned file that is not UTF-8 is a finding, never a skip' 1 "$t" 'claude/skills/shibari/notes.md: not UTF-8, so it could not be scanned for a copy'
+
+t="$(make_tree template-optout)"
+printf '%s\n' '<!-- (b) carries a `no CHANGELOG entry: <reason>` line -->' >> "$t/templates/pr-body.md"
+run_case 'the opt-out phrase in the template, even in a comment, fails' 1 "$t" 'templates/pr-body.md:15: carries the fragment opt-out phrase'
+
+t="$(make_tree reader-escape)"
+mkdir -p "$work/outside"; printf '%s\n' 'contracts/pr-composition.json' > "$work/outside/x.md"
+write_decl "$t" '"nen/", "schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "../outside/x.md"'
+run_case 'a reader outside the root is refused' 1 "$t" "reader '../outside/x.md' escapes the root"
+
+t="$(make_tree template-absolute)"
+sed -i.bak 's#"template": "templates/pr-body.md"#"template": "/etc/hosts"#' "$t/contracts/pr-composition.json"
+run_case 'an absolute template path is refused' 1 "$t" "bodyRequirements.template '/etc/hosts' escapes the root"
+
+t="$(make_tree reader-link-out)"
+ln -s "$work/outside/x.md" "$t/docs/linked.md"
+write_decl "$t" '"nen/", "schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "docs/linked.md"'
+run_case 'a reader that is a link out of the root is refused' 1 "$t" "reader 'docs/linked.md' escapes the root"
 
 # --- wiring refusals at exit 2 ----------------------------------------------------------------------
 t="$(make_tree no-decl)"; rm "$t/contracts/pr-composition.json"
