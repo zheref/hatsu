@@ -111,7 +111,7 @@ logged** (object, label, time) in the stop.
 ## 6. Reviewer rounds — the policy, and the round quorum
 
 **A reviewer round is requested after [`hanten`](../hanten/SKILL.md) settles, never before**, and never under
-`aiReviewers: off` (`optional` requests, never waits: PROCESS, *AI reviewers per consumer*).
+base-read `aiReviewers: off` (`optional` requests, never waits: PROCESS, *AI reviewers per consumer*).
 **The ceiling is two numbers in one declared home** — `nen/gates.json` → `round_policy.minRounds`
 (**N**) and `.maxRounds` (**M**), nen's from `v0.21.0`, never in prose (zheref/hatsu#102); per key, one absent, not a
 non-negative integer, or N > M takes `$hatsu_root/contracts/round_policy.default.json`'s, the source named

@@ -305,7 +305,8 @@ and resolved. **Its terminus is the merge prompt, after five checks in order, ev
    maintainer's ruling of 2026-10-11): the not-ready verdict quoted verbatim, never called `ready`, and
    one Hatsu line carrying the recorded head and each exit-`9` call's `--json` verbatim, written into the
    body's completion checklist through `nen pr edit-body` before the prompt — the durable record that
-   hanten's rounds were the review. **Under `nen/workflow.json` → `aiReviewers: optional | off`** the
+   hanten's rounds were the review. **Under an effective `aiReviewers: optional | off`** — read at the base and the default
+   branch's tip, the stricter applying, never the PR head — the
    sixth stop is instead the **hanten prompt** of [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, which replaces *The sixth stop* there:
    `failing` exactly `["rounds-owed"]` at the judged head, hanten settled, a posted bot's threads settled
    first; the verdict quoted the same way, the Hatsu line naming the setting.

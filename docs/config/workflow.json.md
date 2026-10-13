@@ -189,7 +189,7 @@ The **advance-go gate**: which repository kinds a typed `hatsu:futon ... then <s
 
 ### `aiReviewers`
 
-A top-level key, Hatsu's own (the maintainer's rulings of 2026-10-11, zheref/hatsu#245). One value for every automated reviewer in `nen/gates.json` → `reviewers[]`, gating both their **use** and their **expectation**. The rule is [`docs/PROCESS.md`](../PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*, stated once. Catalogue id `workflow.aiReviewers`, asked at adoption (`hatsu:tenkai` § 6d) and settable by hand or through `config_values.sh set`.
+A top-level key, Hatsu's own (the maintainer's rulings of 2026-10-11, zheref/hatsu#245). One value for every automated reviewer in `nen/gates.json` → `reviewers[]`, gating both their **use** and their **expectation**. The rule is [`docs/PROCESS.md`](../PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*, stated once. Catalogue id `workflow.aiReviewers`, asked at adoption (`hatsu:tenkai` § 6d) and settable by hand or through `config_values.sh set` — **effective once merged**: the skills read it at the PR's base and the default branch's tip and apply the stricter (`required` > `optional` > `off`), never the PR's own head, and an unreadable value reads `required`.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|

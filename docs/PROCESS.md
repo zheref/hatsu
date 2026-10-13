@@ -329,7 +329,27 @@ reads the key.
 paragraph). `nen/workflow.json` → `aiReviewers` is one value for **every automated reviewer** in
 `nen/gates.json` → `reviewers[]` (`CON-16`'s *configured automated reviewer*), and it gates both their
 **use** — whether `nen pr request-reviews` is called for them — and their **expectation** — whether the
-run waits for their round:
+run waits for their round.
+
+**Where the value is read — never from the pull request itself (SEC-6).** A pull request must not relax
+its own gate, so the **effective value** is read, for every decision below (request and prompt alike), from
+`nen/workflow.json` at **two refs**, never from the local checkout (which is the PR head):
+
+```bash
+gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<baseRefOid>"        -H 'Accept: application/vnd.github.raw'
+gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<default branch>"   -H 'Accept: application/vnd.github.raw'
+```
+
+— the pull request's base commit, and the default branch's tip — and the **stricter** of the two applies:
+`required` > `optional` > `off`. A read that fails, a file or key that is absent, a file that does not parse,
+or a value outside the three reads **`required`** for that ref. A PR that changes `aiReviewers` itself is
+therefore judged by the value already merged; its own change applies after it merges. That is what
+"settable by hand or by an agent" means here: `config_values.sh set`, `tenkai` § 6d or a hand edit writes
+the value, and it **takes effect through a merged change**, never on the PR that carries it. The same reads
+return that ref's `nen/gates.json` for the reviewer criterion below. The Hatsu line names the value and both
+sources, e.g. `aiReviewers: optional (base <sha>, default <sha>)`. Reading the value inside `nen pr ready`,
+as nen already does for `checks.excluded` and `round_policy.maxRounds`, is a nen follow-up; until then these
+reads are residue, named.
 
 | Value | Use | Expectation | Terminus |
 |---|---|---|---|
@@ -337,11 +357,24 @@ run waits for their round:
 | **`optional`** | requested within the caps | never waited for | Ready, or the **hanten prompt** below |
 | **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero AI-reviewer spend | never waited for | Ready, or the **hanten prompt** below |
 
-**The hanten prompt** (under `optional` and `off`): when `nen pr ready <ref> --json` at the judged head has
-`failing` exactly `["rounds-owed"]` and `hanten` has settled every finding for the change set, the PR goes
-to `en` § 5's merge prompt on hanten's rounds. `nen pr ready`'s **not-ready verdict is quoted verbatim and
+**The hanten prompt** (under an effective `optional` or `off`): when `nen pr ready <ref> --json` at the
+judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,
+and **every reviewer that row can owe is automated** (below), the PR goes to `en` § 5's merge prompt on
+hanten's rounds. `nen pr ready`'s **not-ready verdict is quoted verbatim and
 never called `ready`**, with one Hatsu line beside it naming the setting (`aiReviewers: <value>`, nen/workflow.json),
-written into the body's completion checklist through `nen pr edit-body`. **A bot that does post is settled
+written into the body's completion checklist through `nen pr edit-body`. **Every reviewer must be
+automated — the analogue of *The sixth stop*'s (e).** nen's `rounds-owed` row owes every configured
+reviewer, and `reviewers[]` may hold a human; nen `v0.21.0` exposes no structured owed list and no
+`bot`/`kind` field on a reviewer (`src/schema/gates.ts` → `ReviewerIdentity`: `name`, `login_pattern`,
+`review_check_pattern`, `round_check_pattern`, `enrolment_check_pattern`, `bounded_policy_exempt`,
+`delivery_holistic_pass`, `approves_when_posted_at_head`). So the criterion is a declared, checkable one,
+read from the base's `nen/gates.json`: **every `reviewers[]` entry's `name` is listed in
+`round_quorum.any_of`, and its `login_pattern.pattern` is anchored (begins `^`, ends `$`)**. `any_of` is
+the repository's declaration that a reviewer is one of its interchangeable bot reviewers, and its members'
+patterns are already bound to the bot's exact logins (`docs/GATE-CONFIGURATION.md` § 3, *round_quorum*).
+Hatsu's own file qualifies (`copilot`, `^(copilot|copilot-pull-request-reviewer(\[bot\])?)$`, in
+`any_of`). Where any entry misses it, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen
+exposes the owed list or a reviewer kind. **A bot that does post is settled
 first**: its threads are answered and resolved, and an unresolved thread is `unresolved-threads`, its own
 failing row, so no prompt until then. **Nothing else is relaxed**: any other failing row — `mergeable`,
 `checks-green`, `round-stalled`, `approvals-at-head`, `unresolved-threads` — ends at `cap-reached`'s
