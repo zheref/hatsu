@@ -115,8 +115,8 @@ unresolved threads, or hands the PR to `en`** — a quoted `not-ready` is report
 never left unheld, and "checks green" is never a terminus; **the words *ready*, *G2-ready* and *G4-ready*
 appear in a report or chat line only beside the quoted verdict line**; and **a `not-ready` verdict on an
 excluded or infrastructure row stays `not-ready`, naming the row** — never softened into "ready" because the
-failing check is one the maintainer ruled out (`--exclude-check` is how that ruling reaches the verdict,
-not a paraphrase). A requested reviewer round not yet posted at the current head is `not-ready` too
+failing check is one the maintainer ruled out (a `checks.excluded` entry in `nen/gates.json`, which nen reads
+at the pull request's base, is how that ruling reaches the verdict, not a paraphrase). A requested reviewer round not yet posted at the current head is `not-ready` too
 (`nen pr ready` row 4; [`sharingan`](../claude/skills/sharingan/SKILL.md) § 5). Under `getsuga` § 3 the
 release proposal's verdict returns to getsuga and § 3a merges: en rings no bell for it.
 
@@ -254,7 +254,8 @@ one owed; *review requested, not yet posted* is one in flight — wait.
 `docs/USAGE.md` § *`round_quorum`* — *"at least one round of reviews from both Copilot OR Cursor (or
 both)"* — and restated 2026-10-04: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — one bot reviewer
 suffices*; **stated once, here**, cited by [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3 and that
-ROSTER section; it complements *The fallback chain* below and replaces none of it). The repository declares
+ROSTER section; since the maintainer's ruling of 2026-10-04, *retire 2, adopt 2*, it is also what replaced
+the fallback chain, below). The repository declares
 it as **nen's** key `round_quorum` in `nen/gates.json` — `{ "any_of": [<reviewers[] names>], "minimum": <n> }`
 — and `nen pr ready` reads it from nen `0.17`: at least `minimum` of `any_of` must **have** a round on the
 PR (a posted review or a `SUCCESS` round check, at any earlier head under the `bounded` reading Hatsu runs;
@@ -271,39 +272,137 @@ An unmet quorum with no member owed (an exempt member in `any_of`; unreachable i
 `round quorum not met` and is one owed round of the first `any_of` member `reviewers[]` can request, under
 `sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in nen `v0.20.0`,
 the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
-as owed, the verdict is quoted as the verb prints it, and the owed member is handled by the rules that
-already exist — a live `exhausted[]` row: *The fallback chain* below, to the merge prompt; no row:
-`sharingan` § 6's request bound. Nothing in this paragraph is read by a Hatsu script; the verb reads the key.
+as owed, the verdict is quoted as the verb prints it, and the owed member is handled by `sharingan` § 6's
+request bound. Unavailability is observed, never declared; the stop it can lead to is defined once, below.
 
-**The fallback chain** (ruling 2026-09-29, `docs/ROSTER.md` § *Rulings of 2026-09-29* — **stated once,
-here**; `sharingan` § 6, `en` § 5/§ 6, `pr-state` § 2, `nen/decisions.json` row `reviewer-exhausted` and
-`docs/GATE-CONFIGURATION.md` § 3 cite this paragraph and restate nothing). A request the mutation accepts
-with no pending reviewer coming back — `(none reported back)`, no `review_requested` event — is not a
-request; it is the signal to read `nen/gates.json` → `reviewer_fallback`. **An exhaustion is declared,
-dated, never guessed**: a **live** `exhausted[]` row (not past its `until` date, a condition row not
-unconfirmed past 90 days from `ruled`, well-formed — `tenkai diagnose` row `gates/reviewer-fallback` names
-the rest as drift and a lapsed row is not honoured) naming the configured reviewer moves the request to
-the next identity in `chain` that `reviewers[]` carries, through the verb; **a step `reviewers[]` does not
-carry is passed over, not asked about** (declaring it is `missing-configuration` only when the maintainer
-chooses to — Cursor Bugbot, `cursor[bot]`, is installed and reviews on its own, HA-PR-#127 at
-`0e080a49` unrequested on 2026-09-29; declared in `reviewers[]` its round becomes **required on every
-PR** until nen reads the chain, so the declaration is the maintainer's call, never the run's); **a fallback request
-is a round and counts toward `round_policy.maxRounds` as any other**. With the chain exhausted, `terminal:
-hanten` — **hanten's rounds are the review**: no round is requested, no bound is touched, this terminus
-outranks `cap-reached`, and the PR goes to `en` § 5's merge prompt (§ 6 there, the sixth stop) with **the verb's
-verdict quoted as it prints it** — e.g. `not-ready: a configured reviewer's round is
-still owed at the current head (CON-32b): copilot (no round at head)`, the `round_quorum` clause appended
-where the file declares one — **and one Hatsu line beside it,
-never in its place**: `Hatsu: reviewer copilot declared exhausted (nen/gates.json reviewer_fallback, ruled
-2026-09-29); nen does not read this — zheref/nen#275`. The same line goes into the PR body's completion
-checklist through `nen pr edit-body`, written by `en` before the prompt — the one durable record that a
-hanten-only review happened. **The merge is the maintainer's**: `en` never merges, and every PR into
-`main` ends at the merge prompt (`docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*, which
-supersedes ruling 3 of 2026-09-29). No Hatsu-side
-narrowing can make the verb read past an exhausted reviewer — `--reviewers ""` is ignored where the
-target ships `nen/gates.json`, and a derived gates file with `reviewers: []` is refused by name
-(measured at nen 0.15.1, `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain*) — so
-the read in `pr ready` is nen's to add (zheref/nen#275).
+**The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
+of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on
+hanten*), keeps the 2026-09-29 intent: such a PR goes to `en` § 5's merge prompt on hanten's rounds (`en`
+§ 6, the sixth stop). **Stated once, here**; `sharingan` § 6, `en` §§ 5–6, `nen/decisions.json` rows
+`reviewer-exhausted` and `own-pr-merge`, `docs/WORKFLOW.md`'s G5 list, `docs/config/decisions.json.md` and
+that ROSTER section cite this paragraph and restate nothing. **It applies under `aiReviewers: required`**
+(the default; *AI reviewers per consumer*, below, replaces it under `optional` and `off`). It is reached **only when all five hold**,
+read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
+
+- **(a) A quorum is declared.** `nen/gates.json` carries `round_quorum` with a non-empty `any_of`. With no
+  block there is no sixth stop.
+- **(b) The round row is the only failing row.** `failing` is exactly `["rounds-owed"]` (CON-32(b)). Any
+  other failing row — `mergeable` (a conflict or a draft), `checks-green`, `round-stalled`,
+  `approvals-at-head`, `unresolved-threads`, or one this list does not name — ends at row `cap-reached`'s
+  not-ready terminus, no prompt. And on that row only `any_of` members may be owed: (e).
+- **(c) Every `any_of` member is unavailable at this head**, each by one of two observations, never by
+  declaration:
+  - `nen pr request-reviews` answered **exit `9`** for it, the bot named in `unrecordedBots` — GitHub
+    accepted the request and never recorded it (zheref/nen#277). Such a request is never retried and never
+    counted as requested. Exit `1` in the same call wins and is relayed as a failure, never read as `9`;
+  - a round-check run **at the judged head that completed without a round**, read structurally from the
+    `rounds-owed` row's `roundQuorum.members[].roundCheck`: `from` is `head` and `conclusion` is one of
+    `NEUTRAL`, `CANCELLED`, `SKIPPED`, `FAILURE` (zheref/nen#361's classification — Cursor Bugbot's
+    `NEUTRAL` "usage limit reached" is the case). **No run at head never counts**: right after a push it
+    cannot be told from a run not yet created, so it is a wait, or `round-stalled`. Nor does a run still
+    **in flight** (`QUEUED`, `IN_PROGRESS`, `PENDING`, `WAITING`), nor a pending request that never came
+    back at exit `9`.
+- **(d) The observation is bound to the judged head.** Read `headRefOid` immediately before each
+  `nen pr request-reviews` call and record it with that call's `--json` output (`unrecordedBots` and
+  `message`) **verbatim**. An exit `9` counts only when that head equals the head `en` § 5 check 5 judged;
+  otherwise it is stale, and one fresh request at the new head is owed, inside `round_policy.maxRounds`.
+- **(e) No reviewer outside `any_of` is owed.** nen's `rounds-owed` row also carries configured reviewers
+  that are not quorum members, and a met or unmet quorum never excuses them. nen `v0.21.0`'s `--json`
+  exposes **no structured list of the owed reviewers** — the row's `reason` is prose, never parsed;
+  `roundQuorum.members` names only `any_of`, and `meta.roundCounts` counts rounds, not who is owed at head.
+  So the sixth stop is reachable **only where every `reviewers[]` name in the target's `nen/gates.json` is
+  in `round_quorum.any_of`** (true of Hatsu's own file today: `copilot` in both). Where a reviewer lies
+  outside `any_of`, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen exposes the
+  owed list.
+
+At the stop, `nen pr ready`'s **not-ready verdict is quoted verbatim and never called `ready`**, and the one
+Hatsu line `en` writes into the PR body through `nen pr edit-body` carries the recorded head and the
+verbatim `--json` output of each exit-`9` call — what nen observed, not a paraphrase. The stop outranks
+the round ceiling; the merge stays the maintainer's (`en` never merges). Any unmet quorum that misses
+one of (a)–(e) stays under `sharingan` § 6's bounds. Nothing in this paragraph is read by a Hatsu script; the verb
+reads the key.
+
+**AI reviewers per consumer — `aiReviewers`** (the maintainer's rulings of 2026-10-11,
+[`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — AI reviewers per consumer*; zheref/hatsu#245 —
+**stated once, here**; `sharingan` § 6, `en` §§ 5–6, `pr-state` § 2, `nen/decisions.json` row
+`ai-reviewers`, `docs/WORKFLOW.md` § 2 → `aiReviewers` and `docs/config/workflow.json.md` cite this
+paragraph). `nen/workflow.json` → `aiReviewers` is one value for **every automated reviewer** in
+`nen/gates.json` → `reviewers[]` (`CON-16`'s *configured automated reviewer*), and it gates both their
+**use** — whether `nen pr request-reviews` is called for them — and their **expectation** — whether the
+run waits for their round.
+
+**Where the value is read — never from the pull request itself (SEC-6).** A pull request must not relax
+its own gate, so the **effective value** is read, for every decision below (request and prompt alike), from
+`nen/workflow.json` at **two refs**, never from the local checkout (which is the PR head):
+
+```bash
+gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<baseRefOid>"        -H 'Accept: application/vnd.github.raw'
+gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<default branch>"   -H 'Accept: application/vnd.github.raw'
+```
+
+— the pull request's base commit, and the default branch's tip — and the **stricter** of the two applies:
+`required` > `optional` > `off`. A read that fails, a file or key that is absent, a file that does not parse,
+or a value outside the three reads **`required`** for that ref. A PR that changes `aiReviewers` itself is
+therefore judged by the value already merged; its own change applies after it merges. That is what
+"settable by hand or by an agent" means here: `config_values.sh set`, `tenkai` § 6d or a hand edit writes
+the value, and it **takes effect through a merged change**, never on the PR that carries it. The same reads
+return that ref's `nen/gates.json` for the reviewer criterion below. The Hatsu line names the value and both
+sources, e.g. `aiReviewers: optional (base <sha>, default <sha>)`. Reading the value inside `nen pr ready`,
+as nen already does for `checks.excluded` and `round_policy.maxRounds`, is a nen follow-up; until then these
+reads are residue, named.
+
+| Value | Use | Expectation | Terminus |
+|---|---|---|---|
+| **`required`** (absent reads the same — every consumer keeps today's behaviour) | requested within `round_policy`'s caps (`sharingan` § 6) | expected | verified Ready, or *The sixth stop* (a)–(e) above |
+| **`optional`** | requested within the caps | never waited for | Ready, or the **hanten prompt** below |
+| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero AI-reviewer spend | never waited for | Ready, or the **hanten prompt** below |
+
+**The hanten prompt** (under an effective `optional` or `off`): when `nen pr ready <ref> --json` at the
+judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,
+and **every reviewer that row can owe is automated** (below), the PR goes to `en` § 5's merge prompt on
+hanten's rounds. `nen pr ready`'s **not-ready verdict is quoted verbatim and
+never called `ready`**, with one Hatsu line beside it naming the value and its source refs —
+`aiReviewers: optional (base <sha>, default <sha>)` —
+written into the body's completion checklist through `nen pr edit-body`. **Every reviewer must be
+automated — the analogue of *The sixth stop*'s (e).** nen's `rounds-owed` row owes every configured
+reviewer, and `reviewers[]` may hold a human; nen `v0.21.0` exposes no structured owed list and no
+`bot`/`kind` field on a reviewer (`src/schema/gates.ts` → `ReviewerIdentity`: `name`, `login_pattern`,
+`review_check_pattern`, `round_check_pattern`, `enrolment_check_pattern`, `bounded_policy_exempt`,
+`delivery_holistic_pass`, `approves_when_posted_at_head`). So the criterion is checked against
+`nen/gates.json` at **both refs**, the base and the default branch's tip, and **must pass at both**: **every
+`reviewers[]` entry's `name` is listed in `round_quorum.any_of`, and its `login_pattern.pattern` is anchored
+(begins `^`, ends `$`)**. **It is a declaration, not a check that a reviewer is a bot**: `any_of` is the
+repository saying a reviewer is one of its interchangeable bot reviewers, and nen does not bind a pattern
+to bot logins — an anchored `^(copilot|.+)$` passes `nen schema check` and matches every login. Declaring a
+human there is the repository's own misdeclaration, the same as a broad `any_of` pattern
+(`docs/GATE-CONFIGURATION.md` § 3, *round_quorum*). Hatsu's own file qualifies (`copilot`, `^(copilot|copilot-pull-request-reviewer(\[bot\])?)$`, in
+`any_of`). Where any entry misses it at either ref, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen
+exposes the owed list or a reviewer kind. **A bot that does post is settled
+first**: its threads are answered and resolved, and an unresolved thread is `unresolved-threads`, its own
+failing row, so no prompt until then. **Nothing else is relaxed**: any other failing row — `mergeable`,
+`checks-green`, `round-stalled`, `approvals-at-head`, `unresolved-threads` — ends at `cap-reached`'s
+not-ready terminus, no prompt; `CON-32(a)`, `(c)` and `(d)` stand as they are. This is coherent with
+`CON-16`, under which only enabled reviewers gate and the maintainer has declared these not expected, and
+with `CON-32(b)`, because the verdict is still quoted not-ready and never represented as ready; the merge
+stays the maintainer's. **Precedence:** under `required`, *The sixth stop* is unchanged; under `optional`
+and `off` this rule replaces it, being the wider one. **A value outside the three** is not read as any of
+them: it is `missing-configuration`, set through `scripts/config_values.sh set` (which refuses it, naming
+the three), and `required` applies meanwhile. **`round_policy.maxRounds: 0` is not an off switch** — it
+stops requests, but nen still owes the round, so under `required` the PR stays not-ready with no prompt;
+this key is the off switch.
+
+**The fallback chain — retired** (ruling 2026-09-29, retired by the maintainer's ruling of 2026-10-04,
+*retire 2, adopt 2*: [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — retire 2, adopt 2*;
+zheref/hatsu#227). Hatsu's `nen/gates.json` → `reviewer_fallback` — a chain of reviewer identities, a
+`terminal: hanten`, and dated `exhausted[]` rows that sent a PR to the merge prompt on hanten's review alone
+— is deleted, superseded by `round_quorum` and zheref/nen#361: one available bot's round fulfils an
+exhausted member's, which is what the chain existed to buy. nen `v0.21.0` refuses the key outright
+(zheref/nen#310), so it cannot be declared again. **No exhaustion is declared anywhere now**, and nothing
+narrows the verdict past an owed reviewer on Hatsu's side; a request the mutation accepts with no pending
+reviewer coming back is reported by the verb at exit `9`, the bot in `unrecordedBots` (zheref/nen#277) —
+the observation the paragraph above acts on. The chain's terminus survives in that form, by the ruling of
+2026-10-11. The 2026-09-29 record stays in ROSTER
+as history; `docs/ab/sharingan.md` § *Dated 2026-09-29 — the reviewer fallback chain* is its evidence.
 
 ## Resuming a run
 
@@ -450,7 +549,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
-  default target is a `nen/workflow.json` key nen neither validates nor reads (`deploy.defaultTarget`);
+  default target is a `nen/workflow.json` key nen validates from `v0.21.0` and never acts on (`deploy.defaultTarget`,
+  whose target must carry `project.targets.<name>.nonProduction: true`, zheref/nen#300);
   nen's own `shu deploy` still takes `--target` explicitly, and the skill still passes it.
 - **`kagutsuchi` § 3b.** `git fetch`, `git worktree list|add --detach|remove --force`, `git checkout
   --detach`, `git ls-files`, `git check-ignore`, `git status --porcelain`, `mktemp`, `cp -p` and `mv -f`

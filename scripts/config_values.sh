@@ -759,10 +759,18 @@ def _set_value(repo, rows, rid, literal):
         raise Defect(f"refusing: {row['path']} takes an environment-variable NAME, never the secret")
     if row.get("nonProductionTarget") and value is not None:
         _, targets = repo.lookup("nen/contract.json", "project.targets")
-        why = (targets or {}).get(value, {}).get("why", "") if isinstance(targets, dict) and isinstance(value, str) else ""
+        target = (targets or {}).get(value, {}) if isinstance(targets, dict) and isinstance(value, str) else {}
+        target = target if isinstance(target, dict) else {}
+        why = target.get("why", "")
         if "non-production" not in str(why).lower():
             raise Defect(f"refusing {value!r}: it must name a project.targets key whose `why` reads "
                          f"non-production (kagutsuchi § 2 reads it failing closed); production is mugetsu's at G3")
+        # nen 0.21 (zheref/nen#300) FAILs `nen schema check` on a defaultTarget whose target is not
+        # typed non-production, so the prose alone would write a declaration nen refuses.
+        if target.get("nonProduction") is not True:
+            raise Defect(f"refusing {value!r}: project.targets.{value}.nonProduction must be true -- nen 0.21+ "
+                         f"FAILs nen schema check on a deploy.defaultTarget naming a target not marked "
+                         f"nonProduction: true (zheref/nen#300); set the flag in nen/contract.json first")
     problems = secret_problems(value, row["path"])
     if problems:
         raise Defect("refusing to write a credential into a tracked file — export it and write only its "
@@ -993,7 +1001,8 @@ def self_test(root):
         check("a present null on an enum outside its options is invalid", st["b.enum"]["state"] == INVALID)
         check("a secret-env value that is not a NAME is invalid in diagnose", st["b.env"]["state"] == INVALID)
         (rp / "nen/contract.json").write_text(
-            '{"project": {"targets": {"beta": {"why": "non-production beta"}, "store": {"why": "the App Store"}}}}\n')
+            '{"project": {"targets": {"beta": {"why": "non-production beta", "nonProduction": true}, '
+            '"unflagged": {"why": "non-production beta"}, "store": {"why": "the App Store"}}}}\n')
         st = {r["id"]: r for r in diagnose(Repo(rp), extra)}
         check("a deliberate null is an answer: optional, offered, never outstanding",
               st["b.target"]["state"] == OPTIONAL and st["b.target"].get("typed"))
@@ -1002,6 +1011,12 @@ def self_test(root):
             check("set refuses a production default target", False)
         except Defect:
             pass
+        try:
+            set_value(Repo(rp), extra, "b.target", '"unflagged"')
+            check("set refuses a non-production why with no nonProduction: true (nen 0.21, zheref/nen#300)", False)
+        except Defect as e:
+            check("set refuses a non-production why with no nonProduction: true (nen 0.21, zheref/nen#300)",
+                  "nonProduction must be true" in str(e))
         set_value(Repo(rp), extra, "b.target", '"beta"')
         check("set accepts a non-production default target",
               json.loads((rp / "nen/workflow.json").read_text())["deploy"]["defaultTarget"] == "beta")
@@ -1113,6 +1128,36 @@ def self_test(root):
     probs = catalogue_problems(root, real_cat, real_rows)
     for p in probs:
         failures.append(f"shipped catalogue: {p}")
+
+    # aiReviewers (the maintainer's rulings of 2026-10-11, zheref/hatsu#245): a top-level enum,
+    # required | optional | off, default required, settable by hand or by an agent on any consumer.
+    ai = [r for r in real_rows if r.get("id") == "workflow.aiReviewers"]
+    check("the shipped catalogue carries workflow.aiReviewers as enum required | optional | off, default required",
+          len(ai) == 1 and ai[0]["kind"] == "enum" and ai[0]["options"] == ["required", "optional", "off"]
+          and ai[0]["default"] == "required" and ai[0]["path"] == "aiReviewers")
+    if len(ai) == 1:
+        with tempfile.TemporaryDirectory() as d:
+            ap = Path(d)
+            (ap / "nen").mkdir()
+            (ap / "nen/workflow.json").write_text('{\n  "branch": {"base": "main"}\n}\n')
+            st = {r["id"]: r["state"] for r in diagnose(Repo(ap), ai)}
+            check("aiReviewers absent is its default unwritten, never outstanding", st["workflow.aiReviewers"] == UNWRITTEN)
+            try:
+                set_value(Repo(ap), ai, "workflow.aiReviewers", '"maybe"')
+                check("set refuses an aiReviewers value outside its three, naming them", False)
+            except Defect as e:
+                check("set refuses an aiReviewers value outside its three, naming them",
+                      all(v in str(e) for v in ("required", "optional", "off")))
+            for v in ("optional", "off", "required"):
+                set_value(Repo(ap), ai, "workflow.aiReviewers", json.dumps(v))
+                doc = json.loads((ap / "nen/workflow.json").read_text())
+                check(f"set writes aiReviewers {v} at the top level, annotated",
+                      doc.get("aiReviewers") == v and doc.get("$aiReviewers") == "one of: required | optional | off")
+            check("aiReviewers set is ok in diagnose",
+                  {r["id"]: r["state"] for r in diagnose(Repo(ap), ai)}["workflow.aiReviewers"] == SET)
+            (ap / "nen/workflow.json").write_text('{"aiReviewers": "sometimes"}\n')
+            check("an aiReviewers value outside the three is invalid in diagnose",
+                  {r["id"]: r["state"] for r in diagnose(Repo(ap), ai)}["workflow.aiReviewers"] == INVALID)
 
     for f in failures:
         print(f"FAIL  {f}")

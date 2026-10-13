@@ -97,7 +97,7 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.20` and `dependency.pinned_ref` is `v0.20.0`: the first is the
+> independently.** `dependency.minimum` is `0.21` and `dependency.pinned_ref` is `v0.21.0`: the first is the
 > pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
@@ -249,7 +249,9 @@ question, not an answered one.
 "deploy": { "defaultTarget": "<a key of project.targets, or null>" }
 ```
 
-**Hatsu's own key, read by [`kagutsuchi`](../claude/skills/kagutsuchi/) § 1 and by nothing in nen** (zheref/hatsu#146; the maintainer's
+**Read by [`kagutsuchi`](../claude/skills/kagutsuchi/) § 1; validated, never acted on, by nen from `v0.21.0`** (zheref/nen#300: `nen schema check`
+FAILs a `defaultTarget` naming an undeclared target or one not marked `project.targets.<name>.nonProduction: true`,
+so a default target carries that flag as well as a non-production `why`; zheref/hatsu#146; the maintainer's
 ruling of 2026-09-29: *"rely on a default value from one of our configuration files … so that it
 doesn't always require destination and it can be easily chained with other skills like futon"*).
 `defaultTarget` names the destination a `hatsu:kagutsuchi` invocation typed with **no target** sends to — **a typed target always overrides it, the report says which source the target came
@@ -394,6 +396,16 @@ conflict waiting to be resolved by coin toss.
 | Key | Default | Read by |
 |---|---|---|
 | `publish` | `none` | `direct` only, under `build` or standalone on an issue — never under `ren`, which cannot leave the machine (ren § 3). **`none`** (absent reads the same) keeps the verdict in the report and the local ledger `.nen/direct/<effort>.json`; **`label`** applies the primary pick's model **line** as one `model/<line>` label (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply`, a label the consumer's `nen/labels.json` has not declared being the verb's refusal; **`label+comment`** adds one marker-keyed issue comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version ([`direct`](../claude/skills/direct/) § 7; `contracts/direct.registry.json` → `publish`). The maintainer's ruling of 2026-10-05; `nen schema check` tolerates the block |
+
+### `aiReviewers`
+
+```json
+"aiReviewers": "required"
+```
+
+| Key | Default | Read by |
+|---|---|---|
+| `aiReviewers` | `required` | `sharingan` § 6 and `en` §§ 5–6. One value for **every automated reviewer** in `nen/gates.json` → `reviewers[]`, gating both their **use** (whether a round is requested) and their **expectation** (whether readiness waits for it). **`required`** (absent reads the same) — requested within `round_policy`'s caps and expected; **`optional`** — requested within the caps, never waited for; **`off`** — never requested, zero AI-reviewer spend. Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed` goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. The rule is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*; the maintainer's rulings of 2026-10-11 (zheref/hatsu#245). Read at the PR's **base** and the **default branch's tip**, the stricter applying, never the PR head, so a change takes effect once merged; under `optional`/`off` every `reviewers[]` entry must also be in `round_quorum.any_of` with an anchored `login_pattern` at both refs. Hatsu's own value is `optional`. `nen schema check` tolerates the key; `round_policy.maxRounds: 0` is **not** an off switch (nen still owes the round), this key is |
 
 ### `review`
 
@@ -975,7 +987,7 @@ attrition. The loop simply stops and waits.
 2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
-5. **a `sharingan` escalation** — a PR that will not reach Ready. **A declared reviewer exhaustion is not one** (ruling 2026-09-29): the PR goes to `en` § 5's merge prompt on hanten's review, `nen/decisions.json` rows `reviewer-exhausted` and `own-pr-merge`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
+5. **a `sharingan` escalation** — a PR that will not reach Ready. **An exhausted reviewer is not one**: a met round quorum fulfils its round, and at the sixth stop — every quorum member unavailable, its predicate stated once in `docs/PROCESS.md` § *Reviewer rounds and review threads*, *The sixth stop* — the PR goes to `en` § 5's merge prompt on hanten's rounds, the not-ready verdict quoted verbatim (ruling 2026-10-11, *prompt on hanten*), and under `aiReviewers: optional | off` whenever `rounds-owed` is the only failing row — `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
 
 **A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
@@ -1045,8 +1057,8 @@ scaffolding piece — **does not end the operation**. In order:
    repository such as `<reference-repo>`, another owner's `nen/repos.json` — **is reported, never
    written.** **A maintainer ruling that changes what readiness reads** — a check not to watch, a
    reviewer identity, an approval policy — **is `missing-configuration` too** (zheref/hatsu#104): it is
-   written into `nen/gates.json` (`check_exclusions[]`, `reviewers`, `approval_policy`) at that
-   repository's gate and the verb re-read, never carried in prose or a subagent's brief.
+   written into `nen/gates.json` (`checks.excluded[]`, nen's own key, `reviewers`, `approval_policy`) at
+   that repository's gate and the verb re-read, never carried in prose or a subagent's brief.
 4. **Resume the original operation in the same turn**, with the completed line re-parsed.
 
 **What counts as "required" is data, not each skill's memory** (the maintainer's ruling of

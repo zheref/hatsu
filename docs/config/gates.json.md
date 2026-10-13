@@ -1,10 +1,10 @@
 # `nen/gates.json` — who reviews, what approves, and which checks are watched
 
-> **Lives in** the consumer repository · **Written by** the maintainer by hand; `hatsu:tenkai` routes the initial file to `nen scaffold init` and writes none of its values, and a ruling that changes what readiness reads lands here through [WORKFLOW § 4](../WORKFLOW.md) step 3 at the repository's own gate · **Validated by** the `nen/gates.json` row of `nen schema check --repo .` for nen's keys, and the `gates/check-exclusions` and `gates/reviewer-fallback` rows of `scripts/tenkai_adopt.sh diagnose` for Hatsu's keys · **Authority** [`docs/GATE-CONFIGURATION.md`](../GATE-CONFIGURATION.md)
+> **Lives in** the consumer repository · **Written by** the maintainer by hand; `hatsu:tenkai` routes the initial file to `nen scaffold init` and writes none of its values, and a ruling that changes what readiness reads lands here through [WORKFLOW § 4](../WORKFLOW.md) step 3 at the repository's own gate · **Validated by** the `nen/gates.json` row of `nen schema check --repo .` — every key in the file is nen's from `v0.21.0`, which refuses one it does not read — and the `gates/retired-keys` row of `scripts/tenkai_adopt.sh diagnose`, which names the migration for Hatsu's two retired keys · **Authority** [`docs/GATE-CONFIGURATION.md`](../GATE-CONFIGURATION.md)
 
 ## What it decides
 
-`nen pr ready` evaluates five conjuncts and this file supplies the reviewer half of them: which logins count as a review round (`CON-32(b)`), whether an `APPROVED` review is also required (`CON-16`), how many rounds a run may ask for, which reported checks a maintainer has ruled out of the verdict, and which reviewer stands in when another runs out of credits. Every skill that reads readiness reads it through the verb: `hatsu:pr-state` § 2 quotes the verdict, `hatsu:sharingan` § 6 requests the owed rounds inside its bounds, `hatsu:en` holds the PR to Ready, `hatsu:getsuga` § 6 reads its own release-proposal PR the same way, and `hatsu:tenkai` § 3 diagnoses the two Hatsu-owned keys for drift. The adopted readiness workflow passes `--gates "$PWD/.trusted/nen/gates.json"`, the copy on the base branch, so an edit here governs other pull requests only once it is merged (GATE-CONFIGURATION § 5).
+`nen pr ready` evaluates five conjuncts and this file supplies the reviewer half of them: which logins count as a review round (`CON-32(b)`), whether an `APPROVED` review is also required (`CON-16`), how many rounds a run may ask for, which reported checks a maintainer has ruled out of the verdict, and how many bot reviewers' rounds suffice when one runs out of credits. Every skill that reads readiness reads it through the verb: `hatsu:pr-state` § 2 quotes the verdict, `hatsu:sharingan` § 6 requests the owed rounds inside its bounds, `hatsu:en` holds the PR to Ready, `hatsu:getsuga` § 6 reads its own release-proposal PR the same way, and `hatsu:tenkai` § 3 names a retired Hatsu key still in the file. The adopted readiness workflow passes `--gates "$PWD/.trusted/nen/gates.json"`, the copy on the base branch, so an edit here governs other pull requests only once it is merged (GATE-CONFIGURATION § 5).
 
 When the file is wrong the failure is quiet: a reviewer pattern that never matches owes a round at every head and the gate never closes; a pattern that is too broad lets any comment satisfy a round; a wrong `head_ref_prefixes` classifies every delivery PR as not yours; an empty `default_approvers` without `approval_policy` is refused by the loader; a check excluded in chat rather than here reads red on every verdict. Copying `zheref/hatsu`'s file is the mistake GATE-CONFIGURATION § 1 exists to prevent: the identities in it are Hatsu's.
 
@@ -12,7 +12,7 @@ When the file is wrong the failure is quiet: a reviewer pattern that never match
 
 ### Top level
 
-The file is one JSON object. Keys whose name starts with `$` are metadata nen preserves and never reads (`$comment`, `$check_exclusions`).
+The file is one JSON object. Keys whose name starts with `$` are metadata nen preserves and never reads (`$comment`). **Every other key must be one the running nen reads**: from `v0.21.0` an unread key is refused by pointer (`pr ready`, `pr next-blocker` and `schema check` exit `2`), with a nearest-key hint for a misspelling (zheref/nen#310).
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
@@ -20,7 +20,7 @@ The file is one JSON object. Keys whose name starts with `$` are metadata nen pr
 
 ### `reviewers[]`
 
-Who counts as a review round. One entry per identity, bot or human, declared the same way. Names declared here are what `base_reviewers`, `reviewer_fallback.chain` and `round_quorum.any_of` refer to.
+Who counts as a review round. One entry per identity, bot or human, declared the same way. Names declared here are what `base_reviewers` and `round_quorum.any_of` refer to.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
@@ -68,36 +68,27 @@ Optional. A dependency-bump PR has its review rounds cleared only once the named
 
 ### `round_policy`
 
-Two owners in one object, per field. `stallMinutes` is nen's; `minRounds` and `maxRounds` are Hatsu's own keys, preserved as raw data by `nen schema check`, with their canon default in [`contracts/round_policy.default.json`](../../contracts/round_policy.default.json).
+Every field is nen's: `stallMinutes` from `0.11`, `minRounds` and `maxRounds` from `v0.21.0` (zheref/nen#240), adopted under the names Hatsu already used by the maintainer's ruling of 2026-10-04 (*retire 2, adopt 2*). nen validates them by pointer (non-negative integers, N ≤ M); a key absent here takes its canon default from [`contracts/round_policy.default.json`](../../contracts/round_policy.default.json) in the skills, and nen enforces no ceiling it was not given. Neither cap is a readiness conjunct.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `stallMinutes` | integer | nen's built-in default; Hatsu's file says `30` | a pending review request older than this reads `not-ready: reviewer round stalled` | `nen pr ready`; `en` § 6 |
-| `minRounds` (N) | non-negative integer | `1` from the canon default | once N rounds stand resolved, no further round is requested | `sharingan` § 6; `en` |
-| `maxRounds` (M) | non-negative integer, N ≤ M | `3` from the canon default | the request ceiling; M requested with fewer than N resolved is the reported blocker, quoted from `nen pr ready --explain` | `sharingan` § 6; `en` |
+| `minRounds` (N) | non-negative integer | `1` from the canon default | the skills: once N rounds stand **resolved**, no further round is requested; nen: the **posted** rounds a reviewer stands owed, shown in `pr ready --explain` | `sharingan` § 6; `en`; `nen pr ready --explain` (`meta.roundCounts`) |
+| `maxRounds` (M) | non-negative integer, N ≤ M | `3` from the canon default | the request ceiling: `nen pr request-reviews` refuses a bot's request past it at exit `2`, the lower of the base's and the default branch's value applied; M requested with fewer than N resolved is the reported blocker, quoted from `nen pr ready --explain` | `nen pr request-reviews`; `sharingan` § 6; `en` |
 
-### `check_exclusions[]`
+### `checks.excluded[]`
 
-Hatsu's own key (zheref/hatsu#104): the one declared home of a maintainer's ruling that a named check is not watched. An empty array is a decision. Every live row becomes one argv element of `nen pr ready --exclude-check`.
-
-| Key | Type | Values · default | Represents | Read by |
-|---|---|---|---|---|
-| `name` | string | the check exactly as the rollup reports it; letters, digits, spaces and `. _ / ( ) -` only, no comma, quote, shell metacharacter or control byte | the check left out of `CON-32(a)` | `pr-state` § 2 owns the rule; `sharingan`, `en`, `getsuga` through `en` |
-| `reason` | string | free text | why | the report |
-| `ruled` | `YYYY-MM-DD` | not in the future | when the ruling was made | `tenkai_adopt.sh diagnose` |
-| `until` | `YYYY-MM-DD` or `condition: <what lifts it>` | a near-miss date is refused, never read as a condition | when the ruling lapses; a condition row is re-examined every 90 days from `ruled` | `tenkai_adopt.sh diagnose` |
-
-A row that cannot be passed safely is `drift` at the declaration and is never put on the call. An empty rollup after exclusion is not-ready by nen's own rule.
-
-### `reviewer_fallback`
-
-Hatsu's own key (the ruling of 2026-09-29). The row, not the behaviour: the behaviour is [`docs/PROCESS.md`](../PROCESS.md) § *Reviewer rounds and review threads*, *The fallback chain*. nen reads neither this key nor `check_exclusions` (zheref/nen#275).
+nen's key (from `v0.20.0`, zheref/nen#249): the one declared home of a maintainer's ruling that a named check is not watched. It replaces Hatsu's `check_exclusions`, retired by the ruling of 2026-10-04 (*retire 2, adopt 2*). `nen pr ready` and `pr next-blocker` read it **at the pull request's base**, never its head, and apply it themselves: no skill passes `--exclude-check` for it. An empty list is a decision.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `chain` | string[] | reviewer names in fallback order; a step `reviewers[]` does not carry is passed over | who is requested when the one before is exhausted | `sharingan` § 6; `en` § 6; `tenkai` (`gates/reviewer-fallback`) |
-| `terminal` | string | `hanten` · the only admissible value | the one non-reviewer at the end: the local `hatsu:hanten` rounds, never requested | `sharingan`, `en`, `tenkai` |
-| `exhausted[]` | `{reviewer, reason, ruled, until}` | shaped as `check_exclusions` rows one key over; live only while not lapsed | a reviewer whose round will not arrive | `sharingan`, `en` § 6 (the hold ends, the verdict is quoted with the exhaustion line) |
+| `name` | string | the check's rollup label, compared whole; a comma, bracket or quote is part of the name | the check left out of `CON-32(a)` | `nen pr ready`, `pr next-blocker`; `pr-state` § 2 quotes the verdict |
+| `match` | string | `exact` (the default for a name with no `*`) \| `glob`; required when `name` carries `*`, and a glob needs 3 literal characters before its first `*` | how `name` is compared | `nen pr ready` |
+| `reason` | string | free text | why; quoted beside every check it drops | `nen pr ready` |
+| `ruled` | `YYYY-MM-DD` | strict; a date after today (UTC) is not yet in force | when the ruling was made | `nen pr ready` |
+| `until` | `YYYY-MM-DD` or `{ "condition": "<text>" }` | a date is honoured through that UTC day; a condition until the file is edited, warned on at every evaluation; any other string is refused | when the ruling lapses | `nen pr ready` |
+
+A malformed entry is refused by pointer (`checks.excluded[<i>].<field>`), so `nen schema check` fails the file. An entry the head declares and the base does not is named as not honoured until it merges. An empty rollup after exclusion is not-ready by nen's own rule.
 
 ### `round_quorum`
 
@@ -130,8 +121,7 @@ Illustrative, for a plain product repository with one automated reviewer and a s
     "labels": []
   },
   "round_policy": { "stallMinutes": 30, "minRounds": 1, "maxRounds": 3 },
-  "check_exclusions": [],
-  "reviewer_fallback": { "chain": ["copilot"], "terminal": "hanten", "exhausted": [] },
+  "checks": { "excluded": [] },
   "round_quorum": { "any_of": ["copilot"], "minimum": 1 }
 }
 ```
@@ -150,8 +140,8 @@ Every refusal names the pointer (`at approval_policy`, `at default_approvers`); 
 - **The file is absent.** `nen schema check` reports `warn`, and `nen pr ready` cannot judge the repository: without `--gates` or `--reviewers` it refuses with `no reviewer identities`, naming the locations it looked in. `hatsu:tenkai` § 3 routes the file to `nen scaffold init` behind its § 1 confirmation and copies nothing from Hatsu; the content is the maintainer's (GATE-CONFIGURATION § 6). Only the frozen reference repository is read with `--gates "$hatsu_root/contracts/reference.gates.json"` (`pr-state` § 2).
 - **A reviewer identity, an approval policy or a check ruling is missing.** `missing-configuration` under [WORKFLOW § 4](../WORKFLOW.md) *Ask, set up, continue*: asked through the surface's picker, written into this file at the repository's gate, re-read by the verb, never carried in prose or a subagent brief (zheref/hatsu#104). The catalogue rows `gates.reviewers` (external: install the reviewer, confirm its login on a test PR) and `gates.approval_policy` (enum) carry the question Tenkai § 6d asks.
 - **`round_policy.minRounds` or `.maxRounds` is absent, not a non-negative integer, or N > M.** Per key, `sharingan` § 6 takes the value in `contracts/round_policy.default.json` and names that file as the source; the run never raises a number in-session. `stallMinutes` absent takes nen's own built-in default.
-- **`check_exclusions` is absent or `[]`.** Nothing is excluded; `tenkai_adopt.sh diagnose` reads `satisfied`. A lapsed, malformed or unpassable row is `drift`, left off the call, and the maintainer removes or re-rules it.
-- **`reviewer_fallback` is absent.** `tenkai` reads `satisfied`, nothing declared; `sharingan` § 6 requests only `base_reviewers`. A chain step with no `reviewers[]` entry is `routed`: declare it once the app is installed.
+- **`checks.excluded` is absent or `[]`.** Nothing is excluded. A lapsed entry is ignored and reported expired by `nen pr ready`; a malformed one is refused by pointer, and the maintainer removes or re-rules it.
+- **The file still carries `check_exclusions` or `reviewer_fallback`.** nen `v0.21.0` refuses it (exit `2`, naming the key); `tenkai_adopt.sh diagnose` reads `drift` on `gates/retired-keys` and names the move: each `check_exclusions` row into `checks.excluded` (a `condition: <text>` `until` becomes `{ "condition": "<text>" }`), and `reviewer_fallback` deleted — `round_quorum` replaces it.
 - **`round_quorum` is absent.** The verdict is nen's without the quorum clause; every declared reviewer's round is owed on its own.
 - **`dependabot_carve_out` is absent.** No carve-out; a dependency bump owes the same rounds as any PR.
 
@@ -165,6 +155,6 @@ Every refusal names the pointer (`at approval_policy`, `at default_approvers`); 
 - [`../WORKFLOW.md`](../WORKFLOW.md) § 4 *Ask, set up, continue*
 - [`../PROCESS.md`](../PROCESS.md) § *Reviewer rounds and review threads*
 - [`../../claude/skills/pr-state/SKILL.md`](../../claude/skills/pr-state/SKILL.md) § 2 · [`../../claude/skills/sharingan/SKILL.md`](../../claude/skills/sharingan/SKILL.md) § 6 · [`../../claude/skills/en/SKILL.md`](../../claude/skills/en/SKILL.md) §§ 5–6 · [`../../claude/skills/getsuga/SKILL.md`](../../claude/skills/getsuga/SKILL.md) §§ 3, 6 · [`../../claude/skills/tenkai/SKILL.md`](../../claude/skills/tenkai/SKILL.md) §§ 3, 4a, 6d
-- [`../../scripts/tenkai_adopt.sh`](../../scripts/tenkai_adopt.sh): the `gates/check-exclusions` and `gates/reviewer-fallback` items
+- [`../../scripts/tenkai_adopt.sh`](../../scripts/tenkai_adopt.sh): the `gates/retired-keys` item
 - [`../../templates/pr-readiness.yml`](../../templates/pr-readiness.yml): the trusted `--gates` path
 - `nen schema check --help`, `nen pr ready` as read at the pinned build

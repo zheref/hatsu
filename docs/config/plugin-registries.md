@@ -87,7 +87,7 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 | `$schema` | string | `hatsu.config-catalogue/v1` | the shape | `scripts/config_values.sh` |
 | `$comment` | string | the ruling, what is deliberately not listed and why, the row-field legend | the authority on the file | a reader |
 | `domains` | map | `development`, `versioning`, `testing`, `review`, `reporting`, `notifications`, `deployment`, `publishing` | the order Tenkai asks in | `config_values.sh diagnose`; `tenkai` § 6d |
-| `values[]` | rows | `id`, `file`, `path`, `domain`, `kind` (`enum` \| `subset` \| `open` \| `external` \| `secret-env`), `options?`, `default?`, `describe`, `readers[]`, `source`, `question?`, `setup?`, `requiredBy?`, `ask?` (`adoption` \| `on-use`), `when?`, `candidatesFrom?`, `nullIsAnswer?`, `choice?`, `sourceTable?`, `nonProductionTarget?`, `landsByPR?` | one settable value: 28 `nen/workflow.json` rows, `gates.approval_policy`, `gates.reviewers`, and the `contract.project.*` rows (`defaultLane`, `kind`, `targets`, `launch`) at the pinned build | `config_values.sh diagnose|fill|need|set|check-catalogue` |
+| `values[]` | rows (`workflow.aiReviewers`, enum `required` \| `optional` \| `off`, default `required`, asked at adoption, among them) | `id`, `file`, `path`, `domain`, `kind` (`enum` \| `subset` \| `open` \| `external` \| `secret-env`), `options?`, `default?`, `describe`, `readers[]`, `source`, `question?`, `setup?`, `requiredBy?`, `ask?` (`adoption` \| `on-use`), `when?`, `candidatesFrom?`, `nullIsAnswer?`, `choice?`, `sourceTable?`, `nonProductionTarget?` (`set` refuses a target whose `why` is not non-production or that lacks `nonProduction: true`, which nen `0.21`+ requires), `landsByPR?` | one settable value: 29 `nen/workflow.json` rows, `gates.approval_policy`, `gates.reviewers`, and the `contract.project.*` rows (`defaultLane`, `kind`, `targets`, `launch`) at the pinned build | `config_values.sh diagnose|fill|need|set|check-catalogue` |
 
 **Read by.** `scripts/config_values.sh` is the only reader: `diagnose` reports per row, `fill` writes the defaults and `$<key>` annotations into a declaration that already exists (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set --id <id> --value <JSON>` writes one chosen value after the question was asked, `check-catalogue` holds every default to `docs/WORKFLOW.md`'s key tables. `hatsu:tenkai` § 6d runs it on adoption; `hatsu:ten` § 6 step 5b runs `need` at every phase's warm-up.
 
@@ -114,7 +114,7 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 
 ## `contracts/round_policy.default.json`
 
-**Purpose.** The canon default for Hatsu's two reviewer-round keys (the ruling of 2026-09-30): `minRounds` and `maxRounds`. `stallMinutes` is nen's and is deliberately absent.
+**Purpose.** The canon default for the two reviewer-round keys (the ruling of 2026-09-30): `minRounds` and `maxRounds`. They are nen's keys from `v0.21.0` (zheref/nen#240); this file is the skills' default when a target omits one, and nen enforces no ceiling it was not given. `stallMinutes` is nen's and is deliberately absent.
 
 ### Keys
 

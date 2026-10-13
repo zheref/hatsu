@@ -10,7 +10,8 @@
 #                 evaluates no paths filter on a tag push, so paths alone wakes the pool on every tag;
 #                 zheref/hatsu#198 item 1, Phinks QA-17), paths holds only the rendered file itself
 #   jobs          one job, preflight, whose `if:` binds github.repository to the one slug
-#   runs-on       the pool's labels, exactly (a bare self-hosted is never rendered)
+#   runs-on       the pool's labels, exactly, plus pool-<id> last from nen 0.21 (a bare self-hosted
+#                 is never rendered)
 #   permissions   contents: read at the top, none widened on the job
 #   checkout      persist-credentials: false
 #   pins          every uses: pinned by a 40-hex commit SHA with an exact dotted '# vN.N(.N)' tag
@@ -38,7 +39,8 @@
 #                 per-user remedy names the tool and the MACHINE PATH (Copilot on zheref/nen#320 and
 #                 zheref/hatsu#179)
 #   desktop       (zheref/hatsu#206, nen 0.19's interactive mode) a third fixture pool, interactive Windows,
-#                 renders with runs-on [self-hosted, Windows, X64, desktop] and MODE 'interactive' on the
+#                 renders with runs-on [self-hosted, Windows, X64, desktop] (plus pool-<id> from nen
+#                 0.21) and MODE 'interactive' on the
 #                 toolchain and Windows steps; the session probe's `if:` is exactly
 #                 `runner.os == 'Windows' && '@@MODE@@' == 'interactive'` on the template and a constant
 #                 on every rendering ('service' == 'interactive' for the service pool); lifted and run
@@ -169,14 +171,13 @@ check() {
   else
     fail "$label: runs-on is not exactly '$runs_on'"
   fi
-  # NOT YET HELD: the maintainer's ruling of 2026-10-02 on zheref/hatsu#198 item 6 -- a pool's labels
-  # carry one of the pool's own, because GitHub's defaults (self-hosted, the OS, the arch) are what every
-  # runner of that OS and arch gets at registration, so a rendering whose runs-on is the defaults alone
-  # admits any later registration into the pool unproven. nen's schema refuses a fourth label at exit 2
-  # ("a pool's labels are exactly [self-hosted, <os>, <arch>]"), citing this repository's own
-  # runner-policy guard, so the conjunct cannot be rendered until nen's schema, the Ruby guard and
-  # tenkai's runner derivation admit a pool-own label together: zheref/hatsu#204. A conjunct that cannot
-  # run is not written as one.
+  # HELD FROM nen 0.21, PARTLY: the maintainer's ruling of 2026-10-02 on zheref/hatsu#198 item 6 -- a
+  # pool's labels carry one of the pool's own, because GitHub's defaults (self-hosted, the OS, the arch)
+  # are what every runner of that OS and arch gets at registration, so a runs-on of the defaults alone
+  # admits any later registration into the pool unproven. nen 0.21 appends the pool's own pool-<id> to
+  # every rendered set (zheref/nen#340, #395), and the runs-on conjunct above asserts it under such a
+  # binary. STILL UNHELD: the Ruby runner-policy guard and tenkai's runner derivation admitting that
+  # label (zheref/hatsu#204); under a pre-0.21 nen the defaults alone still render.
 
   got="$(block "$file" permissions | sed 's/[[:space:]]*$//')"
   if [ "$got" = "  contents: read" ]; then
@@ -284,10 +285,18 @@ check "template" "$template" '@@REPO_SLUG@@' '@@RUNS_ON@@' '.github/workflows/@@
 # 2. Its rendering for each fixture pool.
 for pool in windows-x64 macos-arm64 windows-x64-desktop; do
   case "$pool" in
-    windows-x64) runs_on='[self-hosted, Windows, X64]' ;;
-    macos-arm64) runs_on='[self-hosted, macOS, ARM64]' ;;
-    windows-x64-desktop) runs_on='[self-hosted, Windows, X64, desktop]' ;;
+    windows-x64) runs_on='[self-hosted, Windows, X64' ;;
+    macos-arm64) runs_on='[self-hosted, macOS, ARM64' ;;
+    windows-x64-desktop) runs_on='[self-hosted, Windows, X64, desktop' ;;
   esac
+  # From nen 0.21 (zheref/nen#340, #395) every pool's label set ends in its own pool-<id>, which runner
+  # workflow renders into runs-on last; an older nen renders the declared set alone. Read off the binary
+  # that renders, so the lane holds the same shape under the pin and under the base a PR is judged on.
+  if [ "${nen_version%%.*}" = 0 ] && [ "$nen_minor" -lt 21 ] 2>/dev/null; then
+    runs_on="$runs_on]"
+  else
+    runs_on="$runs_on, pool-$pool]"
+  fi
   render "$template" "$pool" "$work/$pool.yml"
   if [ "$render_code" -eq 0 ] && [ -f "$work/$pool.yml" ]; then
     pass "render $pool: nen runner workflow exit 0"
