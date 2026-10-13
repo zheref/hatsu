@@ -39,10 +39,10 @@ printf '%s\n' 'scripts/surface_link_check.sh' > "$fixture_root/changed-link-guar
 printf '%s\n' 'scripts/prose_size_check.sh' > "$fixture_root/changed-prose-guard.txt"
 
 run_case() {
-  local name="$1" expected_status="$2" changed="$3" head="$4" expected_text="$5"
+  local name="$1" expected_status="$2" changed="$3" head="$4" expected_text="$5" body="${6:-$fixture_root/body.md}"
   local actual_status output
 
-  if output="$(bash "$guard" "$changed" "$fixture_root/base.json" "$head" "$fixture_root/body.md" 2>&1)"; then
+  if output="$(bash "$guard" "$changed" "$fixture_root/base.json" "$head" "$body" 2>&1)"; then
     actual_status=0
   else
     actual_status=$?
@@ -230,3 +230,20 @@ printf '%s\n' '{"name":"not-hatsu","version":"0.16.1"}' > "$fixture_root/tree-co
 run_case 'Codex overlay that is a directory fails, not absent' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-not-file/.claude-plugin/plugin.json" 'exists but is not a regular file'
 run_case 'Codex overlay that is a dangling symlink fails, not absent' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-dangling/.claude-plugin/plugin.json" 'exists but is not a regular file'
 run_case 'Codex overlay with the wrong name fails naming it' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-codex-misnamed/.claude-plugin/plugin.json" 'name is not-hatsu, must be hatsu'
+
+# --- the opt-out is never honoured over a shipped path (zheref/hatsu#171) --------
+# A `no plugin bump:` line used to skip the version check for ANY diff; HA-PR-#233
+# carried one over the shipped docs/WORKFLOW.md and nen/contract.json and passed.
+# Now it is accepted only where no shipped path changed (where the guard does not
+# apply anyway) and refused by name, listing the shipped paths, everywhere else.
+printf '%s\n' '## Completion checklist' '' '- no plugin bump: wording only' > "$fixture_root/body-optout.md"
+printf '%s\n' 'docs/ab/plugin-bump-guard.md' 'nen/contract.json' > "$fixture_root/changed-mixed.txt"
+run_case 'opt-out over a shipped doc is refused' 1 "$fixture_root/changed-workflow.txt" "$fixture_root/head-unchanged.json" 'plugin-bump opt-out refused' "$fixture_root/body-optout.md"
+run_case 'the refused opt-out names the shipped path' 1 "$fixture_root/changed-workflow.txt" "$fixture_root/head-unchanged.json" '  - docs/WORKFLOW.md' "$fixture_root/body-optout.md"
+run_case 'opt-out over unshipped files only is accepted' 0 "$fixture_root/changed-unrelated.txt" "$fixture_root/head-unchanged.json" 'the `no plugin bump:` line is accepted' "$fixture_root/body-optout.md"
+run_case 'opt-out over a mixed diff is refused, naming the shipped path' 1 "$fixture_root/changed-mixed.txt" "$fixture_root/head-unchanged.json" '  - nen/contract.json' "$fixture_root/body-optout.md"
+mixed_out="$(bash "$guard" "$fixture_root/changed-mixed.txt" "$fixture_root/base.json" "$fixture_root/head-unchanged.json" "$fixture_root/body-optout.md" 2>&1 || true)"
+if grep -Fq -- '  - docs/ab/plugin-bump-guard.md' <<<"$mixed_out"; then echo 'mixed opt-out: an unshipped path was listed as shipped' >&2; exit 1; fi
+printf '%s\n' 'the refused opt-out lists only the shipped paths: ok'
+run_case 'opt-out beside a real bump passes on the bump' 0 "$fixture_root/changed-workflow.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped' "$fixture_root/body-optout.md"
+run_case 'the refusal no longer offers an opt-out for a shipped path' 1 "$fixture_root/changed-workflow.txt" "$fixture_root/head-unchanged.json" 'There is no opt-out for a shipped path'

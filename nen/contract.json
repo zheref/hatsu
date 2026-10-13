@@ -82,7 +82,7 @@
       "plugin-bump-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The one static focused lane for the executable plugin-version guard. Its declared fixture exercises only scripts/plugin_bump_check.sh's runtime-document classification, version result and, from 0.51.0, the mirror-stamp lag a bump makes necessary (zheref/hatsu#99); it is not Hatsu's general regression suite or a substitute for an unavailable dynamic test selector."
+        "$comment": "The one static focused lane for the executable plugin-version guard. Its declared fixture exercises only scripts/plugin_bump_check.sh's runtime-document classification, version result and, from 0.51.0, the mirror-stamp lag a bump makes necessary (zheref/hatsu#99) and, from zheref/hatsu#171, the `no plugin bump:` line refused over a shipped path and accepted over unshipped paths only; it is not Hatsu's general regression suite or a substitute for an unavailable dynamic test selector."
       },
       "plugin-update": {
         "stack": "claude-code-plugin",

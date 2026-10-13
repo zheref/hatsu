@@ -45,9 +45,12 @@ installed runtime reads, the generated Codex and Cursor mirrors included: the wa
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts
 from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
-which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
-or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
-body. **A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
+which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line).
+**There is no opt-out for a shipped path** (zheref/hatsu#171): a `no plugin bump: <reason>` line in the PR
+body is honoured only where no path in `PLUGIN_SURFACE_GLOBS` changed — where the guard does not apply
+anyway — and over a shipped path it is refused by name, the refusal listing the shipped paths the diff
+changes, because an installed copy reads every one of them and even wording there is a patch bump.
+**A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
 **The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
 (`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. It runs through

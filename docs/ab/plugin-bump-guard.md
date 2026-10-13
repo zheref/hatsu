@@ -781,3 +781,48 @@ job still fails — and clears `CDPATH` before the `cd`. Two fixture cases: the 
 trailing `*` matches anything: `surfaces/ab<CR>/` reached the log. The check is now an anchored character
 class (`*[!a-z-]*` refused, a leading letter, ≤ 32); the fixture proves a CR-bearing and a space-bearing
 directory name are never printed.
+
+## 2026-10-13 — the opt-out is never honoured over a shipped path (zheref/hatsu#171)
+
+**The defect.** The opt-out branch (§ 8) checked only that a `no plugin bump: <reason>` line was declared;
+it never read the reason against the paths the diff changed, and it ran only after a shipped path had
+already matched. So every line it honoured sat over a shipped path. HA-PR-#233 changed the shipped
+`docs/WORKFLOW.md` and `nen/contract.json`, carried the line, and the required `check` passed; Copilot,
+not the guard and not hanten, caught that the policy asks a patch bump for wording in a shipped doc. The
+record of every PR that carried the line: over shipped paths, HA-PR-#163 (`docs/WORKFLOW.md`), #173
+(`claude/rules/hatsu.md`, a skill and its mirrors) and #233, each skipping a bump the policy asked for;
+over unshipped paths only, #130 and #137 (`CHANGELOG.md`) and #187 (`docs/ab/jusshin.md`), where the guard
+already reported *does not apply*.
+
+**The fix.** The line no longer skips the version check. Where no path in `PLUGIN_SURFACE_GLOBS` changed it
+is accepted and named in the pass line; where one did, it is refused by name, listing the shipped paths,
+before the ordinary refusal. The ordinary refusal stops offering the line. The script header,
+`CONTRIBUTING.md` § *A change to a shipped surface needs a version bump* and the README's contributing
+paragraph say the same. Transcripts, against HA-PR-#233's and HA-PR-#187's own changed files with an
+unbumped manifest:
+
+```
+$ bash scripts/plugin_bump_check.sh <HA-PR-#233 files> base.json head.json body.md
+plugin-bump opt-out refused: the `no plugin bump:` line is honoured only where no plugin-shipped path changed, and this diff changes:
+  - docs/WORKFLOW.md
+  - nen/contract.json
+An installed copy reads every path above, so even a wording change there is a patch bump (zheref/hatsu#171; CONTRIBUTING.md, A change to a shipped surface needs a version bump).
+
+plugin.json version is not a strict increase: base 0.92.0 -> head 0.92.0
+…
+There is no opt-out for a shipped path: a `no plugin bump: <reason>` line in the PR
+body is honoured only where no path above changed, which is when this guard does
+not apply at all (zheref/hatsu#171).
+exit=1
+
+$ bash scripts/plugin_bump_check.sh <HA-PR-#187 files> base.json head.json body.md
+no plugin-shipped surface changed — plugin-bump guard does not apply; the `no plugin bump:` line is accepted (it is honoured only where no shipped path changed, zheref/hatsu#171)
+exit=0
+```
+
+Fixture: six cases — refused over a shipped doc, naming it; accepted over unshipped files only; refused over a
+mixed diff, listing only the shipped path; a real bump beside the line passes on the bump; the ordinary
+refusal no longer offers the line. **The trusted-revision caveat (§ 5.1) applies**: the check runs the guard
+from the workflow's own revision, so the change takes effect on the pull requests opened after it merges,
+not on its own.
+

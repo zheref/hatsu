@@ -390,7 +390,8 @@ transcripts name private repositories by stable placeholders; the legend is
 ## 🤝 Contributing
 
 This is a canon repository: every change lands by PR at **G4**, through Hatsu's own loop. A change to a
-shipped surface needs a `version` bump or a stated `no plugin bump: <reason>`, commits carry
+shipped surface needs a `version` bump, with no opt-out (a `no plugin bump: <reason>` line is honoured only
+where no shipped path changed), commits carry
 `Hatsu-Agent: <persona>` and nothing else of the kind, and the mirrors regenerate in the same commit as their
 inputs. The rules, the guards and how to validate locally: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 

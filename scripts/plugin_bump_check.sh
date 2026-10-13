@@ -20,8 +20,16 @@
 #
 # WHAT IT DOES
 # A PR whose diff touches a plugin-shipped surface but leaves
-# `.claude-plugin/plugin.json`'s `version` unchanged FAILS — unless the PR body
-# carries a documented `no plugin bump: <reason>` opt-out. A PR whose version DID
+# `.claude-plugin/plugin.json`'s `version` unchanged FAILS. There is no opt-out
+# for a shipped path (zheref/hatsu#171): a `no plugin bump: <reason>` line in the
+# PR body is honoured only where NO path in PLUGIN_SURFACE_GLOBS changed, which is
+# exactly where this guard does not apply. Over a shipped path the line is
+# REFUSED BY NAME, listing the shipped paths, because an installed copy reads
+# every one of them and README's rule makes even a wording change a patch bump.
+# The record that ruled it: every opt-out over a shipped path the guard ever
+# trusted (HA-PR-#163, #173, #233) skipped a bump the policy asked for, and every
+# legitimate one (#130, #137, #187) sat over unshipped paths only, where the
+# guard already passes. A PR whose version DID
 # increase is then read a second time (zheref/hatsu#99): the mirrors under
 # `surfaces/` carry the version in their generated marker, and one whose stamp
 # lags the bumped manifest fails BY NAME — the cause is the bump, the fix a
@@ -85,6 +93,11 @@ fi
 #                       --gates "$CLAUDE_PLUGIN_ROOT/contracts/…"` by pr-state,
 #                       drive, backlog-state, futon and tensho. Stale reviewer
 #                       identities produce a wrong readiness verdict, silently.
+#                       Likewise `pr-composition.json` and
+#                       `pr-body.requirements.json` (zheref/hatsu#171), the
+#                       inputs shibari and tensho hand nen's body-check, gate
+#                       derive and fragment-required on every PR: a stale copy
+#                       checks a body, or derives a gate, by the old rule.
 #   docs/ROSTER.md    — cited by `claude/agents/kurapika.md` and
 #                       `claude/commands/kurapika.md` as *the authority* on who
 #                       exists and what standing they have. An installed plugin
@@ -259,8 +272,10 @@ fi
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), and every other scripts/** entry — the fixtures
-#   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard and
-#   workflow_runner_policy_check.rb are CI- or maintainer-only; every runtime script an installed copy executes is an
+#   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard,
+#   workflow_runner_policy_check.rb and pr_composition_check.sh (the
+#   pr-composition-guard lane's drift check, zheref/hatsu#171) are CI- or
+#   maintainer-only; every runtime script an installed copy executes is an
 #   explicit row above (the criterion is "an installed copy reads it", checked
 #   script by script),
 #   .github/**.
@@ -435,6 +450,19 @@ any_path_is_plugin_surface() {
   return 1
 }
 
+# --- plugin_surface_paths CHANGED_FILES_FILE ---------------------------------
+# Echoes every line of CHANGED_FILES_FILE that is a plugin-shipped surface path,
+# one per line, in the file's order — the list the opt-out refusal names. Same
+# unterminated-last-line handling as any_path_is_plugin_surface.
+plugin_surface_paths() {
+  local file="$1" path
+  [ -f "$file" ] || return 0
+  while IFS= read -r path || [ -n "$path" ]; do
+    [ -z "$path" ] && continue
+    if path_is_plugin_surface "$path"; then printf '%s\n' "$path"; fi
+  done < "$file"
+}
+
 # --- plugin_version FILE -----------------------------------------------------
 # Echoes plugin.json's top-level `version` field (empty if the file is absent,
 # unreadable, or has none).
@@ -583,9 +611,10 @@ version_bumped() {
 }
 
 # --- pr_body_has_opt_out PR_BODY_FILE ----------------------------------------
-# Returns 0 if PR_BODY_FILE DECLARES the `no plugin bump: <reason>` opt-out (for
-# a change that provably does not affect the shipped plugin surface). Two things
-# make a declaration, and both are required:
+# Returns 0 if PR_BODY_FILE DECLARES the `no plugin bump: <reason>` opt-out. From
+# zheref/hatsu#171 a declaration never skips the version check: the CLI below
+# reads it only to name it — accepted where no shipped path changed, refused by
+# name where one did. Two things make a declaration, and both are required:
 #
 #   1. A REASON. A bare `no plugin bump:` with nothing after it is not an
 #      opt-out — the reason is the point.
@@ -687,13 +716,15 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     exit 2
   }
 
-  if ! any_path_is_plugin_surface "$changed_files"; then
-    echo "no plugin-shipped surface changed — plugin-bump guard does not apply"
-    exit 0
-  fi
+  opt_out_declared=0
+  if pr_body_has_opt_out "$pr_body"; then opt_out_declared=1; fi
 
-  if pr_body_has_opt_out "$pr_body"; then
-    echo "plugin-bump opt-out present in PR body — skipping version check"
+  if ! any_path_is_plugin_surface "$changed_files"; then
+    if [ "$opt_out_declared" -eq 1 ]; then
+      echo "no plugin-shipped surface changed — plugin-bump guard does not apply; the \`no plugin bump:\` line is accepted (it is honoured only where no shipped path changed, zheref/hatsu#171)"
+    else
+      echo "no plugin-shipped surface changed — plugin-bump guard does not apply"
+    fi
     exit 0
   fi
 
@@ -760,6 +791,14 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
 
   base_version_reported="$(plugin_version "$base_plugin")"
   head_version_reported="$(plugin_version "$head_plugin")"
+  if [ "$opt_out_declared" -eq 1 ]; then
+    {
+      echo "plugin-bump opt-out refused: the \`no plugin bump:\` line is honoured only where no plugin-shipped path changed, and this diff changes:"
+      plugin_surface_paths "$changed_files" | while IFS= read -r shipped; do echo "  - $shipped"; done
+      echo "An installed copy reads every path above, so even a wording change there is a patch bump (zheref/hatsu#171; CONTRIBUTING.md, A change to a shipped surface needs a version bump)."
+      echo
+    } >&2
+  fi
   {
     echo "plugin.json version is not a strict increase: base ${base_version_reported:-<none>} -> head ${head_version_reported:-<none>}"
     echo "a version that does not increase is how v0.40.0 went untagged"
@@ -790,8 +829,9 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     echo "             agent's invocation contract, the shape of the Nen contract) — on a"
     echo "             0.x plugin, the MINOR carries these, per SemVer 2.0.0 clause 4."
     echo
-    echo "Or, if this change provably does not affect the shipped plugin surface (e.g. a"
-    echo 'comment-only edit), state `no plugin bump: <reason>` in the PR body.'
+    echo "There is no opt-out for a shipped path: a \`no plugin bump: <reason>\` line in the PR"
+    echo "body is honoured only where no path above changed, which is when this guard does"
+    echo "not apply at all (zheref/hatsu#171)."
   } >&2
   exit 1
 fi
