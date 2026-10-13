@@ -315,7 +315,8 @@ surface-mirror-check: the committed mirror is not what the source generates.
   stale        generated, but for the OTHER surface
   hand-edited  somebody edited the mirror instead of the source
 
-Fix it by regenerating — never by editing surfaces/ (docs/using/mirrors.md § 1):
+Fix it by regenerating — never by editing surfaces/ (docs/using/mirrors.md § 1). One command
+runs all three: bash scripts/surface_mirror_regenerate.sh (zheref/hatsu#218); its lines are:
 
   nen surface mirror generate --source $SOURCE_DIR --agents $AGENTS_DIR \\
     --surface codex      --out surfaces/codex      --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for codex)' --manifest $MANIFEST_FILE --stamp "$stamp" --invocation-prefix "$INVOCATION_PREFIX"

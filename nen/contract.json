@@ -179,6 +179,21 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/report_time.sh, which says a report's UTC generatedAt in the zone the report is for (docs/WORKFLOW.md, Report time), following this repository's one-lane-per-executable-guard pattern. Its fixtures are hermetic and offline: fixed instants in fixed zones prove the local clock, the offset, the date flip on either side of UTC and a half-hour zone, and every refusal -- an unknown zone, a path posing as one, a non-UTC or unparseable instant, a missing or unknown argument. It writes nothing."
       },
+      "gh-token-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/gh_token_env.sh (zheref/hatsu#218), which runs one command with GH_TOKEN read from `gh auth token` so no skill block carries `export GH_TOKEN=$(gh auth token)`, a shape Claude Code's worktree-isolation guard refuses. Its fixture is hermetic and offline: a stub gh and a stub command under mktemp prove the token reaches only the command and is never printed, the command's own exit codes pass through, --path prepends one absolute directory, arguments survive, and every wrapper failure -- usage, a refused --path, no gh, a failed or empty token -- is 125 with the command not run (126/127 for an unrunnable or missing command)."
+      },
+      "reach-probe-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/nen_reach_probe.sh (zheref/hatsu#218), ten section 2c's login-shell probe as one plain command. Its fixture is hermetic and offline: a stub login shell under mktemp proves it receives ten's exact argv (-lic, the one program string, nen-probe, the root as $1), that stdin is /dev/null, that the shell's exit code passes through untouched, and that a bad --root or $SHELL is 125 with nothing spawned."
+      },
+      "mirror-regenerate-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/surface_mirror_regenerate.sh (zheref/hatsu#218), the one command great-hiker section 4 runs to regenerate surfaces/ at the manifest's stamp. Its fixture is hermetic and offline: a stub nen logs every call and proves one generate per surface in order, each carrying exactly the inputs scripts/surface_mirror_check.sh hands the check for that surface (so regeneration and the drift guard cannot disagree), a dry run spawning nothing, a refusal stopping at its surface with nen's code, and the wiring exits (no nen 3; a wrong root, an unstamped manifest, no surface verb 2)."
+      },
       "pr-body-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -232,7 +247,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, pr-composition-guard, direct-matrix-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, plugin-cache-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, pr-composition-guard, direct-matrix-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, plugin-cache-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifact is templates/spiritual-message.html, which is a report template, not an application."
@@ -448,6 +463,33 @@
             "--self-test"
           ],
           "$comment": "The report-time helper's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane report-time-guard --repo <hatsu>` when scripts/report_time.sh changes."
+        }
+      },
+      "gh-token-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/gh_token_env_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the GH_TOKEN wrapper. Run it as `nen shu test --lane gh-token-guard --repo <hatsu>` when scripts/gh_token_env.sh or its fixture changes."
+        }
+      },
+      "reach-probe-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/nen_reach_probe_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the reachability probe. Run it as `nen shu test --lane reach-probe-guard --repo <hatsu>` when scripts/nen_reach_probe.sh or its fixture changes."
+        }
+      },
+      "mirror-regenerate-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/surface_mirror_regenerate_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the mirror regenerator. Run it as `nen shu test --lane mirror-regenerate-guard --repo <hatsu>` when scripts/surface_mirror_regenerate.sh, scripts/surface_mirror_check.sh or the fixture changes."
         }
       },
       "pr-body-guard": {

@@ -204,6 +204,18 @@ fi
 #                       and after every open and body edit, and quoted by en and
 #                       sharingan; a stale copy passes a PR whose closing issues
 #                       are unlinked, or a body a fixed one refuses.
+#   scripts/gh_token_env.sh
+#                     — the GH_TOKEN wrapper (zheref/hatsu#218): every skill
+#                       block that hands nen a token runs it from
+#                       `$hatsu_root/scripts/`; a stale copy runs the verb with
+#                       the wrong credential handling.
+#   scripts/nen_reach_probe.sh
+#                     — ten § 2c's login-shell probe (zheref/hatsu#218), run from
+#                       `$hatsu_root/scripts/` every warm-up; a stale copy asks the
+#                       maintainer's shell the wrong question. Both fixtures beside
+#                       them, and scripts/surface_mirror_regenerate.sh (run only in
+#                       the Hatsu checkout great-hiker § 4 authors in, never from
+#                       an installed copy), are not covered.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -325,6 +337,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/report_time.sh'
   'scripts/pr_body_evidence_check.sh'
   'scripts/pr_development_link_check.sh'
+  'scripts/gh_token_env.sh'
+  'scripts/nen_reach_probe.sh'
   '.mcp.json'
 )
 
