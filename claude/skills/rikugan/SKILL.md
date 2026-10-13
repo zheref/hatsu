@@ -105,13 +105,13 @@ nen report render --variant <final|register> --template "$hatsu_root/templates/r
 **Which variant is the scope's, not a preference.** **`final` is only for a delivered, one-effort
 scope** — the desk cleared, as backlog-board § 3, spiritual-message, en § 8 and `reports.retain:
 final-only` already define it (ruling 2026-09-19): `<reports.dir>/<YYYY-MM-DD>-<effort>.html`, the
-one render kept on disk, re-rendered at the same path when the same effort is reported again. A
-typed single PR's `final` takes **that PR's branch slug** as `<effort>`. **Everything else renders
+one render kept on disk, re-rendered at the same path when the effort is reported again. A
+typed single PR's `final` takes its branch slug as `<effort>`. **Everything else renders
 `register`** at `<reports.dir>/current.html`, transient, never retained: a workflow that stopped
 short (its open asks on the desk), a typed multi-object scope, a repository scope. `as final` typed
 over such a scope gets the register and the reason. The spend block
 is the effort's ledgers ([`spiritual-message`](../spiritual-message/SKILL.md) § 4 builds
-`spendEfforts[]`); a graph only where the scope has a shape worth drawing.
+`spendEfforts[]`); a graph only where the scope has a shape.
 
 ## 5. Publish it, say one line, ring nothing
 
