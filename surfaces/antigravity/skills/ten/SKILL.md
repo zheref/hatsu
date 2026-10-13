@@ -13,7 +13,7 @@ copy; the contract wins. Run first, every session. Transmuter. `/ten [<phase>]`.
 
 The resolver is the plugin root's, walking a handed skill directory up to it (#105).
 A newer checkout in front of you is named, never bound — `export HATSU_PLUGIN_ROOT` binds it
-(SURFACES § 1, #67).
+(using/README.md, #67).
 
 ```bash
 root=${HATSU_PLUGIN_ROOT:-}; for r in "$root" "$base_dir/../../.." "$base_dir/../../../.."; do [ -x "$r/scripts/hatsu_root.sh" ] && root=$r && break; done
@@ -151,7 +151,7 @@ Quote skips (#67; README § *Shared rules the warm-up follows*), continue.
 
 Read-only/no-phase: inspect only, **skip placement/provisioning**. Explicit setup is Tenkai's.
 Writable phases retain § 4b's target/root/cwd, never rediscover or fall back. Failed isolation
-stops writes. Installation: SURFACES § 2.
+stops writes. Installation: mirrors.md § 2.
 
 ```sh
 hatsu_root='<§ 4b's guarded root>'; target='<§ 4b's bound target>'; surface='<codex|cursor|antigravity|claude-code>'
