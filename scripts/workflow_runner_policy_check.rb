@@ -584,6 +584,133 @@ REGENERATE_CLEANUP = {
     gh api -X DELETE "repos/${REPO}/git/refs/heads/bot/surface-mirror-regenerate" || echo "::error::could not delete bot/surface-mirror-regenerate; delete it by hand"
   RUN
 }.freeze
+# EVERY STEP OF surface-mirror-regenerate.yml BUT THE PULL REQUEST STEP IS
+# FROZEN (zheref/hatsu#190), as every step of pr-readiness.yml is. The job
+# holds `contents: write` over a checkout that keeps its credential, and its
+# only push guard was lexical: `git -C . push origin HEAD:refs/tags/v9.9.9` or
+# `gh api -X DELETE repos/${REPO}/git/refs/heads/<any>` added to any run step
+# passed it (Feitan, hanten on the #160/#165 step-one PR, fixture P0), and the
+# `main` ruleset guards no other ref. So each step has ONE admitted form, held
+# by require_frozen_step: its keys, `env`, `if`, `id`, `shell`, a checkout's
+# `with`, and the run WHOLE, comment lines included -- `code_of` would admit a
+# `#` line after a `\` continuation, which bash reads as ending the call, and
+# the regenerate step has continuations. Only `name` and the YAML comments are
+# free, so changing a body (a generate flag, a hooks root) is a two-step
+# landing (docs/GATE-CONFIGURATION.md). The pull request step is a `uses:` step;
+# its pin, condition, id and branch are held in validate_builder_workflow.
+REGENERATE_FROZEN_STEPS = {
+  "Checkout main" => {
+    "uses" => "actions/checkout@v7",
+    "with" => {
+      "ref" => "main"
+    }
+  },
+  "Read the pinned nen ref from nen/contract.json" => {
+    "id" => "pin",
+    "shell" => "bash",
+    "run" => <<~'RUN'.strip
+      set -euo pipefail
+      ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"
+      [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+      case "$ref" in
+        *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+      esac
+      if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+        echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+        exit 1
+      fi
+      echo "ref=$ref" >> "$GITHUB_OUTPUT"
+      echo "pinned nen ref: $ref"
+    RUN
+  },
+  "Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)" => {
+    "id" => "nen",
+    "env" => {
+      "PINNED_REF" => "${{ steps.pin.outputs.ref }}"
+    },
+    "shell" => "bash",
+    "run" => <<~'RUN'.strip
+      set -euo pipefail
+      ref="$PINNED_REF"
+      url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
+      curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+      bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+      [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+      echo "bin=$bin" >> "$GITHUB_OUTPUT"
+      echo "nen: $("$bin" --version) at $bin"
+    RUN
+  },
+  "Read the plugin stamp" => {
+    "id" => "stamp",
+    "shell" => "bash",
+    "run" => <<~'RUN'.strip
+      set -euo pipefail
+      stamp="$(awk -F'"' '/"version"[[:space:]]*:/ { for (i = 1; i <= NF; i++) { if ($i == "version") { print $(i + 2); exit } } }' .claude-plugin/plugin.json)"
+      [ -n "$stamp" ] || { echo "::error::.claude-plugin/plugin.json carries no readable version."; exit 1; }
+      echo "value=$stamp" >> "$GITHUB_OUTPUT"
+    RUN
+  },
+  "Regenerate every surface" => {
+    "env" => {
+      "NEN" => "${{ steps.nen.outputs.bin }}",
+      "STAMP" => "${{ steps.stamp.outputs.value }}"
+    },
+    "shell" => "bash",
+    "run" => <<~'RUN'.strip
+      set -euo pipefail
+      for surface in codex cursor antigravity; do
+        case "$surface" in
+          antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
+          codex) root='${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
+          cursor) root='${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
+        esac
+        "$NEN" surface mirror generate \
+          --source claude/skills \
+          --agents claude/agents \
+          --surface "$surface" \
+          --out "surfaces/$surface" \
+          --models nen/workflow.json \
+          --permissions contracts/permissions.json \
+          --hooks hooks/hooks.json \
+          --rules claude/rules/hatsu.md \
+          --source-surface claude \
+          --hooks-root "$root" \
+          --manifest .claude-plugin/plugin.json \
+          --stamp "$STAMP" \
+          --invocation-prefix "hatsu:"
+      done
+    RUN
+  },
+  "Detect drift" => {
+    "id" => "drift",
+    "shell" => "bash",
+    "run" => <<~'RUN'.strip
+      set -euo pipefail
+      if [ -n "$(git status --porcelain -- surfaces/)" ]; then
+        echo "dirty=true" >> "$GITHUB_OUTPUT"
+        {
+          echo "changed<<SURFACE_DRIFT_EOF"
+          git status --porcelain -- surfaces/
+          echo "SURFACE_DRIFT_EOF"
+        } >> "$GITHUB_OUTPUT"
+      else
+        echo "dirty=false" >> "$GITHUB_OUTPUT"
+      fi
+    RUN
+  },
+  "Verify the regenerated tree passes its own drift check" => {
+    "if" => "steps.drift.outputs.dirty == 'true'",
+    "env" => {
+      "NEN_BIN" => "${{ steps.nen.outputs.bin }}"
+    },
+    "shell" => "bash",
+    "run" => <<~'RUN'.strip
+      set -euo pipefail
+      bash scripts/surface_mirror_check.sh "$PWD"
+    RUN
+  },
+  REGENERATE_CLEANUP_STEP => REGENERATE_CLEANUP
+}.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -830,6 +957,20 @@ def refuse_env_writes(path, step)
   keys = mapping(step["env"], "#{path} step #{name} env").keys
   bad = keys & %w[BASH_ENV ENV]
   fail_policy("#{path} step #{name} sets #{bad.join(", ")}, which makes bash source a file first") unless bad.empty?
+end
+
+# AN EXPRESSION IN A RUN IS SHELL SOURCE (zheref/hatsu#190). Actions substitutes
+# every `${{ }}` in a `run:` before bash parses it -- in a bash comment line
+# too -- so `${{ github.event.head_commit.message }}` there is script
+# injection: a quote or a newline in the message becomes code. A value reaches
+# a run through the step's `env:`, which no quoting can escape, and no
+# workflow here writes an expression into a run, so ANY `${{` in one is
+# refused: `github.event.*`, and `github.head_ref`, `inputs.*` and step
+# outputs with it, in every workflow, the frozen ones included.
+def refuse_run_expressions(path, step)
+  return unless scalar(step["run"]).to_s.include?("${{")
+  fail_policy("#{path} step #{scalar(step["name"]).inspect} writes a ${{ }} expression into its run, which " \
+              "Actions substitutes into the shell source before bash parses it; pass the value through env")
 end
 
 # EXACT ALLOWLISTS for the shape of every job and step, in every workflow this
@@ -1357,6 +1498,7 @@ def validate_workflow(path)
         step_map = mapping(step_node, "#{path} step")
         fail_policy("#{path} step #{scalar(step_map["name"]).inspect} sets working-directory") if step_map.key?("working-directory")
         refuse_env_writes(path, step_map)
+        refuse_run_expressions(path, step_map)
       end
     end
     REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, spec|
@@ -1511,8 +1653,11 @@ def validate_builder_workflow(path)
   fail_policy("#{path} job #{expected_job} step set or order changed") unless ALLOWED_STEP_SHAPES.fetch(basename).include?(step_names)
   refuse_unadmitted_step_shapes(path, expected_job, job, step_maps, BUILDER_JOB_KEYS)
   begin
-    cleanup = step_maps.find { |step| scalar(step["name"]) == REGENERATE_CLEANUP_STEP }
-    require_frozen_step(cleanup, REGENERATE_CLEANUP, "#{path} #{REGENERATE_CLEANUP_STEP.inspect}")
+    # Every step but the pull request step, in its one admitted form
+    # (REGENERATE_FROZEN_STEPS, zheref/hatsu#190), the cleanup step included.
+    REGENERATE_FROZEN_STEPS.each do |name, frozen|
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{name.inspect}")
+    end
     pr_with_id = step_maps.find { |step| scalar(step["name"]) == "Open a pull request with the regenerated mirrors" }
     unless pr_with_id && scalar(pr_with_id["id"]) == REGENERATE_PR_STEP_ID
       fail_policy("#{path} the pull request step must carry id: #{REGENERATE_PR_STEP_ID} for the cleanup condition to read")
@@ -1533,6 +1678,7 @@ def validate_builder_workflow(path)
     code = code_of(scalar(step["run"]))
     fail_policy("#{path} step #{scalar(step["name"]).inspect} sets working-directory") if step.key?("working-directory")
     refuse_env_writes(path, step)
+    refuse_run_expressions(path, step)
     if code =~ /\bgit\s+push\b/
       fail_policy("#{path} step #{scalar(step["name"]).inspect} pushes directly with git — this builder must only open a pull request onto bot/surface-mirror-regenerate")
     end
@@ -2280,7 +2426,47 @@ def self_test(root)
        "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          NODE_OPTIONS: --require ./x.js\n", "Verify the regenerated tree passes its own drift check"]
     ].each { |label, from, to, step| hostile.call(label, regenerate, regenerate_next, from, to, step: step) }
 
+    # --- every builder step but the pull request step, frozen (zheref/hatsu#190)
+    # Each edit below passed main's lexical checks before the freeze: P0 is
+    # Feitan's (`git -C .` keeps `git` and `push` apart), the rest reach a ref,
+    # the checkout, a step's env or its exit status the same way.
+    generate_step = "Regenerate every surface"
+    drift_step = "Detect drift"
+    [
+      ["regenerate step pushing a tag through git -C (Feitan P0)", %Q{          echo "value=$stamp" >> "$GITHUB_OUTPUT"\n},
+       %Q{          echo "value=$stamp" >> "$GITHUB_OUTPUT"\n          git -C . push origin HEAD:refs/tags/v9.9.9\n}, "Read the plugin stamp"],
+      ["regenerate step deleting another branch through the API", %Q{            echo "dirty=false" >> "$GITHUB_OUTPUT"\n},
+       %Q{            echo "dirty=false" >> "$GITHUB_OUTPUT"\n            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/release"\n}, drift_step],
+      ["regenerate step interpolating the head commit message into its run", "          set -euo pipefail\n          for surface in",
+       %Q{          set -euo pipefail\n          echo "${{ github.event.head_commit.message }}"\n          for surface in}, generate_step],
+      ["regenerate step with the head commit message in a comment line of its run", "          set -euo pipefail\n          for surface in",
+       "          set -euo pipefail\n          # ${{ github.event.head_commit.message }}\n          for surface in", generate_step],
+      ["regenerate step with a comment line in its run", %Q{          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"\n},
+       %Q{          # fetched to a file, never piped\n          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"\n},
+       "Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)"],
+      ["regenerate pin step off by one byte", %Q{          echo "pinned nen ref: $ref"\n}, %Q{          echo "pinned nen ref:  $ref"\n},
+       "Read the pinned nen ref from nen/contract.json"],
+      ["regenerate step with GH_TOKEN added to its env", "          STAMP: ${{ steps.stamp.outputs.value }}\n",
+       "          STAMP: ${{ steps.stamp.outputs.value }}\n          GH_TOKEN: ${{ github.token }}\n", generate_step],
+      ["regenerate step running a binary from the checkout as NEN", "          NEN: ${{ steps.nen.outputs.bin }}\n", "          NEN: ./bin/nen\n", generate_step],
+      ["regenerate drift step gaining an if", "        id: drift\n", "        id: drift\n        if: always()\n", drift_step],
+      ["regenerate verify step that swallows a failed check", %Q{          bash scripts/surface_mirror_check.sh "$PWD"\n},
+       %Q{          bash scripts/surface_mirror_check.sh "$PWD" || true\n}, "Verify the regenerated tree passes its own drift check"],
+      ["regenerate checkout of another repository's main", "          ref: main\n", "          ref: main\n          repository: attacker/hatsu\n", "Checkout main"]
+    ].each { |label, from, to, step| hostile.call(label, regenerate, regenerate_original, from, to, step: step) }
     File.write(regenerate, regenerate_original)
+
+    # The expression rule on its own, in the steps no freeze holds: a `${{ }}`
+    # in a run is refused in every workflow, a bash comment line included.
+    hostile.call("plugin-bump-check step interpolating the PR title into its run", plugin, original,
+                 %Q{          echo "guard script: $guard"\n},
+                 %Q{          echo "guard script: $guard"\n          echo "checking ${{ github.event.pull_request.title }}"\n}, step: guard_step)
+    File.write(plugin, original)
+    hostile.call("surface-mirror-check step with the PR body in a comment line of its run", surface, surface_original,
+                 "          guard=.trusted/scripts/surface_mirror_check.sh\n",
+                 "          # PR: ${{ github.event.pull_request.body }}\n          guard=.trusted/scripts/surface_mirror_check.sh\n",
+                 step: "Surface-mirror drift check")
+    File.write(surface, surface_original)
     validate_repo(tmp, announce: false)
 
     # Remove the builder again: the ABSENT case must still validate after all

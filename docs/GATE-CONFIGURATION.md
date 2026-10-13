@@ -336,3 +336,14 @@ outgrows the pipe buffer — it fails closed, Publish posting `readiness undeter
 `${explain%%$'\n'*}`; and splitting the verdict (read-only token) from Publish (the only step that
 needs `checks: write`) into two jobs changes `EXPECTED_JOBS` (hanten on step two, Phinks and Feitan).
 
+**2026-10-13. Every builder step is frozen, and no run carries an expression
+([zheref/hatsu#190](https://github.com/zheref/hatsu/issues/190)).** `surface-mirror-regenerate.yml`
+holds `contents: write`, and its only push guard was lexical: `git -C . push origin
+HEAD:refs/tags/v9.9.9`, or a `gh api -X DELETE` of another branch, added to a run step passed `main`'s
+validator. Each step but the pull-request step is now admitted only in its exact form
+(`REGENERATE_FROZEN_STEPS`, the run compared byte for byte), and a `${{ }}` expression in any
+workflow's run is refused, because Actions substitutes it into the shell source. For authors: a change
+to a builder step's body (a generate flag, a hooks root) is this same two-step landing, the validator
+first. The freeze binds what is merged on `main`; a `v*` tag ruleset, the maintainer's repository
+setting, is what stops a workflow token from writing a release tag at all.
+

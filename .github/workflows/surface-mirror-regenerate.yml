@@ -52,6 +52,16 @@
 # as an `::error::` on every such failure, then deletes the stranded branch, or
 # says to delete it by hand if that delete fails.
 #
+# EVERY STEP BUT THE PULL REQUEST STEP IS FROZEN (zheref/hatsu#190).
+# scripts/workflow_runner_policy_check.rb admits each one only in its exact
+# form (REGENERATE_FROZEN_STEPS): keys, env, if, id, shell, the checkout's
+# `with`, and the run byte for byte, comment lines included; no run in any
+# workflow may carry a `${{ }}` expression. Only `name` and these YAML comments
+# are free. This job holds `contents: write` over a checkout that keeps its
+# credential, so an unfrozen run step could write any ref but `main`. Changing
+# a body here (a generate flag, a hooks root) is therefore a two-step landing,
+# the validator on `main` first (docs/GATE-CONFIGURATION.md).
+#
 # `workflow_dispatch` exists for the same reason `getsuga`'s and `futon`'s
 # manual triggers do: a maintainer who wants to force a regeneration RIGHT NOW
 # (after a template or contract change lands out of band, or to confirm the
