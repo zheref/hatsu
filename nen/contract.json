@@ -33,7 +33,7 @@
       "vendoring_forbidden": "Hatsu never carries a copy of this script. A vendored copy is a second, unreviewed supply chain that drifts from the manifest it verifies against. Hatsu fetches nen's own published script at the pinned ref, every time.",
       "script_path_in_source": "bootstrap/nen.sh",
       "sha256": {
-        "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified.",
+        "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified. CI reads linux-x64: the three workflows that bootstrap nen refuse a binary whose sha256 differs from main's copy of this key (zheref/hatsu#230), so a repin that leaves it behind fails every pull request after it closed.",
         "darwin-arm64": "ce64c5893318ef8882c2a680832951149ac5c18c7fbcd481b7ad51194da078c5",
         "linux-x64": "ded156aa402a97e60fa962810f9a51034bcdf3d5cd49166eb4bc0c91da79051d",
         "windows-x64": "0d97a05055f49fae1af08a49273117af6d45a381a3963436fb9d1a84f73e9821"

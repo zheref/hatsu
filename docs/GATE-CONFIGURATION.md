@@ -376,3 +376,20 @@ token cannot create, move or delete a `v*` tag. A ruleset changes through `PUT
 `rules` array, never only the rule that changes, and a required status check that names its app
 carries `"integration_id": 15368` (GitHub Actions).
 
+**2026-10-13. CI checks the bootstrapped nen against the contract's digest
+([zheref/hatsu#230](https://github.com/zheref/hatsu/issues/230)), both steps landed.** The bootstrap
+script verifies the binary against `SHA256SUMS` from the same release, so a moved tag or replaced
+assets verify against themselves. `surface-mirror-check.yml`, `pr-readiness.yml` and
+`surface-mirror-regenerate.yml` now hash the binary right after bootstrapping it and compare it with
+the trusted checkout's `dependency.bootstrap.sha256["linux-x64"]` (the builder's own checkout of
+`main`), failing closed with both digests named. Step one taught the validator the step beside the
+current shapes; step two added it to the live files and narrowed Hatsu's own forms to carrying it,
+frozen (`NEN_DIGEST_FROZEN`). **A repin moves the linux-x64 digest with `dependency.pinned_ref`, in the
+same pull request**: that pull request is still judged by `main`'s old pin and digest, but once it
+merges a digest that does not match the new release fails every pull request closed, the one that
+fixes it included, until an administrator merges past the ruleset. **Tenkai's rendered readiness form
+carries no such step**: a product repository's contract need not record nen's digest, since its pin can
+fall back to the ref tenkai renders, so a check there needs a rendered digest beside that ref, which is
+tenkai's change. The bootstrap script's own digest is not recorded, and the script runs before any
+check here can.
+
