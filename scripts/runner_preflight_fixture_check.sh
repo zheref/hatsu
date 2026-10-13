@@ -250,13 +250,13 @@ consumer() {
   "runners": {
     "naming": "{machine}-{consumer}R{slot}",
     "pools": [
-      { "id": "windows-x64", "os": "Windows", "arch": "X64", "labels": ["self-hosted", "Windows", "X64"],
+      { "id": "windows-x64", "os": "Windows", "arch": "X64", "labels": ["self-hosted", "Windows", "X64", "pool-windows-x64"],
         "enableVariable": "FIXTURE_WINDOWS_RUNNER", "tools": ["git", "bash", "gh"],
         "preflightWorkflow": "runner-preflight-windows-x64.yml" },
-      { "id": "macos-arm64", "os": "macOS", "arch": "ARM64", "labels": ["self-hosted", "macOS", "ARM64"],
+      { "id": "macos-arm64", "os": "macOS", "arch": "ARM64", "labels": ["self-hosted", "macOS", "ARM64", "pool-macos-arm64"],
         "tools": ["git", "bash"], "preflightWorkflow": "runner-preflight-macos-arm64.yml" },
       { "id": "windows-x64-desktop", "os": "Windows", "arch": "X64", "mode": "interactive",
-        "labels": ["self-hosted", "Windows", "X64", "desktop"], "enableVariable": "FIXTURE_DESKTOP_RUNNER",
+        "labels": ["self-hosted", "Windows", "X64", "desktop", "pool-windows-x64-desktop"], "enableVariable": "FIXTURE_DESKTOP_RUNNER",
         "tools": ["git", "bash", "gh"], "preflightWorkflow": "runner-preflight-windows-x64-desktop.yml" }
     ]
   }

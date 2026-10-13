@@ -1104,7 +1104,7 @@ silenced by the maintainer's answer, never by a write nobody asked for.
 choice — a deploy or release target (`kagutsuchi`, `mugetsu`), an iteration cap
 (`izanagi`), a device to trust (`jujutsu`), the request itself (`ren`), a runner pool's target,
 machine code and service identity (`jusshin`, ROSTER § *Rulings of 2026-09-30 — jusshin*), and for an
-interactive pool the `--accept-daily-account` word and the answer to the service-pool overlap
+interactive pool the `--accept-daily-account` word
 (ROSTER § *Rulings of 2026-10-04 — interactive runner pools*) — it is
 **typed, never picked** (row `missing-maintainer-choice`, whose `governs` list names those keys, with no `default`
 and no recommended option). Step 1 never substitutes a candidate, even a single one; the ask takes the

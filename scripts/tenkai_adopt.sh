@@ -382,6 +382,27 @@ def probe_gh(slug, field):
     return int(val) if field == "runners" and val.isdigit() else (val or None)
 
 
+def matching_runner_online(slug, labels):
+    """True only when GitHub lists an online runner with every selected label."""
+    if not shutil.which("gh"):
+        return None
+    query = '.runners[] | [.status, (.labels | map(.name) | join(","))] | @tsv'
+    try:
+        out = subprocess.run(
+            ["gh", "api", "--paginate", f"repos/{slug}/actions/runners?per_page=100",
+             "--jq", query], capture_output=True, text=True, timeout=30)
+    except Exception:
+        return None
+    if out.returncode != 0:
+        return None
+    required = {label.lower() for label in labels}
+    for row in out.stdout.splitlines():
+        status, sep, names = row.partition("\t")
+        if sep and status == "online" and required <= {name.lower() for name in names.split(",")}:
+            return True
+    return False
+
+
 # GitHub's own owner/repo grammar. THE SLUG IS SUBSTITUTED INTO A SINGLE-QUOTED
 # GITHUB EXPRESSION, so a value carrying a quote does not merely render wrongly --
 # it RESTRUCTURES the predicate. Measured: an `origin` of
@@ -417,8 +438,15 @@ def declared_pool_label_sets(repo):
         if not isinstance(pool, dict) or not isinstance(pool.get("labels"), list):
             continue
         labels = pool["labels"]
-        if labels and all(isinstance(label, str) for label in labels) and labels[-1] == f"pool-{pool.get('id')}":
-            result.append("[" + ", ".join(labels) + "]")
+        own = f"pool-{pool.get('id')}"
+        if not labels or not all(isinstance(label, str) for label in labels):
+            continue
+        # Nen 0.21 accepts both the old defaults-only spelling and an explicit
+        # final pool label, normalizing either to the complete selector.
+        complete = labels if labels[-1] == own else labels + [own]
+        value = "[" + ", ".join(complete) + "]"
+        if pool_own_labels(value):
+            result.append(value)
     return result
 
 
@@ -463,7 +491,8 @@ def git_dir(repo):
 
 
 class Ctx:
-    def __init__(self, repo, hatsu_root, slug, visibility, self_hosted, probe, runner_labels=None):
+    def __init__(self, repo, hatsu_root, slug, visibility, self_hosted, probe,
+                 runner_labels=None, runner_probe=None):
         self.repo = repo
         self.hatsu_root = hatsu_root
         self.slug = slug or git_slug(repo)
@@ -486,6 +515,9 @@ class Ctx:
         declared_sets = declared_pool_label_sets(repo)
         if runner_labels is None and len(declared_sets) == 1:
             runner_labels = declared_sets[0]
+        if self.runner.get("labels_required") and runner_labels is not None and probe and not declared_sets:
+            usage("a private self-hosted readiness runner needs a declared pool in "
+                  "nen/workflow.json; --runner-labels cannot invent pool membership")
         if runner_labels is not None and declared_sets and runner_labels not in declared_sets:
             usage("--runner-labels differs from nen/workflow.json runners.pools[].labels; "
                   "use one declared pool's complete label set")
@@ -499,8 +531,16 @@ class Ctx:
             if not pool_own_labels(runner_labels):
                 usage("a private self-hosted readiness runner needs [self-hosted, <OS>, <arch>, "
                       "pool-<id>] (desktop before pool-<id> for an interactive Windows pool)")
-            self.runner["runs_on"] = runner_labels
-            self.runner["labels_required"] = False
+            labels = [part.strip() for part in runner_labels[1:-1].split(",")]
+            available = ((runner_probe or matching_runner_online)(self.slug, labels)
+                         if probe and self.slug else True)
+            if available is True:
+                self.runner["runs_on"] = runner_labels
+                self.runner["labels_required"] = False
+            else:
+                self.runner = derive_runner(visibility, 0)
+                self.runner["reason"] = ("no online runner with every declared pool label was verified; "
+                                         "use the hosted fallback until relabel and verification finish")
 
     def template(self, name):
         p = self.hatsu_root / "templates" / name
@@ -1925,6 +1965,20 @@ def self_test() -> int:
     check("one declared pool derives its own readiness selector",
           pool_ctx.runner["runs_on"] == "[self-hosted, Linux, X64, pool-ci]"
           and "runs-on: [self-hosted, Linux, X64, pool-ci]" in ReadinessWorkflow().render(pool_ctx))
+    pool_file.write_text(json.dumps({"runners": {"pools": [{"id": "ci", "labels":
+        ["self-hosted", "Linux", "X64"]}]}}))
+    legacy_ctx = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=False)
+    check("Nen's defaults-only pool declaration derives the same pool-own selector",
+          legacy_ctx.runner["runs_on"] == pool_ctx.runner["runs_on"])
+    offline_ctx = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=True,
+                      runner_probe=lambda _slug, _labels: False)
+    check("no online runner carrying the pool label uses hosted readiness",
+          offline_ctx.runner["runs_on"] == HOSTED_RUNNER
+          and "no online runner" in offline_ctx.runner["reason"])
+    online_ctx = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=True,
+                     runner_probe=lambda _slug, _labels: True)
+    check("a verified online pool runner selects the complete label set",
+          online_ctx.runner["runs_on"] == pool_ctx.runner["runs_on"])
     pool_rendered = pool_repo / WORKFLOW_PATH
     pool_rendered.parent.mkdir(parents=True, exist_ok=True)
     pool_rendered.write_text(ReadinessWorkflow().render(pool_ctx).replace(
@@ -1939,6 +1993,14 @@ def self_test() -> int:
     except SystemExit as exc:
         bare_defaults_refused = exc.code == 2
     check("GitHub default labels alone are refused", bare_defaults_refused)
+    undeclared = fixture()
+    try:
+        Ctx(undeclared, root, "acme/widget", "private", 2, probe=True,
+            runner_labels="[self-hosted, Linux, X64, pool-rogue]")
+        undeclared_refused = False
+    except SystemExit as exc:
+        undeclared_refused = exc.code == 2
+    check("an explicit selector cannot invent an undeclared pool", undeclared_refused)
     pool_file.write_text(json.dumps({"runners": {"pools": [
         {"id": "ci", "labels": ["self-hosted", "Linux", "X64", "pool-ci"]},
         {"id": "other", "labels": ["self-hosted", "Linux", "X64", "pool-other"]}]}}))

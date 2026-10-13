@@ -22,9 +22,10 @@ Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
 SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}"
-MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
+RUNNER_DEFAULTS = %w[macOS Windows Linux].product(%w[ARM64 X64]).map do |os, arch|
+  ["self-hosted", os, arch].freeze
+end.freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
-LINUX_RUNNER = %w[self-hosted Linux X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
 
 # A pool must have its own selector after GitHub's default labels. Otherwise a
@@ -37,9 +38,9 @@ def approved_runner?(runner)
   return false unless runner.last&.match?(/\Apool-[A-Za-z0-9][A-Za-z0-9._-]*\z/)
 
   defaults = runner[0, 3]
-  return false unless [MAC_RUNNER, WINDOWS_RUNNER, LINUX_RUNNER].include?(defaults)
+  return false unless RUNNER_DEFAULTS.include?(defaults)
 
-  runner.length == 4 || (runner.length == 5 && defaults == WINDOWS_RUNNER && runner[3] == "desktop")
+  runner.length == 4 || (runner.length == 5 && defaults[1] == "Windows" && runner[3] == "desktop")
 end
 # This constant does DOUBLE DUTY: it is the portable-workflow set (each member
 # must run on GitHub-hosted ubuntu-latest) AND the required-PRESENCE list that
@@ -2012,7 +2013,7 @@ def validate_builder_workflow(path)
 end
 
 def self_test(root)
-  [MAC_RUNNER, WINDOWS_RUNNER, LINUX_RUNNER].each do |defaults|
+  RUNNER_DEFAULTS.each do |defaults|
     fail_policy("self-test: default runner labels were admitted") if approved_runner?(defaults)
     fail_policy("self-test: pool-own runner label was refused") unless approved_runner?(defaults + ["pool-ci"])
   end

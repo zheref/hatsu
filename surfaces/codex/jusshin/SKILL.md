@@ -86,7 +86,7 @@ are `self-hosted`, the OS, the arch, and its own `pool-<id>`; an interactive Win
 pool also carries `desktop` before `pool-<id>`. Nen `v0.21.0` requires that last label:
 `runner plan`/`script` register it, `runner workflow` renders it into `runs-on`, and
 `runner enable` requires it. A runner without it receives no pool jobs until
-`nen runner relabel --pool <id> --runner <names> --run`. A plan written before the
+`nen runner relabel --target <owner/name> --pool <id> --runner <names> --run`. A plan written before the
 label was declared is refused. Distinct pool labels prevent a same-arch desktop
 runner from silently taking service-pool jobs (Feitan, SEC-16); GitHub's default
 labels alone would admit any later registration unproven (zheref/hatsu#198 item 6,
