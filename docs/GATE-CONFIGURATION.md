@@ -342,8 +342,37 @@ holds `contents: write`, and its only push guard was lexical: `git -C . push ori
 HEAD:refs/tags/v9.9.9`, or a `gh api -X DELETE` of another branch, added to a run step passed `main`'s
 validator. Each step but the pull-request step is now admitted only in its exact form
 (`REGENERATE_FROZEN_STEPS`, the run compared byte for byte), and a `${{ }}` expression in any
-workflow's run is refused, because Actions substitutes it into the shell source. For authors: a change
-to a builder step's body (a generate flag, a hooks root) is this same two-step landing, the validator
-first. The freeze binds what is merged on `main`; a `v*` tag ruleset, the maintainer's repository
-setting, is what stops a workflow token from writing a release tag at all.
+workflow's run is refused, because Actions substitutes it into the shell source. The pull-request step
+is held short of that (`REGENERATE_PR_WITH`): its pinned action, `id`, `if`, its exact keys and `with`
+inputs, and every input's value but `body`, which is free prose; no `with` value reaches a shell, since
+create-pull-request takes each as data. When a frozen builder step must change (a generate flag, a hooks
+root), the maintainer lands it in two pull requests: the first teaches the validator on `main` the next
+form beside the current one, the second changes the workflow and drops the old form. The freeze binds
+what is merged on `main`; the `v*` tag ruleset below, the maintainer's repository setting, is what stops
+a workflow token from writing a release tag at all.
+
+**The `v*` tag ruleset, the maintainer's step (zheref/hatsu#190).** No pull request can apply a
+repository setting. The body to send:
+
+```json
+{
+  "name": "tags: v* release tags",
+  "target": "tag",
+  "enforcement": "active",
+  "bypass_actors": [{ "actor_id": 5, "actor_type": "RepositoryRole", "bypass_mode": "always" }],
+  "conditions": { "ref_name": { "include": ["refs/tags/v*"], "exclude": [] } },
+  "rules": [
+    { "type": "creation" },
+    { "type": "update", "parameters": { "update_allows_fetch_and_merge": false } },
+    { "type": "deletion" }
+  ]
+}
+```
+
+`gh api --method POST repos/zheref/hatsu/rulesets --input <file>` creates it. Actor `5` is the
+repository's admin role, so a tag cut on the maintainer's own credentials still lands, while a workflow
+token cannot create, move or delete a `v*` tag. A ruleset changes through `PUT
+/repos/zheref/hatsu/rulesets/<id>`, which replaces it whole: send every field above with the complete
+`rules` array, never only the rule that changes, and a required status check that names its app
+carries `"integration_id": 15368` (GitHub Actions).
 

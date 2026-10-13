@@ -711,6 +711,21 @@ REGENERATE_FROZEN_STEPS = {
   },
   REGENERATE_CLEANUP_STEP => REGENERATE_CLEANUP
 }.freeze
+
+# THE PULL REQUEST STEP, HELD SHORT OF FROZEN (hanten on #190, Feitan). It is a
+# `uses:` step, so validate_builder_workflow checks its pin, condition and id;
+# its keys are exactly these, its `with` carries exactly these inputs, and each
+# input's value is fixed but `body`'s, which is free prose. No `with` value
+# reaches a shell: create-pull-request takes each as data, so an expression in
+# `body` is a value, never code.
+REGENERATE_PR_KEYS = %w[name id if uses with].freeze
+REGENERATE_PR_WITH = {
+  "commit-message" => "chore(surfaces): regenerate mirrors",
+  "branch" => "bot/surface-mirror-regenerate",
+  "delete-branch" => "true",
+  "title" => "chore(surfaces): regenerate mirrors",
+  "body" => nil
+}.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -1695,6 +1710,15 @@ def validate_builder_workflow(path)
   fail_policy("#{path} #{pr_step_name.inspect} must run only when drift was detected") unless scalar(pr_step["if"]) == "steps.drift.outputs.dirty == 'true'"
   pr_with = mapping(pr_step["with"], "#{path} #{pr_step_name} with")
   fail_policy("#{path} #{pr_step_name.inspect} must target bot/surface-mirror-regenerate, never main") unless scalar(pr_with["branch"]) == "bot/surface-mirror-regenerate"
+  fail_policy("#{path} #{pr_step_name.inspect} may carry only #{REGENERATE_PR_KEYS.join(", ")}") unless pr_step.keys.sort == REGENERATE_PR_KEYS.sort
+  unless pr_with.keys.sort == REGENERATE_PR_WITH.keys.sort
+    fail_policy("#{path} #{pr_step_name.inspect} with must carry exactly #{REGENERATE_PR_WITH.keys.join(", ")}")
+  end
+  REGENERATE_PR_WITH.each do |input, want|
+    value = scalar(pr_with[input])
+    next if want.nil? ? value.is_a?(String) : value == want
+    fail_policy("#{path} #{pr_step_name.inspect} with #{input} must be exactly the frozen form")
+  end
 
   checkout_steps = step_maps.select { |step| scalar(step["uses"])&.start_with?("actions/checkout@") }
   fail_policy("#{path} must checkout main") unless checkout_steps.any? { |step| scalar(mapping(step["with"], "#{path} checkout with")["ref"]) == "main" }
@@ -2452,8 +2476,16 @@ def self_test(root)
       ["regenerate drift step gaining an if", "        id: drift\n", "        id: drift\n        if: always()\n", drift_step],
       ["regenerate verify step that swallows a failed check", %Q{          bash scripts/surface_mirror_check.sh "$PWD"\n},
        %Q{          bash scripts/surface_mirror_check.sh "$PWD" || true\n}, "Verify the regenerated tree passes its own drift check"],
-      ["regenerate checkout of another repository's main", "          ref: main\n", "          ref: main\n          repository: attacker/hatsu\n", "Checkout main"]
+      ["regenerate checkout of another repository's main", "          ref: main\n", "          ref: main\n          repository: attacker/hatsu\n", "Checkout main"],
+      # The pull request step, held short of frozen (REGENERATE_PR_WITH).
+      ["regenerate PR step gaining a with input", "          delete-branch: true\n", "          delete-branch: true\n          add-paths: .github/workflows\n", pr_step],
+      ["regenerate PR step with an input's value changed", "          delete-branch: true\n", "          delete-branch: false\n", pr_step],
+      ["regenerate PR step gaining a step key", "        id: cpr\n", "        id: cpr\n        env:\n          GH_TOKEN: ${{ github.token }}\n", pr_step]
     ].each { |label, from, to, step| hostile.call(label, regenerate, regenerate_original, from, to, step: step) }
+    # `body` is the one free input: its prose may change.
+    File.write(regenerate, fixture_sub("regenerate PR step with its body reworded", regenerate_original,
+                                       "regeneration — no hand edits.", "regeneration, and no hand edits.", step: pr_step))
+    validate_repo(tmp, announce: false)
     File.write(regenerate, regenerate_original)
 
     # The expression rule on its own, in the steps no freeze holds: a `${{ }}`

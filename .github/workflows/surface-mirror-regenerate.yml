@@ -57,10 +57,14 @@
 # form (REGENERATE_FROZEN_STEPS): keys, env, if, id, shell, the checkout's
 # `with`, and the run byte for byte, comment lines included; no run in any
 # workflow may carry a `${{ }}` expression. Only `name` and these YAML comments
-# are free. This job holds `contents: write` over a checkout that keeps its
-# credential, so an unfrozen run step could write any ref but `main`. Changing
-# a body here (a generate flag, a hooks root) is therefore a two-step landing,
-# the validator on `main` first (docs/GATE-CONFIGURATION.md).
+# are free. The pull request step is held short of that (REGENERATE_PR_WITH):
+# its pinned action, `id`, `if`, exact keys and `with` inputs, and every
+# input's value but `body`, which is free prose; no `with` value reaches a
+# shell, since create-pull-request takes each as data. This job holds
+# `contents: write` over a checkout that keeps its credential, so an unfrozen
+# run step could write any ref but `main`. Changing a body here (a generate
+# flag, a hooks root) is therefore a two-step landing, the validator on `main`
+# first (docs/GATE-CONFIGURATION.md).
 #
 # `workflow_dispatch` exists for the same reason `getsuga`'s and `futon`'s
 # manual triggers do: a maintainer who wants to force a regeneration RIGHT NOW
