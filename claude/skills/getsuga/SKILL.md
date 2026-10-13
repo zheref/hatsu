@@ -587,8 +587,8 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    `hatsu:sharingan <CODE>#<N> to <G2|G4>` against the gate `nen gate derive` named, and take its
    stop-at-the-gate report as the readiness call.
    *Fallback only if `sharingan` cannot run at all* (an unresolvable code, say): the readiness call by
-   itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
-   `GH_TOKEN` exported, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
+   itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, run
+   through `scripts/gh_token_env.sh`, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
    § 4's rule, never from memory:** the target's own `nen/gates.json` first, with no `--gates` at all
    — the `schemas/gates.json` location is not a fallback at the pinned build, REMOVED at
    `v0.4.0`, so a gates file only there is refused exactly like one carrying none; `--gates

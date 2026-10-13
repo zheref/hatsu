@@ -668,7 +668,7 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**; Hanten **omits** `isolation` — `isolation: "worktree"` would isolate the *plugin's* repository, not the target | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers and all builder efforts) or `"inherit"` (Third-Hand's Netero, En's Illumi), `Model: "pro"` |
-| **isolation** | lead/delegated authors bind separate target worktrees via the Claude guide's adapter; Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4) | app authoring uses its exposed worktree tools and returned workspace path (Codex guide § *Authoring checkout adapter*); in-session spawn **shares the parent**, so delegated authors need independently provisioned paths; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | native Worktree mode or the Cursor guide's explicit fallback; a branch alone is insufficient — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core remains untouched unless the ORIGINAL effort prompt explicitly authorizes core authoring |
+| **isolation** | lead/delegated authors bind separate target worktrees via the Claude guide's adapter; Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4); **only on an OBSERVED refusal of that `worktree add`** by the harness's isolation guard (never pre-empted), the reviewer reads the effort checkout read-only at the printed HEAD, disclosed ([`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies*, row (a), #218) | app authoring uses its exposed worktree tools and returned workspace path (Codex guide § *Authoring checkout adapter*); in-session spawn **shares the parent**, so delegated authors need independently provisioned paths; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | native Worktree mode or the Cursor guide's explicit fallback; a branch alone is insufficient — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core remains untouched unless the ORIGINAL effort prompt explicitly authorizes core authoring |
 
 Every worktree Hatsu makes, on every surface, lives under `<core>/.nen/worktrees/<surface>/` — § *Where
 worktrees live*, the ruling of 2026-09-30.
@@ -1810,7 +1810,10 @@ feature work, parity implementation and PR delivery runs in an independent git w
 default, for the lead and for each delegated authoring effort. It applies to a new effort, a
 resumed effort and every later turn or delivery phase; a branch name or a session's cwd alone
 does not establish isolation. Read-only observers may share a checkout; Hanten's reviewers retain
-their separate-checkout protocol.
+their separate-checkout protocol, save one exception: on an **observed** refusal of the reviewer's
+`git worktree add` by the harness's isolation guard — never pre-empted — the reviewer reads the
+effort checkout read-only and discloses it ([`hanten`](../claude/skills/hanten/SKILL.md) § 4;
+[`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies*, row (a), #218).
 
 **The sole core-authoring waiver is the maintainer's explicit instruction in the ORIGINAL effort
 prompt to work in core.** Quote that instruction with the bound path in the effort report. A
@@ -2056,8 +2059,8 @@ characters, no trailing punctuation — plus the trailer policy when `--repo` is
 and why is the skill's to write, never nen's. **Always pass `--repo`**: the verb finding a policy from
 the working directory is a courtesy of where the command ran, not a contract. **The body is the literal
 `--body` value**, a multi-paragraph body one quoted argument with blank lines inside it, **never
-`--body "$(cat <file>)"`**: a value computed at runtime is a shape Claude Code's worktree-isolation
-guard refuses ([PROCESS.md](PROCESS.md) § *Residue*, #218), and nen takes no body file yet.
+`--body "$(cat <file>)"`** (shape (2) of [PROCESS.md](PROCESS.md) § *Residue and owned dependencies*,
+#218); nen takes no body file yet.
 
 **Attribution** follows § `commits` above: pass exactly the truthful canonical trailer —
 `Hatsu-Agent=<responsible-persona>` for Hatsu work, `Akatsuki-Agent=<responsible-persona>` only for

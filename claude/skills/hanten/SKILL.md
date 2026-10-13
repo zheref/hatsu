@@ -59,7 +59,8 @@ included, before raising anyone.**
 
 ### 2a · The security scope's deterministic rows, before Feitan reads
 
-Hanten runs Feitan's table (`feitan.md`), each row with its failure rule, and hands him the output. **A
+Hanten runs Feitan's table (`feitan.md`) — secret scan, dependency audit, secret shapes,
+builder-touching workflow, each with its failure rule — and hands him the output. **A
 row that cannot run is not scanned, never clean**; values are `$hatsu_root/contracts/scans.json`'s.
 
 ## 2b · Budgets — one effort, one ledger
@@ -101,14 +102,14 @@ Nen-owned check **unread** once; one failing at his end is his to declare.
 ```bash
 git -C <target repo> rev-parse HEAD refs/heads/<branch>   # both SHAs, quoted
 nen wc worktrees --repo <target repo> --json   # its core is <core>
-git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD   # one call per persona, never a loop
+git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD   # once per persona, no loop
 ```
 
 **The isolated checkout makes *never edits non-test source* a property of where the reviewer
-stands** (WORKFLOW § *Where worktrees live*), removed when the review returns. **A
-harness-isolated session** (`EnterWorktree`) refuses commands there (#218): the reviewer reads the effort
-checkout **read-only** at the printed HEAD, disclosed, the author's tree held by the checks below and an
-unchanged `git -C <path> status --porcelain`.
+stands** (WORKFLOW § *Where worktrees live*), removed when the review returns. **On an
+observed guard refusal** of that add (#218) the reviewer reads the effort checkout
+**read-only** at the printed HEAD, disclosed; the checks below and an unchanged `git status
+--porcelain` hold the author's tree.
 **A convention, so each return re-reads both refs against the SHAs printed and runs
 `"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>`**:
 a moved ref or any commit in that range is a G5 naming the range, never built on (#170);
@@ -184,7 +185,7 @@ merge, tag, deploy or vote (PROCESS.md § Authority every phase shares).
 
 - Never reports a scope reviewed without its persona and the preamble, or improvises a persona.
 - Never raises a subagent on the frontier tier, untitled, over a persona's pin, into the working copy
-  (§ 4's read-only fallback aside), or with `isolation: "worktree"`; never an exhausted reviewer.
+  (§ 4's fallback aside), or with `isolation: "worktree"`; never an exhausted reviewer.
 - Never skips a scan or guard row silently, calls a not-run row clean, or waives the workflow gate.
 - Never records a finding missing `rule` or `evidence`, lets a reviewer file an issue, leaves one
   undisposed, re-grades a severity away, or accepts an uncited push-back.
