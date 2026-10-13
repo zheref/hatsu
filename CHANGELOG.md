@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.95.0 — on Codex the active worktree's Spiritual Message is the one surfaced
+
+### `spiritual-message` § 7 surfaces the active worktree's report on Codex ([#205](https://github.com/zheref/hatsu/issues/205), 0.95.0)
+
+- **On Codex the one chat line names the ACTIVE worktree's `current.html` by absolute path, with the worktree and the branch, and a render from another worktree moves that line to its own file** ([#205](https://github.com/zheref/hatsu/issues/205)). A browser tab still showing an older worktree's page is never presented as current, and a pending product decision is a `DECIDE` ask on the desk — never `ask.blocker`, never a G5 — that reaches the maintainer through `request_user_input` when it is required. The two-worktree scenario is documented in `docs/ab/spiritual-message.md` as the manual check to walk on Codex. Three sentences elsewhere in the skill were shortened to pay for the rule under the 12288-byte ceiling. Plugin bumped to 0.95.0 (a reporting behaviour); mirrors regenerated at that stamp.
+
 ## v0.94.4 — `reports.sections` is required for a render, and the skill says so
 
 ### `spiritual-message` § 3 documents `reports.sections` as required, with the adoption path ([#108](https://github.com/zheref/hatsu/issues/108), 0.94.4)
