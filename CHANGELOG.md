@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.94.2 — the exit-code canon says that `$?` after a pipe is the last stage's status
+
+### `$?` after a pipeline is the last stage's status, stated once in the general exit-code canon ([#161](https://github.com/zheref/hatsu/issues/161), 0.94.2)
+
+- **`claude/agents/kurapika.md` § *The exit codes, and what you do on each* now says that `$?` after a pipeline is the last stage's status, never the verb's**, with the three remedies — redirect to a file and read `$?` after the verb alone, `${PIPESTATUS[0]}` (bash) or `$pipestatus[1]` (zsh), or `set -o pipefail` — and the HA#78 sitting's three wrong readings as the evidence ([#161](https://github.com/zheref/hatsu/issues/161)). `tenkai` § 2 and `docs/GATE-CONFIGURATION.md` keep their narrower copies, now named as instances of the general statement; `aka` and `ao`'s two-stream rule is named as a different rule. Plugin bumped to 0.94.2 (Claude manifest and Codex overlay); the mirrors regenerated at that stamp, since the agent file is mirrored.
+
 ## v0.94.1 — the skills cite `docs/using` in place of the superseded `docs/SURFACES.md`
 
 ### Skill citations repointed from `docs/SURFACES.md` to `docs/using/README.md` and `docs/using/mirrors.md` ([#242](https://github.com/zheref/hatsu/issues/242), 0.94.1)
