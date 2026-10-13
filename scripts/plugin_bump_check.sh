@@ -273,9 +273,11 @@ fi
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), and every other scripts/** entry — the fixtures
 #   (*_fixture_check.sh, *_fixture.sh, *_red.sh), this guard,
-#   workflow_runner_policy_check.rb and pr_composition_check.sh (the
-#   pr-composition-guard lane's drift check, zheref/hatsu#171) are CI- or
-#   maintainer-only; every runtime script an installed copy executes is an
+#   workflow_runner_policy_check.rb, pr_composition_check.sh (the
+#   pr-composition-guard lane's drift check, zheref/hatsu#171) and
+#   report_markdown_check.sh (the report-markdown-guard lane's render check,
+#   zheref/hatsu#215; the templates and examples it reads are templates/*) are
+#   CI- or maintainer-only; every runtime script an installed copy executes is an
 #   explicit row above (the criterion is "an installed copy reads it", checked
 #   script by script),
 #   .github/**.
