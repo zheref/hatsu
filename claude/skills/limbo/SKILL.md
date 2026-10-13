@@ -3,12 +3,7 @@ name: limbo
 description: Keep one consumer repository's canon mirror current on every agent surface it declares — read its recorded canon pin, render the handbook rules at that tag into each surface's rules location through nen canon mirror, classify every drift (missing, stale, extra, hand-edited, foreign), and land the result as one PR at that repository's own gate. Use when the maintainer invokes hatsu:limbo [for <path>] [to <tag>] [as check|sync], or asks to sync, check or repin a canon mirror. Never writes canon, renders only declared surfaces, moves a pin only on the typed word, never overwrites a hand-edited file, never merges.
 ---
 
-**Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
-root**, not the consuming repository. On an installed surface, use the absolute root printed by
-`ten` to read those files (re-resolve through that skill if unavailable). Relative links
-below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
-trigger a duplicate filing. Never copy or invent a second policy in the target repository.
+**Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
 
 # Limbo — the canon, projected into every surface a consumer declares
 

@@ -70,7 +70,7 @@ under 6,144 (`scripts/prose_size_check.sh`).
 listing `hatsu:<name>`; Cursor, Antigravity and a legacy Codex placement read the generated mirror. So a body names a harness tool only
 through [PROCESS.md](../../../docs/PROCESS.md) § *Surfaces and pickers*, spells every invocation
 `hatsu:<name>` for the generator to respell, builds plugin paths from `$hatsu_root`, keeps frontmatter
-to `name` and `description` within the smallest budget [`SURFACES.md`](../../../docs/SURFACES.md) § 1
+to `name` and `description` within the smallest budget [`docs/using/README.md`](../../../docs/using/README.md) § *The four surfaces, compared*
 records, and reaches shared policy through `$hatsu_root` ([PROCESS.md](../../../docs/PROCESS.md)
 § *Standalone entry*), never a relative link a mirror cannot resolve. A fact true on one surface is that surface's
 row, never the rule.

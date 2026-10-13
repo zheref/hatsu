@@ -162,7 +162,7 @@ parsing a manifest, and the root the warm-up printed is what that block hands in
 It is spelled that way and never as
 `$CLAUDE_PLUGIN_ROOT` alone because that variable is Claude Code's: exported by that harness inside a skill
 invocation and nowhere else, and on Codex and Cursor — where this body runs as a verbatim mirror
-([`docs/SURFACES.md`](../../../docs/SURFACES.md)) — usually unset or, from a shell profile, naming a
+([`docs/using/mirrors.md`](../../../docs/using/mirrors.md) § 1) — usually unset or, from a shell profile, naming a
 different plugin. `--explain` and `--json`'s
 `meta.identities.path` print the resolved absolute path (`identities <abs path>` on the `--explain` header
 line), so the report itself says which file decided.
