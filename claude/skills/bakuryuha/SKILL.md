@@ -43,7 +43,7 @@ the body was read from `${CODEX_HOME:-~/.codex}/plugins/cache/`; else Claude Cod
 session sets `$CLAUDECODE` too and loads no host plugin. **The checkout**: the link's target; else the
 Codex marketplace root when it lies outside `${CODEX_HOME:-~/.codex}` (inside, it is Codex's own
 snapshot, never the checkout); else `$HATSU_PLUGIN_ROOT`; else asked (`missing-configuration`).
-[`SURFACES.md`](../../../docs/SURFACES.md) § 1 has the rows:
+[`docs/using/README.md`](../../../docs/using/README.md) § *The four surfaces, compared* has the rows:
 
 | Surface | First-party install | Legacy form § 3 migrates | *Before* / *after* read from |
 |---|---|---|---|
@@ -108,7 +108,7 @@ Each cell is quoted in its guide's § 9:
 **A human-only step is handed over, never performed**: no surface documents an agent reloading
 itself. **Until the switch, this session follows the new canon from disk**: a Hatsu skill whose
 injected body is not *after*'s is followed from § 5's path for that name (the rule
-[`SURFACES.md`](../../../docs/SURFACES.md) § 1 gives an inlined pin, #67). Skill prose only: personas,
+[`docs/using/README.md`](../../../docs/using/README.md) § *Targeting a local checkout* gives an inlined pin, #67). Skill prose only: personas,
 hooks and MCP servers stay *before*'s until the switch, said once.
 
 ## 7. Report, then **Next** — every run, always last

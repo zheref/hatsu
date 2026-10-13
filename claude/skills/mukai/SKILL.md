@@ -4,7 +4,7 @@ description: Take a pushed branch through catch-up, review, impacted tests, cove
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
-`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md` and `docs/SURFACES.md` belong to the resolved **Hatsu plugin
+`docs/LAUNCH-MIGRATION.md`, `docs/STANDALONE-ENTRY.md`, `docs/PROCESS.md`, `docs/using/README.md` and `docs/using/mirrors.md` belong to the resolved **Hatsu plugin
 root**, not the consuming repository. On an installed surface, use the absolute root printed by
 `ten` to read those files (re-resolve through that skill if unavailable). Relative links
 below identify source locations; a missing consumer `docs/` copy is not a missing policy and must not
@@ -80,7 +80,7 @@ call for this skill too ([`mugetsu`](../mugetsu/SKILL.md) § 3, the advance go; 
   `.claude/settings.json` allow row (`"permissions": {"allow": ["Bash(ci_scripts/pr_screenshots.sh:*)"]}`
   would be `<product-repo-A>`'s, scoped to that one script — `<product-repo-A>` carries no such file today, so the stop
   there is expected until it does), which travels with every checkout; the other surfaces' equivalents
-  are [`docs/SURFACES.md`](../../../docs/SURFACES.md) § 1's permissions row and are unverified for
+  are [`docs/using/README.md`](../../../docs/using/README.md) § *The four surfaces, compared*'s permissions row and are unverified for
   this step. Hatsu's own pack (`contracts/permissions.json`, placed by ten § 5 into the per-checkout
   `.claude/settings.local.json`) carries Hatsu's verbs only, never a consumer's script. **Where the
   consumer has not declared it, the stop at that step is expected and named** in shibari's handover

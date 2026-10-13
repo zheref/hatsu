@@ -125,7 +125,7 @@ issue** (`--propose-issue`, Netero's completeness shape) so the next session doe
 stop. **A condition whose row is `autonomous` never reaches this part**: it was resolved by its default, and the
 turn page says so with the row id.
 
-**4 · The question through the surface's own option picker** ([`docs/SURFACES.md`](../../../docs/SURFACES.md)'s
+**4 · The question through the surface's own option picker** ([`docs/using/README.md`](../../../docs/using/README.md) § *The four surfaces, compared*'s
 *native option picker* row; `nen surface capabilities --surface <s>` names it) — never a paragraph
 ending in a question mark; its options are the marker's, verbatim (§ 1). **A `DO` or `MERGE` ask's picker never carries the act**,
 which is the maintainer's outside the session — a `MERGE` ask is `en` § 5's merge prompt for every PR
