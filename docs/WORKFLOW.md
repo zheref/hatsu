@@ -2220,9 +2220,11 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    `--no-track`). A delegate authoring beside another effort on overlapping files cuts from the
    stack's tip, never from the trunk.
 3. **One mechanical commit per PR at stack time.** The bump (monotonic along the stack: patch for
-   wording, minor for behaviour, as README's bump policy says), the `CHANGELOG.md` section and the
-   regenerated mirrors land on each branch after its content, so a rebase over the previous PR's
-   mechanical commit is trivial and the review reads the content apart from the churn.
+   wording, minor for behaviour, as README's bump policy says), the `changelog.d/` fragment
+   (CONTRIBUTING § *Changelog fragments*: `CHANGELOG.md` is never edited for an unreleased change,
+   getsuga collates at the cut) and the regenerated mirrors land on each branch after its content, so
+   a catch-up over the previous PR's mechanical commit is trivial and the review reads the content
+   apart from the churn.
 4. **The PRs.** Each PR's base is the previous effort's branch; only the bottom PR targets
    `branch.base`. Every PR is reviewed on its own (hanten per effort, its own budgets), carries its own
    `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is
