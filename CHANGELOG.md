@@ -2,6 +2,12 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.96.0 — the register is built by `nen report data --register`, never by hand
+
+### `backlog-board` § 3 and `rikugan` §§ 3–4 build the register document with `nen report data --register <desk>` ([#221](https://github.com/zheref/hatsu/issues/221), 0.96.0)
+
+- **The Rikugan register's data document is the verb's** ([#221](https://github.com/zheref/hatsu/issues/221), zheref/nen#276): `backlog-board` § 3 and `rikugan` §§ 3–4 call `nen report data … --register <desk>` and pipe its document into `nen report render --variant register|final`; the hand-built register builder is retired. The desk a run composes is the judgement half only (variant, title, scope, gate, the asks per gate, optional row marks and notes), every fact — notation, verdict, labels, checks, threads, links, head, the tallies and the spend — is nen's, and a desk that carries a `verdict` is refused. Canon now writes down the tally definitions nen implements: `tallyBlockers` (open PRs with a red check, an unresolved thread or a `DIRTY` merge state), `tallyReady` (open PRs whose verdict is `ready` and that are not blockers), `tallyInFlight` (the remaining open PRs). The end-to-end futon run rendered this way is recorded in `docs/ab/futon.md` by the run that lands this stack. Plugin bumped to 0.96.0; mirrors regenerated at that stamp.
+
 ## v0.95.0 — on Codex the active worktree's Spiritual Message is the one surfaced
 
 ### `spiritual-message` § 7 surfaces the active worktree's report on Codex ([#205](https://github.com/zheref/hatsu/issues/205), 0.95.0)
