@@ -52,13 +52,14 @@ target once*. The contract in
 
 **Nothing in this section is the go** — not the warm-up, not the orientation block, not the plan. The
 go is § 3's, it is always the maintainer's own, quoted verbatim as the record, and it comes in
-**exactly three forms**:
+**exactly four forms**:
 
 | Form | What it is |
 |---|---|
 | **(1) By name** | the maintainer's typed `hatsu:mugetsu [<target>]`, in whatever spelling their surface invokes this skill by, the plugin-namespaced form included ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *The human gates, and who may cross them*, the G3 row: *"publishing runs only on the maintainer's typed go — by name, or as a `mugetsu` step of their own `futon` chain"*); no version or target is needed (ruling 2(a) of § *Rulings of 2026-09-26/27/28*: *"Mugetsu should always default to latest unpublished cut tag. It should never be mandatory, not even when called directly"*; clarified 2026-09-30: the typed direct call is the whole go) |
 | **(2) In their own words** | a message the maintainer typed in this session saying to publish (§ 1: *in their own words or by name*) |
 | **(3) The advance go** | a typed futon `then` step that `nen parse futon` parsed as `mugetsu`, its `gate.allowed` true (§ 3) |
+| **(4) The publish-offer answer** | the maintainer's own affirmative answer to the **one** question [`kazaana`](../kazaana/SKILL.md) § 6 asks through the surface's picker after the tag that run cut resolves on origin — the question naming the tag and the destination, no option starred, asked only where `nen repo classify`'s kind is listed under `futon.advanceGo.mugetsu` (the maintainer's ruling of 2026-10-13, [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-10-13*, 3; row `publish-offer`). The question's text and the answer are quoted verbatim together, in the report and on the release PR; a *not now* lapses nothing and nothing publishes |
 
 **Form (1) is one observable thing**: a user turn in this session that the surface rendered from the
 maintainer's own typed command. It is **never** the result of a Skill-tool call the session itself
@@ -120,7 +121,7 @@ repository's declaration gate — and nothing is written or run here.
 **The call is the maintainer's, in their own words or by name.** Four consequences, all binding:
 
 - **No agent ever prompts for it** (`nen/decisions.json` row `release-go`, a human gate at G3). Not a report, not a bell, not a stop's options, not a release PR
-  body, not a composite offering it as a next step. A report may say *the tag is cut and the
+  body, not a composite offering it as a next step — **save `kazaana` § 6's one question after the tag it cut**, form (4) above, whose answer is the maintainer's own (ruling 2026-10-13, 3). A report may say *the tag is cut and the
   `production` target is declared*; it may not say *shall I publish?* An agent that asks for
   permission it was told to wait for has converted a human gate into a nudge, and this is the gate
   where that costs the most. Asking for the destination, on the maintainer's own same-turn call that
@@ -195,7 +196,8 @@ reconstructing what the maintainer meant, there is no go.
 as § 1 says, and only a destination among several is asked, under P4's same-turn exception, with
 nothing run until the answer arrives. **The go
 is typed, never picked**: the ask takes the maintainer's free-text answer, and no picker ever carries a
-*publish* option.
+*publish* option — **save form (4)**, kazaana § 6's one question after its tag, whose unstarred *publish*
+answer is the maintainer's own word on a question naming the tag and the destination (ruling 2026-10-13, 3).
 
 | Part | Why |
 |---|---|

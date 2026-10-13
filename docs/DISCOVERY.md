@@ -30,7 +30,8 @@ buys nothing for a single filing, Kurapika applies Netero's completeness in Mani
 names the switch.
 
 **The wrap-up harvest is [`hatsu:third-hand`](../claude/skills/third-hand/SKILL.md), after En
-completes.** Netero proposes 0–3 folded issues of this class; the maintainer
+completes** — optional from the ruling of 2026-10-13, offered beside the required
+[`hatsu:cleanup`](../claude/skills/cleanup/SKILL.md) at the wrap-up picker (cleanup § 2). Netero proposes 0–3 folded issues of this class; the maintainer
 picks which to file through the surface picker; only those writes run. That pick is the
 confirmation for those drafts. Unselected proposals are not filed. In-execution opportunistic
 filing of a single chairman finding is unchanged and still one finding, one issue.

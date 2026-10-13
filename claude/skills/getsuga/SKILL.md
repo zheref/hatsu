@@ -501,6 +501,15 @@ the branch protection. **Never self-reviews, never approves its own PR** (`claud
 and **only this PR**: a delivery PR — futon's, build's, anything a `then` chain drove — still waits
 for the maintainer at its gate; `--release-unit` is the verb's own refusal of anything else.
 
+**Under [`kazaana`](../kazaana/SKILL.md) § 5 the fall-back is never the merge prompt** (the maintainer's ruling of
+2026-10-13, [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-10-13*, 2): transient conditions —
+a pending required check, a round requested inside `round_policy`'s caps, a head en just pushed — are held through
+en's observation hold within `monitor.maxCycles` before § 3a runs, and a gate the verb then refuses on is a **G5
+halt** quoting the verb's own line and handing the exact `--run` command, never `nen stop --gate G4|G2` with a
+`MERGE` ask and never a picker carrying the merge. `rounds-owed` as the only failing row under an effective
+`aiReviewers: optional | off` after the hold is that same halt until `nen pr merge --release-unit` reads
+`aiReviewers` (owed to nen, kazaana § Residue). Outside kazaana, the paragraph below stands as written.
+
 A fall-back **stops at the declaration gate** (`nen/decisions.json` row `canon-merge` in a canon
 repository, `merge` in a consumer) with the banner, the board and `en` § 5's merge prompt for the
 proposal — this skill owns that stop — **`G4` in a canon repository
