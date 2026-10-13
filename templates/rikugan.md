@@ -34,8 +34,8 @@ Hatsu · rikugan · {{variant}}
 {{why}}
 
 {{#each options}}- **{{letter}}** · {{label}}{{#if star}} ⭐ {{star}}{{/if}}\
-  {{consequence}}\
-  <code>{{command}}</code>
+  {{consequence}}
+  <pre>{{command}}</pre>
 {{/each}}
 {{#if objects}}Objects:{{#each objects}} [{{label}}](<{{url}}>){{/each}}
 {{/if}}{{#if verdict}}

@@ -33,14 +33,14 @@ stage in review · G4 — pending · worktree fmc-215 · branch fable/kurapika/h
 nen pr ready says ready &amp; every thread is settled
 
 - **A** · Merge it ⭐ recommended\
-  the templates ship in the next release\
-  <code>gh pr merge 250 --repo zheref/hatsu --merge --match-head-commit 0123abc</code>
+  the templates ship in the next release
+  <pre>gh pr merge 250 --repo zheref/hatsu --merge --match-head-commit 0123abc</pre>
 - **B** · Ask for another round\
-  the PR waits | a round is owed\
-  <code>none</code>
+  the PR waits | a round is owed
+  <pre>none</pre>
 - **C** · Close it\
-  the Antigravity reports stay hand-authored\
-  <code>gh pr close 250 --repo zheref/hatsu</code>
+  the Antigravity reports stay hand-authored
+  <pre>gh pr close 250 --repo zheref/hatsu</pre>
 
 Objects: [HA-PR-#250](<https://github.com/zheref/hatsu/pull/250>) [HA-IS-#215](<https://github.com/zheref/hatsu/issues/215>)
 
@@ -83,7 +83,7 @@ Half-run stops:
 <!-- hatsu:block landed -->
 ## Landed, fought back, not delivered
 
-The whole session against <code>origin/main</code>, not just this turn.
+The whole session against origin/main, not just this turn.
 
 ### Landed
 

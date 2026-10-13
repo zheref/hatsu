@@ -179,10 +179,6 @@
     }
   ],
   "architectureCaption": "The report path: one data document, two templates per report",
-  "graphJson": "",
-  "graphMermaid": "",
-  "graphNodes": [],
-  "graphEdges": [],
   "spendEfforts": [
     {
       "name": "ha-215-markdown-report-templates",

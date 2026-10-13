@@ -17,7 +17,8 @@
 #
 #   --path <dir>  prepend <dir> to PATH for the command: the session bind's
 #                 bin directory (ten § 2), so no block needs a PATH prefix
-#                 either. Absolute and an existing directory, else refused.
+#                 either. Absolute, an existing directory and free of `:` (one
+#                 entry, never several smuggled in), else refused.
 #   --            ends the options; everything after it is the command.
 #
 # The token is always the one `gh auth token` prints, the credential gh itself
@@ -59,11 +60,17 @@ if [ -n "$path_dir" ]; then
     /*) : ;;
     *) die "--path '$path_dir' is not absolute." ;;
   esac
+  case "$path_dir" in
+    *:*) die "--path '$path_dir' contains ':'; it names one directory." ;;
+  esac
   [ -d "$path_dir" ] || die "--path '$path_dir' is not a directory."
 fi
 
 command -v gh >/dev/null 2>&1 || die "no 'gh' on PATH; install the GitHub CLI, then 'gh auth login'."
 
+# A caller tracing with `bash -x` or SHELLOPTS=xtrace would otherwise print the token in the
+# assignment and export below; tracing stops here, silently, for the rest of this process.
+{ set +x; } 2>/dev/null
 token=""
 token="$(gh auth token 2>/dev/null)" || die "'gh auth token' failed; 'gh auth status' names the fix."
 [ -n "$token" ] || die "'gh auth token' printed nothing; 'gh auth status' names the fix."
@@ -78,4 +85,4 @@ unset token
 # errexit off for the exec itself: under bash 3.2's `set -e` a failed exec exits 1 rather
 # than env(1)'s 126 (checked by the fixture), and 126/127 are the codes callers read.
 set +e
-exec "$@"
+exec -- "$@"   # `--`: a command named `-c` or `-l` is the command, never exec's own flag
