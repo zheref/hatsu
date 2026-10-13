@@ -1,0 +1,118 @@
+# prose-size-check — the prose-diet guard, run on every pull request (zheref/hatsu#135).
+#
+# scripts/prose_size_check.sh holds the plugin's prose to its ceilings; its own header names what it
+# measures and each ceiling (zheref/hatsu#119, #186). It ran
+# only by hand and in its focused lane, which exercises its fixture rather than the tree, so
+# claude/skills/hanten/SKILL.md reached main over its 12288-byte ceiling with #129 and nothing said
+# so. This job runs the guard on every pull request: a file over its ceiling fails the check, the
+# guard's own OVER row naming the file, its size and its ceiling, and `nen pr ready` reads the pull
+# request not-ready on it (CON-32(a)). It is a check of its own because pr-readiness.yml concludes
+# `success` by construction: a step there could never read red.
+#
+# The hardening is surface-mirror-check.yml's, step for step: the guard comes from the trusted
+# workflow revision and is handed the PR checkout as its ROOT, never run from the PR; both
+# checkouts set `persist-credentials: false`; the guard's output is printed between
+# `::stop-commands::` and a fresh resume token, because the file names in it come from the PR's
+# tree; the check is created on the exact PR head and always finished. No `paths:` filter: a
+# required context that never reports is a pull request that cannot merge.
+#
+# ENFORCEMENT POSTURE: ADVISORY, and READY TO BE REQUIRED. The context is the check this job
+# creates, `prose-size-check`; adding it to main's required-checks ruleset is the maintainer's act,
+# not something this file can do (docs/GATE-CONFIGURATION.md). Renaming the job or the check
+# silently un-requires it.
+name: prose-size-check
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: prose-size-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  contents: read
+
+jobs:
+  prose-size-check:
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Start check on the exact PR head
+        id: head_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=prose-size-check -f head_sha="$HEAD_SHA" -f status=in_progress --jq .id)"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR head (data only — nothing from here is executed)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Checkout guard code from the trusted workflow revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: .trusted
+          persist-credentials: false
+
+      - name: Enforce workflow runner policy from trusted workflow revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+
+      - name: Prose size guard
+        # FROZEN (PROSE_FROZEN_GUARD in scripts/workflow_runner_policy_check.rb):
+        # keys, shell and the run compared byte for byte; only `name` and these
+        # comments are free. The guard and its ceilings are the trusted revision's,
+        # the PR checkout only the root it measures. Exit 1 names each offender, an
+        # OVER row with its size and ceiling; exit 2 is wiring, never a pass.
+        shell: bash
+        run: |
+          set -uo pipefail
+          guard=.trusted/scripts/prose_size_check.sh
+          [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/prose_size_check.sh"; exit 1; }
+          stop="stop_$(openssl rand -hex 16)" || stop=""
+          [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was measured."; exit 1; }
+          code=0
+          echo "::stop-commands::${stop}"
+          sh "$guard" --headroom "$PWD" 2>&1 || code=$?
+          printf '\n::%s::\n' "$stop"
+          case "$code" in
+            0) echo "every measured file is within its prose ceiling." ;;
+            1)
+              echo "::error::a file is over its prose ceiling, or could not be measured; each offender is named above, an OVER row with its size and ceiling. Diet the file; ceilings are not raised (zheref/hatsu#119)."
+              exit 1
+              ;;
+            *)
+              echo "::error::the prose guard could not run (exit ${code}), a wiring refusal: scripts/prose_size_check.sh's header names every cause. See its output above."
+              exit 1
+              ;;
+          esac
+
+      - name: Finish check on the exact PR head
+        if: ${{ always() && steps.head_check.outputs.id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CHECK_ID: ${{ steps.head_check.outputs.id }}
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$JOB_STATUS" in
+            success) conclusion=success ;;
+            cancelled) conclusion=cancelled ;;
+            *) conclusion=failure ;;
+          esac
+          gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" -f status=completed -f conclusion="$conclusion" >/dev/null

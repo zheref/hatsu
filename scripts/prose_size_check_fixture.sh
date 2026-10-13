@@ -176,6 +176,14 @@ run 1 --headroom "$escape"
 assert_contains "$out" 'OUTSIDE  claude/agents/zz.md -- resolves to a path outside the root, not measured' 'a symlink leaving the root is an offender, never measured'
 assert_lacks "$out" 'claude/agents/zz.md  ' 'the escaped path has no report row'
 assert_contains "$out" 'unreadable, unlistable, unmeasurable, dangling or outside the root' 'the verdict names the class'
+chain="$fixture_root/chain"
+make_root "$chain"
+printf '%s\n' 'outside' > "$fixture_root/outside-chain.md"
+ln -s "$fixture_root/outside-chain.md" "$chain/claude/agents/hop.md"
+ln -s hop.md "$chain/claude/agents/zz.md"
+run 1 --headroom "$chain"
+assert_contains "$out" 'OUTSIDE  claude/agents/zz.md -- resolves to a path outside the root, not measured' 'a symlink to an in-root symlink that leaves the root is an offender, every hop resolved'
+assert_lacks "$out" 'claude/agents/zz.md  ' 'the chained path has no report row'
 inside="$fixture_root/inside"
 make_root "$inside"
 ln -s ../agents/chrollo.md "$inside/claude/rules/linked.md"
@@ -334,4 +342,4 @@ if [ "$(id -u)" -ne 0 ]; then
   chmod 755 "$form/surfaces/codex/zz"
 fi
 
-echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
+echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
