@@ -1,0 +1,3 @@
+### Changed
+
+- **`claude/agents/kurapika.md` § *The exit codes, and what you do on each* now says that `$?` after a pipeline is the last stage's status, never the verb's**, with the three remedies — redirect to a file and read `$?` after the verb alone, `${PIPESTATUS[0]}` (bash) or `$pipestatus[1]` (zsh), or `set -o pipefail` — and the HA#78 sitting's three wrong readings as the evidence ([#161](https://github.com/zheref/hatsu/issues/161)). `tenkai` § 2 and `docs/GATE-CONFIGURATION.md` keep their narrower copies, now named as instances of the general statement; `aka` and `ao`'s two-stream rule is named as a different rule. Plugin bumped to 0.94.2 (Claude manifest and Codex overlay); the mirrors regenerated at that stamp, since the agent file is mirrored.
