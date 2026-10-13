@@ -116,7 +116,7 @@ inherited, or forgotten.*
 | `monitor.maxCycles` | `nen/workflow.json` | **the cap** — the count of *acting* cycles (§ 6) | `20` |
 | `monitor.pollSeconds` | `nen/workflow.json` | the interval between observations, as `--interval-ms` | `300` (→ `--interval-ms 300000`) |
 | `branch.base` | `nen/workflow.json` | the base § 5 prompts on. Step 3 catches up from, and "behind" is measured against, the PR's own `baseRefName` (`gh pr view <N> --json baseRefName`), which is `branch.base` for every PR en prompts on | `main` |
-| `reports.dir` / `.sections` / `.retain` | `nen/workflow.json` | step 7's file — [`backlog-board`](../backlog-board/SKILL.md) § 3's keys | `Reports` / five variants / `final-only` |
+| `reports.dir` / `.sections` / `.retain` | `nen/workflow.json` | step 7's file — [`backlog-board`](../backlog-board/SKILL.md) § 3's keys | `Reports` / required, no default (WORKFLOW § 2 → `reports`) / `final-only` |
 | `notifications.rungs` / `.sound` | `nen/workflow.json` | step 6's rungs — [`$jutaisho`](../jutaisho/SKILL.md)'s keys | `["push","os","sound"]` / `Glass` |
 
 **Before cycle 1, the cap is spelled out through the verb that refuses a missing one:**
