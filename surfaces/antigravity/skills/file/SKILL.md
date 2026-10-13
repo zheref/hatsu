@@ -123,8 +123,8 @@ it as an open question inside the issue rather than resolving it silently.
 ## 3. Reconcile against the backlog — the four searches
 
 Every `nen` call below that reads GitHub runs through `scripts/gh_token_env.sh` — `nen` never picks a
-token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`, a shape Claude
-Code's worktree-isolation guard refuses ([PROCESS.md](../../../../docs/PROCESS.md) § *Residue*, #218):
+token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`
+([PROCESS.md](../../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218):
 
 ```bash
 "$hatsu_root/scripts/gh_token_env.sh" nen issue search --target <owner/name> --subject "<text>" \
@@ -239,12 +239,13 @@ credentials, before it enters the plan. Write each draft to a file (a title thro
 heredoc, `cat > title.txt <<'EOF'`, so no `$` or backtick in it is expanded) and hand the files over:
 
 ```bash
-bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> --label draft title.txt body.md   # an issue, no pipe (#218)
+bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> title.txt body.md   # an issue: the files as arguments, no pipe (#218)
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> comment.md                                  # a comment
 ```
 
 Exit `0` (or `skipped`: the target is private, so a private name leaks nothing) → the draft may
-enter the plan, and the filed text is these files, byte for byte (`--title "$(cat title.txt)"`).
+enter the plan, and the filed text is these files, byte for byte (the title as `title.txt`'s one line, typed
+single-quoted; nen takes no title file yet).
 Exit `1` → replace each reported line's name with the legend's placeholder (`<product-repo-A>` …
 `<reference-repo>`, object ids per its object-id rule) and re-run until it reads `0`. Exit `2` →
 write nothing; report the guard's line — an unread private list is never a pass. The guard prints
@@ -320,7 +321,7 @@ skill's create labels; where a real family exists, the flag makes that exclusion
 
 | Class | What to apply | Basis |
 |---|---|---|
-| **Lane** | Whichever labels mark this problem's owning discipline in the target repo's own taxonomy — several when it spans lanes; never a CI routing label, since Hatsu holds no CI plane | Read from `nen/labels.json` at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
+| **Lane** | Whichever labels mark this problem's owning discipline in the target repo's own taxonomy — several when it spans lanes; never a CI routing label (WORKFLOW § *Building an issue with no CI plane*) | Read from `nen/labels.json` at run time, never from memory; a label this port hasn't seen before is still a real one if the taxonomy carries it |
 | **Severity** | Exactly one severity label from the target repo's own severity vocabulary | Propose with one line of reasoning; the plan carries it |
 | **Kind** | Bug / handbook-question / epic / QA, as the target repo's taxonomy names them | What the issue *is* |
 | **Classification** | The `lang/<key>` and `job/<key>` keys [`/classify`](../classify/SKILL.md) § 3 proposes for the drafted text — **always run, every filing, every repository** (the maintainer's ruling of 2026-10-04); the rows join this plan and this one confirmation. **One reading per state:** the families declared in the target's `nen/labels.json` **and** present on GitHub (classify § 2's `declared` and `github` both `ok`) → the keys travel in the create call's `--label`; the `nen classify` verbs absent at the pin, or declared but not yet synced, or not declared → the keys are **shown in the plan and named owed**, kept out of `--label`, and **the filing proceeds** without them (never a declaration started from `file`; classify § 4 names the owed landing). An axis classify cannot decide stays empty, said | Proposed from `contracts/classify.taxonomy.json`, validated against the target's `nen/labels.json` (the one source of truth for its labels); never a key the target has not declared |

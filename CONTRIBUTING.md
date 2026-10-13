@@ -48,8 +48,9 @@ from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line).
 **There is no opt-out for a shipped path** (zheref/hatsu#171): a `no plugin bump: <reason>` line in the PR
 body is honoured only where no path in `PLUGIN_SURFACE_GLOBS` changed — where the guard does not apply
-anyway — and over a shipped path it is refused by name, the refusal listing the shipped paths the diff
-changes, because an installed copy reads every one of them and even wording there is a patch bump.
+anyway — and, when the version is not bumped, over a shipped path it is refused by name, the refusal
+listing the shipped paths the diff changes, because an installed copy reads every one of them and even
+wording there is a patch bump. Beside a bump the line is inert, and the pass line says it was ignored.
 **A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
 **The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
@@ -110,9 +111,12 @@ word for a docs-only PR; one that touches them and adds its fragment answers `fr
 no opt-out line.
 
 `shibari` runs it before the PR opens and names the fragment in the PR body. Never edit `CHANGELOG.md`
-directly for an unreleased change. The one exception is a pull request that writes its own section,
-as futon's integration PR does ([`docs/ROSTER.md`](docs/ROSTER.md) § *Rulings of 2026-09-30 — En never
-merges*): its body carries the declared `directSection.optOut` line verbatim, and no other PR carries it.
+directly for an unreleased change. The one exception is a pull request whose own diff changes
+`CHANGELOG.md` (futon's integration PR, which writes its own section — [`docs/ROSTER.md`](docs/ROSTER.md)
+§ *Rulings of 2026-09-30 — En never merges*): its body carries the declared `directSection.optOut` line
+verbatim, and no other PR carries it. **That condition is unenforced by nen**: the verb honours the
+phrase anywhere, over any diff, inside an HTML comment or a code fence too, so a Hatsu-side raw-body
+check is owed (zheref/hatsu#171; the nen half is zheref/nen#239's scope).
 
 ## Redaction
 

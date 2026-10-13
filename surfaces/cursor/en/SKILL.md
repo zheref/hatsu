@@ -116,7 +116,7 @@ inherited, or forgotten.*
 | `monitor.maxCycles` | `nen/workflow.json` | **the cap** — the count of *acting* cycles (§ 6) | `20` |
 | `monitor.pollSeconds` | `nen/workflow.json` | the interval between observations, as `--interval-ms` | `300` (→ `--interval-ms 300000`) |
 | `branch.base` | `nen/workflow.json` | the base § 5 prompts on. Step 3 catches up from, and "behind" is measured against, the PR's own `baseRefName` (`gh pr view <N> --json baseRefName`), which is `branch.base` for every PR en prompts on | `main` |
-| `reports.dir` / `.sections` / `.retain` | `nen/workflow.json` | step 7's file — [`backlog-board`](../backlog-board/SKILL.md) § 3's keys | `Reports` / five variants / `final-only` |
+| `reports.dir` / `.sections` / `.retain` | `nen/workflow.json` | step 7's file — [`backlog-board`](../backlog-board/SKILL.md) § 3's keys | `Reports` / required, no default (WORKFLOW § 2 → `reports`) / `final-only` |
 | `notifications.rungs` / `.sound` | `nen/workflow.json` | step 6's rungs — [`/jutaisho`](../jutaisho/SKILL.md)'s keys | `["push","os","sound"]` / `Glass` |
 
 **Before cycle 1, the cap is spelled out through the verb that refuses a missing one:**
@@ -366,9 +366,8 @@ Each refresh window has exactly two observations: the first establishes the wind
 ```
 
 **`--pr` is `nen pr ready`'s own in-process read** (zheref/nen#264), so the watched verdict and the
-quoted one never disagree, and no command string is handed over: the `--command "<string>"` form and
-`export GH_TOKEN=$(gh auth token)` are shapes Claude Code's worktree-isolation guard refuses
-([PROCESS.md](../../../docs/PROCESS.md) § *Residue*, #218). The wrapper puts the token in the verb's
+quoted one never disagree, and no command string is handed over (shapes (3) and (b) of
+[PROCESS.md](../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218). The wrapper puts the token in the verb's
 environment and nowhere else; `--interval-ms` is at least `30000` under `--pr`.
 
 `<identity flags>` is selected by [`sharingan`](../sharingan/SKILL.md) § 4 for the target: omit it

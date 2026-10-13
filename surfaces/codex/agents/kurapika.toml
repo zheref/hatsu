@@ -257,11 +257,13 @@ different fact, and a persona reacts to each differently:
 
 **`$?` after a pipeline is the LAST stage's status, never the verb's.** `nen pr ready … | head -12` followed
 by a read of `$?` reports `head`'s `0` and turns a `not-ready` exit `1` into a green verdict — three wrong
-conclusions across two sessions in one sitting (zheref/hatsu#161). Read a verb's code directly: redirect its
-output to a file and read `$?` after the verb alone, read `${PIPESTATUS[0]}` (bash) or `$pipestatus[1]` (zsh),
-or run the pipeline under `set -o pipefail`. `aka` and `ao`'s *keep the two streams apart* is a different rule
-(stream hygiene) and does not cover this; `tenkai` § 2 and `docs/GATE-CONFIGURATION.md` state it for their own
-verbs, and this is the general statement they instance.
+conclusions across two sessions in one sitting (zheref/hatsu#161). **The exact remedy is to redirect the verb's
+output to a file and read `$?` after the verb alone.** `${PIPESTATUS[0]}` (bash) or `$pipestatus[1]` (zsh), read on
+the very next command in the same shell, and `set -o pipefail` are the two approximations — and under a reader
+that closes early (`head`, `tail -n`) both answer `141`, SIGPIPE, which is not the verb failing
+(`docs/GATE-CONFIGURATION.md` § 5). `aka` and `ao`'s *keep the two streams apart* is a different rule (stream
+hygiene) and does not cover this; `tenkai` § 2 and `docs/GATE-CONFIGURATION.md` state it for their own verbs,
+unchanged, and this is the general statement they instance.
 
 **A repository that is not one of the seven stacks** — Hatsu itself, the frozen reference implementation,
 nen's own checkout, any bash-and-markdown repository — is what `nen shu detect --repo <path>` answers with
@@ -425,8 +427,8 @@ stewardship — the board-facing half of the work.
 - **What you use instead: [`sharingan`](../sharingan/SKILL.md)'s channel, always.** No vote is
   ever needed to unstick a loop. Findings **already delivered** by an automated reviewer are fixed,
   pushed and settled by the PR's author — on a Hatsu PR, you — and that is stewardship, not a new
-  finding; Hatsu holds no CI plane, so no label wakes a builder (a legacy CI-authored PR is the one
-  wake sharingan § 7 still fires). If that channel cannot move the PR, **file the machinery defect** —
+  finding; Hatsu holds no CI plane (WORKFLOW § *Building an issue with no CI plane*), so no label wakes
+  a builder — a legacy CI-authored PR is the one wake sharingan § 7 still fires. If that channel cannot move the PR, **file the machinery defect** —
   never substitute a vote.
 - **When the finding is YOUR OWN, the channel is the issue.** A wake carries no finding, a plain PR
   comment strands one, and the vote is barred. So a substantive finding of yours that no reviewer has

@@ -13,15 +13,21 @@
 #   2. The requirements array against templates/pr-body.md: its names are the template's level-2
 #      headings outside HTML comments and fences, in order, less `optionalHeadings`; each pattern
 #      matches a body carrying its heading and misses one without it (a pattern that matches anyway
-#      checks nothing).
-#   3. docs/WORKFLOW.md § Gate derivation cites the declaration, and every directory prefix it names
-#      in backticks (`nen/`, `schemas/`, …) is one a declared gate set carries.
+#      checks nothing). The template never carries the fragment opt-out phrase: nen 0.21.0 honours
+#      it anywhere in a body, an HTML comment or a code fence included.
+#   3. docs/WORKFLOW.md § Gate derivation (cut with fenced lines masked, so a `## ` inside a fence
+#      ends nothing) cites the declaration; every directory prefix it names in backticks, of any
+#      depth (`nen/`, `.github/workflows/`), is a declared member, and every file path it names
+#      (a relative link's text read as its target) is covered by a declared set.
 #   4. No second copy: a --policy-paths, --process-paths or --spec-paths flag followed by a literal
 #      path list, anywhere in the canon prose — claude/, templates/, hooks/, contracts/, .github/,
 #      docs/ and the root README.md and CONTRIBUTING.md. Records are exempt: docs/ab/, docs/history/,
 #      docs/Loop/ and docs/ROSTER.md hold dated transcripts and rulings, CHANGELOG.md is history, and
 #      surfaces/ is generated from claude/ (surface-mirror-guard owns its drift).
 #   5. Every file in the declaration's `readers` exists and cites contracts/pr-composition.json.
+#   Every path the declaration names (readers, the requirements file, the template) is confined to the
+#   root -- never absolute, never `..`, never a link out -- and a scanned file that is not UTF-8 is a
+#   finding, never a silent skip.
 #
 # WHO RUNS IT. The pr-composition-guard lane (`nen shu test --repo <hatsu> --lane pr-composition-guard`),
 # through scripts/pr_composition_check_fixture.sh, which proves every refusal on throwaway trees and then
@@ -80,13 +86,38 @@ def load(rel):
         wiring(f"{rel} is not readable JSON ({error})")
 
 
+UNDECODABLE = object()
+REAL_ROOT = os.path.realpath(root)
+
+
 def read_text(rel):
     path = os.path.join(root, rel)
     try:
         with open(path, encoding="utf-8") as handle:
             return handle.read()
-    except (OSError, UnicodeDecodeError):
+    except UnicodeDecodeError:
+        return UNDECODABLE
+    except OSError:
         return None
+
+
+def confined(rel, where):
+    """A declared path must stay inside the root: never absolute, never `..`, never a link out."""
+    parts = rel.replace("\\", "/").split("/")
+    real = os.path.realpath(os.path.join(root, rel))
+    if os.path.isabs(rel) or ".." in parts or not (real == REAL_ROOT or real.startswith(REAL_ROOT + os.sep)):
+        findings.append(f"{DECL}: {where} {rel!r} escapes the root (absolute, `..` or a link out); refused")
+        return False
+    return True
+
+
+def covered(path, pattern):
+    """nen's own matcher (src/changelog/fragment.ts, src/gate/derive.ts): `/`-suffix is a prefix, `*` crosses `/`."""
+    if pattern.endswith("/"):
+        return path.startswith(pattern)
+    if "*" in pattern:
+        return re.fullmatch(".*".join(re.escape(part) for part in pattern.split("*")), path) is not None
+    return path == pattern
 
 
 def path_list(value, where):
@@ -162,11 +193,21 @@ def template_headings(text):
     return headings
 
 
-if isinstance(body.get("file"), str) and isinstance(body.get("template"), str):
+if (isinstance(body.get("file"), str) and isinstance(body.get("template"), str)
+        and confined(body["file"], "bodyRequirements.file") and confined(body["template"], "bodyRequirements.template")):
     requirements = load(body["file"])
     template = read_text(body["template"])
+    if template is None or template is UNDECODABLE:
+        findings.append(f"{body['template']}: missing, unreadable or not UTF-8 (bodyRequirements.template)")
+        template = None
+    else:
+        # nen 0.21.0 honours the fragment opt-out phrase anywhere in a body -- inside an HTML comment or
+        # a code fence too -- so the template a body is filled from must never carry it (zheref/hatsu#171).
+        for found in re.finditer(r"no CHANGELOG entry:", template, re.I):
+            line = template.count("\n", 0, found.start()) + 1
+            findings.append(f"{body['template']}:{line}: carries the fragment opt-out phrase, which nen honours anywhere in a body, a kept comment or fence included")
     if template is None:
-        findings.append(f"{body['template']}: missing or unreadable (bodyRequirements.template)")
+        pass  # named above
     elif not isinstance(requirements, list) or not requirements:
         findings.append(f"{body['file']}: not a non-empty JSON array of {{name, pattern}}")
     else:
@@ -200,22 +241,60 @@ FLAG = re.compile(r"--(policy-paths|process-paths|spec-paths)(?:=|\s+)[\"']?([^\
 
 
 def literal(value):
-    return bool(re.match(r"(?!\.\.)[A-Za-z0-9_.*]", value) and re.search(r"[/,]|\.[A-Za-z]", value))
+    return bool(re.match(r"(?!\.\.)[A-Za-z0-9_.*/]", value) and re.search(r"[A-Za-z0-9]", value)
+                and re.search(r"[/,]|\.[A-Za-z]", value))
+
+
+def unfenced_lines(text):
+    """Each line, with a fenced block's lines reported as None so a `## ` inside a fence ends nothing."""
+    out, fence = [], None
+    for line in text.split("\n"):
+        marker = re.match(r"\s*(`{3,}|~{3,})", line)
+        if fence is not None:
+            if marker and marker.group(1)[0] == fence[0] and len(marker.group(1)) >= len(fence):
+                fence = None
+            out.append(None)
+            continue
+        if marker:
+            fence = marker.group(1)
+            out.append(None)
+            continue
+        out.append(line)
+    return out
 
 
 workflow = read_text("docs/WORKFLOW.md")
 section = None
-if workflow is not None:
-    match = re.search(r"^## Gate derivation\s*$(.*?)(?=^## |\Z)", workflow, re.M | re.S)
-    section = match.group(1) if match else None
+if workflow is UNDECODABLE:
+    findings.append("docs/WORKFLOW.md: not UTF-8, so it could not be read")
+elif workflow is not None:
+    lines, masked = workflow.split("\n"), unfenced_lines(workflow)
+    start = next((i for i, l in enumerate(masked) if l is not None and re.fullmatch(r"## Gate derivation\s*", l)), None)
+    if start is not None:
+        end = next((i for i in range(start + 1, len(masked)) if masked[i] is not None and masked[i].startswith("## ")), len(lines))
+        section = "\n".join(lines[start + 1:end])
 if section is None:
     findings.append("docs/WORKFLOW.md: no `## Gate derivation` section")
 else:
     if DECL not in section:
         findings.append(f"docs/WORKFLOW.md § Gate derivation: does not cite {DECL}")
-    for token in sorted(set(re.findall(r"`([A-Za-z0-9_.-]+/)`", section))):
-        if token not in declared_prefixes:
-            findings.append(f"docs/WORKFLOW.md § Gate derivation: names `{token}`, which no declared gate set carries")
+    PATHLIKE = r"[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*/?"
+    named = set()
+    # A relative link's text names the path its target resolves to, read from docs/.
+    for text, target in re.findall(r"\[`([^`\n]+)`\]\(([^)#\s]+)[^)]*\)", section):
+        if re.fullmatch(PATHLIKE, text) and "://" not in target:
+            named.add(os.path.normpath(os.path.join("docs", target)).replace(os.sep, "/"))
+    unlinked = re.sub(r"\[`[^`\n]+`\]\([^)]*\)", "", section)
+    for token in re.findall(r"`([^`\n]+)`", unlinked):
+        # a directory (`/`-suffixed) or a file with an extension; an owner/name slug is neither
+        if re.fullmatch(PATHLIKE, token) and (token.endswith("/") or re.search(r"\.[A-Za-z][A-Za-z0-9]*$", token)):
+            named.add(token)
+    for token in sorted(named):
+        if token.endswith("/"):
+            if token not in declared_prefixes:
+                findings.append(f"docs/WORKFLOW.md § Gate derivation: names `{token}`, which no declared gate set carries")
+        elif not any(covered(token, pattern) for pattern in declared_prefixes):
+            findings.append(f"docs/WORKFLOW.md § Gate derivation: names `{token}`, which no declared gate set covers")
 
 EXEMPT_DIRS = ("docs/ab/", "docs/history/", "docs/Loop/", "surfaces/", ".git/", ".nen/", "node_modules/")
 EXEMPT_FILES = {"docs/ROSTER.md", "CHANGELOG.md", DECL}
@@ -232,6 +311,9 @@ for dirpath, dirnames, filenames in os.walk(root):
         if not (rel in SCANNED_ROOT or rel.startswith(SCANNED_TOP)):
             continue
         text = read_text(rel)
+        if text is UNDECODABLE:
+            findings.append(f"{rel}: not UTF-8, so it could not be scanned for a copy")
+            continue
         if text is None:
             continue
         for found in FLAG.finditer(text):
@@ -245,8 +327,12 @@ if not isinstance(readers, list) or not readers or not all(isinstance(r, str) fo
     findings.append(f"{DECL}: readers is not a non-empty array of paths")
 else:
     for rel in readers:
+        if not confined(rel, "reader"):
+            continue
         text = read_text(rel)
-        if text is None:
+        if text is UNDECODABLE:
+            findings.append(f"{rel}: listed in readers but not UTF-8")
+        elif text is None:
             findings.append(f"{rel}: listed in readers but missing")
         elif "pr-composition.json" not in text:
             findings.append(f"{rel}: listed in readers but does not cite {DECL}")

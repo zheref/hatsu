@@ -332,9 +332,12 @@ bare readiness reading when the PR can actually be driven.
 needs): the readiness **check** by itself is [`$pr-state`](../pr-state/SKILL.md)'s verb —
 
 ```bash
-# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root ten § 0 resolved, typed as that literal
-# path (one plain command per call, PROCESS § Residue, #218). None in hand: re-run ten § 0, or pass
-# --reviewers and explicit --approvers by hand (sharingan § 4). No manifest is parsed here.
+# $hatsu_root is THIS plugin's checkout, ABSOLUTE: the root ten § 0 printed, typed in its place
+# (ten § 0, #218). No manifest is parsed here; the two checks are one plain call each, and either
+# non-zero means no Hatsu root in hand: re-run ten § 0, or pass --reviewers and explicit
+# --approvers by hand (sharingan § 4).
+test -f "$hatsu_root/.claude-plugin/plugin.json"
+test -d "$hatsu_root/claude/skills"
 "$hatsu_root/scripts/gh_token_env.sh" nen pr ready <CODE>#<N> --repo <path> --gates "$hatsu_root/contracts/reference.gates.json" --explain
 ```
 
@@ -368,7 +371,7 @@ against G4."*
 - **Permitted:** branch, commit, push a **non-`main`** branch, open/update a PR, request reviewers,
   and hand the PR to [`$sharingan`](../sharingan/SKILL.md) (or, in the § 6 fallback, read its
   readiness via `$pr-state`'s own verb).
-- **Not permitted:** a routing label (there is no CI plane to route to), `bankai:stage/*`, any G1
+- **Not permitted:** a routing label (WORKFLOW § *Building an issue with no CI plane*), `bankai:stage/*`, any G1
   mode label, any merge, any review vote — `request_changes` above all, since Kurapika acts on the
   maintainer's own credentials and the vote would be recorded as theirs. tensho creates work and
   hands it off; it does not route or release it.

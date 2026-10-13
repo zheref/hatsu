@@ -382,7 +382,7 @@ the table — a status-only pass reports plainly, no banner.
 - **No new authority.** `CON-25`'s third carve-out (run-scoped label delegation) belongs to
   [`backlog-loop`](../backlog-loop/SKILL.md) by name; `senkei` applies **no** `bankai:stage/*`
   label without the maintainer's explicit per-action confirmation, same as Kurapika outside a named
-  run, and no routing label at all — there is no CI plane to route to.
+  run, and no routing label at all (WORKFLOW § *Building an issue with no CI plane*).
 - **No merging, anywhere.** G2 is the target repo's maintainer's, same as it is on `<reference-repo>`.
 - **No writes to product code by this skill.** It **inventories and drives** — it never edits the
   target repo's product source itself.
