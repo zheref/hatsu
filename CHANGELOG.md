@@ -2,36 +2,6 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
-## v0.95.0 — on Codex the active worktree's Spiritual Message is the one surfaced
-
-### `spiritual-message` § 7 surfaces the active worktree's report on Codex ([#205](https://github.com/zheref/hatsu/issues/205), 0.95.0)
-
-- **On Codex the one chat line names the ACTIVE worktree's `current.html` by absolute path, with the worktree and the branch, and a render from another worktree moves that line to its own file** ([#205](https://github.com/zheref/hatsu/issues/205)). A browser tab still showing an older worktree's page is never presented as current, and a pending product decision is a `DECIDE` ask on the desk — never `ask.blocker`, never a G5 — that reaches the maintainer through `request_user_input` when it is required. The two-worktree scenario is documented in `docs/ab/spiritual-message.md` as the manual check to walk on Codex. Three sentences elsewhere in the skill were shortened to pay for the rule under the 12288-byte ceiling. Plugin bumped to 0.95.0 (a reporting behaviour); mirrors regenerated at that stamp.
-
-## v0.94.4 — `reports.sections` is required for a render, and the skill says so
-
-### `spiritual-message` § 3 documents `reports.sections` as required, with the adoption path ([#108](https://github.com/zheref/hatsu/issues/108), 0.94.4)
-
-- **`spiritual-message` § 3's parameter table no longer promises a default `nen report render` refuses** ([#108](https://github.com/zheref/hatsu/issues/108)). The `reports.sections.<variant>` row now reads *required*: the verb refuses an undeclared variant at exit `2` naming the declared ones, and a `nen/workflow.json` with no `sections` renders nothing; a repository that has never declared it sets the block up as `missing-configuration` (WORKFLOW § 4) before `aka` § 8, `mukai` step 9 or `en` § 8 reach their render, copying the five-variant block `docs/config/workflow.json.md` § `reports` documents, in its own PR. The one default that is real is kept: a declared variant with no `blocks` renders every block. Two sentences in § 6 and the hard limits were shortened to pay for the row under the 12288-byte ceiling. Plugin bumped to 0.94.4; mirrors regenerated at that stamp.
-
-## v0.94.3 — the BC-11 ruling on the hanten ledger is recorded
-
-### BC-11 binds the hanten ledger; the ledger is owed to nen ([#216](https://github.com/zheref/hatsu/issues/216), 0.94.3)
-
-- **The maintainer's ruling of 2026-10-03 is recorded: BC-11's embedded-Python freeze binds `scripts/hanten_cycle_ledger.sh`, and the ledger ports to a nen verb (zheref/nen#346)** ([#216](https://github.com/zheref/hatsu/issues/216)). `docs/ROSTER.md` gains § *Rulings of 2026-10-03 — BC-11 binds the hanten ledger*; `docs/PROCESS.md` § *Residue and owned dependencies* replaces its open question with the ruling and names zheref/nen#346 as the owned dependency; the script's header says it is frozen — fixes only, no new subcommand, verdict or trace read — until the verb lands. The issue stays open for its last step: when zheref/nen#346 ships, `hanten` §§ 1–4 and `breath` § 3b call the verb and the script retires. Plugin bumped to 0.94.3 (a shipped doc and a shipped runtime script changed); the mirrors restamped.
-
-## v0.94.2 — the exit-code canon says that `$?` after a pipe is the last stage's status
-
-### `$?` after a pipeline is the last stage's status, stated once in the general exit-code canon ([#161](https://github.com/zheref/hatsu/issues/161), 0.94.2)
-
-- **`claude/agents/kurapika.md` § *The exit codes, and what you do on each* now says that `$?` after a pipeline is the last stage's status, never the verb's**, with the three remedies — redirect to a file and read `$?` after the verb alone, `${PIPESTATUS[0]}` (bash) or `$pipestatus[1]` (zsh), or `set -o pipefail` — and the HA#78 sitting's three wrong readings as the evidence ([#161](https://github.com/zheref/hatsu/issues/161)). `tenkai` § 2 and `docs/GATE-CONFIGURATION.md` keep their narrower copies, now named as instances of the general statement; `aka` and `ao`'s two-stream rule is named as a different rule. Plugin bumped to 0.94.2 (Claude manifest and Codex overlay); the mirrors regenerated at that stamp, since the agent file is mirrored.
-
-## v0.94.1 — the skills cite `docs/using` in place of the superseded `docs/SURFACES.md`
-
-### Skill citations repointed from `docs/SURFACES.md` to `docs/using/README.md` and `docs/using/mirrors.md` ([#242](https://github.com/zheref/hatsu/issues/242), 0.94.1)
-
-- **No skill, skill index or agent file cites `docs/SURFACES.md` any more** ([#242](https://github.com/zheref/hatsu/issues/242)). The shared policy preamble that 22 skills carry now lists `docs/using/README.md` and `docs/using/mirrors.md` in place of `docs/SURFACES.md`; the seven section citations name the page and section that hold the content today — `docs/using/README.md` § *The four surfaces, compared* (`mukai` § 1's permissions row, `bakuryuha` § 1's install rows, `jutaisho` § 4's native-picker row, `great-hiker` § 1's frontmatter budget), § *Targeting a local checkout* (`bakuryuha` § 5's inlined pin), `docs/using/mirrors.md` § 1 (`pr-state` § 2's mirror note, `claude/skills/README.md`'s authority line) and § 2 (`breath` § 2b's `info/exclude` rule); `docs/GATE-CONFIGURATION.md` points at `mirrors.md` § 3 for the regenerate loop. `limbo` takes the one-line `**Shared policy:**` preamble the dieted skills use, and `breath` shortens its link text, so both stay under their 12288-byte ceiling. `docs/SURFACES.md` stays as the redirect stub: the fixture `scripts/surface_link_check_fixture.sh` and the dated evidence under `docs/ab/` still name it, and removing it is a separate decision. Plugin bumped to 0.94.1 (Claude manifest and Codex overlay); the three mirrors regenerated at that stamp.
-
 ## v0.94.0 — nen v0.21.0, the gates keys retired, prompt on hanten, per-consumer AI reviewers, opt-in direct publishing and the README redesign
 
 Three deliveries merged since `v0.93.0`, folded here from their `changelog.d/` fragments, newest first. `v0.93.1` and `v0.93.2` were never tagged and ship inside `v0.94.0`.
