@@ -40,14 +40,14 @@ HA#215,HA#250,HA#251 · from: futon zheref/hatsu@model/claude · G4 — yours ·
 ready &amp; it unblocks the Antigravity reports
 
 - **A** · Merge it ⭐ recommended\
-  the templates ship\
-  <code>gh pr merge 250 --repo zheref/hatsu --merge --match-head-commit 0123abc &amp;&amp; git pull</code>
+  the templates ship
+  <pre>gh pr merge 250 --repo zheref/hatsu --merge --match-head-commit 0123abc &amp;&amp; git pull</pre>
 - **B** · Hold it\
-  the PR waits | nothing moves\
-  <code>none</code>
+  the PR waits | nothing moves
+  <pre>none</pre>
 - **C** · Close it\
-  the reports stay &lt;hand-authored&gt;\
-  <code>gh pr close 250 --repo zheref/hatsu</code>
+  the reports stay &lt;hand-authored&gt;
+  <pre>gh pr close 250 --repo zheref/hatsu</pre>
 
 Objects: [HA-PR-#250](<https://github.com/zheref/hatsu/pull/250>)
 
@@ -62,11 +62,11 @@ Objects: [HA-PR-#250](<https://github.com/zheref/hatsu/pull/250>)
 1 red check &amp; 1 unresolved thread block it
 
 - **A** · Trim the skill and re-run the guard ⭐ recommended\
-  the check goes green\
-  <code>sh scripts/prose_size_check.sh --headroom</code>
+  the check goes green
+  <pre>sh scripts/prose_size_check.sh --headroom</pre>
 - **B** · Drop the PR\
-  the escape fix is lost | re-filed later\
-  <code>gh pr close 251 --repo zheref/hatsu</code>
+  the escape fix is lost | re-filed later
+  <pre>gh pr close 251 --repo zheref/hatsu</pre>
 
 Objects: [HA-PR-#251](<https://github.com/zheref/hatsu/pull/251>)
 

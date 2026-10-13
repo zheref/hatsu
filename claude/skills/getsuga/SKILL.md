@@ -325,7 +325,7 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/R
    still agree no longer changes the verdict. Edit `nen/repos.json`; delete the stale duplicate.
 5. **Bump the version manifest** — same reasoning as the old skill: a cached plugin would report
    consumers current while they sit a tag behind. No `nen` verb owns this write either — residue, a
-   direct edit; prefer the bump to a `no plugin bump:` opt-out. **Where the surface stamp follows
+   direct edit; bump — the `no plugin bump:` line is not accepted over a shipped path (zheref/hatsu#171). **Where the surface stamp follows
    `plugin.json` and the delivery PR carries the bump — hatsu, by the maintainer's ruling of
    2026-09-28 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*) — this step is a no-op**: the release PR
    touches the changelog only, and `release.unitPaths` says exactly that.
@@ -587,8 +587,8 @@ The maintainer's ruling: an unreachable target is **driven to `main` first**, no
    `hatsu:sharingan <CODE>#<N> to <G2|G4>` against the gate `nen gate derive` named, and take its
    stop-at-the-gate report as the readiness call.
    *Fallback only if `sharingan` cannot run at all* (an unresolvable code, say): the readiness call by
-   itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, with
-   `GH_TOKEN` exported, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
+   itself is [`hatsu:pr-state`](../pr-state/SKILL.md)'s verb — `nen pr ready <ref> --explain`, run
+   through `scripts/gh_token_env.sh`, quoted verbatim. **The identities come from [`sharingan`](../sharingan/SKILL.md)
    § 4's rule, never from memory:** the target's own `nen/gates.json` first, with no `--gates` at all
    — the `schemas/gates.json` location is not a fallback at the pinned build, REMOVED at
    `v0.4.0`, so a gates file only there is refused exactly like one carrying none; `--gates
