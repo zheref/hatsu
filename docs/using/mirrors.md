@@ -116,7 +116,9 @@ repository ruleset is the maintainer's act, named in the PR that lands this; ren
 un-requires it. [`surface-mirror-regenerate.yml`](../../.github/workflows/surface-mirror-regenerate.yml)
 runs the generator on drift and opens a pull request with the regenerated mirrors, as the frozen `<reference-repo>`'s
 `sync-canon` did, so a source change merged without its mirrors is repaired by a PR rather than by a
-red check nobody reads.
+red check nobody reads. Every step of it but the pull-request step is frozen in
+`scripts/workflow_runner_policy_check.rb` (zheref/hatsu#190), so changing its generate loop (a flag,
+a root) lands in two steps, the validator first ([`GATE-CONFIGURATION.md`](../GATE-CONFIGURATION.md)).
 
 **One repository setting is a prerequisite** (zheref/hatsu#165): *Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"* must be on, or the regeneration PR fails with *"GitHub Actions is not permitted to create or approve pull requests"* after `bot/surface-mirror-regenerate` was already pushed. The workflow cannot read that toggle first: its endpoint needs the repository Administration (read) permission, which `GITHUB_TOKEN` cannot be granted, and only a secret-held GitHub App installation token or a personal access token could read it, which this job declines to hold (SEC-9). Turn it on once per repository that runs the workflow. If it is off, the workflow's last step names the toggle as an error and deletes the stranded branch, or says to delete it by hand when that delete fails. The same step fires when the PR step fails while updating a regeneration PR an earlier run opened; deleting the branch then closes that PR, and the next run that finds drift opens it again.
 
