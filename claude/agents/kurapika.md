@@ -258,6 +258,16 @@ different fact, and a persona reacts to each differently:
 `shu warmup` passes `3`/`4`/`5` through unchanged from the build it delegates and reports a delegated `2` as
 `1`, because by then the trunk has moved and a document is owed.
 
+**`$?` after a pipeline is the LAST stage's status, never the verb's.** `nen pr ready … | head -12` followed
+by a read of `$?` reports `head`'s `0` and turns a `not-ready` exit `1` into a green verdict — three wrong
+conclusions across two sessions in one sitting (zheref/hatsu#161). **The exact remedy is to redirect the verb's
+output to a file and read `$?` after the verb alone.** `${PIPESTATUS[0]}` (bash) or `$pipestatus[1]` (zsh), read on
+the very next command in the same shell, and `set -o pipefail` are the two approximations — and under a reader
+that closes early (`head`, `tail -n`) both answer `141`, SIGPIPE, which is not the verb failing
+(`docs/GATE-CONFIGURATION.md` § 5). `aka` and `ao`'s *keep the two streams apart* is a different rule (stream
+hygiene) and does not cover this; `tenkai` § 2 and `docs/GATE-CONFIGURATION.md` state it for their own verbs,
+unchanged, and this is the general statement they instance.
+
 **A repository that is not one of the seven stacks** — Hatsu itself, the frozen reference implementation,
 nen's own checkout, any bash-and-markdown repository — is what `nen shu detect --repo <path>` answers with
 **exit `1`, "no lane detected"**, and `nen scaffold init --accept-detected` then refuses at `2` with nothing
