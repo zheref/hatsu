@@ -1,12 +1,13 @@
 # prose-size-check — the prose-diet guard, run on every pull request (zheref/hatsu#135).
 #
-# scripts/prose_size_check.sh holds every agent, every dieted skill and every rules file to its
-# ceiling, and every skill description to the Agent Skills cap (zheref/hatsu#119, #186). It ran
+# scripts/prose_size_check.sh holds the plugin's prose to its ceilings; its own header names what it
+# measures and each ceiling (zheref/hatsu#119, #186). It ran
 # only by hand and in its focused lane, which exercises its fixture rather than the tree, so
 # claude/skills/hanten/SKILL.md reached main over its 12288-byte ceiling with #129 and nothing said
 # so. This job runs the guard on every pull request: a file over its ceiling fails the check, the
 # guard's own OVER row naming the file, its size and its ceiling, and `nen pr ready` reads the pull
-# request not-ready on it (CON-32(a)).
+# request not-ready on it (CON-32(a)). It is a check of its own because pr-readiness.yml concludes
+# `success` by construction: a step there could never read red.
 #
 # The hardening is surface-mirror-check.yml's, step for step: the guard comes from the trusted
 # workflow revision and is handed the PR checkout as its ROOT, never run from the PR; both
@@ -15,9 +16,10 @@
 # tree; the check is created on the exact PR head and always finished. No `paths:` filter: a
 # required context that never reports is a pull request that cannot merge.
 #
-# ENFORCEMENT POSTURE: REQUIRED, PENDING THE RULESET. The context is the check this job creates,
-# `prose-size-check`; adding it to main's required-checks ruleset is the maintainer's act, not
-# something this file can do. Renaming the job or the check silently un-requires it.
+# ENFORCEMENT POSTURE: ADVISORY, and READY TO BE REQUIRED. The context is the check this job
+# creates, `prose-size-check`; adding it to main's required-checks ruleset is the maintainer's act,
+# not something this file can do (docs/GATE-CONFIGURATION.md). Renaming the job or the check
+# silently un-requires it.
 name: prose-size-check
 
 on:
@@ -80,7 +82,8 @@ jobs:
           set -uo pipefail
           guard=.trusted/scripts/prose_size_check.sh
           [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/prose_size_check.sh"; exit 1; }
-          stop="stop_$(openssl rand -hex 16)"
+          stop="stop_$(openssl rand -hex 16)" || stop=""
+          [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was measured."; exit 1; }
           code=0
           echo "::stop-commands::${stop}"
           sh "$guard" --headroom "$PWD" 2>&1 || code=$?
@@ -92,7 +95,7 @@ jobs:
               exit 1
               ;;
             *)
-              echo "::error::the prose guard could not run (exit ${code}): the root is not a Hatsu checkout, or perl is missing. See its output above."
+              echo "::error::the prose guard could not run (exit ${code}), a wiring refusal: scripts/prose_size_check.sh's header names every cause. See its output above."
               exit 1
               ;;
           esac

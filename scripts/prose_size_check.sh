@@ -38,8 +38,8 @@
 # margin as a number instead of rediscovering "0 bytes left" by trading clauses round after round.
 # The ceilings are unchanged by this flag; it reports, and the exit code is the same as without it.
 #
-# Every measured file must be a regular file whose real path stays under the root: a symlink that
-# leaves the root, a dangling symlink where a file is expected, a file that cannot be read, a directory
+# Every measured file must be a regular file whose real path stays under the root: a symlink, or a
+# chain of them, that leaves the root, a dangling symlink where a file is expected, a file that cannot be read, a directory
 # that cannot be listed and a rules file that is not valid UTF-8 are each an OFFENDER by name (the run
 # never reads green over a file it did not measure, and never measures a path the tree pointed outside
 # itself -- SEC-7; QA-16/QA-18, zheref/hatsu#119's review).
@@ -123,9 +123,9 @@ admit() {
   if [ -L "$f" ] && [ ! -e "$f" ]; then offend "DANGLING  $rel -- a symlink to nothing where a file is expected"; return 1; fi
   [ -f "$f" ] || return 1
   if [ -L "$f" ]; then
-    link="$(readlink "$f")"
-    case "$link" in /*) linkdir="$(dirname -- "$link")" ;; *) linkdir="$(dirname -- "$f")/$(dirname -- "$link")" ;; esac
-    real="$(cd -P -- "$linkdir" 2>/dev/null && pwd -P)/$(basename -- "$link")" || real=""
+    # Every hop, never one readlink: a symlink to an in-root symlink that leaves the root is outside too
+    # (Feitan, hanten on #135). perl is already required; Cwd::realpath resolves the whole chain.
+    real="$(perl -MCwd=realpath -e 'my $r = realpath($ARGV[0]); print $r if defined $r' -- "$f" 2>/dev/null)" || real=""
   else
     real="$(cd -P -- "$(dirname -- "$f")" && pwd -P)/$(basename -- "$f")"
   fi

@@ -323,7 +323,10 @@ EXPECTED_STEPS = {
 # TRUSTED revision's guard against the pull request's checkout as its root,
 # its output fenced by `::stop-commands::` because file names come from the
 # PR's tree; an offender fails the check, named by the guard with its size and
-# ceiling. The step is FROZEN, so its one admitted form is this one.
+# ceiling. The step is FROZEN, so its one admitted form is this one. Its fence
+# token must be a fresh one: a failed `openssl` would otherwise leave a token
+# anyone can predict, so the step refuses to measure without one (Feitan,
+# hanten on #135).
 PROSE_WORKFLOW = "prose-size-check.yml"
 PROSE_GUARD_STEP = "Prose size guard"
 PROSE_FROZEN_GUARD = {
@@ -332,7 +335,8 @@ PROSE_FROZEN_GUARD = {
     set -uo pipefail
     guard=.trusted/scripts/prose_size_check.sh
     [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/prose_size_check.sh"; exit 1; }
-    stop="stop_$(openssl rand -hex 16)"
+    stop="stop_$(openssl rand -hex 16)" || stop=""
+    [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was measured."; exit 1; }
     code=0
     echo "::stop-commands::${stop}"
     sh "$guard" --headroom "$PWD" 2>&1 || code=$?
@@ -344,7 +348,7 @@ PROSE_FROZEN_GUARD = {
         exit 1
         ;;
       *)
-        echo "::error::the prose guard could not run (exit ${code}): the root is not a Hatsu checkout, or perl is missing. See its output above."
+        echo "::error::the prose guard could not run (exit ${code}), a wiring refusal: scripts/prose_size_check.sh's header names every cause. See its output above."
         exit 1
         ;;
     esac
@@ -889,6 +893,26 @@ BUILDER_PERMISSIONS = {
   "surface-mirror-regenerate.yml" => { "contents" => "write", "pull-requests" => "write" }
 }.freeze
 
+# EVERY PER-WORKFLOW TABLE COVERS EXACTLY THE WORKFLOWS IT SHOULD (Chrollo,
+# hanten on #135). A registration that misses one table -- a workflow in
+# neither cancel-in-progress list, which validate_concurrency would accept in
+# silence -- stops this script at load, before it judges anything.
+PR_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).freeze
+{
+  "EXPECTED_JOBS" => [EXPECTED_JOBS.keys, KNOWN_WORKFLOWS],
+  "EXPECTED_STEPS" => [EXPECTED_STEPS.keys, KNOWN_WORKFLOWS],
+  "ALLOWED_JOB_GUARDS" => [ALLOWED_JOB_GUARDS.keys, PR_WORKFLOWS],
+  "BASE_TYPES" => [BASE_TYPES.keys, PR_WORKFLOWS],
+  "HARDENED_TYPES" => [HARDENED_TYPES.keys, PR_WORKFLOWS],
+  "CHECK_CREATION" => [CHECK_CREATION.keys, PR_WORKFLOWS],
+  "BUILDER_TRIGGERS" => [BUILDER_TRIGGERS.keys, BUILDER_WORKFLOWS],
+  "BUILDER_PERMISSIONS" => [BUILDER_PERMISSIONS.keys, BUILDER_WORKFLOWS],
+  "the two cancel-in-progress lists" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN, KNOWN_WORKFLOWS]
+}.each do |table, (have, want)|
+  next if have.sort == want.sort
+  abort "workflow-runner-policy: #{table} covers #{have.sort.join(", ")}, not #{want.sort.join(", ")}: a workflow's registration is incomplete"
+end
+
 # Workflows that read a dependency pin and then fetch+execute a bootstrap from a
 # URL built out of it. The pin MUST come from the trusted workflow checkout: a PR
 # that can edit the pin can choose the binary that judges it. Keyed by the step's
@@ -1129,6 +1153,50 @@ def refuse_run_expressions(path, step)
   fail_policy("#{path} step #{scalar(step["name"]).inspect} writes a ${{ }} expression into its run, which " \
               "Actions substitutes into the shell source before bash parses it; pass the value through env")
 end
+
+# THE EXACT-HEAD CHECK RUN, FROZEN AT BOTH ENDS (Phinks QA-18, hanten on #135).
+# A `:start` workflow creates its check in_progress and finishes it with the
+# job's status mapped: success, cancelled, and failure for anything else. The
+# pattern checks let `*) conclusion=failure` become success, a check be created
+# already completed and green, and `cancelled` map to success, each through
+# --self-test, so both steps are held in one form; the check's name is the one
+# free value, and it is the job's own.
+EXACT_HEAD_START_RUN = <<~'RUN'.strip
+  set -euo pipefail
+  id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=@CHECK@ -f head_sha="$HEAD_SHA" -f status=in_progress --jq .id)"
+  echo "id=$id" >> "$GITHUB_OUTPUT"
+RUN
+def exact_head_start(check)
+  {
+    "id" => "head_check",
+    "env" => {
+      "GH_TOKEN" => "${{ github.token }}",
+      "REPO" => "${{ github.repository }}",
+      "HEAD_SHA" => "${{ github.event.pull_request.head.sha }}"
+    },
+    "shell" => "bash",
+    "run" => EXACT_HEAD_START_RUN.sub("@CHECK@", check)
+  }
+end
+EXACT_HEAD_FINISH = {
+  "if" => "${{ always() && steps.head_check.outputs.id != '' }}",
+  "env" => {
+    "GH_TOKEN" => "${{ github.token }}",
+    "REPO" => "${{ github.repository }}",
+    "CHECK_ID" => "${{ steps.head_check.outputs.id }}",
+    "JOB_STATUS" => "${{ job.status }}"
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    case "$JOB_STATUS" in
+      success) conclusion=success ;;
+      cancelled) conclusion=cancelled ;;
+      *) conclusion=failure ;;
+    esac
+    gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" -f status=completed -f conclusion="$conclusion" >/dev/null
+  RUN
+}.freeze
 
 # EXACT ALLOWLISTS for the shape of every job and step, in every workflow this
 # policy validates. A job key outside the list (`container:`, `services:`,
@@ -1588,6 +1656,7 @@ def validate_workflow(path, hatsu: false)
       unless scalar(starter["id"]) == "head_check" && scalar(start_env["HEAD_SHA"]) == "${{ github.event.pull_request.head.sha }}" && scalar(starter["run"])&.match?(exact_name)
         fail_policy("#{path} job #{job_name} must create #{expected_check_name} on the exact event head before other work")
       end
+      require_frozen_step(starter, exact_head_start(expected_check_name), "#{path} #{scalar(starter["name"]).inspect}")
     else
       # :end -- nothing may create the check before the work, and the FINAL step
       # must create it already completed against the exact event head.
@@ -1732,6 +1801,7 @@ def validate_workflow(path, hatsu: false)
       unless scalar(finisher["if"]) == "${{ always() && steps.head_check.outputs.id != '' }}" && scalar(finisher["run"])&.include?("check-runs/${CHECK_ID}") && scalar(finisher["run"])&.include?("status=completed")
         fail_policy("#{path} job #{job_name} must always publish its final exact-head conclusion")
       end
+      require_frozen_step(finisher, EXACT_HEAD_FINISH, "#{path} #{scalar(finisher["name"]).inspect}")
     else
       unless scalar(finisher["if"]) == "${{ always() }}" && scalar(finisher["run"])&.include?("status=completed")
         fail_policy("#{path} job #{job_name} must always publish a completed exact-head check, even when an earlier step failed")
@@ -1959,6 +2029,18 @@ def self_test(root)
     FileUtils.mkdir_p(File.join(tmp, ".github/workflows"))
     Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each { |path| FileUtils.cp(path, File.join(tmp, ".github/workflows")) }
     validate_repo(tmp, announce: false)
+    # A workflow registered ahead of its file (PENDING_HOSTED_WORKFLOWS) is
+    # staged at templates/<name> and judged there as if installed, so the pull
+    # request that installs it meets a policy that already admits it
+    # (docs/GATE-CONFIGURATION.md, the new-workflow rule).
+    PENDING_HOSTED_WORKFLOWS.each do |name|
+      staged = File.join(root, "templates", name)
+      installed = File.join(tmp, ".github/workflows", name)
+      next unless File.file?(staged) && !File.file?(installed)
+      FileUtils.cp(staged, installed)
+      validate_repo(tmp, announce: false)
+      FileUtils.rm(installed)
+    end
 
     plugin = File.join(tmp, ".github/workflows/plugin-bump-check.yml")
     original = File.read(plugin)
@@ -2151,6 +2233,16 @@ def self_test(root)
     # workflow naming it cannot register, so the allowlist must refuse it.
     hostile.call("workflow naming the non-existent pull_request_review_thread trigger", surface, surface_original,
       "  pull_request_target:", "  pull_request_review_thread:\n    types: [resolved, unresolved]\n  pull_request_target:")
+
+    # THE EXACT-HEAD CHECK RUN IS FROZEN AT BOTH ENDS (Phinks QA-18, hanten on
+    # #135): each of these passed the pattern checks before.
+    finish_step = "Finish check on the exact PR head"
+    hostile.call("exact-head check finished green whatever the job's status (QA-18)", surface, surface_original,
+      "            *) conclusion=failure ;;\n", "            *) conclusion=success ;;\n", step: finish_step)
+    hostile.call("exact-head check finished green when cancelled (QA-18)", surface, surface_original,
+      "            cancelled) conclusion=cancelled ;;\n", "            cancelled) conclusion=success ;;\n", step: finish_step)
+    hostile.call("exact-head check created already completed and green (QA-18)", surface, surface_original,
+      "-f status=in_progress", "-f status=completed -f conclusion=success", step: "Start check on the exact PR head")
     File.write(surface, surface_original)
 
     # --- concurrency / timeout-minutes / draft-skip / paths (2026-09-20) -----
@@ -2862,12 +2954,13 @@ def self_test(root)
 
       # The guard step RUNS as frozen: its own constant under bash as Actions
       # runs it, the trusted guard beside this validator measuring a scratch
-      # Hatsu-shaped tree built from that guard's own diet list and ceilings,
-      # never the pull request's tree. Within every ceiling it passes; one byte
-      # over, a dieted skill and an agent each fail the step, named with size
-      # and ceiling, inside the fence; a root that is no Hatsu checkout fails
-      # as wiring. Without the guard or its tools these cases cannot run, a
-      # failure here, never a skip.
+      # Hatsu-shaped tree built from that guard's own diet list and ceiling,
+      # never the pull request's tree. Within every ceiling it passes; a
+      # dieted skill one byte over fails the step, its offender named inside
+      # the fence (the row's own format is prose-guard's fixture's to hold); a
+      # token that is not fresh fails before anything is measured; a root that
+      # is no Hatsu checkout fails as wiring. Without the guard or its tools
+      # these cases cannot run, a failure here, never a skip.
       guard_script = File.join(__dir__, "prose_size_check.sh")
       fail_policy("self-test: #{PROSE_WORKFLOW} runs scripts/prose_size_check.sh, which is not beside this validator") unless File.file?(guard_script)
       %w[bash sh perl openssl awk].each do |tool|
@@ -2877,8 +2970,7 @@ def self_test(root)
       guard_text = File.read(guard_script)
       dieted = guard_text[/^DIETED_SKILLS="([^"]*)"/m, 1].to_s.split
       skill_max = guard_text[/^SKILL_MAX=(\d+)$/, 1].to_i
-      agent_max = guard_text[/^AGENT_MAX=(\d+)$/, 1].to_i
-      fail_policy("self-test: could not read DIETED_SKILLS, SKILL_MAX and AGENT_MAX from scripts/prose_size_check.sh") if dieted.empty? || skill_max.zero? || agent_max.zero?
+      fail_policy("self-test: could not read DIETED_SKILLS and SKILL_MAX from scripts/prose_size_check.sh") if dieted.empty? || skill_max.zero?
       Dir.mktmpdir("hatsu-prose-guard") do |dir|
         FileUtils.mkdir_p(File.join(dir, ".trusted/scripts"))
         FileUtils.cp(guard_script, File.join(dir, ".trusted/scripts/prose_size_check.sh"))
@@ -2891,19 +2983,35 @@ def self_test(root)
         end
         skill = File.join(dir, "claude/skills", dieted.first, "SKILL.md")
         fence = /^::stop-commands::(stop_[0-9a-f]{32})\n.*^::\1::$/m
+        stand_in = lambda do |name, body|
+          bin = File.join(dir, name)
+          FileUtils.mkdir_p(bin)
+          File.write(File.join(bin, "openssl"), body)
+          File.chmod(0o755, File.join(bin, "openssl"))
+          bin
+        end
+        failing = stand_in.call("openssl-fails", "#!/bin/sh\nexit 1\n")
+        silent = stand_in.call("openssl-silent", "#!/bin/sh\nexit 0\n")
+        # [label, arrange, a PATH entry first, exit, texts, the fenced text -- nil where no fence may print]
         [
-          ["every file within its ceiling", -> {}, 0, ["prose ok", "every measured file is within its prose ceiling."]],
-          ["a dieted skill one byte over", -> { File.write(skill, "x" * (skill_max + 1)) }, 1,
-           ["OVER  claude/skills/#{dieted.first}/SKILL.md  #{skill_max + 1} > #{skill_max} bytes", "::error::a file is over its prose ceiling"]],
-          ["an agent one byte over", -> { File.write(skill, "a scratch skill\n"); File.write(agent, "x" * (agent_max + 1)) }, 1,
-           ["OVER  claude/agents/scout.md  #{agent_max + 1} > #{agent_max} bytes", "::error::a file is over its prose ceiling"]],
-          ["a root that is no Hatsu checkout", -> { File.write(agent, "a scratch agent\n"); FileUtils.mv(File.join(dir, "claude/skills"), File.join(dir, "skills-moved")) }, 1,
-           ["::error::the prose guard could not run (exit 2)"]]
-        ].each do |label, arrange, want_status, want_text|
+          ["every file within its ceiling", -> {}, nil, 0, ["prose ok", "every measured file is within its prose ceiling."], ""],
+          ["a dieted skill one byte over", -> { File.write(skill, "x" * (skill_max + 1)) }, nil, 1,
+           ["::error::a file is over its prose ceiling"], "claude/skills/#{dieted.first}/SKILL.md"],
+          ["an openssl that fails", -> { File.write(skill, "a scratch skill\n") }, failing, 1, ["::error::could not draw a fresh token"], nil],
+          ["an openssl that prints nothing", -> {}, silent, 1, ["::error::could not draw a fresh token"], nil],
+          ["a root that is no Hatsu checkout", -> { FileUtils.mv(File.join(dir, "claude/skills"), File.join(dir, "skills-moved")) }, nil, 1,
+           ["::error::the prose guard could not run (exit 2), a wiring refusal"], ""]
+        ].each do |label, arrange, path_first, want_status, want_text, fenced|
           arrange.call
-          out, status = Open3.capture2e({ "PATH" => ENV.fetch("PATH") }, "bash", "--noprofile", "--norc", "-eo", "pipefail",
+          path = [path_first, ENV.fetch("PATH")].compact.join(File::PATH_SEPARATOR)
+          out, status = Open3.capture2e({ "PATH" => path }, "bash", "--noprofile", "--norc", "-eo", "pipefail",
                                         "-c", PROSE_FROZEN_GUARD.fetch("run"), chdir: dir, unsetenv_others: true)
-          ok = status.exitstatus == want_status && want_text.all? { |text| out.include?(text) } && out.match?(fence)
+          fence_ok = if fenced.nil?
+                       !out.include?("::stop-commands::")
+                     else
+                       (match = out.match(fence)) && match[0].include?(fenced)
+                     end
+          ok = status.exitstatus == want_status && want_text.all? { |text| out.include?(text) } && fence_ok
           fail_policy("self-test: #{PROSE_GUARD_STEP.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
         end
       end
