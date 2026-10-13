@@ -2054,7 +2054,10 @@ nen commit write --repo <path> --message-file <message file> [--trailer "<Key: v
 `nen commit format` validates **shape** only — a declared type, a non-empty subject under 72
 characters, no trailing punctuation — plus the trailer policy when `--repo` is passed. What changed
 and why is the skill's to write, never nen's. **Always pass `--repo`**: the verb finding a policy from
-the working directory is a courtesy of where the command ran, not a contract.
+the working directory is a courtesy of where the command ran, not a contract. **The body is the literal
+`--body` value**, a multi-paragraph body one quoted argument with blank lines inside it, **never
+`--body "$(cat <file>)"`**: a value computed at runtime is a shape Claude Code's worktree-isolation
+guard refuses ([PROCESS.md](PROCESS.md) § *Residue*, #218), and nen takes no body file yet.
 
 **Attribution** follows § `commits` above: pass exactly the truthful canonical trailer —
 `Hatsu-Agent=<responsible-persona>` for Hatsu work, `Akatsuki-Agent=<responsible-persona>` only for

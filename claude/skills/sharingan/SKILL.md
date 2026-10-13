@@ -65,7 +65,7 @@ maintainer cancelling.
 ## 4. Readiness — the verb decides; the confirmation pass may only veto
 
 Ready **iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is satisfied**,
-never re-derived by eye (`export GH_TOKEN=$(gh auth token)` first).
+never re-derived by eye (through `scripts/gh_token_env.sh`).
 
 - **The identity flag is [`pr-state`](../pr-state/SKILL.md) § 2's, stated once** (no exclusion flag: nen
   reads `checks.excluded`); the verdict is quoted with any exclusion named.

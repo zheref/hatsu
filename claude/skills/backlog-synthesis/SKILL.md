@@ -92,8 +92,7 @@ its `nen/repos.json` entry on the answer — never a fallback to `all` and never
 ## 2. Fetch the whole set — no caps, no samples
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-nen backlog fetch --repo-slug <owner/name>
+"$hatsu_root/scripts/gh_token_env.sh" nen backlog fetch --repo-slug <owner/name>
 ```
 
 Fetches every open issue **and** open PR fresh over the GitHub API — **never cached**, and

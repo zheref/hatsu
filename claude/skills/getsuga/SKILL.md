@@ -121,7 +121,7 @@ declaration item is set up through its owner (`nen scaffold init`, or `nen/repos
 two hand-run `git` commands:
 
 ```bash
-git rev-parse --verify -q '<token>^{commit}' >/dev/null || <refuse: unresolvable, the five forms named>   # a hash or branch token only
+git rev-parse --verify -q '<token>^{commit}'   # a hash or branch token only; non-zero → refuse: unresolvable, the five forms named
 nen release resolve-target --repo <path to the checkout> --token <token> --trunk <branch.base>   # no token typed: --token main
 ```
 
@@ -160,8 +160,7 @@ says which composite is holding it instead.
 first failure:
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-nen --repo <path to the checkout> release preflight \
+"$hatsu_root/scripts/gh_token_env.sh" nen --repo <path to the checkout> release preflight \
   --repo-slug <owner/name> --tag <vX.Y.Z> --range <vPrev>..<cut-point> \
   --changelog <path to CHANGELOG.md at the cut point> --owner-repo <owner/name> \
   --critical-issues <n,n or ''> --live-chores-from <path>
@@ -408,8 +407,8 @@ So this skill merges **one PR and one only**: the release-proposal PR **it opene
 it merges it through **the one bounded merge nen performs**, never a raw `gh pr merge`:
 
 ```bash
-nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <path>         # the plan
-nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <path> --run   # the merge
+"$hatsu_root/scripts/gh_token_env.sh" nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <path>         # the plan
+"$hatsu_root/scripts/gh_token_env.sh" nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <path> --run   # the merge
 ```
 
 **The verb bounds the diff; this skill bounds which PR.** Record, when § 3 opens the proposal, **its

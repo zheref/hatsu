@@ -39,8 +39,7 @@ hatsu:direct                             # the effort this session is discussing
 
 ```bash
 nen direct registry --registry "$hatsu_root/contracts/direct.registry.json" >/dev/null   # the probe
-export GH_TOKEN="$(gh auth token)"   # in the block, never printed
-nen classify status --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --repo <checkout> --target <owner/name> --issue <n,…> --json
+"$hatsu_root/scripts/gh_token_env.sh" nen classify status --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --repo <checkout> --target <owner/name> --issue <n,…> --json
 nen repo classify --repo <checkout> --json
 ```
 

@@ -280,8 +280,7 @@ release PR and its own G4 — and never publish "and tag afterwards".
 ## 4. `nen release preflight` — read it, and read the row that inverts
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-nen --repo <path> release preflight \
+"$hatsu_root/scripts/gh_token_env.sh" nen --repo <path> release preflight \
   --repo-slug <owner/name> --tag <vX.Y.Z> --range <vPrev>..<the tagged commit> \
   --changelog <path to CHANGELOG.md at that commit> --owner-repo <owner/name> \
   --critical-issues <n,n or ''> --live-chores-from <path>

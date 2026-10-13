@@ -121,16 +121,12 @@ it as an open question inside the issue rather than resolving it silently.
 
 ## 3. Reconcile against the backlog — the four searches
 
-Export a token first — `nen` never picks one up ambiently, unlike `gh`:
+Every `nen` call below that reads GitHub runs through `scripts/gh_token_env.sh` — `nen` never picks a
+token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`, a shape Claude
+Code's worktree-isolation guard refuses ([PROCESS.md](../../../docs/PROCESS.md) § *Residue*, #218):
 
 ```bash
-export GH_TOKEN=$(gh auth token)
-```
-
-Then run the whole reconciliation in one call:
-
-```bash
-nen issue search --target <owner/name> --subject "<text>" \
+"$hatsu_root/scripts/gh_token_env.sh" nen issue search --target <owner/name> --subject "<text>" \
   [--files a,b] [--rule-ids X-1,X-2] [--lane-labels l1,l2]
 ```
 
@@ -239,10 +235,10 @@ plan shows checked text. Every title, body and comment this skill drafts — the
 fold, a supersede close, a `nen issue edit-body`, and a § 0 discovery write, which skips the
 confirmation but never this check — is checked against the live private list, on your own
 credentials, before it enters the plan. Write each draft to a file (a title through a quoted
-heredoc, `cat > title.txt <<'EOF'`, so no `$` or backtick in it is expanded) and pipe the files:
+heredoc, `cat > title.txt <<'EOF'`, so no `$` or backtick in it is expanded) and hand the files over:
 
 ```bash
-cat title.txt body.md | bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> --label draft -   # an issue
+bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> --label draft title.txt body.md   # an issue, no pipe (#218)
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> comment.md                                  # a comment
 ```
 
