@@ -374,7 +374,7 @@ against G4."*
 - **Permitted:** branch, commit, push a **non-`main`** branch, open/update a PR, request reviewers,
   and hand the PR to [`$sharingan`](../sharingan/SKILL.md) (or, in the § 6 fallback, read its
   readiness via `$pr-state`'s own verb).
-- **Not permitted:** a routing label (there is no CI plane to route to), `bankai:stage/*`, any G1
+- **Not permitted:** a routing label (WORKFLOW § *Building an issue with no CI plane*), `bankai:stage/*`, any G1
   mode label, any merge, any review vote — `request_changes` above all, since Kurapika acts on the
   maintainer's own credentials and the vote would be recorded as theirs. tensho creates work and
   hands it off; it does not route or release it.

@@ -328,7 +328,7 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/R
    still agree no longer changes the verdict. Edit `nen/repos.json`; delete the stale duplicate.
 5. **Bump the version manifest** — same reasoning as the old skill: a cached plugin would report
    consumers current while they sit a tag behind. No `nen` verb owns this write either — residue, a
-   direct edit; prefer the bump to a `no plugin bump:` opt-out. **Where the surface stamp follows
+   direct edit; bump — the `no plugin bump:` line is not accepted over a shipped path (zheref/hatsu#171). **Where the surface stamp follows
    `plugin.json` and the delivery PR carries the bump — hatsu, by the maintainer's ruling of
    2026-09-28 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*) — this step is a no-op**: the release PR
    touches the changelog only, and `release.unitPaths` says exactly that.
