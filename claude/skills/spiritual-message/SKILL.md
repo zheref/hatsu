@@ -19,8 +19,7 @@ maintainer can do is never read ninth.
 
 From a composite, skip this; bare, the contract is
 [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) (`S1`, `S3`). Every block is
-evidence-sourced or **marked unavailable**; no recoverable turn boundary reads `this last turn: not
-recoverable`.
+evidence-sourced or **marked unavailable**.
 
 ## 1. Invocation
 
@@ -41,9 +40,8 @@ last turn only. **`landing`** at `mukai` step 9 (after the PR opened) and `en`'s
 first step — the turn blocks **+ the PR body**, the verdict quoted inside the ask. Each publishes
 `reports.sections.<variant>.blocks`, never a remembered list.
 
-**No `final` here.** The dated final report is a **one-effort Rikugan with a cleared desk** —
-[`hatsu:rikugan`](../rikugan/SKILL.md), through [`backlog-board`](../backlog-board/SKILL.md) § 3's
-path, into `<reports.dir>/<YYYY-MM-DD>-<effort>.html` (ruling 2026-09-19). Hand over.
+**No `final` here**: the dated final report is [`hatsu:rikugan`](../rikugan/SKILL.md)'s (ruling
+2026-09-19). Hand over.
 
 After [`hatsu:aka`](../aka/SKILL.md) (pushed, no PR) re-render `turn` at the same address, the push
 in *Landed*.
@@ -74,9 +72,8 @@ nen report data --repo <path> --base origin/<branch.base> [--tiers <json>] [--ta
 One `nen.report.data/v0.1` document: `commits[]`, `files[]`, `evidence[]`, `coverage`, `proof`,
 `lastStop`, `phases[]`, `usage[]`, the header fields, plus `objects[]` where a target was named. It
 never writes; **every absence is `null` with the reason on stderr**, quoted not replaced; an
-unresolvable base is exit `2`. Three companions fill what git cannot know:
-`nen shu evidence --base <ref>` (rows gaining a `data:` URI `src`), `nen shu
-test-report --from-artifacts`, the **saved** `nen shu coverage --touched` with nen's band.
+unresolvable base is exit `2`. Three companions: `nen shu evidence --base <ref>`, `nen shu test-report --from-artifacts`, the
+**saved** `nen shu coverage --touched`.
 
 **The merge shape — base document ∪ extension, every row key spelled because the template iterates
 them**, keys and values per [`PROCESS.md`](../../../docs/PROCESS.md) § *Escaping and validation of
@@ -112,11 +109,10 @@ sets `notReported: true`, `reported: false`. `actionsMinutes` sums
 --touched`, never passed through. `generatedAtLocal`: `"$hatsu_root/scripts/report_time.sh"`; `repo`, `gate`, `turnLabel`,
 `effortStage`, `stageClass`, `worktree`: derived per `WORKFLOW.md` § *Where the effort is*.
 
-**Record usage before rendering** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*), from the surface's readout: `nen usage record --effort
-<branch> --surface <s> [--model <alias>] --input/--output/--cache-read/--cache-write <n> --source
-<text>` — Claude Code's `/cost` line, Codex's session-log usage, Cursor and
-Antigravity `--not-reported` (nothing exposed); Actions minutes for the runs `en` observed from
-`gh api repos/{o}/{r}/actions/runs/{id}/timing`, recorded `--minutes <n> --source "gh actions timing"`.
+**Record usage before rendering** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*,
+its flags) from the surface's readout — Claude Code's `/cost`, Codex's session log, Cursor and
+Antigravity `--not-reported`; Actions minutes from `gh api repos/{o}/{r}/actions/runs/{id}/timing`,
+`nen usage record --minutes <n> --source "gh actions timing"`.
 
 `--variant` injects `sections.<block>` and `sectionList`.
 
@@ -133,7 +129,7 @@ edges[{from,to,rel,change}] }`, [worked example](../../../templates/graph.exampl
 
 `change` is `added | changed | removed | unchanged` on nodes and edges; every edge endpoint names a
 declared node. `nen report render --graph <file>` validates it, injecting `graphJson`,
-`graphMermaid`, `graphNodes[]`, `graphEdges[]`; `<details>` carries the text fallback.
+`graphMermaid`, `graphNodes[]`, `graphEdges[]`.
 
 ## 6. Fill the template
 
@@ -151,21 +147,27 @@ Template language, exit codes and `--dry-run`: [`docs/WORKFLOW.md`](../../../doc
 ## 7. Publish it
 
 - **On Claude Code an Artifact, ONE URL per branch** ([`PROCESS.md`](../../../docs/PROCESS.md)
-  § *Publishing a report*). Headline title ≤ 60 chars, stable across turns
-  ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Report titles*).
+  § *Publishing a report*). Title: [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Report titles*.
 - **On Antigravity a native Markdown artifact** in `<appDataDir>/brain/<conversation-id>/spiritual-message.md`
   via `write_to_file` with the `ArtifactMetadata` [`PROCESS.md`](../../../docs/PROCESS.md)
   § *Publishing a report* states: one file per conversation, overwritten in place.
   It renders the variant's declared blocks (`reports.sections.<variant>.blocks`; the Desk quotes `nen pr ready`
   verbatim) and a G5 blocker in `<div id="g5-blocker">`, as GFM tables, alerts (`> [!NOTE]`), the delta in a `mermaid` fence (`graphMermaid`) and Generative UI.
-- **Elsewhere `<reports.dir>/current.html`** (from § 6), overwritten each render, transient.
+- **On Codex the ACTIVE worktree's `<reports.dir>/current.html`** (from § 6; `worktree` as
+  [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where the effort is* derives it), the rule
+  [`PROCESS.md`](../../../docs/PROCESS.md) § *Publishing a report* states: the chat line names the file's
+  absolute path, worktree and branch, a render from another worktree moves the line to its own file, an
+  older tab is never current (hatsu#205; scenario dated in `docs/ab/spiritual-message.md`). A pending
+  product decision is a `DECIDE` ask with `ask.gate: null` and no `ask.blocker`; it reaches
+  `request_user_input` in the same turn ([`jutaisho`](../jutaisho/SKILL.md) § 1).
+- **Elsewhere** the same `current.html`, overwritten each render, transient.
 
-**Say one line in chat and stop** — variant, branch, link or path.
+**Say one line in chat and stop** — variant, worktree, branch, link or path.
 
 ## 8. Not a gate event
 
 Rendering, its one line and its gaps follow [`PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a
-phase*; **a chat summary or markdown dump in chat is never the fallback**. The bell is [`jutaisho`](../jutaisho/SKILL.md)'s, runs *after* this skill in `ren`'s order and takes this
+phase*. The bell is [`jutaisho`](../jutaisho/SKILL.md)'s, runs *after* this skill in `ren`'s order and takes this
 page's link.
 
 **Permitted:** read working copy, history, `nen/*.json`; publish/republish **this branch's**
@@ -182,8 +184,7 @@ or a delegation ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every ph
   omits the desk, or `ask` from the data (`null` or the § 4 object).
 - **Never fills the session blocks from only the last request**, puts earlier-turn work into *this
   last turn*, or drops a gap from *Not delivered* to read better.
-- **Never renders the delta as a file list**, or `landing` before the PR exists (F6: its extras are
-  shibari's, an empty verdict reads `not-ready`) or while a review round is owed.
+- **Never renders the delta as a file list**, or `landing` before the PR exists or while a review round is owed.
 - **Never fires the `nen stop` banner, efforts table or push notification** (§ 8), links a capture
   unresolvable off this machine, writes an unescaped value, or uses the raw form beyond the
   validated graph document (§ 6).
