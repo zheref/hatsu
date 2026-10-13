@@ -93,7 +93,10 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
     'prose_size_check.sh' => ['bash', File.join(trusted, 'scripts/prose_size_check.sh'), root],
     'plugin_bump_check.sh' => ['bash', File.join(trusted, 'scripts/plugin_bump_check.sh'), changed,
                                 File.join(trusted, '.claude-plugin/plugin.json'),
-                                File.join(root, '.claude-plugin/plugin.json'), draft_body]
+                                File.join(root, '.claude-plugin/plugin.json'), draft_body],
+    'branch_authorship_check.sh' => ['sh', File.join(trusted, 'scripts/branch_authorship_check.sh'),
+                                      '--repo', root, '--base', base_sha,
+                                      '--forbid-trailers-from', File.join(trusted, 'nen/workflow.json'), '--forbidden-only']
   }
   unknown = guards.keys - adapters.keys
   fail_preflight("no local invocation for trusted guard(s): #{unknown.sort.join(', ')}") unless unknown.empty?
