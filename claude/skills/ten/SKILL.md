@@ -43,13 +43,13 @@ nen --version  # dependency.version_probe
 nen shu tools --repo "$hatsu_root"  # HATSU's checkout, not the target
 ```
 
-A probe exiting `0` with a semver reads the `nen` row: `ok` → § 2's `nen_global.sh` runs
-FIRST, then § 2c; there its exit only feeds § 2c's predicate — `5` and `2` quoted in
-§ 4's `nen-global:` token, never § 3, no session bind (the session is satisfied). Every other
-row → § 2 — `WRONG` with a repin remedy (the pin below the floor — a `nen/contract.json`
-PR that moves `bootstrap.sha256` with it, or CI fails closed, `docs/GATE-CONFIGURATION.md`;
-never an install), `WRONG` without one, `MISSING`, or the verb absent. Not found, non-zero
-or unparseable is absent — § 2 too. Exit `5` per non-`ok` row (`BEHIND`: `7`), never `1`. The
+A probe exiting `0` with a semver reads the `nen` row: `ok` → § 2's `nen_global.sh` runs,
+then § 2c; there its exit only feeds § 2c's predicate — `5` and `2` quoted in
+§ 4's `nen-global:` token, never § 3, no session bind. Every other
+row → § 2 — `WRONG` with a repin remedy (pin below floor: a `nen/contract.json`
+PR moving `bootstrap.sha256` too, GATE-CONFIGURATION;
+never an install), `WRONG` without one, `MISSING`, or the verb absent. Not found or
+unparseable is absent — § 2 too. Exit `5` per non-`ok` row (`BEHIND`: `7`), never `1`. The
 range rule is the contract's; a pre-floor build prints no floor line — said, never
 inferred.
 
