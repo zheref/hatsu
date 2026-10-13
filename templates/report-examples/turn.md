@@ -33,14 +33,14 @@ stage blocked · G5 — yours · worktree fmc-215 · branch fable/kurapika/ha-21
 The render refused: nen out of range &amp; no bootstrap on this host
 
 - **A** · Bootstrap the pinned nen ⭐ recommended\
-  the render runs on the next turn\
-  <code>nen bootstrap --ref v0.21.0 --source zheref/nen --script &quot;$f&quot; &amp;&amp; nen --version</code>
+  the render runs on the next turn
+  <pre>nen bootstrap --ref v0.21.0 --source zheref/nen --script &quot;$f&quot; &amp;&amp; nen --version</pre>
 - **B** · Stop the effort here\
-  no report is published | the gap stays named\
-  <code>none</code>
+  no report is published | the gap stays named
+  <pre>none</pre>
 - **C** · Hand the install to the maintainer\
-  the loop waits &lt;untimed&gt;\
-  <code>echo &#39;run the bootstrap&#39; &gt; /dev/null</code>
+  the loop waits &lt;untimed&gt;
+  <pre>echo &#39;run the bootstrap&#39; &gt; /dev/null</pre>
 
 Objects: [HA-IS-#215](<https://github.com/zheref/hatsu/issues/215>)
 
@@ -80,7 +80,7 @@ fill them with nen report render &lt;variant&gt;.</pre>
 <!-- hatsu:block landed -->
 ## Landed, fought back, not delivered
 
-The whole session against <code>origin/main</code>, not just this turn.
+The whole session against origin/main, not just this turn.
 
 ### Landed
 

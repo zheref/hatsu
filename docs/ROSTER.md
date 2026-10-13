@@ -867,7 +867,7 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
 human's credentials, so GitHub records the vote as **theirs**, and casting one manufactures their governance
 vote on a PR they have not read. The substitutes: **`sharingan`'s channel** for findings an automated reviewer
-already delivered — the author fixes and settles them, and Hatsu holds no CI plane for a label to wake — and a
+already delivered — the author fixes and settles them, and Hatsu holds no CI plane for a label to wake (WORKFLOW § *Building an issue with no CI plane*; the one legacy wake is `kurapika.md`'s) — and a
 **filed issue** for a substantive finding of the agent's own. **That binds the reviewers
 activated on 2026-09-19 exactly as it binds the rest**: **Nobunaga** hands his findings to `hanten` in its
 fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-testable rows to
@@ -984,9 +984,9 @@ had proposed futon § 5's one integration branch):
 
 | Ruling | What it says |
 |---|---|
-| **One PR per issue, delivered, not batched** | A selector run delivers every issue as its own pull request standing at its merge prompt, never folded into one integration PR, when the maintainer says so; futon § 5's integration branch stays the other shape, the maintainer's word choosing |
+| **One PR per issue, delivered, not batched** | A selector run delivers every issue as its own pull request — standing in its stack, the bottom one at the merge prompt — never folded into one integration PR, when the maintainer says so; futon § 5's integration branch stays the other shape, typed |
 | **Overlap is a stack** | Efforts whose diffs touch common paths — the changelog, the version, the mirrors, a shared skill — are cut each from the previous one's published branch and opened each against the previous one's branch; only the bottom PR targets `branch.base`. The rules are [`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*, stated once |
-| **The report carries the merge plan** | The final register's desk lists the stack bottom-up with one `MERGE` ask per PR — merge, delete the head branch, wait for GitHub to retarget the next PR and for its checks to re-run, then the next — so the maintainer follows the plan exactly. A stacked PR is presented as mergeable nowhere (ruling 2 of 2026-09-30) |
+| **The report carries the merge plan** | The final register's desk lists the stack bottom-up as one plan line with one `MERGE` ask, for the PR whose base reads `branch.base` — merge with `--merge`, delete the head branch, let GitHub retarget the next PR (else `nen pr retarget`), re-run its checks, then the next — so the maintainer follows the plan exactly. A stacked PR is presented as mergeable nowhere (ruling 2 of 2026-09-29) |
 | **Closes zheref/hatsu#219** | *Parallel Pull Request Stacking Strategy*: the workflow prose now defines the strategy, and a delegate authoring beside another effort on overlapping files stacks on it rather than parallelising blindly |
 
 ---
@@ -1172,7 +1172,7 @@ to the open question `docs/PROCESS.md` § *Residue and owned dependencies* had c
 
 | Ruling | What it says |
 |---|---|
-| **BC-11 binds `scripts/hanten_cycle_ledger.sh`** | The embedded-Python freeze of BC-11 (`zheref/bankai-handbooks`, the bash handbook) binds the hanten cycle ledger exactly as it binds every other guard: the script is **frozen** — fixes only, no new subcommand, no new verdict, no new trace read — from this date until the verb lands. Its header says so |
+| **BC-11 binds `scripts/hanten_cycle_ledger.sh`** | BC-11 (`zheref/bankai-handbooks` v0.6.0, the `bankai-machinery` stack handbook: embedded Python that predates RR-PR-#753 is frozen debt, and growing it is a finding) binds the hanten cycle ledger. The ledger's Python grew on 2026-10-02 (zheref/hatsu#169, `ensure` and its trace reads) — that growth is the BC-11 finding, and zheref/nen#346 is its remediation. Until the verb lands the script is **frozen**: fixes only, no new subcommand or verdict (the issue's words; "no new trace read" is the recorder's reading of the same clause). Its header says so |
 | **The ledger is owed to nen** | zheref/nen#346 owns the review-cycle ledger (`init`, `ensure`, `decide`, `record`, `show`, `recover-first`) as a nen verb. When it ships, `hanten` §§ 1–4 and `breath` § 3b call the verb, the script and its self-test retire, and lane `ledger-guard` points at nen's own tests. zheref/hatsu#216 closes on that step, not before |
 | **Where it is stated** | `docs/PROCESS.md` § *Residue and owned dependencies* (the `ten` § 5 entry) names the owned dependency; the script header names the freeze; this section is the ruling's record |
 

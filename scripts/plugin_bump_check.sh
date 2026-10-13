@@ -23,8 +23,9 @@
 # `.claude-plugin/plugin.json`'s `version` unchanged FAILS. There is no opt-out
 # for a shipped path (zheref/hatsu#171): a `no plugin bump: <reason>` line in the
 # PR body is honoured only where NO path in PLUGIN_SURFACE_GLOBS changed, which is
-# exactly where this guard does not apply. Over a shipped path the line is
-# REFUSED BY NAME, listing the shipped paths, because an installed copy reads
+# exactly where this guard does not apply. When the version is not bumped, over a
+# shipped path the line is REFUSED BY NAME, listing the shipped paths; beside a
+# bump the line is inert, and the pass line says it was ignored. An installed copy reads
 # every one of them and README's rule makes even a wording change a patch bump.
 # The record that ruled it: every opt-out over a shipped path the guard ever
 # trusted (HA-PR-#163, #173, #233) skipped a bump the policy asked for, and every
@@ -793,6 +794,9 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     [ -n "$stamps_unread" ] && summary="${summary:+$summary; }stamp unread (no GENERATED marker matched): ${stamps_unread}"
     if [ -z "$summary" ]; then
       if [ -n "$head_root" ]; then summary="no surfaces/ mirrors under the head tree to scan"; else summary="stamp check skipped (the head manifest is not at <root>/.claude-plugin/plugin.json, so no head tree)"; fi
+    fi
+    if [ "$opt_out_declared" -eq 1 ]; then
+      summary="${summary}; the \`no plugin bump:\` line was ignored (inert beside a bump, zheref/hatsu#171)"
     fi
     echo "plugin.json version bumped — plugin-bump guard satisfied; ${summary}"
     exit 0

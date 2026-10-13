@@ -31,8 +31,9 @@ the delivered state ([`hatsu:rikugan`](../rikugan/SKILL.md)), and harvest fricti
 **P1 — this run opens with `hatsu:ten build`, never skipped** ([`ten`](../ten/SKILL.md) § 6 catches up this
 phase's missing prerequisites under its own name; the phases this run calls skip theirs). **Self-hosting** (nen's or
 Hatsu's own checkout): a host `nen` behind the pin is ten § 1's `BEHIND`/`WRONG` row and § 2's install,
-never read `ok`; a checkout **ahead of every release** keeps the pinned `nen` on `PATH` and exercises the
-code under build from the checkout itself (nen: `bun src/index.ts`), said in every brief (hatsu#229).
+never read `ok`; a checkout **ahead of every release** keeps a `nen` that satisfies the pin on `PATH` (ten
+§ 2's `current` or `kept-newer`) and exercises the code under build from the checkout itself (nen: `bun
+install --frozen-lockfile`, then `bun src/index.ts`), said in every brief (hatsu#229).
 
 ```
 hatsu:build <product|repo_code>#<issue_number>
@@ -40,10 +41,9 @@ nen parse build --grammar "<code>#<n>" --line "<the raw invocation>"
 nen repo resolve <CODE> --repo <the target repo's own checkout>
 ```
 
-Case-insensitive; **a code is resolved, never guessed**. A missing argument or configuration item is
+Case-insensitive; **a code is resolved, never guessed**; a missing argument or configuration item is
 asked for and set up inline (`missing-argument`, `missing-configuration`;
-[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4): `nen parse` exit `2` or an unresolved code is the
-trigger, the registered codes the options.
+[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
 
 **If `#<N>` is already a PR** (`gh api repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` populated), do
 not re-author: hand straight to [`hatsu:en on <CODE>#<N>`](../en/SKILL.md), and say so.
@@ -53,7 +53,7 @@ is one nobody can end.
 
 ## 2. Inspect the issue and confirm the mode
 
-Read the target issue before touching code:
+Read the issue first:
 
 ```bash
 gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPullRequestsReferences
@@ -63,15 +63,15 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
   `closedByPullRequestsReferences`).
 - **If an epic awaiting approval**: stop at **G1** (row `mode-label`) — the mode label is the
   maintainer's decision (`CON-4`), never an agent's.
-- **Read requirements**: extract issue title, body, acceptance criteria, and technical constraints.
+- **Read requirements**: title, body, acceptance criteria, constraints.
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
 | Issue domain / content | Mode |
 |---|---|
-| Product code implementation, UX, customer-facing behaviour | **Enhancer** |
-| Canon prose, governance, constitution (`CON-{n}`), specifications, schemas | **Conjurer** |
-| Machinery, tooling, plugin, workflows, scripts, automation | **Transmuter** |
+| Product code, UX, customer-facing behaviour | **Enhancer** |
+| Canon prose, governance, specifications, schemas | **Conjurer** |
+| Machinery, tooling, workflows, scripts | **Transmuter** |
 
 **With ambiguity, propose one and ask** (a `DECIDE`, [`jutaisho`](../jutaisho/SKILL.md) § 4, row
 `mode-unknown`, once per run). A G1 stop is never a mode question: an epic's mode *label* is the
@@ -102,11 +102,11 @@ All authoring, feature work, and verification for the issue **must run in an iso
 ```
 
 Git-ignored inside core, never a sibling; branch `{model}/{persona}/{descriptor}` (`nen/workflow.json`); core
-stays clean and parked on the trunk unless the maintainer's own prose says to work on core. **One checkout
-per concurrent effort** (hatsu#229): a second issue is never started in an occupied worktree — it gets
-its own `<name>` — and a tree a reviewer is reading is never switched under them: hanten § 4's detached
-checkout exists for that, and where it could not be made (an isolated session), the run waits for the
-review to return before the branch moves.
+stays clean and parked on the trunk unless the maintainer's own prose says to work on core. **One checkout per
+concurrent effort** (WORKFLOW § *Where worktrees live*, step 2; hatsu#229): a second issue is never started
+in an occupied worktree — it gets its own `<name>` — and a tree a reviewer is reading is never switched
+under them: hanten § 4's detached checkout exists for that, and where the isolation hook refused it, the
+run waits for the review to return (a moved ref is hanten § 4's G5).
 
 ## 4. The canonical feature building protocol
 
@@ -114,20 +114,19 @@ Build drives the issue through the canonical Hatsu pipeline, § 2b's intake firs
 `ten` → `classify` (when unclassified) → `direct` → `ren` → `aka` → `mukai` → `en` → `rikugan` → `third-hand`.
 
 **Each phase is another skill's, named and linked; its procedure, stops and residue live there.** What
-build itself writes: `nen phase begin|end --effort <branch> --phase <1·author|2·publish|3·PR|4·readiness>`
-around each phase, and `nen usage record` at every § 7 report ([`WORKFLOW.md`](../../../docs/WORKFLOW.md)
-§ *The effort's ledgers*) — **owed on every target, a stage taxonomy or not**. On a target whose
-`nen/labels.json` declares no delivery stages (nen's own, Hatsu's own) **no stage label is applied and none
-is manufactured** (WORKFLOW § *A target repository with no delivery-stage taxonomy*): the release into building
-is the typed invocation; the chain position is read off the issue, never computed; ledgers, PR and
-Development links are unchanged (hatsu#229).
+build itself writes: `nen phase begin|end --effort <branch> --phase <author|publish|pr|readiness>` around
+each phase, and `nen usage record` at every § 7 report ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The
+effort's ledgers*) — **owed on every target, a stage taxonomy or not**. On a target whose `nen/labels.json`
+declares no delivery stages, WORKFLOW § *A target repository with no delivery-stage taxonomy* holds as
+written; build's one addition: the
+release into building is the typed invocation, and § 1's handoff of a PR to `en` holds (hatsu#229).
 
 | Phase | Skill | What build takes from it |
 |---|---|---|
 | **1 · author** | [`hatsu:ren`](../ren/SKILL.md), turn after turn: `breath` → `rasengan` → `kokusen` (the commit with `Hatsu-Agent: Kurapika`) → `amaterasu` → `spiritual-message` → `jutaisho` | every acceptance criterion met and committed locally; never a push |
 | **2 · publish** | [`hatsu:aka`](../aka/SKILL.md): `gyo` → squash the unpushed → `ao` → `gyo` again if the tree moved → push | the branch on origin; no PR |
-| **3 · PR** | [`hatsu:mukai`](../mukai/SKILL.md): `murasaki` → `hanten` → `kokusen` → `kotoamatsukami` → `byakugan` → evidence → `shibari` (the body, `nen pr body-check`, the evidence and Development guards) → landing report → `en` offered, or started under `mukai.autoEn` | one open PR, the four pre-PR G5 stops honoured |
-| **4 · readiness** | [`hatsu:en on <CODE>#<PR>`](../en/SKILL.md): the capped acting cycle, `sharingan` and `murasaki`, `nen pr ready` quoted verbatim, the bell at Ready | the PR at its merge prompt (**G2**, **G4** in a canon repository); En never merges |
+| **3 · PR** | [`hatsu:mukai`](../mukai/SKILL.md): `murasaki` → `hanten` → `kokusen` → `kotoamatsukami` → `byakugan` → evidence → `shibari` → landing report → `en` offered, or started under `mukai.autoEn` | one open PR, the four pre-PR G5 stops honoured |
+| **4 · readiness** | [`hatsu:en on <CODE>#<PR>`](../en/SKILL.md): the capped acting cycle, `nen pr ready` quoted verbatim, the bell at Ready | the PR at its merge prompt (**G2**, **G4** in a canon repository); En never merges |
 
 ### Phase 5: `rikugan` — The delivered state, seen once
 
@@ -167,20 +166,22 @@ verdict verbatim.
 **G1**: an epic awaiting its mode label (row `mode-label`), a `DECIDE` with the trade-off. **G2/G4**: the
 delivery PR `CON-32`-Ready (rows `merge`, `canon-merge`), a `MERGE` whose verdict says everything. **G5**: a
 stuck build or capability gap, `DECIDE`/`DO` with the proposed issue (a tool per `missing-tool`). The run
-**ends** when the PR stands Ready at its gate, the issue is closed, or at a G5 stop: say which, and that the
-delegation lapsed.
+**ends** when the PR stands Ready at its gate, the issue is closed, § 1 handed a PR to `en`, direct's **B**
+ended it, `en` was offered and not started, or at a G5 stop — any other ending is a G5: say which, and that
+the delegation lapsed.
 
 ## 8. Resuming & Residue
 
 [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Resuming a run*; each phase is idempotent, and worktree/branch
-state records progress.
+state records progress. Residue: mode reasoning and G5 diagnosis are agent judgment; on a target with no stage
+taxonomy the chain position is a raw issue read.
 
 ## 9. Hard limits
 
 - **Never merges a PR** (`CON-5`/`CON-7`, rows `merge`/`canon-merge`), **applies a G1 mode label**, or
   **votes, self-reviews or casts `request_changes`** (`CON-26`).
-- **Never routes work to CI builders**, authors on the core checkout by default, uses raw `gh pr create`, or
-  skips Mukai's composite steps.
+- **Never routes work to CI builders** or a retired Bankai CI capability, authors, branches or commits on the
+  core checkout by default (Rule 6), uses raw `gh pr create`, or skips Mukai's composite steps.
 - **Never blocks on `direct`'s verdict or on an absent verb**, never asks the mismatch twice, and never
   starts a subsession **to act on direct's recommendation** — it is for the maintainer's own session; every
   subagent keeps its `models.roles` tier and never the frontier tier (WORKFLOW § `models`).

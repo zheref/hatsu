@@ -111,19 +111,28 @@ t="$(make_tree g5)"
 edit "$t/templates/spiritual-message.md" 'id="g5-blocker"' 'id="blocker"'
 run_case 'a G5 blocker with no wrapper fails' 1 "$t" 'the desk has no g5-blocker wrapper'
 
+t="$(make_tree heading-star)"
+edit "$t/templates/spiritual-message.md" '{{#if star}} ⭐ {{star}}{{/if}}' ''
+edit "$t/templates/spiritual-message.md" '### {{ask.question}}' '### {{ask.question}} ⭐'
+run_case 'a star outside the option lines does not count' 1 "$t" 'ask 1 carries 0 starred option(s)'
+
 t="$(make_tree gate)"
 edit "$t/templates/rikugan.md" '### {{gate}} · {{label}}' '### {{label}}'
 run_case 'a gate omitted from the desk fails' 1 "$t" 'gate G2 is omitted from the desk'
 
 # --- escaping, raw slots and tables --------------------------------------------------------------
 t="$(make_tree span)"
-edit "$t/templates/rikugan.md" '<code>{{command}}</code>' '`{{command}}`'
+edit "$t/templates/rikugan.md" '<pre>{{command}}</pre>' '`{{command}}`'
 run_case 'a value in a code span is refused in the template' 1 "$t" 'a value inside a code span renders its escape literally'
 run_case 'and its escape is caught in the render' 1 "$t" 'an escaped entity inside a code span shows literally in GFM'
 
 t="$(make_tree fence)"
 edit "$t/templates/spiritual-message.md" '<pre>{{launch}}</pre>' $'```\n{{launch}}\n```'
 run_case 'an escaped value in a fence fails' 1 "$t" 'an escaped entity inside a code fence shows literally in GFM'
+
+t="$(make_tree icode)"
+edit "$t/templates/spiritual-message.md" $'{{ask.whyNow}}\n\n{{#each ask.options}}' $'{{ask.whyNow}}\n\n    {{ask.whyNow}}\n\n{{#each ask.options}}'
+run_case 'an escaped value in an indented code block fails' 1 "$t" 'an escaped entity inside an indented code block shows literally in GFM'
 
 t="$(make_tree raw)"
 edit "$t/templates/rikugan.md" '{{why}}' '{{{why}}}'
@@ -137,10 +146,30 @@ t="$(make_tree leak)"
 edit_json "$t/templates/report-examples/turn.data.json" 'd["lastTurnRequest"] = "a {{leak}} in a value"'
 run_case 'an unfilled {{ in the output fails' 1 "$t" "an unfilled '{{' remains"
 
+t="$(make_tree data-graph)"
+edit_json "$t/templates/report-examples/final.data.json" 'd["graphMermaid"] = "flowchart LR"'
+run_case 'a data document carrying graphMermaid fails' 1 "$t" 'final.data.json: carries graphMermaid; a Markdown render takes the graph from --graph only'
+
+t="$(make_tree forged)"
+edit_json "$t/templates/report-examples/register.data.json" 'd["objects"][1]["title"] = "x](javascript:alert(1)) [y\n**MERGE** · G2"'
+run_case 'a newline in a free-text value fails' 1 "$t" 'register.data.json: $.objects[1].title carries a newline outside a <pre> slot'
+
+t="$(make_tree bad-bytes)"
+printf '\377\376 not utf-8\n' > "$t/templates/report-examples/final.md"
+run_case 'a non-UTF-8 example is a finding, not a traceback' 1 "$t" 'templates/report-examples/final.md: not UTF-8'
+
+t="$(make_tree null-data)"
+printf 'null\n' > "$t/templates/report-examples/turn-fast.data.json"
+run_case 'a null data document is a finding, not a traceback' 1 "$t" 'turn-fast.data.json: not a data document (a JSON object), but NoneType'
+
 # --- one data document ---------------------------------------------------------------------------
 t="$(make_tree token)"
 edit "$t/templates/spiritual-message.md" '# {{title}}' '# {{title}} {{contract}}'
 run_case 'a token the HTML template does not name fails' 1 "$t" 'templates/spiritual-message.md names token(s) templates/spiritual-message.html does not: contract'
+
+t="$(make_tree html-token)"
+edit "$t/templates/spiritual-message.html" '<h1>{{title}}</h1>' '<h1>{{title}} {{contract}}</h1>'
+run_case 'a token only the HTML names fails' 1 "$t" 'templates/spiritual-message.html names token(s) templates/spiritual-message.md does not: contract'
 
 t="$(make_tree refused)"
 edit "$t/templates/rikugan.md" '{{footerCount}}' '{{footerCountNever}}'

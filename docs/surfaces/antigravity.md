@@ -49,9 +49,19 @@ transcripts are captured per step in `<appDataDir>/brain/<conversation-id>/.syst
 on this surface: its body is `nen report render`'s fill of
 [`templates/spiritual-message.md`](../../templates/spiritual-message.md) (`turn`, `turn-fast`, `landing`) or
 [`templates/rikugan.md`](../../templates/rikugan.md) (`final`, `register`), from the same data document and the
-same `reports.sections.<variant>.blocks` as the HTML templates on Claude Code and Codex. The path,
-[`PROCESS.md`](../PROCESS.md) § *The Markdown report*: render to `<reports.dir>/current.md`, pass that file's
-content to `write_to_file` verbatim, then `cmp` the artifact against it. Provenance of each step:
+same `reports.sections.<variant>.blocks` as the HTML templates on Claude Code and Codex. The rule is
+[`PROCESS.md`](../PROCESS.md) § *The Markdown report*; on this surface its three steps are:
+
+1. `nen report render --variant <v> --template "$hatsu_root/templates/<spiritual-message|rikugan>.md" --data
+   <the document> --graph <file> --out <reports.dir>/current.md --repo <path>`, with an empty graph document
+   where the scope has no shape.
+2. `write_to_file` with `TargetFile` `<appDataDir>/brain/<conversation-id>/<report-name>.md`, `Overwrite: true`
+   once it exists, the `ArtifactMetadata` PROCESS § *Publishing a report* states, and the content of
+   `<reports.dir>/current.md` verbatim.
+3. `cmp <reports.dir>/current.md <TargetFile>`. A difference is written once more; a second difference puts
+   `artifact differs from render` in the chat line and the turn yields unpublished.
+
+Provenance of each step:
 
 - **The render goes through the repository, not straight to the brain directory**, because `--out` "Must
   resolve INSIDE --repo (symlinks resolved); anywhere else is refused at exit 2" (`nen report render --help`,
@@ -59,8 +69,10 @@ content to `write_to_file` verbatim, then `cmp` the artifact against it. Provena
   has neither today.
 - **The Markdown is GFM that shows escaped values correctly**: the renderer escapes `&`, `<`, `>`, `"` and
   `'`; GitHub's renderer (`gh api markdown -f mode=gfm`, 2026-10-13) shows those entities decoded in text,
-  table cells, `<code>` and `<pre>`, and renders the alerts, `<details>` and the tables of
-  `templates/report-examples/`. It drops the `id` attribute; jutaisho's `g5-blocker` check reads the
+  table cells and `<pre>`, and renders the alerts, `<details>` and the tables of
+  `templates/report-examples/`. Markdown stays live in every value outside `<pre>` and a fence, `<code>`
+  included, so commands render in `<pre>`; render-time Markdown escaping is owed to nen (PROCESS
+  § *Residue and owned dependencies*). It drops the `id` attribute; jutaisho's `g5-blocker` check reads the
   rendered file, never a viewer's rendering of it.
 - **Held by** the `report-markdown-guard` lane, which renders every variant from its sample document in both
   formats and compares each to its checked example.
@@ -208,7 +220,7 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 | global plugin folder | activates everywhere | "Global level: place your plugin folder in ~/.gemini/config/plugins/. The plugin activates across all workspaces on your workstation." | https://antigravity.google/docs/plugins | 2026-09-29 |
 | `write_to_file` overwrite | `Overwrite: true` replaces an existing file; without it the tool errors when `TargetFile` exists (**third-party, unverified on any `agy` here (last read on a host: 1.0.6) until read on a host**) | "Set to true to overwrite an existing file"; "By default this tool will error if TargetFile already exists" | https://gist.github.com/anthfgreco/87718fbbf313bcf7f5ca3f36fedb372a (a published Antigravity system prompt) and https://github.com/google-antigravity/antigravity-cli/issues/838 (the call's `TargetFile` and `ArtifactMetadata` in use) | 2026-10-01 |
 | report render path | `--out` resolves only inside `--repo`, so a report renders to `<reports.dir>/current.md` and is copied | "Must resolve INSIDE --repo (symlinks resolved); anywhere else is refused at exit 2." | `nen report render --help`, nen `0.21.0` | 2026-10-13 |
-| GFM escaping | entities render decoded in text, tables, `<code>`, `<pre>`; alerts and `<details>` render; `id` is dropped | the rendered `templates/report-examples/register.md` and `landing.md` | GitHub's renderer, `gh api markdown -f mode=gfm` (not Antigravity's viewer) | 2026-10-13 |
+| GFM escaping | entities render decoded in text, tables and `<pre>`; Markdown stays live outside `<pre>` and fences, `<code>` included; alerts and `<details>` render; `id` is dropped | the rendered `templates/report-examples/register.md` and `landing.md` | GitHub's renderer, `gh api markdown -f mode=gfm` (not Antigravity's viewer) | 2026-10-13 |
 | the install, live | `agy plugin install` copies; `validate` reads the link | evidence § 10 F8 (`agy` 1.0.6, an isolated `HOME`) | [evidence § 10](evidence/surfaces.md) | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
