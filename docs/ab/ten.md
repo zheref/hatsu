@@ -177,7 +177,8 @@ made — and `not read` is only the shell itself failing. The changelog bullet a
 
 The issue's observation (nen 0.18.1 on a contract pinning `v0.18.2`, minimum `0.18`: `shu tools` read
 `ok` and ten never installed the patch) was routed to nen on the maintainer's ruling of 2026-10-01 and
-delivered there as zheref/nen#327 (`shu tools` exit `7`, row `BEHIND`, from nen 0.20). This is the
+delivered there as zheref/nen#327 — NN-PR-#354, *tools reports nen behind pinned_ref as BEHIND, exit 7*,
+with its test in nen's `src/shu/tools.test.ts` (`present-but-behind-pin`), from nen 0.20. This is the
 dated check that the delivered row reaches ten's table, reproduced with the cached release binaries
 against a throwaway copy of Hatsu's contract whose `dependency` reads `minimum: "0.18"`,
 `pinned_ref: "v0.18.2"` (every other key as shipped). Exit codes were read from `$?` after a redirect,
@@ -188,7 +189,9 @@ never after a pipe (kurapika.md § *The exit codes*, zheref/hatsu#161).
 $ PATH="<dir holding 0.18.1>:$PATH" <cache>/v0.21.0/nen-darwin-arm64 shu tools --repo <copy>
   BEHIND   nen     0.18.1   pinned >=0.18.0 <0.19.0  pinned_ref v0.18.2
                    verify-only: behind the pin -- inside minimum '0.18', and older than pinned_ref v0.18.2, the ref this repository's bootstrap installs, so a fix that ref ships has not reached this host. Install the pin: 'nen bootstrap --ref v0.18.2 --source zheref/nen --script <the bootstrap, fetched to a file>' (with no nen on PATH, fetch the bootstrap to a file and run that file with --ref v0.18.2). This verb reports the version and never changes it.
-exit 7                                        # --json: tools[].state "present-but-behind-pin"
+  ok       claude  2.1.296  pinned >=2.0.0
+exit 7                                        # --json: tools[].state "present-but-behind-pin"; 7 only because
+                                              # BEHIND is the sole non-ok row — with claude off PATH it read 5
 
 # B — nen 0.18.1 probing itself on the same contract: the issue's observation, as it was before nen#327
 $ PATH="<dir holding 0.18.1>:$PATH" <cache>/v0.18.1/nen-darwin-arm64 shu tools --repo <copy>
@@ -202,11 +205,11 @@ exit 0
 ```
 
 **What ten does with it.** § 1 reads *"Exit `5` per non-`ok` row (`BEHIND`: `7`)"* and sends every
-non-`ok` row to § 2, whose host default `scripts/nen_global.sh` bootstraps the contract's `pinned_ref`
+non-`ok` row to § 2 (and an `ok` row runs `nen_global.sh` first too, so B's host is bootstrapped either way), whose host default `scripts/nen_global.sh` bootstraps the contract's `pinned_ref`
 when `~/.local/bin/nen --version` is not the pin and links it; § 2c then proves the login shell resolves
 it. So a host one patch behind is installed, never read `ok` and moved past: the issue's first criterion.
 A host at or above the pin is `ok` (C) — the second. The third (a fixture pinning the patch-behind case)
-is nen's: the row is nen's verdict and its test lives with zheref/nen#327; Hatsu carries no
+is nen's: the row is nen's verdict and its test is NN-PR-#354's `src/shu/tools.test.ts`; Hatsu carries no
 executable for ten, and this dated record is the reference behaviour ten's prose is read against. B
 shows why the record is dated: a binary older than 0.20 still answers `ok` to its own probe, which is
 exactly the host § 2's bootstrap replaces.

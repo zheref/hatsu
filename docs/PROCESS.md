@@ -133,7 +133,8 @@ the host link or the session bind.
 **On an artifact-capable surface, a report is an Artifact:**
 - **On Claude Code**, republished to ONE URL per key — the skill names the key (the branch for a turn or landing page, the repository for a gate register); a new URL only for a key that has none yet, and a better title never mints a new one. **Read before you overwrite**: a republish notice, or a listing showing a version this session did not publish, means the page moved — re-read it and re-resolve the data rather than repainting what this session happens to be holding.
 - **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/<report-name>.md` (e.g. `spiritual-message.md` for turn/landing reports, `backlog-board.md` for gate registers, `black-voice.md` for validation) via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`). **Its body is a template's fill, never composed by hand**: § *The Markdown report* below. **One file per report name per conversation**: the path is keyed by `<conversation-id>`, so every render in a conversation writes the same `<report-name>.md`, with `Overwrite: true` whenever it already exists in that conversation's directory, and never a new file per turn; an effort that continues in a new conversation starts its own file there.
-- **Elsewhere** (surfaces without native artifact capability, e.g. Cursor, Codex), the page is `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient**. **Say which happened.**
+- **On Codex**, the page is the ACTIVE worktree's `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient** — and the one chat line names that file by absolute path with the worktree and the branch; a render from another worktree moves the line to its own file, and a tab still showing an older worktree's page is never presented as current (zheref/hatsu#205; `nen report render --out` writes only inside `--repo`, so each worktree holds its own).
+- **Elsewhere** (surfaces without native artifact capability, e.g. Cursor), the page is `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient**. **Say which happened.**
 
 **Every object notation on a page is `nen ref format`'s output.** Where it cannot be resolved — no
 `nen/repos.json` — the page falls back to `<owner>/<name>#<n>` and the failed resolution goes into
@@ -149,57 +150,35 @@ document of backlog-board § 3) and the same `reports.sections.<variant>.blocks`
 extension and nothing else, so the two renders cannot disagree on which blocks a variant shows. The
 `report-markdown-guard` lane (`scripts/report_markdown_check.sh`) holds it (zheref/hatsu#215).
 
-**The render path where the report is a Markdown artifact (Antigravity):**
+**Where a surface's report is a Markdown artifact** (Antigravity; the surface's write call and read-back
+command are [`docs/surfaces/antigravity.md`](surfaces/antigravity.md) § 1 *Reports*):
 
-1. `nen report render --variant <v> --template "$hatsu_root/templates/<spiritual-message|rikugan>.md" --data <the
-   document> --out <reports.dir>/current.md --repo <path> [--graph <file>]` — the HTML render's line, `.md` for `.html`.
-   `--out` must resolve inside `--repo` (`nen report render --help`, nen `0.21.0`), so the verb cannot write the
-   brain directory itself.
-2. `write_to_file` with `TargetFile` the artifact path above and **the content of `<reports.dir>/current.md`,
-   verbatim** — not re-read, re-flowed, trimmed or summarised.
-3. **Read it back**: `cmp <reports.dir>/current.md <TargetFile>`. Exit `0` is the published report; a difference
-   is written again, never accepted; a file the shell cannot read is said in the chat line as `artifact not read
-   back`, never as published.
+1. **Render** with the HTML render's line, `.md` for `.html`, `--out <reports.dir>/current.md`, and **always
+   `--graph`** — an empty graph document where the scope has no shape (`templates/report-examples/final.graph.json`
+   is one) — so `graphMermaid` is always nen's serialisation, never a value the data document carried.
+   `--out` must resolve inside `--repo`, so the verb cannot write the artifact store itself (§ *Residue and
+   owned dependencies*).
+2. **The artifact's body is that file's content, verbatim** — never re-read, re-flowed, trimmed or summarised.
+3. **Read it back** and compare byte for byte. A difference is written **once** more; a second difference ends
+   the publish: the chat line says `artifact differs from render` and the turn yields with the report
+   unpublished. A store the shell cannot read is said as `artifact not read back`, never as published.
 
-The dated `final` file stays the HTML render rikugan § 4 keeps; the artifact carries the Markdown render of
-the same document.
+The dated `final` file stays the HTML render rikugan § 4 keeps.
 
-**Where enforcement is impossible, and what holds instead.** Step 2 is the one path no verb performs: the
-copy into `write_to_file` is the model's own act, so step 3 is its check, and the fixed structure below is
-what a reader checks the artifact against. A turn where `nen report render` cannot run is **not** such a path:
-no page is published and nothing stands in (rikugan § 7, kurapika's Nen-first rule) — a hand-authored file is
-never a fallback. **The fixed structure** (the template is the authority; this names it so a file can be
-checked): the blocks are `reports.sections.<variant>.blocks`, in that order, each opening with
-`<!-- hatsu:block <name> -->`; a block not declared is absent, never empty; a horizontal rule then the
-footer close the file.
+**Before a Markdown render, the run asserts no newline in any value outside a `<pre>` slot**
+(`lastTurnRequestFull`, `launch`, `prBody[].markdown`, an option's `command`): a newline ends the Markdown
+line the value sits on, so it could open a forged ask or an unclosed fence. A failing value is dropped and
+named in *Not delivered*, like the validations in § *Escaping and validation of report data* — the caller's
+interim until nen escapes Markdown.
 
-| Block | Heading | Shape |
-|---|---|---|
-| `masthead` | `# <title>` | spiritual-message: `<turnLabel> · Hatsu · spiritual-message · <variant>`, then `<repo> · against <base> · <time>`, then `stage … · <gate> · worktree … · branch …`; rikugan: `Hatsu · rikugan · <variant>`, then `<scope> · <gate> · <time>` |
-| `tally` | none | one table: need you, blockers, landed, gaps (rikugan: in scope, need you, blockers, ready, in flight) |
-| `desk` | `## Your desk` | rikugan groups by `### <gate> · <label>`, every gate shown, a cleared one as a `> [!NOTE]` **cleared** alert. Each ask opens `<!-- hatsu:ask -->`, then `**<DECIDE\|DO\|MERGE>** · <gate or rank>`, the question as a heading, why, the lettered options (`- **A** · <label>`, **exactly one** `⭐ recommended`, consequence, `<code>command</code>`), `Objects:` links, the verdict quoted from `nen pr ready` in a `> [!IMPORTANT]` alert, and a G5's evidence in `<details id="g5-blocker" open>` with a `> [!CAUTION]` alert. spiritual-message's cleared desk is a `> [!NOTE]` |
-| `lastTurn` | `## This last turn` | the request, the full request in `<details>` / `<pre>`, the highlights list; after Mukai `### Corrections, check fallout and half-run stops` with three lists |
-| `landed` | `## Landed, fought back, not delivered` | `### Landed`, `### Fought back`, `### Not delivered`, each a list of `text — why` |
-| `delta` | `## Architecture delta` | the caption, a `mermaid` fence holding `graphMermaid`, the nodes and edges as lists in `<details>` |
-| `evidence` | `## Evidence` | a `> [!NOTE]` when unavailable, the captures as images, `### Tests` (a list), `### Touched-file coverage` (a table) |
-| `spend` | `## Spend` | `Where the time went` and `Tokens by model` tables, the Actions minutes line (rikugan: per effort, under `### <effort>`) |
-| `launch` | `## How to launch` | one `<pre>` |
-| `decisions` | `## Decisions already made` | a list of `text — why` |
-| `prBody` | `## The pull request body` | `<details>` with one `<pre>` per body |
-| `register` | `## The register` | one `<details>` per object, summary `<notation> · <title> · <marks> · <gate>`, then State, Verdict, Checks, Threads, Linked, Needs, Driving, Head, Thought and Link; a graph as `### <caption>` and a `mermaid` fence |
-| `legend` | `## Legend` | a list: the star, grouped by gate, then `legendRows` |
-
-**The checked example per variant** is `templates/report-examples/<variant>.md`, rendered from
-`<variant>.data.json` beside it (with [`templates/graph.example.json`](../templates/graph.example.json) where
-the document carries no graph); the guard fails when one is not byte for byte a fresh render.
-
-**Escaping in Markdown.** The renderer escapes `&`, `<`, `>`, `"` and `'` to entities, and GFM shows an entity
-decoded in text, a table cell, `<code>` and `<pre>` — and **literally** in a code span or a fence. So no
-escaped value sits in either: a command renders in `<code>`, a multi-line value in `<pre>`. The one raw slot is
-`graphMermaid`, alone inside the `mermaid` fence: nen refuses a newline in a graph's `caption`, `label` or
-`rel`, so no line of it can close the fence. **A `|` in a value splits a GFM table cell**, so a table carries
-only counts, paths, model names, percentages and fixed words; free text rides in lists. A value's own Markdown
-syntax is live, as its HTML is not.
+**Where enforcement is impossible, and what holds instead.** Step 2 is the one path no verb performs — the
+copy is the model's own act — so step 3 is its check. A turn where `nen report render` cannot run is **not**
+such a path: no page is published and nothing stands in (rikugan § 7, kurapika's Nen-first rule). **The fixed
+structure is the template itself**: the blocks are `reports.sections.<variant>.blocks`, in that order, each
+opening `<!-- hatsu:block <name> -->` and each ask `<!-- hatsu:ask -->`. The checked example per variant is
+`templates/report-examples/<variant>.md`, rendered from `<variant>.data.json` beside it (with
+`<variant>.graph.json`, else [`templates/graph.example.json`](../templates/graph.example.json)); the guard holds
+each byte for byte to a fresh render, so a reader checks an artifact against it.
 
 ## Escaping and validation of report data
 
@@ -210,12 +189,30 @@ These bind every document handed to `nen report render`, for `templates/spiritua
 the template iterates them. A missing token is exit `2` **by design**: a blank cell in a published
 report reads as a fact. A list is `[]`, never absent.
 
-**Escaping binds both paths**: every value is repository-controlled, so every value is escaped. The raw
-form (`{{{token}}}`) is admitted for **one** slot only — the graph document's script tag
+**Escaping binds both paths**: every value is repository-controlled, so every value is escaped. In the
+HTML the raw form (`{{{token}}}`) is admitted for **one** slot only — the graph document's script tag
 (`graphJson`), safe as a renderer property because `serialiseGraph` escapes `<`, `>` and U+2028/9, so
 `</script>` cannot occur. The page draws the graph with dagre (cdnjs, integrity-pinned) and keeps the
 node and edge list under `<details>` as the text fallback. **Never hand-build SVG or a second
 renderer.**
+
+**In the Markdown twins every value is live Markdown, except inside `<pre>` and a fence.** nen escapes
+HTML only (`&`, `<`, `>`, `"`, `'`). That neutralises a value as HTML, not as Markdown: a label carrying
+`](javascript:…)` is a live link, an image in a question is fetched when the page opens, emphasis and headings
+render, and `<code>` does not help (Markdown inside it stays live). GFM shows an entity decoded in text, a
+table cell and `<pre>`, and literally in a code span, a fence or an indented code block, so no escaped value
+sits in one of those: a command and every multi-line value render in `<pre>` on a line of their own. A `|`
+splits a GFM table cell, so a table carries only counts, paths, model names, percentages and fixed words;
+free text rides in lists. **Render-time Markdown escaping is owed to nen**, one escaper per output language,
+because one data document feeds both renders (§ *Residue and owned dependencies*). Until it lands, link and
+image syntax in a third-party title (an issue or PR title, a reviewer's words) is a **named gap**, never
+rewritten by the run, and § *The Markdown report*'s newline rule is the caller's interim.
+
+**The Markdown has a second raw slot, `graphMermaid`**, alone inside the `mermaid` fence, and it is safe
+**only on the `--graph` path**: nen serialises it from a validated graph document whose `caption`, `label`
+and `rel` cannot carry a newline, so no line of it can close the fence. A `graphMermaid` carried in the data
+document is the caller's raw text, so a Markdown render always passes `--graph` (which replaces it) and the
+guard refuses a sample that carries one.
 
 **Three validations escaping cannot do are the caller's**, run before the document is handed to the
 verb:
@@ -293,8 +290,8 @@ nen pr threads reply   --target <owner/name> --pr <n> --thread <id> --body-file 
 nen pr threads resolve --target <owner/name> --pr <n> --thread <id>
 ```
 
-**Requesting a round.** Through `scripts/gh_token_env.sh` (§ *Residue*, #218) — the **maintainer's** user
-token; a bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
+**Requesting a round.** Through `scripts/gh_token_env.sh` (§ *Residue and owned dependencies*,
+#218) — the **maintainer's** user token; a bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
 `gh pr edit --add-reviewer` and `…/requested_reviewers` never resolve, so it goes through
 `--add-bots <node id>`, the id **data** read off the target's own reviewer set (`BOT_kgDOCnlnWA` in
 `zheref/hatsu`); `--add-bots copilot` cannot resolve it today (zheref/nen#160). A bare login that is
@@ -537,14 +534,25 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `scripts/plugin_cache_check.sh`**, a byte comparison with six exit codes (five verdicts and a wiring stop) that no verb owns: an
   owned dependency, zheref/nen#339 (a plugin-layout mode of `surface mirror check --installed`, or a
   check under zheref/nen#298's status verb); its fixture is the reference behaviour, and it retires
-  when the verb lands. **BC-11 binds the hanten ledger — the maintainer's ruling of 2026-10-03**
-  ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 — BC-11 binds the hanten ledger*): the embedded
-  Python in `scripts/hanten_cycle_ledger.sh` (`ensure`, its trace reads and their self-tests,
-  zheref/hatsu#169) is frozen — fixes only — and the ledger is an owned dependency, zheref/nen#346,
-  the review-cycle ledger as a nen verb; when it lands, `hanten` §§ 1–4 and `breath` § 3b call it and
-  the script, its self-test and lane `ledger-guard`'s fixture retire (zheref/hatsu#216 closes then).
-  `scripts/plugin_cache_check.sh` is new branching shell carrying a verdict, and the same reading
-  applies to it through zheref/nen#339.
+  when the verb lands — and that verb shipped: zheref/nen#339 closed with NN-PR-#378 (nen 0.21's
+  `surface mirror check --surface claude-code --plugin <name> --installed <dir>|auto`), so the script
+  is **owed a retirement** (a Hatsu issue, filed by the run that reads this; BC-11's shell clause —
+  TypeScript is the default for a verdict — is what binds it, unruled). **BC-11 binds the hanten
+  ledger — the maintainer's ruling of 2026-10-03** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 —
+  BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
+  dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
+  restated.
+- **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
+  on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
+  `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until
+  it lands, the newline rule and the named link and image gap (§ *Escaping and validation of report data*).
+  **(b) A render to stdout, or to a named path outside `--repo`**, which retires the copy into the artifact
+  store (§ *The Markdown report*, step 2). **(c) Template conformance as a verb**:
+  `scripts/report_markdown_check.sh` (lane `report-markdown-guard`) is a python3 heredoc, new branching
+  machinery of the kind BC-11 reads as owed to nen ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 —
+  BC-11 binds the hanten ledger; it ports to a nen verb*). It renders every declared variant in both formats
+  and holds block order, the desk rules, escaping placement and the checked examples. Whether it ports or
+  is waived is a **G4** question on the run's desk; until it is ruled, it takes fixes only.
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
@@ -637,27 +645,36 @@ loop, `export VAR=$(…)`, a `;`, `&&` or `||` chain, `cd … &&`) with sentence
 form too complex to verify … Split it into plain, separate commands"*, and its write guard refuses a
 path under `<core>` outside the session's own worktree, `<core>/.nen/worktrees/` included. The guard
 is Claude Code's, not Hatsu's (an upstream report is the maintainer's); the record, refusal text
-verbatim, is [`docs/ab/worktree-isolation.md`](ab/worktree-isolation.md). The Hatsu side: every skill
-block is plain single commands or a shipped `scripts/` entry, each exit read before the next call, and
-`$hatsu_root` is typed as ten § 0's absolute path where a block would otherwise set it. **A write
-gated by a check stays chained to it with `&&`**: `branch_authorship_check.sh … && nen wc squash|publish`
-(zheref/hatsu#170, held by `scripts/publish_gate_check.sh`, #188) and `private_name_check.sh … && nen
-issue comment` (`file` § 4). Split, the gate would rest on an agent reading an exit, the failure #188
-was filed after. Whether the guard accepts a bare `a && b` is not on record (shape 8's refused chains
-also carried `cd` and `;`); where it refuses one, the write is a stop, named. **A throwaway helper
-script is never the workaround**: it puts unreviewed shell on the run's own authority, and where it
-re-creates a verb it is determinism drift.
+verbatim, is [`docs/ab/worktree-isolation.md`](ab/worktree-isolation.md). The Hatsu side, and
+only as far as it is true: **the blocks the table below names** are plain single commands or a
+shipped `scripts/` entry, each exit read before the next call, and `$hatsu_root` in any block is ten
+§ 0's printed path, typed in its place (ten § 0). The blocks still carrying a refused shape are
+listed under *Not yet converted*, below the table. **A refusal of any block on neither list is a
+named stop (G5)**, the block and the guard's sentence quoted; **a throwaway helper script is never the
+workaround**: it puts unreviewed shell on the run's own authority, and where it re-creates a verb it
+is determinism drift.
+
+**A write gated by a check stays chained to it with `&&`**: `branch_authorship_check.sh … && nen wc
+squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170, held by `scripts/publish_gate_check.sh`, #188) and
+`private_name_check.sh … && nen issue comment` (`file` § 4, `mugetsu` § 7, `sharingan` § 7). Split,
+the gate would rest on an agent reading an exit, the failure #188 was filed after. Whether the guard
+accepts a bare `a && b` is not on record (shape 8's refused chains also carried `cd` and `;`); where
+it refuses one, the write is a named stop. **#188's own required chain is not bare**: `murasaki` § 6's
+gated push carries `$(mktemp -d)` and `$(git rev-parse …)`, shapes on record as refused. Split it,
+ship it as a script, or rule the chain exempt: a G4 question on the maintainer's desk, not answered
+here; until it is ruled, that chain refused is a named stop, never split by hand.
 
 **`GH_TOKEN` and `PATH`, set without a refused shape.** `nen` reads its token from `GH_TOKEN` only and
 never picks one up ambiently; a block hands it one as `"$hatsu_root/scripts/gh_token_env.sh" nen …`,
 the token `gh auth token` prints, in that one command's environment, never printed (lane
 `gh-token-guard`). A session-bound `nen` (ten § 2's `<d>/bin`) reaches a call through the wrapper's
-`--path <d>/bin`, or a `PATH=<d>/bin:$PATH` prefix on a plain call; the host link (`~/.local/bin`, ten
-§ 2) needs neither once the login profile carries it.
+`--path <d>/bin`, the form on record; a `PATH=<d>/bin:$PATH` prefix on a plain call is **unproven**
+against the guard (the record's session saw no Bash refusal at all). The host link (`~/.local/bin`,
+ten § 2) needs neither once the login profile carries it.
 
 | # | Refused shape | Owning block | Replacement |
 |---|---|---|---|
-| 1 | `d="$(mktemp -d)"; curl …; out="$(bash <file> --ref <pin>)"` | `ten` § 2, the session bind | one call per line: `mktemp -d`; `curl -fsSL <url> -o <d>/nen-bootstrap.sh`; `bash <d>/nen-bootstrap.sh --ref <pin>` (or `nen bootstrap … --script <d>/nen-bootstrap.sh`); `test -x <verified>`; `mkdir -p <d>/bin`; `ln -sfn <verified> <d>/bin/nen` |
+| 1 | `d="$(mktemp -d)"; curl …; out="$(bash <file> --ref <pin>)"` | `ten` § 2, the session bind; `mugetsu` § 7, the host re-pin after a publish of nen itself | one call per line: `mktemp -d`; `curl -fsSL <url> -o <d>/nen-bootstrap.sh`; `bash <d>/nen-bootstrap.sh --ref <pin>` (or `nen bootstrap … --script <d>/nen-bootstrap.sh`); `test -x <verified>`; `mkdir -p <d>/bin`; `ln -sfn <verified> <d>/bin/nen`, each exit read before the next; `<verified>` only from a bootstrap that exited `0` |
 | 2 | `nen commit format … --body "$(cat <file>)" > <msg>` | [`WORKFLOW.md`](WORKFLOW.md) § *Writing a commit* (`aka` § 4, `kokusen` § 5, `ao`, `tensho` § 4) | the literal `--body "<paragraphs>"`, one quoted argument; a body-file flag is nen's to add |
 | 3 | `export GH_TOKEN=$(gh auth token); nen …` | `en` § 6; `getsuga` §§ 2, 3a; `mugetsu` § 4; `pr-state` § 2; `sharingan` § 4; `file` § 3; `classify` § 2; `direct` § 2; `senkei` §§ 2, 4; `backlog-state` § 5; `backlog-synthesis` § 2; `tensho` §§ 5, 6; `ten` § 6 step 4; *Requesting a round* above | `"$hatsu_root/scripts/gh_token_env.sh" nen …` |
 | 4 | `for p in …; do git worktree add --detach …; done` | `hanten` § 4 | one `git -C <repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD` per persona |
@@ -665,22 +682,36 @@ the token `gh auth token` prints, in that one command's environment, never print
 | 6 | `git show origin/main:<f> \| grep …`; `git show <ref>:<f> > a; git diff --no-index a b` | improvised `ao`/`getsuga` reads; `getsuga` § 1's `git rev-parse … \|\| <refuse>` | `git -C <path> show <ref>:<f>`, read whole; `git -C <path> diff <ref-a> <ref-b> -- <f>`; `git rev-parse --verify -q '<token>^{commit}'` alone, its exit read |
 | 7 | `for n in …; do gh pr view $n -q …; done` | an improvised PR sweep | one `gh pr list --repo <owner/name> --state all --json <fields> --jq <filter>`, or `nen report data --prs <n,…>` |
 | 8 | `cd <dir> && git init … && git worktree add …`; `CHG=… sh <script>; nen wc publish …; nen pr edit-body …` | an improvised git probe and chain; `aka` § 4's `cat-file … \|\| fetch` and `$(git merge-base …)` | `git -C <dir> …`, one command per call, each exit read before the next; a SHA is read, then typed; a gated write keeps its `&&` (above) |
-| a | any command inside `<core>/.nen/worktrees/claude-code/hanten-<persona>` | `hanten` § 4 | in a harness-isolated session no reviewer worktree: the reviewer reads the effort checkout read-only at the printed HEAD, disclosed; the author's tree is held by § 4's ref and authorship checks and an unchanged `git -C <path> status --porcelain` |
+| a | any command inside `<core>/.nen/worktrees/claude-code/hanten-<persona>` | `hanten` § 4 | on an **observed** refusal of that `git worktree add` (never pre-empted): no reviewer worktree; the reviewer reads the effort checkout read-only at the printed HEAD, disclosed; the author's tree is held by § 4's ref and authorship checks and an unchanged `git -C <path> status --porcelain` ([`WORKFLOW.md`](WORKFLOW.md) § *Where worktrees live*) |
 | b | `nen watch until --command "<string>"` | `en` § 6 | `gh_token_env.sh nen watch until --pr <ref> --until ready` (zheref/nen#264). A `--command` observation no `--pr` predicate expresses (`izanami`, Illumi) keeps its form; refused, the one workaround is the same line in the maintainer's own terminal, reported as handed over |
 | c | `"${SHELL}" -lic '…'`, the login-shell probe | `ten` § 2c | `"$hatsu_root/scripts/nen_reach_probe.sh" --root "$hatsu_root"` (lane `reach-probe-guard`) |
 | d | `rm -rf <scratch>` | an improvised cleanup | a run's scratch lives under the session's temp directory and is left there; a named file goes with a plain `rm <file>`; only a shipped fixture's own `trap` removes its own `mktemp -d` |
 
 The same shapes outside those blocks went the same way: `ten` § 0's resolver loop and `$(…)`, `ten`
-§ 5's `cd … ||` and `[ … ] ||` lines, and the `hatsu_root=…; [ … ] || …` resolution in `pr-state` § 2
-and `tensho` § 6 are plain calls with the root typed.
+§ 5's `cd … ||` and `[ … ] ||` lines, the `hatsu_root=…; [ … ] || …` resolution in `pr-state` § 2
+and `tensho` § 6 (its two root checks kept, one `test` each), `file` § 4's `cat … |` into the
+private-name guard, and [`docs/using/mirrors.md`](using/mirrors.md) § 3's regeneration loop are plain
+calls.
 
-**The mirror regeneration** `great-hiker` § 4 runs after every source change is
-`scripts/surface_mirror_regenerate.sh`, one plain call: the three `nen surface mirror generate` calls
-`scripts/surface_mirror_check.sh` prints on drift, at the manifest's stamp, whose fixture proves each
-carries the check's own inputs (lane `mirror-regenerate-guard`). It is run in the Hatsu checkout being
-authored, never by an installed copy. **Owned dependencies, not filed here:** a body-file flag on
-`nen commit format`, a title-file flag on `nen issue file` (`file` § 4 still types
-`--title "$(cat title.txt)"`), and `nen shu test` over several lanes in one call with one report.
+**Not yet converted** — still carrying a refused shape, each a named stop where the guard refuses it:
+
+| Block | Shape | Why it stays, for now |
+|---|---|---|
+| `murasaki` § 6, the gated push | `$(mktemp -d)`, `$(git rev-parse …)`, `up="$(…)"` inside the `&&` chain #188 requires | the G4 question above |
+| `susanoo` § 5a, the announced tag | `$(git rev-parse --show-toplevel)`, an inline `python3` read, `case "$(cd … && pwd -P)"`, `$(sed … \| tr …)` | an inline script; its shipped form (beside `scripts/dist_tag.sh`'s) is owed, not written here |
+| `izanagi`, the v0.3.0 transcript | `export GH_TOKEN=$(gh auth token)` | a dated record of what ran, never a block to run |
+| `illumi.md`, the long watch | `nen watch until --command "<string>"` | row (b)'s workaround; no `--pr` predicate expresses it |
+
+**The mirror regeneration** `great-hiker` § 4 and `docs/using/mirrors.md` § 3 run after every
+source change is `scripts/surface_mirror_regenerate.sh`, one plain call: the three `nen surface mirror
+generate` calls at the manifest's stamp, built from `scripts/surface_mirror_check.sh`'s own constants
+and hooks-root table, which it sources (one table, never a copy; lane `mirror-regenerate-guard`). It is
+run in the Hatsu checkout being authored, never by an installed copy. **Owned dependencies**, filed
+at this run's third-hand harvest after En, their numbers added then: a body-file flag on `nen commit
+format`; a title-file flag on `nen issue file` (`file` § 4 types the title literally meanwhile);
+`nen shu test` over several lanes in one call with one report — **judged needed**, since hanten § 4 runs
+every lane a diff selects; and a nen verb that generates every surface a repository declares, which
+would retire the regenerator's branching (BC-11).
 
 **Effort checkout selection precedes every authoring and PR phase's standalone catch-up.**
 Read `$hatsu_root/docs/WORKFLOW.md` § *Where worktrees live* and its surface adapter; bind the
