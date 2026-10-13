@@ -141,7 +141,7 @@ no bell — a composite that owed a bell rang it before this step ([`jutaisho`](
 
 `nen report render` or `report data` unavailable (nen out of range is `ten`'s D10 contract), or the
 sweep failing for its own reasons: **relay it in one line and stop** — no page is published, and
-nothing stands in — no hand-authored page or chat recap: `backlog-state` reads the open backlog, never
+nothing stands in — no hand-authored page or recap: `backlog-state` reads the open backlog, never
 this scope's merged objects.
 
 ## Residue
