@@ -112,7 +112,7 @@ nen stop --who Kurapika --gate <G1|G1-M|G2|G3|G4|G5> --notified <efforts.md>
 **2 · The report link — always, everywhere, never an option**: the banner line, the chat line, the
 marker's `reportUrl` and the OS notification body. A report is read, not decided, so the picker lists
 only decisions that move the workflow. **And the page must actually explain this stop**:
-before the link goes in, **verify the rendered HTML carries the readable `#g5-blocker` content
+before the link goes in, **verify the rendered page (HTML or Markdown) carries the readable `#g5-blocker` content
 [`spiritual-message`](../spiritual-message/SKILL.md) § 4 specifies** (zheref/hatsu#56); lacking it,
 re-render with `blocker` filled and verify again. The stop never restates the page.
 

@@ -132,7 +132,7 @@ the host link or the session bind.
 
 **On an artifact-capable surface, a report is an Artifact:**
 - **On Claude Code**, republished to ONE URL per key — the skill names the key (the branch for a turn or landing page, the repository for a gate register); a new URL only for a key that has none yet, and a better title never mints a new one. **Read before you overwrite**: a republish notice, or a listing showing a version this session did not publish, means the page moved — re-read it and re-resolve the data rather than repainting what this session happens to be holding.
-- **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/<report-name>.md` (e.g. `spiritual-message.md` for turn/landing reports, `backlog-board.md` for gate registers, `black-voice.md` for validation) via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`), formatted with GFM tables, alert callouts (`> [!NOTE]`, `> [!IMPORTANT]`), and Mermaid diagrams (`graphMermaid`). **One file per report name per conversation**: the path is keyed by `<conversation-id>`, so every render in a conversation writes the same `<report-name>.md`, with `Overwrite: true` whenever it already exists in that conversation's directory, and never a new file per turn; an effort that continues in a new conversation starts its own file there.
+- **On Antigravity**, published as a native Markdown artifact into `<appDataDir>/brain/<conversation-id>/<report-name>.md` (e.g. `spiritual-message.md` for turn/landing reports, `backlog-board.md` for gate registers, `black-voice.md` for validation) via `write_to_file` with `ArtifactMetadata` (`{ Summary: "<Variant> report for <effort>", UserFacing: true, RequestFeedback: false }`). **Its body is a template's fill, never composed by hand**: § *The Markdown report* below. **One file per report name per conversation**: the path is keyed by `<conversation-id>`, so every render in a conversation writes the same `<report-name>.md`, with `Overwrite: true` whenever it already exists in that conversation's directory, and never a new file per turn; an effort that continues in a new conversation starts its own file there.
 - **On Codex**, the page is the ACTIVE worktree's `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient** — and the one chat line names that file by absolute path with the worktree and the branch; a render from another worktree moves the line to its own file, and a tab still showing an older worktree's page is never presented as current (zheref/hatsu#205; `nen report render --out` writes only inside `--repo`, so each worktree holds its own).
 - **Elsewhere** (surfaces without native artifact capability, e.g. Cursor), the page is `<reports.dir>/current.html`, overwritten every render, git-ignored, **transient**. **Say which happened.**
 
@@ -140,21 +140,79 @@ the host link or the session bind.
 `nen/repos.json` — the page falls back to `<owner>/<name>#<n>` and the failed resolution goes into
 `footerNote`.
 
+## The Markdown report
+
+**One data document, two renders.** Every report variant has a Markdown template beside its HTML one —
+[`templates/spiritual-message.md`](../templates/spiritual-message.md) (`turn`, `turn-fast`, `landing`) and
+[`templates/rikugan.md`](../templates/rikugan.md) (`final`, `register`) — in `nen report render`'s template
+language, filled by the same verb from **the same data document** (spiritual-message § 4; the `--register`
+document of backlog-board § 3) and the same `reports.sections.<variant>.blocks`. The surface picks the
+extension and nothing else, so the two renders cannot disagree on which blocks a variant shows. The
+`report-markdown-guard` lane (`scripts/report_markdown_check.sh`) holds it (zheref/hatsu#215).
+
+**Where a surface's report is a Markdown artifact** (Antigravity; the surface's write call and read-back
+command are [`docs/surfaces/antigravity.md`](surfaces/antigravity.md) § 1 *Reports*):
+
+1. **Render** with the HTML render's line, `.md` for `.html`, `--out <reports.dir>/current.md`, and **always
+   `--graph`** — an empty graph document where the scope has no shape (`templates/report-examples/final.graph.json`
+   is one) — so `graphMermaid` is always nen's serialisation, never a value the data document carried.
+   `--out` must resolve inside `--repo`, so the verb cannot write the artifact store itself (§ *Residue and
+   owned dependencies*).
+2. **The artifact's body is that file's content, verbatim** — never re-read, re-flowed, trimmed or summarised.
+3. **Read it back** and compare byte for byte. A difference is written **once** more; a second difference ends
+   the publish: the chat line says `artifact differs from render` and the turn yields with the report
+   unpublished. A store the shell cannot read is said as `artifact not read back`, never as published.
+
+The dated `final` file stays the HTML render rikugan § 4 keeps.
+
+**Before a Markdown render, the run asserts no newline in any value outside a `<pre>` slot**
+(`lastTurnRequestFull`, `launch`, `prBody[].markdown`, an option's `command`): a newline ends the Markdown
+line the value sits on, so it could open a forged ask or an unclosed fence. A failing value is dropped and
+named in *Not delivered*, like the validations in § *Escaping and validation of report data* — the caller's
+interim until nen escapes Markdown.
+
+**Where enforcement is impossible, and what holds instead.** Step 2 is the one path no verb performs — the
+copy is the model's own act — so step 3 is its check. A turn where `nen report render` cannot run is **not**
+such a path: no page is published and nothing stands in (rikugan § 7, kurapika's Nen-first rule). **The fixed
+structure is the template itself**: the blocks are `reports.sections.<variant>.blocks`, in that order, each
+opening `<!-- hatsu:block <name> -->` and each ask `<!-- hatsu:ask -->`. The checked example per variant is
+`templates/report-examples/<variant>.md`, rendered from `<variant>.data.json` beside it (with
+`<variant>.graph.json`, else [`templates/graph.example.json`](../templates/graph.example.json)); the guard holds
+each byte for byte to a fresh render, so a reader checks an artifact against it.
+
 ## Escaping and validation of report data
 
-These bind every document handed to `nen report render`, for both `templates/spiritual-message.html`
-and `templates/rikugan.html`.
+These bind every document handed to `nen report render`, for `templates/spiritual-message.html`,
+`templates/rikugan.html` and their Markdown twins (§ *The Markdown report*).
 
 **Every key is always present, empty where there is nothing, and every row key is spelled**, because
 the template iterates them. A missing token is exit `2` **by design**: a blank cell in a published
 report reads as a fact. A list is `[]`, never absent.
 
-**Escaping binds both paths**: every value is repository-controlled, so every value is escaped. The raw
-form (`{{{token}}}`) is admitted for **one** slot only — the graph document's script tag
+**Escaping binds both paths**: every value is repository-controlled, so every value is escaped. In the
+HTML the raw form (`{{{token}}}`) is admitted for **one** slot only — the graph document's script tag
 (`graphJson`), safe as a renderer property because `serialiseGraph` escapes `<`, `>` and U+2028/9, so
 `</script>` cannot occur. The page draws the graph with dagre (cdnjs, integrity-pinned) and keeps the
 node and edge list under `<details>` as the text fallback. **Never hand-build SVG or a second
 renderer.**
+
+**In the Markdown twins every value is live Markdown, except inside `<pre>` and a fence.** nen escapes
+HTML only (`&`, `<`, `>`, `"`, `'`). That neutralises a value as HTML, not as Markdown: a label carrying
+`](javascript:…)` is a live link, an image in a question is fetched when the page opens, emphasis and headings
+render, and `<code>` does not help (Markdown inside it stays live). GFM shows an entity decoded in text, a
+table cell and `<pre>`, and literally in a code span, a fence or an indented code block, so no escaped value
+sits in one of those: a command and every multi-line value render in `<pre>` on a line of their own. A `|`
+splits a GFM table cell, so a table carries only counts, paths, model names, percentages and fixed words;
+free text rides in lists. **Render-time Markdown escaping is owed to nen**, one escaper per output language,
+because one data document feeds both renders (§ *Residue and owned dependencies*). Until it lands, link and
+image syntax in a third-party title (an issue or PR title, a reviewer's words) is a **named gap**, never
+rewritten by the run, and § *The Markdown report*'s newline rule is the caller's interim.
+
+**The Markdown has a second raw slot, `graphMermaid`**, alone inside the `mermaid` fence, and it is safe
+**only on the `--graph` path**: nen serialises it from a validated graph document whose `caption`, `label`
+and `rel` cannot carry a newline, so no line of it can close the fence. A `graphMermaid` carried in the data
+document is the caller's raw text, so a Markdown render always passes `--graph` (which replaces it) and the
+guard refuses a sample that carries one.
 
 **Three validations escaping cannot do are the caller's**, run before the document is handed to the
 verb:
@@ -484,6 +542,17 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
   dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
   restated.
+- **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
+  on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
+  `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until
+  it lands, the newline rule and the named link and image gap (§ *Escaping and validation of report data*).
+  **(b) A render to stdout, or to a named path outside `--repo`**, which retires the copy into the artifact
+  store (§ *The Markdown report*, step 2). **(c) Template conformance as a verb**:
+  `scripts/report_markdown_check.sh` (lane `report-markdown-guard`) is a python3 heredoc, new branching
+  machinery of the kind BC-11 reads as owed to nen ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 —
+  BC-11 binds the hanten ledger; it ports to a nen verb*). It renders every declared variant in both formats
+  and holds block order, the desk rules, escaping placement and the checked examples. Whether it ports or
+  is waived is a **G4** question on the run's desk; until it is ruled, it takes fixes only.
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**

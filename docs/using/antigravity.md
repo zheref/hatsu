@@ -90,8 +90,9 @@ Every reviewer `hanten` raises (the personas `review.scopes` routes: Nobunaga, F
 Kurapika is the persona through the plugin's `agents/kurapika.md`; `/ren` runs as him, and reviewers are
 raised as isolated subagents (§ 2 above). A gate question is asked through `ask_question`; the bell is the
 plugin's `Stop` hook. Every turn that renders a report writes it as a **native artifact** before yielding,
-`spiritual-message.md` for a turn or landing report, authored in GitHub-flavoured Markdown with Mermaid, and a
-chat summary never stands in for it.
+`spiritual-message.md` for a turn or landing report. Its body is `nen report render`'s fill of
+`templates/spiritual-message.md` or `templates/rikugan.md`, copied verbatim and never composed by hand
+([`PROCESS.md`](../PROCESS.md) § *The Markdown report*), and a chat summary never stands in for it.
 
 **Headless**: `agy --model pro "<prompt>"` in the target repository.
 

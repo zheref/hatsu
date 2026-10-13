@@ -24,7 +24,7 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 | pointing at a local checkout | the global link names the checkout's `surfaces/antigravity`; a commit there is served from the next conversation, no copy to refresh |
 | update and activation | `hatsu:bakuryuha`: § 3 makes the link where `.agents/` copies stood, § 4 fast-forwards the checkout the link names, and `agy plugin validate` reads the plugin back; a new conversation lists the updated skills, and the CLI's `/skills reload` (from v1.2.4, typed) reloads them in the running one (§ 9); the IDE documents no reload, so personas, rules and hooks there are claimed on restart only |
 | back-compatibility | `.agent/rules` and `.agent/skills` are still read; Hatsu writes only `.agents/` |
-| artifacts written to | `<appDataDir>/brain/<conversation-id>/` (supplied in agent context), tool `write_to_file` with `TargetFile`, `Overwrite` (true to overwrite an existing file; the tool errors on an existing `TargetFile` without it; third-party, unverified on any `agy` here (last read on a host: 1.0.6), § 9) and `ArtifactMetadata` (`Summary`, `UserFacing`, `RequestFeedback`); markdown (`.md`) format with GFM tables, alerts (`> [!NOTE]`), and Mermaid |
+| artifacts written to | `<appDataDir>/brain/<conversation-id>/` (supplied in agent context), tool `write_to_file` with `TargetFile`, `Overwrite` (true to overwrite an existing file; the tool errors on an existing `TargetFile` without it; third-party, unverified on any `agy` here (last read on a host: 1.0.6), § 9) and `ArtifactMetadata` (`Summary`, `UserFacing`, `RequestFeedback`); markdown (`.md`) format with GFM tables, alerts (`> [!NOTE]`), and Mermaid. **A report's body is a template's fill** — *Reports* below |
 | transcripts log | `<appDataDir>/brain/<conversation-id>/.system_generated/logs/transcript.jsonl` (and `transcript_full.jsonl`) |
 | generative UI | `<agent-embed src="file:///<artifact_path>/widget.html"></agent-embed>` inline in conversation, or standalone in side pane |
 
@@ -44,6 +44,41 @@ Native artifacts are authored in GitHub Flavored Markdown (`.md`) with GFM table
 Interactive HTML widgets (Generative UI) can also be created as `.html` artifacts and embedded inline
 into chat via `<agent-embed src="file:///<artifact_path>/widget.html"></agent-embed>`. Conversation
 transcripts are captured per step in `<appDataDir>/brain/<conversation-id>/.system_generated/logs/transcript.jsonl`.
+
+**Reports — the render path and its provenance** (zheref/hatsu#215). A report artifact is never composed
+on this surface: its body is `nen report render`'s fill of
+[`templates/spiritual-message.md`](../../templates/spiritual-message.md) (`turn`, `turn-fast`, `landing`) or
+[`templates/rikugan.md`](../../templates/rikugan.md) (`final`, `register`), from the same data document and the
+same `reports.sections.<variant>.blocks` as the HTML templates on Claude Code and Codex. The rule is
+[`PROCESS.md`](../PROCESS.md) § *The Markdown report*; on this surface its three steps are:
+
+1. `nen report render --variant <v> --template "$hatsu_root/templates/<spiritual-message|rikugan>.md" --data
+   <the document> --graph <file> --out <reports.dir>/current.md --repo <path>`, with an empty graph document
+   where the scope has no shape.
+2. `write_to_file` with `TargetFile` `<appDataDir>/brain/<conversation-id>/<report-name>.md`, `Overwrite: true`
+   once it exists, the `ArtifactMetadata` PROCESS § *Publishing a report* states, and the content of
+   `<reports.dir>/current.md` verbatim.
+3. `cmp <reports.dir>/current.md <TargetFile>`. A difference is written once more; a second difference puts
+   `artifact differs from render` in the chat line and the turn yields unpublished.
+
+Provenance of each step:
+
+- **The render goes through the repository, not straight to the brain directory**, because `--out` "Must
+  resolve INSIDE --repo (symlinks resolved); anywhere else is refused at exit 2" (`nen report render --help`,
+  nen `0.21.0`, read 2026-10-13). A render to stdout or to a named outside path would retire the copy; nen
+  has neither today.
+- **The Markdown is GFM that shows escaped values correctly**: the renderer escapes `&`, `<`, `>`, `"` and
+  `'`; GitHub's renderer (`gh api markdown -f mode=gfm`, 2026-10-13) shows those entities decoded in text,
+  table cells and `<pre>`, and renders the alerts, `<details>` and the tables of
+  `templates/report-examples/`. Markdown stays live in every value outside `<pre>` and a fence, `<code>`
+  included, so commands render in `<pre>`; render-time Markdown escaping is owed to nen (PROCESS
+  § *Residue and owned dependencies*). It drops the `id` attribute; jutaisho's `g5-blocker` check reads the
+  rendered file, never a viewer's rendering of it.
+- **Held by** the `report-markdown-guard` lane, which renders every variant from its sample document in both
+  formats and compares each to its checked example.
+- **What predates it**: HA-PR-#189 (zheref/hatsu#145) fixed where the artifact goes and that it is
+  overwritten once per conversation; until #215 its body was hand-authored from a description, and its
+  structure drifted from turn to turn.
 
 ## 2. Skills
 
@@ -184,11 +219,14 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 | CLI skill reload | `/skills reload`, typed | "Added a /skills reload subcommand to asynchronously reload discovered skills and slash commands without restarting the session or blocking user input." (CLI v1.2.4, September 16, 2026) | https://antigravity.google/docs/changelog | 2026-09-29 |
 | global plugin folder | activates everywhere | "Global level: place your plugin folder in ~/.gemini/config/plugins/. The plugin activates across all workspaces on your workstation." | https://antigravity.google/docs/plugins | 2026-09-29 |
 | `write_to_file` overwrite | `Overwrite: true` replaces an existing file; without it the tool errors when `TargetFile` exists (**third-party, unverified on any `agy` here (last read on a host: 1.0.6) until read on a host**) | "Set to true to overwrite an existing file"; "By default this tool will error if TargetFile already exists" | https://gist.github.com/anthfgreco/87718fbbf313bcf7f5ca3f36fedb372a (a published Antigravity system prompt) and https://github.com/google-antigravity/antigravity-cli/issues/838 (the call's `TargetFile` and `ArtifactMetadata` in use) | 2026-10-01 |
+| report render path | `--out` resolves only inside `--repo`, so a report renders to `<reports.dir>/current.md` and is copied | "Must resolve INSIDE --repo (symlinks resolved); anywhere else is refused at exit 2." | `nen report render --help`, nen `0.21.0` | 2026-10-13 |
+| GFM escaping | entities render decoded in text, tables and `<pre>`; Markdown stays live outside `<pre>` and fences, `<code>` included; alerts and `<details>` render; `id` is dropped | the rendered `templates/report-examples/register.md` and `landing.md` | GitHub's renderer, `gh api markdown -f mode=gfm` (not Antigravity's viewer) | 2026-10-13 |
 | the install, live | `agy plugin install` copies; `validate` reads the link | evidence § 10 F8 (`agy` 1.0.6, an isolated `HOME`) | [evidence § 10](evidence/surfaces.md) | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
 
 - A `SessionStart` hook event; `PreInvocation` is the substitute and fires per invocation.
+- Whether the artifact viewer renders inline HTML (`<details>`, `<summary>`, `<code>`, `<pre>`) and GFM alerts as GitHub does: the Markdown report templates use them, and only GitHub's renderer has been read (§ 9). Whether `write_to_file` stores its content byte for byte is answered per render by the `cmp` read-back, never assumed.
 - A hooks manifest other than `hooks.json`.
 - `/docs/personas` answers 404; personas are the `agents/` directory of the plugins page.
 - `.agent/workflows` in the current docs; only `.agents/workflows/` is named, and it is deprecated.

@@ -85,7 +85,10 @@ programs and its shell-less `--command` refuses it. The loop runs at the session
 
 ## 3. Render — the Rikugan, never hand-authored HTML
 
-The page is [`templates/rikugan.html`](../../../templates/rikugan.html), filled by the verb:
+The page is [`templates/rikugan.html`](../../../templates/rikugan.html), filled by the verb — and, where the
+surface's report is a Markdown artifact, [`templates/rikugan.md`](../../../templates/rikugan.md) from **the same
+data document**, `--out <reports.dir>/current.md`, copied verbatim
+([`PROCESS.md`](../../../docs/PROCESS.md) § *The Markdown report*):
 
 ```bash
 nen report render --variant register --template templates/rikugan.html \

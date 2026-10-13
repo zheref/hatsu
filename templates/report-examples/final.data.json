@@ -1,0 +1,232 @@
+{
+  "contract": "nen.report.data/v0.1",
+  "repo": "zheref/hatsu",
+  "branch": "fable/kurapika/ha-215-markdown-report-templates",
+  "base": "origin/main",
+  "generatedAt": "2026-10-13T05:47:50.259Z",
+  "commits": [
+    {
+      "sha": "f005832944c9a59470640b1944342de774decd9f",
+      "subject": "feat(reports): Markdown templates beside the HTML ones",
+      "author": "Sample",
+      "date": "2026-10-13T09:00:00Z"
+    }
+  ],
+  "files": [
+    {
+      "path": "templates/spiritual-message.md",
+      "status": "A",
+      "tier": null
+    }
+  ],
+  "evidence": [],
+  "coverage": null,
+  "proof": null,
+  "phases": [],
+  "lastStop": null,
+  "usage": [],
+  "objects": [
+    {
+      "kind": "pr",
+      "number": 250,
+      "title": "feat(reports): Markdown templates | one data document",
+      "url": "https://github.com/zheref/hatsu/pull/250",
+      "state": "OPEN",
+      "labels": [
+        "enhancement",
+        "lang/prose"
+      ],
+      "head": "0123abc0123abc0123abc0123abc0123abc0123a",
+      "mergeStateStatus": "CLEAN",
+      "checks": {
+        "total": 6,
+        "green": 6,
+        "red": 0,
+        "pending": 0
+      },
+      "threads": {
+        "total": 3,
+        "unresolved": 0
+      },
+      "reviewRequests": [],
+      "linked": [
+        215
+      ],
+      "readiness": {
+        "verdict": "ready",
+        "reason": "ready: 6/6 checks green & 0 unresolved threads <head 0123abc>",
+        "source": "computed"
+      },
+      "notes": [
+        "verdict read from objs.json, not from GitHub"
+      ],
+      "notation": "HA-PR-#250",
+      "marks": "★ ready",
+      "gate": "G4",
+      "gateClass": "hot",
+      "verdict": "ready: 6/6 checks green & 0 unresolved threads <head 0123abc>",
+      "needs": "your merge",
+      "session": "kurapika",
+      "lane": "plugin",
+      "thought": "the templates & the guard | one PR",
+      "labelsLine": "enhancement, lang/prose",
+      "checksLine": "6/6 green · 0 red · 0 pending",
+      "threadsLine": "0/3 unresolved",
+      "linkedLine": "HA-IS-#215"
+    },
+    {
+      "kind": "pr",
+      "number": 251,
+      "title": "fix(reports): escape <code> values & the mermaid fence",
+      "url": "https://github.com/zheref/hatsu/pull/251",
+      "state": "OPEN",
+      "labels": [
+        "bug"
+      ],
+      "head": "4567def4567def4567def4567def4567def4567d",
+      "mergeStateStatus": "BLOCKED",
+      "checks": {
+        "total": 6,
+        "green": 5,
+        "red": 1,
+        "pending": 0
+      },
+      "threads": {
+        "total": 1,
+        "unresolved": 1
+      },
+      "reviewRequests": [
+        "copilot"
+      ],
+      "linked": [],
+      "readiness": {
+        "verdict": "not-ready",
+        "reason": "not-ready: 1 red check (prose-guard) | 1 unresolved thread",
+        "source": "computed"
+      },
+      "notes": [
+        "verdict read from objs.json, not from GitHub"
+      ],
+      "notation": "HA-PR-#251",
+      "marks": "red",
+      "gate": "G4",
+      "gateClass": "warn",
+      "verdict": "not-ready: 1 red check (prose-guard) | 1 unresolved thread",
+      "needs": "a trim",
+      "session": "kurapika",
+      "lane": "plugin",
+      "thought": "2 bytes over <ceiling>",
+      "labelsLine": "bug",
+      "checksLine": "5/6 green · 1 red · 0 pending",
+      "threadsLine": "1/1 unresolved",
+      "linkedLine": ""
+    },
+    {
+      "kind": "issue",
+      "number": 215,
+      "title": "Antigravity reports ignore the spiritual-message and Rikugan templates",
+      "url": "https://github.com/zheref/hatsu/issues/215",
+      "state": "OPEN",
+      "labels": [
+        "enhancement",
+        "lang/prose"
+      ],
+      "linked": [
+        250
+      ],
+      "readiness": null,
+      "notes": [],
+      "notation": "HA-IS-#215",
+      "marks": "",
+      "gate": "G1 — cleared",
+      "gateClass": "ok",
+      "verdict": "",
+      "needs": "nothing",
+      "session": "",
+      "lane": "",
+      "thought": "closed by HA-PR-#250 once merged",
+      "labelsLine": "enhancement, lang/prose",
+      "checksLine": "",
+      "threadsLine": "",
+      "linkedLine": "HA-PR-#250",
+      "head": ""
+    }
+  ],
+  "variant": "final",
+  "title": "Markdown report templates for Antigravity",
+  "scope": "HA#215,HA#250,HA#251 · from: futon zheref/hatsu@model/claude",
+  "gate": "G4 — yours",
+  "generatedAtLocal": "2026-10-13 11:00 CEST",
+  "footerNote": "Verdicts quoted from nen pr ready; a merged object reads merged with its SHA. Verdicts read from objs.json, not from GitHub.",
+  "footerCount": "3 objects in scope · 0 asks on the desk",
+  "tallyScope": 3,
+  "tallyNeedsYou": 0,
+  "tallyBlockers": 1,
+  "tallyReady": 1,
+  "tallyInFlight": 0,
+  "gates": [
+    {
+      "gate": "G2",
+      "label": "merge — consumer",
+      "cleared": "nothing is owed at G2 | no consumer PR in scope",
+      "asks": []
+    },
+    {
+      "gate": "G4",
+      "label": "merge — canon",
+      "cleared": "the effort landed & nothing is owed",
+      "asks": []
+    }
+  ],
+  "architectureCaption": "The report path: one data document, two templates per report",
+  "spendEfforts": [
+    {
+      "name": "ha-215-markdown-report-templates",
+      "hasSpendPhases": true,
+      "noSpendPhases": false,
+      "spendPhases": [
+        {
+          "lane": "rasengan",
+          "percent": 100,
+          "amount": "4 m 05 s",
+          "steps": "render 2.1 s · guard 9.8 s"
+        }
+      ],
+      "spendUsage": [
+        {
+          "surface": "claude-code",
+          "model": "opus",
+          "input": 120400,
+          "output": 18200,
+          "cacheRead": 990000,
+          "cacheWrite": 41000,
+          "minutes": 22,
+          "source": "/cost",
+          "notReported": false,
+          "reported": true
+        },
+        {
+          "surface": "antigravity",
+          "model": "pro",
+          "input": "",
+          "output": "",
+          "cacheRead": "",
+          "cacheWrite": "",
+          "minutes": "",
+          "source": "",
+          "notReported": true,
+          "reported": false
+        }
+      ],
+      "actionsMinutes": "6",
+      "spendNote": "Antigravity reports no token counts | not reported"
+    }
+  ],
+  "legendRows": [],
+  "worktree": "core",
+  "effortStage": null,
+  "stageClass": null,
+  "turnNumber": null,
+  "generatedDateLocal": null,
+  "timeZone": null
+}
