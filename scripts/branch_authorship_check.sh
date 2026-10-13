@@ -149,7 +149,9 @@ for sha in $shas; do
     in_set "$allowed" "$ce" || reason="${reason:+$reason+}committer"
   fi
   if [ -n "$forbidden" ]; then
-    keys="$(git -C "$repo" log -1 --format=%B "$sha" | git interpret-trailers --parse | sed -n 's/^\([A-Za-z0-9][A-Za-z0-9-]*\):.*/\1/p' | tr '[:upper:]' '[:lower:]')"
+    # The canon forbids these keys anywhere in the message, including a body
+    # line before later prose that git interpret-trailers does not parse.
+    keys="$(git -C "$repo" log -1 --format=%B "$sha" | sed -n 's/^[[:space:]]*\([A-Za-z0-9][A-Za-z0-9-]*\)[[:space:]]*:.*/\1/p' | tr '[:upper:]' '[:lower:]')"
     for key in $keys; do
       in_set "$forbidden" "$key" || continue
       reason="${reason:+$reason+}forbidden trailer $key"

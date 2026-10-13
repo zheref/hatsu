@@ -50,6 +50,10 @@ expect 'forbidden trailer gate refuses an injected trailer' 1 "$auth" --repo "$r
 expect_out 'forbidden trailer finding names its commit and key' "$bad_trailer" "$auth" --repo "$r" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
 expect_out 'forbidden trailer finding names its key' 'forbidden trailer co-authored-by' "$auth" --repo "$r" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
 g "$r" reset -q --hard HEAD~1
+echo body > "$r/body"; g "$r" add body
+g "$r" commit -q -m 'mid-body attribution' -m 'Co-Authored-By: Example <example@invalid.test>' -m 'ordinary prose after the forbidden key'
+expect 'forbidden key before later body prose is refused' 1 "$auth" --repo "$r" --base main --forbid-trailers-from "$here/../nen/workflow.json" --forbidden-only
+g "$r" reset -q --hard HEAD~1
 d="$tmp/diverged"; new_repo "$d"
 echo base > "$d/f"; g "$d" add f; g "$d" commit -q -m base
 g "$d" checkout -q -b effort
