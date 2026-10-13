@@ -267,8 +267,9 @@ against a base that will change; take A to its gate, and start B once A's merge 
 - **Permitted:** branch, commit, push non-`main` branches, open PRs, request reviewers (`nen pr
   request-reviews`), cascade A into B, retarget B once A merges, and everything `sharingan` is
   permitted.
-- **Not permitted:** `bankai:agent/*`, `bankai:stage/*`, G1 mode labels, any merge (including
-  merging A to unblock B), any review vote (never `request_changes` — Manipulator's standing rule).
+- **Not permitted:** a routing label (WORKFLOW § *Building an issue with no CI plane*), `bankai:stage/*`, G1 mode
+  labels, any merge (including merging A to unblock B), any review vote (never `request_changes` —
+  Manipulator's standing rule).
 
 ## 9. Hard limits
 

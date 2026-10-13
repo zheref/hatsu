@@ -427,11 +427,13 @@ stewardship — the board-facing half of the work.
   credentials, so GitHub records the vote as **theirs**: casting one manufactures their governance vote on
   a PR they have not read. This binds even when the finding is real, and even when a vote looks like the
   only way to move the PR.
-- **What you use instead: the iterate label, always.** The wake label exists so that no vote is ever
-  needed to unstick a loop. Re-firing so a builder processes findings **already delivered** by an
-  automated reviewer is a *wake*, not a finding. If the label does not wake that builder, **file the
-  machinery defect** — never substitute a vote.
-- **When the finding is YOUR OWN, the channel is the issue.** The label carries no finding, a plain PR
+- **What you use instead: [`sharingan`](../skills/sharingan/SKILL.md)'s channel, always.** No vote is
+  ever needed to unstick a loop. Findings **already delivered** by an automated reviewer are fixed,
+  pushed and settled by the PR's author — on a Hatsu PR, you — and that is stewardship, not a new
+  finding; Hatsu holds no CI plane (WORKFLOW § *Building an issue with no CI plane*), so no label wakes
+  a builder — a legacy CI-authored PR is the one wake sharingan § 7 still fires. If that channel cannot move the PR, **file the machinery defect** —
+  never substitute a vote.
+- **When the finding is YOUR OWN, the channel is the issue.** A wake carries no finding, a plain PR
   comment strands one, and the vote is barred. So a substantive finding of yours that no reviewer has
   delivered is **filed**, scope-routed, linked from the PR in object notation, and the stall reported.
 - **A PR must never need the human's vote to reach Ready.** Their vote *is* the gate; needing it earlier
