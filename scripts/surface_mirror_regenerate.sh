@@ -5,18 +5,19 @@
 # WHAT IT IS
 # The three `nen surface mirror generate` calls scripts/surface_mirror_check.sh prints on drift,
 # one per surface (codex, cursor, antigravity), at the plugin manifest's version stamp: the job
-# great-hiker § 4 does after every source change and a bump does to every generated marker. Before
-# this script every run typed them by hand or as a loop, and a loop is a shape Claude Code's
-# worktree-isolation guard refuses; one call to this script is not.
+# great-hiker § 4 and docs/using/mirrors.md § 3 do after every source change and every bump. Typed
+# by hand it was a loop, a shape Claude Code's worktree-isolation guard refuses; one call to this
+# script is not.
+#
+# ONE TABLE. This script SOURCES scripts/surface_mirror_check.sh, whose `main` runs only when it is
+# executed, and reads its constants (the source, agents, models, permissions, hooks, rules and
+# manifest paths, the surface list), its hooks_root_for table, its plugin_stamp and its nen probes.
+# There is no second copy to drift; scripts/surface_mirror_regenerate_fixture.sh still proves each
+# generate call carries exactly the inputs the check hands `nen surface mirror check`.
 #
 # IT WRITES surfaces/<s>/ through nen and nothing else. It never edits a mirror by hand, never
 # commits, and never judges the result: `bash scripts/surface_mirror_check.sh` is the next step,
 # and its verdict is the one that counts (great-hiker § 4, step 1).
-#
-# PARITY. The flags are the check's, in the check's order, with the same hooks-root expression per
-# surface; scripts/surface_mirror_regenerate_fixture.sh proves each generate call carries exactly
-# the inputs the check hands `nen surface mirror check` for that surface, so the two cannot drift
-# apart without that lane going red.
 #
 # USAGE
 #   scripts/surface_mirror_regenerate.sh [--dry-run] [repo-root]
@@ -27,74 +28,46 @@
 #
 # EXIT CODES — the check's, so a caller reads both the same way:
 #   0  all three surfaces regenerated (or, with --dry-run, printed)
-#   2  wiring: a root that is not a Hatsu checkout, a manifest with no readable version (never an
-#      unstamped generation), a nen with no `surface` verb, or an unknown argument
+#   2  wiring: a root that is not a Hatsu checkout, a manifest that is unreadable or carries no
+#      version (never an unstamped generation), a nen with no `surface` verb, an unknown argument
 #   3  no `nen` on PATH (and NEN_BIN names nothing executable)
 #   any other non-zero is nen's own refusal for the surface named, and the surfaces after it are
 #   NOT generated (the ones before it are, and the drift check will say so)
 set -euo pipefail
 
-SOURCE_DIR="claude/skills"
-AGENTS_DIR="claude/agents"
-INVOCATION_PREFIX="hatsu:"
-SURFACES=(codex cursor antigravity)
-MODELS_FILE="nen/workflow.json"
-PERMISSIONS_FILE="contracts/permissions.json"
-HOOKS_FILE="hooks/hooks.json"
-RULES_FILE="claude/rules/hatsu.md"
-SOURCE_SURFACE="claude"
-MANIFEST_FILE=".claude-plugin/plugin.json"
-
-# The same expressions scripts/surface_mirror_check.sh's hooks_root_for prints, verbatim (its
-# comment is the rationale); the fixture compares them call by call.
-hooks_root_for() {
-  case "$1" in
-    antigravity) printf %s '${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-    codex) printf %s '${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
-    cursor) printf %s '${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
-  esac
-}
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=surface_mirror_check.sh
+. "$SELF_DIR/surface_mirror_check.sh"
 
 die() { printf 'surface-mirror-regenerate: %s\n' "$1" >&2; exit "${2:-2}"; }
+usage='usage: surface_mirror_regenerate.sh [--dry-run] [repo-root]'
 
-plugin_stamp() {
-  [ -f "$1" ] || { printf ''; return; }
-  awk -F'"' '/"version"[[:space:]]*:/ { for (i = 1; i <= NF; i++) { if ($i == "version") { print $(i + 2); exit } } }' "$1"
-}
-
-main() {
-  local dry=0 root="" nen stamp surface code done_list=""
+regenerate() {
+  local dry=0 root="" nen stamp surface code done_list="" note=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
       --dry-run) dry=1; shift ;;
-      -*) die "unknown option '$1' (usage: surface_mirror_regenerate.sh [--dry-run] [repo-root])." ;;
+      -*) die "unknown option '$1' ($usage)." ;;
       *)
-        [ -z "$root" ] || die "one repo-root at most (usage: surface_mirror_regenerate.sh [--dry-run] [repo-root])."
+        [ -z "$root" ] || die "one repo-root at most ($usage)."
         root="$1"; shift
         ;;
     esac
   done
-  [ -n "$root" ] || root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  [ -n "$root" ] || root="$(cd "$SELF_DIR/.." && pwd)"
   [ -d "$root" ] || die "'$root' is not a directory."
   cd "$root"
   [ -d "$SOURCE_DIR" ] || die "'$root' carries no $SOURCE_DIR — wrong root."
+  [ -f "$MANIFEST_FILE" ] && [ -r "$MANIFEST_FILE" ] || die "$MANIFEST_FILE is missing or unreadable; a mirror is never generated unstamped."
   stamp="$(plugin_stamp "$MANIFEST_FILE")"
   [ -n "$stamp" ] || die "$MANIFEST_FILE carries no readable version; a mirror is never generated unstamped."
 
-  nen="${NEN_BIN:-nen}"
+  nen="$(nen_bin)"
   if [ "$dry" -eq 0 ]; then
-    if ! command -v "$nen" >/dev/null 2>&1 && [ ! -x "$nen" ]; then
-      die "no 'nen' on PATH (and NEN_BIN names nothing executable); ten § 2 installs the pin." 3
-    fi
-    local help
-    help="$("$nen" surface mirror generate --help 2>&1 || true)"
-    case $'\n'"$help" in
-      *$'\n''nen surface'*) : ;;
-      *) die "this 'nen' has no 'surface' verb; the mirrors were NOT regenerated (ten § 2 installs the pin)." ;;
-    esac
+    nen_present "$nen" || die "no 'nen' on PATH (and NEN_BIN names nothing executable); ten § 2 installs the pin." 3
+    has_surface_verb || die "this 'nen' has no 'surface' verb; the mirrors were NOT regenerated (ten § 2 installs the pin)."
   fi
 
-  local note=""
   [ "$dry" -eq 0 ] || note=" · dry run, nothing written"
   echo "surface-mirror-regenerate: root $PWD · stamp $stamp$note"
   for surface in "${SURFACES[@]}"; do
@@ -129,4 +102,4 @@ main() {
   echo "surface-mirror-regenerate: regenerated $done_list at stamp $stamp. Next: bash scripts/surface_mirror_check.sh (great-hiker § 4, step 1), then commit surfaces/ with the change that caused it."
 }
 
-main "$@"
+regenerate "$@"

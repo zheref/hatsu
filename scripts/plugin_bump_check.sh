@@ -204,18 +204,10 @@ fi
 #                       and after every open and body edit, and quoted by en and
 #                       sharingan; a stale copy passes a PR whose closing issues
 #                       are unlinked, or a body a fixed one refuses.
-#   scripts/gh_token_env.sh
-#                     — the GH_TOKEN wrapper (zheref/hatsu#218): every skill
-#                       block that hands nen a token runs it from
-#                       `$hatsu_root/scripts/`; a stale copy runs the verb with
-#                       the wrong credential handling.
-#   scripts/nen_reach_probe.sh
-#                     — ten § 2c's login-shell probe (zheref/hatsu#218), run from
-#                       `$hatsu_root/scripts/` every warm-up; a stale copy asks the
-#                       maintainer's shell the wrong question. Both fixtures beside
-#                       them, and scripts/surface_mirror_regenerate.sh (run only in
-#                       the Hatsu checkout great-hiker § 4 authors in, never from
-#                       an installed copy), are not covered.
+#   scripts/gh_token_env.sh, scripts/nen_reach_probe.sh
+#                     — the GH_TOKEN wrapper and ten § 2c's login-shell probe
+#                       (zheref/hatsu#218), run by skill blocks from
+#                       `$hatsu_root/scripts/`.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -288,8 +280,9 @@ fi
 #   workflow_runner_policy_check.rb, pr_composition_check.sh (the
 #   pr-composition-guard lane's drift check, zheref/hatsu#171) and
 #   report_markdown_check.sh (the report-markdown-guard lane's render check,
-#   zheref/hatsu#215; the templates and examples it reads are templates/*) are
-#   CI- or maintainer-only; every runtime script an installed copy executes is an
+#   zheref/hatsu#215; the templates and examples it reads are templates/*) and
+#   surface_mirror_regenerate.sh (run only in the Hatsu checkout being authored,
+#   zheref/hatsu#218) are CI- or maintainer-only; every runtime script an installed copy executes is an
 #   explicit row above (the criterion is "an installed copy reads it", checked
 #   script by script),
 #   .github/**.
@@ -776,7 +769,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
             esac
           done
           echo "A bump restamps every mirror file: the cause is this bump, the fix is a regeneration at stamp ${head_version_now}, never a source edit (zheref/hatsu#99)."
-          echo "Regenerate and commit the result: docs/using/mirrors.md § 3 is the one owner of the command; scripts/surface_mirror_check.sh reproduces its exact flags per surface."
+          echo "Regenerate and commit the result: scripts/surface_mirror_regenerate.sh is the one owner of the command (docs/using/mirrors.md § 3); it reads scripts/surface_mirror_check.sh's exact flags per surface."
         } >&2
         exit 1
       fi

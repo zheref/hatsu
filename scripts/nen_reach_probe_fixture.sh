@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Prove scripts/nen_reach_probe.sh (zheref/hatsu#218): it hands $SHELL exactly ten § 2c's argv
 # (-lic, the one program string, nen-probe, the root as $1), closes stdin, passes the shell's exit
-# code through untouched, and refuses at 125, spawning nothing, on a bad --root or $SHELL. Offline
+# code through untouched, and refuses at 125, spawning nothing, on a bad --root or an empty,
+# relative or non-executable $SHELL (bash fills a truly unset SHELL from passwd at startup). Offline
 # and hermetic: the "login shell" is a stub under mktemp that records its argv and stdin.
 
 set -euo pipefail
@@ -54,12 +55,12 @@ for rc in 1 2 5 7; do run "$rc" "$stub" STUB_RC="$rc" -- --root "$root"; done
 ok "the shell's exit code passes through (1, 2, 5, 7)"
 
 run 125 "" -- --root "$root"
-spawned && fail "a shell ran with SHELL unset"
+spawned && fail "a shell ran with SHELL empty"
 run 125 "stub-shell" -- --root "$root"
 spawned && fail "a shell ran with a relative SHELL"
 run 125 "$fixture_root/noexec-shell" -- --root "$root"
 spawned && fail "a non-executable SHELL ran"
-ok "an unset, relative or non-executable \$SHELL is 125, nothing spawned"
+ok "an empty, relative or non-executable \$SHELL is 125, nothing spawned (a truly unset one bash fills from passwd)"
 
 run 125 "$stub" --
 spawned && fail "a shell ran with no --root"
