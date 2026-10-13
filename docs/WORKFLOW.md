@@ -1705,20 +1705,28 @@ surface of its own — its *product's* spec, not its copy of this system's setup
 settled it.
 
 ```bash
-nen gate derive --policy-paths "CONSTITUTION.md,handbooks/,agents/,nen/,schemas/" \
-                --process-paths ".github/workflows/,claude/,scripts/,tests/,docs/" \
+nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
                 --files <the changed paths> [--asserted <G2|G4>]
 ```
 
 - **The path sets are the target repository's own canon**, not a universal set; nen ships none, and a
   binary carrying one repository's sets would derive that repository's gates everywhere it was
-  pointed. The sets above are `zheref/hatsu`'s.
+  pointed. **They are declared once, per canon repository, in
+  [`contracts/pr-composition.json`](../contracts/pr-composition.json) → `gateDerive.<owner/name>`**,
+  each passed comma-joined; this section carries no copy (zheref/hatsu#171), and
+  `scripts/pr_composition_check.sh` (lane `pr-composition-guard`) fails on one. A canon repository
+  with no row there has no declared sets: the run says so and asks (§ 4 *Ask, set up, continue*),
+  never improvising one, and the row is written by a Hatsu PR at Hatsu's `G4`.
+- **`zheref/hatsu`'s process set carries `contracts/` and `templates/`**, so a diff of the
+  declaration, `contracts/pr-body.requirements.json` or `templates/pr-body.md` derives `G4`, as it
+  did while this section held the sets — **this run's reading, the maintainer's to confirm at the
+  `G4` merge (zheref/hatsu#171)**.
 - **`--files` is caller data** — the verb fetches nothing — and comes from
   `gh pr diff <n> --repo <owner/name> --name-only`. A wrong file set gives the verb, and
   `nen changelog fragment-required` beside it, a confident wrong answer.
-- **Keep both `nen/` and `schemas/`**: a prefix is taken literally and nen's own taxonomy resolution
-  never sees it, so an un-migrated target still edits a real `schemas/*.json` and that edit is still
-  policy. **Listing both under-derives nothing; dropping `schemas/` would.**
+- **The declaration keeps both `nen/` and `schemas/`**: a prefix is taken literally and nen's own
+  taxonomy resolution never sees it, so an un-migrated target still edits a real `schemas/*.json` and
+  that edit is still policy. **Listing both under-derives nothing; dropping `schemas/` would.**
 - **Only the both-empty invocation is refused** (exit 1); one empty set and one that matches nothing
   is accepted and answers `G2`.
 - **The verb reports; it does not gate**, and **a derived gate stands over an asserted one** —

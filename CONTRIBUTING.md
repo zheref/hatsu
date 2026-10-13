@@ -45,9 +45,13 @@ installed runtime reads, the generated Codex and Cursor mirrors included: the wa
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts
 from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
-which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line);
-or, if a change provably cannot affect the shipped surface, write `no plugin bump: <reason>` in the PR
-body. **A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
+which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line).
+**There is no opt-out for a shipped path** (zheref/hatsu#171): a `no plugin bump: <reason>` line in the PR
+body is honoured only where no path in `PLUGIN_SURFACE_GLOBS` changed — where the guard does not apply
+anyway — and, when the version is not bumped, over a shipped path it is refused by name, the refusal
+listing the shipped paths the diff changes, because an installed copy reads every one of them and even
+wording there is a patch bump. Beside a bump the line is inert, and the pass line says it was ignored.
+**A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
 **The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
 (`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. It runs through
@@ -94,18 +98,25 @@ harness's own co-author trailer (on Claude Code, `includeCoAuthoredBy: false` in
 
 A change that touches the shipped surface owes a fragment under `changelog.d/`, collated into
 [`CHANGELOG.md`](CHANGELOG.md) at release time by `getsuga`. Whether a given diff owes one is the verb's
-answer, not a guess:
+answer, not a guess, and its inputs are declared once, in
+[`contracts/pr-composition.json`](contracts/pr-composition.json) → `changelogFragment` (zheref/hatsu#171):
 
 ```sh
-nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
-  --fragment-dir changelog.d --range origin/main..HEAD --head-changelog CHANGELOG.md
+nen changelog fragment-required --spec-paths <specPaths, comma-joined> \
+  --fragment-dir <fragmentDir> --range origin/main..HEAD --head-changelog <headChangelog>
 ```
 
-A change that touches none of those paths answers `not-applicable`, which is the verb's word for a
-docs-only PR.
+A change that touches none of the declared `specPaths` answers `not-applicable`, which is the verb's
+word for a docs-only PR; one that touches them and adds its fragment answers `fragment-present`, with
+no opt-out line.
 
 `shibari` runs it before the PR opens and names the fragment in the PR body. Never edit `CHANGELOG.md`
-directly for an unreleased change.
+directly for an unreleased change. The one exception is a pull request whose own diff changes
+`CHANGELOG.md` (futon's integration PR, which writes its own section — [`docs/ROSTER.md`](docs/ROSTER.md)
+§ *Rulings of 2026-09-30 — En never merges*): its body carries the declared `directSection.optOut` line
+verbatim, and no other PR carries it. **That condition is unenforced by nen**: the verb honours the
+phrase anywhere, over any diff, inside an HTML comment or a code fence too, so a Hatsu-side raw-body
+check is owed (zheref/hatsu#171; the nen half is zheref/nen#239's scope).
 
 ## Redaction
 

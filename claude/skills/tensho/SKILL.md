@@ -243,15 +243,13 @@ target keeps it), and two parts are checked, never eyeballed:
 nen pr body-check --body-from <path to the drafted body> --requirements-from <path>
 ```
 
-`--requirements-from` is a JSON array of `{name, pattern}` — this repository's own template
-convention, never a literal `nen` ships:
-
-```json
-[
-  {"name": "What this changes for you", "pattern": "^# What this changes for you"},
-  {"name": "How to verify", "pattern": "^## How to verify"}
-]
-```
+`--requirements-from` is a JSON array of `{name, pattern}` — the template's own convention, never a
+literal `nen` ships and never an array written by hand for the run. For a body on Hatsu's
+[`templates/pr-body.md`](../../../templates/pr-body.md) it is the declared
+`"$hatsu_root/contracts/pr-body.requirements.json"`
+([`contracts/pr-composition.json`](../../../contracts/pr-composition.json) → `bodyRequirements`,
+zheref/hatsu#171); a target whose own GitHub pull-request template governs passes `--base <base>`
+instead, and nen derives the set from that template as it stands on the base.
 
 Verified live: every requirement is checked and reported, never stopped at the first miss
 (`docs/ab/tensho.md` § 2.4) — `# What this changes for you` (effect before mechanism, for a
@@ -263,16 +261,18 @@ the acceptance criteria).
 at changed paths:
 
 ```bash
-nen changelog fragment-required --spec-paths "CONSTITUTION.md,handbooks/,nen/,schemas/,agents/,.github/workflows/" \
-  --fragment-dir changelog.d --files <the changed paths> --head-changelog <path to CHANGELOG.md> \
-  [--body-from <path to the drafted PR body>]
+nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragment-dir <fragmentDir> \
+  --head-changelog <headChangelog> --files <the changed paths> [--body-from <path to the drafted PR body>]
 ```
 
-(`--spec-paths` is a literal prefix list, outside nen's taxonomy resolution entirely — it names
-**both** directories so a taxonomy edit owes a fragment whether the target has migrated or not. **At
-the pinned build the `schemas/`→`nen/` fallback is removed**, which changes what nen *reads*
-and changes nothing about a literal prefix: an un-migrated target still edits a real `schemas/*.json`
-and still owes a fragment for it, so both stay listed.)
+The three inputs are [`contracts/pr-composition.json`](../../../contracts/pr-composition.json) →
+`changelogFragment`'s, read and never retyped (zheref/hatsu#171); `specPaths` is passed comma-joined,
+and its one opt-out, `directSection.optOut`, is [`templates/pr-body.md`](../../../templates/pr-body.md)
+check (b)'s to place. (`--spec-paths` is a literal prefix list, outside nen's taxonomy resolution
+entirely — the declaration names **both** directories so a taxonomy edit owes a fragment whether the
+target has migrated or not. **At the pinned build the `schemas/`→`nen/` fallback is removed**, which
+changes what nen *reads* and changes nothing about a literal prefix: an un-migrated target still edits
+a real `schemas/*.json` and still owes a fragment for it, so both stay listed.)
 
 Verified live (`docs/ab/tensho.md` § 2.5): reports `not-applicable` when the diff touches none of
 `--spec-paths`; `required` when it does and no fragment is among the **changed files** (a fragment

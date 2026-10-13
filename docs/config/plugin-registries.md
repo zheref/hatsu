@@ -1,10 +1,10 @@
 # Plugin-owned registries — the data files a consumer reads but never edits
 
-> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
+> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `pr-composition-guard`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
 
 ## What it decides
 
-A consumer configures Hatsu through two files of its own, `nen/workflow.json` and `nen/gates.json`, beside the taxonomy files `nen/labels.json`, `nen/repos.json` and `nen/colors.yml`. Everything else a skill reads as data ships with the plugin and is resolved from `$hatsu_root` at run time: the permission pack, the classification vocabulary, the model registry, the catalogue of settable values, the security-scan pins, the reviewer-round default, the frozen reference repository's gate, the three harness hooks and the three manifests. Every skill that reads one cites the file by path so a version, URL or name is never remembered in prose; where a copy disagrees with the file, the file wins and the copy is the bug (`contracts/scans.json`).
+A consumer configures Hatsu through two files of its own, `nen/workflow.json` and `nen/gates.json`, beside the taxonomy files `nen/labels.json`, `nen/repos.json` and `nen/colors.yml`. Everything else a skill reads as data ships with the plugin and is resolved from `$hatsu_root` at run time: the permission pack, the classification vocabulary, the model registry, the catalogue of settable values, the security-scan pins, the reviewer-round default, the PR-composition inputs, the frozen reference repository's gate, the three harness hooks and the three manifests. Every skill that reads one cites the file by path so a version, URL or name is never remembered in prose; where a copy disagrees with the file, the file wins and the copy is the bug (`contracts/scans.json`).
 
 When one of these is edited inside a consumer, the edit is invisible: the skills read the plugin's copy at `$hatsu_root`, the generated mirrors read `hand-edited` at the next check, and a consumer-side copy of a hook or a pack is replaced by the next warm-up where it carries Hatsu's marker, or left alone and named where it does not. What a consumer may change is the value its own files declare, listed per file below.
 
@@ -124,6 +124,24 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 | `maxRounds` | non-negative integer | `3` | M: the request ceiling | `hatsu:sharingan` § 6; `hatsu:en` |
 
 **May a consumer override it?** Per key, in its own `nen/gates.json` → `round_policy` ([`gates.json.md`](gates.json.md)). A key absent, not a non-negative integer, or leaving N above M takes this file's value, and the run names this file as the source.
+
+## `contracts/pr-composition.json` and `contracts/pr-body.requirements.json`
+
+**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the nen half is zheref/nen#239): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from [`templates/pr-body.md`](../../templates/pr-body.md); `pr-composition.json` holds the rest and says where that array comes from.
+
+### Keys (`pr-composition.json`)
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `contract` | string | `hatsu.pr-composition/v1` | the shape | `scripts/pr_composition_check.sh` |
+| `readers[]` | paths | the six files that cite it | every surface that hands the values to a verb, each checked to cite this file | `scripts/pr_composition_check.sh` |
+| `bodyRequirements` | object | `file`, `template`, `optionalHeadings[]` (`The flow`, `Economics`) | the requirements array, the template it is derived from, and the headings whose own comments make them optional | `hatsu:shibari` § 4, `hatsu:tensho` § 5 |
+| `gateDerive.<owner/name>` | object | `policyPaths[]`, `processPaths[]`; one row, `zheref/hatsu` | a canon repository's two `nen gate derive` sets, passed comma-joined; `zheref/hatsu`'s process set includes `contracts/` and `templates/` (this run's reading, the maintainer's to confirm at the `G4` merge); a canon repository with no row has none, and the run asks | [`docs/WORKFLOW.md`](../WORKFLOW.md) § *Gate derivation* |
+| `changelogFragment` | object | `specPaths[]`, `fragmentDir` (`changelog.d`), `headChangelog` (`CHANGELOG.md`), `directSection {when, optOut}` | `nen changelog fragment-required`'s inputs, and the one opt-out line, for a pull request whose own diff changes `CHANGELOG.md` | `hatsu:shibari` § 4, `hatsu:tensho` § 5, `hatsu:jujisho` § 6, `templates/pr-body.md` check (b) |
+
+**Validated by.** The `pr-composition-guard` lane: the array against the template's headings, the Gate derivation section against the declared sets, and no literal copy of a set anywhere in the canon prose.
+
+**May a consumer override it?** No. A consumer is `G2` by role and `nen gate derive` is not run there; a canon repository's sets are a row here, and this file lives only in Hatsu, so the row for another canon repository (zheref/nen, zheref/bankai-handbooks) is written by a Hatsu PR at Hatsu's `G4` — the writer [`WORKFLOW.md`](../WORKFLOW.md) § 4 step 3 names once the run has asked. No such row is seeded.
 
 ## `contracts/reference.gates.json`
 

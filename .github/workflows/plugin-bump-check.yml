@@ -44,9 +44,10 @@ name: plugin-bump-check
 
 on:
   pull_request_target:
-    # `edited` matters: the `no plugin bump: <reason>` opt-out lives in the PR
-    # body, so re-running when the body changes is what makes the opt-out
-    # usable without an empty push.
+    # `edited` stays: the guard reads the PR body for the `no plugin bump: <reason>`
+    # line. From zheref/hatsu#171 that line never skips the version check -- it is
+    # accepted only where no shipped path changed and refused by name otherwise --
+    # but a body edit still re-runs the check so its verdict names the current body.
     types: [opened, synchronize, reopened, edited, ready_for_review]
 
 concurrency:
