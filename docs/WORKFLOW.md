@@ -278,7 +278,7 @@ add ([zheref/nen#300](https://github.com/zheref/nen/issues/300)).
 | `template` | `spiritual-message` | `templates/<name>.html` in this repository |
 | `captures` | `Reports/captures` | where screenshots land before they are inlined as data URIs |
 | `sections.<variant>.template` | — | which of `templates/*.html` this variant renders: `spiritual-message` for `turn`, `turn-fast` and `landing`, `rikugan` for `final` and `register` |
-| `sections.<variant>.blocks` | — | the block names this variant renders, injected as `sections.<block>` presence flags by `nen report render --variant`. A variant declaring none renders every block |
+| `sections.<variant>.blocks` | — | the block names this variant renders, injected as `sections.<block>` presence flags by `nen report render --variant`. **Required and non-empty**: a variant with no `blocks`, an empty one, or no `template` makes nen refuse the whole file (exit `1`); an undeclared variant, or a file with no `sections` at all, is exit `2` — nothing renders. **The adoption sentence, stated once here** (zheref/hatsu#108): a repository that has never declared `sections` sets up the five-variant block [`docs/config/workflow.json.md`](config/workflow.json.md) § `reports` documents as `missing-configuration` (§ 4) at the first phase that will render, the write landing as § 4 step 3 says — on the effort's branch or its own PR; the rendering skills cite this line and name no default |
 | `timeZone` | the host's zone | the IANA zone every report's clock is said in (`America/Bogota`); see *Report time* below |
 
 **The template language `nen report render` fills these with.** `{{token}}` (escaped),
