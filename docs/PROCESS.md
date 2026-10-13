@@ -657,8 +657,10 @@ is determinism drift.
 **A write gated by a check stays chained to it with `&&`**: `branch_authorship_check.sh … && nen wc
 squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170, held by `scripts/publish_gate_check.sh`, #188) and
 `private_name_check.sh … && nen issue comment` (`file` § 4, `mugetsu` § 7, `sharingan` § 7). Split,
-the gate would rest on an agent reading an exit, the failure #188 was filed after. Whether the guard
-accepts a bare `a && b` is not on record (shape 8's refused chains also carried `cd` and `;`); where
+the gate would rest on an agent reading an exit, the failure #188 was filed after. Never pipe
+`branch_authorship_check.sh`: a pipeline may return the downstream command's success after the
+authorship check failed. Keep its own exit as the gate. Whether the guard accepts a bare `a && b`
+is not on record (shape 8's refused chains also carried `cd` and `;`); where
 it refuses one, the write is a named stop. **#188's own required chain is not bare**: `murasaki` § 6's
 gated push carries `$(mktemp -d)` and `$(git rev-parse …)`, shapes on record as refused. Split it,
 ship it as a script, or rule the chain exempt: a G4 question on the maintainer's desk, not answered
