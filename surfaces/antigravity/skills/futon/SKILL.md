@@ -48,9 +48,9 @@ configuration item is set up inline (`missing-argument`, `missing-configuration`
 step**; the maintainer retypes it. **The selector
 is the maintainer's word: never derived.** No `then` clause is not a gap (§ 8).
 
-**Echo the full parse before anything is fetched** — repo, the selector (a band with its severities
-named, or the label verbatim), the `then` clause as classified or *build-only*, the integration branch
-if one is cut — and **say the run has started**: a named run holds a bounded `CON-25` delegation (§ 7).
+**Echo the full parse before anything is fetched** — repo, selector, the `then` clause as classified or
+*build-only*, the integration branch if one is cut — and **say the run has started** (a bounded `CON-25`
+delegation, § 7).
 
 ## 2. The queue is the selector's scope — and only that
 
@@ -91,9 +91,9 @@ declares as [`build`](../build/SKILL.md) § 5 lays them out, in the effort's own
 > at en § 5's prompt (ruling 2026-09-30; "main" reads as `branch.base`).
 
 **An integration branch** (optional, one per run) takes hanten-settled efforts by a **local merge,
-unasked** — no sub-PR, no `gh pr merge`. Its name and verbs, where an effort stops, the integration PR
-(the terminus, carrying the bump and CHANGELOG), slots and stops: ROSTER § *Rulings of 2026-09-30 — En
-never merges*, cited, not restated.
+unasked** — no sub-PR, no `gh pr merge`. Its name, verbs, stops and terminus: ROSTER § *Rulings of 2026-09-30 — En never merges*, cited, not
+restated. **A stack of per-issue PRs** is the other shape, the default on overlap
+([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Stacked pull requests*); the maintainer's word picks.
 
 ## 6. Two concurrency budgets, counted separately
 
@@ -175,7 +175,7 @@ over this run's scope — its § 2 futon row, the `then` outcome included — **
   itself** — the cut is getsuga's, publication mugetsu's; **never cuts without a typed `then`**.
 - **Never claims a CI author for a PR it opened**, and never abandons its own at PR-open (§ 5).
 - **Never claims readiness `nen pr ready` + `nen pr body-check` did not give**, quoted.
-- **Never exceeds 2 CI-plane objects or 7 local worktrees**; never lets two efforts share a file.
+- **Never exceeds 2 CI-plane objects or 7 local worktrees**; never lets two efforts share a file concurrently.
 - **Never widens its selector**: a bare severity never carries an implied `+`, and **a label is never
   expanded**.
 - **Never applies a G1 mode label.**

@@ -74,16 +74,15 @@ nen report data --repo <path> --base origin/<branch.base> --target <owner/name> 
 nen pr ready --repo <path> --pr <N> [--explain]                                                                                          # per PR, quoted verbatim
 ```
 
-**`--register <desk>` makes the verb emit the register document** (zheref/hatsu#221): the desk is
-the judgement half only, in [`backlog-board`](../backlog-board/SKILL.md) § 3's shape; every fact is
-nen's, and a desk carrying a `verdict` is refused.
+**Two passes** (zheref/hatsu#221): the plain call (no `--register`) reads the facts; the desk —
+[`backlog-board`](../backlog-board/SKILL.md) § 3's judgement half — is composed from them; the
+`--register <desk>` call then emits the register document the render fills.
 
-**`--base` is required** (exit `2` without it). The scope's PRs and issues go in **one call**; a
+**`--base` is required** (exit `2` without it; verified nen 0.21.0). The scope's PRs and issues go in **one call**; a
 merged PR is a row that reads `merged` with its merge SHA, a closed issue one that reads `closed` with
 what closed it; nothing in scope is dropped. Every
-PR row's `verdict` is `nen pr ready`'s output **verbatim** (`readiness{verdict,reason,source}`,
-[`backlog-board`](../backlog-board/SKILL.md) § 2): a PR the sweep marks Ready is still quoted, never
-summarised. The gate per row is [`backlog-state`](../backlog-state/SKILL.md)'s classification,
+PR row's `verdict` is `nen pr ready`'s **verbatim** (`readiness{verdict,reason,source}`,
+[`backlog-board`](../backlog-board/SKILL.md) § 2): a PR the sweep marks Ready is still quoted. The gate per row is [`backlog-state`](../backlog-state/SKILL.md)'s classification,
 unchanged; the labels and their times are the run's own record. **Nothing is recomputed by eye, and
 nothing comes from session memory.**
 
@@ -110,9 +109,9 @@ one render kept on disk, re-rendered at the same path when the effort is reporte
 typed single PR's `final` takes its branch slug as `<effort>`. **Everything else renders
 `register`** at `<reports.dir>/current.html`, transient, never retained: a workflow that stopped
 short (its open asks on the desk), a typed multi-object scope, a repository scope. `as final` typed
-over such a scope gets the register and the reason. The spend block
-is the effort's ledgers ([`spiritual-message`](../spiritual-message/SKILL.md) § 4 builds
-`spendEfforts[]`); a graph only where the scope has a shape.
+over such a scope gets the register and the reason. The spend block is the
+`--register` document's `spendEfforts[]`, from the ledgers; a graph only where the scope has a shape
+worth drawing.
 
 ## 5. Publish it, say one line, ring nothing
 
