@@ -930,15 +930,26 @@ def validate_timeout(path, job_name, job)
   fail_policy("#{path} job #{job_name} timeout-minutes must be a positive integer") unless scalar(timeout) =~ /\A[1-9][0-9]*\z/
 end
 
-def expect_rejected(label)
+# `reason`, when given, must match the refusal fail_policy printed: a case
+# that names a property asserts the refusal for that property, never merely a
+# refusal (Feitan, hanten on #136).
+def expect_rejected(label, reason = nil)
+  captured = StringIO.new
+  real_stderr = $stderr
   rejected = false
   begin
+    $stderr = captured
     yield
   rescue SystemExit => error
     raise unless error.status == 1
     rejected = true
+  ensure
+    $stderr = real_stderr
+    $stderr.write(captured.string)
   end
   fail_policy("#{label} was accepted") unless rejected
+  return if reason.nil? || captured.string.match?(reason)
+  fail_policy("#{label} was refused for another reason: #{captured.string.strip}")
 end
 
 # --- A HOSTILE FIXTURE CHANGES WHAT RUNS, OR STOPS AS BROKEN (zheref/hatsu#136)
@@ -961,19 +972,47 @@ end
 # A run as bash reads it, for the fixtures' comparisons only, never a verdict:
 # each comment's text is dropped and its `#` kept, so a comment can neither
 # hold a fixture's edit nor hide that one was added. A `#` opens a comment
-# where bash's does -- at the start of a word, outside quotes, escapes and
-# `${...}`, with `$(...)` nesting tracked. A heredoc body is read as code, so a
-# misreading can only hide an edit, and a hidden edit stops the self-test as a
-# broken fixture rather than passing it.
+# where bash's does -- at the start of a word, outside '...', "..." and
+# ANSI-C $'...' quotes, escapes and `${...}`, with `$(...)` nesting tracked --
+# and a heredoc's body is passed over as data, up to its delimiter line.
+#
+# It is a reader, not a parser, and it can still misread in two directions.
+# Code read as a comment hides an edit, which stops the self-test as a broken
+# fixture. A comment read as code can hold a fixture's edit again, and the
+# case then fails as accepted or, if the guard refuses the edited comment
+# too, passes having tested nothing. The causes known to do that are a `<<`
+# shift inside `$(( ))`, taken for a heredoc; a `case` pattern's `)` inside a
+# `$( )`, taken as its close; a heredoc delimiter that is quoted in part or
+# begins with a digit; and backquotes, which are not tracked. No workflow
+# here uses any of them (Nobunaga, hanten on #136).
 def fixture_code(run)
   out = +""
   stack = [:code]
+  heredocs = []
   prev = "\n"
   i = 0
   while i < run.length
     ch = run[i]
     state = stack.last
-    opener = ch == "$" && (state == :dq ? %w[( {] : %w[{]).include?(run[i + 1])
+    if ch == "\n" && state == :code && !heredocs.empty?
+      out << ch
+      i += 1
+      heredocs.each do |word, tabs|
+        while i < run.length
+          eol = run.index("\n", i) || run.length
+          line = run[i...eol]
+          out << run[i...[eol + 1, run.length].min]
+          i = eol + 1
+          break if (tabs ? line.sub(/\A\t+/, "") : line) == word
+        end
+      end
+      heredocs.clear
+      prev = "\n"
+      next
+    end
+    heredoc = state == :code && run[i, 2] == "<<" && run[i + 2] != "<" &&
+              run[i..-1].match(/\A<<(-?)[ \t]*(?:'([^'\n]*)'|"([^"\n]*)"|\\?([A-Za-z_][A-Za-z0-9_]*))/)
+    opener = ch == "$" && { dq: %w[( {], code: %w[{ '], brace: %w[{ '] }.fetch(state, []).include?(run[i + 1])
     if state == :sq
       stack.pop if ch == "'"
     elsif ch == "\\" && i + 1 < run.length
@@ -981,12 +1020,20 @@ def fixture_code(run)
       prev = run[i + 1]
       i += 2
       next
+    elsif heredoc
+      heredocs << [heredoc[2] || heredoc[3] || heredoc[4], heredoc[1] == "-"]
+      out << heredoc[0]
+      prev = heredoc[0][-1]
+      i += heredoc[0].length
+      next
     elsif opener
-      stack.push(run[i + 1] == "(" ? :code : :brace)
+      stack.push({ "(" => :code, "{" => :brace, "'" => :ansi }.fetch(run[i + 1]))
       out << ch << run[i + 1]
       prev = run[i + 1]
       i += 2
       next
+    elsif state == :ansi
+      stack.pop if ch == "'"
     elsif state == :dq
       stack.pop if ch == '"'
     elsif ch == "#" && state == :code && prev.match?(/[\s;&|()<>]/)
@@ -1523,6 +1570,19 @@ def self_test(root)
     $stderr = real_stderr
   end
   fail_policy("self-test: fail_policy printed a raw control character") unless printed.lines.length == 1 && !printed.chomp.match?(/[\x00-\x1f]/)
+  # fixture_code against the quoting that hides a comment: each input as bash
+  # reads it, the comment's text dropped and its `#` kept (hanten on #136).
+  {
+    %q{echo "a # b" # c} => %q{echo "a # b" #},
+    %q{echo $'it\'s' # c} => %q{echo $'it\'s' #},
+    %Q{cat <<'EOF'\nit's # data\nEOF\n# c\ntrue} => %Q{cat <<'EOF'\nit's # data\nEOF\n#\ntrue},
+    %Q{cat <<-EOF\n\tit's\n\tEOF\necho ok # c} => %Q{cat <<-EOF\n\tit's\n\tEOF\necho ok #},
+    %q{cat <<< "it's" # c} => %q{cat <<< "it's" #},
+    %q{x=${#y} # c} => %q{x=${#y} #}
+  }.each do |input, want|
+    got = fixture_code(input)
+    fail_policy("self-test: fixture_code read #{input.inspect} as #{got.inspect}, not #{want.inspect}") unless got == want
+  end
   fail_policy("same-repository predicate rejected owner head") unless same_repository?("zheref/hatsu", "zheref/hatsu")
   fail_policy("same-repository predicate admitted fork") if same_repository?("zheref/hatsu", "fork/hatsu")
   fail_policy("same-repository predicate admitted missing head repository") if same_repository?("zheref/hatsu", nil)
@@ -1540,7 +1600,7 @@ def self_test(root)
     # edit must land outside every step. The base is validated first, in the
     # scratch tree as it stands, so the refusal can only be the edit's: a file
     # an earlier case left edited would otherwise answer for it.
-    hostile = lambda do |label, file, base, from, to, step: nil, control: true|
+    hostile = lambda do |label, file, base, from, to, step: nil, control: true, reason: nil|
       text = fixture_sub(label, base, from, to, step: step)
       if control
         File.write(file, base)
@@ -1552,7 +1612,7 @@ def self_test(root)
         end
       end
       File.write(file, text)
-      expect_rejected(label) { validate_repo(tmp) }
+      expect_rejected(label, reason) { validate_repo(tmp) }
     end
     head_step = "Checkout PR head (data only — nothing from here is executed)"
     start_step = "Start required check on the exact PR head"
@@ -1609,6 +1669,21 @@ def self_test(root)
     FileUtils.rm(extra)
     surface_original = File.read(surface)
     pin_step = TRUSTED_PIN_STEP
+    # No comment holds the edit, whatever quoting precedes it: an ANSI-C string
+    # with an escaped quote, or a heredoc whose body holds an apostrophe, set
+    # before a comment that names the trusted path (Nobunaga, hanten on #136).
+    pin_read = %Q{          ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"\n}
+    fail_policy("self-test: surface-mirror-check.yml's pin read is not where these cases expect it") unless surface_original.scan(pin_read).length == 1
+    {
+      "an ANSI-C string with an escaped quote" => %Q{          echo $'it\\'s' # .trusted/nen/contract.json\n},
+      "a heredoc whose body holds an apostrophe" =>
+        %Q{          cat <<'NOTE' >/dev/null\n          it's the trusted read below\n          NOTE\n          # it reads .trusted/nen/contract.json\n}
+    }.each do |label, lines|
+      edited = fixture_sub("pin read after #{label}", surface_original.sub(pin_read) { lines + pin_read },
+                           ".trusted/nen/contract.json", "attacker.trusted/nen/contract.json", step: pin_step)
+      next if edited.include?(pin_read.sub(".trusted/", "attacker.trusted/"))
+      fail_policy("self-test: after #{label}, fixture_sub edited a comment instead of the pin read")
+    end
     hostile.call("pin read from the PR checkout with the trusted path in a comment", surface, surface_original,
       %Q{ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"},
       %Q{# sourced from .trusted/nen/contract.json\n          ref="$(jq -r '.dependency.pinned_ref // empty' nen/contract.json)"}, step: pin_step)
@@ -1690,11 +1765,13 @@ def self_test(root)
     # with `.trusted/`, which a suffix test accepted. fixture_sub skips any
     # mention of the path in a comment and edits the pin step's own read.
     hostile.call("pin read from a sibling directory ending in .trusted", surface, surface_original,
-      ".trusted/nen/contract.json", "attacker.trusted/nen/contract.json", step: pin_step)
+      ".trusted/nen/contract.json", "attacker.trusted/nen/contract.json", step: pin_step,
+      reason: %r{reads attacker\.trusted/nen/contract\.json outside the trusted checkout})
 
     # Nor is a traversal out of it.
     hostile.call("pin read through a traversal out of the trusted checkout", surface, surface_original,
-      ".trusted/nen/contract.json", "../.trusted/nen/contract.json", step: pin_step)
+      ".trusted/nen/contract.json", "../.trusted/nen/contract.json", step: pin_step,
+      reason: %r{reads \.\./\.trusted/nen/contract\.json outside the trusted checkout})
 
     # A STEP MAY NOT MOVE THE WORKING DIRECTORY. Every trusted-path check above is
     # lexical and relative; a `cd` into a PR-controlled directory defeats all of
