@@ -422,8 +422,11 @@ reads (`nen direct registry`, `nen classify labels`, `nen classify install --dry
 and re-implements none; lane `canon-contracts-guard` seats its fixture. In CI the guard runs as a new
 `Canon data contracts check` step of `surface-mirror-check.yml`, after the drift step, on the trusted
 checkout's bootstrapped nen and trusted script over the pull request's data. Step one (this record)
-taught the validator the step beside the current shape (`ALLOWED_STEP_SHAPES`, `CANON_CONTRACTS_STEP`);
-step two adds the step to the workflow and narrows `EXPECTED_STEPS` to it.
+taught the validator the step beside the current shape (`ALLOWED_STEP_SHAPES`, `CANON_CONTRACTS_STEP`)
+and froze its one form (`CANON_CONTRACTS_FROZEN`: the trusted script, `NEN` the bootstrapped binary's
+absolute path, `--root "$PWD"`, the output fenced between `::stop-commands::` and its token, no token in
+its env), so the pull request that installs it is judged by a validator already holding the body; step
+two adds the step to the workflow and narrows `EXPECTED_STEPS` to it.
 
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and

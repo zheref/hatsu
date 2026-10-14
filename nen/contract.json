@@ -162,7 +162,7 @@
       "canon-contracts-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/canon_contracts_check.sh (zheref/hatsu#223, the maintainer's ruling of 2026-10-13: a canon data contract owes a guard lane, and the guard is nen's own validators). Three reads, each a nen verb: `nen direct registry` over contracts/direct.registry.json, `nen classify labels` over contracts/classify.taxonomy.json, and `nen classify install --dry-run` for nen/labels.json parity with the taxonomy. No invariant is re-implemented here (BC-9, BC-11). Same one-lane-per-executable-guard pattern as direct-matrix-guard; its argv is the guard's own --self-test, which needs the pinned nen (NEN=<path> overrides)."
+        "$comment": "The focused lane for scripts/canon_contracts_check.sh (zheref/hatsu#223, the maintainer's ruling of 2026-10-13: a canon data contract owes a guard lane, and the guard is nen's own validators). Three reads, each a nen verb: `nen direct registry` over contracts/direct.registry.json, `nen classify labels` over contracts/classify.taxonomy.json (its invariants as nen 0.21.0 states them; the two phase-coverage invariants are requested of nen), and `nen classify install --dry-run --json` for nen/labels.json parity with the taxonomy both ways (absent, drifted and foreign labels all refused). No invariant is re-implemented here (BC-6: one owner per rule, nen's; BC-11). Same one-lane-per-executable-guard pattern as direct-matrix-guard; its argv is the guard's own --self-test, which needs the pinned nen (NEN=<path> overrides)."
       },
       "direct-matrix-guard": {
         "stack": "claude-code-plugin",
@@ -440,7 +440,7 @@
             "scripts/canon_contracts_check.sh",
             "--self-test"
           ],
-          "$comment": "scripts/canon_contracts_check_fixture.sh: copies the registry, the taxonomy and nen/labels.json into a temp root, breaks one invariant per case with a plain text edit (a cell surface off its alias, a duplicated job key, an absent label, a drifted colour, a missing file) and expects the guard's exit and the line naming the broken read; the last case runs the guard on the committed files, which must pass. Needs the pinned nen (NEN=<path> overrides `nen`); absent, exit 2, never a pass. Run it as `nen shu test --lane canon-contracts-guard --repo <hatsu>` when either contract, nen/labels.json or the guard changes; CI runs the guard itself through surface-mirror-check.yml's `Canon data contracts check` step once the two-step landing completes (step one, this PR, teaches the validator the step; step two adds it to the workflow)."
+          "$comment": "scripts/canon_contracts_check_fixture.sh: copies the registry, the taxonomy and nen/labels.json into a temp root, breaks one invariant per case with a plain text edit (a cell surface off its alias, a duplicated job key, an absent label, a drifted colour, a missing file) and expects the guard's exit and the line naming the broken read; the last case runs the guard on the committed files, which must pass. Needs the pinned nen (NEN=<path> overrides `nen`); absent, exit 2, never a pass. Run it as `nen shu test --lane canon-contracts-guard --repo <hatsu>` when either contract, nen/labels.json or the guard changes; CI runs the guard itself through surface-mirror-check.yml's `Canon data contracts check` step once the two-step landing completes (step one taught the validator the step and froze its form; step two adds it to the workflow)."
         }
       },
       "direct-matrix-guard": {

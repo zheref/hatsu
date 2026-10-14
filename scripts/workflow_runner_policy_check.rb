@@ -876,17 +876,47 @@ REGENERATE_PR_WITH = {
 # every step is held in READINESS_FROZEN_STEPS (zheref/hatsu#230).
 # surface-mirror-check.yml gains "Canon data contracts check" after the drift step
 # (zheref/hatsu#223, the two-step landing: this revision admits the next shape
-# beside the current one; the pull request that adds the step to the workflow
-# narrows EXPECTED_STEPS to it). The step runs the TRUSTED nen's own validators
-# (`direct registry`, `classify labels`, `classify install --dry-run`) over the
-# pull request's data through the trusted scripts/canon_contracts_check.sh;
-# nothing from the PR checkout is executed.
+# beside the current one AND freezes the step's one form, so the pull request
+# that adds the step to the workflow is judged by a validator that already
+# holds its exact body; that pull request narrows EXPECTED_STEPS to the new
+# shape). The step runs the TRUSTED nen's own validators (`direct registry`,
+# `classify labels`, `classify install --dry-run`) over the pull request's data
+# through the TRUSTED scripts/canon_contracts_check.sh, `NEN` the bootstrapped
+# binary's absolute path and `--root "$PWD"` the PR checkout; nothing from the
+# PR checkout is executed, and the guard's output is fenced between
+# `::stop-commands::<token>` and the token so no line in it is a workflow
+# command (hanten on #223, Feitan). The shape is anchored to the drift step by
+# its name: a renamed drift step fails this file's own self-test below, never
+# silently collapses the two shapes.
 CANON_CONTRACTS_STEP = "Canon data contracts check"
+CANON_CONTRACTS_AFTER = "Surface-mirror drift check"
+CANON_CONTRACTS_FROZEN = {
+  "env" => {
+    "NEN_BIN" => "${{ steps.nen.outputs.bin }}"
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -uo pipefail
+    guard=.trusted/scripts/canon_contracts_check.sh
+    [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/canon_contracts_check.sh"; exit 1; }
+    [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
+    stop="stop_$(openssl rand -hex 16)"
+    code=0
+    echo "::stop-commands::${stop}"
+    NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?
+    printf '\n::%s::\n' "$stop"
+    case "$code" in
+      0) echo "the canon data contracts hold every stated invariant." ;;
+      1) echo "::error::a canon data contract breaks an invariant nen states (contracts/direct.registry.json, contracts/classify.taxonomy.json or nen/labels.json) — see the guard output above."; exit 1 ;;
+      *) echo "::error::canon_contracts_check could not run (exit ${code}) — see the guard output above."; exit 1 ;;
+    esac
+  RUN
+}.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
   "surface-mirror-check.yml" => [
     EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
-    EXPECTED_STEPS.fetch("surface-mirror-check.yml").flat_map { |step| step == "Surface-mirror drift check" ? [step, CANON_CONTRACTS_STEP] : [step] }
+    EXPECTED_STEPS.fetch("surface-mirror-check.yml").flat_map { |step| step == CANON_CONTRACTS_AFTER ? [step, CANON_CONTRACTS_STEP] : [step] }
   ]
 ).freeze
 
@@ -1651,6 +1681,12 @@ def validate_workflow(path, hatsu: false)
     if File.basename(path) == PROSE_WORKFLOW
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == PROSE_GUARD_STEP }, PROSE_FROZEN_GUARD,
                           "#{path} #{PROSE_GUARD_STEP.inspect}")
+    end
+    # The canon-contracts step in its one admitted form wherever
+    # surface-mirror-check.yml carries it (zheref/hatsu#223, step one).
+    if File.basename(path) == "surface-mirror-check.yml" && step_names.include?(CANON_CONTRACTS_STEP)
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_CONTRACTS_STEP }, CANON_CONTRACTS_FROZEN,
+                          "#{path} #{CANON_CONTRACTS_STEP.inspect}")
     end
     # The digest step in its one admitted form wherever a workflow carries it,
     # and the bootstrap beside it in the form the digest step selects.
@@ -2874,6 +2910,51 @@ def self_test(root)
     ].each do |label, file, base, from, to, step|
       hostile.call(label, file, base, from, to, step: step)
       File.write(file, { surface => surface_original, readiness => readiness_original, regenerate => regenerate_original }.fetch(file))
+    end
+
+    # The canon-contracts step (zheref/hatsu#223, step one): the shape with the
+    # step after the drift step validates in its frozen form; any other place,
+    # count or body is refused. The anchor name is held here too: a renamed
+    # drift step breaks this fixture before it could collapse the two shapes.
+    fail_policy("self-test: CANON_CONTRACTS_AFTER is not a surface-mirror-check.yml step") unless EXPECTED_STEPS.fetch("surface-mirror-check.yml").include?(CANON_CONTRACTS_AFTER)
+    canon_after = "#{CANON_CONTRACTS_AFTER}\n"
+    canon_block = render_step(CANON_CONTRACTS_STEP, CANON_CONTRACTS_FROZEN)
+    finish_step = "Finish check on the exact PR head"
+    surface_canon = fixture_sub("surface-mirror-check with the canon-contracts step", surface_original,
+                                "      - name: #{finish_step}\n", canon_block + "\n      - name: #{finish_step}\n", step: CANON_CONTRACTS_STEP)
+    fail_policy("self-test: the canon-contracts fixture did not insert the step") unless surface_canon.include?("      - name: #{CANON_CONTRACTS_STEP}\n")
+    File.write(surface, surface_canon)
+    validate_repo(tmp, announce: false)
+    File.write(surface, surface_original)
+    canon_body = %Q{          NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?\n}
+    # Doubled: a second copy of the frozen step is a step-set change, refused by
+    # name (fixture_sub cannot express an edit that adds a same-named step).
+    doubled = surface_canon.sub("      - name: #{finish_step}\n", canon_block + "\n      - name: #{finish_step}\n")
+    fail_policy("self-test: the doubled canon-contracts fixture did not change the text") if doubled == surface_canon
+    File.write(surface, doubled)
+    expect_rejected("canon-contracts step doubled") { validate_repo(tmp) }
+    File.write(surface, surface_original)
+    [
+      ["canon-contracts step before the drift step", surface, surface_original,
+       "      - name: #{canon_after}", canon_block + "\n      - name: #{canon_after}", CANON_CONTRACTS_STEP],
+      ["canon-contracts step running the PR head's own script", surface, surface_canon,
+       canon_body, %Q{          NEN="$NEN_BIN" bash scripts/canon_contracts_check.sh --root "$PWD" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
+      ["canon-contracts step executing the script directly", surface, surface_canon,
+       canon_body, %Q{          NEN="$NEN_BIN" ./scripts/canon_contracts_check.sh --root "$PWD" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
+      ["canon-contracts step judging the trusted tree instead of the PR's", surface, surface_canon,
+       canon_body, %Q{          NEN="$NEN_BIN" bash "$guard" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
+      ["canon-contracts step on a bare nen from PATH", surface, surface_canon,
+       canon_body, %Q{          bash "$guard" --root "$PWD" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
+      ["canon-contracts step without the output fence", surface, surface_canon,
+       %Q{          echo "::stop-commands::${stop}"\n#{canon_body}}, canon_body, CANON_CONTRACTS_STEP],
+      ["canon-contracts step with GH_TOKEN in its env", surface, surface_canon,
+       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n        shell: bash\n        run: |\n          set -uo pipefail\n          guard=.trusted/scripts/canon_contracts_check.sh",
+       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          GH_TOKEN: ${{ github.token }}\n        shell: bash\n        run: |\n          set -uo pipefail\n          guard=.trusted/scripts/canon_contracts_check.sh", CANON_CONTRACTS_STEP],
+      ["canon-contracts step passing a refusal", surface, surface_canon,
+       %Q{nen/labels.json) — see the guard output above."; exit 1 ;;}, %Q{nen/labels.json) — see the guard output above."; exit 0 ;;}, CANON_CONTRACTS_STEP]
+    ].each do |label, file, base, from, to, step|
+      hostile.call(label, file, base, from, to, step: step)
+      File.write(file, surface_original)
     end
     validate_repo(tmp, announce: false)
     # Hatsu's own repository carries only its own readiness form (Feitan,
