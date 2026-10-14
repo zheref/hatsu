@@ -316,5 +316,22 @@ printf '# only a comment\n\n' > "$work/blank-names"
 expect 2 "names file with no names" --names-file "$work/blank-names" "$work/bare.md"
 expect 0 "--allow-empty accepts it" --names-file "$work/empty-names" --allow-empty "$work/bare.md"
 
+# --- template tokens under templates/ (ruling of 2026-10-13) -------------------------------------
+mkdir -p "$work/templates/sub" "$work/other"
+text templates/tok.md '{{#each rows}}- {{zz-secret}} — {{{zz-secret}}} {{#if zz-secret}}x{{/zz-secret}}'
+expect 0 "a template token under templates/ is nen's key, exempt" --names-file "$names" "$work/templates/tok.md"
+text templates/sub/tok.html '<td>{{zz-secret}}</td>'
+expect 0 "a token in a nested templates/ file is exempt" --names-file "$names" "$work/templates/sub/tok.html"
+text templates/prose.md '{{#each rows}}- {{mark}} — zz-secret is named here in prose'
+expect 1 "the same name as prose in a template is a hit" --names-file "$names" "$work/templates/prose.md"
+text templates/comment.html '<!-- zz-secret --> <th>zz-secret</th>'
+expect 1 "the name in a template comment or tag is a hit" --names-file "$names" "$work/templates/comment.html"
+text templates/spaced.md '{{ zz-secret }} and {{zz-secret }}'
+expect 1 "a token with spaces inside the braces is not the shape" --names-file "$names" "$work/templates/spaced.md"
+text other/tok.md '{{zz-secret}}'
+expect 1 "a token outside templates/ is a hit" --names-file "$names" "$work/other/tok.md"
+text templates/tok.yml '{{zz-secret}}'
+expect 1 "a token in a templates/ file that is not .md or .html is a hit" --names-file "$names" "$work/templates/tok.yml"
+
 echo "redaction-guard: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

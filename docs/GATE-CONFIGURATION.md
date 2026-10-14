@@ -398,9 +398,10 @@ current pin's own record, and that record to `pinned_ref`. **Tenkai's rendered r
 no such step**: a product repository's contract need not record nen's digest, since its pin can fall
 back to the ref tenkai renders. Two follow-ups are owed, filed by the run's harvest: tenkai rendering a
 digest beside that ref, and recording the bootstrap script's own sha256 and checking it before the
-script runs, since the script runs before any check here can. **Open, a G4 for the maintainer:**
-whether this check (shell in a workflow step that hashes a fetched binary and reads the contract with
-`jq`) falls under BC-11's bootstrap allowance or is residue owed to a nen verb; nothing here decides it.
+script runs, since the script runs before any check here can. **Ruled 2026-10-13** (ROSTER § *Rulings of 2026-10-13*): this check — shell in a workflow step that
+hashes a fetched binary and reads one contract key with `jq` — is workflow glue under BC-11's bootstrap
+allowance, not a predicate owed to a nen verb; it stays in the three workflows, and tenkai's rendered
+digest is the harvest's nen request.
 
 **2026-10-13. The prose-diet guard is a pull request check
 ([zheref/hatsu#135](https://github.com/zheref/hatsu/issues/135)), both steps landed.**

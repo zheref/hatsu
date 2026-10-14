@@ -48,8 +48,15 @@
 # the marker mid-line, so the shape is not anchored to a line start). Any other name in that shape,
 # the shape without its `<!-- ` or its `@`, or the same name anywhere else on the line -- spelt
 # plainly or through any normalisation above -- is a hit. With no readable marker source nothing is
-# exempt. There is no line marker and no path
-# allowlist, so an exemption cannot be added without changing this script and its fixture.
+# exempt. The second exemption (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of
+# 2026-10-13): under `templates/` (any depth, .md or .html only) a name that is a TEMPLATE TOKEN of
+# `nen report render`'s language -- `{{name}}`, `{{{name}}}`, `{{#each name}}`, `{{#if name}}`,
+# `{{#unless name}}`, `{{/name}}`, the braces touching the name -- is one of nen's data-document keys,
+# which this repository does not choose; it is exempt in that shape only. The same name as prose in the
+# template, in a comment, in a tag or anywhere outside `templates/` is a hit, and a token in a file
+# outside `templates/` is a hit. The ignore file below is still the maintainer's own tool for a
+# dictionary-word name. There is no line marker and no path allowlist, so any other exemption cannot be
+# added without changing this script and its fixture.
 # Out of tree:
 #   - --ignore-file <path> (default ${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/redaction-ignore, read
 #     when present): private names the maintainer has ruled too generic to police -- a repository
@@ -249,6 +256,13 @@ PNC_MARKER="$marker_source" PNC_SKIPPED="$tmp/skipped" perl -e '
     return 0 unless length $pred && lc($name) eq $pred && substr($l, $e, 1) eq "@";
     return substr($l, 0, $b) =~ /<!-- GENERATED from \z/ ? 1 : 0;
   }
+  # A template token under templates/: a nen data-document key, exempt in that exact shape only.
+  sub tmpl_exempt {
+    my ($l, $b, $e, $shown) = @_;
+    return 0 unless defined $shown && $shown =~ m{(?:^|/)templates/.+\.(?:md|html)\z};
+    return 0 unless substr($l, 0, $b) =~ /\{\{(?:\{|#each |#if |#unless |\/)?\z/;
+    return substr($l, $e) =~ /\A\}\}/ ? 1 : 0;
+  }
   sub redact { my $s = shift; $s =~ s/$re/"<private #" . $idx{lc $1} . ">"/ge; return $s }
 
   my %ent = (amp => "&", lt => "<", gt => ">", quot => "\"", apos => "\x27", nbsp => " ",
@@ -295,6 +309,7 @@ PNC_MARKER="$marker_source" PNC_SKIPPED="$tmp/skipped" perl -e '
     while ($l =~ /$re/g) {
       my ($b, $e, $name) = ($-[1], $+[1], $1);
       next if exempt($l, $b, $e, $name);
+      next if tmpl_exempt($l, $b, $e, $shown);
       hit($shown, $n, $idx{lc $name}, ""); $seen{lc $name} = 1;
     }
     return unless trig($l);
@@ -304,6 +319,7 @@ PNC_MARKER="$marker_source" PNC_SKIPPED="$tmp/skipped" perl -e '
         my ($b, $e, $name) = ($-[1], $+[1], $1);
         next if $seen{lc $name};
         next if exempt($v, $b, $e, $name);
+        next if tmpl_exempt($v, $b, $e, $shown);
         hit($shown, $n, $idx{lc $name}, " (spelt through an escape, entity, encoding, markup or invisible character)"); $seen{lc $name} = 1;
       }
     }
