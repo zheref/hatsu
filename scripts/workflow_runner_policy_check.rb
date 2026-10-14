@@ -899,7 +899,8 @@ CANON_CONTRACTS_FROZEN = {
     guard=.trusted/scripts/canon_contracts_check.sh
     [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/canon_contracts_check.sh"; exit 1; }
     [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
-    stop="stop_$(openssl rand -hex 16)"
+    stop="stop_$(openssl rand -hex 16)" || stop=""
+    [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was checked."; exit 1; }
     code=0
     echo "::stop-commands::${stop}"
     NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?
@@ -1678,7 +1679,7 @@ def validate_workflow(path, hatsu: false)
                           "#{path} #{PROSE_GUARD_STEP.inspect}")
     end
     # The canon-contracts step in its one admitted form wherever
-    # surface-mirror-check.yml carries it (zheref/hatsu#223, step one).
+    # surface-mirror-check.yml carries it (zheref/hatsu#223, both steps landed).
     if File.basename(path) == "surface-mirror-check.yml" && step_names.include?(CANON_CONTRACTS_STEP)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_CONTRACTS_STEP }, CANON_CONTRACTS_FROZEN,
                           "#{path} #{CANON_CONTRACTS_STEP.inspect}")
@@ -2907,56 +2908,80 @@ def self_test(root)
       File.write(file, { surface => surface_original, readiness => readiness_original, regenerate => regenerate_original }.fetch(file))
     end
 
-    # The canon-contracts step (zheref/hatsu#223, step one): the shape with the
-    # step after the drift step validates in its frozen form; any other place,
-    # count or body is refused. The anchor name is held here too: a renamed
-    # drift step breaks this fixture before it could collapse the two shapes.
+    # The canon-contracts step (zheref/hatsu#223). This block holds on BOTH trees
+    # the two-step landing produces: step one's, where the step is admitted but
+    # not installed, and step two's (then main's), where it is installed. The
+    # positive base is the live file when it carries the step, else the live
+    # file with the frozen step rendered after the drift step; the step-less
+    # text is admitted only while ALLOWED_STEP_SHAPES still lists a shape
+    # without the step. Any other place, count or body is refused on either
+    # tree, and the anchor name is held here: a renamed drift step breaks this
+    # fixture before it could collapse the two shapes.
     fail_policy("self-test: CANON_CONTRACTS_AFTER is not a surface-mirror-check.yml step") unless EXPECTED_STEPS.fetch("surface-mirror-check.yml").include?(CANON_CONTRACTS_AFTER)
     canon_after = "#{CANON_CONTRACTS_AFTER}\n"
     canon_block = render_step(CANON_CONTRACTS_STEP, CANON_CONTRACTS_FROZEN)
     finish_step = "Finish check on the exact PR head"
-    # Step two landed: the live file carries the step, so it is the base every
-    # hostile edit below departs from, and a file WITHOUT the step is refused.
-    surface_canon = surface_original
-    fail_policy("self-test: surface-mirror-check.yml does not carry the canon-contracts step") unless surface_canon.include?("      - name: #{CANON_CONTRACTS_STEP}\n")
-    without = surface_canon.sub(/^      - name: #{Regexp.escape(CANON_CONTRACTS_STEP)}\n.*?(?=^      - name: #{Regexp.escape(finish_step)}\n)/m, "")
-    fail_policy("self-test: could not remove the canon-contracts step from the fixture") if without == surface_canon
-    File.write(surface, without)
-    expect_rejected("surface-mirror-check without the canon-contracts step") { validate_repo(tmp) }
+    canon_line = "      - name: #{CANON_CONTRACTS_STEP}\n"
+    canon_installed = surface_original.include?(canon_line)
+    surface_canon = if canon_installed
+                      surface_original
+                    else
+                      fixture_sub("surface-mirror-check with the canon-contracts step", surface_original,
+                                  "      - name: #{finish_step}\n", canon_block + "\n      - name: #{finish_step}\n", step: CANON_CONTRACTS_STEP)
+                    end
+    fail_policy("self-test: the canon-contracts fixture carries no step") unless surface_canon.include?(canon_line)
+    without = canon_installed ? surface_original.sub(/^#{Regexp.escape(canon_line)}.*?(?=^      - name: #{Regexp.escape(finish_step)}\n)/m, "") : surface_original
+    fail_policy("self-test: could not derive the step-less fixture") if without.include?(canon_line) || without == surface_canon
+    File.write(surface, surface_canon)
+    validate_repo(tmp, announce: false)
     File.write(surface, surface_original)
-    # Moved: the same step, once, ahead of the drift step -- a step-order change, refused.
+    step_optional = ALLOWED_STEP_SHAPES.fetch("surface-mirror-check.yml").any? { |shape| !shape.include?(CANON_CONTRACTS_STEP) }
+    File.write(surface, without)
+    if step_optional
+      validate_repo(tmp, announce: false)
+    else
+      expect_rejected("surface-mirror-check without the canon-contracts step", /step set or order changed/) { validate_repo(tmp) }
+    end
+    File.write(surface, surface_original)
+    # Moved: the step once, ahead of the drift step -- a step-order change.
     moved = without.sub("      - name: #{canon_after}", canon_block + "\n      - name: #{canon_after}")
     fail_policy("self-test: the moved canon-contracts fixture did not change the text") if moved == without
     File.write(surface, moved)
-    expect_rejected("canon-contracts step moved before the drift step") { validate_repo(tmp) }
+    expect_rejected("canon-contracts step moved before the drift step", /step set or order changed/) { validate_repo(tmp) }
     File.write(surface, surface_original)
-    canon_body = %Q{          NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?\n}
-    # Doubled: a second copy of the frozen step is a step-set change, refused by
-    # name (fixture_sub cannot express an edit that adds a same-named step).
+    # Doubled: a second copy of the frozen step -- a step-set change.
     doubled = surface_canon.sub("      - name: #{finish_step}\n", canon_block + "\n      - name: #{finish_step}\n")
     fail_policy("self-test: the doubled canon-contracts fixture did not change the text") if doubled == surface_canon
     File.write(surface, doubled)
-    expect_rejected("canon-contracts step doubled") { validate_repo(tmp) }
+    expect_rejected("canon-contracts step doubled", /step set or order changed/) { validate_repo(tmp) }
     File.write(surface, surface_original)
+    canon_body = %Q{          NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?\n}
     [
-      ["canon-contracts step running the PR head's own script", surface, surface_canon,
-       canon_body, %Q{          NEN="$NEN_BIN" bash scripts/canon_contracts_check.sh --root "$PWD" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
-      ["canon-contracts step executing the script directly", surface, surface_canon,
-       canon_body, %Q{          NEN="$NEN_BIN" ./scripts/canon_contracts_check.sh --root "$PWD" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
-      ["canon-contracts step judging the trusted tree instead of the PR's", surface, surface_canon,
-       canon_body, %Q{          NEN="$NEN_BIN" bash "$guard" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
-      ["canon-contracts step on a bare nen from PATH", surface, surface_canon,
-       canon_body, %Q{          bash "$guard" --root "$PWD" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
-      ["canon-contracts step without the output fence", surface, surface_canon,
-       %Q{          echo "::stop-commands::${stop}"\n#{canon_body}}, canon_body, CANON_CONTRACTS_STEP],
-      ["canon-contracts step with GH_TOKEN in its env", surface, surface_canon,
+      ["canon-contracts step running the PR head's own script",
+       canon_body, %Q{          NEN="$NEN_BIN" bash scripts/canon_contracts_check.sh --root "$PWD" 2>&1 || code=$?\n}],
+      ["canon-contracts step executing the script directly",
+       canon_body, %Q{          NEN="$NEN_BIN" ./scripts/canon_contracts_check.sh --root "$PWD" 2>&1 || code=$?\n}],
+      ["canon-contracts step judging the trusted tree instead of the PR's",
+       canon_body, %Q{          NEN="$NEN_BIN" bash "$guard" 2>&1 || code=$?\n}],
+      ["canon-contracts step on a bare nen from PATH",
+       canon_body, %Q{          bash "$guard" --root "$PWD" 2>&1 || code=$?\n}],
+      ["canon-contracts step with the guard's stderr outside the fence",
+       canon_body, %Q{          NEN="$NEN_BIN" bash "$guard" --root "$PWD" || code=$?\n}],
+      ["canon-contracts step without the output fence",
+       %Q{          echo "::stop-commands::${stop}"\n#{canon_body}}, canon_body],
+      ["canon-contracts step with GH_TOKEN in its env",
        "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n        shell: bash\n        run: |\n          set -uo pipefail\n          guard=.trusted/scripts/canon_contracts_check.sh",
-       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          GH_TOKEN: ${{ github.token }}\n        shell: bash\n        run: |\n          set -uo pipefail\n          guard=.trusted/scripts/canon_contracts_check.sh", CANON_CONTRACTS_STEP],
-      ["canon-contracts step passing a refusal", surface, surface_canon,
-       %Q{nen/labels.json) — see the guard output above."; exit 1 ;;}, %Q{nen/labels.json) — see the guard output above."; exit 0 ;;}, CANON_CONTRACTS_STEP]
-    ].each do |label, file, base, from, to, step|
-      hostile.call(label, file, base, from, to, step: step)
-      File.write(file, surface_original)
+       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          GH_TOKEN: ${{ github.token }}\n        shell: bash\n        run: |\n          set -uo pipefail\n          guard=.trusted/scripts/canon_contracts_check.sh"],
+      ["canon-contracts step passing a refusal",
+       %Q{nen/labels.json) — see the guard output above."; exit 1 ;;}, %Q{nen/labels.json) — see the guard output above."; exit 0 ;;}],
+      ["canon-contracts step passing a wiring failure",
+       %Q{(exit ${code}) — see the guard output above."; exit 1 ;;}, %Q{(exit ${code}) — see the guard output above."; exit 0 ;;}],
+      ["canon-contracts step accepting an unfenced token",
+       %Q{    [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || },
+       %Q{    true || }]
+    ].each do |label, from, to|
+      hostile.call(label, surface, surface_canon, from, to, step: CANON_CONTRACTS_STEP)
+      File.write(surface, surface_original)
     end
     validate_repo(tmp, announce: false)
     # Hatsu's own repository carries only its own readiness form (Feitan,
@@ -3024,6 +3049,56 @@ def self_test(root)
                out.lines.none? { |line| line.start_with?("::warning") } && (want_status.zero? || !ran)
           fail_policy("self-test: #{name.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
         end
+      end
+    end
+
+    # --- the canon-contracts step's body, executed (zheref/hatsu#223) -------
+    # The frozen form is also run under bash -eo pipefail with stand-ins for
+    # the trusted guard, the bootstrapped nen and openssl, so the exit mapping,
+    # the ::error:: lines and the fence hold at runtime, not only in form.
+    Dir.mktmpdir("hatsu-canon-contracts") do |tmpdir|
+      dir = File.realpath(tmpdir)  # bash's $PWD is the real path (macOS aliases /var to /private/var)
+      guard_dir = File.join(dir, ".trusted/scripts")
+      FileUtils.mkdir_p(guard_dir)
+      guard = File.join(guard_dir, "canon_contracts_check.sh")
+      bin = File.join(dir, "nen-stand-in")
+      File.write(bin, "#!/bin/sh\nexit 0\n")
+      File.chmod(0o755, bin)
+      silent_openssl = File.join(dir, "silent-openssl")
+      FileUtils.mkdir_p(silent_openssl)
+      File.write(File.join(silent_openssl, "openssl"), "#!/bin/sh\nexit 0\n")
+      File.chmod(0o755, File.join(silent_openssl, "openssl"))
+      write_guard = lambda do |exit_code, line|
+        File.write(guard, "#!/bin/sh\necho \"guard root: $2\"\necho '#{line}'\nexit #{exit_code}\n")
+        File.chmod(0o755, guard)
+      end
+      fence = /^::stop-commands::(stop_[0-9a-f]{32})\n(.*?)^::\1::$/m
+      [
+        ["a guard that passes", -> { write_guard.call(0, "every invariant holds") }, bin, nil, 0,
+         ["the canon data contracts hold every stated invariant."], "every invariant holds"],
+        ["a guard that refuses", -> { write_guard.call(1, "FAIL  direct registry ::warning::forged") }, bin, nil, 1,
+         ["::error::a canon data contract breaks an invariant nen states"], "FAIL  direct registry"],
+        ["a guard that cannot run", -> { write_guard.call(2, "wiring") }, bin, nil, 1,
+         ["::error::canon_contracts_check could not run (exit 2)"], "wiring"],
+        ["no trusted guard", -> { FileUtils.rm_f(guard) }, bin, nil, 1,
+         ["::error::trusted workflow revision has no scripts/canon_contracts_check.sh"], nil],
+        ["no bootstrapped nen", -> { write_guard.call(0, "unreached") }, File.join(dir, "absent"), nil, 1,
+         ["::error::no bootstrapped nen binary"], nil],
+        ["an openssl that prints no token", -> { write_guard.call(0, "unreached") }, bin, silent_openssl, 1,
+         ["::error::could not draw a fresh token to fence the guard's output"], nil]
+      ].each do |label, arrange, nen_bin, path_first, want_status, want_text, fenced|
+        arrange.call
+        path = [path_first, ENV.fetch("PATH")].compact.join(File::PATH_SEPARATOR)
+        out, status = Open3.capture2e({ "PATH" => path, "NEN_BIN" => nen_bin }, "bash", "--noprofile", "--norc", "-eo", "pipefail",
+                                      "-c", CANON_CONTRACTS_FROZEN.fetch("run"), chdir: dir, unsetenv_others: true)
+        fence_ok = if fenced.nil?
+                     !out.include?("::stop-commands::")
+                   else
+                     (match = out.match(fence)) && match[2].include?(fenced) && match[2].include?("guard root: #{dir}")
+                   end
+        forged_outside = out.sub(fence, "").lines.any? { |line| line.start_with?("::warning") }
+        ok = status.exitstatus == want_status && want_text.all? { |text| out.include?(text) } && fence_ok && !forged_outside
+        fail_policy("self-test: #{CANON_CONTRACTS_STEP.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
       end
     end
 

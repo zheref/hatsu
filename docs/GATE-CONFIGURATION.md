@@ -421,11 +421,13 @@ invariants only by the review's one-off checks. `scripts/canon_contracts_check.s
 reads (`nen direct registry`, `nen classify labels`, `nen classify install --dry-run` for labels parity)
 and re-implements none; lane `canon-contracts-guard` seats its fixture. In CI the guard runs as a new
 `Canon data contracts check` step of `surface-mirror-check.yml`, after the drift step, on the trusted
-checkout's bootstrapped nen and trusted script over the pull request's data. Step one (this record)
+checkout's bootstrapped nen and trusted script over the pull request's data. Step one
 taught the validator the step beside the current shape (`ALLOWED_STEP_SHAPES`, `CANON_CONTRACTS_STEP`)
 and froze its one form (`CANON_CONTRACTS_FROZEN`: the trusted script, `NEN` the bootstrapped binary's
 absolute path, `--root "$PWD"`, the output fenced between `::stop-commands::` and its token, no token in
-its env), so the pull request that installs it is judged by a validator already holding the body; step
+its env; the self-test holds on both trees the landing produces and also runs the body with stand-ins
+for the guard, the binary and openssl, so the exit mapping, the error lines and the fence hold at
+runtime), so the pull request that installs it is judged by a validator already holding the body; step
 two added the step to the workflow and narrowed `EXPECTED_STEPS` to it, one shape admitted again. A
 canon-contract failure reads as a red `surface-mirror-check`, and a run red at the drift step never
 reaches it (a check of its own would be the #135 route).
