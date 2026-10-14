@@ -49,9 +49,9 @@
 # the shape without its `<!-- ` or its `@`, or the same name anywhere else on the line -- spelt
 # plainly or through any normalisation above -- is a hit. With no readable marker source nothing is
 # exempt. The second exemption (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of
-# 2026-10-13): under `templates/` (any depth, .md or .html only) a name that is a TEMPLATE TOKEN of
+# 2026-10-13): in the four report templates named below, a name that is a TEMPLATE TOKEN of
 # `nen report render`'s language -- `{{name}}`, `{{{name}}}`, `{{#each name}}`, `{{#if name}}`,
-# the braces touching the name -- is one of nen's data-document keys, which this repository does not
+# the braces touching the name and paired whole -- is one of nen's data-document keys, which this repository does not
 # choose; it is exempt in that shape only, on the line as written (a name that reads only once
 # normalised was split by a comment, a tag or an entity, which no key is, and stays a hit), and only in
 # the content of the four files nen report render fills: templates/rikugan.{md,html} and
@@ -273,8 +273,10 @@ PNC_MARKER="$marker_source" PNC_HATSU_ROOT="$hatsu_root" PNC_SKIPPED="$tmp/skipp
   sub tmpl_exempt {
     my ($l, $b, $e) = @_;
     return 0 unless $tmpl_ok;
-    return 0 unless substr($l, 0, $b) =~ /\{\{(?:\{|#each |#if )?\z/;
-    return substr($l, $e) =~ /\A\}\}/ ? 1 : 0;
+    my ($pre, $post) = (substr($l, 0, $b), substr($l, $e));
+    return ($post =~ /\A\}\}\}/ ? 1 : 0) if $pre =~ /\{\{\{\z/;       # {{{name}}} pairs whole
+    return 0 unless $pre =~ /(?<!\{)\{\{(?:#each |#if )?\z/;
+    return $post =~ /\A\}\}(?!\})/ ? 1 : 0;                                 # {{name}}, never {{name}}}
   }
   sub tmpl_file {
     my ($path) = @_;

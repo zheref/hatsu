@@ -320,7 +320,7 @@ expect 0 "--allow-empty accepts it" --names-file "$work/empty-names" --allow-emp
 # The exemption needs the Hatsu root; --hatsu-root points it at $work, whose templates/ holds copies
 # named as the four files nen report render fills.
 mkdir -p "$work/templates/sub" "$work/other" "$work/docs/templates" "$work/vendor/pkg/templates"
-text templates/rikugan.md '{{#each rows}}- {{zz-secret}} — {{{zz-secret}}} {{#if zz-secret}}x{{/if}} {{zz-secret}}x'
+text templates/rikugan.md '{{#each zz-secret}}- {{zz-secret}} — {{{zz-secret}}} {{#if zz-secret}}x{{/if}} {{zz-secret}}x'
 expect 0 "a token in templates/rikugan.md under the root is a nen key, exempt" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
 text templates/spiritual-message.html '<td>{{zz-secret}}</td>'
 expect 0 "a token in templates/spiritual-message.html is exempt" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.html"
@@ -328,10 +328,36 @@ expect 0 "the exemption reads the real file, however the path is spelt" --names-
 expect 1 "the same files outside the given root are hits" --names-file "$names" "$work/templates/rikugan.md"
 text templates/rikugan.html '{{#each rows}}- {{sign}} — zz-secret is named here in prose'
 expect 1 "the same name as prose in a template is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.html"
-text templates/spiritual-message.md '<!-- zz-secret --> <th>zz-secret</th> {{ zz-secret }} {{zz-secret }} {{#unless zz-secret}} {{/zz-secret}}'
-expect 1 "a comment, a tag, spaced braces, #unless and a closing tag are not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
-text templates/rikugan.md '{{zz<!-- -->-secret}} {{zz<b></b>-secret}} {{zz&#45;secret}} {{zz%2Dsecret}} &#123;&#123;zz&#45;secret&#125;&#125;'
-expect 1 "a token whose name reads only once normalised is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+text templates/spiritual-message.md '<!-- zz-secret -->'
+expect 1 "a comment in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/spiritual-message.md '<th>zz-secret</th>'
+expect 1 "a tag in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/spiritual-message.md '{{ zz-secret }}'
+expect 1 "spaced braces in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/spiritual-message.md '{{zz-secret }}'
+expect 1 "a space before the braces in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/spiritual-message.md '{{#unless zz-secret}}'
+expect 1 "#unless in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/spiritual-message.md '{{/zz-secret}}'
+expect 1 "a closing tag in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/spiritual-message.md '{{{zz-secret}}'
+expect 1 "a triple opened and double closed in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/spiritual-message.md '{{zz-secret}}}'
+expect 1 "a double opened and triple closed in a report template is not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/rikugan.md '{{zz<!-- -->-secret}}'
+expect 1 "a token split by a comment reads only once normalised and is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+has "spelt through" "the normalised hit says how it was found"
+text templates/rikugan.md '{{zz<b></b>-secret}}'
+expect 1 "a token split by a tag reads only once normalised and is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+has "spelt through" "the normalised hit says how it was found"
+text templates/rikugan.md '{{zz&#45;secret}}'
+expect 1 "a token split by an entity reads only once normalised and is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+has "spelt through" "the normalised hit says how it was found"
+text templates/rikugan.md '{{zz%2Dsecret}}'
+expect 1 "a token split by URL encoding reads only once normalised and is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+has "spelt through" "the normalised hit says how it was found"
+text templates/rikugan.md '&#123;&#123;zz&#45;secret&#125;&#125;'
+expect 1 "a token split by entity braces reads only once normalised and is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
 has "spelt through" "the normalised hit says how it was found"
 text templates/rikugan.md '{{zz-secret}} and {{zz&#45;secret}} — one key, one entity'
 expect 1 "a key on the line does not clear an entity-spelt token beside it" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
