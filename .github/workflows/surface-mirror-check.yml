@@ -343,6 +343,33 @@ jobs:
               ;;
           esac
 
+      - name: Canon data contracts check
+        # FROZEN (CANON_CONTRACTS_FROZEN in scripts/workflow_runner_policy_check.rb,
+        # zheref/hatsu#223): keys, env, shell and the run compared byte for byte; only
+        # `name` and these comments are free. The TRUSTED checkout's script runs the
+        # TRUSTED, digest-checked nen's own validators (`direct registry`,
+        # `classify labels`, `classify install --dry-run`) over the PR checkout's
+        # contracts/ and nen/labels.json; nothing from the PR checkout is executed,
+        # and the guard's output is fenced so no line in it is a workflow command.
+        env:
+          NEN_BIN: ${{ steps.nen.outputs.bin }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          guard=.trusted/scripts/canon_contracts_check.sh
+          [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/canon_contracts_check.sh"; exit 1; }
+          [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
+          stop="stop_$(openssl rand -hex 16)"
+          code=0
+          echo "::stop-commands::${stop}"
+          NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?
+          printf '\n::%s::\n' "$stop"
+          case "$code" in
+            0) echo "the canon data contracts hold every stated invariant." ;;
+            1) echo "::error::a canon data contract breaks an invariant nen states (contracts/direct.registry.json, contracts/classify.taxonomy.json or nen/labels.json) — see the guard output above."; exit 1 ;;
+            *) echo "::error::canon_contracts_check could not run (exit ${code}) — see the guard output above."; exit 1 ;;
+          esac
+
       - name: Finish check on the exact PR head
         if: ${{ always() && steps.head_check.outputs.id != '' }}
         env:

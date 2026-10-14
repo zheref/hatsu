@@ -276,6 +276,7 @@ EXPECTED_STEPS = {
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
     "Verify the nen binary against trusted nen/contract.json's sha256",
     "Surface-mirror drift check",
+    "Canon data contracts check",
     "Finish check on the exact PR head"
   ],
   # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
@@ -874,12 +875,10 @@ REGENERATE_PR_WITH = {
 # One shape each, and a second for pr-readiness.yml: tenkai's rendered form,
 # which carries no digest step. Hatsu's own form must carry it, because its
 # every step is held in READINESS_FROZEN_STEPS (zheref/hatsu#230).
-# surface-mirror-check.yml gains "Canon data contracts check" after the drift step
-# (zheref/hatsu#223, the two-step landing: this revision admits the next shape
-# beside the current one AND freezes the step's one form, so the pull request
-# that adds the step to the workflow is judged by a validator that already
-# holds its exact body; that pull request narrows EXPECTED_STEPS to the new
-# shape). The step runs the TRUSTED nen's own validators (`direct registry`,
+# surface-mirror-check.yml carries "Canon data contracts check" after the drift step
+# (zheref/hatsu#223, both steps landed: step one admitted the shape beside the
+# current one and froze the step's form; step two installed the step and
+# narrowed EXPECTED_STEPS to it, so one shape is admitted again). The step runs the TRUSTED nen's own validators (`direct registry`,
 # `classify labels`, `classify install --dry-run`) over the pull request's data
 # through the TRUSTED scripts/canon_contracts_check.sh, `NEN` the bootstrapped
 # binary's absolute path and `--root "$PWD"` the PR checkout; nothing from the
@@ -913,11 +912,7 @@ CANON_CONTRACTS_FROZEN = {
   RUN
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
-  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  "surface-mirror-check.yml" => [
-    EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
-    EXPECTED_STEPS.fetch("surface-mirror-check.yml").flat_map { |step| step == CANON_CONTRACTS_AFTER ? [step, CANON_CONTRACTS_STEP] : [step] }
-  ]
+  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -2920,11 +2915,20 @@ def self_test(root)
     canon_after = "#{CANON_CONTRACTS_AFTER}\n"
     canon_block = render_step(CANON_CONTRACTS_STEP, CANON_CONTRACTS_FROZEN)
     finish_step = "Finish check on the exact PR head"
-    surface_canon = fixture_sub("surface-mirror-check with the canon-contracts step", surface_original,
-                                "      - name: #{finish_step}\n", canon_block + "\n      - name: #{finish_step}\n", step: CANON_CONTRACTS_STEP)
-    fail_policy("self-test: the canon-contracts fixture did not insert the step") unless surface_canon.include?("      - name: #{CANON_CONTRACTS_STEP}\n")
-    File.write(surface, surface_canon)
-    validate_repo(tmp, announce: false)
+    # Step two landed: the live file carries the step, so it is the base every
+    # hostile edit below departs from, and a file WITHOUT the step is refused.
+    surface_canon = surface_original
+    fail_policy("self-test: surface-mirror-check.yml does not carry the canon-contracts step") unless surface_canon.include?("      - name: #{CANON_CONTRACTS_STEP}\n")
+    without = surface_canon.sub(/^      - name: #{Regexp.escape(CANON_CONTRACTS_STEP)}\n.*?(?=^      - name: #{Regexp.escape(finish_step)}\n)/m, "")
+    fail_policy("self-test: could not remove the canon-contracts step from the fixture") if without == surface_canon
+    File.write(surface, without)
+    expect_rejected("surface-mirror-check without the canon-contracts step") { validate_repo(tmp) }
+    File.write(surface, surface_original)
+    # Moved: the same step, once, ahead of the drift step -- a step-order change, refused.
+    moved = without.sub("      - name: #{canon_after}", canon_block + "\n      - name: #{canon_after}")
+    fail_policy("self-test: the moved canon-contracts fixture did not change the text") if moved == without
+    File.write(surface, moved)
+    expect_rejected("canon-contracts step moved before the drift step") { validate_repo(tmp) }
     File.write(surface, surface_original)
     canon_body = %Q{          NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?\n}
     # Doubled: a second copy of the frozen step is a step-set change, refused by
@@ -2935,8 +2939,6 @@ def self_test(root)
     expect_rejected("canon-contracts step doubled") { validate_repo(tmp) }
     File.write(surface, surface_original)
     [
-      ["canon-contracts step before the drift step", surface, surface_original,
-       "      - name: #{canon_after}", canon_block + "\n      - name: #{canon_after}", CANON_CONTRACTS_STEP],
       ["canon-contracts step running the PR head's own script", surface, surface_canon,
        canon_body, %Q{          NEN="$NEN_BIN" bash scripts/canon_contracts_check.sh --root "$PWD" 2>&1 || code=$?\n}, CANON_CONTRACTS_STEP],
       ["canon-contracts step executing the script directly", surface, surface_canon,
