@@ -115,11 +115,12 @@ for f in "$@"; do
         if (au > 0) { msg = badseg(substr(t, au, p - au), "authorship check to publish"); if (msg != "") { report(msg); continue } }
         if (cu > 0 && au > cu && index(substr(t, cu, p - cu), "noOp") > 0) full++
       }
-      # The shipped chain (scripts/publish_gate.sh, zheref/hatsu#218 (i)) is the full gated form in one
-      # call -- counted only where the script IS the command (the block's start or after &&, an optional
-      # "$hatsu_root/ or path prefix, no env assignment, no echo/cat/: before it), not a --dry-run, and
-      # only in a block that spells no nen wc publish of its own (a mention beside a weaker chain never
-      # earns the chain the full form).
+      # The shipped chain, scripts/publish_gate.sh, zheref/hatsu#218 i, is the full gated form in one
+      # call -- counted only where the script IS the command: at the block's start or after &&, with an
+      # optional "$hatsu_root/ or path prefix, no env assignment and no echo, cat or : before it, not a
+      # --dry-run, and only in a block that spells no nen wc publish of its own, since a mention beside
+      # a weaker chain never earns the chain the full form. No parenthesis in these comments: the shell
+      # pairs them while it reads this awk program as a command substitution.
       if (index(t, "nen wc publish") == 0 && t ~ /(^|&& )("?\$hatsu_root\/|"?\$\{hatsu_root\}\/|"?[A-Za-z0-9_.\/-]*\/)?scripts\/publish_gate\.sh"? +--repo/ && t !~ /scripts\/publish_gate\.sh"?[^\n]*--dry-run/) full++
       gated_full += full
     }
