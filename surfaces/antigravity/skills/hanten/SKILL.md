@@ -67,7 +67,7 @@ row that cannot run is not scanned, never clean**; values are `$hatsu_root/contr
 or `mukai` re-entering continue the same cycle. **An effort is a branch PLUS its pull request**
 (ROSTER ruling 9 R2) — keyed `<branch-slug>`, then `<branch-slug>-pr<N>`: a new PR number is a fresh
 ledger, budgets full. **Hanten opens the PR-keyed one itself, once** (`init … --pr <N>` before the first `decide`;
-present → never re-`init`, exit `2`); the branch-only ledger is then unread. **Each scope's maximum is its own `budget`, per effort, never per session or repository** (2026-09-28),
+present → never re-`init`, exit `2`); the branch-only ledger is unread. **Each scope's maximum is its own `budget`, per effort, never per session or repository** (2026-09-28),
 counted by the ledger; **one persona, one budget** (his smallest): two of his scopes
 raised together are one raise.
 
