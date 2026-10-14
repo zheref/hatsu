@@ -874,8 +874,20 @@ REGENERATE_PR_WITH = {
 # One shape each, and a second for pr-readiness.yml: tenkai's rendered form,
 # which carries no digest step. Hatsu's own form must carry it, because its
 # every step is held in READINESS_FROZEN_STEPS (zheref/hatsu#230).
+# surface-mirror-check.yml gains "Canon data contracts check" after the drift step
+# (zheref/hatsu#223, the two-step landing: this revision admits the next shape
+# beside the current one; the pull request that adds the step to the workflow
+# narrows EXPECTED_STEPS to it). The step runs the TRUSTED nen's own validators
+# (`direct registry`, `classify labels`, `classify install --dry-run`) over the
+# pull request's data through the trusted scripts/canon_contracts_check.sh;
+# nothing from the PR checkout is executed.
+CANON_CONTRACTS_STEP = "Canon data contracts check"
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
-  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
+  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
+  "surface-mirror-check.yml" => [
+    EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
+    EXPECTED_STEPS.fetch("surface-mirror-check.yml").flat_map { |step| step == "Surface-mirror drift check" ? [step, CANON_CONTRACTS_STEP] : [step] }
+  ]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
