@@ -316,22 +316,44 @@ printf '# only a comment\n\n' > "$work/blank-names"
 expect 2 "names file with no names" --names-file "$work/blank-names" "$work/bare.md"
 expect 0 "--allow-empty accepts it" --names-file "$work/empty-names" --allow-empty "$work/bare.md"
 
-# --- template tokens under templates/ (ruling of 2026-10-13) -------------------------------------
-mkdir -p "$work/templates/sub" "$work/other"
-text templates/tok.md '{{#each rows}}- {{zz-secret}} — {{{zz-secret}}} {{#if zz-secret}}x{{/zz-secret}}'
-expect 0 "a template token under templates/ is nen's key, exempt" --names-file "$names" "$work/templates/tok.md"
-text templates/sub/tok.html '<td>{{zz-secret}}</td>'
-expect 0 "a token in a nested templates/ file is exempt" --names-file "$names" "$work/templates/sub/tok.html"
-text templates/prose.md '{{#each rows}}- {{mark}} — zz-secret is named here in prose'
-expect 1 "the same name as prose in a template is a hit" --names-file "$names" "$work/templates/prose.md"
-text templates/comment.html '<!-- zz-secret --> <th>zz-secret</th>'
-expect 1 "the name in a template comment or tag is a hit" --names-file "$names" "$work/templates/comment.html"
-text templates/spaced.md '{{ zz-secret }} and {{zz-secret }}'
-expect 1 "a token with spaces inside the braces is not the shape" --names-file "$names" "$work/templates/spaced.md"
+# --- template tokens in the report templates (ruling of 2026-10-13) -----------------------------
+# The exemption needs the Hatsu root; --hatsu-root points it at $work, whose templates/ holds copies
+# named as the four files nen report render fills.
+mkdir -p "$work/templates/sub" "$work/other" "$work/docs/templates" "$work/vendor/pkg/templates"
+text templates/rikugan.md '{{#each rows}}- {{zz-secret}} — {{{zz-secret}}} {{#if zz-secret}}x{{/if}} {{zz-secret}}x'
+expect 0 "a token in templates/rikugan.md under the root is a nen key, exempt" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+text templates/spiritual-message.html '<td>{{zz-secret}}</td>'
+expect 0 "a token in templates/spiritual-message.html is exempt" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.html"
+expect 0 "the exemption reads the real file, however the path is spelt" --names-file "$names" --hatsu-root "$work" "$work/other/../templates/rikugan.md"
+expect 1 "the same files outside the given root are hits" --names-file "$names" "$work/templates/rikugan.md"
+text templates/rikugan.html '{{#each rows}}- {{sign}} — zz-secret is named here in prose'
+expect 1 "the same name as prose in a template is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.html"
+text templates/spiritual-message.md '<!-- zz-secret --> <th>zz-secret</th> {{ zz-secret }} {{zz-secret }} {{#unless zz-secret}} {{/zz-secret}}'
+expect 1 "a comment, a tag, spaced braces, #unless and a closing tag are not the shape" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+text templates/rikugan.md '{{zz<!-- -->-secret}} {{zz<b></b>-secret}} {{zz&#45;secret}} {{zz%2Dsecret}} &#123;&#123;zz&#45;secret&#125;&#125;'
+expect 1 "a token whose name reads only once normalised is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+has "spelt through" "the normalised hit says how it was found"
+text templates/rikugan.md '{{zz-secret}} and {{zz&#45;secret}} — one key, one entity'
+expect 1 "a key on the line does not clear an entity-spelt token beside it" --names-file "$names" --hatsu-root "$work" "$work/templates/rikugan.md"
+has "spelt through" "the entity-spelt one is the hit"
+text templates/tok.md '{{zz-secret}}'
+expect 1 "a token in another templates/ file is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/tok.md"
+text templates/sub/rikugan.md '{{zz-secret}}'
+expect 1 "a token in a nested templates/ file is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/sub/rikugan.md"
+text docs/templates/rikugan.md '{{zz-secret}}'
+expect 1 "a token under another templates/ directory is a hit" --names-file "$names" --hatsu-root "$work" "$work/docs/templates/rikugan.md"
 text other/tok.md '{{zz-secret}}'
-expect 1 "a token outside templates/ is a hit" --names-file "$names" "$work/other/tok.md"
-text templates/tok.yml '{{zz-secret}}'
-expect 1 "a token in a templates/ file that is not .md or .html is a hit" --names-file "$names" "$work/templates/tok.yml"
+expect 1 "a token outside templates/ is a hit" --names-file "$names" --hatsu-root "$work" "$work/other/tok.md"
+printf '{{zz-secret}}\n' | run --names-file "$names" --hatsu-root "$work" --label templates/rikugan.md -
+[ "$rc" -eq 1 ] && ok || bad "stdin with a template label is still a hit -- $rc $out"
+text other/real.md '{{zz-secret}}'; ln -sf "$work/other/real.md" "$work/templates/spiritual-message.md"
+expect 1 "a symlink at a template path is a hit" --names-file "$names" --hatsu-root "$work" "$work/templates/spiritual-message.md"
+rm -f "$work/templates/spiritual-message.md"
+mkdir -p "$work/tree2/templates" && text tree2/templates/rikugan.md '{{zz-secret}}' && : > "$work/tree2/templates/{{zz-secret}}.md" && ln -sf '{{zz-secret}}' "$work/tree2/templates/link.md"
+(cd "$work/tree2" && git init -q . && git add -A >/dev/null 2>&1) 2>/dev/null || true
+expect 1 "under --tree a path string or a symlink target in token shape is a hit" --names-file "$names" --hatsu-root "$work/tree2" --tree "$work/tree2"
+has "path" "the path string is what hit"
+rm -rf "$work/tree2"
 
 echo "redaction-guard: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]
