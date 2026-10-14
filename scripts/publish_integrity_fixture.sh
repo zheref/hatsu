@@ -203,8 +203,8 @@ for decoy in 'echo "scripts/publish_gate.sh"' 'cat "$hatsu_root/scripts/publish_
   printf '%s\n' '```bash' "$decoy" '```' > "$m/SKILL.md"
   expect "a mention that is not the gated call fails: ${decoy%% *}" 1 "$gate" "$m/SKILL.md"
 done
-printf '%s\n' '```bash' 'nen wc catch-up --repo <path> --base <base> --json > c.json && "$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base "$up" && nen wc publish --repo <path>   # no noOp read' '```' '' '```bash' '"$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika' '```' > "$m/SKILL.md"
-expect 'the script call beside a weaker chain does not earn the chain the full form' 1 "$gate" "$m/SKILL.md"
+printf '%s\n' '```bash' 'nen wc catch-up --repo <path> --base <base> --json > c.json && "$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base "$up" && nen wc publish --repo <path> && "$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika   # no noOp read' '```' > "$m/SKILL.md"
+expect 'the script call in a block with its own weaker publish does not earn that block the full form' 1 "$gate" "$m/SKILL.md"
 printf '%s\n' "$full" | sed 's/&& grep -Eq/\&\& ! grep -Eq/' > "$m/SKILL.md"
 expect 'an owner block with a negated noOp read fails' 1 "$gate" "$m/SKILL.md"
 w1 '```bash' 'nen wc catch-up --repo . && ! "$hatsu_root/scripts/branch_authorship_check.sh" --repo . --base x && nen wc publish --repo .' '```'
