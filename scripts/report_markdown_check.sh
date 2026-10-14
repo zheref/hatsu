@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # report_markdown_check.sh — the guard for the Markdown report templates (zheref/hatsu#215).
 #
-# FROZEN (the maintainer's ruling of 2026-10-13, docs/ROSTER.md § Rulings of 2026-10-13): BC-11's
-# embedded-Python freeze binds this script as it binds scripts/hanten_cycle_ledger.sh (ruling of
-# 2026-10-03). Fixes only — no new check, verdict, flag or subcommand — until nen carries the template
-# conformance verb the run's harvest requests (a `nen report check` over the Markdown and HTML templates,
-# the example data documents and the declared blocks); when it lands, this script and its fixture retire
-# and lane report-markdown-guard points at nen's own tests.
+# FROZEN (the maintainer's ruling of 2026-10-13, docs/ROSTER.md § Rulings of 2026-10-13): BC-11 binds
+# this script. Its python3 heredoc landed on 2026-10-13, after the freeze, so it is the finding the nen
+# port remediates, as the ledger's 2026-10-02 growth was (ruling of 2026-10-03), and the ruling holds it
+# to fixes only — no new check, verdict, flag or subcommand — until nen carries the template-conformance
+# verb, zheref/nen#406 (a `nen report check` over the Markdown and HTML templates, the example data
+# documents and the declared blocks); when it lands, this script and its fixture retire and lane
+# report-markdown-guard points at nen's own tests.
 #
 # WHAT IT PROTECTS. A surface whose native report is a Markdown artifact (Antigravity) publishes
 # `nen report render`'s fill of templates/spiritual-message.md or templates/rikugan.md, from the SAME
@@ -39,9 +40,8 @@
 # scripts/plugin_bump_check.sh's PLUGIN_SURFACE_GLOBS; the templates and examples it guards are
 # (templates/*).
 #
-# BC-11. The check is embedded Python, owed to a nen verb (template conformance; docs/PROCESS.md
-# § Residue and owned dependencies, the spiritual-message and rikugan entry). Until the G4 port-or-waive
-# ruling, fixes only.
+# BC-11: see FROZEN above; the owned dependency is docs/PROCESS.md § Residue and owned dependencies, the
+# spiritual-message and rikugan entry (c).
 #
 # USAGE
 #   scripts/report_markdown_check.sh [--root <hatsu checkout>] [--nen <binary>] [--write-examples]
@@ -65,7 +65,7 @@ while [ "$#" -gt 0 ]; do
     --root) [ "$#" -ge 2 ] || { echo "report_markdown_check.sh: --root needs a path" >&2; exit 2; }; root="$2"; shift 2 ;;
     --nen) [ "$#" -ge 2 ] || { echo "report_markdown_check.sh: --nen needs a path" >&2; exit 2; }; nen="$2"; shift 2 ;;
     --write-examples) write=1; shift ;;
-    -h|--help) sed -n '2,49p' "$0"; exit 0 ;;
+    -h|--help) awk 'NR > 1 && !/^#/ { exit } NR > 1 { print }' "$0"; exit 0 ;;
     *) echo "report_markdown_check.sh: unknown argument '$1'" >&2; exit 2 ;;
   esac
 done
@@ -73,7 +73,7 @@ if [ -z "$root" ]; then
   root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fi
 [ -d "$root" ] || { echo "report_markdown_check.sh: root '$root' is not a directory" >&2; exit 2; }
-root="$(cd "$root" && pwd)"
+root="$(cd "$root" 2>/dev/null && pwd)" || { echo "report_markdown_check.sh: --root is not a readable directory" >&2; exit 2; }
 [ -f "$root/.claude-plugin/plugin.json" ] || { echo "report_markdown_check.sh: '$root' is not a Hatsu checkout (no .claude-plugin/plugin.json)" >&2; exit 2; }
 command -v python3 >/dev/null 2>&1 || { echo "report_markdown_check.sh: python3 is required" >&2; exit 2; }
 if [ -z "$nen" ]; then
