@@ -8,8 +8,10 @@
 # serving the old wording, silently — the same class of failure an un-bumped
 # `plugin.json` produces, and the reason both guards exist.
 #
-# The whole decision lives in two trusted scripts, so it can be exercised offline: drift in
+# The whole decision lives in three trusted scripts, so it can be exercised offline: drift in
 # `scripts/surface_mirror_check.sh`, then link correctness in `scripts/surface_link_check.sh`
+# (both in the drift step), then the canon data contracts in `scripts/canon_contracts_check.sh`
+# (its own frozen step after the drift step, zheref/hatsu#223)
 # (zheref/hatsu#72); the recorded transcripts are in `docs/surfaces/evidence/surfaces.md` and
 # `docs/ab/surface-link-check.md`. Both run inside ONE step whose name, "Surface-mirror drift
 # check", is frozen by scripts/workflow_runner_policy_check.rb (renaming it is a two-step landing):
@@ -359,7 +361,8 @@ jobs:
           guard=.trusted/scripts/canon_contracts_check.sh
           [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/canon_contracts_check.sh"; exit 1; }
           [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
-          stop="stop_$(openssl rand -hex 16)"
+          stop="stop_$(openssl rand -hex 16)" || stop=""
+          [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was checked."; exit 1; }
           code=0
           echo "::stop-commands::${stop}"
           NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?
