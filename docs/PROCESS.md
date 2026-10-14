@@ -91,7 +91,8 @@ efforts.md`: the banner pasted verbatim, the report link, lettered Crazy Slots o
 recommendation, and the question through the surface's own picker. A stop that is not a gate is a
 **refusal**, never a G5 (ruling of 2026-10-13, ROSTER § *Rulings of 2026-10-13*): it names what is
 missing, what was tried and the one act or command that unblocks it, and where the operation resumes —
-no banner, no picker ([`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*); the five G5s stay five. **A phase that acts re-renders the turn report before it stops** —
+no banner, no picker ([`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*); the five G5s stay five.
+**A phase that acts re-renders the turn report before it stops** —
 [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md)'s `turn` variant, the act recorded
 in *Accomplished*.
 
@@ -645,8 +646,8 @@ block — one plain command or a shipped `scripts/` entry per call, the refused 
 replacements, `GH_TOKEN` and `PATH` without a refused shape, the chained write gates — is
 [`WORKFLOW.md`](WORKFLOW.md) § *Writing a skill block* (ruling of 2026-10-13, zheref/hatsu#218), stated
 once there; the record of the guard's refusals, verbatim, is [`docs/ab/worktree-isolation.md`](ab/worktree-isolation.md).
-A refusal of a block on neither of its lists is a named stop (G5), the block and the guard's sentence
-quoted; a throwaway helper script is never the workaround.
+A refusal of a block on neither of its lists is a refusal named as WORKFLOW § 4 *What is not a gap* names
+one, the block and the guard's sentence quoted; a throwaway helper script is never the workaround.
 
 **The mirror regeneration** `great-hiker` § 4 and `docs/using/mirrors.md` § 3 run after every
 source change is `scripts/surface_mirror_regenerate.sh`, one plain call: the three `nen surface mirror

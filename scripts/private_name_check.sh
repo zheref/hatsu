@@ -39,8 +39,8 @@
 # terminal only (stderr, refused when stderr is not a terminal), so an index never reaches a log as a
 # name. The ok line carries the list's size only under --verbose.
 #
-# Exemptions (§ *What is deliberately not redacted*) are explicit and named, never inferred. Of that
-# list only one entry is a repository name: the predecessor generator's marker, quoted as a marker
+# Exemptions (§ *What is deliberately not redacted*) are explicit shapes, never inferred. Two of them
+# can hold a repository name: the template token below, and the predecessor generator's marker, quoted as a marker
 # (hatsu:limbo matches it byte for byte, so it cannot be placeheld). Its name is read at run time from
 # limbo's own marker line (`claude/skills/limbo/SKILL.md` beside this script, or --marker-source,
 # which only the fixture passes), and it is exempt ONLY where it stands in the exact shape
@@ -49,14 +49,20 @@
 # the shape without its `<!-- ` or its `@`, or the same name anywhere else on the line -- spelt
 # plainly or through any normalisation above -- is a hit. With no readable marker source nothing is
 # exempt. The second exemption (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of
-# 2026-10-13): under `templates/` (any depth, .md or .html only) a name that is a TEMPLATE TOKEN of
+# 2026-10-13): in the four report templates named below, a name that is a TEMPLATE TOKEN of
 # `nen report render`'s language -- `{{name}}`, `{{{name}}}`, `{{#each name}}`, `{{#if name}}`,
-# `{{#unless name}}`, `{{/name}}`, the braces touching the name -- is one of nen's data-document keys,
-# which this repository does not choose; it is exempt in that shape only. The same name as prose in the
-# template, in a comment, in a tag or anywhere outside `templates/` is a hit, and a token in a file
-# outside `templates/` is a hit. The ignore file below is still the maintainer's own tool for a
-# dictionary-word name. There is no line marker and no path allowlist, so any other exemption cannot be
-# added without changing this script and its fixture.
+# the braces touching the name and paired whole -- is one of nen's data-document keys, which this repository does not
+# choose; it is exempt in that shape only, on the line as written (a name that reads only once
+# normalised was split by a comment, a tag or an entity, which no key is, and stays a hit), and only in
+# the content of the four files nen report render fills: templates/rikugan.{md,html} and
+# templates/spiritual-message.{md,html} under THIS checkout's root (the real path of a regular,
+# non-symlink file; never a printed path, a --label, stdin, a tree path string or a symlink target, and
+# never another file named templates/x). The same name as prose, in a comment or a tag, or anywhere
+# else, is a hit. The ignore file below is still the maintainer's own tool for a dictionary-word name.
+# Both exemptions are by shape, never by a list of names (a committed allowlist would publish what it
+# exempts); there is no line marker and no path allowlist, so any other exemption cannot be added
+# without changing this script and its fixture. --hatsu-root <path> (the fixture's only) names
+# another root for that check.
 # Out of tree:
 #   - --ignore-file <path> (default ${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/redaction-ignore, read
 #     when present): private names the maintainer has ruled too generic to police -- a repository
@@ -107,6 +113,7 @@ tree=""
 verbose=0
 resolve=""
 marker_source="$here/../claude/skills/limbo/SKILL.md"
+hatsu_root="$here/.."
 inputs=()
 stdin_seen=0
 
@@ -122,6 +129,7 @@ while [ $# -gt 0 ]; do
     --verbose) verbose=1; shift ;;
     --resolve) [ $# -ge 2 ] && [ -n "$2" ] || die "--resolve needs an index"; resolve="$2"; shift 2 ;;
     --marker-source) [ $# -ge 2 ] && [ -n "$2" ] || die "--marker-source needs a path"; marker_source="$2"; shift 2 ;;
+    --hatsu-root) [ $# -ge 2 ] && [ -n "$2" ] || die "--hatsu-root needs a path"; hatsu_root="$2"; shift 2 ;;
     --help|-h) awk 'NR > 1 && /^set -u$/ { exit } NR > 1 { print }' "$0"; exit 0 ;;
     --) shift; while [ $# -gt 0 ]; do inputs+=("$1"); shift; done ;;
     -) [ "$stdin_seen" -eq 0 ] || die "stdin ('-') given twice"; stdin_seen=1; inputs+=("-"); shift ;;
@@ -229,10 +237,11 @@ fi
 
 # One perl pass; see the header for the word, the normalisation and the exemption.
 PNC_NAMES="$list" PNC_ROOT="$tree" PNC_TREELIST="$tmp/tree.z" PNC_LABEL="$label" PNC_STDIN="$tmp/stdin" \
-PNC_MARKER="$marker_source" PNC_SKIPPED="$tmp/skipped" perl -e '
+PNC_MARKER="$marker_source" PNC_HATSU_ROOT="$hatsu_root" PNC_SKIPPED="$tmp/skipped" perl -e '
   use strict; use warnings;
   use Encode qw(decode encode FB_DEFAULT);
   use Unicode::Normalize qw(NFKC);
+  use Cwd ();
   open(my $nf, "<", $ENV{PNC_NAMES}) or exit 3;
   my @entries = grep { length } map { chomp; $_ } <$nf>; close $nf;
   my (%idx, @names);
@@ -257,11 +266,24 @@ PNC_MARKER="$marker_source" PNC_SKIPPED="$tmp/skipped" perl -e '
     return substr($l, 0, $b) =~ /<!-- GENERATED from \z/ ? 1 : 0;
   }
   # A template token under templates/: a nen data-document key, exempt in that exact shape only.
+  # Set by scan() for the file it reads, never by a printed path, a label or stdin: the file is a
+  # regular, non-symlink file whose real path is <hatsu root>/templates/rikugan.{md,html} or
+  # templates/spiritual-message.{md,html} -- the templates nen report render fills. Content lines only.
+  our $tmpl_ok = 0;
   sub tmpl_exempt {
-    my ($l, $b, $e, $shown) = @_;
-    return 0 unless defined $shown && $shown =~ m{(?:^|/)templates/.+\.(?:md|html)\z};
-    return 0 unless substr($l, 0, $b) =~ /\{\{(?:\{|#each |#if |#unless |\/)?\z/;
-    return substr($l, $e) =~ /\A\}\}/ ? 1 : 0;
+    my ($l, $b, $e) = @_;
+    return 0 unless $tmpl_ok;
+    my ($pre, $post) = (substr($l, 0, $b), substr($l, $e));
+    return ($post =~ /\A\}\}\}/ ? 1 : 0) if $pre =~ /\{\{\{\z/;       # {{{name}}} pairs whole
+    return 0 unless $pre =~ /(?<!\{)\{\{(?:#each |#if )?\z/;
+    return $post =~ /\A\}\}(?!\})/ ? 1 : 0;                                 # {{name}}, never {{name}}}
+  }
+  sub tmpl_file {
+    my ($path) = @_;
+    return 0 unless length $ENV{PNC_HATSU_ROOT} && -f $path && !-l $path;
+    my $real = Cwd::realpath($path); my $root = Cwd::realpath($ENV{PNC_HATSU_ROOT});
+    return 0 unless defined $real && defined $root;
+    return $real =~ m{\A\Q$root\E/templates/(?:rikugan|spiritual-message)\.(?:md|html)\z} ? 1 : 0;
   }
   sub redact { my $s = shift; $s =~ s/$re/"<private #" . $idx{lc $1} . ">"/ge; return $s }
 
@@ -306,20 +328,25 @@ PNC_MARKER="$marker_source" PNC_SKIPPED="$tmp/skipped" perl -e '
   sub line {
     my ($l, $shown, $n) = @_;
     my %seen;   # names already REPORTED on this line; an exempt match never counts as reported
+    my %keys;   # tokens the template exemption cleared on the raw line, per name
     while ($l =~ /$re/g) {
       my ($b, $e, $name) = ($-[1], $+[1], $1);
       next if exempt($l, $b, $e, $name);
-      next if tmpl_exempt($l, $b, $e, $shown);
+      if (tmpl_exempt($l, $b, $e)) { $keys{lc $name}++; next }
       hit($shown, $n, $idx{lc $name}, ""); $seen{lc $name} = 1;
     }
     return unless trig($l);
     my $m = norm($l);
     for my $v ($m, norm2($m)) {
+      # The normalised reading may pass over only as many token-shaped sightings of a name as the raw
+      # line carried as keys: a name that reads only once normalised was split by a comment, a tag or
+      # an entity, which no data-document key is -- it is a hit, as the policy says.
+      my %budget = %keys;
       while ($v =~ /$re/g) {
         my ($b, $e, $name) = ($-[1], $+[1], $1);
         next if $seen{lc $name};
         next if exempt($v, $b, $e, $name);
-        next if tmpl_exempt($v, $b, $e, $shown);
+        if ($budget{lc $name} && tmpl_exempt($v, $b, $e)) { $budget{lc $name}--; next }
         hit($shown, $n, $idx{lc $name}, " (spelt through an escape, entity, encoding, markup or invisible character)"); $seen{lc $name} = 1;
       }
     }
@@ -330,6 +357,7 @@ PNC_MARKER="$marker_source" PNC_SKIPPED="$tmp/skipped" perl -e '
     my $fh;
     local $/ = "\n";
     unless (-f $path && open($fh, "<:raw", $path)) { print STDERR "private_name_check: cannot read $shown\n"; $bad = 1; return; }
+    local $tmpl_ok = tmpl_file($path);
     my $head = ""; read($fh, $head, 8192);
     if ($head =~ /\A(\xFF\xFE|\xFE\xFF)/) {
       local $/; seek($fh, 0, 0); my $all = <$fh>; close $fh;
