@@ -1102,7 +1102,9 @@ configuration value; it stops at G5 rather than issuing a fresh budget.
   maintainer to approve — that permission prompt, showing the exact string, is the advance consent
   ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's Windows path); otherwise it prints the act for
   the maintainer and where the operation resumes ([`jujutsu`](../claude/skills/jujutsu/SKILL.md);
-  jusshin's Linux and macOS paths);
+  jusshin's Linux path, and on macOS the Login Items approval that follows its launch). The row is
+  classed `autonomous` only because `nen.decisions/v0.1` has no `refusal` class: its default *is* the
+  refusal, not a resolution, and no consumer file narrows or reclassifies it;
 - **a human gate** — G1–G5;
 - **a supply-chain failure** — a checksum or manifest mismatch, never retried;
 - **a mutating command inside a read-only loop**;
