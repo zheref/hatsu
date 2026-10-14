@@ -428,7 +428,9 @@ absolute path, `--root "$PWD"`, the output fenced between `::stop-commands::` an
 its env; the self-test holds on both trees the landing produces and also runs the body with stand-ins
 for the guard, the binary and openssl, so the exit mapping, the error lines and the fence hold at
 runtime), so the pull request that installs it is judged by a validator already holding the body; step
-two adds the step to the workflow and narrows `EXPECTED_STEPS` to it.
+two added the step to the workflow and narrowed `EXPECTED_STEPS` to it, one shape admitted again. A
+canon-contract failure reads as a red `surface-mirror-check`, and a run red at the drift step never
+reaches it (a check of its own would be the #135 route).
 
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
