@@ -425,7 +425,9 @@ checkout's bootstrapped nen and trusted script over the pull request's data. Ste
 taught the validator the step beside the current shape (`ALLOWED_STEP_SHAPES`, `CANON_CONTRACTS_STEP`)
 and froze its one form (`CANON_CONTRACTS_FROZEN`: the trusted script, `NEN` the bootstrapped binary's
 absolute path, `--root "$PWD"`, the output fenced between `::stop-commands::` and its token, no token in
-its env), so the pull request that installs it is judged by a validator already holding the body; step
+its env; the self-test holds on both trees the landing produces and also runs the body with stand-ins
+for the guard, the binary and openssl, so the exit mapping, the error lines and the fence hold at
+runtime), so the pull request that installs it is judged by a validator already holding the body; step
 two adds the step to the workflow and narrows `EXPECTED_STEPS` to it.
 
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
