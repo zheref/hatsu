@@ -597,9 +597,11 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../jutaisho/SKILL.md)⁶
 at Ready → the dated `final` report (`backlog-board` § 3), the only one written to `Reports/`, and **stops at the human gate**.
-When En has completed, start [`third-hand`](../third-hand/SKILL.md) as **the next phase** —
-Netero harvests the sitting in parallel, proposes 0–3 folded process issues, the maintainer picks
-which to file, those are filed, and **the sitting is over**. En does not own Third-Hand. En is
+When En has completed, **ask the wrap-up through the picker** ([`cleanup`](../cleanup/SKILL.md) § 2,
+row `wrap-up`; the ruling of 2026-10-13): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md)
+in parallel · continue — **you ask it as the main session when no composite holds the run**; a composite asks at
+its own terminus, and a delegate never does. `cleanup` is required after a completed session; third-hand is
+optional, and on **B** Netero harvests the sitting beside Shizuku's sweep. En does not own the wrap-up. En is
 [`izanagi`](../izanagi/SKILL.md)-capped by `nen/workflow.json` → `monitor.maxCycles`, polling at
 `monitor.pollSeconds`; **a run invoked without an acting cap does not run**. Quiet polls do not claim a
 cycle. An act refused at the cap is reported as exhausted, never extended or restarted.
@@ -748,8 +750,8 @@ résumé PR touching `nen/contract.json`, `nen/gates.json`, `.github/workflows/p
 
 **The tier pins.** Each definition carries `model:` and `effort:` frontmatter, resolved from
 `nen/workflow.json → models` and never from a version string: **Gon**, **Phinks**, **Feitan**, **Chrollo** and
-**Leorio** on the **deep** tier (`opus`) at effort `high`, **Hisoka** on **fast** (`sonnet`) at `high`, **Uvogin**,
-**Shizuku** and **Illumi** on **fast** at `medium`.
+**Leorio** on the **deep** tier (`opus`) at effort `high`, **Hisoka** on **fast** (`sonnet`) at `high`, **Uvogin** and
+**Shizuku** on **fast** at `medium`, **Illumi** on **economy** (`haiku`) at `medium`.
 **Yours carries neither, deliberately.** You are the main session and you inherit whatever the maintainer is
 running; pinning the lead persona would either cap their own conversation or hand a subagent the frontier
 tier, and this file is loaded both ways.

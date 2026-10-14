@@ -542,8 +542,9 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
   dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
   restated.
-- **`kazaana`.** The surface → `model/` line read is registry data (`contracts/direct.registry.json`, no verb);
-  raising a delegate has none (third-hand's class); the overlap read that decides a stack has none
+- **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
+  --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
+  class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
   ([`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*); a closed-unmerged PR is a `gh pr view` state. **Owed
   to nen**: `nen pr merge --release-unit` reading `aiReviewers`, so a proposal failing only on `rounds-owed` under
   `optional`/`off` can merge inside § 3a's bounds (kazaana § 5) — to file.

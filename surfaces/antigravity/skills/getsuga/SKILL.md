@@ -502,14 +502,22 @@ the branch protection. **Never self-reviews, never approves its own PR** (`claud
 and **only this PR**: a delivery PR — futon's, build's, anything a `then` chain drove — still waits
 for the maintainer at its gate; `--release-unit` is the verb's own refusal of anything else.
 
-**Under [`kazaana`](../kazaana/SKILL.md) § 5 the fall-back is never the merge prompt** (the maintainer's ruling of
-2026-10-13, [`docs/ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-10-13*, 2): transient conditions —
-a pending required check, a round requested inside `round_policy`'s caps, a head en just pushed — are held through
-en's observation hold within `monitor.maxCycles` before § 3a runs, and a gate the verb then refuses on is a **G5
-halt** quoting the verb's own line and handing the exact `--run` command, never `nen stop --gate G4|G2` with a
-`MERGE` ask and never a picker carrying the merge. `rounds-owed` as the only failing row under an effective
-`aiReviewers: optional | off` after the hold is that same halt until `nen pr merge --release-unit` reads
-`aiReviewers` (owed to nen, kazaana § Residue). Outside kazaana, the paragraph below stands as written.
+**Under [`kazaana`](../kazaana/SKILL.md) § 5 the proposal is never the maintainer's to merge — this paragraph is
+the one statement of that rule** (the maintainer's ruling of 2026-10-13, [`docs/ROSTER.md`](../../../../docs/ROSTER.md)
+§ *Rulings of 2026-10-13*, 2; kazaana cites it). **Transient conditions are held, never surfaced**: a pending required
+check, a round requested inside `round_policy`'s caps, a head en just pushed — en's observation hold runs them out,
+bounded as en § 6 and § 7 bound it (the acting cap on acts, the six stops, the session boundary; a quiet observation
+spends no cycle), and § 3a merges on the verb's `merged:` line. **Every stop this section and § 3 otherwise send to
+the declaration gate is, under kazaana, a G5 halt**: the verb's own line (or the failing condition's) quoted and the
+exact `nen pr merge … --release-unit --run` command handed over — never `nen stop --gate G4|G2` with a `MERGE` ask,
+never a picker carrying the merge. Enumerated: § 3's three conditions failing (en's verdict not `ready` at its cap;
+the guard's `not-applicable`; a base not read back as `branch.base`); the re-check's undecided row; a tag mismatch;
+the third route-back lap; an `edit-body` failure or a guard line other than `0` after it; `queued` never confirming
+`merged:`; exit `1` (a gate failed), exit `2` (usage); exits `5` and `6` are G5 already. **The `aiReviewers` case**:
+under an effective `aiReviewers: optional | off`, en hands back a `not-ready` verdict on `rounds-owed` alone
+([`PROCESS.md`](../../../../docs/PROCESS.md) § *AI reviewers per consumer*), so § 3's second condition fails before the
+verb runs — the same halt, **until `nen pr merge --release-unit` reads `aiReviewers`** (owed to nen, named in
+kazaana § Residue). Outside kazaana, the paragraph below stands as written.
 
 A fall-back **stops at the declaration gate** (`nen/decisions.json` row `canon-merge` in a canon
 repository, `merge` in a consumer) with the banner, the board and `en` § 5's merge prompt for the

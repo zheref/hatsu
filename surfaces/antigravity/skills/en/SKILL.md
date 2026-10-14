@@ -603,7 +603,7 @@ returned — `cleanup` required, `third-hand` optional. Cleaning and harvesting 
   pending.
 - **Never renders the final report while required CI or the owed current-head review round is pending**,
   and never gives a turn render a kept file (§ 8).
-- **Never starts Third-Hand from inside this run.** Harvesting is the next phase, after En has completed.
+- **Never starts cleanup or Third-Hand from inside this run.** The caller offers the wrap-up after En has completed.
 - **Never retries past a human gate**, and never spends the rest of the cap re-driving past a
   `sharingan` escalation (§ 4).
 - **Never restates another skill's protocol.** If en and a composed skill disagree, the composed

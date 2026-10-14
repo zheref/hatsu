@@ -47,7 +47,7 @@ summon, the 0–3 fold-and-priority cap, the picker, and the session-over rule.
 
 **Third-Hand is already a separate phase rather than a step of anything** — § 1 says so, and **En does
 not start it**. The contract is [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md), and
-this section covers the one fact § 1 leaves to context. **Started by the maintainer right after En has
+this section covers the one fact § 1 leaves to context. **Picked at the wrap-up right after En has
 returned, that context exists and this section is a formality; say so and move on.**
 
 **P1 · Warm up, unconditionally.** [`$ten third-hand`](../ten/SKILL.md) (ten § 6 catches up the prerequisites) — the contract's
@@ -114,17 +114,17 @@ A missing argument or configuration item is asked for and set up inline (`missin
 `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 
 **En does not start this skill.** Echoing a parse of a line nobody typed is theatre, the same
-reason [`$en`](../en/SKILL.md) § 1 does not parse Mukai's handoff. The caller starts
-Third-Hand after En has returned; the parse runs when, and only when, the maintainer typed a
-clause.
+reason [`$en`](../en/SKILL.md) § 1 does not parse Mukai's handoff. Third-Hand runs when the
+maintainer picks it at the wrap-up after En has returned; the parse runs when, and only when, the
+maintainer typed a clause.
 
 ---
 
 ## 2. When it runs — wrap-up, not merge
 
-**Started after En completes.** Kurapika, holding the regular pipeline, starts this phase when
-[`$en`](../en/SKILL.md)'s run has returned. En does not compose it and does not start it from
-inside En's step table. The retained report may already have been presented; Netero still runs as
+**Runs after En completes, when picked.** Kurapika, holding the regular pipeline, starts this phase
+when the maintainer picks it at the wrap-up after [`$en`](../en/SKILL.md)'s run has returned. En
+does not compose it and does not start it from inside En's step table. The retained report may already have been presented; Netero still runs as
 a parallel subagent of *this* phase.
 
 **Also invocable by the maintainer** when wrapping a sitting whose En already ended (they merged

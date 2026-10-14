@@ -236,7 +236,7 @@ where a maintainer believes a change has been reviewed, tested and reported beca
   must not carry a list of its callers, because the list is what goes stale — `sharingan` naming only
   `en` while `build`, `futon`, `getsuga`, `backlog-loop` and `jujisho` all reach it is exactly that
   failure. **Both sides state it**: every composite that calls a `## 0.`-bearing phase carries the
-  skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `getsuga`, `backlog-loop`, `tensho`,
+  skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `kazaana`, `getsuga`, `backlog-loop`, `tensho`,
   `jujisho`, `senkei`, `ten` — and every phase states the generic condition rather than a caller list.
   **The failure this prevents is a composite and a § 0 deriving the same value two ways**: a `build`
   run that passes `sharingan` a PR number must not have § 0 re-derive one from `gh pr list`.

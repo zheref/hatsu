@@ -250,9 +250,9 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `file` | one well-formed, correctly labelled, non-duplicate issue | duplicate search → `classify` → `nen issue create` on your confirmation | you; `third-hand`; the discovery protocol |
 | `classify` | the two label axes, `lang/<key>` and `job/<key>`, on an issue, a set, a backlog or an inline effort | `nen classify apply`; the families landed by PR on a consumer first | `file`; `build`; you |
 | `direct` | which model should do the work and where: three picks (primary, fallback, recommended) on five axes, read live | `nen direct resolve` → compare with this session → publish only where `direct.publish` opts in | `build`, `ren`; you |
-| `build` | **composite**: one issue to a delivery PR at its human gate | `ten → classify → direct → ren → aka → mukai → en → rikugan → third-hand` | you; `futon`; `backlog-loop` |
+| `build` | **composite**: one issue to a delivery PR at its human gate | `ten → classify → direct → ren → aka → mukai → en → rikugan → the wrap-up picker` | you; `futon`; `backlog-loop` |
 | `futon` | **composite**: one selector of the backlog to PRs with an actor behind them, then the typed `then` step once every PR is merged | `build` per issue → `getsuga` for `tag`/`tag+fanout`, or the named skill, or prose mapped to skills → `rikugan` | you; `kazaana` |
-| `kazaana` | **composite**: everything this surface's model can build, drawn in and delivered — `futon <repo>@model/<line> then getsuga` with parallel delegates on `direct`'s primary pick, stacks only on overlap, the merge order on the register, the release proposal merged autonomously, then one question about publishing | `direct` on the unlabelled → `futon` → delegates (`ren` or `great-hiker`, `aka`, `mukai`, `en`) → `rikugan` → `getsuga` → the publish offer → the wrap-up picker | you |
+| `kazaana` | **composite**: everything this surface's model can build, drawn in and delivered — `futon <repo>@model/<line> then getsuga` with parallel delegates on `direct`'s primary pick, stacks only on overlap, the merge order on the register, the release proposal merged autonomously, then one question about publishing | `direct` on the unlabelled → `futon` → delegates author and publish (`ren` or `great-hiker`, `aka`) while this session runs `mukai` and `en` per effort → `rikugan` → `getsuga` → the publish offer → the wrap-up picker | you |
 | `backlog-loop` | **composite**: the backlog to zero in severity order | triage → `build` + `sharingan` (≤ 2 efforts) → `getsuga` at batch boundaries → `backlog-board` per cycle | you |
 | `backlog-synthesis` | a long backlog reconciled into a short one, behind a plan you approve | plan artifact → `file` → sub-issues attached and closed | you |
 | `backlog-state` | the backlog as one gate-oriented table. Read-only | `nen` reads → `nen/colors.yml` status | you |
@@ -270,7 +270,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `susanoo` | the distributable the lane declares, built locally; names the tag `kagutsuchi` will cut, cuts none | `nen shu archive` | `getsuga`, `kagutsuchi`; you |
 | `getsuga` | **composite**: the release tag, end to end, with its own folded release-proposal PR | preconditions → `susanoo` → release PR → `nen pr merge --release-unit` (§ 3a) → tag → CON-22 fan-out | you; `futon then tag`; `backlog-loop` |
 | `kagutsuchi` | a build to a declared **non-production** destination, behind a freshness gate | `send_freshness_check.sh` → `susanoo` if stale → `nen shu deploy --run` → `dist/` tag | you; `futon then kagutsuchi` |
-| `mugetsu` | **G3**: publish one release to one production destination, on your typed go only | `nen release preflight` → `nen shu release` / `deploy --run` | you; `futon then mugetsu` on the advance go |
+| `mugetsu` | **G3**: publish one release to one production destination, on your own go only — typed, or your publish answer to `kazaana`'s one unstarred question after the tag it cut | `nen release preflight` → `nen shu release` / `deploy --run` | you; `futon then mugetsu` on the advance go; `kazaana` on your answer |
 | `tenkai` | make a repository a working consumer, deterministically and idempotently; diagnoses before it writes | `tenkai_adopt.sh diagnose → apply` → `config_values.sh fill` → PRs at the target's gate | you |
 | `limbo` | a consumer's canon mirror kept current on every declared surface | `nen canon pin → mirror check → mirror generate` → one PR → `en` | you |
 | `jusshin` | a consumer's self-hosted runners as boot-persistent services, proven by a preflight job before they are switched on | `nen runner inventory → plan → script → verify → workflow → preflight → enable` | you |
@@ -282,7 +282,8 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 
 ```mermaid
 flowchart TD
-    build --> ten & classify & direct & ren & aka & mukai & en & rikugan & thirdhand[third-hand]
+    build --> ten & classify & direct & ren & aka & mukai & en & rikugan & wrap[wrap-up picker]
+    wrap --> cleanup & thirdhand[third-hand]
     futon --> build & getsuga & rikugan
     kazaana --> direct & futon & getsuga & mugetsu & cleanup
     cleanup --> shizuku([Shizuku])
@@ -298,7 +299,9 @@ flowchart TD
     getsuga --> susanoo
     kagutsuchi --> susanoo
     thirdhand --> netero([Netero]) --> file
-    en -.-> cleanup & thirdhand
+    en -.-> wrap
+    futon --> wrap
+    kazaana --> wrap
     file --> classify
     bv[black-voice] --> shalnark([Shalnark])
     rikugan --> bb

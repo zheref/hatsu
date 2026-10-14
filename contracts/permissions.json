@@ -196,8 +196,8 @@
     },
     {
       "exe": "du",
-      "args": "*",
-      "why": "cleanup measures what a leftover occupies before Shizuku proposes removing it (cleanup § 4); a read, never a write"
+      "args": "-sk *",
+      "why": "cleanup measures what a leftover occupies before Shizuku proposes removing it (cleanup § 4): one total per path, never a file listing; a read, never a write"
     },
     {
       "exe": "bash",
