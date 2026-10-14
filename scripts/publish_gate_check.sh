@@ -116,12 +116,19 @@ for f in "$@"; do
         if (cu > 0 && au > cu && index(substr(t, cu, p - cu), "noOp") > 0) full++
       }
       # The shipped chain, scripts/publish_gate.sh, zheref/hatsu#218 i, is the full gated form in one
-      # call -- counted only where the script IS the command: at the block's start or after &&, with an
-      # optional "$hatsu_root/ or path prefix, no env assignment and no echo, cat or : before it, not a
-      # --dry-run, and only in a block that spells no nen wc publish of its own, since a mention beside
-      # a weaker chain never earns the chain the full form. No parenthesis in these comments: the shell
-      # pairs them while it reads this awk program as a command substitution.
-      if (index(t, "nen wc publish") == 0 && t ~ /(^|&& )("?\$hatsu_root\/|"?\$\{hatsu_root\}\/|"?[A-Za-z0-9_.\/-]*\/)?scripts\/publish_gate\.sh"? +--repo/ && t !~ /scripts\/publish_gate\.sh"?[^\n]*--dry-run/) full++
+      # call -- counted only where the script IS the command: at the start of the block or after &&,
+      # with an optional path or $hatsu_root prefix, no env assignment and no echo, cat or : before
+      # it, not a --dry-run, and only in a block that spells no nen wc publish of its own, since a
+      # mention beside a weaker chain never earns that chain the full form. Written with index and
+      # substr rather than one regex, with the quote as \042 and no apostrophe or parenthesis in
+      # these comments: bash 3.2 reads this awk program as a command substitution and pairs quotes
+      # and brackets while it does.
+      pg = index(t, "scripts/publish_gate.sh")
+      if (pg > 0 && index(t, "nen wc publish") == 0) {
+        pre = substr(t, 1, pg - 1); post = substr(t, pg + 23)
+        sub(/[A-Za-z0-9_.\/$\042{}-]*$/, "", pre)
+        if ((pre == "" || pre ~ /&& $/) && post ~ /^\042? +--repo/ && post !~ /--dry-run/) full++
+      }
       gated_full += full
     }
     {
