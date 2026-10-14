@@ -638,8 +638,13 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
 **Two rules ride on this matrix, and neither is optional.**
 
 - **A subagent is never given the frontier tier** (`fable`, `astra`). The frontier tier is where the
-  maintainer's own conversation lives; a delegate that outranks its caller has inverted the delegation, and
-  the cost lands on the maintainer's session rather than on the delegate's.
+  maintainer's own conversation lives, and its cost lands on the maintainer's session rather than on the
+  delegate's. **A subagent's tier is its role's, never its caller's** (ruling of 2026-10-13,
+  zheref/hatsu#222, stated here once): `hanten` raises every reviewer at `models.roles.reviewer`
+  (`deep`) whatever tier `direct` sent the maintainer's own session to — a `fast`-tier effort is still
+  read adversarially at the deepest tier a subagent may hold, because the review's worth is the reading,
+  not the symmetry with the author. A reviewer therefore outranks a `fast`-tier caller by design; it never
+  reaches the frontier tier. `hanten` § 4 and `direct` § 5 cite this.
 - **Every subagent is titled `<skill> · <persona> · <model alias>`** — `hanten · hisoka · sonnet`,
   `rasengan · kurapika · opus`. Three facts, in the order you need them when you are reading a transcript
   afterwards: what ran, as whom, on what.
@@ -682,8 +687,9 @@ disagree the file wins and the table is the bug.
 the exact invocation.
 
 **The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
-frontier tier is where the maintainer's own conversation lives; a delegate that outranks its caller has
-inverted the delegation, and the cost lands on the maintainer's session rather than on the delegate's.
+frontier tier is where the maintainer's own conversation lives, and the cost lands on the maintainer's
+session rather than on the delegate's; below it, a subagent's tier is its role's, never its caller's
+(the two rules above — the reviewer stays `deep` on a `fast`-tier effort).
 
 > **Antigravity Performance vs. Cost & Subscription Tiers (Google AI Pro & Ultra)**:
 > In market benchmarks (such as DeepSWE and SWE-bench Verified), Gemini 2.5 Pro demonstrates reasoning

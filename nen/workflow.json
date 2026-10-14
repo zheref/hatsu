@@ -179,9 +179,9 @@
       "orchestrator": "frontier",
       "watcher": "economy",
       "formatter": "economy",
-      "$comment": "watcher and formatter run on economy (zheref/hatsu#93): Illumi and hatsu:izanami polls run as watcher, formatting passes (gyo's auto-fix, prose reflow) as formatter. A role maps to a tier, never to a model."
+      "$comment": "watcher and formatter run on economy (zheref/hatsu#93): Illumi and hatsu:izanami polls run as watcher, formatting passes (gyo's auto-fix, prose reflow) as formatter. A role maps to a tier, never to a model. A subagent's tier is its role's, never its caller's (zheref/hatsu#222, ruling of 2026-10-13): reviewer stays deep when hatsu:direct sends the maintainer's own session to fast or economy; docs/WORKFLOW.md section models states it."
     },
-    "$comment": "A tier is named, never a model version — a pinned version is a pin that rots. The orchestrator tier is the main session's; a SUBAGENT never runs on it, because the frontier tier is where the human's own conversation lives and a delegate that outranks its caller has inverted the delegation."
+    "$comment": "A tier is named, never a model version — a pinned version is a pin that rots. The orchestrator tier is the main session's; a SUBAGENT never runs on it, because the frontier tier is where the human's own conversation lives. Below it a subagent's tier is its role's, never its caller's (roles.$comment, zheref/hatsu#222)."
   },
   "review": {
     "$comment": "Maintainer's rulings of 2026-09-09 (Feitan, Chrollo), 2026-09-19 (Nobunaga, Shalnark), 2026-09-30 (Leorio) -- zheref/hatsu#89. nen review scopes --base <ref> (v0.12.0) classifies the branch diff by these rows: a path may raise several scopes, and each raised scope is reviewed by its persona under hanten, within budget (reviews per EFFORT -- one branch, one PR -- never per session or repository; a new PR starts every scope full, maintainer's ruling of 2026-09-28). code is Nobunaga's and claims every path, so he is the default reviewer everywhere; tier is read against models.<surface>.<tier>, and Nobunaga's tier depends on nen repo classify's kind (deep on a process repository, fast on a product one). Paths are prefixes or globs in nen report data's tier-table grammar.",

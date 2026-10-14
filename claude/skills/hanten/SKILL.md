@@ -90,7 +90,7 @@ gap**: the persona, the raising paths, **this scope not reviewed** — never a p
 
 On Claude Code the reviewer is an Agent-tool subagent, one per scope, in parallel:
 `subagent_type` `hatsu:<persona>`, `description` **`hanten · <persona> · <model alias>`**, `model`
-`models.<surface>.<tier>` for the scope's `tier` (not passed where the persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
+`models.<surface>.<tier>` for the scope's `tier` — the scope's own, `models.roles.reviewer` by default, **never capped at the session's tier when `direct` sent it below `deep`** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § `models`, ruling of 2026-10-13) — (not passed where the persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
 shape, the preamble's **absolute** path (ECONOMICS.md's too where `economics` is raised),
 *"do not request a worktree"*, and `nen: <path>` with its pin — the one `ten` § 2 bound, since **a
 subagent inherits no `PATH`** (#107) — prefixing every block. Unresolvable, the prompt names every
