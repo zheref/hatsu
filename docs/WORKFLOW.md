@@ -1041,7 +1041,14 @@ scaffolding piece — **does not end the operation**. In order:
 2. **Ask per item, inline**, through the surface's picker (Crazy Slots) with the candidates as options,
    the best one starred and the picker's free-text answer standing in for "type it" — rows
    `missing-argument` and `missing-configuration`. **One question per missing item**, never one
-   bundled question for the whole run, and never a paragraph ending in a question mark.
+   bundled question for the whole run, and never a paragraph ending in a question mark. **The
+   question budget, stated here once** (ruling of 2026-10-13, zheref/hatsu#175): **per run there is
+   no cap** — one question per missing item, however many are missing; **per picker call, at most
+   three questions** (the Codex picker's own cap, [`SURFACES.md`](SURFACES.md) § 1); a typed item
+   (`missing-maintainer-choice`) counts like any other; and more than three missing items means
+   **more calls, never a bundle** and never a refusal on the count alone. The one that unblocks the
+   most is asked first, since its answer may derive the rest.
+   [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) § 3 P4 cites this paragraph.
 3. **Set it up on the maintainer's behalf, on that answer**, through the item's owner — `nen scaffold
    init` for a nen declaration, `scripts/tenkai_adopt.sh apply` for a Hatsu-owned piece,
    [`jujutsu`](../claude/skills/jujutsu/SKILL.md) for a device, the file's own key otherwise — validate
