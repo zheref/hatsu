@@ -112,7 +112,10 @@ zheref/hatsu#230), and runs the script from the trusted checkout against the PR'
 in the same step and only on a drift-clean tree, `scripts/surface_link_check.sh` the same way, each
 guard's output fenced by `::stop-commands::` so nothing in the PR's tree is read as a workflow command.
 The link guard has no pre-PR catch in mukai: a dangling authored link first shows in CI unless the
-author runs `bash scripts/surface_link_check.sh` by hand. It is
+author runs `bash scripts/surface_link_check.sh` by hand. The same job then runs the canon data
+contracts check (`scripts/canon_contracts_check.sh`, its own frozen step; zheref/hatsu#223), so requiring
+this context requires the contract step too, and a broken registry, taxonomy or labels file reads as a red
+`surface-mirror-check`. It is
 **required on `main`, pending the ruleset**: listing the `surface-mirror-check` context in the
 repository ruleset is the maintainer's act, named in the PR that lands this; renaming the job silently
 un-requires it. [`surface-mirror-regenerate.yml`](../../.github/workflows/surface-mirror-regenerate.yml)
