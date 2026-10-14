@@ -65,7 +65,7 @@ the highest job weight is `4` or the effort is `max`, else the primary; only the
 reached. **Companion jobs** (`companion` in the taxonomy: `review`, `delivery-ops`) never decide beside another job:
 `--job` carries only the non-companion jobs — that call is the verdict and the record — and a second call over
 the companions reports them as *companion* rows, run on the **session's** surface at `models.roles.<role>`
-(the tier pending HA#222); only companions on an issue is one call, no strike. **Where the verb's runner-up
+(its role's tier); only companions on an issue is one call, no strike. **Where the verb's runner-up
 shares the primary's pool**, the fallback is the highest-precedence other-pool alias among the pairs' picks, said (`picks.fallback`). An empty `job` axis is `undirectable`, one line. `--record` writes `.nen/direct/<effort id>.json`.
 
 ## 4. The live reads — the version, and the dial
