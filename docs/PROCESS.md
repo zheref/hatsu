@@ -540,7 +540,9 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   TypeScript is the default for a verdict — is what binds it, unruled). **BC-11 binds the hanten
   ledger — the maintainer's ruling of 2026-10-03** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 —
   BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
-  dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
+  dependency, zheref/nen#346, and `scripts/report_markdown_check.sh` (#215) under the same freeze from
+2026-10-13, its verb — template conformance — requested by the run's harvest (§ *Rulings of
+2026-10-13*); the terms and the retirement step are that section's, cited here, not
   restated.
 - **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
   on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in

@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # report_markdown_check.sh — the guard for the Markdown report templates (zheref/hatsu#215).
 #
+# FROZEN (the maintainer's ruling of 2026-10-13, docs/ROSTER.md § Rulings of 2026-10-13): BC-11's
+# embedded-Python freeze binds this script as it binds scripts/hanten_cycle_ledger.sh (ruling of
+# 2026-10-03). Fixes only — no new check, verdict, flag or subcommand — until nen carries the template
+# conformance verb the run's harvest requests (a `nen report check` over the Markdown and HTML templates,
+# the example data documents and the declared blocks); when it lands, this script and its fixture retire
+# and lane report-markdown-guard points at nen's own tests.
+#
 # WHAT IT PROTECTS. A surface whose native report is a Markdown artifact (Antigravity) publishes
 # `nen report render`'s fill of templates/spiritual-message.md or templates/rikugan.md, from the SAME
 # data document and the SAME reports.sections.<variant>.blocks as the HTML templates beside them, so
