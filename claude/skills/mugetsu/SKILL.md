@@ -414,7 +414,7 @@ One block, then stop:
   ```
 
   **One plain call per line, each exit read before the next** — ten § 2's session bind, line for
-  line ([PROCESS.md](../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218).
+  line ([WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, #218).
 
   **A non-zero exit is never hidden — and never a halt.** `ten` § 3 is the session-start supply-chain
   halt; here § 5 has already published, so a failed re-pin **links nothing, keeps the pre-release
