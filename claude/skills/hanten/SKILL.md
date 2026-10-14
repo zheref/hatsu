@@ -103,7 +103,7 @@ git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hante
 ```
 
 **The isolated checkout makes *never edits non-test source* a property of place** (WORKFLOW
-§ *Where worktrees live*), removed on return. **On an observed refusal** of that add (#218; ratified,
+§ *Where worktrees live*), removed on return. **On an observed refusal** of that add (#218; ratified exception,
 ROSTER 2026-10-13): read the effort checkout **read-only** at the printed HEAD, disclosed; **never
 `isolation: "worktree"`**.
 **A convention, so each return re-reads both refs against the SHAs printed and runs

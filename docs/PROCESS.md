@@ -645,8 +645,8 @@ block — one plain command or a shipped `scripts/` entry per call, the refused 
 replacements, `GH_TOKEN` and `PATH` without a refused shape, the chained write gates — is
 [`WORKFLOW.md`](WORKFLOW.md) § *Writing a skill block* (ruling of 2026-10-13, zheref/hatsu#218), stated
 once there; the record of the guard's refusals, verbatim, is [`docs/ab/worktree-isolation.md`](ab/worktree-isolation.md).
-A refusal of a block the table there does not name is a named stop (G5), the block and the guard's
-sentence quoted; a throwaway helper script is never the workaround.
+A refusal of a block on neither of its lists is a named stop (G5), the block and the guard's sentence
+quoted; a throwaway helper script is never the workaround.
 
 **The mirror regeneration** `great-hiker` § 4 and `docs/using/mirrors.md` § 3 run after every
 source change is `scripts/surface_mirror_regenerate.sh`, one plain call: the three `nen surface mirror
@@ -666,7 +666,9 @@ New, resumed and delegated efforts follow that one policy. Native app creation t
 exposed, are used as their schemas declare; manual `git worktree add` remains the named residue
 when no native tool is available. Neither Nen's inventory nor `wc swap` provisions isolation.
 
-**Owned dependencies.** A worktree verb that cuts, reuses, moves and drops one detached worktree at a
+**Owned dependencies.** A gated-publish verb — `scripts/publish_gate.sh`'s six gates as nen's own
+(zheref/hatsu#218 (i), the ruling of 2026-10-13; this run's BC-11 reading, ROSTER § *Rulings of 2026-10-13*),
+owed, not filed. A worktree verb that cuts, reuses, moves and drops one detached worktree at a
 fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/zheref/nen/issues/299)),
 and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);

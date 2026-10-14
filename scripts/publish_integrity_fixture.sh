@@ -199,6 +199,12 @@ printf '%s\n' '```bash' '"$hatsu_root/scripts/publish_gate.sh" --repo <path> --b
 expect 'an owner whose block calls the shipped publish_gate.sh passes (#218)' 0 "$gate" "$m/SKILL.md"
 printf '%s\n' '```bash' '"$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika' '```' '' '```bash' 'nen wc publish --repo <path>' '```' > "$m/SKILL.md"
 expect 'the shipped chain beside a bare publish block still fails' 1 "$gate" "$m/SKILL.md"
+for decoy in 'echo "scripts/publish_gate.sh"' 'cat "$hatsu_root/scripts/publish_gate.sh"' ': "scripts/publish_gate.sh"' 'true || "$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika' 'NEN=./fake "$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika' '"$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika --dry-run'; do
+  printf '%s\n' '```bash' "$decoy" '```' > "$m/SKILL.md"
+  expect "a mention that is not the gated call fails: ${decoy%% *}" 1 "$gate" "$m/SKILL.md"
+done
+printf '%s\n' '```bash' 'nen wc catch-up --repo <path> --base <base> --json > c.json && "$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base "$up" && nen wc publish --repo <path> && "$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika   # no noOp read' '```' > "$m/SKILL.md"
+expect 'the script call in a block with its own weaker publish does not earn that block the full form' 1 "$gate" "$m/SKILL.md"
 printf '%s\n' "$full" | sed 's/&& grep -Eq/\&\& ! grep -Eq/' > "$m/SKILL.md"
 expect 'an owner block with a negated noOp read fails' 1 "$gate" "$m/SKILL.md"
 w1 '```bash' 'nen wc catch-up --repo . && ! "$hatsu_root/scripts/branch_authorship_check.sh" --repo . --base x && nen wc publish --repo .' '```'

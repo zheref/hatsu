@@ -243,13 +243,16 @@ refuses the push), so the block is one plain call:
 ```
 
 Its six gates, in order: the catch-up re-probe reads `noOp: true`; `HEAD` equals `<proved>`;
-`@{upstream}` resolves; `nen shu <check>` on the lane; `branch_authorship_check.sh` over the outgoing
-range; then `nen wc publish`. Each gate's command and exit are printed for the report.
+`@{upstream}` is `<remote>/<this branch>`; `nen shu <check>` on the lane, **once per
+`iteration.checks` entry, `--check` repeated in order**; `branch_authorship_check.sh` over the outgoing
+range; then, with `HEAD` re-read as `<proved>`, `nen wc publish`. The script exits `0` pushed, `1` a gate
+said no (its line names the gate and quotes the verb's exit; each inner exit below is read from that
+line), `2` wiring; each gate's command and exit are printed, quoted, for the report.
 
 - **The catch-up is a freshness re-probe**, not a second catch-up of ao's: § 3 step 1 already ran
   ao's. Exit `1`, `2` or `3` goes to [`/ao`](../ao/SKILL.md)'s classification; `noOp: false` means
-  the base moved again, and the changed tree returns to the caller (§ 5). `$d` holds only the
-  re-probe's JSON: `rm -rf "$d"` once the chain's exit is read, pushed or not.
+  the base moved again, and the changed tree returns to the caller (§ 5). The re-probe's JSON lives
+  in the script's own scratch directory, removed by its trap, pushed or not.
 - **`<proved>` is the `HEAD` the caller's steps 3–5 proved, printed and quoted.** A merge made in
   this pass — step 1's, or the re-probe's — moved `HEAD` past it, so the chain stops and the caller
   re-proves; a `noOp` re-probe alone never stands in for a proof.
@@ -264,8 +267,8 @@ range; then `nen wc publish`. Each gate's command and exit are printed for the r
   a foreign commit the maintainer accepts is re-run with `--allow-email <addr>` on their word only for
   the identity half, and a missing or foreign `Hatsu-Agent` is never waved through. Exit `2` is a
   wiring stop: the script's sentence quoted, nothing judged, nothing pushed.
-- A red check is § 5's. `<check>` stands for each `iteration.checks` entry, every one chained;
-  `scripts/publish_gate_check.sh` holds this block to the rule.
+- A red check is § 5's. `--check` is given once per `iteration.checks` entry and the script runs every
+  one, in order, before the authorship check; `scripts/publish_gate_check.sh` holds this block to the rule.
 
 **The published test is the same one ao already ran, and its answer is re-used rather than
 re-derived** — the `strategy` `nen wc catch-up` reported:

@@ -1841,7 +1841,7 @@ does not establish isolation. Read-only observers may share a checkout; Hanten's
 their separate-checkout protocol, save one exception: on an **observed** refusal of the reviewer's
 `git worktree add` by the harness's isolation guard — never pre-empted — the reviewer reads the
 effort checkout read-only and discloses it ([`hanten`](../claude/skills/hanten/SKILL.md) § 4;
-[`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies*, row (a), #218).
+§ *Writing a skill block*, row (a), #218; ROSTER § *Rulings of 2026-10-13*, the #218 (ii) row).
 
 **The sole core-authoring waiver is the maintainer's explicit instruction in the ORIGINAL effort
 prompt to work in core.** Quote that instruction with the bound path in the effort report. A
@@ -2092,8 +2092,10 @@ workaround**: it puts unreviewed shell on the run's own authority, and where it 
 is determinism drift.
 
 **A write gated by a check stays chained to it with `&&`**: `branch_authorship_check.sh … && nen wc
-squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170, held by `scripts/publish_gate_check.sh`, #188) and
-`private_name_check.sh … && nen issue comment` (`file` § 4, `mugetsu` § 7, `sharingan` § 7). Split,
+squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170; the publish half held by `scripts/publish_gate_check.sh`,
+#188, the squash half by the prose) and `private_name_check.sh … && nen issue comment` (`mugetsu` § 7,
+`sharingan` § 7; `file` § 4 runs the guard before the plan as separate calls and lets nen's own refusal
+at write time gate the comment). Split,
 the gate would rest on an agent reading an exit, the failure #188 was filed after. Whether the guard
 accepts a bare `a && b` is not on record (shape 8's refused chains also carried `cd` and `;`); where
 it refuses one, the write is a named stop. **#188's own required chain is not bare**: `murasaki` § 6's
@@ -2114,13 +2116,13 @@ ten § 2) needs neither once the login profile carries it.
 |---|---|---|---|
 | 1 | `d="$(mktemp -d)"; curl …; out="$(bash <file> --ref <pin>)"` | `ten` § 2, the session bind; `mugetsu` § 7, the host re-pin after a publish of nen itself | one call per line: `mktemp -d`; `curl -fsSL <url> -o <d>/nen-bootstrap.sh`; `bash <d>/nen-bootstrap.sh --ref <pin>` (or `nen bootstrap … --script <d>/nen-bootstrap.sh`); `test -x <verified>`; `mkdir -p <d>/bin`; `ln -sfn <verified> <d>/bin/nen`, each exit read before the next; `<verified>` only from a bootstrap that exited `0` |
 | 2 | `nen commit format … --body "$(cat <file>)" > <msg>` | [`WORKFLOW.md`](WORKFLOW.md) § *Writing a commit* (`aka` § 4, `kokusen` § 5, `ao`, `tensho` § 4) | the literal `--body "<paragraphs>"`, one quoted argument; a body-file flag is nen's to add |
-| 3 | `export GH_TOKEN=$(gh auth token); nen …` | `en` § 6; `getsuga` §§ 2, 3a; `mugetsu` § 4; `pr-state` § 2; `sharingan` § 4; `file` § 3; `classify` § 2; `direct` § 2; `senkei` §§ 2, 4; `backlog-state` § 5; `backlog-synthesis` § 2; `tensho` §§ 5, 6; `ten` § 6 step 4; *Requesting a round* above | `"$hatsu_root/scripts/gh_token_env.sh" nen …` |
+| 3 | `export GH_TOKEN=$(gh auth token); nen …` | `en` § 6; `getsuga` §§ 2, 3a; `mugetsu` § 4; `pr-state` § 2; `sharingan` § 4; `file` § 3; `classify` § 2; `direct` § 2; `senkei` §§ 2, 4; `backlog-state` § 5; `backlog-synthesis` § 2; `tensho` §§ 5, 6; `ten` § 6 step 4; [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *Requesting a round* | `"$hatsu_root/scripts/gh_token_env.sh" nen …` |
 | 4 | `for p in …; do git worktree add --detach …; done` | `hanten` § 4 | one `git -C <repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD` per persona |
 | 5 | `for l in …; do s=$(date +%s); nen shu test --lane $l …; done` | `kotoamatsukami` § 7 | one `nen shu test --repo <path> --lane <lane>` per selected row; a duration is `--json`'s `durationMs` |
 | 6 | `git show origin/main:<f> \| grep …`; `git show <ref>:<f> > a; git diff --no-index a b` | improvised `ao`/`getsuga` reads; `getsuga` § 1's `git rev-parse … \|\| <refuse>` | `git -C <path> show <ref>:<f>`, read whole; `git -C <path> diff <ref-a> <ref-b> -- <f>`; `git rev-parse --verify -q '<token>^{commit}'` alone, its exit read |
 | 7 | `for n in …; do gh pr view $n -q …; done` | an improvised PR sweep | one `gh pr list --repo <owner/name> --state all --json <fields> --jq <filter>`, or `nen report data --prs <n,…>` |
 | 8 | `cd <dir> && git init … && git worktree add …`; `CHG=… sh <script>; nen wc publish …; nen pr edit-body …` | an improvised git probe and chain; `aka` § 4's `cat-file … \|\| fetch` and `$(git merge-base …)` | `git -C <dir> …`, one command per call, each exit read before the next; a SHA is read, then typed; a gated write keeps its `&&` (above) |
-| a | any command inside `<core>/.nen/worktrees/claude-code/hanten-<persona>` | `hanten` § 4 | on an **observed** refusal of that `git worktree add` (never pre-empted): no reviewer worktree; the reviewer reads the effort checkout — ratified 2026-10-13 as the one exception to the worktree ruling of 2026-09-30 (ROSTER § *Rulings of 2026-10-13*, zheref/hatsu#218 (ii)) read-only at the printed HEAD, disclosed; the author's tree is held by § 4's ref and authorship checks and an unchanged `git -C <path> status --porcelain` ([`WORKFLOW.md`](WORKFLOW.md) § *Where worktrees live*) |
+| a | any command inside `<core>/.nen/worktrees/claude-code/hanten-<persona>` | `hanten` § 4 | on an **observed** refusal of that `git worktree add` (never pre-empted): no reviewer worktree; the reviewer reads the effort checkout (ratified 2026-10-13 as an exception to the worktree ruling of 2026-09-30, beside the harness-native ones that ruling names — ROSTER § *Rulings of 2026-10-13*, zheref/hatsu#218 (ii)) read-only at the printed HEAD, disclosed; the author's tree is held by § 4's ref and authorship checks and an unchanged `git -C <path> status --porcelain` ([`WORKFLOW.md`](WORKFLOW.md) § *Where worktrees live*) |
 | b | `nen watch until --command "<string>"` | `en` § 6 | `gh_token_env.sh nen watch until --pr <ref> --until ready` (zheref/nen#264). A `--command` observation no `--pr` predicate expresses (`izanami`, Illumi) keeps its form; refused, the one workaround is the same line in the maintainer's own terminal, reported as handed over |
 | c | `"${SHELL}" -lic '…'`, the login-shell probe | `ten` § 2c | `"$hatsu_root/scripts/nen_reach_probe.sh" --root "$hatsu_root"` (lane `reach-probe-guard`) |
 | d | `rm -rf <scratch>` | an improvised cleanup | a run's scratch lives under the session's temp directory and is left there; a named file goes with a plain `rm <file>`; only a shipped fixture's own `trap` removes its own `mktemp -d` |
@@ -2137,7 +2139,9 @@ calls.
 |---|---|---|
 | `susanoo` § 5a, the announced tag | `$(git rev-parse --show-toplevel)`, an inline `python3` read, `case "$(cd … && pwd -P)"`, `$(sed … \| tr …)` | an inline script; its shipped form (beside `scripts/dist_tag.sh`'s) is owed, not written here |
 | `izanagi`, the v0.3.0 transcript | `export GH_TOKEN=$(gh auth token)` | a dated record of what ran, never a block to run |
-| `illumi.md`, the long watch | `nen watch until --command "<string>"` | row (b)'s workaround; no `--pr` predicate expresses it |
+| `illumi.md`, the long watch; `izanami` § 2 | `nen watch until --command "<string>"` | row (b)'s workaround; no `--pr` predicate expresses it |
+| `bankai-handbooks` § 2, the canon checkout | `[ -d … ] \|\| git clone …` | a plain `git clone` into a path that does not exist, else nothing; the `\|\|` stays until the block is split |
+| [`docs/using/cursor.md`](using/cursor.md) § *Model selection*, the grok selection | an inline `$(…)` read | an improvised read, never a skill block; a named stop where refused |
 
 
 ## Writing a commit — the message and the two streams
