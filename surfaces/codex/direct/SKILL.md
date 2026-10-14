@@ -79,11 +79,11 @@ the word `snapshot`**, the dial from `effort.surfaceMap`; a served id lagging th
 
 ## 5. The verdict — three picks on five axes, each with its interactive twin
 
-One row per pick — **primary**, **fallback**, **recommended** — on the five axes: line · tier, surface and the typed alias, latest version (quoted, source, date), effort dial (the served dials); each with its **interactive** row (the surface's app, the native IDE from `nativeInteractive`, the cell's own; its control or *not settable, said*). Below, the **per-pair table** (job · language · domain · primary · fallback · *companion*) and
+One row per pick — **primary**, **fallback**, **recommended** — on the five axes: line · tier, surface and the typed alias, latest version (source, date), effort dial (served); each with its **interactive** row (the surface's app, `nativeInteractive`'s IDE, the cell's own; its control or *not settable*). Below, the **per-pair table** (job · language · domain · primary · fallback · *companion*) and
 `domain <d> (rule <order>) · effort <level>: weight <w> + <adds>`. A reviewer alias in a fallback cell is named beside its
-actionable `also`; none left reads **fallback: none distinct**. Through `spiritual-message` under a composite, in chat otherwise. The recommended
+actionable `also`; none left reads **fallback: none distinct**. Through `spiritual-message` under a composite, else in chat. The recommended
 pick is for the **maintainer's own session**; a *subagent* never runs on it, and a verdict below `deep` moves no
-reviewer: `hanten` keeps `models.roles.reviewer` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § `models`, ruling of 2026-10-13).
+reviewer's tier (WORKFLOW § `models`).
 
 ## 6. Within the set, or the mismatch asks once, never blocks
 
