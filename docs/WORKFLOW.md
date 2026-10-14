@@ -1044,7 +1044,7 @@ scaffolding piece — **does not end the operation**. In order:
    bundled question for the whole run, and never a paragraph ending in a question mark. **The
    question budget, stated here once** (ruling of 2026-10-13, zheref/hatsu#175): **per run there is
    no cap** — one question per missing item, however many are missing; **per picker call, at most
-   three questions** (the Codex picker's own cap, [`SURFACES.md`](SURFACES.md) § 1); a typed item
+   three questions** (the Codex picker's own cap, [`surfaces/codex.md`](surfaces/codex.md) § 7); a typed item
    (`missing-maintainer-choice`) counts like any other; and more than three missing items means
    **more calls, never a bundle** and never a refusal on the count alone. The one that unblocks the
    most is asked first, since its answer may derive the rest.

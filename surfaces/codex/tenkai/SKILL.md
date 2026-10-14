@@ -57,7 +57,7 @@ itself declared, so a reader can tell a step that was considered from one that w
 | **`P1b` prove the base** | **Does not apply to diagnosis.** Tenkai reads the checkout as it stands, including existing edits. Before a scoped consumer configuration edit, run the relevant declared check on the current tree and record any pre-existing red so the edit is not credited with causing or fixing it |
 | **`P2` orient** | Runs. The branch, dirty-or-clean, and the slug are all read out loud before anything is written, because `apply` writes to the working copy and the maintainer must see what state it was in |
 | **`P3` the delta** | **Does not apply, and this is the one that matters.** Tenkai does not read a change set. Its subject is the checkout's CURRENT configuration, not what this effort changed, so there is no base to fetch and no `against <base>` clause. **A repository is diagnosed as it stands** |
-| **`P4` elicit** | Ask for `--slug` only when no `origin` resolves one. The apply choice is already answered when the maintainer explicitly requested repair. Group independent owner decisions into native option pickers of at most three questions per call; ask only decisions the declaration and prior answers cannot settle. Reuse answers from this session |
+| **`P4` elicit** | Ask for `--slug` only when no `origin` resolves one. The apply choice is already answered when the maintainer explicitly requested repair. Group independent owner decisions into native option pickers under [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 step 2's question budget (ruling of 2026-10-13); ask only decisions the declaration and prior answers cannot settle. Reuse answers from this session |
 | **`P5` declare** | Runs. One line before any item is read: `standalone entry · no composite is holding this run · <repo> · slug <slug> · runner <label> (<reason>) · not running: nothing — adoption is not a phase of the loop`. **`(fetched <sha>)` is never asserted**, because Tenkai runs no fetch — there is no delta to establish (`P3`) |
 
 **`S4` — the artifact question — is answered by the engine, not by prose.** Tenkai's own state is
@@ -639,8 +639,8 @@ Work the outstanding rows in dependency order, carrying prior owner answers forw
 4. **Settable values:** § 6d, after the three above, so a value whose candidates come from a
    lane, target or launch entry is asked once those exist.
 
-Use the surface's native Crazy Slots picker for genuine choices, at most three related questions
-per call. Offer a recommendation with the consequence of each option. The question is about the
+Use the surface's native Crazy Slots picker for genuine choices, under [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
+§ 4 step 2's question budget (ruling of 2026-10-13). Offer a recommendation with the consequence of each option. The question is about the
 workflow behaviour the maintainer wants, not a request to fill JSON. Do not re-ask a decision
 already made in the session. An unanswered required choice remains `routed` with the precise
 question, owner, and next safe step; continue independent rows.

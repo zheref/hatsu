@@ -205,13 +205,11 @@ because they change what may be asked rather than how: `questions` is capped at 
 stripped tool set with no picker at all: do not proceed on a guess.** Say the picker could not run and
 name the flag or clause that would have answered the question.
 
-**One question per call, at most three — per call, never per run.** A phase that interrogates the
-maintainer for four facts it could have read off the checkout has moved the cost of the preamble onto
-them, which is the opposite of what it is for; the limit is on what is *asked instead of derived*, not
-on how many items a run may genuinely miss. The budget is [`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask, set
-up, continue*, step 2, stated once there (ruling of 2026-10-13, zheref/hatsu#175): one question per
-missing item per run, at most three per picker call, typed items counting like any other, more items
-meaning more calls. Ask the one that unblocks the most first and re-derive from the answer.
+**Ask only what could not be derived.** A phase that interrogates the maintainer for four facts it
+could have read off the checkout has moved the cost of the preamble onto them, which is the opposite of
+what it is for. The question budget — per run, per picker call, and how a typed item counts — is
+[`WORKFLOW.md`](WORKFLOW.md) § 4 *Ask, set up, continue*, step 2, stated once there (ruling of
+2026-10-13, zheref/hatsu#175).
 
 **A question is never asked twice in one run**, and a question the maintainer already answered in the
 invocation is never asked at all — that is [`hatsu:kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md)
