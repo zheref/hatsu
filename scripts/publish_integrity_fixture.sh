@@ -195,6 +195,10 @@ w1 '```bash' 'nen wc publish --repo .' '```'
 expect 'a non-owner publish-only block passes' 0 "$gate" "$o"
 printf '%s\n' '```bash' 'nen wc publish --repo .' '```' > "$m/SKILL.md"
 expect 'an owner with no gated block fails' 1 "$gate" "$m/SKILL.md"
+printf '%s\n' '```bash' '"$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika' '```' > "$m/SKILL.md"
+expect 'an owner whose block calls the shipped publish_gate.sh passes (#218)' 0 "$gate" "$m/SKILL.md"
+printf '%s\n' '```bash' '"$hatsu_root/scripts/publish_gate.sh" --repo <path> --base <base> --proved <sha> --check lint --lane plugin --persona kurapika' '```' '' '```bash' 'nen wc publish --repo <path>' '```' > "$m/SKILL.md"
+expect 'the shipped chain beside a bare publish block still fails' 1 "$gate" "$m/SKILL.md"
 printf '%s\n' "$full" | sed 's/&& grep -Eq/\&\& ! grep -Eq/' > "$m/SKILL.md"
 expect 'an owner block with a negated noOp read fails' 1 "$gate" "$m/SKILL.md"
 w1 '```bash' 'nen wc catch-up --repo . && ! "$hatsu_root/scripts/branch_authorship_check.sh" --repo . --base x && nen wc publish --repo .' '```'

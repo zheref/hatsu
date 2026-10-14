@@ -327,6 +327,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
   'scripts/canon_contracts_check.sh'
+  'scripts/publish_gate.sh'
   'scripts/private_name_check.sh'
   'scripts/plugin_cache_check.sh'
   'scripts/tenkai_adopt.sh'

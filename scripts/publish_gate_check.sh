@@ -32,7 +32,8 @@
 #   - a negated command (`! ...`) is a finding wherever it stands on that chain: the catch-up, the
 #     authorship check, or any step between either and the publish (`&& ! grep ... noOp`) — a
 #     negated step passes on the very failure it exists to catch.
-# And murasaki/SKILL.md, the skill that owns the post-review push, must carry at least one gated
+# A block that calls scripts/publish_gate.sh (zheref/hatsu#218 (i)) is the full gated form shipped as one
+# command and counts as one. And murasaki/SKILL.md, the skill that owns the post-review push, must carry at least one gated
 # block whose catch-up-to-publish chain also reads `noOp`, un-negated, and runs
 # branch_authorship_check.sh.
 #
@@ -114,6 +115,8 @@ for f in "$@"; do
         if (au > 0) { msg = badseg(substr(t, au, p - au), "authorship check to publish"); if (msg != "") { report(msg); continue } }
         if (cu > 0 && au > cu && index(substr(t, cu, p - cu), "noOp") > 0) full++
       }
+      # The shipped chain (scripts/publish_gate.sh, zheref/hatsu#218 (i)) is the full gated form in one call.
+      if (index(t, "scripts/publish_gate.sh") > 0) full++
       gated_full += full
     }
     {
@@ -140,7 +143,7 @@ for f in "$@"; do
     */murasaki/SKILL.md)
       n="$(printf '%s\n' "$out" | sed -n 's/^FULL //p')"
       if [ "${n:-0}" -lt 1 ]; then
-        echo "$f: murasaki shows no gated catch-up && noOp && ... && branch_authorship_check.sh && publish block (zheref/hatsu#188, #170)"
+        echo "$f: murasaki shows no gated catch-up && noOp && ... && branch_authorship_check.sh && publish block, nor a scripts/publish_gate.sh call (zheref/hatsu#188, #170, #218)"
         status=1
       fi ;;
   esac
