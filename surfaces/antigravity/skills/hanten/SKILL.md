@@ -107,7 +107,7 @@ refusal** of that add (#218): read the effort checkout **read-only** at the prin
 disclosed; **never `isolation: "worktree"`** (the plugin's repo).
 **On each return, re-read both refs against the printed SHAs and run
 `"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>` directly.**
-Never pipe this guard; its own exit is the gate. A moved ref or commit in that range is G5 (#170);
+Never pipe this guard; its exit is the gate. A moved ref or commit in that range is G5 (#170);
 exit `2` is a quoted wiring stop.
 **The guard-lane fixtures run once per head, by hanten, before the raise** (hatsu#208): for every lane
 the changed paths map to (WORKFLOW § *The local verification gate* step 3; prose-only reads `lanes: not applicable`),
