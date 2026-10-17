@@ -542,6 +542,16 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
   dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
   restated.
+- **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
+  --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
+  class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
+  ([`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*); a closed-unmerged PR is a `gh pr view` state. **Owed
+  to nen**: `nen pr merge --release-unit` reading `aiReviewers`, so a proposal failing only on `rounds-owed` under
+  `optional`/`off` can merge inside § 3a's bounds (kazaana § 5) — to file.
+- **`cleanup`.** `git worktree remove|prune`, `git branch -d`, `git push origin --delete <branch>`, `git remote
+  prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
+  **owed to nen** as `nen wc prune` (to file); the raise and the `.nen/cleanup/<slug>.json` marker are Hatsu's,
+  as third-hand's are.
 - **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
   on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
   `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until
