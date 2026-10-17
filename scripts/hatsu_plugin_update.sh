@@ -51,10 +51,8 @@
 # `claude plugin update`, which only ever compares a versioned cache slot — and
 # the report says whether a shadowing hatsu@hatsu cache install needs
 # retargeting instead (scripts/hatsu_surface_link.sh --surface claude-code).
-# --codex mirrors the same idea for Codex 0.154.0's own `codex plugin add
-# hatsu@hatsu`, which copies the WHOLE plugin root — .git included — into its
-# own cache slot under $CODEX_HOME, by resolving the `hatsu` marketplace root
-# through `codex plugin marketplace list` and bringing THAT current first.
+# --codex serves a git-archive snapshot of the committed tree. Codex copies
+# that snapshot into its cache; the working checkout's ignored files stay out.
 #
 # A SURFACE'S OWN PLUGIN CACHE IS NEVER GIT-PULLED, even when it carries a real
 # .git (Codex's copy does): any --root whose path runs through a
@@ -98,11 +96,11 @@ usage: scripts/hatsu_plugin_update.sh [--root <path>] [--channel auto|trunk|rele
             with --codex.
 --codex     After a git update — or instead of one, when --root is a surface's
             own plugin cache — resolve the `hatsu` marketplace root from
-            `codex plugin marketplace list`, bring it current (`codex plugin
-            marketplace upgrade hatsu` when Codex manages it under
-            ${CODEX_HOME:-~/.codex}, otherwise a git fast-forward of that
-            checkout, unless it is already --root), then run `codex plugin add
-            hatsu@hatsu` and read back the installed version. Apply: a running
+            `codex plugin marketplace list`, locate its source checkout (a
+            clean snapshot carries an adjacent .source record), bring that
+            checkout current, archive its committed tip, move the marketplace
+            registration to the new snapshot, re-add hatsu@hatsu and read back
+            the installed version. Apply: a running
             Codex session refreshes skills and hooks after an external plugin
             upgrade (codex-cli 0.154.0); open a new one if it does not.
             Mutually exclusive with --claude.
@@ -687,25 +685,17 @@ claude_refresh() {
   skip_or_refuse "$mkt_verdict · claude plugin update hatsu@hatsu failed. Run it yourself, then apply: type /reload-plugins in the running session, or open a new session"
 }
 
-# codex_refresh AFTER_GIT — mirrors claude_refresh for Codex 0.154.0: resolve the `hatsu`
-# marketplace root from `codex plugin marketplace list`, bring it current (a Codex-managed snapshot
-# under $CODEX_HOME upgrades itself; a local checkout that is not --root is re-entered exactly as
-# --claude's in-place link is — and when that re-entry refuses on a run that is not --auto, THIS run
-# refuses too, before `codex plugin add` is ever invoked), then `codex plugin add hatsu@hatsu` and
-# read back the installed version. An empty read-back, or one that differs from
-# codex_expected_version's verdict for the marketplace root, is refused naming both values — never a
-# silent "installed" on a version Codex did not actually activate. `codex plugin add`'s own output is
-# always captured (never discarded) and quoted on failure. --dry-run touches the `codex` binary not
-# at all beyond the initial PATH check — every step is a `would run:` line, mirroring --claude's own
-# zero-invocation dry run.
+# codex_refresh AFTER_GIT — recover the source checkout from a commit snapshot's
+# sidecar record, update it, and let hatsu_surface_link atomically choose the
+# new snapshot. Legacy installs rooted directly at a checkout migrate here.
 codex_refresh() {
-  local after_git="${1:-}" mkt_root canon_mkt codex_home is_managed verdict ver expected add_out
+  local after_git="${1:-}" mkt_root canon_mkt source_root verdict ver expected new_mkt
   if ! command -v codex >/dev/null 2>&1; then
     skip_or_refuse "${after_git:+$after_git · }codex not on PATH"
   fi
   if [ "$dry_run" -eq 1 ]; then
     would "codex plugin marketplace list"
-    would "codex plugin marketplace upgrade hatsu"
+    would "scripts/hatsu_surface_link.sh --surface codex --root <marketplace source checkout>"
     would "codex plugin add hatsu@hatsu"
     report "${after_git:+$after_git · }dry-run · codex plugin add hatsu@hatsu"
     exit 0
@@ -715,30 +705,36 @@ codex_refresh() {
     skip_or_refuse "${after_git:+$after_git · }no hatsu marketplace in Codex; install first-party: scripts/hatsu_surface_link.sh --surface codex"
   fi
   canon_mkt="$(canonical_directory "$mkt_root" 2>/dev/null || printf '%s' "$mkt_root")"
-  codex_home="$(canonical_directory "${CODEX_HOME:-$HOME/.codex}" 2>/dev/null || true)"
-  is_managed=0
-  if [ -n "$codex_home" ]; then
-    case "$canon_mkt" in
-      "$codex_home"/*) is_managed=1 ;;
-    esac
-  fi
-  if [ "$is_managed" -eq 1 ]; then
-    codex plugin marketplace upgrade hatsu >/dev/null 2>&1 \
-      || skip_or_refuse "${after_git:+$after_git · }codex plugin marketplace upgrade hatsu failed"
-    verdict="codex-managed marketplace root $canon_mkt upgraded"
-  elif [ "$canon_mkt" = "$root" ]; then
-    verdict="marketplace root is this checkout"
-  else
-    reenter_verdict "$canon_mkt"
+  source_root="$canon_mkt"
+  case "$canon_mkt" in
+    */hatsu-marketplace-snapshots/*)
+      [ -f "$canon_mkt.source" ] && [ ! -L "$canon_mkt.source" ] \
+        || skip_or_refuse "${after_git:+$after_git · }clean marketplace snapshot lacks its source record: $canon_mkt.source"
+      source_root="$(cat "$canon_mkt.source")"
+      [ "$(canonical_directory "$source_root" 2>/dev/null || true)" = "$source_root" ] \
+        && is_hatsu "$source_root" \
+        && [ "$(git -C "$source_root" rev-parse --show-toplevel 2>/dev/null || true)" = "$source_root" ] \
+        && git -C "$source_root" cat-file -e "$(basename "$canon_mkt")^{commit}" 2>/dev/null \
+        || skip_or_refuse "${after_git:+$after_git · }snapshot source record is not a canonical Hatsu checkout containing its commit: $canon_mkt.source"
+      ;;
+  esac
+  if [ "$source_root" != "$root" ]; then
+    reenter_verdict "$source_root"
     if [ "$auto" -eq 0 ] && [ "$REENTER_RC" -ne 0 ]; then
-      skip_or_refuse "${after_git:+$after_git · }marketplace root $canon_mkt: $REENTER_VERDICT"
+      skip_or_refuse "${after_git:+$after_git · }marketplace source $source_root: $REENTER_VERDICT"
     fi
-    verdict="marketplace root $canon_mkt: $REENTER_VERDICT"
+    verdict="marketplace source $source_root: $REENTER_VERDICT"
+  else
+    verdict="marketplace source is this checkout"
   fi
-  add_out="$(codex plugin add hatsu@hatsu 2>&1)" \
-    || skip_or_refuse "${after_git:+$after_git · }$verdict · codex plugin add hatsu@hatsu failed: $(one_line "${add_out:-no output}")"
+  [ -f "$source_root/scripts/hatsu_surface_link.sh" ] \
+    || skip_or_refuse "${after_git:+$after_git · }marketplace source $source_root lacks hatsu_surface_link.sh"
+  local link_out
+  link_out="$(bash "$source_root/scripts/hatsu_surface_link.sh" --surface codex --root "$source_root" 2>&1)" \
+    || skip_or_refuse "${after_git:+$after_git · }$verdict · clean Codex install failed: $(one_line "${link_out:-no output}")"
+  new_mkt="$(codex_marketplace_root || true)"
   ver="$(codex_plugin_version || true)"
-  expected="$(codex_expected_version "$canon_mkt" 2>/dev/null || true)"
+  expected="$(codex_expected_version "$new_mkt" 2>/dev/null || true)"
   if [ -z "$ver" ] || { [ -n "$expected" ] && [ "$ver" != "$expected" ]; }; then
     skip_or_refuse "${after_git:+$after_git · }$verdict · codex plugin add hatsu@hatsu read back version '${ver:-empty}', expected '${expected:-unknown}'"
   fi

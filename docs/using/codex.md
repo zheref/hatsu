@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| **How Hatsu arrives** | the checkout registered as the `hatsu` marketplace, then installed as the `hatsu@hatsu` plugin; Codex **copies** it per version into its plugin cache |
+| **How Hatsu arrives** | a clean snapshot of the checkout's committed tip registered as the `hatsu` marketplace, then installed as the `hatsu@hatsu` plugin; Codex copies it per version into its plugin cache |
 | **Skills read from** | the plugin's `claude/skills/<name>/` (legacy placement: `<repo>/.agents/skills/<name>/`) |
 | **Personas** | `<repo>/AGENTS.override.md`, one **untracked** file the warm-up writes as prose |
 | **You type** | `$hatsu:<skill>`; `$<skill>` for a legacy placed copy |
@@ -28,13 +28,14 @@
 
 ## 2 · Setup
 
-**Hatsu is a Codex plugin** (from `v0.66.0`): Codex reads the checkout's `.claude-plugin/marketplace.json`
+**Hatsu is a Codex plugin** (from `v0.66.0`): Codex reads the committed snapshot's `.claude-plugin/marketplace.json`
 as a legacy-compatible marketplace, and the `.codex-plugin/plugin.json` overlay hands it the canonical
 skills, listed and invoked as `$hatsu:<name>`, plus the generated Codex hooks:
 
 ```sh
 "$HATSU_PLUGIN_ROOT/scripts/hatsu_surface_link.sh" --surface codex --root "$HATSU_PLUGIN_ROOT"
-# = codex plugin marketplace add "$HATSU_PLUGIN_ROOT" && codex plugin add hatsu@hatsu, read back
+# = git archive HEAD into $CODEX_HOME/hatsu-marketplace-snapshots/<commit>,
+#   codex plugin marketplace add <snapshot> && codex plugin add hatsu@hatsu, read back
 ```
 
 On Windows, if `codex plugin` reports `failed to resolve CODEX_HOME` in a constrained shell, set
@@ -45,8 +46,11 @@ $env:CODEX_HOME = Join-Path $env:USERPROFILE '.codex'
 codex plugin list  # confirm the same home shows hatsu@hatsu after installation
 ```
 
-Codex installs a **copy** per version under `~/.codex/plugins/cache/hatsu/hatsu/<version>/` (the whole
-checkout, ignored worktrees included) and does not notice a newer source by itself, so an update is
+Codex installs a **copy** per version under `~/.codex/plugins/cache/hatsu/hatsu/<version>/`. The
+marketplace root is a `git archive` of the served commit, so `.git`, `.nen/`, ignored worktrees and
+local settings are absent from both the snapshot and the copied slot. A newer commit gets a new
+snapshot directory; the installer removes the old marketplace registration and adds the new one before
+installing the plugin. Codex does not notice a newer source by itself, so an update is
 `$hatsu:bakuryuha`, or `scripts/hatsu_plugin_update.sh --codex`, which fast-forwards the checkout and
 re-adds the plugin; running sessions then refresh skills and hooks. Trust Hatsu's hooks once in `/hooks`
 (Codex never trusts a plugin's hooks by itself). The plugin carries no personas: in each repository
@@ -158,7 +162,7 @@ for a given job, are in [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md); the live i
 
 | What is served | How it updates | Next, to use it |
 |---|---|---|
-| the Hatsu plugin, a copy of the checkout per version | `scripts/hatsu_plugin_update.sh --codex`: fast-forward the marketplace checkout, then `codex plugin add hatsu@hatsu` again | running sessions refresh skills and hooks; personas at the next run; trust a changed hook in `/hooks` |
+| the Hatsu plugin, a copy of the committed snapshot per version | `scripts/hatsu_plugin_update.sh --codex`: fast-forward the source checkout, create a clean snapshot, move the marketplace registration and re-add the plugin | running sessions refresh skills and hooks; personas at the next run; trust a changed hook in `/hooks` |
 
 `$hatsu:bakuryuha` does all of that and ends with the one thing left to type. By hand:
 
@@ -169,8 +173,12 @@ for a given job, are in [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md); the live i
 
 ## 5 · Uninstall and rollback
 
-Nothing server-side changed. Remove the plugin through Codex's own plugin commands (`codex plugin --help`
-lists them), then remove the marketplace registration. In each repository the warm-up placed into, delete
+Nothing server-side changed. `codex plugin marketplace remove hatsu` removes the registration and
+uninstalls its plugin. After checking `codex plugin list` has no `hatsu@hatsu` row, remove an old,
+unused `$CODEX_HOME/hatsu-marketplace-snapshots/<commit>` directory and its adjacent `<commit>.source`
+record. Codex may retain an old versioned cache directory under
+`$CODEX_HOME/plugins/cache/hatsu/hatsu/`; remove that old slot only after verifying it is not the
+installed version. In each repository the warm-up placed into, delete
 `AGENTS.override.md` and any `.agents/skills/<name>/` copies; both are recorded in that repository's
 `.git/info/exclude`, never in `.gitignore`, so nothing tracked changes.
 
@@ -178,9 +186,9 @@ lists them), then remove the marketplace registration. In each repository the wa
 
 - **`AGENTS.override.md` replaces your `AGENTS.md`** in the instruction envelope rather than joining it,
   which is why the warm-up copies yours into it verbatim first and never writes the tracked file.
-- **The plugin install copies the whole marketplace root**, `.git` and git-ignored paths included, into
-  the cache slot, and the next `add` replaces the slot. Serving a clean tree instead is tracked as
-  zheref/hatsu#147.
+- **The plugin install copies the whole marketplace root**. `hatsu_surface_link.sh` makes that root a
+  committed snapshot first. A manual `codex plugin marketplace add <working-checkout>` bypasses the
+  protection and copies `.git` and ignored files into the cache.
 - **`$CLAUDE_PLUGIN_ROOT` is not this surface's variable** and may point at another plugin on your host.
   Use `$HATSU_PLUGIN_ROOT`.
 - **A legacy placement is copies, not symlinks**, for the namespacing reason § 2 gives; a copy is at most
