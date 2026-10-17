@@ -402,7 +402,9 @@ script runs, since the script runs before any check here can. **Ruled 2026-10-13
 *Rulings of 2026-10-13*): this check — shell in a workflow step that
 hashes a fetched binary and reads one contract key with `jq` — is workflow glue under BC-11's bootstrap
 allowance, not a predicate owed to a nen verb; it stays in the three workflows, and tenkai's rendered
-digest is the harvest's nen request.
+digest is the harvest's nen request. **Re-ruled 2026-10-17** (ROSTER § *Rulings of 2026-10-17*, q3: BC-11 as
+written): the compare is a verdict, frozen to fixes only pending nen's own digest check (zheref/nen#407
+item 8); it stays in the three workflows until that lands and the step becomes glue.
 
 **2026-10-13. The prose-diet guard is a pull request check
 ([zheref/hatsu#135](https://github.com/zheref/hatsu/issues/135)), both steps landed.**

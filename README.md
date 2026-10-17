@@ -352,7 +352,7 @@ Hatsu drives work **to** a gate and stops there. Clause ids are the inherited co
 | **G4** | `CON-7` | policy or spec change: a PR into a **canon** repository, whose product is the process | **the same as G2** |
 | **G5** | `CON-47` | anything else human-only: a semantic conflict, a new business rule, signing material, a supply-chain failure | **never**; its definition *is* "the decision is yours" |
 
-An on-device act — a trust prompt, a security setting — is a refusal, never a G5: the act is printed with where to resume ([`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4 *What is not a gap*, ruling of 2026-10-13).
+An on-device act — a trust prompt, a security setting — is a G5: what only you can do stops the run with the act printed and where it resumes ([`docs/WORKFLOW.md`](docs/WORKFLOW.md) § 4, ruling of 2026-10-17).
 
 > **G4 is the repository's role, not the file's kind.** A consumer declaring its own `nen/*.json`, a CI
 > workflow or a `scripts/` entry configures how the system is set up *there*; it governs nothing else and

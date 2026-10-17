@@ -264,7 +264,7 @@ Two things en relies on and does not re-derive:
   ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*, *The table, exactly*).
   **Every `nen pr edit-body` this run makes is followed by the Development guard**, its line quoted.
 - **`sharingan`'s escalation is a G5 and it ends this run's cycle**, not just its step. A PR that
-  will not reach Ready is one of the plane's five genuine stops
+  will not reach Ready is one of the plane's genuine stops
   ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4), and en does not spend the rest of its cap
   re-driving past it.
 

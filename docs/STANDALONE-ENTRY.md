@@ -307,8 +307,8 @@ entry exactly as from a wired one** — a dirty tree is carried, a cap's owed ro
 lint returns to rasengan — and the turn page names the row. **A G5 (`CON-47`) reached from a standalone entry is a real G5**: the `nen stop` banner, the report
 link, lettered options with ⭐ on the recommendation, and the question through the surface's own
 picker — [`hatsu:jutaisho`](../claude/skills/jutaisho/SKILL.md) § 4's four parts, all four. **And its
-population never widens**: the five conditions are the five, measured over exactly the set the wired
-run would have measured.
+population never widens**: the G5 kinds a wired run would stop on are the same ones here, measured over
+exactly the set the wired run would have measured.
 
 ---
 

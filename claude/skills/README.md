@@ -102,7 +102,7 @@ warm up, build, commit, launch, report, ring; pull, test, push — and the phase
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
 [`nen/workflow.json`](../../nen/workflow.json), what the workflow **decides**), every key of the second one,
-the coverage ladder, the human-called phases, the five G5 stops, and the two harness hooks in
+the coverage ladder, the human-called phases, the G5 stops, and the two harness hooks in
 [`../../hooks/`](../../hooks/).
 
 Two rules govern every one of them. **Five phases are the maintainer's to call and no agent ever prompts for
