@@ -6,6 +6,7 @@
 #
 #   scripts/branch_authorship_check.sh --repo <path> --base <ref>
 #       [--require-agent <persona>]... [--trunk <ref>] [--allow-email <email>]... [--require-trailer <Key>]
+#       [--forbid-trailers-from <workflow.json>] [--forbidden-only]
 #
 # WHAT IT TESTS, per commit in <base>..HEAD (merges included). <base> is the OUTGOING range's base —
 # the SHA `ls-remote` printed (or `@{upstream}`) on a published branch, `git merge-base
@@ -26,6 +27,8 @@
 #      repository's `user.email` plus every --allow-email, case-insensitive. A subagent on the
 #      maintainer's credentials shares that identity, so this catches only an explicit foreign one.
 #   3. --require-trailer <Key>: the commit carries that trailer key with a non-empty value.
+#   4. --forbid-trailers-from: no commit carries a key named by commits.forbiddenTrailers.
+#      --forbidden-only selects this check without the local identity/provenance checks for CI.
 #
 # exit 0  every commit in the range passes (an empty range is clean)
 # exit 1  a finding: one line per failing commit on stdout — sha, author, committer, files changed
@@ -46,9 +49,11 @@ allowed=''
 trailer=''
 agents=''
 trunk=''
+forbidden_config=''
+forbidden_only=0
 
 usage() {
-  echo 'usage: branch_authorship_check.sh --repo <path> --base <ref> [--require-agent <persona>]... [--trunk <ref>] [--allow-email <email>]... [--require-trailer <Key>]' >&2
+  echo 'usage: branch_authorship_check.sh --repo <path> --base <ref> [--require-agent <persona>]... [--trunk <ref>] [--allow-email <email>]... [--require-trailer <Key>] [--forbid-trailers-from <workflow.json>] [--forbidden-only]' >&2
   exit 2
 }
 token_ok() { printf '%s' "$1" | grep -Eqx '[A-Za-z0-9][A-Za-z0-9-]*'; }
@@ -71,11 +76,14 @@ while [ $# -gt 0 ]; do
       agents="${agents}$(lower "$2")
 "; shift 2 ;;
     --trunk) [ $# -ge 2 ] && [ -n "$2" ] || usage; trunk="$2"; shift 2 ;;
+    --forbid-trailers-from) [ $# -ge 2 ] && [ -n "$2" ] || usage; forbidden_config="$2"; shift 2 ;;
+    --forbidden-only) forbidden_only=1; shift ;;
     *) echo "branch_authorship_check: unknown argument: $(clean "$1")" >&2; usage ;;
   esac
 done
 
 [ -n "$repo" ] && [ -n "$base" ] || usage
+[ "$forbidden_only" -eq 0 ] || { [ -n "$forbidden_config" ] && [ -z "$agents" ] && [ -z "$trailer" ] && [ -z "$allowed" ] || usage; }
 if ! git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then
   echo "branch_authorship_check: not a git repository: $(clean "$repo")" >&2
   exit 2
@@ -84,12 +92,19 @@ if ! base_sha="$(git -C "$repo" rev-parse --verify --quiet "${base}^{commit}")";
   echo "branch_authorship_check: --base does not resolve to a commit: $(clean "$base")" >&2
   exit 2
 fi
-own="$(git -C "$repo" config user.email 2>/dev/null | tr '[:upper:]' '[:lower:]')"
-[ -n "$own" ] && allowed="${allowed}${own}
+if [ "$forbidden_only" -eq 0 ]; then
+  own="$(git -C "$repo" config user.email 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+  [ -n "$own" ] && allowed="${allowed}${own}
 "
-if [ -z "$allowed" ]; then
-  echo 'branch_authorship_check: no allowed identity: set user.email in the repository or pass --allow-email' >&2
-  exit 2
+  if [ -z "$allowed" ]; then
+    echo 'branch_authorship_check: no allowed identity: set user.email in the repository or pass --allow-email' >&2
+    exit 2
+  fi
+fi
+forbidden=''
+if [ -n "$forbidden_config" ]; then
+  [ -f "$forbidden_config" ] || { echo 'branch_authorship_check: forbidden trailer config is missing' >&2; exit 2; }
+  forbidden="$(ruby -rjson -e 'v=JSON.parse(File.read(ARGV.fetch(0))).dig("commits", "forbiddenTrailers"); abort "forbiddenTrailers must be a non-empty key array" unless v.is_a?(Array) && !v.empty? && v.all? { |k| k.is_a?(String) && k.match?(/\A[A-Za-z0-9][A-Za-z0-9-]*\z/) }; puts v.map(&:downcase).uniq' "$forbidden_config")" || exit 2
 fi
 
 in_set() { # <set> <value>
@@ -129,8 +144,19 @@ for sha in $shas; do
   ae="$(git -C "$repo" log -1 --format='%ae' "$sha")"
   ce="$(git -C "$repo" log -1 --format='%ce' "$sha")"
   reason=''
-  in_set "$allowed" "$ae" || reason="author"
-  in_set "$allowed" "$ce" || reason="${reason:+$reason+}committer"
+  if [ "$forbidden_only" -eq 0 ]; then
+    in_set "$allowed" "$ae" || reason="author"
+    in_set "$allowed" "$ce" || reason="${reason:+$reason+}committer"
+  fi
+  if [ -n "$forbidden" ]; then
+    # The canon forbids these keys anywhere in the message, including a body
+    # line before later prose that git interpret-trailers does not parse.
+    keys="$(git -C "$repo" log -1 --format=%B "$sha" | sed -n 's/^[[:space:]]*\([A-Za-z0-9][A-Za-z0-9-]*\)[[:space:]]*:.*/\1/p' | tr '[:upper:]' '[:lower:]')"
+    for key in $keys; do
+      in_set "$forbidden" "$key" || continue
+      reason="${reason:+$reason+}forbidden trailer $key"
+    done
+  fi
   if [ -n "$agents" ]; then
     vals="$(git -C "$repo" log -1 --format='%(trailers:key=Hatsu-Agent,valueonly,separator=%x0a)' "$sha" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep . || true)"
     if [ -z "$vals" ]; then
@@ -159,7 +185,7 @@ for sha in $shas; do
 done
 
 if [ "$found" -gt 0 ]; then
-  echo "branch_authorship_check: ${found} of ${total} commit(s) in the outgoing range fail provenance; stop before any push and report them" >&2
+  echo "branch_authorship_check: ${found} of ${total} commit(s) in the outgoing range fail provenance or trailer policy; stop before any push and report them" >&2
   exit 1
 fi
 echo "branch_authorship_check: ${total} commit(s) in the outgoing range, all with the run's provenance"

@@ -22,9 +22,26 @@ Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
 SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}"
-MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
+RUNNER_DEFAULTS = %w[macOS Windows Linux].product(%w[ARM64 X64]).map do |os, arch|
+  ["self-hosted", os, arch].freeze
+end.freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
+
+# A pool must have its own selector after GitHub's default labels. Otherwise a
+# newly registered runner of the same OS and architecture joins it without a
+# preflight (zheref/hatsu#204). The desktop label, when present, precedes the
+# pool selector; it is a mode, not a substitute for pool membership.
+def approved_runner?(runner)
+  return true if runner == HOSTED_RUNNER
+  return false unless runner.is_a?(Array)
+  return false unless runner.last&.match?(/\Apool-[A-Za-z0-9][A-Za-z0-9._-]*\z/)
+
+  defaults = runner[0, 3]
+  return false unless RUNNER_DEFAULTS.include?(defaults)
+
+  runner.length == 4 || (runner.length == 5 && defaults[1] == "Windows" && runner[3] == "desktop")
+end
 # This constant does DOUBLE DUTY: it is the portable-workflow set (each member
 # must run on GitHub-hosted ubuntu-latest) AND the required-PRESENCE list that
 # validate_repo checks. pr-readiness.yml is listed because the workflow now
@@ -334,6 +351,17 @@ EXPECTED_STEPS = {
 # hanten on #135).
 PROSE_WORKFLOW = "prose-size-check.yml"
 PROSE_GUARD_STEP = "Prose size guard"
+TRAILER_GUARD_STEP = "Forbidden commit trailer guard"
+TRAILER_FROZEN_GUARD = {
+  "env" => { "BASE_SHA" => "${{ github.event.pull_request.base.sha }}" },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    guard=.trusted/scripts/branch_authorship_check.sh
+    [ -f "$guard" ] && [ -f .trusted/nen/workflow.json ] || { echo "::error::trusted forbidden trailer guard or configuration is missing"; exit 1; }
+    sh "$guard" --repo "$PWD" --base "$BASE_SHA" --forbid-trailers-from .trusted/nen/workflow.json --forbidden-only
+  RUN
+}.freeze
 PROSE_FROZEN_GUARD = {
   "shell" => "bash",
   "run" => <<~'RUN'.strip
@@ -913,6 +941,7 @@ CANON_CONTRACTS_FROZEN = {
   RUN
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
+  "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
 ).freeze
 
@@ -1032,10 +1061,11 @@ def code_of(run)
 end
 
 # Taxonomy files that decide how a privileged job behaves: the dependency pin
-# selects the BINARY, and the gates file selects the REVIEWER IDENTITIES. In a
+# selects the BINARY, the gates file selects REVIEWER IDENTITIES, and workflow
+# configuration supplies FORBIDDEN TRAILER KEYS. In a
 # pull_request_target job the cwd is the PR HEAD checkout, so an unprefixed read
 # is the PR's own copy -- a PR choosing the binary, or the gate, that judges it.
-TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json].freeze
+TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json nen/workflow.json].freeze
 
 # Refs that denote a revision the pull request cannot control. `github.sha` is
 # trusted on `pull_request_target` (last commit on the default branch) but NOT on
@@ -1610,7 +1640,7 @@ def validate_workflow(path, hatsu: false)
 
     runner_node = job.fetch("runs-on") { fail_policy("#{path} job #{job_name} has no runs-on") }
     runner = runner_node.is_a?(Psych::Nodes::Sequence) ? sequence(runner_node, "runs-on") : scalar(runner_node)
-    allowed = runner == MAC_RUNNER || runner == WINDOWS_RUNNER || runner == HOSTED_RUNNER
+    allowed = approved_runner?(runner)
     fail_policy("#{path} job #{job_name} uses an unapproved runner #{runner.inspect}") unless allowed
     if (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).include?(File.basename(path)) && runner != HOSTED_RUNNER
       fail_policy("#{path} is portable and must use GitHub-hosted ubuntu-latest")
@@ -1677,6 +1707,13 @@ def validate_workflow(path, hatsu: false)
     if File.basename(path) == PROSE_WORKFLOW
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == PROSE_GUARD_STEP }, PROSE_FROZEN_GUARD,
                           "#{path} #{PROSE_GUARD_STEP.inspect}")
+    end
+    if File.basename(path) == "plugin-bump-check.yml" && step_names.include?(TRAILER_GUARD_STEP)
+      trailer_step = step_maps.find { |step| scalar(step["name"]) == TRAILER_GUARD_STEP }
+      require_frozen_step(trailer_step, TRAILER_FROZEN_GUARD, "#{path} #{TRAILER_GUARD_STEP.inspect}")
+      head_step = step_maps.find { |step| scalar(step["name"]) == "Checkout PR head (data only — nothing from here is executed)" }
+      fetch_depth = scalar(mapping(head_step["with"], "#{path} head checkout with")["fetch-depth"])
+      fail_policy("#{path} forbidden trailer guard needs full PR head history") unless fetch_depth == "0"
     end
     # The canon-contracts step in its one admitted form wherever
     # surface-mirror-check.yml carries it (zheref/hatsu#223, both steps landed).
@@ -2040,6 +2077,13 @@ def validate_builder_workflow(path)
 end
 
 def self_test(root)
+  RUNNER_DEFAULTS.each do |defaults|
+    fail_policy("self-test: default runner labels were admitted") if approved_runner?(defaults)
+    fail_policy("self-test: pool-own runner label was refused") unless approved_runner?(defaults + ["pool-ci"])
+  end
+  fail_policy("self-test: desktop pool label was refused") unless approved_runner?(WINDOWS_RUNNER + %w[desktop pool-ui])
+  fail_policy("self-test: desktop without pool label was admitted") if approved_runner?(WINDOWS_RUNNER + ["desktop"])
+  fail_policy("self-test: bare self-hosted was admitted") if approved_runner?("self-hosted")
   # fail_policy prints PR-controlled names escaped: no raw newline can start a
   # log line with a workflow command (hanten on step two, Feitan SEC-7).
   begin
@@ -2115,6 +2159,14 @@ def self_test(root)
     start_step = "Start required check on the exact PR head"
     policy_step = "Enforce workflow runner policy from trusted workflow revision"
     guard_step = "Plugin-bump guard check"
+    trailer_step = TRAILER_GUARD_STEP
+    trailer_start = original.index("      - name: #{trailer_step}\n")
+    trailer_end = original.index("      - name: Finish required check on the exact PR head\n", trailer_start) if trailer_start
+    fail_policy("self-test: missing trailer step fixture") unless trailer_start && trailer_end
+    without_trailer = original[0...trailer_start] + original[trailer_end..-1]
+    File.write(plugin, without_trailer)
+    expect_rejected("forbidden trailer guard removed", /step set or order changed/) { validate_repo(tmp) }
+    File.write(plugin, original)
     # The one case whose base is refused alone: the guard leaves the job in one
     # edit and reaches a step in the next, and the two are judged together.
     unguarded = fixture_sub("step-only same-repository guard", original, /^    if: .*\n/, "")
