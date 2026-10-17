@@ -25,7 +25,7 @@ and the day it was fetched, is the matching file under [`../surfaces/`](../surfa
 
 | | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |
 |---|---|---|---|---|
-| how Hatsu arrives | **in place**: `~/.claude/skills/hatsu` → the checkout (`hatsu@skills-dir`) | **the Hatsu plugin**: the checkout as a marketplace, `codex plugin add hatsu@hatsu` (a copy per version) | bootstrap seeds `ten`; the warm-up links `surfaces/cursor/` | **global plugin**: `~/.gemini/config/plugins/hatsu` → `<checkout>/surfaces/antigravity` |
+| how Hatsu arrives | **in place**: `~/.claude/skills/hatsu` → the checkout (`hatsu@skills-dir`) | **the Hatsu plugin**: a clean snapshot of the committed checkout as a marketplace, `codex plugin add hatsu@hatsu` (a copy per version) | bootstrap seeds `ten`; the warm-up links `surfaces/cursor/` | **global plugin**: `~/.gemini/config/plugins/hatsu` → `<checkout>/surfaces/antigravity` |
 | skills read from | `$CLAUDE_PLUGIN_ROOT/claude/skills/<name>/SKILL.md`, the checkout's own | the plugin's `claude/skills/<name>/SKILL.md` (the overlay's `skills`) | `<repo>/.cursor/skills/<name>/SKILL.md` (symlinks) | plugin `skills/<name>/SKILL.md` |
 | personas read from | `claude/agents/<persona>.md` | `AGENTS.override.md` as prose, plus `.codex/agents/<persona>.toml` | `.cursor/agents/<persona>.md` | plugin `agents/<persona>.md` or `.agents/agents/<persona>.md` |
 | rules file | none | `AGENTS.override.md` (32 KiB cap) | `.cursor/rules/hatsu.mdc` | `rules/hatsu.md`, 12,000 characters max |

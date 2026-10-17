@@ -131,13 +131,9 @@ jobs:
     # own, because GitHub's defaults alone -- self-hosted, the OS, the arch --
     # are what every runner of that OS and arch gets at registration, so a
     # later registration on the repository joins the pool unproven and can
-    # pick up this preflight and the pool's jobs. NOT YET RENDERABLE for a
-    # service pool: nen's schema, zheref/hatsu's runner-policy guard and
-    # tenkai's runner derivation hold the three-label set, so until
-    # zheref/hatsu#204 lands this line is the defaults and membership is OS
-    # and arch -- said here so a reader does not take the defaults for the
-    # rule. An interactive Windows pool already carries a label of its own:
-    # nen 0.19 renders it as [self-hosted, Windows, <arch>, desktop].
+    # pick up this preflight and the pool's jobs. Nen 0.21 renders pool-<id>
+    # last for every pool; an interactive Windows pool also carries desktop
+    # before that label. Hatsu's guard and Tenkai require the pool label.
     runs-on: @@RUNS_ON@@
     # Bounds the RUN, not the wait: a job waits in the queue for a runner
     # carrying every label, and GitHub cancels it after 24 hours there. While
