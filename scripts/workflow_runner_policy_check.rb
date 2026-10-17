@@ -293,6 +293,7 @@ EXPECTED_STEPS = {
     "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)",
     "Verify the nen binary against trusted nen/contract.json's sha256",
     "Surface-mirror drift check",
+    "Canon data contracts check",
     "Finish check on the exact PR head"
   ],
   # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
@@ -902,12 +903,10 @@ REGENERATE_PR_WITH = {
 # One shape each, and a second for pr-readiness.yml: tenkai's rendered form,
 # which carries no digest step. Hatsu's own form must carry it, because its
 # every step is held in READINESS_FROZEN_STEPS (zheref/hatsu#230).
-# surface-mirror-check.yml gains "Canon data contracts check" after the drift step
-# (zheref/hatsu#223, the two-step landing: this revision admits the next shape
-# beside the current one AND freezes the step's one form, so the pull request
-# that adds the step to the workflow is judged by a validator that already
-# holds its exact body; that pull request narrows EXPECTED_STEPS to the new
-# shape). The step runs the TRUSTED nen's own validators (`direct registry`,
+# surface-mirror-check.yml carries "Canon data contracts check" after the drift step
+# (zheref/hatsu#223, both steps landed: step one admitted the shape beside the
+# current one and froze the step's form; step two installed the step and
+# narrowed EXPECTED_STEPS to it, so one shape is admitted again). The step runs the TRUSTED nen's own validators (`direct registry`,
 # `classify labels`, `classify install --dry-run`) over the pull request's data
 # through the TRUSTED scripts/canon_contracts_check.sh, `NEN` the bootstrapped
 # binary's absolute path and `--root "$PWD"` the PR checkout; nothing from the
@@ -943,11 +942,7 @@ CANON_CONTRACTS_FROZEN = {
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml"), EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
-  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  "surface-mirror-check.yml" => [
-    EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
-    EXPECTED_STEPS.fetch("surface-mirror-check.yml").flat_map { |step| step == CANON_CONTRACTS_AFTER ? [step, CANON_CONTRACTS_STEP] : [step] }
-  ]
+  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -1721,7 +1716,7 @@ def validate_workflow(path, hatsu: false)
       fail_policy("#{path} forbidden trailer guard needs full PR head history") unless fetch_depth == "0"
     end
     # The canon-contracts step in its one admitted form wherever
-    # surface-mirror-check.yml carries it (zheref/hatsu#223, step one).
+    # surface-mirror-check.yml carries it (zheref/hatsu#223, both steps landed).
     if File.basename(path) == "surface-mirror-check.yml" && step_names.include?(CANON_CONTRACTS_STEP)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_CONTRACTS_STEP }, CANON_CONTRACTS_FROZEN,
                           "#{path} #{CANON_CONTRACTS_STEP.inspect}")
