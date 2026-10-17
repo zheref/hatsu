@@ -31,7 +31,8 @@
     "./claude/agents/netero.md",
     "./claude/agents/nobunaga.md",
     "./claude/agents/shalnark.md",
-    "./claude/agents/leorio.md"
+    "./claude/agents/leorio.md",
+    "./claude/agents/shizuku.md"
   ],
   "commands": "./claude/commands/",
   "skills": "./claude/skills/"

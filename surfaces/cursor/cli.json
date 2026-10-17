@@ -40,6 +40,7 @@
       "Shell(cursor-agent:-v)",
       "Shell(osascript:*)",
       "Shell(afplay:*)",
+      "Shell(du:-sk *)",
       "Shell(bash:scripts/*)",
       "Shell(xcrun:simctl *)",
       "Shell(bun:*)",

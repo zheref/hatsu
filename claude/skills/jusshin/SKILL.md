@@ -58,7 +58,9 @@ A missing argument or configuration item is asked for and set up inline (`missin
 `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 The target, the machine code and the service identity are the maintainer's word — **typed, never
 picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of
-2026-09-30 — jusshin*); the rest is derived and stated, and asked only where it cannot be.
+2026-09-30 — jusshin*); the rest is derived and stated, and asked only where it cannot be. A cold run
+with no clauses may miss five items; they are asked under [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
+§ 4 step 2's question budget (ruling of 2026-10-13), across as many picker calls as that takes.
 
 | Item | Source | Asked as |
 |---|---|---|
