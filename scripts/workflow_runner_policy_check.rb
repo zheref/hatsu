@@ -351,6 +351,17 @@ EXPECTED_STEPS = {
 # hanten on #135).
 PROSE_WORKFLOW = "prose-size-check.yml"
 PROSE_GUARD_STEP = "Prose size guard"
+TRAILER_GUARD_STEP = "Forbidden commit trailer guard"
+TRAILER_FROZEN_GUARD = {
+  "env" => { "BASE_SHA" => "${{ github.event.pull_request.base.sha }}" },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    guard=.trusted/scripts/branch_authorship_check.sh
+    [ -f "$guard" ] && [ -f .trusted/nen/workflow.json ] || { echo "::error::trusted forbidden trailer guard or configuration is missing"; exit 1; }
+    sh "$guard" --repo "$PWD" --base "$BASE_SHA" --forbid-trailers-from .trusted/nen/workflow.json --forbidden-only
+  RUN
+}.freeze
 PROSE_FROZEN_GUARD = {
   "shell" => "bash",
   "run" => <<~'RUN'.strip
@@ -930,6 +941,7 @@ CANON_CONTRACTS_FROZEN = {
   RUN
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
+  "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml"), EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
 ).freeze
 
@@ -1049,10 +1061,11 @@ def code_of(run)
 end
 
 # Taxonomy files that decide how a privileged job behaves: the dependency pin
-# selects the BINARY, and the gates file selects the REVIEWER IDENTITIES. In a
+# selects the BINARY, the gates file selects REVIEWER IDENTITIES, and workflow
+# configuration supplies FORBIDDEN TRAILER KEYS. In a
 # pull_request_target job the cwd is the PR HEAD checkout, so an unprefixed read
 # is the PR's own copy -- a PR choosing the binary, or the gate, that judges it.
-TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json].freeze
+TRUSTED_ONLY_DATA = %w[nen/contract.json nen/gates.json nen/workflow.json].freeze
 
 # Refs that denote a revision the pull request cannot control. `github.sha` is
 # trusted on `pull_request_target` (last commit on the default branch) but NOT on
@@ -1694,6 +1707,13 @@ def validate_workflow(path, hatsu: false)
     if File.basename(path) == PROSE_WORKFLOW
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == PROSE_GUARD_STEP }, PROSE_FROZEN_GUARD,
                           "#{path} #{PROSE_GUARD_STEP.inspect}")
+    end
+    if File.basename(path) == "plugin-bump-check.yml" && step_names.include?(TRAILER_GUARD_STEP)
+      trailer_step = step_maps.find { |step| scalar(step["name"]) == TRAILER_GUARD_STEP }
+      require_frozen_step(trailer_step, TRAILER_FROZEN_GUARD, "#{path} #{TRAILER_GUARD_STEP.inspect}")
+      head_step = step_maps.find { |step| scalar(step["name"]) == "Checkout PR head (data only — nothing from here is executed)" }
+      fetch_depth = scalar(mapping(head_step["with"], "#{path} head checkout with")["fetch-depth"])
+      fail_policy("#{path} forbidden trailer guard needs full PR head history") unless fetch_depth == "0"
     end
     # The canon-contracts step in its one admitted form wherever
     # surface-mirror-check.yml carries it (zheref/hatsu#223, both steps landed).
