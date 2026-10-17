@@ -238,7 +238,7 @@ where a maintainer believes a change has been reviewed, tested and reported beca
   must not carry a list of its callers, because the list is what goes stale — `sharingan` naming only
   `en` while `build`, `futon`, `getsuga`, `backlog-loop` and `jujisho` all reach it is exactly that
   failure. **Both sides state it**: every composite that calls a `## 0.`-bearing phase carries the
-  skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `getsuga`, `backlog-loop`, `tensho`,
+  skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `kazaana`, `getsuga`, `backlog-loop`, `tensho`,
   `jujisho`, `senkei`, `ten` — and every phase states the generic condition rather than a caller list.
   **The failure this prevents is a composite and a § 0 deriving the same value two ways**: a `build`
   run that passes `sharingan` a PR number must not have § 0 re-derive one from `gh pr list`.
@@ -335,16 +335,20 @@ the general rule and the skill states its own stricter one.
 least of all, because a cold entry is exactly where a prompt reads as *the pipeline knows what it is
 doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1). `en` § 5's merge prompt is not such a prompt: it
 presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session (`ROSTER.md` § *Rulings of 2026-09-30 — En never merges*).
+Nor are the two offers of the ruling of 2026-10-13: the wrap-up picker (`cleanup` · `cleanup` and `third-hand` ·
+continue — [`cleanup`](../claude/skills/cleanup/SKILL.md) § 2) names no phase of the five, and
+[`kazaana`](../claude/skills/kazaana/SKILL.md) § 6's one question after its tag collects the maintainer's own go
+for `mugetsu`, form (4) of its § 0, rather than proposing it.
 
 ---
 
 ## 7. The skills that carry a `## 0. Standalone entry`
 
-**Twenty-eight do**, and they fall into two groups. The split is the useful fact: a reader asking *what
+**Twenty-nine do**, and they fall into two groups. The split is the useful fact: a reader asking *what
 will this derive if I type it cold* needs the first table, and a reader asking *does P1 apply* needs
 both.
 
-### 7a · Fourteen whose `## 0.` derives state (S1–S4)
+### 7a · Fifteen whose `## 0.` derives state (S1–S4)
 
 | Skill | What it derives cold | What it asks for |
 |---|---|---|
@@ -360,6 +364,7 @@ both.
 | [`kagutsuchi`](../claude/skills/kagutsuchi/SKILL.md) | S2 — the target, from the invocation or, omitted, `nen/workflow.json` → `deploy.defaultTarget` (HA#146), the source said; the archive's commit, read as § 3a's freshness gate, and § 3b's rebuild through `susanoo` (whose `## 0.` it holds) only when that gate finds it stale | a target neither typed nor declared, **typed, never picked** (`missing-maintainer-choice`). **The call is the maintainer's** — typed, or a futon `then` step |
 | [`mugetsu`](../claude/skills/mugetsu/SKILL.md) | nothing new — `G3` | nothing, except the destination, on the maintainer's own same-turn `hatsu:mugetsu` naming none where several are declared, typed. **The go is the maintainer's** |
 | [`third-hand`](../claude/skills/third-hand/SKILL.md) | S3 — "this sitting", from the branch and any open PR | the harvest pick, as it always did |
+| [`cleanup`](../claude/skills/cleanup/SKILL.md) | S3 — this sitting as third-hand resolves it, **plus every prior leftover the inventory encounters** (`nen wc worktrees`, the merged and closed PRs, the caches); P3's fetch runs, since merged is judged against the fetched base | the plan pick — one multi-select, deterministic rows pre-selected, proposed rows not, plus *none*; nothing removed before it |
 | [`murasaki`](../claude/skills/murasaki/SKILL.md) | S1 — the base, hence the catch-up; conflicts classified before one is touched | only a dirty working copy, before git state moves |
 | [`rikugan`](../claude/skills/rikugan/SKILL.md) | S3 + S4 — the scope, in its § 2 order: handed over by the composite that names it, typed, the objects the session's last completed workflow touched (read from that run's record), else the checkout (the branch's open or merged PR and the issues its body closes); **P1b is declined** (read-only) and **P3 is declined** — the subject is a state, not a delta, and `(fetched <sha>)` is never asserted. Terminal in its own pipeline: the hand-back line says so | the scope, as **free text**, only when neither the session nor the checkout yields one (`missing-argument`) — never the whole backlog by default |
 
