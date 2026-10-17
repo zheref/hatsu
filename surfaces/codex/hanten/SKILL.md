@@ -102,14 +102,14 @@ nen wc worktrees --repo <target repo> --json
 git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD   # one per persona
 ```
 
-**The isolated checkout makes *never edits non-test source* a property of where the reviewer
-stands** (WORKFLOW § *Where worktrees live*), removed on return. **On an observed
-refusal** of that add (#218): read the effort checkout **read-only** at the printed HEAD,
-disclosed; **never `isolation: "worktree"`** (the plugin's repo).
+**Isolation makes *never edits non-test source* a property of place** (WORKFLOW
+§ *Where worktrees live*). On an observed worktree refusal (#218; ratified exception,
+ROSTER 2026-10-13), read the checkout **read-only** at the printed HEAD and disclose it; **never
+`isolation: "worktree"`**.
 **On each return, re-read both refs against the printed SHAs and run
 `"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>` directly.**
-Never pipe this guard; its exit is the gate. A moved ref or commit in that range is G5 (#170);
-exit `2` is a quoted wiring stop.
+Never pipe this guard: its exit is the gate. A moved ref or any commit in that range is G5 naming
+the range, never built on (#170); exit `2` is a quoted wiring stop.
 **The guard-lane fixtures run once per head, by hanten, before the raise** (hatsu#208): for every lane
 the changed paths map to (WORKFLOW § *The local verification gate* step 3; prose-only reads `lanes: not applicable`),
 `nen shu test --repo <path> --lane <lane> --effort <branch>` inside a `nen phase` (WORKFLOW § *The

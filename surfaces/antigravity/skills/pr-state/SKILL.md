@@ -91,7 +91,7 @@ registry entry is set up through the registry's own key, never by this read-only
 
 Every `nen pr ready` call below runs through `scripts/gh_token_env.sh` — `nen` never picks a token up
 ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`
-([PROCESS.md](../../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218).
+([WORKFLOW.md](../../../../docs/WORKFLOW.md) § *Writing a skill block*, #218).
 
 **Which identity flag goes on the call is decided BEFORE it is typed — never the `--gates` form by
 default.** This section owns the rule for every flag on the call — the identity flag and, below, why no

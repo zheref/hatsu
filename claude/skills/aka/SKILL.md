@@ -165,7 +165,7 @@ git -C <path> merge-base origin/<base> HEAD   # first publish only
 ```
 
 **No `$(…)` and no `||` to compute or branch a step** — the SHA is read, then typed — while the
-authorship gate stays chained to the write it gates (PROCESS.md § *Residue and owned dependencies*, #218, #170).
+authorship gate stays chained to the write it gates (WORKFLOW.md § *Writing a skill block*, #218, #170).
 Never pipe `branch_authorship_check.sh` through another command: its own exit code is the gate,
 and the squash runs only when that exit is `0`. A pipe to `tail` can hide a refusal.
 
