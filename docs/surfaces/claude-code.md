@@ -122,7 +122,11 @@ A persona can opt out of `CLAUDE.md` with `omitClaudeMd`; Hatsu's do not.
 `AskUserQuestion`, the harness's own tool, is what `jutaisho` asks a gate question through: lettered
 options, a star on the recommended one, several tickable when several can be true. The tool is what the
 session exposes; no official page for it was fetched on 2026-09-20, so it stands as an observed fact
-rather than a checklist row (see *Known gaps*).
+rather than a checklist row (see *Known gaps*). **The shape (ruling of 2026-10-17, zheref/hatsu#294):** the
+picker's question field is short, so it carries one question of at most two sentences and option labels of
+at most eight words; the banner, verdict, link and commands go in the chat message. **Hand-over (zheref/hatsu#295):**
+in the Claude desktop app a `bash`-tagged fence renders a Run button, so one command per `bash` block *is*
+the hand-over; in the CLI the fence is the copy source.
 
 ## 8. Generation
 

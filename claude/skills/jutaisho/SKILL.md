@@ -131,6 +131,14 @@ ending in a question mark; its options are the marker's, verbatim (§ 1). **A `D
 which is the maintainer's outside the session — a `MERGE` ask is `en` § 5's merge prompt for every PR
 into `main`, the run's own included: its link and the inline `gh pr merge` line (ruling 2026-09-30).
 
+**Where the parts go (ruling of 2026-10-17, zheref/hatsu#294).** Parts 1–3 are the **chat message**: the
+banner and table, the link, the lettered options with each command as its own `bash` block. The
+**picker** carries part 4 alone — one question of at most two sentences, options of at most eight words,
+lettered, the ⭐ one first — and never a verdict, a link or a command. That is the shape on every surface
+with a picker (`AskUserQuestion`, `request_user_input`, `AskQuestion`, `ask_question`). A free-text answer
+typed into the picker is the maintainer's word: it re-enters the run as that one picker call
+(STANDALONE-ENTRY § 3 P4), recorded as typed.
+
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
 

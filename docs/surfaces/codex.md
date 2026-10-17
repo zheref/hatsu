@@ -152,6 +152,11 @@ collect several ticked answers on one question; the CLI TUI selects one option p
 official mention is the app-server protocol's `tool/requestUserInput`, marked experimental; no
 user-facing page names the tool, so the checklist row cites the protocol page.
 
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries one
+question of at most two sentences and options of at most eight words; the banner, verdict, link and every
+command are the chat message's. This surface renders no Run button on a code fence, so a command the
+maintainer must run is one complete `bash` block per command and the message says *paste into a terminal*.
+
 ## 8. Generation
 
 ```sh

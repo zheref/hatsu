@@ -154,6 +154,11 @@ at exit 0, and that pending CI, reviewer rounds, or open review threads strictly
 `ask_question`: multiple-choice questions, argument `questions` (an array of `question`, `options`,
 `is_multi_select`). `jutaisho` sets `is_multi_select: true` when several options may all be true.
 
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries one
+question of at most two sentences and options of at most eight words; the banner, verdict, link and every
+command are the chat message's. This surface renders no Run button on a code fence, so a command the
+maintainer must run is one complete `bash` block per command and the message says *paste into a terminal*.
+
 ## 8. Generation
 
 ```sh

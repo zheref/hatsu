@@ -493,7 +493,11 @@ work runs in-session as named **sequential** passes, one scope at a time, in the
 `request_user_input` on Codex, `AskQuestion` on Cursor, `ask_question` on Antigravity — never a
 paragraph ending in a question mark. **A deferred picker tool is loaded first**, never treated as
 absent; only a surface with none prints lettered options in chat, closing with *answer with a letter*,
-and says so.
+and says so. **The picker carries the question alone** — one question, two sentences at most, options
+of at most eight words with the ⭐ first; the stop's banner, verdict, link and commands are the chat
+message's, and a free-text answer is the maintainer's word ([`jutaisho`](../claude/skills/jutaisho/SKILL.md)
+§ 4; ruling of 2026-10-17, zheref/hatsu#294). **A command the maintainer must run is one `bash` block per
+command, complete, with where to run it** ([`WORKFLOW.md`](WORKFLOW.md) § 4; zheref/hatsu#295).
 
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
 **in the plugin** — said, still placed, regenerated in a PR. **On Claude Code there is no mirror**, so

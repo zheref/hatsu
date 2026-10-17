@@ -118,7 +118,7 @@ nen classify apply --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --r
 labels **only where `declared` and `github` both read ok**; otherwise the classification is shown and named
 owed, and the filing proceeds without it (file § 5). **Named issues and `backlog`** render one table —
 issue, title, proposed `lang`, proposed `job`, confidence, reason, injection-suspect — applied rows first,
-**low keys and undecidable issues in their own sections below** — then **one** picker: ⭐ *apply the high and
+**low keys and undecidable issues in their own sections below** — then **one** picker (jutaisho § 4's shape): ⭐ *apply the high and
 medium rows* · *do not apply*. The answer is the `--run`; a sweep applies nothing before it, and this skill
 never passes `--include-low`. `--plan` is absolute (a relative one resolves against the checkout) and the
 ledger sits under the checkout's git-ignored `.nen/`. Every application is a ledger line (dry-run included); `already` is reported; a

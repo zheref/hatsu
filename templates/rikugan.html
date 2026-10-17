@@ -237,7 +237,7 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
       {{#each options}}
       <li class="{{starredClass}}"><span class="letter">{{letter}}</span><span><span class="lab">{{label}}</span>{{#if star}}<svg class="star" viewBox="0 0 20 19" width="14" height="14" role="img" aria-label="{{star}}"><path d="M10 0l2.9 6.2 6.6.9-4.8 4.7 1.2 6.8L10 15.4 4.1 18.6l1.2-6.8L.5 7.1l6.6-.9z" fill="currentColor"/></svg>{{/if}}
         <span class="cons">{{consequence}}</span>
-        <code>{{command}}</code></span></li>
+        {{#if command}}<pre class="cmd"><code>{{command}}</code></pre>{{/if}}</span></li>
       {{/each}}
     </ol>
     {{#if objects}}<p class="objs">{{#each objects}}<a href="{{url}}">{{label}}</a>{{/each}}</p>{{/if}}

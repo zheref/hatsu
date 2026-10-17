@@ -133,6 +133,11 @@ The ask question tool, invoked by instructing the agent to "use the ask question
 several tickable answers. The tool is never named `AskQuestion` on any official page; Hatsu's prose
 says "the ask question tool".
 
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries one
+question of at most two sentences and options of at most eight words; the banner, verdict, link and every
+command are the chat message's. This surface renders no Run button on a code fence, so a command the
+maintainer must run is one complete `bash` block per command and the message says *paste into a terminal*.
+
 ## 8. Generation
 
 ```sh

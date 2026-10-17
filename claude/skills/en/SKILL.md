@@ -315,7 +315,9 @@ and resolved. **Its terminus is the merge prompt, after five checks in order, ev
    in the `0`'s place and still the prompt, and any other line is a finding to fix, never a prompt.
 5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
 
-The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en**.
+The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en** —
+in the chat message as a `bash` block (WORKFLOW § 4's hand-over rule), the picker carrying one short
+question and short starred options (jutaisho § 4's shape).
 Its picker never carries the merge act; the maintainer merges outside the session (jutaisho § 4). So it
 never offers the act, which is what no agent may do for the merge phase
 (ROSTER § *Rulings of 2026-09-30 — En never merges*):

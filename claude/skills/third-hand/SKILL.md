@@ -26,7 +26,7 @@ Third-Hand is **its own phase** on the regular Kurapika pipeline
 third-hand **optional** beside it — the maintainer's ruling of 2026-10-13, [`ROSTER.md`](../../../docs/ROSTER.md)
 § *Rulings of 2026-10-13*, 5). It runs **once En has completed** — Ready and the
 retained final report already exist, or En ended at a sitting-ending terminus — **when the maintainer picks it**
-at the wrap-up picker (cleanup § 2: `cleanup` · `cleanup` and `third-hand` in parallel · continue). **It is not a step
+at the wrap-up picker (jutaisho § 4's shape; cleanup § 2: `cleanup` · `cleanup` and `third-hand` in parallel · continue). **It is not a step
 of En.** En's protocol ends at the human gate; this phase begins after that run has returned. The
 report may already be in the maintainer's hands while Netero reads the sitting. The human merge
 remains **G2** and has **no skill** — this file does not describe a merge and does not wait for one.

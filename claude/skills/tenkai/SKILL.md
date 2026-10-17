@@ -76,7 +76,7 @@ hatsu:tenkai diagnose        # diagnose only, write nothing, whatever else is tr
 
 **`diagnose` is the default posture and `apply` is never implicit.** A bare invocation runs the
 diagnosis and prints the per-item report. If Hatsu owns missing or drifted items that `apply` can
-repair, ask through the surface's own option picker before writing, with the count of repairable
+repair, ask through the surface's own option picker (jutaisho § 4's shape) before writing, with the count of repairable
 items in the question. An explicit request to set up or repair those items supplies the apply
 decision for that run:
 
