@@ -638,8 +638,14 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
 **Two rules ride on this matrix, and neither is optional.**
 
 - **A subagent is never given the frontier tier** (`fable`, `astra`). The frontier tier is where the
-  maintainer's own conversation lives; a delegate that outranks its caller has inverted the delegation, and
-  the cost lands on the maintainer's session rather than on the delegate's.
+  maintainer's own conversation lives, and its cost lands on the maintainer's session rather than on the
+  delegate's. **A subagent's tier is its scope's or role's, never its caller's** (ruling of 2026-10-13,
+  zheref/hatsu#222, stated here once): `hanten` raises each reviewer at its scope's declared tier
+  (`review.scopes.<scope>.tier`, which is `models.roles.reviewer`'s `deep` unless the scope says
+  otherwise — `ui` and `performance` declare `fast`) whatever tier `direct` sent the maintainer's own
+  session to; a `fast`-tier effort is still read adversarially at the tier its scope declares, because the
+  review's worth is the reading, not the symmetry with the author. A reviewer may therefore outrank a
+  `fast`-tier caller by design; it never reaches the frontier tier. `hanten` § 4 and `direct` § 5 cite this.
 - **Every subagent is titled `<skill> · <persona> · <model alias>`** — `hanten · hisoka · sonnet`,
   `rasengan · kurapika · opus`. Three facts, in the order you need them when you are reading a transcript
   afterwards: what ran, as whom, on what.
@@ -676,14 +682,16 @@ worktrees live*, the ruling of 2026-09-30.
 `nen/workflow.json` → `models` is the source and this table a convenience copy of it; where the two
 disagree the file wins and the table is the bug.
 
-**A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok`, `pro` — because
-`models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.
+**A reviewer runs at its scope's declared tier on every surface** — `models.roles.reviewer`'s `deep`
+(`opus`, `sol`, `grok`, `pro`) unless `review.scopes.<scope>.tier` says otherwise — because a role maps to a
+tier rather than to a product.
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
 **The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
-frontier tier is where the maintainer's own conversation lives; a delegate that outranks its caller has
-inverted the delegation, and the cost lands on the maintainer's session rather than on the delegate's.
+frontier tier is where the maintainer's own conversation lives, and the cost lands on the maintainer's
+session rather than on the delegate's; below it, the first rule above holds (a subagent's tier is its
+scope's or role's, never its caller's).
 
 > **Antigravity Performance vs. Cost & Subscription Tiers (Google AI Pro & Ultra)**:
 > In market benchmarks (such as DeepSWE and SWE-bench Verified), Gemini 2.5 Pro demonstrates reasoning
@@ -1179,10 +1187,10 @@ several pairs the reader names the other-pool alias where the verb's runner-up s
 zheref/nen#389) and the recommended (the primary's escalation on a weight-4 job or a `max` effort, else the
 primary). **Companion jobs** (`review`, `delivery-ops`, flagged in the taxonomy) are kept out of the verb call
 that decides and reported from a second call: that work runs on the **session's** surface — the surface the
-effort runs on, where hanten raises its reviewers (§ *The matrix, per surface*) — at `models.roles.<role>`, the
-tier beside a lower-tier session being zheref/hatsu#222's question. The verdict persists in `.nen/direct/<effort>.json`, and on GitHub only where `direct.publish` (§ 2) opts in — per issue under `build` or standalone, or over a whole backlog through `hatsu:direct backlog [<repo>]` (direct § 8: one table, one confirmation, then label and comment per issue). **One question the rulings did not settle is returned to the
-maintainer** (ROSTER § *Rulings of 2026-10-04*, *Open questions*; zheref/hatsu#222): whether
-`models.roles.reviewer` stays `deep` when direct's verdict for the session is a lower tier. **The readable
+effort runs on, where hanten raises its reviewers (§ *The matrix, per surface*) — at `models.roles.<role>`: the
+role's tier, never the session's (§ `models`). The verdict persists in `.nen/direct/<effort>.json`, and on GitHub only where `direct.publish` (§ 2) opts in — per issue under `build` or standalone, or over a whole backlog through `hatsu:direct backlog [<repo>]` (direct § 8: one table, one confirmation, then label and comment per issue). The one question those rulings returned to the maintainer — whether `models.roles.reviewer` stays
+`deep` when direct's verdict for the session is a lower tier (zheref/hatsu#222) — was answered on
+2026-10-13: it does (ROSTER § *Rulings of 2026-10-13*). **The readable
 mirror** is [`DIRECT-MATRIX.md`](DIRECT-MATRIX.md): every job × domain × language cell, the alias table with
 list prices and served ids, the three picks, the effort rule and worked examples. `scripts/direct_matrix_doc.sh`
 renders its tables and rule text from the registry, the taxonomy and Hatsu's own `models` block; only its
