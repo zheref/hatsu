@@ -195,6 +195,9 @@ run_case 'a non-Hatsu root is a wiring refusal' 2 "$work/not-hatsu" 'is not a Ha
 edit_json "$t/nen/workflow.json" 'd["reports"].pop("sections")'
 run_case 'a workflow with no reports.sections is a wiring refusal' 2 "$t" 'has no readable reports.sections'
 
+# --- --help prints the whole header (a hardcoded line range once dropped EXIT CODES, hanten on #216) --
+if bash "$guard" --help 2>&1 | grep -q '^# EXIT CODES'; then n=$((n + 1)); else printf -- '--help no longer prints the EXIT CODES block\n' >&2; exit 1; fi
+
 # --- this repository -----------------------------------------------------------------------------
 if out="$(bash "$guard" --root "$repo_root" 2>&1)"; then
   n=$((n + 1)); printf 'this repository passes: %s\n' "$out"
