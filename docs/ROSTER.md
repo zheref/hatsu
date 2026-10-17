@@ -1237,6 +1237,13 @@ handbook-questions on `zheref/hatsu`.
 | **shibari opens no draft** | [`shibari`](../claude/skills/shibari/SKILL.md) runs `nen pr open` without `--draft`, so no run owns a draft-to-ready transition. `nen pr mark-ready` (nen `0.19`) is for a draft someone else opened, at the maintainer's word |
 | **What it does not settle** | the 2026-09-30 jusshin ruling's two open questions (the question budget, and whether a sign-in is an on-device act) stay open — **amended 2026-10-13**: the budget answered (§ *Rulings of 2026-10-13*, zheref/hatsu#175), the on-device act too (zheref/hatsu#176: a refusal, never a G5) |
 
+From nen v0.21.0 and Hatsu#204, every pool selector ends in its own
+`pool-<id>` label. The same-arch desktop overlap above no longer occurs;
+`jusshin <desktop-overlap>` is retired from the active decision row. Existing
+`zheref/nen` `windows-x64` runners NZ-NNR1..3 and `zheref/KroWindows`
+`windows-x64` runners NZ-KWIR1..5 still owe the declaration change, labels
+on those registered runners, and re-rendered preflight and readiness workflows.
+
 ---
 
 ## Rulings of 2026-10-03 — BC-11 binds the hanten ledger; it ports to a nen verb

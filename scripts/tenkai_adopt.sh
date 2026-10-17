@@ -382,6 +382,27 @@ def probe_gh(slug, field):
     return int(val) if field == "runners" and val.isdigit() else (val or None)
 
 
+def matching_runner_online(slug, labels):
+    """True only when GitHub lists an online runner with every selected label."""
+    if not shutil.which("gh"):
+        return None
+    query = '.runners[] | [.status, (.labels | map(.name) | join(","))] | @tsv'
+    try:
+        out = subprocess.run(
+            ["gh", "api", "--paginate", f"repos/{slug}/actions/runners?per_page=100",
+             "--jq", query], capture_output=True, text=True, timeout=30)
+    except Exception:
+        return None
+    if out.returncode != 0:
+        return None
+    required = {label.lower() for label in labels}
+    for row in out.stdout.splitlines():
+        status, sep, names = row.partition("\t")
+        if sep and status == "online" and required <= {name.lower() for name in names.split(",")}:
+            return True
+    return False
+
+
 # GitHub's own owner/repo grammar. THE SLUG IS SUBSTITUTED INTO A SINGLE-QUOTED
 # GITHUB EXPRESSION, so a value carrying a quote does not merely render wrongly --
 # it RESTRUCTURES the predicate. Measured: an `origin` of
@@ -401,6 +422,43 @@ SLUG_RE = re.compile(r"^[A-Za-z0-9._-]{1,39}/[A-Za-z0-9._-]{1,100}$")
 # label or a flow sequence of bare labels is admitted.
 LABELS_RE = re.compile(r"^(?:[A-Za-z0-9][A-Za-z0-9._-]{0,64}"
                        r"|\[[A-Za-z0-9][A-Za-z0-9._-]{0,64}(?:, *[A-Za-z0-9][A-Za-z0-9._-]{0,64})*\])$")
+
+
+def declared_pool_label_sets(repo):
+    """Read the consumer's declared pool selectors; never invent membership."""
+    path = repo / "nen" / "workflow.json"
+    if not path.is_file():
+        return []
+    try:
+        pools = json.loads(path.read_text()).get("runners", {}).get("pools", [])
+    except (OSError, ValueError, AttributeError):
+        return []  # nen schema check owns the malformed declaration
+    result = []
+    for pool in pools:
+        if not isinstance(pool, dict) or not isinstance(pool.get("labels"), list):
+            continue
+        labels = pool["labels"]
+        own = f"pool-{pool.get('id')}"
+        if not labels or not all(isinstance(label, str) for label in labels):
+            continue
+        # Nen 0.21 accepts both the old defaults-only spelling and an explicit
+        # final pool label, normalizing either to the complete selector.
+        complete = labels if labels[-1] == own else labels + [own]
+        value = "[" + ", ".join(complete) + "]"
+        if pool_own_labels(value):
+            result.append(value)
+    return result
+
+
+def pool_own_labels(value):
+    if not LABELS_RE.fullmatch(value) or not value.startswith("["):
+        return False
+    labels = [part.strip() for part in value[1:-1].split(",")]
+    return (len(labels) in (4, 5) and labels[0] == "self-hosted"
+            and labels[1] in ("macOS", "Windows", "Linux")
+            and labels[2] in ("ARM64", "X64")
+            and re.fullmatch(r"pool-[A-Za-z0-9][A-Za-z0-9._-]*", labels[-1]) is not None
+            and (len(labels) == 4 or (labels[1] == "Windows" and labels[3] == "desktop")))
 
 
 def slug_ok(slug):
@@ -433,7 +491,8 @@ def git_dir(repo):
 
 
 class Ctx:
-    def __init__(self, repo, hatsu_root, slug, visibility, self_hosted, probe, runner_labels=None):
+    def __init__(self, repo, hatsu_root, slug, visibility, self_hosted, probe,
+                 runner_labels=None, runner_probe=None):
         self.repo = repo
         self.hatsu_root = hatsu_root
         self.slug = slug or git_slug(repo)
@@ -453,6 +512,15 @@ class Ctx:
         self.self_hosted = self_hosted or 0
         self.role = derive_role(repo, self.slug)
         self.runner = derive_runner(visibility, self.self_hosted)
+        declared_sets = declared_pool_label_sets(repo)
+        if runner_labels is None and len(declared_sets) == 1:
+            runner_labels = declared_sets[0]
+        if self.runner.get("labels_required") and runner_labels is not None and probe and not declared_sets:
+            usage("a private self-hosted readiness runner needs a declared pool in "
+                  "nen/workflow.json; --runner-labels cannot invent pool membership")
+        if runner_labels is not None and declared_sets and runner_labels not in declared_sets:
+            usage("--runner-labels differs from nen/workflow.json runners.pools[].labels; "
+                  "use one declared pool's complete label set")
         self.runner_labels = runner_labels
         if runner_labels is not None and not LABELS_RE.match(runner_labels):
             usage(f"refusing --runner-labels {runner_labels!r}: only a bare label or a flow "
@@ -460,8 +528,19 @@ class Ctx:
                   f"so YAML structure or a ${{{{ }}}} expression there changes the workflow rather "
                   f"than selecting a runner")
         if self.runner.get("labels_required") and runner_labels:
-            self.runner["runs_on"] = runner_labels
-            self.runner["labels_required"] = False
+            if not pool_own_labels(runner_labels):
+                usage("a private self-hosted readiness runner needs [self-hosted, <OS>, <arch>, "
+                      "pool-<id>] (desktop before pool-<id> for an interactive Windows pool)")
+            labels = [part.strip() for part in runner_labels[1:-1].split(",")]
+            available = ((runner_probe or matching_runner_online)(self.slug, labels)
+                         if probe and self.slug else True)
+            if available is True:
+                self.runner["runs_on"] = runner_labels
+                self.runner["labels_required"] = False
+            else:
+                self.runner = derive_runner(visibility, 0)
+                self.runner["reason"] = ("no online runner with every declared pool label was verified; "
+                                         "use the hosted fallback until relabel and verification finish")
 
     def template(self, name):
         p = self.hatsu_root / "templates" / name
@@ -823,7 +902,8 @@ class ReadinessWorkflow(Item):
                             "selects any runner registered to the repository or its organisation — "
                             "the policy guard admits only labelled sets, and the labels are this "
                             "repository's own data, which Tenkai does not invent",
-                            "pass --runner-labels '[self-hosted, <OS>, <arch>]'")
+                            "declare one pool in nen/workflow.json with its pool-<id> label, "
+                            "or pass --runner-labels for one declared pool")
         p = ctx.repo / WORKFLOW_PATH
         gate = GuardRegistration.state_of(ctx)
         if not p.is_file():
@@ -1874,8 +1954,59 @@ def self_test() -> int:
             g.write_text(body)
         return d
 
-    def ctx_for(d, slug="acme/widget", vis="private", sh=2, labels="[self-hosted, Linux, X64]"):
+    def ctx_for(d, slug="acme/widget", vis="private", sh=2, labels="[self-hosted, Linux, X64, pool-ci]"):
         return Ctx(d, root, slug, vis, sh, probe=False, runner_labels=labels)
+
+    pool_repo = fixture()
+    pool_file = pool_repo / "nen" / "workflow.json"
+    pool_file.write_text(json.dumps({"runners": {"pools": [{"id": "ci", "labels":
+        ["self-hosted", "Linux", "X64", "pool-ci"]}]}}))
+    pool_ctx = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=False)
+    check("one declared pool derives its own readiness selector",
+          pool_ctx.runner["runs_on"] == "[self-hosted, Linux, X64, pool-ci]"
+          and "runs-on: [self-hosted, Linux, X64, pool-ci]" in ReadinessWorkflow().render(pool_ctx))
+    pool_file.write_text(json.dumps({"runners": {"pools": [{"id": "ci", "labels":
+        ["self-hosted", "Linux", "X64"]}]}}))
+    legacy_ctx = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=False)
+    check("Nen's defaults-only pool declaration derives the same pool-own selector",
+          legacy_ctx.runner["runs_on"] == pool_ctx.runner["runs_on"])
+    offline_ctx = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=True,
+                      runner_probe=lambda _slug, _labels: False)
+    check("no online runner carrying the pool label uses hosted readiness",
+          offline_ctx.runner["runs_on"] == HOSTED_RUNNER
+          and "no online runner" in offline_ctx.runner["reason"])
+    online_ctx = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=True,
+                     runner_probe=lambda _slug, _labels: True)
+    check("a verified online pool runner selects the complete label set",
+          online_ctx.runner["runs_on"] == pool_ctx.runner["runs_on"])
+    pool_rendered = pool_repo / WORKFLOW_PATH
+    pool_rendered.parent.mkdir(parents=True, exist_ok=True)
+    pool_rendered.write_text(ReadinessWorkflow().render(pool_ctx).replace(
+        "runs-on: [self-hosted, Linux, X64, pool-ci]",
+        "runs-on: [self-hosted, Linux, X64]"))
+    check("diagnose calls a defaults-only readiness workflow drift",
+          ReadinessWorkflow().detect(pool_ctx)["state"] == DRIFT)
+    try:
+        Ctx(pool_repo, root, "acme/widget", "private", 2, probe=False,
+            runner_labels="[self-hosted, Linux, X64]")
+        bare_defaults_refused = False
+    except SystemExit as exc:
+        bare_defaults_refused = exc.code == 2
+    check("GitHub default labels alone are refused", bare_defaults_refused)
+    undeclared = fixture()
+    try:
+        Ctx(undeclared, root, "acme/widget", "private", 2, probe=True,
+            runner_labels="[self-hosted, Linux, X64, pool-rogue]")
+        undeclared_refused = False
+    except SystemExit as exc:
+        undeclared_refused = exc.code == 2
+    check("an explicit selector cannot invent an undeclared pool", undeclared_refused)
+    pool_file.write_text(json.dumps({"runners": {"pools": [
+        {"id": "ci", "labels": ["self-hosted", "Linux", "X64", "pool-ci"]},
+        {"id": "other", "labels": ["self-hosted", "Linux", "X64", "pool-other"]}]}}))
+    ambiguous = Ctx(pool_repo, root, "acme/widget", "private", 2, probe=False)
+    check("two declared pools require an explicit readiness choice",
+          ReadinessWorkflow().detect(ambiguous)["state"] == BLOCKED)
 
     print("\nreview readiness — branch state is diagnosed, never reset")
     review_repo = fixture()
@@ -1996,7 +2127,7 @@ def self_test() -> int:
           "TENKAI_GUARD_REQUIRED: true" in rendered
           and "TENKAI_PIN_FALLBACK_ALLOWED: false" in rendered)
     check("private+registered renders the LABELLED set, never a bare self-hosted",
-          re.search(r"runs-on:\s*\[self-hosted, Linux, X64\]", (d / WORKFLOW_PATH).read_text()) is not None
+          re.search(r"runs-on:\s*\[self-hosted, Linux, X64, pool-ci\]", (d / WORKFLOW_PATH).read_text()) is not None
           and re.search(r"runs-on:\s*self-hosted\s*$", (d / WORKFLOW_PATH).read_text(), re.M) is None)
 
     print("\nRUNNER LABELS — a bare `self-hosted` is never rendered")
@@ -2036,7 +2167,7 @@ def self_test() -> int:
     ReadinessWorkflow().repair(ctx_for(d))
     check("the slug is repaired", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
 
-    w.write_text(w.read_text().replace("runs-on: [self-hosted, Linux, X64]", "runs-on: ubuntu-latest"))
+    w.write_text(w.read_text().replace("runs-on: [self-hosted, Linux, X64, pool-ci]", "runs-on: ubuntu-latest"))
     check("a runner that no longer matches the derivation is DRIFT",
           ReadinessWorkflow().detect(ctx_for(d))["state"] == DRIFT)
     ReadinessWorkflow().repair(ctx_for(d))
@@ -2424,12 +2555,12 @@ def self_test() -> int:
     # whose Actions policy requires full-length SHA pins): the rendering carries the SHA pin on BOTH
     # checkouts and the labelled runs-on, and diagnoses satisfied -- nothing is left to hand-edit.
     dsh = fixture()
-    sh_ctx = ctx_for(dsh, vis="private", sh=5, labels="[self-hosted, Windows, X64]")
+    sh_ctx = ctx_for(dsh, vis="private", sh=5, labels="[self-hosted, Windows, X64, pool-windows-x64]")
     run("apply", sh_ctx)
     wsh = (dsh / WORKFLOW_PATH).read_text()
     check("a private self-hosted rendering pins both checkouts by SHA with the exact tag (zheref/hatsu#199)",
           wsh.count("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1") == 2
-          and "actions/checkout@v7" not in wsh and "runs-on: [self-hosted, Windows, X64]" in wsh)
+          and "actions/checkout@v7" not in wsh and "runs-on: [self-hosted, Windows, X64, pool-windows-x64]" in wsh)
     check("that rendering diagnoses satisfied -- no hand edit left for a SHA-pinning consumer",
           ReadinessWorkflow().detect(sh_ctx)["state"] == SATISFIED)
 

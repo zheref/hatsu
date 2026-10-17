@@ -113,6 +113,11 @@ says which composite is holding it instead.
 | 9 | **the landing report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as landing` | rendered after step 8 because the PR body and readiness result are its inputs; **00** is this mukai request |
 | → | **ring, offer En, and end Mukai** | [`/jutaisho`](../jutaisho/SKILL.md), then [`/en`](../en/SKILL.md) | Mukai rings the turn bell (jutaisho rung 1) and asks **through the surface's native picker** (`AskUserQuestion` on Claude Code): *start `/en on <CODE>#<N>` now?* — the maintainer's call, never started silently (ruling 9 R4). With `nen/workflow.json` → `mukai.autoEn` **`true`** (JSON `true` only; absent or any other value offers) Mukai instead starts En immediately; En then owns the capped drive to verified Ready at G2/G4 while the invoking user turn remains active |
 
+Before step 8 opens the PR, a script tracked at the PR base but absent here is G5. When present, run
+`ruby scripts/trusted_guard_preflight.rb --root <path> --base-ref <PR-base>`.
+It runs the base branch's trusted guards against this tree; a red guard is the two-step landing in
+`docs/GATE-CONFIGURATION.md`, stopped before PR creation.
+
 **A landing always runs the thorough profile**, whatever the turns before it named: step 4 is
 kotoamatsukami's impacted suites and step 5 byakugan's coverage, and no `profile` lowers either; and
 where a launch target is declared, the launch is [`amaterasu`](../amaterasu/SKILL.md)'s on the

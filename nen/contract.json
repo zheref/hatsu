@@ -114,6 +114,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/permissions_pack.sh, which ten § 5 and tenkai run on every surface, following the one-lane-per-executable-guard pattern (its fixture existed and no lane ran it until 0.66.0). Hermetic and offline: throwaway consumer repositories prove Codex writable_roots are filled, the placed .codex/hooks.json drops PLUGIN_ROOT with nen's marker kept and the same rewrite as scripts/surface_bootstrap.sh (CWE-426), --plugin leaves .codex/hooks.json to the Codex plugin and is refused off codex, a re-install is idempotent, and a tracked file is left alone."
       },
+      "trusted-guard-preflight": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/trusted_guard_preflight.rb. Its fixture uses a throwaway Hatsu checkout to prove the base branch's pull_request_target guards are derived and run, a known generated root passes, and a new hooks root the trusted mirror guard does not know fails with two-step guidance before PR creation."
+      },
       "surface-mirror-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -344,6 +349,13 @@
             "scripts/permissions_pack_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes."
+        }
+      },
+      "trusted-guard-preflight": {
+        "test": {
+          "exe": "bash",
+          "argv": ["scripts/trusted_guard_preflight_fixture.sh"],
+          "$comment": "Run this focused fixture when the trusted preflight or its workflow-derived dispatch changes."
         }
       },
       "surface-mirror-guard": {
