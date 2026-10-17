@@ -558,11 +558,10 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   it lands, the newline rule and the named link and image gap (§ *Escaping and validation of report data*).
   **(b) A render to stdout, or to a named path outside `--repo`**, which retires the copy into the artifact
   store (§ *The Markdown report*, step 2). **(c) Template conformance as a verb**:
-  `scripts/report_markdown_check.sh` (lane `report-markdown-guard`) is a python3 heredoc, new branching
-  machinery of the kind BC-11 reads as owed to nen ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 —
-  BC-11 binds the hanten ledger; it ports to a nen verb*). It renders every declared variant in both formats
-  and holds block order, the desk rules, escaping placement and the checked examples. Whether it ports or
-  is waived is a **G4** question on the run's desk; until it is ruled, it takes fixes only.
+  `scripts/report_markdown_check.sh` (lane `report-markdown-guard`) is a python3 heredoc that renders every
+  declared variant in both formats and holds block order, the desk rules, escaping placement and the checked
+  examples. **Ruled 2026-10-13** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*): BC-11 binds it as
+  it binds the ledger — frozen to fixes only, its header saying so, the verb filed as zheref/nen#406 and the script retiring when it lands.
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
