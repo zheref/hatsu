@@ -82,7 +82,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          # shallow: the API step below supplies the diff, so no history is read.
+          # The forbidden-trailer guard judges every commit from the PR base.
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Checkout guard code from the trusted workflow revision
@@ -220,6 +221,16 @@ jobs:
             "${RUNNER_TEMP:-/tmp}/base_plugin.json" \
             .claude-plugin/plugin.json \
             "${RUNNER_TEMP:-/tmp}/pr_body.md"
+
+      - name: Forbidden commit trailer guard
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          guard=.trusted/scripts/branch_authorship_check.sh
+          [ -f "$guard" ] && [ -f .trusted/nen/workflow.json ] || { echo "::error::trusted forbidden trailer guard or configuration is missing"; exit 1; }
+          sh "$guard" --repo "$PWD" --base "$BASE_SHA" --forbid-trailers-from .trusted/nen/workflow.json --forbidden-only
 
       - name: Finish required check on the exact PR head
         if: ${{ always() && steps.head_check.outputs.id != '' }}
