@@ -1104,7 +1104,16 @@ configuration value; it stops at G5 rather than issuing a fresh budget.
   `sudo`;
 - **a secret, credential or signing material** — never typed into chat; the maintainer supplies it
   through their own tool;
-- **an on-device act** — a trust prompt, a security setting;
+- **an on-device act** — a trust prompt, a security setting, a UAC consent, a Login Items approval, a
+  password typed into an elevated window. **A refusal, never a G5** (ruling of 2026-10-13,
+  zheref/hatsu#176; row `on-device-act`, stated here once): no `nen stop` banner, no picker, the five
+  G5s stay five. A skill may *raise* such a prompt only through a launch the harness itself asks the
+  maintainer to approve — that permission prompt, showing the exact string, is the advance consent
+  ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's Windows path); otherwise it prints the act for
+  the maintainer and where the operation resumes ([`jujutsu`](../claude/skills/jujutsu/SKILL.md);
+  jusshin's Linux path, and on macOS the Login Items approval that follows its launch). The row is
+  classed `autonomous` only because `nen.decisions/v0.1` has no `refusal` class: its default *is* the
+  refusal, not a resolution, and no consumer file narrows or reclassifies it;
 - **a human gate** — G1–G5;
 - **a supply-chain failure** — a checksum or manifest mismatch, never retried;
 - **a mutating command inside a read-only loop**;
