@@ -123,7 +123,7 @@ it as an open question inside the issue rather than resolving it silently.
 
 Every `nen` call below that reads GitHub runs through `scripts/gh_token_env.sh` — `nen` never picks a
 token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`
-([PROCESS.md](../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218):
+([WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, #218):
 
 ```bash
 "$hatsu_root/scripts/gh_token_env.sh" nen issue search --target <owner/name> --subject "<text>" \

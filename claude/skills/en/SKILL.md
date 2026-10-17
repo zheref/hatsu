@@ -366,7 +366,7 @@ Each refresh window has exactly two observations: the first establishes the wind
 
 **`--pr` is `nen pr ready`'s own in-process read** (zheref/nen#264), so the watched verdict and the
 quoted one never disagree, and no command string is handed over (shapes (3) and (b) of
-[PROCESS.md](../../../docs/PROCESS.md) § *Residue and owned dependencies*, #218). The wrapper puts the token in the verb's
+[WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, #218). The wrapper puts the token in the verb's
 environment and nowhere else; `--interval-ms` is at least `30000` under `--pr`.
 
 `<identity flags>` is selected by [`sharingan`](../sharingan/SKILL.md) § 4 for the target: omit it
