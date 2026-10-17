@@ -1,7 +1,7 @@
 # Codex
 
-**Codex installs Hatsu first-party, as a plugin, from the maintainer's own checkout** (from v0.66.0):
-Codex reads the checkout's `.claude-plugin/marketplace.json` as a legacy-compatible marketplace, and the
+**Codex installs Hatsu first-party, as a plugin, from a clean snapshot of the maintainer's committed checkout** (from v0.66.0):
+Codex reads the snapshot's `.claude-plugin/marketplace.json` as a legacy-compatible marketplace, and the
 `.codex-plugin/plugin.json` overlay hands it the canonical `claude/skills/` (listed `hatsu:<name>`, the
 spelling the bodies carry) and the generated Codex hooks. The plugin carries no personas, so the warm-up
 still places the instruction override and the project-scoped agent files; the skill copies and the hooks
@@ -13,7 +13,7 @@ among twelve events.
 
 | | |
 |---|---|
-| how Hatsu arrives | **the Hatsu plugin**: `codex plugin marketplace add <checkout>` then `codex plugin add hatsu@hatsu` (`scripts/hatsu_surface_link.sh --surface codex`); Codex **copies** the whole checkout, ignored worktrees included, into `$CODEX_HOME/plugins/cache/hatsu/hatsu/<version>/` (evidence § 10 F4–F7). Legacy form: a checkout, one bootstrap (`scripts/surface_bootstrap.sh --surface codex --target . --bootstrap`), then `$ten` placing `.agents/skills/` copies |
+| how Hatsu arrives | **the Hatsu plugin**: `scripts/hatsu_surface_link.sh --surface codex` archives the committed tip into `$CODEX_HOME/hatsu-marketplace-snapshots/<commit>`, registers that clean snapshot, then runs `codex plugin add hatsu@hatsu`. Codex copies the snapshot into `$CODEX_HOME/plugins/cache/hatsu/hatsu/<version>/`. Legacy form: a checkout, one bootstrap (`scripts/surface_bootstrap.sh --surface codex --target . --bootstrap`), then `$ten` placing `.agents/skills/` copies |
 | skills read from | the plugin: `<cache slot>/claude/skills/<name>/SKILL.md` (`.codex-plugin/plugin.json` → `"skills": "./claude/skills/"`; without it the overlay finds none, evidence § 10 F5). Legacy: `<repo>/.agents/skills/<name>/SKILL.md`, scanned upward; also `$HOME/.agents/skills` and `/etc/codex/skills` |
 | personas read from | `<repo>/AGENTS.override.md` as prose (all personas, one `## <name>` section each) and `<repo>/.codex/agents/<persona>.toml` as project-scoped custom agents |
 | config read from | `~/.codex/config.toml` (user), `.codex/config.toml` (project, trusted projects only) |
@@ -21,14 +21,16 @@ among twelve events.
 | invocation spelling | `$hatsu:<name>` under the plugin (the documented `$<plugin>:<skill>` form); `$<name>` for a legacy placed copy |
 | worktrees | the app's own: "Codex creates worktrees in `$CODEX_HOME/worktrees`." / "To choose another location, open **Settings > Worktrees** and change **Worktree root**." (https://learn.chatgpt.com/docs/environments/git-worktrees, 2026-09-30) — one global root, outside the workspace but inside the tool's home; accepted as it comes, never a sibling. **Hatsu-made** (hanten's second `codex exec`, a lead-session effort): `<core>/.nen/worktrees/codex/<name>`, removed when the effort lands — `docs/WORKFLOW.md` § *Where worktrees live* |
 | headless command | `codex exec -C <repo> -s workspace-write --add-dir "$(git -C <repo> rev-parse --path-format=absolute --git-common-dir)" -m "$sol" "<prompt>"`, with `sol` resolved live from `codex debug models`; a G5 is answered with `codex exec resume --last -m "$sol" --skip-git-repo-check -c 'sandbox_workspace_write.writable_roots=[…]' -o <file> "<answer>"`. The full record, including why `--add-dir` is mandatory in a linked worktree and which flags `resume` refuses, is [`evidence/surfaces.md`](evidence/surfaces.md) § 7 F3, F6 and Appendix A |
-| pointing at a local checkout | the marketplace **is** the local checkout; after it moves, `codex plugin add hatsu@hatsu` again (Codex does not notice a newer source, evidence § 10 F6), which `scripts/hatsu_plugin_update.sh --codex` does |
-| update and activation | `hatsu:bakuryuha`: § 3 installs the plugin where copies were placed, § 4 fast-forwards the marketplace checkout and re-adds the plugin, the new `ten` places personas only (`--plugin`); running sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0), personas load at the next run, and a changed hook is skipped until trusted in `/hooks` (§ 9, § 10) |
+| pointing at a local checkout | the marketplace root is a committed snapshot; its adjacent `.source` record identifies the local checkout. After that checkout advances, `scripts/hatsu_plugin_update.sh --codex` registers a new snapshot and runs `codex plugin add hatsu@hatsu` again (Codex does not notice a newer source, evidence § 10 F6) |
+| update and activation | `hatsu:bakuryuha`: § 3 installs the plugin where copies were placed, § 4 fast-forwards the source checkout, registers its new snapshot, and re-adds the plugin; the new `ten` places personas only (`--plugin`); running sessions refresh skills and hooks after an external plugin upgrade (codex-cli 0.154.0), personas load at the next run, and a changed hook is skipped until trusted in `/hooks` (§ 9, § 10) |
 | validated build | `codex-cli 0.149.0` (`codex --version`, read live 2026-09-10); no skills-support floor is documented |
 
-**What the plugin install copies.** `codex plugin add` copies the whole marketplace root, `.git` and every
-git-ignored path included (`.claude/settings.local.json`, `.claude/worktrees/`, `.nen/`, `Reports/`), into
-`$CODEX_HOME/plugins/cache/hatsu/hatsu/<version>/`, and the next `add` replaces that slot (evidence § 10
-F6, F7). Serving a clean tree instead is zheref/hatsu#147. **The plugin's hooks run the source
+**What the plugin install copies.** `codex plugin add` copies the whole marketplace root (evidence § 10
+F6, F7). The installer now makes that root a `git archive` of the served commit, excluding `.git` and
+all ignored paths (`.claude/settings.local.json`, `.claude/worktrees/`, `.nen/`, `Reports/`). On update it
+registers a new commit snapshot, then installs that copy. `codex plugin marketplace remove hatsu`
+removes the previous registration and uninstalls its plugin; an unused old snapshot and its adjacent
+`.source` record can then be deleted after checking the active `codex plugin list` row. **The plugin's hooks run the source
 `hooks/*.sh`** of that slot, which carry no generated marker, so `session-start.sh` takes its reminder
 branch on purpose: its mirror-refresh branch would re-place the skill copies the plugin replaces. Trust
 in `/hooks` covers a hook's definition; the scripts behind it change with each installed version.
