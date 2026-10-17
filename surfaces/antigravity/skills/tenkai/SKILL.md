@@ -469,11 +469,14 @@ consumer repository with a runner **actually registered** — and wrong everywhe
 |---|---|---|---|
 | public | any | `ubuntu-latest` | hosted **standard** runners are free and unlimited on public repositories, so there is no bill to avoid; and GitHub advises against self-hosted runners there, because a fork PR can execute code on them |
 | private | **0** | `ubuntu-latest` | a preference would queue the job against a runner that never appears. **A check that never completes is strictly worse than a bill that is currently zero** — and if it is ever made required, it blocks every merge, permanently |
-| private | ≥1 | `self-hosted` | minutes are genuinely billed, and the fork-exposure argument does not apply |
+| private | ≥1, with a declared pool and an online runner carrying every pool label | the pool's full `[self-hosted, OS, arch, pool-<id>]` set (plus `desktop` for an interactive Windows pool) | minutes are genuinely billed, and the selected runner is verified available |
+| private | ≥1, but no online runner carries the declared pool labels | `ubuntu-latest` | an old runner awaiting `nen runner relabel` cannot take a pool-labelled job; hosted keeps readiness from queuing indefinitely |
 | **unreadable** | — | `ubuntu-latest` | **the derivation never guesses toward a runner that might not exist** |
 
-**Every derivation names a fallback, and the fallback is never absent.** A job can never hang on a
-runner that is not there.
+**Every derivation names a fallback, and the fallback is never absent.** Tenkai
+accepts Nen 0.21's defaults-only and explicit `pool-<id>` declaration spellings,
+but an explicit `--runner-labels` cannot invent a pool absent from the declaration.
+A job can never hang on a runner that is not there.
 
 > **Measured on `zheref/hatsu` itself**: `visibility=public`, `actions/runners` → `total_count: 0`.
 > Both limbs derive hosted, so **this ruling changes nothing here today** — it is for the private

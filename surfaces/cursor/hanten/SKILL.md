@@ -7,8 +7,7 @@ summary: Have the change read
 
 # Hanten — the change, read by someone looking for what is wrong
 
-**No fixed mode**: the nature the change was authored in; `mukai`'s second step, invocable alone.
-**Pre-PR a finding costs an edit, not a review round.**
+**Mode**: authored nature; `mukai` step 2 or standalone. **Findings cost edits.**
 
 ## 1. Invocation
 
@@ -22,17 +21,14 @@ nen parse hanten \
   --line "<the invocation minus /hanten>"
 ```
 
-**`against <base>` names the base**; with none, base and change set are P3's (STANDALONE-ENTRY.md § 3). **`all` is every scope the diff raises**, `for <scope>` narrows, never widens; an unknown scope
-(exit `2`) asks with the nine; a missing argument or configuration item is set up inline
-(WORKFLOW.md § 4).
+**`against <base>` names the base**; otherwise P3 supplies it (STANDALONE-ENTRY.md § 3). **`all` means every raised scope**; `for <scope>` narrows; unknown scopes (exit `2`) ask with the nine. Missing arguments or configuration are set up inline (WORKFLOW.md § 4).
 
-**The cycle ledger is fail-closed**: `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show`
-refuse a missing file. Every entry first runs `"$hatsu_root/scripts/hanten_cycle_ledger.sh" ensure --repo <path>
---branch <branch> [--pr <n>]`: `opened` (said) or `present`; exit `3` is the trunk, stop; `4` is a lost ledger,
-recovered **in this turn** (WORKFLOW.md § 4): a first cycle the maintainer confirms through the picker is
-`recover-first <same args> --confirmed-first-cycle`, reviews that already ran restore the ledger with
-counts kept, and history that cannot be established is a G5 naming the restore path; headless or refused, stop. **Never fabricate
-review history, never reset a budget.** The PR-keyed ledger is § 2b's.
+**Fail-closed cycle ledger:** `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show` refuse its absence.
+Every entry first runs `"$hatsu_root/scripts/hanten_cycle_ledger.sh" ensure --repo <path> --branch <branch> [--pr <n>]`:
+`opened` (say so) or `present`; exit `3` stops on trunk. Exit `4` means a lost ledger: recover **in this turn**
+(WORKFLOW.md § 4). A first cycle needs the maintainer's picker confirmation for
+`recover-first <same args> --confirmed-first-cycle`; prior reviews restore their counts. Unknown history is
+G5 naming the restore path; headless or refused stops. **Never fabricate review history or reset a budget.**
 
 ## 2. Classify — by path, then by content
 
@@ -45,6 +41,8 @@ target's own `review.scopes`, over `<base>...HEAD`. Exit `1` (no `review` block)
 `review.scopes` and classification re-runs (`missing-configuration`), never a review skipped; exit `2` a
 malformed block or unresolvable base.
 **`unclaimed` paths are named**; Nobunaga's tier swap is WORKFLOW.md § 2 → `review`: say which tier ran.
+If the PR base tracks `scripts/trusted_guard_preflight.rb`, its absence here is G5. When present, run it
+with `--base-ref <PR-base>` before review; red names the two-step landing (docs/GATE-CONFIGURATION.md).
 
 **Paths cannot raise these; hanten raises them by content** (#73): a diff touching a `## 0.` section,
 **any table that routes control flow**, or its fall-through raises a **totality pass** on `architecture`

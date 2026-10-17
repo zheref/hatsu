@@ -35,6 +35,9 @@ assert_contains() {
 write_plugin_json() {
   local directory="$1" version="${2:-0.1.0}"
   mkdir -p "$directory/.claude-plugin" "$directory/claude/skills/demo"
+  mkdir -p "$directory/scripts"
+  cp "$hatsu_root/scripts/hatsu_surface_link.sh" "$directory/scripts/hatsu_surface_link.sh"
+  cp "$hatsu_root/scripts/codex_marketplace_snapshot.sh" "$directory/scripts/codex_marketplace_snapshot.sh"
   printf '%s\n' '{
   "name": "hatsu",
   "version": "'"$version"'"
@@ -514,6 +517,12 @@ case "\$*" in
     printf 'MARKETPLACE  ROOT\n'
     [ -n "\$mkt_root" ] && printf 'hatsu        %s\n' "\$mkt_root"
     ;;
+  'plugin marketplace remove hatsu')
+    : > "$codex_mkt_root_file"
+    ;;
+  plugin\ marketplace\ add\ *)
+    printf '%s\n' "\$4" > "$codex_mkt_root_file"
+    ;;
   'plugin list')
     printf 'PLUGIN       STATUS              VERSION  SOURCE\n'
     ver=""
@@ -536,6 +545,7 @@ esac
 exit 0
 EOF
 chmod +x "$fixture_root/bin/codex"
+export CODEX_HOME="$fixture_root/codex-home-default"
 
 # (d) a local marketplace root (not --root, not under $CODEX_HOME) behind origin is fast-forwarded.
 codex_local_mkt="$fixture_root/codex-local-mkt"
@@ -550,8 +560,8 @@ codex_out_d="$(CODEX_HOME="$fixture_root/codex-home-unused" PATH="$fixture_root/
 grep -qx 'plugin add hatsu@hatsu' "$codex_log" || fail "(d) codex plugin add was not invoked"
 assert_contains "$codex_out_d" "codex plugin hatsu@hatsu at v$(read_plugin_version "$codex_local_mkt")" '(d) report shows the read-back version'
 
-# (e) a marketplace root under $CODEX_HOME is a Codex-managed snapshot: `codex plugin marketplace
-# upgrade hatsu` is what brings it current, never a git fast-forward run by this script.
+# (e) a legacy marketplace checkout under $CODEX_HOME is migrated to a clean
+# commit snapshot after its source is brought current.
 codex_home_e="$fixture_root/codex-home-e"
 codex_managed_mkt="$codex_home_e/marketplaces/hatsu"
 mkdir -p "$(dirname "$codex_managed_mkt")"
@@ -563,11 +573,29 @@ git clone -q "$origin" "$codex_root_e"
 : > "$codex_log"
 CODEX_HOME="$codex_home_e" PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_root_e" --codex >/dev/null 2>&1 \
   || fail "(e) --codex on a codex-managed marketplace root should succeed"
-grep -qx 'plugin marketplace upgrade hatsu' "$codex_log" || fail "(e) codex plugin marketplace upgrade hatsu was not invoked"
+grep -qx 'plugin marketplace remove hatsu' "$codex_log" || fail "(e) legacy marketplace was not removed"
+grep -q '^plugin marketplace add .*/hatsu-marketplace-snapshots/' "$codex_log" || fail "(e) clean snapshot was not registered"
 grep -qx 'plugin add hatsu@hatsu' "$codex_log" || fail "(e) codex plugin add hatsu@hatsu was not invoked"
-upgrade_at="$(grep -n '^plugin marketplace upgrade hatsu$' "$codex_log" | head -1 | cut -d: -f1)"
+upgrade_at="$(grep -n '^plugin marketplace add .*/hatsu-marketplace-snapshots/' "$codex_log" | head -1 | cut -d: -f1)"
 add_at="$(grep -n '^plugin add hatsu@hatsu$' "$codex_log" | head -1 | cut -d: -f1)"
-[ -n "$upgrade_at" ] && [ -n "$add_at" ] && [ "$upgrade_at" -lt "$add_at" ] || fail "(e) marketplace upgrade must precede plugin add"
+[ -n "$upgrade_at" ] && [ -n "$add_at" ] && [ "$upgrade_at" -lt "$add_at" ] || fail "(e) snapshot registration must precede plugin add"
+
+# A cache-started updater refuses a symlinked source record before it can
+# execute a script named by that record.
+codex_snapshot_e="$(cat "$codex_mkt_root_file")"
+cp "$codex_snapshot_e.source" "$fixture_root/codex-source-record-target"
+rm "$codex_snapshot_e.source"
+ln -s "$fixture_root/codex-source-record-target" "$codex_snapshot_e.source"
+: > "$codex_log"
+set +e
+codex_bad_source_out="$(CODEX_HOME="$codex_home_e" PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_root_e" --codex 2>&1)"
+codex_bad_source_code=$?
+set -e
+[ "$codex_bad_source_code" -eq 2 ] || fail "(e) symlinked source record exited $codex_bad_source_code, expected 2"
+assert_contains "$codex_bad_source_out" 'lacks its source record' '(e) symlinked source record is refused'
+! grep -qxF 'plugin add hatsu@hatsu' "$codex_log" || fail '(e) symlinked source record reached plugin install'
+rm "$codex_snapshot_e.source"
+cp "$fixture_root/codex-source-record-target" "$codex_snapshot_e.source"
 
 # (f) no `codex` on PATH: --auto skips (exit 0) naming the reason, never fails the warm-up.
 minimal_bin="$fixture_root/minimal-bin"
@@ -598,7 +626,7 @@ write_plugin_json "$codex_cache_h" '0.1.0'
 : > "$codex_log"
 codex_dry="$(PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_cache_h" --codex --dry-run)"
 assert_contains "$codex_dry" 'would run: codex plugin marketplace list' '(h) dry-run codex plan lists the marketplace resolution step'
-assert_contains "$codex_dry" 'would run: codex plugin marketplace upgrade hatsu' '(h) dry-run codex plan lists the upgrade step'
+assert_contains "$codex_dry" 'would run: scripts/hatsu_surface_link.sh --surface codex' '(h) dry-run codex plan lists the clean snapshot install'
 assert_contains "$codex_dry" 'would run: codex plugin add hatsu@hatsu' '(h) dry-run codex plan lists the plugin add step'
 [ ! -s "$codex_log" ] || fail "(h) dry-run --codex invoked the codex binary"
 
@@ -733,7 +761,7 @@ fi
 
 : > "$codex_log"
 codex_dirty_auto_out="$(CODEX_HOME="$fixture_root/codex-home-unused" PATH="$fixture_root/bin:$PATH" "$updater" --root "$codex_root_dirty" --codex --auto)"
-assert_contains "$codex_dirty_auto_out" 'marketplace root' '(m) --auto still names the marketplace root'
+assert_contains "$codex_dirty_auto_out" 'marketplace source' '(m) --auto still names the marketplace source'
 assert_contains "$codex_dirty_auto_out" 'dirty working copy' '(m) --auto skip still carries the dirty reason'
 grep -qx 'plugin add hatsu@hatsu' "$codex_log" || fail "(m) --auto skip must still run plugin add (today's skip semantics)"
 
@@ -754,8 +782,8 @@ codex_mismatch_code=$?
 set -e
 rm -f "$codex_report_version_file"
 [ "$codex_mismatch_code" -eq 2 ] || fail "(n) --codex read-back mismatch exited $codex_mismatch_code, expected 2: $codex_mismatch_err"
-assert_contains "$codex_mismatch_err" "read back version '9.9.9-stale'" '(n) the refusal quotes the read-back value'
-assert_contains "$codex_mismatch_err" "expected '$mismatch_expected'" '(n) the refusal quotes the expected value'
+assert_contains "$codex_mismatch_err" 'version 9.9.9-stale' '(n) the refusal quotes the read-back value'
+assert_contains "$codex_mismatch_err" "version is $mismatch_expected" '(n) the refusal quotes the expected value'
 grep -qx 'plugin add hatsu@hatsu' "$codex_log" || fail "(n) codex plugin add was not invoked before the read-back check"
 
 # --- (o) --codex `codex plugin add` FAILS: refused, quoting one_line of its captured output (never
