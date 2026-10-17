@@ -189,7 +189,7 @@ configured. What runs it is `--json`'s **`launch` field, verbatim** — never ty
   exists ([`contracts/permissions.json`](../../../../contracts/permissions.json)); its permission prompt,
   showing the exact string, is the maintainer's advance consent. The UAC prompt and the password typed
   once into the elevated window follow — the maintainer's on-device acts (row `on-device-act`: a
-  G5, raised here only because the harness itself asked for the launch). The
+  G5 — the launch is raised at that stop, naming it; the harness's permission prompt is the maintainer's go, and the run waits for the window). The
   launch returns before the script's exit can be read, so the session notes the time and reads **only
   the summary file** — `<projectDir>\_jusshin\register-<ts>.summary`, one line, `jusshin: <n>
   registered, <m> skipped, <k> failed`, modified after the launch — **never the transcript**.
@@ -200,7 +200,7 @@ configured. What runs it is `--json`'s **`launch` field, verbatim** — never ty
   signed in, it says the tasks wait for that account's logon. Signing in is the maintainer's on-device
   act, and § 6 follows it. Row `on-device-act` covers it: a G5 — the act printed, the run waiting, § 6 following it (ruling of 2026-10-17, [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4).
 - **Linux**: `launch` (`sudo bash <script>`) is **printed for the maintainer**, never run — an
-  install needing `sudo` is refused, never asked (WORKFLOW § 4). Its exits are theirs to read; § 6
+  install needing `sudo` is a G5: printed, the run waits (WORKFLOW § 4 kind 6). Its exits are theirs to read; § 6
   follows their word.
 - **macOS**: the session runs `launch` (`bash <script>`) and reads its exit: `0` → § 6; `3` (run
   as root) → rerun as the user; `5` → `missing-tool`; `6` (checksum mismatch) → row

@@ -682,8 +682,8 @@ exposed, are used as their schemas declare; manual `git worktree add` remains th
 when no native tool is available. Neither Nen's inventory nor `wc swap` provisions isolation.
 
 **Owned dependencies.** A gated-publish verb — `scripts/publish_gate.sh`'s six gates as nen's own
-(zheref/hatsu#218 (i), the ruling of 2026-10-13; this run's BC-11 reading, ROSTER § *Rulings of 2026-10-13*),
-owed, not filed. A worktree verb that cuts, reuses, moves and drops one detached worktree at a
+(zheref/hatsu#218 (i), the ruling of 2026-10-13; BC-11 as written by the ruling of 2026-10-17, the script frozen
+to fixes only pending its port), filed as zheref/nen#407 item 18. A worktree verb that cuts, reuses, moves and drops one detached worktree at a
 fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/zheref/nen/issues/299)),
 and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);

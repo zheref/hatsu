@@ -221,7 +221,7 @@ impossible, or explicit cancellation/interruption. Elapsed time and quiet observ
 handed to [`/jujisho`](../jujisho/SKILL.md), which is the split-shaped verb — never filed as
 one PR carrying two concerns because the run had already started.
 
-## 4. The stops — four are possible, and all four are somebody else's
+## 4. The stops — every one somebody else's; four kinds recur here
 
 | Stop | Owned by | Rendered as |
 |---|---|---|
@@ -333,7 +333,7 @@ it is how the page stops being read.
   proposes `/mukai` (§ 1).
 - **Never merges**, never applies a gate label, never casts a review vote (§ 3).
 - **Never opens more than one pull request**, and never one carrying two unrelated efforts (§ 3).
-- **Never opens a PR from a run that stopped** at any of § 4's four G5s.
+- **Never opens a PR from a run that stopped** at any G5 (WORKFLOW § 4's open class).
 - **Never lowers the coverage bar to clear step 5**, and never re-reads a stale coverage artifact as
   this run's number.
 - **Never skips step 2 because the change looks small.** The review is where a small change that is

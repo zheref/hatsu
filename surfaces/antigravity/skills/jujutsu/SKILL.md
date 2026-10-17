@@ -67,8 +67,9 @@ connect ports differ**. 5 · Say when it is done.
 
 **Jujutsu performs none of the above — a rule, not a limitation**: those prompts exist so that a
 human looked at them. **It never enters a passcode, accepts a trust or debugging
-prompt, or toggles a security setting** (§ Authority) — a step that seems to need something turned
-off is a G5: named with where to resume, the maintainer's act (row `on-device-act`). **And the waiting is not a
+prompt, or toggles a security setting** (§ Authority) — a step that seems to need a protection turned
+off is refused and named with where to resume — the session never asks the maintainer to disable one;
+the maintainer's own trust, pairing or passcode act is a G5 (row `on-device-act`). **And the waiting is not a
 loop**: `nen parse izanami` classifies both probes `[unknown]` and refuses the run at exit `1`, so
 jujutsu **asks, waits for the maintainer's word, and probes once**.
 
