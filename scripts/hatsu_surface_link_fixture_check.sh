@@ -73,6 +73,8 @@ make_hatsu_checkout() {
   mkdir -p "$directory/.claude-plugin" "$directory/claude/skills/x" "$directory/surfaces/antigravity"
   printf '%s\n' '{' '  "name": "hatsu",' '  "version": "'"$version"'"' '}' \
     > "$directory/.claude-plugin/plugin.json"
+  mkdir -p "$directory/scripts"
+  cp "$hatsu_root/scripts/codex_marketplace_snapshot.sh" "$directory/scripts/codex_marketplace_snapshot.sh"
   printf '%s\n' '{"name": "hatsu"}' > "$directory/.claude-plugin/marketplace.json"
   if [ "$overlay" = "with-overlay" ]; then
     mkdir -p "$directory/.codex-plugin"
@@ -199,11 +201,22 @@ case "$1 $2" in
         exit 0
         ;;
       add)
+        if [ -n "${CODEX_SHIM_MARKETPLACE_ADD_FAIL_ONCE_FILE:-}" ] && [ ! -e "$CODEX_SHIM_MARKETPLACE_ADD_FAIL_ONCE_FILE" ]; then
+          : > "$CODEX_SHIM_MARKETPLACE_ADD_FAIL_ONCE_FILE"
+          exit 1
+        fi
         exit "${CODEX_SHIM_MARKETPLACE_ADD_EXIT:-0}"
+        ;;
+      remove)
+        exit "${CODEX_SHIM_MARKETPLACE_REMOVE_EXIT:-0}"
         ;;
     esac
     ;;
   "plugin add")
+    if [ -n "${CODEX_SHIM_ADD_FAIL_ONCE_FILE:-}" ] && [ ! -e "$CODEX_SHIM_ADD_FAIL_ONCE_FILE" ]; then
+      : > "$CODEX_SHIM_ADD_FAIL_ONCE_FILE"
+      exit 1
+    fi
     filler 'Downloading dependency filler-package...'
     printf '%s\n' "Installed plugin root: ${CODEX_SHIM_CACHE_PATH:-/nowhere/cache}"
     exit "${CODEX_SHIM_ADD_EXIT:-0}"
@@ -593,26 +606,69 @@ run_restricted 5 --surface codex --root "$checkout1"
 assert_contains "$out" 'codex is not on PATH' 'a missing codex is named at exit 5'
 
 # --- fresh install: no existing marketplace row -----------------------------
+snapshot1="$codex_home/hatsu-marketplace-snapshots/$(git -C "$checkout1" rev-parse HEAD)"
+mkdir -p "$checkout1/.nen"
+printf 'ignored fixture secret\n' > "$checkout1/.nen/secret-probe"
 : > "$codex_log"
 export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_VERSION='0.60.0' CODEX_SHIM_CACHE_PATH="$fixture_root/codex-cache/hatsu/0.60.0"
 run 0 --surface codex --root "$checkout1"
 unset CODEX_SHIM_LOG CODEX_SHIM_VERSION CODEX_SHIM_CACHE_PATH
-grep -qxF "plugin marketplace add $checkout1" "$codex_log" || fail "a fresh install did not add the marketplace"
+grep -qxF "plugin marketplace add $snapshot1" "$codex_log" || fail "a fresh install did not add the clean snapshot"
+[ ! -e "$snapshot1/.git" ] || fail 'the Codex snapshot copied .git'
+[ ! -e "$snapshot1/.nen" ] || fail 'the Codex snapshot copied an untracked private path'
 grep -qxF 'plugin add hatsu@hatsu' "$codex_log" || fail "a fresh install did not add the plugin"
 assert_contains "$out" 'added marketplace hatsu' 'the report names the marketplace add'
 assert_contains "$out" 'installed hatsu@hatsu' 'the report names the plugin add'
 assert_contains "$out" "serves $fixture_root/codex-cache/hatsu/0.60.0" 'serves the Installed plugin root cache path'
 assert_contains "$out" 'apply: codex: running sessions refresh' 'the codex apply clause'
+snapshot1="$(canon "$snapshot1")"
 
-# --- marketplace already at this checkout: kept, not re-added --------------
+# A commit-named snapshot cannot be reused after local tampering.
+printf 'tampered\n' >> "$snapshot1/claude/skills/x/SKILL.md"
+: > "$codex_log"
+run 3 --surface codex --root "$checkout1"
+assert_contains "$out" 'existing commit snapshot differs' 'tampered snapshot is refused'
+assert_not_contains "$(cat "$codex_log")" 'plugin add' 'tampered snapshot cannot be installed'
+printf '%s\n' '---' 'name: x' '---' > "$snapshot1/claude/skills/x/SKILL.md"
+
+# Mode and file type are part of the committed tree, even when bytes match.
+chmod +x "$snapshot1/claude/skills/x/SKILL.md"
+: > "$codex_log"
+run 3 --surface codex --root "$checkout1"
+assert_contains "$out" 'existing commit snapshot differs' 'chmod-only tampering is refused'
+assert_not_contains "$(cat "$codex_log")" 'plugin add' 'chmod-only tampering cannot be installed'
+chmod -x "$snapshot1/claude/skills/x/SKILL.md"
+cp "$snapshot1/claude/skills/x/SKILL.md" "$fixture_root/equal-external-skill"
+rm "$snapshot1/claude/skills/x/SKILL.md"
+ln -s "$fixture_root/equal-external-skill" "$snapshot1/claude/skills/x/SKILL.md"
+: > "$codex_log"
+run 3 --surface codex --root "$checkout1"
+assert_contains "$out" 'existing commit snapshot differs' 'same-content symlink tampering is refused'
+assert_not_contains "$(cat "$codex_log")" 'plugin add' 'symlink tampering cannot be installed'
+rm "$snapshot1/claude/skills/x/SKILL.md"
+cp "$fixture_root/equal-external-skill" "$snapshot1/claude/skills/x/SKILL.md"
+
+# A preplanted sidecar symlink must not redirect a fresh snapshot's write.
+snapshot2="$codex_home/hatsu-marketplace-snapshots/$(git -C "$checkout2" rev-parse HEAD)"
+printf 'untouched\n' > "$fixture_root/sidecar-target"
+ln -s "$fixture_root/sidecar-target" "$snapshot2.source"
+: > "$codex_log"
+run 3 --surface codex --root "$checkout2"
+[ "$(cat "$fixture_root/sidecar-target")" = untouched ] || fail 'source sidecar symlink overwrote its target'
+rm "$snapshot2.source"
+bash "$checkout2/scripts/codex_marketplace_snapshot.sh" --root "$checkout2" --base "$codex_home/hatsu-marketplace-snapshots" >/dev/null
+snapshot2="$(canon "$snapshot2")"
+
+# --- legacy marketplace at this checkout: migrate to the clean snapshot ----
 : > "$codex_log"
 export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_MARKETPLACE_ROOT="$checkout1" \
   CODEX_SHIM_VERSION='0.60.0' CODEX_SHIM_CACHE_PATH="$fixture_root/codex-cache/hatsu/0.60.0"
 run 0 --surface codex --root "$checkout1"
 unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT CODEX_SHIM_VERSION CODEX_SHIM_CACHE_PATH
-assert_not_contains "$(cat "$codex_log")" 'marketplace add' 'an already-registered marketplace must not be re-added'
+grep -qxF 'plugin marketplace remove hatsu' "$codex_log" || fail 'the legacy registration was not removed'
+grep -qxF "plugin marketplace add $snapshot1" "$codex_log" || fail 'the clean snapshot was not registered'
 grep -qxF 'plugin add hatsu@hatsu' "$codex_log" || fail "plugin add still runs when the marketplace was already registered"
-assert_contains "$out" 'marketplace hatsu already at this checkout' 'the report names the kept marketplace'
+assert_contains "$out" 'moved marketplace hatsu to the committed snapshot' 'the report names the migration'
 
 # --- foreign marketplace root: refused exit 3, nothing mutated -------------
 : > "$codex_log"
@@ -622,6 +678,61 @@ unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT
 assert_contains "$out" "$checkout2" 'the foreign marketplace root is named'
 assert_not_contains "$(cat "$codex_log")" 'marketplace add' 'a foreign marketplace must never be overridden'
 assert_not_contains "$(cat "$codex_log")" 'plugin add' 'a foreign marketplace refusal must not install the plugin either'
+
+# A foreign registered snapshot inside our snapshot base is still foreign.
+: > "$codex_log"
+export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_MARKETPLACE_ROOT="$snapshot2"
+run 3 --surface codex --root "$checkout1"
+unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT
+assert_contains "$out" "$snapshot2" 'the foreign snapshot root is named'
+assert_not_contains "$(cat "$codex_log")" 'marketplace remove' 'a foreign snapshot cannot be removed'
+assert_not_contains "$(cat "$codex_log")" 'plugin add' 'a foreign snapshot cannot trigger installation'
+
+# Two checkouts at one commit share a snapshot name. Ownership is checked
+# before the helper can rebind the active snapshot's sidecar.
+checkout_same="$fixture_root/checkout-same-commit"
+git clone -q --no-local "$checkout1" "$checkout_same"
+: > "$codex_log"
+export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_MARKETPLACE_ROOT="$snapshot1"
+run 3 --surface codex --root "$checkout_same"
+unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT
+[ "$(cat "$snapshot1.source")" = "$checkout1" ] || fail 'foreign same-commit checkout rebound the active sidecar'
+assert_not_contains "$(cat "$codex_log")" 'marketplace remove' 'foreign same-commit checkout removed the marketplace'
+
+# A one-time marketplace add failure restores the previous registration.
+: > "$codex_log"
+export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_MARKETPLACE_ROOT="$checkout1" \
+  CODEX_SHIM_MARKETPLACE_ADD_FAIL_ONCE_FILE="$fixture_root/add-failed-once"
+run 1 --surface codex --root "$checkout1"
+unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT CODEX_SHIM_MARKETPLACE_ADD_FAIL_ONCE_FILE
+assert_contains "$out" 'restored previous Codex marketplace' 'successful marketplace rollback is reported'
+grep -qxF "plugin marketplace add $checkout1" "$codex_log" || fail 'marketplace rollback did not re-add the old root'
+grep -qxF 'plugin add hatsu@hatsu' "$codex_log" || fail 'marketplace rollback did not reinstall the old plugin'
+
+# A one-time plugin install failure also restores the prior install.
+: > "$codex_log"
+export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_MARKETPLACE_ROOT="$checkout1" \
+  CODEX_SHIM_ADD_FAIL_ONCE_FILE="$fixture_root/plugin-failed-once"
+run 1 --surface codex --root "$checkout1"
+unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT CODEX_SHIM_ADD_FAIL_ONCE_FILE
+assert_contains "$out" 'restored previous Codex marketplace' 'successful plugin rollback is reported'
+grep -qxF "plugin marketplace add $checkout1" "$codex_log" || fail 'plugin rollback did not re-add the old root'
+
+# An add failure after removing the old marketplace restores its registration.
+: > "$codex_log"
+export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_MARKETPLACE_ROOT="$checkout1" CODEX_SHIM_MARKETPLACE_ADD_EXIT=1
+run 1 --surface codex --root "$checkout1"
+unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT CODEX_SHIM_MARKETPLACE_ADD_EXIT
+assert_contains "$out" 'automatic restore failed' 'a failed rollback is reported explicitly'
+[ "$(grep -cxF 'plugin marketplace remove hatsu' "$codex_log")" -eq 2 ] || fail 'failed marketplace add did not attempt rollback'
+
+# If the plugin install fails, the previous marketplace and plugin are re-added.
+: > "$codex_log"
+export CODEX_SHIM_LOG="$codex_log" CODEX_SHIM_MARKETPLACE_ROOT="$checkout1" CODEX_SHIM_ADD_EXIT=1
+run 1 --surface codex --root "$checkout1"
+unset CODEX_SHIM_LOG CODEX_SHIM_MARKETPLACE_ROOT CODEX_SHIM_ADD_EXIT
+assert_contains "$out" 'automatic restore failed' 'a failed rollback plugin add is reported explicitly'
+grep -qxF "plugin marketplace add $checkout1" "$codex_log" || fail 'rollback did not re-add prior marketplace'
 
 # --- version mismatch: refused, both versions named -------------------------
 : > "$codex_log"
