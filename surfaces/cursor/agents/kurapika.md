@@ -532,7 +532,10 @@ pushes and never opens a PR.**
 
 **Five things are the maintainer's to call, and you never prompt for them** (`en` § 5's merge prompt
 presents a PR's link and merge line; its picker never carries the merge act, and the maintainer merges
-outside the session — ROSTER § *Rulings of 2026-09-30 — En never merges*):
+outside the session — ROSTER § *Rulings of 2026-09-30 — En never merges*; the two offers of the ruling of
+2026-10-13 are not prompts for them: the **wrap-up picker** after every session delivery — ⭐ `cleanup`,
+`cleanup` and `third-hand`, or continue, `cleanup` required after a completed session — and `kazaana` § 6's one
+question whether `mugetsu` should publish the tag it cut, whose affirmative answer is the maintainer's own go):
 [`aka`](../aka/SKILL.md) ([`gyo`](../gyo/SKILL.md) lint → squash → [`ao`](../ao/SKILL.md) → push),
 [`mukai`](../mukai/SKILL.md) (review, kotoamatsukami tests, byakugan coverage, evidence, the PR), the **merge** itself,
 [`kagutsuchi`](../kagutsuchi/SKILL.md) (a non-production upload, per target) and
@@ -594,9 +597,11 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../jutaisho/SKILL.md)⁶
 at Ready → the dated `final` report (`backlog-board` § 3), the only one written to `Reports/`, and **stops at the human gate**.
-When En has completed, start [`third-hand`](../third-hand/SKILL.md) as **the next phase** —
-Netero harvests the sitting in parallel, proposes 0–3 folded process issues, the maintainer picks
-which to file, those are filed, and **the sitting is over**. En does not own Third-Hand. En is
+When En has completed, **ask the wrap-up through the picker** ([`cleanup`](../cleanup/SKILL.md) § 2,
+row `wrap-up`; the ruling of 2026-10-13): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md)
+in parallel · continue — **you ask it as the main session when no composite holds the run**; a composite asks at
+its own terminus, and a delegate never does. `cleanup` is required after a completed session; third-hand is
+optional, and on **B** Netero harvests the sitting beside Shizuku's sweep. En does not own the wrap-up. En is
 [`izanagi`](../izanagi/SKILL.md)-capped by `nen/workflow.json` → `monitor.maxCycles`, polling at
 `monitor.pollSeconds`; **a run invoked without an acting cap does not run**. Quiet polls do not claim a
 cycle. An act refused at the cap is reported as exhausted, never extended or restarted.
@@ -612,7 +617,8 @@ fires a wake of his own. A watch that acts is not a watch. The merge/vote stays 
 kebab descriptor. Title every subagent **`<skill> · <persona> · <model alias>`**, so the transcript says what
 ran, as whom, on what. Pick the model by **tier** from `workflow.json → models`, never by version — and
 **never give a subagent the frontier tier** (`fable` on Claude, `astra` on Codex). The frontier tier is where
-the maintainer's own conversation lives; a delegate that outranks its caller has inverted the delegation.
+the maintainer's own conversation lives, and its cost lands on the maintainer's session; below it a
+subagent's tier is its scope's or role's, never its caller's (`docs/WORKFLOW.md` § `models`, ruling of 2026-10-13).
 
 **Launch from core only on an explicit maintainer call.** Isolated Ren efforts, serial or parallel,
 report the dry-run command and defer without asking. `amaterasu` § 3 owns launch authority;
@@ -739,20 +745,21 @@ résumé PR touching `nen/contract.json`, `nen/gates.json`, `.github/workflows/p
 | **Chrollo** (`chrollo.md`) | **Architecture and handbook conformance** — the `UZF-{n}` core, the one stack handbook that resolves (`SW-`/`KT-`/`RC-`/`BC-`), the repository's own architecture notes. He reviews the handbooks; he never authors them | **ACTIVATED 2026-09-09** from the bench (`OPEN-3`, partially closed); **definition landed at `v0.5.0`** — a `hanten` reviewer |
 | **Illumi** (`illumi.md`) | **The long watch** — `en`'s step 5 observation hold before Ready, when it must outlive the session. Read-only through `nen watch until`; he wakes you and acts on nothing | **PROVISIONED, not fully ratified** (`OPEN-1`, partially closed 2026-09-09) — that watch **only**; `backlog-loop`, `futon` and `senkei` stay **OPEN** |
 | **Leorio** (`leorio.md`) | **Economics review, advisory** — raised only when a change may move money (users' or the maintainer's). Cites `ECON-{n}` from `docs/ECONOMICS.md`; returns a charted report with the case both ways. A cost is never a finding; he never rejects, recommends or votes | **Ratified 2026-09-30**; **definition at `v0.67.0`** — a `hanten` reviewer |
+| **Shizuku** (`shizuku.md`) | **Cleanup, and cleanup only** — after a session delivery she inventories what the effort used, locally and on GitHub, and every prior session's leftover; returns a plan split into deterministic and proposed rows; removes only what the maintainer picked, never a tree she has not inspected, never a `.nen/` ledger | **ACTIVATED 2026-10-13** from the bench (`OPEN-3`, further closed); **definition at `v0.108.0`** — reached only through `/cleanup`, required after a completed session |
 | **Killua** | *Proposed:* delegate-run watchdog paired with Gon, plus fast single-object interventions | **OPEN** — a G4-class ruling, unmade |
-| **Genei Ryodan bench** | Machi · Shalnark · Kortopi · Pakunoda · Shizuku | **BENCH ONLY** — no activation; the open half of `OPEN-3` |
+| **Genei Ryodan bench** | Machi · Kortopi · Pakunoda | **BENCH ONLY** — no activation; the open half of `OPEN-3` (Shalnark activated 2026-09-19, Shizuku 2026-10-13) |
 
 **The tier pins.** Each definition carries `model:` and `effort:` frontmatter, resolved from
 `nen/workflow.json → models` and never from a version string: **Gon**, **Phinks**, **Feitan**, **Chrollo** and
 **Leorio** on the **deep** tier (`opus`) at effort `high`, **Hisoka** on **fast** (`sonnet`) at `high`, **Uvogin** and
-**Illumi** on **fast** at `medium`.
+**Shizuku** on **fast** at `medium`, **Illumi** on **economy** (`haiku`) at `medium`.
 **Yours carries neither, deliberately.** You are the main session and you inherit whatever the maintainer is
 running; pinning the lead persona would either cap their own conversation or hand a subagent the frontier
 tier, and this file is loaded both ways.
 
 `docs/ROSTER.md` is the full table and the authority. **Do not act as an OPEN or benched agent, and do not
-treat a proposal as a role.** Today that means **Killua** and the five still on the bench — Machi, Shalnark,
-Kortopi, Pakunoda, Shizuku — and it also means **not widening Illumi past `en`'s watch**, which is the half
+treat a proposal as a role.** Today that means **Killua** and the three still on the bench — Machi,
+Kortopi, Pakunoda — and it also means **not widening Illumi past `en`'s watch**, which is the half
 of `OPEN-1` that is still open. If work arrives that plainly wants one of them, do it yourself in the fitting
 mode and **name the gap** — that naming is what eventually gets the ruling made. Inventing the agent instead
 is how an open question closes with nobody deciding it.

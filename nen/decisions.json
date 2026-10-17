@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval), missing-tool, secret-shape and red-lint (also jusshin). Data-only until a skill cites them: merge, mode-label, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition a running workflow can stop on. `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check`; read by `nen stop --options` and by every skill before it asks. Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a refusal, never a G5, kept in the autonomous class only because this schema has no refusal class -- the one autonomous row a consumer's file may neither narrow nor reclassify), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10 and kazaana section 7), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)). Data-only until a skill cites them: merge, mode-label, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -380,7 +380,7 @@
       "id": "release-go",
       "class": "human-gate",
       "gate": "G3",
-      "why": "Publication is the maintainer's own go, quoted verbatim, in one of three forms (mugetsu § 0): their typed hatsu:mugetsu [<target>], the go by name (docs/ROSTER.md § The human gates, the G3 row; ruling 2(a) of § Rulings of 2026-09-26/27/28, clarified 2026-09-30), needing no second message; their own words saying to publish; or the advance go. A scheduled, looped, headless, hook-injected, self-loaded or resumed invocation is not the go, and no composite reaches it on its own authority. The one composite path is the advance go (mugetsu § 3, docs/ROSTER.md § Rulings of 2026-09-26/27/28): the maintainer's own typed futon invocation whose then chain names mugetsu, gated by nen parse futon on nen/workflow.json futon.advanceGo (process and library only). With no target typed, mugetsu publishes the latest unpublished cut tag to the single declared destination; only several declared and none named is asked, as free text."
+      "why": "Publication is the maintainer's own go, quoted verbatim, in one of four forms (mugetsu § 0): their typed hatsu:mugetsu [<target>], the go by name (docs/ROSTER.md § The human gates, the G3 row; ruling 2(a) of § Rulings of 2026-09-26/27/28, clarified 2026-09-30), needing no second message; their own words saying to publish; the advance go; or their publish answer to kazaana section 6's one unstarred question after the tag it cut (form (4), row publish-offer; the ruling of 2026-10-13, 3). A scheduled, looped, headless, hook-injected, self-loaded or resumed invocation is not the go, and no composite reaches it on its own authority. The composite paths are the advance go (mugetsu § 3, docs/ROSTER.md § Rulings of 2026-09-26/27/28): the maintainer's own typed futon invocation whose then chain names mugetsu, gated by nen parse futon on nen/workflow.json futon.advanceGo (process and library only) -- and kazaana's publish-offer answer, under the same kind gate. With no target typed, mugetsu publishes the latest unpublished cut tag to the single declared destination; only several declared and none named is asked, as free text."
     },
     {
       "id": "mode-label",
@@ -408,9 +408,9 @@
     },
     {
       "id": "on-device-act",
-      "class": "human-gate",
-      "gate": "G5",
-      "why": "A trust prompt or a security setting on a device is the maintainer's own act (jujutsu; jusshin: the UAC prompt and the service-account password typed into the elevated window, after the harness's own permission prompt on the launch line, which is the advance consent)."
+      "class": "autonomous",
+      "default": "refuse, never ask: print the act that unblocks the operation and where it resumes (docs/WORKFLOW.md section 4, What is not a gap, the on-device act entry)",
+      "why": "Ruling of 2026-10-13 (zheref/hatsu#176, docs/ROSTER.md section Rulings of 2026-10-13): an on-device act is a refusal, never a G5. Classed autonomous only because nen.decisions/v0.1 admits no refusal class (a nen request is owed through the run's harvest); the default is the refusal, not a resolution, and a consumer's file may neither narrow nor reclassify this row."
     },
     {
       "id": "supply-chain-failure",
@@ -479,6 +479,83 @@
       ],
       "proposeIssue": false,
       "why": "Ruling 2026-10-04: direct advises, never gates -- a mismatch is asked once through the picker with continue starred, and a build is never blocked from starting on a non-recommended model or effort. Ruling 2026-10-05: the compare runs against the whole set of picks, so a session already on the cost-agnostic recommended or the cost-aligned fallback pick is within the registry and is told so in one line."
+    },
+    {
+      "id": "wrap-up",
+      "class": "ask-once-per-run",
+      "default": "ask once at a session delivery -- a PR standing at en section 5's merge prompt or merged, or a composite's run ending (en section 8, build phase 6, futon section 10, kazaana section 7) -- through the surface's own picker: cleanup, cleanup and third-hand in parallel, or continue iterating. cleanup is REQUIRED after a completed session and third-hand is optional (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of 2026-10-13, 5). The wrap-up names no human-called phase (aka, mukai, the merge, kagutsuchi, mugetsu) and is never a merge prompt. A completed .nen/cleanup/<slug>.json for the scope reads already-clean and the question is not re-asked",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "run cleanup",
+          "command": "hatsu:cleanup -- Shizuku inventories this sitting and every prior leftover, returns the plan, the maintainer picks (row cleanup-plan), she removes only the pick",
+          "consequence": "what the effort left behind, locally and remotely, is swept; the sitting closes with the sweep reported",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "run cleanup and third-hand in parallel",
+          "command": "hatsu:cleanup and hatsu:third-hand, raised side by side (Shizuku and Netero each in two passes, each filing or removing only the maintainer's pick)",
+          "consequence": "the sweep and the 0-3 harvested process issues, both on the maintainer's picks; the sitting closes"
+        },
+        {
+          "key": "C",
+          "label": "continue iterating on this session",
+          "command": "nothing runs; the next request is a ren turn on the same effort",
+          "consequence": "the offer returns at the next session delivery; nothing is swept or filed meanwhile"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-10-13: running cleanup is always required after a completed session and is offered once a single PR lands as a session delivery; third-hand remains optional; the maintainer may run cleanup, cleanup and third-hand in parallel, or continue iterating. This amends ruling 1 of 2026-09-09 (no agent prompts for the five phases -- neither offer here is one of them) and third-hand section 2's never-ask rule."
+    },
+    {
+      "id": "cleanup-plan",
+      "class": "ask-once-per-run",
+      "default": "present Shizuku's plan as ONE lettered question through the surface's own picker: A every deterministic row (a mechanical fact decides -- a merged PR's clean worktree, its remote head where git ls-remote returns the PR's headRefOid, then the worktree and its merged branch; a prunable entry; this sitting's returned hanten-/prove- checkouts; a stale tracking ref; <reports.dir>/current.html), B those plus the proposed rows the maintainer ticks next, asked in batches of at most three per question where the surface caps options (uncommitted work with every path listed, a closed-unmerged or PR-less branch, a merged remote head whose SHA moved, a merged branch with no worktree, a merged effort's captures, a build cache in a kept worktree, a prior session's detached checkouts, a cache binary below the pin with its spelled rm), C none. Named rows (billed resources, the surface's own worktrees, a locked or open-PR worktree, a refused name) are listed and never an option. NOTHING is removed before the answer; none wins over every other tick; pass 2 runs only the picked rows in cleanup section 5's order, each remote delete from its worktree before that worktree goes, each read back with the bytes freed (cleanup sections 5-6)",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "apply the deterministic rows",
+          "command": "every deterministic row, in cleanup section 5's order: git worktree prune; per merged clean worktree git -C <wt> push origin --delete -- <branch> (only when git ls-remote returns the PR's headRefOid), then git worktree remove -- <wt>, then git branch -d -- <branch>; this sitting's returned hanten-/prove- checkouts; git remote prune origin; rm -- <reports.dir>/current.html -- each followed by its read-back",
+          "consequence": "what a fact says is dead is gone; every proposed and named row is kept and named in the report",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "apply the deterministic rows and the proposed rows I tick",
+          "command": "the same, then the proposed rows asked in batches of at most three per question where the surface caps options; each ticked row's exact command as the plan spelled it; a named row is never asked",
+          "consequence": "the ticked judgement calls are performed too; an unticked or named one is kept and named"
+        },
+        {
+          "key": "C",
+          "label": "none -- keep everything",
+          "command": "nothing runs; the marker records none-picked",
+          "consequence": "the inventory stands in the report; the leftovers are offered again at the next wrap-up"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-10-13: Shizuku offers an action plan split between deterministic and non-deterministic proposed operations to free storage and resources and ensure maximum hygiene, covering prior sessions' leftovers as encountered; she never destroys before the pick and never a tree she has not inspected (dirty-tree's discipline), and the .nen/ ledgers are the record, never a leftover."
+    },
+    {
+      "id": "publish-offer",
+      "class": "ask-once-per-run",
+      "default": "ask once, after kazaana's getsuga step cut the tag and git ls-remote --tags origin resolves it, and ONLY where nen repo classify's kind is listed under nen/workflow.json -> futon.advanceGo.mugetsu (process, library; a product repository's publication stays typed by name, said): Publish <tag> through hatsu:mugetsu to <the single declared destination>? No option is starred -- G3 is never recommended. The affirmative answer is the maintainer's own go, form (4) of mugetsu section 0, quoted verbatim with the question's text in the report and on the release PR (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of 2026-10-13, 3); several destinations declared and none named is mugetsu section 3's free-text ask. The go lapses with the run",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "publish -- this answer is my go for hatsu:mugetsu on this tag",
+          "command": "hatsu:mugetsu [<target>] with this answer quoted as the go: nen release preflight, then nen shu release and/or nen shu deploy --target <production target> --run, one target once",
+          "consequence": "the release is published to that one destination; the go and the question are quoted on the release PR"
+        },
+        {
+          "key": "B",
+          "label": "not now -- the tag stands",
+          "command": "nothing runs; the report names the tag and the line to type later (hatsu:mugetsu [<target>])",
+          "consequence": "nothing publishes; a later typed hatsu:mugetsu is its own go"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Ruling 2026-10-13: once the tag is cut successfully, offer the maintainer through a picker whether mugetsu should be started to publish a new release under the last cut tag in the session. This is the one question an agent asks about G3: mugetsu section 1's no-agent-ever-prompts and missing-maintainer-choice's typed-never-picked are amended for this question alone; the gate itself (row release-go) is unchanged and the answer is the maintainer's own word, never starred, never derived. Because the answer crosses G3, this row is bound like a human-gate row: a consumer's own decisions file may not reclassify it, give it a default, or star an option (docs/config/decisions.json.md section The three row classes). The kind gate is the target's futon.advanceGo.mugetsu as nen parse futon reads it (declared, or nen's default where absent) on the target's nen repo classify kind; zero declared destinations is no offer; several are one unstarred option each."
     }
   ]
 }
