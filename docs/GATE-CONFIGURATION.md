@@ -414,6 +414,24 @@ finishes is frozen at both ends, so no conclusion mapping can be edited into a g
 required is a ruleset edit, the maintainer's, sent as the whole ruleset (the `PUT` shape above); until
 then it is advisory, and a red run still reads the pull request not-ready under CON-32(a).
 
+**2026-10-13. The canon data contracts are guarded by nen's own validators
+([zheref/hatsu#223](https://github.com/zheref/hatsu/issues/223)), both steps landed.**
+`contracts/direct.registry.json`, `contracts/classify.taxonomy.json` and `nen/labels.json` held their
+invariants only by the review's one-off checks. `scripts/canon_contracts_check.sh` now runs the three nen
+reads (`nen direct registry`, `nen classify labels`, `nen classify install --dry-run` for labels parity)
+and re-implements none; lane `canon-contracts-guard` seats its fixture. In CI the guard runs as a new
+`Canon data contracts check` step of `surface-mirror-check.yml`, after the drift step, on the trusted
+checkout's bootstrapped nen and trusted script over the pull request's data. Step one
+taught the validator the step beside the current shape (`ALLOWED_STEP_SHAPES`, `CANON_CONTRACTS_STEP`)
+and froze its one form (`CANON_CONTRACTS_FROZEN`: the trusted script, `NEN` the bootstrapped binary's
+absolute path, `--root "$PWD"`, the output fenced between `::stop-commands::` and its token, no token in
+its env; the self-test holds on both trees the landing produces and also runs the body with stand-ins
+for the guard, the binary and openssl, so the exit mapping, the error lines and the fence hold at
+runtime), so the pull request that installs it is judged by a validator already holding the body; step
+two added the step to the workflow and narrowed `EXPECTED_STEPS` to it, one shape admitted again. A
+canon-contract failure reads as a red `surface-mirror-check`, and a run red at the drift step never
+reaches it (a check of its own would be the #135 route).
+
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
 stages its file at `templates/<name>`, where the self-test judges it as if installed; the second

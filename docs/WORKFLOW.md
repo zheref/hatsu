@@ -638,8 +638,14 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
 **Two rules ride on this matrix, and neither is optional.**
 
 - **A subagent is never given the frontier tier** (`fable`, `astra`). The frontier tier is where the
-  maintainer's own conversation lives; a delegate that outranks its caller has inverted the delegation, and
-  the cost lands on the maintainer's session rather than on the delegate's.
+  maintainer's own conversation lives, and its cost lands on the maintainer's session rather than on the
+  delegate's. **A subagent's tier is its scope's or role's, never its caller's** (ruling of 2026-10-13,
+  zheref/hatsu#222, stated here once): `hanten` raises each reviewer at its scope's declared tier
+  (`review.scopes.<scope>.tier`, which is `models.roles.reviewer`'s `deep` unless the scope says
+  otherwise — `ui` and `performance` declare `fast`) whatever tier `direct` sent the maintainer's own
+  session to; a `fast`-tier effort is still read adversarially at the tier its scope declares, because the
+  review's worth is the reading, not the symmetry with the author. A reviewer may therefore outrank a
+  `fast`-tier caller by design; it never reaches the frontier tier. `hanten` § 4 and `direct` § 5 cite this.
 - **Every subagent is titled `<skill> · <persona> · <model alias>`** — `hanten · hisoka · sonnet`,
   `rasengan · kurapika · opus`. Three facts, in the order you need them when you are reading a transcript
   afterwards: what ran, as whom, on what.
@@ -676,14 +682,16 @@ worktrees live*, the ruling of 2026-09-30.
 `nen/workflow.json` → `models` is the source and this table a convenience copy of it; where the two
 disagree the file wins and the table is the bug.
 
-**A reviewer runs at the `deep` tier on every surface** — `opus`, `sol`, `grok`, `pro` — because
-`models.roles.reviewer` is `deep` and a role maps to a tier rather than to a product.
+**A reviewer runs at its scope's declared tier on every surface** — `models.roles.reviewer`'s `deep`
+(`opus`, `sol`, `grok`, `pro`) unless `review.scopes.<scope>.tier` says otherwise — because a role maps to a
+tier rather than to a product.
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
 **The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
-frontier tier is where the maintainer's own conversation lives; a delegate that outranks its caller has
-inverted the delegation, and the cost lands on the maintainer's session rather than on the delegate's.
+frontier tier is where the maintainer's own conversation lives, and the cost lands on the maintainer's
+session rather than on the delegate's; below it, the first rule above holds (a subagent's tier is its
+scope's or role's, never its caller's).
 
 > **Antigravity Performance vs. Cost & Subscription Tiers (Google AI Pro & Ultra)**:
 > In market benchmarks (such as DeepSWE and SWE-bench Verified), Gemini 2.5 Pro demonstrates reasoning
@@ -950,6 +958,15 @@ It loops. **It never pushes and never opens a pull request.**
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
+**Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
+The **wrap-up picker** at every session delivery — a PR at `en` § 5's merge prompt or merged, a composite's run
+ending — asks once (row `wrap-up`): ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
+[`third-hand`](../claude/skills/third-hand/) in parallel · continue iterating; `cleanup` is **required after a
+completed session**, `third-hand` optional, and neither is a phase of the five. And [`kazaana`](../claude/skills/kazaana/)
+§ 6 asks once, after the tag it cut resolves on origin, whether `mugetsu` should publish it (row `publish-offer`,
+no option starred): the affirmative answer is the maintainer's own go, form (4) of `mugetsu` § 0, quoted verbatim;
+neither offer ever names `aka`, `mukai`, the merge or `kagutsuchi`.
+
 **The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
 destination is a go for *that* destination: `kagutsuchi`'s target is **typed, or the one the maintainer
 declared as `deploy.defaultTarget`** (§ 2; ruling 2026-09-29, zheref/hatsu#146 — before it, required
@@ -1041,7 +1058,14 @@ scaffolding piece — **does not end the operation**. In order:
 2. **Ask per item, inline**, through the surface's picker (Crazy Slots) with the candidates as options,
    the best one starred and the picker's free-text answer standing in for "type it" — rows
    `missing-argument` and `missing-configuration`. **One question per missing item**, never one
-   bundled question for the whole run, and never a paragraph ending in a question mark.
+   bundled question for the whole run, and never a paragraph ending in a question mark. **The
+   question budget, stated here once** (ruling of 2026-10-13, zheref/hatsu#175): **per run there is
+   no cap** — one question per missing item, however many are missing; **per picker call, at most
+   three questions** (the Codex picker's own cap, [`surfaces/codex.md`](surfaces/codex.md) § 7); a typed item
+   (`missing-maintainer-choice`) counts like any other; and more than three missing items means
+   **more calls, never a bundle** and never a refusal on the count alone. The one that unblocks the
+   most is asked first, since its answer may derive the rest.
+   [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) § 3 P4 cites this paragraph.
 3. **Set it up on the maintainer's behalf, on that answer**, through the item's owner — `nen scaffold
    init` for a nen declaration, `scripts/tenkai_adopt.sh apply` for a Hatsu-owned piece,
    [`jujutsu`](../claude/skills/jujutsu/SKILL.md) for a device, the file's own key otherwise — validate
@@ -1088,7 +1112,16 @@ configuration value; it stops at G5 rather than issuing a fresh budget.
   `sudo`;
 - **a secret, credential or signing material** — never typed into chat; the maintainer supplies it
   through their own tool;
-- **an on-device act** — a trust prompt, a security setting;
+- **an on-device act** — a trust prompt, a security setting, a UAC consent, a Login Items approval, a
+  password typed into an elevated window. **A refusal, never a G5** (ruling of 2026-10-13,
+  zheref/hatsu#176; row `on-device-act`, stated here once): no `nen stop` banner, no picker, the five
+  G5s stay five. A skill may *raise* such a prompt only through a launch the harness itself asks the
+  maintainer to approve — that permission prompt, showing the exact string, is the advance consent
+  ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's Windows path); otherwise it prints the act for
+  the maintainer and where the operation resumes ([`jujutsu`](../claude/skills/jujutsu/SKILL.md);
+  jusshin's Linux path, and on macOS the Login Items approval that follows its launch). The row is
+  classed `autonomous` only because `nen.decisions/v0.1` has no `refusal` class: its default *is* the
+  refusal, not a resolution, and no consumer file narrows or reclassifies it;
 - **a human gate** — G1–G5;
 - **a supply-chain failure** — a checksum or manifest mismatch, never retried;
 - **a mutating command inside a read-only loop**;
@@ -1154,10 +1187,10 @@ several pairs the reader names the other-pool alias where the verb's runner-up s
 zheref/nen#389) and the recommended (the primary's escalation on a weight-4 job or a `max` effort, else the
 primary). **Companion jobs** (`review`, `delivery-ops`, flagged in the taxonomy) are kept out of the verb call
 that decides and reported from a second call: that work runs on the **session's** surface — the surface the
-effort runs on, where hanten raises its reviewers (§ *The matrix, per surface*) — at `models.roles.<role>`, the
-tier beside a lower-tier session being zheref/hatsu#222's question. The verdict persists in `.nen/direct/<effort>.json`, and on GitHub only where `direct.publish` (§ 2) opts in — per issue under `build` or standalone, or over a whole backlog through `hatsu:direct backlog [<repo>]` (direct § 8: one table, one confirmation, then label and comment per issue). **One question the rulings did not settle is returned to the
-maintainer** (ROSTER § *Rulings of 2026-10-04*, *Open questions*; zheref/hatsu#222): whether
-`models.roles.reviewer` stays `deep` when direct's verdict for the session is a lower tier. **The readable
+effort runs on, where hanten raises its reviewers (§ *The matrix, per surface*) — at `models.roles.<role>`: the
+role's tier, never the session's (§ `models`). The verdict persists in `.nen/direct/<effort>.json`, and on GitHub only where `direct.publish` (§ 2) opts in — per issue under `build` or standalone, or over a whole backlog through `hatsu:direct backlog [<repo>]` (direct § 8: one table, one confirmation, then label and comment per issue). The one question those rulings returned to the maintainer — whether `models.roles.reviewer` stays
+`deep` when direct's verdict for the session is a lower tier (zheref/hatsu#222) — was answered on
+2026-10-13: it does (ROSTER § *Rulings of 2026-10-13*). **The readable
 mirror** is [`DIRECT-MATRIX.md`](DIRECT-MATRIX.md): every job × domain × language cell, the alias table with
 list prices and served ids, the three picks, the effort rule and worked examples. `scripts/direct_matrix_doc.sh`
 renders its tables and rule text from the registry, the taxonomy and Hatsu's own `models` block; only its
@@ -1517,7 +1550,10 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.27.0` adds `third-hand`**: a wrap-up harvest after En. **`v0.28.0` states it is a separate
+**`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
+parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
+publish offer; cleanup is Shizuku's sweep, required after a completed session, offered beside an optional
+`third-hand` at the wrap-up picker. **`v0.27.0` adds `third-hand`**: a wrap-up harvest after En. **`v0.28.0` states it is a separate
 phase that starts once En has completed**, not En step 8. Netero proposes 0–3 folded process
 issues; the maintainer picks which to file; the sitting is then over. **It is not the merge.** G2
 still has no file. Codex asks through `request_user_input` and raises Netero in-session;

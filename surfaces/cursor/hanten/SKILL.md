@@ -7,7 +7,7 @@ summary: Have the change read
 
 # Hanten — the change, read by someone looking for what is wrong
 
-**Mode**: the authored nature; `mukai` step two or standalone. **Pre-PR findings cost edits.**
+**Mode**: authored nature; `mukai` step 2 or standalone. **Findings cost edits.**
 
 ## 1. Invocation
 
@@ -63,12 +63,12 @@ row that cannot run is not scanned, never clean**; values are `$hatsu_root/contr
 ## 2b · Budgets — one effort, one ledger
 
 **A Hanten invocation is not a new review budget**: remediation, a resumed session, a later `ren` turn
-and `mukai` re-entering continue the **same cycle**. **An effort is a branch PLUS its pull request**
-(ROSTER ruling 9 R2) — keyed `<branch-slug>`, then `<branch-slug>-pr<N>`, so a new PR number is a fresh
-ledger, every budget full. **Hanten opens the PR-keyed one itself, once** (`init … --pr <N>` before the first `decide`;
-present → never re-`init`, exit `2`); the branch-only ledger is unread thereafter. **Each scope's maximum is its own `budget`, per effort, never per session or repository** (ruling
-2026-09-28), counted by the ledger; **one persona, one budget** (his smallest): two scopes
-he owns raised together are one raise for both.
+or `mukai` re-entering continue the same cycle. **An effort is a branch PLUS its pull request**
+(ROSTER ruling 9 R2) — keyed `<branch-slug>`, then `<branch-slug>-pr<N>`: a new PR number is a fresh
+ledger, budgets full. **Hanten opens the PR-keyed one itself, once** (`init … --pr <N>` before the first `decide`;
+present → never re-`init`, exit `2`); the branch-only ledger is then unread. **Each scope's maximum is its own `budget`, per effort, never per session or repo** (ruling 2026-09-28),
+counted by the ledger; **one persona, one budget** (his smallest): two of his scopes
+raised together are one raise.
 
 ```bash
 "$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> [--pr <N>] \
@@ -90,7 +90,7 @@ gap**: the persona, the raising paths, **this scope not reviewed** — never a p
 
 On Claude Code the reviewer is an Agent-tool subagent, one per scope, in parallel:
 `subagent_type` `hatsu:<persona>`, `description` **`hanten · <persona> · <model alias>`**, `model`
-`models.<surface>.<tier>` for the scope's `tier` (not passed where the persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
+`models.<surface>.<tier>` for the scope's `tier` — the scope's, never the session's (WORKFLOW § `models`; absent where a persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
 shape, the preamble's **absolute** path (ECONOMICS.md's too where `economics` is raised),
 *"do not request a worktree"*, and `nen: <path>` with its pin — the one `ten` § 2 bound, since **a
 subagent inherits no `PATH`** (#107) — prefixing every block. Unresolvable, the prompt names every

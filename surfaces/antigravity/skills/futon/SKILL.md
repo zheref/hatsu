@@ -165,8 +165,8 @@ held at its gate**.
 
 Say the run has ended; the delegation lapses. The final report is [`/rikugan`](../rikugan/SKILL.md)
 over this run's scope — its § 2 futon row, the `then` outcome included — **the one render a typed
-`then rikugan` is, never a second**; `final` only if every PR merged, else `register` with the asks.
-**Futon never resumes itself**; re-invoke it.
+`then rikugan` is, never a second**; `final` only if every PR merged, else `register` with the asks. Then the
+**wrap-up picker** ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`). **Futon never resumes itself**; re-invoke it.
 
 ## 11. Hard limits
 
@@ -185,5 +185,5 @@ over this run's scope — its § 2 futon row, the `then` outcome included — **
   typed `then` step** (mugetsu § 3) whose parse `gate` reads `allowed: true`, never from prose.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
-*Residue: PROCESS § Residue and owned dependencies; dated verifications: `docs/ab/futon.md`. The label selector, `then` chain and fail-closed `gate`
-need nen v0.15.1+ (pin v0.21.0); an older binary's exit `2` is relayed, never worked around.*
+*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen v0.15.1+ (pin
+v0.21.0); an older binary's exit `2` is relayed.*

@@ -59,7 +59,9 @@ A missing argument or configuration item is asked for and set up inline (`missin
 `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
 The target, the machine code and the service identity are the maintainer's word — **typed, never
 picked** (`missing-maintainer-choice`; [`ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of
-2026-09-30 — jusshin*); the rest is derived and stated, and asked only where it cannot be.
+2026-09-30 — jusshin*); the rest is derived and stated, and asked only where it cannot be. A cold run
+with no clauses may miss five items; they are asked under [`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
+§ 4 step 2's question budget (ruling of 2026-10-13), across as many picker calls as that takes.
 
 | Item | Source | Asked as |
 |---|---|---|
@@ -186,7 +188,8 @@ configured. What runs it is `--json`'s **`launch` field, verbatim** — never ty
 - **Windows**: the session runs `launch`, and **the harness asks first by design** — no allow row
   exists ([`contracts/permissions.json`](../../../../contracts/permissions.json)); its permission prompt,
   showing the exact string, is the maintainer's advance consent. The UAC prompt and the password typed
-  once into the elevated window follow — the maintainer's on-device acts (row `on-device-act`). The
+  once into the elevated window follow — the maintainer's on-device acts (row `on-device-act`: a
+  refusal, raised here only because the harness itself asked for the launch). The
   launch returns before the script's exit can be read, so the session notes the time and reads **only
   the summary file** — `<projectDir>\_jusshin\register-<ts>.summary`, one line, `jusshin: <n>
   registered, <m> skipped, <k> failed`, modified after the launch — **never the transcript**.
@@ -195,7 +198,7 @@ configured. What runs it is `--json`'s **`launch` field, verbatim** — never ty
   (zheref/nen#312), and then § 6 alone reads the result. **An interactive pool's script asks no
   password**: it registers a Scheduled Task per runner and never a service. When the identity is not
   signed in, it says the tasks wait for that account's logon. Signing in is the maintainer's on-device
-  act, and § 6 follows it. Whether row `on-device-act` covers it is the open handbook question the 2026-09-30 jusshin ruling left.
+  act, and § 6 follows it. Row `on-device-act` covers it: a refusal, never a G5 — the act printed, § 6 following it (ruling of 2026-10-13, [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *What is not a gap*).
 - **Linux**: `launch` (`sudo bash <script>`) is **printed for the maintainer**, never run — an
   install needing `sudo` is refused, never asked (WORKFLOW § 4). Its exits are theirs to read; § 6
   follows their word.
