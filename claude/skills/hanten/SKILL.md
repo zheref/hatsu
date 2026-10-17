@@ -102,10 +102,10 @@ nen wc worktrees --repo <target repo> --json
 git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD   # one per persona
 ```
 
-**The isolated checkout makes *never edits non-test source* a property of where the reviewer
-stands** (WORKFLOW § *Where worktrees live*), removed on return. **On an observed
-refusal** of that add (#218): read the effort checkout **read-only** at the printed HEAD,
-disclosed; **never `isolation: "worktree"`** (the plugin's repo).
+**The isolated checkout makes *never edits non-test source* a property of place** (WORKFLOW
+§ *Where worktrees live*), removed on return. **On an observed refusal** of that add (#218; ratified exception,
+ROSTER 2026-10-13): read the effort checkout **read-only** at the printed HEAD, disclosed; **never
+`isolation: "worktree"`**.
 **A convention, so each return re-reads both refs against the SHAs printed and runs
 `"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>`**:
 a moved ref or any commit in that range is a G5 naming the range, never built on (#170);

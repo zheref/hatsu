@@ -2,7 +2,7 @@
 
 Evidence for zheref/hatsu#218: which shell shapes Claude Code's worktree-isolation guard refuses, the
 form each Hatsu skill block now uses instead, and what this session's own guard accepted and refused.
-The rule and the full shape → replacement table are [`PROCESS.md`](../PROCESS.md) § *Residue*,
+The rule and the full shape → replacement table are [`WORKFLOW.md`](../WORKFLOW.md) § *Writing a skill block* (moved from PROCESS § *Residue* on 2026-10-13),
 *Worktree-isolated sessions*; this file is the record, not the rule. The guard is Claude Code's, not
 Hatsu's: a grep of `hooks/` and `contracts/` finds no such string and no Hatsu-owned worktree-write
 guard.
