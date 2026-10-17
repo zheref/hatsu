@@ -164,7 +164,8 @@ Model choice is by **tier**, from [`../nen/workflow.json`](../nen/workflow.json)
 
 - **A subagent is never given the frontier tier** (`fable` on Claude, `astra` on Codex). That tier is where
   the maintainer's own conversation lives, and a delegate that outranks its caller has inverted the
-  delegation.
+  delegation. **Amended 2026-10-13** (§ *Rulings of 2026-10-13*, zheref/hatsu#222): the rationale is the
+  cost alone; below the frontier a subagent's tier is its scope's or role's, never its caller's.
 - **Every subagent is titled `<skill> · <persona> · <model alias>`** — what ran, as whom, on what.
 - The pins are frontmatter in the definitions: **Gon** and **Phinks** `model: opus` / `effort: high`;
   **Hisoka** `model: sonnet` / `effort: high`; **Uvogin** `model: sonnet` / `effort: medium`;
@@ -660,7 +661,7 @@ committed"*. · Names: the decision picker specification is **Crazy Slots** (Kit
 live in `nen/decisions.json` as data AND in one prose line per skill citing the row id.
 
 **What changed.** `nen/decisions.json` (`nen.decisions/v0.1`, nen `0.11.0`) carries 8 autonomous rows,
-2 ask-once rows and 13 human-gate rows; `jutaisho` § 4 is the Crazy Slots specification (the report
+2 ask-once rows and 13 human-gate rows (a snapshot at nen `0.11.0`; 36 rows on 2026-10-13 — 15 autonomous, 8 ask-once, 13 human-gate — `on-device-act` having left `human-gate` that day); `jutaisho` § 4 is the Crazy Slots specification (the report
 always linked and never an option, the star on the recommended decision, at least three executable
 options seeded by the row's `preferred[]`, a proposed process issue on every real stop);
 `nen stop --mark --title --body --report-url --options --propose-issue` writes the marker the bell reads
@@ -673,7 +674,7 @@ them); `contracts/permissions.json` is the one source `scripts/permissions_pack.
 
 **What is truly a G5, by these rulings:** a merge, a G3 go, a G1 label; a semantic conflict; force-pushing
 or rewriting published history and overwriting a tracked path; signing material, a live credential, a
-secret-shape path; an on-device security act; a supply-chain checksum or manifest failure; an unruled
+secret-shape path; an on-device security act (**amended 2026-10-13**: a refusal, never a G5 — § *Rulings of 2026-10-13*, zheref/hatsu#176); a supply-chain checksum or manifest failure; an unruled
 consumer policy surface; a genuinely ambiguous request or a business rule canon does not adjudicate.
 Everything else has a row.
 
@@ -974,7 +975,7 @@ classified effort as `build` § 2b does; `nen/decisions.json` row `direct-mismat
 nen** (zheref/nen#389): `nen direct resolve` computing the recommended pick, the within-set compare and the companion
 strike, and `nen direct registry` checking the fallback rule. **Open:** zheref/hatsu#222 (the reviewer tier
 against a lower session) is untouched by this ruling — the companion rule fixes the surface (the session's) and names the role's tier
-only pending that question.
+only pending that question. **Answered 2026-10-13** (§ *Rulings of 2026-10-13*): the role's tier, never the caller's.
 
 ---
 
@@ -992,6 +993,9 @@ open.
 | Question | The maintainer's answer, verbatim | What it settles |
 |---|---|---|
 | **zheref/hatsu#175** — *the standalone question budget: is STANDALONE-ENTRY § 3 P4's "at most three" a per-run budget or a per-picker-call limit, and how do typed (missing-maintainer-choice) items count?* | `(a) Per picker call (Recommended)` | Option text: *""at most three" is a per-call limit (Codex caps a call at 3); the per-run rule is WORKFLOW § 4's one question per missing item; typed items count like any other; more than three items means more calls, never a bundle."* [`WORKFLOW.md`](WORKFLOW.md) § 4 step 2 states the budget once; [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) § 3 P4, `hatsu:jusshin` § 2 and `hatsu:tenkai` (P4 row, § 4b) cite it. Built by the effort `fable/kurapika/ha-175-question-budget` |
+| **zheref/hatsu#176** — *what is an on-device act (a trust prompt, a UAC prompt, a Login Items approval, a password typed into an elevated window)?* | `(a) A "not a gap" refusal (Recommended)` | Option text: *"Never a G5: nen/decisions.json → on-device-act becomes class: refusal, gate: null. A skill may raise the prompt only through a launch the harness itself asks the maintainer to approve (jusshin's Windows path); otherwise it prints the act and where to resume (jujutsu's path). Consequence: no banner or picker; ROSTER's count of five stays; the decisions schema must accept the class."* [`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap* states it once; the decisions row, `claude/rules/hatsu.md`, `jusshin` § 5 and `jujutsu` cite it. **This run's reading, the maintainer's to correct at the G4 merge:** nen 0.21.0's decisions schema admits no `refusal` class, so the row lands as `autonomous` with a `default` that spells the refusal; a consumer's file may neither narrow nor reclassify it (the guarantee `human-gate` carries), and the `refusal` class is owed to nen through the run's harvest, asked for with that same guarantee and no gate. **Recorded, not adjudicated:** `CON-47` (bankai-handbooks v0.6.0) counts a settings change only the human can make as a G5; this ruling narrows it for Hatsu, a handbook question for the pinned canon. Built by the effort `fable/kurapika/ha-176-on-device-act` |
+| **zheref/hatsu#222** — *does models.roles.reviewer stay deep when direct sends the maintainer's session to a lower tier (fast or MECHANICAL_EDITOR)?* | `(a) Reviewers stay deep (Recommended)` | Option text: *"Reviewers run at models.roles.reviewer regardless of the session's tier. WORKFLOW § models keeps "a subagent never runs on the frontier tier" and drops the "outranks its caller" rationale, since adversarial review wants the deepest allowed tier. Consequence: every hanten round costs the deep tier even on a fast-tier effort; the sentence is amended in WORKFLOW and the models.roles comment."* [`WORKFLOW.md`](WORKFLOW.md) § `models` states it once (a subagent's tier is its scope's or role's, never its caller's: a reviewer keeps `review.scopes.<scope>.tier`, `models.roles.reviewer`'s `deep` unless the scope declares otherwise); `hanten` § 4, `direct` §§ 4–5, `claude/agents/kurapika.md`, the registry's companion `$comment` and § *Rulings of 2026-09-09* (amended) cite it; `nen/workflow.json` → `models.roles.$comment` names the rule. Built by the effort `fable/kurapika/ha-222-reviewer-tier` |
+| **zheref/hatsu#223** — *does a canon data contract (classify taxonomy, direct registry) owe a guard lane, and in what language?* | `(a) Owed, in nen (Recommended)` | Option text: *"nen direct registry and nen classify labels run as focused lanes in Hatsu's CI after the next repin, plus one small Hatsu fixture for nen/labels.json parity with the taxonomy (BC-11-safe: no new branching Python). Consequence: two lanes land now and go green at the repin; the parity fixture is shell."* **This run's reading, the maintainer's to correct at the G4 merge:** both verbs exist at the pinned nen `0.21.0`, so the lane goes green now, not at a repin, and the option's two lanes plus a parity fixture landed as one lane wrapping three nen reads, parity being `nen classify install --dry-run`'s own verdict (no Hatsu re-implementation; the shell wrapper's three-way exit is read as BC-11's bootstrap allowance, the same reading as small ruling 5): one shipped shell guard, `scripts/canon_contracts_check.sh`, runs the three nen reads (`direct registry`, `classify labels`, `classify install --dry-run` for `nen/labels.json` parity) and re-implements no invariant; lane `canon-contracts-guard` seats its fixture; CI runs the guard from `surface-mirror-check.yml` (the job that already bootstraps the trusted nen) as a new step, landed in two pull requests under [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md)'s frozen-step rule — this effort teaches `main`'s validator the step beside the current shape, the next adds it to the workflow. The registry's `$comment` names its validators and the lane. Built by the efforts `fable/kurapika/ha-223-canon-contract-guards` (step one) and `…-step-two` |
 
 ---
 
@@ -1205,7 +1209,7 @@ here):** (1) **the reviewer tier against a lower session** — `direct` may send
 `fast` tier (`BALANCED_AUTHOR`), while `models.roles.reviewer` raises hanten's reviewers at `deep`; the rule's
 letter holds (no subagent on the frontier tier) but its rationale — *a delegate that outranks its caller has
 inverted the delegation* — does not: cap the reviewer tier at the session's, or record that reviewers stay at
-`deep` and amend the sentence; (2) **a guard for a canon data contract** — `contracts/classify.taxonomy.json`
+`deep` and amend the sentence — **answered 2026-10-13** (§ *Rulings of 2026-10-13*): reviewers stay at their scope's tier, the role's never the caller's; (2) **a guard for a canon data contract** — **answered 2026-10-13** (§ *Rulings of 2026-10-13*, zheref/hatsu#223: owed, nen's validators as a lane) — `contracts/classify.taxonomy.json`
 and `contracts/direct.registry.json` hold their invariants (unique keys, 114 phases covered, a cell's surface
 equal to its alias's, labels.json parity) only by the review's one-off checks and, once pinned, by
 `nen direct registry`; whether a Hatsu guard lane is owed too is BC-9/BC-11's question. Both are filed as
@@ -1226,7 +1230,7 @@ handbook-questions on `zheref/hatsu`.
 | **The overlap is said and asked once** | Before [`jusshin`](../claude/skills/jusshin/SKILL.md) § 3 plans an interactive Windows pool in a repository that also declares a Windows service pool of the same arch, it names the jobs the `desktop` runner would also take (GitHub matches label subsets) and asks, typed, never defaulted. It neither refuses nor filters the service pool's proof. The real fix is a label of its own for every pool: zheref/hatsu#204 and zheref/nen#340 |
 | **Two more typed keys** | `nen/decisions.json` → `missing-maintainer-choice.governs` gains `jusshin <accept-daily-account>` (the word that lets `nen runner script` render a plan whose identity is the account computing or rendering it) and `jusshin <desktop-overlap>` (the answer above). Neither is a grammar slot: like `jusshin <service-identity>`, each completes the elicitation, not the line. [`WORKFLOW.md`](WORKFLOW.md) § 4's enumeration names them |
 | **shibari opens no draft** | [`shibari`](../claude/skills/shibari/SKILL.md) runs `nen pr open` without `--draft`, so no run owns a draft-to-ready transition. `nen pr mark-ready` (nen `0.19`) is for a draft someone else opened, at the maintainer's word |
-| **What it does not settle** | the 2026-09-30 jusshin ruling's two open questions (the question budget, and whether a sign-in is an on-device act) stay open — **amended 2026-10-13**: the budget answered (§ *Rulings of 2026-10-13*, zheref/hatsu#175), the on-device act still open there |
+| **What it does not settle** | the 2026-09-30 jusshin ruling's two open questions (the question budget, and whether a sign-in is an on-device act) stay open — **amended 2026-10-13**: the budget answered (§ *Rulings of 2026-10-13*, zheref/hatsu#175), the on-device act too (zheref/hatsu#176: a refusal, never a G5) |
 
 From nen v0.21.0 and Hatsu#204, every pool selector ends in its own
 `pool-<id>` label. The same-arch desktop overlap above no longer occurs;
@@ -1388,7 +1392,7 @@ What it settles, for [`jusshin`](../claude/skills/jusshin/SKILL.md) and no other
 | **The class widens for jusshin** | `missing-maintainer-choice`'s class — *a target, a go, a cap, a device, the request* (ruling of 2026-09-23) — extends to jusshin's **target repository**, the **machine code** every runner on a host is named by, and the **service identity** its services log on as: typed, never picked and never derived, the declared candidates listed for reference with none starred |
 | **The keys** | `nen/decisions.json` → `missing-maintainer-choice.governs`: `jusshin <target>` and `jusshin <machine>` are the grammar's slots; `jusshin <service-identity>` is typed like `jujutsu <device>` and is not a slot — the answer completes the skill's elicitation, not the line |
 | **What stays derived** | the pool, the count, the consumer code and the runner root are derived and stated, asked through the picker only when they cannot be (`missing-argument`); the root is the pool's declared `root.<os>`, never a typed override of it |
-| **What it does not settle** | the question budget (STANDALONE-ENTRY § 3 P4's *at most three* against WORKFLOW § 4's *one question per missing item*) and the reading of an on-device act (a `G5` row, an entry on WORKFLOW § 4's *not a gap* list, and not one of the five G5s above) — both raised as handbook questions; the budget answered on 2026-10-13 (§ *Rulings of 2026-10-13*, zheref/hatsu#175), the on-device act still open there |
+| **What it does not settle** | the question budget (STANDALONE-ENTRY § 3 P4's *at most three* against WORKFLOW § 4's *one question per missing item*) and the reading of an on-device act (a `G5` row, an entry on WORKFLOW § 4's *not a gap* list, and not one of the five G5s above) — both raised as handbook questions; the budget answered on 2026-10-13 (§ *Rulings of 2026-10-13*, zheref/hatsu#175), the on-device act too (zheref/hatsu#176: a refusal, never a G5) |
 
 ---
 
