@@ -8,8 +8,10 @@
 # serving the old wording, silently — the same class of failure an un-bumped
 # `plugin.json` produces, and the reason both guards exist.
 #
-# The whole decision lives in two trusted scripts, so it can be exercised offline: drift in
+# The whole decision lives in three trusted scripts, so it can be exercised offline: drift in
 # `scripts/surface_mirror_check.sh`, then link correctness in `scripts/surface_link_check.sh`
+# (both in the drift step), then the canon data contracts in `scripts/canon_contracts_check.sh`
+# (its own frozen step after the drift step, zheref/hatsu#223)
 # (zheref/hatsu#72); the recorded transcripts are in `docs/surfaces/evidence/surfaces.md` and
 # `docs/ab/surface-link-check.md`. Both run inside ONE step whose name, "Surface-mirror drift
 # check", is frozen by scripts/workflow_runner_policy_check.rb (renaming it is a two-step landing):
@@ -341,6 +343,34 @@ jobs:
               echo "::error::the surface link guard could not run (exit $link). Exit 2 is a wiring defect: the root is not a Hatsu checkout, surfaces/ is empty, a file is unreadable, or a file name carries a control character. Any other exit is unexpected. See the guard output above."
               exit 1
               ;;
+          esac
+
+      - name: Canon data contracts check
+        # FROZEN (CANON_CONTRACTS_FROZEN in scripts/workflow_runner_policy_check.rb,
+        # zheref/hatsu#223): keys, env, shell and the run compared byte for byte; only
+        # `name` and these comments are free. The TRUSTED checkout's script runs the
+        # TRUSTED, digest-checked nen's own validators (`direct registry`,
+        # `classify labels`, `classify install --dry-run`) over the PR checkout's
+        # contracts/ and nen/labels.json; nothing from the PR checkout is executed,
+        # and the guard's output is fenced so no line in it is a workflow command.
+        env:
+          NEN_BIN: ${{ steps.nen.outputs.bin }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          guard=.trusted/scripts/canon_contracts_check.sh
+          [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/canon_contracts_check.sh"; exit 1; }
+          [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
+          stop="stop_$(openssl rand -hex 16)" || stop=""
+          [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was checked."; exit 1; }
+          code=0
+          echo "::stop-commands::${stop}"
+          NEN="$NEN_BIN" bash "$guard" --root "$PWD" 2>&1 || code=$?
+          printf '\n::%s::\n' "$stop"
+          case "$code" in
+            0) echo "the canon data contracts hold every stated invariant." ;;
+            1) echo "::error::a canon data contract breaks an invariant nen states (contracts/direct.registry.json, contracts/classify.taxonomy.json or nen/labels.json) — see the guard output above."; exit 1 ;;
+            *) echo "::error::canon_contracts_check could not run (exit ${code}) — see the guard output above."; exit 1 ;;
           esac
 
       - name: Finish check on the exact PR head
