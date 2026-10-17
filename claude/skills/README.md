@@ -4,12 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Fifty skills at `v0.89.0`** (forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, fifty-one directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Fifty-two skills at `v0.108.0`** (fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, fifty-three directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), **[`rikugan`](rikugan/) at `v0.73.0`** (the final state upon delivery, beside `spiritual-message` — the name returns as a skill for the Rikugan page, distinct from its pre-`v0.42.0` meaning), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), **[`rikugan`](rikugan/) at `v0.73.0`** (the final state upon delivery, beside `spiritual-message` — the name returns as a skill for the Rikugan page, distinct from its pre-`v0.42.0` meaning), **[`kazaana`](kazaana/) and [`cleanup`](cleanup/) at `v0.108.0`** (the surface-matched backlog composite over `futon`, and Shizuku's required wrap-up sweep — ruling of 2026-10-13), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -97,7 +97,7 @@ every-session `--auto` refresh stays as it is.
 
 ## The way of working
 
-The twenty-one request-answering skills above and `great-hiker` each answer a request. The twenty-five below are the **loop that carries every request** —
+The twenty-one request-answering skills above and `great-hiker` each answer a request. The twenty-seven below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -107,15 +107,15 @@ the coverage ladder, the human-called phases, the five G5 stops, and the two har
 
 Two rules govern every one of them. **Five phases are the maintainer's to call and no agent ever prompts for
 them** — `aka`, `mukai`, the merge, `kagutsuchi`, `mugetsu` (`en` § 5's merge prompt presents a PR's link
-and merge line; its picker never carries the merge act; the maintainer merges outside the session — `docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*). And **only a genuine G5 stops the loop**: red
+and merge line; its picker never carries the merge act; the maintainer merges outside the session — `docs/ROSTER.md` § *Rulings of 2026-09-30 — En never merges*; the wrap-up picker — `cleanup`, `cleanup` and `third-hand`, continue — and `kazaana` § 6's one question whether `mugetsu` should publish the tag it cut are the two offers the ruling of 2026-10-13 admits, neither a prompt for the five). And **only a genuine G5 stops the loop**: red
 required tests, coverage under the ladder's minimum, a semantic conflict, an unsettled adversarial finding, a
 `sharingan` escalation. A stop is `nen stop`'s banner plus the question asked through the surface's own
 native option picker.
 
-### The twenty-five workflow skills — twenty-one atomic, four composite
+### The twenty-seven workflow skills — twenty-two atomic, five composite
 
 **Atomic** — one phase each. The first nine shipped at `v0.4.0`; the five after them at `v0.5.0`; the last
-three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase split `v0.28.0`); `amenotejikara` at `v0.45.0`; `rikugan` at `v0.73.0`:
+three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase split `v0.28.0`); `amenotejikara` at `v0.45.0`; `rikugan` at `v0.73.0`; `cleanup` at `v0.108.0`:
 
 | Skill | What it does |
 |---|---|
@@ -138,17 +138,19 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 | [`jujutsu`](jujutsu/) | **Device pairing.** Walks the maintainer through pairing a physical device — iOS: trust, Developer Mode, `devicectl list devices`; Android: USB debugging, the RSA prompt, `adb devices` — and registers it as a launch target **through a repository PR**. It writes the declaration and nothing else. |
 | [`susanoo`](susanoo/) | **Archive and packaging.** Runs the lane's declared `archive` through `nen shu archive` and produces the distributable **locally**: it uploads nothing, and nen never synthesises signing material. A seat (exit `4`) is quoted with the declaration's own reason, never routed around. Where the repository declares `tags.identity`, it also NAMES the identity the tag `kagutsuchi` cuts on a successful upload will carry — it cuts none itself. This is the release unit [`getsuga`](getsuga/) folds into the release PR and the two phases below send. |
 | [`kagutsuchi`](kagutsuchi/) | **Non-production deploy or upload — human-called, per target.** The plan is printed always (`nen shu deploy --target <name>`, no `--run`), every precondition and `requiresEnv` name asserted; § 3a's freshness gate (`scripts/send_freshness_check.sh`) then proves the archive is a build of the checkout's `HEAD` at `origin/<branch.base>`'s tip on a clean tree — and **only when it is not**, § 3b runs `susanoo` for a fresh one in a clean worktree under core's `.nen/` (`scripts/kagutsuchi_worktree.sh`, `project.fromCore` copied from core) and sends from there; `--run` acts only on the maintainer's own call — the target typed, or `nen/workflow.json` → `deploy.defaultTarget` where declared and non-production, the source said in the report — and cuts the one opt-in distribution tag after a green send. Production and the stores are `mugetsu`'s at G3. |
-| [`mugetsu`](mugetsu/) | **Publication — human-called, per target, G3.** Only on the maintainer's own go — their typed `hatsu:mugetsu [<target>]`, by name, or their own words saying to publish — with `nen release preflight` green and the tag already cut: `nen shu release`, or `nen shu deploy --target production --run`. **One target per call**, never reached from [`getsuga`](getsuga/) or [`en`](en/), and from [`futon`](futon/) only as a `then` step on the maintainer's advance go (§ 3), on a repository of kind `process` or `library` (`WORKFLOW.md` § *Repository kinds*). It is the one phase that reaches other people's users. |
-| [`third-hand`](third-hand/) | **Session harvest — Netero's last look, after En.** A separate phase that starts once En has completed. Raise Netero in parallel, fold this sitting's process friction into **0–3** issues, file only what the maintainer picks through the surface picker, then the sitting is over. Never merges, never implements. Not a step of En. |
+| [`mugetsu`](mugetsu/) | **Publication — human-called, per target, G3.** Only on the maintainer's own go — their typed `hatsu:mugetsu [<target>]`, by name, their own words saying to publish, or their publish answer to `kazaana` § 6's one unstarred question after the tag it cut (form (4)) — with `nen release preflight` green and the tag already cut: `nen shu release`, or `nen shu deploy --target production --run`. **One target per call**, never reached from [`getsuga`](getsuga/) or [`en`](en/), and from [`futon`](futon/) only as a `then` step on the maintainer's advance go (§ 3), on a repository of kind `process` or `library` (`WORKFLOW.md` § *Repository kinds*). It is the one phase that reaches other people's users. |
+| [`third-hand`](third-hand/) | **Session harvest — Netero's last look, after En.** A separate phase, **optional** from the ruling of 2026-10-13, picked beside `cleanup` at the wrap-up. Raise Netero in parallel, fold this sitting's process friction into **0–3** issues, file only what the maintainer picks through the surface picker, then the sitting is over. Never merges, never implements. Not a step of En. |
+| [`cleanup`](cleanup/) | **Shizuku's sweep — required after a completed session.** Offered once at every session delivery through the wrap-up picker (`cleanup` · `cleanup` and `third-hand` · continue). Shizuku inventories what the effort used — worktrees, branches, remote heads, transient reports, caches, billed resources — and every prior session's leftover, returns a plan split into deterministic and proposed rows, and removes only what the maintainer picked, bytes read back. Never before the pick, never a tree she has not inspected, never a `.nen/` ledger. |
 
-**Composite** — an order, not a new capability. `ren` shipped at `v0.4.0`; the three after it at `v0.5.0`:
+**Composite** — an order, not a new capability. `ren` shipped at `v0.4.0`; the three after it at `v0.5.0`; `kazaana` at `v0.108.0`:
 
 | Skill | Order inside |
 |---|---|
 | [`ren`](ren/) | **The per-request loop.** `breath`¹ (first turn only, and it proves the base) → `rasengan`² (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `spiritual-message`⁵ → `jutaisho`⁶. It loops until the maintainer calls the next phase, and **it never pushes**. |
 | [`murasaki`](murasaki/) | **Pull + update push.** `ao` → shared iteration checks → if catch-up changed the tree, return to the caller so kotoamatsukami can refresh tests and byakugan can recapture coverage → push only an already-published branch. Never squashes, first-publishes, or runs tests or coverage itself. |
 | [`mukai`](mukai/) | **The review-and-publication phase — human-called.** `murasaki`¹ → `hanten`² → kokusen checkpoint³ → `kotoamatsukami` impacted tests⁴ → `byakugan` coverage⁵ → final unchanged catch-up and update push⁶ → existing UI evidence⁷ → `shibari` PR⁸ → landing report⁹ → **offer `en`** and end Mukai (`nen/workflow.json` → `mukai.autoEn: true` starts En immediately in the same turn instead; default off). |
-| [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`spiritual-message`](spiritual-message/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → the dated final report ([`rikugan`](rikugan/), a one-effort Rikugan through [`backlog-board`](backlog-board/) § 3) and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. When En has completed, the next phase is [`third-hand`](third-hand/). |
+| [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`spiritual-message`](spiritual-message/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → the dated final report ([`rikugan`](rikugan/), a one-effort Rikugan through [`backlog-board`](backlog-board/) § 3) and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. When En has completed, the caller offers the wrap-up — [`cleanup`](cleanup/), with [`third-hand`](third-hand/) optional. |
+| [`kazaana`](kazaana/) | **The surface-matched backlog, drawn in and delivered.** `hatsu:futon <repo>@model/<this surface's line> then getsuga` under the hood: `direct` on the unlabelled first, the backlog refetched, then each queued issue authored and published by a delegate in its own worktree on `direct`'s primary pick (up to 7 at once; `ren`, or `great-hiker` on a canon repository, then `aka`) while this session runs `mukai` → `en` per effort, stacked only on overlap, the merge order on the register; once every PR is merged or closed, `getsuga` with its release proposal merged autonomously (a fall-back is a G5 halt, never the maintainer's merge prompt); then one unstarred question whether `mugetsu` should publish the tag, then the wrap-up picker. |
 
 > **The release side closed at `v0.6.0`.** [`susanoo`](susanoo/), [`kagutsuchi`](kagutsuchi/) and
 > [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase a skill can
@@ -165,7 +167,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the forty-eight. They landed with the skeleton because the plugin does not function
+Neither is one of the fifty-two. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
