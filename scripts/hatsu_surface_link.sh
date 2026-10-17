@@ -13,8 +13,8 @@
 #   is handed over first: `claude plugin uninstall hatsu@hatsu`, then
 #   `claude plugin marketplace remove hatsu` when that marketplace is
 #   registered.
-#   Codex 0.154.0 -- `codex plugin marketplace add <checkout>` reads the
-#   checkout's own .claude-plugin/marketplace.json; the checkout also carries
+#   Codex 0.154.0 -- `codex plugin marketplace add <clean snapshot>` reads the
+#   committed .claude-plugin/marketplace.json; the snapshot also carries
 #   .codex-plugin/plugin.json, the Codex overlay manifest that keys Codex's
 #   own plugin-cache slot (scripts/plugin_bump_check.sh guards the two
 #   manifests' versions staying equal). `codex plugin add hatsu@hatsu`
@@ -36,7 +36,8 @@
 # must be a git checkout the maintainer controls: never a path under
 # .../plugins/cache/, which is copied by an install rather than authored, and
 # which the next `claude plugin update` (or codex/agy equivalent) silently
-# replaces out from under a symlink pointed at it.
+# replaces out from under a symlink pointed at it. Codex is the copying case:
+# its marketplace root is a git-archive snapshot, never the live checkout.
 set -euo pipefail
 LC_ALL=C
 
@@ -50,8 +51,8 @@ usage: scripts/hatsu_surface_link.sh --surface claude-code|codex|antigravity
                            ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/hatsu,
                            then hand over any prior hatsu@hatsu marketplace
                            install (uninstall it, then drop the marketplace).
-              codex        this checkout registered as the `hatsu` Codex
-                           marketplace (codex plugin marketplace add), then
+              codex        a committed, clean snapshot of this checkout
+                           registered as the `hatsu` Codex marketplace, then
                            `codex plugin add hatsu@hatsu`.
               antigravity  a symlink at
                            ${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu
@@ -908,6 +909,30 @@ do_claude_code() {
 # codex
 # ============================================================================
 
+codex_snapshot_of_root() {
+  local candidate="$1" base="${CODEX_HOME:-$HOME/.codex}/hatsu-marketplace-snapshots"
+  [ ! -d "$base" ] || base="$(canonical_directory "$base")"
+  [[ "$candidate" == "$base"/* ]] || return 1
+  [ -f "$candidate.source" ] && [ ! -L "$candidate.source" ] || return 1
+  cmp -s "$candidate.source" <(printf '%s\n' "$root")
+}
+
+codex_restore_previous() {
+  local previous="$1" failed=0
+  codex plugin marketplace remove hatsu >/dev/null 2>&1 || failed=1
+  if [ -n "$previous" ]; then
+    codex plugin marketplace add "$previous" >/dev/null 2>&1 || failed=1
+    if [ "$failed" -eq 0 ]; then
+      codex plugin add hatsu@hatsu >/dev/null 2>&1 || failed=1
+    fi
+  fi
+  if [ "$failed" -eq 0 ]; then
+    echo "hatsu-surface-link: restored previous Codex marketplace ${previous:-'(none)'} after installation failed" >&2
+  else
+    echo "hatsu-surface-link: automatic restore failed; restore the previous marketplace with: codex plugin marketplace add $previous" >&2
+  fi
+}
+
 status_codex() {
   local mkt_out mkt_root desc list_out row status_val version_val readback rc
   if ! command -v codex >/dev/null 2>&1; then
@@ -930,7 +955,9 @@ status_codex() {
     local mkt_root_canon
     mkt_root_canon="$(canonical_directory "$mkt_root" 2>/dev/null || printf '%s' "$mkt_root")"
     if [ "$mkt_root_canon" = "$root" ]; then
-      desc="marketplace hatsu at this checkout"
+      desc="marketplace hatsu at this checkout (legacy copying source)"
+    elif codex_snapshot_of_root "$mkt_root_canon"; then
+      desc="marketplace hatsu at committed snapshot $mkt_root_canon"
     else
       desc="marketplace hatsu at $mkt_root_canon (not this checkout)"
     fi
@@ -966,31 +993,62 @@ do_codex() {
     exit 5
   fi
 
-  local mkt_out mkt_root changes
+  local mkt_out mkt_root mkt_root_canon="" changes snapshot snapshot_base transitioned=0 add_out="" add_rc
+  local -a snapshot_args
+  snapshot_base="${CODEX_HOME:-$HOME/.codex}/hatsu-marketplace-snapshots"
+  [ ! -d "$snapshot_base" ] || snapshot_base="$(canonical_directory "$snapshot_base")"
+  snapshot_args=(--root "$root" --base "$snapshot_base")
+  [ "$dry_run" -eq 1 ] && snapshot_args+=(--dry-run)
   mkt_out="$(run_step "codex plugin marketplace list" codex plugin marketplace list)"
   mkt_root="$(printf '%s\n' "$mkt_out" | codex_marketplace_list_hatsu_root)"
-
   if [ -n "$mkt_root" ]; then
-    local mkt_root_canon
     mkt_root_canon="$(canonical_directory "$mkt_root" 2>/dev/null || printf '%s' "$mkt_root")"
-    if [ "$mkt_root_canon" = "$root" ]; then
-      changes="marketplace hatsu already at this checkout"
-    else
-      echo "hatsu-surface-link: codex marketplace 'hatsu' already points at $mkt_root_canon, not $root -- refusing to override the maintainer's existing marketplace" >&2
+    if [ "$mkt_root_canon" != "$root" ] && ! codex_snapshot_of_root "$mkt_root_canon"; then
+      echo "hatsu-surface-link: codex marketplace 'hatsu' already points at $mkt_root_canon, not this checkout or its clean snapshots -- refusing to override it" >&2
       exit 3
     fi
+  fi
+  snapshot="$(bash "$root/scripts/codex_marketplace_snapshot.sh" "${snapshot_args[@]}")" || exit $?
+
+  if [ -n "$mkt_root" ]; then
+    if [ "$mkt_root_canon" = "$snapshot" ]; then
+      changes="marketplace hatsu already at the committed snapshot"
+    else
+      would_run "codex plugin marketplace remove hatsu"
+      would_run "codex plugin marketplace add $snapshot"
+      if [ "$dry_run" -eq 0 ]; then
+        run_step "codex plugin marketplace remove hatsu" codex plugin marketplace remove hatsu >/dev/null
+        transitioned=1
+        if ! codex plugin marketplace add "$snapshot" >/dev/null; then
+          echo "hatsu-surface-link: codex plugin marketplace add $snapshot failed" >&2
+          codex_restore_previous "$mkt_root_canon"
+          echo "hatsu-surface-link: codex plugin marketplace add $snapshot failed after restore attempt" >&2
+          exit 1
+        fi
+      fi
+      changes="moved marketplace hatsu to the committed snapshot"
+    fi
   else
-    would_run "codex plugin marketplace add $root"
+    would_run "codex plugin marketplace add $snapshot"
     if [ "$dry_run" -eq 0 ]; then
-      run_step "codex plugin marketplace add $root" codex plugin marketplace add "$root" >/dev/null
+      run_step "codex plugin marketplace add $snapshot" codex plugin marketplace add "$snapshot" >/dev/null
+      transitioned=1
     fi
     changes="added marketplace hatsu"
   fi
 
   would_run "codex plugin add hatsu@hatsu"
-  local add_out=""
   if [ "$dry_run" -eq 0 ]; then
-    add_out="$(run_step "codex plugin add hatsu@hatsu" codex plugin add hatsu@hatsu)"
+    set +e
+    add_out="$(codex plugin add hatsu@hatsu 2>&1)"
+    add_rc=$?
+    set -e
+    if [ "$add_rc" -ne 0 ]; then
+      echo "hatsu-surface-link: codex plugin add hatsu@hatsu failed: $(one_line "$add_out")" >&2
+      [ "$transitioned" -eq 0 ] || codex_restore_previous "$mkt_root_canon"
+      echo "hatsu-surface-link: codex plugin add hatsu@hatsu failed after restore attempt: $(one_line "$add_out")" >&2
+      exit 1
+    fi
     changes="$changes · installed hatsu@hatsu"
   fi
 
@@ -1034,12 +1092,12 @@ do_codex() {
   # Comparing against an overlay that does not exist would refuse every such
   # checkout at exit 2 for carrying no defect -- so the compare falls back to
   # the Claude manifest, and the report says which one was used.
-  local overlay_path="$root/.codex-plugin/plugin.json" compare_path compare_manifest compare_version
+  local overlay_path="$snapshot/.codex-plugin/plugin.json" compare_path compare_manifest compare_version
   if [ -f "$overlay_path" ]; then
     compare_path="$overlay_path"
     compare_manifest=".codex-plugin/plugin.json"
   else
-    compare_path="$root/.claude-plugin/plugin.json"
+    compare_path="$snapshot/.claude-plugin/plugin.json"
     compare_manifest=".claude-plugin/plugin.json"
   fi
   compare_version="$(manifest_string_field "$compare_path" version)"
@@ -1048,12 +1106,12 @@ do_codex() {
     exit 2
   fi
   if [ "$version_val" != "$compare_version" ]; then
-    echo "hatsu-surface-link: codex plugin list shows hatsu@hatsu version $version_val, but $compare_path's version is $compare_version" >&2
+    echo "hatsu-surface-link: codex plugin list shows hatsu@hatsu version $version_val, but $compare_manifest's version is $compare_version" >&2
     exit 1
   fi
 
   changes="$changes · read back installed, enabled $version_val (compared against $compare_manifest)"
-  local serves="${cache_path:-$root}"
+  local serves="${cache_path:-$snapshot}"
   report "codex" "$changes" "$serves" "$codex_apply"
 }
 

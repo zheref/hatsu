@@ -55,7 +55,7 @@
 # refused by this guard (nen itself renders it at exit 0 -- the reason this guard exists), a bare
 # self-hosted runs-on is refused, a push that admits a tag ref -- `paths:` alone (the shape before
 # #198) or a `tags:` filter beside it -- is refused, and a leftover placeholder is refused by nen at
-# exit 1 with nothing written, which jusshin § 7 maps. Needs `nen` (>= 0.19: MODE and the desktop pool) on PATH, which a lane run
+# exit 1 with nothing written, which jusshin § 7 maps. Needs `nen` (>= 0.21: pool-own labels) on PATH, which a lane run
 # through `nen shu test` always has; offline, hermetic, writes only under mktemp.
 #
 # Usage: bash scripts/runner_preflight_fixture_check.sh      exit 0 all hold; 1 a conjunct failed;
@@ -73,8 +73,8 @@ template="$repo_root/templates/runner-preflight.yml"
 command -v nen >/dev/null 2>&1 || { echo "runner-preflight-fixture: nen could not be started (not on PATH)" >&2; exit 5; }
 nen_version="$(nen --version 2>/dev/null | head -n 1)"
 nen_minor="${nen_version#*.}"; nen_minor="${nen_minor%%.*}"
-if [ "${nen_version%%.*}" = 0 ] && [ -n "$nen_minor" ] && [ "$nen_minor" -lt 19 ] 2>/dev/null; then
-  echo "runner-preflight-fixture: needs nen >= 0.19 (MODE and the desktop pool); nen on PATH is $nen_version" >&2
+if [ "${nen_version%%.*}" = 0 ] && [ -n "$nen_minor" ] && [ "$nen_minor" -lt 21 ] 2>/dev/null; then
+  echo "runner-preflight-fixture: needs nen >= 0.21 (pool-own labels); nen on PATH is $nen_version" >&2
   exit 5
 fi
 
@@ -171,13 +171,8 @@ check() {
   else
     fail "$label: runs-on is not exactly '$runs_on'"
   fi
-  # HELD FROM nen 0.21, PARTLY: the maintainer's ruling of 2026-10-02 on zheref/hatsu#198 item 6 -- a
-  # pool's labels carry one of the pool's own, because GitHub's defaults (self-hosted, the OS, the arch)
-  # are what every runner of that OS and arch gets at registration, so a runs-on of the defaults alone
-  # admits any later registration into the pool unproven. nen 0.21 appends the pool's own pool-<id> to
-  # every rendered set (zheref/nen#340, #395), and the runs-on conjunct above asserts it under such a
-  # binary. STILL UNHELD: the Ruby runner-policy guard and tenkai's runner derivation admitting that
-  # label (zheref/hatsu#204); under a pre-0.21 nen the defaults alone still render.
+  # The exact runs-on conjunct above requires nen 0.21's pool-<id> selector.
+  # A defaults-only rendering is refused below, even if a future nen regresses.
 
   got="$(block "$file" permissions | sed 's/[[:space:]]*$//')"
   if [ "$got" = "  contents: read" ]; then
@@ -255,13 +250,13 @@ consumer() {
   "runners": {
     "naming": "{machine}-{consumer}R{slot}",
     "pools": [
-      { "id": "windows-x64", "os": "Windows", "arch": "X64", "labels": ["self-hosted", "Windows", "X64"],
+      { "id": "windows-x64", "os": "Windows", "arch": "X64", "labels": ["self-hosted", "Windows", "X64", "pool-windows-x64"],
         "enableVariable": "FIXTURE_WINDOWS_RUNNER", "tools": ["git", "bash", "gh"],
         "preflightWorkflow": "runner-preflight-windows-x64.yml" },
-      { "id": "macos-arm64", "os": "macOS", "arch": "ARM64", "labels": ["self-hosted", "macOS", "ARM64"],
+      { "id": "macos-arm64", "os": "macOS", "arch": "ARM64", "labels": ["self-hosted", "macOS", "ARM64", "pool-macos-arm64"],
         "tools": ["git", "bash"], "preflightWorkflow": "runner-preflight-macos-arm64.yml" },
       { "id": "windows-x64-desktop", "os": "Windows", "arch": "X64", "mode": "interactive",
-        "labels": ["self-hosted", "Windows", "X64", "desktop"], "enableVariable": "FIXTURE_DESKTOP_RUNNER",
+        "labels": ["self-hosted", "Windows", "X64", "desktop", "pool-windows-x64-desktop"], "enableVariable": "FIXTURE_DESKTOP_RUNNER",
         "tools": ["git", "bash", "gh"], "preflightWorkflow": "runner-preflight-windows-x64-desktop.yml" }
     ]
   }
@@ -679,7 +674,7 @@ for target in template rendering; do
     expect_slug="$slug"
   fi
   before=$failures
-  neg="$(check "hostile $target" "$file" "$expect_slug" '[self-hosted, Windows, X64]' '.github/workflows/runner-preflight-windows-x64.yml' no)"
+  neg="$(check "hostile $target" "$file" "$expect_slug" '[self-hosted, Windows, X64, pool-windows-x64]' '.github/workflows/runner-preflight-windows-x64.yml' no)"
   failures=$before
   for needle in 'the event set is' 'pull_request or pull_request_target appears' "no job-level 'if: github.repository"; do
     case "$neg" in
@@ -693,11 +688,23 @@ done
 bare="$work/bare.yml"
 sed 's/^    runs-on: .*/    runs-on: [self-hosted]/' "$work/windows-x64.yml" > "$bare"
 before=$failures
-neg="$(check "bare" "$bare" "$slug" '[self-hosted, Windows, X64]' '.github/workflows/runner-preflight-windows-x64.yml' yes)"
+neg="$(check "bare" "$bare" "$slug" '[self-hosted, Windows, X64, pool-windows-x64]' '.github/workflows/runner-preflight-windows-x64.yml' yes)"
 failures=$before
 case "$neg" in
   *"FAIL: bare: runs-on is not exactly"*) pass "negative: a bare self-hosted runs-on is refused" ;;
   *) fail "negative: a bare self-hosted runs-on was not refused: $neg" ;;
+esac
+
+# A complete set of GitHub's default labels still selects any newly
+# registered Windows runner. The pool-own label is a required conjunct.
+defaults="$work/defaults-only.yml"
+sed 's/^    runs-on: .*/    runs-on: [self-hosted, Windows, X64]/' "$work/windows-x64.yml" > "$defaults"
+before=$failures
+neg="$(check "defaults-only" "$defaults" "$slug" '[self-hosted, Windows, X64, pool-windows-x64]' '.github/workflows/runner-preflight-windows-x64.yml' yes)"
+failures=$before
+case "$neg" in
+  *"FAIL: defaults-only: runs-on is not exactly"*) pass "negative: GitHub default labels without pool-<id> are refused" ;;
+  *) fail "negative: defaults-only runner was not refused: $neg" ;;
 esac
 
 # 4b. Negative: a push that admits a tag ref is refused (zheref/hatsu#198 item 1) -- `paths:` alone, the
@@ -722,7 +729,7 @@ for shape in paths-only tags-added; do
       is_rendered=yes
     fi
     before=$failures
-    neg="$(check "tag $shape $target" "$file" "$expect_slug" '[self-hosted, Windows, X64]' '.github/workflows/runner-preflight-windows-x64.yml' "$is_rendered")"
+    neg="$(check "tag $shape $target" "$file" "$expect_slug" '[self-hosted, Windows, X64, pool-windows-x64]' '.github/workflows/runner-preflight-windows-x64.yml' "$is_rendered")"
     failures=$before
     case "$neg" in
       *"FAIL: tag $shape $target: push's filters are"*) pass "negative ($shape, $target): a push admitting a tag ref is refused" ;;

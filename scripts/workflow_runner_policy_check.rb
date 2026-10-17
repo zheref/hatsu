@@ -22,9 +22,26 @@ Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
 SAME_REPO_GUARD = "${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository }}"
-MAC_RUNNER = %w[self-hosted macOS ARM64].freeze
+RUNNER_DEFAULTS = %w[macOS Windows Linux].product(%w[ARM64 X64]).map do |os, arch|
+  ["self-hosted", os, arch].freeze
+end.freeze
 WINDOWS_RUNNER = %w[self-hosted Windows X64].freeze
 HOSTED_RUNNER = "ubuntu-latest"
+
+# A pool must have its own selector after GitHub's default labels. Otherwise a
+# newly registered runner of the same OS and architecture joins it without a
+# preflight (zheref/hatsu#204). The desktop label, when present, precedes the
+# pool selector; it is a mode, not a substitute for pool membership.
+def approved_runner?(runner)
+  return true if runner == HOSTED_RUNNER
+  return false unless runner.is_a?(Array)
+  return false unless runner.last&.match?(/\Apool-[A-Za-z0-9][A-Za-z0-9._-]*\z/)
+
+  defaults = runner[0, 3]
+  return false unless RUNNER_DEFAULTS.include?(defaults)
+
+  runner.length == 4 || (runner.length == 5 && defaults[1] == "Windows" && runner[3] == "desktop")
+end
 # This constant does DOUBLE DUTY: it is the portable-workflow set (each member
 # must run on GitHub-hosted ubuntu-latest) AND the required-PRESENCE list that
 # validate_repo checks. pr-readiness.yml is listed because the workflow now
@@ -1610,7 +1627,7 @@ def validate_workflow(path, hatsu: false)
 
     runner_node = job.fetch("runs-on") { fail_policy("#{path} job #{job_name} has no runs-on") }
     runner = runner_node.is_a?(Psych::Nodes::Sequence) ? sequence(runner_node, "runs-on") : scalar(runner_node)
-    allowed = runner == MAC_RUNNER || runner == WINDOWS_RUNNER || runner == HOSTED_RUNNER
+    allowed = approved_runner?(runner)
     fail_policy("#{path} job #{job_name} uses an unapproved runner #{runner.inspect}") unless allowed
     if (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).include?(File.basename(path)) && runner != HOSTED_RUNNER
       fail_policy("#{path} is portable and must use GitHub-hosted ubuntu-latest")
@@ -2040,6 +2057,13 @@ def validate_builder_workflow(path)
 end
 
 def self_test(root)
+  RUNNER_DEFAULTS.each do |defaults|
+    fail_policy("self-test: default runner labels were admitted") if approved_runner?(defaults)
+    fail_policy("self-test: pool-own runner label was refused") unless approved_runner?(defaults + ["pool-ci"])
+  end
+  fail_policy("self-test: desktop pool label was refused") unless approved_runner?(WINDOWS_RUNNER + %w[desktop pool-ui])
+  fail_policy("self-test: desktop without pool label was admitted") if approved_runner?(WINDOWS_RUNNER + ["desktop"])
+  fail_policy("self-test: bare self-hosted was admitted") if approved_runner?("self-hosted")
   # fail_policy prints PR-controlled names escaped: no raw newline can start a
   # log line with a workflow command (hanten on step two, Feitan SEC-7).
   begin
