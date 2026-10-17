@@ -195,6 +195,11 @@
       "why": "the bell's sound on macOS"
     },
     {
+      "exe": "du",
+      "args": "-sk *",
+      "why": "cleanup measures what a leftover occupies before Shizuku proposes removing it (cleanup § 4): one total per path, never a file listing; a read, never a write"
+    },
+    {
       "exe": "bash",
       "args": "scripts/*",
       "why": "the repository's own scripts (fixtures, ledgers, bootstrap)"
