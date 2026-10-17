@@ -13,6 +13,8 @@ v0.6): a commit carries the truthful canonical plane/persona trailer for the res
 model, surface, runtime, session or "generated-with" attribution, and never a `Co-Authored-By:` naming an
 AI assistant.
 
+The required PR `check` reads `commits.forbiddenTrailers` over every PR commit, including a commit made outside Kokusen. Set `includeCoAuthoredBy: false` as described in [WORKFLOW.md](WORKFLOW.md) to stop the Claude Code harness from injecting that trailer.
+
 The pull request body also ends with this final section:
 
 ```markdown
