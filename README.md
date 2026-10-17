@@ -4,7 +4,7 @@
 four agent surfaces: Claude Code, Codex, Cursor and Antigravity.**
 
 One lead persona, **Kurapika**, who names which of six work-modes he is holding before he acts; a roster of
-focused independents who review, measure, watch and file but never decide; and **fifty skills** that take a
+focused independents who review, measure, watch, file and clean up but never decide; and **fifty-two skills** that take a
 request, an issue, a backlog, a pull request or a release from where it is to the human gate where you
 decide. **Every deterministic step that has a verb is a verb** of the [**Nen**](https://github.com/zheref/nen)
 CLI: Nen detects, computes, formats and verifies; a skill supplies only the judgment a binary cannot.
@@ -78,11 +78,14 @@ flowchart LR
     main -->|"🧑 you call getsuga"| rel
     kagutsuchi -->|"🧑 G3 · your typed go"| mugetsu
     mugetsu --> shipped(["Shipped"])
-    en -.-> third["third-hand<br/>harvest · rikugan final state"]
+    en -.-> wrap["wrap-up picker<br/>cleanup · + third-hand · continue"]
 ```
 
 **Five phases are yours to call, and no agent ever prompts for them**: `aka` (push), `mukai` (review and
-PR), **the merge**, `kagutsuchi` (non-production upload) and `mugetsu` (publish, **G3**). Everything
+PR), **the merge**, `kagutsuchi` (non-production upload) and `mugetsu` (publish, **G3**). Two offers are not
+prompts for them: the **wrap-up picker** after every delivery — `cleanup` (required), `cleanup` and `third-hand`, or
+continue — and `kazaana`'s one unstarred question after the tag it cut, whether `mugetsu` should publish it, whose
+affirmative answer is your own go. Everything
 between them runs on its own; only a genuine **G5** interrupts you: red required tests, touched-file
 coverage under the ladder, a semantic merge conflict, an unsettled adversarial finding, a stuck-PR
 escalation. A stop is `nen stop`'s banner, the report link, lettered options with a star on the
@@ -106,7 +109,8 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 | **Publish the branch** | `aka` | a committed `ren` branch; nothing is pushed before this | `gyo → squash unpushed → ao → gyo again if moved → push` |
 | **Review, test and open the PR** | `mukai` | a pushed branch; `review.scopes`, `tests`, `coverage` declared; `nen/gates.json` with a reviewer | `murasaki → hanten → kokusen → kotoamatsukami → byakugan → evidence → shibari → landing report → offer en` (or start it under `mukai.autoEn`) |
 | **Drive a PR to Ready** | `en on <CODE>#<N>` · `sharingan <CODE>#<PR> to <G2\|G4>` | an open PR; `monitor.maxCycles` (the cap is grammar) | `sharingan → murasaki when behind → sharingan → observe CI and the current-head round → jutaisho at Ready`, then the merge prompt |
-| **Deliver one issue end to end** | `build <CODE>#<N>` | the issue exists; its `lang/` and `job/` labels (classify runs if missing); your session's model, surface and effort inside `direct`'s picks, else one question | `ten → classify → direct → ren → aka → mukai → en → rikugan → third-hand` |
+| **Deliver one issue end to end** | `build <CODE>#<N>` | the issue exists; its `lang/` and `job/` labels (classify runs if missing); your session's model, surface and effort inside `direct`'s picks, else one question | `ten → classify → direct → ren → aka → mukai → en → rikugan → the wrap-up picker` |
+| **Clean up after a delivery** | `cleanup [for <scope>]` · the wrap-up picker's **A** or **B** | a session delivery landed (a PR at the merge prompt or merged); `nen wc worktrees` | **Shizuku** inventories worktrees, branches, remote heads, transient reports, caches and billed resources — this sitting's and prior sessions' — splits deterministic from proposed rows, you pick, she removes only that |
 | **Turn a dirty working copy into a PR** | `tensho <target-branch\|main>` · `jujisho` to split by axis | uncommitted work; a target branch | review every file → commit → one PR (two stacked for `jujisho`) → `sharingan` to its gate |
 | **Review the branch before any PR** | `hanten [for <scope>]` | `review.scopes` in `nen/workflow.json`; reviewer budget left for the effort | `nen review scopes` → one reviewer per raised scope → findings in one shape → fix or push back |
 | **Validate a merged feature** | `black-voice [<CODE>#<PR>]` | a merged PR with acceptance criteria; `tests.uiValidation` tooling resolvable | **Shalnark** drives every criterion through ephemeral UI tests → pass / fail / not-testable as a Rikugan page |
@@ -118,12 +122,13 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 | **File an issue** | `file <problem> <repo>` · bare `file` for what the session just discussed | `nen/labels.json`; the backlog reconciled first | duplicate search → `classify` → one issue on your confirmation |
 | **Classify, then route to a model** | `classify <CODE>#<N>[,…] \| backlog [<repo>]` · `direct <CODE>#<N> \| backlog` | the `lang/` and `job/` families declared (classify lands them by PR on a consumer first); `direct.publish` if you want labels written | two label axes → `nen direct resolve` → three picks on five axes; sweeps apply nothing before one confirmation |
 | **Work a severity band or one label** | `futon <repo>@<severity[+] \| label> [then tag \| tag+fanout \| <skill> \| <prose>]` | `nen/colors.yml` severity values; labels synced | one `build` per issue, PRs with an actor behind them; the `then` step runs only once every PR is merged (the **advance go**) |
+| **Work everything this surface's model can build** | `kazaana <repo> [on <line>]` | the `model/` labels (direct runs on the unlabelled first); `direct`'s records; up to 7 worktrees | `futon <repo>@model/<line> then getsuga`: parallel delegates on `direct`'s primary pick, stacks only on overlap, every PR to its merge prompt with the merge order on the register; once all are merged or closed, `getsuga` with its proposal merged autonomously; then one question whether `mugetsu` should publish |
 | **Drive the whole backlog to zero** | `backlog-loop` | a repository with product codes and a release lane | triage → `build` and `sharingan` across at most two efforts → `getsuga` at severity-batch boundaries → a board per cycle |
 | **Consolidate a long backlog** | `backlog-synthesis <critical\|high\|medium\|low\|all> [<repo>]` | open issues sharing a clause, file or root cause | a plan artifact → on approval one consolidated issue, originals attached and closed |
 | **See the state** | `backlog-state <repo\|all>@<gate>` · `backlog-board` · `pr-state <CODE>#<N>` · `rikugan [for …] [as final\|register]` | read access | read-only tables and Rikugan pages; readiness is `nen pr ready`'s verdict, quoted |
 | **Inventory a consumer's own efforts** | `senkei <repo>` | a consumer repository | classify every effort, re-run a dead reviewer job, wake a stalled PR, state Ready or not per PR |
 | **Repeat until a condition holds** | `izanami <task> until <cond>` (read-only) · `izanagi <task> until <cond> up to <N>` (acts) | for `izanagi`, the cap typed: no cap, no run | the task per iteration, under its own authority |
-| **Harvest the sitting's friction** | `third-hand` | En completed, or you are wrapping up | **Netero** proposes 0 to 3 issues; only what you pick is filed |
+| **Harvest the sitting's friction** | `third-hand` · the wrap-up picker's **B** | En completed, or you are wrapping up; optional beside `cleanup` | **Netero** proposes 0 to 3 issues; only what you pick is filed |
 
 ### Ship, adopt, maintain
 
@@ -180,9 +185,10 @@ non-test source, votes, blocks or merges.
 | 👁️ | **[Illumi](claude/agents/illumi.md)** | the long watch: `en`'s pre-Ready observation hold, read-only through `nen watch until`, on a stated command allowlist | `en`, step 5 | **provisioned**, for `en`'s watch only |
 | 🤖 | **[Shalnark](claude/agents/shalnark.md)** | post-merge UI validation automator: ephemeral UI tests against the delivered acceptance criteria | `black-voice` only | activated from the bench |
 | 🪑 | **[Netero](claude/agents/netero.md)** | chairman of process: watches the Hunters execute and files complete, labelled issues when canon or machinery need enhancement | `third-hand`; `great-hiker evolve` | ratified |
+| 🧹 | **[Shizuku](claude/agents/shizuku.md)** | cleanup, and cleanup only: inventories what an effort left behind, locally and on GitHub, and prior sessions' leftovers; deterministic rows versus proposed rows; removes only what you picked | `cleanup` only, at the wrap-up | activated from the bench 2026-10-13 |
 | 🎯 | **[Gon](claude/agents/gon.md)** | the mission-scoped trusted delegate: mission, gates, conditions, expiry, logging | no composite yet | ratified as an agent; **his delegation grammar is a DRAFT, so he crosses no gate** |
 
-Killua and the rest of Illumi's row are **open** sub-decisions; Machi, Kortopi, Pakunoda and Shizuku sit
+Killua and the rest of Illumi's row are **open** sub-decisions; Machi, Kortopi and Pakunoda sit
 on the **bench** with no definition and may not be acted as. [`docs/ROSTER.md`](docs/ROSTER.md) carries both
 tables and every ruling.
 
@@ -190,7 +196,7 @@ tables and every ruling.
 
 ## 🧰 The skills
 
-Fifty, invoked as `hatsu:<name>` in your surface's spelling, fifty-one directories with `ten`. Each row:
+Fifty-two, invoked as `hatsu:<name>` in your surface's spelling, fifty-three directories with `ten`. Each row:
 what the skill means, the steps it runs **as the skills it calls**, and who calls it. Full contracts live
 in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 [`claude/skills/README.md`](claude/skills/README.md).
@@ -232,7 +238,8 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `en` | **composite**: one PR from open to verified Ready and your merge prompt, under a mandatory acting-cycle cap | landing report → `sharingan` → `murasaki` when behind → `sharingan` → observe (Illumi on a long hold) → `jutaisho` at Ready | `mukai`'s offer; `build`; you |
 | `sharingan` | drive one PR to readiness at its gate and stop: first blocking condition, threads, the owed reviewer round, the verdict | `nen pr ready` → threads → `nen pr request-reviews` | `en` (steps 2 and 4); `tensho`; you |
 | `pr-state` | one PR's readiness as the deterministic verdict, quoted, conjunct by conjunct. Read-only | `nen pr ready --explain` | you; `rikugan` |
-| `third-hand` | the sitting's process friction harvested as Netero into 0 to 3 issues you pick; then the session ends | Netero → `file` per pick | `build`'s last step; you |
+| `third-hand` | the sitting's process friction harvested as Netero into 0 to 3 issues you pick; then the session ends. Optional, beside `cleanup` | Netero → `file` per pick | the wrap-up picker's **B**; you |
+| `cleanup` | what a finished effort left behind — worktrees, branches, remote heads, transient reports, caches, billed resources, and prior sessions' leftovers — inventoried by **Shizuku**, split into deterministic and proposed rows, removed only as you picked. Required after a completed session | `nen wc worktrees` → plan → the picker → the picked rows, read back | the wrap-up picker (`en`'s terminus, `build`, `futon`, `kazaana`); you |
 | `amenotejikara` | swap which worktree your core checkout holds, and swap back; never discards | `nen wc worktrees` → `nen wc swap` | you |
 | `jujutsu` | pair a device and register it as a launch target through a PR | platform probe → declaration → PR at the gate | you |
 
@@ -243,8 +250,9 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `file` | one well-formed, correctly labelled, non-duplicate issue | duplicate search → `classify` → `nen issue create` on your confirmation | you; `third-hand`; the discovery protocol |
 | `classify` | the two label axes, `lang/<key>` and `job/<key>`, on an issue, a set, a backlog or an inline effort | `nen classify apply`; the families landed by PR on a consumer first | `file`; `build`; you |
 | `direct` | which model should do the work and where: three picks (primary, fallback, recommended) on five axes, read live | `nen direct resolve` → compare with this session → publish only where `direct.publish` opts in | `build`, `ren`; you |
-| `build` | **composite**: one issue to a delivery PR at its human gate | `ten → classify → direct → ren → aka → mukai → en → rikugan → third-hand` | you; `futon`; `backlog-loop` |
-| `futon` | **composite**: one selector of the backlog to PRs with an actor behind them, then the typed `then` step once every PR is merged | `build` per issue → `getsuga` for `tag`/`tag+fanout`, or the named skill, or prose mapped to skills → `rikugan` | you |
+| `build` | **composite**: one issue to a delivery PR at its human gate | `ten → classify → direct → ren → aka → mukai → en → rikugan → the wrap-up picker` | you; `futon`; `backlog-loop` |
+| `futon` | **composite**: one selector of the backlog to PRs with an actor behind them, then the typed `then` step once every PR is merged | `build` per issue → `getsuga` for `tag`/`tag+fanout`, or the named skill, or prose mapped to skills → `rikugan` | you; `kazaana` |
+| `kazaana` | **composite**: everything this surface's model can build, drawn in and delivered — `futon <repo>@model/<line> then getsuga` with parallel delegates on `direct`'s primary pick, stacks only on overlap, the merge order on the register, the release proposal merged autonomously, then one question about publishing | `direct` on the unlabelled → `futon` → delegates author and publish (`ren` or `great-hiker`, `aka`) while this session runs `mukai` and `en` per effort → `rikugan` → `getsuga` → the publish offer → the wrap-up picker | you |
 | `backlog-loop` | **composite**: the backlog to zero in severity order | triage → `build` + `sharingan` (≤ 2 efforts) → `getsuga` at batch boundaries → `backlog-board` per cycle | you |
 | `backlog-synthesis` | a long backlog reconciled into a short one, behind a plan you approve | plan artifact → `file` → sub-issues attached and closed | you |
 | `backlog-state` | the backlog as one gate-oriented table. Read-only | `nen` reads → `nen/colors.yml` status | you |
@@ -262,7 +270,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `susanoo` | the distributable the lane declares, built locally; names the tag `kagutsuchi` will cut, cuts none | `nen shu archive` | `getsuga`, `kagutsuchi`; you |
 | `getsuga` | **composite**: the release tag, end to end, with its own folded release-proposal PR | preconditions → `susanoo` → release PR → `nen pr merge --release-unit` (§ 3a) → tag → CON-22 fan-out | you; `futon then tag`; `backlog-loop` |
 | `kagutsuchi` | a build to a declared **non-production** destination, behind a freshness gate | `send_freshness_check.sh` → `susanoo` if stale → `nen shu deploy --run` → `dist/` tag | you; `futon then kagutsuchi` |
-| `mugetsu` | **G3**: publish one release to one production destination, on your typed go only | `nen release preflight` → `nen shu release` / `deploy --run` | you; `futon then mugetsu` on the advance go |
+| `mugetsu` | **G3**: publish one release to one production destination, on your own go only — typed, or your publish answer to `kazaana`'s one unstarred question after the tag it cut | `nen release preflight` → `nen shu release` / `deploy --run` | you; `futon then mugetsu` on the advance go; `kazaana` on your answer |
 | `tenkai` | make a repository a working consumer, deterministically and idempotently; diagnoses before it writes | `tenkai_adopt.sh diagnose → apply` → `config_values.sh fill` → PRs at the target's gate | you |
 | `limbo` | a consumer's canon mirror kept current on every declared surface | `nen canon pin → mirror check → mirror generate` → one PR → `en` | you |
 | `jusshin` | a consumer's self-hosted runners as boot-persistent services, proven by a preflight job before they are switched on | `nen runner inventory → plan → script → verify → workflow → preflight → enable` | you |
@@ -274,8 +282,11 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 
 ```mermaid
 flowchart TD
-    build --> ten & classify & direct & ren & aka & mukai & en & rikugan & thirdhand[third-hand]
+    build --> ten & classify & direct & ren & aka & mukai & en & rikugan & wrap[wrap-up picker]
+    wrap --> cleanup & thirdhand[third-hand]
     futon --> build & getsuga & rikugan
+    kazaana --> direct & futon & getsuga & mugetsu & cleanup
+    cleanup --> shizuku([Shizuku])
     bl[backlog-loop] --> build & sharingan & getsuga & bb[backlog-board]
     ren --> breath & rasengan & kokusen & amaterasu & sm[spiritual-message] & jutaisho
     breath --> gyo
@@ -288,6 +299,9 @@ flowchart TD
     getsuga --> susanoo
     kagutsuchi --> susanoo
     thirdhand --> netero([Netero]) --> file
+    en -.-> wrap
+    futon --> wrap
+    kazaana --> wrap
     file --> classify
     bv[black-voice] --> shalnark([Shalnark])
     rikugan --> bb
@@ -334,7 +348,7 @@ Hatsu drives work **to** a gate and stops there. Clause ids are the inherited co
 | **G1** | `CON-4` | epic approval: you apply one delivery-mode label | **never** |
 | **G1-M** | `CON-25` | release into build: the building stage label | **the one delegated crossing**, under four named carve-outs inside a logged run |
 | **G2** | `CON-5` | merge to `main` | **never, save one PR**: every PR ends at `en`'s merge prompt; `getsuga` merges its own release proposal inside § 3a |
-| **G3** | `CON-6` | release go/no-go: publishing | **never on an agent's word**: only your typed go, by name or as a `mugetsu` step of your own `futon` chain |
+| **G3** | `CON-6` | release go/no-go: publishing | **never on an agent's word**: only your typed go, by name, as a `mugetsu` step of your own `futon` chain, or as your own answer to `kazaana`'s one question after the tag it cut |
 | **G4** | `CON-7` | policy or spec change: a PR into a **canon** repository, whose product is the process | **the same as G2** |
 | **G5** | `CON-47` | anything else human-only: a semantic conflict, a new business rule, signing material, a supply-chain failure | **never**; its definition *is* "the decision is yours" |
 
