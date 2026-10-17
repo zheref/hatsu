@@ -998,15 +998,27 @@ skill refuses mechanically rather than on manners — see its § 1.
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
 
-**The only interruptions are genuine G5 stops. There are five:**
+**The only interruptions are genuine G5 stops** — anything only the maintainer can do that no earlier gate
+covers (ruling of 2026-10-17, zheref/hatsu#290 q4: an **open class**; a kind not recorded here is still a G5, never
+refused for being unlisted, and `nen/decisions.json` records the kinds met so far). **The recorded kinds:**
 
 1. **red required tests** — in `mukai`, via `kotoamatsukami`
 2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
 3. **a semantic conflict** — in `ao`. A *mechanical* conflict is resolved, not escalated
 4. **an unsettled adversarial finding** — in `hanten`, after Kurapika has fixed it or pushed back with a reason
 5. **a `sharingan` escalation** — a PR that will not reach Ready. **An exhausted reviewer is not one**: a met round quorum fulfils its round, and at the sixth stop — every quorum member unavailable, its predicate stated once in `docs/PROCESS.md` § *Reviewer rounds and review threads*, *The sixth stop* — the PR goes to `en` § 5's merge prompt on hanten's rounds, the not-ready verdict quoted verbatim (ruling 2026-10-11, *prompt on hanten*), and under `aiReviewers: optional | off` whenever `rounds-owed` is the only failing row — `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
+6. **an on-device act** — a trust prompt, a security setting, a UAC consent, a Login Items approval, a password
+   typed into an elevated window (row `on-device-act`; ruling of 2026-10-17, zheref/hatsu#290 q1, reversing
+   2026-10-13's #176): the act is printed with where the operation resumes, and the run stops at the gate until the
+   maintainer has done it. A skill *raises* such a prompt only through a launch the harness itself asks the
+   maintainer to approve — that permission prompt, showing the exact string, is the advance consent
+   ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's Windows path); it never taps, confirms or bypasses one
+   ([`jujutsu`](../claude/skills/jujutsu/SKILL.md))
+7. **a secret-shaped staged path** — in `kokusen`, row `secret-shape`: never committed, never askable; rotate or
+   remove is the maintainer's act (ruling of 2026-10-17, zheref/hatsu#290 q2)
 
-**A red *iteration* check is not a sixth condition, and the ruling of 2026-09-10 did not make it one.** It is
+
+**A red *iteration* check is not a G5 of its own, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
 tree back to `rasengan` when `kokusen`'s gate refuses to commit it. Only a red check the turn cannot honestly clear
 escalates, which is the escalation `rasengan` has always carried. **The one stop that is genuinely new in
@@ -1110,18 +1122,10 @@ configuration value; it stops at G5 rather than issuing a fresh budget.
 
 - **no tool or permission can supply it** — a sandbox or permission refusal, an install that needs
   `sudo`;
-- **a secret, credential or signing material** — never typed into chat; the maintainer supplies it
-  through their own tool;
-- **an on-device act** — a trust prompt, a security setting, a UAC consent, a Login Items approval, a
-  password typed into an elevated window. **A refusal, never a G5** (ruling of 2026-10-13,
-  zheref/hatsu#176; row `on-device-act`, stated here once): no `nen stop` banner, no picker, the five
-  G5s stay five. A skill may *raise* such a prompt only through a launch the harness itself asks the
-  maintainer to approve — that permission prompt, showing the exact string, is the advance consent
-  ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's Windows path); otherwise it prints the act for
-  the maintainer and where the operation resumes ([`jujutsu`](../claude/skills/jujutsu/SKILL.md);
-  jusshin's Linux path, and on macOS the Login Items approval that follows its launch). The row is
-  classed `autonomous` only because `nen.decisions/v0.1` has no `refusal` class: its default *is* the
-  refusal, not a resolution, and no consumer file narrows or reclassifies it;
+- **a secret, credential or signing material typed into chat** — refused; the maintainer supplies it
+  through their own tool. (A secret-shaped path already staged is not this item: it is the G5 row
+  `secret-shape` above, ruling of 2026-10-17, zheref/hatsu#290 q2.) An on-device act is not this list's
+  either: it is a G5 (kind 6 above, the same ruling's q1);
 - **a human gate** — G1–G5;
 - **a supply-chain failure** — a checksum or manifest mismatch, never retried;
 - **a mutating command inside a read-only loop**;
@@ -1220,7 +1224,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 | **8** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
 | **9** | [`spiritual-message`](../claude/skills/spiritual-message/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then rings, offers [`en`](../claude/skills/en/) through the picker and ends (starting it only under `mukai.autoEn`) | not a gate event; En owns current-head readiness once started, and the user turn remains active under En while CI/review is pending |
 
-**Four of the five G5 conditions of § 4 live inside this one phase.** That is not an accident of layout: a
+**Four of § 4's recorded G5 kinds live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
 ask and most expensive to skip.
 
@@ -1712,7 +1716,7 @@ The three cases below are mutually exclusive and total, and **the PR's own base 
   and exits `1`, because nothing it verifies can act there. Readiness is `nen pr ready` + `nen pr
   body-check`, and a PR on `branch.base` gets en § 5's **merge prompt** with that line quoted in place
   of the guard's `0`: the merge is the maintainer's either way. It is the G2/G4 merge stop, **not a
-  G5** (the plane's genuine stops stay five, § 4). A PR off `branch.base` still gets the off-base
+  G5** (§ 4's G5 class is what only the maintainer can do; a merge they chose to keep is a gate they already hold). A PR off `branch.base` still gets the off-base
   report. Hatsu never reaches this case (its `branch.base` is its default branch); canon states it so
   a consumer's is total.
 - **Every `nen pr edit-body` and every retarget read-back is followed by the guard**, its line quoted.

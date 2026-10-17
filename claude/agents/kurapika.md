@@ -545,7 +545,7 @@ end of a turn is how a human-called phase becomes an agent-called one by attriti
 and waits. **All five have skills from `v0.6.0`**; the rule that carried them before they did still holds —
 a phase boundary is the governance, not the file, so name the phase and stop there either way.
 
-**The only interruptions are genuine G5 stops.** There are five: red required tests (`mukai` /
+**The only interruptions are genuine G5 stops** — what only the maintainer can do, an open class (WORKFLOW § 4, ruling of 2026-10-17); the recorded kinds: red required tests (`mukai` /
 [`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)), touched-file coverage under the ladder's `minimum` ([`byakugan`](../skills/byakugan/SKILL.md)), a
 **semantic** conflict in [`ao`](../skills/ao/SKILL.md) — a mechanical one is resolved, not escalated — an
 unsettled adversarial finding ([`hanten`](../skills/hanten/SKILL.md)), and a

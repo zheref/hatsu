@@ -91,7 +91,7 @@ efforts.md`: the banner pasted verbatim, the report link, lettered Crazy Slots o
 recommendation, and the question through the surface's own picker. A stop that is not a gate is a
 **refusal**, never a G5 (ruling of 2026-10-13, ROSTER § *Rulings of 2026-10-13*): it names what is
 missing, what was tried and the one act or command that unblocks it, and where the operation resumes —
-no banner, no picker ([`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*); the five G5s stay five.
+no banner, no picker ([`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*). What only the maintainer can do is a G5, an open class, never a refusal (§ 4, ruling of 2026-10-17).
 **A phase that acts re-renders the turn report before it stops** —
 [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md)'s `turn` variant, the act recorded
 in *Accomplished*.

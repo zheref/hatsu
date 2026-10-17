@@ -131,8 +131,8 @@ ending in a question mark; its options are the marker's, verbatim (§ 1). **A `D
 which is the maintainer's outside the session — a `MERGE` ask is `en` § 5's merge prompt for every PR
 into `main`, the run's own included: its link and the inline `gh pr merge` line (ruling 2026-09-30).
 
-**Only a genuine stop interrupts** — the five G5s [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
-lists, plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
+**Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
+records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
 
 ## 5. Surfaces, and the fallback without a hook
 
