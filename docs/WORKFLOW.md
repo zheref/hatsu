@@ -2099,7 +2099,8 @@ only as far as it is true: **the blocks the table below names** are plain single
 shipped `scripts/` entry, each exit read before the next call, and `$hatsu_root` in any block is ten
 § 0's printed path, typed in its place (`ten` § 0). The blocks still carrying a refused shape are
 listed under *Not yet converted*, below the table. **A refusal of any block on neither list is a
-named stop (G5)**, the block and the guard's sentence quoted; **a throwaway helper script is never the
+refusal, named** (§ 4 *What is not a gap*, item 1: a permission the harness withholds), the block and
+the guard's sentence quoted; **a throwaway helper script is never the
 workaround**: it puts unreviewed shell on the run's own authority, and where it re-creates a verb it
 is determinism drift.
 
@@ -2362,8 +2363,9 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is
    presented nowhere as mergeable** (ruling 2 of 2026-09-29, kept by the 2026-09-30 amendment): the
    merge prompt exists only for the PR whose base reads `branch.base` at that moment. A stacked effort's
-   local slot is counted freed when its PR stands at its stacked base with hanten settled — `nen loop
-   slots` cannot read a stack, a handbook-question said on the desk.
+   local slot is counted freed at PR-open on its stacked base, hanten settled (ruling of 2026-10-13,
+   ROSTER § *Rulings of 2026-10-13*, small ruling 4) — `nen loop slots` cannot read a stack yet, the nen
+   request on the harvest.
 5. **Merging, bottom-up, one at a time, with `--merge`, never a squash** (a squash would re-carry the
    lower PR's commits into the next diff). The maintainer merges the bottom PR and **deletes its head
    branch**; GitHub then retargets the next PR to the merged PR's base, which is `branch.base` (GitHub

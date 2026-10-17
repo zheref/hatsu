@@ -88,7 +88,7 @@ verb or an objecting pass is not-ready: the pass only vetoes, never promotes.**
 
 Reaching the gate is a gate event per [PROCESS.md](../../../docs/PROCESS.md) § *Reporting a phase*
 (`--gate <G2|G4>`): publish the gate board (`nen board build` / `render`) fed this row, linked; the
-ask is **`MERGE`**, no options. Any other stop is `G5`, `DECIDE` or `DO`. **Resuming**: § *Resuming a
+ask is **`MERGE`**, no options. Any other stop is `G5`, `DECIDE` or `DO` or a refusal. **Resuming**: § *Resuming a
 run* there.
 
 **Permitted:** `nen wake fire`, a non-vote wake; § 6's request inside `maxRounds`; thread replies
