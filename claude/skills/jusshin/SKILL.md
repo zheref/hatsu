@@ -82,23 +82,17 @@ always a LaunchAgent. **An interactive Windows pool** is the one a job that driv
 service runs in session 0, which has no desktop. Its runners are logon tasks in one account's
 signed-in desktop session, and they are online only while that account is signed in. Declaring one,
 the mode is asked with that cost said (`missing-configuration`), never assumed. **The pool's labels**
-are the three nen admits for a service pool — `self-hosted`, the OS, the arch — and exactly
-`[self-hosted, Windows, <arch>, desktop]` for an interactive Windows pool — **each set ending, from nen
-`v0.21.0`, in the pool's own `pool-<id>`**, which `runner plan`/`script` register, `runner workflow`
-renders into `runs-on` and `runner enable` requires; a runner without it stops receiving the pool's jobs
-until `nen runner relabel --pool <id> --runner <names> --run`, and a plan written before is refused. A runner carrying `desktop`
-also matches every job aimed at the plain three-label set on that repository, so it takes those jobs
-too, in that desktop session, with that account's profile and credentials (Feitan, SEC-16). **So
-before § 3 plans an interactive pool in a repository that also declares a Windows service pool of the
-same arch, the overlap is said and asked once** (`missing-maintainer-choice`, key `jusshin <desktop-overlap>`;
-ROSTER § *Rulings of 2026-10-04 — interactive runner pools*): which jobs the
-desktop runner would take, and the alternatives (no service pool, or waiting for every pool to carry
-a label of its own, zheref/hatsu#204 and zheref/nen#340). Never defaulted. The maintainer's ruling of 2026-10-02 (zheref/hatsu#198 item 6) is that
-every pool carries a label of its own beyond the defaults, so a later registration of that OS and arch
-never joins it unproven. `desktop` is that label for an interactive Windows pool, and it protects that pool only: it opens a same-arch service pool to the desktop runner, as above. For a service pool, until
-nen's schema, the runner-policy guard and tenkai's derivation admit a fourth label together
-(zheref/hatsu#204), membership is OS and arch, and the inventory's `unpooled` row is read with that in
-mind. Whatever the target's visibility, the rendered preflight takes no `pull_request` event
+are `self-hosted`, the OS, the arch, and its own `pool-<id>`; an interactive Windows
+pool also carries `desktop` before `pool-<id>`. Nen `v0.21.0` requires that last label:
+`runner plan`/`script` register it, `runner workflow` renders it into `runs-on`, and
+`runner enable` requires it. A runner without it receives no pool jobs until
+`nen runner relabel --target <owner/name> --pool <id> --runner <names> --run`. A plan written before the
+label was declared is refused. Distinct pool labels prevent a same-arch desktop
+runner from silently taking service-pool jobs (Feitan, SEC-16); GitHub's default
+labels alone would admit any later registration unproven (zheref/hatsu#198 item 6,
+#204). Existing pools owe a declaration change, labels on their registered
+runners, and re-rendered preflight and readiness workflows. Whatever the target's
+visibility, the rendered preflight takes no `pull_request` event
 ([`templates/runner-preflight.yml`](../../../templates/runner-preflight.yml) § *FORK SAFETY*, held by
 `scripts/runner_preflight_fixture_check.sh`; nen's own by its `runner-policy` test), and for a public
 target tenkai § 5b still derives a hosted readiness runner — nothing here changes that.
