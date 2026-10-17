@@ -978,6 +978,23 @@ only pending that question.
 
 ---
 
+## Rulings of 2026-10-13 — the handbook questions, answered through the picker
+
+**Context.** The `hatsu:futon hatsu@model/claude` run of 2026-10-12/13 briefed six handbook questions and
+a desk of smaller rulings it could not build without the maintainer's word. On 2026-10-13 Kurapika read
+each issue and the canon it names, then asked one picker question per item — options lettered, the
+recommended one first and starred, one line of consequence each. **The maintainer's answer is
+recorded verbatim** — the option label exactly as the picker returned it, and nothing else in that
+column; the option's consequence line, as the picker presented it, opens the third column in quotes.
+**One row per effort, added by the pull request that builds it**: a question with no row here is still
+open.
+
+| Question | The maintainer's answer, verbatim | What it settles |
+|---|---|---|
+| **zheref/hatsu#175** — *the standalone question budget: is STANDALONE-ENTRY § 3 P4's "at most three" a per-run budget or a per-picker-call limit, and how do typed (missing-maintainer-choice) items count?* | `(a) Per picker call (Recommended)` | Option text: *""at most three" is a per-call limit (Codex caps a call at 3); the per-run rule is WORKFLOW § 4's one question per missing item; typed items count like any other; more than three items means more calls, never a bundle."* [`WORKFLOW.md`](WORKFLOW.md) § 4 step 2 states the budget once; [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) § 3 P4, `hatsu:jusshin` § 2 and `hatsu:tenkai` (P4 row, § 4b) cite it. Built by the effort `fable/kurapika/ha-175-question-budget` |
+
+---
+
 ## Rulings of 2026-10-13 — kazaana, Shizuku activated, cleanup after every completed session, the publish offer
 
 **The maintainer's request, verbatim** (2026-10-13, excerpts; it opened a `hatsu:great-hiker` sitting on
@@ -1209,7 +1226,7 @@ handbook-questions on `zheref/hatsu`.
 | **The overlap is said and asked once** | Before [`jusshin`](../claude/skills/jusshin/SKILL.md) § 3 plans an interactive Windows pool in a repository that also declares a Windows service pool of the same arch, it names the jobs the `desktop` runner would also take (GitHub matches label subsets) and asks, typed, never defaulted. It neither refuses nor filters the service pool's proof. The real fix is a label of its own for every pool: zheref/hatsu#204 and zheref/nen#340 |
 | **Two more typed keys** | `nen/decisions.json` → `missing-maintainer-choice.governs` gains `jusshin <accept-daily-account>` (the word that lets `nen runner script` render a plan whose identity is the account computing or rendering it) and `jusshin <desktop-overlap>` (the answer above). Neither is a grammar slot: like `jusshin <service-identity>`, each completes the elicitation, not the line. [`WORKFLOW.md`](WORKFLOW.md) § 4's enumeration names them |
 | **shibari opens no draft** | [`shibari`](../claude/skills/shibari/SKILL.md) runs `nen pr open` without `--draft`, so no run owns a draft-to-ready transition. `nen pr mark-ready` (nen `0.19`) is for a draft someone else opened, at the maintainer's word |
-| **What it does not settle** | the 2026-09-30 jusshin ruling's two open questions (the question budget, and whether a sign-in is an on-device act) stay open |
+| **What it does not settle** | the 2026-09-30 jusshin ruling's two open questions (the question budget, and whether a sign-in is an on-device act) stay open — **amended 2026-10-13**: the budget answered (§ *Rulings of 2026-10-13*, zheref/hatsu#175), the on-device act still open there |
 
 From nen v0.21.0 and Hatsu#204, every pool selector ends in its own
 `pool-<id>` label. The same-arch desktop overlap above no longer occurs;
@@ -1371,7 +1388,7 @@ What it settles, for [`jusshin`](../claude/skills/jusshin/SKILL.md) and no other
 | **The class widens for jusshin** | `missing-maintainer-choice`'s class — *a target, a go, a cap, a device, the request* (ruling of 2026-09-23) — extends to jusshin's **target repository**, the **machine code** every runner on a host is named by, and the **service identity** its services log on as: typed, never picked and never derived, the declared candidates listed for reference with none starred |
 | **The keys** | `nen/decisions.json` → `missing-maintainer-choice.governs`: `jusshin <target>` and `jusshin <machine>` are the grammar's slots; `jusshin <service-identity>` is typed like `jujutsu <device>` and is not a slot — the answer completes the skill's elicitation, not the line |
 | **What stays derived** | the pool, the count, the consumer code and the runner root are derived and stated, asked through the picker only when they cannot be (`missing-argument`); the root is the pool's declared `root.<os>`, never a typed override of it |
-| **What it does not settle** | the question budget (STANDALONE-ENTRY § 3 P4's *at most three* against WORKFLOW § 4's *one question per missing item*) and the reading of an on-device act (a `G5` row, an entry on WORKFLOW § 4's *not a gap* list, and not one of the five G5s above) — both raised as handbook questions, open |
+| **What it does not settle** | the question budget (STANDALONE-ENTRY § 3 P4's *at most three* against WORKFLOW § 4's *one question per missing item*) and the reading of an on-device act (a `G5` row, an entry on WORKFLOW § 4's *not a gap* list, and not one of the five G5s above) — both raised as handbook questions; the budget answered on 2026-10-13 (§ *Rulings of 2026-10-13*, zheref/hatsu#175), the on-device act still open there |
 
 ---
 
