@@ -2109,7 +2109,9 @@ squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170; the publish half held by `
 #188, the squash half by the prose) and `private_name_check.sh … && nen issue comment` (`mugetsu` § 7,
 `sharingan` § 7; `file` § 4 runs the guard before the plan as separate calls and lets nen's own refusal
 at write time gate the comment). Split,
-the gate would rest on an agent reading an exit, the failure #188 was filed after. Whether the guard
+the gate would rest on an agent reading an exit, the failure #188 was filed after. Never pipe
+`branch_authorship_check.sh`: a pipeline can return a downstream command's success after the guard
+fails. Its own exit is the gate. Whether the guard
 accepts a bare `a && b` is not on record (shape 8's refused chains also carried `cd` and `;`); where
 it refuses one, the write is a named stop. **#188's own required chain is not bare**: `murasaki` § 6's
 gated push carried `$(mktemp -d)` and `$(git rev-parse …)`, shapes on record as refused. **Ruled
