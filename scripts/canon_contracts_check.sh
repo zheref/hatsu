@@ -3,8 +3,9 @@
 #
 # The maintainer's ruling of 2026-10-13 (docs/ROSTER.md § Rulings of 2026-10-13): a canon data contract
 # owes a guard lane, and the guard is nen's own validators, run as a focused lane. Three reads, each a
-# nen verb or a nen verdict, no re-implementation here (BC-6: one owner per rule, nen's; BC-11: no
-# branching Python, no second copy of a rule nen owns):
+# nen verb or a nen verdict, no re-implementation here (BC-6: one owner per rule, nen's). BC-11 (ruling of
+# 2026-10-17): this wrapper's three-way exit is a verdict, so the script is FROZEN to fixes only pending
+# its port, nen's own canon check (zheref/nen#407 item 19); no second copy of a rule nen owns:
 #
 #   1. nen direct registry  --registry contracts/direct.registry.json
 #        every routing cell's surface is its alias's, `also` is actionable, the bands partition the

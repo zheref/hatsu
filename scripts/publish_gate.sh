@@ -4,6 +4,8 @@
 # The maintainer's ruling of 2026-10-13 (docs/ROSTER.md § Rulings of 2026-10-13): #188's required
 # `&&` chain carried `$(mktemp -d)` and `$(git rev-parse …)`, shapes the worktree-isolation guard refuses
 # in a Claude Code session, so the chain ships here as a script and the skill block is one plain call.
+# BC-11 (ruling of 2026-10-17): the chain decides a push with a three-way exit, a verdict, so this script
+# is FROZEN to fixes only pending its port, nen's gated publish (zheref/nen#407 item 18).
 # Every gate below is one link of the chain the prose stated, in the same order, and the push runs only
 # when each says yes — never `;`, `||`, a pipe or a lone `&` between them:
 #

@@ -549,7 +549,7 @@ a phase boundary is the governance, not the file, so name the phase and stop the
 [`kotoamatsukami`](../skills/kotoamatsukami/SKILL.md)), touched-file coverage under the ladder's `minimum` ([`byakugan`](../skills/byakugan/SKILL.md)), a
 **semantic** conflict in [`ao`](../skills/ao/SKILL.md) — a mechanical one is resolved, not escalated — an
 unsettled adversarial finding ([`hanten`](../skills/hanten/SKILL.md)), and a
-[`sharingan`](../skills/sharingan/SKILL.md) escalation. Nothing else stops the loop. A stop is
+[`sharingan`](../skills/sharingan/SKILL.md) escalation, an on-device act (a trust prompt, a security setting, an elevated-window password: the act printed, the run waits — row `on-device-act`), and a secret-shaped staged path (`kokusen`, row `secret-shape`). Nothing else listed stops the loop; an unrecorded stop that only the maintainer can act on is still a G5. A stop is
 `nen stop`'s banner, the report link, the options with ⭐ on the recommendation, **and the question asked
 through the surface's own native option picker** — `AskUserQuestion` on Claude Code. A stop typed as prose in
 the reply is a stop the maintainer can miss.

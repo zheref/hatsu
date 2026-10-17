@@ -1000,7 +1000,8 @@ attrition. The loop simply stops and waits.
 
 **The only interruptions are genuine G5 stops** — anything only the maintainer can do that no earlier gate
 covers (ruling of 2026-10-17, zheref/hatsu#290 q4: an **open class**; a kind not recorded here is still a G5, never
-refused for being unlisted, and `nen/decisions.json` records the kinds met so far). **The recorded kinds:**
+refused for being unlisted). The recorded set is `nen/decisions.json`'s `human-gate` rows; **the kinds a running
+phase stops on:**
 
 1. **red required tests** — in `mukai`, via `kotoamatsukami`
 2. **touched-file coverage under `coverage.minimum`** — in `byakugan`
@@ -1011,12 +1012,15 @@ refused for being unlisted, and `nen/decisions.json` records the kinds met so fa
    typed into an elevated window (row `on-device-act`; ruling of 2026-10-17, zheref/hatsu#290 q1, reversing
    2026-10-13's #176): the act is printed with where the operation resumes, and the run stops at the gate until the
    maintainer has done it. A skill *raises* such a prompt only through a launch the harness itself asks the
-   maintainer to approve — that permission prompt, showing the exact string, is the advance consent
-   ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's Windows path); it never taps, confirms or bypasses one
-   ([`jujutsu`](../claude/skills/jujutsu/SKILL.md))
+   maintainer to approve — that permission prompt, showing the exact string, is the advance consent, and the
+   launch is itself raised at this stop, naming it ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's
+   Windows path). It never taps, confirms or bypasses one, never enters a passcode, PIN, password or
+   credential (one typed into the picker or chat is never used and is rotated), and never asks the
+   maintainer to disable a protection — that request stays a refusal ([`jujutsu`](../claude/skills/jujutsu/SKILL.md)).
+   The bell's `osascript` allow row, which pre-approves more than a notification, is replaced by a fixed
+   script (zheref/hatsu#289 item 9, ruled 2026-10-17)
 7. **a secret-shaped staged path** — in `kokusen`, row `secret-shape`: never committed, never askable; rotate or
    remove is the maintainer's act (ruling of 2026-10-17, zheref/hatsu#290 q2)
-
 
 **A red *iteration* check is not a G5 of its own, and the ruling of 2026-09-10 did not make it one.** It is
 fixed where it is found: inside `rasengan`'s inner loop while the change is being written, or by handing the
@@ -1120,12 +1124,14 @@ configuration value; it stops at G5 rather than issuing a fresh budget.
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
 [`PROCESS.md`](PROCESS.md) § *Exit codes and refusals* and `claude/rules/hatsu.md` cite this list:
 
-- **no tool or permission can supply it** — a sandbox or permission refusal, an install that needs
-  `sudo`;
-- **a secret, credential or signing material typed into chat** — refused; the maintainer supplies it
-  through their own tool. (A secret-shaped path already staged is not this item: it is the G5 row
-  `secret-shape` above, ruling of 2026-10-17, zheref/hatsu#290 q2.) An on-device act is not this list's
-  either: it is a G5 (kind 6 above, the same ruling's q1);
+- **no tool or permission can supply it** — a sandbox or permission refusal the harness raises for a
+  command the session typed. Where the act needs the maintainer's own hands — an install that needs
+  `sudo`, an elevated window — it is not this item but kind 6 above, a G5;
+- **a secret, credential or signing material** — never asked for and never typed into chat; the
+  maintainer supplies it through their own tool, and one typed into chat or a picker is never used
+  and is rotated. **This item outranks the open class**: a secret stays a refusal even though only the
+  maintainer can supply it. (A secret-shaped path already staged is the G5 row `secret-shape`, kind 7,
+  ruling of 2026-10-17, zheref/hatsu#290 q2.) An on-device act is not this list's either: it is kind 6;
 - **a human gate** — G1–G5;
 - **a supply-chain failure** — a checksum or manifest mismatch, never retried;
 - **a mutating command inside a read-only loop**;
@@ -1224,7 +1230,7 @@ maintainer's to call. Its order is fixed, and each step has exactly one job.
 | **8** | [`shibari`](../claude/skills/shibari/) | composes and opens **one** PR, requests the reviewers and writes the body back | never labels a gate, never merges |
 | **9** | [`spiritual-message`](../claude/skills/spiritual-message/) `as landing` | the landing report, rendered **after** the PR exists because its two extra sections — the PR body and the readiness verdict — are step 8's outputs. Mukai then rings, offers [`en`](../claude/skills/en/) through the picker and ends (starting it only under `mukai.autoEn`) | not a gate event; En owns current-head readiness once started, and the user turn remains active under En while CI/review is pending |
 
-**Four of § 4's recorded G5 kinds live inside this one phase.** That is not an accident of layout: a
+**Most of § 4's G5 kinds live inside this one phase.** That is not an accident of layout: a
 pull request is the moment work stops being private, so it is the moment the honest questions are cheapest to
 ask and most expensive to skip.
 
