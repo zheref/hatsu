@@ -56,6 +56,12 @@ they are the evidence's internal cross-references.
   mention. It is the name of the *system* Hatsu is the local plane of, not the name of a repository;
   redacting it would make the roster and the two provenance trailers unreadable without hiding anything a
   reader could open. Hatsu's own trailer, `Hatsu-Agent:`, is named for the same reason.
+- **A template token under `templates/`** — `{{name}}`, `{{{name}}}`, `{{#each name}}`, `{{#if name}}`,
+  `{{#unless name}}`, `{{/name}}`, the braces touching the name, in a `.md` or `.html` file — is one of
+  `nen report render`'s data-document keys, which this repository does not choose (the maintainer's ruling
+  of 2026-10-13, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, small ruling 1). It is exempt in that
+  shape only, on the line as written: the same name as prose, in a comment or a tag, split by markup or an
+  entity, or anywhere outside `templates/`, is a hit.
 - **Stack handbook names** (`swiftui-tca-uzf-v2`, `compose-uzf-v2`, `react-uzf-v1`, `bankai-machinery`) and
   their rule prefixes. They are canon names carried in the tooling's own fixtures, not repository names;
   `bankai-machinery` replaced, at handbook set v0.6, a scenario id that *was* the frozen repository's own
@@ -97,9 +103,10 @@ never renders it as emphasis. A list that reads empty, or one the ignore file em
 never a pass. The list is never committed here and never cached in the
 tree; a CI form needs it as a secret (`--names-file`). A hit, a path and a label are printed with an
 index into that list, never the name; a path or label that names a repository only once normalised is
-withheld whole. Of the exemptions above only the predecessor generator's marker
-is a repository name: it passes only as the exact `<!-- GENERATED from <name>@` shape, and only for
-the name `hatsu:limbo`'s own marker line carries. Names the maintainer rules too generic to police (a
+withheld whole. Of the exemptions above two can hold a repository name, and both pass by shape alone:
+the predecessor generator's marker, only as the exact `<!-- GENERATED from <name>@` shape and only for
+the name `hatsu:limbo`'s own marker line carries; and a template token under `templates/`, only as written
+(never once normalised). Names the maintainer rules too generic to police (a
 repository called after an ordinary word) go in an ignore file on their own machine, never in this
 tree, and only the maintainer writes it.
 
