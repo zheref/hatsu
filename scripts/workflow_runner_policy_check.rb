@@ -320,7 +320,6 @@ EXPECTED_STEPS = {
     "Read the pinned nen ref from nen/contract.json",
     "Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)",
     "Verify the nen binary against nen/contract.json's sha256",
-    "Read the plugin stamp",
     "Regenerate every surface",
     "Detect drift",
     "Verify the regenerated tree passes its own drift check",
@@ -899,9 +898,8 @@ REGENERATE_FROZEN_STEPS = {
   REGENERATE_CLEANUP_STEP => REGENERATE_CLEANUP
 }.freeze
 
-# Two-step landing for zheref/hatsu#209: the trusted policy first admits the
-# current frozen loop and the exact shared-script call. A later PR switches the
-# workflow, then narrows this table to the new form.
+# The shared-script call is the only admitted generator. Its checkout must not
+# persist a write credential while mutable checkout scripts run.
 REGENERATE_SCRIPT_STEP = {
   "env" => { "NEN_BIN" => "${{ steps.nen.outputs.bin }}" },
   "shell" => "bash",
@@ -1071,9 +1069,7 @@ CANON_CONTRACTS_FROZEN = {
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
-  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  "surface-mirror-regenerate.yml" => [EXPECTED_STEPS.fetch("surface-mirror-regenerate.yml"),
-                                        EXPECTED_STEPS.fetch("surface-mirror-regenerate.yml") - ["Read the plugin stamp"]]
+  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -2187,7 +2183,7 @@ def validate_builder_workflow(path)
     if carries_digest && bootstrap_step && scalar(bootstrap_step["run"]).to_s.include?("--version")
       fail_policy("#{path} step #{scalar(bootstrap_step["name"]).inspect} runs the bootstrapped nen (--version) before #{digest_name.inspect} has checked it")
     end
-    frozen_steps = step_names.include?("Read the plugin stamp") ? REGENERATE_FROZEN_STEPS : REGENERATE_SCRIPT_FROZEN_STEPS
+    frozen_steps = REGENERATE_SCRIPT_FROZEN_STEPS
     frozen_steps = frozen_steps.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
     frozen_steps.each do |name, frozen|
       frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
@@ -2966,38 +2962,24 @@ def self_test(root)
     FileUtils.cp(regenerate_source, regenerate)
     validate_repo(tmp, announce: false)
 
-    # #209 step one: prove both admitted forms regardless of which one the
-    # candidate workflow currently carries. The next PR changes that input.
-    stamp_start = regenerate_original.index("      - name: Read the plugin stamp\n")
-    generate_start = regenerate_original.index("      - name: Regenerate every surface\n")
-    drift_start = regenerate_original.index("      - name: Detect drift\n", generate_start || 0)
-    fail_policy("self-test: regenerate builder lacks a generate/drift pair") unless generate_start && drift_start
-    if stamp_start
-      old_form = regenerate_original
-      script_form = regenerate_original[0...stamp_start] + render_step("Regenerate every surface", REGENERATE_SCRIPT_STEP) + "\n" + regenerate_original[drift_start..]
-      script_form = script_form.sub("          ref: main\n", "          ref: main\n          persist-credentials: false\n")
-    else
-      script_form = regenerate_original
-      old_form = regenerate_original[0...generate_start] +
-        render_step("Read the plugin stamp", REGENERATE_FROZEN_STEPS.fetch("Read the plugin stamp")) + "\n" +
-        render_step("Regenerate every surface", REGENERATE_FROZEN_STEPS.fetch("Regenerate every surface")) + "\n" +
-        regenerate_original[drift_start..]
-      old_form = old_form.sub("          ref: main\n          persist-credentials: false\n", "          ref: main\n")
-    end
-    File.write(regenerate, old_form)
-    validate_repo(tmp, announce: false)
-    File.write(regenerate, script_form)
-    validate_repo(tmp, announce: false)
-    hostile.call("regenerate script form retaining the checkout write credential", regenerate, script_form,
-                 "persist-credentials: false", "persist-credentials: true", step: "Checkout main")
+    # #209 step two: the shared script is installed and the old in-workflow
+    # argument loop must no longer be an admitted builder form.
+    script_form = regenerate_original
     hostile.call("regenerate script form running another checkout script", regenerate, script_form,
                  "bash scripts/surface_mirror_regenerate.sh \"$PWD\"", "bash scripts/other.sh \"$PWD\"", step: "Regenerate every surface")
     hostile.call("regenerate script form with a checkout-supplied nen binary", regenerate, script_form,
                  "NEN_BIN: ${{ steps.nen.outputs.bin }}", "NEN_BIN: ./bin/nen", step: "Regenerate every surface")
-    # The remaining historical hostile cases target the old stamp/loop text.
-    # Run those against that admitted form even when the live workflow has
-    # already switched; the new form's exact call and binary were tested above.
-    regenerate_original = old_form
+    hostile.call("regenerate script form retaining the checkout write credential", regenerate, script_form,
+                 "persist-credentials: false", "persist-credentials: true", step: "Checkout main")
+    old_start = regenerate_original.index("      - name: Regenerate every surface\n")
+    old_end = regenerate_original.index("      - name: Detect drift\n", old_start || 0)
+    fail_policy("self-test: regenerate builder lacks the script step") unless old_start && old_end
+    old_form = regenerate_original[0...old_start] +
+      render_step("Read the plugin stamp", REGENERATE_FROZEN_STEPS.fetch("Read the plugin stamp")) + "\n" +
+      render_step("Regenerate every surface", REGENERATE_FROZEN_STEPS.fetch("Regenerate every surface")) + "\n" +
+      regenerate_original[old_end..]
+    File.write(regenerate, old_form)
+    expect_rejected("old mirror builder loop after the shared script landed") { validate_repo(tmp) }
     File.write(regenerate, regenerate_original)
 
     expect_rejected("an entirely undeclared workflow file") do
@@ -3021,8 +3003,8 @@ def self_test(root)
     hostile.call("regenerate job carries an if guard that does not exist on push/workflow_dispatch", regenerate, regenerate_original,
                  "jobs:\n  regenerate:\n", "jobs:\n  regenerate:\n    if: ${{ true }}\n")
     hostile.call("regenerate workflow pushes directly with git instead of only opening a PR", regenerate, regenerate_original,
-                 %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n},
-                 %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n\n      - name: Push straight to main\n        shell: bash\n        run: |\n          git push origin HEAD:main\n},
+                 %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n          persist-credentials: false\n},
+                 %Q{      - name: Checkout main\n        uses: actions/checkout@v7\n        with:\n          ref: main\n          persist-credentials: false\n\n      - name: Push straight to main\n        shell: bash\n        run: |\n          git push origin HEAD:main\n},
                  step: "Push straight to main")
 
     # The shape since step two (zheref/hatsu#165): one cleanup step after the PR
@@ -3101,7 +3083,7 @@ def self_test(root)
       ["regenerate cleanup step behind a pull request step with continue-on-error (N25)", "        id: cpr\n", "        id: cpr\n        continue-on-error: true\n", pr_step],
       ["regenerate cleanup step under a job-level BASH_ENV", "    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    env:\n      BASH_ENV: ./evil.sh\n", nil],
       ["regenerate cleanup step under a workflow-level BASH_ENV", "\njobs:\n", "\nenv:\n  BASH_ENV: ./evil.sh\njobs:\n", nil],
-      ["regenerate with ENV set on an earlier step", %Q{        id: stamp\n}, %Q{        id: stamp\n        env:\n          ENV: ./x.sh\n}, "Read the plugin stamp"],
+      ["regenerate with ENV set on an earlier step", %Q{        id: pin\n}, %Q{        id: pin\n        env:\n          ENV: ./x.sh\n}, "Read the pinned nen ref from nen/contract.json"],
       ["regenerate job with a container", "    runs-on: ubuntu-latest\n", "    runs-on: ubuntu-latest\n    container: node:20\n", nil],
       ["regenerate step with NODE_OPTIONS in its env", "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n",
        "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          NODE_OPTIONS: --require ./x.js\n", "Verify the regenerated tree passes its own drift check"]
@@ -3114,22 +3096,22 @@ def self_test(root)
     generate_step = "Regenerate every surface"
     drift_step = "Detect drift"
     [
-      ["regenerate step pushing a tag through git -C (Feitan P0)", %Q{          echo "value=$stamp" >> "$GITHUB_OUTPUT"\n},
-       %Q{          echo "value=$stamp" >> "$GITHUB_OUTPUT"\n          git -C . push origin HEAD:refs/tags/v9.9.9\n}, "Read the plugin stamp"],
+      ["regenerate step pushing a tag through git -C (Feitan P0)", %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n},
+       %Q{          echo "ref=$ref" >> "$GITHUB_OUTPUT"\n          git -C . push origin HEAD:refs/tags/v9.9.9\n}, "Read the pinned nen ref from nen/contract.json"],
       ["regenerate step deleting another branch through the API", %Q{            echo "dirty=false" >> "$GITHUB_OUTPUT"\n},
        %Q{            echo "dirty=false" >> "$GITHUB_OUTPUT"\n            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/release"\n}, drift_step],
-      ["regenerate step interpolating the head commit message into its run", "          set -euo pipefail\n          for surface in",
-       %Q{          set -euo pipefail\n          echo "${{ github.event.head_commit.message }}"\n          for surface in}, generate_step],
-      ["regenerate step with the head commit message in a comment line of its run", "          set -euo pipefail\n          for surface in",
-       "          set -euo pipefail\n          # ${{ github.event.head_commit.message }}\n          for surface in", generate_step],
+      ["regenerate step interpolating the head commit message into its run", %Q{          bash scripts/surface_mirror_regenerate.sh "$PWD"\n},
+       %Q{          echo "${{ github.event.head_commit.message }}"\n          bash scripts/surface_mirror_regenerate.sh "$PWD"\n}, generate_step],
+      ["regenerate step with the head commit message in a comment line of its run", %Q{          bash scripts/surface_mirror_regenerate.sh "$PWD"\n},
+       %Q{          # ${{ github.event.head_commit.message }}\n          bash scripts/surface_mirror_regenerate.sh "$PWD"\n}, generate_step],
       ["regenerate step with a comment line in its run", %Q{          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"\n},
        %Q{          # fetched to a file, never piped\n          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"\n},
        "Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)"],
       ["regenerate pin step off by one byte", %Q{          echo "pinned nen ref: $ref"\n}, %Q{          echo "pinned nen ref:  $ref"\n},
        "Read the pinned nen ref from nen/contract.json"],
-      ["regenerate step with GH_TOKEN added to its env", "          STAMP: ${{ steps.stamp.outputs.value }}\n",
-       "          STAMP: ${{ steps.stamp.outputs.value }}\n          GH_TOKEN: ${{ github.token }}\n", generate_step],
-      ["regenerate step running a binary from the checkout as NEN", "          NEN: ${{ steps.nen.outputs.bin }}\n", "          NEN: ./bin/nen\n", generate_step],
+      ["regenerate step with GH_TOKEN added to its env", "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n",
+       "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n          GH_TOKEN: ${{ github.token }}\n", generate_step],
+      ["regenerate step running a binary from the checkout as NEN_BIN", "          NEN_BIN: ${{ steps.nen.outputs.bin }}\n", "          NEN_BIN: ./bin/nen\n", generate_step],
       ["regenerate drift step gaining an if", "        id: drift\n", "        id: drift\n        if: always()\n", drift_step],
       ["regenerate verify step that swallows a failed check", %Q{          bash scripts/surface_mirror_check.sh "$PWD"\n},
        %Q{          bash scripts/surface_mirror_check.sh "$PWD" || true\n}, "Verify the regenerated tree passes its own drift check"],
@@ -3165,7 +3147,7 @@ def self_test(root)
     # order or with any edit below, each is refused, and tenkai's rendered
     # form carries none.
     fail_policy("self-test: NEN_BOOTSTRAP_NEXT still runs the binary") if NEN_BOOTSTRAP_NEXT.fetch("run").include?("--version")
-    unless REGENERATE_FROZEN_STEPS.fetch("Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)") == NEN_BOOTSTRAP_NEXT
+    unless REGENERATE_SCRIPT_FROZEN_STEPS.fetch("Bootstrap nen at the pinned ref (checksum-verified, two steps, never a pipe)") == NEN_BOOTSTRAP_NEXT
       fail_policy("self-test: the builder's bootstrap is not NEN_BOOTSTRAP_NEXT")
     end
     digest_block = ->(name) { /^      - name: #{Regexp.escape(name)}\n.*?(?=^      - name: )/m }
@@ -3182,7 +3164,7 @@ def self_test(root)
     readiness_digest = digest_into.call("pr-readiness with the nen digest step", readiness_frozen,
                                         READINESS_VERDICT_STEP, NEN_DIGEST_STEP, NEN_DIGEST_FROZEN)
     regenerate_digest = digest_into.call("surface-mirror-regenerate with the nen digest step", regenerate_original,
-                                         "Read the plugin stamp", REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN)
+                                         "Regenerate every surface", REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN)
     [[surface, surface_digest, surface_original], [readiness, readiness_digest, readiness_original],
      [regenerate, regenerate_digest, regenerate_original]].each do |file, text, restore|
       File.write(file, text)

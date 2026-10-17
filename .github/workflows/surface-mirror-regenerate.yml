@@ -4,7 +4,7 @@
 # THAT CHECK FAILS A DRIFTED PULL REQUEST; IT NEVER FIXES ONE. Regenerating
 # `surfaces/codex`, `surfaces/cursor` and `surfaces/antigravity` and committing
 # the result is still a human (or an authoring session) running
-# `nen surface mirror generate` three times and opening a PR by hand. This
+# `scripts/surface_mirror_regenerate.sh` and opening a PR by hand. This
 # workflow is that chore, run automatically the moment the source it mirrors —
 # `claude/skills/**`, `claude/agents/**`, or any of the shared inputs the
 # generator itself reads (`nen/workflow.json`, `contracts/permissions.json`,
@@ -15,8 +15,8 @@
 # opens a pull request only when the regeneration actually produced a diff — it
 # never pushes to the default branch itself, and the derived tree only ever
 # changes through a reviewed PR. This workflow is the same pattern applied to
-# `surfaces/`: `main` is read, never written, and the three generate commands
-# run against a checkout of the commit that just landed.
+# `surfaces/`: `main` is read, never written, and the shared regeneration script
+# runs against a checkout of the commit that just landed.
 #
 # THIS NEVER PUSHES TO MAIN, AND THE DRIFT CHECK RUNS IN THIS JOB, NOT ON THE
 # PR IT OPENS. `surface-mirror-check` is a `pull_request_target` job gated to
@@ -27,7 +27,7 @@
 # `surface-mirror-check` context that never reports on the bot's own PR is a
 # PR that cannot merge on its own. So the regeneration is verified HERE,
 # against the regenerated tree, before the PR is even opened: a fresh
-# `nen surface mirror generate` (this step) followed immediately by
+# `scripts/surface_mirror_regenerate.sh` (this step) followed immediately by
 # `scripts/surface_mirror_check.sh` (the next step) on the SAME checkout —
 # generate, then check must exit 0, or the job fails outright rather than
 # opening a PR nobody's required check will bless. If `surface-mirror-check`
@@ -54,15 +54,15 @@
 #
 # EVERY STEP BUT THE PULL REQUEST STEP IS FROZEN (zheref/hatsu#190).
 # scripts/workflow_runner_policy_check.rb admits each one only in its exact
-# form (REGENERATE_FROZEN_STEPS): keys, env, if, id, shell, the checkout's
+# form (REGENERATE_SCRIPT_FROZEN_STEPS): keys, env, if, id, shell, the checkout's
 # `with`, and the run byte for byte, comment lines included; no run in any
 # workflow may carry a `${{ }}` expression. Only `name` and these YAML comments
 # are free. The pull request step is held short of that (REGENERATE_PR_WITH):
 # its pinned action, `id`, `if`, exact keys and `with` inputs, and every
 # input's value but `body`, which is free prose; no `with` value reaches a
-# shell, since create-pull-request takes each as data. This job holds
-# `contents: write` over a checkout that keeps its credential, so an unfrozen
-# run step could write any ref but `main`. Changing a body here (a generate
+# shell, since create-pull-request takes each as data. Checkout does not
+# persist the write credential while the shared script runs; the pinned PR
+# action receives its own token when it opens the proposal. Changing a body here (a generate
 # flag, a hooks root) is therefore a two-step landing, the validator on `main`
 # first (docs/GATE-CONFIGURATION.md).
 #
@@ -115,6 +115,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: main
+          persist-credentials: false
 
       - name: Read the pinned nen ref from nen/contract.json
         # Same shape as surface-mirror-check.yml's own pin step: this workflow
@@ -180,43 +181,13 @@ jobs:
           echo "nen binary sha256 ${observed} matches nen/contract.json (linux-x64)."
           echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"
 
-      - name: Read the plugin stamp
-        id: stamp
-        shell: bash
-        run: |
-          set -euo pipefail
-          stamp="$(awk -F'"' '/"version"[[:space:]]*:/ { for (i = 1; i <= NF; i++) { if ($i == "version") { print $(i + 2); exit } } }' .claude-plugin/plugin.json)"
-          [ -n "$stamp" ] || { echo "::error::.claude-plugin/plugin.json carries no readable version."; exit 1; }
-          echo "value=$stamp" >> "$GITHUB_OUTPUT"
-
       - name: Regenerate every surface
         env:
-          NEN: ${{ steps.nen.outputs.bin }}
-          STAMP: ${{ steps.stamp.outputs.value }}
+          NEN_BIN: ${{ steps.nen.outputs.bin }}
         shell: bash
         run: |
           set -euo pipefail
-          for surface in codex cursor antigravity; do
-            case "$surface" in
-              antigravity) root='${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}' ;;
-              codex) root='${PLUGIN_ROOT:-${HATSU_PLUGIN_ROOT:-./.codex}}' ;;
-              cursor) root='${HATSU_PLUGIN_ROOT:-./.cursor}' ;;
-            esac
-            "$NEN" surface mirror generate \
-              --source claude/skills \
-              --agents claude/agents \
-              --surface "$surface" \
-              --out "surfaces/$surface" \
-              --models nen/workflow.json \
-              --permissions contracts/permissions.json \
-              --hooks hooks/hooks.json \
-              --rules claude/rules/hatsu.md \
-              --source-surface claude \
-              --hooks-root "$root" \
-              --manifest .claude-plugin/plugin.json \
-              --stamp "$STAMP" \
-              --invocation-prefix "hatsu:"
-          done
+          bash scripts/surface_mirror_regenerate.sh "$PWD"
 
       - name: Detect drift
         id: drift
