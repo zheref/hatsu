@@ -47,9 +47,10 @@
 # `actions/checkout` IS PINNED BY COMMIT SHA, its EXACT tag as a trailing
 # comment (`# v7.0.1`, never the moving `v7` alias). This is a privileged
 # `pull_request_target` job holding a base-repository credential, and a
-# consumer that requires actions pinned to a full-length commit SHA (zheref/
-# KroWindows#98) would otherwise see its readiness check refused on the next
-# event. A hand pin in a rendering is drift by this file's own rule -- it is
+# consumer that requires actions pinned to a full-length commit SHA (a
+# consumer repository's PR #98) would otherwise see its readiness check
+# refused on the next event. A hand pin in a rendering is drift by this
+# file's own rule -- it is
 # re-rendered, never edited -- so the pin lives here: `tenkai_adopt.sh diagnose`
 # reports a checkout that is not exactly this template's pin, ref and comment,
 # as DRIFT (a well-shaped impostor or a stale pin included), and a consumer

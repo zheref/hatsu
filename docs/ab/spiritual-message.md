@@ -574,6 +574,6 @@ available to this run, so this is the documented scenario the criterion asks for
    `b`'s page is current. The two files both still exist and neither is deleted.
 
 **What is not changed.** Nen's `report data`/`render` contracts; which class a non-gate stop belongs to
-(PROCESS § *Reporting a phase*'s "a stop that is not a gate is a G5 with a `DECIDE` or `DO` ask" against
-WORKFLOW § 4's five G5s is an open handbook-question for the maintainer, not decided here); where the page
+(an open handbook-question when this was written; ruled a refusal on 2026-10-13, ROSTER § *Rulings of
+2026-10-13*, small ruling 3); where the page
 lives on Claude Code (an Artifact) or Antigravity (the brain directory).

@@ -340,7 +340,7 @@ jobs:
       # An interactive pool exists for jobs that drive a real UI, and only a
       # signed-in desktop session can run them: a runner installed as a service
       # runs in session 0, which has no desktop, and a UI job there times out
-      # (zheref/KroWindows run 37021959660). The rendered condition is a
+      # (a consumer repository's run 37021959660). The rendered condition is a
       # constant -- 'service' == 'interactive' is false, so a service pool never
       # runs it. The session id is printed, never an account name.
       - name: Desktop session present (interactive Windows pool)
