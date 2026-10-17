@@ -105,8 +105,8 @@ tree; a CI form needs it as a secret (`--names-file`). A hit, a path and a label
 index into that list, never the name; a path or label that names a repository only once normalised is
 withheld whole. Of the exemptions above two can hold a repository name, and both pass by shape alone:
 the predecessor generator's marker, only as the exact `<!-- GENERATED from <name>@` shape and only for
-the name `hatsu:limbo`'s own marker line carries; and a template token under `templates/`, only as written
-(never once normalised). Names the maintainer rules too generic to police (a
+the name `hatsu:limbo`'s own marker line carries; and a template token in the four report templates `nen report render` fills, only as written
+(never once normalised; § *What is deliberately not redacted*). Names the maintainer rules too generic to police (a
 repository called after an ordinary word) go in an ignore file on their own machine, never in this
 tree, and only the maintainer writes it.
 
@@ -118,7 +118,11 @@ tree, and only the maintainer writes it.
   writes. A private target is skipped. From nen `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`,
   `comment` and `edit-body` refuse a private name bound for a public target at exit `4`, reading the same
   ignore file when passed it (`file` § 4); a raw `gh` write, `issue consolidate-close`'s close comments and
-  the `pr` writers (zheref/nen#363) remain unguarded outside these skills.
+  the `pr` writers (zheref/nen#363) remain unguarded outside these skills. **Rewriting a public issue
+  is not the end of it:** GitHub keeps every earlier revision in the issue's public edit history, so the
+  maintainer deletes each pre-rewrite revision ("Delete revision from history") and re-reads
+  `userContentEdits` until none is left, and a title change leaves a rename event no edit removes (a
+  GitHub Support request; never retitle it again) — the #149 sitting of 2026-10-14 found both.
 - **Tree content:** `bash scripts/private_name_check.sh --tree .`, run by the maintainer, reads every
   tracked and untracked-not-ignored file's contents, its path and a symlink's target, and counts what
   it skips. **The tree is not yet clean**: on 2026-10-01 it read 173 mentions, or 60 with two
