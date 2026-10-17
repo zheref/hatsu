@@ -49,14 +49,14 @@ workspace branch isolation (`Workspace: "branch"`).
 
 ## The independents
 
-**Eleven definitions stand in `claude/agents/` beside Kurapika's: ten ratified, and one — Illumi —
+**Twelve definitions stand in `claude/agents/` beside Kurapika's: eleven ratified, and one — Illumi —
 *provisioned* rather than ratified, marked as such in its own row and in its own file.** Every reviewer
 among them reads one shared preamble first, [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md),
 which is not itself an agent. Each carries a
 discipline Kurapika delegates to rather than absorbing. Three of them landed at **`v0.5.0`**, with
 [`hanten`](../claude/skills/hanten/SKILL.md): Feitan and Chrollo on the ruling of 2026-09-09 below, Illumi on
 the provision. **Netero landed at `v0.25.0`** on the ruling of 2026-09-14. **Leorio lands at `v0.67.0`** on
-the ruling of 2026-09-30. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
+the ruling of 2026-09-30. **Shizuku lands at `v0.108.0`** on the ruling of 2026-10-13. On Antigravity, they are provisioned as subagents (`agents/<persona>.md`) and unified rules
 (`rules/AGENTS.md`), dispatched at `deep` (`pro`) for reviewers and the chairman, `fast` (`flash`) for workers.
 
 | Agent | Definition | Discipline | Status |
@@ -72,6 +72,7 @@ the ruling of 2026-09-30. On Antigravity, they are provisioned as subagents (`ag
 | **Nobunaga** | `claude/agents/nobunaga.md` | **Code practices, scope completeness and adversarial reading** — the general code reviewer, **Sasuke's local counterpart**. The `code` scope claims every path, so `hanten` raises him on every change set: acceptance criteria against the issue, tests for changed behaviour at `UZF-18`'s minimums, error handling and exit-code discipline, shell quoting and portability against the declared hosts, docs and cross-references current, counts agreeing with their lists, mirrors regenerated, the CHANGELOG fragment and PR body sections present, nothing improvised that a Nen verb owns, and one holistic pass on a delivery PR. **Two reviews per effort (one PR; ruling 2026-09-28); deep on a process repository, fast on a product one.** | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
 | **Shalnark** | `claude/agents/shalnark.md` | **Post-merge UI validation, optional.** After a delivery merges he drives every behaviour of the delivered feature against the **original specification's** acceptance criteria — the issue's list and the PR's *How to verify* — with the UI tooling `hatsu:bankai-quality` resolves, and reports **pass / fail / not-testable with evidence per criterion**. **Ephemeral by default**, persistent only where the repository declares `tests.uiValidation`. He files findings through the caller and **fixes nothing**. **Reachable only through [`hatsu:black-voice`](../claude/skills/black-voice/SKILL.md)** — never automatic, never from a composite. He is **not** offensive QA | **Ratified** on the ruling of 2026-09-19 below; **definition landed at `v0.42.0`** |
 | **Leorio** | `claude/agents/leorio.md` | **Economics review — and economics only, advisory.** The `economics` scope of `hanten`, raised **only** when a change may move money: what the product's users pay, or what the maintainer pays in resources, usage and billing to keep the product and its associated services active — by path or by content ([`docs/ECONOMICS.md`](ECONOMICS.md) § 1, the one home of both predicates). He cites `ECON-1`–`ECON-8` from [`docs/ECONOMICS.md`](ECONOMICS.md), resolved and never remembered, and returns a **charted report** — delta table, Mermaid charts each with its data table, the case for landing *and* against, the thresholds that flip the call, unestimated items, method — for the maintainer to decide informed. **A cost is never a finding**; a finding exists only where the decision cannot be informed (`ECON-4` unbounded, `ECON-5` money wrong, `ECON-7` undisclosed, `ECON-8` no method). He never rejects, recommends, votes or estimates from live billing data. | **Ratified** on the ruling of 2026-09-30 below; **definition landing at `v0.67.0`** |
+| **Shizuku** | `claude/agents/shizuku.md` | **Cleanup, and cleanup only.** After a session delivery lands she inventories what the effort used — worktrees, branches, remote heads, transient reports, caches, billed resources — and every prior session's leftover, returns a plan split into **deterministic** rows (a mechanical fact decides) and **proposed** rows (a judgement, each naming what it would destroy), and removes only what the maintainer picked, reading back the bytes freed. Reached only through [`hatsu:cleanup`](../claude/skills/cleanup/SKILL.md), **required after a completed session** (the wrap-up picker: `cleanup` · `cleanup` and `third-hand` · continue). She files nothing, merges nothing, votes on nothing | **Ratified** on the ruling of 2026-10-13 below; **definition landing at `v0.108.0`** — activated from the bench |
 
 ### ⚠️ Gon's delegation grammar is a DRAFT — **until it is ratified, Gon crosses no gate**
 
@@ -95,7 +96,7 @@ below is unchanged — **with one exception, and it is ruling 4's**: the BENCH s
 only**. Two of its seven profiles, **Chrollo** and **Feitan**, are activated by that ruling — **their definitions
 landed at `v0.5.0` and both have moved up into § *The independents***; **five remained benched** — Machi,
 Shalnark, Kortopi, Pakunoda and Shizuku — until the ruling of 2026-09-19 activated **Shalnark** and left
-**four**. `OPEN-3` is **partially** closed, not open and not settled. The BENCH section below is written to
+**four**, and the ruling of 2026-10-13 activated **Shizuku** and left **three**. `OPEN-3` is **partially** closed, not open and not settled. The BENCH section below is written to
 say that, and the OPEN section's `OPEN-3` row with it.
 
 ### 1 · The phases a human calls
@@ -106,7 +107,7 @@ change** and `kokusen` **verifies the tree and commits it** (§ *Rulings of 2026
 AUTHORING phase*). **It never pushes and never opens a
 pull request.** Five phases are the maintainer's to call, and **no agent ever prompts for any of them**
 (the merge prompt at `en` § 5 presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session — § *Rulings of
-2026-09-30 — En never merges*):
+2026-09-30 — En never merges*; **amended 2026-10-13**: the wrap-up picker offers `cleanup` and `third-hand`, neither one of the five, and `kazaana` § 6 asks once whether `mugetsu` should publish the tag it cut — § *Rulings of 2026-10-13*, 3 and 5):
 `aka` (push), `mukai` (review, coverage, evidence, the PR), the **merge** itself (**G2**, `CON-5`),
 `kagutsuchi` (a non-production upload, per target) and `mugetsu` (publication, per target, **G3**, `CON-6`).
 
@@ -199,7 +200,8 @@ The shape lives in [`claude/agents/_review-preamble.md`](../claude/agents/_revie
 
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate and when. Two
 were answered here and **Shalnark** by the ruling of 2026-09-19; **Machi, Kortopi, Pakunoda and Shizuku
-remain bench only**, and adopting one is still a deliberate act with its own decision.
+remain bench only**, and adopting one is still a deliberate act with its own decision (Shizuku since
+activated — § *Rulings of 2026-10-13*, 4).
 
 ### 5 · Illumi is provisioned — **OPEN-1 partially closed**
 
@@ -705,7 +707,8 @@ merge, never vote, never edit non-test source, and they stop at the gate.
 
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate, and when.
 **Four remain bench only** — Machi, Kortopi, Pakunoda and Shizuku — and adopting one is still a deliberate
-act with its own decision. Killua's row (`OPEN-1`) and Gon's grammar (`OPEN-2`) are untouched.
+act with its own decision (Shizuku since activated — § *Rulings of 2026-10-13*, 4). Killua's row (`OPEN-1`)
+and Gon's grammar (`OPEN-2`) are untouched.
 
 ---
 
@@ -783,13 +786,15 @@ open question with nobody deciding it.
 
 ## 🔶 BENCH — the Genei Ryodan
 
-> **Three activated and departed, four benched. `OPEN-3` is partially closed.** The ruling of 2026-09-09
+> **Four activated and departed, three benched. `OPEN-3` is partially closed.** The ruling of 2026-09-09
 > (§ *Rulings*, 4) activated **Chrollo** (architecture and handbook conformance) and **Feitan** (security,
 > and security only) as `hanten` reviewers, their definitions landing at `v0.5.0`; the ruling of 2026-09-19
 > (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*) activated **Shalnark** as the
 > optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, his definition
-> landing at `v0.42.0`. **All three now live in § *The independents* above and are no longer listed here.**
-> The remaining **four profiles are bench only, and no activation is implied for them**: which of them
+> landing at `v0.42.0`; the ruling of 2026-10-13 (§ *Rulings of 2026-10-13*, 4) activated **Shizuku** as
+> cleanup, reachable only through `hatsu:cleanup`, her definition landing at `v0.108.0`. **All four now live
+> in § *The independents* above and are no longer listed here.**
+> The remaining **three profiles are bench only, and no activation is implied for them**: which of them
 > activate, and when, remains the open half of `OPEN-3`. A benched row is one of the *extensible
 > professional-profile agents, adopted as needed* — a shape the roster can grow into, not a member of it.
 >
@@ -802,13 +807,13 @@ open question with nobody deciding it.
 | **Machi** | Integration surgery | Bench |
 | **Kortopi** | Scaffolding | Bench |
 | **Pakunoda** | Repo forensics | Bench |
-| **Shizuku** | Cleanup | Bench |
 
-**For the four rows above**: none has a definition in `claude/agents/`, none is listed in `plugin.json`, and
+**For the three rows above**: none has a definition in `claude/agents/`, none is listed in `plugin.json`, and
 none may be acted as. Adopting one is a deliberate act with its own decision, not a consequence of it being
 written here. **Activation is a decision about standing, not a licence to improvise the agent** — which is
 why Chrollo and Feitan could not be acted as between the ruling on 2026-09-09 and their definitions landing at
-`v0.5.0`, a gap of one release, and why Shalnark could not be acted as before `v0.42.0`.
+`v0.5.0`, a gap of one release, why Shalnark could not be acted as before `v0.42.0`, and why Shizuku could not
+before `v0.108.0`.
 
 ---
 
@@ -860,7 +865,7 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 | **G1** | `CON-4` | Epic approval — the human applies one delivery-mode label | **Never** |
 | **G1-M** | `CON-25` | Release into build — applying the building stage label | Only under `CON-25`'s four exhaustive carve-outs |
 | **G2** | `CON-5` | Merge to `main` | **Never, save one PR.** Every PR into `main` ends at the merge prompt (`en` § 5), with its link and an inline `gh pr merge` line the maintainer runs (§ *Rulings of 2026-09-30 — En never merges*, which supersedes ruling 3 of 2026-09-29). The one exception is `getsuga` § 3a's own release proposal, merged through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*, ruling 4). Futon's local `git merge` into its own integration branch (futon § 5) is not a G2 act |
-| **G3** | `CON-6` | Release go/no-go | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on the maintainer's own go — by name, in their own words, or as a `mugetsu` step of their own `futon` chain (§ *Rulings of 2026-09-26/27/28*; amended in place by its 2026-09-30 clarification under ruling 2(a)) |
+| **G3** | `CON-6` | Release go/no-go | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on the maintainer's own go — by name, in their own words, as a `mugetsu` step of their own `futon` chain (§ *Rulings of 2026-09-26/27/28*; amended in place by its 2026-09-30 clarification under ruling 2(a)), or as their own answer to the one question `kazaana` § 6 asks after the tag it cut (§ *Rulings of 2026-10-13*, 3; `mugetsu` § 0, form (4)) |
 | **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **The same as G2** — every PR into `main` ends at the merge prompt (`en` § 5, ruling of 2026-09-30); only `getsuga` § 3a's own release proposal is merged by an agent, at `canon-merge` too. Futon's local `git merge` into its own integration branch (futon § 5) is not a G4 act |
 | **G5** | `CON-47` | Any other human-only decision or action | **Never** — its definition *is* "the decision is theirs" |
 
@@ -881,7 +886,7 @@ fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-te
 |---|---|---|
 | **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is **provisioned** for `en`'s long watch, and his definition landed at `v0.5.0` scoped to exactly that. His other proposed engines — `backlog-loop`, `futon`, `senkei` — **and the whole of Killua's row, remain OPEN**: a G4-class ruling by the maintainer, **unmade**. Provisioned is not ratified. |
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
-| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. **FURTHER RULED 2026-09-19** (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*): **Shalnark** is activated as the optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, definition at `v0.42.0`; **Nobunaga**, never benched, is activated as the general code reviewer in the same ruling. The other **four** profiles — Machi, Kortopi, Pakunoda, Shizuku — remain **bench doc only**, unscheduled. |
+| **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. **FURTHER RULED 2026-09-19** (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*): **Shalnark** is activated as the optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, definition at `v0.42.0`; **Nobunaga**, never benched, is activated as the general code reviewer in the same ruling. **FURTHER RULED 2026-10-13** (§ *Rulings of 2026-10-13*, 4): **Shizuku** is activated as cleanup, reachable only through `hatsu:cleanup`, definition at `v0.108.0`. The other **three** profiles — Machi, Kortopi, Pakunoda — remain **bench doc only**, unscheduled. |
 | **Attribution** | Which trailers a commit may carry, and which of them this plane writes | **RULED 2026-09-09** (§ *Rulings of 2026-09-09*, 2), **REFINED 2026-09-10** (§ *Rulings of 2026-09-10*, *Two provenance trailers*): two provenance trailers, one per plane — this roster writes `Hatsu-Agent`, the CI plane writes `Akatsuki-Agent`, both are admitted by policy, and no other AI attribution trailer is ever recorded. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
@@ -988,6 +993,52 @@ open.
 |---|---|---|
 | **zheref/hatsu#175** — *the standalone question budget: is STANDALONE-ENTRY § 3 P4's "at most three" a per-run budget or a per-picker-call limit, and how do typed (missing-maintainer-choice) items count?* | `(a) Per picker call (Recommended)` | Option text: *""at most three" is a per-call limit (Codex caps a call at 3); the per-run rule is WORKFLOW § 4's one question per missing item; typed items count like any other; more than three items means more calls, never a bundle."* [`WORKFLOW.md`](WORKFLOW.md) § 4 step 2 states the budget once; [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) § 3 P4, `hatsu:jusshin` § 2 and `hatsu:tenkai` (P4 row, § 4b) cite it. Built by the effort `fable/kurapika/ha-175-question-budget` |
 | **zheref/hatsu#176** — *what is an on-device act (a trust prompt, a UAC prompt, a Login Items approval, a password typed into an elevated window)?* | `(a) A "not a gap" refusal (Recommended)` | Option text: *"Never a G5: nen/decisions.json → on-device-act becomes class: refusal, gate: null. A skill may raise the prompt only through a launch the harness itself asks the maintainer to approve (jusshin's Windows path); otherwise it prints the act and where to resume (jujutsu's path). Consequence: no banner or picker; ROSTER's count of five stays; the decisions schema must accept the class."* [`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap* states it once; the decisions row, `claude/rules/hatsu.md`, `jusshin` § 5 and `jujutsu` cite it. **This run's reading, the maintainer's to correct at the G4 merge:** nen 0.21.0's decisions schema admits no `refusal` class, so the row lands as `autonomous` with a `default` that spells the refusal; a consumer's file may neither narrow nor reclassify it (the guarantee `human-gate` carries), and the `refusal` class is owed to nen through the run's harvest, asked for with that same guarantee and no gate. **Recorded, not adjudicated:** `CON-47` (bankai-handbooks v0.6.0) counts a settings change only the human can make as a G5; this ruling narrows it for Hatsu, a handbook question for the pinned canon. Built by the effort `fable/kurapika/ha-176-on-device-act` |
+
+---
+
+## Rulings of 2026-10-13 — kazaana, Shizuku activated, cleanup after every completed session, the publish offer
+
+**The maintainer's request, verbatim** (2026-10-13, excerpts; it opened a `hatsu:great-hiker` sitting on
+Claude Code):
+
+> I'd like to build a couple of new skills: "kazaana" (based on Inuyasha): ("kazaana KroApple" for
+> example) … Using "futon" under the hood (hatsu:futon <repo>@model/<surface main model> then getsuga):
+> This skill will, in a row (and running up to 7 parallel jobs as possible), look for all issues in
+> backlog whose applied model label matches the surface where the request started in the first place. If
+> there are issues that DO NOT hold any "direct" model classification as labels, run "direct" on them
+> ONLY, and then refetch to have a complete inventory of all open issues matching the surface available
+> models. … Build them and address anything that is there to be built using our regular "ren" or
+> "great-hiker" skill each, and on different worktrees and subagents using the "direct" primary suggested
+> model specs. … Deliver a PR using mukai and drive it to G2/G4 readiness using "en". … deliver a full
+> report guiding human maintainer in what order to visit delivered PRs to merge them one by one. Use
+> stacked PRs ONLY when necessary, otherwise target `main` directly. … Once human has gone through all
+> delivered PRs and closed them, start "getsuga" to cut a new tag. Make sure the proposal PR is NEVER
+> prompted to the maintainer to merge himself, but instead drive it ready using "sharingan" under en's
+> routine and merge autonomously once PR is truly ready per our specs and/or transient exceptions. …
+> Once tag is cut successfully, offer the maintainer through a picker whether "mugetsu" should be started
+> to publish a new release under the last cut tag in the session.
+
+> New roster member (staffing bench member) "Shizuku" with its emblematic skill "cleanup". Cleanup will
+> be responsible, after a fulfilled session (after or in parallel with third-hand) to clean up … everything
+> left either locally or remotely that could spend storage or even be billed for after a given effort. …
+> offer an action plan (between deterministic and non-deterministic proposed operations) to free up
+> storage, resources and ensure maximum hygiene after any finished effort. Running "cleanup" will ALWAYS be
+> required after a completed session and will be offered once a single PR lands as a session delivery.
+> While "third-hand" remains optional, "cleanup" becomes STRONGLY recommended if not required after a
+> completed session. So, once a session completes, the user can either run "cleanup", "cleanup" and
+> "third-hand" in parallel or continue iterating on the same session as needed. … Shizuku will ALWAYS cover
+> (as encountered) any hygiene leftovers from any prior sessions that may have not run the cleanup process
+> already and offer to take care of them as well.
+
+| Ruling | What it says |
+|---|---|
+| **1 · `kazaana` is a composite over `futon`** | `hatsu:kazaana <repo> [on <line>]` is `hatsu:futon <repo>@model/<line> then getsuga`, the line read from `contracts/direct.registry.json` as the session's surface's `deep`-tier alias's `line` (`claude`, `gpt`, `grok`, `gemini`), a typed `on <line>` overriding it. Issues with no `model/` label are directed first (`hatsu:direct`, one confirmation for the batch, published under `direct.publish` as read at the default branch's tip) and the backlog refetched. Each queued issue is authored and published by a **delegate in its own worktree on `direct`'s primary pick** — never the frontier tier — up to 7 at once: `ren`, or on a canon repository `great-hiker`'s authoring in `ren`'s place, in the delegate at its tier, then `aka`; **the main session runs `mukai` and `en` per effort**, since a subagent raises no subagent (hanten's reviewers, Illumi) and hanten's reviewer checkouts are per persona. A PR the maintainer closed unmerged holds nothing; a stranded child of a closed stacked PR holds the gate until closed or retargeted. Efforts stack **only on overlap** (§ *Rulings of 2026-10-12*) and the final register carries the merge order. **The typed `hatsu:kazaana` is the advance go for the `then getsuga` step it composes** (`mugetsu` § 3, widened by this ruling). [`kazaana`](../claude/skills/kazaana/SKILL.md) §§ 1–4 |
+| **2 · Under kazaana the release proposal is never the maintainer's to merge** | getsuga § 3a's fall-back to the declaration gate does not present a `MERGE` ask under kazaana: transient conditions — a pending required check, a round inside `round_policy`'s caps, a head en just pushed — are held through en's observation hold within `monitor.maxCycles`; a gate `nen pr merge --release-unit` refuses on is a **G5 halt** quoting the verb's line and handing the exact `--run` command, never a picker carrying the merge. A PR the maintainer closed unmerged does not hold the `then` gate. **Owed to nen**: the verb reads no `aiReviewers`, so `rounds-owed` as the only failing row under `optional`/`off` after the hold is that same halt until it does. [`kazaana`](../claude/skills/kazaana/SKILL.md) § 5, [`getsuga`](../claude/skills/getsuga/SKILL.md) § 3a |
+| **3 · The publish offer** | Once the tag resolves on origin, kazaana § 6 asks **once** through the surface's picker whether `mugetsu` should publish it — only where `nen repo classify`'s kind is listed under `futon.advanceGo.mugetsu` as `nen parse futon` reads it (the target's declared key, or nen's default), one unstarred option per declared destination and none where none is declared; **no option starred**. The affirmative answer is the maintainer's go, **form (4)** of [`mugetsu`](../claude/skills/mugetsu/SKILL.md) § 0, quoted verbatim with the question in the report and on the release PR. This is the one question an agent asks about G3: `mugetsu` § 1's *no agent ever prompts for it* and `missing-maintainer-choice`'s *typed, never picked* are amended for that question alone (row `publish-offer`) |
+| **4 · Shizuku activates from the bench** | **Cleanup, and cleanup only**: [`claude/agents/shizuku.md`](../claude/agents/shizuku.md), `fast` tier (`sonnet`) at effort `medium`, tools `Read, Grep, Glob, Bash`, header `🧹 **Shizuku · cleanup**`, closing line `Shizuku-Sweep:`; **definition at `v0.108.0`**, listed in `plugin.json`; reached only through [`hatsu:cleanup`](../claude/skills/cleanup/SKILL.md), in two passes — inventory, the maintainer's pick, the picked rows. `OPEN-3` closes further: **Machi, Kortopi and Pakunoda** remain bench only |
+| **5 · `cleanup` is required after a completed session; the wrap-up is a picker** | At every session delivery — a PR at en § 5's merge prompt or merged, a composite's run ending — the caller asks once (row `wrap-up`): ⭐ `cleanup` · `cleanup` and `third-hand` in parallel · continue iterating. `third-hand` is **optional** from this ruling; `cleanup` is required. The wrap-up names no human-called phase and is not a merge prompt. **Amends** ruling 1 of § *Rulings of 2026-09-09* and `third-hand` § 2's *never asks "shall I run third-hand?"* |
+| **6 · Two classes of operation, one pick, prior leftovers always covered** | Shizuku's plan splits **deterministic** rows — a mechanical fact decides: a merged PR's clean worktree and merged branch, its remote head origin still carries, a prunable entry, a stale tracking ref, `current.html`, a cache binary below the pin no link points to — from **proposed** rows: uncommitted work (listed, never discarded unseen), a closed-unmerged or PR-less branch, caches, billed resources (a runner host, a draft release, Actions caches). One multi-select picker (row `cleanup-plan`); nothing removed before the answer; `.nen/` ledgers are never a leftover. Leftovers of prior sessions are inventoried, classified and offered the same way, ownership never assumed |
+| **What it does not rule** | the nen verbs cleanup's removals are owed (`nen wc prune`, to file) and `nen pr merge --release-unit`'s reading of `aiReviewers` (to file) — both named residue; Killua, Machi, Kortopi, Pakunoda; the permission pack beyond the `du` row the inventory reads with |
 
 ---
 

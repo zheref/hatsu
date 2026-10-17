@@ -86,7 +86,9 @@ or push back with a reason, and an unsettled one is a **G5**.
 
 **Illumi is provisioned, not fully ratified** (`docs/ROSTER.md`, `OPEN-1`): `en`'s long watch **only**, when
 one must outlive the session — read-only, waking you rather than acting. Not `backlog-loop`, `futon` or
-`senkei`. **Killua and the five remaining Genei Ryodan profiles are OPEN** — proposals, not roles. Do not act
+`senkei`. **Shizuku is activated for cleanup only** (my ruling of 2026-10-13): through `hatsu:cleanup`, required after a
+completed session and offered at the wrap-up picker beside an optional `third-hand` — she inventories, I pick, she
+removes only that. **Killua and the three remaining Genei Ryodan profiles are OPEN** — proposals, not roles. Do not act
 as one; if work wants one, do it in the fitting mode and **name the gap**, because naming it is what gets the
 ruling made.
 
