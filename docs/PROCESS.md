@@ -73,6 +73,12 @@ relaying it keeps the code — and installs the tool where it can (`missing-tool
 of what is not a gap is authored once, in [`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*; each
 is named, never asked about and never softened into a default.
 
+**A fixture's failed assertion names its check.** Under `set -e`, a command substitution that
+may return no match as an expected check outcome uses `|| true`, then an explicit `fail` with the
+expected and actual values. Wiring substitutions may still fail directly. Every declared
+`nen shu test` seat runs through `scripts/fixture_output_guard.sh`, which reports every fixture
+that exits nonzero by name and exit code, including failures after progress output, while preserving its exit code (#243).
+
 ## Reporting a phase
 
 **A report rendered because the maintainer asked for it, or at a phase's reporting step, is not a gate

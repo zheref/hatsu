@@ -9,14 +9,30 @@ trap 'rm -rf -- "$fixture"' EXIT
 git clone -q --no-local --branch main "$source_root" "$fixture/checkout"
 checkout="$fixture/checkout"
 preflight="$source_root/scripts/trusted_guard_preflight.rb"
+# The maintainer's core main can lag; use the fetched trusted base this effort
+# actually targets, including when the fixture runs from a PR checkout.
+git -C "$checkout" fetch -q "$source_root" refs/remotes/origin/main
+git -C "$checkout" checkout -q -B main FETCH_HEAD
+git -C "$checkout" update-ref refs/remotes/origin/main HEAD
 
 ruby "$preflight" --root "$checkout" --base-ref origin/main > "$fixture/pass.log" 2>&1
 grep -q 'every derived trusted guard passed' "$fixture/pass.log" \
   || { cat "$fixture/pass.log"; echo 'trusted-guard-preflight-fixture: known root did not pass' >&2; exit 1; }
-for guard in plugin_bump_check.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
+for guard in branch_authorship_check.sh canon_contracts_check.sh plugin_bump_check.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
   grep -q "  $guard: exit 0" "$fixture/pass.log" \
     || { cat "$fixture/pass.log"; echo "trusted-guard-preflight-fixture: $guard was not run" >&2; exit 1; }
 done
+
+# A broken candidate contract must be rejected by the trusted canon guard.
+printf '{invalid json\n' > "$checkout/contracts/direct.registry.json"
+set +e
+ruby "$preflight" --root "$checkout" --base-ref origin/main > "$fixture/canon-red.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 1 ] && grep -q 'canon_contracts_check.sh: exit 1' "$fixture/canon-red.log" \
+  && grep -q 'direct registry' "$fixture/canon-red.log" \
+  || { cat "$fixture/canon-red.log"; echo 'trusted-guard-preflight-fixture: broken canon registry was not named' >&2; exit 1; }
+git -C "$checkout" reset -q --hard HEAD
 
 # The working tree generates Codex at a new hooks root. The trusted main
 # guard still knows only the old root and must demand the two-step landing.
@@ -74,4 +90,22 @@ set -e
 [ "$code" -eq 1 ] && grep -q 'prose_size_check.sh: exit 1' "$fixture/alternate.log" \
   || { cat "$fixture/alternate.log"; echo 'trusted-guard-preflight-fixture: alternate base guard was not run' >&2; exit 1; }
 
-echo 'trusted-guard-preflight-fixture: ok (known root passes; new root needs two-step landing)'
+# Discover unknown scripts from the base workflow and refuse missing wiring.
+cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
+  fixture-unknown-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - run: bash .trusted/scripts/unrecognized_guard.sh
+YAML
+printf '#!/bin/sh\nexit 0\n' > "$checkout/scripts/unrecognized_guard.sh"
+git -C "$checkout" add .github/workflows/plugin-bump-check.yml scripts/unrecognized_guard.sh
+git -C "$checkout" commit -qm 'fixture: add unknown trusted guard'
+git -C "$checkout" update-ref refs/remotes/origin/preflight-unknown HEAD
+set +e
+ruby "$preflight" --root "$checkout" --base-ref origin/preflight-unknown > "$fixture/unknown.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 2 ] && grep -q 'no local invocation for trusted guard(s): unrecognized_guard.sh' "$fixture/unknown.log" \
+  || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: unknown trusted guard was not a wiring error' >&2; exit 1; }
+
+echo 'trusted-guard-preflight-fixture: ok (canon pass/red, unknown guard refusal, old guard regression cases)'

@@ -576,9 +576,9 @@ CODEX_HOME="$codex_home_e" PATH="$fixture_root/bin:$PATH" "$updater" --root "$co
 grep -qx 'plugin marketplace remove hatsu' "$codex_log" || fail "(e) legacy marketplace was not removed"
 grep -q '^plugin marketplace add .*/hatsu-marketplace-snapshots/' "$codex_log" || fail "(e) clean snapshot was not registered"
 grep -qx 'plugin add hatsu@hatsu' "$codex_log" || fail "(e) codex plugin add hatsu@hatsu was not invoked"
-upgrade_at="$(grep -n '^plugin marketplace add .*/hatsu-marketplace-snapshots/' "$codex_log" | head -1 | cut -d: -f1)"
-add_at="$(grep -n '^plugin add hatsu@hatsu$' "$codex_log" | head -1 | cut -d: -f1)"
-[ -n "$upgrade_at" ] && [ -n "$add_at" ] && [ "$upgrade_at" -lt "$add_at" ] || fail "(e) snapshot registration must precede plugin add"
+upgrade_at="$(grep -n '^plugin marketplace add .*/hatsu-marketplace-snapshots/' "$codex_log" | head -1 | cut -d: -f1 || true)"
+add_at="$(grep -n '^plugin add hatsu@hatsu$' "$codex_log" | head -1 | cut -d: -f1 || true)"
+[ -n "$upgrade_at" ] && [ -n "$add_at" ] && [ "$upgrade_at" -lt "$add_at" ] || fail "(e) snapshot registration must precede plugin add: registration=${upgrade_at:-<none>}, add=${add_at:-<none>}"
 
 # A cache-started updater refuses a symlinked source record before it can
 # execute a script named by that record.

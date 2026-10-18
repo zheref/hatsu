@@ -1084,6 +1084,27 @@ Claude Code):
 
 ---
 
+## Rulings of 2026-10-17 — Cursor carries Grok coding; Grok Build is a CI option
+
+**The maintainer's direction:** make Cursor the official coding surface for Grok-based models,
+with Grok Build mentioned for CI-based operations (zheref/hatsu#236). Cursor's
+[SpaceX announcement](https://cursor.com/blog/joining-spacex) says Cursor is where the shared
+Grok model work becomes useful to customers; it does not declare a new Hatsu integration.
+xAI's [Grok Build overview](https://docs.x.ai/build/overview) and
+[headless guide](https://docs.x.ai/build/cli/headless-scripting) document `grok -p` for scripts
+and bots, including CI, with `--no-auto-update` for automated environments.
+
+| Decision | Consequence |
+|---|---|
+| **Cursor is the actionable Grok coding surface** | Keep `contracts/direct.registry.json` → `EDITOR_FRONTIER` on `cursor` and `nen/workflow.json` → `models.cursor` on the Grok line. Hatsu's existing Cursor guide, hooks, picker and permission pack serve interactive and local coding work. |
+| **Grok Build is a headless CI option, not a fifth Hatsu surface** | Mention its documented CLI where a CI operation needs a Grok agent. Do not add a `grok-build` `SurfaceRow`, interactive surface guide, mirror, picker or model tier merely to route the same line again. Its `surfaces.$nonActionable` row stays non-actionable; a specific CI job must declare its command, authentication, permissions and checks before it can run. |
+
+This answers #236's surface decision against adding a fifth surface. The existing Cursor route
+already makes Grok selectable; no model-routing change follows from the announcement. Grok
+Build's CI use is a deployment choice for a declared job, not an alternate `hatsu:direct` pick.
+
+---
+
 ## Rulings of 2026-10-12 — stacked pull requests, one PR per issue, merged bottom-up
 
 **The maintainer's words, verbatim** (2026-10-12, mid-run on `hatsu:futon hatsu@model/claude`, after the run

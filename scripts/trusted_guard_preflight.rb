@@ -94,6 +94,8 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
     'plugin_bump_check.sh' => ['bash', File.join(trusted, 'scripts/plugin_bump_check.sh'), changed,
                                 File.join(trusted, '.claude-plugin/plugin.json'),
                                 File.join(root, '.claude-plugin/plugin.json'), draft_body],
+    'canon_contracts_check.sh' => [{ 'NEN' => ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen')) },
+                                   'bash', File.join(trusted, 'scripts/canon_contracts_check.sh'), '--root', root],
     'branch_authorship_check.sh' => ['sh', File.join(trusted, 'scripts/branch_authorship_check.sh'),
                                       '--repo', root, '--base', base_sha,
                                       '--forbid-trailers-from', File.join(trusted, 'nen/workflow.json'), '--forbidden-only']
