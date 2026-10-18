@@ -54,7 +54,7 @@ The rules — the maintainer's rulings of 2026-10-17, recorded on zheref/hatsu#2
 
 - **Every filter is AND.** `+` between gates is OR (a row sits at one gate); `&` between labels is
   AND; `@` and `#` combine as AND, so `hatsu@model/gpt#lang/typescript` needs both labels.
-- **Gates and severities are case-insensitive and reserved after `@`**; a label literally named
+- **Gates and severities are case-insensitive and reserved after `@` in these two skills**; a label literally named
   `high` or `g4` is reached as `#high`. `G1` **includes `G1-M` rows** (`CON-25`), per item, named
   `G1-M` in the state cell; `all` anywhere in a gate list is every gate.
 - **Labels are matched exactly, as declared** in the target's `nen/labels.json`, against the
@@ -89,7 +89,7 @@ repository resolves to (below) in front of it.
 
 **The label and severity filters are `nen`'s too**, on the fetch (§ 3) and on
 [`backlog-board`](../backlog-board/SKILL.md)'s `nen report data`: every label — the `@` label and
-each `#` item — is one `--label '<name>'`, **each value a single-quoted argument** (an unquoted
+each `#` item — is one `--label '<name>'`, **each value a single-quoted argument**, a `'` in it written `'\''` (an unquoted
 `--label bug fix` filters on `bug` and drops `fix` unread), and a band is `--severity <name>[+]` with
 § 11's family and order. Both always pass `--repo <the target's own checkout>`, whose
 `nen/labels.json` declares the labels. An undeclared label and a piece of a label containing `&` are
@@ -102,9 +102,12 @@ skill's: it applies to the gate § 4 assigns.
 
 **`context` is a reserved subject, like `all`** — the issues and pull requests **named explicitly in
 this conversation**: in the maintainer's messages, or listed as objects by this session's own
-reports, and nothing inferred from branches, worktrees or run tables. An object notation resolves
-through `nen ref parse`, a URL or `owner/name#N` through `nen repo resolve`; every number must match
-`^[0-9]+$`. **Echo the scope before any fetch**, as a numbered list per repository (`1. NN-PR-#413`),
+reports, and nothing inferred from branches, worktrees or run tables. Two token forms are accepted, each
+split by a verb and never by hand: an object notation (`NN-PR-#413`) through `nen ref parse`, which
+gives the code, the kind and the number; and `<CODE>#<N>` or `<owner/name>#<N>` through `nen parse
+context --grammar '<repo>#<n>'`. The code or slug then goes through `nen repo resolve <it> --repo
+<registry checkout>`, and every number must match `^[0-9]+$`. A URL or any other form is refused,
+naming the two accepted forms (no verb parses a GitHub URL yet; zheref/nen#427). **Echo the scope before any fetch**, as a numbered list per repository (`1. NN-PR-#413`),
 then read each repository's objects fresh — `nen report data --repo <checkout> --base
 origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> [the filters] --json` — and
 fold its rows as § 3 does: an issue and the PRs in its `linked[]` are one row, a PR linked to no
