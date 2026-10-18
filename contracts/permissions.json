@@ -238,6 +238,11 @@
       "exe": "make",
       "args": "*",
       "why": "a repository's own documented commands"
+    },
+    {
+      "exe": "bash",
+      "args": "*/scripts/bell_notify.sh *",
+      "why": "jutaisho section 5's in-session bell, by its plugin-root path (zheref/hatsu#289 item 9): a fixed argv, values after --, replacing the osascript row"
     }
   ],
   "deny": [

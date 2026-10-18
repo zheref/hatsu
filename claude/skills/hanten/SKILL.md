@@ -110,7 +110,7 @@ never piped: its exit is the gate. A moved ref or a commit in the range is a G5 
 **The guard-lane fixtures run once per head, by hanten, before the raise** (hatsu#208): for every lane
 the changed paths map to (WORKFLOW § *The local verification gate* step 3; prose-only reads `lanes: not applicable`),
 `nen shu test --repo <path> --lane <lane> --effort <branch>` inside a `nen phase` (WORKFLOW § *The
-effort's ledgers*). The brief carries per lane the head SHA, command and exit (kurapika.md's table: `0` handed over; `1` red, carried; `3`/`4` `not run`, nen's reason quoted; `2`/`5` wiring). A reviewer re-runs a fixture only where its head differs from the record, naming it; a lane the brief left out that applies is run and named, or declared unread; a not-run row is never clean (§ 2a).
+effort's ledgers*). The brief carries per lane the head SHA, command and exit (kurapika.md's table: `0` handed over; `1` red, carried; `3`/`4` `not run`, nen's reason quoted; `2`/`5` a wiring stop). A reviewer re-runs a fixture only where its head differs from the record, naming it; a lane the brief left out that applies is run and named, or declared unread; a not-run row is never clean (§ 2a).
 **Say what was raised before the reviews return**: scopes, personas, aliases, gaps, `used`/`max`, the
 lanes run.
 **As each returns, one `nen usage record` — never a transcription after the round** (#100;

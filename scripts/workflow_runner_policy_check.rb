@@ -547,18 +547,32 @@ NEN_BOOTSTRAP_VERSION_LINE = %q{echo "nen: $("$bin" --version) at $bin"}
 NEN_BOOTSTRAP_NEXT = READINESS_FROZEN_BOOTSTRAP.merge(
   "run" => READINESS_FROZEN_BOOTSTRAP.fetch("run").sub("\n#{NEN_BOOTSTRAP_VERSION_LINE}", "")
 ).freeze
+# The digest step's NEXT form (zheref/hatsu#289 item 3, step one of its own two-step landing): the
+# closing `--version` echo made fatal, so a binary that matches its sha256 but cannot run fails the step
+# instead of printing an empty version. Admitted beside the current form here; the workflows flip in
+# step two, and the admission narrows back to one form there.
+NEN_DIGEST_FATAL = NEN_DIGEST_FROZEN.merge(
+  "run" => NEN_DIGEST_FROZEN.fetch("run").sub(%q{echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"}, <<~'FATAL'.strip)
+    nen_version="$("$NEN_BIN" --version)" || { echo "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."; exit 1; }
+    echo "nen: ${nen_version} at $NEN_BIN"
+  FATAL
+).freeze
 # The builder's form: the same body, reading the contract in main's checkout.
 REGENERATE_NEN_DIGEST_STEP = "Verify the nen binary against nen/contract.json's sha256"
 REGENERATE_NEN_DIGEST_FROZEN = NEN_DIGEST_FROZEN.merge(
   "run" => NEN_DIGEST_FROZEN.fetch("run").gsub(".trusted/nen/contract.json", "nen/contract.json")
                                          .gsub("trusted nen/contract.json", "nen/contract.json")
 ).freeze
+REGENERATE_NEN_DIGEST_FATAL = NEN_DIGEST_FATAL.merge(
+  "run" => NEN_DIGEST_FATAL.fetch("run").gsub(".trusted/nen/contract.json", "nen/contract.json")
+                                         .gsub("trusted nen/contract.json", "nen/contract.json")
+).freeze
 # Where the digest step sits, by workflow: validate_workflow freezes it
 # wherever it appears and refuses it in tenkai's rendered form.
 NEN_DIGEST_STEPS = {
-  "surface-mirror-check.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
-  "pr-readiness.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
-  "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN]
+  "surface-mirror-check.yml" => [NEN_DIGEST_STEP, [NEN_DIGEST_FROZEN, NEN_DIGEST_FATAL]],
+  "pr-readiness.yml" => [NEN_DIGEST_STEP, [NEN_DIGEST_FROZEN, NEN_DIGEST_FATAL]],
+  "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, [REGENERATE_NEN_DIGEST_FROZEN, REGENERATE_NEN_DIGEST_FATAL]]
 }.freeze
 
 READINESS_VERDICT_STEP = "Readiness verdict"
@@ -917,11 +931,10 @@ REGENERATE_PR_WITH = {
 # silently collapses the two shapes.
 # surface-mirror-check.yml's "Surface-mirror drift check" step was the one unfrozen run body
 # left in the guard workflows (zheref/hatsu#289 item 2, ruled 2026-10-17: freeze it). Two-step
-# landing: this constant is the live body as of that ruling, and DRIFT_STEP_FROZEN admits the
-# free form beside it until step two flips the toggle and narrows the admission to the frozen
-# form alone; the self-test proves the live step already equals the frozen form.
+# One step: the constant is the live body as of that ruling and the live step is held to it from this
+# landing on (the self-test proves the two equal); no two-step landing was needed, since the workflow
+# itself does not change (hanten on #300).
 DRIFT_STEP = "Surface-mirror drift check"
-DRIFT_STEP_FROZEN = false
 DRIFT_FROZEN_GUARD = {
   "env" => {
     "NEN_BIN" => "${{ steps.nen.outputs.bin }}",
@@ -1159,6 +1172,10 @@ def code_of(run)
   run.lines.reject { |line| line.strip.start_with?("#") }.join
 end
 
+# The PR-root script spellings refused on a workflow's code lines (zheref/hatsu#289 item 2). ANYWHERE is
+# the original guard, kept whole; AT_COMMAND adds the command-position spellings the self-test names.
+PR_ROOT_SCRIPT_ANYWHERE = /(?:bash|ruby|source)\s+["']?(?:\.\/)?scripts\//
+PR_ROOT_SCRIPT_AT_COMMAND = /(?:^|[;&|({]\s*|\b(?:then|do|else)\s+)(?:(?:sh|bash(?:\s+-[a-zA-Z]+)*|ruby|source|sudo|command|exec|eval|time|timeout\s+\S+|env(?:\s+\w+=\S*)*|\.)\s+)?["']?(?:\.\/|"?\$\{?PWD\}?"?\/)?scripts\/\S/
 # Taxonomy files that decide how a privileged job behaves: the dependency pin
 # selects the BINARY, the gates file selects REVIEWER IDENTITIES, and workflow
 # configuration supplies FORBIDDEN TRAILER KEYS. In a
@@ -1244,6 +1261,29 @@ end
 # comment lines included, never through code_of.
 def require_frozen_step(step, frozen, label)
   fail_policy("#{label} is missing") unless step
+  # A two-step landing admits a LIST of forms, each exact: the first that holds passes with nothing
+  # printed; when every form fails, the last form's refusal is replayed and the step is refused; an
+  # empty list is a wiring fault, named (zheref/hatsu#289 item 3).
+  if frozen.is_a?(Array)
+    fail_policy("#{label} admits no form (an empty list)") if frozen.empty?
+    captured = ""
+    frozen.each do |form|
+      buffer = StringIO.new
+      real_stderr = $stderr
+      begin
+        $stderr = buffer
+        require_frozen_step(step, form, label)
+        return
+      rescue SystemExit => error
+        raise unless error.status == 1
+        captured = buffer.string
+      ensure
+        $stderr = real_stderr
+      end
+    end
+    $stderr.write(captured)
+    raise SystemExit, 1
+  end
   allowed = (["name"] + frozen.keys).sort
   fail_policy("#{label} may carry only #{allowed.join(", ")}") unless step.keys.sort == allowed
   frozen.each do |key, value|
@@ -1792,6 +1832,7 @@ def validate_workflow(path, hatsu: false)
       form = form.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
       kind = rendered ? "rendered" : "frozen"
       form.each do |name, frozen|
+        frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
         require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{kind} readiness step #{name.inspect}")
       end
       if rendered
@@ -1804,7 +1845,7 @@ def validate_workflow(path, hatsu: false)
         extra_env = READINESS_RENDERED_ENV
       end
     end
-    if File.basename(path) == "surface-mirror-check.yml" && DRIFT_STEP_FROZEN
+    if File.basename(path) == "surface-mirror-check.yml"
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == DRIFT_STEP }, DRIFT_FROZEN_GUARD, "#{path} #{DRIFT_STEP.inspect}")
     end
     if File.basename(path) == PROSE_WORKFLOW
@@ -1881,10 +1922,13 @@ def validate_workflow(path, hatsu: false)
     end
     step_maps.each do |step|
       run = scalar(step["run"])
-      # Any spelling of a PR-root script invocation (zheref/hatsu#289 item 2) at COMMAND position: bare,
-      # through sh/bash/ruby/source/sudo/env, ./-prefixed or "$PWD"-prefixed, at a line's start or after
-      # ; & | ( {. Code lines only (comments are prose); a path inside an echo or a git argument is data.
-      if code_of(run).match?(/(?:^|[;&|({]\s*)(?:(?:sh|bash|ruby|source|sudo|env(?:\s+\w+=\S*)*)\s+)?(?:\.\/|"?\$PWD"?\/)?scripts\/\S/)
+      # Two patterns, either refuses (zheref/hatsu#289 item 2): the interpreter-prefixed spelling anywhere on a
+      # code line (the original guard, kept whole so nothing it refused is admitted), and the command-position
+      # spellings the fixture names (bare, ./, "$PWD"/, env, sudo, exec, eval, command, time, timeout, a
+      # dot-source, bash with flags, after ; & | ( { then do else). Comments are prose; a path inside an echo
+      # or a git argument is data. The fixture lists every spelling this refuses; it is not every spelling.
+      code = code_of(run)
+      if code.match?(PR_ROOT_SCRIPT_ANYWHERE) || code.match?(PR_ROOT_SCRIPT_AT_COMMAND)
         fail_policy("#{path} job #{job_name} executes a PR-root script instead of trusted code")
       end
     end
@@ -2127,6 +2171,7 @@ def validate_builder_workflow(path)
     frozen_steps = REGENERATE_FROZEN_STEPS
     frozen_steps = frozen_steps.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
     frozen_steps.each do |name, frozen|
+      frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{name.inspect}")
     end
     if carries_digest
@@ -2315,6 +2360,20 @@ def self_test(root)
                  %Q{          bash "$guard" \\\n}, %Q{          "$PWD"/scripts/plugin_bump_check.sh \\\n}, step: guard_step)
     hostile.call("PR-root script through env", plugin, original,
                  %Q{          bash "$guard" \\\n}, %Q{          env X=1 scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script quoted", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          bash "scripts/plugin_bump_check.sh" \\\n}, step: guard_step)
+    hostile.call("PR-root script indented in an if", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          if true; then\n            bash scripts/plugin_bump_check.sh\n          fi\n          bash "$guard" \\\n}, step: guard_step)
+    hostile.call("PR-root script after then", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          if true; then bash scripts/plugin_bump_check.sh; fi\n          bash "$guard" \\\n}, step: guard_step)
+    hostile.call("PR-root script under timeout", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          timeout 60 bash scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script dot-sourced", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          . scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script through exec", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          exec scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script with bash flags", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          bash -e scripts/plugin_bump_check.sh \\\n}, step: guard_step)
     hostile.call("nested duplicate YAML key", plugin, original,
                  "          GH_TOKEN: ${{ github.token }}", "          GH_TOKEN: first\n          GH_TOKEN: second", step: start_step)
 
@@ -2335,14 +2394,37 @@ def self_test(root)
     expect_rejected("comment-only workflow file", /empty or carries no YAML document/) { validate_repo(tmp) }
     File.write(plugin, original)
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
-    # The drift step's live form is the frozen form (zheref/hatsu#289 item 2, step one), so step two is a toggle flip.
+    # The drift step's live form is the frozen form (zheref/hatsu#289 item 2) and a tampered body is refused.
     live_surface = Psych.parse_file(File.join(root, ".github/workflows/surface-mirror-check.yml"))
     live_steps = mapping(mapping(mapping(live_surface.root, "surface").fetch("jobs"), "jobs").fetch("surface-mirror-check"), "surface-mirror-check").fetch("steps")
     live_drift = live_steps.children.map { |s| mapping(s, "self-test step") }.find { |s| scalar(s["name"]) == DRIFT_STEP }
     require_frozen_step(live_drift, DRIFT_FROZEN_GUARD, "self-test live drift step")
-    tampered = live_drift.dup
-    tampered["run"] = Psych::Nodes::Scalar.new(scalar(live_drift["run"]).sub("code=0", "code=1"))
-    expect_rejected("drift step tampered against its frozen form") { require_frozen_step(tampered, DRIFT_FROZEN_GUARD, "self-test tampered drift step") }
+    FileUtils.rm(extra)
+    surface = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
+    surface_original = File.read(surface)
+    hostile.call("drift step tampered against its frozen form", surface, surface_original, "          code=0\n", "          code=1\n", step: DRIFT_STEP)
+    File.write(surface, surface_original)
+    # The digest step is admitted in two forms during item 3's landing: whichever form the tree carries, the
+    # other must pass too, in every workflow that carries the step; a third form is refused by name.
+    old_echo = "          echo \"nen: $(\"$NEN_BIN\" --version) at $NEN_BIN\"\n"
+    fatal_echo = "          nen_version=\"$(\"$NEN_BIN\" --version)\" || { echo \"::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed).\"; exit 1; }\n          echo \"nen: ${nen_version} at $NEN_BIN\"\n"
+    NEN_DIGEST_STEPS.each_key do |name|
+      file = File.join(tmp, ".github/workflows/#{name}")
+      text = File.read(file)
+      other = text.include?(old_echo) ? text.sub(old_echo, fatal_echo) : text.sub(fatal_echo, old_echo)
+      fail_policy("self-test: #{name} carries neither digest echo form") if other == text
+      File.write(file, other)
+      validate_repo(tmp, announce: false)
+      File.write(file, other.sub("does not run (--version failed)", "does not run"))
+      expect_rejected("digest step in a third form (#{name})", /run must be exactly the frozen form/) { validate_repo(tmp) }
+      File.write(file, text)
+    end
+    File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
+    # The list branch itself: a later form passes silently; two failing forms refuse with the last one named.
+    passing = live_drift
+    expect_rejected("an empty form list", /admits no form/) { require_frozen_step(passing, [], "self-test empty list") }
+    require_frozen_step(passing, [DRIFT_FROZEN_GUARD.merge("shell" => "sh"), DRIFT_FROZEN_GUARD], "self-test second form passes")
+    expect_rejected("two failing forms", /shell must be/) { require_frozen_step(passing, [DRIFT_FROZEN_GUARD.merge("run" => "x"), DRIFT_FROZEN_GUARD.merge("shell" => "sh")], "self-test two failing forms") }
 
     # THE SUBSTRING BYPASS, covered by fixture because a text match is not a data
     # -flow check. The trusted path still appears -- in a COMMENT -- while the

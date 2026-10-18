@@ -507,7 +507,7 @@ placed beside it ([`SURFACES.md`](SURFACES.md) § 2):
 nen surface status --surface claude-code --plugin hatsu --root "$hatsu_root"
 ```
 
-The verb (nen 0.21.0, zheref/nen#339; `scripts/plugin_cache_check.sh` retired by zheref/hatsu#289 item 6) judges every copy Claude Code has recorded for Hatsu (each `hatsu@` installPath and `skills/hatsu`),
+The verb (nen 0.21.0, zheref/nen#339; the script `plugin_cache_check` retired by zheref/hatsu#289 item 6) judges every copy Claude Code has recorded for Hatsu (each `hatsu@` installPath and `skills/hatsu`),
 and **a copy is never its own evidence**: where the served copy IS `--root` (ten § 0 resolves it from
 the served skill directory), it compares against a source named independently — `HATSU_PLUGIN_ROOT`,
 a `directory` marketplace, or the Hatsu checkout ten stands in. `0` is `mirrors: current (<the line>)`;
@@ -537,7 +537,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   named, and the maintainer names the skill it is for by typing `then aka+mukai`.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository. **§ 5's Claude Code `mirrors:` is
-  `scripts/plugin_cache_check.sh`**, a byte comparison with six exit codes (five verdicts and a wiring stop) that no verb owns: an
+  `nen surface status` (the retired `nen surface status`'s job, zheref/hatsu#289 item 6)**, a byte comparison with six exit codes (five verdicts and a wiring stop) that no verb owns: an
   owned dependency, zheref/nen#339 (a plugin-layout mode of `surface mirror check --installed`, or a
   check under zheref/nen#298's status verb); its fixture is the reference behaviour, and it retires
   when the verb lands — and that verb shipped: zheref/nen#339 closed with NN-PR-#378 (nen 0.21's

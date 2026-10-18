@@ -3,8 +3,10 @@
 #
 # The maintainer's ruling of 2026-10-17 (docs/ROSTER.md § Rulings of 2026-10-17): the `osascript *` allow row
 # pre-approved more than a notification (plain `do shell script`, an administrator-privileges prompt), so the
-# row is gone and the bell rings through this script with a FIXED argv. Values are passed as ARGUMENTS, never
-# spliced into script text; they are sanitised exactly as hooks/stop-bell.sh does.
+# row is gone and the bell rings through this script with a FIXED argv. Values are passed as ARGUMENTS after
+# `--`, never spliced into script text and never read as options; they are sanitised as hooks/stop-bell.sh
+# sanitises: `"`, `\` and newlines stripped, 240 characters at most, the title always prefixed `Hatsu — `,
+# the sound reduced to [A-Za-z0-9_-] with Glass as the fallback (and Glass where the named sound is absent).
 #
 #   scripts/bell_notify.sh --title <text> --message <text> [--subtitle <text>] [--sound <name>] [--no-sound]
 #
@@ -26,25 +28,26 @@ while [ $# -gt 0 ]; do
   esac
 done
 [ -n "$title" ] && [ -n "$message" ] || { echo "bell_notify: --title and --message are required" >&2; exit 2; }
-clean() { printf '%s' "$1" | tr -d '"\\' | tr '\n\r' '  '; }
-title="$(clean "$title")"; message="$(clean "$message")"; subtitle="$(clean "$subtitle")"
+clean() { printf '%s' "$1" | tr -d '"\\' | tr '\n\r' '  ' | cut -c1-240; }
+title="Hatsu — $(clean "$title")"; message="$(clean "$message")"; subtitle="$(clean "$subtitle")"
 case "$sound" in *[!A-Za-z0-9_-]*|"") sound="Glass" ;; esac
 case "$(uname -s)" in
   Darwin)
     if command -v osascript >/dev/null 2>&1; then
-      # `on run argv` makes the values ARGUMENTS, never script text.
-      err="$(osascript -e "on run argv" -e "display notification (item 2 of argv) with title (item 1 of argv) subtitle (item 3 of argv)" -e "end run" "$title" "$message" "$subtitle" 2>&1 >/dev/null)" || :
+      # `on run argv` makes the values ARGUMENTS; `--` keeps a value that starts with `-` from being an option.
+      err="$(osascript -e "on run argv" -e "display notification (item 2 of argv) with title (item 1 of argv) subtitle (item 3 of argv)" -e "end run" -- "$title" "$message" "$subtitle" 2>&1 >/dev/null)" || :
       [ -z "$err" ] && echo "rung 2 (OS notification): sent" || echo "rung 2 (OS notification): not applicable, no seat ($err)"
     else echo "rung 2 (OS notification): not applicable, no osascript"; fi
     if [ "$nosound" = 0 ]; then
-      f="/System/Library/Sounds/$sound.aiff"
+      f="/System/Library/Sounds/$sound.aiff"; [ -f "$f" ] || { sound="Glass"; f="/System/Library/Sounds/Glass.aiff"; }
       if [ -f "$f" ] && command -v afplay >/dev/null 2>&1; then
-        err="$(afplay "$f" 2>&1 >/dev/null)" || :
+        err="$(afplay -- "$f" 2>&1 >/dev/null)" || err="${err:-afplay exited non-zero}"
         [ -z "$err" ] && echo "rung 3 (sound): played $sound" || echo "rung 3 (sound): not applicable, no seat ($err)"
       else echo "rung 3 (sound): not applicable, no $sound"; fi
     fi ;;
   Linux)
-    if command -v notify-send >/dev/null 2>&1; then notify-send -- "$title" "$message" >/dev/null 2>&1 && echo "rung 2 (OS notification): sent" || echo "rung 2 (OS notification): not applicable"; else echo "rung 2 (OS notification): not applicable, no notify-send"; fi ;;
+    if command -v notify-send >/dev/null 2>&1; then notify-send -- "$title" "$message" >/dev/null 2>&1 && echo "rung 2 (OS notification): sent" || echo "rung 2 (OS notification): not applicable"; else echo "rung 2 (OS notification): not applicable, no notify-send"; fi
+    echo "rung 3 (sound): not applicable on Linux" ;;
   *) echo "rung 2 (OS notification): not applicable on $(uname -s)" ;;
 esac
 exit 0

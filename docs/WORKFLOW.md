@@ -2396,8 +2396,9 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    lower PR's commits into the next diff). After each merge the run — or `hatsu:en <next>` — **retargets
    the next PR to `branch.base` first** (`nen pr retarget --base <branch.base>`, en § 5 check 1) **and only
    then deletes the merged head branch**: deleting it first closes the dependent PR (observed on HA-PR-#250
-   and #253, 2026-10-13; GitHub's own docs promise a retarget that did not happen). A dependent PR above a
-   change to a frozen workflow step reads red on CON-32(a) until that change is on `branch.base`: the
+   and #253, 2026-10-13: each timeline shows `base_ref_deleted` then `closed` within a second, against GitHub's
+   *Deleting and restoring branches in a pull request* page, which promises a retarget). A dependent PR above a
+   change to a frozen workflow step reads red on CON-32(a) until that change is on `main`: the
    guard workflows run the TRUSTED validator at `main`'s head, not the PR's base; the push after the
    retarget runs it again at the new head (a close-and-reopen is the fallback where no push follows;
    `gh run rerun` reuses the stale trusted revision). Then en § 5's remaining checks run at the

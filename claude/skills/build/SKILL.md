@@ -16,7 +16,7 @@ code; the mode is named at § 2, and said aloud when it switches mid-run.
 ladders): building an issue runs the local-plane pipeline — [`ten`](../ten/SKILL.md) warms up,
 [`classify`](../classify/SKILL.md) labels the two axes where unlabelled, [`direct`](../direct/SKILL.md) picks
 model, surface and effort against this session's, [`ren`](../ren/SKILL.md) authors and verifies,
-[`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures and opens the PR,
+[`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures coverage and opens the PR (its pickers in jutaisho § 4's shape),
 [`en`](../en/SKILL.md) drives it to readiness, [`rikugan`](../rikugan/SKILL.md) renders the delivered state,
 and [`cleanup`](../cleanup/SKILL.md) § 2 is offered.
 
