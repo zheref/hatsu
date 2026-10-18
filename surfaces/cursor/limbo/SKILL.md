@@ -119,7 +119,7 @@ unchanged / deleted`; the second check's `drift:`; the commit, the push, the PR 
 2. **The latest tag** — `git -C "$canon" tag --sort=-v:refname | head -1` after `fetch --tags`.
 3. **Writing the pin** — one key in the consumer's `nen/repos.json`, then `nen schema check`; a
    `nen canon pin --write <tag>` is a nen request, filed.
-4. **The predecessor marker** — `head -1` against `<!-- GENERATED from <reference-repo>@`; nen knows its
+4. **The predecessor marker** — `head -1` against `<!-- GENERATED from bankai-core@`; nen knows its
    own marker only, by design.
 5. **`mkdir -p "<path>/.nen"`** — `--markdown-out` resolves against `--repo` and does not create its
    parent: exit `1` + `ENOENT`, indistinguishable from drift. Filed.

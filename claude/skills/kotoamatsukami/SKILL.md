@@ -414,7 +414,7 @@ suite to re-record. That is the **logic-only** case `UZF-26` exempts, stated in 
 | Repository | What its `ui-test` row says today |
 |---|---|
 | **`<product-repo-A>`** | a **seat**, until its UI-test targets actually run. Exit `4`, the sentence quoted, the unit suite unaffected |
-| **<product-repo-C>-pwa** | a real row — the Playwright pair its lane declares. Read the row; it is two steps and both are the suite |
+| **Kro-pwa** | a real row — the Playwright pair its lane declares. Read the row; it is two steps and both are the suite |
 | **`<product-repo-B>`** | a real row — the Paparazzi verify task its lane declares, which is the snapshot suite and the source of this section's images |
 
 No toolchain name in that table lives in nen. Where a copy disagrees with the file, **the file wins

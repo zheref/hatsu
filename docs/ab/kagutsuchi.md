@@ -242,7 +242,7 @@ $ scripts/send_freshness_check.sh --repo /Users/zheref/Code/Apple/<product-repo-
 send_freshness_check.sh: the working tree is dirty -- refused before the send, not at the tag:
      M <product-repo-C>.xcodeproj/project.pbxproj
      M <product-repo-C>.xcodeproj/xcshareddata/xcschemes/PreviewHost.xcscheme
-     M KroTests/Application/Do/DoDayContextSnapshotTests.swift
+     M <product-repo-C>Tests/Application/Do/DoDayContextSnapshotTests.swift
      … (22 paths)
 exit=2
 ```

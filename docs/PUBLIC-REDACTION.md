@@ -68,11 +68,13 @@ they are the evidence's internal cross-references.
   name, and its `BC-` prefix is kept so existing citations stay valid.
 - **The plugin name "bankai"** where it means the predecessor plugin a reader may already have installed
   (the rollback paragraph in [`docs/using/claude-code.md`](using/claude-code.md) § 5).
-- **Public repositories** — `zheref/nen`, `zheref/<product-repo-C>-pwa`, this repository, and **`zheref/bankai-handbooks`**,
+- **Public repositories** — `zheref/nen`, `zheref/Kro-pwa`, this repository, and **`zheref/bankai-handbooks`**,
   the canon repository (public, MIT): the Bankai handbooks, `CONSTITUTION.md` (`CON-{n}`) and the shared
   agent conventions live there since 2026-09-28 (`CON-13`), it is named directly and never placeheld, and
   the tag Hatsu reads is pinned in `nen/repos.json` (`maintained_tools` → `pinned`). Readers can open every
-  one of these.
+  one of these. A public name that contains a private one is written as its own name and never
+  composed with a placeholder, which would tie that placeholder to the public name for anyone listing the
+  public repositories (Feitan, HA-PR-#305).
 - **The predecessor generator's marker** where it is quoted as a marker — `hatsu:limbo`, its mirrors
   and [`docs/ab/limbo.md`](ab/limbo.md). It is the literal first line of files a consumer
   still carries, and limbo matches it byte for byte: a placeholder there would match nothing, and limbo
@@ -125,11 +127,7 @@ tree, and only the maintainer writes it.
   GitHub Support request; never retitle it again) — the #149 sitting of 2026-10-14 found both.
 - **Tree content:** `bash scripts/private_name_check.sh --tree .`, run by the maintainer, reads every
   tracked and untracked-not-ignored file's contents, its path and a symlink's target, and counts what
-  it skips. **The tree is not yet clean**: on 2026-10-01 it read 173 mentions, or 60 with two
-  ordinary-word names ignored, most in the kagutsuchi worktree script and its A/B record. So it is not
-  a CI step or a kokusen check yet — **issue #149's criterion 2(b) is deferred** until the tree is
-  redacted (kokusen also has no room for it within its prose ceiling). The lane `redaction-guard`
-  runs its hermetic fixture.
+  it skips. **The tree reads clean on 2026-10-18 but for ordinary-word names** (HA-PR-#305, zheref/hatsu#289 item 10): three entries on the live list are English words used as words (`docs/DISCOVERY.md`, `docs/WORKFLOW.md`, the skills), and the ignore file carries them — the maintainer's, one `name` or `owner/name` per line, written by `bash scripts/private_name_check.sh --resolve <k>` read at a terminal, never by a session. The tree check is the `redaction-tree` lane (`nen shu test --lane redaction-tree --repo <hatsu>`), run on the maintainer's credentials with that ignore file: issue #149's criterion 2(b), landed. It is still not a CI step, because CI holds no private list.
 
 ## Scope
 

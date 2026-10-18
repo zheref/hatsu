@@ -353,7 +353,7 @@ nen repo: 'C:\...\<reference-repo>' has an 'origin' of 'https://github.com/<refe
 resolves to '<reference-repo>' -- and that is not in this registry (...\schemas\repos.json). An
 origin is a token like any other: it is an error, never a fallback to every repository. Codes:
 $comment (...), BC (<reference-repo>), BS (<scaffold-repo>), RA (<product-repo-A>), RB
-(<product-repo-B>), RC (<product-repo-C>), KC (zheref/<product-repo-C>-pwa). Repositories: <product-repo-A>,
+(<product-repo-B>), RC (<product-repo-C>), KC (zheref/Kro-pwa). Repositories: <product-repo-A>,
 <product-repo-B>, <scaffold-repo>.
 exit=1
 

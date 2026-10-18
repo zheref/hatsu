@@ -80,14 +80,14 @@ nen: '<product-repo-C>' is not a consumer in <checkout>\schemas\repos.json. Its 
 read from a registry that does not know it.
 (exit 1)
 
-$ nen repo scenario --repo <reference-repo checkout> --target zheref/<product-repo-C>-pwa
-nen: 'zheref/<product-repo-C>-pwa' is not a consumer in <checkout>\schemas\repos.json. Its scenario cannot be
+$ nen repo scenario --repo <reference-repo checkout> --target zheref/Kro-pwa
+nen: 'zheref/Kro-pwa' is not a consumer in <checkout>\schemas\repos.json. Its scenario cannot be
 read from a registry that does not know it.
 (exit 1)
 ```
 
 `<reference-repo>` is not a consumer of itself (it is the source of the canon, not a consumer of it);
-`<product-repo-C>` and `zheref/<product-repo-C>-pwa` are recorded under `pending_onboarding`, not yet
+`<product-repo-C>` and `zheref/Kro-pwa` are recorded under `pending_onboarding`, not yet
 `consumers[]`. **`nen`'s refusal text is identical for all three real, different states** — confirmed
 live. The ported skill (§ 1) names this explicitly rather than letting a reader conflate "never
 onboarded" with "not a Bankai repo."
@@ -270,7 +270,7 @@ malformed `--target` exits `1` instead (§ 2.3), a separate, verb-specific asymm
 3. **`nen repo scenario`'s refusal text does not distinguish "never onboarded" from "recorded under
    `pending_onboarding`/`maintained_tools` without a `scenario` field."** Verified live (§ 2.2):
    `<reference-repo>` (not a consumer of itself, the canon source), `<product-repo-C>`, and
-   `zheref/<product-repo-C>-pwa` (both recorded, but only under `pending_onboarding`) all produce the byte-identical
+   `zheref/Kro-pwa` (both recorded, but only under `pending_onboarding`) all produce the byte-identical
    refusal string. Not necessarily a defect — the verb's contract is "consumer or not," and it says so
    — but a caller who wants to report *why* a repo has no scenario needs to read `schemas/repos.json`
    itself first, which the ported skill now says explicitly (§ 1) rather than leaving implicit.
@@ -287,7 +287,7 @@ malformed `--target` exits `1` instead (§ 2.3), a separate, verb-specific asymm
 
 5. **`nen repo scenario` conflates invocation errors with "not a recorded consumer" under a single
    exit code.** Verified live (§ 2.2, § 2.3): a missing `--target`, a code-shaped `--target` (`RA`),
-   and a genuine not-a-consumer target (`<reference-repo>`, `<product-repo-C>`, `zheref/<product-repo-C>-pwa`)
+   and a genuine not-a-consumer target (`<reference-repo>`, `<product-repo-C>`, `zheref/Kro-pwa`)
    all exit `1`. Only an unusable `--repo` path exits `2` for this verb (§ 2.5) — there is no exit-`2`
    case here for a bad `--target` at all, unlike `nen canon resolve`, whose missing `--target` exits
    `2` (§ 2.5). A caller who reads the exit code alone cannot tell "I mistyped the command" from "this
