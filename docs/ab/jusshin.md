@@ -2,7 +2,7 @@
 
 `hatsu:jusshin` was not ported from the frozen reference implementation; it was authored on 2026-09-30
 against the design spec that fixes the `nen runner` verb family's flags, outputs and exit codes, and
-against the operational learnings of bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md` (carried in the
+against the operational learnings of <reference-repo>'s `docs/SETUP-SELF-HOSTED-RUNNERS.md` (carried in the
 skill as local ids J1–J7), and verified live on 2026-09-30/10-01 against nen `0.18.0`→`0.18.1`. This
 file records what was **run**, so the skill's prose quotes behaviour rather than intent. The run is the
 skill's first: target `zheref/nen` (`<nen>` = its checkout, `C:\Users\zhere\Code\CLIs\nen`), on the

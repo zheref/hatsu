@@ -2551,7 +2551,7 @@ def self_test() -> int:
           w2.read_text().count(pinned) == 2 and "deadbeef" not in w2.read_text())
     w2.write_text(base2)
 
-    # U3c -- a PRIVATE consumer with declared self-hosted labels (zheref/hatsu#199: KroWindows' pool,
+    # U3c -- a PRIVATE consumer with declared self-hosted labels (zheref/hatsu#199: <product-repo-E>'s pool,
     # whose Actions policy requires full-length SHA pins): the rendering carries the SHA pin on BOTH
     # checkouts and the labelled runs-on, and diagnoses satisfied -- nothing is left to hand-edit.
     dsh = fixture()

@@ -913,7 +913,7 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 ### `project.fromCore`
 
 ```json
-"fromCore": [ { "path": "Kro/Config.xcconfig", "why": "<why it lives only in the maintainer's checkout>" } ]
+"fromCore": [ { "path": "<product-repo-C>/Config.xcconfig", "why": "<why it lives only in the maintainer's checkout>" } ]
 ```
 
 **Hatsu's own block, beside `project.preconditions`, read by [`kagutsuchi`](../claude/skills/kagutsuchi/)
@@ -2357,7 +2357,7 @@ which case it was**.
 files — the top of `CHANGELOG.md`, the plugin manifests' `version`, the generated mirrors, one shared
 skill — merge one at a time and break every sibling's base as they land: the second needs a catch-up
 merge, the third a conflict pass, and the human gate turns into a conflict-resolver loop
-(zheref/hatsu#219, KRO#242's three PRs). **Overlap is sequenced, not raced**, and the sequence is a
+(zheref/hatsu#219, <product-repo-C>#242's three PRs). **Overlap is sequenced, not raced**, and the sequence is a
 **stack**: one PR per issue, each branch cut from the previous effort's tip, each PR based on the
 previous effort's branch, merged **bottom-up** by the maintainer.
 
