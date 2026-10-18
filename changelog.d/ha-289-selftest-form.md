@@ -1,0 +1,3 @@
+### Fixed
+
+- **The validator's self-test accepts a tree that already carries the digest step's fatal echo** ([#289](https://github.com/zheref/hatsu/issues/289) item 3, step one's follow-up; `docs/GATE-CONFIGURATION.md` § 6 *Adoption*, the two-step-landing note of 2026-09-20). Step one built the self-test's refused third form from whichever digest form the tree lacked, so on a tree carrying the fatal `--version` echo the old form was substituted unchanged and accepted, and `main`'s trusted copy refused step two's PR by its own self-test. The third form is now built from the fatal form whichever one the tree carries; the self-test passes over `main`'s tree and over step two's. Plugin bumped to 0.112.1 (a shipped script changed); the mirrors restamped.

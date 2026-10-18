@@ -2415,8 +2415,8 @@ def self_test(root)
       fail_policy("self-test: #{name} carries neither digest echo form") if other == text
       File.write(file, other)
       validate_repo(tmp, announce: false)
-      File.write(file, other.sub("does not run (--version failed)", "does not run"))
-      expect_rejected("digest step in a third form (#{name})", /run must be exactly the frozen form/) { validate_repo(tmp) }
+      File.write(file, (text.include?(fatal_echo) ? text : other).sub("does not run (--version failed)", "does not run"))
+      expect_rejected("digest step in a third form (#{name})", /#{Regexp.escape(NEN_DIGEST_STEPS.fetch(name).first)}" run must be exactly the frozen form/) { validate_repo(tmp) }
       File.write(file, text)
     end
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
