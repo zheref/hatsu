@@ -2963,18 +2963,34 @@ def self_test(root)
     FileUtils.cp(regenerate_source, regenerate)
     validate_repo(tmp, announce: false)
 
-    # #209 step one: prove the still-trusted loop and the exact future script
-    # call both pass before the workflow moves in a separate PR.
-    old_start = regenerate_original.index("      - name: Read the plugin stamp\n")
-    old_end = regenerate_original.index("      - name: Detect drift\n", old_start || 0)
-    fail_policy("self-test: regenerate builder lacks the old stamp/generate pair") unless old_start && old_end
-    script_form = regenerate_original[0...old_start] + render_step("Regenerate every surface", REGENERATE_SCRIPT_STEP) + "\n" + regenerate_original[old_end..]
+    # #209 step one: prove both admitted forms regardless of which one the
+    # candidate workflow currently carries. The next PR changes that input.
+    stamp_start = regenerate_original.index("      - name: Read the plugin stamp\n")
+    generate_start = regenerate_original.index("      - name: Regenerate every surface\n")
+    drift_start = regenerate_original.index("      - name: Detect drift\n", generate_start || 0)
+    fail_policy("self-test: regenerate builder lacks a generate/drift pair") unless generate_start && drift_start
+    if stamp_start
+      old_form = regenerate_original
+      script_form = regenerate_original[0...stamp_start] + render_step("Regenerate every surface", REGENERATE_SCRIPT_STEP) + "\n" + regenerate_original[drift_start..]
+    else
+      script_form = regenerate_original
+      old_form = regenerate_original[0...generate_start] +
+        render_step("Read the plugin stamp", REGENERATE_FROZEN_STEPS.fetch("Read the plugin stamp")) + "\n" +
+        render_step("Regenerate every surface", REGENERATE_FROZEN_STEPS.fetch("Regenerate every surface")) + "\n" +
+        regenerate_original[drift_start..]
+    end
+    File.write(regenerate, old_form)
+    validate_repo(tmp, announce: false)
     File.write(regenerate, script_form)
     validate_repo(tmp, announce: false)
     hostile.call("regenerate script form running another checkout script", regenerate, script_form,
                  "bash scripts/surface_mirror_regenerate.sh \"$PWD\"", "bash scripts/other.sh \"$PWD\"", step: "Regenerate every surface")
     hostile.call("regenerate script form with a checkout-supplied nen binary", regenerate, script_form,
                  "NEN_BIN: ${{ steps.nen.outputs.bin }}", "NEN_BIN: ./bin/nen", step: "Regenerate every surface")
+    # The remaining historical hostile cases target the old stamp/loop text.
+    # Run those against that admitted form even when the live workflow has
+    # already switched; the new form's exact call and binary were tested above.
+    regenerate_original = old_form
     File.write(regenerate, regenerate_original)
 
     expect_rejected("an entirely undeclared workflow file") do
