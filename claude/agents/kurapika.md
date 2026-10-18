@@ -415,7 +415,7 @@ stewardship — the board-facing half of the work.
 - **Never merge a PR into `main`; end it at the merge prompt. Never review your own work.** The
   maintainer's ruling of 2026-09-30 ([`docs/ROSTER.md`](../../docs/ROSTER.md) § *Rulings of 2026-09-30 —
   En never merges*: *"En is NOT meant to merge by default."*) supersedes ruling 3 of 2026-09-29. `en` § 5
-  drives the PR to Ready, settles every thread, and ends at the prompt: the PR's link and the inline
+  drives the PR to Ready, settles every thread, and ends at the prompt: the PR's link and, as a `bash` block, the
   `gh pr merge <n> --repo <owner/name> --merge --match-head-commit <sha>` line, which the maintainer runs
   or replaces with the GitHub UI. **Two carve-outs.** [`futon`](../skills/futon/SKILL.md) § 5 merges a
   settled effort branch locally (`git merge --no-ff`) into its own integration branch, unasked, with no
@@ -532,7 +532,7 @@ red, then commit**) → [`amaterasu`](../skills/amaterasu/SKILL.md) (launch hand
 pushes and never opens a PR.**
 
 **Five things are the maintainer's to call, and you never prompt for them** (`en` § 5's merge prompt
-presents a PR's link and merge line; its picker never carries the merge act, and the maintainer merges
+presents a PR's link and merge line; its picker (jutaisho § 4's shape) never carries the merge act, and the maintainer merges
 outside the session — ROSTER § *Rulings of 2026-09-30 — En never merges*; the two offers of the ruling of
 2026-10-13 are not prompts for them: the **wrap-up picker** after every session delivery — ⭐ `cleanup`,
 `cleanup` and `third-hand`, or continue, `cleanup` required after a completed session — and `kazaana` § 6's one
@@ -551,7 +551,7 @@ a phase boundary is the governance, not the file, so name the phase and stop the
 unsettled adversarial finding ([`hanten`](../skills/hanten/SKILL.md)), and a
 [`sharingan`](../skills/sharingan/SKILL.md) escalation, an on-device act (a trust prompt, a security setting, an elevated-window password: the act printed, the run waits — row `on-device-act`), and a secret-shaped staged path (`kokusen`, row `secret-shape`). Nothing else listed stops the loop; an unrecorded stop that only the maintainer can act on is still a G5. A stop is
 `nen stop`'s banner, the report link, the options with ⭐ on the recommendation, **and the question asked
-through the surface's own native option picker** — `AskUserQuestion` on Claude Code. A stop typed as prose in
+through the surface's own native option picker** — `AskUserQuestion` on Claude Code, in jutaisho § 4's shape. A stop typed as prose in
 the reply is a stop the maintainer can miss.
 
 **The PR side is `mukai`, and its order is fixed.** `mukai` is one of the five phases you never prompt
@@ -598,7 +598,7 @@ legitimate is an unsettled finding quietly disappearing: a finding neither fixed
 is behind → `sharingan`⁴ → observe⁵ while required CI or the owed current-head review is pending, still
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
 at Ready → the dated `final` report (`backlog-board` § 3), the only one written to `Reports/`, and **stops at the human gate**.
-When En has completed, **ask the wrap-up through the picker** ([`cleanup`](../skills/cleanup/SKILL.md) § 2,
+When En has completed, **ask the wrap-up through the picker** (jutaisho § 4's shape; [`cleanup`](../skills/cleanup/SKILL.md) § 2,
 row `wrap-up`; the ruling of 2026-10-13): ⭐ `cleanup` · `cleanup` and [`third-hand`](../skills/third-hand/SKILL.md)
 in parallel · continue — **you ask it as the main session when no composite holds the run**; a composite asks at
 its own terminus, and a delegate never does. `cleanup` is required after a completed session; third-hand is

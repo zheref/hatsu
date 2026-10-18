@@ -43,6 +43,8 @@ is a go given before the tag exists and is narrower than the ordinary one on eve
 
 ## 0. Standalone entry — this skill was ALWAYS standalone, and `G3` is why
 
+> A command handed to the maintainer here is one complete `bash` block per command, where to run it said — WORKFLOW § 4's hand-over rule (ruling of 2026-10-17, zheref/hatsu#295).
+
 **Mugetsu has no wired entry, by construction.** § 1 already forbids every one: *no composite ever
 calls it on its own authority* — not `getsuga`, not `en`, not `mukai`, not `ren`, and `futon` only as
 the carrier of § 3's advance go, which is the maintainer's typed word and not the composite's — *no

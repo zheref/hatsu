@@ -154,10 +154,10 @@ at exit 0, and that pending CI, reviewer rounds, or open review threads strictly
 `ask_question`: multiple-choice questions, argument `questions` (an array of `question`, `options`,
 `is_multi_select`). `jutaisho` sets `is_multi_select: true` when several options may all be true.
 
-**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries one
-question of at most two sentences and options of at most eight words; the banner, verdict, link and every
-command are the chat message's. This surface renders no Run button on a code fence, so a command the
-maintainer must run is one complete `bash` block per command and the message says *paste into a terminal*.
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries the
+question alone, the rest of the stop in the chat message (`jutaisho` § 4 states the shape). No Run button on
+a code fence is known here (*Known gaps*), so a command the maintainer must run is one complete `bash` block
+per command and the message says *paste into a terminal*.
 
 ## 8. Generation
 
@@ -229,6 +229,8 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 | the install, live | `agy plugin install` copies; `validate` reads the link | evidence § 10 F8 (`agy` 1.0.6, an isolated `HOME`) | [evidence § 10](evidence/surfaces.md) | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
+
+- **A Run button on a code fence** (§ 7, WORKFLOW § 4's hand-over rule): none observed and no official page fetched (2026-10-17); the fence is treated as the copy source until a fetched line says otherwise.
 
 - A `SessionStart` hook event; `PreInvocation` is the substitute and fires per invocation.
 - Whether the artifact viewer renders inline HTML (`<details>`, `<summary>`, `<code>`, `<pre>`) and GFM alerts as GitHub does: the Markdown report templates use them, and only GitHub's renderer has been read (§ 9). Whether `write_to_file` stores its content byte for byte is answered per render by the `cmp` read-back, never assumed.

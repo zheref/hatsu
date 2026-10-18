@@ -662,6 +662,8 @@ PR, tags, uploads, or publishes.
 
 ## 6d. Every settable value — written out, and the needed ones asked
 
+> A command handed to the maintainer here is one complete `bash` block per command, where to run it said — WORKFLOW § 4's hand-over rule (ruling of 2026-10-17, zheref/hatsu#295).
+
 **The maintainer's ruling of 2026-10-01** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of
 2026-10-01*): reading a consumer's configuration must show what is left to set, and a repository
 Tenkai has adopted must be ready for every skill, not discover a missing value when one runs. The

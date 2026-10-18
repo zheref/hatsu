@@ -118,6 +118,8 @@ hooks and MCP servers stay *before*'s until the switch, said once.
 
 ## 7. Report, then **Next** — every run, always last
 
+> A command handed to the maintainer here is one complete `bash` block per command, where to run it said — WORKFLOW § 4's hand-over rule (ruling of 2026-10-17, zheref/hatsu#295).
+
 ```
 bakuryuha · <surface> · v<before> → v<after> (<channel>) · <install> · <link line> · <updater line> · <ten line>
 Next, to finish the update and use v<after>: <the case's line, below>

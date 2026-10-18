@@ -133,10 +133,10 @@ The ask question tool, invoked by instructing the agent to "use the ask question
 several tickable answers. The tool is never named `AskQuestion` on any official page; Hatsu's prose
 says "the ask question tool".
 
-**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries one
-question of at most two sentences and options of at most eight words; the banner, verdict, link and every
-command are the chat message's. This surface renders no Run button on a code fence, so a command the
-maintainer must run is one complete `bash` block per command and the message says *paste into a terminal*.
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries the
+question alone, the rest of the stop in the chat message (`jutaisho` § 4 states the shape). No Run button on
+a code fence is known here (*Known gaps*), so a command the maintainer must run is one complete `bash` block
+per command and the message says *paste into a terminal*.
 
 ## 8. Generation
 
@@ -199,6 +199,8 @@ bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces
 | a chat's skill list | fixed per chat, forum-sourced (staff) | "So an existing chat will keep seeing the old set of skills, while a new chat will get the updated set." | https://forum.cursor.com/t/165124 | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
+
+- **A Run button on a code fence** (§ 7, WORKFLOW § 4's hand-over rule): none observed and no official page fetched (2026-10-17); the fence is treated as the copy source until a fetched line says otherwise.
 
 - Any description truncation limit; the thirty-character figure is a model self-report.
 - The tool is never named `AskQuestion`; only "the ask question tool" and `cursor/ask_question`.

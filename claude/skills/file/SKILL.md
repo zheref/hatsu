@@ -375,6 +375,8 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
 
 ## 8. Hard limits
 
+> A command handed to the maintainer here is one complete `bash` block per command, where to run it said — WORKFLOW § 4's hand-over rule (ruling of 2026-10-17, zheref/hatsu#295).
+
 - **Never files without the confirmation** for an explicit request, and never files anything the
   plan did not show. A discovery write needs the standing authority plus the recorded protocol
   outcome; it is not an exception to reconciliation and never carries a severity change.

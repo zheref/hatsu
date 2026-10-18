@@ -696,6 +696,8 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 
 ## 8. Authority
 
+> A command handed to the maintainer here is one complete `bash` block per command, where to run it said — WORKFLOW § 4's hand-over rule (ruling of 2026-10-17, zheref/hatsu#295).
+
 - **Permitted:** the tag cut (`CON-33(b)`/`CON-41` — Kurapika's own duty, **not** a `CON-25`
   delegation), the release PR, the repin PRs, and printing a declared deploy's **plan** (§ 7a).
 - **No routing and no release delegation — none, including while driving.** Driving an off-`main`
