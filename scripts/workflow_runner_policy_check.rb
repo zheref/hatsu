@@ -2402,7 +2402,7 @@ def self_test(root)
       text = File.read(file)
       fail_policy("self-test: #{name} does not carry the fatal digest echo") unless text.include?(fatal_echo)
       File.write(file, text.sub(fatal_echo, old_echo))
-      expect_rejected("digest step with the non-fatal --version echo (#{name})", /run must be exactly the frozen form/) { validate_repo(tmp) }
+      expect_rejected("digest step with the non-fatal --version echo (#{name})", /#{Regexp.escape(NEN_DIGEST_STEPS.fetch(name).first)}" run must be exactly the frozen form/) { validate_repo(tmp) }
       File.write(file, text)
     end
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
