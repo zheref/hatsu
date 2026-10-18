@@ -537,7 +537,8 @@ NEN_DIGEST_FROZEN = {
       exit 1
     fi
     echo "nen binary sha256 ${observed} matches trusted nen/contract.json (linux-x64)."
-    echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"
+    nen_version="$("$NEN_BIN" --version)" || { echo "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."; exit 1; }
+    echo "nen: ${nen_version} at $NEN_BIN"
   RUN
 }.freeze
 # The bootstrap step's form beside the digest step: the same body without the
@@ -547,32 +548,20 @@ NEN_BOOTSTRAP_VERSION_LINE = %q{echo "nen: $("$bin" --version) at $bin"}
 NEN_BOOTSTRAP_NEXT = READINESS_FROZEN_BOOTSTRAP.merge(
   "run" => READINESS_FROZEN_BOOTSTRAP.fetch("run").sub("\n#{NEN_BOOTSTRAP_VERSION_LINE}", "")
 ).freeze
-# The digest step's NEXT form (zheref/hatsu#289 item 3, step one of its own two-step landing): the
-# closing `--version` echo made fatal, so a binary that matches its sha256 but cannot run fails the step
-# instead of printing an empty version. Admitted beside the current form here; the workflows flip in
-# step two, and the admission narrows back to one form there.
-NEN_DIGEST_FATAL = NEN_DIGEST_FROZEN.merge(
-  "run" => NEN_DIGEST_FROZEN.fetch("run").sub(%q{echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"}, <<~'FATAL'.strip)
-    nen_version="$("$NEN_BIN" --version)" || { echo "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."; exit 1; }
-    echo "nen: ${nen_version} at $NEN_BIN"
-  FATAL
-).freeze
+# The digest step's closing `--version` echo is fatal (zheref/hatsu#289 item 3, both steps landed): a
+# binary that matches its sha256 but cannot run fails the step instead of printing an empty version.
 # The builder's form: the same body, reading the contract in main's checkout.
 REGENERATE_NEN_DIGEST_STEP = "Verify the nen binary against nen/contract.json's sha256"
 REGENERATE_NEN_DIGEST_FROZEN = NEN_DIGEST_FROZEN.merge(
   "run" => NEN_DIGEST_FROZEN.fetch("run").gsub(".trusted/nen/contract.json", "nen/contract.json")
                                          .gsub("trusted nen/contract.json", "nen/contract.json")
 ).freeze
-REGENERATE_NEN_DIGEST_FATAL = NEN_DIGEST_FATAL.merge(
-  "run" => NEN_DIGEST_FATAL.fetch("run").gsub(".trusted/nen/contract.json", "nen/contract.json")
-                                         .gsub("trusted nen/contract.json", "nen/contract.json")
-).freeze
 # Where the digest step sits, by workflow: validate_workflow freezes it
 # wherever it appears and refuses it in tenkai's rendered form.
 NEN_DIGEST_STEPS = {
-  "surface-mirror-check.yml" => [NEN_DIGEST_STEP, [NEN_DIGEST_FROZEN, NEN_DIGEST_FATAL]],
-  "pr-readiness.yml" => [NEN_DIGEST_STEP, [NEN_DIGEST_FROZEN, NEN_DIGEST_FATAL]],
-  "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, [REGENERATE_NEN_DIGEST_FROZEN, REGENERATE_NEN_DIGEST_FATAL]]
+  "surface-mirror-check.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
+  "pr-readiness.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
+  "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN]
 }.freeze
 
 READINESS_VERDICT_STEP = "Readiness verdict"
@@ -1851,7 +1840,7 @@ def validate_workflow(path, hatsu: false)
       form = form.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
       kind = rendered ? "rendered" : "frozen"
       form.each do |name, frozen|
-        frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
+        frozen = digest_frozen if name == digest_name # the digest step's form (NEN_DIGEST_STEPS)
         require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{kind} readiness step #{name.inspect}")
       end
       if rendered
@@ -2190,7 +2179,7 @@ def validate_builder_workflow(path)
     frozen_steps = step_names.include?("Read the plugin stamp") ? REGENERATE_FROZEN_STEPS : REGENERATE_SCRIPT_FROZEN_STEPS
     frozen_steps = frozen_steps.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
     frozen_steps.each do |name, frozen|
-      frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
+      frozen = digest_frozen if name == digest_name # the digest step's form (NEN_DIGEST_STEPS)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{name.inspect}")
     end
     if carries_digest
@@ -2423,19 +2412,16 @@ def self_test(root)
     surface_original = File.read(surface)
     hostile.call("drift step tampered against its frozen form", surface, surface_original, "          code=0\n", "          code=1\n", step: DRIFT_STEP)
     File.write(surface, surface_original)
-    # The digest step is admitted in two forms during item 3's landing: whichever form the tree carries, the
-    # other must pass too, in every workflow that carries the step; a third form is refused by name.
+    # The digest step's closing echo is fatal in every workflow (zheref/hatsu#289 item 3, both steps landed): the
+    # old non-fatal echo is refused as a shape change, in each workflow that carries the step.
     old_echo = "          echo \"nen: $(\"$NEN_BIN\" --version) at $NEN_BIN\"\n"
     fatal_echo = "          nen_version=\"$(\"$NEN_BIN\" --version)\" || { echo \"::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed).\"; exit 1; }\n          echo \"nen: ${nen_version} at $NEN_BIN\"\n"
     NEN_DIGEST_STEPS.each_key do |name|
       file = File.join(tmp, ".github/workflows/#{name}")
       text = File.read(file)
-      other = text.include?(old_echo) ? text.sub(old_echo, fatal_echo) : text.sub(fatal_echo, old_echo)
-      fail_policy("self-test: #{name} carries neither digest echo form") if other == text
-      File.write(file, other)
-      validate_repo(tmp, announce: false)
-      File.write(file, other.sub("does not run (--version failed)", "does not run"))
-      expect_rejected("digest step in a third form (#{name})", /run must be exactly the frozen form/) { validate_repo(tmp) }
+      fail_policy("self-test: #{name} does not carry the fatal digest echo") unless text.include?(fatal_echo)
+      File.write(file, text.sub(fatal_echo, old_echo))
+      expect_rejected("digest step with the non-fatal --version echo (#{name})", /#{Regexp.escape(NEN_DIGEST_STEPS.fetch(name).first)}" run must be exactly the frozen form/) { validate_repo(tmp) }
       File.write(file, text)
     end
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
@@ -3338,6 +3324,10 @@ def self_test(root)
         File.write(binary, "#!/bin/sh\necho 0.0.0-digest-fixture\n")
         File.chmod(0o755, binary)
         recorded = Digest::SHA256.file(binary).hexdigest
+        broken = File.join(dir, "nen-linux-x64-broken")
+        File.write(broken, "#!/bin/sh\nexit 3\n")
+        File.chmod(0o755, broken)
+        recorded_broken = Digest::SHA256.file(broken).hexdigest
         failing_hash = File.join(dir, "failing-hash")
         FileUtils.mkdir_p(failing_hash)
         File.write(File.join(failing_hash, "sha256sum"), "#!/bin/sh\nexit 1\n")
@@ -3348,6 +3338,7 @@ def self_test(root)
         [
           ["the recorded digest", { "linux-x64" => recorded }, binary, 0, ["matches", "nen: 0.0.0-digest-fixture at #{binary}"]],
           ["a digest with a trailing newline", { "linux-x64" => "#{recorded}\n" }, binary, 1, ["::error::", "observed #{recorded}"]],
+          ["a binary that matches its sha256 but does not run", { "linux-x64" => recorded_broken }, broken, 1, ["matches", "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."]],
           ["a tampered digest", { "linux-x64" => tampered }, binary, 1, ["::error::", "expected sha256 #{tampered}", "observed #{recorded}"]],
           ["no linux-x64 key", { "darwin-arm64" => recorded }, binary, 1, ["::error::", "found ''", "observed #{recorded}"]],
           ["an uppercase digest", { "linux-x64" => recorded.upcase }, binary, 1, ["::error::", "observed #{recorded}"]],

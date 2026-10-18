@@ -145,17 +145,17 @@ A third lane declares a notarization binary that does not exist on this host:
 
 ```
 $ nen shu archive --repo <fixture> --lane signed
-Executable not found in $PATH: "kro-codesign-notarize"
+Executable not found in $PATH: "<product-repo-C>-codesign-notarize"
 lane:          signed  (nextjs)
 verb:          archive
 host:          darwin -- supported (declared: darwin, linux, win32)
 preconditions: (none declared)
-ran:           kro-codesign-notarize --identity 'Developer ID Application'  -- did not start
+ran:           <product-repo-C>-codesign-notarize --identity 'Developer ID Application'  -- did not start
 cwd:           <fixture>
 env:           (none added)
 artifacts:     dist/Signed.app.zip (absent)
 log:           not captured to a file -- …
-nen shu archive: step 1 of 1 could not be started: 'kro-codesign-notarize'. This repository's declaration names it for 'archive' on lane 'signed'; install it, or put it on PATH. nen never installs a toolchain on a repository's say-so.
+nen shu archive: step 1 of 1 could not be started: '<product-repo-C>-codesign-notarize'. This repository's declaration names it for 'archive' on lane 'signed'; install it, or put it on PATH. nen never installs a toolchain on a repository's say-so.
 exit=5
 ```
 

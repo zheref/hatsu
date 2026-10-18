@@ -254,7 +254,7 @@ first"*. `1` by `verdict`: `failure` → the failing step's log against the tabl
 free runner, quoted with the inventory (GitHub cancels a job queued 24 hours, and a PR check it left
 pending then reads cancelled — not Ready under CON-32(a) — until the pool runs it); `timeout` →
 unfinished, the same line later. `5` → `missing-tool`. Else F. Every remedy is the maintainer's act on
-the host, then § 7 again. The rows carry bankai-core's `docs/SETUP-SELF-HOSTED-RUNNERS.md`
+the host, then § 7 again. The rows carry <reference-repo>'s `docs/SETUP-SELF-HOSTED-RUNNERS.md`
 § *Troubleshooting* (T7–T13) under local ids:
 
 | Id | Seen | Remedy |

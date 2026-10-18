@@ -209,10 +209,10 @@ and the same code where the *store-upload program* is simply not installed:
 
 ```
 $ nen shu release --repo <fixture> --lane signed
-Executable not found in $PATH: "kro-store-upload"
+Executable not found in $PATH: "<product-repo-C>-store-upload"
 …
-ran:           kro-store-upload --channel appstore  -- did not start
-nen shu release: step 1 of 1 could not be started: 'kro-store-upload'. This repository's declaration names it for 'release' on lane 'signed'; install it, or put it on PATH. nen never installs a toolchain on a repository's say-so.
+ran:           <product-repo-C>-store-upload --channel appstore  -- did not start
+nen shu release: step 1 of 1 could not be started: '<product-repo-C>-store-upload'. This repository's declaration names it for 'release' on lane 'signed'; install it, or put it on PATH. nen never installs a toolchain on a repository's say-so.
 exit=5
 ```
 
