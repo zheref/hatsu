@@ -179,7 +179,8 @@ jobs:
             exit 1
           fi
           echo "nen binary sha256 ${observed} matches nen/contract.json (linux-x64)."
-          echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"
+          nen_version="$("$NEN_BIN" --version)" || { echo "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."; exit 1; }
+          echo "nen: ${nen_version} at $NEN_BIN"
 
       - name: Regenerate every surface
         env:
