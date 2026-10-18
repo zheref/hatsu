@@ -7,8 +7,9 @@
 #
 # Deterministic and agent-free: it computes the changed-files list, the base
 # `.claude-plugin/plugin.json` and the PR body from the triggering event and the
-# API, then hands all four inputs to `scripts/plugin_bump_check.sh`. The whole
-# decision lives in that script, so it can be exercised offline — the recorded
+# API, then hands all four inputs to `scripts/plugin_bump_check.sh`. Its
+# changelog-fragment decision runs in the trusted sibling TypeScript source.
+# Both can be exercised offline — the recorded
 # refuse/pass transcripts are in `docs/ab/plugin-bump-guard.md`.
 #
 # Two hardening choices carried over from the reference implementation's original,

@@ -101,6 +101,19 @@ assert_contains "$out" "prose ok: $total files" 'the verdict line follows the re
 run 0 "$clean" --headroom
 assert_contains "$out" '  left file' 'the flag is read in either position'
 
+# Warnings are advisory and apply to every measured dieted skill, not agents or rules.
+near="$fixture_root/near"
+make_root "$near"
+bytes "$near/claude/skills/breath/SKILL.md" 11777  # 511 bytes left
+bytes "$near/claude/skills/hanten/SKILL.md" 11776 # 512 bytes left
+bytes "$near/claude/agents/chrollo.md" 6144
+run 0 "$near"
+assert_lacks "$out" 'WARN' 'the plain verdict remains quiet'
+run 0 --headroom "$near"
+assert_contains "$out" 'WARN  claude/skills/breath/SKILL.md has 511 bytes headroom (under 512)' 'a measured skill under the threshold warns without failing'
+assert_lacks "$out" 'WARN  claude/skills/hanten/SKILL.md' 'exactly 512 bytes left is outside the warning band'
+assert_lacks "$out" 'WARN  claude/agents/chrollo.md' 'agents do not receive the skill warning'
+
 # --- exactly at the ceiling is within it; one byte over is named with size and ceiling ---
 edge="$fixture_root/edge"
 make_root "$edge"
