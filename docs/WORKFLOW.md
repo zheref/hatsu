@@ -552,7 +552,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 | Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |
 |---|---|---|---|
 | **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and every outgoing commit immediately before it pushes (§ 7) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
-| **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; `<product-repo-A>` and kro-pwa already carry one | **target-dependent** |
+| **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; `<product-repo-A>` and <product-repo-C>-pwa already carry one | **target-dependent** |
 
 > **From nen `v0.6.0` that hook's automated half is DERIVED from the repository's own policy, not a fixed
 > pair baked into the generator.** It requires exactly the ONE attribution trailer `--agent-trailer`
@@ -913,7 +913,7 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 ### `project.fromCore`
 
 ```json
-"fromCore": [ { "path": "Kro/Config.xcconfig", "why": "<why it lives only in the maintainer's checkout>" } ]
+"fromCore": [ { "path": "<product-repo-C>/Config.xcconfig", "why": "<why it lives only in the maintainer's checkout>" } ]
 ```
 
 **Hatsu's own block, beside `project.preconditions`, read by [`kagutsuchi`](../claude/skills/kagutsuchi/)
@@ -2357,7 +2357,7 @@ which case it was**.
 files — the top of `CHANGELOG.md`, the plugin manifests' `version`, the generated mirrors, one shared
 skill — merge one at a time and break every sibling's base as they land: the second needs a catch-up
 merge, the third a conflict pass, and the human gate turns into a conflict-resolver loop
-(zheref/hatsu#219, KRO#242's three PRs). **Overlap is sequenced, not raced**, and the sequence is a
+(zheref/hatsu#219, <product-repo-C>#242's three PRs). **Overlap is sequenced, not raced**, and the sequence is a
 **stack**: one PR per issue, each branch cut from the previous effort's tip, each PR based on the
 previous effort's branch, merged **bottom-up** by the maintainer.
 

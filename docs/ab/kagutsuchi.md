@@ -235,13 +235,13 @@ build SHA that is not `HEAD` (both named); one at `HEAD` behind `origin/main` (b
 distance counted); a `--base` origin does not carry; and the two verdicts that are not refusals —
 `fresh`, and exit `3` `unverified` where no `tags.identity` is declared.
 
-### The live half — zheref/KroApple, exactly as the maintainer left it
+### The live half — zheref/<product-repo-A>, exactly as the maintainer left it
 
 ```
-$ scripts/send_freshness_check.sh --repo /Users/zheref/Code/Apple/KroApple
+$ scripts/send_freshness_check.sh --repo /Users/zheref/Code/Apple/<product-repo-A>
 send_freshness_check.sh: the working tree is dirty -- refused before the send, not at the tag:
-     M Kro.xcodeproj/project.pbxproj
-     M Kro.xcodeproj/xcshareddata/xcschemes/PreviewHost.xcscheme
+     M <product-repo-C>.xcodeproj/project.pbxproj
+     M <product-repo-C>.xcodeproj/xcshareddata/xcschemes/PreviewHost.xcscheme
      M KroTests/Application/Do/DoDayContextSnapshotTests.swift
      … (22 paths)
 exit=2
@@ -252,7 +252,7 @@ would have gone to TestFlight on 2026-09-29 with every plan row `ok`. The gate r
 first check, before the archive's commit is even read.
 
 ```
-$ scripts/send_freshness_check.sh --repo /Users/zheref/Code/Apple/KroApple/.claude/worktrees/hatsu-ao-kagu-b49b3f
+$ scripts/send_freshness_check.sh --repo /Users/zheref/Code/Apple/<product-repo-A>/.claude/worktrees/hatsu-ao-kagu-b49b3f
 send_freshness_check.sh: the archive was built from dd490bed6a946be31484b1c8f81647f3728716f2, which is
 not the tip of origin/main (dfce334ea31296b803b4c2fbcb5c501237840b5f; 8 commit(s) behind) -- refused;
 catch the checkout up, re-run the archive, then send
@@ -285,35 +285,35 @@ destination are each refused with the outside file untouched (Feitan's round, 20
 directory beside a sibling `kagutsuchi2` registration is refused with core's `HEAD` and branch unmoved;
 a symlinked `.nen/worktrees` is refused; a vanished registration is dropped and re-created.
 
-**Live half, zheref/KroApple** (core at `/Users/zheref/Code/Apple/KroApple`, dirty on 22 paths on
+**Live half, zheref/<product-repo-A>** (core at `/Users/zheref/Code/Apple/<product-repo-A>`, dirty on 22 paths on
 `opus/do-ui-revisit`, exactly as the maintainer left it; nothing touched but the gitignored
 `.nen/worktrees/` the script owns; every `nen shu` line a `--dry-run`, nothing built, nothing sent):
 
 ```
-$ nen wc worktrees --repo /Users/zheref/Code/Apple/KroApple --json   → core: /Users/zheref/Code/Apple/KroApple, swap: null
-$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/KroApple --dry-run
+$ nen wc worktrees --repo /Users/zheref/Code/Apple/<product-repo-A> --json   → core: /Users/zheref/Code/Apple/<product-repo-A>, swap: null
+$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/<product-repo-A> --dry-run
 origin/main:   dfce334ea31296b803b4c2fbcb5c501237840b5f (as last fetched; --dry-run fetches nothing)
-worktree:        …/KroApple/.nen/worktrees/<name> (would create)
+worktree:        …/<product-repo-A>/.nen/worktrees/<name> (would create)
 copied:          none declared (nen/contract.json -> project.fromCore)
-$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/KroApple          → (created), head dfce334e
-$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/KroApple          → (reused)
+$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/<product-repo-A>          → (created), head dfce334e
+$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/<product-repo-A>          → (reused)
 $ nen shu archive --repo <worktree> --dry-run
 preconditions:
-  FAIL  path Kro/Config.xcconfig -- not present
-artifacts:     .nen/export/Kro.ipa (absent)
+  FAIL  path <product-repo-C>/Config.xcconfig -- not present
+artifacts:     .nen/export/<product-repo-C>.ipa (absent)
 ```
 
 (The run predates the rename: the worktree was created as `.nen/worktrees/kamui`; the script now names
 `.nen/worktrees/kagutsuchi`, and the earlier directory is the maintainer's to remove with `git -C
 <core> worktree remove --force .nen/worktrees/kamui`.) **Steps 1 and 2 collapsed and idempotent, live**;
 core's dirty tree was never an obstacle, since the worktree is cut from `origin/main`. **The archive
-precondition FAILs in the worktree on a path that exists gitignored in core** — KroApple declares no
+precondition FAILs in the worktree on a path that exists gitignored in core** — <product-repo-A> declares no
 `project.fromCore` yet, and the composite copies only what a declaration names. That is the
-`missing-configuration` ask kagutsuchi § 2 describes, and the row KroApple owes, through its own
+`missing-configuration` ask kagutsuchi § 2 describes, and the row <product-repo-A> owes, through its own
 declaration PR at **G2**:
 
 ```json
-"fromCore": [ { "path": "Kro/Config.xcconfig",
+"fromCore": [ { "path": "<product-repo-C>/Config.xcconfig",
   "why": "The gitignored base configuration carrying SUPABASE_URL and SUPABASE_ANON_KEY -- the file project.preconditions asserts on every Apple lane. It exists only in the maintainer's core checkout (CI recreates it from secrets); kagutsuchi § 3b copies it from there into its worktree so the fresh archive's precondition holds, and synthesises nothing." } ]
 ```
 
