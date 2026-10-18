@@ -553,7 +553,7 @@ hand-built sample documents carry all thirteen block keys for exactly this reaso
 **The gap.** On Codex the page is `<reports.dir>/current.html`, one per worktree. With two efforts in two
 worktrees, the maintainer's open tab kept showing the first worktree's page while the second effort
 rendered into its own file, so a pending product decision on the second desk read as absent
-(zheref/KroWindows#57, 2026-10-02). § 7 now says: the one chat line names the ACTIVE worktree's file by
+(zheref/<product-repo-E>#57, 2026-10-02). § 7 now says: the one chat line names the ACTIVE worktree's file by
 absolute path with the worktree and the branch; a render from another worktree moves that line to its
 own file; an older tab is never presented as current; a product decision is a `DECIDE` ask on the desk,
 `ask.gate: null`, never `ask.blocker`, and reaches `request_user_input` in the same turn (jutaisho § 1); the
