@@ -547,18 +547,32 @@ NEN_BOOTSTRAP_VERSION_LINE = %q{echo "nen: $("$bin" --version) at $bin"}
 NEN_BOOTSTRAP_NEXT = READINESS_FROZEN_BOOTSTRAP.merge(
   "run" => READINESS_FROZEN_BOOTSTRAP.fetch("run").sub("\n#{NEN_BOOTSTRAP_VERSION_LINE}", "")
 ).freeze
+# The digest step's NEXT form (zheref/hatsu#289 item 3, step one of its own two-step landing):
+# the closing `--version` echo made fatal, so a binary that matches its sha256 but cannot run
+# fails the step instead of printing an empty version. Admitted beside the current form here;
+# the workflows flip in step two, and the admission narrows back to one form after that.
+NEN_DIGEST_FATAL = NEN_DIGEST_FROZEN.merge(
+  "run" => NEN_DIGEST_FROZEN.fetch("run").sub(%q{echo "nen: $("$NEN_BIN" --version) at $NEN_BIN"}, <<~'FATAL'.strip)
+    nen_version="$("$NEN_BIN" --version)" || { echo "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."; exit 1; }
+    echo "nen: ${nen_version} at $NEN_BIN"
+  FATAL
+).freeze
 # The builder's form: the same body, reading the contract in main's checkout.
 REGENERATE_NEN_DIGEST_STEP = "Verify the nen binary against nen/contract.json's sha256"
 REGENERATE_NEN_DIGEST_FROZEN = NEN_DIGEST_FROZEN.merge(
   "run" => NEN_DIGEST_FROZEN.fetch("run").gsub(".trusted/nen/contract.json", "nen/contract.json")
                                          .gsub("trusted nen/contract.json", "nen/contract.json")
 ).freeze
+REGENERATE_NEN_DIGEST_FATAL = NEN_DIGEST_FATAL.merge(
+  "run" => NEN_DIGEST_FATAL.fetch("run").gsub(".trusted/nen/contract.json", "nen/contract.json")
+                                         .gsub("trusted nen/contract.json", "nen/contract.json")
+).freeze
 # Where the digest step sits, by workflow: validate_workflow freezes it
 # wherever it appears and refuses it in tenkai's rendered form.
 NEN_DIGEST_STEPS = {
-  "surface-mirror-check.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
-  "pr-readiness.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
-  "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN]
+  "surface-mirror-check.yml" => [NEN_DIGEST_STEP, [NEN_DIGEST_FROZEN, NEN_DIGEST_FATAL]],
+  "pr-readiness.yml" => [NEN_DIGEST_STEP, [NEN_DIGEST_FROZEN, NEN_DIGEST_FATAL]],
+  "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, [REGENERATE_NEN_DIGEST_FROZEN, REGENERATE_NEN_DIGEST_FATAL]]
 }.freeze
 
 READINESS_VERDICT_STEP = "Readiness verdict"
@@ -917,11 +931,10 @@ REGENERATE_PR_WITH = {
 # silently collapses the two shapes.
 # surface-mirror-check.yml's "Surface-mirror drift check" step was the one unfrozen run body
 # left in the guard workflows (zheref/hatsu#289 item 2, ruled 2026-10-17: freeze it). Two-step
-# landing: this constant is the live body as of that ruling, and DRIFT_STEP_FROZEN admits the
-# free form beside it until step two flips the toggle and narrows the admission to the frozen
-# form alone; the self-test proves the live step already equals the frozen form.
+# landing: step one held this constant as the live body and admitted the free form beside it;
+# step two (zheref/hatsu#289) flipped DRIFT_STEP_FROZEN, so the frozen form alone is admitted.
 DRIFT_STEP = "Surface-mirror drift check"
-DRIFT_STEP_FROZEN = false
+DRIFT_STEP_FROZEN = true
 DRIFT_FROZEN_GUARD = {
   "env" => {
     "NEN_BIN" => "${{ steps.nen.outputs.bin }}",
@@ -1244,6 +1257,27 @@ end
 # comment lines included, never through code_of.
 def require_frozen_step(step, frozen, label)
   fail_policy("#{label} is missing") unless step
+  # A two-step landing admits a list of forms: the current one and the next, each exact; the
+  # first that holds passes, and the refusal names the last tried (zheref/hatsu#289 item 3).
+  if frozen.is_a?(Array)
+    captured = ""
+    frozen.each do |form|
+      buffer = StringIO.new
+      real_stderr = $stderr
+      begin
+        $stderr = buffer
+        require_frozen_step(step, form, label)
+        return
+      rescue SystemExit => error
+        raise unless error.status == 1
+        captured = buffer.string
+      ensure
+        $stderr = real_stderr
+      end
+    end
+    $stderr.write(captured)
+    raise SystemExit, 1
+  end
   allowed = (["name"] + frozen.keys).sort
   fail_policy("#{label} may carry only #{allowed.join(", ")}") unless step.keys.sort == allowed
   frozen.each do |key, value|
@@ -1792,6 +1826,7 @@ def validate_workflow(path, hatsu: false)
       form = form.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
       kind = rendered ? "rendered" : "frozen"
       form.each do |name, frozen|
+        frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
         require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{kind} readiness step #{name.inspect}")
       end
       if rendered
@@ -2127,6 +2162,7 @@ def validate_builder_workflow(path)
     frozen_steps = REGENERATE_FROZEN_STEPS
     frozen_steps = frozen_steps.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
     frozen_steps.each do |name, frozen|
+      frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen, "#{path} #{name.inspect}")
     end
     if carries_digest
@@ -2335,7 +2371,20 @@ def self_test(root)
     expect_rejected("comment-only workflow file", /empty or carries no YAML document/) { validate_repo(tmp) }
     File.write(plugin, original)
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
-    # The drift step's live form is the frozen form (zheref/hatsu#289 item 2, step one), so step two is a toggle flip.
+    # The digest step's next form (the fatal --version echo) is admitted beside the current one (zheref/hatsu#289 item 3).
+    FileUtils.rm(extra)
+    surface = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
+    surface_text = File.read(surface)
+    fatal_text = surface_text.sub("          echo \"nen: $(\"$NEN_BIN\" --version) at $NEN_BIN\"\n",
+                                  "          nen_version=\"$(\"$NEN_BIN\" --version)\" || { echo \"::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed).\"; exit 1; }\n          echo \"nen: ${nen_version} at $NEN_BIN\"\n")
+    fail_policy("self-test: the digest step's --version echo was not found to rewrite") if fatal_text == surface_text
+    File.write(surface, fatal_text)
+    validate_repo(tmp)
+    File.write(surface, fatal_text.sub("does not run (--version failed)", "does not run"))
+    expect_rejected("digest step in a third form") { validate_repo(tmp) }
+    File.write(surface, surface_text)
+    File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
+    # The drift step's live form is the frozen form (zheref/hatsu#289 item 2); step two flipped the toggle.
     live_surface = Psych.parse_file(File.join(root, ".github/workflows/surface-mirror-check.yml"))
     live_steps = mapping(mapping(mapping(live_surface.root, "surface").fetch("jobs"), "jobs").fetch("surface-mirror-check"), "surface-mirror-check").fetch("steps")
     live_drift = live_steps.children.map { |s| mapping(s, "self-test step") }.find { |s| scalar(s["name"]) == DRIFT_STEP }
