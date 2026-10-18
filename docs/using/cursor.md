@@ -106,6 +106,12 @@ id resolved rather than remembered, is under [Headless, for automation](#headles
 whose `build` you get when two plugins claim the name, who rings the bell, and which aliases the matrix
 answers with.
 
+**Cursor is Hatsu's coding surface for Grok-based models.** The `EDITOR_FRONTIER` route uses Cursor's
+Grok line for local authoring. For a declared CI job that needs a Grok agent, xAI also documents
+[Grok Build's headless CLI](https://docs.x.ai/build/cli/headless-scripting) with `grok -p` and
+`--no-auto-update`; that job must supply its own authentication, permissions and checks. Grok Build
+is not a separate Hatsu interactive surface ([the ruling](../ROSTER.md#rulings-of-2026-10-17--cursor-carries-grok-coding-grok-build-is-a-ci-option)).
+
 
 ### Invoking a skill
 
