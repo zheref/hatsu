@@ -430,3 +430,13 @@ drawn graph, a spend block and the legend.
 
 Theme, fonts, the toggle, the SRI pin and the blocked-script fallback are the same mechanism as
 Spiritual Message's and were verified there — see `docs/ab/spiritual-message.md`, same date.
+
+## Dated verification, 2026-10-18 — the shared selector grammar (zheref/hatsu#297)
+
+The board's § 1 is backlog-state § 1's template plus `[every <freq:turn|state-change|once>]`; at nen
+0.22.0 `hatsu@g4+g5 every turn` parses as `gate: G4+G5` · `freq: turn`, and the `every` clause still
+stops the `#` labels (`hatsu#model/gpt every once` → `labels: model/gpt` · `freq: once`). The
+filtered register is `nen report data … [--label …] --register <desk>`; a filtered document appends
+`objectsFilter` as its last key, and a desk naming an object the filter removed is refused at exit `2`
+naming it (zheref/nen#410). The live filter reads are recorded in `docs/ab/backlog-state.md`'s
+section of the same date.
