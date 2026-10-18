@@ -386,14 +386,14 @@
       "lookup": "the workspace's model picker"
     },
     "$nonActionable": {
-      "$comment": "Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. Each appears as an INTERACTIVE equivalent where a cell names it. Adding one is a surface proposal through great-hiker (zheref/hatsu#236 for Grok Build), never a registry edit.",
+      "$comment": "Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. These entries provide context, not actionable picks. The 2026-10-17 ruling in docs/ROSTER.md keeps Grok Build here as a headless CI option and Cursor as the actionable Grok coding surface; any future fifth surface would require a separate great-hiker proposal, never only a registry edit.",
       "grok-build": {
         "label": "Grok Build",
         "provider": "xai",
         "line": "grok",
-        "what": "xAI's agentic coding CLI: early beta 2026-05-14, v1.0 on 2026-08-07 under Apache 2.0, a SuperGrok or X Premium+ subscription; defaults to the Grok line, with an interactive TUI, a headless mode and ACP for editors",
+        "what": "xAI's agentic coding CLI: early beta 2026-05-14, v1.0 on 2026-08-07 under Apache 2.0, a SuperGrok or X Premium+ subscription; defaults to the Grok line, with an interactive TUI, a headless mode for declared CI jobs and ACP for editors",
         "lookup": "https://docs.x.ai/docs/models",
-        "proposal": "zheref/hatsu#236 (a fifth surface: decide, and if adopted, guide, generator row and tiers)"
+        "decision": "zheref/hatsu#236: stay non-actionable; Cursor is the official Grok coding surface, Grok Build a headless CI option"
       },
       "copilot": {
         "label": "GitHub Copilot",
