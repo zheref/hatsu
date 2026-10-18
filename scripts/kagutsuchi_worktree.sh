@@ -86,17 +86,17 @@ st_build() {  # st_build <dir>
   git -C "$1/origin.git" symbolic-ref HEAD refs/heads/main
   git init -q "$1/core" >/dev/null 2>&1 || return 1
   git -C "$1/core" symbolic-ref HEAD refs/heads/main
-  mkdir -p "$1/core/nen" "$1/core/Kro"
+  mkdir -p "$1/core/nen" "$1/core/product-repo-c"
   printf '{ "branch": { "base": "main" } }\n' >"$1/core/nen/workflow.json"
-  st_contract "$1/core" '[ { "path": "Kro/Config.xcconfig", "why": "gitignored credentials, core only" } ]'
-  printf '/Kro/Config.xcconfig\n.nen/\n' >"$1/core/.gitignore"
+  st_contract "$1/core" '[ { "path": "product-repo-c/Config.xcconfig", "why": "gitignored credentials, core only" } ]'
+  printf '/product-repo-c/Config.xcconfig\n.nen/\n' >"$1/core/.gitignore"
   printf 'hello\n' >"$1/core/README"
   st_git -C "$1/core" add -A
   st_git -C "$1/core" commit -q -m base
   git -C "$1/core" remote add origin "$1/origin.git"
   git -C "$1/core" push -q origin main
   git -C "$1/core" fetch -q origin main
-  printf 'SUPABASE_URL = x\n' >"$1/core/Kro/Config.xcconfig"   # the maintainer's own, gitignored
+  printf 'SUPABASE_URL = x\n' >"$1/core/product-repo-c/Config.xcconfig"   # the maintainer's own, gitignored
   st_sha="$(git -C "$1/core" rev-parse HEAD)"
 }
 
@@ -131,8 +131,8 @@ self_test_main() {
 
   st_run 0 "a fresh core gets one worktree at origin/main's tip with the declared file copied" --repo "$core"
   st_says "worktree:        $wt (created)" "and says created"
-  st_says "copied:          Kro/Config.xcconfig (from core, gitignored)" "and names the copied path"
-  [ -f "$wt/Kro/Config.xcconfig" ] && echo "  ok    and the file is in the worktree" \
+  st_says "copied:          product-repo-c/Config.xcconfig (from core, gitignored)" "and names the copied path"
+  [ -f "$wt/product-repo-c/Config.xcconfig" ] && echo "  ok    and the file is in the worktree" \
     || { echo "  FAIL  the file was not copied" >&2; st_fails=$((st_fails + 1)); }
   [ "$(git -C "$wt" rev-parse HEAD)" = "$st_sha" ] && echo "  ok    and the worktree's HEAD is the tip" \
     || { echo "  FAIL  the worktree is not at the tip" >&2; st_fails=$((st_fails + 1)); }
@@ -171,30 +171,30 @@ self_test_main() {
   st_run 2 "a fromCore path that is tracked is refused" --repo "$core"
   st_says "tracked" "and says tracked"
 
-  st_contract "$core" '[ { "path": "Kro/Secret.env", "why": "not ignored" } ]'
-  printf 'x\n' >"$core/Kro/Secret.env"
+  st_contract "$core" '[ { "path": "product-repo-c/Secret.env", "why": "not ignored" } ]'
+  printf 'x\n' >"$core/product-repo-c/Secret.env"
   st_run 2 "a fromCore path that is not gitignored is refused" --repo "$core"
   st_says "gitignored" "and says why"
-  rm -f "$core/Kro/Secret.env"
+  rm -f "$core/product-repo-c/Secret.env"
 
-  st_contract "$core" '[ { "path": "Kro/Missing.xcconfig", "why": "absent in core" } ]'
-  printf '/Kro/Missing.xcconfig\n' >>"$core/.gitignore"
+  st_contract "$core" '[ { "path": "product-repo-c/Missing.xcconfig", "why": "absent in core" } ]'
+  printf '/product-repo-c/Missing.xcconfig\n' >>"$core/.gitignore"
   st_run 2 "a fromCore path absent in core is refused: nothing is synthesised" --repo "$core"
   st_says "absent in core" "and says absent"
 
   st_contract "$core" '[ { "path": "../outside", "why": "escapes" } ]'
   st_run 2 "a fromCore path that leaves the tree is refused" --repo "$core"
 
-  st_contract "$core" '[ { "path": "Kro/Link.xcconfig", "why": "symlink" } ]'
-  printf '/Kro/Link.xcconfig\n' >>"$core/.gitignore"
-  ln -s /etc/hosts "$core/Kro/Link.xcconfig"
+  st_contract "$core" '[ { "path": "product-repo-c/Link.xcconfig", "why": "symlink" } ]'
+  printf '/product-repo-c/Link.xcconfig\n' >>"$core/.gitignore"
+  ln -s /etc/hosts "$core/product-repo-c/Link.xcconfig"
   st_run 2 "a symlinked fromCore source is refused" --repo "$core"
-  rm -f "$core/Kro/Link.xcconfig"
+  rm -f "$core/product-repo-c/Link.xcconfig"
 
-  st_contract "$core" '[ { "path": "Kro/*.xcconfig", "why": "a glob" } ]'
+  st_contract "$core" '[ { "path": "product-repo-c/*.xcconfig", "why": "a glob" } ]'
   st_run 2 "a fromCore path carrying a glob character is refused by the reader" --repo "$core"
   st_says "one literal path" "and says why"
-  st_contract "$core" '[ { "path": "Kro/Config with space.xcconfig", "why": "whitespace" } ]'
+  st_contract "$core" '[ { "path": "product-repo-c/Config with space.xcconfig", "why": "whitespace" } ]'
   st_run 2 "a fromCore path carrying whitespace is refused by the reader" --repo "$core"
 
   st_contract "$core" ""
@@ -208,24 +208,24 @@ self_test_main() {
   # refspec) never sees a rewound origin until the fixture rewinds BOTH refs at the end.
   mkdir -p "$st_tmp/outside"; printf 'victim\n' >"$st_tmp/outside/Config.xcconfig"
   st_git -C "$st_tmp/other" reset -q --hard "$st_new"
-  rm -rf "$st_tmp/other/Kro"; ln -s "$st_tmp/outside" "$st_tmp/other/Kro"
-  st_git -C "$st_tmp/other" add Kro; st_git -C "$st_tmp/other" commit -q -m parent-symlink
+  rm -rf "$st_tmp/other/product-repo-c"; ln -s "$st_tmp/outside" "$st_tmp/other/product-repo-c"
+  st_git -C "$st_tmp/other" add product-repo-c; st_git -C "$st_tmp/other" commit -q -m parent-symlink
   git -C "$st_tmp/other" push -q origin main
   st_run 2 "a tip that tracks the destination's PARENT as a symlink is refused, nothing written outside" --repo "$core"
   [ "$(cat "$st_tmp/outside/Config.xcconfig")" = "victim" ] && echo "  ok    and the outside file is untouched" \
     || { echo "  FAIL  the outside file was overwritten" >&2; st_fails=$((st_fails + 1)); }
 
-  rm -f "$st_tmp/other/Kro"; mkdir -p "$st_tmp/other/Kro"
-  ln -s "$st_tmp/outside/Config.xcconfig" "$st_tmp/other/Kro/Config.xcconfig"
-  st_git -C "$st_tmp/other" add -A; st_git -C "$st_tmp/other" add -f Kro/Config.xcconfig; st_git -C "$st_tmp/other" commit -q -m leaf-symlink
+  rm -f "$st_tmp/other/product-repo-c"; mkdir -p "$st_tmp/other/product-repo-c"
+  ln -s "$st_tmp/outside/Config.xcconfig" "$st_tmp/other/product-repo-c/Config.xcconfig"
+  st_git -C "$st_tmp/other" add -A; st_git -C "$st_tmp/other" add -f product-repo-c/Config.xcconfig; st_git -C "$st_tmp/other" commit -q -m leaf-symlink
   git -C "$st_tmp/other" push -q origin main
   st_run 2 "a tip that tracks the destination LEAF as a symlink is refused" --repo "$core"
   st_says "TRACKED" "and says tracked at the tip"
   [ "$(cat "$st_tmp/outside/Config.xcconfig")" = "victim" ] && echo "  ok    and the outside file is untouched" \
     || { echo "  FAIL  the outside file was overwritten through the leaf symlink" >&2; st_fails=$((st_fails + 1)); }
 
-  rm -f "$st_tmp/other/Kro/Config.xcconfig"; printf 'tracked placeholder\n' >"$st_tmp/other/Kro/Config.xcconfig"
-  st_git -C "$st_tmp/other" add -f Kro/Config.xcconfig; st_git -C "$st_tmp/other" commit -q -m leaf-tracked
+  rm -f "$st_tmp/other/product-repo-c/Config.xcconfig"; printf 'tracked placeholder\n' >"$st_tmp/other/product-repo-c/Config.xcconfig"
+  st_git -C "$st_tmp/other" add -f product-repo-c/Config.xcconfig; st_git -C "$st_tmp/other" commit -q -m leaf-tracked
   git -C "$st_tmp/other" push -q origin main
   st_run 2 "a tip that tracks the destination as a regular file is refused, never overwritten" --repo "$core"
   [ -z "$(git -C "$wt" status --porcelain)" ] && echo "  ok    and the worktree stays clean" \
@@ -236,10 +236,10 @@ self_test_main() {
   st_git -C "$st_tmp/other" reset -q --hard "$st_new"
   st_run 0 "with the trunk restored, the worktree moves back and the copy lands" --repo "$core"
   st_says "core-ignore:     .nen/worktrees/kagutsuchi is gitignored in core" "and says core ignores the worktree"
-  ln -sf "$st_tmp/outside/Config.xcconfig" "$wt/Kro/Config.xcconfig"
+  ln -sf "$st_tmp/outside/Config.xcconfig" "$wt/product-repo-c/Config.xcconfig"
   st_run 2 "an untracked symlink at the destination inside the worktree is refused" --repo "$core"
   st_says "symlink in the worktree" "and says so"
-  rm -f "$wt/Kro/Config.xcconfig"
+  rm -f "$wt/product-repo-c/Config.xcconfig"
 
   # --- a sibling registration must never read as ours (Feitan / Nobunaga, 2026-09-30) -------------
   git -C "$core" worktree add -q --detach "$core/.nen/worktrees/kagutsuchi2" "$st_new"

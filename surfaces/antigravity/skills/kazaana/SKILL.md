@@ -31,7 +31,7 @@ composite calls skip their own `## 0.`** ([`STANDALONE-ENTRY.md`](../../../../do
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
-Verified at nen `0.21.0` (2026-10-13): `KroApple` → `repo: KroApple · line: (clause absent)`; `on
+Verified at nen `0.21.0`: `<product-repo-A>` → `repo: <product-repo-A> · line: (clause absent)`; `on
 llama` and an empty line are exit `2` — the trigger to ask (row `missing-argument`: the checkout's own
 repository is the derived candidate).
 
