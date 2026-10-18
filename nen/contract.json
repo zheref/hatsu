@@ -301,6 +301,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/plugin_bump_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the guard's executable behavior. It creates synthetic changed-file lists and manifests in a temporary directory, invokes the checked-in guard, and removes that directory. Run it only as `nen shu test --lane plugin-bump-guard --repo <hatsu>` when the guard changes."
@@ -310,6 +312,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/hatsu_plugin_update_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the plugin-source updater. Run it only as `nen shu test --lane plugin-update --repo <hatsu>` when scripts/hatsu_plugin_update.sh or its fixture changes."
@@ -319,6 +323,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/hatsu_surface_link_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface-link installer. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes."
@@ -328,6 +334,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/surface_bootstrap_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated."
@@ -337,6 +345,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/nen_global_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the host nen linker AND for step 0 of hooks/session-start.sh: digest-before-link, never-downgrade, the cleaned bootstrap environment, the url pin, the atomic link, rc paths with spaces and hostile bin dirs, the opt-outs, the lock, the TERM and time-bound behaviour, and the hook's JSON, stderr and .nen/session-start.log paths on a source and a mirrored copy. Run it as `nen shu test --lane nen-global-guard --repo <hatsu>` when scripts/nen_global.sh, hooks/session-start.sh's step 0, dependency.bootstrap.sha256 or the fixture changes; it reads the real nen/contract.json pin (or a sed-edited copy of it) and runs every case under a throwaway HOME, XDG_CACHE_HOME and XDG_CONFIG_HOME, so it never touches the network or the real HOME."
@@ -346,6 +356,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/permissions_pack_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes."
@@ -354,7 +366,7 @@
       "trusted-guard-preflight": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/trusted_guard_preflight_fixture.sh"],
+          "argv": ["scripts/fixture_output_guard.sh", "bash", "scripts/trusted_guard_preflight_fixture.sh"],
           "$comment": "Run this focused fixture when the trusted preflight or its workflow-derived dispatch changes."
         }
       },
@@ -362,6 +374,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/surface_mirror_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the mirror drift guard. Run it as `nen shu test --lane surface-mirror-guard --repo <hatsu>` when scripts/surface_mirror_check.sh or its fixture changes."
@@ -371,6 +385,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/hatsu_root_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the plugin-root resolver. Run it as `nen shu test --lane root-guard --repo <hatsu>` when scripts/hatsu_root.sh or its fixture changes."
@@ -380,6 +396,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/surface_link_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors."
@@ -389,6 +407,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/private_name_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the private-repository-name guard. Run it as `nen shu test --lane redaction-guard --repo <hatsu>` when scripts/private_name_check.sh or its fixture changes; run the guard itself against the tree with `bash scripts/private_name_check.sh --tree .` on the maintainer's own credentials."
@@ -398,6 +418,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/bell_notify_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the bell script. Run it as `nen shu test --lane bell-guard --repo <hatsu>`; 20 checks."
@@ -407,6 +429,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/prose_size_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the prose-diet guard. Run it as `nen shu test --lane prose-guard --repo <hatsu>` when scripts/prose_size_check.sh or its fixture changes; run the guard itself (`sh scripts/prose_size_check.sh --headroom`) to read the live margins."
@@ -416,6 +440,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/tenkai_adopt.sh",
             "--self-test"
           ],
@@ -426,6 +452,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/pr_composition_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the PR-composition drift guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane pr-composition-guard --repo <hatsu>` when contracts/pr-composition.json, contracts/pr-body.requirements.json, templates/pr-body.md, docs/WORKFLOW.md section Gate derivation, a reader the declaration lists, or the guard changes; run the guard itself as `bash scripts/pr_composition_check.sh`."
@@ -435,6 +463,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/report_markdown_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the Markdown report guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane report-markdown-guard --repo <hatsu>` when a report template (either format), templates/report-examples/, templates/graph.example.json, reports.sections in nen/workflow.json, or the guard changes; run the guard itself as `bash scripts/report_markdown_check.sh`, and `--write-examples` after a deliberate template change."
@@ -444,6 +474,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/config_values.sh",
             "--self-test"
           ],
@@ -454,6 +486,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/publish_gate_fixture.sh"
           ],
           "$comment": "Hermetic and offline: a nen shim on PATH answers wc catch-up, shu lint and wc publish from environment variables, so the fixture proves the SCRIPT's chain and never nen; real git for the repository, its remote and scripts/branch_authorship_check.sh. Run it as `nen shu test --lane publish-gate-guard --repo <hatsu>` when scripts/publish_gate.sh, its fixture or branch_authorship_check.sh changes."
@@ -463,6 +497,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/canon_contracts_check.sh",
             "--self-test"
           ],
@@ -473,6 +509,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/direct_matrix_doc.sh",
             "--self-test"
           ],
@@ -481,8 +519,10 @@
       },
       "workflow-policy-guard": {
         "test": {
-          "exe": "ruby",
+          "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "ruby",
             "scripts/workflow_runner_policy_check.rb",
             "--self-test",
             "."
@@ -494,6 +534,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/release-publish.sh",
             "--self-test"
           ],
@@ -502,8 +544,10 @@
       },
       "dist-tag-guard": {
         "test": {
-          "exe": "sh",
+          "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "sh",
             "scripts/dist_tag.sh",
             "--self-test"
           ],
@@ -512,8 +556,10 @@
       },
       "report-time-guard": {
         "test": {
-          "exe": "sh",
+          "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "sh",
             "scripts/report_time.sh",
             "--self-test"
           ],
@@ -524,6 +570,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/gh_token_env_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the GH_TOKEN wrapper. Run it as `nen shu test --lane gh-token-guard --repo <hatsu>` when scripts/gh_token_env.sh or its fixture changes."
@@ -533,6 +581,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/nen_reach_probe_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the reachability probe. Run it as `nen shu test --lane reach-probe-guard --repo <hatsu>` when scripts/nen_reach_probe.sh or its fixture changes."
@@ -542,6 +592,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/surface_mirror_regenerate_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the mirror regenerator. Run it as `nen shu test --lane mirror-regenerate-guard --repo <hatsu>` when scripts/surface_mirror_regenerate.sh, scripts/surface_mirror_check.sh or the fixture changes."
@@ -549,8 +601,10 @@
       },
       "pr-body-guard": {
         "test": {
-          "exe": "sh",
+          "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "sh",
             "scripts/pr_body_evidence_check.sh",
             "--self-test"
           ],
@@ -561,6 +615,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/pr_development_link_check.sh",
             "--self-test"
           ],
@@ -569,8 +625,10 @@
       },
       "freshness-guard": {
         "test": {
-          "exe": "sh",
+          "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "sh",
             "scripts/send_freshness_check.sh",
             "--self-test"
           ],
@@ -581,6 +639,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/publish_integrity_fixture.sh"
           ],
           "$comment": "Hermetic and offline, 79 cases. branch_authorship_check.sh: a clean branch, an empty range and a present trailer pass; --require-agent stops a reviewer persona's commit and a trailer-less one on the maintainer's own identity; a foreign author or committer and a missing required trailer stop at exit 1 naming the SHA, author and file count; a clean trunk merge passes only with --trunk, an evil merge and a clean merge of a non-trunk branch stop even with it; trunk history a catch-up brought in is out of range; RED-1 the outgoing range passes past a published web-flow commit; hostile subjects are sanitised; a malformed --require-trailer, --require-agent or --allow-email, an unresolvable base or trunk, a non-repository, an unknown argument, no identity at all and --trunk on a git without merge-tree --write-tree are exit 2. publish_gate_check.sh: the full gated && block passes (redirections are not separators, a quoted # hides nothing); a ;, a ||, a bare newline, a pipe (glued to the publish too), a lone &, a negated catch-up, authorship check or noOp read, a second ungated publish, an authorship check on its own line and a ~~~, nested or unterminated fence each fail, as does a publish spelled with doubled spaces or a tab; a murasaki with no full gated block fails; the owners carry a file-level policy -- in murasaki or mukai every publish needs its own catch-up and authorship check, in aka its own authorship check, so a bare publish block beside a gated one fails, and anywhere a publish ahead of the check its block names fails (Copilot on HA-PR-#192); a directory or unreadable file is exit 2; the live skills pass. Run it as `nen shu test --lane publish-integrity-guard --repo <hatsu>` when either script or the publish prose changes."
@@ -590,6 +650,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/hanten_cycle_ledger_late_persona_fixture.sh"
           ],
           "$comment": "Hermetic and offline: throwaway repositories under a temp dir. The script's own --self-test (budgets from workflow.json, decide/record, recover-first, PR-keyed ledgers, concurrency, late-persona hydration, and ensure for zheref/hatsu#169: an app-created branch opened, a breath-created one untouched, the trunk refused (origin/HEAD included), a lost ledger reported and never re-opened -- after git clean, after its worktree is removed, while another worktree holds it, beside another PR's ledger, under a stale lock -- the current PR's own PR-keyed ledger read as present, a sibling branch (x/ten-preflight, x/ten-pr2-notes beside x/ten) never a trace, a young in-flight lock waited on rather than read as lost, two concurrent ensures over 30 trials each (a stale lock always lost, a fresh branch never), a refused read leaving no lock; the appended ensure cases fail the lane too), then a lost, deleted or re-cased late-persona row refused in a ledger that already knew him (personasAtOpen, lateHydrated), with a 0.66.0-shaped ledger still hydrating. Run it as `nen shu test --lane ledger-guard --repo <hatsu>` when scripts/hanten_cycle_ledger.sh changes."
@@ -597,8 +659,10 @@
       },
       "fresh-worktree-guard": {
         "test": {
-          "exe": "sh",
+          "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "sh",
             "scripts/kagutsuchi_worktree.sh",
             "--self-test"
           ],
@@ -609,6 +673,8 @@
         "test": {
           "exe": "bash",
           "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
             "scripts/runner_preflight_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the runner preflight template. Run it as `nen shu test --lane runner-preflight-guard --repo <hatsu>` when templates/runner-preflight.yml or its fixture changes."
