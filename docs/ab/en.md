@@ -410,3 +410,19 @@ only through `nen pr request-reviews`, and never again once N resolved rounds ex
 than N resolved is the reported blocker. Read on this repository at nen 0.15.1: `round_policy` reads
 `minRounds 1, maxRounds 3`, and HA-PR-#126's first request answered *(none reported back)* while the
 verdict read `no round at head` — one requested, none posted, none resolved.
+
+## Published PR continuation route — 2026-10-17 (zheref/hatsu#292)
+
+HA-PR-#274 was already published at `b5fddea` when HA-PR-#273 advanced `main`. Its local catch-up
+merge at `5de39c5` was a descendant of the published head. Asking for a fresh Aka call was wrong:
+`nen wc squash` refused because 29 of the 31 commits after the proposed squash point were already
+on `origin/main`, and flattening them would lose the base merge. The expected En continuation is:
+
+1. Keep the open PR in En. Ao merges its advanced base; preserve the published ancestry.
+2. Refresh the current-tree tests and coverage owed by the changed tree, then run Murasaki's six-gate
+   fast-forward publication for the proved head. A changed catch-up loops back through evidence.
+3. Re-read `nen pr ready` at the pushed head. Only En's § 5 human merge gate can merge the PR.
+
+First publication follows the authorizing workflow's existing authority; an En continuation of an
+already published PR needs no new Aka call. This scenario exercises the entry routing rule; it does
+not change either skill's push or merge authority.
