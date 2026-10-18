@@ -538,6 +538,16 @@ Run against the § 1 template with the released v0.22.0 binary (zheref/nen#410, 
 | `hatsu@model/gpt#lang/typescript` | `label: model/gpt` · `labels: lang/typescript` |
 | `hatsu@g4+model/gpt` | exit `2`: *"<gate> is one or more of G1 \| … joined by '+', and 'model/gpt' is none of them"* |
 | *(empty)* | exit `2`: *"<repo> is required"* — the no-token rule prefixes the standing repository's code first |
+| `hatsu@medium#lang/prose` | `severity: medium` · `labels: lang/prose` |
+| `hatsu@all+g4` | `gate: all+G4`, `items: [all, G4]` — `all` in a list is every gate (§ 1) |
+| `hatsu#good first issue` | `labels: good first issue`, `items: [good first issue]` — a spaced label typed unquoted |
+| `hatsu@g9` | `label: g9` — no piece is a gate, so it is a label; the fetch refuses it as undeclared (below) |
+| `hatsu@` · `hatsu#` | `repo: hatsu`, the clause absent — § 1 asks rather than reading it as no filter |
+| `hatsu@high+g4` | exit `2`: *"'high+g4' mixes <gate> and <severity> values in one token"* |
+| `hatsu@high+low` | exit `2`: *"<severity> is ONE of critical \| high \| medium \| low (case-insensitively), optionally followed by one '+', and 'high+low' is not that"* — § 1's starred correction is `@low+` |
+| `hatsu@g4+` | exit `2`: *"… joined by '+', and 'g4+' has an empty item (a leading, trailing or doubled '+')"* |
+| `hatsu@g4++g5` | exit `2`: *"… 'g4++g5' has an empty item"* |
+| `hatsu@high++` | exit `2`: *"<severity> is ONE of … and 'high++' is not that"* |
 
 The filters, against zheref/hatsu's own checkout (`--repo`):
 
@@ -553,3 +563,11 @@ The filters, against zheref/hatsu's own checkout (`--repo`):
 - `nen report data --repo . --base origin/main --target zheref/hatsu --issues 297 --label model/claude
   --json` → `objectsFilter: { labels: [model/claude], severity: null, kept: 0, of: 1 }`, `objects: []`
   (#297 carries `lang/prose`, not `model/claude`) — the `context` read with a filter on top.
+- `--label g9` (the `@g9` parse above) → exit `2`: *"'g9' is not declared in …/nen/labels.json"*.
+- Against a scratch checkout whose `nen/labels.json` declares `R&D`, `bug` and `good first issue`:
+  - `--label R` → exit `2`: *"'R' is a piece of 'R&D': labels containing '&' are not supported in
+    selectors, which split at every '&'"* — the `&`-label refusal § 1 relays.
+  - `--label 'good first issue'` (one quoted argument) → `filter: label good first issue -- kept 0 of
+    22 effort(s)`, exit `0`.
+  - `--label bug fix` (unquoted) → `filter: label bug -- kept 4 of 22 effort(s)`, exit `0`: the stray
+    `fix` is dropped unread, which is why § 1 passes every `--label` value single-quoted (zheref/nen#427).

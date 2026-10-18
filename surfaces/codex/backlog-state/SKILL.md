@@ -16,7 +16,7 @@ This skill answers exactly one question, and answers it the same way every time:
 
 It exists because nothing else answered it. GitHub's issue list reports what is *open*; nothing
 says which gate an item sits at, which PR carries it, who is driving it, or what it needs — across
-repos, on demand, in one table.
+repos, on demand, one table per repository.
 
 > **Read-only, without exception.** This skill renders state. It never applies a label, merges,
 > pushes, opens, closes or comments. If reading the board makes the next action obvious, *say what
@@ -59,15 +59,21 @@ The rules — the maintainer's rulings of 2026-10-17, recorded on zheref/hatsu#2
 - **Gates and severities are case-insensitive and reserved after `@`**; a label literally named
   `high` or `g4` is reached as `#high`. `G1` **includes `G1-M` rows** (`CON-25`), per item, named
   `G1-M` in the state cell; `all` anywhere in a gate list is every gate.
-- **Labels are matched exactly, as declared** in the target's `nen/labels.json`. **A label
-  containing `&` is unsupported**: after `#`, `&` always splits, and `nen` refuses the pieces naming
-  the limit (below) — relay it, never re-split by hand.
-- **Refused at exit `2`, with the reason** — `@high+g4` (a gate mixed with a severity),
-  `@g4+model/gpt` (a gate list with a non-gate; the starred correction is `@g4#model/gpt`),
-  `@high+low`, `@high++`, `@g4+`, an unknown gate in a list.
+- **Labels are matched exactly, as declared** in the target's `nen/labels.json`, against the
+  **union of the issue's labels and its PRs'**. A label with spaces is typed unquoted
+  (`#good first issue`): the parse keeps quotes as literal characters. **A label containing `&` is
+  unsupported**: after `#`, `&` always splits, and `nen` refuses the pieces naming the limit (below)
+  — relay it, never re-split by hand.
+- **Refused by `nen parse` at exit `2`, with its reason** — `@high+g4` (a gate mixed with a
+  severity), `@g4+model/gpt` (a gate list with a non-gate), `@high+low`, `@high++`, `@g4+`,
+  `@g4++g5`. A single unknown token (`@g9`) is **not** a parse error: no piece of it is a gate, so it
+  is a label (futon's rule), and the fetch refuses it as undeclared.
+- **An empty clause** (`hatsu@`, `hatsu#`) parses as absent; the skill asks for the filter rather
+  than reading it as no filter.
 
 **The parse is `nen parse`'s, never prose** — the list slots and the three-way alternation are nen
-`0.22`'s (zheref/nen#410). Single-quote the line: `&` and `#` mean something to a shell.
+`0.22`'s (zheref/nen#410). The line is ONE single-quoted argument (`&` and `#` mean something to a
+shell); a `'` inside it is written `'\''`, never concatenated into the command.
 
 ```bash
 nen parse backlog-state --grammar '<repo>[@<gate:G1|G1-M|G2|G3|G4|G5|all>{+}|<severity:critical|high|medium|low>[+]|<label>][#<labels>{&}]' --line '<the raw invocation>' --json
@@ -76,28 +82,37 @@ nen parse backlog-state --grammar '<repo>[@<gate:G1|G1-M|G2|G3|G4|G5|all>{+}|<se
 **Read each slot by its `alternative` and `items`, never by `name`** (the position's name is
 `gate|severity|label`): `alternative: gate` → `items` is the gate list; `severity` → `value`, with
 `suffix: true` for the trailing `+`; `label` → `value`, one label; the `labels` slot → its `items`.
-An absent clause filters nothing. The refused forms above exit `2` with the corrected line on stderr.
+An absent clause filters nothing. **The reason is the verb's; the correction is this skill's**: nen's
+corrected line is the generic template, so where the intent is plain the starred option is the
+concrete line — `@g4+model/gpt` → `@g4#model/gpt`, `@high+low` → `@low+` — and otherwise the
+template, with the reason quoted.
 With no subject token (`$backlog-state @g4`), the line is parsed with the code the standing
 repository resolves to (below) in front of it.
 
 **The label and severity filters are `nen`'s too**, on the fetch (§ 3) and on
 [`backlog-board`](../backlog-board/SKILL.md)'s `nen report data`: every label — the `@` label and
-each `#` item — is one `--label`, and a band is `--severity <name>[+] --severity-family bankai:severity
---severity-order critical,high,medium,low` (§ 11's vocabulary). Both read the **target's own checkout**
-(`--repo`), whose `nen/labels.json` declares the labels: an undeclared label, a piece of a label
-containing `&`, and a target that declares no `bankai:severity/*` family are refused at exit `2`
-before any read — relay the line and ask (`missing-configuration`), never fall back to an unfiltered
-board. A target with no checkout on this machine is the same ask. The gate filter stays this skill's:
-it applies to the gate § 4 assigns.
+each `#` item — is one `--label '<name>'`, **each value a single-quoted argument** (an unquoted
+`--label bug fix` filters on `bug` and drops `fix` unread), and a band is `--severity <name>[+]` with
+§ 11's family and order. Both always pass `--repo <the target's own checkout>`, whose
+`nen/labels.json` declares the labels. An undeclared label and a piece of a label containing `&` are
+refused at exit `2` before any read: relay the line and ask, never fall back to an unfiltered board.
+**A target that declares no `bankai:severity/*` family has no bands**: say the band is unavailable
+there and offer a gate or a `#label` instead. A target with no checkout here is a `missing-configuration`
+ask. **Under `all`, a repository a filter refuses is named with its reason in the resolved-set line**
+and the repositories that answered are rendered — never shown as `0 rows`. The gate filter stays this
+skill's: it applies to the gate § 4 assigns.
 
 **`context` is a reserved subject, like `all`** — the issues and pull requests **named explicitly in
-this conversation** (a number, a URL, an object notation, in the maintainer's messages or this
-session's own reports), and nothing inferred from branches, worktrees or run tables. **Echo the scope
-before any fetch**, as a numbered list per repository (`1. NN-PR-#413`), then read each repository's
-objects fresh — `nen report data --repo <checkout> --base origin/<branch.base> --target <owner/name>
---prs <n,...> --issues <n,...> --json` — and assign gates from those rows exactly as § 4 does; the
-filters apply on top. Session memory decides the scope and never supplies a fact. Nothing named is
-said, and nothing is fetched. A registry repository literally named `context` is `owner/context`.
+this conversation**: in the maintainer's messages, or listed as objects by this session's own
+reports, and nothing inferred from branches, worktrees or run tables. An object notation resolves
+through `nen ref parse`, a URL or `owner/name#N` through `nen repo resolve`; every number must match
+`^[0-9]+$`. **Echo the scope before any fetch**, as a numbered list per repository (`1. NN-PR-#413`),
+then read each repository's objects fresh — `nen report data --repo <checkout> --base
+origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> [the filters] --json` — and
+fold its rows as § 3 does: an issue and the PRs in its `linked[]` are one row, a PR linked to no
+listed issue its own. Gates follow § 4; **each repository is its own table**. Session memory decides
+the scope and never supplies a fact. Nothing named is said, and nothing is fetched. A registry
+repository literally named `context` is `owner/context`.
 
 **With no repo token, the subject is the repo you are standing in.** Resolve the working
 directory's `origin` remote against the target registry:
@@ -176,7 +191,7 @@ A reader who cannot see what was swept cannot tell an empty band from an unswept
 
 ```
 nen backlog fetch --repo-slug <owner/name> [--limit <n>] \
-  [--repo <the target's checkout> --label <name>... [--severity <name>[+] --severity-family bankai:severity --severity-order critical,high,medium,low]]
+  [--repo <the target's checkout> --label '<name>'... [--severity <name>[+] <§ 11's --severity-family and --severity-order>]]
 ```
 
 The filter flags are § 1's, passed only when the invocation carries a filter; a filtered fetch prints
@@ -434,7 +449,7 @@ oversight to route around silently:
 
 Lead with a one-line summary before the table: the repo set swept (or `context`'s echoed list), every
 filter applied — the gate list, the severity band, each label, quoted from the parse — the row count,
-the count needing the human. **Never render an empty table silently** — *"`@G3`: no rows. No
+the count needing the human. A filter that keeps nothing reads `0 rows`, naming every filter. **Never render an empty table silently** — *"`@G3`: no rows. No
 release is proposed."*
 
 ## 8. Synthesized titles
@@ -484,6 +499,10 @@ local work, or **`unresolved`** — never a guessed session name.
 ```
 🟢 G2/G4-ready   →  🔴 blocked (G5)  →  🟡 G1-ready  →  🔵 on hold  →  🟠 in progress
 ```
+
+**The severity vocabulary is stated here, once**, and §§ 1 and 3 point at it: the family is
+**`bankai:severity`** (`--severity-family bankai:severity`), its order **`critical,high,medium,low`**
+(`--severity-order critical,high,medium,low`). It is not yet a declared key; zheref/nen#427 owes one.
 
 **`nen backlog order` does not know about status bands** — it implements backlog-loop's own §2
 priority order (severity → blocks-another → affects-consumers → age → issue number) over a
