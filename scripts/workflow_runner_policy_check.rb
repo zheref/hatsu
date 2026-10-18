@@ -911,7 +911,10 @@ REGENERATE_SCRIPT_STEP = {
   RUN
 }.freeze
 REGENERATE_SCRIPT_FROZEN_STEPS = REGENERATE_FROZEN_STEPS.reject { |name, _| name == "Read the plugin stamp" }
-  .merge("Regenerate every surface" => REGENERATE_SCRIPT_STEP).freeze
+  .merge("Checkout main" => {
+    "uses" => "actions/checkout@v7",
+    "with" => { "ref" => "main", "persist-credentials" => "false" }
+  }, "Regenerate every surface" => REGENERATE_SCRIPT_STEP).freeze
 
 # THE PULL REQUEST STEP, HELD SHORT OF FROZEN (hanten on #190, Feitan). It is a
 # `uses:` step, so validate_builder_workflow checks its pin, condition and id;
@@ -2972,17 +2975,21 @@ def self_test(root)
     if stamp_start
       old_form = regenerate_original
       script_form = regenerate_original[0...stamp_start] + render_step("Regenerate every surface", REGENERATE_SCRIPT_STEP) + "\n" + regenerate_original[drift_start..]
+      script_form = script_form.sub("          ref: main\n", "          ref: main\n          persist-credentials: false\n")
     else
       script_form = regenerate_original
       old_form = regenerate_original[0...generate_start] +
         render_step("Read the plugin stamp", REGENERATE_FROZEN_STEPS.fetch("Read the plugin stamp")) + "\n" +
         render_step("Regenerate every surface", REGENERATE_FROZEN_STEPS.fetch("Regenerate every surface")) + "\n" +
         regenerate_original[drift_start..]
+      old_form = old_form.sub("          ref: main\n          persist-credentials: false\n", "          ref: main\n")
     end
     File.write(regenerate, old_form)
     validate_repo(tmp, announce: false)
     File.write(regenerate, script_form)
     validate_repo(tmp, announce: false)
+    hostile.call("regenerate script form retaining the checkout write credential", regenerate, script_form,
+                 "persist-credentials: false", "persist-credentials: true", step: "Checkout main")
     hostile.call("regenerate script form running another checkout script", regenerate, script_form,
                  "bash scripts/surface_mirror_regenerate.sh \"$PWD\"", "bash scripts/other.sh \"$PWD\"", step: "Regenerate every surface")
     hostile.call("regenerate script form with a checkout-supplied nen binary", regenerate, script_form,
