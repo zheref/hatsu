@@ -467,11 +467,11 @@ The actionable recommendation is always one of Hatsu's 4 surfaces. `direct` fill
 | **Cursor** | `cursor-agent --model <alias> (the alias is resolved to its served id first, docs/surfaces/cursor.md section 1; the id carries the dial as its suffix, -<level>)` | the model id suffix: -low\|-medium\|-high\|-xhigh (a -fast variant is a speed tier, not an effort) | cursor-agent models lists the served ids with their effort suffixes | the Cursor IDE chat and Composer, the same model |
 | **Antigravity** | `the Antigravity workspace with Model: <alias> on the lead` | the model's thinking budget (pro) -- no four-step dial | the workspace's model picker | the Antigravity IDE itself, or the Gemini app for a conversation |
 
-Surfaces `direct` knows of and never recommends as actionable (`surfaces.$nonActionable`): Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. Each appears as an INTERACTIVE equivalent where a cell names it. Adding one is a surface proposal through great-hiker (zheref/hatsu#236 for Grok Build), never a registry edit.
+Surfaces `direct` knows of and never recommends as actionable (`surfaces.$nonActionable`): Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. These entries provide context, not actionable picks. The 2026-10-17 ruling in docs/ROSTER.md keeps Grok Build here as a headless CI option and Cursor as the actionable Grok coding surface; any future fifth surface would require a separate great-hiker proposal, never only a registry edit.
 
 | Surface | Provider | What it is | Lookup |
 |---|---|---|---|
-| **Grok Build** (`grok-build`) | xai | xAI's agentic coding CLI: early beta 2026-05-14, v1.0 on 2026-08-07 under Apache 2.0, a SuperGrok or X Premium+ subscription; defaults to the Grok line, with an interactive TUI, a headless mode and ACP for editors | https://docs.x.ai/docs/models |
+| **Grok Build** (`grok-build`) | xai | xAI's agentic coding CLI: early beta 2026-05-14, v1.0 on 2026-08-07 under Apache 2.0, a SuperGrok or X Premium+ subscription; defaults to the Grok line, with an interactive TUI, a headless mode for declared CI jobs and ACP for editors | https://docs.x.ai/docs/models |
 | **GitHub Copilot** (`copilot`) | github | the IDE chat and the coding agent; offers the Claude, GPT, Gemini and Grok lines where the plan allows (Grok 4.7, GPT-6.1 Sol, Claude Opus 5.5 and Fable 5.1 listed GA on 2026-10-05) | https://docs.github.com/en/copilot/reference/ai-models/supported-models |
 
 Native IDE equivalents by language (offered beside the winner as the *interactive* row):

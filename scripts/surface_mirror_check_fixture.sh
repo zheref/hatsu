@@ -112,9 +112,10 @@ done
 # which sources hooks_root_for from the check itself (zheref/hatsu#218); a copy coming back is a finding.
 ! grep -q ") root='" "$repo/docs/using/mirrors.md" || fail "roots: docs/using/mirrors.md writes its own hooks roots again; § 3 runs scripts/surface_mirror_regenerate.sh"
 # The Codex placed-copy sed is the one whose replacement is the workspace root ./.codex.
-in_sed="$(grep -o "sed 's#[^#]*#\${HATSU_PLUGIN_ROOT:-./.codex}#g'" "$repo/scripts/surface_bootstrap.sh" | sed "s/^sed 's#//; s/#.*//")"
-[ "'$in_sed'" = "$(grep -o "codex) printf %s '[^']*'" "$guard" | sed "s/^codex) printf %s //")" ] ||
-  fail "roots: surface_bootstrap.sh rewrites $in_sed, which is not the check's Codex root"
+in_sed="$(grep -o "sed 's#[^#]*#\${HATSU_PLUGIN_ROOT:-./.codex}#g'" "$repo/scripts/surface_bootstrap.sh" | sed "s/^sed 's#//; s/#.*//" || true)"
+codex_root="$(grep -o "codex) printf %s '[^']*'" "$guard" | sed "s/^codex) printf %s //" || true)"
+[ -n "$in_sed" ] && [ -n "$codex_root" ] && [ "'$in_sed'" = "$codex_root" ] ||
+  fail "roots: expected the check's Codex root $codex_root, surface_bootstrap.sh rewrites ${in_sed:-<none>}"
 
 # (e2) a bare `nen` is looked up on PATH only: the root's own nen/ directory is never read as the
 # binary (it was, through `[ -x nen ]` after the cd into the root), so no nen on PATH is 3, not 2.

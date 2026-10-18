@@ -91,7 +91,8 @@ first_row="$(printf '%s\n' "$out" | sed -n '2p')"
 assert_contains "$first_row" 'claude/rules/hatsu.md' 'the rules file (11950 of 12000 chars) has the smallest margin and sorts first'
 assert_contains "$first_row" '11950/12000  chars' 'a rules row carries size/ceiling in characters'
 assert_contains "$out" '  6044 claude/agents/chrollo.md' 'an agent row carries its byte margin'
-skill_row="$(printf '%s\n' "$out" | grep 'claude/skills/breath/SKILL.md')"
+skill_row="$(printf '%s\n' "$out" | grep 'claude/skills/breath/SKILL.md' || true)"
+assert_contains "$skill_row" 'claude/skills/breath/SKILL.md' 'the headroom report must name the breath skill'
 assert_contains "$skill_row" ' 12188 claude/skills/breath/SKILL.md' 'a skill row carries its margin and path'
 assert_contains "$skill_row" '100/12288  bytes' 'a skill row carries size/ceiling and unit'
 rows="$(printf '%s\n' "$out" | grep -c -E ' (bytes|chars)$' || true)"
@@ -107,7 +108,8 @@ bytes "$edge/claude/skills/hanten/SKILL.md" 12288
 bytes "$edge/claude/agents/chrollo.md" 6144
 run 0 "$edge"
 run 0 --headroom "$edge"
-edge_row="$(printf '%s\n' "$out" | grep 'claude/agents/chrollo.md')"
+edge_row="$(printf '%s\n' "$out" | grep 'claude/agents/chrollo.md' || true)"
+assert_contains "$edge_row" 'claude/agents/chrollo.md' 'the headroom report must name the edge agent'
 assert_contains "$edge_row" '     0 claude/agents/chrollo.md' 'zero headroom is a row, not an offence'
 assert_contains "$edge_row" '6144/6144   bytes' 'the edge row carries size/ceiling'
 over="$fixture_root/over"
@@ -342,4 +344,5 @@ if [ "$(id -u)" -ne 0 ]; then
   chmod 755 "$form/surfaces/codex/zz"
 fi
 
+bash "$script_dir/fixture_output_guard_fixture.sh"
 echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"

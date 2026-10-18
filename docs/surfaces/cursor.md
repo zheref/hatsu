@@ -79,6 +79,13 @@ resolve that matches only `cursor-grok-*` picks 4.6 and is wrong). Cursor's own 
 tier (`contracts/direct.registry.json`). Hanten's isolated
 reviewer is a `.cursor/agents/` subagent in a worktree at `<core>/.nen/worktrees/cursor/hanten-<persona>` (§ 1).
 
+**Grok coding route, 2026-10-17.** Cursor remains the actionable Hatsu surface for Grok-based coding.
+The [Cursor and SpaceX announcement](https://cursor.com/blog/joining-spacex) describes their shared
+model work. xAI separately documents [Grok Build headless scripting](https://docs.x.ai/build/cli/headless-scripting)
+for automated jobs using `grok -p` and `--no-auto-update`. That CLI is a CI option for a job with
+declared credentials and checks, not a fifth Hatsu surface; see the
+[maintainer ruling](../ROSTER.md#rulings-of-2026-10-17--cursor-carries-grok-coding-grok-build-is-a-ci-option).
+
 ## Authoring checkout adapter
 
 All lead and delegated authoring, parity and PR efforts select and re-verify their checkout
