@@ -13,14 +13,12 @@ code; the mode is named at § 2, and said aloud when it switches mid-run.
 > gate — or a G5 stop saying exactly why it could not get there.**
 
 **Hatsu holds no CI plane to route work to** (no CI agent routing, stage labels, wave coordinators or wake
-ladders). Instead, building an issue is a direct local-plane execution of the canonical Hatsu feature pipeline: warm up
-([`hatsu:ten`](../ten/SKILL.md)), classify the issue when its two axes are not yet labelled
-([`hatsu:classify`](../classify/SKILL.md)), direct it — the recommended model, surface and effort against this
-session's ([`hatsu:direct`](../direct/SKILL.md)) — author and locally verify ([`hatsu:ren`](../ren/SKILL.md)),
-publish branch ([`hatsu:aka`](../aka/SKILL.md)), run pre-PR review, tests, coverage, and open PR
-([`hatsu:mukai`](../mukai/SKILL.md)), observe and drive PR to readiness ([`hatsu:en`](../en/SKILL.md)), render
-the delivered state ([`hatsu:rikugan`](../rikugan/SKILL.md)), and offer the wrap-up
-([`hatsu:cleanup`](../cleanup/SKILL.md) § 2).
+ladders): building an issue runs the local-plane pipeline — [`ten`](../ten/SKILL.md) warms up,
+[`classify`](../classify/SKILL.md) labels the two axes where unlabelled, [`direct`](../direct/SKILL.md) picks
+model, surface and effort against this session's, [`ren`](../ren/SKILL.md) authors and verifies,
+[`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures coverage and opens the PR (its pickers in jutaisho § 4's shape),
+[`en`](../en/SKILL.md) drives it to readiness, [`rikugan`](../rikugan/SKILL.md) renders the delivered state,
+and [`cleanup`](../cleanup/SKILL.md) § 2 is offered.
 
 **The phases this composite calls skip their own `## 0.`**
 ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4); the plugin root is

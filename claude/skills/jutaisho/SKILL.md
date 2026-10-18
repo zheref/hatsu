@@ -136,7 +136,6 @@ as its own `bash` block (CON-33(b)). The **picker** carries part 4 alone: a head
 gate id), one question of at most two sentences, three or four options, labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
 in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form A free-text answer is the maintainer's word: an answer
 re-enters the run as that picker call; a question back is answered and re-asked once, a new call (WORKFLOW § 4 *Ask, set up, continue* step 2). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
-CON-10's short board vs options in chat: a question for #289's harvest
 
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
@@ -149,8 +148,7 @@ read-stderr rules are [`docs/surfaces/README.md`](../../../docs/surfaces/README.
 Here: **the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
 is removed by the side that consumed it** (the hook, when it fired; the fallback, only where no hook
 file is placed), and **the stop still stands** whichever path rang, § 4's four parts being the real bell.
-**Residue:** `osascript` and `afplay` are harness shell, `[unknown]` to nen and refused by `nen watch
-until`; `osascript`'s stderr, never its exit code, is the evidence.
+**The fallback is one call**, `"$hatsu_root/scripts/bell_notify.sh" --title <t> --message <m>`, a fixed argv (#289). **Residue:** `osascript` and `afplay` inside it are harness shell, `[unknown]` to nen; the script prints each rung's stderr.
 
 ## Authority
 

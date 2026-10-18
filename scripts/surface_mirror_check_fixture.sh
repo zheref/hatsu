@@ -45,7 +45,7 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 printf '%s %s\n' "$surface" "$root" >> "$STUB_LOG"
-var="STUB_$(printf '%s' "$surface" | tr '[:lower:]' '[:upper:]')"
+var="STUB_$(printf '%s' "$surface" | tr '[:lower:]-' '[:upper:]_')"
 code="${!var:-0}"
 case "$code" in
   0) echo "surface: $surface"; echo "hand-edited: (none)" ;;
@@ -123,9 +123,9 @@ code=0; nonen_out="$(env -u NEN_BIN PATH=/usr/bin:/bin bash "$guard" "$tree" 2>&
 [ "$code" = 3 ] || fail "no nen on PATH with a nen/ directory in the root exited $code, not 3: $nonen_out"
 rmdir "$tree/nen"
 
-# (f) --installed on a real plugin cache (the source's own layout) is compared byte for byte by
-# plugin_cache_check.sh and never handed to nen's claude-code row, which read every file `missing`
-# against it (zheref/hatsu#122); any other path still goes to nen.
+# (f) --installed on a real plugin cache (the source's own layout) is compared by nen's own
+# `surface mirror check --surface claude-code --plugin hatsu --source <root> --installed <cache>`
+# (zheref/hatsu#122, #289 item 6): the stub answers it with STUB_CLAUDE_CODE and the call is logged.
 printf 'ten\n' > "$tree/claude/skills/ten/SKILL.md"
 cache="$fixture_root/cache"; cp -R "$tree" "$cache"
 run_installed() {
@@ -135,30 +135,18 @@ run_installed() {
   calls="$(cat "$STUB_LOG")"
   [ "$code" -eq "$expected" ] || fail "$name: exit $code, expected $expected. Output: $out"
 }
-run_installed cache-identical 0 "$cache"
-expect_in cache-identical "$out" 'identical'
-[ -z "$calls" ] || fail "cache-identical: nen was asked about a plugin cache: $calls"
-printf 'ten, stale\n' > "$cache/claude/skills/ten/SKILL.md"
-run_installed cache-stale 1 "$cache"
-expect_in cache-stale "$out" 'differs:        claude/skills/ten/SKILL.md'
-[ -z "$calls" ] || fail "cache-stale: nen was asked about a plugin cache: $calls"
-# a comparator that cannot run is wiring (exit 2), never drift: bash 3.2 under set -e hands back 1
-# for a command it cannot execute (Phinks, hanten on 029322fb)
-cp -R "$tree" "$fixture_root/cache2"
-mkdir -p "$fixture_root/scripts_copy"
-cp "$guard" "$repo/scripts/plugin_cache_check.sh" "$fixture_root/scripts_copy/"
-chmod -x "$fixture_root/scripts_copy/plugin_cache_check.sh"
-code=0; out="$(NEN_BIN="$stub" /bin/bash "$fixture_root/scripts_copy/surface_mirror_check.sh" --installed "$fixture_root/cache2" "$tree" 2>&1)" || code=$?
-[ "$code" -eq 2 ] || fail "unrunnable-comparator: exit $code, expected 2 (wiring). Output: $out"
-rm "$fixture_root/scripts_copy/plugin_cache_check.sh"
-code=0; out="$(NEN_BIN="$stub" /bin/bash "$fixture_root/scripts_copy/surface_mirror_check.sh" --installed "$fixture_root/cache2" "$tree" 2>&1)" || code=$?
-[ "$code" -eq 2 ] || fail "missing-comparator: exit $code, expected 2 (wiring). Output: $out"
+STUB_CLAUDE_CODE=0 run_installed cache-identical 0 "$cache"
+expect_in cache-identical "$calls" 'claude-code'
+STUB_CLAUDE_CODE=1 run_installed cache-stale 1 "$cache"
+expect_in cache-stale "$out" 'differs from the source'
+STUB_CLAUDE_CODE=5 run_installed cache-wiring 2 "$cache"
+expect_in cache-wiring "$out" 'never read as drift'
 # a relative --installed path names the caller's directory, not the root it cds into
 export STUB_LOG="$fixture_root/relative.log"; : > "$STUB_LOG"
 code=0; out="$(cd "$fixture_root" && NEN_BIN="$stub" bash "$guard" --installed cache2 "$tree" 2>&1)" || code=$?
 [ "$code" -eq 0 ] || fail "relative-installed: exit $code, expected 0. Output: $out"
 expect_in relative-installed "$out" 'installed plugin cache'
-[ -z "$(cat "$STUB_LOG")" ] || fail "relative-installed: the relative path was not resolved and went to nen: $(cat "$STUB_LOG")"
+grep -q 'claude-code' "$STUB_LOG" || fail "relative-installed: nen was not asked about the resolved cache: $(cat "$STUB_LOG")"
 target_layout="$fixture_root/target/.claude"; mkdir -p "$target_layout/skills"
 run_installed target-layout 0 "$target_layout"
 expect_in target-layout "$calls" 'claude-code'

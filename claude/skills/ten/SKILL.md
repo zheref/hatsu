@@ -110,12 +110,11 @@ line>)`**.
 
 **The offer predicate** — row `host-nen-link`, the host's FALLBACK, an offer never an act:
 offered where the login shell reads installed, not reachable; never where it reads reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A.
-**Option A's halves follow § 2's state.** Host **BOUND** (`current`, `linked`, `kept-newer`): the
-one `PATH` line only, **never a relink** (`kept-newer` is never downgraded), what that shell
-resolved instead named. **NOT bound** (`2` unfixed, `3`, `4`, `skipped (another session is
-binding)`): the name-correct `~/.local/bin/nen` link → the verified path (`<verified>`,
-nen_global's, or the verb line's cache hit — never one no bootstrap printed) plus the `PATH` line
-only where that `PATH` lacks the directory, never the versioned one. **Exit `3`**: name the real
+**Option A's halves follow § 2's state.** Host **BOUND** (`current`, `linked`, `kept-newer`): the one `PATH`
+line only, **never a relink** (`kept-newer` is never downgraded), what that shell resolved named. **NOT
+bound** (`2` unfixed, `3`, `4`, `skipped (another session is binding)`): the name-correct `~/.local/bin/nen` link → the
+verified path (`<verified>`, nen_global's or the verb line's cache hit, never one no bootstrap printed) plus
+the `PATH` line only where that `PATH` lacks the directory, never the versioned one. **Exit `3`**: name the real
 file — path, `ls -l`, `--version` — and that A **REPLACES** it; the star moves to **B**. **Stated,
 taken on the maintainer's word only**; taken, ask again — § 4 reads the second answer.
 

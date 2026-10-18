@@ -38,7 +38,7 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
 `scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`, `scripts/hatsu_surface_link.sh`,
 `scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/private_name_check.sh`,
-`scripts/plugin_cache_check.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
+`scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources

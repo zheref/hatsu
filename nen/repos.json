@@ -4,7 +4,8 @@
   "maintained_tools": [
     {
       "repo": "zheref/hatsu",
-      "role": "Hatsu workflow and skill prose"
+      "role": "Hatsu workflow and skill prose",
+      "scenario": "bankai-machinery"
     },
     {
       "repo": "zheref/nen",

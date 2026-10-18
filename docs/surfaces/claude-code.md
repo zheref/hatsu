@@ -27,7 +27,7 @@ feature branch, a swap `hatsu:amenotejikara` made in core, uncommitted edits. So
 trunk, and the updater never moves an authoring branch; it says which branch is served instead. There is
 no mirror to drift-check on this surface (zheref/hatsu#106). What `ten` § 5 records as `mirrors:` is
 whether the served copy — this link, or a cache — IS the source, byte for byte
-(`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`, zheref/hatsu#122); writable entries
+(`nen surface status --surface claude-code --plugin hatsu --root <hatsu_root>``, zheref/hatsu#122); writable entries
 place the permission pack in the bound target. `ten` § 4b first applies the target/source guard in
 [`WORKFLOW.md`](../WORKFLOW.md) § *Where worktrees live*: plain `--auto` only for an eligible isolated
 Hatsu source; protected core/shared sources skip refresh, with the reason reported. Ordinary warm-up
@@ -135,7 +135,7 @@ canonical copy is `claude/skills/**` and `claude/agents/**`, the three mirrors a
 (see the other guides), and the versioned cache is read in place. `nen surface mirror check --surface
 claude-code --installed <cache>` diffs a target `.claude/` layout Hatsu never places and reads every
 skill `missing` against the cache (measured in `docs/ab/ten.md`), so it is not what `ten` § 5 runs.
-`ten` § 5 records `mirrors:` as `scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`'s
+`ten` § 5 records `mirrors:` as `nen surface status --surface claude-code --plugin hatsu --root <hatsu_root>``'s
 verdict on every recorded copy (each `hatsu@` installPath and `skills/hatsu`), byte for byte against
 a source named independently of the copy, and places the permission pack; the verdicts and their
 `mirrors:` words are [`docs/PROCESS.md`](../PROCESS.md) § *ten § 5's rules*, and the script is

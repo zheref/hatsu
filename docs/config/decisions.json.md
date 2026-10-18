@@ -6,7 +6,7 @@
 
 One row per condition a running workflow can stop on, and for each the answer to one question: does the run resolve it by default, ask once, or hand it to the maintainer. The file exists because a stop typed as prose in the middle of a reply is a stop the maintainer can scroll past, and one they scroll past is one that did not happen; so the recurring stops have fixed defaults as **data**, every skill states its default in one line citing the row id, and only a genuine gate rings the bell with the banner.
 
-Every skill reads it before it asks: `hatsu:breath` carries a dirty tree (`dirty-tree`), `hatsu:kokusen` hands a red check back to `hatsu:rasengan` (`red-lint`), `hatsu:ao` catches a stale base up and stops only on a semantic conflict (`stale-base`, `semantic-conflict`), `hatsu:en` requests an owed reviewer round inside the configured maximum (`cap-reached`) and ends at the merge prompt (`own-pr-merge`), `hatsu:mugetsu` publishes only on the maintainer's own go (`release-go`). `nen stop --options` reads the matching row to compose the stop, and `hatsu:jutaisho` § 3 seeds the picker's lettered options from the row's `preferred[]`. A wrong row here is silent in the way WORKFLOW.md warns about for policy: the right command runs at the wrong moment, a default is applied where a question was owed, or a question is asked where canon already settled the answer.
+Every skill reads it before it asks: `hatsu:breath` carries a dirty tree (`dirty-tree`), `hatsu:kokusen` hands a red check back to `hatsu:rasengan` (`red-lint`), `hatsu:ao` catches a stale base up and stops only on a semantic conflict (`stale-base`, `semantic-conflict`), `hatsu:en` requests an owed reviewer round inside the configured maximum (`cap-reached`) and ends at the merge prompt (`own-pr-merge`), `hatsu:mugetsu` publishes only on the maintainer's own go (`release-go`). `nen schema set` reads the matching row to compose the stop, and `hatsu:jutaisho` § 3 seeds the picker's lettered options from the row's `preferred[]`. A wrong row here is silent in the way WORKFLOW.md warns about for policy: the right command runs at the wrong moment, a default is applied where a question was owed, or a question is asked where canon already settled the answer.
 
 ## Keys
 
@@ -19,7 +19,7 @@ The `$schema` and `contract` are both `nen.decisions/v0.1`. The file is one `row
 | `$schema` | string | **`nen.decisions/v0.1`** | The shape nen validates against | `nen schema check` |
 | `contract` | string | **`nen.decisions/v0.1`** | The same, as nen's contract name | `nen schema check` |
 | `$comment` | string | prose | The maintainer's rationale and the index of citing skills | nothing in nen |
-| `rows[]` | object[] | one object per condition | The matrix | `nen schema check`, `nen stop --options`, every skill before it asks |
+| `rows[]` | object[] | one object per condition | The matrix | `nen schema check` (validates) and `nen schema set` (writes); every skill before it asks (zheref/hatsu#289 item 8: no `nen stop` flag reads it) |
 
 ### The three row classes
 
@@ -33,11 +33,11 @@ The `$schema` and `contract` are both `nen.decisions/v0.1`. The file is one `row
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `id` | string | kebab-case, unique | The row id every skill cites; kept stable so existing citations resolve even when the row's meaning is re-ruled (`own-pr-merge`) | every skill, `nen stop --options` |
-| `class` | enum | `autonomous` · `ask-once-per-run` · `human-gate` | Which of the three behaviours above applies | `nen stop --options`, `hatsu:jutaisho` § 1 |
+| `id` | string | kebab-case, unique | The row id every skill cites; kept stable so existing citations resolve even when the row's meaning is re-ruled (`own-pr-merge`) | every skill, `nen schema set` |
+| `class` | enum | `autonomous` · `ask-once-per-run` · `human-gate` | Which of the three behaviours above applies | `nen schema set`, `hatsu:jutaisho` § 1 |
 | `default` | string | the command or act, with its placeholders (`<checkout>`, `<branch.base>`) | What an `autonomous` row does without asking, or what an `ask-once-per-run` row does on the maintainer's answer. A `human-gate` row carries none; `missing-maintainer-choice` carries none either, because a default is a derivation and the maintainer's word is never derived | the citing skill |
 | `why` | string | prose, citing the ruling by date | The maintainer's ruling the row records | nothing in nen; quoted in reports |
-| `preferred[]` | object[] | lettered options | The options the picker is seeded with; `hatsu:jutaisho` § 3 composes at least three from them and the session's state, never limited to them | `nen stop --options`, `hatsu:jutaisho` § 3 |
+| `preferred[]` | object[] | lettered options | The options the picker is seeded with; `hatsu:jutaisho` § 3 composes at least three from them and the session's state, never limited to them | `nen schema set`, `hatsu:jutaisho` § 3 |
 | `preferred[].key` | string | `A`, `B`, `C`, `D` | The letter the maintainer answers with | the picker |
 | `preferred[].label` | string | one line | What the option does, as the picker shows it | the picker |
 | `preferred[].command` | string | the exact command or act | What the run executes on that answer; every option is an executable act, never a mood and never the report | the citing skill |
@@ -45,7 +45,7 @@ The `$schema` and `contract` are both `nen.decisions/v0.1`. The file is one `row
 | `preferred[].recommended` | boolean | `true` on at most one option; absent on the rest | The starred option. A `missing-maintainer-choice` row stars none | the picker |
 | `gate` | enum | `G1` · `G2` · `G3` · `G4` · `G5`; `human-gate` rows only | Which human gate the row stands at: G1 the mode label, G2 the delivery merge, G3 publication, G4 the canon merge, G5 a genuine stop | `hatsu:jutaisho at <gate>`, `nen stop --gate` |
 | `governs` | string[] | `<skill> <slot>` entries | For `missing-maintainer-choice`: the argument slots whose value is the maintainer's own word, typed and never picked | every skill that takes one of those slots |
-| `proposeIssue` | boolean | `true` · `false` | Whether the stop carries a proposed process issue (`nen stop --propose-issue`, Netero's completeness shape) so the next session does not hit the same stop | `nen stop --options`, `hatsu:jutaisho` § 3 |
+| `proposeIssue` | boolean | `true` · `false` | Whether the stop carries a proposed process issue (`nen stop --propose-issue`, Netero's completeness shape) so the next session does not hit the same stop | `nen schema set`, `hatsu:jutaisho` § 3 |
 | `refuse[]` | string[] | prose | For `missing-configuration`: what is never written even when asked (a secret-shaped value, a frozen or foreign registry) | `hatsu:tenkai` § 6d, `scripts/config_values.sh set` |
 
 ### Every row

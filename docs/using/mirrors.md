@@ -91,7 +91,7 @@ with the same flags for codex, cursor and antigravity, and writes nothing:
 checkout (`hatsu@skills-dir`), or from the versioned cache on a legacy install, and nen's `claude-code` row mirrors into a target's `.claude/` (`skills/`, `agents/`,
 `hooks/hooks.json`, `settings.local.json`), a layout Hatsu never places. What can go stale there is the
 served copy itself — the versioned cache, or the `skills/hatsu` install — so `ten` § 5 records
-`scripts/plugin_cache_check.sh --root <hatsu_root> --cache auto`'s byte comparison of it against a
+`nen surface status --surface claude-code --plugin hatsu --root <hatsu_root>`'s byte comparison of it against a
 source named independently of it as `mirrors:` (zheref/hatsu#122; PROCESS § *ten § 5's rules*), and places the permission pack.
 `scripts/surface_mirror_check.sh --installed <path>` hands a path holding the source's own plugin layout
 to that check rather than to nen. The verb's `--installed <path>`
