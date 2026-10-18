@@ -18,15 +18,15 @@ Forty-six deliveries merged since `v0.94.0` (HA-PR-#249 … #305, 2026-10-13 →
 
 - **Codex installs from a committed, clean marketplace snapshot** ([#273](https://github.com/zheref/hatsu/pull/273), [#147](https://github.com/zheref/hatsu/issues/147), 0.108.1)
 
-- `hatsu_surface_link.sh --surface codex` archives the served commit before registering its marketplace. Codex's copied plugin slot excludes `.git`, ignored settings, worktrees, `.nen/` and `Reports/`. An existing direct-checkout marketplace is migrated to the snapshot.
-- `hatsu_plugin_update.sh --codex` resolves the source checkout from the snapshot's adjacent record, updates it, re-registers the new committed snapshot and reads back the installed version. A changed snapshot refuses installation; the fixture suites cover migration, excluded local files and tampering.
-- The Codex guides explain what is copied and how to remove an old marketplace registration, snapshot and cache slot.
+  - `hatsu_surface_link.sh --surface codex` archives the served commit before registering its marketplace. Codex's copied plugin slot excludes `.git`, ignored settings, worktrees, `.nen/` and `Reports/`. An existing direct-checkout marketplace is migrated to the snapshot.
+  - `hatsu_plugin_update.sh --codex` resolves the source checkout from the snapshot's adjacent record, updates it, re-registers the new committed snapshot and reads back the installed version. A changed snapshot refuses installation; the fixture suites cover migration, excluded local files and tampering.
+  - The Codex guides explain what is copied and how to remove an old marketplace registration, snapshot and cache slot.
 
 - **#149's ruling of 2026-10-13 is recorded: the listed issue bodies were rewritten to the legend's placeholders on the maintainer's go per edit** ([#287](https://github.com/zheref/hatsu/pull/287), [#149](https://github.com/zheref/hatsu/issues/149); `docs/ROSTER.md` § *Rulings of 2026-10-13*). Twelve closed issues (and #102's title) now carry `<product-repo-A>`, `<product-repo-B>`, `<reference-repo>`, `<ci-plane-repo>` and the `RA` product code where they named a private repository; three were left as they are on the maintainer's word; #57 was already clean. Two of the twelve still trip the guard on one dictionary-word name until the maintainer's ignore file carries it, every rewritten issue's pre-rewrite revisions stay in GitHub's public edit history until the maintainer deletes them, and #102's rename event keeps its old title: the row records each as the maintainer's own. The guard (v0.81.0) and `nen`'s exit-4 refusals delivered criteria 2(a) and 3 before this ruling; criterion 2(b), the tree check, stays deferred and **the issue stays open**. The nen request (the pre-filing check honouring the same ignore file, and nothing wider) goes through the harvest. Plugin bumped to 0.107.10 (a shipped doc changed); the mirrors restamped.
 
 - **Preflight trusted pull request guards before opening a PR** ([#274](https://github.com/zheref/hatsu/pull/274), [#157](https://github.com/zheref/hatsu/issues/157), 0.108.5)
 
-Hanten and Mukai now run the base revision's `pull_request_target` guards against the proposed tree before PR creation. The guard set comes from the trusted workflows themselves. A mismatch names the two-step landing path in `docs/GATE-CONFIGURATION.md`.
+  Hanten and Mukai now run the base revision's `pull_request_target` guards against the proposed tree before PR creation. The guard set comes from the trusted workflows themselves. A mismatch names the two-step landing path in `docs/GATE-CONFIGURATION.md`.
 
 - **`claude/agents/kurapika.md` § *The exit codes, and what you do on each* now says that `$?` after a pipeline is the last stage's status, never the verb's**, with the exact remedy — redirect to a file and read `$?` after the verb alone — and the two approximations, `${PIPESTATUS[0]}` (bash) or `$pipestatus[1]` (zsh) on the very next command in the same shell, or `set -o pipefail`, each answering `141` (SIGPIPE, not the verb failing) under a reader that closes early (`docs/GATE-CONFIGURATION.md` § 5), with one of the three wrong readings recorded on [#161](https://github.com/zheref/hatsu/issues/161) as the evidence. `tenkai` § 2 and `docs/GATE-CONFIGURATION.md` are unchanged and named in `kurapika.md` as instances of the general statement; `aka` and `ao`'s two-stream rule is named as a different rule. Plugin bumped to 0.94.2 (Claude manifest and Codex overlay); the mirrors regenerated at that stamp, since the agent file is mirrored. ([#250](https://github.com/zheref/hatsu/pull/250))
 
@@ -89,11 +89,11 @@ Hanten and Mukai now run the base revision's `pull_request_target` guards agains
 
 - **Register forbidden commit trailer guard ahead of its required check** ([#275](https://github.com/zheref/hatsu/pull/275), [#235](https://github.com/zheref/hatsu/issues/235), 0.109.0)
 
-The authorship guard can read `commits.forbiddenTrailers` from trusted configuration and inspect every PR commit. The workflow policy admits the upcoming required-check step while retaining the current shape during the two-step landing.
+  The authorship guard can read `commits.forbiddenTrailers` from trusted configuration and inspect every PR commit. The workflow policy admits the upcoming required-check step while retaining the current shape during the two-step landing.
 
 - **Enforce forbidden commit trailers at the required PR check** ([#276](https://github.com/zheref/hatsu/pull/276), [#235](https://github.com/zheref/hatsu/issues/235), 0.110.0)
 
-The required plugin-bump check now runs the trusted authorship guard over every PR commit, reading the forbidden keys from the trusted workflow configuration. It catches commits made outside Kokusen.
+  The required plugin-bump check now runs the trusted authorship guard over every PR commit, reading the forbidden keys from the trusted workflow configuration. It catches commits made outside Kokusen.
 
 - Keep the authorship guard’s own exit as the squash and publish gate, and document the maintainer’s lease-protected repair for published provenance failures. ([#277](https://github.com/zheref/hatsu/pull/277))
 
