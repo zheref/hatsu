@@ -134,4 +134,43 @@ fi
 grep -q 'surface_mirror_check.sh"$' "$regen" || fail "the regenerator does not source the check"
 ok "a nen/ directory in the root is never read as nen (3); an unreadable manifest is refused by name; one table, sourced"
 
+# 6. Run the real pinned generator on a scratch checkout. A manifest-only stamp
+# change may alter generated stamp/version text, but no other mirror content.
+real_nen="$(command -v nen || true)"
+[ -n "$real_nen" ] || fail "the real stamp case needs pinned nen on PATH"
+stamp_tree="$fixture_root/stamp-tree"; mkdir -p "$stamp_tree"
+git -C "$script_dir/.." archive --format=tar HEAD | tar -xf - -C "$stamp_tree"
+NEN_BIN="$real_nen" "$regen" "$stamp_tree" > "$fixture_root/real-generate.log" \
+  || { cat "$fixture_root/real-generate.log"; fail "real scratch regeneration refused"; }
+NEN_BIN="$real_nen" "$check" "$stamp_tree" > "$fixture_root/real-check.log" \
+  || { cat "$fixture_root/real-check.log"; fail "real scratch check refused"; }
+cp -R "$stamp_tree/surfaces" "$fixture_root/before-stamp"
+old_stamp="$(awk -F'"' '/"version"[[:space:]]*:/ { print $4; exit }' "$stamp_tree/.claude-plugin/plugin.json")"
+[ -n "$old_stamp" ] || fail "scratch manifest has no version"
+new_stamp=9.8.8
+awk -v new="$new_stamp" '
+  !done && /"version"[[:space:]]*:/ {
+    sub(/"version"[[:space:]]*:[[:space:]]*"[^"]+"/, "\"version\": \"" new "\"")
+    done=1
+  }
+  { print }
+  END { if (!done) exit 2 }
+' "$stamp_tree/.claude-plugin/plugin.json" > "$fixture_root/bumped-manifest.json" \
+  || fail "could not bump the scratch manifest"
+mv "$fixture_root/bumped-manifest.json" "$stamp_tree/.claude-plugin/plugin.json"
+NEN_BIN="$real_nen" "$regen" "$stamp_tree" > "$fixture_root/bumped-generate.log" \
+  || { cat "$fixture_root/bumped-generate.log"; fail "stamp-only regeneration refused"; }
+NEN_BIN="$real_nen" "$check" "$stamp_tree" > "$fixture_root/bumped-check.log" \
+  || { cat "$fixture_root/bumped-check.log"; fail "stamp-only scratch check refused"; }
+code=0; diff -ru "$fixture_root/before-stamp" "$stamp_tree/surfaces" > "$fixture_root/stamp.diff" || code=$?
+[ "$code" -eq 1 ] || fail "stamp-only diff exited $code, expected changed mirrors"
+! grep -q '^Only in ' "$fixture_root/stamp.diff" || fail "stamp-only regeneration changed mirror paths"
+removed="$(awk '/^--- / { next } /^-/ { print substr($0, 2) }' "$fixture_root/stamp.diff")"
+added="$(awk '/^\+\+\+ / { next } /^\+/ { print substr($0, 2) }' "$fixture_root/stamp.diff")"
+[ -n "$removed" ] || fail "stamp-only regeneration changed no stamp lines"
+old_pattern="${old_stamp//./\\.}"
+normalized="$(printf '%s\n' "$removed" | sed "s/$old_pattern/$new_stamp/g")"
+[ "$normalized" = "$added" ] || fail "stamp-only regeneration changed text besides the version stamp"
+ok "real scratch regenerate-then-check passes; a version change alters only stamp/version text"
+
 echo "surface-mirror-regenerate-fixture: all $pass checks passed"

@@ -899,6 +899,23 @@ REGENERATE_FROZEN_STEPS = {
   REGENERATE_CLEANUP_STEP => REGENERATE_CLEANUP
 }.freeze
 
+# Two-step landing for zheref/hatsu#209: the trusted policy first admits the
+# current frozen loop and the exact shared-script call. A later PR switches the
+# workflow, then narrows this table to the new form.
+REGENERATE_SCRIPT_STEP = {
+  "env" => { "NEN_BIN" => "${{ steps.nen.outputs.bin }}" },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    bash scripts/surface_mirror_regenerate.sh "$PWD"
+  RUN
+}.freeze
+REGENERATE_SCRIPT_FROZEN_STEPS = REGENERATE_FROZEN_STEPS.reject { |name, _| name == "Read the plugin stamp" }
+  .merge("Checkout main" => {
+    "uses" => "actions/checkout@v7",
+    "with" => { "ref" => "main", "persist-credentials" => "false" }
+  }, "Regenerate every surface" => REGENERATE_SCRIPT_STEP).freeze
+
 # THE PULL REQUEST STEP, HELD SHORT OF FROZEN (hanten on #190, Feitan). It is a
 # `uses:` step, so validate_builder_workflow checks its pin, condition and id;
 # its keys are exactly these, its `with` carries exactly these inputs, and each
@@ -1054,7 +1071,9 @@ CANON_CONTRACTS_FROZEN = {
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
-  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
+  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
+  "surface-mirror-regenerate.yml" => [EXPECTED_STEPS.fetch("surface-mirror-regenerate.yml"),
+                                        EXPECTED_STEPS.fetch("surface-mirror-regenerate.yml") - ["Read the plugin stamp"]]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -2168,7 +2187,7 @@ def validate_builder_workflow(path)
     if carries_digest && bootstrap_step && scalar(bootstrap_step["run"]).to_s.include?("--version")
       fail_policy("#{path} step #{scalar(bootstrap_step["name"]).inspect} runs the bootstrapped nen (--version) before #{digest_name.inspect} has checked it")
     end
-    frozen_steps = REGENERATE_FROZEN_STEPS
+    frozen_steps = step_names.include?("Read the plugin stamp") ? REGENERATE_FROZEN_STEPS : REGENERATE_SCRIPT_FROZEN_STEPS
     frozen_steps = frozen_steps.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
     frozen_steps.each do |name, frozen|
       frozen = digest_frozen if name == digest_name # the admitted forms of the digest step (NEN_DIGEST_STEPS)
@@ -2946,6 +2965,40 @@ def self_test(root)
     regenerate_original = File.read(regenerate_source)
     FileUtils.cp(regenerate_source, regenerate)
     validate_repo(tmp, announce: false)
+
+    # #209 step one: prove both admitted forms regardless of which one the
+    # candidate workflow currently carries. The next PR changes that input.
+    stamp_start = regenerate_original.index("      - name: Read the plugin stamp\n")
+    generate_start = regenerate_original.index("      - name: Regenerate every surface\n")
+    drift_start = regenerate_original.index("      - name: Detect drift\n", generate_start || 0)
+    fail_policy("self-test: regenerate builder lacks a generate/drift pair") unless generate_start && drift_start
+    if stamp_start
+      old_form = regenerate_original
+      script_form = regenerate_original[0...stamp_start] + render_step("Regenerate every surface", REGENERATE_SCRIPT_STEP) + "\n" + regenerate_original[drift_start..]
+      script_form = script_form.sub("          ref: main\n", "          ref: main\n          persist-credentials: false\n")
+    else
+      script_form = regenerate_original
+      old_form = regenerate_original[0...generate_start] +
+        render_step("Read the plugin stamp", REGENERATE_FROZEN_STEPS.fetch("Read the plugin stamp")) + "\n" +
+        render_step("Regenerate every surface", REGENERATE_FROZEN_STEPS.fetch("Regenerate every surface")) + "\n" +
+        regenerate_original[drift_start..]
+      old_form = old_form.sub("          ref: main\n          persist-credentials: false\n", "          ref: main\n")
+    end
+    File.write(regenerate, old_form)
+    validate_repo(tmp, announce: false)
+    File.write(regenerate, script_form)
+    validate_repo(tmp, announce: false)
+    hostile.call("regenerate script form retaining the checkout write credential", regenerate, script_form,
+                 "persist-credentials: false", "persist-credentials: true", step: "Checkout main")
+    hostile.call("regenerate script form running another checkout script", regenerate, script_form,
+                 "bash scripts/surface_mirror_regenerate.sh \"$PWD\"", "bash scripts/other.sh \"$PWD\"", step: "Regenerate every surface")
+    hostile.call("regenerate script form with a checkout-supplied nen binary", regenerate, script_form,
+                 "NEN_BIN: ${{ steps.nen.outputs.bin }}", "NEN_BIN: ./bin/nen", step: "Regenerate every surface")
+    # The remaining historical hostile cases target the old stamp/loop text.
+    # Run those against that admitted form even when the live workflow has
+    # already switched; the new form's exact call and binary were tested above.
+    regenerate_original = old_form
+    File.write(regenerate, regenerate_original)
 
     expect_rejected("an entirely undeclared workflow file") do
       extra_unknown = File.join(tmp, ".github/workflows/unknown-builder.yml")
