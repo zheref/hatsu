@@ -3271,6 +3271,10 @@ def self_test(root)
         File.write(binary, "#!/bin/sh\necho 0.0.0-digest-fixture\n")
         File.chmod(0o755, binary)
         recorded = Digest::SHA256.file(binary).hexdigest
+        broken = File.join(dir, "nen-linux-x64-broken")
+        File.write(broken, "#!/bin/sh\nexit 3\n")
+        File.chmod(0o755, broken)
+        recorded_broken = Digest::SHA256.file(broken).hexdigest
         failing_hash = File.join(dir, "failing-hash")
         FileUtils.mkdir_p(failing_hash)
         File.write(File.join(failing_hash, "sha256sum"), "#!/bin/sh\nexit 1\n")
@@ -3281,6 +3285,7 @@ def self_test(root)
         [
           ["the recorded digest", { "linux-x64" => recorded }, binary, 0, ["matches", "nen: 0.0.0-digest-fixture at #{binary}"]],
           ["a digest with a trailing newline", { "linux-x64" => "#{recorded}\n" }, binary, 1, ["::error::", "observed #{recorded}"]],
+          ["a binary that matches its sha256 but does not run", { "linux-x64" => recorded_broken }, broken, 1, ["matches", "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."]],
           ["a tampered digest", { "linux-x64" => tampered }, binary, 1, ["::error::", "expected sha256 #{tampered}", "observed #{recorded}"]],
           ["no linux-x64 key", { "darwin-arm64" => recorded }, binary, 1, ["::error::", "found ''", "observed #{recorded}"]],
           ["an uppercase digest", { "linux-x64" => recorded.upcase }, binary, 1, ["::error::", "observed #{recorded}"]],
