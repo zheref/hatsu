@@ -108,7 +108,10 @@ split by a verb and never by hand: an object notation (`NN-PR-#413`) through `ne
 gives the code, the kind and the number; and `<CODE>#<N>` or `<owner/name>#<N>` through `nen parse
 context --grammar '<repo>#<n>'`. The code or slug then goes through `nen repo resolve <it> --repo
 <registry checkout>`, and every number must match `^[0-9]+$`. A URL or any other form is refused,
-naming the two accepted forms (no verb parses a GitHub URL yet; zheref/nen#427). **Echo the scope before any fetch**, as a numbered list per repository (`1. NN-PR-#413`),
+naming the two accepted forms (no verb parses a GitHub URL yet; zheref/nen#427). **Try `nen ref
+parse` first**: it carries the kind, and the `<repo>#<n>` grammar would split `NN-PR-#413` wrongly. A
+kind-less `<CODE>#<N>` or `<owner/name>#<N>` takes its kind from the conversation where it is stated,
+else is asked as issue or PR — never guessed, never passed as both `--prs` and `--issues`. **Echo the scope before any fetch**, as a numbered list per repository (`1. NN-PR-#413`),
 then read each repository's objects fresh — `nen report data --repo <checkout> --base
 origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> [the filters] --json` — and
 fold its rows as § 3 does: an issue and the PRs in its `linked[]` are one row, a PR linked to no
