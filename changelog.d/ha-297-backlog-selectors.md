@@ -1,0 +1,7 @@
+### Added
+
+- **`backlog-state` and `backlog-board` take `context`, gate lists, severity bands and label selectors** ([#297](https://github.com/zheref/hatsu/issues/297); the maintainer's rulings of 2026-10-17, recorded there). The grammar is `<repo|all|context>[@<gate>[+<gate>…] | <severity>[+] | <label>][#<label>[&<label>…]]`, plus `every …` on the board. `+` between gates is OR, `&` between labels is AND, and every filter ANDs. It parses through `nen parse`'s list slots and three-way alternation, read by `alternative` and `items`. Labels and severity bands filter through `nen backlog fetch`/`nen report data` `--label`/`--severity` against the target's own `nen/labels.json`. A label containing `&` is unsupported, and a target with no `bankai:severity/*` family refuses a band. `context` covers only the objects named in the conversation, echoed as a per-repository list before a fresh read. backlog-board's § 1 defers to backlog-state's, so the two cannot diverge. Plugin bumped to 0.113.0 (shipped skills changed); the mirrors restamped.
+
+### Changed
+
+- **nen repinned to `v0.22.0` (`minimum "0.22"`)** (zheref/nen#410, released by NN-PR-#423). The list slots and the backlog filters are 0.22's, and the release raises nen's compatibility floor to 0.22. `nen/contract.json` carries the three release digests. Every convenience copy now names the new pin: `docs/NEN-CONTRACT.md`, `docs/WORKFLOW.md`, `docs/config/contract.json.md`, the marketplace descriptions and the `surface-mirror-check` comment. Hatsu's declarations pass `schema check` under 0.22.0 unchanged.

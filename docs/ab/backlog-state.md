@@ -522,3 +522,34 @@ protect, so a stale duplicate is clutter, not a correctness risk.
 § *Retired at nen 0.5*: a literal prefix is not a resolution.
 
 The `repo resolve` exit-`2` transcript is in `docs/ab/file.md` § *Retired at nen 0.5*.
+
+## Dated verification, 2026-10-18 — the selector grammar of zheref/hatsu#297 at nen 0.22.0
+
+Run against the § 1 template with the released v0.22.0 binary (zheref/nen#410, published by NN-PR-#423):
+
+| `--line` | Parse |
+|---|---|
+| `hatsu@g5#model/gpt` | `gate: G5` · `labels: model/gpt` |
+| `hatsu#model/claude` | `gate\|severity\|label: (clause absent)` · `labels: model/claude` |
+| `context` | `repo: context`, both clauses absent |
+| `hatsu@g4+g5#model/grok&lang/typescript` | `gate: G4+G5` · `labels: model/grok&lang/typescript` (`items` per list) |
+| `all@g1-m+g2` | `gate: G1-M+G2` |
+| `hatsu@high+` | `severity: high (+)` |
+| `hatsu@model/gpt#lang/typescript` | `label: model/gpt` · `labels: lang/typescript` |
+| `hatsu@g4+model/gpt` | exit `2`: *"<gate> is one or more of G1 \| … joined by '+', and 'model/gpt' is none of them"* |
+| *(empty)* | exit `2`: *"<repo> is required"* — the no-token rule prefixes the standing repository's code first |
+
+The filters, against zheref/hatsu's own checkout (`--repo`):
+
+- `nen backlog fetch --repo-slug zheref/hatsu --repo . --label model/claude --label lang/prose` →
+  `2 row(s) after the filter -- 22 issue(s), 6 PR(s) fetched` · `filter: label model/claude AND
+  lang/prose -- kept 2 of 22 effort(s)`, exit `0`.
+- `--label lang/typscript` → exit `2`: *"'lang/typscript' is not declared in …/nen/labels.json"*,
+  before any GitHub read.
+- `--severity high+ --severity-family bankai:severity --severity-order critical,high,medium,low` →
+  exit `2`: *"…/nen/labels.json declares no 'bankai:severity/*' labels, so there is no severity family
+  to select a band from"* — Hatsu declares no severity family, so a band selector on Hatsu itself is
+  the clean refusal § 1 relays.
+- `nen report data --repo . --base origin/main --target zheref/hatsu --issues 297 --label model/claude
+  --json` → `objectsFilter: { labels: [model/claude], severity: null, kept: 0, of: 1 }`, `objects: []`
+  (#297 carries `lang/prose`, not `model/claude`) — the `context` read with a filter on top.
