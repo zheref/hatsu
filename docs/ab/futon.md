@@ -160,11 +160,11 @@ repo: <reference-repo>
 band: medium -> medium
 terminal: (none -- build-only)
 ```
-The same refusal reproduces for `KC` (`Kro-pwa`), which `schemas/repos.json` records under
+The same refusal reproduces for `KC` (`kro-pwa`), which `schemas/repos.json` records under
 `pending_onboarding`, not `consumers`:
 ```
 $ nen parse futon --repo <reference-repo> "KC@high"
-nen: 'KC' resolves to 'zheref/Kro-pwa' in this registry's own product_codes, but no owner is
+nen: 'KC' resolves to 'zheref/kro-pwa' in this registry's own product_codes, but no owner is
 recorded for it (it names no consumer) ...
 exit 2
 ```

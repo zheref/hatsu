@@ -91,7 +91,7 @@ nen repo: 'C:\...\<reference-repo>' has an 'origin' of 'https://github.com/<refe
 which resolves to '<reference-repo>' -- and that is not in this registry
 (C:\...\<reference-repo>\schemas\repos.json). ... Codes: $comment (...), BC (<reference-repo>),
 BS (<scaffold-repo>), RA (<product-repo-A>), RB (<product-repo-B>), RC (<product-repo-C>),
-KC (zheref/Kro-pwa). Repositories: <product-repo-A>, <product-repo-B>, <scaffold-repo>.
+KC (zheref/kro-pwa). Repositories: <product-repo-A>, <product-repo-B>, <scaffold-repo>.
 ```
 
 **Finding (filed, `SKILL.md` § 1).** The explicit-code form resolves `BC` instantly; the no-token
@@ -111,7 +111,7 @@ $ nen repo resolve all --repo <reference-repo checkout>
 Object-reference notation (...)  ($comment)  via all
 <reference-repo>  (BC)  via all
 <product-repo-C>  (RC)  via all
-zheref/Kro-pwa  (KC)  via all
+zheref/kro-pwa  (KC)  via all
 ```
 
 Six real repos plus one spurious `$comment` row — **seven** printed lines for six actual

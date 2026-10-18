@@ -126,7 +126,7 @@ Either way, **state the resolved set before the table**, so a reader can see wha
 swept:
 
 ```
-6 repos: <reference-repo>, <scaffold-repo>, <product-repo-A>, <product-repo-B>, <product-repo-C>, Kro-pwa.
+6 repos: <reference-repo>, <scaffold-repo>, <product-repo-A>, <product-repo-B>, <product-repo-C>, kro-pwa.
 ```
 
 A reader who cannot see what was swept cannot tell an empty band from an unswept one.
