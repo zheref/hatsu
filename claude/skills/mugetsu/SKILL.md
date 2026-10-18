@@ -396,6 +396,8 @@ name, saying which is which. Still one target per call.
 
 ## 7. Report, and the record on the release PR
 
+> **A rewrite of a public issue is not the end of it**: the pre-rewrite revisions stay in GitHub's public edit history until the maintainer deletes them, and a retitle leaves a rename event — [`PUBLIC-REDACTION.md`](../../../docs/PUBLIC-REDACTION.md) § *How it is guarded* (zheref/hatsu#289 item 11).
+
 One block, then stop:
 
 - **The go, quoted verbatim**, with who said it and when.

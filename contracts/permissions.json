@@ -185,11 +185,6 @@
       "why": "the warm-up's version check on Cursor"
     },
     {
-      "exe": "osascript",
-      "args": "*",
-      "why": "the bell's OS notification on macOS"
-    },
-    {
       "exe": "afplay",
       "args": "*",
       "why": "the bell's sound on macOS"

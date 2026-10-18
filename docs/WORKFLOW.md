@@ -2393,11 +2393,14 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    ROSTER § *Rulings of 2026-10-13*, small ruling 4) — `nen loop slots` cannot read a stack yet, the nen
    request on the harvest.
 5. **Merging, bottom-up, one at a time, with `--merge`, never a squash** (a squash would re-carry the
-   lower PR's commits into the next diff). The maintainer merges the bottom PR and **deletes its head
-   branch**; GitHub then retargets the next PR to the merged PR's base, which is `branch.base` (GitHub
-   Docs, *Deleting and restoring branches in a pull request*). After each merge the run — or
-   `hatsu:en <next>` — reads the next PR's base back; where it does not read `branch.base` it runs
-   `nen pr retarget --base <branch.base>` (en § 5, check 1); then en § 5's remaining checks run at the
+   lower PR's commits into the next diff). After each merge the run — or `hatsu:en <next>` — **retargets
+   the next PR to `branch.base` first** (`nen pr retarget --base <branch.base>`, en § 5 check 1) **and only
+   then deletes the merged head branch**: deleting it first closes the dependent PR (observed on HA-PR-#250
+   and #253, 2026-10-13; GitHub's own docs promise a retarget that did not happen). A dependent PR above a
+   change to a frozen workflow step reads red on CON-32(a) until that change is on `branch.base`: the
+   guard workflows run the TRUSTED validator at `main`'s head, not the PR's base; the push after the
+   retarget runs it again at the new head (a close-and-reopen is the fallback where no push follows;
+   `gh run rerun` reuses the stale trusted revision). Then en § 5's remaining checks run at the
    new base (the readiness check re-runs on a push or a re-run, since `pr-readiness.yml` does not fire
    on `edited`), and only then the one `MERGE` ask. A PR whose base is neither is stranded (en § 6).
    **Nothing in a stack is merged out of order.**

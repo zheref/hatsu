@@ -375,6 +375,8 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
 
 ## 8. Hard limits
 
+> **A rewrite of a public issue is not the end of it**: the pre-rewrite revisions stay in GitHub's public edit history until the maintainer deletes them, and a retitle leaves a rename event — [`PUBLIC-REDACTION.md`](../../../docs/PUBLIC-REDACTION.md) § *How it is guarded* (zheref/hatsu#289 item 11).
+
 > A command handed to the maintainer here is one complete `bash` block per command, where to run it said — WORKFLOW § 4's hand-over rule (ruling of 2026-10-17, zheref/hatsu#295).
 
 - **Never files without the confirmation** for an explicit request, and never files anything the

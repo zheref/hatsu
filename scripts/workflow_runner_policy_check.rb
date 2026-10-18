@@ -915,6 +915,105 @@ REGENERATE_PR_WITH = {
 # command (hanten on #223, Feitan). The shape is anchored to the drift step by
 # its name: a renamed drift step fails this file's own self-test below, never
 # silently collapses the two shapes.
+# surface-mirror-check.yml's "Surface-mirror drift check" step was the one unfrozen run body
+# left in the guard workflows (zheref/hatsu#289 item 2, ruled 2026-10-17: freeze it). Two-step
+# landing: this constant is the live body as of that ruling, and DRIFT_STEP_FROZEN admits the
+# free form beside it until step two flips the toggle and narrows the admission to the frozen
+# form alone; the self-test proves the live step already equals the frozen form.
+DRIFT_STEP = "Surface-mirror drift check"
+DRIFT_STEP_FROZEN = false
+DRIFT_FROZEN_GUARD = {
+  "env" => {
+    "NEN_BIN" => "${{ steps.nen.outputs.bin }}",
+    "PINNED_REF" => "${{ steps.pin.outputs.ref }}"
+  },
+  "shell" => "bash",
+  "run" => <<~'DRIFT_RUN'.strip
+    set -uo pipefail
+    # Missing trusted code is a configuration failure. Never fall back to
+    # a PR-controlled guard in this privileged event context.
+    guard=.trusted/scripts/surface_mirror_check.sh
+    [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/surface_mirror_check.sh"; exit 1; }
+    echo "guard script: $guard"
+
+    # The PR checkout is the ROOT the trusted guard judges.
+    #
+    # `code=0; cmd || code=$?` and NOT a bare `cmd` followed by `code=$?`.
+    # `shell: bash` runs `bash --noprofile --norc -e -o pipefail`, so the
+    # `-e` is GitHub's and `set -uo pipefail` above does not clear it: the
+    # bare form KILLED THE STEP on the guard's exit 2 before `code` was ever
+    # read, and the documented skip-with-a-notice never happened — the job
+    # failed every pull request, which is the outcome the header says it
+    # exists to avoid. Same idiom, same reason, as the loop inside
+    # scripts/surface_mirror_check.sh.
+    #
+    # The guards print names and links taken from the PR's tree. Between
+    # `::stop-commands::<token>` and `::<token>::` the runner reads no
+    # workflow command, so nothing in that output can be a forged
+    # `::error`, `::add-mask` or `::set-output`; the token is fresh per run.
+    # Each guard's stderr is folded into its stdout (`2>&1`): the runner
+    # reads the two streams on separate readers, so a late stderr line could
+    # otherwise land after the resume token. The token is printed after a
+    # newline, so it starts a line even when a guard's last line lacks one.
+    stop="stop_$(openssl rand -hex 16)"
+    code=0
+    echo "::stop-commands::${stop}"
+    bash "$guard" "$PWD" 2>&1 || code=$?
+    printf '\n::%s::\n' "$stop"
+
+    case "$code" in
+      0)
+        echo "surfaces/ matches a fresh generation."
+        ;;
+      2)
+        # Unreachable at a pin that carries the verb, and kept as a FAILURE
+        # rather than deleted. Through v0.4.0 this branch was a loud skip,
+        # because the pinned nen predated `nen surface`. From v0.5.0 onward the
+        # verb is in the pinned binary, so this exit means the pin or the
+        # bootstrap is wrong — a thing to report, never to pass through.
+        echo "::error title=surface-mirror-check could not run::The bootstrapped nen (${PINNED_REF}) has no 'surface mirror' verb, so surfaces/codex and surfaces/cursor were NOT checked. At this pin that is a defect in the pin or the bootstrap, not a condition to skip past: nen/contract.json's dependency.pinned_ref is expected to name a nen carrying the verb. See docs/SURFACES.md § 4."
+        exit 1
+        ;;
+      3)
+        echo "::error::no nen binary reached the check step — the bootstrap above should have made this impossible."
+        exit 1
+        ;;
+      *)
+        echo "::error::surfaces/ has drifted from claude/skills + claude/agents. Regenerate with 'nen surface mirror generate' (both surfaces) and commit the result — see the guard output above and docs/SURFACES.md § 3."
+        exit "$code"
+        ;;
+    esac
+
+    # CORRECTNESS, NOT ONLY DRIFT (zheref/hatsu#72). The drift check above
+    # proves surfaces/ matches a fresh generation; a generator bug that is
+    # reproduced faithfully on every regeneration passes it forever. The
+    # link guard resolves every relative link in the generated markdown
+    # from its own file's directory and fails on one that dangles. Same
+    # trust shape: the guard is the trusted revision's, the PR checkout is
+    # only the root it judges. It needs no nen, so it never exits 3. It is
+    # reached only when the drift verdict above is 0: a drift-red run says
+    # nothing about links, and the PR sees the link verdict once it regenerates.
+    link_guard=.trusted/scripts/surface_link_check.sh
+    [ -f "$link_guard" ] || { echo "::error::trusted workflow revision has no scripts/surface_link_check.sh"; exit 1; }
+    link=0
+    echo "::stop-commands::${stop}"
+    bash "$link_guard" "$PWD" 2>&1 || link=$?
+    printf '\n::%s::\n' "$stop"
+    case "$link" in
+      0)
+        echo "every relative link under surfaces/ resolves."
+        ;;
+      1)
+        echo "::error::a relative link under surfaces/ dangles (file, link and resolved path are listed above). Fix the authored source or the generator, regenerate, and commit — never an allowlist. See scripts/surface_link_check.sh."
+        exit 1
+        ;;
+      *)
+        echo "::error::the surface link guard could not run (exit $link). Exit 2 is a wiring defect: the root is not a Hatsu checkout, surfaces/ is empty, a file is unreadable, or a file name carries a control character. Any other exit is unexpected. See the guard output above."
+        exit 1
+        ;;
+    esac
+  DRIFT_RUN
+}.freeze
 CANON_CONTRACTS_STEP = "Canon data contracts check"
 CANON_CONTRACTS_AFTER = "Surface-mirror drift check"
 CANON_CONTRACTS_FROZEN = {
@@ -1592,6 +1691,7 @@ end
 # rendered readiness form, so it is Hatsu's own repository.
 def validate_workflow(path, hatsu: false)
   document = Psych.parse_file(path)
+  fail_policy("#{path} is empty or carries no YAML document") unless document && document.root
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
@@ -1704,6 +1804,9 @@ def validate_workflow(path, hatsu: false)
         extra_env = READINESS_RENDERED_ENV
       end
     end
+    if File.basename(path) == "surface-mirror-check.yml" && DRIFT_STEP_FROZEN
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == DRIFT_STEP }, DRIFT_FROZEN_GUARD, "#{path} #{DRIFT_STEP.inspect}")
+    end
     if File.basename(path) == PROSE_WORKFLOW
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == PROSE_GUARD_STEP }, PROSE_FROZEN_GUARD,
                           "#{path} #{PROSE_GUARD_STEP.inspect}")
@@ -1778,7 +1881,10 @@ def validate_workflow(path, hatsu: false)
     end
     step_maps.each do |step|
       run = scalar(step["run"])
-      if run&.match?(/(?:bash|ruby|source)\s+["']?(?:\.\/)?scripts\//)
+      # Any spelling of a PR-root script invocation (zheref/hatsu#289 item 2) at COMMAND position: bare,
+      # through sh/bash/ruby/source/sudo/env, ./-prefixed or "$PWD"-prefixed, at a line's start or after
+      # ; & | ( {. Code lines only (comments are prose); a path inside an echo or a git argument is data.
+      if code_of(run).match?(/(?:^|[;&|({]\s*)(?:(?:sh|bash|ruby|source|sudo|env(?:\s+\w+=\S*)*)\s+)?(?:\.\/|"?\$PWD"?\/)?scripts\/\S/)
         fail_policy("#{path} job #{job_name} executes a PR-root script instead of trusted code")
       end
     end
@@ -1949,6 +2055,7 @@ end
 # like any other.
 def validate_builder_workflow(path)
   document = Psych.parse_file(path)
+  fail_policy("#{path} is empty or carries no YAML document") unless document && document.root
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   basename = File.basename(path)
@@ -2200,6 +2307,14 @@ def self_test(root)
                  'ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"', "true", step: policy_step)
     hostile.call("PR-root script execution", plugin, original,
                  %Q{          bash "$guard" \\\n}, %Q{          bash scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script through sh", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          sh scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script bare ./", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          ./scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script through $PWD", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          "$PWD"/scripts/plugin_bump_check.sh \\\n}, step: guard_step)
+    hostile.call("PR-root script through env", plugin, original,
+                 %Q{          bash "$guard" \\\n}, %Q{          env X=1 scripts/plugin_bump_check.sh \\\n}, step: guard_step)
     hostile.call("nested duplicate YAML key", plugin, original,
                  "          GH_TOKEN: ${{ github.token }}", "          GH_TOKEN: first\n          GH_TOKEN: second", step: start_step)
 
@@ -2211,6 +2326,23 @@ def self_test(root)
     FileUtils.cp(File.join(root, ".github/workflows/surface-mirror-check.yml"), surface)
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
     expect_rejected("duplicate YAML key") { validate_repo(tmp) }
+    # An empty or comment-only workflow file is a policy line, never a backtrace (zheref/hatsu#289 item 2);
+    # judged with the undeclared extra out of the way, which is restored afterwards for the cases below.
+    FileUtils.rm(extra)
+    File.write(plugin, "")
+    expect_rejected("empty workflow file", /empty or carries no YAML document/) { validate_repo(tmp) }
+    File.write(plugin, "# only a comment\n")
+    expect_rejected("comment-only workflow file", /empty or carries no YAML document/) { validate_repo(tmp) }
+    File.write(plugin, original)
+    File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
+    # The drift step's live form is the frozen form (zheref/hatsu#289 item 2, step one), so step two is a toggle flip.
+    live_surface = Psych.parse_file(File.join(root, ".github/workflows/surface-mirror-check.yml"))
+    live_steps = mapping(mapping(mapping(live_surface.root, "surface").fetch("jobs"), "jobs").fetch("surface-mirror-check"), "surface-mirror-check").fetch("steps")
+    live_drift = live_steps.children.map { |s| mapping(s, "self-test step") }.find { |s| scalar(s["name"]) == DRIFT_STEP }
+    require_frozen_step(live_drift, DRIFT_FROZEN_GUARD, "self-test live drift step")
+    tampered = live_drift.dup
+    tampered["run"] = Psych::Nodes::Scalar.new(scalar(live_drift["run"]).sub("code=0", "code=1"))
+    expect_rejected("drift step tampered against its frozen form") { require_frozen_step(tampered, DRIFT_FROZEN_GUARD, "self-test tampered drift step") }
 
     # THE SUBSTRING BYPASS, covered by fixture because a text match is not a data
     # -flow check. The trusted path still appears -- in a COMMENT -- while the

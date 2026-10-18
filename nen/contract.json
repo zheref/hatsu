@@ -129,15 +129,15 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/surface_link_check.sh (zheref/hatsu#72), the generated-surface LINK guard: surface_mirror_check.sh proves the mirrors match a fresh generation, this one proves the generated bodies' relative .md links resolve at the depth each mirror sits at. One lane per executable guard. Its fixture is hermetic and offline: a clean tree, one dangling link named by file, link and resolved path, the #71 nested-depth regression, the three CommonMark forms and a reference definition in a file with no inline link, a target climbing above the root or passing through a symlink (dangling, never stat'ed), a file holding a NUL byte (read as text), a trailing slash on a file (dangling), the folded path judged over the unfolded one, a file name with a newline or a tab (refused, no output line starting `::`), --summary, and the wiring refusals. The live verdict runs in CI: surface-mirror-check.yml calls the trusted scripts/surface_link_check.sh against the PR checkout inside its drift step, only on a drift-clean tree and with its output fenced by ::stop-commands::, now that nen v0.17.0 re-aims links per mirror depth (zheref/nen#270, fixed by zheref/nen#285) and the mirrors resolve clean; it stayed out of CI while red, because nen pr ready counts every reported check."
       },
+      "announced-tag-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/announced_tag.sh (zheref/hatsu#289 item 5): susanoo section 5a's announced-tag read as one shipped command, FROZEN to fixes only pending its port (BC-11, the ruling of 2026-10-17). Its fixture is hermetic and offline: no workflow file and no tags block are exit 3 (no tag declared); a tags value that is not an object, a nameFrom that is not a regular file, a one-line file or a nameFrom carrying .. are exit 1 (a declaration fault); two lines print; wiring is exit 2."
+      },
       "redaction-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/private_name_check.sh (zheref/hatsu#149), the private-repository-name guard docs/PUBLIC-REDACTION.md names: text is compared against the LIVE list of every private repository the maintainer's credentials can see (`gh api 'user/repos?visibility=private'`, paginated; --owner adds an owner, never narrows), or a --names-file a fixture or a CI secret supplies; the list is never committed, and an empty one -- read empty, or emptied by the ignore file -- is exit 2 (--allow-empty to accept it); an empty or comment-only ignore file ignores nothing. Bare names, case-insensitive, whole-word with `_` and `.` as boundaries, a line that could hide a name also read normalised (URL encoding, HTML entities, tags, backslash escapes, NFKC, format characters, dashes) and then with HTML comments, `*` and backticks removed (intraword emphasis, code spans, comment splits); a hit, a path and a label printed with an index and never the name, and a path or label that names one only once normalised withheld whole; the predecessor marker exempt only as the exact `<!-- GENERATED from <name>@` shape and only for the name limbo's marker line carries, the same name elsewhere on that line, spelt plainly or normalised, still a hit; under --tree, paths and symlink targets checked, UTF-16 with a BOM (U+FEFF) decoded (without one it is binary), skips counted; a private --target skipped; every wiring fault exit 2 (perl lacking Encode or Unicode::Normalize, or the scan dying in perl, included; an unreadable file named as one). hatsu:file (before its plan), backlog-synthesis, mugetsu and sharingan run it before writing to a public repository; nen's issue file, comment and edit-body run the same refusal from v0.20.0 (zheref/nen#367, closing #329), given its ignore file (file section 4); consolidate-close's close comments and the pr writers remain the script's alone (zheref/nen#363). Its fixture is hermetic and offline (invented names, a stub gh; 148 cases). The tree check itself (`bash scripts/private_name_check.sh --tree .`) needs the live list and the tree is not yet clean, so it is a maintainer command and not a CI or kokusen step: #149's criterion 2(b) is deferred until the tree is redacted."
-      },
-      "plugin-cache-guard": {
-        "stack": "claude-code-plugin",
-        "cwd": ".",
-        "$comment": "The focused lane for scripts/plugin_cache_check.sh (zheref/hatsu#122): whether the copy Claude Code serves -- the plugin cache an installPath in installed_plugins.json names, or the first-party skills/hatsu install -- is byte for byte a source, over the shipped trees (claude/skills, claude/agents, claude/rules, hooks, templates, contracts, scripts, .claude-plugin/plugin.json and marketplace.json), symlinks compared by target and never opened, control-character names never compared or printed raw. A copy is never its own evidence: where the copy IS the root ten § 0 resolved, the source is one named independently (HATSU_PLUGIN_ROOT, a directory marketplace, the Hatsu checkout the caller stands in), and none is not comparable. Exit 0 identical (or served by link to that independent git checkout), 1 different with every path named by side, 2 wiring, 3 not installed, 4 not comparable, 5 broken install (no usable installPath, a stale record, a dangling or looping link, a control character in a path); no jq reads the install record as unread, never a wiring stop. Residue owed to zheref/nen#339. ten § 5 records its verdict as Claude Code's `mirrors:` line, and surface_mirror_check.sh --installed hands a cache-shaped path to it instead of nen's claude-code row, which read every file `missing` against a real cache. Its fixture is hermetic and offline (a throwaway source and caches, a fake CLAUDE_CONFIG_DIR, a jq-less PATH, a FIFO behind a symlink under an alarm, a working directory on a feature branch, an unreadable directory; 79 cases)."
       },
       "prose-guard": {
         "stack": "claude-code-plugin",
@@ -394,13 +394,13 @@
           "$comment": "A permanent, deterministic fixture for the private-repository-name guard. Run it as `nen shu test --lane redaction-guard --repo <hatsu>` when scripts/private_name_check.sh or its fixture changes; run the guard itself against the tree with `bash scripts/private_name_check.sh --tree .` on the maintainer's own credentials."
         }
       },
-      "plugin-cache-guard": {
+      "announced-tag-guard": {
         "test": {
           "exe": "bash",
           "argv": [
-            "scripts/plugin_cache_check_fixture.sh"
+            "scripts/announced_tag_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the plugin-cache comparison. Run it as `nen shu test --lane plugin-cache-guard --repo <hatsu>` when scripts/plugin_cache_check.sh or its fixture changes; run the check itself as `scripts/plugin_cache_check.sh --root <hatsu> --cache auto` on a Claude Code host."
+          "$comment": "A permanent, deterministic fixture for the announced-tag read. Run it as `nen shu test --lane announced-tag-guard --repo <hatsu>`; 10 cases."
         }
       },
       "prose-guard": {

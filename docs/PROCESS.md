@@ -504,10 +504,10 @@ states the rule; zheref/hatsu#295).
 placed beside it ([`SURFACES.md`](SURFACES.md) § 2):
 
 ```bash
-"$hatsu_root/scripts/plugin_cache_check.sh" --root "$hatsu_root" --cache auto
+nen surface status --surface claude-code --plugin hatsu --root "$hatsu_root"
 ```
 
-It judges every copy Claude Code has recorded for Hatsu (each `hatsu@` installPath and `skills/hatsu`),
+The verb (nen 0.21.0, zheref/nen#339; `scripts/plugin_cache_check.sh` retired by zheref/hatsu#289 item 6) judges every copy Claude Code has recorded for Hatsu (each `hatsu@` installPath and `skills/hatsu`),
 and **a copy is never its own evidence**: where the served copy IS `--root` (ten § 0 resolves it from
 the served skill directory), it compares against a source named independently — `HATSU_PLUGIN_ROOT`,
 a `directory` marketplace, or the Hatsu checkout ten stands in. `0` is `mirrors: current (<the line>)`;
