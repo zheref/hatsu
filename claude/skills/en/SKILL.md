@@ -96,6 +96,15 @@ nen ref format --code <CODE> --kind PR --number <N>
 **A closed or merged PR ends the run immediately** with what happened to it. There is nothing to
 land.
 
+**An open PR whose head is already published stays in En on every continuation.** When its branch
+falls behind the PR base, or a review fix needs publication, run En's current-tree evidence steps and
+[`hatsu:murasaki`](../murasaki/SKILL.md)'s guarded fast-forward push (§ 3 and murasaki § 6). Do not
+send the published branch through [`hatsu:aka`](../aka/SKILL.md)'s squash. First publication follows
+the authorization already carried by its invoking workflow, whether a direct Aka call or a composite
+such as Futon. En still stops at § 5's separate human merge gate. For
+example, PR #274 was already published at `b5fddea` when #273 advanced `main`; its catch-up merge
+preserved that published ancestry and Murasaki pushed the verified descendant `5de39c5`.
+
 **The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
 contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
