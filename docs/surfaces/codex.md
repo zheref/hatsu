@@ -152,6 +152,11 @@ collect several ticked answers on one question; the CLI TUI selects one option p
 official mention is the app-server protocol's `tool/requestUserInput`, marked experimental; no
 user-facing page names the tool, so the checklist row cites the protocol page.
 
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries the
+question alone, the rest of the stop in the chat message (`jutaisho` § 4 states the shape). No Run button on
+a code fence is known here (*Known gaps*), so a command the maintainer must run is one complete `bash` block
+per command and the message says *paste into a terminal*.
+
 ## 8. Generation
 
 ```sh
@@ -231,6 +236,8 @@ nen surface mirror check --surface codex <same flags> --installed <a whole surfa
 destination.
 
 ## 10. Known gaps (not documented)
+
+- **A Run button on a code fence** (§ 7, WORKFLOW § 4's hand-over rule): none observed and no official page fetched (2026-10-17); the fence is treated as the copy source until a fetched line says otherwise.
 
 - A user-facing page for `request_user_input`; only the app-server protocol names it.
 - A per-skill description cap; the documented budget is for the whole list.

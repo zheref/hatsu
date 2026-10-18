@@ -37,6 +37,7 @@ a:hover,a:focus-visible{border-bottom-color:currentColor;outline:none}
 img{max-width:100%;height:auto;display:block}
 code,kbd,pre,samp{font-family:var(--mono)}
 code{font-size:.88em;background:var(--tint);padding:.05em .3em;border-radius:3px}
+.cmd{font-size:.86rem;margin:6px 0 0;padding:10px 12px}.cmd code{font-size:inherit;background:none;padding:0;border-radius:0;display:inline;margin:0}
 pre{font-size:.82rem;line-height:1.5;background:var(--surface);border:1px solid var(--rule);padding:14px 16px;overflow-x:auto;white-space:pre-wrap;word-break:break-word;margin:10px 0}
 h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.15;text-wrap:balance;margin:0}
 h1{font-size:clamp(1.9rem,5vw,2.8rem);letter-spacing:-.01em;overflow-wrap:anywhere}
@@ -235,9 +236,9 @@ summary:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
     <p class="why">{{why}}</p>
     <ol class="opts">
       {{#each options}}
-      <li class="{{starredClass}}"><span class="letter">{{letter}}</span><span><span class="lab">{{label}}</span>{{#if star}}<svg class="star" viewBox="0 0 20 19" width="14" height="14" role="img" aria-label="{{star}}"><path d="M10 0l2.9 6.2 6.6.9-4.8 4.7 1.2 6.8L10 15.4 4.1 18.6l1.2-6.8L.5 7.1l6.6-.9z" fill="currentColor"/></svg>{{/if}}
+      <li class="{{starredClass}}"><span class="letter">{{letter}}</span><div><span class="lab">{{label}}</span>{{#if star}}<svg class="star" viewBox="0 0 20 19" width="14" height="14" role="img" aria-label="{{star}}"><path d="M10 0l2.9 6.2 6.6.9-4.8 4.7 1.2 6.8L10 15.4 4.1 18.6l1.2-6.8L.5 7.1l6.6-.9z" fill="currentColor"/></svg>{{/if}}
         <span class="cons">{{consequence}}</span>
-        <code>{{command}}</code></span></li>
+        {{#if command}}<pre class="cmd"><code>{{command}}</code></pre>{{/if}}</div></li>
       {{/each}}
     </ol>
     {{#if objects}}<p class="objs">{{#each objects}}<a href="{{url}}">{{label}}</a>{{/each}}</p>{{/if}}

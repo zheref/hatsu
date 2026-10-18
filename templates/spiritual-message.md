@@ -34,8 +34,8 @@ stage {{effortStage}} · {{gate}} · worktree {{worktree}} · branch {{branch}}
 
 {{#each ask.options}}- **{{letter}}** · {{label}}{{#if star}} ⭐ {{star}}{{/if}}\
   {{consequence}}
-  <pre>{{command}}</pre>
-{{/each}}
+{{#if command}}  <pre>{{command}}</pre>
+{{/if}}{{/each}}
 {{#if ask.objects}}Objects:{{#each ask.objects}} [{{label}}](<{{url}}>){{/each}}
 {{/if}}{{#each readiness}}
 > [!IMPORTANT]

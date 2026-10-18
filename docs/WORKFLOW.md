@@ -1034,7 +1034,23 @@ Nothing else stops the loop. **A stop is `nen stop`'s banner, the report link, t
 recommended decision — never on the report, which is linked and never an option — a proposed process
 issue, and the question asked through the surface's own native option picker** (Crazy Slots;
 `AskUserQuestion` on Claude Code, `request_user_input` on Codex, `AskQuestion` on Cursor,
-`ask_question` on Antigravity).
+`ask_question` on Antigravity). **The picker carries the question alone**; the banner, the verdict, the link
+and every command are the chat message's, and a free-text answer typed into the picker is the maintainer's
+word — [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 4 states the shape once (ruling of 2026-10-17,
+zheref/hatsu#294).
+
+**A command the maintainer must run is handed over as a runnable block** (ruling of 2026-10-17,
+zheref/hatsu#295), on every surface and at every hand-over — a `DO` ask, en § 5's merge line, a host
+relink, an ignore-file line, a repository setting (CON-33(b): the human gets the exact command): **complete**
+(absolute paths, never a `cd … &&` chain — § *Writing a skill block*'s one command per block holds here too),
+**one command per fenced `bash` block**, no `$` prompt, no interleaved output, and the message says
+**where** to run it. It runs in the maintainer's own terminal, outside the harness guard, on their own
+`gh` session — never a token pasted or printed. On the Claude desktop app's Code tab a `bash`-tagged fence
+carries a Run button and *is* the hand-over; everywhere else — the Claude Code CLI, Codex, Cursor,
+Antigravity — the fence is the copy source and the message says *paste into a terminal*
+(`docs/surfaces/<surface>.md` § 7 names each mechanism, § 10 its evidence). A register `DO` ask carries the
+same block in its `command` field, never in `why` alone. Prose that points at the register, a file or "the
+command above" is not a hand-over.
 
 **A question on the page is a question in the picker — always, in the same turn** (maintainer's
 report, 2026-09-22: G5 options appeared on the report and nowhere else). Which asks make the bell a

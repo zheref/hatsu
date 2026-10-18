@@ -127,9 +127,16 @@ turn page says so with the row id.
 
 **4 · The question through the surface's own option picker** ([`docs/using/README.md`](../../../docs/using/README.md) § *The four surfaces, compared*'s
 *native option picker* row; `nen surface capabilities --surface <s>` names it) — never a paragraph
-ending in a question mark; its options are the marker's, verbatim (§ 1). **A `DO` or `MERGE` ask's picker never carries the act**,
+ending in a question mark; its options are the marker's (§ 1), shortened to the picker's length below. **A `DO` or `MERGE` ask's picker never carries the act**,
 which is the maintainer's outside the session — a `MERGE` ask is `en` § 5's merge prompt for every PR
-into `main`, the run's own included: its link and the inline `gh pr merge` line (ruling 2026-09-30).
+into `main`, the run's own included: its link and the `gh pr merge` line as a `bash` block in the message (ruling 2026-09-30).
+
+**Where the parts go (ruling of 2026-10-17, zheref/hatsu#294, the maintainer's words; caps this run's reading).** Parts 1–3 are the **chat message**: banner and table, link, the lettered options with each command
+as its own `bash` block (CON-33(b)). The **picker** carries part 4 alone: a header of at most 12 characters (the
+gate id), one question of at most two sentences, three or four options, labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
+in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form A free-text answer is the maintainer's word: an answer
+re-enters the run as that picker call; a question back is answered and re-asked once, a new call (WORKFLOW § 4 *Ask, set up, continue* step 2). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
+CON-10's short board vs options in chat: a question for #289's harvest
 
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.

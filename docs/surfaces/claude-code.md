@@ -122,7 +122,11 @@ A persona can opt out of `CLAUDE.md` with `omitClaudeMd`; Hatsu's do not.
 `AskUserQuestion`, the harness's own tool, is what `jutaisho` asks a gate question through: lettered
 options, a star on the recommended one, several tickable when several can be true. The tool is what the
 session exposes; no official page for it was fetched on 2026-09-20, so it stands as an observed fact
-rather than a checklist row (see *Known gaps*).
+rather than a checklist row (see *Known gaps*). **The shape** is `jutaisho` § 4's (ruling of 2026-10-17,
+zheref/hatsu#294): the picker carries the question alone, the rest of the stop in the chat message.
+**Hand-over (zheref/hatsu#295):** in the Claude desktop app's Code tab a `bash`-tagged fence renders a Run
+button, so one command per `bash` block *is* the hand-over; in the CLI the fence is the copy source
+(observed, *Known gaps*).
 
 ## 8. Generation
 
@@ -181,6 +185,8 @@ placement. There is no marker on this surface because there is no generated file
 | a declared marketplace | re-cloned, enabled plugins re-downloaded | "**A marketplace that settings declare but `known_marketplaces.json` lacks**: Claude Code clones it, then reloads plugins and downloads enabled plugins that aren't cached yet" — observed reinstalling `hatsu@hatsu` over the link on the maintainer's host (evidence § 10 F9) | https://code.claude.com/docs/en/plugins/loading | 2026-09-29 |
 
 ## 10. Known gaps (not documented)
+
+- **The Run button on a `bash` fence** (§ 7, WORKFLOW § 4's hand-over rule): observed in-session on 2026-10-17 in the desktop app's Code tab; no official page documents it, so it stands as an observed fact, not a checklist row.
 
 - A skill `name` length limit. No page states one; Hatsu's longest is `spiritual-message`.
 - A page for `AskUserQuestion`. The tool is observed in the session's tool set; no URL was fetched.
