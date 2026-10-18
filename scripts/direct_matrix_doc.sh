@@ -60,7 +60,9 @@ else
 fi
 script="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
-exec python3 - "$mode" "$root" "$script" <<'PY'
+# The caller may run this trusted script from a PR checkout. Isolated mode
+# keeps a PR-supplied json.py (or PYTHONPATH) out of the standard-library imports.
+exec python3 -I - "$mode" "$root" "$script" <<'PY'
 import json, os, re, shutil, subprocess, sys, tempfile
 
 mode, root, SCRIPT = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -868,6 +870,12 @@ def self_test():
         rc, _ = run("--check", r=tmp); ok(rc == 1, "--check exits 1 when the page is missing")
         rc, _ = run("--write", r=tmp); ok(rc == 0 and os.path.exists(page), "--write writes the page")
         rc, _ = run("--check", r=tmp); ok(rc == 0, "--check exits 0 on a fresh page")
+        with open(os.path.join(tmp, "json.py"), "w", encoding="utf-8") as f:
+            f.write("open('injected.marker', 'w').write('ran')\nraise RuntimeError('PR module ran')\n")
+        p = subprocess.run(["bash", SCRIPT, "--check", tmp], cwd=tmp, capture_output=True, text=True)
+        ok(p.returncode == 0 and not os.path.exists(os.path.join(tmp, "injected.marker")),
+           "--check ignores a PR checkout's json.py on the Python import path")
+        os.remove(os.path.join(tmp, "json.py"))
         with open(page, "a", encoding="utf-8") as f:
             f.write("x\n")
         rc, _ = run("--check", r=tmp); ok(rc == 1, "--check exits 1 on a hand-edited page")
