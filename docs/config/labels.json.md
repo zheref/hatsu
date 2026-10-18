@@ -127,11 +127,11 @@ The two axes of [`contracts/classify.taxonomy.json`](../../contracts/classify.ta
 | `hatsu:direct` § 7 | whether `model/<line>` is declared before `nen label apply`; an undeclared label is the verb's refusal, said |
 | `hatsu:futon` §§ 1, 7 | the selector token is an exact label matched on the live issues; the labels it may apply (`bankai:stage/building`, a severity) are checked here by `nen label apply` |
 | `hatsu:backlog-loop` § 4, `hatsu:backlog-synthesis` § 5 | the severity family, passed as `--severity-family` and read from the target's file and nowhere else |
-| `hatsu:backlog-state`, `hatsu:backlog-board` | severity off the live labels of each row; the family these verbs recognise is the one declared here |
+| `hatsu:backlog-state`, `hatsu:backlog-board` | every `--label` of a selector, checked here by `nen backlog fetch`/`nen report data` (an undeclared label is refused); a `@<severity>[+]` band reads the **`bankai:severity`** family only, in the order `critical,high,medium,low` (backlog-state § 11). A file that declares no `bankai:severity/*` labels has no bands for those two skills (zheref/hatsu#297) |
 
 ## Example
 
-Illustrative, for a plain product repository: the GitHub defaults, a severity family of the repository's own, and the three Hatsu families (the `job/` list is cut to two rows here; `nen classify install --write` fills all thirty-nine).
+Illustrative, for a plain product repository: the GitHub defaults, a severity family of the repository's own (named `severity/*` here; backlog-state and backlog-board read bands only from a `bankai:severity/*` family), and the three Hatsu families (the `job/` list is cut to two rows here; `nen classify install --write` fills all thirty-nine).
 
 ```json
 {
