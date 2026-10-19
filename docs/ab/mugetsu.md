@@ -1,5 +1,23 @@
 # Evidence — `mugetsu` (new skill, Hatsu workflow fold-in)
 
+## 2026-10-18 — #156 permission-pack preparation
+
+The local fixture installs the Claude Code permission pack in a scratch checkout and verifies
+two release forms for Hatsu's declared `plugin` lane: the `--dry-run` plan and the bare
+publication form. It also verifies the installed permissions equal the rendered permissions
+and that no explicit `nen shu deploy` or direct `gh release` rule was added. The fixture
+passed on this branch. This is a pack-rendering result, not a live Auto-mode decision.
+
+A live Claude Code publication through this pack is still **unverified**. It belongs to the
+next maintainer-authorized Getsuga→Mugetsu cut after this delivery reaches main; record the
+classifier's actual answer here when that run occurs. If Claude Code denies the command,
+Mugetsu § 6 records `not published`, the exact go and denied line on the release PR at G3.
+
+Anthropic's current [permission-mode documentation](https://code.claude.com/docs/en/permission-modes)
+says a narrow allow rule remains active in Auto mode, while broad execution rules can be
+dropped. That documents why this pack uses two narrow forms; it does not prove what the
+classifier will do during a release.
+
 `claude/skills/mugetsu/SKILL.md`: publication — stores and production — behind **G3** (`CON-6`). One
 recorded per-target go from the maintainer, quoted verbatim; `nen release preflight` read at the
 tagged commit; then the declared `release` row and/or `nen shu deploy --target <production> --run`,

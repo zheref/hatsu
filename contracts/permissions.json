@@ -15,6 +15,16 @@
       "why": "every deterministic step is a Nen verb; nen shells out only to git and gh"
     },
     {
+      "exe": "nen",
+      "args": "shu release --repo * --lane plugin --dry-run",
+      "why": "mugetsu § 5a prints the declared plugin lane's publication plan before the maintainer's advance go is spent (2026-09-28 ruling; #156); this narrow Claude Code rule remains eligible in Auto mode"
+    },
+    {
+      "exe": "nen",
+      "args": "shu release --repo * --lane plugin",
+      "why": "mugetsu § 5a executes the declared plugin lane only after the maintainer's advance go and green preflight (2026-09-28 ruling; #156); no deploy or direct gh release grant"
+    },
+    {
       "exe": "curl",
       "args": "-fsSL https://raw.githubusercontent.com/zheref/*",
       "why": "the warm-up fetches nen's checksum-verified bootstrap script to a file"
