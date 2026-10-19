@@ -38,9 +38,12 @@
 # attached. The head tree for that read is the directory two levels above
 # <head-plugin-json> (`<root>/.claude-plugin/plugin.json`); a detached head
 # manifest, or a root with no `surfaces/`, has nothing to scan and says so.
+# A bumped PR that changes a declared spec path also owes a changed, surviving
+# changelog.d/ fragment, following contracts/pr-composition.json. An integration
+# PR with its own CHANGELOG.md section uses that contract's directSection line.
 #
 # SHAPE
-# Pure comparison logic above, CLI at the bottom. Everything above the
+# Comparison logic above and in scripts/changelog_fragment_guard.ts; CLI at the bottom. Everything above the
 # `BASH_SOURCE` guard runs without git, gh or a network, so it can be sourced
 # and exercised directly (see docs/ab/plugin-bump-guard.md for the recorded
 # refuse/pass transcripts). The CLI is what
@@ -788,6 +791,9 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
         } >&2
         exit 1
       fi
+    fi
+    if [ -n "$head_root" ]; then
+      node "$(dirname -- "${BASH_SOURCE[0]}")/changelog_fragment_guard.ts" "$changed_files" "$head_root" "$pr_body"
     fi
     stamps_ok="$(printf '%s\n' "$stamp_scan" | awk '$2 == "ok" { printf "%s%s", (n++ ? ", " : ""), $1 }')"
     stamps_unread="$(printf '%s\n' "$stamp_scan" | awk '$2 == "unread" { printf "%s%s", (n++ ? ", " : ""), $1 }')"
