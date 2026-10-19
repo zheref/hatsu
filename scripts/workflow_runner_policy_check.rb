@@ -1058,9 +1058,33 @@ CANON_CONTRACTS_FROZEN = {
     esac
   RUN
 }.freeze
+DIRECT_MATRIX_STEP = "Direct matrix drift check"
+DIRECT_MATRIX_FROZEN = {
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -uo pipefail
+    guard=.trusted/scripts/direct_matrix_doc.sh
+    [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/direct_matrix_doc.sh"; exit 1; }
+    stop="stop_$(openssl rand -hex 16)" || stop=""
+    [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was checked."; exit 1; }
+    code=0
+    echo "::stop-commands::${stop}"
+    bash "$guard" --check "$PWD" 2>&1 || code=$?
+    printf '\n::%s::\n' "$stop"
+    case "$code" in
+      0) echo "docs/DIRECT-MATRIX.md matches the registry, taxonomy and models." ;;
+      1) echo "::error::docs/DIRECT-MATRIX.md is stale; regenerate it with the direct matrix renderer and commit the result."; exit 1 ;;
+      *) echo "::error::direct_matrix_doc.sh could not check the page (exit ${code}); see the guard output above."; exit 1 ;;
+    esac
+  RUN
+}.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
+  # The trusted copy on main must accept the old and new forms while the CI
+  # step lands. The installation PR narrows this to the new form.
+  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
+                                  EXPECTED_STEPS.fetch("surface-mirror-check.yml").dup.insert(-2, DIRECT_MATRIX_STEP)],
   "surface-mirror-regenerate.yml" => [EXPECTED_STEPS.fetch("surface-mirror-regenerate.yml"),
                                         EXPECTED_STEPS.fetch("surface-mirror-regenerate.yml") - ["Read the plugin stamp"]]
 ).freeze
@@ -1873,6 +1897,10 @@ def validate_workflow(path, hatsu: false)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_CONTRACTS_STEP }, CANON_CONTRACTS_FROZEN,
                           "#{path} #{CANON_CONTRACTS_STEP.inspect}")
     end
+    if File.basename(path) == "surface-mirror-check.yml" && step_names.include?(DIRECT_MATRIX_STEP)
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == DIRECT_MATRIX_STEP }, DIRECT_MATRIX_FROZEN,
+                          "#{path} #{DIRECT_MATRIX_STEP.inspect}")
+    end
     # The digest step in its one admitted form wherever a workflow carries it,
     # and the bootstrap beside it in the form the digest step selects.
     if carries_digest
@@ -2281,6 +2309,29 @@ def self_test(root)
     FileUtils.mkdir_p(File.join(tmp, ".github/workflows"))
     Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each { |path| FileUtils.cp(path, File.join(tmp, ".github/workflows")) }
     validate_repo(tmp, announce: false)
+    # Prove the staged shape is accepted before it is installed, and that a
+    # pull-request checkout cannot substitute its own renderer for trusted code.
+    matrix_workflow = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
+    original_matrix_workflow = File.read(matrix_workflow)
+    matrix_anchor = "      - name: Finish check on the exact PR head\n"
+    fail_policy("self-test: missing direct-matrix insertion point") unless original_matrix_workflow.include?(matrix_anchor)
+    # The trusted copy of this checker also runs on the PR that installs the
+    # step. In that checkout the step is present already; inserting it again
+    # would reject the installation PR before its own policy could run.
+    staged_matrix_workflow = if original_matrix_workflow.include?("      - name: #{DIRECT_MATRIX_STEP}\n")
+                               original_matrix_workflow
+                             else
+                               original_matrix_workflow.sub(matrix_anchor,
+                                 render_step(DIRECT_MATRIX_STEP, DIRECT_MATRIX_FROZEN) + matrix_anchor)
+                             end
+    File.write(matrix_workflow, staged_matrix_workflow)
+    validate_repo(tmp, announce: false)
+    File.write(matrix_workflow, staged_matrix_workflow.sub('bash "$guard" --check "$PWD"',
+      'bash scripts/direct_matrix_doc.sh --check "$PWD"'))
+    expect_rejected("PR-controlled direct matrix guard", /Direct matrix drift check.*run must be exactly the frozen form/) do
+      validate_repo(tmp, announce: false)
+    end
+    File.write(matrix_workflow, original_matrix_workflow)
     # A workflow registered ahead of its file (PENDING_HOSTED_WORKFLOWS) is
     # staged at templates/<name> and judged there as if installed, so the pull
     # request that installs it meets a policy that already admits it

@@ -60,7 +60,9 @@ else
 fi
 script="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
-exec python3 - "$mode" "$root" "$script" <<'PY'
+# The caller may run this trusted script from a PR checkout. Isolated mode
+# keeps a PR-supplied json.py (or PYTHONPATH) out of the standard-library imports.
+exec python3 -I - "$mode" "$root" "$script" <<'PY'
 import json, os, re, shutil, subprocess, sys, tempfile
 
 mode, root, SCRIPT = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -69,6 +71,15 @@ TAX_PATH = "contracts/classify.taxonomy.json"
 WF_PATH = "nen/workflow.json"
 CONTRACT_PATH = "nen/contract.json"
 OUT_PATH = "docs/DIRECT-MATRIX.md"
+FOOTER_OLD = ("Agreement with the verb is proved when `--verify` runs; staleness is caught when the lane runs. Neither "
+              "runs on its own in CI yet (zheref/hatsu#234). A routing change is a registry edit through a PR, never an edit here; "
+              "changing what an alias **means** is a maintainer ruling ([`ROSTER.md`](ROSTER.md) § *Rulings of "
+              "2026-10-04 — classify and direct*).")
+FOOTER_INSTALLED = ("Agreement with the verb is proved when `--verify` runs; staleness is caught both by the lane and by "
+                    "the trusted `surface-mirror-check.yml` PR check, including on data-only edits (zheref/hatsu#234). "
+                    "A routing change is a registry edit through a PR, never an edit here; "
+                    "changing what an alias **means** is a maintainer ruling ([`ROSTER.md`](ROSTER.md) § *Rulings of "
+                    "2026-10-04 — classify and direct*).")
 
 def refuse(msg):
     print(f"direct_matrix_doc: {msg}", file=sys.stderr)
@@ -739,10 +750,7 @@ def render():
     w("bash scripts/direct_matrix_doc.sh --self-test  # the guard's own fixtures, then --check")
     w("```")
     w("")
-    w("Agreement with the verb is proved when `--verify` runs; staleness is caught when the lane runs. Neither "
-      "runs on its own in CI yet (zheref/hatsu#234). A routing change is a registry edit through a PR, never an edit here; "
-      "changing what an alias **means** is a maintainer ruling ([`ROSTER.md`](ROSTER.md) § *Rulings of "
-      "2026-10-04 — classify and direct*).")
+    w(FOOTER_OLD)
     return "\n".join(o) + "\n", claims
 
 # ---- verify --------------------------------------------------------------------------------------
@@ -868,6 +876,24 @@ def self_test():
         rc, _ = run("--check", r=tmp); ok(rc == 1, "--check exits 1 when the page is missing")
         rc, _ = run("--write", r=tmp); ok(rc == 0 and os.path.exists(page), "--write writes the page")
         rc, _ = run("--check", r=tmp); ok(rc == 0, "--check exits 0 on a fresh page")
+        with open(page, encoding="utf-8") as f:
+            original_page = f.read()
+        with open(page, "w", encoding="utf-8") as f:
+            f.write(original_page.replace(FOOTER_OLD, FOOTER_INSTALLED))
+        rc, _ = run("--check", r=tmp)
+        ok(rc == 0, "--check accepts only the exact staged CI-installation footer")
+        with open(page, "a", encoding="utf-8") as f:
+            f.write("x\n")
+        rc, _ = run("--check", r=tmp)
+        ok(rc == 1, "--check rejects drift beside the staged footer")
+        with open(page, "w", encoding="utf-8") as f:
+            f.write(original_page)
+        with open(os.path.join(tmp, "json.py"), "w", encoding="utf-8") as f:
+            f.write("open('injected.marker', 'w').write('ran')\nraise RuntimeError('PR module ran')\n")
+        p = subprocess.run(["bash", SCRIPT, "--check", tmp], cwd=tmp, capture_output=True, text=True)
+        ok(p.returncode == 0 and not os.path.exists(os.path.join(tmp, "injected.marker")),
+           "--check ignores a PR checkout's json.py on the Python import path")
+        os.remove(os.path.join(tmp, "json.py"))
         with open(page, "a", encoding="utf-8") as f:
             f.write("x\n")
         rc, _ = run("--check", r=tmp); ok(rc == 1, "--check exits 1 on a hand-edited page")
@@ -1004,7 +1030,13 @@ else:
         if not os.path.exists(target):
             print(f"{OUT_PATH} is missing: run bash scripts/direct_matrix_doc.sh --write {root}", file=sys.stderr)
             sys.exit(1)
-        if open(target, encoding="utf-8").read() != page:
+        # Two exact full-page forms bridge #234's protected workflow landing:
+        # this policy must reach main before the trusted CI step can be installed.
+        # The installation commit narrows back to its one generated form.
+        if page.count(FOOTER_OLD) != 1:
+            refuse("the generated page no longer has the staged footer")
+        expected = {page, page.replace(FOOTER_OLD, FOOTER_INSTALLED)}
+        if open(target, encoding="utf-8").read() not in expected:
             print(f"{OUT_PATH} is stale: run bash scripts/direct_matrix_doc.sh --write {root}", file=sys.stderr)
             sys.exit(1)
         print(f"{OUT_PATH} is current")
