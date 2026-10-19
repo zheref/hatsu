@@ -3483,7 +3483,7 @@ def self_test(root)
       # these cases cannot run, a failure here, never a skip.
       guard_script = File.join(__dir__, "prose_size_check.sh")
       fail_policy("self-test: #{PROSE_WORKFLOW} runs scripts/prose_size_check.sh, which is not beside this validator") unless File.file?(guard_script)
-      %w[bash sh perl openssl awk].each do |tool|
+      %w[bash sh perl openssl awk node].each do |tool|
         found = ENV.fetch("PATH", "").split(File::PATH_SEPARATOR).any? { |dir| File.executable?(File.join(dir, tool)) }
         fail_policy("self-test: the prose guard step's runtime cases need #{tool} on PATH") unless found
       end
@@ -3494,6 +3494,9 @@ def self_test(root)
       Dir.mktmpdir("hatsu-prose-guard") do |dir|
         FileUtils.mkdir_p(File.join(dir, ".trusted/scripts"))
         FileUtils.cp(guard_script, File.join(dir, ".trusted/scripts/prose_size_check.sh"))
+        headroom_script = File.join(__dir__, "prose_headroom_warn.ts")
+        fail_policy("self-test: prose_headroom_warn.ts is not beside the prose guard") unless File.file?(headroom_script)
+        FileUtils.cp(headroom_script, File.join(dir, ".trusted/scripts/prose_headroom_warn.ts"))
         FileUtils.mkdir_p(File.join(dir, "claude/agents"))
         agent = File.join(dir, "claude/agents/scout.md")
         File.write(agent, "a scratch agent\n")
