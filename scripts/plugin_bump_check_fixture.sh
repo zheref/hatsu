@@ -169,6 +169,43 @@ run_case 'a surface whose first file is current but another lags is lagging' 1 "
 run_case 'a lagging non-.md generated file (hooks.json) is read too' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-partial/.claude-plugin/plugin.json" 'surfaces/codex: stamp(s) 0.16.0,0.16.1'
 run_case 'bump with restamped mirrors passes' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-restamped/.claude-plugin/plugin.json" 'surfaces/ stamps read 0.16.1: antigravity, codex, cursor'
 run_case 'bump with no mirrors present passes' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-nomirrors/.claude-plugin/plugin.json" 'no surfaces/ mirrors under the head tree to scan'
+
+# #166: a declared spec change owes a changed fragment that survives at head.
+# A pre-existing fragment, an unrelated fragment path, and a body claim alone
+# cannot satisfy it. The integration PR's direct CHANGELOG section is explicit.
+mkdir -p "$fixture_root/tree-fragment/.claude-plugin" "$fixture_root/tree-fragment/changelog.d"
+printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-fragment/.claude-plugin/plugin.json"
+printf '%s\n' '- Existing entry' > "$fixture_root/tree-fragment/changelog.d/existing.md"
+printf '%s\n' 'nen/contract.json' > "$fixture_root/changed-spec.txt"
+run_case 'spec change without fragment fails' 1 "$fixture_root/changed-spec.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head'
+printf '%s\n' 'nen/contract.json' 'changelog.d/missing.md' > "$fixture_root/changed-missing-fragment.txt"
+run_case 'a changed but absent fragment fails' 1 "$fixture_root/changed-missing-fragment.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head'
+printf '%s\n' 'nen/contract.json' 'changelog.d/existing.md' > "$fixture_root/changed-present-fragment.txt"
+run_case 'a changed fragment present at head passes' 0 "$fixture_root/changed-present-fragment.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'changelog fragment: changed changelog.d/ fragment present at PR head'
+printf '%s\n' 'nen/contract.json' 'CHANGELOG.md' > "$fixture_root/changed-direct-section.txt"
+printf '%s\n' 'no CHANGELOG entry: this pull request writes its own CHANGELOG.md section (contracts/pr-composition.json, changelogFragment.directSection)' > "$fixture_root/body-direct-section.md"
+printf '%s\n' '### v0.16.1' '- **Guard** tested direct section' > "$fixture_root/tree-fragment/CHANGELOG.md"
+run_case 'declared direct CHANGELOG section passes' 0 "$fixture_root/changed-direct-section.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'changelog fragment: direct CHANGELOG.md section declared by this PR' "$fixture_root/body-direct-section.md"
+run_case 'a direct section body line without a CHANGELOG diff fails' 1 "$fixture_root/changed-spec.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head' "$fixture_root/body-direct-section.md"
+printf '%s\n' '<!--' 'no CHANGELOG entry: this pull request writes its own CHANGELOG.md section (contracts/pr-composition.json, changelogFragment.directSection)' '-->' > "$fixture_root/body-commented-direct.md"
+run_case 'a direct section hidden in an HTML comment fails' 1 "$fixture_root/changed-direct-section.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head' "$fixture_root/body-commented-direct.md"
+printf '%s\n' '```text' 'no CHANGELOG entry: this pull request writes its own CHANGELOG.md section (contracts/pr-composition.json, changelogFragment.directSection)' '```' > "$fixture_root/body-fenced-direct.md"
+run_case 'a direct section hidden in a code fence fails' 1 "$fixture_root/changed-direct-section.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head' "$fixture_root/body-fenced-direct.md"
+printf '%s\n' '```text' '```text' 'no CHANGELOG entry: this pull request writes its own CHANGELOG.md section (contracts/pr-composition.json, changelogFragment.directSection)' '```' > "$fixture_root/body-fence-with-language.md"
+run_case 'a fence marker with trailing language does not close an open fence' 1 "$fixture_root/changed-direct-section.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head' "$fixture_root/body-fence-with-language.md"
+printf '%s\n' '```text' '<!-- -->```' 'no CHANGELOG entry: this pull request writes its own CHANGELOG.md section (contracts/pr-composition.json, changelogFragment.directSection)' '```' > "$fixture_root/body-fence-comment-literal.md"
+run_case 'HTML-looking code cannot close a fence' 1 "$fixture_root/changed-direct-section.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head' "$fixture_root/body-fence-comment-literal.md"
+printf '%s\n' '    no CHANGELOG entry: this pull request writes its own CHANGELOG.md section (contracts/pr-composition.json, changelogFragment.directSection)' > "$fixture_root/body-indented-direct.md"
+run_case 'an indented code declaration does not count' 1 "$fixture_root/changed-direct-section.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head' "$fixture_root/body-indented-direct.md"
+ln -s existing.md "$fixture_root/tree-fragment/changelog.d/linked.md"
+printf '%s\n' 'nen/contract.json' 'changelog.d/linked.md' > "$fixture_root/changed-linked-fragment.txt"
+run_case 'a changed symlink cannot count as a fragment' 1 "$fixture_root/changed-linked-fragment.txt" "$fixture_root/tree-fragment/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head'
+mkdir -p "$fixture_root/tree-symlink-parent/.claude-plugin" "$fixture_root/external-fragments"
+printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-symlink-parent/.claude-plugin/plugin.json"
+printf '%s\n' '- Outside entry' > "$fixture_root/external-fragments/outside.md"
+ln -s "$fixture_root/external-fragments" "$fixture_root/tree-symlink-parent/changelog.d"
+printf '%s\n' 'nen/contract.json' 'changelog.d/outside.md' > "$fixture_root/changed-outside-fragment.txt"
+run_case 'a fragment through a symlinked directory outside the PR head fails' 1 "$fixture_root/changed-outside-fragment.txt" "$fixture_root/tree-symlink-parent/.claude-plugin/plugin.json" 'no changed changelog.d/<name>.md fragment at head'
 make_tree "$fixture_root/tree-unread" '0.16.1' '0.16.1'; printf '%s\n' '# ten' 'no marker here' > "$fixture_root/tree-unread/surfaces/cursor/ten/SKILL.md"
 run_case 'a surface with no readable marker is reported unread, never read' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-unread/.claude-plugin/plugin.json" 'stamp unread (no GENERATED marker matched): cursor'
 run_case 'a surface with no readable marker is not counted among the read ones' 0 "$fixture_root/changed-discovery.txt" "$fixture_root/tree-unread/.claude-plugin/plugin.json" 'surfaces/ stamps read 0.16.1: antigravity, codex;'

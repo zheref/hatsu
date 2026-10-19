@@ -1,0 +1,1 @@
+- Warn authors when a dieted skill has fewer than 512 bytes of prose headroom, and require a changed changelog fragment when a version-bumped PR changes a declared spec path. The new decisions run in trusted TypeScript sources.

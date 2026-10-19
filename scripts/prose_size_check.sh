@@ -37,6 +37,7 @@
 # (or characters) left, smallest headroom first, so a reviewer or an author states the remaining
 # margin as a number instead of rediscovering "0 bytes left" by trading clauses round after round.
 # The ceilings are unchanged by this flag; it reports, and the exit code is the same as without it.
+# A measured dieted skill with under 512 bytes left also prints WARN without changing the verdict.
 #
 # Every measured file must be a regular file whose real path stays under the root: a symlink, or a
 # chain of them, that leaves the root, a dangling symlink where a file is expected, a file that cannot be read, a directory
@@ -281,6 +282,9 @@ done
 if [ "$headroom" -eq 1 ]; then
   printf '%6s %-52s %6s/%-6s %s\n' left file size ceiling unit
   printf '%s' "$rows" | sort -n
+  # TypeScript owns the 512-byte warning predicate (BC-11); this shell only
+  # hands it the diet's existing list and the measured root.
+  node "$(dirname -- "$0")/prose_headroom_warn.ts" "$root" "$SKILL_MAX" $DIETED_SKILLS
 fi
 
 if [ "$offenders" -eq 0 ]; then
