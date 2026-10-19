@@ -2,6 +2,29 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.114.0 — the backlog selector grammar on nen 0.22, the trusted canon preflight, and Cursor for Grok
+
+Two merges landed on `main` since `v0.112.3`: HA-PR-#306, which carries the reviewed stack #307 → #308 → #309 → #310, and HA-PR-#315. Their six `changelog.d/` fragments are folded here in the collation order (by fragment name), each entry cited with the pull request that landed it. The intermediate versions `0.113.0` … `0.113.3` were never tagged and ship inside `v0.114.0`.
+
+**Net effect at `v0.114.0`:** the plugin reads `0.114.0` on nen `0.22.0` (`minimum "0.22"`). `backlog-state` and `backlog-board` take `context`, gate lists, severity bands and label selectors. The trusted canon contracts guard runs in local PR preflight. The shared mirror-regeneration script is admitted as the workflow's next frozen form; #209 stays open until #311 installs the workflow step. Focused fixtures name their silent failures. Cursor is the coding surface for Grok. En routes a published PR's updates through Murasaki's guarded push.
+
+- **The shared mirror-regeneration script is admitted as the workflow's next frozen form**, with its stamp-only behaviour proved, and it is named in Ao's catch-up path ([#310](https://github.com/zheref/hatsu/pull/310) via #306, [#209](https://github.com/zheref/hatsu/issues/209)). #209 stays open: #311 installs the workflow step, and it is not in this release.
+- **Cursor is the official coding surface for Grok models.** Grok Build remains a documented headless CI option, not a fifth interactive Hatsu surface ([#308](https://github.com/zheref/hatsu/pull/308) via #306, [#236](https://github.com/zheref/hatsu/issues/236), 0.113.1).
+- **Focused fixture lanes report silent failures by name**, and failure probes under `set -e` reach their own expected/actual assertions ([#307](https://github.com/zheref/hatsu/pull/307) via #306, [#243](https://github.com/zheref/hatsu/issues/243), 0.113.0).
+- **En continuations route a published PR's updates through Murasaki's guarded fast-forward push**, reserving Aka for first publication ([#309](https://github.com/zheref/hatsu/pull/309) via #306, [#292](https://github.com/zheref/hatsu/issues/292)).
+- **The trusted canon contracts guard runs during local PR preflight**, naming broken candidate contracts before a PR opens ([#306](https://github.com/zheref/hatsu/pull/306), [#293](https://github.com/zheref/hatsu/issues/293)).
+- **`backlog-state` and `backlog-board` take `context`, gate lists, severity bands and label selectors** ([#315](https://github.com/zheref/hatsu/pull/315), [#297](https://github.com/zheref/hatsu/issues/297); the maintainer's rulings of 2026-10-17, recorded there).
+  - The grammar is `<repo|all|context>[@<gate>[+<gate>…] | <severity>[+] | <label>][#<label>[&<label>…]]`, plus `every …` on the board. `+` between gates is OR, `&` between labels is AND, and every filter combines as AND.
+  - It parses through `nen parse`'s list slots and three-way alternation, read by `alternative` and `items`.
+  - Labels and severity bands filter through `nen backlog fetch`/`nen report data` `--label`/`--severity` against the target's own `nen/labels.json`. A label containing `&` is unsupported, and a target with no `bankai:severity/*` family has no bands. Follow-ups are tracked in zheref/nen#427.
+  - `context` covers only the objects named in the conversation, echoed as a per-repository list before a fresh read.
+  - backlog-board's § 1 defers to backlog-state's, so the two cannot diverge.
+- **nen repinned to `v0.22.0` (`minimum "0.22"`)** ([#315](https://github.com/zheref/hatsu/pull/315); zheref/nen#410, released by NN-PR-#423).
+  - The list slots and the backlog filters are 0.22's, and the release raises nen's compatibility floor to 0.22.
+  - `nen/contract.json` carries the three release digests, and every convenience copy names the new pin.
+  - Hatsu's declarations pass `schema check` under 0.22.0 unchanged.
+  - A nen older than 0.22 is refused by every 0.22-pinned check and cannot run the two backlog skills' parse or filters: run `nen shu tools --repo <hatsu>`, and `ten` installs the pin.
+
 ## v0.112.3 — the 2026-10-13 rulings built, pickers and hand-overs, the redaction tree
 
 Forty-six deliveries merged since `v0.94.0` (HA-PR-#249 … #305, 2026-10-13 → 2026-10-18), folded here from their `changelog.d/` fragments in the collation order (by fragment name), each entry's title cited with the pull request that landed it. Every intermediate version from `0.95.0` to `0.112.2` was never tagged and ships inside `v0.112.3`.
