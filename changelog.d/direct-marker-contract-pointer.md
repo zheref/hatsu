@@ -1,0 +1,3 @@
+### Fixed
+
+- **`hatsu:direct` § 7 no longer quotes its comment marker as a literal.** The mirror generator rewrites the `hatsu:` invocation prefix everywhere, so the Codex, Cursor and Antigravity mirrors told those sessions to look for `$direct` / `/direct` markers that nobody posts, which could lead to a duplicate public comment. § 7 now points at `contracts/direct.registry.json` → `publish.comment` (`marker`, `idempotent`, `shape`, `bodyFile`, `verb`), the same fix zheref/hatsu#372 made for classify, and the mirrors carry no marker literal. A sweep of `claude/` found no other literal that the rewrite breaks (every other `hatsu:` code span is an invocation, and should be rewritten); the generator-side fix is zheref/nen#465. Plugin bumped to 0.127.3.
