@@ -305,7 +305,7 @@ flowchart TD
     futon --> wrap
     kazaana --> wrap
     file --> classify
-    et[emperor-time] --> direct & hisoka & challenger([challenger · OPEN-4]) & file
+    et[emperor-time] --> direct & hisoka & challenger([challenger · OPEN-4])
     bv[black-voice] --> shalnark([Shalnark])
     rikugan --> bb
     tensho --> shibari & sharingan

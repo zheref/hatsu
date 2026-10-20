@@ -26,7 +26,7 @@ below.
 
 ---
 
-## The twenty-two that answer a request
+## The twenty-four that answer a request
 
 Seventeen were ported from the frozen reference implementation **under their existing names** — only the mechanics changed — and
 `black-voice`, `tenkai`, `limbo` and `jusshin` were authored here in the same shape: **every deterministic
@@ -98,7 +98,7 @@ every-session `--auto` refresh stays as it is.
 
 ## The way of working
 
-The twenty-two request-answering skills above and `great-hiker` each answer a request. The twenty-seven below are the **loop that carries every request** —
+The twenty-four request-answering skills above and `great-hiker` each answer a request. The twenty-seven below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
