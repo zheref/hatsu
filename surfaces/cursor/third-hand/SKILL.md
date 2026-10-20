@@ -265,7 +265,8 @@ before each write. Unselected drafts are not filed, not parked as pending issues
 `/build`.
 
 **Do not offer `/build` after a harvest filing.** File's § 6 offer starts a new effort; this
-sitting is over. Report each created or updated URL in the target's object notation and stop.
+sitting is over. Report each created or updated URL in the target's object notation, with each created
+issue's classification and routing outcomes (file § 5), and stop.
 
 ---
 
