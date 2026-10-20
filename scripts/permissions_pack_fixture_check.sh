@@ -71,6 +71,13 @@ toplevel="$(git -C "$main" rev-parse --show-toplevel)"
 common_dir="$(git -C "$main" rev-parse --path-format=absolute --git-common-dir)"
 declared_path="$fixture_root/acme-widget"
 
+bash "$pack" --surface claude-code --install --target "$main" --hatsu-root "$hatsu_root" >/dev/null
+claude_settings="$main/.claude/settings.local.json"
+rendered_claude="$fixture_root/rendered-claude.json"
+bash "$pack" --surface claude-code --render --hatsu-root "$hatsu_root" > "$rendered_claude"
+node "$hatsu_root/scripts/permissions_pack_release_fixture.ts" "$claude_settings" "$rendered_claude"
+echo "ok    Claude Code pack renders only the declared plugin lane's release plan and publication forms"
+
 bash "$pack" --surface codex --install --target "$main" --hatsu-root "$hatsu_root" >/dev/null
 
 placed="$main/.codex/config.toml"

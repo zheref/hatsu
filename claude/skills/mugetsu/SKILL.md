@@ -338,6 +338,12 @@ nen shu release --repo <path> [--lane <lane>] --dry-run      # the plan. ALWAYS 
 nen shu release --repo <path> [--lane <lane>]                # THIS PUBLISHES. There is no --run.
 ```
 
+For Hatsu's own declared `plugin` lane, use the explicit `--lane plugin` form on both lines.
+`contracts/permissions.json` records those two narrow Claude Code permission patterns (#156),
+rendered by `scripts/permissions_pack.sh`. The pack permits the command shape; it does not
+replace § 3's recorded go, § 4's preflight, or the host's final decision. A host denial follows
+§ 6's refusal path, never a different publication command.
+
 > ⚠️ **The bare form is the publication.** Verified live at nen `0.3.0`
 > (`docs/ab/mugetsu.md` § 2.5): `nen shu release --run` is refused at exit `2` — *"--run is not read
 > by 'shu release'. A flag accepted and ignored is worse than one refused"* — and the bare line
@@ -393,6 +399,12 @@ name, saying which is which. Still one target per call.
 | `3` | **unsupported host** | **G5.** Publishing from a machine the declaration excludes is not a thing to route around. Name the hosts and stop |
 | `4` | **a seat** — the lane declares no `release`, or the target declares `unsupported` | quote it verbatim and stop. **This repository does not publish through nen**, and the declaration's own words are the whole report. **Hatsu's own row used to be the worked example here and no longer is**: the maintainer's ruling of 2026-09-19 retired that seat, because a repository whose product is the process must declare a real row — a seat left this skill with nothing to execute while releases were published by hand. An example of a genuine seat is a lane that truly has no destination, and its own words remain the whole report |
 | `5` | the declared program could not be started | `nen shu tools --repo <path>` and relay the remedy — reading [`hatsu:susanoo`](../susanoo/SKILL.md) § 7 first. **nen never synthesises signing material**, and neither does this skill: a missing notarization or store credential ends the run |
+
+**A harness denial is outside Nen's exit table.** Keep the printed `--dry-run` plan and the exact
+go, report `not published`, and hand over the precise denied `nen shu release --repo <path>
+--lane <lane>` line at G3. Post the same record on the release PR through § 7's `nen issue
+comment`, even though publication did not run. The narrow permission-pack rows (#156) do not
+authorize a retry by another route; the host's refusal ends this go.
 
 ## 7. Report, and the record on the release PR
 
