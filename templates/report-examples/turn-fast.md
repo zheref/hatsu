@@ -10,7 +10,7 @@
 <!-- hatsu:block masthead -->
 # Markdown report templates for Antigravity
 
-turn 3 · Hatsu · spiritual-message · turn-fast
+Turn 3 · Hatsu · spiritual-message · turn-fast
 
 zheref/hatsu · against origin/main · 2026-10-13 11:00 CEST
 
@@ -49,7 +49,7 @@ fill them with nen report render &lt;variant&gt;.</pre>
 
 ---
 
-turn 3 · in review · G4 — pending · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
+Turn 3 · in review · G4 — pending · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
 
 zheref/hatsu · against origin/main · turn-fast · 2026-10-13 11:00 CEST
 

@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Focused, declared verification for scripts/pr_composition_check.sh (zheref/hatsu#171).
-# Hermetic and offline: every case builds a throwaway Hatsu-shaped tree under a temp dir, runs the
-# checked-in guard on it, and asserts the exit code and one line of its output; the last case runs the
-# guard on this repository itself. Requires bash and python3 (the guard's own dependency).
+# Every guard case builds a throwaway Hatsu-shaped tree under a temp dir, runs the checked-in guard on
+# it, and asserts the exit code and one line of its output; the zheref/nen cases read this
+# repository's own declaration and need the host's nen; the last case runs the guard on this
+# repository itself. Requires bash and python3 (the guard's own dependency), and jq and nen
+# (NEN=<path> or on PATH) for the zheref/nen row cases, which ask nen gate derive itself; a missing
+# one is a wiring refusal at exit 2. No version is compared here: nen shu tools owns that verdict.
 # Invoked only through `nen shu test --lane pr-composition-guard --repo <hatsu>`.
 set -euo pipefail
 
@@ -195,6 +198,66 @@ t="$(make_tree not-hatsu)"; rm "$t/.claude-plugin/plugin.json"
 run_case 'a root that is not a Hatsu checkout is a wiring refusal' 2 "$t" 'is not a Hatsu checkout'
 t="$(make_tree unknown-arg)"
 run_case 'an unknown argument is a wiring refusal' 2 "$t" "unknown argument '--nope'" --nope
+
+# --- no guessed fallback row (zheref/hatsu#334) -----------------------------------------------------
+t="$(make_tree wildcard-row)"
+sed -i.bak 's#"owner/repo"#"*/*"#' "$t/contracts/pr-composition.json"
+run_case 'a wildcard row standing for every canon repository is refused' 1 "$t" "gateDerive row '*/*' is not an owner/name key"
+
+# --- zheref/nen's row derives the recorded gates (zheref/hatsu#334) ---------------------------------
+# The expected gate of each representative change is recorded here, its basis in the row's own
+# $comment and the maintainer's ruling of 2026-10-20 (docs/ROSTER.md); nen gate derive decides each
+# one from the declared sets, read off this repository's declaration, so the fixture re-implements no
+# matcher. A missing jq or nen, or a row jq cannot read, is a wiring refusal (exit 2) that names
+# itself; a missing row is a red case (exit 1). Every assignment below either cannot fail or carries
+# its own message, so set -e never ends the run silently.
+command -v jq >/dev/null 2>&1 || { echo "zheref/nen row cases: jq not found (install jq 1.6 or newer)" >&2; exit 2; }
+nen_bin="${NEN:-nen}"
+command -v "$nen_bin" >/dev/null 2>&1 || { echo "zheref/nen row cases: '$nen_bin' not found (set NEN=<path> or put nen on PATH)" >&2; exit 2; }
+row='.gateDerive["zheref/nen"]'
+jq -e "$row | type == \"object\"" "$repo_root/contracts/pr-composition.json" >/dev/null || { echo "contracts/pr-composition.json declares no gateDerive.zheref/nen row" >&2; exit 1; }
+nen_policy="$(jq -r "$row.policyPaths | join(\",\")" "$repo_root/contracts/pr-composition.json")" || { echo "zheref/nen row cases: jq could not read gateDerive.zheref/nen.policyPaths" >&2; exit 2; }
+nen_process="$(jq -r "$row.processPaths | join(\",\")" "$repo_root/contracts/pr-composition.json")" || { echo "zheref/nen row cases: jq could not read gateDerive.zheref/nen.processPaths" >&2; exit 2; }
+
+# derive_with NAME EXPECTED TEXT <nen gate derive's file-set flag and value>
+derive_with() {
+  local name="$1" expected="$2" text="$3" out status
+  shift 3
+  if out="$("$nen_bin" gate derive --repo "$repo_root" --policy-paths "$nen_policy" --process-paths "$nen_process" "$@" 2>&1)"; then status=0; else status=$?; fi
+  if [ "$status" -ne 0 ] || [ "$(sed -n 1p <<<"$out")" != "$expected" ] || ! grep -Fq -- "$text" <<<"$out"; then
+    printf '%s: expected %s (%s), got exit %s\n%s\n' "$name" "$expected" "$text" "$status" "$out" >&2; exit 1
+  fi
+  n=$((n + 1))
+  printf '%s: %s\n' "$name" "$expected"
+}
+derive_case() { derive_with "$1" "$2" "$3" --files "$4"; }
+
+derive_case 'zheref/nen source derives G4' G4 'process surface (src/)' 'src/gate/derive.ts'
+derive_case 'zheref/nen schema source derives G4' G4 'process surface (src/)' 'src/schema/contract.ts'
+derive_case 'zheref/nen own contract derives G4 as policy' G4 'policy/spec (nen/)' 'nen/contract.json'
+derive_case 'zheref/nen gates policy derives G4' G4 'policy/spec (nen/)' 'nen/gates.json'
+derive_case 'zheref/nen verb spec derives G4' G4 'process surface (docs/)' 'docs/USAGE.md'
+derive_case 'zheref/nen README derives G4' G4 'process surface (README.md)' 'README.md'
+derive_case 'zheref/nen release workflow derives G4' G4 'process surface (.github/)' '.github/workflows/release-assets.yml'
+derive_case 'zheref/nen bootstrap derives G4' G4 'process surface (bootstrap/)' 'bootstrap/nen.sh'
+derive_case 'zheref/nen dependency manifest derives G4' G4 'process surface (package.json)' 'package.json'
+derive_case 'zheref/nen LICENSE and .gitignore alone derive G2' G2 'touches neither path set' 'LICENSE,.gitignore'
+derive_case 'zheref/nen .gitattributes alone derives G4' G4 'process surface (.gitattributes)' '.gitattributes'
+derive_case 'zheref/nen changelog fragment alone derives G4' G4 'process surface (changelog.d/)' 'changelog.d/409-registry-line-explicit-prune.md'
+derive_case 'zheref/nen dependabot config derives G4' G4 'process surface (.github/)' '.github/dependabot.yml'
+derive_case 'zheref/nen bunfig.toml derives G4' G4 'process surface (bunfig.toml)' 'bunfig.toml'
+derive_case 'zheref/nen bootstrap renamed out of its set derives G4 on its old side' G4 'process surface (bootstrap/)' 'nen.sh,bootstrap/nen.sh'
+derive_case 'zheref/nen housekeeping beside source derives G4' G4 'process surface (src/)' '.gitignore,src/gate/derive.ts'
+
+# --- the --files hand-off (zheref/hatsu#334): why WORKFLOW § Gate derivation requires --files-from ---
+# Both documented sources print one path per line. A newline-joined --files value is read as ONE path,
+# so a real source/housekeeping PR under-derives G2: this case pins the wrong answer on purpose. The
+# same set through --files-from derives G4; an empty set answers G2, so the caller refuses it first.
+derive_case 'a newline-joined --files value is one path and under-derives G2' G2 'across 1 changed file' "$(printf '.gitignore\nsrc/gate/derive.ts')"
+printf '%s\n' .gitignore src/gate/derive.ts > "$work/nen-files.txt"
+derive_with 'the same set through --files-from derives G4' G4 'process surface (src/)' --files-from "$work/nen-files.txt"
+: > "$work/nen-files-empty.txt"
+derive_with 'an empty --files-from set answers G2, so the caller refuses it before deriving' G2 'across 0 changed files' --files-from "$work/nen-files-empty.txt"
 
 # --- and the repository itself ----------------------------------------------------------------------
 run_case 'this repository: declaration, requirements, template and prose agree' 0 "$repo_root" 'pr-composition ok'
