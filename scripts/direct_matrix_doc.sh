@@ -750,7 +750,7 @@ def render():
     w("bash scripts/direct_matrix_doc.sh --self-test  # the guard's own fixtures, then --check")
     w("```")
     w("")
-    w(FOOTER_OLD)
+    w(FOOTER_INSTALLED)
     return "\n".join(o) + "\n", claims
 
 # ---- verify --------------------------------------------------------------------------------------
@@ -879,13 +879,9 @@ def self_test():
         with open(page, encoding="utf-8") as f:
             original_page = f.read()
         with open(page, "w", encoding="utf-8") as f:
-            f.write(original_page.replace(FOOTER_OLD, FOOTER_INSTALLED))
+            f.write(original_page.replace(FOOTER_INSTALLED, FOOTER_OLD))
         rc, _ = run("--check", r=tmp)
-        ok(rc == 0, "--check accepts only the exact staged CI-installation footer")
-        with open(page, "a", encoding="utf-8") as f:
-            f.write("x\n")
-        rc, _ = run("--check", r=tmp)
-        ok(rc == 1, "--check rejects drift beside the staged footer")
+        ok(rc == 1, "--check rejects the pre-installation footer after the CI step lands")
         with open(page, "w", encoding="utf-8") as f:
             f.write(original_page)
         with open(os.path.join(tmp, "json.py"), "w", encoding="utf-8") as f:
@@ -1030,13 +1026,7 @@ else:
         if not os.path.exists(target):
             print(f"{OUT_PATH} is missing: run bash scripts/direct_matrix_doc.sh --write {root}", file=sys.stderr)
             sys.exit(1)
-        # Two exact full-page forms bridge #234's protected workflow landing:
-        # this policy must reach main before the trusted CI step can be installed.
-        # The installation commit narrows back to its one generated form.
-        if page.count(FOOTER_OLD) != 1:
-            refuse("the generated page no longer has the staged footer")
-        expected = {page, page.replace(FOOTER_OLD, FOOTER_INSTALLED)}
-        if open(target, encoding="utf-8").read() not in expected:
+        if open(target, encoding="utf-8").read() != page:
             print(f"{OUT_PATH} is stale: run bash scripts/direct_matrix_doc.sh --write {root}", file=sys.stderr)
             sys.exit(1)
         print(f"{OUT_PATH} is current")
