@@ -1609,7 +1609,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
+**`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
 parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
 publish offer; cleanup is Shizuku's sweep, required after a completed session, offered beside an optional
 `third-hand` at the wrap-up picker. **`v0.27.0` adds `third-hand`**: a wrap-up harvest after En. **`v0.28.0` states it is a separate
