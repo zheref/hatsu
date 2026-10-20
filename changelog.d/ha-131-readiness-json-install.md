@@ -1,0 +1,1 @@
+- Publish the readiness check from Nen's structured JSON verdict in Hatsu and Tenkai-rendered workflows, with the reader installed from the trusted base checkout.
