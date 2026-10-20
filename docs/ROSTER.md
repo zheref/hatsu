@@ -913,6 +913,19 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-20 — classify and direct always write back
+
+**Context.** The maintainer's request, 2026-10-20, recorded verbatim: *"Have all Hatsu family repos and
+existing registered consumer repos be configured to ALWAYS label AND comment on a classify and/or direct
+workflow so that any resolved criteria by these skills always stays on original scope issues as labels and
+detailed as comments."*
+
+| Ruling | What it says |
+|---|---|
+| **`classify.publish` is new** | `nen/workflow.json` → `classify.publish`, one of `label` (the default, the 2026-10-04 behaviour) \| `label+comment` (catalogue id `workflow.classify.publish`). `label+comment` adds one marker-keyed `<!-- hatsu:classify -->` comment per labelled issue with the applied keys, confidence, cited signals, low keys and any undecidable axis ([`classify`](../claude/skills/classify/SKILL.md) § 5b). There is no `none`: classify's labels were never opt-in |
+| **Every family and consumer repository sets both keys to `label+comment`** | Hatsu, nen and Akatsuki, and every repository carrying a `nen/workflow.json`, set `classify.publish` and `direct.publish` to `label+comment`, each through its own PR at its gate. The catalogue defaults stay (`label`, `none`) so an unset repository keeps today's behaviour; the opt-in is explicit per repository |
+| **Labels still need their declaration** | Setting the key does not declare a family: a `lang/`, `job/` or `model/` label absent from a repository's `nen/labels.json` is still the verb's refusal, named, and the comment still posts (direct § 7, classify § 5b) |
+
 ## Rulings of 2026-10-20 — zheref/nen's gate path sets
 
 **Context.** The maintainer's answer through the picker, 2026-10-20, during hanten round 1 of

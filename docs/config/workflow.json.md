@@ -181,6 +181,12 @@ The **advance-go gate**: which repository kinds a typed `hatsu:futon ... then <s
 | `advanceGo.getsuga` | string[] | the same set. Hatsu's own: all three | Whether a `then getsuga` step may cut on the advance go | the same |
 | `advanceGo.kagutsuchi` | string[] | the same set. Hatsu's own: all three | Whether a `then kagutsuchi` step may send on the advance go | the same |
 
+### `classify.publish`
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `publish` | enum | `label` · `label+comment`; **`label`** (absent reads the same; any other value reads `label`, said). Hatsu's own is `label+comment`, on the maintainer's request of 2026-10-20 | Whether `hatsu:classify` writes its resolved criteria to the issue beyond the `lang/` and `job/` labels. `label` applies the labels through `nen classify apply` and keeps the rest in the report and the ledger; `label+comment` adds one marker-keyed (`<!-- hatsu:classify -->`) comment per labelled issue carrying the applied keys with confidence and cited signals, the low keys and any undecidable axis. Acts standalone, under `build`, or under `hatsu:file` once the issue is created; never under `ren` or for an inline effort | `hatsu:classify` § 5b, `hatsu:build`, `hatsu:file` § 5 |
+
 ### `direct.publish`
 
 | Key | Type | Values · default | Represents | Read by |
@@ -311,6 +317,7 @@ Three more are asked, not defaulted, because `null` is an answer: `launch.defaul
 - [`scripts/config_values.sh`](../../scripts/config_values.sh), header comments
 - [`claude/skills/jusshin/SKILL.md`](../../claude/skills/jusshin/SKILL.md) § 2 and § 3 (`runners`)
 - [`claude/skills/susanoo/SKILL.md`](../../claude/skills/susanoo/SKILL.md) § 5a and [`claude/skills/kagutsuchi/SKILL.md`](../../claude/skills/kagutsuchi/SKILL.md) § 4a (`tags`)
+- [`claude/skills/classify/SKILL.md`](../../claude/skills/classify/SKILL.md) (`classify.publish`)
 - [`claude/skills/direct/SKILL.md`](../../claude/skills/direct/SKILL.md) (`models`, `direct.publish`)
 - [`claude/skills/jutaisho/SKILL.md`](../../claude/skills/jutaisho/SKILL.md) § 1 (`notifications`)
 - [`claude/skills/spiritual-message/SKILL.md`](../../claude/skills/spiritual-message/SKILL.md) (`reports`, `reports.timeZone`)

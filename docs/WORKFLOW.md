@@ -1272,7 +1272,9 @@ through their prefixes, and their vocabulary — every key, prefix and colour �
 `nen classify install --write` populates it from the taxonomy, the change **lands through its own declaration
 PR at that repository's gate**, and GitHub is synced only after (`nen classify install --sync`,
 which refuses an unlanded declaration — the family ships from the `v0.20.0` pin). The domains are
-derived at run time by the taxonomy's `domains.rule`, never labelled. Nothing else about classification is
+derived at run time by the taxonomy's `domains.rule`, never labelled. `classify.publish` (`label`, the default, |
+`label+comment`) decides whether the resolved criteria are also written to the issue as one marker-keyed
+comment (classify § 5b; catalogue id `workflow.classify.publish`). Nothing else about classification is
 authored here.
 
 ### `direct` — the model, surface and effort, as a configuration consequence
