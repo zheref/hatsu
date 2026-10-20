@@ -371,8 +371,9 @@ actually has; never describe a hook as installed where none is.
 **One commit with configured author/committer metadata and the truthful canonical persona/plane trailer.**
 Use `Hatsu-Agent` for Hatsu work and `Akatsuki-Agent` only for autonomous Akatsuki work; never infer or
 default the persona. No `Co-Authored-By`, `Claude-Session`, `Signed-off-by`, "Generated with" line,
-model, runtime, surface, or session name belongs in the message. The final PR body's `## Agent attribution`
-section lists actual participants and contributions. **Never `--no-verify`** — where the repository does carry
+model, runtime, surface, or session name belongs in the message. The PR's first `## Delivery` heading
+reports ledger-backed runtime facts; its final `## Agent attribution` lists actual participants and contributions.
+**Never `--no-verify`** — where the repository does carry
 a `commit-msg` hook it is layer (b), and skipping it is skipping the rule.
 
 ## 5. Then [`hatsu:ao`](../ao/SKILL.md) — the base underneath it

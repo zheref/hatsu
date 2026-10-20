@@ -1222,7 +1222,7 @@ Answered through the surface's picker, 2026-10-05:
 | **Sol is the execution default, Astra the escalation** | `EXECUTION_FRONTIER` names the GPT Sol family on Codex's `deep` tier; a new `EXECUTION_MAX` names Astra on the `frontier` tier as the escalation, mirroring `SEMANTIC_MAX`; `EXECUTION_VALUE` moves to Terra on the `fast` tier. No cell names a frontier alias as its primary |
 | **Grok enters as a Cursor deep alias** | `EDITOR_FRONTIER` (provider `cursor`, line `grok`, Cursor's `deep` tier) is the primary on the eight editor-shaped TypeScript cells the source document preferred the Cursor IDE for (ui, implementation, bug-fix, migration, delivery-ops) and the cross-provider fallback for execution work elsewhere. Grok Build and GitHub Copilot are listed as **non-actionable** surfaces (`surfaces.$nonActionable`); a fifth Hatsu surface is a proposal (zheref/hatsu#236), never a registry edit. The Cursor guide's live-resolve pattern is corrected to match both `grok-*` and `cursor-grok-*` ids |
 | **Three picks, the recommended by rule** | Every cell yields a **primary** (the cell's winner: cost-aligned best), a **fallback** (its runner-up, on another provider or surface in every cell — `picks.fallbackRule`; 66 cells moved in all, 60 of them to satisfy it; at the aggregate of several pairs the reader names the highest-precedence other-pool alias where the verb's runner-up shares the primary's pool, until zheref/nen#389) and a **recommended** (cost-agnostic best) derived by `picks.recommended`: the primary's `escalation` when the highest job weight is 4 or the effort is `max`, else the primary. Deterministic from facts the verb reports; computing it inside `nen direct resolve` is a nen follow-up |
-| **Publishing is opt-in** | `nen/workflow.json` → `direct.publish`, one of `none` (default, the 2026-10-04 behaviour) \| `label` \| `label+comment` (catalogue id `workflow.direct.publish`). `label` applies the primary's model **line** only, as `model/<line>` (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply` — declared in the consumer's `nen/labels.json` first, by hand, because nen's classify contract carries exactly two axes; `label+comment` adds one marker-keyed issue comment with the three picks, tier, surface, dial and live version, closing with a `Direct:` trailer. The PR body stays free of model metadata (CON-51) |
+| **Publishing is opt-in** | `nen/workflow.json` → `direct.publish`, one of `none` (default, the 2026-10-04 behaviour) \| `label` \| `label+comment` (catalogue id `workflow.direct.publish`). `label` applies the primary's model **line** only, as `model/<line>` (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply` — declared in the consumer's `nen/labels.json` first, by hand, because nen's classify contract carries exactly two axes; `label+comment` adds one marker-keyed issue comment with the three picks, tier, surface, dial and live version, closing with a `Direct:` trailer. The PR body's Delivery preamble reports ledger-backed model metadata under the 2026-10-19 ruling; commit metadata remains CON-51(c) |
 
 **Pushed back, and recorded as this run's reading (the maintainer's to correct):** (1) the tier keys stay
 `frontier / deep / fast / economy` — the request's `light` is `economy`, and renaming a key touches every
@@ -2051,7 +2051,7 @@ classifier and merge proof are deferred until a later eligible Ready Futon stack
 The maintainer ruled seven points for the catalogue-backed body:
 
 1. Seven counts **reader sections only**; Completion checklist, Associated issues, Agent attribution
-   and Delivery once HA#321 lands are a compact footer outside the cap.
+   and Delivery are outside the cap. Delivery is placed first as metadata; the others follow the readers.
 2. One `verify` id has kind-specific titles: product **How to verify** with numbered manual steps;
    library **How a consumer verifies** with Consumer scenario / Call or import / Expected and the
    command against the published artifact; process **What the guards prove** with Behavior changed /
@@ -2071,8 +2071,8 @@ The maintainer ruled seven points for the catalogue-backed body:
 
 Defaults stated on canon: Economics stays its own section with Leorio's summary visible and full
 report collapsed; internal headings embed at level 3 or deeper. The flow folds into How as a second
-diagram only when flow changed. Delivery is reserved for HA#321. The body opens with What this changes
-for you (`CON-17(a)`). Per-section fragments under `templates/pr-body/` retire `templates/pr-body.md`.
+diagram only when flow changed. The first reader section is What this changes for you (`CON-17(a)`),
+after the Delivery preamble. Per-section fragments under `templates/pr-body/` retire `templates/pr-body.md`.
 HA#351 authorizes interim resolver/sections-check scripts until a released Nen pin carries NN#448;
 merging that dependency alone does not move Hatsu's pin. The seven-section cap includes Economics.
 
@@ -2082,3 +2082,29 @@ Asked whether the improves-on-every-PR ruling overrides the release matrix, the 
 **“Keep the release matrix as written.”** Release is therefore the explicit exception: its adopted
 cells omit `improves`, leaving room for Economics under the cap. Every other family retains the full
 eleven-aspect ladder. This is an actual maintainer clarification, not an inferred relaxation.
+
+## Rulings of 2026-10-19 — PR Delivery (HA#321)
+
+1. **PR-body provenance is restored; commits stay persona-only.** The first heading is `## Delivery`,
+   before the first reader section. It gives the actor/phase role, surface, model, effort dial, session
+   and ledger source. This reverses the PR-body half of the 2026-09-12 ruling. `CON-51(c)` and the
+   final, persona-only `## Agent attribution` section are unchanged.
+2. **Wait for Nen's ledger verbs.** Nen v0.24.0 shipped NN#437; Hatsu repins before publishing this
+   change. The dial and session are recorded through `nen phase begin`, `nen usage record` and
+   `nen session record`, never stored in interim notes or typed into the body from memory. A
+   `phase.note` may attest model provenance, but carries no dial or session value.
+3. **Session is title where read, else id.** Claude Code desktop reports title plus session id when
+   both are exposed. CLI, Codex, Cursor and Antigravity use an exposed session id; without one,
+   Delivery says `unread — <surface> exposes none`. A missing ledger entry proves no identity was recorded.
+4. **Model is exact served ID plus alias.** A harness-reported served ID is shown beside its registry
+   alias. A reviewer alias comes only from its actual row or explicit `registry alias <token>`
+   marker, else `unread`; the configured tier proves nothing about what ran. An exact ID needs
+   `model-kind=served` or `exact served model from <provenance>` in the
+   entry's `phase.note`, `usage.source` or `session.source`; bare tokens stay unclassified. If the
+   harness exposed no ID, the alias is paired with `unread`; a direct snapshot does not prove the
+   version actually served. The rendered block is checked against the ledgers before a PR
+   body write. Its gate is a forecast; readiness is `nen pr ready`'s verdict.
+
+### Evidence ruling of 2026-10-20 — this Codex delivery
+
+For HA#321’s first-PR acceptance, the maintainer selected “Use actual Codex ID plus Desktop fixtures” through the surface picker. This run reports the exposed Codex session ID, leaves its unavailable title unread, and proves Claude Desktop title/id rendering with fixtures. It does not claim a live Claude Desktop session was observed.

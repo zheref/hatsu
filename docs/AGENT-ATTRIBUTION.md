@@ -15,7 +15,7 @@ AI assistant.
 
 The required PR `check` reads `commits.forbiddenTrailers` over every PR commit, including a commit made outside Kokusen. Set `includeCoAuthoredBy: false` as described in [WORKFLOW.md](WORKFLOW.md) to stop the Claude Code harness from injecting that trailer.
 
-The pull request body also ends with this final section:
+The pull request body begins with `## Delivery`, rendered from the effort's Nen phase, usage and session ledgers. It reports role, surface, recorded model with registry alias, effort dial, session and a ledger locator. The public Source cell gives kind/index, timestamp and optional phase; free-form ledger provenance stays local. An exact served model ID appears only when the harness reported and the ledger recorded it; an alias alone never proves an ID. An unread ID or session is stated explicitly. This is PR delivery provenance, not commit attribution. The pull request body also ends with this final section:
 
 ```markdown
 ## Agent attribution

@@ -154,10 +154,12 @@ taken. Coverage is captured by no ren profile; that is [`byakugan`](../byakugan/
 
 **Every step is one ledger entry** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers* owns the
 mechanism; what is ren's is which steps and when). Before a step, `nen phase begin --effort <branch> --phase
-<step-name> --surface <s> [--model <alias>]`; after it, `nen phase end --effort <branch> --phase
+<step-name> --surface <s> [--model <reported-model>] --dial <level>`; if the model is a harness-reported
+served ID, add `--note "model-kind=served; registry alias <alias>"` (WORKFLOW § *The effort's ledgers*); at the first phase record
+`nen session record` with the harness's title/id when exposed, once per session; after a step, `nen phase end --effort <branch> --phase
 <step-name> --exit <code>`, so `.nen/phases/<effort>.json` carries one timed entry per phase, a refused
 step included. **The usage entry is recorded at step 5**: `nen usage record --effort
-<branch> --surface <s> [--model] [--input] [--output] [--cache-read] [--cache-write] [--minutes]` from
+<branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes]` from
 the surface's own cost readout, `--not-reported` on a surface that exposes none.
 
 **A step that refuses ends the turn where it refused.** Kokusen asking about a flagged file or

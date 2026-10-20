@@ -133,6 +133,16 @@ t="$(make_tree optional-stale)"
 write_decl "$t" '"nen/", "schemas/"' '"docs/", "contracts/"' 'no CHANGELOG entry: writes its own section' '"The flow", "Economics"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
 run_case 'an optional heading the template no longer has fails' 1 "$t" "optional heading 'Economics' is not a heading of templates/pr-body.md"
 
+# The catalogue mode composes its always-on preamble before the unchanged reader cell and footer.
+t="$(make_tree catalogue-preamble)"
+cp "$repo_root/contracts/pr-sections.json" "$repo_root/contracts/classify.taxonomy.json" "$repo_root/contracts/pr-body.requirements.json" "$t/contracts/"
+rm "$t/templates/pr-body.md"
+cp -R "$repo_root/templates/pr-body" "$t/templates/pr-body"
+node -e 'const fs=require("node:fs");const p=process.argv[1];const d=JSON.parse(fs.readFileSync(p,"utf8"));d.bodyRequirements={file:"contracts/pr-body.requirements.json",catalogue:"contracts/pr-sections.json",defaultKind:"process",defaultFamily:"canon"};fs.writeFileSync(p,JSON.stringify(d)+"\n")' "$t/contracts/pr-composition.json"
+run_case 'catalogue composition prepends Delivery before the default reader cell' 0 "$t" 'pr-composition ok'
+node -e 'const fs=require("node:fs");const p=process.argv[1];const d=JSON.parse(fs.readFileSync(p,"utf8"));d.shift();fs.writeFileSync(p,JSON.stringify(d)+"\n")' "$t/contracts/pr-body.requirements.json"
+run_case 'catalogue composition refuses requirements with the Delivery preamble dropped' 1 "$t" 'drifts from catalogue default process.canon'
+
 # --- the declaration's own shape ------------------------------------------------------------------
 t="$(make_tree both-empty)"
 write_decl "$t" '' '' 'no CHANGELOG entry: writes its own section' '"The flow"' '"docs/WORKFLOW.md", "claude/skills/shibari/SKILL.md"'
