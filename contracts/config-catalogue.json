@@ -9,7 +9,8 @@
     "reporting": "where reports are written and what they keep",
     "notifications": "how the end of a turn is announced",
     "deployment": "non-production destinations a build is sent to",
-    "publishing": "release units and production destinations"
+    "publishing": "release units and production destinations",
+    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them"
   },
   "values": [
     {
@@ -26,9 +27,10 @@
         "murasaki",
         "getsuga",
         "kagutsuchi",
-        "shibari"
+        "shibari",
+        "hiraishin"
       ],
-      "source": "docs/WORKFLOW.md § 2 (branch); getsuga § 1"
+      "source": "docs/WORKFLOW.md § 2 (branch); getsuga § 1; hiraishin § 2 (the source's base)"
     },
     {
       "id": "workflow.branch.template",
@@ -273,6 +275,25 @@
       "source": "docs/WORKFLOW.md § 2 (mukai)"
     },
     {
+      "id": "workflow.classify.publish",
+      "file": "nen/workflow.json",
+      "path": "classify.publish",
+      "domain": "review",
+      "kind": "enum",
+      "default": "label",
+      "options": [
+        "label",
+        "label+comment"
+      ],
+      "describe": "Whether hatsu:classify also writes its resolved criteria to the issue, read at the default branch's tip: label applies the lang/ and job/ labels only (through nen classify apply, ledgered); label+comment adds one marker-keyed criteria comment per classified issue, every decided key with confidence, status and signal category, never issue text (the contract: contracts/classify.taxonomy.json -> publish). Acts standalone, under build, or under file once the issue is created, never under ren or for an inline effort.",
+      "readers": [
+        "classify",
+        "build",
+        "file"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (classify); contracts/classify.taxonomy.json -> publish"
+    },
+    {
       "id": "workflow.direct.publish",
       "file": "nen/workflow.json",
       "path": "direct.publish",
@@ -291,6 +312,36 @@
         "file"
       ],
       "source": "docs/WORKFLOW.md § 2 (direct); contracts/direct.registry.json -> publish"
+    },
+    {
+      "id": "workflow.port.handbooksRepo",
+      "file": "nen/workflow.json",
+      "path": "port.handbooksRepo",
+      "domain": "port",
+      "kind": "open",
+      "default": "zheref/bankai-handbooks",
+      "describe": "The owner/name of the canon handbooks repository a port ruling lands in (hatsu:bankai-rule § 2): its ports family is read at the consumer's pinned tag and authored in a separate clone at the cache path, never the canon checkout. The default is the estate's canonical handbooks home (CON-13). Bounded: it must be the consumer's own pinned maintained_tools row (nen canon pin --source), so rulings and the matrix are read from one home; a value with no pinned row is missing-configuration, never a second home. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land. Read at the consumer's base tip, never its head (bankai-rule § 2).",
+      "readers": [
+        "bankai-rule"
+      ],
+      "question": "Which handbooks repository carries this estate's port rulings?",
+      "source": "docs/WORKFLOW.md § 2 (port); zheref/hatsu#354 criterion 4; bankai-rule § 2"
+    },
+    {
+      "id": "workflow.port.rulingsDir",
+      "file": "nen/workflow.json",
+      "path": "port.rulingsDir",
+      "domain": "port",
+      "kind": "open",
+      "default": "handbooks/ports",
+      "describe": "The directory inside workflow.port.handbooksRepo that holds the ports family: one directed pair file <from>--<to>.md per scenario pair and its INDEX.md (hatsu:bankai-rule § 4, rendered from templates/ports/). Read beside handbooks/stacks; the pair file is passed through nen canon resolve --always-load until zheref/nen#457 resolves it as a port handbook. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land. Bounded: a relative path of [A-Za-z0-9._/-] with no '..' and no leading '/'; the skill and scripts/port_rule_reserve.sh refuse anything else.",
+      "readers": [
+        "bankai-rule",
+        "limbo",
+        "bankai-handbooks"
+      ],
+      "question": "Which directory of the handbooks repository holds the port rulings?",
+      "source": "docs/WORKFLOW.md § 2 (port); zheref/hatsu#354 criterion 4; bankai-rule § 4"
     },
     {
       "id": "workflow.aiReviewers",
@@ -469,6 +520,34 @@
       "source": "getsuga § 3a"
     },
     {
+      "id": "workflow.port.specKit.pin",
+      "file": "nen/workflow.json",
+      "path": "port.specKit.pin",
+      "domain": "port",
+      "when": "nen/workflow.json#port",
+      "kind": "open",
+      "default": "v1.2.2",
+      "describe": "The github/spec-kit release whose file set and paths kamui's spec step writes in a product family's spec repository: specs/<nnn>-<slug>/ with spec.md, plan.md, research.md, data-model.md, quickstart.md, contracts/, tasks.md and checklists/requirements.md, and .specify/memory/constitution.md once (citing CON-{n}, never overriding it). Read in the spec repository (role spec); the latest release when kamui landed, read live 2026-10-20.",
+      "readers": [
+        "kamui"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (port); kamui §§ 2-3"
+    },
+    {
+      "id": "workflow.port.specKit.layout",
+      "file": "nen/workflow.json",
+      "path": "port.specKit.layout",
+      "domain": "port",
+      "when": "nen/workflow.json#port",
+      "kind": "open",
+      "default": "specs/{nnn}-{slug}",
+      "describe": "Where kamui writes one feature's spec-kit folder in the spec repository: {nnn} the next free three-digit number (spec-kit's sequential numbering), {slug} a kebab phrase from the source's title. The source object is cited in spec.md's header and searched for before a new folder opens, so a second port of one feature amends the folder instead of opening another.",
+      "readers": [
+        "kamui"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (port); kamui §§ 2-3"
+    },
+    {
       "id": "workflow.runners",
       "file": "nen/workflow.json",
       "path": "runners",
@@ -605,6 +684,38 @@
         "For a physical device: pair and trust it once through hatsu:jujutsu"
       ],
       "source": "docs/WORKFLOW.md § 3 (project.launch); amaterasu § 1"
+    },
+    {
+      "id": "workflow.pr.sections",
+      "file": "nen/workflow.json",
+      "path": "pr.sections",
+      "domain": "publishing",
+      "kind": "open",
+      "defaultFrom": "pr-sections",
+      "describe": "PR reader section matrix; an edited cell is consumer-owned.",
+      "readers": [
+        "shibari",
+        "tensho",
+        "jujisho"
+      ],
+      "requiredBy": [],
+      "source": "contracts/pr-sections.json; docs/PR-SECTIONS.md"
+    },
+    {
+      "id": "workflow.pr.sections.max",
+      "file": "nen/workflow.json",
+      "path": "pr.sections.max",
+      "domain": "publishing",
+      "kind": "open",
+      "defaultFrom": "pr-sections.max",
+      "describe": "PR reader section cap, footer excluded.",
+      "readers": [
+        "shibari",
+        "tensho",
+        "jujisho"
+      ],
+      "requiredBy": [],
+      "source": "contracts/pr-sections.json; docs/PR-SECTIONS.md"
     }
   ]
 }

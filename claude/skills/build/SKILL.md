@@ -88,7 +88,7 @@ empty (row `classify-undecidable`). Then, every run, `hatsu:direct <CODE>#<N>` w
 `--surface`, `--model` and `--effort`: [`direct`](../direct/SKILL.md) § 5 reports the picks, § 6 owns the
 compare (within the set one line; outside it row `direct-mismatch`, asked once, **never a block**, **B**
 ending the run). The verdict is recorded under `.nen/direct/`, the answer by `nen direct answer`; direct § 7
-publishes under `direct.publish` only.
+publishes under `direct.publish` only, as classify § 5b does under `classify.publish`.
 
 ## 3. Worktree isolation by default
 
@@ -140,7 +140,8 @@ continue; each runs only the maintainer's pick.
 ## 5. Authority — what this run may and may not do
 
 `CON-25`'s fourth carve-out, bounded to the pipeline phases: the canonical pipeline for the target issue,
-classify's labels under this run's go and direct's verdict recorded; authoring and commits in the isolated
+classify's labels under this run's go and direct's verdict recorded, each one's issue publish under its own
+key; authoring and commits in the isolated
 worktree (Conventional Commits, `Hatsu-Agent: Kurapika`); the push through `aka` and the PR through `mukai`'s
 `shibari`, linking the issue; `en` until `nen pr ready` exits `0`. No CI plane: no builder wakes, stage
 routing or wave coordination. Never a merge (G2/G4 stay the maintainer's), a G1 mode label, a review vote,

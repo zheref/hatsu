@@ -50,14 +50,14 @@ or it does not happen.
 ## 2. Resolve the specification
 
 1. **The PR** — `nen pr fetch --target <owner/name> --pr <n>`: head, merge state, body, and the issues it
-   closed. The body's **"How to verify"** section is one of the two criteria sources.
+   closed. The body's **"verify" (product title: "How to verify"; library: "How a consumer verifies"; process: "What the guards prove")** section is one of the two criteria sources.
 2. **The closed issue(s)** — each one's **acceptance criteria list, verbatim**. That list is the other
-   source and the primary one: it is what was asked for, where "How to verify" is what the author said to
+   source and the primary one: it is what was asked for, where "verify" is what the author said to
    check.
 3. **Where the two disagree, both are validated and the divergence is itself reported** — a gap between
    what was asked for and what the author said to check is a finding about the delivery, not noise.
 4. **A PR that closes no issue, or an issue with no acceptance criteria, is reported as such** and the run
-   validates only "How to verify", saying so. **Never derive a criterion from the code**: a test written
+   validates only "verify", saying so. **Never derive a criterion from the code**: a test written
    from the implementation proves only that the implementation agrees with itself.
 
 ## 3. Classify and resolve the tooling
@@ -81,13 +81,13 @@ configuration `nen schema check` does not know: read it as ephemeral and say so 
 
 ## 4. Raise Shalnark — once
 
-One subagent, `hatsu:shalnark`, titled **`black-voice · shalnark · <model alias>`**, at
+One subagent, the plugin's `shalnark`, titled **`black-voice · shalnark · <model alias>`**, at
 `models.<surface>.fast` (his definition pins `sonnet` / `medium`, so no `model` is passed). The prompt
 carries **the absolute path of the checkout**, the **criteria list verbatim with each criterion's source**,
 the resolved UI tooling and the declared lanes. Every run is **ephemeral**.
 
 **Raised once per invocation.** He is not re-raised to retry a failure, and a flake is reported with its
-rate rather than run again until it passes. Where `hatsu:shalnark` has no definition on this surface, or
+rate rather than run again until it passes. Where `shalnark` has no definition on this surface, or
 the surface will not raise it, that is a **gap** reported exactly as [`hanten`](../hanten/SKILL.md) § 3
 reports one — named, never improvised past.
 
@@ -100,7 +100,7 @@ capability** (no device, no runner, no driver, no scenario row) and **is never r
 criterion that was not attempted was not validated, and the row says so.
 
 **A `fail` becomes a finding in hanten's fixed shape** (`claude/agents/_review-preamble.md` § 4): `rule` is
-the criterion cited by its source — issue and criterion, or the PR's "How to verify" — `evidence` is the
+the criterion cited by its source — issue and criterion, or the PR's "verify" — `evidence` is the
 failing run, `proposedFix` is what would satisfy the criterion. **Shalnark files nothing and fixes
 nothing**; the findings come back here.
 

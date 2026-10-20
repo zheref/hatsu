@@ -82,6 +82,14 @@ The generated mirrors under [`surfaces/`](surfaces/) must be regenerated in the 
 their authored inputs; [`docs/using/mirrors.md` § 3](docs/using/mirrors.md#3--regenerating) has the one command per
 surface, and `scripts/surface_mirror_check.sh` is the check.
 
+## PR composition
+
+Resolve the body through [docs/PR-SECTIONS.md](docs/PR-SECTIONS.md), using the repository kind,
+issue jobs, consumer-owned `pr.sections` cells and Mukai run facts. Seven reader sections exclude
+the compact footer. Glyph headings follow the catalogue; 150 prose words per section warn only.
+Run sections, Nen body-check, evidence and Development guards before every create or body edit.
+Hatsu's process verification title is **What the guards prove**; the product title is **How to verify**.
+
 ## Commit attribution
 
 > **Attribution ruling, 2026-09-12:** prospective commits carry the truthful canonical

@@ -172,7 +172,7 @@
       "pr-composition-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/pr_composition_check.sh (zheref/hatsu#171), the drift guard for contracts/pr-composition.json -- the one declaration of the inputs shibari and tensho hand nen pr body-check, nen gate derive and nen changelog fragment-required -- following the one-lane-per-executable-guard pattern. It reads contracts/pr-composition.json, contracts/pr-body.requirements.json, templates/pr-body.md, docs/WORKFLOW.md section Gate derivation, every file the declaration lists as a reader, and the canon prose (claude/, templates/, hooks/, contracts/, .github/, docs/ less docs/ab, docs/history, docs/Loop and docs/ROSTER.md, plus README.md and CONTRIBUTING.md), so a change to any of them selects it. Its fixture is hermetic and offline: throwaway Hatsu-shaped trees prove a consistent tree passes; a literal path set copied into WORKFLOW.md or a skill (spaced, =-joined or wrapped across lines) fails naming file and line; a prefix the Gate derivation section names that no declared set carries fails, either way round; a section that does not cite the declaration, or is missing, fails; records and generated mirrors are exempt; placeholders and prose naming the flags pass; a requirements array that drifts from the template's headings, a pattern that misses its heading or matches without it, an unparseable pattern and a stale optional heading fail; a both-empty gate row, a comma-bearing entry, a reasonless opt-out and a missing reader fail; a missing or non-JSON declaration, a non-Hatsu root and an unknown argument are wiring refusals at exit 2; a wildcard row standing for every canon repository is refused; a gate row key nen gate derive never reads (policyPath) fails by name; the zheref/nen row's representative changes (source, schema source, its own nen/ policy, the verb spec, README, the release workflow, bootstrap, the dependency manifest, .gitattributes, a changelog.d/ fragment, .github/dependabot.yml, bunfig.toml, a rename out of bootstrap/ given both sides, LICENSE and .gitignore alone, and .gitignore beside source) derive the gates the maintainer's ruling of 2026-10-20 records, through nen gate derive itself, read off this repository's declaration with jq; so the lane needs jq and nen (NEN=<path> or on PATH, at dependency.minimum or later), refuses at exit 2 without either, and fails at exit 1 without the row (zheref/hatsu#334); then the check runs on this repository."
+        "$comment": "The focused lane for scripts/pr_composition_check.sh (zheref/hatsu#171), the drift guard for contracts/pr-composition.json -- the one declaration of the inputs shibari and tensho hand nen pr body-check, nen gate derive and nen changelog fragment-required -- following the one-lane-per-executable-guard pattern. It reads contracts/pr-composition.json, contracts/pr-body.requirements.json, templates/pr-body/, docs/WORKFLOW.md section Gate derivation, every file the declaration lists as a reader, and the canon prose (claude/, templates/, hooks/, contracts/, .github/, docs/ less docs/ab, docs/history, docs/Loop and docs/ROSTER.md, plus README.md and CONTRIBUTING.md), so a change to any of them selects it. Its fixture is hermetic and offline: throwaway Hatsu-shaped trees prove a consistent tree passes; a literal path set copied into WORKFLOW.md or a skill (spaced, =-joined or wrapped across lines) fails naming file and line; a prefix the Gate derivation section names that no declared set carries fails, either way round; a section that does not cite the declaration, or is missing, fails; records and generated mirrors are exempt; placeholders and prose naming the flags pass; a requirements array that drifts from the template's headings, a pattern that misses its heading or matches without it, an unparseable pattern and a stale optional heading fail; a both-empty gate row, a comma-bearing entry, a reasonless opt-out and a missing reader fail; a missing or non-JSON declaration, a non-Hatsu root and an unknown argument are wiring refusals at exit 2; a wildcard row standing for every canon repository is refused; a gate row key nen gate derive never reads (policyPath) fails by name; the zheref/nen row's representative changes (source, schema source, its own nen/ policy, the verb spec, README, the release workflow, bootstrap, the dependency manifest, .gitattributes, a changelog.d/ fragment, .github/dependabot.yml, bunfig.toml, a rename out of bootstrap/ given both sides, LICENSE and .gitignore alone, and .gitignore beside source) derive the gates the maintainer's ruling of 2026-10-20 records, through nen gate derive itself, read off this repository's declaration with jq; so the lane needs jq and nen (NEN=<path> or on PATH, at dependency.minimum or later), refuses at exit 2 without either, and fails at exit 1 without the row (zheref/hatsu#334); then the check runs on this repository."
       },
       "report-markdown-guard": {
         "stack": "claude-code-plugin",
@@ -278,6 +278,16 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for templates/runner-preflight.yml, the preflight workflow hatsu:jusshin section 7 renders through nen runner workflow into every consumer that declares a runner pool, following the one-lane-per-executable-guard pattern (hanten findings C19, N7 and Phinks P1: nothing in this repository held the template, and a hostile copy adding pull_request_target and dropping the repository binding rendered at exit 0). Its fixture, scripts/runner_preflight_fixture_check.sh, asserts each conjunct on its own line, on the live template and on a rendering for a Windows service, a macOS and an interactive Windows (desktop) fixture pool: the event set is exactly workflow_dispatch and push, push carries exactly branches ['**'] and paths holding only the file itself (a paths filter alone admits every tag push, zheref/hatsu#198), no pull_request or pull_request_target, the one job bound to the consumer's slug, runs-on exactly the pool's labels, contents: read, persist-credentials: false, every uses: a 40-hex SHA with its exact dotted tag comment, a timeout-minutes bound, no step printing an account name, a resolved path or the PATH, the Windows step classifying against the service's recorded PATH (a tool present only under Git Bash's mingw64\\bin fails, a missing recording fails the step), no placeholder left, and for the desktop pool (zheref/hatsu#206, nen 0.19) runs-on [self-hosted, Windows, X64, desktop], MODE reaching the toolchain and Windows steps, the session probe gated exactly on the template and a constant on every rendering, the probe run against a stubbed powershell.exe failing session 0 and an unknown session, and the Windows step under MODE=interactive warning on a per-user match while still failing a missing or refused one; and it refuses the hostile copy, a bare self-hosted runs-on, a push admitting a tag ref and a leftover placeholder. Properties, not bytes: the body is not byte-identical to nen's own test template. It needs nen on PATH, which a lane run through nen shu test has; offline and hermetic. Its hosts are darwin and linux like every guard lane here: it ran green on win32 under Git Bash at nen 0.18.0, but nen's Windows PATH story for a lane run is unproven, so win32 is not declared."
+      },
+      "pr-sections-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "HA#351: hermetic catalogue, resolution, heading order/cap, prose warning and configuration fixtures."
+      },
+      "port-rule-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/port_rule_reserve.sh, hatsu:bankai-rule section 3's id reservation (zheref/hatsu#355 criterion 7), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a throwaway origin and clone with a gh stub on PATH prove the four reads (the tip, the run's own HEAD and working tree -- run against a git worktree while the clone root stays on main -- every pushed and every local sibling ports-* branch, every open same-repository PR whose file list names the pair file), --check's duplicate pass, the prune of a deleted sibling, and the hostile cases: a fork PR listed but never counted, a smuggled hunk header, an out-of-shape id (exit 3), a short open-PR list or file list and an unreadable or hunk-less PR (exit 1, nothing reserved), a symlinked or metacharacter or escaping pair path, a single-branch clone, an unresolvable or unfetchable tip (exit 2). Run it only as `nen shu test --lane port-rule-guard --repo <hatsu>` when the script or its fixture changes. It is not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -297,7 +307,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, ledger-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, ledger-guard, port-rule-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
@@ -403,7 +413,11 @@
       "futon-effort-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "scripts/futon_effort_record_fixture.mts"],
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/futon_effort_record_fixture.mts"
+          ],
           "$comment": "Hermetic Futon ownership fixture: verifies bind, refresh and missing/stale/default-branch/selector refusals in a scratch Git common directory. Run when the record script, Futon binding, or En's merge guard changes."
         }
       },
@@ -417,7 +431,11 @@
       "trusted-guard-preflight": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "bash", "scripts/trusted_guard_preflight_fixture.sh"],
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
+            "scripts/trusted_guard_preflight_fixture.sh"
+          ],
           "$comment": "Run this focused fixture when the trusted preflight or its workflow-derived dispatch changes."
         }
       },
@@ -518,7 +536,7 @@
             "bash",
             "scripts/pr_composition_check_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the PR-composition drift guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane pr-composition-guard --repo <hatsu>` when contracts/pr-composition.json, contracts/pr-body.requirements.json, templates/pr-body.md, docs/WORKFLOW.md section Gate derivation, a reader the declaration lists, or the guard changes; run the guard itself as `bash scripts/pr_composition_check.sh`."
+          "$comment": "A permanent, deterministic fixture for the PR-composition drift guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane pr-composition-guard --repo <hatsu>` when contracts/pr-composition.json, contracts/pr-body.requirements.json, templates/pr-body/, docs/WORKFLOW.md section Gate derivation, a reader the declaration lists, or the guard changes; run the guard itself as `bash scripts/pr_composition_check.sh`."
         }
       },
       "report-markdown-guard": {
@@ -763,6 +781,28 @@
           ],
           "$comment": "A permanent, deterministic fixture for the runner preflight template. Run it as `nen shu test --lane runner-preflight-guard --repo <hatsu>` when templates/runner-preflight.yml or its fixture changes."
         }
+      },
+      "pr-sections-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
+            "scripts/pr_sections_fixture_check.sh"
+          ],
+          "$comment": "Hermetic PR-section fixtures and live catalogue validation."
+        }
+      },
+      "port-rule-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
+            "scripts/port_rule_reserve_fixture.sh"
+          ],
+          "$comment": "The reservation fixture, through the shared output guard like every other focused lane. Requires bash, git, mktemp and jq (the --json cases parse the output); no gh (the fixture stubs it) and no network."
+        }
       }
     },
     "preconditions": {
@@ -789,16 +829,19 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and iconv; cleanup_path_admit also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and iconv; port_rule_reserve_fixture also bash and jq; cleanup_path_admit also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {
       "node": {
         "version": ">=22.18.0",
-        "probe": ["node", "--version"],
+        "probe": [
+          "node",
+          "--version"
+        ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "Futon ownership binding and En verification run the TypeScript .mts source directly; Node 22.18 or newer has type stripping enabled by default. An older Node is a missing host tool, never a failed ownership claim (#154)."
+        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) and scripts/futon_effort_record_fixture.mts (futon-effort-guard) need: below it the cleanup shim refuses at exit 2, never 1. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",
@@ -809,16 +852,6 @@
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
         "why": "Claude Code is both the host that loads this plugin and the program the `lint` verb spawns. It is verify-only on purpose: nen never installs the harness it is running inside, and the install path is the user's own (claude.com/claude-code)."
-      },
-      "node": {
-        "version": ">=22.18.0",
-        "probe": [
-          "node",
-          "--version"
-        ],
-        "versionFrom": "first-semver-on-stdout",
-        "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane) and scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) need: below it the cleanup shim refuses at exit 2, never 1. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       }
     }
   },

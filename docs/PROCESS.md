@@ -663,6 +663,16 @@ dangling link; `2` is a wiring stop, quoted. Only `0` reads current. **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
 `.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
 
+## PR composition before every write
+
+[PR-SECTIONS.md](PR-SECTIONS.md) is the shared procedure for `shibari`, `tensho`, `jujisho` and
+review-driven body edits. Resolve kind × family sections and per-run requirements before drafting;
+reuse Mukai's evidence, economics and gate-hit facts. Run the sections, Nen body-check, evidence
+and Development guards before every create/edit, and verify Development after reading the write
+back. Seven reader sections exclude the compact footer; prose beyond 150 words warns only.
+Kind-specific verification is the `CON-17(b)` observable proxy; **How to verify** is the product title.
+NN#448 is merged but does not replace the authorized interim scripts until a released pin carries it.
+
 ## Residue and owned dependencies
 
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
@@ -692,6 +702,14 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
   dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
   restated.
+- **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
+  before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
+  trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
+  `gh pr view --json files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
+  **owed to nen**, zheref/nen#456; a ports pair file rides `nen canon resolve --always-load` and reaches no
+  mirror until zheref/nen#457; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
+  carve-out); the rule prefix and the numbering scope are read from the pair file's header once
+  zheref/bankai-handbooks#4 rules them.
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
   --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
@@ -817,6 +835,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   zheref/hatsu#168 moved; on an older binary those verbs are absent, § 2's probe says so, and the skill
   continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, ten § 2's install named).
   The GitHub half of a declaration is `nen classify install --sync`, with `nen labels sync` the whole-file form.
+  Under `classify.publish`, the marker read is `gh api`, read-only, and the comment is `nen issue comment`'s,
+  unledgered (`contracts/classify.taxonomy.json` → `publish.residue`).
 - **`file`.** The private-name check before every write to a public repository
   (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
   shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and

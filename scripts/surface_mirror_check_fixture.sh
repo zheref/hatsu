@@ -97,17 +97,16 @@ expect_not_in codex-refused "$out" 'the committed mirror is not what the source 
 run cursor-drift 1 STUB_CURSOR=1
 [ "$(printf '%s\n' "$calls" | grep -c '^cursor ')" = 1 ] || fail "cursor-drift: cursor was checked more than once: $calls"
 
-# (e) one root per surface, written the same everywhere it is written: hooks_root_for in the check,
-# the regenerate workflow's case arms and the search side of surface_bootstrap.sh's placed-hooks sed
-# (docs/using/mirrors.md § 3 runs scripts/surface_mirror_regenerate.sh, which sources the check). The
-# workflow's copy drifted once (zheref/hatsu#151); this is the check that it cannot again.
+# (e) CI and the docs call the shared regeneration script (HA#351). Roots have one
+# owner in the check; regeneration sources it. The regeneration fixture compares
+# every emitted argument per surface, so never require a second copy in YAML.
 repo="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
-for s in codex cursor antigravity; do
-  in_check="$(grep -o "$s) printf %s '[^']*'" "$guard" | sed "s/^$s) printf %s //" || true)"
-  in_workflow="$(grep -o "$s) root='[^']*'" "$repo/.github/workflows/surface-mirror-regenerate.yml" | sed "s/^$s) root=//" || true)"
-  [ -n "$in_check" ] || fail "roots: no $s root in hooks_root_for"
-  [ "$in_check" = "$in_workflow" ] || fail "roots: $s is $in_check in the check but $in_workflow in surface-mirror-regenerate.yml"
-done
+grep -Eq '^[[:space:]]+bash scripts/surface_mirror_regenerate[.]sh "[$]PWD"$' "$repo/.github/workflows/surface-mirror-regenerate.yml" ||
+  fail "roots: regeneration workflow does not call the shared script"
+grep -Fq '. "$SELF_DIR/surface_mirror_check.sh"' "$repo/scripts/surface_mirror_regenerate.sh" ||
+  fail "roots: regeneration does not source the check owner"
+! grep -q ") root='" "$repo/.github/workflows/surface-mirror-regenerate.yml" ||
+  fail "roots: regeneration workflow carries a second hooks-root table"
 # docs/using/mirrors.md § 3 no longer writes the roots: it runs scripts/surface_mirror_regenerate.sh,
 # which sources hooks_root_for from the check itself (zheref/hatsu#218); a copy coming back is a finding.
 ! grep -q ") root='" "$repo/docs/using/mirrors.md" || fail "roots: docs/using/mirrors.md writes its own hooks roots again; § 3 runs scripts/surface_mirror_regenerate.sh"
