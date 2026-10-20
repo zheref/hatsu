@@ -43,8 +43,8 @@ Case-insensitive; **a code is resolved, never guessed**; a missing argument or c
 asked for and set up inline (`missing-argument`, `missing-configuration`;
 [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
 
-**If `#<N>` is already a PR** (`gh api repos/<owner>/<repo>/issues/<N> --jq '.pull_request'` populated), do
-not re-author: hand straight to [`hatsu:en on <CODE>#<N>`](../en/SKILL.md), and say so.
+**If `#<N>` is a PR** (`node '<Hatsu root>/scripts/gh_api_read.mts' issue-pr <owner/repo> <N>`; substitute the absolute root),
+run [`hatsu:en on <CODE>#<N>`](../en/SKILL.md); do not re-author.
 
 **Say the run started**: it holds a bounded `CON-25` delegation (§ 5), and an unannounced delegation
 is one nobody can end.

@@ -542,9 +542,11 @@ its own gate, so the **effective value** is read, for every decision below (requ
 `nen/workflow.json` at **two refs**, never from the local checkout (which is the PR head):
 
 ```bash
-gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<baseRefOid>"        -H 'Accept: application/vnd.github.raw'
-gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<default branch>"   -H 'Accept: application/vnd.github.raw'
+node '<installed Hatsu root>/scripts/gh_api_read.mts' workflow-content <owner/name> <baseRefOid>
+node '<installed Hatsu root>/scripts/gh_api_read.mts' workflow-content <owner/name> <default-branch>
 ```
+
+Replace the root placeholder with the resolved absolute Hatsu plugin root before sending the Bash command; the installed Claude permission rule matches that literal path, not a shell variable.
 
 — the pull request's base commit, and the default branch's tip — and the **stricter** of the two applies:
 `required` > `optional` > `off`. A read that fails, a file or key that is absent, a file that does not parse,

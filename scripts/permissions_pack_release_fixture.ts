@@ -19,8 +19,8 @@ function permissionsAt(path: string): { allow: string[]; deny: string[]; [key: s
 }
 
 function main(args: string[]): void {
-  if (args.length !== 2) throw new Error('expected installed and rendered Claude Code settings paths');
-  const [installed, rendered] = args.map(permissionsAt);
+  if (args.length !== 3) throw new Error('expected installed and rendered Claude Code settings paths, then Hatsu root');
+  const [installed, rendered] = args.slice(0, 2).map(permissionsAt);
   const release = installed.allow.filter((row) => row.startsWith('Bash(nen shu release '));
   const expected = [
     'Bash(nen shu release --repo * --lane plugin --dry-run)',
@@ -40,6 +40,22 @@ function main(args: string[]): void {
       installed.allow.includes('Bash(gh api *)') ||
       !installed.deny.includes('Bash(gh pr merge *)')) {
     throw new Error('Claude Code pack grants an unbounded or direct delivery merge');
+  }
+  const script = `${args[2]}/scripts/gh_api_read.mts`;
+  const shellLiteral = `'${script.replaceAll("'", "'\\''")}'`;
+  const reader = `Bash(node ${shellLiteral} *)`;
+  const matches = (rule: string, command: string): boolean => {
+    const escaped = rule.slice(5, -1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replaceAll('\\*', '.*');
+    return new RegExp(`^${escaped}$`).test(command);
+  };
+  if (!installed.allow.includes(reader) ||
+      installed.allow.some((row) => row.startsWith('Bash(gh api ') ||
+        row === 'Bash(node */scripts/gh_api_read.mts *)') ||
+      !matches(reader, `node ${shellLiteral} branch-rules zheref/hatsu main`) ||
+      matches(reader, `node --require /tmp/payload.cjs ${shellLiteral} branch-rules zheref/hatsu main`) ||
+      matches(reader, `node --eval 'process.exit()' ${shellLiteral} branch-rules zheref/hatsu main`) ||
+      matches(reader, `node '/tmp/scripts/gh_api_read.mts' branch-rules zheref/hatsu main`)) {
+    throw new Error('Claude Code pack lacks the audited API reader or grants raw gh api');
   }
   if (!isDeepStrictEqual(installed, rendered)) {
     throw new Error('Claude Code installed permissions differ from the rendered permission pack');

@@ -119,6 +119,11 @@
         "cwd": ".",
         "$comment": "Hermetic fixture for the trusted CI test runner: verifies selected lanes, required API fixture, failure propagation, token clearing, and workflow-command fencing."
       },
+      "gh-api-read-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Hermetic fixture for the narrowly granted GitHub API reader, including fixed REST and GraphQL requests and hostile argument refusals."
+      },
       "futon-effort-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -413,6 +418,13 @@
           "exe": "bash",
           "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/unit_tests_ci_fixture.test.mts"],
           "$comment": "Pinned Vitest fixture for the trusted CI test runner and its lane selection, failure boundary, token clearing, and output fence. Install locked dependencies with npm ci --ignore-scripts first."
+        }
+      },
+      "gh-api-read-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/gh_api_read_fixture.test.mts"],
+          "$comment": "Pinned Vitest fixture: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "futon-effort-guard": {

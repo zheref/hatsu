@@ -7,7 +7,7 @@
 # This guard compares text against the LIVE private list, on the maintainer's own credentials --
 # every private repository the credential can see, whoever owns it:
 #
-#   gh api 'user/repos?visibility=private&per_page=100' --paginate -q '.[].full_name'
+#   node scripts/gh_api_read.mts private-repos (fixed GET, paginated)
 #
 # --owner <login> ADDS that owner's `gh repo list --visibility private` to it (never narrows it: a
 # narrower list is a quieter guard). The list is never committed to this public repository and never
@@ -203,7 +203,7 @@ if [ -n "$names_file" ]; then
   source_desc="the names file"
 else
   command -v gh >/dev/null 2>&1 || die "gh is required to read the private repository list (or pass --names-file)"
-  gh api 'user/repos?visibility=private&per_page=100' --paginate -q '.[].full_name' \
+  node "$(dirname "$0")/gh_api_read.mts" private-repos \
     > "$list" 2>"$tmp/all.err" || die "gh could not list the credential's private repositories ($(head -1 "$tmp/all.err"))"
   for o in "${owners[@]+"${owners[@]}"}"; do
     gh repo list "$o" --visibility private --limit "$LIMIT" --json nameWithOwner -q '.[].nameWithOwner' \

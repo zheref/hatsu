@@ -111,7 +111,7 @@ sets `notReported: true`, `reported: false`. `actionsMinutes` sums
 
 **Record usage before rendering** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*,
 its flags) from the surface's readout — Claude Code's `/cost`, Codex's session log, Cursor and
-Antigravity `--not-reported`; Actions minutes from `gh api repos/{o}/{r}/actions/runs/{id}/timing`,
+Antigravity `--not-reported`; Actions minutes from `node '<installed Hatsu root>/scripts/gh_api_read.mts' actions-timing <owner/repo> <run-id>` (paste the absolute root literally),
 `nen usage record --minutes <n> --source "gh actions timing"`.
 
 `--variant` injects `sections.<block>` and `sectionList`.

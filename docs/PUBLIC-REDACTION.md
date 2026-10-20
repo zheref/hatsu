@@ -131,7 +131,7 @@ See the incident record at the head of
 
 [`scripts/private_name_check.sh`](../scripts/private_name_check.sh) compares text against the **live**
 private list — every private repository the maintainer's own credentials can see, whoever owns it
-(`gh api 'user/repos?visibility=private'`, paginated) — by bare name, case-insensitive, whole-word
+(`node scripts/gh_api_read.mts private-repos`, a fixed paginated GET) — by bare name, case-insensitive, whole-word
 (`_` and `.` bound a word, so markdown emphasis is a hit), `owner/name` slugs and URLs included. A
 line that could hide a name is also read normalised — URL encoding, HTML entities, inline tags,
 backslash escapes, NFKC, invisible format characters and dashes — and then with HTML comments, `*`

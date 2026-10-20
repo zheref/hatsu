@@ -75,8 +75,35 @@ bash "$pack" --surface claude-code --install --target "$main" --hatsu-root "$hat
 claude_settings="$main/.claude/settings.local.json"
 rendered_claude="$fixture_root/rendered-claude.json"
 bash "$pack" --surface claude-code --render --hatsu-root "$hatsu_root" > "$rendered_claude"
-node "$hatsu_root/scripts/permissions_pack_release_fixture.ts" "$claude_settings" "$rendered_claude"
+node "$hatsu_root/scripts/permissions_pack_release_fixture.ts" "$claude_settings" "$rendered_claude" "$hatsu_root"
 echo "ok    Claude Code pack renders only the declared plugin lane's release plan and publication forms"
+node - "$hatsu_root/surfaces/cursor/cli.json" <<'JS'
+const fs = require('node:fs');
+const text = fs.readFileSync(process.argv[2], 'utf8');
+if (text.includes('Shell(node:') || text.includes('Shell(gh:api')) {
+  throw new Error('Cursor inherited an unbounded API reader or raw gh api grant');
+}
+JS
+node "$hatsu_root/scripts/gh_api_read_fixture.mts"
+node - "$claude_settings" <<'JS'
+const fs = require('node:fs');
+const path = process.argv[2];
+const doc = JSON.parse(fs.readFileSync(path, 'utf8'));
+doc.permissions.allow.push('Bash(gh api *)', 'Bash(node */scripts/gh_api_read.mts *)',
+  "Bash(node '/tmp/retired-plugin/scripts/gh_api_read.mts' *)", 'Bash(echo user-owned)');
+fs.writeFileSync(path, JSON.stringify(doc));
+JS
+bash "$pack" --surface claude-code --install --target "$main" --hatsu-root "$hatsu_root" >/dev/null
+node - "$claude_settings" <<'JS'
+const fs = require('node:fs');
+const allow = JSON.parse(fs.readFileSync(process.argv[2], 'utf8')).permissions.allow;
+if (allow.includes('Bash(gh api *)') || allow.includes('Bash(node */scripts/gh_api_read.mts *)') ||
+    allow.includes("Bash(node '/tmp/retired-plugin/scripts/gh_api_read.mts' *)") ||
+    !allow.includes('Bash(echo user-owned)')) {
+  throw new Error('Claude upgrade did not remove only the unsafe legacy API grant');
+}
+JS
+echo "ok    Claude Code upgrade removes the unsafe gh api wildcard and keeps unrelated user entries"
 
 bash "$pack" --surface codex --install --target "$main" --hatsu-root "$hatsu_root" >/dev/null
 
