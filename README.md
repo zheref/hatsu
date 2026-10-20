@@ -258,7 +258,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `futon` | **composite**: one selector of the backlog to PRs with an actor behind them, then the typed `then` step once every PR is merged | `build` per issue → `getsuga` for `tag`/`tag+fanout`, or the named skill, or prose mapped to skills → `rikugan` | you; `kazaana` |
 | `kazaana` | **composite**: everything this surface's model can build, drawn in and delivered — `futon <repo>@model/<line> then getsuga` with parallel delegates on `direct`'s primary pick, stacks only on overlap, the merge order on the register, the release proposal merged autonomously, then one question about publishing | `direct` on the unlabelled → `futon` → delegates author and publish (`ren` or `great-hiker`, `aka`) while this session runs `mukai` and `en` per effort → `rikugan` → `getsuga` → the publish offer → the wrap-up picker | you |
 | `kamui` | **composite**: one issue or shipped PR written once as the product family's spec-kit canon in its spec repository (G2), then one port issue per sibling you pick and the picked work started here; resumable from a record in the XDG state dir | spec step → `ren → aka → mukai → en` → `nen watch until` merged → sibling picker → `file` per pick → start picker → `build` per pick → `rikugan` | you; `hiraishin` (its spec step) |
-| `hiraishin` | **composite**: one PR merged into its base, ported to one sibling — spec first where the family declares a spec repository, a port brief with one row per concept, every unmapped row ruled once and recorded, the port issue filed on the typed call and built; resumable | precondition read → `kamui` § 3 (spec step) → the port brief → `port-drift` through `bankai-rule` → `file` §§ 3–5 → `build` → `rikugan` | you |
+| `hiraishin` | **composite**: one PR merged into its base, ported to one sibling — spec first where the family declares a spec repository, a port brief with one row per concept, every unmapped row ruled once and recorded, the port issue filed on the typed call and built; resumable | precondition read → `kamui` §§ 2–4 (spec step and wait) → the port brief → `port-drift` through `bankai-rule` → `file` §§ 3–5 → `classify` → `direct` → `build` → `rikugan` | you |
 | `backlog-loop` | **composite**: the backlog to zero in severity order | triage → `build` + `sharingan` (≤ 2 efforts) → `getsuga` at batch boundaries → `backlog-board` per cycle | you |
 | `backlog-synthesis` | a long backlog reconciled into a short one, behind a plan you approve | plan artifact → `file` → sub-issues attached and closed | you |
 | `backlog-state` | the backlog as one gate-oriented table. Read-only | `nen` reads → `nen/colors.yml` status | you |
@@ -293,7 +293,7 @@ flowchart TD
     futon --> build & getsuga & rikugan
     kazaana --> direct & futon & getsuga & mugetsu & cleanup
     kamui --> ren & aka & mukai & en & file & direct & build & rikugan & wrap
-    hiraishin --> kamui & file & build & rikugan & wrap & br([bankai-rule · HA#355])
+    hiraishin --> kamui & file & classify & direct & build & rikugan & wrap & br([bankai-rule · HA#355])
     cleanup --> shizuku([Shizuku])
     bl[backlog-loop] --> build & sharingan & getsuga & bb[backlog-board]
     ren --> breath & rasengan & kokusen & amaterasu & sm[spiritual-message] & jutaisho

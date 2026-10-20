@@ -20,7 +20,7 @@ When it is wrong the estate is misread, quietly: an unregistered repository is r
 | `pending_onboarding` | array | optional | consumers not yet adopted; resolve as consumers | `nen repo resolve`, `nen repo classify` |
 | `product_codes` | object `{CODE: owner/name}` | required for the `<CODE>#<N>` grammar | the short code each repository is called by | `nen repo resolve`, `nen ref format`; `pr-state` § 1, `file` § 1, `backlog-state`, `sharingan`, `tensho`, `jusshin` |
 | `latest` | string | a **top-level** key; `latest (unrecorded)` when absent | the newest release this repository has cut | `nen schema check`; `getsuga` § 3 step 4 bumps it |
-| `families` | array | optional; **never in Hatsu's own file** (§ `families[]`) | the product families this repository belongs to: one spec repository and the sibling members | `hatsu:kamui` §§ 2, 5; tolerated by `nen schema check` (zheref/nen#453) |
+| `families` | array | optional; **never in Hatsu's own file** (§ `families[]`) | the product families this repository belongs to: one spec repository and the sibling members | `hatsu:kamui` §§ 2, 5; `hatsu:hiraishin` § 4; tolerated by `nen schema check` (zheref/nen#453) |
 
 ### `consumers[]`
 
@@ -63,7 +63,7 @@ Optional; **declared only in a product family's own private trees** — each mem
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `name` | string | required, non-empty | the family's name, as the maintainer types it | `hatsu:kamui` |
-| `spec.repo` | string | `owner/name`, required; its code in `product_codes` | the **spec repository**: the product's specification as a `github/spec-kit` set (WORKFLOW § 2 → `port`), one folder per feature | `hatsu:kamui` §§ 2–4 |
+| `spec.repo` | string | `owner/name`, required; its code in `product_codes` | the **spec repository**: the product's specification as a `github/spec-kit` set (WORKFLOW § 2 → `port`), one folder per feature | `hatsu:kamui` §§ 2–4; `hatsu:hiraishin` § 4 |
 | `spec.role` | string | exactly **`spec`** | a fourth role beside `canon`, `consumer`, `unregistered` (ruled for this epic): product specification, not governance canon | `hatsu:kamui`; `nen repo classify` once zheref/nen#453 lands |
 | `spec.gate` | string | exactly **`G2`** | the spec PR's merge gate — the maintainer's, like any product merge, never G4 | `hatsu:kamui` § 3 (the merge prompt, row `merge`) |
 | `members[]` | object[] | one per sibling platform repository | the family's platform repositories | `hatsu:kamui` § 5 (row `port-siblings`) |
@@ -98,6 +98,7 @@ The redacted fixtures [`scripts/fixtures/port-family/`](../../scripts/fixtures/p
 | `hatsu:file` § 1 | the target through `nen repo resolve <token>` |
 | `hatsu:pr-state` § 1 and every `<CODE>#<N>` grammar | `product_codes` |
 | `hatsu:kamui` §§ 2, 5 | `families[]` from each member's and the spec repository's default branch; `product_codes` for the members |
+| `hatsu:hiraishin` § 4 | `families[]` from the target checkout: the spec repository (role `spec`) and whether the source is a member |
 
 ## Example
 

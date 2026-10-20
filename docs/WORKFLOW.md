@@ -1070,10 +1070,13 @@ the target branch).
 | [`black-voice`](../claude/skills/black-voice/) | **post-merge UI validation.** Resolves the merged PR and the acceptance criteria of the issues it closed, raises **Shalnark** once to drive every criterion through ephemeral automated UI tests, and publishes pass / fail / not-testable per criterion | it runs *after* the gate, on work already merged, and guessing which PR was meant wastes the whole run |
 | [`hiraishin`](../claude/skills/hiraishin/) | **a merged PR, ported to one sibling.** Refuses a source not merged into its base, runs `kamui`'s spec step and waits at its **G2** merge where the family declares a spec repository, writes the port brief, asks every unmapped row in one batched `port-drift` call, files the port issue — the typed call is its **G1** — and builds it to the target's merge prompt | it runs *after* the gate, on work already merged, and every port starts on the maintainer's typed call: an automatic port on merge is out of the epic's scope (zheref/hatsu#354) |
 
-**It sits outside the five deliberately.** It crosses no gate, decides nothing and blocks nothing —
+**`black-voice` sits outside the five deliberately.** It crosses no gate, decides nothing and blocks nothing —
 it is an optional look back at a delivery, so nothing schedules it: not `ren`, `mukai`, `en`, `futon`
 or `backlog-loop`, and no agent proposes it. **Never automatic and never from a composite**, and the
-skill refuses mechanically rather than on manners — see its § 1.
+skill refuses mechanically rather than on manners — see its § 1. **`hiraishin` is outside the five for
+the same reason it is typed only**: it runs after the gate, on work already merged; it crosses no gate but
+the G1 its own typed call carries for the port issue, ends at the target's **G2**, and is never started
+from a composite or on a merge (zheref/hatsu#354).
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.

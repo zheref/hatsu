@@ -27,9 +27,10 @@
         "murasaki",
         "getsuga",
         "kagutsuchi",
-        "shibari"
+        "shibari",
+        "hiraishin"
       ],
-      "source": "docs/WORKFLOW.md § 2 (branch); getsuga § 1"
+      "source": "docs/WORKFLOW.md § 2 (branch); getsuga § 1; hiraishin § 2 (the source's base)"
     },
     {
       "id": "workflow.branch.template",
