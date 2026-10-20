@@ -408,7 +408,33 @@ conflict waiting to be resolved by coin toss.
 
 | Key | Default | Read by |
 |---|---|---|
-| `aiReviewers` | `required` | `sharingan` § 6 and `en` §§ 5–6. One value for **every automated reviewer** in `nen/gates.json` → `reviewers[]`, gating both their **use** (whether a round is requested) and their **expectation** (whether readiness waits for it). **`required`** (absent reads the same) — requested within `round_policy`'s caps and expected; **`optional`** — requested within the caps, never waited for; **`off`** — never requested, zero AI-reviewer spend. Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed` goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. The rule is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*; the maintainer's rulings of 2026-10-11 (zheref/hatsu#245). Read at the PR's **base** and the **default branch's tip**, the stricter applying, never the PR head, so a change takes effect once merged; under `optional`/`off` every `reviewers[]` entry must also be in `round_quorum.any_of` with an anchored `login_pattern` at both refs. Hatsu's own value is `optional`. `nen schema check` tolerates the key; `round_policy.maxRounds: 0` is **not** an off switch (nen still owes the round), this key is |
+| `aiReviewers` | `required` | `sharingan` § 6 and `en` §§ 5–6. One value for **every automated reviewer** in `nen/gates.json` → `reviewers[]`, gating both their **use** (whether a round is requested) and their **expectation** (whether readiness waits for it). **`required`** (absent reads the same) — requested within `round_policy`'s caps and expected; **`optional`** — requested within the caps, never waited for; **`off`** — never requested, zero spend on requested reviewers (installed CI lanes still run). Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed` goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. The rule is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*; the maintainer's rulings of 2026-10-11 (zheref/hatsu#245). Read at the PR's **base** and the **default branch's tip**, the stricter applying, never the PR head, so a change takes effect once merged; under `optional`/`off` every `reviewers[]` entry must also be in `round_quorum.any_of` with an anchored `login_pattern` at both refs. Hatsu's own value is `optional`. `nen schema check` tolerates the key; `round_policy.maxRounds: 0` is **not** an off switch (nen still owes the round), this key is. **CI reviewer lanes included** (ruling 2026-10-19, *"One value for every bot"*): a lane is never requested under any value, so for a lane the value gates only the expectation — PROCESS, *Event-driven reviewer lanes* |
+
+### `ci`
+
+```json
+"ci": { "provider": "AK", "pinned": "v1.0.0", "tiers": ["reviewers"],
+        "rulings": { "hidan": "off", "claudeAuth": "claude_code_oauth_token" } }
+```
+
+**Hatsu's own block, written by `kuchiyose` at install** (zheref/hatsu#331, the skill still to land) through
+`scripts/config_values.sh set`, one key per answer — never a hand-typed guess. It records which CI tier a
+consumer installed and the answers it was installed with; **absent means no tier is installed**. It is read
+today by `kuchiyose`; `pinned` will also be read by nen's warmup pin sweep (zheref/nen#440) and
+`tenkai`'s drift row (zheref/hatsu#331) once they land. `nen schema check` tolerates the block (it does not validate it; checked
+against nen `0.22.0` on 2026-10-19).
+
+| Key | Default | What it carries |
+|---|---|---|
+| `provider` | — | the CI provider, by its **product code** (`AK`, the Akatsuki CI repository), resolved through `nen/repos.json` (zheref/hatsu#329's ruling of 2026-10-19), so a consumer's `nen/workflow.json` carries no slug |
+| `pinned` | — | the provider's **release tag** the consumer's caller workflows reference (`uses: …@<tag>`) and the tier catalogue is read at — never a branch; a sweep for a stale pin is zheref/nen#440 |
+| `tiers[]` | `[]` | the installed tiers, by catalogue key — `reviewers` today, the lanes Sasuke, Kakuzu, Konan and Hidan; a later tier appears in the catalogue with no skill change |
+| `rulings{}` | `{}` | the per-consumer answers the catalogue's `rulings[]` lists, each asked at install through the picker: `hidan` (`on` \| `off` — *"Per consumer at install"*) and `claudeAuth` (`claude_code_oauth_token`, starred, \| `anthropic_api_key` — *"Ask at install, OAuth starred"*; the credential **type**, never its value, which lives only in the consumer's Actions secret store); the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-19 — the CI reviewers tier* |
+
+The lanes' `nen/gates.json` entries and the quorum `kuchiyose` writes beside this block are
+[`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *Event-driven reviewer lanes*, with the
+two entry shapes in [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3. Hatsu itself declares no `ci`
+block until it installs the tier through `kuchiyose` like any consumer.
 
 ### `review`
 
@@ -1583,7 +1609,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
+**`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
 parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
 publish offer; cleanup is Shizuku's sweep, required after a completed session, offered beside an optional
 `third-hand` at the wrap-up picker. **`v0.27.0` adds `third-hand`**: a wrap-up harvest after En. **`v0.28.0` states it is a separate
