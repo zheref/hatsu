@@ -1,8 +1,8 @@
 {
-  "$comment": "Redacted fixture for hatsu:kamui (zheref/hatsu#356): one member's own registry declaring its product family. Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the <fixture-*> row). families[] is tolerated, not modelled, by nen 0.22.0 (zheref/nen#453); docs/config/repos.json.md section families[] documents the shape. A real family is never declared in Hatsu's own nen/repos.json.",
+  "$comment": "Redacted fixture for hatsu:kamui (zheref/hatsu#356): one member's own registry (FI) declaring its product family; its own scenario rides on its consumers[] entry, read by nen repo scenario. Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the fixture-* row). families[] is tolerated, not modelled, by nen 0.22.0 (zheref/nen#453); docs/config/repos.json.md section families[] documents the shape. A real family is never declared in Hatsu's own nen/repos.json.",
   "consumers": [
     {
-      "repo": "<owner>/<fixture-ios-repo>",
+      "repo": "fixture-owner/fixture-ios",
       "scenario": "swiftui-tca-uzf-v2",
       "consumes": []
     }
@@ -18,18 +18,18 @@
     }
   ],
   "product_codes": {
-    "FI": "<owner>/<fixture-ios-repo>",
-    "FA": "<owner>/<fixture-android-repo>",
-    "FW": "<owner>/<fixture-web-repo>",
-    "FS": "<owner>/<fixture-spec-repo>",
+    "FI": "fixture-owner/fixture-ios",
+    "FA": "fixture-owner/fixture-android",
+    "FW": "fixture-owner/fixture-web",
+    "FS": "fixture-owner/fixture-spec",
     "HA": "zheref/hatsu",
     "NN": "zheref/nen"
   },
   "families": [
     {
-      "name": "<fixture-family>",
+      "name": "fixture-family",
       "spec": {
-        "repo": "<owner>/<fixture-spec-repo>",
+        "repo": "fixture-owner/fixture-spec",
         "role": "spec",
         "gate": "G2"
       },

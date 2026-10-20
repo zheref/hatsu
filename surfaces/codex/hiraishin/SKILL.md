@@ -41,7 +41,7 @@ nen repo resolve <CODE> --repo <checkout>
 **A `to` with no code** parses at exit `0` (zheref/nen#366): refused, asked. **Bare**: the PR the session
 is discussing, stated back first. Unknown code, `ref parse` exit `2`, empty line: `missing-argument`, the
 verb's line quoted; an `IS` is kamui's (`$kamui <obj>`). **Target**: the checkout's `origin`, or `to
-<CODE>`; equal to the source, refused. Both checkouts: [`kamui`](../kamui/SKILL.md) § 2, item 3. **Either
+<CODE>`; equal to the source, refused. Both checkouts: [`ports.md`](../../../docs/config/ports.md) § *The checkouts file*. **Either
 repository ungoverned** (`nen canon resolve`, no scenario): `handbook-question (CON-37)`.
 
 ## 2. The precondition — merged into the source's base, read
@@ -65,18 +65,18 @@ the state: *open*; *closed, not merged*; *merged into `<base>`* (integration or 
 
 ## 3. The run record
 
-**[`kamui`](../kamui/SKILL.md) § 6's record, its fields and `next` values, never a copy**: `caller`
-`hiraishin`, `runId` `hiraishin-<code>-pr-<n>-to-<target code>-<yyyymmdd>`, lowercase, one `targets[]`
-entry; `next` `setup` (§ 2) · `spec` · `wait` (§ 4) · `start` (§§ 5–8) · `done` · `declined`. **`resume`**
-refuses an id outside `^hiraishin-[a-z]+-pr-[0-9]+-to-[a-z]+-[0-9]{8}$` before any path is built, takes no
-`--dry-run`, re-reads the live objects and continues at `next`; a `kamui` record is refused, naming
+**[`ports.md`](../../../docs/config/ports.md) § *The run record*, cited, never redefined**: `caller`
+`hiraishin`, its `runId` shape, one `targets[]` entry; hiraishin's `next`: `setup` (§ 2) · `spec` · `wait`
+(§ 4) · `start` (§§ 5–8) · `done` · `declined`. **An existing record for the same `runId`** (one source,
+one day, another target) refuses the call, naming it. **`resume`** runs ports.md's checks before any read,
+takes no `--dry-run` and continues at the recomputed step; a `kamui` record is refused, naming
 `$kamui resume <id>`.
 
 ## 4. Spec first, where a spec repository is configured
 
-The target checkout's `nen/repos.json` → `families[]`, role `spec`
-([`repos.json.md`](../../../docs/config/repos.json.md); zheref/nen#453). **A family that does not list
-the source** is refused. **Declared**: kamui § 2 items 2–4 first, by name, each its outcome there; then
+`families[]`, role `spec` ([`repos.json.md`](../../../docs/config/repos.json.md); zheref/nen#453), the
+spec repository's copy the truth. **A family not listing both source and target** is refused.
+**Declared**: [`kamui`](../kamui/SKILL.md) § 2 first, by name, each item its outcome there; then
 kamui § 3 on the shipped PR — its search amends a spec folder, **attaches to an open spec PR** for the
 feature, never a second — and kamui § 4's **G2** wait; `MERGED` → § 5, `next` `start`; `CLOSED` →
 *spec declined*. Two records may share one spec PR. **None**: *spec step: none configured*, not a gap.
