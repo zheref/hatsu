@@ -23,11 +23,14 @@
 #      --trunk also drops every commit already on <ref> from the range: that history is the base's.
 #      --trunk needs git >= 2.38 (`merge-tree --write-tree`); an older git is a wiring error, probed
 #      once before anything is judged by reading `git merge-tree -h`, which writes nothing, never a
-#      silently judged merge (zheref/hatsu#314). The merge itself writes the merged tree into the
-#      object store, so it runs only for a trailer-less merge whose exemption must be proved; where
-#      git cannot do that (exit other than 0 clean or 1 conflicted, e.g. a write the sandbox denies),
-#      that is a probe failure at exit 2 naming the commit, git's exit and its sanitised error —
-#      never a version diagnosis, never a finding, never a pass.
+#      silently judged merge (zheref/hatsu#314). The proof runs only for a trailer-less merge whose
+#      exemption must be proved, and it writes its merged tree into a THROWAWAY object directory
+#      (GIT_OBJECT_DIRECTORY under mktemp, the repository's own objects read as its alternate,
+#      removed on exit), so the repository's object store is never written and needs no grant.
+#      Where git still cannot prove it (exit other than 0 clean or 1 conflicted — unrelated
+#      histories, a shallow or partial clone, a signal — or exit 0 with no tree id), that is a probe
+#      failure at exit 2 naming the commit, git's exit and its sanitised text — never a version
+#      diagnosis, never a finding, never a pass.
 #   2. IDENTITY (the weak signal): author AND committer email are in the allowed set — the
 #      repository's `user.email` plus every --allow-email, case-insensitive. A subagent on the
 #      maintainer's credentials shares that identity, so this catches only an explicit foreign one.
@@ -42,11 +45,19 @@
 # exit 2  a wiring error: no repository, an empty or unresolvable --base, an empty --allow-email,
 #         a --require-trailer or --require-agent value that is not a plain token, no allowed
 #         identity at all, --trunk on a git without `merge-tree --write-tree`, a merge-tree proof
-#         git could not run, or an unknown argument. Nothing was judged: no finding line is printed.
+#         git could not complete, no throwaway object directory, or an unknown argument. Nothing
+#         was judged: no finding line is printed.
 #
 # Hatsu runs it from `$hatsu_root/scripts/` before aka's squash, before every post-review push
-# (aka § 7, murasaki § 6) and at hanten § 4's return. It reads and never writes.
+# (aka § 7, murasaki § 6) and at hanten § 4's return. It never writes the repository: no ref, no
+# index, no working file, no object in its store. Its only write is the merge proof's tree, into a
+# throwaway object directory under mktemp that is removed on exit.
 set -u
+proof_dir=''
+trap '[ -z "$proof_dir" ] || rm -rf "$proof_dir"' EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 repo=''
 base=''
@@ -126,24 +137,41 @@ if [ -n "$trunk_sha" ] && ! git -C "$repo" merge-tree -h 2>&1 | grep -Fq -- '--w
   echo "branch_authorship_check: --trunk needs git >= 2.38 (merge-tree --write-tree); this is $(clean "$(git --version)")" >&2
   exit 2
 fi
-clean_trunk_merge() { # <sha>: a merge of the trunk whose tree is git's own clean merge
-  [ -n "$trunk_sha" ] || return 1
-  parents="$(git -C "$repo" log -1 --format=%P "$1")"; set -- $parents
-  [ $# -ge 2 ] || return 1
-  first="$1"; shift
-  for p in "$@"; do git -C "$repo" merge-base --is-ancestor "$p" "$trunk_sha" || return 1; done
-  [ $# -eq 1 ] || return 1
-  # The proof writes the merged tree into the object store; 1 is a conflict (not clean, so judged),
-  # anything else is git failing to run the proof, which no verdict may be read from.
-  res="$(git -C "$repo" merge-tree --write-tree "$first" "$1" 2>&1)"; rc=$?
-  [ "$rc" -eq 1 ] && return 1
-  if [ "$rc" -ne 0 ]; then
-    echo "branch_authorship_check: the clean trunk-merge proof for $(git -C "$repo" rev-parse --short "$sha") failed: git merge-tree --write-tree exited $rc, which is not a conflict (1) and not a missing git feature (git merge-tree -h lists --write-tree); it needs to write the merged tree into the object store, and git said: $(clean "$(printf '%s\n' "$res" | head -n 3 | tr '\n' ' ')" | cut -c1-300)" >&2
-    echo 'branch_authorship_check: nothing was judged. Do not replace git: grant the access through the harness'"'"'s normal approval path, or run where the repository'"'"'s object store is writable' >&2
-    exit 2
+proof_fail() { # <commit> <detail> <stderr file>: a proof git could not complete — exit 2, nothing judged
+  said="$(head -n 3 "$3" 2>/dev/null | tr '\n' ' ')"
+  echo "branch_authorship_check: the clean trunk-merge proof for $(git -C "$repo" rev-parse --short "$1") did not complete: $2; nothing was judged" >&2
+  [ -z "$said" ] || echo "branch_authorship_check: git said (untrusted): $(clean "$said" | cut -c1-300)" >&2
+  if grep -Eiq 'permission denied|operation not permitted|insufficient permission' "$3" 2>/dev/null; then
+    echo "branch_authorship_check: git's own text reports a permission refusal; the proof writes only into a throwaway object directory under \$TMPDIR and reads the repository, so that is where access is refused. Do not replace git: grant it through the harness's normal approval path" >&2
   fi
-  want="$(printf '%s\n' "$res" | grep -Ex '[0-9a-f]{40}|[0-9a-f]{64}' | head -n 1)"
-  [ -n "$want" ] && [ "$want" = "$(git -C "$repo" rev-parse "${sha}^{tree}")" ]
+  exit 2
+}
+# Call it in the main shell, never inside $(...) or a pipeline: its `exit 2` must end the script.
+clean_trunk_merge() { # <commit>: a merge of the trunk whose tree is git's own clean merge
+  [ -n "$trunk_sha" ] || return 1
+  ctm_commit="$1"
+  ctm_parents="$(git -C "$repo" log -1 --format=%P "$ctm_commit")"; set -- $ctm_parents
+  [ $# -ge 2 ] || return 1
+  ctm_first="$1"; shift
+  for ctm_p in "$@"; do git -C "$repo" merge-base --is-ancestor "$ctm_p" "$trunk_sha" || return 1; done
+  [ $# -eq 1 ] || return 1
+  # The proof's tree goes into a throwaway object directory that reads the repository's objects as
+  # its alternate, so the repository's store is never written (zheref/hatsu#314).
+  if [ -z "$proof_dir" ]; then
+    proof_dir="$(mktemp -d 2>/dev/null)" && mkdir -p "$proof_dir/objects/info" \
+      && git -C "$repo" rev-parse --path-format=absolute --git-path objects > "$proof_dir/objects/info/alternates" \
+      || { echo 'branch_authorship_check: could not set up a throwaway object directory for the merge proof (mktemp -d); nothing was judged' >&2; exit 2; }
+  fi
+  # stdout and stderr apart: the tree id is read from stdout's first line only; stderr is quoted.
+  GIT_OBJECT_DIRECTORY="$proof_dir/objects" git -C "$repo" merge-tree --write-tree "$ctm_first" "$1" \
+    > "$proof_dir/out" 2> "$proof_dir/err"; rc=$?
+  # 1 is a conflict: not clean, so the merge is judged. Anything else but 0 is no verdict.
+  [ "$rc" -eq 1 ] && return 1
+  [ "$rc" -eq 0 ] || proof_fail "$ctm_commit" "git merge-tree --write-tree exited $rc, which is neither clean (0) nor conflicted (1)" "$proof_dir/err"
+  want="$(head -n 1 "$proof_dir/out")"
+  printf '%s\n' "$want" | grep -Eqx '[0-9a-f]{40}|[0-9a-f]{64}' \
+    || proof_fail "$ctm_commit" "git merge-tree --write-tree exited 0 but produced no proof (no tree id on its first line of output)" "$proof_dir/err"
+  [ "$want" = "$(git -C "$repo" rev-parse "${ctm_commit}^{tree}")" ]
 }
 
 # A commit already on the trunk is the base's history, not the run's: a catch-up merge brings it in.

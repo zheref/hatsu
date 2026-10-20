@@ -202,6 +202,98 @@ g "$q" checkout -q main; echo main > "$q/f"; g "$q" commit -q -am main3 -m "Hats
 g "$q" checkout -q effort; echo effort > "$q/f"; g "$q" commit -q -am mine -m "Hatsu-Agent: kurapika"
 g "$q" merge -q --no-edit main >/dev/null 2>&1; echo resolved > "$q/f"; g "$q" add f; g "$q" commit -q --no-edit
 expect '#314 a conflicted trunk merge is judged (exit 1), never a probe failure' 1 "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+
+# --- zheref/hatsu#314 round 1: the proof writes only a throwaway object directory --------------
+clean_merge_repo() { # <path>: base on main, an own commit on effort, main2, then a clean catch-up merge
+  new_repo "$1"; echo b > "$1/f"; g "$1" add f; g "$1" commit -q -m base
+  g "$1" checkout -q -b effort; echo e > "$1/e"; g "$1" add e; g "$1" commit -q -m own -m "Hatsu-Agent: kurapika"
+  g "$1" checkout -q main; echo m > "$1/m"; g "$1" add m; g "$1" commit -q -m main2 -m "Hatsu-Agent: kurapika"
+  g "$1" checkout -q effort; g "$1" merge -q --no-edit main
+}
+objcount() { find "$1/.git/objects" -type f | wc -l | tr -d ' '; }
+p="$tmp/p"; clean_merge_repo "$p"
+before="$(objcount "$p")"
+expect '#314 the clean trunk merge proof passes' 0 "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+if [ "$(objcount "$p")" = "$before" ]; then pass=$((pass + 1)); echo 'ok    #314 the proof wrote no object into the repository store'
+else fails=$((fails + 1)); echo "FAIL  #314 the proof wrote into the repository store: $before -> $(objcount "$p") files"; fi
+chmod -R a-w "$p/.git/objects"
+expect '#314 a read-only object store still proves the clean trunk merge (no grant needed)' 0 "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+chmod -R u+w "$p/.git/objects"
+# An evil merge built with plumbing (merge-ort writes its tree even under --no-commit): git's own
+# clean tree was never written, so the proof makes a tree the store lacks. It lands in the
+# throwaway directory, and the merge is judged (exit 1).
+v="$tmp/v"; new_repo "$v"; echo b > "$v/f"; g "$v" add f; g "$v" commit -q -m base
+g "$v" checkout -q -b effort; echo e > "$v/e"; g "$v" add e; g "$v" commit -q -m own -m "Hatsu-Agent: kurapika"
+g "$v" checkout -q main; echo m > "$v/m"; g "$v" add m; g "$v" commit -q -m main2 -m "Hatsu-Agent: kurapika"
+g "$v" checkout -q effort; vi="$tmp/v.index"
+GIT_INDEX_FILE="$vi" git -C "$v" read-tree effort
+GIT_INDEX_FILE="$vi" git -C "$v" update-index --add --cacheinfo "100644,$(g "$v" rev-parse main:m),m"
+GIT_INDEX_FILE="$vi" git -C "$v" update-index --add --cacheinfo "100644,$(echo evil | g "$v" hash-object -w --stdin),evil"
+vt="$(GIT_INDEX_FILE="$vi" git -C "$v" write-tree)"
+g "$v" reset -q --hard "$(g "$v" commit-tree "$vt" -p effort -p main -m "Merge branch 'main' into effort")"
+chmod -R a-w "$v/.git/objects"
+expect '#314 an evil merge on a read-only store is judged (exit 1), not a probe failure' 1 "$auth" --repo "$v" --base main~1 --require-agent kurapika --trunk main
+chmod -R u+w "$v/.git/objects"
+before="$(objcount "$v")"
+expect '#314 an evil merge is judged under --trunk' 1 "$auth" --repo "$v" --base main~1 --require-agent kurapika --trunk main
+if [ "$(objcount "$v")" = "$before" ]; then pass=$((pass + 1)); echo "ok    #314 proving an evil merge wrote no object into the repository store"
+else fails=$((fails + 1)); echo "FAIL  #314 proving an evil merge wrote into the repository store: $before -> $(objcount "$v") files"; fi
+
+# Phinks' red (RED-314a/b): a proof git refuses on a writable store is not a denied write.
+u="$tmp/unrel"; new_repo "$u"; echo b > "$u/f"; g "$u" add f; g "$u" commit -q -m base
+g "$u" checkout -q --orphan effort; g "$u" rm -rfq .; echo e > "$u/e"; g "$u" add e; g "$u" commit -q -m own -m "Hatsu-Agent: kurapika"
+g "$u" merge -q --no-edit --allow-unrelated-histories main
+expect 'RED-314a an unrelated-history trunk merge is a probe failure, fail-closed' 2 "$auth" --repo "$u" --base effort~1 --require-agent kurapika --trunk main
+expect_not_out 'RED-314a it is not diagnosed as a denied object-store write' 'object store is writable' "$auth" --repo "$u" --base effort~1 --require-agent kurapika --trunk main
+expect_not_out 'RED-314a it advises no grant' 'approval path' "$auth" --repo "$u" --base effort~1 --require-agent kurapika --trunk main
+expect_out "RED-314a it quotes git's own reason, labelled" 'git said (untrusted):' "$auth" --repo "$u" --base effort~1 --require-agent kurapika --trunk main
+s="$tmp/shsrc"; new_repo "$s"; for i in 1 2 3; do echo "$i" > "$s/f$i"; g "$s" add .; g "$s" commit -q -m "c$i"; done
+g "$s" checkout -q -b effort; echo e > "$s/e"; g "$s" add e; g "$s" commit -q -m own -m "Hatsu-Agent: kurapika"
+g "$s" checkout -q main; for i in 4 5; do echo "$i" > "$s/f$i"; g "$s" add .; g "$s" commit -q -m "c$i"; done
+g "$s" checkout -q effort; g "$s" merge -q --no-edit main
+git clone -q --depth 2 --no-single-branch "file://$s" "$tmp/shallow"; g "$tmp/shallow" config user.email me@example.invalid; g "$tmp/shallow" checkout -q effort
+expect_not_out 'RED-314b a shallow clone is not diagnosed as a denied object-store write' 'object store is writable' "$auth" --repo "$tmp/shallow" --base effort~1 --require-agent kurapika --trunk origin/main
+expect_not_out 'RED-314b it advises no grant' 'approval path' "$auth" --repo "$tmp/shallow" --base effort~1 --require-agent kurapika --trunk origin/main
+
+# exit 0 with no tree id is no proof (Chrollo): exit 2, never a missing-trailer finding.
+eg="$tmp/emptygit"; mkdir -p "$eg"
+cat > "$eg/git" <<EOF
+#!/bin/sh
+for a in "\$@"; do [ "\$a" = --write-tree ] && exit 0; done
+exec "$realgit" "\$@"
+EOF
+chmod +x "$eg/git"
+expect '#314 a proof that exits 0 with empty output is exit 2' 2 env PATH="$eg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_out '#314 it says git produced no proof' 'produced no proof' env PATH="$eg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 it is not a missing-trailer finding' 'no Hatsu-Agent trailer' env PATH="$eg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+
+# git's text is untrusted (Nobunaga, BC-9): control bytes shown as ?, three lines at most, 300 chars at most.
+hg="$tmp/hostilegit"; mkdir -p "$hg"; long="$(printf '%0310d' 0 | tr 0 x)"
+cat > "$hg/git" <<EOF
+#!/bin/sh
+for a in "\$@"; do [ "\$a" = --write-tree ] && { printf '\033[31mHEAD$long\r\nSECOND\nTHIRD\nFOURTH-LINE-MARK\n' >&2; exit 128; }; done
+exec "$realgit" "\$@"
+EOF
+chmod +x "$hg/git"
+sg="$tmp/shortgit"; mkdir -p "$sg"
+cat > "$sg/git" <<EOF
+#!/bin/sh
+for a in "\$@"; do [ "\$a" = --write-tree ] && { printf 'one\ntwo\nthird-line-mark\nFOURTH-LINE-MARK\n' >&2; exit 128; }; done
+exec "$realgit" "\$@"
+EOF
+chmod +x "$sg/git"
+esc="$(printf '\033')"; cr="$(printf '\r')"
+expect '#314 a hostile proof error is exit 2' 2 env PATH="$hg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 no raw ESC byte reaches the output' "$esc" env PATH="$hg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 no raw CR byte reaches the output' "$cr" env PATH="$hg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_out '#314 the control bytes print as ?' '?[31mHEAD' env PATH="$hg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 the fourth line is not quoted' 'FOURTH-LINE-MARK' env PATH="$hg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+said_len="$(env PATH="$hg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main 2>&1 | sed -n 's/^branch_authorship_check: git said (untrusted): //p' | awk '{ print length($0) }')"
+if [ -n "$said_len" ] && [ "$said_len" -le 300 ]; then pass=$((pass + 1)); echo "ok    #314 the quoted text is at most 300 chars ($said_len)"
+else fails=$((fails + 1)); echo "FAIL  #314 the quoted text is not bounded to 300 chars: '$said_len'"; fi
+expect_out '#314 short lines: the third line is quoted' 'third-line-mark' env PATH="$sg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 short lines: the fourth line is not' 'FOURTH-LINE-MARK' env PATH="$sg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 a refusal that names no permission advises no grant' 'approval path' env PATH="$sg:$PATH" "$auth" --repo "$p" --base main~1 --require-agent kurapika --trunk main
 n="$tmp/noid"; git init -q -b main "$n"; g "$n" -c user.email=z@z -c user.name=z commit -q --allow-empty -m z
 expect 'no identity at all is a wiring error' 2 env HOME="$tmp" "$auth" --repo "$n" --base main
 
