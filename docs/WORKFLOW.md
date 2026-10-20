@@ -104,7 +104,10 @@ There are two execution/policy configuration files, and the split is not stylist
 > in `--json`. Per the maintainer's ruling of 2026-09-10 — *exact minor is fine, unless there is a
 > breaking change* — `minimum` moves **only** when nen's CHANGELOG carries a real bullet under
 > `### Breaking / consumer notes`, while `pinned_ref` may move on its own to a newer release inside the
-> range. Wherever this document says *"at the pinned nen `0.7.0`"* it names the build the fact was
+> range. Every PR that changes `dependency.pinned_ref` runs `bash scripts/direct_matrix_doc.sh --verify`
+> with that newly pinned nen and quotes the complete `N printed claims agree ... <version>` output line
+> in its PR body; this proves the readable routing matrix still agrees with the verb after a repin.
+> Wherever this document says *"at the pinned nen `0.7.0`"* it names the build the fact was
 > verified against; [`../nen/contract.json`](../nen/contract.json) is the only place either value is
 > written down, and the warm-up
 > ([`ten`](../claude/skills/ten/SKILL.md) § 1) reads the verdict rather than computing
@@ -1248,8 +1251,12 @@ list prices and served ids, the three picks, the effort rule and worked examples
 renders its tables and rule text from the registry, the taxonomy and Hatsu's own `models` block; only its
 opening walkthrough is hand-written. The registry stays canon and the page is never edited by hand. Lane
 `direct-matrix-guard` runs the generator's `--self-test` — the registry's own invariants over every cell among
-them — and fails on a stale page. `--verify` asks `nen direct resolve` about every claim the page prints. Each
-runs only when invoked: CI wiring for data-only edits and a `--verify` step at every nen repin are zheref/hatsu#234.
+them — and fails on a stale page. `--verify` asks `nen direct resolve` about every claim the page prints.
+The trusted `surface-mirror-check.yml` PR check runs `--check` on every PR, including data-only edits,
+and the repin procedure above requires `--verify` with the new nen. Its TypeScript adapter requires
+Node 22.18 or newer (native type stripping); the declared `ubuntu-latest` runner currently supplies
+Node 22. Recheck that floor when GitHub updates the runner image. The focused lane remains useful
+locally on the same Node floor.
 
 ---
 

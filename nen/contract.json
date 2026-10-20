@@ -534,7 +534,7 @@
             "node",
             "scripts/direct_matrix_ci_fixture_check.mts"
           ],
-          "$comment": "Hermetic and offline: the TypeScript fixture first runs the existing renderer --self-test, then verifies the trusted CI adapter on the current page and with hostile workflow-command output at exit 0, 1 and 2. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when the registry, taxonomy, models, page, renderer, CI adapter or fixture changes. The stronger `bash scripts/direct_matrix_doc.sh --verify` asks pinned nen direct resolve about every printed claim and remains required on nen repins. The trusted CI step is admitted by policy in this stage; a following PR installs it."
+          "$comment": "Hermetic and offline: the TypeScript fixture first runs the existing renderer --self-test, then verifies the trusted CI adapter on the current page and with hostile workflow-command output at exit 0, 1 and 2. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when the registry, taxonomy, models, page, renderer, CI adapter or fixture changes; the trusted surface-mirror-check.yml PR job also runs --check on every PR, including data-only edits (zheref/hatsu#234). The stronger `bash scripts/direct_matrix_doc.sh --verify` asks pinned nen direct resolve about every printed claim, so every nen repin PR runs it with the new pin and quotes the agreement line."
         }
       },
       "workflow-policy-guard": {
