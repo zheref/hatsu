@@ -81,8 +81,8 @@ BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 # A pull_request job executes PR fixtures with contents: read and no write
 # credential. Register the staged template before installing the workflow so
 # main's trusted validator knows its exact shape when the second PR lands.
-PENDING_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
-REQUIRED_UNIT_TEST_WORKFLOWS = %w[].freeze
+PENDING_UNIT_TEST_WORKFLOWS = %w[].freeze
+REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
 UNIT_TESTS_WORKFLOW_SHA256 = "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94".freeze
 
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
@@ -2359,6 +2359,15 @@ def self_test(root)
     FileUtils.mkdir_p(File.join(tmp, ".github/workflows"))
     Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each { |path| FileUtils.cp(path, File.join(tmp, ".github/workflows")) }
     validate_repo(tmp, announce: false)
+    REQUIRED_UNIT_TEST_WORKFLOWS.each do |name|
+      installed = File.join(tmp, ".github/workflows", name)
+      original_required = File.read(installed)
+      FileUtils.rm(installed)
+      expect_rejected("required unit test workflow cannot disappear", /missing required workflows/) do
+        validate_repo(tmp, announce: false)
+      end
+      File.write(installed, original_required)
+    end
     # Prove the staged shape is accepted before it is installed, and that a
     # pull-request checkout cannot substitute its own renderer for trusted code.
     matrix_workflow = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
@@ -2394,11 +2403,12 @@ def self_test(root)
       validate_repo(tmp, announce: false)
       FileUtils.rm(installed)
     end
-    PENDING_UNIT_TEST_WORKFLOWS.each do |name|
+    (PENDING_UNIT_TEST_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS).uniq.each do |name|
       staged = File.join(root, "templates", name)
       fail_policy("self-test: staged #{name} is missing") unless File.file?(staged)
       installed = File.join(tmp, ".github/workflows", name)
-      FileUtils.cp(staged, installed)
+      original_installed = File.file?(installed) ? File.read(installed) : nil
+      FileUtils.cp(staged, installed) unless original_installed
       validate_repo(tmp, announce: false)
       original_unit_tests = File.read(installed)
       File.write(installed, original_unit_tests.sub("contents: read", "contents: write"))
@@ -2409,7 +2419,11 @@ def self_test(root)
       expect_rejected("unit-tests runner cannot come from PR", /changed from the staged/) do
         validate_repo(tmp, announce: false)
       end
-      FileUtils.rm(installed)
+      if original_installed
+        File.write(installed, original_installed)
+      else
+        FileUtils.rm(installed)
+      end
     end
 
     plugin = File.join(tmp, ".github/workflows/plugin-bump-check.yml")
