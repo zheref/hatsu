@@ -291,7 +291,7 @@ out of the composite's plan. The plan states, in this order:
    (`lang/`, `job/`) with their confidence, from [`hatsu:classify`](../classify/SKILL.md) § 3 — and
    the **routing** row beside them: [`hatsu:direct`](../direct/SKILL.md)'s three picks for those rows,
    with the `model/` label and the comment body § 7 there will post under the target's
-   `direct.publish` (§ 5).
+   `direct.publish` (§ 5), and classify § 5b's criteria comment under `classify.publish`.
 3. **Duplicates found** — which issue is being amended, with what comment, and any severity bump.
 4. **Fold candidates** — which issue absorbs which requirement, or *none, and why not*.
 5. **Supersede candidates** — which issues close, with the comment text, and any excluded for an
@@ -393,7 +393,8 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
   names; the severity and kind labels; the comments (`nen issue comment`) and closes the plan states;
   `nen label apply --run` for a severity bump the plan named, logged in its ledger; on the issue it
   files, the `lang/`/`job/` keys in the create call and, under the target's `direct.publish` only,
-  direct § 7's one `model/<line>` label and one marker comment.
+  direct § 7's one `model/<line>` label and one marker comment; under `classify.publish` only, classify
+  § 5b's one criteria comment.
 - **Not permitted:** any stage label (and, where the target declares its family, `--forbid-family`
   makes this a refusal), any
   G1 mode label, any merge, any review vote, any close the plan did not name.

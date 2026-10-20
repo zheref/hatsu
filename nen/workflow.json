@@ -342,6 +342,11 @@
       "kagutsuchi": ["product", "process", "library"]
     }
   },
+  "classify": {
+    "publish": "label+comment",
+    "$publish": "one of: label | label+comment",
+    "$comment": "The maintainer's request of 2026-10-20 (docs/ROSTER.md section Rulings of 2026-10-20 -- classify and direct always write back): whether hatsu:classify, beyond the lang/ and job/ labels it applies through nen classify apply, also writes its resolved criteria to the issue. label (the default, and the 2026-10-04 behaviour): the labels and the local ledger only. label+comment: those labels plus one marker-keyed comment per labelled issue carrying the applied keys with their confidence and cited signals, the low keys listed and never applied, and any undecidable axis (classify section 5b). Read by the classify skill standalone, under build and under file once the issue exists; never under ren or for an inline effort, which have no issue to write to. Hatsu's own value is label+comment. nen validates the file and hands no value out."
+  },
   "direct": {
     "publish": "label+comment",
     "$publish": "one of: none | label | label+comment",

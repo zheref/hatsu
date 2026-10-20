@@ -88,7 +88,7 @@ empty (row `classify-undecidable`). Then, every run, `hatsu:direct <CODE>#<N>` w
 `--surface`, `--model` and `--effort`: [`direct`](../direct/SKILL.md) § 5 reports the picks, § 6 owns the
 compare (within the set one line; outside it row `direct-mismatch`, asked once, **never a block**, **B**
 ending the run). The verdict is recorded under `.nen/direct/`, the answer by `nen direct answer`; direct § 7
-publishes under `direct.publish` only.
+publishes under `direct.publish` only, as classify § 5b does under `classify.publish`.
 
 ## 3. Worktree isolation by default
 

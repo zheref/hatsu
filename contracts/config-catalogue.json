@@ -275,6 +275,25 @@
       "source": "docs/WORKFLOW.md § 2 (mukai)"
     },
     {
+      "id": "workflow.classify.publish",
+      "file": "nen/workflow.json",
+      "path": "classify.publish",
+      "domain": "review",
+      "kind": "enum",
+      "default": "label",
+      "options": [
+        "label",
+        "label+comment"
+      ],
+      "describe": "Whether hatsu:classify also writes its resolved criteria to the issue: label applies the lang/ and job/ labels only (through nen classify apply, ledgered); label+comment adds one marker-keyed issue comment per labelled issue with the applied keys, their confidence and cited signals, the low keys and any undecidable axis. Acts standalone, under build, or under file once the issue is created, never under ren or for an inline effort.",
+      "readers": [
+        "classify",
+        "build",
+        "file"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (classify); claude/skills/classify/SKILL.md § 5b"
+    },
+    {
       "id": "workflow.direct.publish",
       "file": "nen/workflow.json",
       "path": "direct.publish",
