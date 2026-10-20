@@ -12,9 +12,11 @@
 # `scripts/surface_mirror_check.sh`, then link correctness in `scripts/surface_link_check.sh`
 # (both in the drift step), then the canon data contracts in `scripts/canon_contracts_check.sh`
 # (its own frozen step after the drift step, zheref/hatsu#223), then the direct
-# matrix page in `scripts/direct_matrix_doc.sh` (zheref/hatsu#234).
-# (zheref/hatsu#72); the recorded transcripts are in `docs/surfaces/evidence/surfaces.md` and
-# `docs/ab/surface-link-check.md`. Both run inside ONE step whose name, "Surface-mirror drift
+# matrix page in `scripts/direct_matrix_doc.sh` (zheref/hatsu#234), then the redaction-guard
+# fixture in `scripts/private_name_check_fixture.sh` (its own frozen step before the finish step,
+# zheref/hatsu#337; offline, invented names, no private list). The drift and link guards
+# (zheref/hatsu#72) have their recorded transcripts in `docs/surfaces/evidence/surfaces.md` and
+# `docs/ab/surface-link-check.md`, and run inside ONE step whose name, "Surface-mirror drift
 # check", is frozen by scripts/workflow_runner_policy_check.rb (renaming it is a two-step landing):
 # the name now covers both guards. Links are judged only on a drift-clean tree; a drift-red run
 # reports nothing about links. Each guard's output is printed between `::stop-commands::` and its
@@ -383,6 +385,25 @@ jobs:
         run: |
           set -euo pipefail
           node .trusted/scripts/direct_matrix_ci_check.mts "$PWD"
+
+      - name: Redaction guard fixture
+        # FROZEN (REDACTION_FIXTURE_FROZEN in scripts/workflow_runner_policy_check.rb,
+        # zheref/hatsu#337): only `name` and these comments are free. It runs the
+        # TRUSTED checkout's scripts/private_name_check_fixture.sh, which exercises the
+        # TRUSTED scripts/private_name_check.sh beside it over invented names, a stub gh
+        # and mktemp scratch trees. No secret, no private list, no GH_TOKEN, no nen, and
+        # never `nen shu test --repo .`, which would run the pull request's own declared
+        # commands in this privileged job. The fixture as the trusted revision carries it
+        # reads only its own directory and mktemp scratch, never the PR checkout it starts
+        # in: a property of the fixture on main, not one this form enforces (SEC-7), so its
+        # output needs no fence. The fixture's exit is the verdict,
+        # propagated by errexit. What it proves is the base branch's guard (main's, for a
+        # PR into main) on the runner's Linux toolchain: a PR that breaks the guard is
+        # judged by the base's copy, so its red lands on the pull requests after it merges.
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash .trusted/scripts/private_name_check_fixture.sh
 
       - name: Finish check on the exact PR head
         if: ${{ always() && steps.head_check.outputs.id != '' }}
