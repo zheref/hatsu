@@ -410,6 +410,16 @@ conflict waiting to be resolved by coin toss.
 |---|---|---|
 | `autoEn` | `false` | `mukai` only. **Only JSON `true` starts `en` immediately** once the PR is open and the landing report rendered; `false`, absent or any other value makes mukai ring the turn bell and ask through the surface's native picker whether to start `hatsu:en on <CODE>#<N>` now (rulings 8 and 9 R4). `nen schema check` tolerates the block (it does not validate it) |
 
+### `classify`
+
+```json
+"classify": { "publish": "label" }
+```
+
+| Key | Default | Read by |
+|---|---|---|
+| `publish` | `label` | `classify` only, standalone, under `build`, and under `file` (and the filers composing it) once the issue is created — never under `ren` or for an inline effort; read at the default branch's tip, never the checkout. **`label`** (absent or any other value reads the same) applies the `lang/` and `job/` labels only; **`label+comment`** adds one marker-keyed criteria comment per classified issue — every decided key with its confidence, status and signal category, unapplied keys marked *not applied* with their reason, never issue text ([`classify`](../claude/skills/classify/) § 5b; `contracts/classify.taxonomy.json` → `publish`). The maintainer's request of 2026-10-20; `nen schema check` tolerates the block |
+
 ### `direct`
 
 ```json
@@ -1306,8 +1316,8 @@ through their prefixes, and their vocabulary — every key, prefix and colour �
 `nen classify install --write` populates it from the taxonomy, the change **lands through its own declaration
 PR at that repository's gate**, and GitHub is synced only after (`nen classify install --sync`,
 which refuses an unlanded declaration — the family ships from the `v0.20.0` pin). The domains are
-derived at run time by the taxonomy's `domains.rule`, never labelled. `classify.publish` (`label`, the default, |
-`label+comment`) decides whether the resolved criteria are also written to the issue as one marker-keyed
+derived at run time by the taxonomy's `domains.rule`, never labelled. `classify.publish` (`label`, the default, or
+`label+comment`, § 2) decides whether the resolved criteria are also written to the issue as one marker-keyed
 comment (classify § 5b; catalogue id `workflow.classify.publish`). Nothing else about classification is
 authored here.
 

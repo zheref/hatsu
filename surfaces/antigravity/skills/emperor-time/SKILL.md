@@ -118,8 +118,8 @@ owns those writes; **(d) umbrella**, three or more → `/backlog-synthesis`, ter
 `0` or `skipped` enters the plan; `1` is replaced by the legend's placeholder and re-run; `2` writes nothing.
 **Labels** are file § 5's table, read from the target's `nen/labels.json`: lane, kind, severity with one
 line, [`classify`](../classify/SKILL.md) § 3's rows (owed, out of `--label`, where the families are not
-declared and synced), and its **routing row** — direct § 7's one `model/<line>` label and marker comment
-under the target's `direct.publish`, after the read-back confirms the number. **Never a stage or G1 mode
+declared and synced), classify § 5b's comment, and its **routing row** — direct § 7's label and comment;
+each under its own publish key, after the read-back confirms the number. **Never a stage or G1 mode
 label** (row `mode-label`, `CON-4`). The plan is file § 4's six parts, a **G5 `DECIDE`** through `nen stop
 --who Kurapika --gate G5 efforts.md` and the picker ([`jutaisho`](../jutaisho/SKILL.md) § 4), the options
 § 5 decided: no candidate → ⭐ **A** file as planned · **C** do not file; a duplicate → ⭐ **B** amend it ·
@@ -156,8 +156,8 @@ challenger's declared home lands with OPEN-4. **The direct registry needs no cha
 ## Authority
 
 - **Permitted:** reading the backlog; raising Hisoka and the challenger at their pins; the usage rows;
-  § 6's confirmed writes — `nen idea file` under **A**, `nen issue comment` under **B**, direct § 7's
-  publish under the target's `direct.publish`; naming the build.
+  § 6's confirmed writes — `nen idea file` under **A**, `nen issue comment` under **B**, classify § 5b's
+  and direct § 7's publish under their keys; naming the build.
 - **Not permitted:** any stage, severity bump or gate label; any G1 mode label; any other `model/` label;
   a fold, a supersede or a close (`file`'s); a commit, push, PR, merge or build; a subagent on the
   frontier tier.

@@ -121,7 +121,8 @@ rulings PR first where any ruling was recorded, then `done`, no issue filed.
   argument shown in the plan (zheref/nen#444). **Body**: the brief, the SEC-15 line, the source PR a
   **cross-reference**, never a Development link.
 - **Labels**: file § 5's, plus `job/parity`, `job/implementation`, the target's `lang/<key>`, kind
-  `enhancement`; `direct`'s `model/<line>` under the target's `direct.publish`.
+  `enhancement`; `direct`'s `model/<line>` under the target's `direct.publish`; the criteria and routing comments
+  under their keys (file § 5).
 
 ```bash
 "$hatsu_root/scripts/gh_token_env.sh" nen issue file --target <owner/name> --repo <target checkout> --title '<escaped title>' --body-file <absolute brief.md> --label <a,b,…> --assignee <user> --private-names-ignore-file <file § 4's ignore file> --json
