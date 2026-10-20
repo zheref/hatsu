@@ -4,12 +4,12 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Fifty-two skills at `v0.108.0`** (fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, fifty-three directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Fifty-three skills at `v0.116.0`** (fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, fifty-four directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
 **three added at `v0.6.0`** that close the release side,
-**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), **[`rikugan`](rikugan/) at `v0.73.0`** (the final state upon delivery, beside `spiritual-message` — the name returns as a skill for the Rikugan page, distinct from its pre-`v0.42.0` meaning), **[`kazaana`](kazaana/) and [`cleanup`](cleanup/) at `v0.108.0`** (the surface-matched backlog composite over `futon`, and Shizuku's required wrap-up sweep — ruling of 2026-10-13), and the **two roster-machinery residents** that
+**[`third-hand`](third-hand/) at `v0.27.0`** (a separate phase after En from `v0.28.0`), **[`great-hiker`](great-hiker/) at `v0.43.0`** (the canon-authoring skill, in its own section), **[`limbo`](limbo/) at `v0.60.0`** (the canon-mirror sync, beside `tenkai`), **[`bakuryuha`](bakuryuha/) at `v0.66.0`** (the plugin-update skill, in its own section), **[`jusshin`](jusshin/) at `v0.68.0`** (a consumer's self-hosted runners, beside `tenkai` and `limbo`), **[`rikugan`](rikugan/) at `v0.73.0`** (the final state upon delivery, beside `spiritual-message` — the name returns as a skill for the Rikugan page, distinct from its pre-`v0.42.0` meaning), **[`kazaana`](kazaana/) and [`cleanup`](cleanup/) at `v0.108.0`** (the surface-matched backlog composite over `futon`, and Shizuku's required wrap-up sweep — ruling of 2026-10-13), **[`emperor-time`](emperor-time/) at `v0.116.0`** (the Specialist's product-intake ceremony: one raw idea to one decision-complete brief, challenged by a raised persona, filed only on confirmation), and the **two roster-machinery residents** that
 arrived with the skeleton ([zheref/hatsu#1][1]) and are counted separately. Nothing here is reserved, and
 nothing here is a placeholder.
 
@@ -26,7 +26,7 @@ below.
 
 ---
 
-## The twenty-one that answer a request
+## The twenty-two that answer a request
 
 Seventeen were ported from the frozen reference implementation **under their existing names** — only the mechanics changed — and
 `black-voice`, `tenkai`, `limbo` and `jusshin` were authored here in the same shape: **every deterministic
@@ -58,6 +58,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`build`](build/) | Takes one issue from wherever it sits to a delivery PR standing ready at its human gate. Never applies a mode label. |
 | [`classify`](classify/) | Classifies an issue, a set of issues, a whole backlog or an inline effort on two axes — the languages the work needs (`lang/<key>`) and the jobs it is around (`job/<key>`, the taxonomy in `contracts/classify.taxonomy.json`) — and applies them as labels after one confirmation, the families declared on a consumer through its own PR first. Runs inside every `file`. |
 | [`direct`](direct/) | Resolves, deterministically, which model should do a piece of work and where — from its `lang/` and `job/` labels through `contracts/direct.registry.json`'s stable aliases and the consumer's `models` tiers — and reports three picks (primary, the cost-aligned best; fallback, on another provider or surface; recommended, the cost-agnostic best) on five axes: model line, tier, latest version and effort dial (read live), surface. `build` and `ren` run it first; a session within the set is one line, outside it asks once and never blocks; publishes a `model/<line>` label or a comment only where `direct.publish` opts in; `backlog [<repo>]` sweeps every open classified issue behind one confirmation. |
+| [`emperor-time`](emperor-time/) | **Product intake — Kurapika's Specialist mode, with its own entry.** `hatsu:emperor-time [<idea>] [<repo>]` directs the session on the idea first (`direct`, within the set or one ask, never a block), interviews the maintainer in picker rounds until the brief is decision-complete (problem, audience, platforms, constraints, observable success criteria, priority, scope boundaries, a Design Direction through **Hisoka** for anything with UI), has the brief challenged adversarially by a raised persona — which one is **OPEN-4**, asked once per run until ruled, never the frontier tier, never Kurapika himself — reconciles it against the backlog with `file` § 3's four searches, and files it through `nen idea file` (read back, `--forbid-family` where the target declares its stage family) only on the one confirmation. Several ideas become several briefs. Then it offers `hatsu:build` and never starts it; never a stage or G1 mode label. |
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one selector's worth of the backlog — a whole severity band, or every open issue carrying one exact label — from open issues to PRs with an actor behind them, then **gates** whatever you typed after `then` — `tag` or `tag+fanout` (handed to [`getsuga`](getsuga/)), any installed skill (run under its own authority), or prose Kurapika maps to skills and verbs before acting: nothing runs until every PR this run authored is merged into `branch.base`. It cuts no tag and runs no fan-out of its own. |
 | [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — the cut point defaulting to `nen/workflow.json` → `branch.base` (plain `main` when none is declared), never required and always overridable by a typed token — preconditions, one folded **release-proposal** PR it merges itself through `nen pr merge --release-unit` (§ 3a; `docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*) or that the maintainer merges at **G4** in a canon repository (**G2** in a consumer one), the **post-merge** tag, the `CON-22` fan-out and the consumers' repin PRs. The release unit it folds in is [`susanoo`](susanoo/)'s; publication is [`mugetsu`](mugetsu/)'s, at **G3**. Prepares a release; never publishes one. |
@@ -97,7 +98,7 @@ every-session `--auto` refresh stays as it is.
 
 ## The way of working
 
-The twenty-one request-answering skills above and `great-hiker` each answer a request. The twenty-seven below are the **loop that carries every request** —
+The twenty-two request-answering skills above and `great-hiker` each answer a request. The twenty-seven below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -167,7 +168,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the fifty-two. They landed with the skeleton because the plugin does not function
+Neither is one of the fifty-three. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
