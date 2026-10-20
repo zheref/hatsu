@@ -36,7 +36,7 @@
   "timeZone": "America/Bogota",
   "title": "Markdown report templates for Antigravity",
   "footerNote": "Object notation from nen ref format; verdicts quoted from nen pr ready.",
-  "turnLabel": "turn 3",
+  "turnLabel": "Turn 3",
   "tallyNeedsYou": 1,
   "tallyBlockers": 1,
   "tallyLanded": 4,
@@ -169,7 +169,7 @@
   "actionsMinutes": "not read",
   "spendNote": "",
   "spendUsage": [],
-  "launch": "nen report render --variant turn --template \"$hatsu_root/templates/spiritual-message.md\" \\\n  --data <doc> --out Reports/current.md --repo . && cat Reports/current.md",
+  "launch": "no launch target declared; skipped",
   "prBody": [],
   "variant": "turn"
 }
