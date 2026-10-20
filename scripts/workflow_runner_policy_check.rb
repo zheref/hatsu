@@ -81,8 +81,8 @@ BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 # A pull_request job executes PR fixtures with contents: read and no write
 # credential. Register the staged template before installing the workflow so
 # main's trusted validator knows its exact shape when the second PR lands.
-PENDING_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
-REQUIRED_UNIT_TEST_WORKFLOWS = %w[].freeze
+PENDING_UNIT_TEST_WORKFLOWS = %w[].freeze
+REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
 UNIT_TESTS_WORKFLOW_SHA256 = "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94".freeze
 
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
@@ -2330,6 +2330,15 @@ def self_test(root)
     FileUtils.mkdir_p(File.join(tmp, ".github/workflows"))
     Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each { |path| FileUtils.cp(path, File.join(tmp, ".github/workflows")) }
     validate_repo(tmp, announce: false)
+    REQUIRED_UNIT_TEST_WORKFLOWS.each do |name|
+      installed = File.join(tmp, ".github/workflows", name)
+      original_required = File.read(installed)
+      FileUtils.rm(installed)
+      expect_rejected("required unit test workflow cannot disappear", /missing required workflows/) do
+        validate_repo(tmp, announce: false)
+      end
+      File.write(installed, original_required)
+    end
     # Prove the staged shape is accepted before it is installed, and that a
     # pull-request checkout cannot substitute its own renderer for trusted code.
     matrix_workflow = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
