@@ -1071,10 +1071,33 @@ DIRECT_MATRIX_FROZEN = {
     node .trusted/scripts/direct_matrix_ci_check.mts "$PWD"
   RUN
 }.freeze
+# The redaction-guard fixture in CI (zheref/hatsu#337, step one of a two-step landing):
+# surface-mirror-check.yml may carry "Redaction guard fixture" right before its finish
+# step, and wherever it does the step is held to this one form. It runs the TRUSTED
+# scripts/private_name_check_fixture.sh, which exercises the TRUSTED
+# scripts/private_name_check.sh beside it over invented names, a stub gh and scratch
+# trees under mktemp: no secret, no private list, no nen, and nothing from the pull
+# request's checkout is read, executed or printed, so the output needs no fence. The
+# fixture's own exit is the verdict, propagated by errexit with nothing mapped, so the
+# body is no shell verdict of its own (BC-11). Step two installs the step and narrows
+# ALLOWED_STEP_SHAPES back to one shape. What it proves is the guard on the trusted
+# revision, on the runner's Linux toolchain: a pull request that breaks the guard is
+# judged by main's copy, so its red lands on the pull requests after it merges.
+REDACTION_FIXTURE_STEP = "Redaction guard fixture"
+REDACTION_FIXTURE_FROZEN = {
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    bash .trusted/scripts/private_name_check_fixture.sh
+  RUN
+}.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml")]
+  # Two shapes while zheref/hatsu#337 lands: the current one, and the current one
+  # with the redaction fixture before the finish step. Step two narrows it to the latter.
+  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
+                                  EXPECTED_STEPS.fetch("surface-mirror-check.yml").dup.insert(-2, REDACTION_FIXTURE_STEP)]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -1888,6 +1911,10 @@ def validate_workflow(path, hatsu: false)
     if File.basename(path) == "surface-mirror-check.yml" && step_names.include?(DIRECT_MATRIX_STEP)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == DIRECT_MATRIX_STEP }, DIRECT_MATRIX_FROZEN,
                           "#{path} #{DIRECT_MATRIX_STEP.inspect}")
+    end
+    if File.basename(path) == "surface-mirror-check.yml" && step_names.include?(REDACTION_FIXTURE_STEP)
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == REDACTION_FIXTURE_STEP }, REDACTION_FIXTURE_FROZEN,
+                          "#{path} #{REDACTION_FIXTURE_STEP.inspect}")
     end
     # The digest step in its one admitted form wherever a workflow carries it,
     # and the bootstrap beside it in the form the digest step selects.
@@ -3334,6 +3361,72 @@ def self_test(root)
       File.write(surface, surface_original)
     end
     validate_repo(tmp, announce: false)
+
+    # The redaction-guard fixture step (zheref/hatsu#337), held on BOTH trees the
+    # two-step landing produces, the canon-contracts block's way: the positive base
+    # is the live file when it carries the step, else the live file with the frozen
+    # step rendered before the finish step; the step-less text is admitted only
+    # while ALLOWED_STEP_SHAPES still lists a shape without it. Moved, doubled, run
+    # from the pull request's checkout, through the pull request's lane
+    # declaration, with a red swallowed, without errexit or with a token in its env:
+    # each is refused on either tree.
+    redaction_finish = "      - name: #{finish_step}\n"
+    redaction_line = "      - name: #{REDACTION_FIXTURE_STEP}\n"
+    redaction_block = render_step(REDACTION_FIXTURE_STEP, REDACTION_FIXTURE_FROZEN)
+    redaction_installed = surface_original.include?(redaction_line)
+    surface_redaction = if redaction_installed
+                          surface_original
+                        else
+                          fixture_sub("surface-mirror-check with the redaction fixture step", surface_original,
+                                      redaction_finish, redaction_block + "\n" + redaction_finish, step: REDACTION_FIXTURE_STEP)
+                        end
+    fail_policy("self-test: the redaction fixture carries no step") unless surface_redaction.include?(redaction_line)
+    redaction_without = if redaction_installed
+                          surface_original.sub(/^#{Regexp.escape(redaction_line)}.*?(?=^#{Regexp.escape(redaction_finish)})/m, "")
+                        else
+                          surface_original
+                        end
+    fail_policy("self-test: could not derive the redaction-less fixture") if redaction_without.include?(redaction_line) || redaction_without == surface_redaction
+    File.write(surface, surface_redaction)
+    validate_repo(tmp, announce: false)
+    File.write(surface, redaction_without)
+    if ALLOWED_STEP_SHAPES.fetch("surface-mirror-check.yml").any? { |shape| !shape.include?(REDACTION_FIXTURE_STEP) }
+      validate_repo(tmp, announce: false)
+    else
+      expect_rejected("surface-mirror-check without the redaction fixture step", /step set or order changed/) { validate_repo(tmp) }
+    end
+    File.write(surface, surface_original)
+    redaction_anchor = "      - name: #{DIRECT_MATRIX_STEP}\n"
+    fail_policy("self-test: the redaction fixture's move anchor is not a surface-mirror-check.yml step") unless redaction_without.include?(redaction_anchor)
+    redaction_moved = redaction_without.sub(redaction_anchor, redaction_block + "\n" + redaction_anchor)
+    File.write(surface, redaction_moved)
+    expect_rejected("redaction fixture step moved before the direct matrix step", /step set or order changed/) { validate_repo(tmp) }
+    File.write(surface, surface_original)
+    redaction_doubled = surface_redaction.sub(redaction_finish, redaction_block + "\n" + redaction_finish)
+    fail_policy("self-test: the doubled redaction fixture did not change the text") if redaction_doubled == surface_redaction
+    File.write(surface, redaction_doubled)
+    expect_rejected("redaction fixture step doubled", /step set or order changed/) { validate_repo(tmp) }
+    File.write(surface, surface_original)
+    redaction_run = "          bash .trusted/scripts/private_name_check_fixture.sh\n"
+    redaction_frozen = /#{Regexp.escape(REDACTION_FIXTURE_STEP)}.*(must be exactly the frozen form|may carry only)/
+    [
+      ["redaction fixture run from the PR checkout", redaction_run, "          bash scripts/private_name_check_fixture.sh\n"],
+      ["redaction fixture through the PR's lane declaration", redaction_run,
+       "          nen shu test --lane redaction-guard --repo .\n"],
+      ["redaction fixture with its red swallowed", redaction_run,
+       "          bash .trusted/scripts/private_name_check_fixture.sh || true\n"],
+      ["redaction fixture without errexit",
+       "          set -euo pipefail\n#{redaction_run}", "          set -uo pipefail\n#{redaction_run}"],
+      # Anchored on the body, not the name line: step two may comment the step
+      # between its name and its keys, and the case must hold on that tree too.
+      ["redaction fixture with GH_TOKEN in its env",
+       "        shell: bash\n        run: |\n          set -euo pipefail\n#{redaction_run}",
+       "        env:\n          GH_TOKEN: ${{ github.token }}\n        shell: bash\n        run: |\n          set -euo pipefail\n#{redaction_run}"]
+    ].each do |label, from, to|
+      hostile.call(label, surface, surface_redaction, from, to, step: REDACTION_FIXTURE_STEP, reason: redaction_frozen)
+      File.write(surface, surface_original)
+    end
+    validate_repo(tmp, announce: false)
     # Hatsu's own repository carries only its own readiness form (Feitan,
     # hanten on #230): with templates/pr-readiness.yml at the root, its own form
     # passes and tenkai's rendering of it is refused.
@@ -3454,6 +3547,36 @@ def self_test(root)
         forged_outside = out.sub(fence, "").lines.any? { |line| line.start_with?("::warning") }
         ok = status.exitstatus == want_status && want_text.all? { |text| out.include?(text) } && fence_ok && !forged_outside
         fail_policy("self-test: #{CANON_CONTRACTS_STEP.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
+      end
+    end
+
+    # --- the redaction fixture step's body, executed (zheref/hatsu#337) -----
+    # The frozen form under bash -eo pipefail, as Actions runs it, with a stand-in
+    # for the trusted fixture: its pass is the step's pass, and its red, its
+    # wiring exit and its absence each fail the step with the fixture's own exit,
+    # never a pass. The real fixture over a broken guard is the lane's to prove
+    # (redaction-guard); it is not run here, where every workflow pays for it.
+    Dir.mktmpdir("hatsu-redaction-fixture") do |tmpdir|
+      dir = File.realpath(tmpdir)
+      fixture_dir = File.join(dir, ".trusted/scripts")
+      FileUtils.mkdir_p(fixture_dir)
+      fixture = File.join(fixture_dir, "private_name_check_fixture.sh")
+      write_fixture = lambda do |exit_code, line|
+        File.write(fixture, "#!/bin/sh\necho '#{line}'\nexit #{exit_code}\n")
+      end
+      [
+        ["a fixture that passes", -> { write_fixture.call(0, "redaction-guard: 3 passed, 0 failed") }, 0,
+         "redaction-guard: 3 passed, 0 failed"],
+        ["a fixture that fails a case", -> { write_fixture.call(1, "FAIL  bare name: exit 0, wanted 1") }, 1,
+         "FAIL  bare name"],
+        ["a fixture that cannot run", -> { write_fixture.call(2, "wiring") }, 2, "wiring"],
+        ["no trusted fixture", -> { FileUtils.rm_f(fixture) }, 127, "private_name_check_fixture.sh"]
+      ].each do |label, arrange, want_status, want_text|
+        arrange.call
+        out, status = Open3.capture2e({ "PATH" => ENV.fetch("PATH") }, "bash", "--noprofile", "--norc", "-eo", "pipefail",
+                                      "-c", REDACTION_FIXTURE_FROZEN.fetch("run"), chdir: dir, unsetenv_others: true)
+        ok = status.exitstatus == want_status && out.include?(want_text)
+        fail_policy("self-test: #{REDACTION_FIXTURE_STEP.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
       end
     end
 
