@@ -152,7 +152,7 @@ Screenshots **re-render the whole *Evidence* table**, checked first
 
 ```bash
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path> &&
-  nen issue comment --target <owner/name> --issue <N> --body-file <path> [--private-names-ignore-file <file § 4's>]
+  nen issue comment --target <owner/name> --issue <N> --body-file <path> --private-names-ignore-file <file § 4's>
 nen pr cascade-main --repo <path> [--trunk main]  # conflicted: merge only
 nen wake fire   --repo-slug <owner/name> --ref <CODE>-PR-#<N> --label <the wake label the target's nen/labels.json declares> --run
 nen wake verify --repo-slug <owner/name> --now <ISO> --author-pattern <regex>

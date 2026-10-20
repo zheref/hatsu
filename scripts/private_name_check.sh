@@ -32,7 +32,7 @@
 # regular file, is skipped and COUNTED in the ok line, never silently.
 #
 # The output NEVER prints a private name: a hit is `<file>:<line>: private repository #<k>`, an index
-# into the list (sorted with LC_ALL=C, after the ignore file); a file path or --label that contains a
+# into the list (sorted with LC_ALL=C, after the named list and the ignore file); a file path or --label that contains a
 # name is printed with the name replaced by `<private #k>`, and one that names it only once normalised
 # (`%7A...`) is withheld whole: `<path withheld: private #k>` or `<label withheld: private #k>`.
 # `--resolve <k>` prints entry k to a
@@ -59,10 +59,24 @@
 # non-symlink file; never a printed path, a --label, stdin, a tree path string or a symlink target, and
 # never another file named templates/x). The same name as prose, in a comment or a tag, or anywhere
 # else, is a hit. The ignore file below is still the maintainer's own tool for a dictionary-word name.
-# Both exemptions are by shape, never by a list of names (a committed allowlist would publish what it
+# The two shape exemptions are never a list of names (a committed allowlist would publish what it
 # exempts); there is no line marker and no path allowlist, so any other exemption cannot be added
-# without changing this script and its fixture. --hatsu-root <path> (the fixture's only) names
+# without changing this script and its fixture. The one committed list is the ruled-public named list
+# below, which publishes only what its ruling already made public. --hatsu-root <path> (the fixture's only) names
 # another root for that check.
+# In tree, the one committed list (the maintainer's ruling of 2026-10-19, docs/ROSTER.md section
+# Rulings of 2026-10-19 -- the Akatsuki CI repository is named; docs/PUBLIC-REDACTION.md section Named
+# private repositories). It is the one exemption by name, data-only, and the fixture pins its entry set,
+# so a line added without a ruling turns the redaction-guard lane red:
+#   - private_name_named.txt beside this script (--named-file <path>, the fixture's only, names
+#     another): private repositories whose NAME the maintainer has ruled public while their code stays
+#     private. Committing it publishes only what the ruling already made public, which is why it may
+#     live here when the ignore file may not. One `owner/name` per line, `#` comments; a bare `name` is
+#     a refusal (exit 2), because a ruling names one repository and a bare name would exempt every
+#     owner's repository of that name. An entry drops exactly that repository from the list, so a
+#     same-named private repository under another owner is still a hit. A missing default file names
+#     nothing (stricter, never looser); a --named-file that cannot be read is exit 2. Both the ok line
+#     and a refusal say how many were named. Only a recorded ruling adds a line.
 # Out of tree:
 #   - --ignore-file <path> (default ${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/redaction-ignore, read
 #     when present): private names the maintainer has ruled too generic to police -- a repository
@@ -77,14 +91,14 @@
 #
 # Usage:
 #   private_name_check.sh [--owner <login>]... [--names-file <path> [--allow-empty]]
-#                         [--target <owner/name>] [--ignore-file <path>] [--label <name>]
+#                         [--target <owner/name>] [--ignore-file <path>] [--named-file <path>] [--label <name>]
 #                         [--verbose] [--tree <root>] [<file>|-]...
-#   private_name_check.sh [--owner <login>]... [--names-file <path>] [--ignore-file <path>] --resolve <k>
+#   private_name_check.sh [--owner <login>]... [--names-file <path>] [--ignore-file <path>] [--named-file <path>] --resolve <k>
 #                         (pass the same list flags as the run that printed k: the index is into that list)
 #
 #   --owner        add this owner's private repositories to the credential's list; repeatable.
 #   --names-file   one `owner/name` or `name` per line (`#` comments, blanks ignored), INSTEAD of gh.
-#   --allow-empty  a list left with no names (an empty names file, or every name ignored) is clean
+#   --allow-empty  a list left with no names (an empty names file, or every name ignored or named) is clean
 #                  (exit 0) instead of a refusal.
 #   --target       the repository the text is going to. A private or internal target is skipped
 #                  (exit 0, `skipped`): naming a private repository inside another private one leaks
@@ -95,8 +109,13 @@
 #
 # Exit codes: 0 clean (or skipped), 1 a private name found, 2 wiring — gh missing, unauthenticated or
 # failing, a list that may be truncated or reads empty, an unreadable file or names file, stdin given
-# twice, a bad argument, perl missing or lacking Encode / Unicode::Normalize, every name ignored, or
+# twice, a bad argument, a named file holding a bare name, perl missing or lacking Encode /
+# Unicode::Normalize, every name ignored or named, or
 # the scan failing in perl. A guard that cannot read the list never reads green.
+#
+# BC-11 (ruling of 2026-10-17 on zheref/hatsu#290 q3): this guard decides with a three-way exit, a
+# verdict, so with the named list it is FROZEN to fixes only pending its port to a nen private-name verb
+# that also checks a tree (zheref/nen#441); the script retires at that repin.
 set -u
 
 LIMIT=1000
@@ -114,6 +133,8 @@ if [ -n "${XDG_CONFIG_HOME:-}" ]; then ignore_file="$XDG_CONFIG_HOME/hatsu/redac
 elif [ -n "${HOME:-}" ]; then ignore_file="$HOME/.config/hatsu/redaction-ignore"
 else ignore_file=""; fi
 ignore_explicit=0
+named_file="$here/private_name_named.txt"
+named_explicit=0
 label="<stdin>"
 tree=""
 verbose=0
@@ -130,6 +151,7 @@ while [ $# -gt 0 ]; do
     --allow-empty) allow_empty=1; shift ;;
     --target) [ $# -ge 2 ] && [ -n "$2" ] || die "--target needs owner/name"; target="$2"; shift 2 ;;
     --ignore-file) [ $# -ge 2 ] && [ -n "$2" ] || die "--ignore-file needs a path"; ignore_file="$2"; ignore_explicit=1; shift 2 ;;
+    --named-file) [ $# -ge 2 ] && [ -n "$2" ] || die "--named-file needs a path"; named_file="$2"; named_explicit=1; shift 2 ;;
     --label) [ $# -ge 2 ] && [ -n "$2" ] || die "--label needs a name"; label="$2"; shift 2 ;;
     --tree) [ $# -ge 2 ] && [ -n "$2" ] || die "--tree needs a root"; tree="$2"; shift 2 ;;
     --verbose) verbose=1; shift ;;
@@ -198,6 +220,21 @@ if ! grep -q . "$list"; then
   [ "$allow_empty" -eq 1 ] || die "the names file holds no names; pass --allow-empty if that is meant (an unset CI secret reads exactly like this)"
 fi
 [ -n "$ignore_file" ] || die "neither XDG_CONFIG_HOME nor HOME is set, so there is no default ignore file; pass --ignore-file <path>"
+# The named list: exact `owner/name` entries the maintainer ruled public (header). Read before the
+# ignore file so each count is its own; a bare name is refused, never widened to every owner.
+n_named=0
+if [ -e "$named_file" ] || [ "$named_explicit" -eq 1 ]; then
+  [ -f "$named_file" ] && [ -r "$named_file" ] || die "cannot read named file '$named_file'"
+  # Ends trimmed, never the inside: `owner/name extra` keeps its space and is refused below.
+  sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$named_file" \
+    | tr '[:upper:]' '[:lower:]' | LC_ALL=C sort -u > "$tmp/named"
+  ! grep -qv '^[^/[:space:]][^/[:space:]]*/[^/[:space:]][^/[:space:]]*$' "$tmp/named" \
+    || die "the named file holds a line that is not owner/name (its value is not echoed): a ruling names one repository, never a bare name under every owner"
+  awk -v nmf="$tmp/named" 'BEGIN { while ((getline l < nmf) > 0) nm[l]=1; close(nmf) }
+    { if (!(tolower($0) in nm)) print }' "$list" > "$tmp/kept"
+  n_named=$(( $(grep -c . "$list") - $(grep -c . "$tmp/kept") ))
+  cp "$tmp/kept" "$list"
+fi
 n_ignored=0
 ignore_read=0
 if [ -e "$ignore_file" ] || [ -L "$ignore_file" ] || [ "$ignore_explicit" -eq 1 ]; then
@@ -220,8 +257,8 @@ if [ "$ignore_read" -eq 1 ]; then
 else
   ignore_desc="no ignore file, so nothing ignored"
 fi
-if [ "$n_names" -eq 0 ] && [ "$n_ignored" -gt 0 ] && [ "$allow_empty" -ne 1 ]; then
-  die "every private name is ignored ($n_ignored by the ignore file), so nothing would be checked; pass --allow-empty if that is meant"
+if [ "$n_names" -eq 0 ] && [ $((n_ignored + n_named)) -gt 0 ] && [ "$allow_empty" -ne 1 ]; then
+  die "every private name is ignored ($n_ignored by the ignore file, $n_named named by ruling), so nothing would be checked; pass --allow-empty if that is meant"
 fi
 n_owners="$(grep '/' "$list" | sed 's#/.*##' | LC_ALL=C sort -u | grep -c .)"
 
@@ -245,7 +282,7 @@ fi
 [ "$n_stdin" -eq 0 ] || cat > "$tmp/stdin" || die "cannot read stdin"
 
 if [ "$n_names" -eq 0 ]; then
-  echo "private_name_check: ok -- no private repositories to look for (--allow-empty; $ignore_desc)"
+  echo "private_name_check: ok -- no private repositories to look for (--allow-empty; $ignore_desc, $n_named named by ruling)"
   exit 0
 fi
 
@@ -414,8 +451,8 @@ skipped="$(cat "$tmp/skipped" 2>/dev/null || echo '?')"
 size=""
 [ "$verbose" -eq 1 ] && size="; checked against $n_names"
 case "$rc" in
-  0) echo "private_name_check: ok -- no private repository named ($source_desc list, $n_owners owner(s)$size; $ignore_desc; $skipped skipped as binary or not a regular file)" ;;
-  1) echo "private_name_check: $(grep -c . "$tmp/out") mention(s) of a private repository ($ignore_desc); nothing may be filed or published until they are redacted" >&2 ;;
+  0) echo "private_name_check: ok -- no private repository named ($source_desc list, $n_owners owner(s)$size; $ignore_desc; $n_named named by ruling; $skipped skipped as binary or not a regular file)" ;;
+  1) echo "private_name_check: $(grep -c . "$tmp/out") mention(s) of a private repository ($ignore_desc; $n_named named by ruling); nothing may be filed or published until they are redacted" >&2 ;;
   4) die "a file could not be read; nothing is clean until every file is" ;;
   *) die "perl failed (exit $rc); the scan did not complete, so nothing is clean" ;;
 esac

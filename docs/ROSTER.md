@@ -36,7 +36,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in a canon repository (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)), which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge prompt that ends every PR into `main` (`en` § 5, § *Rulings of 2026-09-30 — En never merges*). Merges only locally (`git merge --no-ff`) into futon's own integration branch, never a PR. Never votes, never self-reviews. | drives *to* a gate; never crosses G2/G4 |
 | **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR, merges it himself through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*) and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; publishes one, or uploads a build, only on the maintainer's own go — by name, in their own words, or as a step of their own `futon` `then` chain (the advance go, `mugetsu` § 3), which Emitter runs (amended in place by the 2026-09-30 clarification under § *Rulings of 2026-09-26/27/28*, ruling 2(a)). | **G3** stays the human's (`CON-6`) |
-| **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
+| **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. The ceremony is [`hatsu:emperor-time`](../claude/skills/emperor-time/SKILL.md) (`v0.116.0`): direct, interview, challenge (by a raised persona — **OPEN-4**), reconcile, file, offer the build. | **G1** stays the human's (`CON-4`) |
 
 **Kurapika is local-only.** His prior trajectory in the upstream canon — local surface retired into another
 persona's nature, himself earmarked as a CI Product-Owner App — is **superseded** by the ratified migration
@@ -625,7 +625,8 @@ repositories are canon.
   `bootstrap/`. Its workflows run against other repositories, so a merge there changes what they do.
   **The trailer rule is untouched by this**: `Akatsuki-Agent:` is still written only by an Akatsuki
   roster agent, and a Hatsu persona still refuses it. Being canon is about which gate a change to it
-  stands at, not about who may sign a commit.
+  stands at, not about who may sign a commit. **Named since 2026-10-19** as `zheref/akatsuki-ai`, code
+  `AK` (§ *Rulings of 2026-10-19 — the Akatsuki CI repository is named*).
 - **`<scaffold-repo>`** — and this one *sharpens* the rule rather than just extending it. It
   carries **no constitution prose at all**: it is a TypeScript package (`source/`, `scripts/`,
   `package.json`). It is canon because **a scaffolder writes the setup into every repository it
@@ -888,6 +889,7 @@ fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-te
 | **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is **provisioned** for `en`'s long watch, and his definition landed at `v0.5.0` scoped to exactly that. His other proposed engines — `backlog-loop`, `futon`, `senkei` — **and the whole of Killua's row, remain OPEN**: a G4-class ruling by the maintainer, **unmade**. Provisioned is not ratified. |
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
 | **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. **FURTHER RULED 2026-09-19** (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*): **Shalnark** is activated as the optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, definition at `v0.42.0`; **Nobunaga**, never benched, is activated as the general code reviewer in the same ruling. **FURTHER RULED 2026-10-13** (§ *Rulings of 2026-10-13*, 4): **Shizuku** is activated as cleanup, reachable only through `hatsu:cleanup`, definition at `v0.108.0`. The other **three** profiles — Machi, Kortopi, Pakunoda — remain **bench doc only**, unscheduled. |
+| **OPEN-4** | Who challenges a product brief adversarially, under what contract and what cap — [`emperor-time`](../claude/skills/emperor-time/SKILL.md) § 4 | **OPEN since 2026-10-19.** `hanten`'s reviewers are routed by `nen review scopes` over a change set, and a scope claiming no path is refused by `nen schema check` at `0.22.0` (*"names no paths. A scope that claims nothing can never be raised by any diff"*), so a brief's challenger is a declared value, not a scope. Kurapika never reviews his own work (`claude/agents/kurapika.md` § *Hard limits*). Three questions, drafted as the picker on the PR that landed the skill: **(a) who** — ⭐ **A** Nobunaga (adversarial reading, scope completeness) · **B** Phinks (the `QA-2` hypothesis classes, over a brief) · **C** Chrollo; **(b) under what contract** — whether a reviewer persona may be raised outside `hanten` at all, and the return shape (the preamble's § 4 with `path` = the brief's field, or a declared brief-challenge mode in the preamble); **(c) the cap and its ledger** — the skill ships two rounds counted nowhere. The declared home proposed: `nen/workflow.json` → `intake.challenger`, a Hatsu-own key on the `aiReviewers` precedent — read from the **session's** checkout (who challenges is Hatsu policy, not consumer policy), value set `{nobunaga, phinks, chrollo}` with its `$intake` annotation and catalogue row, an out-of-set value re-asking. Until ruled, `nen/decisions.json` row `intake-challenger` asks once per run and the answer binds that run only, **never written**. |
 | **Attribution** | Which trailers a commit may carry, and which of them this plane writes | **RULED 2026-09-09** (§ *Rulings of 2026-09-09*, 2), **REFINED 2026-09-10** (§ *Rulings of 2026-09-10*, *Two provenance trailers*): two provenance trailers, one per plane — this roster writes `Hatsu-Agent`, the CI plane writes `Akatsuki-Agent`, both are admitted by policy, and no other AI attribution trailer is ever recorded. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
@@ -906,6 +908,41 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
 
+
+## Rulings of 2026-10-19 — the Akatsuki CI repository is named
+
+**Context.** zheref/hatsu#329: the CI plane's repository is private, `docs/PUBLIC-REDACTION.md` forbade
+naming it in this public tree, so its code `AK` could not enter `nen/repos.json` and every `AK` issue was
+driven only from inside that checkout. Earlier on 2026-10-19 the maintainer ruled, through the picker,
+that it **stays private** (the answer, verbatim: *"Stays private"*). The `hatsu:build` effort for #329 then
+asked the remaining question through the picker: a git-ignored overlay (`.nen/repos.local.json`) or a
+committed placeholder row. The maintainer typed this answer in the picker's free field instead:
+
+> Since akatsuki-ai is a private repository we don't want to avoid people hearing from, this is the only
+> exception when avoiding to name private repositories. We can name this one despite staying
+> code-private. So, feel free to mention it open.
+
+| Question | The maintainer's answer, verbatim | What it settles |
+|---|---|---|
+| **zheref/hatsu#329** — *how is a private maintained tool registered without naming it in a public tree: a git-ignored overlay, or a committed placeholder row?* | `Since akatsuki-ai is a private repository we don't want to avoid people hearing from, this is the only exception when avoiding to name private repositories. We can name this one despite staying code-private. So, feel free to mention it open.` | **Neither.** `zheref/akatsuki-ai` is the **one named private repository**. Its code stays private and its name is public. `docs/PUBLIC-REDACTION.md` § *Named private repositories* records the exception, and its legend row `<ci-plane-repo>` names it. `nen/repos.json` carries it under `maintained_tools`, with `AK` under `product_codes`. `nen repo resolve AK` answers `via code` from a Hatsu checkout and `nen repo classify --target zheref/akatsuki-ai` answers role canon, gate G4. `scripts/private_name_named.txt` is the one committed exemption list, exact `owner/name` only and a bare name refused. `scripts/private_name_check.sh` reads it by default, with fixture cases in `redaction-guard`. `hatsu:file` § 4 joins it with the maintainer's ignore file into the one file nen's guard takes. `hatsu:build` § 1 resolves a code against the checkout it stands in, as `classify` § 1 does. No overlay and no placeholder row is built, and nen's `repo resolve` needs nothing new. Built by the effort `opus/kurapika/ha-329-akatsuki-named` |
+
+**This run's readings, the maintainer's to correct:** (1) the ruling makes the **name** public, not the
+contents: the repository's files, prose and transcripts stay private; (2) its object ids are written
+`AK-IS-#<n>` / `AK-PR-#<n>`, outside the object-id rule's placeholder prefix; (3) the existing
+`<ci-plane-repo>` placeholders stand and are not rewritten: new text names the repository; (4)
+`kuchiyose` (zheref/hatsu#331) spells `ci.provider` as the code `AK`, resolved through this registry, so a
+consumer's `nen/workflow.json` carries no slug; (5) every other private repository is unchanged, and a
+second named repository needs a ruling of its own. **Owed to nen:** `nen issue` takes one
+`--private-names-ignore-file`, so the named list reaches nen's guard only through `file` § 4's joined
+file. A nen verb reading a repository's committed named list would retire that join (zheref/nen#441).
+**BC-11 debt, recorded as the 2026-10-17 ruling on #290 q3 recorded its three:** the named list adds
+branching to a shell guard with a three-way exit, so `scripts/private_name_check.sh` is frozen to fixes
+only pending its port to a nen private-name verb that also checks a tree (zheref/nen#441), and it retires
+at that repin (Chrollo, hanten on this effort). The alternative is to drop the committed list and put the
+one exact `owner/name` in the maintainer's own ignore file, with the guard unchanged; the cost is no
+record in the tree and no bare-name refusal. That choice is the maintainer's at this PR's G4.
+
+---
 
 ## Rulings of 2026-10-19 — every new filing runs classify and direct
 

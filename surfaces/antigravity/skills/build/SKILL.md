@@ -37,7 +37,7 @@ install --frozen-lockfile`, then `bun src/index.ts`), said in every brief (hatsu
 ```
 /build <product|repo_code>#<issue_number>
 nen parse build --grammar "<code>#<n>" --line "<the raw invocation>"
-nen repo resolve <CODE> --repo <the target repo's own checkout>
+nen repo resolve <CODE> --repo <this checkout>
 ```
 
 Case-insensitive; **a code is resolved, never guessed**; a missing argument or configuration item is

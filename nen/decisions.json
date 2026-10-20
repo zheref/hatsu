@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a G5 by the ruling of 2026-10-17; G5 is the open class of what only the human can do, these rows its recorded kinds), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10 and kazaana section 7), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)). Data-only until a skill cites them: merge, mode-label, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a G5 by the ruling of 2026-10-17; G5 is the open class of what only the human can do, these rows its recorded kinds), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10 and kazaana section 7), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)), mode-label and intake-challenger (emperor-time sections 4 and 6). Data-only until a skill cites them: merge, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -82,7 +82,7 @@
     {
       "id": "host-nen-link",
       "class": "ask-once-per-run",
-      "default": "ask once, and only as the FALLBACK to the session-start binding (the maintainer's ruling of 2026-09-30, A \u00b7 Reconcile, docs/ROSTER.md): scripts/nen_global.sh links the host by default. ten section 2c's offer predicate, verbatim: offered where the login shell reads installed, not reachable; never where it reads reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A. Option A's halves follow scripts/nen_global.sh's state: where it bound the host (current, linked, kept-newer) A is the one PATH line only, never a relink (a kept-newer link is never downgraded; what the login shell resolved instead is named); where it did not (exit 2 unfixed after one rerun, 3, 4, skipped (another session is binding)) A is the link plus the PATH line; on exit 3 the statement names the real file (its path, ls -l, its --version) and that A replaces it, and the star moves to B. The session always resolves the pin -- through the host link (PATH exported in the block) or, where the host was not bound, the session bind. The login shell is the maintainer's own configuration outside the repository; ten section 2c states the exact change (one name-correct symlink on a directory the login shell already searches, pointing at a path the checksum-verified bootstrap printed, and one PATH line only where that shell's PATH lacks it) and takes it on their word only. Until then the report reads installed, not reachable",
+      "default": "ask once, and only as the FALLBACK to the session-start binding (the maintainer's ruling of 2026-09-30, A · Reconcile, docs/ROSTER.md): scripts/nen_global.sh links the host by default. ten section 2c's offer predicate, verbatim: offered where the login shell reads installed, not reachable; never where it reads reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A. Option A's halves follow scripts/nen_global.sh's state: where it bound the host (current, linked, kept-newer) A is the one PATH line only, never a relink (a kept-newer link is never downgraded; what the login shell resolved instead is named); where it did not (exit 2 unfixed after one rerun, 3, 4, skipped (another session is binding)) A is the link plus the PATH line; on exit 3 the statement names the real file (its path, ls -l, its --version) and that A replaces it, and the star moves to B. The session always resolves the pin -- through the host link (PATH exported in the block) or, where the host was not bound, the session bind. The login shell is the maintainer's own configuration outside the repository; ten section 2c states the exact change (one name-correct symlink on a directory the login shell already searches, pointing at a path the checksum-verified bootstrap printed, and one PATH line only where that shell's PATH lacks it) and takes it on their word only. Until then the report reads installed, not reachable",
       "preferred": [
         {
           "key": "A",
@@ -494,6 +494,34 @@
       ],
       "proposeIssue": false,
       "why": "Ruling 2026-10-04: direct advises, never gates -- a mismatch is asked once through the picker with continue starred, and a build is never blocked from starting on a non-recommended model or effort. Ruling 2026-10-05: the compare runs against the whole set of picks, so a session already on the cost-agnostic recommended or the cost-aligned fallback pick is within the registry and is told so in one line."
+    },
+    {
+      "id": "intake-challenger",
+      "class": "ask-once-per-run",
+      "default": "ask once per run, through the surface's picker, which persona challenges a product brief in emperor-time section 4, Nobunaga starred; the answer binds that run only and is NEVER written to nen/workflow.json or the catalogue while docs/ROSTER.md OPEN-4 is open (the ruling lands the key intake.challenger, its catalogue row and Hatsu's own value); a declared or typed value outside the three, kurapika included, re-asks; a persona with no definition is hanten section 3's gap, the brief unchallenged, said",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "Nobunaga",
+          "command": "raise hatsu:nobunaga as emperor-time section 4 states, title emperor-time · nobunaga · <alias>",
+          "consequence": "adversarial reading and scope completeness over the brief, two rounds at most",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "Phinks",
+          "command": "raise hatsu:phinks the same way",
+          "consequence": "the QA-2 hypothesis classes applied to the brief"
+        },
+        {
+          "key": "C",
+          "label": "Chrollo",
+          "command": "raise hatsu:chrollo the same way",
+          "consequence": "architecture and handbook conformance over the brief's stack and scope"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:emperor-time (2026-10-19): a brief has no change set, nen schema check refuses a review scope claiming no path, and Kurapika never reviews his own work, so the challenger is a declared value the maintainer has not ruled (OPEN-4). missing-configuration's default would write the answer through its owner; this row withholds that step until the ruling."
     },
     {
       "id": "wrap-up",
