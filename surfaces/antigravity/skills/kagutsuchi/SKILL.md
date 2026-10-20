@@ -165,8 +165,7 @@ report**, the upload in **01 Accomplished**, and **say nothing about what is nex
 **Only a default is typed** (§ 2 reads every `why`), **exit `1` says nothing about the far end**, **nothing records the authorisation** (no
 per-run log, zheref/nen#91), and **§ 3a, § 3b and the default's choice are Hatsu's** — two scripts, and
 a key nen validates, never acts on; § 3b predates `nen wc worktree`; a per-stack default is nen's to add
-(PROCESS.md § *Residue and owned dependencies*). **`kamui`
-is reserved** — not this skill, not a composite.
+(PROCESS.md § *Residue and owned dependencies*).
 
 ## Authority and hard limits
 
