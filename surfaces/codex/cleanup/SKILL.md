@@ -38,9 +38,9 @@ asks**: composite terminus ([`build`](../build/SKILL.md) 6, [`futon`](../futon/S
 main session** after [`en`](../en/SKILL.md) § 8 returns; **a delegate never asks**. Question, once,
 via surface picker (row `wrap-up`): ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand` in parallel ·
 **C** continue iterating. **Never a merge prompt.** On **C** offer returns at next delivery. **Once per
-sitting**: a `<core>/.nen/cleanup/<slug>.json` (or session worktree fallback where isolation blocks
-writing to core, said; `<core>` from `nen wc worktrees --json`; `<slug>` as § 7) whose `result` is
-`cleaned`, `none-proposed` or `already-clean` is **completed** — cleanup not re-asked, and **B offered
+sitting**: `<core>/.nen/cleanup/<slug>.json` (or session worktree fallback where isolation blocks
+core writes, said; `<core>` from `nen wc worktrees --json`; `<slug>` as § 7) whose `result` is
+`cleaned`, `none-proposed` or `already-clean` is **completed** — cleanup not re-asked, **B offered
 as third-hand alone**; `partial` and `none-picked` offered again. Prior leftover found later is new scope.
 
 ## 3. Raise Shizuku — two passes and consent channel
@@ -53,9 +53,8 @@ in-session (PROCESS § *Surfaces and pickers*).
 **Consent channel (candidate b):** Shizuku declares `tools: Read, Grep, Glob, Bash` (no question
 tool); subagents receive no user turns, so a relayed parent prompt is never live consent. Under candidate
 (b) across **Claude Code**, **Codex**, **Cursor**, **Antigravity**:
-1. **Pass 1 (inventory).** Shizuku reads § 4, classifies § 5, writes initial marker
-   `<core>/.nen/cleanup/<slug>.json` (or worktree fallback) with `plan[]`, empty `picked[]`, `done[]`,
-   `result: "pending"`, returning plan. **Removes nothing.**
+1. **Pass 1 (inventory).** Shizuku reads § 4, classifies § 5, writes initial marker (§ 7) with
+   `plan[]`, `picked: []`, `done: []`, `result: "pending"`, returning plan. **Removes nothing.**
 2. **Picker.** Main session presents § 6's picker via surface native tool (`AskUserQuestion` on Claude
    Code, `request_user_input` on Codex, `AskQuestion` on Cursor, `ask_question` on Antigravity),
    recording `picked[]` and raw `pickerAnswer` in marker.
@@ -75,7 +74,7 @@ read from `<core>/.nen/cleanup/` and session worktrees too.
 | **worktrees** | `nen wc worktrees --json`; `git worktree list --porcelain`; `nen wc classify --repo <wt>` | under `<core>/.nen/worktrees/<surface>/` with PR merged/closed; detached at commit reachable from `origin/<branch.base>` (`git merge-base --is-ancestor HEAD origin/<branch.base>`) with release PR/tag merged (detached HEADs classify on-branch-clean, checked explicitly); `hanten-<persona>`, `prove-<n>`; prunable |
 | **branches** | `git branch --merged origin/<branch.base>` (trunk excluded); `gh pr list --head <branch> --state all --json number,state,mergedAt,headRefOid` | local branch merged, or PR closed; tracking ref origin no longer has |
 | **remote heads** | `git ls-remote --heads origin` against merged PRs' `headRefOid` | head branch of merged PR origin still carries |
-| **transient reports** | `<reports.dir>/current.html`, `<reports.dir>/captures/` | `reports.retain: final-only` — `current.html` is transient; merged effort's captures proposed |
+| **transient reports** | `<reports.dir>/current.html`, `<reports.dir>/captures/` | `reports.retain: final-only` — `current.html` transient; merged effort's captures proposed |
 | **caches** | `~/.cache/nen/zheref_nen/<ref>/` against `pinned_ref` and `readlink -f` of host links (`~/.local/bin/nen`, `command -v nen`, surface links); `nen surface status`; build caches in dead worktrees | binary below pin no link resolves to; stale served copy (refreshed by `ten`); `DerivedData`, `.gradle`, `node_modules` |
 | **billed** | `nen runner inventory --json`; `gh release list`; `gh api repos/<o>/<n>/actions/caches` and `…/artifacts` | online runner host, draft release, Actions cache or artifact — named with size and age, **plan only** |
 | **the surface's own** | surface worktree tool (`docs/surfaces/<surface>.md`) | its stale worktrees, named for surface's own cleanup |
@@ -91,14 +90,17 @@ outside checkout and caches.
 **Deterministic** (mechanical fact decides): `git worktree prune`; for Hatsu worktree with merged PR
 and **`on-branch-clean`** tree, in order: `git -C <wt> push origin --delete -- <branch>` **only when
 `git ls-remote` returns PR's `headRefOid`** (guard judges `<wt>`'s branch, not trunk), then
-`git worktree remove -- <wt>`, then `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -D -- '<branch>'`
-(verifies ancestry against fetched `origin/<branch.base>`, avoiding stale local base failures; never
-mutates core); clean `hanten-<persona>`/`prove-<n>` when `.nen/hanten/<key>.cycle.json` records persona
-`ran` in sitting; `git remote prune origin`; `rm -- <reports.dir>/current.html`.
+`git worktree remove -- <wt>`, then `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'`
+(checks ancestry against fetched `origin/<branch.base>` before non-force delete; a branch passing
+ancestry that `git branch -d` refuses against stale local trunk is classified explicitly — deterministic
+once core trunk is fast-forwarded, or proposed with that reason — **never retried with `-D`**); clean
+`hanten-<persona>`/`prove-<n>` when `.nen/hanten/<key>.cycle.json` records persona `ran` in sitting;
+`git remote prune origin`; `rm -- <reports.dir>/current.html`.
 
 **Proposed** (judgement; names what it destroys and why uncertain): worktree with uncommitted work (paths
 listed); worktree, branch, remote head whose PR is **closed unmerged** or has **no PR**; merged remote
-head whose SHA != PR `headRefOid`; merged local branch with no worktree (`git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -D -- '<branch>'`; remote head named where sitting stands on trunk);
+head whose SHA != PR `headRefOid`; merged local branch with no worktree, or one passing `origin/<branch.base>`
+ancestry refused by `git branch -d` on stale local trunk (never retried with `-D`; remote head named on trunk);
 merged effort `captures/`; build cache in kept worktree; prior session `hanten-*`/`prove-*`; cache
 binary below pin no host link resolves to — `rm -r -- "<literal-abs-path>"`, `<ref>` matching
 `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, realpath != host link `readlink -f` (literal absolute path per
@@ -110,8 +112,8 @@ name § 4's validation refused.
 
 | object · PR state | merged | closed unmerged | open | no PR |
 |---|---|---|---|---|
-| worktree, clean | deterministic | proposed | named | proposed |
-| worktree, dirty | proposed | proposed | named | proposed |
+| worktree, clean (unlocked) | deterministic | proposed | named | proposed |
+| worktree, dirty (unlocked) | proposed | proposed | named | proposed |
 | local branch, no worktree | proposed | proposed | named | proposed |
 | remote head | deterministic (SHA = `headRefOid`), else proposed | proposed | named | proposed |
 
@@ -124,19 +126,17 @@ One question via surface native picker (third-hand § 6; row `cleanup-plan`): �
 deterministic row · **B** deterministic rows **and** proposed rows ticked (batches of at most 3;
 Codex CLI: 1 per row) · **C** `none` (keep everything; wins over every other tick). Named rows listed,
 never an option. **Nothing removed before answer.** Under candidate (b), main session records
-`picked[]` and raw `pickerAnswer` verbatim in marker. In pass 2, main session executes picked rows
-in § 5's order — each remote delete from worktree before worktree goes — each followed by read-back
-(`git worktree list`, `git branch`, `git ls-remote --heads origin`, `du -sk`), one line per row with
-bytes freed, then total. Failing row reported with stderr and **never retried with wider flag**;
-unmerged branch never forced. Shizuku returns to verify read-backs against marker and close it.
+`picked[]` and raw `pickerAnswer` in marker, then executes picked rows in § 5's order — remote delete
+from worktree before worktree goes — each followed by read-back (`git worktree list`, `git branch`,
+`git ls-remote --heads origin`, `du -sk`), bytes freed per row and total. Failing row reported with
+stderr, **never retried with wider flag (`-D`)**. Shizuku returns to verify read-backs and close marker.
 
 ## 7. The marker, and the report
 
 Write `<core>/.nen/cleanup/<slug>.json` (`<core>` from `nen wc worktrees --json`'s `core`, or session
-worktree fallback where isolation blocks writing to core, said), contract `hatsu.cleanup.plan/v0.1`:
+worktree fallback where isolation blocks core writes, said), contract `hatsu.cleanup.plan/v0.1`:
 `at`, `scope`, `plan[]`, `picked[]`, `pickerAnswer`, `done[]` with bytes, `freedBytes`, `result` —
-`cleaned` · `partial` · `none-proposed` · `none-picked` · `already-clean` (§ 2). `<slug>` computed for
-every § 1 scope:
+`cleaned` · `partial` · `none-proposed` · `none-picked` · `already-clean` (§ 2). `<slug>` per § 1 scope:
 - this sitting / `for <CODE>#<N>` → `<CODE>-<N>` from `nen ref format` (or branch slug when no PR)
 - `for <branch>` → branch slug (`/` replaced with `-`)
 - `for all` → `all`
@@ -147,7 +147,7 @@ Say result, total freed, kept rows and why, and sitting closed (under **B**, thi
 ## Residue
 
 Every removal, `du -sk`, `readlink -f` reads and name validation have no nen verb — **owed to nen**
-(`nen wc prune`, to file; zheref/nen#409); raise and marker are Hatsu's, as third-hand's.
+(`nen wc prune`, zheref/nen#409); raise and marker are Hatsu's, as third-hand's.
 
 ## Authority
 
