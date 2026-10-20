@@ -183,6 +183,11 @@ first three.
 - a pure formatting or whitespace divergence with no behavioural difference;
 - an identical change made on both sides.
 
+For a Hatsu version collision, after the next version has been decided, run
+`bash scripts/plugin_version_refs.sh --from <old> --to <new>` to list every tracked reference.
+Its `--write` rewrites only the declared unambiguous lines; read the others, update the PR body by
+hand, then regenerate the mirrors with the command above. The helper never chooses the version.
+
 **Semantic** — anything where a *person* has to prefer one intent to another. **`UD`/`DU` is always
 semantic**: "deleted" and "still being edited" are two beliefs about whether a thing exists, and no
 merge algorithm holds the belief. So is a `UU` where both sides changed the same behaviour, and an

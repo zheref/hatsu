@@ -219,6 +219,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/surface_mirror_regenerate.sh (zheref/hatsu#218), the one command great-hiker section 4 runs to regenerate surfaces/ at the manifest's stamp. Its fixture is hermetic and offline: a stub nen logs every call and proves one generate per surface in order, each carrying exactly the inputs scripts/surface_mirror_check.sh hands the check for that surface (so regeneration and the drift guard cannot disagree), a dry run spawning nothing, a refusal stopping at its surface with nen's code, and the wiring exits (no nen 3; a wrong root, an unstamped manifest, no surface verb 2)."
       },
+      "plugin-version-refs-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/plugin_version_refs.ts (zheref/hatsu#158). Its scratch Git fixture proves list-only mode, conservative writes of manifests, a CHANGELOG heading and new-in prose, and unchanged ambiguous references and generated mirrors."
+      },
       "pr-body-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -613,6 +618,17 @@
             "scripts/surface_mirror_regenerate_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the mirror regenerator. Run it as `nen shu test --lane mirror-regenerate-guard --repo <hatsu>` when scripts/surface_mirror_regenerate.sh, scripts/surface_mirror_check.sh or the fixture changes."
+        }
+      },
+      "plugin-version-refs-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
+            "scripts/plugin_version_refs_fixture.sh"
+          ],
+          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts or its fixture changes."
         }
       },
       "pr-body-guard": {
