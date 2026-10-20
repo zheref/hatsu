@@ -198,6 +198,11 @@ rm -f "$work/home/.config/hatsu/redaction-ignore"
 expect 1 "ignore file never hides another name" --names-file "$names" --ignore-file "$work/ignore" "$work/bare.md"
 has '1 ignored' "ignored count reported on a refusal"
 expect 2 "explicit ignore file missing" --names-file "$names" --ignore-file "$work/nope" "$work/bare.md"
+expect 1 "no default ignore file: still a refusal" --names-file "$names" "$work/bare.md"
+has 'no ignore file, so nothing ignored' "a refusal says no ignore file was read, never 0 ignored"
+hasnt '0 ignored by' "an absent ignore file is not reported as one that ignored 0"
+expect 0 "no default ignore file: still clean" --names-file "$names" --marker-source "$msrc" "$work/marker.md"
+has 'no ignore file, so nothing ignored' "the ok line says no ignore file was read"
 
 # --- --tree ------------------------------------------------------------------------------------
 repo="$work/repo"
