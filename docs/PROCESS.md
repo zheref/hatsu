@@ -563,7 +563,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`cleanup`.** `git worktree remove|prune`, `git branch -d`, `git push origin --delete <branch>`, `git remote
   prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
   **owed to nen** as `nen wc prune` (to file); the raise and the `.nen/cleanup/<slug>.json` marker are Hatsu's,
-  as third-hand's are.
+  as third-hand's are. The worktree-path admission is `scripts/cleanup_path_admit.ts`, interim until
+  `nen wc prune` owns it.
 - **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
   on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
   `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until

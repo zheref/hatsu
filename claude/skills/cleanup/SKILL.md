@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Clean up what a finished effort left behind, locally and remotely, as Shizuku — worktrees, branches, remote heads, transient reports, caches, billed resources — and prior sessions' leftovers. She inventories first and returns a plan in three classes (deterministic: a fact decides; proposed: a judgement naming what it destroys; named: plan only), then one picker; only the picked rows run, bytes freed read back. Use when the maintainer invokes hatsu:cleanup [for <scope>], or picks it at the wrap-up every composite offers once a session delivery lands (required after a completed session; third-hand optional beside it). Never destroys before the pick, never a tree it has not inspected, never a .nen/ ledger, never the trunk or a branch with an open PR; files and merges nothing.
+description: Clean up what a finished effort left behind, locally and remotely, as Shizuku — worktrees, branches, remote heads, transient reports, caches, billed resources — and prior sessions' leftovers. She inventories first and returns a plan in three classes (deterministic, proposed, named), then one picker; only the picked rows run, bytes freed read back. Use when the maintainer invokes hatsu:cleanup [for <scope>], or picks it at the wrap-up every composite offers once a session delivery lands (required after a completed session). Never destroys before the pick, never a tree it has not inspected, never core's .nen/ ledgers, never the trunk or a branch with an open PR; files and merges nothing.
 ---
 
 **Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
@@ -53,8 +53,8 @@ leftover found later is a new scope.
 
 One delegate, **`cleanup · shizuku · <model alias>`**, on her own pin (**do not pass `model`**,
 `hanten` § 4), never the frontier tier, raised as third-hand § 3's table raises
-Netero — **isolation omitted / `inherit`**: she needs core's `.nen/`, the worktree list and this
-sitting's ledgers. No delegation: both passes in-session, said (PROCESS § *Surfaces and pickers*).
+Netero — **isolation omitted / `inherit`**: she needs core's `.nen/` and the worktree list.
+No delegation: both passes in-session, said (PROCESS § *Surfaces and pickers*).
 
 1. **Inventory (pass 1).** She reads § 4, classifies § 5, returns the plan. **She removes nothing.**
 2. **Sweep (pass 2).** After § 6's answer she runs **only the picked rows**, each read back.
@@ -65,8 +65,10 @@ sitting's ledgers. No delegation: both passes in-session, said (PROCESS § *Surf
 core is `nen wc worktrees --repo <path> --json`'s `core`. **Every name taken from the repository is
 validated before it enters any command**, always after `--`, single-quoted: a branch or remote head
 passes `git check-ref-format --branch <name>` and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never
-a ref, admitted only by `$hatsu_root/scripts/cleanup_path_admit.sh` (facts, never a class; its `.ts`
-header is the rule). A failing name is a **named** row, escaped, and no command runs on it.
+a ref: only one the worktrees row selects goes to `$hatsu_root/scripts/cleanup_path_admit.sh` (facts,
+never a class; its `.ts` header is the rule; evidence `docs/ab/cleanup.md`), never a prunable entry
+(§ 5's prune row) nor the surface's own. An exit but `0` admits nothing; a failing name is a **named**
+row, escaped, and no command runs on it.
 
 | Class | Read | Leftover when |
 |---|---|---|
@@ -78,27 +80,25 @@ header is the rule). A failing name is a **named** row, escaped, and no command 
 | **billed** | `nen runner inventory --json`; `gh release list`; `gh api repos/<o>/<n>/actions/caches` and `…/artifacts` | an online runner host, a draft release, an Actions cache or artifact — named with size and age, **plan only** |
 | **the surface's own** | the surface's worktree tool, as `docs/surfaces/<surface>.md` names it | its stale worktrees, named for the surface's own cleanup |
 
-Sizes are `du -sk <path>`, read before the plan. **The `.nen/` ledgers — `phase`, `usage`, `direct`,
-`hanten`, `third-hand`, `cleanup`, `last-stop.json` — are the record and never a leftover.** A prior
-session's leftover is any row whose effort is not this sitting's: classified the same way, grouped under
-*prior sessions*, **ownership never assumed** — its dirt, its detached checkouts and its caches are
+Sizes are `du -sk <path>`, read before the plan. **Core's `.nen/` ledgers — `phase`, `usage`, `direct`,
+`hanten`, `third-hand`, `cleanup`, `last-stop.json` — are the record and never a leftover**; a
+worktree's own `.nen/` goes with it (ROSTER § *Rulings of 2026-10-20*). A prior session's leftover is any row whose effort is not this sitting's: classified the same way, grouped under *prior sessions*, **ownership never assumed** — its dirt, its detached checkouts and its caches are
 proposed, never deterministic. Sanitize: no credential, no path outside the checkout and the caches.
 
 ## 5. The plan — three classes, every row complete
 
-**§ 5 alone classes**: **clean** is `nen wc classify`'s `on-branch-clean` plus the admission's `tree clean`
-and `locked no`; a worktree no row matches is **proposed**, owner unknown.
+**§ 5 alone classes**: **clean** is `nen wc classify`'s `on-branch-clean` plus the admission's `tree clean`;
+a worktree no row matches is **proposed**, owner unknown.
 
 **Deterministic** (a mechanical fact decides): `git worktree prune` (takes no path); for a `kind effort`
 worktree whose PR is **merged** and whose tree is clean, in this order — `git -C <wt> push origin
---delete -- <branch>` **only when `git ls-remote` returns the PR's `headRefOid`** (the base-branch guard
-judges `<wt>`'s branch and refuses a trunk refspec), then the admission's printed `worktree remove`, word
-for word, then `git branch -d -- <branch>`; a `kind reviewer` checkout by the ledger alone: `tree clean`
-**and** `.nen/hanten/<key>.cycle.json` records that persona `ran` in this sitting; `git remote prune
+--delete -- <branch>` **only when `git ls-remote` returns the PR's `headRefOid`**, then
+the admission's printed `worktree remove`, word for word, then `git branch -d -- <branch>`; a `kind reviewer` checkout by the ledger alone: `tree clean`,
+`locked no` **and** `.nen/hanten/<key>.cycle.json` records that persona `ran` in this sitting; `git remote prune
 origin`; `rm -- <reports.dir>/current.html`.
 
 **Proposed** (a judgement; each row names what it destroys and why it is uncertain): a worktree with
-uncommitted work (every path listed — never discarded unseen); a worktree, branch or remote head whose
+uncommitted work (every path listed); a worktree, branch or remote head whose
 PR is **closed unmerged** or that has **no PR**; a merged remote head whose SHA is not the PR's
 `headRefOid`; a merged local branch with no worktree (its remote head **named** where the sitting's checkout
 stands on the trunk: the guard refuses the push there);
@@ -107,10 +107,11 @@ cache binary below the pin that no host link resolves to — `rm -r -- "$HOME/.c
 `<ref>` matching `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, its
 realpath equal to no link's `readlink -f`; proposed because another repository may pin it.
 
-**Named** (plan only — never an option, never run): billed resources (the maintainer acts where the
-plan names them); the surface's own worktrees; a stale served copy (refreshed by `ten`); a **locked**
-worktree; a worktree whose PR is **open**; a name § 4's validation refused (kagutsuchi's fixed worktree
-among them).
+**Named** (plan only — never an option, never run): billed resources (the maintainer's own act);
+the surface's own worktrees; a stale served copy.
+
+**Named facts win**: `locked yes`, an open PR, `tree unreadable` or a refused name is named whatever else
+holds; then the reviewer ledger rule; then the table.
 
 | object · PR state | merged | closed unmerged | open | no PR |
 |---|---|---|---|---|
@@ -127,8 +128,8 @@ Each row: `id` · class · object · the exact command (none on a named row) · 
 One question through the surface's own picker (third-hand § 6's table; row `cleanup-plan`): ⭐ **A**
 every deterministic row · **B** the deterministic rows **and** the proposed rows the maintainer ticks —
 asked next, in batches of at most three per question where the surface caps options (Codex's CLI: one
-question per row) · **C** `none` — keep everything, which wins over every other tick. Named rows are
-listed and never an option. **Nothing is removed before the answer.** Pass 2 runs the picked rows in
+question per row) · **C** `none` — keep everything, which wins over every other tick.
+**Nothing is removed before the answer.** Pass 2 runs the picked rows in
 § 5's order — each remote delete from its worktree before that worktree goes — each followed by its
 read-back (`git worktree list`, `git branch`, `git ls-remote --heads origin`, `du -sk`), one line per
 row with the bytes freed, then the total. A failing row is reported with its stderr and **never retried
@@ -153,7 +154,7 @@ nen** (`nen wc prune`, to file); the raise and the marker are Hatsu's, as third-
   `.nen/cleanup/` marker; naming a surface's or a host's own act for the maintainer.
 - **Not permitted:** any other GitHub write — no issue or PR closed, no label, no release, cache or
   artifact deleted; any `--force`, `reset --hard` or `clean -f`; removing core, the trunk, a locked
-  worktree or a branch with an open PR; touching a `.nen/` ledger, a credential store, the shell
+  worktree or a branch with an open PR; touching core's `.nen/` ledgers, a credential store, the shell
   profile, the plugin install or a linked `nen`.
 
 ## Hard limits
