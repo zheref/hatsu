@@ -358,10 +358,13 @@ never requested**: never in `base_reviewers`, and `shibari` and `sharingan` neve
 request-reviews` for a lane; a nen field declaring that is zheref/nen#440. **A push re-runs the lane**
 (`cancel-in-progress`), and its check, pending at the new head, holds `checks-green` like any running check
 until it concludes: that is the current-head wait — never a request, and never a stall by itself. A lane
-check still waiting for a runner (nen's `meta.waitingChecks`: `QUEUED`, `WAITING`, `PENDING`, `REQUESTED`)
-longer than `round_policy.stallMinutes`, timed from `en`'s own first observation of it waiting at this head
-(nen exposes no queue age), is a named impossible condition for the watch, reported not-ready with the
-check's state quoted — a Hatsu reading; nen enforces no lane stall. nen enforces no review
+check `nen pr ready <ref> --json` lists in `meta.runnerAvailability[]` (still waiting for a runner at the
+judged head) for longer than `round_policy.stallMinutes` — its entry's `queuedMinutes`, or, where nen
+returns that null, `en`'s own first observation of it waiting at this head — is a named impossible
+condition for the watch, reported not-ready with the check's state quoted; a lane check `IN_PROGRESS` is
+bounded by the lane's own job timeout, and one that concludes `CANCELLED` or `FAILURE` at head is a fault
+in the lane, reported the same way, never a code fix to author. Both are a Hatsu reading: nen's runner
+diagnosis never moves the verdict. nen enforces no review
 **at** the new head: a lane that concludes green there without reviewing still reads as having its earlier
 round; a per-reviewer strict reading is owed to zheref/nen#440. **A lane whose check concluded green with no
 review is unavailable** (unprovisioned: the lane exits green without running, `AK`'s reviewer-lane issue):
