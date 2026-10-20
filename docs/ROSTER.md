@@ -625,7 +625,8 @@ repositories are canon.
   `bootstrap/`. Its workflows run against other repositories, so a merge there changes what they do.
   **The trailer rule is untouched by this**: `Akatsuki-Agent:` is still written only by an Akatsuki
   roster agent, and a Hatsu persona still refuses it. Being canon is about which gate a change to it
-  stands at, not about who may sign a commit.
+  stands at, not about who may sign a commit. **Named since 2026-10-19** as `zheref/akatsuki-ai`, code
+  `AK` (§ *Rulings of 2026-10-19 — the Akatsuki CI repository is named*).
 - **`<scaffold-repo>`** — and this one *sharpens* the rule rather than just extending it. It
   carries **no constitution prose at all**: it is a TypeScript package (`source/`, `scripts/`,
   `package.json`). It is canon because **a scaffolder writes the setup into every repository it
@@ -913,7 +914,7 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 **The maintainer's answers, verbatim**, through the picker during the Kurapika intake of 2026-10-19 that
 filed the first Akatsuki CI tier — the reviewer lanes Sasuke, Kakuzu, Konan and Hidan — as installable on
 any Hatsu-enabled repository (zheref/hatsu#329, #330, #331; zheref/nen#440; `AK` issues in the Akatsuki CI
-repository, which is private and is named here by its code only). Each question as asked, then the answer
+repository, which stays private — its name made public by the ruling recorded below, zheref/hatsu#329). Each question as asked, then the answer
 picked; *(Recommended)* marks the option the picker starred:
 
 1. *"How should the Akatsuki reviewers relate to the one-value aiReviewers setting?"*
@@ -949,6 +950,41 @@ picked; *(Recommended)* marks the option the picker starred:
 **Read under the constitution:** rulings 1 and 2 are read under `CON-16` (only enabled reviewers gate) and
 `CON-32(b)` (the verdict is `nen pr ready`'s, quoted, nothing relaxed); neither changes either clause.
 Cited from PROCESS's *Event-driven reviewer lanes*, `GATE-CONFIGURATION.md` § 3 and `WORKFLOW.md` § 2 → `ci`.
+
+---
+
+## Rulings of 2026-10-19 — the Akatsuki CI repository is named
+
+**Context.** zheref/hatsu#329: the CI plane's repository is private, `docs/PUBLIC-REDACTION.md` forbade
+naming it in this public tree, so its code `AK` could not enter `nen/repos.json` and every `AK` issue was
+driven only from inside that checkout. Earlier on 2026-10-19 the maintainer ruled, through the picker,
+that it **stays private** (the answer, verbatim: *"Stays private"*). The `hatsu:build` effort for #329 then
+asked the remaining question through the picker: a git-ignored overlay (`.nen/repos.local.json`) or a
+committed placeholder row. The maintainer typed this answer in the picker's free field instead:
+
+> Since akatsuki-ai is a private repository we don't want to avoid people hearing from, this is the only
+> exception when avoiding to name private repositories. We can name this one despite staying
+> code-private. So, feel free to mention it open.
+
+| Question | The maintainer's answer, verbatim | What it settles |
+|---|---|---|
+| **zheref/hatsu#329** — *how is a private maintained tool registered without naming it in a public tree: a git-ignored overlay, or a committed placeholder row?* | `Since akatsuki-ai is a private repository we don't want to avoid people hearing from, this is the only exception when avoiding to name private repositories. We can name this one despite staying code-private. So, feel free to mention it open.` | **Neither.** `zheref/akatsuki-ai` is the **one named private repository**. Its code stays private and its name is public. `docs/PUBLIC-REDACTION.md` § *Named private repositories* records the exception, and its legend row `<ci-plane-repo>` names it. `nen/repos.json` carries it under `maintained_tools`, with `AK` under `product_codes`. `nen repo resolve AK` answers `via code` from a Hatsu checkout and `nen repo classify --target zheref/akatsuki-ai` answers role canon, gate G4. `scripts/private_name_named.txt` is the one committed exemption list, exact `owner/name` only and a bare name refused. `scripts/private_name_check.sh` reads it by default, with fixture cases in `redaction-guard`. `hatsu:file` § 4 joins it with the maintainer's ignore file into the one file nen's guard takes. `hatsu:build` § 1 resolves a code against the checkout it stands in, as `classify` § 1 does. No overlay and no placeholder row is built, and nen's `repo resolve` needs nothing new. Built by the effort `opus/kurapika/ha-329-akatsuki-named` |
+
+**This run's readings, the maintainer's to correct:** (1) the ruling makes the **name** public, not the
+contents: the repository's files, prose and transcripts stay private; (2) its object ids are written
+`AK-IS-#<n>` / `AK-PR-#<n>`, outside the object-id rule's placeholder prefix; (3) the existing
+`<ci-plane-repo>` placeholders stand and are not rewritten: new text names the repository; (4)
+`kuchiyose` (zheref/hatsu#331) spells `ci.provider` as the code `AK`, resolved through this registry, so a
+consumer's `nen/workflow.json` carries no slug; (5) every other private repository is unchanged, and a
+second named repository needs a ruling of its own. **Owed to nen:** `nen issue` takes one
+`--private-names-ignore-file`, so the named list reaches nen's guard only through `file` § 4's joined
+file. A nen verb reading a repository's committed named list would retire that join (zheref/nen#441).
+**BC-11 debt, recorded as the 2026-10-17 ruling on #290 q3 recorded its three:** the named list adds
+branching to a shell guard with a three-way exit, so `scripts/private_name_check.sh` is frozen to fixes
+only pending its port to a nen private-name verb that also checks a tree (zheref/nen#441), and it retires
+at that repin (Chrollo, hanten on this effort). The alternative is to drop the committed list and put the
+one exact `owner/name` in the maintainer's own ignore file, with the guard unchanged; the cost is no
+record in the tree and no bare-name refusal. That choice is the maintainer's at this PR's G4.
 
 ---
 
