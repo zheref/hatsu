@@ -258,7 +258,7 @@ else
   ignore_desc="no ignore file, so nothing ignored"
 fi
 if [ "$n_names" -eq 0 ] && [ $((n_ignored + n_named)) -gt 0 ] && [ "$allow_empty" -ne 1 ]; then
-  die "every private name is ignored ($n_ignored by the ignore file, $n_named named by ruling), so nothing would be checked; pass --allow-empty if that is meant"
+  die "every private name is ignored or named ($ignore_desc; $n_named named by ruling), so nothing would be checked; pass --allow-empty if that is meant"
 fi
 n_owners="$(grep '/' "$list" | sed 's#/.*##' | LC_ALL=C sort -u | grep -c .)"
 
