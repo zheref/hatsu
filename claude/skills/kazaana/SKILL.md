@@ -73,16 +73,17 @@ the queue. Triage, briefing and ordering are futon § 2's; an epic awaiting its 
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
 
-Futon § 3–§ 6 hold: the stage label under the delegation, `nen loop slots --efforts <abs path>
---ci-cap 2 --local-cap 7 --json`, the cap always passed. What this file adds:
+Futon §§ 3–6 hold: delegated stage label and `nen loop slots --efforts <abs path>
+--ci-cap 2 --local-cap 7 --json`. This file adds:
 
-**Each issue is authored and published by one delegate in its own worktree**, raised as a **builder
+**One delegate authors and publishes each issue in its worktree**, raised as a **builder
 effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter
 ([`claude/rules/hatsu.md`](../../rules/hatsu.md) § 6: Antigravity `Workspace: "branch"`) — titled `kazaana · kurapika · <alias>`, bound to
-`<core>/.nen/worktrees/<surface>/<name>`, handed the absolute path, the issue, its stack base and aka § 0's push scope, never raw `gh pr create`. **Its model is `direct`'s primary pick for that issue** — `.nen/direct/<effort>.json`,
+`<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope; never raw `gh pr create`. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
-raise's model; the effort dial is passed where the raise exposes one and is **residue** where it does
-not (a Claude Code Agent-tool raise carries none). The primary is never the frontier tier. **The delegate runs
+raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `--dial` on phase/usage calls
+and title/id at its first phase when exposed; shibari reads its ledgers. The primary
+is never frontier. **The delegate runs
 `ren` then `aka`** — on a canon repository (`nen repo classify` → `role: canon`)
 [`great-hiker`](../great-hiker/SKILL.md) §§ 3–5 in `ren`'s place, mirrors, bump and checks, **in the
 delegate, at its tier**: great-hiker § 2 raises no second subsession here (ruling 2026-10-13, 1). **This

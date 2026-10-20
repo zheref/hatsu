@@ -31,6 +31,7 @@ export interface Catalogue {
   readonly contract: "hatsu.pr-sections/v1";
   readonly max: number;
   readonly proseBudget: number;
+  readonly preamble: readonly SectionRow[];
   readonly sections: readonly SectionRow[];
   readonly footer: readonly SectionRow[];
   readonly families: Readonly<Record<string, readonly string[]>>;
@@ -41,6 +42,7 @@ export interface Requirement { readonly name: string; readonly pattern: string }
 export interface Resolution {
   readonly cell: string;
   readonly max: number;
+  readonly preamble: readonly string[];
   readonly ids: readonly string[];
   readonly footer: readonly string[];
   readonly requirements: readonly Requirement[];
@@ -133,8 +135,8 @@ export function catalogue(root = ROOT): Catalogue {
   const raw = object(load(cataloguePath), "catalogue must be an object");
   const taxonomy = object(load(taxonomyPath), "taxonomy must be an object");
   if (raw.contract !== "hatsu.pr-sections/v1") throw new Error("expected hatsu.pr-sections/v1");
-  if (!Array.isArray(raw.sections) || !Array.isArray(raw.footer)) throw new Error("sections and footer must be arrays");
-  const parseRow = (value: unknown, footer: boolean): SectionRow => {
+  if (!Array.isArray(raw.preamble) || !Array.isArray(raw.sections) || !Array.isArray(raw.footer)) throw new Error("preamble, sections and footer must be arrays");
+  const parseRow = (value: unknown, place: "preamble" | "section" | "footer"): SectionRow => {
     const row = object(value, "every section must be an object");
     const id = row.id;
     if (typeof id !== "string" || id.length === 0) throw new Error("section ids must be nonempty and unique");
@@ -148,7 +150,7 @@ export function catalogue(root = ROOT): Catalogue {
     }
     if (row.level !== (id === "changes" ? 1 : 2)) throw new Error(`${id}: changes alone is H1; every other block is H2`);
     if (row.when !== undefined && (typeof row.when !== "string" || !FACTS.has(row.when))) throw new Error(`${id}: unknown run fact`);
-    if (footer) {
+    if (place === "footer") {
       if (typeof row.reserved !== "boolean") throw new Error(`${id}: footer reserved must be boolean`);
     } else if (row.reserved !== undefined) {
       throw new Error(`${id}: reader sections cannot be reserved`);
@@ -158,9 +160,10 @@ export function catalogue(root = ROOT): Catalogue {
     if (typeof row.$comment !== "string" || row.$comment.length === 0) throw new Error(`${id}: missing section description`);
     return row as unknown as SectionRow;
   };
-  const sections = raw.sections.map((row): SectionRow => parseRow(row, false));
-  const footer = raw.footer.map((row): SectionRow => parseRow(row, true));
-  const rows = [...sections, ...footer];
+  const preamble = raw.preamble.map((row): SectionRow => parseRow(row, "preamble"));
+  const sections = raw.sections.map((row): SectionRow => parseRow(row, "section"));
+  const footer = raw.footer.map((row): SectionRow => parseRow(row, "footer"));
+  const rows = [...preamble, ...sections, ...footer];
   const ids = rows.map((row): string => row.id);
   if (rows.length === 0 || new Set(ids).size !== ids.length) throw new Error("section ids must be nonempty and unique");
   if (!Number.isInteger(raw.max) || typeof raw.max !== "number" || raw.max < 1 || raw.max > 7) throw new Error("catalogue max must be an integer from 1 through 7");
@@ -190,7 +193,7 @@ export function catalogue(root = ROOT): Catalogue {
   const variantsRaw = object(raw.variants, "variants must declare exactly every kind/family cell");
   const cells = KINDS.flatMap((kind): string[] => Object.keys(families).map((family): string => `${kind}.${family}`));
   if (cells.length !== 24 || !sameSet(Object.keys(variantsRaw), cells)) throw new Error("variants must declare exactly every one of the 24 kind/family cells");
-  const provisional = { ...raw, sections, footer, families, precedence, variants: variantsRaw, max: raw.max, proseBudget: raw.proseBudget } as unknown as Catalogue;
+  const provisional = { ...raw, preamble, sections, footer, families, precedence, variants: variantsRaw, max: raw.max, proseBudget: raw.proseBudget } as unknown as Catalogue;
   const required = new Set(["changes", "why", "verify"]);
   const variants: Record<string, string[]> = {};
   for (const kind of KINDS) for (const family of Object.keys(families)) {
@@ -200,15 +203,16 @@ export function catalogue(root = ROOT): Catalogue {
     if (items[0] !== "changes" || [...owed].some((id): boolean => !items.includes(id))) throw new Error(`${cell}: changes first and all always-required readers are owed`);
     variants[cell] = items;
   }
+  if (preamble.length !== 1 || preamble[0]?.id !== "delivery") throw new Error("delivery must be the sole preamble block");
   if (footer.length === 0 || footer.at(-1)?.id !== "attribution") throw new Error("attribution must be the final footer");
-  return { contract: "hatsu.pr-sections/v1", max: raw.max, proseBudget: raw.proseBudget, sections, footer, families, precedence, variants };
+  return { contract: "hatsu.pr-sections/v1", max: raw.max, proseBudget: raw.proseBudget, preamble, sections, footer, families, precedence, variants };
 }
 
 export function defaults(cat: Catalogue): { max: number; variants: Catalogue["variants"] } {
   return { max: cat.max, variants: cat.variants };
 }
 export function options(cat: Catalogue): Record<string, string> {
-  return Object.fromEntries([...cat.sections, ...cat.footer].map((row): [string, string] => [row.id, row.$comment]));
+  return Object.fromEntries([...cat.preamble, ...cat.sections, ...cat.footer].map((row): [string, string] => [row.id, row.$comment]));
 }
 export function fold(cat: Catalogue, jobs: readonly string[]): string {
   if (jobs.length === 0) return "build";
@@ -259,7 +263,8 @@ export function resolve(cat: Catalogue, repo: string, kind: RepositoryKind, jobs
   if (facts.has("economics") && economics !== undefined && !readers.includes(economics)) readers.push(economics);
   if (readers.length > maximum) throw new Error(`${cell}: ${readers.length} admitted readers exceed max ${maximum}`);
   const footer = cat.footer.filter((row): boolean => row.reserved !== true && (row.when === undefined || facts.has(row.when)));
-  return { cell, max: maximum, ids: readers.map((row): string => row.id), footer: footer.map((row): string => row.id), requirements: [...readers, ...footer].map((row): Requirement => pattern(row, kind)) };
+  const preamble = cat.preamble.filter((row): boolean => row.when === undefined || facts.has(row.when));
+  return { cell, max: maximum, preamble: preamble.map((row): string => row.id), ids: readers.map((row): string => row.id), footer: footer.map((row): string => row.id), requirements: [...preamble, ...readers, ...footer].map((row): Requirement => pattern(row, kind)) };
 }
 
 function git(repo: string, args: readonly string[]): string[] {
@@ -446,8 +451,10 @@ export function check(cat: Catalogue, body: string, rawRequirements: unknown, ma
     if (eligible && !tables.has(index) && setext.test(lines[index] as string)) findings.push(`line ${index + 1}: undeclared setext heading: ${previous}`);
   }
   const first = lines.find((line): boolean => line.trim() !== "") ?? "";
-  if (requirements[0]?.name !== "changes" || !compiled[0]?.test(first)) findings.push("body must open with the changes H1 heading");
+  if (requirements[0]?.name !== "delivery" || !compiled[0]?.test(first)) findings.push("body must open with the Delivery heading");
+  if (requirements[1]?.name !== "changes" || headings[1] === undefined || !compiled[1]?.test(headings[1][1])) findings.push("changes H1 must immediately follow the Delivery block");
   const footers = new Set(cat.footer.map((row): string => row.id));
+  const metadata = new Set(cat.preamble.map((row): string => row.id));
   const seen = new Set<number>();
   let previous = -1;
   let readers = 0;
@@ -458,7 +465,7 @@ export function check(cat: Catalogue, body: string, rawRequirements: unknown, ma
     if (at <= previous) findings.push(`line ${number}: out-of-order or repeated heading ${text}`);
     previous = Math.max(at, previous);
     seen.add(at);
-    if (!footers.has(requirements[at]?.name as string)) {
+    if (!footers.has(requirements[at]?.name as string) && !metadata.has(requirements[at]?.name as string)) {
       readers++;
       if (readers === maximum + 1) findings.push(`line ${number}: reader count exceeds max ${maximum}: ${text}`);
     }

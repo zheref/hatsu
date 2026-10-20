@@ -106,14 +106,17 @@ in an occupied worktree — it gets its own `<name>` — and a tree a reviewer i
 under them: hanten § 4's detached checkout exists for that, and where the isolation hook refused it, the
 run waits for the review to return (a moved ref is hanten § 4's G5).
 
-## 4. The canonical feature building protocol
+## 4. Building protocol
 
-Build drives the issue through the canonical Hatsu pipeline, § 2b's intake first:
-`ten` → `classify` (when unclassified) → `direct` → `ren` → `aka` → `mukai` → `en` → `rikugan` → the wrap-up.
+Build runs § 2b's intake, then:
+`ten` → `classify` (if needed) → `direct` → `ren` → `aka` → `mukai` → `en` → `rikugan` → wrap-up.
 
-**Each phase is another skill's, named and linked; its procedure, stops and residue live there.** What
-build itself writes: `nen phase begin|end --effort <branch> --phase <author|publish|pr|readiness>` around
-each phase, and `nen usage record` at every § 7 report ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The
+**Each linked skill owns its stops.** Build writes:
+`nen phase begin --effort <branch> --phase <author|publish|pr|readiness>
+--surface <s> [--model <reported-model>] --dial <level>`, with WORKFLOW's served-model `--note`
+only when attested; `nen phase end` closes each phase;
+the first phase records `nen session record` when the harness exposes an identity. `nen usage record`
+at every § 7 report carries `--dial <level>` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The
 effort's ledgers*) — **owed on every target, a stage taxonomy or not**. On a target whose `nen/labels.json`
 declares no delivery stages, WORKFLOW § *A target repository with no delivery-stage taxonomy* holds as
 written; build's one addition: the
