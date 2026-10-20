@@ -119,8 +119,7 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 - **The gate is derived as [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*
   says**, and **the body names it as a FORECAST, never a status** — a PR just opened is not ready.
   **Shibari derives the gate and never labels one**: a label is a readiness
-  claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (`zheref/hatsu`'s `readiness` check, from `pr-readiness.yml`; shibari never
-  writes that either).
+  claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (nor does shibari write the `readiness` check).
 - **The body is written back only after every check has run.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
@@ -136,8 +135,9 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--add-bots <id,...>]
 ```
 
-**The reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one Copilot round after
-[`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request.
+**The reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one round after
+[`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request, of `base_reviewers`,
+never of a CI lane (PROCESS, *Event-driven reviewer lanes*).
 **The request's mechanics are [PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review
 threads***: the maintainer's token, Copilot through `--add-bots <node id>`, and **success read from
 the mutation's own response, never from the ids sent**.
@@ -145,7 +145,7 @@ the mutation's own response, never from the ids sent**.
 **Then one line, and stop**: the notation, the base, the gate **forecast**, whether the checks
 passed, the Development guard's line quoted, the evidence mechanism — and, where the harness classifier stopped its publish step, the field
 `permission stop: expected — <consumer> declares no allow row for <script>` naming the missing grant
-(§ 1; zheref/hatsu#101), never a G5 — who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
+(§ 1), never a G5 — who was requested, and — from `mukai` — its offer of [`en`](../en/SKILL.md) on the PR
 (En has it already only under `mukai.autoEn`). **No `nen stop` banner** — opening a PR is not a gate event, and
 `en`'s own [`jutaisho`](../jutaisho/SKILL.md) step rings at Ready.
 
