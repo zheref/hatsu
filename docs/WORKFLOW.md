@@ -1790,6 +1790,11 @@ nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
   declaration, `contracts/pr-body.requirements.json` or `templates/pr-body.md` derives `G4`, as it
   did while this section held the sets — **this run's reading, the maintainer's to confirm at the
   `G4` merge (zheref/hatsu#171)**.
+- **`zheref/nen` has its own row** (zheref/hatsu#334): its sets, and why each member is in them,
+  are the row's and its `$comment`'s, never restated here; the representative changes and the gate
+  each derives are `pr-composition-guard`'s cases, decided by `nen gate derive` itself — **this
+  run's reading, the maintainer's to confirm at the `G4` merge**. Every other canon repository
+  still has no row until one is written, and no row stands in for all of them.
 - **`--files` is caller data** — the verb fetches nothing — and comes from
   `gh pr diff <n> --repo <owner/name> --name-only`. A wrong file set gives the verb, and
   `nen changelog fragment-required` beside it, a confident wrong answer.

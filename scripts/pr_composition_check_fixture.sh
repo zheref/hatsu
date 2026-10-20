@@ -2,7 +2,8 @@
 # Focused, declared verification for scripts/pr_composition_check.sh (zheref/hatsu#171).
 # Hermetic and offline: every case builds a throwaway Hatsu-shaped tree under a temp dir, runs the
 # checked-in guard on it, and asserts the exit code and one line of its output; the last case runs the
-# guard on this repository itself. Requires bash and python3 (the guard's own dependency).
+# guard on this repository itself. Requires bash and python3 (the guard's own dependency), and nen
+# (NEN=<path> or on PATH) for the zheref/nen row cases, which ask nen gate derive itself.
 # Invoked only through `nen shu test --lane pr-composition-guard --repo <hatsu>`.
 set -euo pipefail
 
@@ -195,6 +196,45 @@ t="$(make_tree not-hatsu)"; rm "$t/.claude-plugin/plugin.json"
 run_case 'a root that is not a Hatsu checkout is a wiring refusal' 2 "$t" 'is not a Hatsu checkout'
 t="$(make_tree unknown-arg)"
 run_case 'an unknown argument is a wiring refusal' 2 "$t" "unknown argument '--nope'" --nope
+
+# --- no guessed fallback row (zheref/hatsu#334) -----------------------------------------------------
+t="$(make_tree wildcard-row)"
+sed -i.bak 's#"owner/repo"#"*/*"#' "$t/contracts/pr-composition.json"
+run_case 'a wildcard row standing for every canon repository is refused' 1 "$t" "gateDerive row '*/*' is not an owner/name key"
+
+# --- zheref/nen's row derives the recorded gates (zheref/hatsu#334) ---------------------------------
+# The expected gate of each representative change is recorded here, its basis in the row's own
+# $comment; nen gate derive decides each one from the declared sets, read off this repository's
+# declaration, so the fixture re-implements no matcher. A missing row or a missing nen fails loud.
+nen_bin="${NEN:-nen}"
+command -v "$nen_bin" >/dev/null 2>&1 || { echo "zheref/nen row cases: '$nen_bin' not found (set NEN=<path> or put nen on PATH)" >&2; exit 1; }
+nen_sets="$(python3 -I -c 'import json, sys
+row = json.load(open(sys.argv[1], encoding="utf-8"))["gateDerive"].get("zheref/nen")
+if not isinstance(row, dict): sys.exit("contracts/pr-composition.json declares no gateDerive.zheref/nen row")
+print(",".join(row["policyPaths"])); print(",".join(row["processPaths"]))' "$repo_root/contracts/pr-composition.json")" || exit 1
+nen_policy="$(sed -n 1p <<<"$nen_sets")"; nen_process="$(sed -n 2p <<<"$nen_sets")"
+
+derive_case() {
+  local name="$1" expected="$2" text="$3" files="$4" out status
+  if out="$("$nen_bin" gate derive --repo "$repo_root" --policy-paths "$nen_policy" --process-paths "$nen_process" --files "$files" 2>&1)"; then status=0; else status=$?; fi
+  if [ "$status" -ne 0 ] || [ "$(sed -n 1p <<<"$out")" != "$expected" ] || ! grep -Fq -- "$text" <<<"$out"; then
+    printf '%s: expected %s (%s), got exit %s\n%s\n' "$name" "$expected" "$text" "$status" "$out" >&2; exit 1
+  fi
+  n=$((n + 1))
+  printf '%s: %s\n' "$name" "$expected"
+}
+
+derive_case 'zheref/nen source derives G4' G4 'process surface (src/)' 'src/gate/derive.ts'
+derive_case 'zheref/nen schema source derives G4' G4 'process surface (src/)' 'src/schema/contract.ts'
+derive_case 'zheref/nen own contract derives G4 as policy' G4 'policy/spec (nen/)' 'nen/contract.json'
+derive_case 'zheref/nen gates policy derives G4' G4 'policy/spec (nen/)' 'nen/gates.json'
+derive_case 'zheref/nen verb spec derives G4' G4 'process surface (docs/)' 'docs/USAGE.md'
+derive_case 'zheref/nen README derives G4' G4 'process surface (README.md)' 'README.md'
+derive_case 'zheref/nen release workflow derives G4' G4 'process surface (.github/workflows/)' '.github/workflows/release-assets.yml'
+derive_case 'zheref/nen bootstrap derives G4' G4 'process surface (bootstrap/)' 'bootstrap/nen.sh'
+derive_case 'zheref/nen dependency manifest derives G4' G4 'process surface (package.json)' 'package.json'
+derive_case 'zheref/nen repository housekeeping alone derives G2' G2 'touches neither path set' 'LICENSE,.gitignore,.gitattributes'
+derive_case 'zheref/nen housekeeping beside source derives G4' G4 'process surface (src/)' '.gitignore,src/gate/derive.ts'
 
 # --- and the repository itself ----------------------------------------------------------------------
 run_case 'this repository: declaration, requirements, template and prose agree' 0 "$repo_root" 'pr-composition ok'

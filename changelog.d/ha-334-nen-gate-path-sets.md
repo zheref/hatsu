@@ -1,0 +1,3 @@
+### Added
+
+- `contracts/pr-composition.json` → `gateDerive` declares `zheref/nen`'s own policy and process path sets (zheref/hatsu#334), so a run against nen derives its gate with `nen gate derive` instead of asking each sitting. Each member is a top-level entry of nen's tracked tree at `v0.23.0` with its reason in the row's `$comment`; `LICENSE`, `.gitignore` and `.gitattributes` alone derive `G2`. The `pr-composition-guard` fixture records the gate each representative nen change derives, asked of `nen gate derive` itself, and refuses a wildcard row, so another canon repository with no row still asks. The selection is this run's reading, the maintainer's to confirm at the `G4` merge.
