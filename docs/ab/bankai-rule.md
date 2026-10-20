@@ -67,10 +67,11 @@ exit 0
 
 ## 2. Id reservation — the tip, the run's own branch, sibling pushed branches, open PRs
 
-`scripts/port_rule_reserve.sh` fetches, then reads the pair file at `origin/<base>`, at the run's
+`scripts/port_rule_reserve.sh` (run against the run's rulings worktree) fetches and prunes, then reads the pair file at `origin/<base>`, at the run's
 own HEAD and working tree (a batched call's second row never repeats its first — Chrollo C1 /
-Nobunaga N2 at the first head), at every other pushed `ports-*` branch (an in-flight run has no PR
-yet — Chrollo C4), and in every open PR whose file list names it (`gh pr list` + `gh pr view --json
+Nobunaga N2 at the first head), at every other pushed or local `ports-*` branch (Chrollo C4; a run that has not pushed is
+otherwise invisible, so `--check` repeats the reads as a duplicate pass at catch-up and the gate — Chrollo C16),
+and in every open same-repository PR whose file list names it (a fork's ids listed, never counted — Feitan F8) (`gh pr list` + `gh pr view --json
 files` + `gh pr diff` + `gh api search/issues`, named residue until zheref/nen#456). Hostile open PRs
 (Feitan F1–F4): an id outside `^[1-9][0-9]{0,8}$` is a named refusal at exit 3, a short list or an
 unread PR is exit 1 and reserves nothing, a `+++ b/<pair>` content line in another file's hunk is
@@ -85,10 +86,22 @@ ok    branch B reserves PT-5 past branch A's open PT-4 (exit 0)
   ok    from branch A the same answer, PT-5: its own PT-4 is the open PR's, the tip is main
   ok    the run's own branch counts: PT-4 first, then PT-5 from the working tree and from HEAD
   ok    a sibling run's pushed ports-* branch with no PR is read: PT-5 past its PT-4
+  ok    run against the run's worktree (clone root on main): its own unpushed PT-5 is seen, next PT-6
+  ok    --check: an id this branch adds that a sibling branch carries is exit 3, naming both
+  ok    --check: no duplicate is exit 0
+  ok    a symlinked working-tree pair file is refused at exit 2
+  ok    a sibling branch deleted on origin (and locally) is pruned and stops counting (next PT-4)
   ok    a pair file absent at the tip and in every PR reserves PT-1 (exit 0)
   ok    a PR not touching the pair file is never read, even with a +++ b/<pair> content line (exit 0)
-  ok    an id with a leading zero or past the ceiling is a named refusal at exit 3, listing the PR (exit 3)
+  ok    a header line inside another file's hunk is never a header: PT-77 not seen, next PT-5
+  ok    a PR naming the pair file with no hunk header (a rename) is exit 1, named, never read as empty
+  ok    a PR deleting the pair file is read as empty, exit 0
+  ok    a local, unpushed sibling ports-* head in the same clone is read: PT-5 past its PT-4
+  ok    a clone whose fetch refspec does not cover refs/heads/* is refused at exit 2
+  ok    a same-repo id with a leading zero or past the ceiling is a named refusal at exit 3, listing the PR (exit 3)
+  ok    a fork PR at the ceiling or out of shape is listed as not counted and never moves the id (exit 0)
   ok    an open-PR list shorter than the repository's open total is exit 1
+  ok    a PR file list shorter than its changedFiles is exit 1, never clean
   ok    an unreadable open PR diff is exit 1, never clean, and reserves nothing
   ok    an incomplete read prints complete:false and a null next
   ok    a quote in a branch name is escaped in --json
@@ -96,12 +109,12 @@ ok    branch B reserves PT-5 past branch A's open PT-4 (exit 0)
   ok    p/x.md never reads p/xxmd (the tip's PT-1 only, next PT-2)
   ok    a pair path with .. or a leading / is usage
   ok    a prefix with a space is usage
-  ok    a clone that is not a repository is exit 2
+  ok    a worktree that is not a git checkout is exit 2
   ok    an unknown argument is exit 2
   ok    a flag with no value is usage, never an unbound-variable crash
   ok    a tip ref that does not resolve is a named exit 2, never PT-1
   ok    a failed fetch of origin is a named exit 2, never a stale tip
-port-rule-guard: 22/22
+port-rule-guard: 34/34
 ```
 
 ## 3. Resolving a pair file beside the stacks — `--always-load` until zheref/nen#457
@@ -173,5 +186,9 @@ exit 0
 - The open-PR reads (`gh pr list`, `gh pr view --json files`, `gh pr diff`, `gh api search/issues`) — zheref/nen#456.
 - The pair file beside the stack handbook — zheref/nen#457.
 - The authoring clone at the cache path is `git clone`, `bankai-handbooks` § 0's carve-out.
-- The prefix: the template carries `<prefix>` until zheref/bankai-handbooks#4 rules it; § 4 refuses to
-  write a row while it does.
+- The prefix and the numbering scope: the template carries `<prefix>` until zheref/bankai-handbooks#4
+  rules both; § 3 stops at G5 while it does.
+- The script takes the run's rulings worktree (`--worktree`), reads a fork PR's ids without counting
+  them, matches a hunk header only in a file's header region, paginates the file list, prunes on fetch
+  and refuses a symlinked working-tree file; `--check` is the duplicate pass at catch-up and the gate
+  (hanten round 2: Chrollo C15–C16, Feitan F8–F12).
