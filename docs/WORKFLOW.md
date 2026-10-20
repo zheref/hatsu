@@ -131,6 +131,20 @@ loader and read by nothing in nen. **Hatsu's own copy** of this file is
 [`../nen/workflow.json`](../nen/workflow.json); the values below are the shape and the defaults a repository
 gets when it declares nothing.
 
+### `pr.sections`
+
+| Key | Default | Read by |
+|---|---|---|
+| `max` | `7` | resolver and sections guard; reader count only, never the compact footer |
+| `variants` | every kind × family cell from `contracts/pr-sections.json` | `shibari`, `tensho`, `jujisho` before each body write |
+| `$sections` | every available id and purpose, beside `sections` under `pr` | author and consumer configuration review |
+
+`config_values.sh --fill` materializes the **full** default matrix and the `$sections` annotation;
+it never overwrites an edited cell. That cell becomes consumer-owned, not a canon-following default.
+[PR-SECTIONS.md](PR-SECTIONS.md) owns family folding, conditional run facts, the seven-section cap,
+the kind-specific verification aids and the warning-only 150-word prose budget. `max` is configurable
+up to seven; a smaller cap requires a fitting cell, never silent section truncation.
+
 ### `branch`
 
 ```json
@@ -1370,16 +1384,16 @@ local commit, and aka runs it before squash and after catch-up if the tree moved
 **exactly one**. The body is not a template preference; it is what makes the PR reviewable by someone who was
 not in the session:
 
-| Section | What goes in it |
-|---|---|
-| **why** | the problem, in the reader's terms — effect first, cost stated |
-| **how** | the approach, and what was rejected |
-| **what changes for the consumer** | the observable delta for whoever depends on this |
-| **how to verify** | runnable steps. Where there is no backing issue, this section **is** the acceptance criteria |
-| **a mermaid diagram** | where a flow changed — and only then |
-| **the evidence table** | one table per top-level screen, states as **columns**, in the stack's own `project.evidence` mechanism (§ 3) |
-| **the checklist** | the repository's own |
-| **`Closes #N`** | GitHub's native autolink, kept beside the object notation |
+The body follows [PR-SECTIONS.md](PR-SECTIONS.md), resolving the catalogue's kind × family cell
+from the repository classification, issue jobs, consumer `pr.sections` and Mukai's run facts. It
+opens with the consumer effect and cost in **What this changes for you**; tables and diagrams carry
+the decision. Non-release rows carry the eleven-aspect improves ladder; release rows follow the
+written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
+library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
+`CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
+checklist, associated issues, final attribution and reserved Delivery are compact footer blocks.
+The sections guard and Nen's per-run requirements check join evidence and Development checks before
+**every** create or edit. No undeclared heading may grow a second composition contract.
 
 The verbs: `nen pr open` (the one PR, from the pushed head, at nen `0.13`: exit `2` when the head is not
 on the remote, exit `1` naming an open PR for the branch), `nen pr body-check` (the body's completeness),
@@ -1562,7 +1576,7 @@ the installed plugin directory, which changes on every update, so it is never wr
 Several skills build an absolute path from the plugin root — `pr-state`, `sharingan`, `backlog-state`,
 `futon`, `tensho` and `getsuga` for `nen pr ready --gates`, `ten` for `nen/contract.json`, `hanten`
 for a persona's definition under `claude/agents/`, and `en`, `shibari`, `sharingan`, `spiritual-message`,
-`backlog-board`, `black-voice` and `templates/pr-body.md` for the report clock and the PR-body evidence
+`backlog-board`, `black-voice` and `templates/pr-body/` for the report clock and the PR-body evidence
 check (`"$hatsu_root/scripts/report_time.sh"`, `"$hatsu_root/scripts/pr_body_evidence_check.sh"`). (A
 report's *template* is not on this list: it is the target repository's own `templates/<name>.html`,
 named by that repository's `nen/workflow.json`.) **The name they
@@ -1844,7 +1858,7 @@ nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
   with no row there has no declared sets: the run says so and asks (§ 4 *Ask, set up, continue*),
   never improvising one, and the row is written by a Hatsu PR at Hatsu's `G4`.
 - **`zheref/hatsu`'s process set carries `contracts/` and `templates/`**, so a diff of the
-  declaration, `contracts/pr-body.requirements.json` or `templates/pr-body.md` derives `G4`, as it
+  declaration, `contracts/pr-body.requirements.json` or the PR-section fragments derives `G4`, as it
   did while this section held the sets — **this run's reading, the maintainer's to confirm at the
   `G4` merge (zheref/hatsu#171)**.
 - **`--files` is caller data** — the verb fetches nothing — and comes from
@@ -1858,6 +1872,11 @@ nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
 - **The verb reports; it does not gate**, and **a derived gate stands over an asserted one** —
   `--asserted` prints the mismatch itself, and the run says it in one line, drives to the derived
   gate, and carries the correction into its stop.
+
+**The same matched-path fact selects `across`.** For a process repository, carry the fresh
+`nen gate derive` policy/process hit into the section resolver as `--policy-hit`; a repository's
+role alone does not activate it. The ordered cell must also contain `across`. Reuse the declared
+sets above, never copy them into the section catalogue or prose.
 
 **3 · It is the diff's half of the derivation only.** A pull request that is not ready **has no
 gate** — it is in progress and owned by its author — so a body names the gate the PR **will** stand at
@@ -1873,6 +1892,10 @@ has ended.
 ---
 
 ## The UZF-26 evidence shape
+
+The catalogue's `evidence` section is product-only and conditional on declared `project.evidence.globs`;
+[PR-SECTIONS.md](PR-SECTIONS.md) selects it. Glyph-prefixed Evidence headings keep this exact shape.
+When absent, state the no-evidence fact in the checklist rather than creating an undeclared heading.
 
 Moved here on 2026-09-20 (zheref/hatsu#89) from `shibari` § 5, which owned it alone;
 [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) § 3 fills its own `evidence[]` from the same rows.

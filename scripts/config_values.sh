@@ -77,7 +77,7 @@ CATALOGUE = Path("contracts") / "config-catalogue.json"
 WRITABLE_FILES = ("nen/workflow.json", "nen/gates.json", "nen/contract.json")
 KINDS = ("enum", "subset", "open", "external", "secret-env")
 ANNOTATED = ("enum", "subset")
-ANNOTATION_PREFIXES = ("one of: ", "any of: ")
+ANNOTATION_PREFIXES = ("one of: ", "any of: ", "available sections: ")
 
 
 def in_options(value, options):
@@ -303,7 +303,26 @@ def load_catalogue(root):
     rows = cat.get("values")
     if not isinstance(rows, list):
         raise Defect(f"{path}: `values` must be a list")
-    return cat, [r for r in rows if isinstance(r, dict)]
+    rows = [dict(r) for r in rows if isinstance(r, dict)]
+    for row in rows:
+        source = row.get("defaultFrom")
+        if source is None:
+            continue
+        # One declared source, no consumer-supplied Python or arbitrary paths.
+        if source not in ("pr-sections", "pr-sections.max"):
+            raise Defect(f"{row.get('id')}: unknown defaultFrom {source!r}")
+        try:
+            sections = json.loads((root / "contracts/pr-sections.json").read_text())
+            if source == "pr-sections.max":
+                row["default"] = sections["max"]
+            else:
+                row["default"] = {"max": sections["max"], "variants": sections["variants"]}
+                row["annotation"] = "available sections: " + " | ".join(
+                    entry["id"] + " — " + entry["$comment"]
+                    for entry in sections["sections"] + sections["footer"])
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise Defect(f"{row.get('id')}: cannot resolve section defaults: {exc}")
+    return cat, rows
 
 
 def catalogue_problems(root, cat, rows):
@@ -410,7 +429,7 @@ def annotation(options, kind="enum"):
 
 
 def ann_for(row):
-    return annotation(row["options"], row["kind"]) if row["kind"] in ANNOTATED else None
+    return row.get("annotation") or (annotation(row["options"], row["kind"]) if row["kind"] in ANNOTATED else None)
 
 
 # --------------------------------------------------------------------------
@@ -549,9 +568,9 @@ def classify(repo, row, for_skill=None):
             return INVALID, f"{json.dumps(value)} names no key of {row['candidatesFrom']} ({' | '.join(cands)})"
         if row["kind"] == "secret-env" and not (isinstance(value, str) and ENV_NAME.match(value)):
             return INVALID, "must name an environment variable, never carry the secret itself"
-        if row["kind"] in ANNOTATED and not annotation_state(repo, row):
+        if ann_for(row) is not None and not annotation_state(repo, row):
             return UNANNOTATED, f"set to {json.dumps(value)}; its `$` option annotation is absent or stale"
-        return SET, shown(value)
+        return SET, ("consumer value — " if row.get("defaultFrom") == "pr-sections" and value != row["default"] else "") + shown(value)
     if not present and has_default and not (needed and row["default"] is None):
         return UNWRITTEN, f"absent — its readers apply the default {json.dumps(row['default'])}; fill writes it"
     if needed and row.get("ask") == "on-use" and for_skill not in row["requiredBy"]:

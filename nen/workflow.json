@@ -348,5 +348,192 @@
     "$comment": "Maintainer's ruling of 2026-10-05 (docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance): whether hatsu:direct writes its verdict to the issue on GitHub. none (the default, and the 2026-10-04 behaviour): report and the local ledger .nen/direct/<effort>.json only. label: the model LINE of the primary pick as one model/<line> label through nen label apply. label+comment: that label plus one marker-keyed comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version (contracts/direct.registry.json -> publish). Read by the direct skill under build or standalone (never under ren, which cannot leave the machine); any other value reads none, said. Hatsu's own value is label+comment, on the maintainer's request of 2026-10-11 (\"Open a PR setting direct.publish to label and comment\"), written by config_values.sh set; the first sweep's seven model/ labels were applied the same day as if it were already set. nen validates the file and hands no value out."
   },
   "aiReviewers": "optional",
-  "$aiReviewers": "one of: required | optional | off"
+  "$aiReviewers": "one of: required | optional | off",
+  "pr": {
+    "$sections": "available sections: changes — Before/After for a named consumer; Case for/Case against; what would flip the decision. | why — Source/What it showed/Why it matters now, followed by the authoring nature. | how — Mermaid structure diagram and Item/Kind/Change legend; flow diagram only when behavior flow changed; one rejected alternative. | improves — All eleven aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement. | verify — Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. | evidence — UZF-26 state/variant evidence table; only where project.evidence.globs is declared. | compat — Symbol/Before/After/Consumer action; semver verdict. | across — What another repository does differently after this merge; recorded rulings. | release-unit — Artifact/Size/Provenance; CON-22 fan-out. | rollout — Target/Flag/Rollback step. | economics — Leorio summary, then the full report in details; no new level-2 headings inside it. | delivery — Reserved for HA#321; activation and rendering stay in that issue. | checklist — Compact evidence-backed completion conditions. | issues — Canonical issue URL/scope/merging verdict table and closing lines; Development guard applies. | attribution — Final heading; exact participant ledger from docs/AGENT-ATTRIBUTION.md.",
+    "sections": {
+      "max": 7,
+      "variants": {
+        "product.build": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "evidence"
+        ],
+        "library.build": [
+          "changes",
+          "why",
+          "how",
+          "compat",
+          "improves",
+          "verify"
+        ],
+        "process.build": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.build": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.fix": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "evidence"
+        ],
+        "library.fix": [
+          "changes",
+          "why",
+          "how",
+          "compat",
+          "improves",
+          "verify"
+        ],
+        "process.fix": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.fix": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.maintain": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "rollout"
+        ],
+        "library.maintain": [
+          "changes",
+          "why",
+          "how",
+          "compat",
+          "improves",
+          "verify"
+        ],
+        "process.maintain": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.maintain": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "evidence"
+        ],
+        "library.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "process.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "unknown.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "library.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "process.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "rollout",
+          "verify",
+          "evidence"
+        ],
+        "library.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "compat",
+          "verify"
+        ],
+        "process.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "across",
+          "verify"
+        ],
+        "unknown.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "verify"
+        ]
+      }
+    }
+  }
 }

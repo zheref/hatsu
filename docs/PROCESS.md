@@ -582,6 +582,16 @@ dangling link; `2` is a wiring stop, quoted. Only `0` reads current. **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
 `.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
 
+## PR composition before every write
+
+[PR-SECTIONS.md](PR-SECTIONS.md) is the shared procedure for `shibari`, `tensho`, `jujisho` and
+review-driven body edits. Resolve kind × family sections and per-run requirements before drafting;
+reuse Mukai's evidence, economics and gate-hit facts. Run the sections, Nen body-check, evidence
+and Development guards before every create/edit, and verify Development after reading the write
+back. Seven reader sections exclude the compact footer; prose beyond 150 words warns only.
+Kind-specific verification is the `CON-17(b)` observable proxy; **How to verify** is the product title.
+NN#448 is merged but does not replace the authorized interim scripts until a released pin carries it.
+
 ## Residue and owned dependencies
 
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and

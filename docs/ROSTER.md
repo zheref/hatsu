@@ -1678,7 +1678,7 @@ definition at `v0.67.0`. What the ruling settles:
 | **Raised by content too — and ONLY by path or content** | `hanten` § 2 raises `economics` beside the totality and workflow rows when a diff carries a **config-shaped** change matching [`docs/ECONOMICS.md`](ECONOMICS.md) § 1's content rows — the one home of the predicate — even when no path did. *"ONLY when"* means never on every diff |
 | **Leorio never rejects** | An economic delta is **not a finding** — a change that costs more is report content. A finding exists only where the maintainer cannot decide informed: an unbounded consumption (`ECON-4`), money granted or charged wrongly (`ECON-5`), an undisclosed user-facing economic change (`ECON-7`), a number with no method (`ECON-8`). No recommendation, no verdict, no vote |
 | **The rules are canon** | `ECON-1`–`ECON-8` live in [`docs/ECONOMICS.md`](ECONOMICS.md) — price and plan surface, metered consumption per user action, maintainer run cost, bounded, revenue integrity, provider and store terms, disclosure, method — resolved from `$hatsu_root/docs/ECONOMICS.md` and never remembered; the reviewer preamble § 3 admits the `ECON-` prefix from that path, Hatsu's own canon and no bankai handbook |
-| **The report, and where it goes** | Leorio **returns** it in his reply as one Markdown block (a reviewer stands in a disposable checkout and writes no file); `hanten` writes it verbatim, keyed **per effort** like the cycle ledger — `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md` — appending a `## Delta <old-head> → <new-head>` section on a delta pass, and records each write in the findings document's `reports[]` as `{scope, persona, invocation, head, path}` ([`docs/ECONOMICS.md`](ECONOMICS.md) § 5, the one home of the write and keying rules). Sections in order: summary and who is affected · delta table (dimension · ECON id · who pays · before · after · delta · confidence) · Mermaid `xychart-beta` charts, **every chart immediately followed by its data table** · case for landing · case against · what would flip the call · unestimated · method. It reaches the PR body as the optional `## Economics` section of `templates/pr-body.md`, present only when Leorio ran or took a delta pass; the checklist line's third reading is `not run: <gap | skipped-exhausted>, economics not reviewed` |
+| **The report, and where it goes** | Leorio **returns** it in his reply as one Markdown block (a reviewer stands in a disposable checkout and writes no file); `hanten` writes it verbatim, keyed **per effort** like the cycle ledger — `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md` — appending a `## Delta <old-head> → <new-head>` section on a delta pass, and records each write in the findings document's `reports[]` as `{scope, persona, invocation, head, path}` ([`docs/ECONOMICS.md`](ECONOMICS.md) § 5, the one home of the write and keying rules). Sections in order: summary and who is affected · delta table (dimension · ECON id · who pays · before · after · delta · confidence) · Mermaid `xychart-beta` charts, **every chart immediately followed by its data table** · case for landing · case against · what would flip the call · unestimated · method. It reaches the PR body as the optional Economics section resolved from `contracts/pr-sections.json` (the former `templates/pr-body.md` is retired), present only when Leorio ran or took a delta pass; the checklist line's third reading is `not run: <gap | skipped-exhausted>, economics not reviewed` |
 | **Closing line** | `Leorio-Ledger: no delta ⚪ \| delta charted 📊 [· <n> findings open] \| unread ⚠️` — three readings; `delta charted` is a difference for the maintainer to weigh, **not a rejection**, and open findings are **counted on the line** (`delta charted 📊 · 2 findings open`), never a rejection; `no delta` is valid only with zero findings open; `unread` enumerates what could not be checked and is never clean |
 | **Pins** | `model: opus` / `effort: high` / `color: green`, the `reviewer` role on the `deep` tier; tools `Read, Grep, Glob, Bash, WebSearch, WebFetch` (as Illumi's — he writes no file). Header line `💴 **Leorio · economics**` |
 | **What he never does** | never estimates from a live account's billing data, never calls a paid API to measure — synthetic runs or published price sheets only, each fetched page cited with its URL and date; never re-runs for a friendlier number |
@@ -1966,3 +1966,40 @@ GraphQL merge mutations bypassed the guard. API reads now require individual app
 bounded read wrapper is provided. The base-branch push refusal is unchanged. The Claude Code live
 classifier and merge proof are deferred until a later eligible Ready Futon stack exists
 (zheref/hatsu#154; the review bots were exhausted in this sitting).
+
+## Rulings of 2026-10-19 — PR sections (HA#351)
+
+The maintainer ruled seven points for the catalogue-backed body:
+
+1. Seven counts **reader sections only**; Completion checklist, Associated issues, Agent attribution
+   and Delivery once HA#321 lands are a compact footer outside the cap.
+2. One `verify` id has kind-specific titles: product **How to verify** with numbered manual steps;
+   library **How a consumer verifies** with Consumer scenario / Call or import / Expected and the
+   command against the published artifact; process **What the guards prove** with Behavior changed /
+   Lane or verb run / Refuses on / Passes on and a named fixture. The non-product forms satisfy
+   `CON-17(b)`'s observable proxy; no handbook amendment.
+3. Consumer `nen/workflow.json → pr.sections` carries every default matrix cell; `$sections` beside
+   it lists every available id and purpose. An edited cell becomes consumer-owned.
+4. Six work families and the full default matrix are adopted, over classify's five derived domains.
+   [The catalogue](../contracts/pr-sections.json) owns the 39 job assignments, count fold and tie order;
+   [PR-SECTIONS.md](PR-SECTIONS.md) renders the matrix and procedure.
+5. Emoji-prefixed headings and table glyphs are adopted. Every heading matcher tolerates the prefix.
+6. The prose budget is 150 words per section outside tables, fences and diagrams: **warn, never refuse**.
+7. What this improves lists Observability, Security, Traceability, End-user experience, Autonomy,
+   Stability, Performance, Maintainability, Cost, Portability and Accessibility on every PR, marked
+   ⬆ improves / ➖ unchanged / ⬇ regresses. Unchanged rows need no explanation. The later release
+   exception below narrows “every PR”.
+
+Defaults stated on canon: Economics stays its own section with Leorio's summary visible and full
+report collapsed; internal headings embed at level 3 or deeper. The flow folds into How as a second
+diagram only when flow changed. Delivery is reserved for HA#321. The body opens with What this changes
+for you (`CON-17(a)`). Per-section fragments under `templates/pr-body/` retire `templates/pr-body.md`.
+HA#351 authorizes interim resolver/sections-check scripts until a released Nen pin carries NN#448;
+merging that dependency alone does not move Hatsu's pin. The seven-section cap includes Economics.
+
+### Clarification of 2026-10-20 — release keeps its written matrix
+
+Asked whether the improves-on-every-PR ruling overrides the release matrix, the maintainer answered
+**“Keep the release matrix as written.”** Release is therefore the explicit exception: its adopted
+cells omit `improves`, leaving room for Economics under the cap. Every other family retains the full
+eleven-aspect ladder. This is an actual maintainer clarification, not an inferred relaxation.

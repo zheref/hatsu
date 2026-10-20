@@ -59,7 +59,7 @@ fi
 [ -f "$root/.claude-plugin/plugin.json" ] || { echo "pr_composition_check.sh: '$root' is not a Hatsu checkout (no .claude-plugin/plugin.json)" >&2; exit 2; }
 command -v python3 >/dev/null 2>&1 || { echo "pr_composition_check.sh: python3 is required" >&2; exit 2; }
 
-exec python3 -I - "$root" <<'PY'
+exec python3 -I - "$root" "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pr_sections.py" <<'PY'
 import json
 import os
 import re
@@ -136,7 +136,7 @@ if not isinstance(decl, dict) or decl.get("contract") != "hatsu.pr-composition/v
 
 # --- 1. the declaration's shape ------------------------------------------------------------------
 body = decl.get("bodyRequirements") if isinstance(decl.get("bodyRequirements"), dict) else {}
-for key in ("file", "template"):
+for key in (("file", "catalogue") if "catalogue" in body else ("file", "template")):
     if not isinstance(body.get(key), str) or not body.get(key):
         findings.append(f"{DECL}: bodyRequirements.{key} is missing")
 optional = body.get("optionalHeadings", [])
@@ -235,6 +235,30 @@ if (isinstance(body.get("file"), str) and isinstance(body.get("template"), str)
             without = "".join(f"## {h}\n\nfilled.\n\n" for h in expected if h != name)
             if regex.search(without):
                 findings.append(f"{body['file']}: {name!r} matches a body without `## {name}`, so it checks nothing")
+
+# HA#351: validate every catalogue cell, then the checked default requirements.
+if "catalogue" in body:
+    from pathlib import Path
+    import runpy
+    try:
+        if body["catalogue"] != "contracts/pr-sections.json":
+            raise ValueError("bodyRequirements.catalogue must name contracts/pr-sections.json")
+        if not confined(body["catalogue"], "bodyRequirements.catalogue") or not confined(body["file"], "bodyRequirements.file"):
+            raise ValueError("body requirements paths escape the checkout")
+        engine = runpy.run_path(sys.argv[2])
+        cat = engine["catalogue"](Path(root))
+        family = body["defaultFamily"]
+        expected = engine["resolve"](cat, Path(root), body["defaultKind"], [cat["families"][family][0]], {"policy-hit"})["requirements"]
+        if load(body["file"]) != expected:
+            findings.append(f"{body['file']}: drifts from catalogue default {body['defaultKind']}.{family}")
+        for row in cat["sections"] + cat["footer"]:
+            text = read_text(row["template"])
+            if f"<!-- block: {row['id']};" not in text:
+                findings.append(f"{row['template']}: missing block marker")
+            if re.search(r"no CHANGELOG entry:", text, re.I):
+                findings.append(f"{row['template']}: carries the fragment opt-out phrase")
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        findings.append(f"PR sections catalogue: {error}")
 
 # --- 3 and 4. the WORKFLOW section, and no second copy anywhere -----------------------------------
 FLAG = re.compile(r"--(policy-paths|process-paths|spec-paths)(?:=|\s+)[\"']?([^\s\"'`]*)")
