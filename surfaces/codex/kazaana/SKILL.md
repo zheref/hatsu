@@ -81,10 +81,10 @@ Futon § 3–§ 6 hold: the stage label under the delegation, `nen loop slots --
 **Each issue is authored and published by one delegate in its own worktree**, raised as a **builder
 effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter
 ([`claude/rules/hatsu.md`](../../../claude/rules/hatsu.md) § 6: Antigravity `Workspace: "branch"`) — titled `kazaana · kurapika · <alias>`, bound to
-`<core>/.nen/worktrees/<surface>/<name>`, handed the absolute path, the issue, its stack base and aka § 0's push scope. **Its model is `direct`'s primary pick for that issue** — `.nen/direct/<effort>.json`,
+`<core>/.nen/worktrees/<surface>/<name>`, handed the absolute path, the issue, its stack base and aka § 0's push scope, never raw `gh pr create`. **Its model is `direct`'s primary pick for that issue** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; the effort dial is passed where the raise exposes one and is **residue** where it does
-not (Claude Code's Agent tool carries none). The primary is never the frontier tier. **The delegate runs
+not (the Agent tool carries none). The primary is never the frontier tier. **The delegate runs
 `ren` then `aka`** — on a canon repository (`nen repo classify` → `role: canon`)
 [`great-hiker`](../great-hiker/SKILL.md) §§ 3–5 in `ren`'s place, mirrors, bump and checks, **in the
 delegate, at its tier**: great-hiker § 2 raises no second subsession here (ruling 2026-10-13, 1). **This
@@ -92,7 +92,7 @@ session runs `mukai` and `en` per effort, one at a time**: a subagent raises no 
 reviewers, Illumi), and hanten § 4's reviewer checkouts are per persona. `en` is started per PR by this
 run, never offered; **a delegate never asks the wrap-up** (§ 7).
 
-**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6 by number, never restated
+**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6, never restated
 (the maintainer's word: *"Use stacked PRs ONLY when necessary, otherwise target `main` directly"*).
 Kazaana's own clause: **disjoint efforts are never stacked** — each cut from `origin/<branch.base>` and
 opened against it; efforts sharing a path form one stack (rule 1), cut in order from the
@@ -143,12 +143,12 @@ blocked **and** the `then` step has run, halted, or is **held at its gate**. The
 [`rikugan`](../rikugan/SKILL.md) over this run's scope — issues, every PR, the proposal, the tag, the
 fan-out, the publish outcome — `final` only if every PR merged and the tag cut, else `register` with
 § 4's plan. Then **kazaana, once, asks the wrap-up picker** ([`cleanup`](../cleanup/SKILL.md) § 2, row
-`wrap-up`); no delegate asks it. **Kazaana never resumes itself**; re-invoke it.
+`wrap-up`). **Kazaana never resumes itself**; re-invoke it.
 
 ## Residue
 
 `nen direct registry --json` prints no `line`, so the surface → line read is the registry file (**owed to
-nen**, to file). Raising a delegate has no verb (nor its effort dial, § 3); the overlap read
+nen**, to file). Raising a delegate has no verb; § 3 names the effort-dial residue; the overlap read
 has none. **Owed to nen**: `nen pr merge --release-unit` reading `aiReviewers` (getsuga § 3a) — to file.
 
 ## Authority
@@ -157,13 +157,13 @@ has none. **Owed to nen**: `nen pr merge --release-unit` reading `aiReviewers` (
   delegates at direct's primary tier; branch pushes (aka § 0); `mukai` and `en` per effort; the typed invocation as getsuga's
   advance go; the publish offer, and `mugetsu` on a publish answer only.
 - **Not permitted:** merging a delivery PR, a G1 label, a review vote, raw `gh pr create`, a
-  frontier-tier delegate, publishing without the answer, widening the selector.
+  frontier-tier delegate, a release without the answer, widening the selector.
 
 ## Hard limits
 
 - **Never merges into `main`** save getsuga § 3a's own proposal through `nen pr merge --release-unit`;
   **never presents that proposal as the maintainer's to merge** (§ 5).
 - **Never exceeds 7 local efforts**, never lets two delegates share a file, never stacks disjoint efforts.
-- **Never publishes without a publish answer**, never stars one, never offers where the policy does
+- **Never publishes a release without the answer**, never stars one, never offers where the policy does
   not list the kind or no destination is declared.
 - **Never raises a delegate on the frontier tier**, nor on a tier direct did not name.

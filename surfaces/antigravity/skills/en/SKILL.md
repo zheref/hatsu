@@ -212,7 +212,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 |---|---|---|---|
 | 1 | **landing report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai (`autoEn`) or typed from its offer in the same sitting with no newer human request, **00** still answers that mukai request |
 | 2 | **drive** | [`/sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
-| 3 | **catch up** | [`/murasaki`](../murasaki/SKILL.md) | **only when the branch is behind its PR's base** (`baseRefName`, § 2) |
+| 3 | **catch up** | [`/murasaki`](../murasaki/SKILL.md) | **only when the branch is behind its PR's base** (`baseRefName`, § 2); a typed composite's handoff passes through (aka § 0, second carve-out) |
 | 4 | **drive again** | [`/sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; each poll runs `nen wake verify` in dry-run (no `--run`), and `--run` only when a swallowed run is found; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **the bell, with the merge prompt** | this file, § 5; the report through [`/jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**, and only then — **not under `getsuga` § 3**, where the verdict returns to getsuga and § 3a merges, **nor for a PR off `branch.base`**, where en reports the verdict, the base and the guard's `retarget-pending` line and prompts nothing (§ 5) |

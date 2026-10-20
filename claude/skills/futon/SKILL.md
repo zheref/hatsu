@@ -97,7 +97,7 @@ restated. **A stack of per-issue PRs** is the other shape, the default on overla
 ## 6. Two concurrency budgets, counted separately
 
 ```bash
-nen loop slots --efforts efforts.json --ci-cap 2 --local-cap 7 --json
+nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --json
 ```
 
 The **CI** plane caps at 2, frees at PR-open, and holds only legacy-CI PRs. The **local** plane caps

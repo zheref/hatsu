@@ -268,12 +268,8 @@ line), `2` wiring; each gate's command and exit are printed, quoted, for the rep
 - A red check is § 5's. `--check` is given once per `iteration.checks` entry and the script runs every
   one, in order, before the authorship check; `scripts/publish_gate_check.sh` holds this block to the rule.
 
-**Under a typed futon or kazaana run this push is inside the run's delegated publication scope**
-([`hatsu:aka`](../aka/SKILL.md) § 0, second carve-out; zheref/hatsu#332). The caller's handoff
-carries the invocation quoted verbatim, the repository and the working branch; a push of a new commit
-to that branch asks nothing because the commit changed, and a different destination is outside the
-scope — assessed, said and asked. A host's approval refusal is quoted and resolved through that host's
-own approval path, never routed around; no earlier exact-commit approval narrows the scope.
+**Under a typed futon or kazaana run, this push's scope, handoff and host-refusal rule are
+[`hatsu:aka`](../aka/SKILL.md) § 0's second carve-out** (zheref/hatsu#332), cited, never restated.
 
 **The published test is the same one ao already ran, and its answer is re-used rather than
 re-derived** — the `strategy` `nen wc catch-up` reported:
