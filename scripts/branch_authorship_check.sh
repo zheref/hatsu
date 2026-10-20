@@ -25,12 +25,22 @@
 #      once before anything is judged by reading `git merge-tree -h`, which writes nothing, never a
 #      silently judged merge (zheref/hatsu#314). The proof runs only for a trailer-less merge whose
 #      exemption must be proved, and it writes its merged tree into a THROWAWAY object directory
-#      (GIT_OBJECT_DIRECTORY under mktemp, the repository's own objects read as its alternate,
-#      removed on exit), so the repository's object store is never written and needs no grant.
-#      Where git still cannot prove it (exit other than 0 clean or 1 conflicted — unrelated
-#      histories, a shallow or partial clone, a signal — or exit 0 with no tree id), that is a probe
-#      failure at exit 2 naming the commit, git's exit and its sanitised text — never a version
-#      diagnosis, never a finding, never a pass.
+#      (GIT_OBJECT_DIRECTORY at "${TMPDIR:-/tmp}/hatsu-proof.XXXXXX", the repository's own objects
+#      read as its alternate, removed on exit), so it adds no object to the repository's store and
+#      needs no grant there: git may refresh the mtime of an object the store already holds, and
+#      where that is refused the tree is written to the throwaway directory instead. The proof runs
+#      with GIT_NO_LAZY_FETCH=1, so a partial clone missing a blob it needs fails rather than
+#      fetching from the promisor remote on the caller's credentials — on git >= 2.44; an older
+#      git ignores the variable and may still fetch. Where git still cannot prove it (exit other
+#      than 0 clean or 1 conflicted — unrelated histories, a shallow clone, a partial clone that
+#      would need a fetch, a signal — or exit 0 with no tree id), that is a probe failure at exit 2
+#      naming the commit, git's exit and its sanitised text — never a version diagnosis, never a
+#      finding, never a pass.
+#   Every git read judges the objects as stored, which are the ones a push sends:
+#   GIT_NO_REPLACE_OBJECTS=1 ignores refs/replace (a replaced evil merge would otherwise be read as
+#   the clean one it is replaced by) and GIT_GRAFT_FILE names a path that cannot exist, so
+#   info/grafts cannot rewrite a commit's parents to skip or launder one. A shallow clone's
+#   boundary is not a graft and stays; the proof fails on it as above.
 #   2. IDENTITY (the weak signal): author AND committer email are in the allowed set — the
 #      repository's `user.email` plus every --allow-email, case-insensitive. A subagent on the
 #      maintainer's credentials shares that identity, so this catches only an explicit foreign one.
@@ -45,15 +55,24 @@
 # exit 2  a wiring error: no repository, an empty or unresolvable --base, an empty --allow-email,
 #         a --require-trailer or --require-agent value that is not a plain token, no allowed
 #         identity at all, --trunk on a git without `merge-tree --write-tree`, a merge-tree proof
-#         git could not complete, no throwaway object directory, or an unknown argument. Nothing
+#         git could not complete (a partial clone that would need a fetch among them), no
+#         throwaway object directory under "${TMPDIR:-/tmp}", or an unknown argument. Nothing
 #         was judged: no finding line is printed.
 #
 # Hatsu runs it from `$hatsu_root/scripts/` before aka's squash, before every post-review push
 # (aka § 7, murasaki § 6) and at hanten § 4's return. It never writes the repository: no ref, no
-# index, no working file, no object in its store. Its only write is the merge proof's tree, into a
-# throwaway object directory under mktemp that is removed on exit.
+# index, no working file, and it adds no object to its store (git may refresh the mtime of an object
+# the store already holds; where that is refused the tree is written to the throwaway directory).
+# Its only write is the merge proof's tree, into a throwaway object directory under
+# "${TMPDIR:-/tmp}" that is removed on exit.
 set -u
+# Judge the objects as stored, which are the ones a push sends: no replace refs, no grafts
+# (zheref/hatsu#314 round 2). A path under /dev/null can never exist, so no graft file is read.
+GIT_NO_REPLACE_OBJECTS=1
+GIT_GRAFT_FILE=/dev/null/no-grafts
+export GIT_NO_REPLACE_OBJECTS GIT_GRAFT_FILE
 proof_dir=''
+proof_root=''
 trap '[ -z "$proof_dir" ] || rm -rf "$proof_dir"' EXIT
 trap 'exit 129' HUP
 trap 'exit 130' INT
@@ -139,10 +158,12 @@ if [ -n "$trunk_sha" ] && ! git -C "$repo" merge-tree -h 2>&1 | grep -Fq -- '--w
 fi
 proof_fail() { # <commit> <detail> <stderr file>: a proof git could not complete — exit 2, nothing judged
   said="$(head -n 3 "$3" 2>/dev/null | tr '\n' ' ')"
+  quoted="$(clean "$said" | cut -c1-300)"
   echo "branch_authorship_check: the clean trunk-merge proof for $(git -C "$repo" rev-parse --short "$1") did not complete: $2; nothing was judged" >&2
-  [ -z "$said" ] || echo "branch_authorship_check: git said (untrusted): $(clean "$said" | cut -c1-300)" >&2
-  if grep -Eiq 'permission denied|operation not permitted|insufficient permission' "$3" 2>/dev/null; then
-    echo "branch_authorship_check: git's own text reports a permission refusal; the proof writes only into a throwaway object directory under \$TMPDIR and reads the repository, so that is where access is refused. Do not replace git: grant it through the harness's normal approval path" >&2
+  [ -z "$quoted" ] || echo "branch_authorship_check: git said (untrusted): $quoted" >&2
+  # Advice only when its trigger is in the quoted text the reader can see (SEC-15).
+  if printf '%s' "$quoted" | grep -Eiq 'permission denied|operation not permitted|insufficient permission'; then
+    echo "branch_authorship_check: git's own text reports a permission refusal; the proof writes only into a throwaway directory under $(clean "${proof_root:-/}") and reads the repository, so that is where access is refused. Do not replace git: grant it through the harness's normal approval path" >&2
   fi
   exit 2
 }
@@ -158,12 +179,18 @@ clean_trunk_merge() { # <commit>: a merge of the trunk whose tree is git's own c
   # The proof's tree goes into a throwaway object directory that reads the repository's objects as
   # its alternate, so the repository's store is never written (zheref/hatsu#314).
   if [ -z "$proof_dir" ]; then
-    proof_dir="$(mktemp -d 2>/dev/null)" && mkdir -p "$proof_dir/objects/info" \
+    # A template, so macOS honours TMPDIR (bare `mktemp -d` uses the per-user confstr directory);
+    # absolute, because GIT_OBJECT_DIRECTORY is read relative to the repository, not to here.
+    proof_root="${TMPDIR:-/tmp}"; proof_root="${proof_root%/}"
+    case "$proof_root" in /*|'') ;; *) proof_root="$(pwd -P)/$proof_root" ;; esac
+    proof_dir="$(mktemp -d "${proof_root}/hatsu-proof.XXXXXX" 2>/dev/null)"
+    [ -n "$proof_dir" ] && [ -d "$proof_dir" ] && mkdir -p "$proof_dir/objects/info" \
       && git -C "$repo" rev-parse --path-format=absolute --git-path objects > "$proof_dir/objects/info/alternates" \
-      || { echo 'branch_authorship_check: could not set up a throwaway object directory for the merge proof (mktemp -d); nothing was judged' >&2; exit 2; }
+      || { echo "branch_authorship_check: could not set up a throwaway object directory for the merge proof under $(clean "${proof_root:-/}"); nothing was judged" >&2; exit 2; }
   fi
   # stdout and stderr apart: the tree id is read from stdout's first line only; stderr is quoted.
-  GIT_OBJECT_DIRECTORY="$proof_dir/objects" git -C "$repo" merge-tree --write-tree "$ctm_first" "$1" \
+  # No lazy fetch (git >= 2.44): a partial clone missing a blob fails closed, offline (SEC-9).
+  GIT_NO_LAZY_FETCH=1 GIT_OBJECT_DIRECTORY="$proof_dir/objects" git -C "$repo" merge-tree --write-tree "$ctm_first" "$1" \
     > "$proof_dir/out" 2> "$proof_dir/err"; rc=$?
   # 1 is a conflict: not clean, so the merge is judged. Anything else but 0 is no verdict.
   [ "$rc" -eq 1 ] && return 1
