@@ -108,7 +108,11 @@ owners=()
 names_file=""
 allow_empty=0
 target=""
-ignore_file="${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/redaction-ignore"
+# Neither XDG_CONFIG_HOME nor HOME set leaves no default; that is a wiring fault (exit 2) below, never
+# bash's own unbound-variable exit 1, which reads as a finding.
+if [ -n "${XDG_CONFIG_HOME:-}" ]; then ignore_file="$XDG_CONFIG_HOME/hatsu/redaction-ignore"
+elif [ -n "${HOME:-}" ]; then ignore_file="$HOME/.config/hatsu/redaction-ignore"
+else ignore_file=""; fi
 ignore_explicit=0
 label="<stdin>"
 tree=""
@@ -193,9 +197,10 @@ LC_ALL=C sort -u -o "$list" "$list"
 if ! grep -q . "$list"; then
   [ "$allow_empty" -eq 1 ] || die "the names file holds no names; pass --allow-empty if that is meant (an unset CI secret reads exactly like this)"
 fi
+[ -n "$ignore_file" ] || die "neither XDG_CONFIG_HOME nor HOME is set, so there is no default ignore file; pass --ignore-file <path>"
 n_ignored=0
 ignore_read=0
-if [ -e "$ignore_file" ] || [ "$ignore_explicit" -eq 1 ]; then
+if [ -e "$ignore_file" ] || [ -L "$ignore_file" ] || [ "$ignore_explicit" -eq 1 ]; then
   ignore_read=1
   [ -f "$ignore_file" ] && [ -r "$ignore_file" ] || die "cannot read ignore file '$ignore_file'"
   sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "$ignore_file" \
@@ -240,7 +245,7 @@ fi
 [ "$n_stdin" -eq 0 ] || cat > "$tmp/stdin" || die "cannot read stdin"
 
 if [ "$n_names" -eq 0 ]; then
-  echo "private_name_check: ok -- no private repositories to look for (--allow-empty; $n_ignored ignored)"
+  echo "private_name_check: ok -- no private repositories to look for (--allow-empty; $ignore_desc)"
   exit 0
 fi
 
