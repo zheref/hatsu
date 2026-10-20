@@ -285,13 +285,13 @@
         "label",
         "label+comment"
       ],
-      "describe": "Whether hatsu:classify also writes its resolved criteria to the issue: label applies the lang/ and job/ labels only (through nen classify apply, ledgered); label+comment adds one marker-keyed issue comment per labelled issue with the applied keys, their confidence and cited signals, the low keys and any undecidable axis. Acts standalone, under build, or under file once the issue is created, never under ren or for an inline effort.",
+      "describe": "Whether hatsu:classify also writes its resolved criteria to the issue, read at the default branch's tip: label applies the lang/ and job/ labels only (through nen classify apply, ledgered); label+comment adds one marker-keyed criteria comment per classified issue, every decided key with confidence, status and signal category, never issue text (the contract: contracts/classify.taxonomy.json -> publish). Acts standalone, under build, or under file once the issue is created, never under ren or for an inline effort.",
       "readers": [
         "classify",
         "build",
         "file"
       ],
-      "source": "docs/WORKFLOW.md § 2 (classify); claude/skills/classify/SKILL.md § 5b"
+      "source": "docs/WORKFLOW.md § 2 (classify); contracts/classify.taxonomy.json -> publish"
     },
     {
       "id": "workflow.direct.publish",
