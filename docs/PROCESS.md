@@ -346,29 +346,40 @@ request bound. Unavailability is observed, never declared; the stop it can lead 
 
 **Event-driven reviewer lanes** (the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings
 of 2026-10-19 — the CI reviewers tier*; zheref/hatsu#330 — **stated once, here**; `sharingan` § 6, `en` §§ 5–6,
-`shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers` and
-[`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3 cite this paragraph). A **lane** is a CI reviewer — an
-Akatsuki tier lane (`AK`), installed by `kuchiyose` — that runs on every push to the pull request and posts
-under its own GitHub App login. Its **round is its formal review posted under that login at the judged
-head**. **It is never requested**: never in `base_reviewers`, and `shibari` and `sharingan` call `nen pr
-request-reviews` for no `reviewers[]` entry that carries no request path — today that is read from
-`base_reviewers`; a nen field declaring it is zheref/nen#440. **A push re-owes the round and the lane answers
-it by re-running** (`cancel-in-progress`), so an owed round with the lane's run in flight is a **wait** —
-its check pending at head holds `checks-green` like any running check — never a request and never a stall
-by itself. **A lane whose check concluded green with no review at head is unavailable** (unprovisioned: the
-lane exits green without running, `AK`'s reviewer-lane issue): nen reads it as a member with no round-check
-run at head, so a met quorum excuses it; otherwise it is owed, and it is not one of *The sixth stop*'s (c)
-observations until nen exposes it structurally (zheref/nen#440). **`round_check_pattern` is declared only
-for a lane whose check is its round**, one that fails rather than passes when it did not review; a lane
-that exits green unprovisioned would be counted for a round it never ran. A posted-review lane's
-`reviewers[]` entry declares `login_pattern` (anchored to the App's exact login) and `review_check_pattern`
-only. **The quorum** (ruling *"Join any_of, minimum 2 when 2+ lanes installed"*): every installed lane
-joins `round_quorum.any_of` — which keeps (e) below true — and `minimum` is `2` once two or more lanes are
-installed, `1` otherwise. **The consequence, accepted with the ruling:** with `minimum` `2`, a PR on which
-only one bot has a round while another member is still available (a lane in flight, or a bot that can still
-be requested) is `rounds-owed` under `sharingan` § 6's bounds — not-ready at `cap-reached`'s terminus once
-a bound is reached — and *The sixth stop* is reached only when every member is unavailable; under an
-effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged.
+`shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`,
+[`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3, [`WORKFLOW.md`](WORKFLOW.md) § 2 (`aiReviewers`, `ci`),
+`docs/config/{workflow,gates,decisions}.json.md` and that ROSTER section cite this paragraph). A **lane** is
+a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331, to land) — that
+runs on every push to the pull request and posts under its own GitHub App login. **Its round is its formal
+review posted under that login.** Under the `bounded` reading Hatsu runs, a review at any earlier head
+counts, because no request of the lane is ever pending; and a lane, outside `base_reviewers` with no
+`enrolment_check_pattern`, is **never owed on its own** — nen counts it toward `round_quorum` only. **It is
+never requested**: never in `base_reviewers`, and `shibari` and `sharingan` never call `nen pr
+request-reviews` for a lane; a nen field declaring that is zheref/nen#440. **A push re-runs the lane**
+(`cancel-in-progress`), and its check, pending at the new head, holds `checks-green` like any running check
+until it concludes: that is the current-head wait — never a request, and never a stall by itself; a lane
+check still `QUEUED` or `WAITING` past `round_policy.stallMinutes` is a named impossible condition for the
+watch, reported not-ready with the check's state quoted (this delivery's reading). nen enforces no review
+**at** the new head: a lane that concludes green there without reviewing still reads as having its earlier
+round; a per-reviewer strict reading is owed to zheref/nen#440. **A lane whose check concluded green with no
+review is unavailable** (unprovisioned: the lane exits green without running, `AK`'s reviewer-lane issue):
+nen counts no round for it, so a met quorum covers it and an unmet one is owed through the quorum clause.
+**`round_check_pattern` is declared only for a lane whose check is its round**, and that check's conclusion
+when the lane did not review must be `NEUTRAL` or `SKIPPED` — never `SUCCESS`, which nen would count as a
+round nobody ran, and never `FAILURE`, which fails `checks-green` (`CON-32(a)`) on every head the lane sits
+out; its `NEUTRAL` or `SKIPPED` at head is one of *The sixth stop*'s (c) observations. A posted-review
+lane's `reviewers[]` entry declares `login_pattern` (anchored to the App's exact login) and **no
+`round_check_pattern`**; a `review_check_pattern` may name its check, and nen reads that key only for a
+`delivery_holistic_pass` reviewer. **The quorum** (ruling *"Join any_of, minimum 2 when 2+ lanes
+installed"*): every installed lane joins `round_quorum.any_of` — which keeps (e) below true — and `minimum`
+is `2` once two or more lanes are installed, `1` otherwise. **The consequence, accepted with the ruling:**
+with `minimum` `2`, a PR on which only one bot has a round while another member is still available (a lane
+in flight, or a bot that can still be requested) is `rounds-owed` under `sharingan` § 6's bounds —
+not-ready at `cap-reached`'s terminus once a bound is reached — and *The sixth stop* is reached only when
+every member is unavailable **by (c)'s observations**; a posted-review lane makes none of them (it is never
+requested, and declares no round check) until zheref/nen#440 exposes its state, so under `required` a PR
+whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
+Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on
@@ -454,7 +465,7 @@ reads are residue, named.
 |---|---|---|---|
 | **`required`** (absent reads the same — every consumer keeps today's behaviour) | requested within `round_policy`'s caps (`sharingan` § 6) | expected | verified Ready, or *The sixth stop* (a)–(e) above |
 | **`optional`** | requested within the caps | never waited for | Ready, or the **hanten prompt** below |
-| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero AI-reviewer spend | never waited for | Ready, or the **hanten prompt** below |
+| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero spend on requested reviewers (installed CI lanes still run: *Event-driven reviewer lanes*) | never waited for | Ready, or the **hanten prompt** below |
 
 **The hanten prompt** (under an effective `optional` or `off`): when `nen pr ready <ref> --json` at the
 judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,

@@ -26,7 +26,7 @@ Who counts as a review round. One entry per identity, bot or human, declared the
 |---|---|---|---|---|
 | `name` | string | a short identity (`copilot`, `bugbot`) · required | the handle the other keys use | `nen pr ready`; `pr-state`, `sharingan`, `en`, `getsuga` through it |
 | `login_pattern` | `{pattern, ignoreCase}` | an anchored regex over the bot's exact logins · required | which GitHub login's review is this reviewer's round | `nen pr ready` (`CON-32(b)`) |
-| `round_check_pattern` | `{pattern, ignoreCase}` | optional; absent for a reviewer that posts reviews | the check whose `SUCCESS` run is the round, for a bot that reviews as a check — for a CI reviewer lane, only one whose check fails when it did not review (PROCESS, *Event-driven reviewer lanes*) | `nen pr ready`; counted by `round_quorum` |
+| `round_check_pattern` | `{pattern, ignoreCase}` | optional; absent for a reviewer that posts reviews | the check whose `SUCCESS` run is the round, for a bot that reviews as a check — for a CI reviewer lane, only one whose check concludes `NEUTRAL` or `SKIPPED` when it did not review (PROCESS, *Event-driven reviewer lanes*) | `nen pr ready`; counted by `round_quorum` |
 | `bounded_policy_exempt` | boolean | optional | a reviewer nothing re-requests after a push, so only a pending request owes a round | `nen pr ready` under the `bounded` policy |
 | `review_check_pattern`, `enrolment_check_pattern`, `approves_when_posted_at_head`, `delivery_holistic_pass` | pattern objects, booleans | optional; present in [`contracts/reference.gates.json`](../../contracts/reference.gates.json) | nen's per-reviewer options for check-shaped reviewers; their semantics are nen's and are not restated here | `nen pr ready` |
 

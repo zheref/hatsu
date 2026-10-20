@@ -303,7 +303,7 @@
         "optional",
         "off"
       ],
-      "describe": "Whether this repository uses and expects its automated (AI) reviewers -- every bot in nen/gates.json reviewers[]. required: requested within round_policy's caps and expected; the merge prompt comes only at verified Ready or at PROCESS's sixth stop. optional: requested within the caps but not waited for; with nen pr ready failing exactly rounds-owed and hanten settled, the PR goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. off: never requested (zero AI-reviewer spend), the same prompt as optional. Neither relaxes any other readiness row.",
+      "describe": "Whether this repository uses and expects its automated (AI) reviewers -- every bot in nen/gates.json reviewers[]. required: requested within round_policy's caps and expected; the merge prompt comes only at verified Ready or at PROCESS's sixth stop. optional: requested within the caps but not waited for; with nen pr ready failing exactly rounds-owed and hanten settled, the PR goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. off: never requested (zero spend on requested reviewers; installed CI reviewer lanes still run and are turned off through the consumer's caller workflow -- PROCESS, Event-driven reviewer lanes), the same prompt as optional. Neither relaxes any other readiness row.",
       "readers": [
         "sharingan",
         "en"

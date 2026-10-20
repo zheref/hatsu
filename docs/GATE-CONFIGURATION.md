@@ -64,7 +64,7 @@ login, so a bot and a human are declared the same way.
 never reviews means a round is owed at every head and the gate never closes. A pattern that is too
 broad means any drive-by comment satisfies a round.
 
-**A CI reviewer lane** (an Akatsuki tier lane, written by `kuchiyose`) is declared beside Copilot in one
+**A CI reviewer lane** (an Akatsuki tier lane, written by `kuchiyose` — zheref/hatsu#331, to land) is declared beside Copilot in one
 of two shapes, read from the tier catalogue's `roundShape` for that lane — the names and logins below
 show the shapes, not which lane has which:
 
@@ -78,11 +78,13 @@ show the shapes, not which lane has which:
 ```
 
 - **Posted review** (`sasuke` above) — the round is the formal review the lane posts under its App login
-  at the head: `login_pattern` and `review_check_pattern` only, both anchored. **Never a
-  `round_check_pattern`** for such a lane: an unprovisioned lane exits green without reviewing, and a
-  green round check would count a round nobody ran.
-- **Check is the round** (`kakuzu` above) — only for a lane whose check fails rather than passes when it
-  did not review: `round_check_pattern` names that check, anchored.
+  (under `bounded`, at any earlier head): `login_pattern`, anchored, and **never a `round_check_pattern`**
+  — an unprovisioned lane exits green without reviewing, and a green round check would count a round
+  nobody ran. `review_check_pattern` may name the lane's check, anchored; nen reads it only for a
+  `delivery_holistic_pass` reviewer.
+- **Check is the round** (`kakuzu` above) — only for a lane whose check concludes `NEUTRAL` or `SKIPPED`
+  when it did not review: `round_check_pattern` names that check, anchored. Never one that concludes
+  `SUCCESS` then (a round nobody ran) or `FAILURE` (it fails `checks-green` on every head it sits out).
 
 Neither shape is ever in `base_reviewers` — a lane is never requested — and every installed lane joins
 `round_quorum.any_of` (below). The behaviour is [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
