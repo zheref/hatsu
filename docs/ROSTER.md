@@ -907,6 +907,25 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-20 — zheref/nen's gate path sets
+
+**Source:** the maintainer's answer through the picker, 2026-10-20, during hanten round 1 of
+zheref/hatsu#334. The question and the answer are recorded verbatim; the option's text, as the picker
+presented it, opens the third column in quotes.
+
+| Question | The maintainer's answer, verbatim | What it settles |
+|---|---|---|
+| *For nen's gate row, which paths should derive G4?* | `⭐ A · All but LICENSE/.gitignore` | Option text: *"Every top-level entry incl. .github/, changelog.d/, .gitattributes, bunfig.toml, .npmrc derives G4; only LICENSE and .gitignore G2; a tree-freshness check owed."* |
+
+**What follows:**
+
+- **The row.** [`contracts/pr-composition.json`](../contracts/pr-composition.json) → `gateDerive.zheref/nen` lists every top-level entry of nen's tracked tree at `v0.23.0` (`1d2fb6f`) and at nen `main` on 2026-10-20: `.github/` whole rather than only `.github/workflows/`, `changelog.d/` and `.gitattributes` included, and `bunfig.toml` and `.npmrc` as literal entries though absent from both trees. `nen/` and `schemas/` stay the policy set and the rest is the process set. Only `LICENSE` and `.gitignore` derive `G2`. Each member's reason is in the row's `$comment`, and `scripts/pr_composition_check_fixture.sh` records the gate each representative change derives, asked of `nen gate derive` itself.
+- **The fall-through, stated.** A top-level entry nen adds later that neither set lists derives `G2` until the row moves. That is why the **tree-freshness check** is owed: at a repin, list nen's tree at the pinned tag and fail when a top-level entry is in neither set nor the explicit `G2` list (`LICENSE`, `.gitignore`). It is recorded in [`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies* and is not yet filed.
+- **For nen only.** zheref/hatsu's own row is unchanged, so a diff of only its `README.md` or `CHANGELOG.md` still derives `G2` there.
+- **Who holds the sets.** Hatsu holds zheref/nen's sets until nen has a declared home of its own that `nen gate derive` reads. That home is owed to nen and is not yet filed.
+
+---
+
 ## Rulings of 2026-10-19 — every new filing runs classify and direct
 
 **The maintainer's request, verbatim**, on `hatsu:kurapika`, 2026-10-19:

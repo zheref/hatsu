@@ -153,6 +153,9 @@ for repo, row in rows.items():
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repo) or not isinstance(row, dict):
         findings.append(f"{DECL}: gateDerive row {repo!r} is not an owner/name key holding an object")
         continue
+    for key in row:
+        if key not in ("policyPaths", "processPaths", "$comment"):
+            findings.append(f"{DECL}: gateDerive.{repo} carries key {key!r}, which nen gate derive never reads (only policyPaths, processPaths and $comment)")
     policy = path_list(row.get("policyPaths"), f"gateDerive.{repo}.policyPaths")
     process = path_list(row.get("processPaths"), f"gateDerive.{repo}.processPaths")
     if not policy and not process:

@@ -1788,15 +1788,20 @@ nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
   never improvising one, and the row is written by a Hatsu PR at Hatsu's `G4`.
 - **`zheref/hatsu`'s process set carries `contracts/` and `templates/`**, so a diff of the
   declaration, `contracts/pr-body.requirements.json` or `templates/pr-body.md` derives `G4`, as it
-  did while this section held the sets — **this run's reading, the maintainer's to confirm at the
-  `G4` merge (zheref/hatsu#171)**.
+  did while this section held the sets — **confirmed by the maintainer's ruling of 2026-10-13**
+  ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, small ruling 2; zheref/hatsu#171).
 - **`zheref/nen` has its own row** (zheref/hatsu#334): its sets, and why each member is in them,
   are the row's and its `$comment`'s, never restated here; the representative changes and the gate
-  each derives are `pr-composition-guard`'s cases, decided by `nen gate derive` itself — **this
-  run's reading, the maintainer's to confirm at the `G4` merge**. Every other canon repository
-  still has no row until one is written, and no row stands in for all of them.
-- **`--files` is caller data** — the verb fetches nothing — and comes from
-  `gh pr diff <n> --repo <owner/name> --name-only`. A wrong file set gives the verb, and
+  each derives are `pr-composition-guard`'s cases, decided by `nen gate derive` itself — **the
+  maintainer's ruling of 2026-10-20** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-20 —
+  zheref/nen's gate path sets*). Every other canon repository still has no row until one is
+  written, and no row stands in for all of them.
+- **`--files` is caller data** — the verb fetches nothing — and must carry **both sides of every
+  rename**, so it comes from
+  `gh api repos/<owner>/<name>/pulls/<n>/files --paginate --jq '.[] | .filename, (.previous_filename // empty)'`,
+  or locally from `git diff --name-only --no-renames <base>...<head>`. `gh pr diff --name-only`
+  lists only a rename's new name, so moving and rewriting a process file out of its set derived
+  `G2` (SEC-14, zheref/hatsu#334). A wrong file set gives the verb, and
   `nen changelog fragment-required` beside it, a confident wrong answer.
 - **The declaration keeps both `nen/` and `schemas/`**: a prefix is taken literally and nen's own
   taxonomy resolution never sees it, so an un-migrated target still edits a real `schemas/*.json` and

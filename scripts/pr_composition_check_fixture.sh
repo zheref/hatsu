@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Focused, declared verification for scripts/pr_composition_check.sh (zheref/hatsu#171).
-# Hermetic and offline: every case builds a throwaway Hatsu-shaped tree under a temp dir, runs the
-# checked-in guard on it, and asserts the exit code and one line of its output; the last case runs the
-# guard on this repository itself. Requires bash and python3 (the guard's own dependency), and nen
-# (NEN=<path> or on PATH) for the zheref/nen row cases, which ask nen gate derive itself.
+# Every guard case builds a throwaway Hatsu-shaped tree under a temp dir, runs the checked-in guard on
+# it, and asserts the exit code and one line of its output; the zheref/nen cases read this
+# repository's own declaration and need the host's nen; the last case runs the guard on this
+# repository itself. Requires bash and python3 (the guard's own dependency), and jq and nen
+# (NEN=<path> or on PATH, at nen/contract.json's dependency.minimum or later) for the zheref/nen row
+# cases, which ask nen gate derive itself; a missing one is a wiring refusal at exit 2.
 # Invoked only through `nen shu test --lane pr-composition-guard --repo <hatsu>`.
 set -euo pipefail
 
@@ -202,17 +204,29 @@ t="$(make_tree wildcard-row)"
 sed -i.bak 's#"owner/repo"#"*/*"#' "$t/contracts/pr-composition.json"
 run_case 'a wildcard row standing for every canon repository is refused' 1 "$t" "gateDerive row '*/*' is not an owner/name key"
 
+# --- a gate row key the verb never reads is refused (QA-16, zheref/hatsu#334) -----------------------
+t="$(make_tree misspelled-key)"
+sed -i.bak 's#"owner/repo": {"policyPaths"#"owner/repo": {"policyPath": ["src/"], "policyPaths"#' "$t/contracts/pr-composition.json"
+run_case 'a gate row key the verb never reads (policyPath) fails by name' 1 "$t" 'policyPath'
+
 # --- zheref/nen's row derives the recorded gates (zheref/hatsu#334) ---------------------------------
 # The expected gate of each representative change is recorded here, its basis in the row's own
-# $comment; nen gate derive decides each one from the declared sets, read off this repository's
-# declaration, so the fixture re-implements no matcher. A missing row or a missing nen fails loud.
+# $comment and the maintainer's ruling of 2026-10-20 (docs/ROSTER.md); nen gate derive decides each
+# one from the declared sets, read off this repository's declaration, so the fixture re-implements no
+# matcher. A missing jq or nen, or a nen below the declared minimum, is a wiring refusal (exit 2); a
+# missing row is a red case (exit 1).
+command -v jq >/dev/null 2>&1 || { echo "zheref/nen row cases: jq not found (install jq 1.6 or newer)" >&2; exit 2; }
 nen_bin="${NEN:-nen}"
-command -v "$nen_bin" >/dev/null 2>&1 || { echo "zheref/nen row cases: '$nen_bin' not found (set NEN=<path> or put nen on PATH)" >&2; exit 1; }
-nen_sets="$(python3 -I -c 'import json, sys
-row = json.load(open(sys.argv[1], encoding="utf-8"))["gateDerive"].get("zheref/nen")
-if not isinstance(row, dict): sys.exit("contracts/pr-composition.json declares no gateDerive.zheref/nen row")
-print(",".join(row["policyPaths"])); print(",".join(row["processPaths"]))' "$repo_root/contracts/pr-composition.json")" || exit 1
-nen_policy="$(sed -n 1p <<<"$nen_sets")"; nen_process="$(sed -n 2p <<<"$nen_sets")"
+command -v "$nen_bin" >/dev/null 2>&1 || { echo "zheref/nen row cases: '$nen_bin' not found (set NEN=<path> or put nen on PATH)" >&2; exit 2; }
+nen_min="$(jq -r '.dependency.minimum // empty' "$repo_root/nen/contract.json")"
+nen_have="$("$nen_bin" --version 2>/dev/null | sed -n 's/^[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' | head -n 1)"
+if [ -z "$nen_min" ] || [ -z "$nen_have" ] || [ "$(printf '%s\n%s\n' "$nen_min" "$nen_have" | sort -t. -k1,1n -k2,2n | head -n 1)" != "$nen_min" ]; then
+  echo "zheref/nen row cases: nen '${nen_have:-unknown}' is below nen/contract.json dependency.minimum '${nen_min:-unset}'" >&2; exit 2
+fi
+row='.gateDerive["zheref/nen"]'
+jq -e "$row | type == \"object\"" "$repo_root/contracts/pr-composition.json" >/dev/null || { echo "contracts/pr-composition.json declares no gateDerive.zheref/nen row" >&2; exit 1; }
+nen_policy="$(jq -r "$row.policyPaths | join(\",\")" "$repo_root/contracts/pr-composition.json")"
+nen_process="$(jq -r "$row.processPaths | join(\",\")" "$repo_root/contracts/pr-composition.json")"
 
 derive_case() {
   local name="$1" expected="$2" text="$3" files="$4" out status
@@ -230,10 +244,15 @@ derive_case 'zheref/nen own contract derives G4 as policy' G4 'policy/spec (nen/
 derive_case 'zheref/nen gates policy derives G4' G4 'policy/spec (nen/)' 'nen/gates.json'
 derive_case 'zheref/nen verb spec derives G4' G4 'process surface (docs/)' 'docs/USAGE.md'
 derive_case 'zheref/nen README derives G4' G4 'process surface (README.md)' 'README.md'
-derive_case 'zheref/nen release workflow derives G4' G4 'process surface (.github/workflows/)' '.github/workflows/release-assets.yml'
+derive_case 'zheref/nen release workflow derives G4' G4 'process surface (.github/)' '.github/workflows/release-assets.yml'
 derive_case 'zheref/nen bootstrap derives G4' G4 'process surface (bootstrap/)' 'bootstrap/nen.sh'
 derive_case 'zheref/nen dependency manifest derives G4' G4 'process surface (package.json)' 'package.json'
-derive_case 'zheref/nen repository housekeeping alone derives G2' G2 'touches neither path set' 'LICENSE,.gitignore,.gitattributes'
+derive_case 'zheref/nen LICENSE and .gitignore alone derive G2' G2 'touches neither path set' 'LICENSE,.gitignore'
+derive_case 'zheref/nen .gitattributes alone derives G4' G4 'process surface (.gitattributes)' '.gitattributes'
+derive_case 'zheref/nen changelog fragment alone derives G4' G4 'process surface (changelog.d/)' 'changelog.d/409-registry-line-explicit-prune.md'
+derive_case 'zheref/nen dependabot config derives G4' G4 'process surface (.github/)' '.github/dependabot.yml'
+derive_case 'zheref/nen bunfig.toml derives G4' G4 'process surface (bunfig.toml)' 'bunfig.toml'
+derive_case 'zheref/nen bootstrap renamed out of its set derives G4 on its old side' G4 'process surface (bootstrap/)' 'nen.sh,bootstrap/nen.sh'
 derive_case 'zheref/nen housekeeping beside source derives G4' G4 'process surface (src/)' '.gitignore,src/gate/derive.ts'
 
 # --- and the repository itself ----------------------------------------------------------------------

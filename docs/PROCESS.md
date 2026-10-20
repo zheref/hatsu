@@ -672,6 +672,14 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `nen pr ready` row, not yet filed (origin zheref/hatsu#203). Until it lands, shibari and en quote
   the guard's `0` beside the verdict (BC-11 reads the guard's branching shell as a verb's job, a G4
   question until the verb lands).
+- **`contracts/pr-composition.json` → `gateDerive.zheref/nen`** (zheref/hatsu#334; [`ROSTER.md`](ROSTER.md)
+  § *Rulings of 2026-10-20 — zheref/nen's gate path sets*). Two items are owed, and neither is filed yet.
+  **A tree-freshness check at repin**: list nen's tree at the pinned tag (`gh api repos/zheref/nen/git/trees/<tag>`)
+  and fail when a top-level entry is in neither of the row's sets nor its explicit `G2` list (`LICENSE`,
+  `.gitignore`). Until that check exists, a top-level entry nen adds later derives `G2` without any warning,
+  so the repin is the step that has to look. **A declared home in nen**: these are another canon
+  repository's sets, held by Hatsu until nen has a home of its own that `nen gate derive` reads. That is
+  owed to nen.
 - **`sharingan`.** A reply's head-chain check (§ *Reviewer rounds and review threads*) is `git -C <path> fetch` then `git -C <path>
   merge-base --is-ancestor <sha> <head>`, because nen reads a PR's head but not the ancestry of a commit in it.
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
