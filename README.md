@@ -247,9 +247,9 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 
 | Skill | Meaning | Steps · calls | Called by |
 |---|---|---|---|
-| `file` | one well-formed, correctly labelled, non-duplicate issue | duplicate search → `classify` → `nen issue create` on your confirmation | you; `third-hand`; the discovery protocol |
+| `file` | one well-formed, correctly labelled, non-duplicate issue | duplicate search → `classify` → `direct` → `nen issue create` on your confirmation | you; `third-hand`; the discovery protocol |
 | `classify` | the two label axes, `lang/<key>` and `job/<key>`, on an issue, a set, a backlog or an inline effort | `nen classify apply`; the families landed by PR on a consumer first | `file`; `build`; you |
-| `direct` | which model should do the work and where: three picks (primary, fallback, recommended) on five axes, read live | `nen direct resolve` → compare with this session → publish only where `direct.publish` opts in | `build`, `ren`; you |
+| `direct` | which model should do the work and where: three picks (primary, fallback, recommended) on five axes, read live | `nen direct resolve` → compare with this session → publish only where `direct.publish` opts in | `build`, `ren`, `file`; you |
 | `build` | **composite**: one issue to a delivery PR at its human gate | `ten → classify → direct → ren → aka → mukai → en → rikugan → the wrap-up picker` | you; `futon`; `backlog-loop` |
 | `futon` | **composite**: one selector of the backlog to PRs with an actor behind them, then the typed `then` step once every PR is merged | `build` per issue → `getsuga` for `tag`/`tag+fanout`, or the named skill, or prose mapped to skills → `rikugan` | you; `kazaana` |
 | `kazaana` | **composite**: everything this surface's model can build, drawn in and delivered — `futon <repo>@model/<line> then getsuga` with parallel delegates on `direct`'s primary pick, stacks only on overlap, the merge order on the register, the release proposal merged autonomously, then one question about publishing | `direct` on the unlabelled → `futon` → delegates author and publish (`ren` or `great-hiker`, `aka`) while this session runs `mukai` and `en` per effort → `rikugan` → `getsuga` → the publish offer → the wrap-up picker | you |

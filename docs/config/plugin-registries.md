@@ -70,7 +70,7 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 | `publish` | object | `configKey: nen/workflow.json -> direct.publish`, `options: none \| label \| label+comment`, `default: none`, `label{family, keys, value, verb, declaredIn, replace}`, `comment{marker, verb, idempotent}`, `sweep` | the opt-in GitHub write | `hatsu:direct` § 7 |
 | `phases`, `routing` | maps | the source document's phase ids; one block per job with `cells` per domain and language | the matrix itself | `nen direct resolve` |
 
-**Read by.** `hatsu:direct` (standalone, `backlog`, under `hatsu:build` § 2b and `hatsu:ren`, where it is report-only), `nen direct resolve|registry`.
+**Read by.** `hatsu:direct` (standalone, `backlog`, under `hatsu:build` § 2b, under `hatsu:file` § 5 on every new filing, and under `hatsu:ren`, where it is report-only), `nen direct resolve|registry`.
 
 **Rendered where.** `docs/DIRECT-MATRIX.md`, by `bash scripts/direct_matrix_doc.sh --write`; `--check` is the `direct-matrix-guard` lane and fails a stale page; `--verify` asks the verb about every printed claim.
 

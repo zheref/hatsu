@@ -398,7 +398,7 @@ conflict waiting to be resolved by coin toss.
 
 | Key | Default | Read by |
 |---|---|---|
-| `publish` | `none` | `direct` only, under `build` or standalone on an issue — never under `ren`, which cannot leave the machine (ren § 3). **`none`** (absent reads the same) keeps the verdict in the report and the local ledger `.nen/direct/<effort>.json`; **`label`** applies the primary pick's model **line** as one `model/<line>` label (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply`, a label the consumer's `nen/labels.json` has not declared being the verb's refusal; **`label+comment`** adds one marker-keyed issue comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version ([`direct`](../claude/skills/direct/) § 7; `contracts/direct.registry.json` → `publish`). The maintainer's ruling of 2026-10-05; `nen schema check` tolerates the block |
+| `publish` | `none` | `direct` only, under `build`, under `file` once the issue is created (file § 5), or standalone on an issue — never under `ren`, which cannot leave the machine (ren § 3). **`none`** (absent reads the same) keeps the verdict in the report and the local ledger `.nen/direct/<effort>.json`; **`label`** applies the primary pick's model **line** as one `model/<line>` label (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply`, a label the consumer's `nen/labels.json` has not declared being the verb's refusal; **`label+comment`** adds one marker-keyed issue comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version ([`direct`](../claude/skills/direct/) § 7; `contracts/direct.registry.json` → `publish`). The maintainer's ruling of 2026-10-05; `nen schema check` tolerates the block |
 
 ### `aiReviewers`
 
@@ -1248,7 +1248,7 @@ zheref/nen#389) and the recommended (the primary's escalation on a weight-4 job 
 primary). **Companion jobs** (`review`, `delivery-ops`, flagged in the taxonomy) are kept out of the verb call
 that decides and reported from a second call: that work runs on the **session's** surface — the surface the
 effort runs on, where hanten raises its reviewers (§ *The matrix, per surface*) — at `models.roles.<role>`: the
-role's tier, never the session's (§ `models`). The verdict persists in `.nen/direct/<effort>.json`, and on GitHub only where `direct.publish` (§ 2) opts in — per issue under `build` or standalone, or over a whole backlog through `hatsu:direct backlog [<repo>]` (direct § 8: one table, one confirmation, then label and comment per issue). The one question those rulings returned to the maintainer — whether `models.roles.reviewer` stays
+role's tier, never the session's (§ `models`). The verdict persists in `.nen/direct/<effort>.json`, and on GitHub only where `direct.publish` (§ 2) opts in — per issue under `build`, under `file` once the issue is created (file § 5), or standalone, or over a whole backlog through `hatsu:direct backlog [<repo>]` (direct § 8: one table, one confirmation, then label and comment per issue). The one question those rulings returned to the maintainer — whether `models.roles.reviewer` stays
 `deep` when direct's verdict for the session is a lower tier (zheref/hatsu#222) — was answered on
 2026-10-13: it does (ROSTER § *Rulings of 2026-10-13*). **The readable
 mirror** is [`DIRECT-MATRIX.md`](DIRECT-MATRIX.md): every job × domain × language cell, the alias table with
