@@ -531,11 +531,10 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
-            "bash",
-            "scripts/direct_matrix_doc.sh",
-            "--self-test"
+            "node",
+            "scripts/direct_matrix_ci_fixture_check.mts"
           ],
-          "$comment": "Hermetic and offline (python3 only, no nen, no network): fixtures under a temp dir prove --check exits 1 on a missing, hand-edited or data-moved page and 0 on a fresh one, that malformed data (an unrouted job, no otherwise domain row, an unbanded effort score, a missing registry) refuses by name at exit 2, and that the re-implemented domain, aggregation and effort rules hold at their edges; then --check on the committed page. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when the registry, the taxonomy, nen/workflow.json, the page or scripts/direct_matrix_doc.sh changes -- a data-only edit is not selected by its argv and no CI job runs it yet (zheref/hatsu#234). The stronger proof, `bash scripts/direct_matrix_doc.sh --verify`, asks `nen direct resolve` about every claim the page prints; it needs the pinned nen (NEN=<path> overrides), so it is run by hand at a registry edit and at a nen repin rather than seated here."
+          "$comment": "Hermetic and offline: the TypeScript fixture first runs the existing renderer --self-test, then verifies the trusted CI adapter on the current page and with hostile workflow-command output at exit 0, 1 and 2. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when the registry, taxonomy, models, page, renderer, CI adapter or fixture changes. The stronger `bash scripts/direct_matrix_doc.sh --verify` asks pinned nen direct resolve about every printed claim and remains required on nen repins. The trusted CI step is admitted by policy in this stage; a following PR installs it."
         }
       },
       "workflow-policy-guard": {
