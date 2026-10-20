@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# HA#351 interim; catalogue content is contracts/pr-sections.json. NN#448 owns the released successor.
+# HA#351 catalogue resolver; Node 24 executes the TypeScript source directly.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
-exec python3 -B "$here/pr_sections.py" resolve "$@"
+exec node "$here/pr_sections.ts" resolve "$@"

@@ -8,7 +8,7 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 ## Resolve the run
 
 1. Read `nen repo classify --repo <target>` for the repository kind. Collect the distinct `job/`
-   labels on every associated issue; no issue defaults to `build`. Most jobs wins; ties use
+   labels on every associated issue, stripping the `job/` prefix; no issue defaults to `build`. Most jobs wins; ties use
    `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
 2. Read the target's `nen/workflow.json → pr.sections`. Its full matrix is filled from the catalogue,
    with `$sections` beside it listing all ids and purposes. An edited cell belongs to that consumer;
@@ -69,7 +69,7 @@ missing evidence. The catalogue supplies the heading glyphs; guards tolerate tho
 The non-product forms satisfy `CON-17(b)`'s observable proxy; the handbook is not amended.
 Compatibility carries Symbol / Before / After / Consumer action and a semver verdict. Across
 repositories answers what another repository does differently after merge, recording rulings.
-Release unit carries Artifact / Size / Provenance and the `CON-22` fan-out. Rollout carries Target /
+Release unit carries Archive / Version / Size / Provenance / Verification and the `CON-22` fan-out. Rollout carries Target /
 Flag / Rollback step. Product evidence uses [WORKFLOW's UZF-26 shape](WORKFLOW.md#the-uzf-26-evidence-shape).
 Economics keeps Leorio's summary visible and the full report collapsed under `<details>`; demote its
 internal headings to level 3 or deeper when embedding, preserving all report content and delta history.
@@ -94,6 +94,7 @@ Run all four before every create or body edit; after either write, read back and
 check with `--pr <owner/name#n> --base <base>`. The section guard refuses undeclared headings,
 wrong order, missing sections and an eighth reader section. Keep declaration-derived changelog and
 gate checks from `contracts/pr-composition.json` alongside them. These two scripts are the HA#351
-interim, authorized until a released Nen pin carries NN#448's equivalent verbs. A merged Nen PR alone
+interim, with shell entries forwarding to TypeScript under `BC-11`; existing configuration/path-set
+Python stays frozen. They are authorized until a released Nen pin carries NN#448's equivalent verbs. A merged Nen PR alone
 does not authorize an unpublished pin or guessed command. No new guard replaces Mukai's review,
 regression, coverage or evidence phases.

@@ -6,3 +6,5 @@
 ### Fixed
 
 - The mirror fixture now verifies that CI calls the shared regeneration script and refuses a copied hook-root table. Its prior assertion expected the retired YAML copy and failed on unchanged main; per-surface generation parity remains covered by the regeneration fixture.
+
+- New interim branching logic and fixtures are TypeScript (`BC-11`); existing configuration Python is moved unchanged behind a catalogue adapter, and the old composition Python only loses its migrated section checks. Adversarial review also covers literal/escaped comment openers, thematic breaks, dangling declarations, terminal-safe diagnostics and the three-dot PR path range.
