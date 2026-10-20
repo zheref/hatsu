@@ -337,9 +337,12 @@ Copilot's shape — and **never a member whose round-check run at head is still 
 requested, not yet posted — wait* above: a pending request with no check is excused once the quorum is met
 (zheref/nen#361). So where Bugbot is exhausted Copilot's round suffices, and the other way around; a
 reviewer not in `any_of` is owed as before, and a stalled request or an unresolved thread fails as before.
-An unmet quorum with no member owed (an exempt member in `any_of`; unreachable in Hatsu's own file) reads
-`round quorum not met` and is one owed round of the first `any_of` member `reviewers[]` can request, under
-`sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in nen `v0.20.0`,
+An unmet quorum with no member owed (an exempt member in `any_of`, or CI reviewer lanes short of `minimum` —
+*Event-driven reviewer lanes*, below; unreachable in Hatsu's own file today, reachable on any consumer with two
+or more lanes) reads `round quorum not met` and is one owed round of the first `any_of` member **with no round
+yet** that `reviewers[]` can request, under `sharingan` § 6's bounds (this run's reading, listed in ROSTER) —
+a member that already has its round adds nothing to a count of distinct members; with no such member (only
+lanes are short) nothing is requested, and the PR ends at `cap-reached`'s terminus. The *fulfils* half ships in nen `v0.20.0`,
 the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
 as owed, the verdict is quoted as the verb prints it, and the owed member is handled by `sharingan` § 6's
 request bound. Unavailability is observed, never declared; the stop it can lead to is defined once, below.
@@ -373,19 +376,25 @@ nen counts no round for it, so a met quorum covers it and an unmet one is owed t
 when the lane did not review must be `NEUTRAL` or `SKIPPED` — never `SUCCESS`, which nen would count as a
 round nobody ran, and never `FAILURE`, which fails `checks-green` (`CON-32(a)`) on every head the lane sits
 out; its `NEUTRAL` or `SKIPPED` at head is one of *The sixth stop*'s (c) observations when `roundQuorum`
-reports it from `head` (no earlier-head round). A posted-review
+reports it from `head` (no earlier-head round). nen matches that check **by name alone** — a job of the same
+name, one the pull request adds included, counts — so the posted-review shape, bound to the App's login,
+is preferred wherever the tier catalogue offers both. A posted-review
 lane's `reviewers[]` entry declares `login_pattern` (anchored to the App's exact login) and **no
 `round_check_pattern`**; a `review_check_pattern` may name its check, and nen reads that key only for a
 `delivery_holistic_pass` reviewer. **The quorum** (ruling *"Join any_of, minimum 2 when 2+ lanes
 installed"*): every installed lane joins `round_quorum.any_of` — which keeps (e) below true — and `minimum`
 is `2` once two or more lanes are installed, `1` otherwise. **The consequence, accepted with the ruling:**
 with `minimum` `2`, a PR on which only one bot has a round while another member is still available (a lane
-in flight, or a bot that can still be requested) is `rounds-owed` under `sharingan` § 6's bounds —
+in flight, or a bot with no round yet that can still be requested) is `rounds-owed` under `sharingan` § 6's bounds —
 not-ready at `cap-reached`'s terminus once a bound is reached — and *The sixth stop* is reached only when
 every member is unavailable **by (c)'s observations**; a posted-review lane makes none of them (it is never
 requested, and declares no round check) until zheref/nen#440 exposes its state, so under `required` a PR
 whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
-Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged.
+Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **Until the
+nen pin carries zheref/nen#372's fix** (NN-PR-#432, merged, not yet released), nen reads `reviewers[]` and
+`round_quorum` from the checkout it is handed — the pull request's head under `en`'s call — so a PR that
+changes either key, `kuchiyose`'s install PR among them, is judged on its own declaration (SEC-6): `en`
+says so beside the quoted verdict, and the maintainer's merge is the check; the repin retires this sentence.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on

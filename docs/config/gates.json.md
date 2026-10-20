@@ -96,7 +96,7 @@ nen's key (from nen `0.17`; the rulings of 2026-09-29 and 2026-10-04). At least 
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `any_of` | string[] | every name a `reviewers[]` entry; no duplicates | the group one bot round satisfies | `nen pr ready` row 4 |
+| `any_of` | string[] | every name a `reviewers[]` entry; no duplicates | the group whose rounds count toward `minimum` | `nen pr ready` row 4 |
 | `minimum` | integer | `1` to the group's size; `2` once two or more CI reviewer lanes are installed (ruling 2026-10-19) | how many members must have a round | `nen pr ready` row 4 |
 
 ## Example

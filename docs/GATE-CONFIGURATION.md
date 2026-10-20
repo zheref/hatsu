@@ -85,6 +85,9 @@ show the shapes, not which lane has which:
 - **Check is the round** (`kakuzu` above) — only for a lane whose check concludes `NEUTRAL` or `SKIPPED`
   when it did not review: `round_check_pattern` names that check, anchored. Never one that concludes
   `SUCCESS` then (a round nobody ran) or `FAILURE` (it fails `checks-green` on every head it sits out).
+  nen matches the check **by name alone**, so a job of that name — one a pull request adds included —
+  counts; prefer the posted-review shape where the tier catalogue offers both, and a consumer diff that
+  adds or renames a job to a lane check's name is a finding for the builder-touching-workflow row.
 
 Neither shape is ever in `base_reviewers` — a lane is never requested — and every installed lane joins
 `round_quorum.any_of` (below). The behaviour is [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
@@ -224,7 +227,7 @@ member's. nen `v0.21.0` refuses the key; `scripts/tenkai_adopt.sh diagnose` name
 `gates/retired-keys` with the fix (delete it). [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
 review threads* records what replaced the chain's terminus.
 
-### `round_quorum` — at least one bot reviewer's round
+### `round_quorum` — at least `minimum` bot reviewers' rounds
 
 ```json
 "round_quorum": { "any_of": ["copilot", "bugbot"], "minimum": 1 }
