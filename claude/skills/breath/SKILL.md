@@ -78,8 +78,8 @@ A dirty effort tree plus a new request **asks**, showing every uncommitted path.
 the surface mirror): **append them to `info/exclude`** (`rev-parse --git-path`, **never `--git-dir`**;
 **never `.gitignore`**; [`surfaces/README.md`](../../../docs/surfaces/README.md) § *Shared rules*) — **only ignorable
 paths none of the effort's business**, shown first;
-then **re-run `nen wc classify`** (expect `uncommittedPaths: []`). A sandbox refusal is reported
-with that `--add-dir` named, and **stops**. The file is shared by every worktree: **name it by path**.
+then **re-run `nen wc classify`** (`uncommittedPaths: []`). Name the shared file's path.
+Codex sandbox failures: `docs/surfaces/codex.md` § 5's recovery; actual rejection stops the action.
 
 **§ 2c · The host.** `nen shu tools --repo <path> [--dry-run | --install]` on a host this repository
 was never built on, and after a toolchain pin moves; `--install` covers only what corepack activates,

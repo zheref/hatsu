@@ -142,6 +142,12 @@ Kurapika is the persona here through the untracked `AGENTS.override.md` the warm
 separate summon. The plugin serves skills and hooks; `ten` places personas in the target repository.
 For headless use and the linked-worktree sandbox setting, see [the Codex surface guide](../surfaces/codex.md).
 
+After creating or binding a native worktree, verify its ordinary write route before ledger or
+authoring work, even without a local permission pack. An unreviewed sandbox error follows
+[authorized worktree write recovery](../surfaces/codex.md#authorized-worktree-write-recovery);
+an actual host rejection stops the rejected action with its stated reason. Generating a config
+does not prove that the running session has reloaded its grants.
+
 
 The [Codex surface guide](../surfaces/codex.md) covers plugin read-back, hook trust,
 model selection, sandbox roots for linked worktrees, headless runs and the legacy

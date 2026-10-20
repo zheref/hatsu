@@ -151,9 +151,9 @@ Quote skips (#67; README § *Shared rules the warm-up follows*), continue.
 
 ## 5 · Surfaces — what a target gets
 
-Read-only/no-phase: inspect only, **skip placement/provisioning**. Explicit setup is Tenkai's.
-Writable phases retain § 4b's target/root/cwd, never rediscover or fall back. Failed isolation
-stops writes. Installation: mirrors.md § 2.
+Read-only: **skip placement/provisioning**. Setup is Tenkai's. Retain § 4b's target/root/cwd;
+failed isolation stops writes. Codex: `docs/surfaces/codex.md` § 5's write probe/recovery first.
+Installation: mirrors.md § 2.
 
 ```sh
 # <hatsu_root>: § 4b's guarded root; <target>: § 4b's bound target; <surface>: codex|cursor|antigravity|claude-code

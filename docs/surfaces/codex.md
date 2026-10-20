@@ -100,12 +100,16 @@ the calling session. Use that absolute directory for every command cwd, `--repo`
 are host-exposed Codex app tool contracts, not CLI commands; their availability and returned path
 are read at use. The native root in § 1 is accepted, never reconfigured.
 
+**Before ledger creation, placement or authoring**, verify an ordinary write in that bound
+checkout through § 5's recovery protocol. A returned path or an attached worktree is not proof
+that the running chat can write there. Apply the same check when resuming in a different checkout.
+
 When those app tools are absent (CLI/IDE), use the shared policy's named `git worktree add`
 residue at `<core>/.nen/worktrees/codex/<name>`; Nen inventories worktrees, it does not create them.
 `spawn_agent` shares the parent's cwd and creates no isolation. Provision an independent checkout
 for each delegated authoring effort and hand it that absolute path with explicit cwd/edit scope;
 or start a separately scoped `codex exec -C <effort-path>` using the host's existing authorization.
-A sandbox refusal is reported, never repaired by changing permissions or working in core.
+A sandbox failure follows § 5; an unreviewed `EPERM` alone is not a rejected approval.
 
 In-session delegation is `spawn_agent`. Hanten's isolated reviewer still runs as a second `codex exec`
 in a worktree at `<core>/.nen/worktrees/codex/hanten-<persona>` (§ 1), because that reviewer must not
@@ -134,10 +138,60 @@ only where `.codex/hooks.json` was not placed.
 | scope | a root list, the one surface where the contract's scope is enforced as roots: the checkout, its linked worktrees (`git rev-parse --git-common-dir`), and the associated repositories `nen/repos.json` declares |
 | what the pack renders | `approval_policy`, `sandbox_mode = "workspace-write"`, `writable_roots = [...]`; `--add-dir` on the command line is the same widening for one run |
 
-A linked worktree keeps `HEAD`, the index, objects, `refs/` and `info/exclude` under the main
-repository's `.git/`, outside a `workspace-write` sandbox, so every git write is refused at exit 128
-("Operation not permitted") until the common dir is a writable root. Reproduced both ways on a fixture
-(evidence § 7 F3). A skill cannot add the root to a running session: it reports the condition and stops.
+A linked worktree keeps Git metadata under the main repository's common `.git/` directory.
+Its checkout can admit ordinary file writes while a Git operation fails at exit 128 with
+`Operation not permitted` in that metadata directory (historical fixture: evidence § 7 F3).
+Judge each failed operation and path separately; a successful ordinary write does not prove Git,
+push, release or protected-path access.
+
+### Authorized worktree write recovery
+
+Four facts are distinct: **task authority** comes from the maintainer's request and the owning
+skill; **effective grants** are the running host's actual sandbox boundaries; a **review request**
+uses the host's exposed approval path for a specific action; an **actual rejection** is the
+returned decision denying that request. `contracts/permissions.json` scopes Hatsu's project
+actions to linked worktrees, but neither it nor a generated config grants the running chat new
+access. A supported review request is not an edit to persistent permission settings.
+
+After binding the absolute checkout, create one uniquely named temporary file directly inside
+it, write harmless text, then remove only that file, including on a failed probe. Use the host's
+ordinary write route first. Record the path, operation, exit and any review result without
+secrets. This probe precedes `.nen` ledgers and target placement, so it also works when the target
+has **no installed permission pack**: read Hatsu's loaded source and the exposed host tools,
+establish the write route, then continue Ten's normal placement. Do not install a pack to claim
+that the current session's grants hot-reloaded. The pack renderer enumerates worktrees present
+when it runs; a later native checkout may be absent from the active roots.
+
+| Observed state | Next action | Outcome |
+|---|---|---|
+| Ordinary write succeeds in the bound checkout | Remove the probe; continue ledger/authoring work there | Ordinary writes verified; other operations still need their own checks |
+| Unreviewed sandbox failure, action already authorized, host exposes review | Submit the same narrowly scoped probe through that supported route, with the bound cwd and exact file scope | Await the returned decision; do not call the initial failure a terminal denial |
+| Review admits the probe | Verify cleanup, then use that supported route for authorized operations that need it, each within its actual reviewed scope | Continue the effort; the probe grants no blanket approval for later commands |
+| Review rejects the request | Stop the rejected action; report the exact action, path, decision and stated reason | Preserve work and isolation; continue only independent permitted work |
+| Review unavailable or forbidden by host policy | Report the capability limitation and exact failed operation; name the host owner and handoff needed | No fabricated review result; ask only for what the host requires |
+| Failure is unrelated to sandbox scope (for example disk full or missing path) | Diagnose that failure within existing authority | Do not relabel it as an approval rejection or escalate it as a sandbox repair |
+
+In a host exposing `exec_command` with `sandbox_permissions: "require_escalated"`, that field is
+the supported review request, with a narrow justification and `workdir` set to the bound checkout.
+Use it only when existing task authority covers the action and the host permits the request;
+the host may use a human or automatic reviewer. Read the exposed schema each time this adapter
+is applied; other hosts may expose a different route or none. A request still pending is not
+approval, and an admitted action is proved by its execution result, not merely its submission.
+
+Never rewrite global/project permission settings, change filesystem permissions, disable the
+sandbox, switch silently to core, add a general elevation wildcard, or widen unrelated access
+to recover this effort. Never retry a rejected action through a different tool, shell spelling
+or worktree. A safer revision is submitted only through the host's supported review rules;
+otherwise stop truthfully with its reason. Retain branch/trailer checks and human merge/release
+gates: host admission supplies execution access, not task authority or a gate crossing.
+
+The host's documented split is “Sandboxing and approvals are different controls that work
+together.” ([Sandbox](https://learn.chatgpt.com/docs/sandboxing), fetched 2026-10-20).
+Auto-review documents “Shell or exec tool calls that request escalated sandbox permissions.”
+([Auto-review](https://learn.chatgpt.com/docs/sandboxing/auto-review), fetched 2026-10-20).
+The concrete tool fields above are this session's exposed schema, not a promise that every
+Codex CLI or IDE exposes them. See [the recovery cases](evidence/codex-worktree-recovery.md)
+for observed evidence, a rejection transcript fixture, and the limits of what was exercised.
 
 ## 6. Rules
 
