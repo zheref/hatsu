@@ -890,6 +890,7 @@ fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-te
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
 | **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. **FURTHER RULED 2026-09-19** (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*): **Shalnark** is activated as the optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, definition at `v0.42.0`; **Nobunaga**, never benched, is activated as the general code reviewer in the same ruling. **FURTHER RULED 2026-10-13** (§ *Rulings of 2026-10-13*, 4): **Shizuku** is activated as cleanup, reachable only through `hatsu:cleanup`, definition at `v0.108.0`. The other **three** profiles — Machi, Kortopi, Pakunoda — remain **bench doc only**, unscheduled. |
 | **OPEN-4** | Who challenges a product brief adversarially, under what contract and what cap — [`emperor-time`](../claude/skills/emperor-time/SKILL.md) § 4 | **OPEN since 2026-10-19.** `hanten`'s reviewers are routed by `nen review scopes` over a change set, and a scope claiming no path is refused by `nen schema check` at `0.22.0` (*"names no paths. A scope that claims nothing can never be raised by any diff"*), so a brief's challenger is a declared value, not a scope. Kurapika never reviews his own work (`claude/agents/kurapika.md` § *Hard limits*). Three questions, drafted as the picker on the PR that landed the skill: **(a) who** — ⭐ **A** Nobunaga (adversarial reading, scope completeness) · **B** Phinks (the `QA-2` hypothesis classes, over a brief) · **C** Chrollo; **(b) under what contract** — whether a reviewer persona may be raised outside `hanten` at all, and the return shape (the preamble's § 4 with `path` = the brief's field, or a declared brief-challenge mode in the preamble); **(c) the cap and its ledger** — the skill ships two rounds counted nowhere. The declared home proposed: `nen/workflow.json` → `intake.challenger`, a Hatsu-own key on the `aiReviewers` precedent — read from the **session's** checkout (who challenges is Hatsu policy, not consumer policy), value set `{nobunaga, phinks, chrollo}` with its `$intake` annotation and catalogue row, an out-of-set value re-asking. Until ruled, `nen/decisions.json` row `intake-challenger` asks once per run and the answer binds that run only, **never written**. |
+| **AK OPEN-4** | Hidan's activation — the Akatsuki CI repository's own `OPEN-4`, a different register from Hatsu's `OPEN-4` above, recorded here because Hatsu installs the tier | **RULED 2026-10-19 per consumer** (§ *Rulings of 2026-10-19 — the CI reviewers tier*, 3): asked at install by `kuchiyose`, recorded in the consumer's `ci.rulings.hidan`. **Closed.** |
 | **Attribution** | Which trailers a commit may carry, and which of them this plane writes | **RULED 2026-09-09** (§ *Rulings of 2026-09-09*, 2), **REFINED 2026-09-10** (§ *Rulings of 2026-09-10*, *Two provenance trailers*): two provenance trailers, one per plane — this roster writes `Hatsu-Agent`, the CI plane writes `Akatsuki-Agent`, both are admitted by policy, and no other AI attribution trailer is ever recorded. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
@@ -908,6 +909,50 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
 
+
+## Rulings of 2026-10-19 — the CI reviewers tier
+
+**The maintainer's answers, verbatim**, through the picker during the Kurapika intake of 2026-10-19 that
+filed the first Akatsuki CI tier — the reviewer lanes Sasuke, Kakuzu, Konan and Hidan — as installable on
+any Hatsu-enabled repository (zheref/hatsu#329, #330, #331; zheref/nen#440; `AK` issues in the Akatsuki CI
+repository, which stays private — its name made public by the ruling recorded below, zheref/hatsu#329). Each question as asked, then the answer
+picked; *(Recommended)* marks the option the picker starred:
+
+1. *"How should the Akatsuki reviewers relate to the one-value aiReviewers setting?"*
+   > One value for every bot
+2. *"How do the Akatsuki reviewers sit in the round quorum?"*
+   > Join any_of, minimum 2 when 2+ lanes installed
+3. *"Does Hidan join the first reviewers tier?"*
+   > Per consumer at install
+4. *"Which GitHub App identities should the reviewers run under?"*
+   > Create the -akatsuki Apps (Recommended)
+5. *"Which Claude billing should the reviewers tier default to on a consumer?"*
+   > Ask at install, OAuth starred (Recommended)
+6. *"Should jutsu register the lane checks as required status checks on the consumer's main?"*
+   > Yes, print the ruleset step
+7. *"Should the CI repository itself be adopted as a Hatsu consumer first, so the loop can build, review and tag it?"*
+   > Yes, tenkai first (Recommended)
+8. *"Keep the skill name jutsu, beside jujutsu, jujisho and jusshin?"*
+   > Rename to kuchiyose
+
+(`jutsu` in questions 6 and 8 is the installer's working name, renamed by answer 8.)
+
+| Ruling | What it says |
+|---|---|
+| **1 · One `aiReviewers` value** | `nen/workflow.json` → `aiReviewers` covers every automated reviewer, the lanes included; a lane is never requested, so for a lane the value gates only whether its round is expected. `off` with lanes installed: their rounds are not expected while the lanes still run and post; a consumer turns a lane off through its own caller workflow. [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer* and *Event-driven reviewer lanes*, stated once there |
+| **2 · The quorum** | Every installed lane joins `round_quorum.any_of`; `minimum` is `2` once two or more lanes are installed, `1` otherwise. Accepted with it: one bot's round while another member is still available is `rounds-owed` under `sharingan` § 6's bounds, *The sixth stop* only when every member is unavailable, and under `optional`/`off` the hanten prompt unchanged. *Derived in zheref/hatsu#330's review, ratified by its G4 merge:* a posted-review lane makes none of (c)'s observations until zheref/nen#440, so under `required` a PR with such a lane installed and its quorum unmet ends at `cap-reached`'s terminus. PROCESS, *Event-driven reviewer lanes*, stated once there |
+| **3 · Hidan per consumer** | Hidan's activation is asked per consumer at install, recorded in the consumer's `ci.rulings.hidan` ([`WORKFLOW.md`](WORKFLOW.md) § 2 → `ci`). **The Akatsuki CI repository's `OPEN-4`** (*AK OPEN-4* in § *Open items*; Hatsu's own `OPEN-4` is another question) — Hidan's activation — **is ruled per consumer** |
+| **4 · App identities** | The lanes run under new `-akatsuki` GitHub Apps, one login per lane, which each lane's anchored `login_pattern` names ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3); creating them is the maintainer's ceremony |
+| **5 · Claude billing** | Asked at install, the subscription OAuth token (`claude_code_oauth_token`) starred and the metered API key the alternative. `ci.rulings.claudeAuth` records the credential **type** — one of those two names — never its value: the secret lives only in the consumer's Actions secret store |
+| **6 · Required status checks** | The installer prints the ruleset step that registers the lane checks as required status checks on the consumer's default branch; it never applies the ruleset itself |
+| **7 · The CI repository adopted first** | The Akatsuki CI repository is adopted as a Hatsu consumer through `tenkai` before its lanes are tagged, so its own issues run through `hatsu:build` and `getsuga` cuts its first tag |
+| **8 · The skill's name** | The installer is **`hatsu:kuchiyose`** (zheref/hatsu#331), not `jutsu` |
+
+**Read under the constitution:** rulings 1 and 2 are read under `CON-16` (only enabled reviewers gate) and
+`CON-32(b)` (the verdict is `nen pr ready`'s, quoted, nothing relaxed); neither changes either clause.
+Cited from PROCESS's *Event-driven reviewer lanes*, `GATE-CONFIGURATION.md` § 3 and `WORKFLOW.md` § 2 → `ci`.
+
+---
 
 ## Rulings of 2026-10-19 — the Akatsuki CI repository is named
 
