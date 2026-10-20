@@ -34,7 +34,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Enhancer** | **Product code.** Edit product/feature code in the local checkout, build and test locally, open the PR. Branch `kurapika/<slug>`. | **G2** (`CON-5`) |
 | **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) **in a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)); the same edit in a consumer repository is **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in a canon repository (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)), which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
-| **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge prompt that ends every PR into `main` (`en` § 5, § *Rulings of 2026-09-30 — En never merges*). Merges only locally (`git merge --no-ff`) into futon's own integration branch, never a PR. Never votes, never self-reviews. | drives *to* a gate; never crosses G2/G4 |
+| **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge prompt that ends every PR into `main` (`en` § 5). May merge a recorded Futon-owned stacked delivery PR only through `nen pr merge --delivery` at Ready (§ *Ruling of 2026-10-19 — recorded Futon delivery merges*); Futon may merge locally into its own integration branch. Never votes, never self-reviews. | drives *to* G2/G4; never crosses either gate |
 | **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR, merges it himself through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*) and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; publishes one, or uploads a build, only on the maintainer's own go — by name, in their own words, or as a step of their own `futon` `then` chain (the advance go, `mugetsu` § 3), which Emitter runs (amended in place by the 2026-09-30 clarification under § *Rulings of 2026-09-26/27/28*, ruling 2(a)). | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. The ceremony is [`hatsu:emperor-time`](../claude/skills/emperor-time/SKILL.md) (`v0.116.0`): direct, interview, challenge (by a raised persona — **OPEN-4**), reconcile, file, offer the build. | **G1** stays the human's (`CON-4`) |
 
@@ -870,6 +870,9 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 | **G3** | `CON-6` | Release go/no-go | **Never on an agent's word.** Preparing a release is allowed; publishing runs only on the maintainer's own go — by name, in their own words, as a `mugetsu` step of their own `futon` chain (§ *Rulings of 2026-09-26/27/28*; amended in place by its 2026-09-30 clarification under ruling 2(a)), or as their own answer to the one question `kazaana` § 6 asks after the tag it cut (§ *Rulings of 2026-10-13*, 3; `mugetsu` § 0, form (4)) |
 | **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **The same as G2** — every PR into `main` ends at the merge prompt (`en` § 5, ruling of 2026-09-30); only `getsuga` § 3a's own release proposal is merged by an agent, at `canon-merge` too. Futon's local `git merge` into its own integration branch (futon § 5) is not a G4 act |
 | **G5** | `CON-47` | Any other human-only decision or action | **Never** — its definition *is* "the decision is theirs" |
+
+The G2/G4 rows govern merges into `main`. They do not bar En's bounded merge of a recorded
+Futon-owned stacked delivery PR into a non-main base (§ *Ruling of 2026-10-19*).
 
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
 human's credentials, so GitHub records the vote as **theirs**, and casting one manufactures their governance
@@ -1958,3 +1961,27 @@ with reconciliation, material-change-only writes, sanitized pending records and 
 unrelated implementation, labels, closures, merges or releases. Reviewers relay findings to the
 coordinating writer. [DISCOVERY.md](DISCOVERY.md) owns the protocol. These changes are delivered
 before a new tag is considered; this ruling does not itself authorize a tag or release.
+
+## Ruling of 2026-10-19 — recorded Futon delivery merges
+
+The maintainer narrowed the 2026-09-30 “En never merges” ruling: En may merge **only a
+Futon-owned stacked delivery PR**, only when `nen pr ready` says **Ready** at its pinned current
+head, and only through Nen's bounded `pr merge --delivery` guard. The exhausted-reviewer sixth
+stop never counts as Ready for this exception. A PR into the default branch or `branch.base`, an
+unowned PR, and any failing or unknown gate remain at the maintainer's merge handoff. Getsuga's
+release-unit exception remains separate.
+
+Ownership is a durable record in the repository's Git common directory. Futon records its typed
+invocation before a PR exists, then binds the selected issue, delivery PR, intended non-main base
+and head to that run. The helper checks that the run predates the PR and the PR body cites the
+issue; this is procedural provenance, not cryptographic proof of the user's keystrokes. En
+verifies it against GitHub before acting; the PR title, branch name and session memory prove
+nothing. A changed head must be rebound by the same effort. En plans the Nen merge, rechecks the
+live body and Ready verdict at the same SHA, runs it only on a passing plan, and reads the merged
+state back. A denial leaves the record and gate evidence intact and hands the exact command to
+the maintainer. The permission pack admits only that bounded Nen form, never direct `gh pr
+merge`, `--admin` or `--auto`; its former broad `gh api *` grant is removed because REST and
+GraphQL merge mutations bypassed the guard. API reads now require individual approval until a
+bounded read wrapper is provided. The base-branch push refusal is unchanged. The Claude Code live
+classifier and merge proof are deferred until a later eligible Ready Futon stack exists
+(zheref/hatsu#154; the review bots were exhausted in this sitting).

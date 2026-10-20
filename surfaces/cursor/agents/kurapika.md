@@ -416,9 +416,11 @@ stewardship — the board-facing half of the work.
   En never merges*: *"En is NOT meant to merge by default."*) supersedes ruling 3 of 2026-09-29. `en` § 5
   drives the PR to Ready, settles every thread, and ends at the prompt: the PR's link and, as a `bash` block, the
   `gh pr merge <n> --repo <owner/name> --merge --match-head-commit <sha>` line, which the maintainer runs
-  or replaces with the GitHub UI. **Two carve-outs.** [`futon`](../futon/SKILL.md) § 5 merges a
+  or replaces with the GitHub UI. **Three carve-outs.** [`futon`](../futon/SKILL.md) § 5 merges a
   settled effort branch locally (`git merge --no-ff`) into its own integration branch, unasked, with no
-  sub-PR and no `gh pr merge`; its integration→`main` PR then ends at the prompt. **The release carve-out**, the maintainer's ruling
+  sub-PR and no `gh pr merge`; its integration→`main` PR then ends at the prompt. [`en`](../en/SKILL.md)
+  § 5 may merge a recorded Futon-owned stacked delivery PR into a non-main base through
+  `nen pr merge --delivery`, only at pinned Ready (ruling 2026-10-19; #154). **The release carve-out**, the maintainer's ruling
   of 2026-09-26, kept on 2026-10-01 ([`docs/ROSTER.md`](../../../docs/ROSTER.md)
   § *Rulings of 2026-09-26/27/28*): [`getsuga`](../getsuga/SKILL.md) § 3a merges its own release-proposal PR
   through `nen pr merge --release-unit`, at `merge` and `canon-merge` alike, never with a review of your own.
