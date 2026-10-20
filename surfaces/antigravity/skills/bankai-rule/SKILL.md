@@ -181,5 +181,5 @@ prefix and numbering scope (zheref/bankai-handbooks#4).
 - **Never parses the ruling text through the grammar**; never a scenario the matrix does not list,
   never `bankai-machinery`; never a `handbooksRepo` that is not the pinned row, never the keys from
   a branch head; never a write outside the clone or into the reading copy.
-- **Never edits a merged row** (a reversal is a new row with `supersedes`); never reuses an id.
+- **Never edits a merged row** (a reversal is a new row, `supersedes`); never reuses an id.
 - **Never opens the PR before the run ends, never as a draft, never twice; never merges** (`CON-7`).
