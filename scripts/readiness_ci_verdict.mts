@@ -2,7 +2,7 @@
 // Format a trusted nen pr ready JSON result for the advisory GitHub check (#131).
 // This runs from .trusted, never from the pull request checkout.
 import { randomBytes } from "node:crypto";
-import { appendFileSync } from "node:fs";
+import { appendFileSync, realpathSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -115,4 +115,15 @@ function main(): void {
   process.stdout.write(`readiness: ${result.title}\n`);
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main();
+function isEntryScript(): boolean {
+  if (!process.argv[1]) return false;
+  try {
+    return import.meta.url === pathToFileURL(realpathSync(resolve(process.argv[1]))).href;
+  } catch {
+    // Importers can carry an unrelated, nonexistent argv[1]. Only direct
+    // execution starts the CI command; the exported formatter stays usable.
+    return false;
+  }
+}
+
+if (isEntryScript()) main();

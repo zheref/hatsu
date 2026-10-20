@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { formatVerdict } from "./readiness_ci_verdict.mts";
 
 const head = "a".repeat(40);
@@ -60,4 +61,18 @@ const args = readFileSync(argv, "utf8").trim().split("\n");
 assert.deepEqual(args.slice(0, 7), ["pr", "ready", "325", "--gh-repo", "zheref/hatsu", "--json", "--gates"]);
 assert.deepEqual(args.slice(-6), ["--exclude-run", "123", "--exclude-check", "readiness", "--require-head", head]);
 assert.match(readFileSync(output, "utf8"), /title<<EOF_[0-9a-f]{32}\nnot-ready\n/);
+const linkedReader = join(dir, "linked-reader.mts");
+const linkedOutput = join(dir, "linked-output");
+symlinkSync(join(import.meta.dirname, "readiness_ci_verdict.mts"), linkedReader);
+const linkedRun = spawnSync(process.execPath, [linkedReader], {
+  cwd: dir, encoding: "utf8", env: { ...process.env, NEN: fake, REPO: "zheref/hatsu", PR: "325", RUN_ID: "123",
+    EVENT_HEAD: head, GITHUB_OUTPUT: linkedOutput },
+});
+assert.equal(linkedRun.status, 0, linkedRun.stderr);
+assert.match(readFileSync(linkedOutput, "utf8"), /title<<EOF_[0-9a-f]{32}\nnot-ready\n/);
+const readerUrl = pathToFileURL(join(import.meta.dirname, "readiness_ci_verdict.mts")).href;
+const importRun = spawnSync(process.execPath, ["--input-type=module", "-e",
+  `process.argv[1] = "/path/that/does/not/exist"; await import(${JSON.stringify(readerUrl)});`],
+  { encoding: "utf8" });
+assert.equal(importRun.status, 0, importRun.stderr);
 console.log("readiness-json: six-row contract, unevaluated rows, head pin, hostile text, and exact Nen argv passed");
