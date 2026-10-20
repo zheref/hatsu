@@ -505,4 +505,4 @@ bash scripts/direct_matrix_doc.sh --verify     # every printed cell, level and e
 bash scripts/direct_matrix_doc.sh --self-test  # the guard's own fixtures, then --check
 ```
 
-Agreement with the verb is proved when `--verify` runs; staleness is caught when the lane runs. Neither runs on its own in CI yet (zheref/hatsu#234). A routing change is a registry edit through a PR, never an edit here; changing what an alias **means** is a maintainer ruling ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — classify and direct*).
+Agreement with the verb is proved when `--verify` runs; staleness is caught both by the lane and by the trusted `surface-mirror-check.yml` PR check, including on data-only edits (zheref/hatsu#234). A routing change is a registry edit through a PR, never an edit here; changing what an alias **means** is a maintainer ruling ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — classify and direct*).

@@ -294,6 +294,7 @@ EXPECTED_STEPS = {
     "Verify the nen binary against trusted nen/contract.json's sha256",
     "Surface-mirror drift check",
     "Canon data contracts check",
+    "Direct matrix drift check",
     "Finish check on the exact PR head"
   ],
   # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
@@ -1067,10 +1068,7 @@ DIRECT_MATRIX_FROZEN = {
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  # The trusted copy on main must accept the old and new forms while the CI
-  # step lands. The installation PR narrows this to the new form.
-  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
-                                  EXPECTED_STEPS.fetch("surface-mirror-check.yml").dup.insert(-2, DIRECT_MATRIX_STEP)]
+  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml")]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
