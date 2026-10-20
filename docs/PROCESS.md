@@ -835,6 +835,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   zheref/hatsu#168 moved; on an older binary those verbs are absent, § 2's probe says so, and the skill
   continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, ten § 2's install named).
   The GitHub half of a declaration is `nen classify install --sync`, with `nen labels sync` the whole-file form.
+  Under `classify.publish`, the marker read is `gh api`, read-only, and the comment is `nen issue comment`'s,
+  unledgered (`contracts/classify.taxonomy.json` → `publish.residue`).
 - **`file`.** The private-name check before every write to a public repository
   (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
   shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and

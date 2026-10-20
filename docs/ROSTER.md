@@ -918,13 +918,15 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 **Context.** The maintainer's request, 2026-10-20, recorded verbatim: *"Have all Hatsu family repos and
 existing registered consumer repos be configured to ALWAYS label AND comment on a classify and/or direct
 workflow so that any resolved criteria by these skills always stays on original scope issues as labels and
-detailed as comments."*
+detailed as comments."* The request is the maintainer's; **every row below is this run's reading of it, the
+maintainer's to correct at the G4 merge** (zheref/hatsu#369).
 
 | Ruling | What it says |
 |---|---|
-| **`classify.publish` is new** | `nen/workflow.json` → `classify.publish`, one of `label` (the default, the 2026-10-04 behaviour) \| `label+comment` (catalogue id `workflow.classify.publish`). `label+comment` adds one marker-keyed `<!-- hatsu:classify -->` comment per labelled issue with the applied keys, confidence, cited signals, low keys and any undecidable axis ([`classify`](../claude/skills/classify/SKILL.md) § 5b). There is no `none`: classify's labels were never opt-in |
-| **Every family and consumer repository sets both keys to `label+comment`** | Hatsu, nen and Akatsuki, and every repository carrying a `nen/workflow.json`, set `classify.publish` and `direct.publish` to `label+comment`, each through its own PR at its gate. The catalogue defaults stay (`label`, `none`) so an unset repository keeps today's behaviour; the opt-in is explicit per repository |
-| **Labels still need their declaration** | Setting the key does not declare a family: a `lang/`, `job/` or `model/` label absent from a repository's `nen/labels.json` is still the verb's refusal, named, and the comment still posts (direct § 7, classify § 5b) |
+| **`classify.publish` is new** | `nen/workflow.json` → `classify.publish`, one of `label` (the default, the 2026-10-04 behaviour) \| `label+comment` (catalogue id `workflow.classify.publish`), read at the default branch's tip, never the checkout. There is no `none`: classify's labels were never opt-in |
+| **One contract, in data** | The comment's whole contract — when, which issues, marker, verb, idempotence, shape, untrusted text, body file, failure, confirmation — is [`contracts/classify.taxonomy.json`](../contracts/classify.taxonomy.json) → `publish`, as direct's is `contracts/direct.registry.json` → `publish`; [`classify`](../claude/skills/classify/SKILL.md) § 5b points at it. Signals are posted as category ids, never as issue text |
+| **The criteria reach the issue even when a label cannot** | Read from *"always stays on original scope issues"*: the comment posts for every issue whose classification decided an axis, an unapplied key (undeclared family, owed declaration, failed apply) listed *not applied* with its reason. Direct already does the same for a refused `model/` label (`publish.label.replace`) |
+| **Every family and consumer repository sets both keys to `label+comment`** | Each through its own PR at its gate: zheref/nen#460, zheref/akatsuki-ai#53, zheref/kro-pwa#110, and five private consumers' PRs (every local checkout carrying a `nen/workflow.json`; both registries list no consumers). Four of them also declare the `lang/`, `job/` and `model/` families, three the `nen/repos.json` they lacked. **Owed:** zheref/bankai-handbooks, whose adoption (zheref/bankai-handbooks#4) sets `direct.publish: none` and no `classify` block — both keys after it lands. The catalogue defaults stay (`label`, `none`), so an unset repository keeps today's behaviour |
 
 ## Rulings of 2026-10-19/20 — cross-platform porting (zheref/hatsu#354)
 

@@ -72,8 +72,8 @@ the original work continued or is blocked. It does not carry a severity change, 
 label, merge/review vote, implementation of the new work, canon change, publishing, or closure of
 an active effort; each remains separately authorized.
 
-A `created` result also carries [`hatsu:file`](../claude/skills/file/SKILL.md) § 5's routing row: once the
-issue has its number, `hatsu:direct` § 7's one `model/<line>` label and one marker comment, and only where the
+A `created` result also carries [`hatsu:file`](../claude/skills/file/SKILL.md) § 5's classification and routing rows: once the
+issue has its number, `hatsu:classify` § 5b's criteria comment under the target's `classify.publish`, and `hatsu:direct` § 7's one `model/<line>` label and one marker comment, and only where the
 target's `direct.publish` (read at the default branch's tip) opts in — not *publishing* above, which is a
 release's; the record states each outcome (the maintainer's request of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-19*).
 

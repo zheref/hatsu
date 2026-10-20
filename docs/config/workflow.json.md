@@ -4,7 +4,7 @@
 
 ## What it decides
 
-This is the **policy half** of the two-file model: `nen/contract.json` → `project` says what nen executes, this file says what the workflow decides with. Branch shape, which declared verbs run per iteration, the coverage ladder, where reports go and what is kept, how loud the bell is, which trailers a commit may carry, the readiness monitor's cap, the run profile, the model tiers per surface, review routing, the release unit, the advance-go gate and whether `hatsu:direct` publishes. **Every value here is a policy default, not a fact about the machine.**
+This is the **policy half** of the two-file model: `nen/contract.json` → `project` says what nen executes, this file says what the workflow decides with. Branch shape, which declared verbs run per iteration, the coverage ladder, where reports go and what is kept, how loud the bell is, which trailers a commit may carry, the readiness monitor's cap, the run profile, the model tiers per surface, review routing, the release unit, the advance-go gate and whether `hatsu:classify` and `hatsu:direct` publish. **Every value here is a policy default, not a fact about the machine.**
 
 Nen validates the whole file and reads a few slices itself: `nen commit format` and `nen wc squash` take `commits.allowedAttributionTrailers`, `nen shu coverage --touched` takes the `coverage` ladder, `nen review scopes` takes `review.scopes`, `nen report render --variant` takes `reports.sections`, `nen release unit-check` and `nen pr merge --release-unit` take `release.unitPaths`, `nen parse futon` takes `futon.advanceGo`, the `nen runner` family takes `runners`. Everything else is read by the skills, which is a read rather than a residue: nen validates the file, it does not hand the values out. In WORKFLOW.md's words, **a wrong `workflow.json` produces a correct command run at the wrong moment, which is silent**; a wrong `project` block fails loudly. Almost every skill depends on some key here, from `hatsu:breath` cutting the branch to `hatsu:mugetsu` reading the advance-go gate.
 
@@ -185,7 +185,7 @@ The **advance-go gate**: which repository kinds a typed `hatsu:futon ... then <s
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `publish` | enum | `label` · `label+comment`; **`label`** (absent reads the same; any other value reads `label`, said). Hatsu's own is `label+comment`, on the maintainer's request of 2026-10-20 | Whether `hatsu:classify` writes its resolved criteria to the issue beyond the `lang/` and `job/` labels. `label` applies the labels through `nen classify apply` and keeps the rest in the report and the ledger; `label+comment` adds one marker-keyed (`<!-- hatsu:classify -->`) comment per labelled issue carrying the applied keys with confidence and cited signals, the low keys and any undecidable axis. Acts standalone, under `build`, or under `hatsu:file` once the issue is created; never under `ren` or for an inline effort | `hatsu:classify` § 5b, `hatsu:build`, `hatsu:file` § 5 |
+| `publish` | enum | `label` · `label+comment`; **`label`** (absent reads the same; any other value reads `label`, said). Hatsu's own is `label+comment`, on the maintainer's request of 2026-10-20 | Whether `hatsu:classify` writes its resolved criteria to the issue beyond the `lang/` and `job/` labels, read at the default branch's tip, never the checkout. `label` applies the labels through `nen classify apply` and keeps the rest in the report and the ledger; `label+comment` adds one marker-keyed comment per classified issue: every decided key with its confidence, status and signal category, unapplied keys marked *not applied* with their reason, the low keys and any undecidable axis, never issue text. The whole contract is `contracts/classify.taxonomy.json` → `publish`. Acts standalone, under `build`, or under `hatsu:file` once the issue is created; never under `ren` or for an inline effort | `hatsu:classify` § 5b, `hatsu:build`, `hatsu:file` § 5 |
 
 ### `direct.publish`
 
@@ -297,6 +297,7 @@ Illustrative only: a plain product repository on the default lane `app`, with a 
   },
   "mukai": { "autoEn": false, "$autoEn": "one of: true | false" },
   "release": { "unitPaths": ["CHANGELOG.md", "changelog.d/**", "App/Info.plist"] },
+  "classify": { "publish": "label", "$publish": "one of: label | label+comment" },
   "direct": { "publish": "none", "$publish": "one of: none | label | label+comment" }
 }
 ```
