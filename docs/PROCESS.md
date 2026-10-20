@@ -309,7 +309,8 @@ same mutation answers `NOT_FOUND` under one token and succeeds under another, so
 from the mutation's own response, never from the ids sent**, and check first whether Copilot already
 reviews the repository automatically. **The verb is the only route** — never a raw GraphQL
 `requestReviews(botIds:…)`, never `gh api` (zheref/hatsu#102): a request outside the verb is one no
-ceiling can count.
+ceiling can count. **An event-driven reviewer lane is never requested** (*Event-driven reviewer lanes*,
+below).
 
 ```bash
 nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [--add-bots <id,...>]
@@ -342,6 +343,32 @@ An unmet quorum with no member owed (an exempt member in `any_of`; unreachable i
 the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
 as owed, the verdict is quoted as the verb prints it, and the owed member is handled by `sharingan` § 6's
 request bound. Unavailability is observed, never declared; the stop it can lead to is defined once, below.
+
+**Event-driven reviewer lanes** (the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings
+of 2026-10-19 — the CI reviewers tier*; zheref/hatsu#330 — **stated once, here**; `sharingan` § 6, `en` §§ 5–6,
+`shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers` and
+[`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3 cite this paragraph). A **lane** is a CI reviewer — an
+Akatsuki tier lane (`AK`), installed by `kuchiyose` — that runs on every push to the pull request and posts
+under its own GitHub App login. Its **round is its formal review posted under that login at the judged
+head**. **It is never requested**: never in `base_reviewers`, and `shibari` and `sharingan` call `nen pr
+request-reviews` for no `reviewers[]` entry that carries no request path — today that is read from
+`base_reviewers`; a nen field declaring it is zheref/nen#440. **A push re-owes the round and the lane answers
+it by re-running** (`cancel-in-progress`), so an owed round with the lane's run in flight is a **wait** —
+its check pending at head holds `checks-green` like any running check — never a request and never a stall
+by itself. **A lane whose check concluded green with no review at head is unavailable** (unprovisioned: the
+lane exits green without running, `AK`'s reviewer-lane issue): nen reads it as a member with no round-check
+run at head, so a met quorum excuses it; otherwise it is owed, and it is not one of *The sixth stop*'s (c)
+observations until nen exposes it structurally (zheref/nen#440). **`round_check_pattern` is declared only
+for a lane whose check is its round**, one that fails rather than passes when it did not review; a lane
+that exits green unprovisioned would be counted for a round it never ran. A posted-review lane's
+`reviewers[]` entry declares `login_pattern` (anchored to the App's exact login) and `review_check_pattern`
+only. **The quorum** (ruling *"Join any_of, minimum 2 when 2+ lanes installed"*): every installed lane
+joins `round_quorum.any_of` — which keeps (e) below true — and `minimum` is `2` once two or more lanes are
+installed, `1` otherwise. **The consequence, accepted with the ruling:** with `minimum` `2`, a PR on which
+only one bot has a round while another member is still available (a lane in flight, or a bot that can still
+be requested) is `rounds-owed` under `sharingan` § 6's bounds — not-ready at `cap-reached`'s terminus once
+a bound is reached — and *The sixth stop* is reached only when every member is unavailable; under an
+effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on
@@ -397,7 +424,11 @@ reads the key.
 paragraph). `nen/workflow.json` → `aiReviewers` is one value for **every automated reviewer** in
 `nen/gates.json` → `reviewers[]` (`CON-16`'s *configured automated reviewer*), and it gates both their
 **use** — whether `nen pr request-reviews` is called for them — and their **expectation** — whether the
-run waits for their round.
+run waits for their round. **Event-driven lanes included** (the ruling of 2026-10-19, *"One value for every
+bot"*): a lane is never requested under any value (*Event-driven reviewer lanes*, above), so the value
+gates only its expectation, and `off` on a consumer with installed lanes means their rounds are not
+expected while the lanes still run and post — a consumer turns a lane off through its own caller workflow,
+never through this value.
 
 **Where the value is read — never from the pull request itself (SEC-6).** A pull request must not relax
 its own gate, so the **effective value** is read, for every decision below (request and prompt alike), from

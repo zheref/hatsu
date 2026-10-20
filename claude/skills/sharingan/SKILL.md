@@ -113,10 +113,10 @@ logged** (object, label, time) in the stop.
 **A reviewer round is requested after [`hanten`](../hanten/SKILL.md) settles, never before**, and never under
 base-read `aiReviewers: off` (`optional` requests, never waits: PROCESS, *AI reviewers per consumer*).
 **The ceiling is two numbers in one declared home** — `nen/gates.json` → `round_policy.minRounds`
-(**N**) and `.maxRounds` (**M**), nen's from `v0.21.0`, never in prose (zheref/hatsu#102); per key, one absent, not a
+(**N**) and `.maxRounds` (**M**), nen's from `v0.21.0`, never in prose; per key, one absent, not a
 non-negative integer, or N > M takes `$hatsu_root/contracts/round_policy.default.json`'s, the source named
 (unreadable: stop) — never unbounded. **A round is requested only while requested < M
-AND resolved < N**, and only through `nen pr request-reviews` — never raw GraphQL or `gh api`. *Resolved*: every finding it posted fixed in a pushed commit, replied to, its thread resolved;
+AND resolved < N**, and only through `nen pr request-reviews` (§ 5). *Resolved*: every finding it posted fixed in a pushed commit, replied to, its thread resolved;
 *requested*: this run's own requests plus row 4's in-flight one. `nen pr ready
 --explain` prints requested and **posted** counts (`meta.roundCounts`); *resolved* stays this skill's
 read. **`request-reviews` exit `2` with a `refused:` line is M reached**, never retried; any other `2`
@@ -138,7 +138,8 @@ no bound lets the run request is an impossible condition, not one to poll) — n
 Each request records `headRefOid`, read just before it, with its `--json` verbatim. **Exit `9`**
 (`unrecordedBots`, nen#277) is never retried or counted as requested. A met quorum excuses an
 unavailable member; **every member unavailable** is the sixth stop, its predicate stated once in PROCESS,
-*The sixth stop* (ruling 2026-10-11). No exhaustion is declared. **The merge is the maintainer's**.
+*The sixth stop* (ruling 2026-10-11). **A CI lane is never requested** (PROCESS,
+*Event-driven reviewer lanes*). **The merge is the maintainer's**.
 
 **Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
 (`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are

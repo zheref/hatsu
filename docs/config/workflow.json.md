@@ -193,7 +193,18 @@ A top-level key, Hatsu's own (the maintainer's rulings of 2026-10-11, zheref/hat
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `aiReviewers` | enum | `required` · `optional` · `off`; **`required`** (absent reads the same, so every consumer keeps today's behaviour; a value outside the three is `missing-configuration`, `required` applying meanwhile). Hatsu's own is `optional`, on the maintainer's ruling | `required`: bots requested within `round_policy`'s caps and expected. `optional`: requested within the caps, never waited for. `off`: never requested — zero AI-reviewer spend. Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed`, hanten settled, goes to en § 5's merge prompt on hanten's rounds with the not-ready verdict quoted verbatim; nothing else is relaxed. `round_policy.maxRounds: 0` is not an off switch; this key is | `hatsu:sharingan` § 6, `hatsu:en` §§ 5–6, `hatsu:pr-state` § 2 |
+| `aiReviewers` | enum | `required` · `optional` · `off`; **`required`** (absent reads the same, so every consumer keeps today's behaviour; a value outside the three is `missing-configuration`, `required` applying meanwhile). Hatsu's own is `optional`, on the maintainer's ruling | `required`: bots requested within `round_policy`'s caps and expected. `optional`: requested within the caps, never waited for. `off`: never requested — zero AI-reviewer spend. Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed`, hanten settled, goes to en § 5's merge prompt on hanten's rounds with the not-ready verdict quoted verbatim; nothing else is relaxed. `round_policy.maxRounds: 0` is not an off switch; this key is. CI reviewer lanes are covered too and never requested under any value (ruling 2026-10-19; PROCESS, *Event-driven reviewer lanes*) | `hatsu:sharingan` § 6, `hatsu:en` §§ 5–6, `hatsu:pr-state` § 2 |
+
+### `ci`
+
+A top-level block, Hatsu's own, written by `hatsu:kuchiyose` at install (zheref/hatsu#331; the maintainer's rulings of 2026-10-19). Absent means no CI tier is installed. `nen schema check` tolerates it. The full description is [`docs/WORKFLOW.md`](../WORKFLOW.md) § 2 → `ci`.
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `provider` | string | a product code (`AK`) · none | the CI provider, by code, never by slug | `hatsu:kuchiyose` |
+| `pinned` | string | a release tag · none | the tag the caller workflows reference and the tier catalogue is read at | `hatsu:kuchiyose` |
+| `tiers` | string[] | catalogue keys (`reviewers`) · `[]` | the installed tiers | `hatsu:kuchiyose` |
+| `rulings` | object | `hidan`: `on` · `off`; `claudeAuth`: `claude_code_oauth_token` (starred) · `anthropic_api_key` · `{}` | the per-consumer answers asked at install | `hatsu:kuchiyose` |
 
 ### `runners`
 

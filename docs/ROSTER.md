@@ -888,6 +888,7 @@ fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-te
 | **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is **provisioned** for `en`'s long watch, and his definition landed at `v0.5.0` scoped to exactly that. His other proposed engines — `backlog-loop`, `futon`, `senkei` — **and the whole of Killua's row, remain OPEN**: a G4-class ruling by the maintainer, **unmade**. Provisioned is not ratified. |
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
 | **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. **FURTHER RULED 2026-09-19** (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*): **Shalnark** is activated as the optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, definition at `v0.42.0`; **Nobunaga**, never benched, is activated as the general code reviewer in the same ruling. **FURTHER RULED 2026-10-13** (§ *Rulings of 2026-10-13*, 4): **Shizuku** is activated as cleanup, reachable only through `hatsu:cleanup`, definition at `v0.108.0`. The other **three** profiles — Machi, Kortopi, Pakunoda — remain **bench doc only**, unscheduled. |
+| **OPEN-4** | Hidan's activation — an open item of the Akatsuki CI repository's register, recorded here because Hatsu installs the tier | **RULED 2026-10-19 per consumer** (§ *Rulings of 2026-10-19 — the CI reviewers tier*, 3): asked at install by `kuchiyose`, recorded in the consumer's `ci.rulings.hidan`. **Closed.** |
 | **Attribution** | Which trailers a commit may carry, and which of them this plane writes | **RULED 2026-09-09** (§ *Rulings of 2026-09-09*, 2), **REFINED 2026-09-10** (§ *Rulings of 2026-09-10*, *Two provenance trailers*): two provenance trailers, one per plane — this roster writes `Hatsu-Agent`, the CI plane writes `Akatsuki-Agent`, both are admitted by policy, and no other AI attribution trailer is ever recorded. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
@@ -906,6 +907,50 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
 
+
+## Rulings of 2026-10-19 — the CI reviewers tier
+
+**The maintainer's answers, verbatim**, through the picker during the Kurapika intake of 2026-10-19 that
+filed the first Akatsuki CI tier — the reviewer lanes Sasuke, Kakuzu, Konan and Hidan — as installable on
+any Hatsu-enabled repository (zheref/hatsu#329, #330, #331; zheref/nen#440; `AK` issues in the Akatsuki CI
+repository, which is private and is named here by its code only). Each question as asked, then the answer
+picked; *(Recommended)* marks the option the picker starred:
+
+1. *"How should the Akatsuki reviewers relate to the one-value aiReviewers setting?"*
+   > One value for every bot
+2. *"How do the Akatsuki reviewers sit in the round quorum?"*
+   > Join any_of, minimum 2 when 2+ lanes installed
+3. *"Does Hidan join the first reviewers tier?"*
+   > Per consumer at install
+4. *"Which GitHub App identities should the reviewers run under?"*
+   > Create the -akatsuki Apps (Recommended)
+5. *"Which Claude billing should the reviewers tier default to on a consumer?"*
+   > Ask at install, OAuth starred (Recommended)
+6. *"Should jutsu register the lane checks as required status checks on the consumer's main?"*
+   > Yes, print the ruleset step
+7. *"Should the CI repository itself be adopted as a Hatsu consumer first, so the loop can build, review and tag it?"*
+   > Yes, tenkai first (Recommended)
+8. *"Keep the skill name jutsu, beside jujutsu, jujisho and jusshin?"*
+   > Rename to kuchiyose
+
+(`jutsu` in questions 6 and 8 is the installer's working name, renamed by answer 8.)
+
+| Ruling | What it says |
+|---|---|
+| **1 · One `aiReviewers` value** | `nen/workflow.json` → `aiReviewers` covers every automated reviewer, the lanes included; a lane is never requested, so for a lane the value gates only whether its round is expected. `off` with lanes installed: their rounds are not expected while the lanes still run and post; a consumer turns a lane off through its own caller workflow. [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer* and *Event-driven reviewer lanes*, stated once there |
+| **2 · The quorum** | Every installed lane joins `round_quorum.any_of`; `minimum` is `2` once two or more lanes are installed, `1` otherwise. Accepted with it: one bot's round while another member is still available is `rounds-owed` under `sharingan` § 6's bounds, *The sixth stop* only when every member is unavailable, and under `optional`/`off` the hanten prompt unchanged. PROCESS, *Event-driven reviewer lanes*, stated once there |
+| **3 · Hidan per consumer** | Hidan's activation is asked per consumer at install, recorded in the consumer's `ci.rulings.hidan` ([`WORKFLOW.md`](WORKFLOW.md) § 2 → `ci`). **`OPEN-4`** — Hidan's activation, an open item of the Akatsuki CI repository's register — **is ruled per consumer** |
+| **4 · App identities** | The lanes run under new `-akatsuki` GitHub Apps, one login per lane, which each lane's anchored `login_pattern` names ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3); creating them is the maintainer's ceremony |
+| **5 · Claude billing** | Asked at install, the subscription OAuth token (`claude_code_oauth_token`) starred and the metered API key the alternative, recorded in `ci.rulings.claudeAuth` |
+| **6 · Required status checks** | The installer prints the ruleset step that registers the lane checks as required status checks on the consumer's default branch; it never applies the ruleset itself |
+| **7 · The CI repository adopted first** | The Akatsuki CI repository is adopted as a Hatsu consumer through `tenkai` before its lanes are tagged, so its own issues run through `hatsu:build` and `getsuga` cuts its first tag |
+| **8 · The skill's name** | The installer is **`hatsu:kuchiyose`** (zheref/hatsu#331), not `jutsu` |
+
+**Read under the constitution:** rulings 1 and 2 are read under `CON-16` (only enabled reviewers gate) and
+`CON-32(b)` (the verdict is `nen pr ready`'s, quoted, nothing relaxed); neither changes either clause.
+Cited from PROCESS's *Event-driven reviewer lanes*, `GATE-CONFIGURATION.md` § 3 and `WORKFLOW.md` § 2 → `ci`.
+
+---
 
 ## Rulings of 2026-10-05 — the registry rebalance
 
