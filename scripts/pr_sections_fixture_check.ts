@@ -339,3 +339,34 @@ interface JsonWorkflow {
 }
 
 successful(process.execPath, [ENGINE, "validate"]);
+
+
+test("composition adapter refuses a terminated path-set guard", () => {
+  const hook = join(repo, "signal-hook.sh");
+  writeFileSync(hook, 'kill -TERM "$$"\n');
+  const child = spawnSync(process.execPath, [join(HATSU_ROOT, "scripts/pr_composition_check.ts")], {
+    cwd: HATSU_ROOT, encoding: "utf8", env: { ...process.env, BASH_ENV: hook },
+  });
+  assert.equal(child.status, 2);
+  assert.match(child.stderr, /path-set guard did not complete \(SIGTERM\)/);
+});
+
+test("independent trunk policy changes do not enter a README-only PR range", () => {
+  const target = fresh("ha351-trunk-");
+  mkdirSync(join(target, "contracts"), {recursive:true});
+  mkdirSync(join(target, "nen"), {recursive:true});
+  writeFileSync(join(target, "contracts/pr-composition.json"), JSON.stringify({gateDerive:{"zheref/hatsu":{policyPaths:["contracts/"],processPaths:["docs/"]}}}));
+  writeFileSync(join(target, "nen/workflow.json"), JSON.stringify({branch:{base:"main"}}));
+  writeFileSync(join(target, "README.md"), "base\n");
+  git(target,"init","-q","-b","main");
+  git(target,"config","user.name","Fixture");git(target,"config","user.email","fixture@example.invalid");
+  git(target,"remote","add","origin","git@github.com:zheref/hatsu.git");
+  git(target,"add",".");git(target,"commit","-qm","base");
+  git(target,"switch","-qc","feature");
+  writeFileSync(join(target,"README.md"),"feature\n");git(target,"add","README.md");git(target,"commit","-qm","feature");
+  git(target,"switch","-q","main");mkdirSync(join(target,"docs"));writeFileSync(join(target,"docs/new.md"),"trunk only\n");
+  git(target,"add","docs/new.md");git(target,"commit","-qm","advance trunk");git(target,"update-ref","refs/remotes/origin/main","HEAD");
+  git(target,"switch","-q","feature");
+  assert.equal(successful("git",["diff","--name-only","origin/main...HEAD"],target),"README.md\n");
+  assert.equal(policyHit(target),false);
+});

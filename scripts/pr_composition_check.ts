@@ -87,7 +87,8 @@ try {
  for(const finding of findings)console.log(plain(finding));
  const run=spawnSync('bash',[join(here,'pr_composition_paths_check.sh'),'--root',root],{encoding:'utf8',maxBuffer:16*1024*1024});
  if(run.error)throw run.error;
+ if(run.signal || run.status === null)throw new Error(`path-set guard did not complete (${run.signal ?? "no exit status"})`);
  const stdout=(run.stdout||'').split('\n').filter(line=>!findings.length||!line.startsWith('pr-composition ok:')).join('\n');
  process.stdout.write(safeOutput(stdout));process.stderr.write(safeOutput(run.stderr||''));
- process.exitCode=run.status?run.status:findings.length?1:0;
+ process.exitCode=run.status !== 0 ? run.status : findings.length ? 1 : 0;
 } catch(error) {console.error('pr_composition_check.sh: '+plain(error instanceof Error?error.message:error));process.exitCode=2;}
