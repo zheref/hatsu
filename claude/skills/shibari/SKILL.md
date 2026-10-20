@@ -1,21 +1,18 @@
 ---
 name: shibari
-description: Compose the PR body from the resolved section catalogue and open the PR — the UZF-26 evidence table, the completion checklist, every associated issue and the agent-attribution ledger — then check it by verb and return the PR to mukai, which offers it to hatsu:en (or starts En under mukai.autoEn). Use when hatsu:mukai reaches its eighth step, or the maintainer invokes hatsu:shibari directly. Opens one PR from the pushed head, derives its gate, requests reviewers, never labels or merges.
+description: Compose the PR body from the section catalogue and effort ledgers, check it, then open one PR from the pushed head and return it to mukai. Use when hatsu:mukai reaches step eight or the maintainer invokes hatsu:shibari. Derives the gate and requests reviewers; never labels or merges.
 ---
 
 # Shibari — the work becomes a request for attention
 
-**Nature: Manipulator.** Turn everything the run proved into one body a reviewer can act on, open the
-PR on it, and hand it to [`en`](../en/SKILL.md); the authoring nature is **named inside the body**, in
-*Why*, never adopted here. Shibari is **step 8 of [`mukai`](../mukai/SKILL.md)**, the last step that
-writes anything and the only one writing to GitHub, and **it proves nothing of its own**: a
-section with no fact behind it says so. The landing report is rendered **after** this step, from what is on the PR.
+**Nature: Manipulator.** Open one reviewable PR and hand it to [`en`](../en/SKILL.md).
+Name the authoring nature in *Why*. Shibari is [`mukai`](../mukai/SKILL.md) step 8;
+it proves nothing itself. The landing report reads the opened PR.
 
 ## 0. Standalone entry
 
 Cold entry follows [STANDALONE-ENTRY](../../../docs/STANDALONE-ENTRY.md) § 4: add P1 and P2.
-The branch must already be pushed; state unpushed commits and stop at `hatsu:aka` if any remain.
-Unavailable review, tests or coverage are named with reasons, never invented.
+The branch must be pushed; unpushed commits stop at `hatsu:aka`. Name unavailable checks.
 
 ## 1. Invocation and authority
 
@@ -29,10 +26,9 @@ hatsu:shibari
 No arguments: branch and commits identify the effort; § 2 supplies the base. The maintainer's
 `hatsu:mukai` or `hatsu:shibari` call authorizes opening **one** PR and the declared evidence publish
 step ([WORKFLOW](../../../docs/WORKFLOW.md) § 4). Two efforts stop at `hatsu:jujisho`.
-For a public-mirror publish, say what is published before running it. Its `-y` only avoids its own
-interactive prompt; the harness may still ask. Where the consumer has no tracked grant for that
-script, report `permission stop: expected — <consumer> declares no allow row for <script>`; never
-call that G5. [Mukai](../mukai/SKILL.md) § 1 owns the grant mechanics (HA#101).
+For a public-mirror publish, announce the output first. Its `-y` only skips its own prompt.
+Without a consumer grant, report `permission stop: expected — <consumer> declares no allow row for <script>`;
+never G5. [Mukai](../mukai/SKILL.md) § 1 owns grants (HA#101).
 
 ## 2. The parameters, defaults stated
 
@@ -54,9 +50,8 @@ call that G5. [Mukai](../mukai/SKILL.md) § 1 owns the grant mechanics (HA#101).
 
 ## 3. The body
 
-**A published injected attribution trailer** ([`aka`](../aka/SKILL.md) § 7, zheref/hatsu#66) is
-disclosed as its own `## Completion checklist` line — `injected attribution trailer: <sha> <key>,
-published before the switch; not rewritten` — not in the ledger.
+**A published injected attribution trailer** ([`aka`](../aka/SKILL.md) § 7, zheref/hatsu#66) goes
+in `## Completion checklist` as `injected attribution trailer: <sha> <key>, published before the switch; not rewritten`.
 
 **Resolve before drafting** through [PR-SECTIONS.md](../../../docs/PR-SECTIONS.md):
 `nen repo classify` gives kind; associated issues give distinct `job/` labels. Read consumer-owned
@@ -66,15 +61,26 @@ published before the switch; not rewritten` — not in the ledger.
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.
 
-That page owns the reading aids: effect and cost first; decision tables; authoring nature in Why;
-structure diagram through `nen report mermaid --graph`, typed legend and rejected alternative in How.
-Only changed flow earns a second diagram. Non-release rows carry all eleven improves aspects;
-release keeps the written matrix (clarification 2026-10-20). One `verify` id is product **How to
-verify**, library **How a consumer verifies**, or process **What the guards prove**: the latter two
-are `CON-17(b)` proxies. Seven reader sections exclude the compact footer; attribution is final,
-Delivery reserved for HA#321. Prose over 150 words warns only. Economics embeds below its summary
-in details with internal headings level 3 or deeper. Screenshots stay in the [UZF-26
-table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); rewrites replace the whole Evidence section.
+That page owns effect and cost first, decision tables, authoring nature in Why, and How's diagram
+(`nen report mermaid --graph`), legend and rejected alternative. Add a flow diagram only when flow
+changed. Non-release rows carry all eleven improves aspects; release keeps its written matrix.
+`verify` varies by kind; library and process forms are `CON-17(b)` proxies. Seven reader sections
+exclude Delivery, checklist, issues and final attribution. The 150-word prose budget warns only.
+Economics embeds under its summary with level-3 internal headings. Screenshots stay in the
+[UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); replace all Evidence on rewrite.
+
+**Delivery is the first heading**, before the first reader section, `What this changes for you`.
+In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --json`
+to an absolute file. Run `node scripts/pr_delivery.ts normalize --data <report-data.json>
+--out <normalized.json> --repo <path> [--gate-forecast <G2|G4>]`; the optional gate token comes
+only from `nen gate derive`'s first line. Render with `nen report render --template
+templates/pr-delivery.md --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
+paste the block without typing cells. Model classification uses the ledger provenance in WORKFLOW
+§ *The effort's ledgers*; bare tokens stay unread. Dial/session values never go in notes.
+After opening, rerun report data with the actual PR (`--prs <n>`), normalize with the same derived
+gate, render, edit the PR body and read it back. Drive names `hatsu:en on <CODE>#<N>` and states
+readiness is `nen pr ready`'s verdict. The guard attests ledger rows and Drive syntax, while the
+gate and PR reference come from their own verbs.
 
 **Associated issues — body AND Development** (ruling 2026-09-12), which shibari enforces:
 
@@ -101,6 +107,7 @@ git -C <path> rev-parse HEAD refs/remotes/origin/<branch>     # the two MUST be 
 nen repo resolve --repo <path> --from <path>                  # -> <owner>/<name> (<CODE>)
 nen ref format --code <CODE> --kind PR --number <n>
 "$hatsu_root/scripts/pr_body_sections_check.sh" --body <abs path> --requirements <absolute-requirements.json> --max <resolved-max>
+"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <abs path> --repo <path>
 "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <abs path>
 nen pr body-check --body-from <abs path> --requirements-from <absolute-requirements.json>
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
@@ -112,17 +119,14 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
 ```
 
-- **The two refs must be equal**; if not, the run **stops and says which is ahead**. **`pr open` refuses a head that is not on the remote at
-  exit `2` and exits `1` naming an open PR for the branch**; it opens **once**, never as a draft
-  (never Ready from nen `0.19`; ROSTER, 2026-10-04).
-- **Inputs, the gate sets too, are [`contracts/pr-composition.json`](../../../contracts/pr-composition.json)'s**:
-  never retyped (zheref/hatsu#171). **`body-check` exit `1` is a finding to fix**;
-  **`fragment-required`'s verdicts and exit `2` follow that declaration's `changelogFragment`**, binding as written.
-- **The gate is derived as [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*
-  says**, and **the body names it as a FORECAST, never a status** — a PR just opened is not ready.
-  **Shibari derives the gate and never labels one**: a label is a readiness
-  claim, and readiness is `nen pr ready`'s verdict inside [`en`](../en/SKILL.md), after this run (nor does shibari write the `readiness` check).
-- **The body is written back only after sections, Nen body-check, evidence, Development and changelog checks have passed, before every create and edit.** The create is the first write and
+- **HEAD must equal `origin/<branch>`**; else stop and name which is ahead. `pr open` exits `2` for
+  an unpushed head, `1` for an existing PR; open once, never as draft (ROSTER, 2026-10-04).
+- **Inputs and gate sets are [`contracts/pr-composition.json`](../../../contracts/pr-composition.json)'s**
+  (zheref/hatsu#171). Fix `body-check` exit `1`; `fragment-required` follows its `changelogFragment`.
+- **Derive the gate** per [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*;
+  report it as a forecast. Shibari neither labels a gate nor writes `readiness`;
+  [`en`](../en/SKILL.md) quotes `nen pr ready` after this run.
+- **The body is written only after sections, Delivery, Nen body-check, evidence, Development and changelog checks pass, before every create and edit.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.

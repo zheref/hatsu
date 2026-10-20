@@ -1,5 +1,9 @@
 [
   {
+    "name": "delivery",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Delivery[ \\t]*$"
+  },
+  {
     "name": "changes",
     "pattern": "^ {0,3}#[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?What\\ this\\ changes\\ for\\ you[ \\t]*$"
   },

@@ -1,2 +1,5 @@
-<!-- block: delivery; Reserved for HA#321; activation and rendering stay in that issue. -->
-<!-- RESERVED: HA#321 and NN#437 own activation and render. No emitted heading until then. -->
+<!-- block: delivery; Always-first ledger-rendered delivery metadata; outside the seven-reader cap. -->
+## 📬 Delivery
+
+<!-- Replace this block with `nen report render --template templates/pr-delivery.md` output.
+Every table cell comes from the normalized `nen report data` document; never type one by hand. -->

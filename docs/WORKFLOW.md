@@ -97,13 +97,14 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.22` and `dependency.pinned_ref` is `v0.22.0`: the first is the
-> pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
+> independently.** `dependency.minimum` is `0.24` and `dependency.pinned_ref` is `v0.24.0`: the first is the
+> capability minimum, the second is the build its bootstrap installs. This repin adopts NN#437's
+> phase/usage dials, session ledger and report data `sessions[]`; older Nen cannot supply them. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
 > in `--json`. Per the maintainer's ruling of 2026-09-10 — *exact minor is fine, unless there is a
-> breaking change* — `minimum` moves **only** when nen's CHANGELOG carries a real bullet under
-> `### Breaking / consumer notes`, while `pinned_ref` may move on its own to a newer release inside the
+> breaking change* — `minimum` moves for a breaking compatibility floor or an adopted feature unavailable
+> in earlier releases, while `pinned_ref` may move on its own to a newer release inside the
 > range. Every PR that changes `dependency.pinned_ref` runs `bash scripts/direct_matrix_doc.sh --verify`
 > with that newly pinned nen and quotes the complete `N printed claims agree ... <version>` output line
 > in its PR body; this proves the readable routing matrix still agrees with the verb after a repin.
@@ -572,9 +573,12 @@ plane. Model, surface, runtime, session, and generated-credit attribution are fo
 persona from a runtime alias or stamp a default persona blindly. Existing commits and dated transcripts
 are historical and are not rewritten.
 
-The final section of every PR body is also [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
+The first heading of every PR body is `## Delivery`, reporting surface, recorded model and alias,
+effort dial and session from the effort's ledgers. This reverses only the PR-body half of the
+2026-09-12 ruling (maintainer ruling 2026-10-19); `CON-51(c)` and commit messages stay as above.
+The final heading is [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
 of each actual participant's canonical Hatsu persona, role/contribution, and evidence. Runtime
-alias/display name and model are not recorded and never replace the canonical persona. Commit
+alias/display name and model are not recorded in that final section and never replace the canonical persona. Commit
 messages may still carry ordinary non-attribution trailers such as `Closes` where appropriate.
 
 [`hatsu:shibari`](../claude/skills/shibari/SKILL.md) owns the PR-body ledger. [`hatsu:kokusen`](../claude/skills/kokusen/SKILL.md)
@@ -838,30 +842,42 @@ substitution in the title.** Never silently honoured, never silently dropped.
 
 ---
 
-### The effort's ledgers — phases and usage
+### The effort's ledgers — phases, usage and sessions
 
-**Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100). Two
-ledgers per effort, both generated output under `.nen/`, both keyed by the **branch** — `--effort
-<branch>`, never the PR-keyed form the hanten cycle ledger uses — so one effort names one phase file
-and one usage file across every skill that writes them:
+**Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100, #321).
+Three ledgers per effort, generated under `.nen/` and keyed by the **branch** — `--effort <branch>`,
+never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
 ```bash
-nen phase begin --effort <branch> --phase <step-name> --surface <s> [--model <alias>]   # before a step
+nen phase begin --effort <branch> --phase <step-name> --surface <s> [--model <reported-model>] --dial <level>   # before a step
 nen phase end   --effort <branch> --phase <step-name> --exit <code>                      # after it
 nen shu <verb> --repo <path> --effort <branch>          # a step inside an open phase lands under it
-nen usage record --effort <branch> --surface <s> [--model <alias>] \
+nen usage record --effort <branch> --surface <s> [--model <reported-model>] --dial <level> \
   --input/--output/--cache-read/--cache-write <n> [--minutes <n>] --source "<call site: readout>"
-nen usage record --effort <branch> --surface <s> --not-reported                          # no readout
+nen usage record --effort <branch> --surface <s> --dial <level> --not-reported           # no readout
+nen session record --effort <branch> --surface <s> [--model <reported-model>] --dial <level> \
+  [--title <reported-title>] [--id <reported-id>] --source "<harness readout>"          # first phase, when exposed
 ```
 
 `.nen/phases/<effort>.json` holds one timed entry per phase, a refused step included; `.nen/usage/<effort>.json`
 one entry per reading, `source` naming the call site and the readout (Claude Code's `/cost`, the Agent
 tool's result totals for a subagent, Codex's session log; `--not-reported` on a surface exposing none).
+`--dial` is the actual surface effort level, recorded at each begin and usage write, not carried in
+`--note`. At the effort's first phase, record a session title plus id where the Claude desktop
+exposes both; on CLI, Codex, Cursor and Antigravity record the id if exposed. `session record`
+requires a real title or id: if neither is exposed, leave `sessions[]` empty and render
+`unread — <surface> exposes none`. Never invent a value or transcribe it at PR composition.
+The model field records the harness's reported token, or the registry alias when no token is
+reported. Classify an exact served ID in the same ledger entry: `model-kind=served` or
+`exact served model from <provenance>` in `phase.note`, `usage.source` or `session.source`.
+`registry alias <token>` may accompany it. A bare model token, even one resembling a versioned ID,
+is unclassified and renders exact ID `unread`; an alias or direct snapshot cannot prove what ran.
+`phase.note` may carry model provenance, never a dial or session value.
 **Every skill that runs a phase wraps its own phases, and every skill that spends records at the moment
 it spends** — never a transcription at the end of a sitting. Who writes what: `ren` § 2 (every step; usage
 at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` § 4 (one usage entry per
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
-`nen report data` merges both as `phases[]` and `usage[]`.
+`nen report data` merges them as `phases[]`, `usage[]` and `sessions[]` for Delivery rendering.
 
 ## 3 · `project.launch` and `project.evidence`
 
@@ -1437,13 +1453,13 @@ not in the session:
 
 The body follows [PR-SECTIONS.md](PR-SECTIONS.md), resolving the catalogue's kind × family cell
 from the repository classification, issue jobs, consumer `pr.sections` and Mukai's run facts. It
-opens with the consumer effect and cost in **What this changes for you**; tables and diagrams carry
+opens with the ledger-rendered Delivery preamble, then consumer effect and cost in **What this changes for you**; tables and diagrams carry
 the decision. Non-release rows carry the eleven-aspect improves ladder; release rows follow the
 written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
 library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
 `CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
-checklist, associated issues, final attribution and reserved Delivery are compact footer blocks.
-The sections guard and Nen's per-run requirements check join evidence and Development checks before
+Delivery is outside the reader cap; checklist, associated issues and final attribution are compact footer blocks.
+The sections and Delivery guards and Nen's per-run requirements check join evidence and Development checks before
 **every** create or edit. No undeclared heading may grow a second composition contract.
 
 The verbs: `nen pr open` (the one PR, from the pushed head, at nen `0.13`: exit `2` when the head is not

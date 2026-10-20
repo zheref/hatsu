@@ -24,8 +24,10 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 ```
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
-Fill those fragments from `templates/pr-body/<id>.md` in that order, followed by the compact footer.
-Never append an undeclared level-2 heading. `delivery` is reserved for HA#321 and remains inactive.
+Place the always-on Delivery preamble first, then fill the reader fragments from
+`templates/pr-body/<id>.md` in resolved order, then checklist, issues and final attribution.
+Never append an undeclared level-2 heading. Delivery is outside the seven-reader cap and does
+not change any kind × family cell or consumer-owned override.
 The default requirements file is the process × canon fixture, never a substitute for resolving a run.
 
 ## Default matrix
@@ -46,7 +48,7 @@ cell when raised. The release matrix is the maintainer's explicit exception to `
 
 ## Write for the decision
 
-Open with `# ✨ What this changes for you`: a named consumer's Before / After table, a Case for /
+After Delivery, begin the reader sections with `# ✨ What this changes for you`: a named consumer's Before / After table, a Case for /
 Case against table, and what would flip the decision. State effect and cost before mechanism.
 `Why` carries Source / What it showed / Why it matters now and the authoring nature. Keep paths and
 function names in `How`'s legend, where they explain the structure, rather than in reader prose.
@@ -76,8 +78,8 @@ internal headings to level 3 or deeper when embedding, preserving all report con
 
 ## Check every write
 
-Reader sections are capped at seven; Completion checklist, Associated issues, final Agent attribution
-and the reserved Delivery footer are outside that count. The footer's substance is unchanged:
+Reader sections are capped at seven; first-heading Delivery, Completion checklist, Associated issues
+and final Agent attribution are outside that count. The footer's substance is unchanged:
 checklist claims cite evidence, issue closing lines belong under the Associated issues table, and
 attribution records only actual participants under [the ledger contract](AGENT-ATTRIBUTION.md).
 The prose budget is 150 words per section, excluding tables, fences and diagrams: warn, never refuse.
@@ -85,16 +87,17 @@ The prose budget is 150 words per section, excluding tables, fences and diagrams
 ```bash
 "$hatsu_root/scripts/pr_body_sections_check.sh" --body <absolute-body.md> \
   --requirements <absolute-requirements.json> --max <resolved-max>
+"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <absolute-body.md> --repo <effort-path> [--base <ref>]
 nen pr body-check --body-from <absolute-body.md> --requirements-from <absolute-requirements.json>
 "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <absolute-body.md>
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <absolute-body.md> --target <owner/name>
 ```
 
-Run all four before every create or body edit; after either write, read back and run the Development
+Run all five before every create or body edit; after either write, read back and run the Development
 check with `--pr <owner/name#n> --base <base>`. The section guard refuses undeclared headings,
 wrong order, missing sections and an eighth reader section. Keep declaration-derived changelog and
-gate checks from `contracts/pr-composition.json` alongside them. These two scripts are the HA#351
-interim, with shell entries forwarding to TypeScript under `BC-11`; existing configuration/path-set
-Python stays frozen. They are authorized until a released Nen pin carries NN#448's equivalent verbs. A merged Nen PR alone
-does not authorize an unpublished pin or guessed command. No new guard replaces Mukai's review,
+gate checks from `contracts/pr-composition.json` alongside them. The two HA#351 section scripts
+remain interim under `BC-11`: Nen v0.24 carries NN#448's resolver verbs, but NN#464's envelope defect
+blocks their adoption in Hatsu (HA#370). Existing configuration/path-set Python stays frozen.
+No new guard replaces Mukai's review,
 regression, coverage or evidence phases.

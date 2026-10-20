@@ -156,7 +156,8 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 
 [`docs/ROSTER.md`](docs/ROSTER.md) is the authority on who exists and their standing;
 [`claude/agents/`](claude/agents/) is the authority on what each one does. Commits carry the canonical
-`Hatsu-Agent: <persona>` trailer and never model, surface or session attribution.
+`Hatsu-Agent: <persona>` trailer and never model, surface or session attribution. A PR opens with
+ledger-rendered Delivery provenance; its final Agent attribution section lists personas only.
 
 ### Kurapika, the lead persona
 
