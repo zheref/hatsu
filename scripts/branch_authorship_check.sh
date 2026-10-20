@@ -22,7 +22,12 @@
 #      commit `nen wc catch-up` writes for a clean base merge. A merge that adds anything is judged.
 #      --trunk also drops every commit already on <ref> from the range: that history is the base's.
 #      --trunk needs git >= 2.38 (`merge-tree --write-tree`); an older git is a wiring error, probed
-#      once before anything is judged, never a silently judged merge.
+#      once before anything is judged by reading `git merge-tree -h`, which writes nothing, never a
+#      silently judged merge (zheref/hatsu#314). The merge itself writes the merged tree into the
+#      object store, so it runs only for a trailer-less merge whose exemption must be proved; where
+#      git cannot do that (exit other than 0 clean or 1 conflicted, e.g. a write the sandbox denies),
+#      that is a probe failure at exit 2 naming the commit, git's exit and its sanitised error —
+#      never a version diagnosis, never a finding, never a pass.
 #   2. IDENTITY (the weak signal): author AND committer email are in the allowed set — the
 #      repository's `user.email` plus every --allow-email, case-insensitive. A subagent on the
 #      maintainer's credentials shares that identity, so this catches only an explicit foreign one.
@@ -36,8 +41,8 @@
 #         bytes shown as `?`) — and a summary on stderr. The caller stops; it never pushes past one.
 # exit 2  a wiring error: no repository, an empty or unresolvable --base, an empty --allow-email,
 #         a --require-trailer or --require-agent value that is not a plain token, no allowed
-#         identity at all, --trunk on a git without `merge-tree --write-tree`, or an unknown
-#         argument. Nothing was judged.
+#         identity at all, --trunk on a git without `merge-tree --write-tree`, a merge-tree proof
+#         git could not run, or an unknown argument. Nothing was judged: no finding line is printed.
 #
 # Hatsu runs it from `$hatsu_root/scripts/` before aka's squash, before every post-review push
 # (aka § 7, murasaki § 6) and at hanten § 4's return. It reads and never writes.
@@ -116,7 +121,8 @@ if [ -n "$trunk" ] && ! trunk_sha="$(git -C "$repo" rev-parse --verify --quiet "
   echo "branch_authorship_check: --trunk does not resolve to a commit: $(clean "$trunk")" >&2
   exit 2
 fi
-if [ -n "$trunk_sha" ] && ! git -C "$repo" merge-tree --write-tree "$trunk_sha" "$trunk_sha" >/dev/null 2>&1; then
+# A capability read, not a write: `-h` lists --write-tree on every git that has it (zheref/hatsu#314).
+if [ -n "$trunk_sha" ] && ! git -C "$repo" merge-tree -h 2>&1 | grep -Fq -- '--write-tree'; then
   echo "branch_authorship_check: --trunk needs git >= 2.38 (merge-tree --write-tree); this is $(clean "$(git --version)")" >&2
   exit 2
 fi
@@ -127,8 +133,17 @@ clean_trunk_merge() { # <sha>: a merge of the trunk whose tree is git's own clea
   first="$1"; shift
   for p in "$@"; do git -C "$repo" merge-base --is-ancestor "$p" "$trunk_sha" || return 1; done
   [ $# -eq 1 ] || return 1
-  want="$(git -C "$repo" merge-tree --write-tree "$first" "$1" 2>/dev/null)" || return 1
-  [ "$want" = "$(git -C "$repo" rev-parse "${sha}^{tree}")" ]
+  # The proof writes the merged tree into the object store; 1 is a conflict (not clean, so judged),
+  # anything else is git failing to run the proof, which no verdict may be read from.
+  res="$(git -C "$repo" merge-tree --write-tree "$first" "$1" 2>&1)"; rc=$?
+  [ "$rc" -eq 1 ] && return 1
+  if [ "$rc" -ne 0 ]; then
+    echo "branch_authorship_check: the clean trunk-merge proof for $(git -C "$repo" rev-parse --short "$sha") failed: git merge-tree --write-tree exited $rc, which is not a conflict (1) and not a missing git feature (git merge-tree -h lists --write-tree); it needs to write the merged tree into the object store, and git said: $(clean "$(printf '%s\n' "$res" | head -n 3 | tr '\n' ' ')" | cut -c1-300)" >&2
+    echo 'branch_authorship_check: nothing was judged. Do not replace git: grant the access through the harness'"'"'s normal approval path, or run where the repository'"'"'s object store is writable' >&2
+    exit 2
+  fi
+  want="$(printf '%s\n' "$res" | grep -Ex '[0-9a-f]{40}|[0-9a-f]{64}' | head -n 1)"
+  [ -n "$want" ] && [ "$want" = "$(git -C "$repo" rev-parse "${sha}^{tree}")" ]
 }
 
 # A commit already on the trunk is the base's history, not the run's: a catch-up merge brings it in.
@@ -139,6 +154,7 @@ fi
 
 found=0
 total=0
+findings=''
 for sha in $shas; do
   total=$((total + 1))
   ae="$(git -C "$repo" log -1 --format='%ae' "$sha")"
@@ -177,14 +193,17 @@ for sha in $shas; do
     else
       files="$(git -C "$repo" diff-tree --root --no-commit-id --name-only -r "$sha" | grep -c . || true)"
     fi
-    printf '%s  author=%s  committer=%s  files=%s  (%s)  subject (untrusted): %s\n' \
+    # Held until the range is through: a probe failure later in it exits 2 with no finding printed.
+    findings="${findings}$(printf '%s  author=%s  committer=%s  files=%s  (%s)  subject (untrusted): %s' \
       "$(git -C "$repo" rev-parse --short "$sha")" \
       "$(clean "$(git -C "$repo" log -1 --format='%an <%ae>' "$sha")")" "$(clean "$ce")" "$files" "$reason" \
-      "$(clean "$(git -C "$repo" log -1 --format='%s' "$sha")")"
+      "$(clean "$(git -C "$repo" log -1 --format='%s' "$sha")")")
+"
   fi
 done
 
 if [ "$found" -gt 0 ]; then
+  printf '%s' "$findings"
   echo "branch_authorship_check: ${found} of ${total} commit(s) in the outgoing range fail provenance or trailer policy; stop before any push and report them" >&2
   exit 1
 fi

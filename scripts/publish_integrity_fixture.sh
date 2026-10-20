@@ -28,6 +28,12 @@ expect_out() { # <name> <needle> <cmd...>
   if printf '%s' "$out" | grep -Fq -- "$needle"; then pass=$((pass + 1)); echo "ok    $name"
   else fails=$((fails + 1)); echo "FAIL  $name: output lacks '$needle'"; printf '%s\n' "$out" | sed 's/^/      /'; fi
 }
+expect_not_out() { # <name> <needle> <cmd...>
+  name="$1"; needle="$2"; shift 2
+  out="$("$@" 2>&1)"
+  if printf '%s' "$out" | grep -Fq -- "$needle"; then fails=$((fails + 1)); echo "FAIL  $name: output carries '$needle'"; printf '%s\n' "$out" | sed 's/^/      /'
+  else pass=$((pass + 1)); echo "ok    $name"; fi
+}
 g() { git -C "$@"; }
 new_repo() { git init -q -b main "$1"; g "$1" config user.email me@example.invalid
   g "$1" config user.name me; g "$1" config commit.gpgsign false; }
@@ -168,6 +174,34 @@ chmod +x "$fg/git"
 expect 'a git without merge-tree --write-tree under --trunk is a wiring error' 2 env PATH="$fg:$PATH" "$auth" --repo "$k" --base main --trunk main
 expect_out 'the wiring error names the git version floor' 'git >= 2.38' env PATH="$fg:$PATH" "$auth" --repo "$k" --base main --trunk main
 expect 'the same git without --trunk still judges' 0 env PATH="$fg:$PATH" "$auth" --repo "$k" --base main
+
+# --- zheref/hatsu#314: a supported git that cannot write the proof is a probe failure, not old git
+dg="$tmp/deniedgit"; mkdir -p "$dg"
+cat > "$dg/git" <<EOF
+#!/bin/sh
+for a in "\$@"; do [ "\$a" = --write-tree ] && { printf 'error: unable to create temporary file: Operation not permitted\nfatal: failure to merge\n' >&2; exit 128; }; done
+exec "$realgit" "\$@"
+EOF
+chmod +x "$dg/git"
+q="$tmp/q"; new_repo "$q"; echo b > "$q/f"; g "$q" add f; g "$q" commit -q -m base
+g "$q" checkout -q -b effort; echo e > "$q/e"; g "$q" add e; g "$q" commit -q -m own -m "Hatsu-Agent: kurapika"
+expect '#314 no exemption to prove: a write-denied git passes under --trunk (no unconditional write)' 0 env PATH="$dg:$PATH" "$auth" --repo "$q" --base main --require-agent kurapika --trunk main
+g "$q" checkout -q main; echo m > "$q/m"; g "$q" add m; g "$q" commit -q -m main2 -m "Hatsu-Agent: kurapika"
+g "$q" checkout -q effort; g "$q" merge -q --no-edit main
+expect '#314 successful proof: the clean trunk merge passes on a writable store' 0 "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+expect '#314 a write-denied proof is exit 2, fail-closed' 2 env PATH="$dg:$PATH" "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+expect_out '#314 the probe failure names its exit status' 'exited 128' env PATH="$dg:$PATH" "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+expect_out "#314 the probe failure carries git's own error" 'Operation not permitted' env PATH="$dg:$PATH" "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+expect_out '#314 the probe failure points at the approval path, not a new git' 'Do not replace git' env PATH="$dg:$PATH" "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 the probe failure is not a version diagnosis' 'git >= 2.38' env PATH="$dg:$PATH" "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+expect_not_out '#314 the probe failure is not a missing-trailer finding' 'no Hatsu-Agent trailer' env PATH="$dg:$PATH" "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+echo r > "$q/rv"; g "$q" add rv; g "$q" commit -q -m repro -m "Hatsu-Agent: feitan"
+expect_not_out '#314 a probe failure prints no finding for the rest of the range' 'Hatsu-Agent: feitan' env PATH="$dg:$PATH" "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
+g "$q" reset -q --hard HEAD~2
+g "$q" checkout -q main; echo main > "$q/f"; g "$q" commit -q -am main3 -m "Hatsu-Agent: kurapika"
+g "$q" checkout -q effort; echo effort > "$q/f"; g "$q" commit -q -am mine -m "Hatsu-Agent: kurapika"
+g "$q" merge -q --no-edit main >/dev/null 2>&1; echo resolved > "$q/f"; g "$q" add f; g "$q" commit -q --no-edit
+expect '#314 a conflicted trunk merge is judged (exit 1), never a probe failure' 1 "$auth" --repo "$q" --base main~1 --require-agent kurapika --trunk main
 n="$tmp/noid"; git init -q -b main "$n"; g "$n" -c user.email=z@z -c user.name=z commit -q --allow-empty -m z
 expect 'no identity at all is a wiring error' 2 env HOME="$tmp" "$auth" --repo "$n" --base main
 
