@@ -1,1 +1,0 @@
-#131: Admit a trusted, head-pinned TypeScript reader for `nen pr ready --json` beside the current frozen readiness step. The workflow and Tenkai template move to the JSON form in the follow-up installation PR.
