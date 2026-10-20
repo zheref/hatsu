@@ -344,7 +344,7 @@ for `mugetsu`, form (4) of its § 0, rather than proposing it.
 
 ## 7. The skills that carry a `## 0. Standalone entry`
 
-**Thirty do**, and they fall into two groups. The split is the useful fact: a reader asking *what
+**Thirty-one do**, and they fall into two groups. The split is the useful fact: a reader asking *what
 will this derive if I type it cold* needs the first table, and a reader asking *does P1 apply* needs
 both.
 
@@ -369,7 +369,7 @@ both.
 | [`rikugan`](../claude/skills/rikugan/SKILL.md) | S3 + S4 — the scope, in its § 2 order: handed over by the composite that names it, typed, the objects the session's last completed workflow touched (read from that run's record), else the checkout (the branch's open or merged PR and the issues its body closes); **P1b is declined** (read-only) and **P3 is declined** — the subject is a state, not a delta, and `(fetched <sha>)` is never asserted. Terminal in its own pipeline: the hand-back line says so | the scope, as **free text**, only when neither the session nor the checkout yields one (`missing-argument`) — never the whole backlog by default |
 
 
-### 7b · Fifteen whose `## 0.` adds P1, orientation and expectations only
+### 7b · Sixteen whose `## 0.` adds P1, orientation and expectations only
 
 These inherit no caller state. Their `## 0.` says P1 still applies, states what their run does **not**
 cover, and — for the two the contract used to mis-file — names why.
@@ -391,6 +391,7 @@ cover, and — for the two the contract used to mis-file — names why.
 | [`classify`](../claude/skills/classify/SKILL.md) | Reached from `file` § 5 (and `build` § 2b from `v0.89.0`), or typed — both wired. P1 `hatsu:ten classify`; **P1b and P3 are declined** (the subject is an issue's text, not a delta); P2, P4 (the scope by its § 1 order, asked only where that order says) and P5, naming what is not running: no build, no direct, no commit, no merge |
 | [`direct`](../claude/skills/direct/SKILL.md) | Reached from `build` § 2b, `ren` § 2, `file` § 5, or typed — all wired. P1 `hatsu:ten direct`; **P1b and P3 are declined** (no delta is read); P2, P4 (the scope by its § 1) and P5, naming what is not running: no build starts, no label moves |
 | [`emperor-time`](../claude/skills/emperor-time/SKILL.md) | Typed — its wired position; no composite calls it. P1 `hatsu:ten emperor-time`; **P1b and P3 are declined** (the subject is an idea, not a delta); P2, P4 (the idea and the repository by its § 1; an empty line is the idea the session is discussing, stated back first; no idea derivable is typed, never inferred; the challenger persona asked once per run until OPEN-4 is ruled) and P5, naming what is not running: no build, no label beyond the filing's own, no commit, no merge |
+| [`bankai-rule`](../claude/skills/bankai-rule/SKILL.md) | Typed, or reached from a port composite (`kamui`, `hiraishin` — zheref/hatsu#356, #357, not yet shipped) at a `port-drift` answer, then skipped. P1 `hatsu:ten bankai-rule`; **P1b and P3 are declined** (a ruling, not a delta); P2, P4 (the pair with both scenario slots enumerated and the ruling split off before the parse, stated back; the bare form is the ruling the session is discussing) and P5, naming what is not running: no build, no merge, no write to the canon checkout, no mirror |
 
 **The skills with no `## 0.` at all** are the composites, the loop engines, and the three read-only
 resolvers § 4 names — `pr-state`, `backlog-state`, `bankai-handbooks` — which reach P1 through
