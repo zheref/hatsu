@@ -238,7 +238,7 @@ reader sees in the PR list.
 Both carry what the target's PR template requires (e.g. `schemas/templates/pr.md` — a template is not
 one of the four files nen's `schemas/`→`nen/` migration moved) — `# What this changes for you`
 (`CON-17(a)`), `## How to verify` (`CON-17`). Check whether a `changelog.d/` fragment is owed with
-`nen changelog fragment-required --files <this axis's changed paths>` and the three inputs
+`nen changelog fragment-required --files-from <this axis's changed paths, both rename sides>` (WORKFLOW § *Gate derivation*) and the three inputs
 [`contracts/pr-composition.json`](../../../contracts/pr-composition.json) → `changelogFragment`
 declares (`CON-33(a)`; zheref/hatsu#171), read rather than retyped and never eyeballed against the
 path list by hand — it answers per axis, since the two PRs' changed-path sets differ. `--spec-paths`
