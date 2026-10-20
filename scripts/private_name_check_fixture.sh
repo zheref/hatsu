@@ -10,7 +10,8 @@
 # invisible character, a fullwidth dash, intraword emphasis, a code span or an HTML comment is still a
 # hit; that the predecessor marker passes only by its exact line shape and only for the name its
 # source names, never for the same name spelt again on its line; that a path or label naming a
-# repository only once normalised is withheld; that the target's visibility, the ignore file (an
+# repository only once normalised is withheld; that the named list (exact owner/name only, a bare
+# name refused, the committed list read by default) passes only the repository it names; that the target's visibility, the ignore file (an
 # empty or comment-only one ignores nothing; one that ignores every name is a refusal), --tree
 # (contents, paths, symlink targets, UTF-16 with a BOM, counted skips), stdin and --resolve behave as
 # the header says; and that every wiring fault (gh missing or failing, a list that may be truncated
@@ -295,6 +296,54 @@ for t in bash env sed sort grep awk tr head mktemp rm cat cp git dirname; do
   p="$(command -v "$t")" && ln -sf "$p" "$work/nogh/$t"
 done
 PATH="$work/nogh" expect 2 "gh missing" "$work/bare.md"
+
+# --- the named list (ruling of 2026-10-19): a ruled-public name, by exact owner/name -------------
+printf '# a ruling\nacme/zz-secret\n' > "$work/named"
+expect 0 "named: the ruled repository passes" --names-file "$names" --named-file "$work/named" "$work/slug.md"
+has '1 named by ruling' "the named count is reported on ok"
+expect 0 "named: case-insensitive, every spelling of the name passes" --names-file "$names" --named-file "$work/named" "$work/case.md"
+expect 1 "named: other private names still hit" --names-file "$names" --named-file "$work/named" "$work/dotted.md"
+has '1 named by ruling' "the named count is reported on a refusal"
+printf 'acme/zz-secret\nbob/zz-secret\nQux.Lab\n' > "$work/twin-names"
+expect 1 "named: a same-named repository under another owner is still a hit" --names-file "$work/twin-names" --named-file "$work/named" "$work/bare.md"
+has '1 named by ruling' "only the ruled owner's entry is counted"
+printf 'acme/zz-secret extra\n' > "$work/named-field"
+expect 2 "named: a line with a second field is refused, never collapsed" --names-file "$names" --named-file "$work/named-field" "$work/bare.md"
+printf '  acme/zz-secret  \r\n' > "$work/named-crlf"
+expect 0 "named: surrounding blanks and a CR are trimmed" --names-file "$names" --named-file "$work/named-crlf" "$work/slug.md"
+printf 'zz-secret\n' > "$work/named-bare"
+expect 2 "named: a bare name is refused" --names-file "$names" --named-file "$work/named-bare" "$work/bare.md"
+has 'not owner/name' "the bare-name refusal says why"
+expect 2 "named: an unreadable --named-file is wiring" --names-file "$names" --named-file "$work/missing-named" "$work/bare.md"
+printf '# no entries\n' > "$work/named-none"
+expect 1 "named: a comment-only named file names nothing" --names-file "$names" --named-file "$work/named-none" "$work/bare.md"
+has '0 named by ruling' "a list that names nothing counts none"
+printf 'acme/zz-secret\nacme/Qux.Lab\nacme/Plinth\n' > "$work/all-names"
+cp "$work/all-names" "$work/named-all"
+expect 2 "named: naming every private repository is a refusal" --names-file "$work/all-names" --named-file "$work/named-all" "$work/bare.md"
+has 'named by ruling' "the refusal counts the named"
+expect 0 "named: --allow-empty accepts every name named" --names-file "$work/all-names" --named-file "$work/named-all" --allow-empty "$work/bare.md"
+nrepo="$work/named-repo"; mkdir -p "$nrepo/zz-secret"
+printf 'zz-secret is ruled public\n' > "$nrepo/zz-secret/notes.md"; ln -sf zz-secret "$nrepo/link"
+cp "$work/named" "$nrepo/named.txt"
+(cd "$nrepo" && git init -q . && git add -A >/dev/null 2>&1) 2>/dev/null || true
+expect 0 "named: --tree passes the named list, a path and a symlink target naming it" --names-file "$names" --named-file "$work/named" --tree "$nrepo"
+expect 1 "named: the same tree without the named list hits" --names-file "$names" --named-file "$work/named-none" --tree "$nrepo"
+# The committed list is read by default: the ruled repository passes with no --named-file.
+printf 'zheref/akatsuki-ai\nacme/zz-secret\n' > "$work/ak-names"
+text ak.md 'AK resolves to zheref/akatsuki-ai.'
+expect 0 "named: the committed list names the ruled repository by default" --names-file "$work/ak-names" "$work/ak.md"
+has '1 named by ruling' "the default named list is counted"
+expect 1 "named: the ruled repository is a hit when no list names it" --names-file "$work/ak-names" --named-file "$work/named-none" "$work/ak.md"
+# A missing default list names nothing: a copy of the guard with no list beside it is stricter.
+mkdir -p "$work/bare-guard" && cp "$guard" "$work/bare-guard/private_name_check.sh"
+out="$(HOME="$work/home" XDG_CONFIG_HOME="$work/home/.config" bash "$work/bare-guard/private_name_check.sh" --names-file "$work/ak-names" "$work/ak.md" 2>&1)"; rc=$?
+[ "$rc" -eq 1 ] && ok || bad "named: a missing default list names nothing -- exit $rc, wanted 1 -- $out"
+has '0 named by ruling' "the missing default is counted as none named"
+# The committed list is pinned: its entry set is exactly the ruled set (docs/ROSTER.md section Rulings
+# of 2026-10-19 -- the Akatsuki CI repository is named). A new line needs a ruling AND this edit.
+pinned="$(sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$here/private_name_named.txt" | tr '[:upper:]' '[:lower:]' | LC_ALL=C sort -u | tr '\n' ' ')"
+[ "$pinned" = "zheref/akatsuki-ai " ] && ok || bad "named: the committed list is not the ruled set (zheref/akatsuki-ai) -- read: '$pinned'"
 
 # --- --resolve and --help ----------------------------------------------------------------------
 expect 2 "--resolve refuses a non-terminal" --names-file "$names" --resolve 1

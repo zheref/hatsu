@@ -1,0 +1,9 @@
+# private_name_named.txt -- private repositories whose NAME the maintainer has ruled public while
+# their code stays private (docs/PUBLIC-REDACTION.md section Named private repositories;
+# docs/ROSTER.md section Rulings of 2026-10-19 -- the Akatsuki CI repository is named). The
+# redaction-guard fixture pins this entry set: a new line needs a recorded ruling and a fixture edit
+# in the same PR. scripts/private_name_check.sh drops each entry from the private list; hatsu:file
+# section 4 hands the same entries to nen's own guard. One owner/name per line, never a bare name;
+# only a recorded ruling adds a line.
+# AK, the Akatsuki CI plane (ruling of 2026-10-19):
+zheref/akatsuki-ai
