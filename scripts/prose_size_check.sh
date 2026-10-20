@@ -8,7 +8,7 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the twenty-four dieted skills                 <= 12288 bytes
+#   the twenty-six dieted skills                  <= 12288 bytes
 #   every claude/rules/*.md                       <= 12000 characters (Antigravity's own documented
 #                                                     rules-file limit, docs/surfaces/antigravity.md --
 #                                                     the smallest limit any surface documents for a

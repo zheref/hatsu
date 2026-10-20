@@ -1,8 +1,8 @@
 {
-  "$comment": "Redacted fixture for hatsu:kamui (zheref/hatsu#356): the same member registry with no family declared, the case kamui section 2 asks for. Every name is a fixture placeholder (docs/PUBLIC-REDACTION.md, the <fixture-*> row).",
+  "$comment": "Redacted fixture for hatsu:kamui (zheref/hatsu#356): the member registry with no family declared, the case kamui section 2 asks for. Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the fixture-* row).",
   "consumers": [
     {
-      "repo": "<owner>/<fixture-ios-repo>",
+      "repo": "fixture-owner/fixture-ios",
       "scenario": "swiftui-tca-uzf-v2",
       "consumes": []
     }
@@ -18,7 +18,7 @@
     }
   ],
   "product_codes": {
-    "FI": "<owner>/<fixture-ios-repo>",
+    "FI": "fixture-owner/fixture-ios",
     "HA": "zheref/hatsu",
     "NN": "zheref/nen"
   }

@@ -422,12 +422,12 @@ conflict waiting to be resolved by coin toss.
 "port": { "specKit": { "pin": "v1.2.2", "layout": "specs/{nnn}-{slug}" } }
 ```
 
-Read in a product family's **spec repository** (role `spec`, [`config/repos.json.md`](config/repos.json.md) § `families[]`); `nen schema check` tolerates the block. The epic's `handbooksRepo` and `rulingsDir` land with `bankai-rule` (zheref/hatsu#355).
+Read in a product family's **spec repository** (role `spec`, [`config/repos.json.md`](config/repos.json.md) § `families[]`); `nen schema check` tolerates the block. Both catalogue rows apply only where a `port` block exists (`when`), so `fill` never writes them into an unrelated repository. The epic's `handbooksRepo` and `rulingsDir` land with `bankai-rule` (zheref/hatsu#355).
 
 | Key | Default | Read by |
 |---|---|---|
-| `specKit` → `pin` | `v1.2.2` | `kamui` § 3: the `github/spec-kit` release whose file set and paths the spec step writes (`specs/<nnn>-<slug>/`'s seven entries plus `checklists/requirements.md`, and `.specify/memory/constitution.md` once, citing `CON-{n}`, never overriding it). Read live on 2026-10-20 as the latest release; moved by the spec repository's own declaration PR |
-| `specKit` → `layout` | `specs/{nnn}-{slug}` | `kamui` § 3: where one feature's folder is written; `{nnn}` is the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title. The source object is cited in `spec.md`'s header and searched for before a new folder opens |
+| `specKit` → `pin` | `v1.2.2` | `kamui` §§ 2–3: the `github/spec-kit` release whose file set and paths the spec step writes (`specs/<nnn>-<slug>/`'s seven entries plus `checklists/requirements.md`, and `.specify/memory/constitution.md` once, citing `CON-{n}`, never overriding it). Read live on 2026-10-20 as the latest release; moved by the spec repository's own declaration PR |
+| `specKit` → `layout` | `specs/{nnn}-{slug}` | `kamui` §§ 2–3: where one feature's folder is written; `{nnn}` is the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title. The source object is cited in `spec.md`'s header and searched for before a new folder opens |
 
 ### `ci`
 
@@ -1659,7 +1659,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME}/hatsu/ports/<run-id>.json` (zheref/hatsu#356, epic #354).
+**`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
 parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
 publish offer; cleanup is Shizuku's sweep, required after a completed session, offered beside an optional

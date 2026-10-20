@@ -220,12 +220,12 @@ Self-hosted GitHub Actions runner naming and pools, provisioned by `hatsu:jusshi
 
 ### `port.specKit`
 
-Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; `nen schema check` tolerates the block.
+Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` § 3 |
-| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` § 3 |
+| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` §§ 2–3 |
+| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` §§ 2–3 |
 
 ### Keys a consuming repository may add
 

@@ -1,0 +1,9 @@
+{
+  "$comment": "Redacted fixture: the spec repository's port block at the catalogue's defaults (contracts/config-catalogue.json, workflow.port.specKit.*).",
+  "port": {
+    "specKit": {
+      "pin": "v1.2.2",
+      "layout": "specs/{nnn}-{slug}"
+    }
+  }
+}
