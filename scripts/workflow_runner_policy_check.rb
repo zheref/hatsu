@@ -78,13 +78,22 @@ PENDING_HOSTED_WORKFLOWS = %w[].freeze
 # directly to main", not "never trust the PR's own copy of anything".
 BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 
+# A pull_request job executes PR fixtures with contents: read and no write
+# credential. Register the staged template before installing the workflow so
+# main's trusted validator knows its exact shape when the second PR lands.
+PENDING_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
+REQUIRED_UNIT_TEST_WORKFLOWS = %w[].freeze
+UNIT_TESTS_WORKFLOW_SHA256 = "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94".freeze
+
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
 # refuses any `.github/workflows/*.yml` whose basename is in neither list,
 # rather than letting it fall through unchecked — a new workflow is exactly
 # the thing a PR-controlled diff could add to gain a privileged trigger this
 # policy never reasoned about, so silence is not an option the fail-closed
 # design allows.
-KNOWN_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS + BUILDER_WORKFLOWS).freeze
+PRIVILEGED_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS + BUILDER_WORKFLOWS).freeze
+KNOWN_WORKFLOWS = (PRIVILEGED_WORKFLOWS +
+  PENDING_UNIT_TEST_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS).freeze
 
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
@@ -1102,15 +1111,15 @@ BUILDER_PERMISSIONS = {
 # silence -- stops this script at load, before it judges anything.
 PR_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).freeze
 {
-  "EXPECTED_JOBS" => [EXPECTED_JOBS.keys, KNOWN_WORKFLOWS],
-  "EXPECTED_STEPS" => [EXPECTED_STEPS.keys, KNOWN_WORKFLOWS],
+  "EXPECTED_JOBS" => [EXPECTED_JOBS.keys, PRIVILEGED_WORKFLOWS],
+  "EXPECTED_STEPS" => [EXPECTED_STEPS.keys, PRIVILEGED_WORKFLOWS],
   "ALLOWED_JOB_GUARDS" => [ALLOWED_JOB_GUARDS.keys, PR_WORKFLOWS],
   "BASE_TYPES" => [BASE_TYPES.keys, PR_WORKFLOWS],
   "HARDENED_TYPES" => [HARDENED_TYPES.keys, PR_WORKFLOWS],
   "CHECK_CREATION" => [CHECK_CREATION.keys, PR_WORKFLOWS],
   "BUILDER_TRIGGERS" => [BUILDER_TRIGGERS.keys, BUILDER_WORKFLOWS],
   "BUILDER_PERMISSIONS" => [BUILDER_PERMISSIONS.keys, BUILDER_WORKFLOWS],
-  "the two cancel-in-progress lists" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN, KNOWN_WORKFLOWS]
+  "the two cancel-in-progress lists" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN, PRIVILEGED_WORKFLOWS]
 }.each do |table, (have, want)|
   next if have.sort == want.sort
   abort "workflow-runner-policy: #{table} covers #{have.sort.join(", ")}, not #{want.sort.join(", ")}: a workflow's registration is incomplete"
@@ -2089,16 +2098,36 @@ def validate_workflow(path, hatsu: false)
   end
 end
 
+def validate_unit_tests_workflow(path)
+  fail_policy("#{path} must be a regular workflow file") if File.symlink?(path) || !File.file?(path)
+  document = Psych.parse_file(path)
+  fail_policy("#{path} is empty") unless document && document.root
+  reject_duplicate_keys(document.root, path)
+  root = mapping(document.root, path)
+  triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
+  fail_policy("#{path} must use only pull_request") unless triggers.keys == ["pull_request"]
+  permissions = mapping(root.fetch("permissions") { fail_policy("#{path} has no permissions") }, "#{path} permissions")
+  fail_policy("#{path} must have only contents: read") unless permissions.keys == ["contents"] && scalar(permissions["contents"]) == "read"
+  jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs") }, "#{path} jobs")
+  fail_policy("#{path} must have only unit-tests job") unless jobs.keys == ["unit-tests"]
+  job = mapping(jobs.fetch("unit-tests"), "#{path} unit-tests")
+  fail_policy("#{path} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
+  fail_policy("#{path} has changed from the staged, reviewed read-only test job") unless
+    Digest::SHA256.file(path).hexdigest == UNIT_TESTS_WORKFLOW_SHA256
+end
+
 def validate_repo(root, announce: true)
   paths = Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).sort
   fail_policy("#{root} has no workflows") if paths.empty?
   basenames = paths.map { |path| File.basename(path) }
-  missing = PORTABLE_HOSTED_WORKFLOWS - basenames
+  missing = (PORTABLE_HOSTED_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS) - basenames
   fail_policy("#{root} is missing required workflows: #{missing.join(', ')}") unless missing.empty?
   unknown = basenames - KNOWN_WORKFLOWS
   fail_policy("#{root} carries undeclared workflow(s): #{unknown.join(', ')} — every workflow under .github/workflows/ needs a declared policy entry before it can be trusted") unless unknown.empty?
   paths.each do |path|
-    if BUILDER_WORKFLOWS.include?(File.basename(path))
+    if (PENDING_UNIT_TEST_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS).include?(File.basename(path))
+      validate_unit_tests_workflow(path)
+    elsif BUILDER_WORKFLOWS.include?(File.basename(path))
       validate_builder_workflow(path)
     else
       validate_workflow(path, hatsu: File.file?(File.join(root, "templates/pr-readiness.yml")))
@@ -2334,6 +2363,23 @@ def self_test(root)
       next unless File.file?(staged) && !File.file?(installed)
       FileUtils.cp(staged, installed)
       validate_repo(tmp, announce: false)
+      FileUtils.rm(installed)
+    end
+    PENDING_UNIT_TEST_WORKFLOWS.each do |name|
+      staged = File.join(root, "templates", name)
+      fail_policy("self-test: staged #{name} is missing") unless File.file?(staged)
+      installed = File.join(tmp, ".github/workflows", name)
+      FileUtils.cp(staged, installed)
+      validate_repo(tmp, announce: false)
+      original_unit_tests = File.read(installed)
+      File.write(installed, original_unit_tests.sub("contents: read", "contents: write"))
+      expect_rejected("unit-tests must stay read-only", /must have only contents: read/) do
+        validate_repo(tmp, announce: false)
+      end
+      File.write(installed, original_unit_tests.sub("node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts"))
+      expect_rejected("unit-tests runner cannot come from PR", /changed from the staged/) do
+        validate_repo(tmp, announce: false)
+      end
       FileUtils.rm(installed)
     end
 
