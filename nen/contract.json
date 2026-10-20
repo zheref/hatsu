@@ -114,6 +114,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/permissions_pack.sh, which ten § 5 and tenkai run on every surface, following the one-lane-per-executable-guard pattern (its fixture existed and no lane ran it until 0.66.0). Hermetic and offline: throwaway consumer repositories prove Codex writable_roots are filled, the placed .codex/hooks.json drops PLUGIN_ROOT with nen's marker kept and the same rewrite as scripts/surface_bootstrap.sh (CWE-426), --plugin leaves .codex/hooks.json to the Codex plugin and is refused off codex, a re-install is idempotent, and a tracked file is left alone."
       },
+      "futon-effort-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Focused fixture for local Futon ownership metadata: a run starts before PR creation, then binds the typed selector, issue, PR, non-main base and pinned head outside the PR-controlled tree."
+      },
       "trusted-guard-preflight": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -371,6 +376,13 @@
             "scripts/permissions_pack_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes."
+        }
+      },
+      "futon-effort-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": ["scripts/fixture_output_guard.sh", "node", "scripts/futon_effort_record_fixture.mts"],
+          "$comment": "Hermetic Futon ownership fixture: verifies bind, refresh and missing/stale/default-branch/selector refusals in a scratch Git common directory. Run when the record script, Futon binding, or En's merge guard changes."
         }
       },
       "trusted-guard-preflight": {
@@ -740,6 +752,13 @@
     },
     "targets": {},
     "toolchain": {
+      "node": {
+        "version": ">=22.18.0",
+        "probe": ["node", "--version"],
+        "versionFrom": "first-semver-on-stdout",
+        "installer": "verify-only",
+        "why": "Futon ownership binding and En verification run the TypeScript .mts source directly; Node 22.18 or newer has type stripping enabled by default. An older Node is a missing host tool, never a failed ownership claim (#154)."
+      },
       "claude": {
         "version": ">=2.0.0",
         "probe": [

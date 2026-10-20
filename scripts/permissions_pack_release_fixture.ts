@@ -3,17 +3,19 @@
 import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 
-function permissionsAt(path: string): { allow: string[]; [key: string]: unknown } {
+function permissionsAt(path: string): { allow: string[]; deny: string[]; [key: string]: unknown } {
   const value: unknown = JSON.parse(readFileSync(path, 'utf8'));
   if (typeof value !== 'object' || value === null || !('permissions' in value)) {
     throw new Error(`${path}: missing permissions`);
   }
   const permissions = value.permissions;
   if (typeof permissions !== 'object' || permissions === null || !('allow' in permissions) ||
-      !Array.isArray(permissions.allow) || !permissions.allow.every((row) => typeof row === 'string')) {
-    throw new Error(`${path}: malformed permissions.allow`);
+      !Array.isArray(permissions.allow) || !permissions.allow.every((row) => typeof row === 'string') ||
+      !('deny' in permissions) || !Array.isArray(permissions.deny) ||
+      !permissions.deny.every((row) => typeof row === 'string')) {
+    throw new Error(`${path}: malformed permissions`);
   }
-  return permissions as { allow: string[]; [key: string]: unknown };
+  return permissions as { allow: string[]; deny: string[]; [key: string]: unknown };
 }
 
 function main(args: string[]): void {
@@ -30,6 +32,14 @@ function main(args: string[]): void {
   if (installed.allow.some((row) => row.startsWith('Bash(nen shu deploy ') ||
       row.startsWith('Bash(gh release '))) {
     throw new Error('Claude Code pack grants a deploy or direct release form');
+  }
+  const delivery = installed.allow.filter((row) => row.startsWith('Bash(nen pr merge '));
+  const boundedDelivery = 'Bash(nen pr merge * --delivery --requirements-from * --repo * --require-head * --run)';
+  if (delivery.length !== 1 || delivery[0] !== boundedDelivery ||
+      installed.allow.some((row) => row.startsWith('Bash(gh pr merge ')) ||
+      installed.allow.includes('Bash(gh api *)') ||
+      !installed.deny.includes('Bash(gh pr merge *)')) {
+    throw new Error('Claude Code pack grants an unbounded or direct delivery merge');
   }
   if (!isDeepStrictEqual(installed, rendered)) {
     throw new Error('Claude Code installed permissions differ from the rendered permission pack');

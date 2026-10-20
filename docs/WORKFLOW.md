@@ -961,6 +961,37 @@ It loops. **It never pushes and never opens a pull request.**
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
+En may also merge a **recorded Futon-owned stacked delivery PR** into a non-main base when Nen
+Ready, live body, current-head ownership and `nen pr merge --delivery` all pass. This narrow
+non-main path is [`en`](../claude/skills/en/SKILL.md) § 5 and
+[`ROSTER.md`](ROSTER.md) § *Ruling of 2026-10-19 — recorded Futon delivery merges*;
+the table's main-bound merge gate is unchanged.
+
+### Recorded Futon delivery ownership
+
+At the start of a typed Futon run, before any PR opens, Futon records the original invocation
+and retains the returned run ID in its effort record. After it opens each stacked delivery PR
+and after each update to its head, it binds that run ID, selected issue, live PR, non-main base,
+head branch and full GitHub head SHA. The plugin-root TypeScript helper parses the invocation,
+checks the selected issue and live PR, requires the run to predate the PR, and requires its body
+to cite the selected issue. It stores the claim in the repository's Git common directory,
+outside the PR-controlled tree. The same effort may refresh its head; another run, issue,
+selector, base or branch cannot take over the record. Verify immediately after binding.
+No record is made for an integration PR or a PR into `branch.base`.
+
+```bash
+node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
+node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree> --pr <N> --run <id printed by start> --issue <issue-N> --base <live non-main base> --head <live head branch> --sha <full live head SHA>
+node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
+```
+
+A missing, mismatched or stale record leaves En at the maintainer handoff; it never infers
+ownership from the branch name, PR title or session memory. En verifies again against the
+same head immediately before its bounded merge ([`en`](../claude/skills/en/SKILL.md) § 5).
+The local record supplies **procedural provenance**, not cryptographic proof of who typed the
+invocation; only Futon may run `start`, and En only runs `verify`. A host running this `.mts`
+helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
+
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
 The **wrap-up picker** at every session delivery — a PR at `en` § 5's merge prompt or merged, a composite's run
 ending — asks once (row `wrap-up`): ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
