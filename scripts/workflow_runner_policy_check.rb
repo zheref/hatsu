@@ -608,6 +608,12 @@ READINESS_FROZEN_VERDICT = {
     } >> "$GITHUB_OUTPUT"
   RUN
 }.freeze
+# Stage one of #131 admits the next trusted TypeScript reader without changing
+# the live workflow. The entire step remains frozen; the script itself must be
+# present on the trusted base before a workflow may invoke it.
+READINESS_FROZEN_VERDICT_NEXT = READINESS_FROZEN_VERDICT.merge(
+  "run" => "node .trusted/scripts/readiness_ci_verdict.mts"
+).freeze
 READINESS_FROZEN_PUBLISH = {
   "if" => "${{ always() }}",
   "env" => {
@@ -640,7 +646,7 @@ READINESS_FROZEN_STEPS = {
   "Read the pinned nen ref from trusted nen/contract.json" => READINESS_FROZEN_PIN,
   "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => NEN_BOOTSTRAP_NEXT,
   NEN_DIGEST_STEP => NEN_DIGEST_FROZEN,
-  READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT,
+  READINESS_VERDICT_STEP => [READINESS_FROZEN_VERDICT, READINESS_FROZEN_VERDICT_NEXT],
   READINESS_PUBLISH_STEP => READINESS_FROZEN_PUBLISH
 }.freeze
 #
@@ -2024,6 +2030,10 @@ def validate_workflow(path, hatsu: false)
     REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, spec|
       step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
       fail_policy("#{path} has no step named #{step_name.inspect}") unless step
+      # #131's exact next form runs the TypeScript reader from .trusted. That
+      # reader fixes --gates and the head pin in source, and the frozen-step
+      # comparison above has already checked the whole invocation and env.
+      next if step_name == READINESS_VERDICT_STEP && scalar(step["run"]).to_s.strip == READINESS_FROZEN_VERDICT_NEXT.fetch("run")
       # Logical commands: continuation lines joined, so a flag on its own
       # continuation still belongs to the invocation it continues.
       # SEGMENTS, NOT PHYSICAL LINES. `nen pr ready --gates "..."; nen pr ready`
@@ -2709,6 +2719,17 @@ def self_test(root)
     fail_policy("self-test: the pin step's GITHUB_OUTPUT line is not where the env-write fixtures expect it") unless readiness_frozen.scan(pin_out).length == 1
     File.write(readiness, readiness_frozen)
     validate_repo(tmp, announce: false)
+    fail_policy("self-test: trusted readiness JSON reader is missing") unless File.file?(File.join(root, "scripts/readiness_ci_verdict.mts"))
+    readiness_next = readiness_with.call(verdict: READINESS_FROZEN_VERDICT_NEXT)
+    File.write(readiness, readiness_next)
+    validate_repo(tmp, announce: false)
+    changed_next = readiness_with.call(verdict: READINESS_FROZEN_VERDICT_NEXT.merge(
+      "run" => "node scripts/readiness_ci_verdict.mts"
+    ))
+    fixture_changed!("readiness JSON reader from untrusted checkout", readiness_next, changed_next)
+    File.write(readiness, changed_next)
+    expect_rejected("readiness JSON reader from untrusted checkout") { validate_repo(tmp) }
+    File.write(readiness, readiness_frozen)
     verdict_run = READINESS_FROZEN_VERDICT.fetch("run")
     publish_run = READINESS_FROZEN_PUBLISH.fetch("run")
     with_run = ->(run) { readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("run" => run)) }
@@ -2854,10 +2875,11 @@ def self_test(root)
     # Built from READINESS_RENDERED_STEPS with tenkai's three placeholders
     # filled, on the checkout's own header. A process rendering is the base;
     # each fixture breaks one arm of the second admitted form.
-    rendered_with = lambda do |guard: "true", fallback: "false", ref: "v0.18.2", steps: READINESS_RENDERED_STEPS|
+    rendered_old = READINESS_RENDERED_STEPS.merge(READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT)
+    rendered_with = lambda do |guard: "true", fallback: "false", ref: "v0.18.2", steps: rendered_old|
       fill = { "TENKAI_GUARD_REQUIRED" => guard, "TENKAI_PIN_FALLBACK_ALLOWED" => fallback, "TENKAI_FALLBACK_REF" => ref }
       readiness_prefix + steps.map do |name, frozen|
-        concrete = frozen.transform_values do |value|
+        concrete = (frozen.is_a?(Array) ? frozen.first : frozen).transform_values do |value|
           value.is_a?(Hash) ? value.to_h { |key, val| [key, val.is_a?(Regexp) ? fill.fetch(key) : val] } : value
         end
         render_step(name, concrete)
@@ -2866,6 +2888,10 @@ def self_test(root)
     rendered_process = rendered_with.call
     File.write(readiness, rendered_process)
     validate_repo(tmp, announce: false)
+    rendered_next = rendered_with.call(steps: rendered_old.merge(READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT_NEXT))
+    File.write(readiness, rendered_next)
+    validate_repo(tmp, announce: false)
+    File.write(readiness, rendered_process)
     File.write(readiness, rendered_with.call(guard: "false", fallback: "true"))
     validate_repo(tmp, announce: false)
     policy_name = "Enforce workflow runner policy from trusted workflow revision"
