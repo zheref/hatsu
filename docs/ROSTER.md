@@ -989,6 +989,62 @@ record in the tree and no bare-name refusal. That choice is the maintainer's at 
 
 ---
 
+## Rulings of 2026-10-19 — Argon is a frontier alias
+
+**The two options as asked**, on `hatsu:build HA#340`:
+
+- “Argon replaces the deep/pro row (recommended)”
+- “Argon becomes a new frontier alias”
+
+**The maintainer's ruling, verbatim:**
+
+> Argon becomes a new frontier alias
+
+**The picker question as asked:**
+
+> What does Antigravity’s lead model picker show on your machine, and what does `agy --model pro` serve? Please include any app/CLI version or access limitation you see; HA#340 requires this observed answer in the ruling.
+
+**The maintainer's answer, verbatim:**
+
+> Not sure how to answer this. If I open the macOS Antigravity app how do I know which is the lead model? By default is always picking Argon. But by default when open the Antigravity CLI, it's picking Opus 5.5 Low (which we don't want to use on this surface preferably since we're aiming to seize provider-specific models here).
+
+**Implementation of the ruling (agent interpretation, not additional maintainer words).**
+`VISUAL_MAX` is the Google frontier alias; `VISUAL_ORCHESTRATOR` retains the 3.1 Pro deep
+snapshot and escalates to it. The frontier alias appears only through the existing recommended
+pick rule; no routing cell changes here (HA#342 owns those). The alias is ranked after the two
+existing frontier aliases to preserve their ordering. Argon's independent measurement evidence
+is contextual, never a routing instruction. Prices are dated: $2/$10 per 1M input/output tokens
+through 2026-11-30, $4/$20 from 2026-12-01, per Google's sheet re-read 2026-10-19 (ECON-8).
+
+The lead is the main conversation's selected model; the app observation establishes Argon there.
+It does not establish what `pro` means in the CLI. A local 2026-10-19 probe initially found
+`agy` 1.0.6 and no Gemini models in its listing. A fresh probe later found 1.4.2, with Argon and
+Flash at Low/Medium/High. `agy --model pro --print /model` exited 1 with an unrecognized-model
+error; `agy --model argon --print /model` also exited 1. `agy --model gemini-4-argon --print /model`
+exited 0 and returned `gemini-4-argon-medium`. This is selection evidence without an inference
+request. Hatsu therefore sets `models.antigravity.frontier` to the verified `gemini-4-argon`
+selection instead of the unverified `ultra`. The stable registry alias remains `VISUAL_MAX`;
+the concrete CLI selection belongs to consumer configuration. Deep remains `pro`, whose local
+CLI availability is explicitly unverified. The persona key still admits only `inherit`, `flash`,
+`pro`; the frontier selection is lead-only, never emitted for a subagent.
+
+**Fan-out.** Consumers adopting this frontier alias must update their own
+`models.antigravity.frontier` after verifying local availability. This delivery changes Hatsu's
+configuration only. Do not accept an Opus default as proof of a Google model selection.
+The standalone IDE picker was not observed on this machine; historical CLI rollout failures
+remain dated served lag, not evidence against the successful 1.4.2 selection.
+
+**Folded evolve findings (Netero shape), HA#340.** The stale headless `pro` row risks selecting
+an unavailable alias: its evidence is the exit-1 probe, settled by the verified explicit frontier
+selection. The tier row's unverified `ultra` and missing frontier model obscured what the lead
+runs: the ruling, app observation and CLI read-back settle it. The persona-values row remains
+unchanged in meaning, re-quoted and dated from the provider. The missing thinking dial and API
+prompt constraints risk under-budgeting difficult work or relying on unsupported caching:
+Google's migration sheet settles both in guide § 11.2. Each drifted row is folded here rather
+than filed as a duplicate surface-drift issue; no generator model-value expansion is authorized.
+
+---
+
 ## Rulings of 2026-10-19 — every new filing runs classify and direct
 
 **The maintainer's request, verbatim**, on `hatsu:kurapika`, 2026-10-19:
