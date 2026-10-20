@@ -268,6 +268,9 @@ line), `2` wiring; each gate's command and exit are printed, quoted, for the rep
 - A red check is § 5's. `--check` is given once per `iteration.checks` entry and the script runs every
   one, in order, before the authorship check; `scripts/publish_gate_check.sh` holds this block to the rule.
 
+**Under a typed futon or kazaana run, this push's scope, handoff and host-refusal rule are
+[`hatsu:aka`](../aka/SKILL.md) § 0's second carve-out** (zheref/hatsu#332), cited, never restated.
+
 **The published test is the same one ao already ran, and its answer is re-used rather than
 re-derived** — the `strategy` `nen wc catch-up` reported:
 

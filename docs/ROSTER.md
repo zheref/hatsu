@@ -1064,6 +1064,26 @@ than filed as a duplicate surface-drift issue; no generator model-value expansio
 
 ---
 
+## Reading of 2026-10-19 — a typed composite's delegated publication (unruled; the maintainer's to correct at G4)
+
+**This run's reading, the maintainer's to correct at the G4 merge** — never a ruling the maintainer
+made. Its evidence is zheref/hatsu#332, filed from the `hatsu:kazaana zheref/nen` sitting; its
+*Evidence* section reads, verbatim (excerpt):
+
+> The maintainer explicitly corrected the interpretation: Kazaana is a Futon wrapper and should autonomously publish working-branch commits needed to deliver the matching backlog.
+
+That is the filer's report of a correction, not the maintainer's own words, and nothing here quotes it
+as theirs.
+
+| Reading | What it says |
+|---|---|
+| **What it stands on** | Ruling 1 of § *Rulings of 2026-10-13 — kazaana, Shizuku activated, …*: each queued issue is authored **and published** by a delegate. § *Rulings of 2026-09-30 — En never merges*, row *Where an effort stops*: a futon effort on an integration branch runs `aka` to publish its own effort branch; on the stacked or per-issue shape its push is futon § 4 → build § 5's |
+| **What it reads** | A typed `futon` or `kazaana` line is the maintainer's one standing publish call for each queued effort's own working branch on the run's target repository, **scoped by destination, never by SHA** |
+| **Where it is stated** | [`aka`](../claude/skills/aka/SKILL.md) § 0's second carve-out, **once**: its Covered, Not-covered and Lapses rows, the handoff, the host refusal and the trajectory are not restated here; `murasaki` § 6, `en`, `mukai`, `futon` § 7 and `kazaana` § 3 cite it |
+| **What it does not rule** | standalone `hatsu:aka` (one call, one run); a merge into `branch.base` (en § 5) and a release (getsuga, mugetsu) |
+
+---
+
 ## Rulings of 2026-10-05 — the registry rebalance
 
 **The maintainer's request, verbatim** (excerpt), on `hatsu:great-hiker`, 2026-10-05:

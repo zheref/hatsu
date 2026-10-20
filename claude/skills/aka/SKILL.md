@@ -35,12 +35,51 @@ unaskable.
 ## 0. Standalone entry — this skill was ALWAYS the maintainer's call
 
 **Aka has no wired entry.** § 1 already says it: the whole skill runs only on the maintainer's publish
-call, and **agents never propose it**. **One carve-out, the maintainer's ruling of 2026-09-28 (b)**
+call, and **agents never propose it**. **The first carve-out, the maintainer's ruling of 2026-09-28 (b)**
 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*): a `then` step naming
 this skill in a typed [`futon`](../futon/SKILL.md) invocation **is** the maintainer's publish call —
 the advance go [`mugetsu`](../mugetsu/SKILL.md) § 3 defines — still never prompted for, never proposed. [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 6 names it among the phases a report, a bell,
 a stop's options and a composite must never offer — and a standalone run is precisely where such an offer
 would read as the pipeline knowing best.
+
+**Second carve-out — a typed composite's delegated publication** — this run's reading of
+zheref/hatsu#332, recorded in [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Reading of 2026-10-19 — a typed composite's delegated publication (unruled; the maintainer's to correct at G4)*. It stands on two
+rulings already made: kazaana's delegate **authors and publishes** each queued issue (ROSTER § *Rulings
+of 2026-10-13*, ruling 1), and a futon effort on an integration branch **runs `aka` to publish its own effort branch** (ROSTER
+§ *Rulings of 2026-09-30 — En never merges*, row *Where an effort stops*); on the stacked or per-issue
+shape its push is futon § 4 → build § 5's. A typed
+[`futon`](../futon/SKILL.md) or [`kazaana`](../kazaana/SKILL.md) invocation **is the maintainer's
+publish call for the working branches that run authors** — one standing call, never one per commit:
+
+| | The scope of a typed futon / kazaana line |
+|---|---|
+| **Covered** | per effort in the run's queue: its **initial publication** (this skill, in the builder delegate or the session — kazaana § 3; [`build`](../build/SKILL.md) § 5) and **every maintenance commit and push that delivers it** — a review fix, a catch-up, a reviewed repair ([`murasaki`](../murasaki/SKILL.md) § 6 inside `mukai` and `en`) — **to the run's target repository and that effort's own working branch**, through this skill's and murasaki's gates unchanged |
+| **Not covered** | another remote or repository, another branch, `branch.base`, a force form or a rewrite of a published commit, a tag, a merge, a release. **Outside the Covered row a push stands or falls on its owning skill's own rule**: murasaki § 6 for a branch already published; futon § 5's **integration branch**, pushed only with `nen wc publish`, never through aka and never forced (ROSTER § *Rulings of 2026-09-30 — En never merges*); [`getsuga`](../getsuga/SKILL.md) § 3/§ 3a for the proposal branch and § 4 (*The cut*) for the tag. A stacked child's retarget is the merge plan's ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Stacked pull requests* rule 5; ROSTER § *Rulings of 2026-10-12*). **Where no skill owns an act, it is not performed, and is reported**; it is a **G5** only where it is an act only the maintainer can do |
+| **Lapses** | when the run ends (futon § 10), at a halt, or a **G5** that stops the run, or on the maintainer's word — **never because the commit changed**; an effort's own G5 lapses that effort's scope only — never another's — and it resumes when the maintainer answers; a G2/G4 merge prompt lapses nothing (as [`mugetsu`](../mugetsu/SKILL.md) § 3). A resumed, restarted or compacted session holds it **only on a fresh typed invocation**, never from a checkpoint, a run record or a summary |
+
+**The scope is the destination, never the SHA.** A new commit on the same branch of the same repository
+is inside it; asking again because the commit moved is the failure #332 records. **Every handoff carries
+it** — parent to builder delegate (kazaana § 3) and every maintenance step after (`mukai`, `en`,
+`murasaki`): the invocation **quoted verbatim**, the repository, the working branch, and *scope: initial
+publication and maintenance pushes to this branch until the run ends*. A checkpoint, a run record or a
+later handoff **never narrows it to an exact commit**; where an older line says otherwise, the later
+correction **replaces** it rather than standing beside it.
+
+**A host refusal stays the host's.** Where the harness's approval layer refuses a push inside the scope,
+the refusal is **quoted to the maintainer with the invocation and the scope**, and resolved **only through
+that host's supported approval path — the maintainer's act, never a re-attempt**: never another command,
+route or surface to the same push, never a wider grant asked for, never a permission setting touched. An
+exact approval given there stays a valid receipt for its own action, and widens nothing.
+
+**A representative trajectory.** `hatsu:kazaana zheref/nen` → the delegate's `aka` first-publishes
+`<model>/kurapika/<slug>` at commit *A* → `mukai` opens the PR → `en`: a reviewed finding is fixed,
+`kokusen` commits *B*, `murasaki` pushes *B* to the same branch. Both pushes stand on the one typed line
+and neither asks; *B* pushed to any other branch is outside, and stands or falls on the Not-covered row.
+
+**The two carve-outs stay separate.** A `then aka` step is the first carve-out's single-use go; the second
+covers only the per-effort pushes the composite's engine makes. **Standalone `hatsu:aka` is unchanged** —
+one call, one run (§ 1) — and neither carve-out reaches a merge into `branch.base` (en § 5's prompt) or a
+release (getsuga, mugetsu).
 
 **P1** applies — [`hatsu:ten aka`](../ten/SKILL.md), which catches up this phase's prerequisites (ten § 6) — and **P2** belongs in the report
 before the squash: the branch, clean-or-dirty, how many commits are unpushed, and which are already on
@@ -77,7 +116,9 @@ has none, and inventing an optional clause so that a parse can be echoed would b
   converted a human call into a nudge, and the nudge is what the local plane's push discipline
   exists to prevent.
 - **One call, one run.** A `yes` for this push is not authority for the next one. Say the run has
-  started and say when it ends.
+  started and say when it ends. The one standing call is a typed composite's, scoped by destination (§ 0, second
+  carve-out: a futon or kazaana line, whose efforts publish through build § 5); a standalone build's
+  push stands on build § 5's own run-scoped delegation, not this carve-out.
 
 ## 2. The parameters — `nen/workflow.json`, with the defaults stated
 
@@ -493,14 +534,15 @@ that content.
 - **Not permitted:** opening or touching a PR; any label; any merge of the base; any force-push;
   any rewrite of a commit that exists on the remote; `--no-verify`; pushing `branch.base`; running
   `tests.required`, `ui-test`, or coverage. Composites do not call aka for tests.
-- **The delegation is one run wide and ends when this run ends.** It is not standing authority to
-  push this branch again later.
+- **A standalone aka's delegation is one run wide and ends when this run ends.** It is not standing
+  authority to push this branch again later; the one standing scope is § 0's second carve-out.
 
 ## Hard limits
 
 - **The whole aka run never runs unasked**, and **never prompts for itself** — no agent, skill,
-  report or stop option proposes `hatsu:aka` (§ 1); a typed futon `then` step is the maintainer's
-  own call (§ 0), not a proposal.
+  report or stop option proposes `hatsu:aka` (§ 1); a typed futon `then` step (§ 0, first carve-out)
+  and a typed futon or kazaana line's per-effort pushes (§ 0, second carve-out) are the maintainer's
+  own call, not a proposal.
 - **Never runs project-wide tests or coverage** — that is mukai's, through kotoamatsukami and
   byakugan. Aka that "just validates everything still passes" is the cost this split exists to stop.
 - **Never force-pushes, and never rewrites a commit that is already on the remote** — a rejected
