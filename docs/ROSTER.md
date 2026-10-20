@@ -1064,11 +1064,11 @@ than filed as a duplicate surface-drift issue; no generator model-value expansio
 
 ---
 
-## Rulings of 2026-10-19 — a typed composite's delegated publication
+## Reading of 2026-10-19 — a typed composite's delegated publication (unruled; the maintainer's to correct at G4)
 
 **This run's reading, the maintainer's to correct at the G4 merge** — never a ruling the maintainer
 made. Its evidence is zheref/hatsu#332, filed from the `hatsu:kazaana zheref/nen` sitting; its
-*Evidence* section reads, verbatim:
+*Evidence* section reads, verbatim (excerpt):
 
 > The maintainer explicitly corrected the interpretation: Kazaana is a Futon wrapper and should autonomously publish working-branch commits needed to deliver the matching backlog.
 
@@ -1077,11 +1077,10 @@ as theirs.
 
 | Reading | What it says |
 |---|---|
-| **What it stands on** | Ruling 1 of § *Rulings of 2026-10-13 — kazaana, Shizuku activated, …*: each queued issue is authored **and published** by a delegate. § *Rulings of 2026-09-30 — En never merges*, row *Where an effort stops*: a futon effort runs `aka` to publish its own effort branch |
-| **One standing call per typed line** | A typed `futon` or `kazaana` line is the maintainer's publish call for each queued effort's own working branch on the run's target repository — its initial publication and every maintenance commit and push that delivers it (a review fix, a catch-up, a reviewed repair) — **scoped by destination, never by SHA**. [`aka`](../claude/skills/aka/SKILL.md) § 0's second carve-out is the one statement; `murasaki` § 6, `en` and `mukai` cite it |
-| **Outside it** | another remote, branch, `branch.base`, a force form, a tag, a merge or a release stands or falls on its owning skill's own rule (murasaki § 6; futon § 5's integration branch, `nen wc publish` only; getsuga § 3/§ 3a); where no skill owns an act it is not performed, and is reported; a **G5** only where only the maintainer can do it |
-| **Lapses** | the run's end, a halt or a G5 stop, the maintainer's word; a G2/G4 merge prompt lapses nothing. A resumed, restarted or compacted session holds it only on a fresh typed invocation |
-| **What it does not rule** | standalone `hatsu:aka` (one call, one run); a host's approval refusal, quoted to the maintainer and resolved only through that host's supported approval path; a merge into `branch.base` (en § 5) and a release (getsuga, mugetsu) |
+| **What it stands on** | Ruling 1 of § *Rulings of 2026-10-13 — kazaana, Shizuku activated, …*: each queued issue is authored **and published** by a delegate. § *Rulings of 2026-09-30 — En never merges*, row *Where an effort stops*: a futon effort on an integration branch runs `aka` to publish its own effort branch; on the stacked or per-issue shape its push is futon § 4 → build § 5's |
+| **What it reads** | A typed `futon` or `kazaana` line is the maintainer's one standing publish call for each queued effort's own working branch on the run's target repository, **scoped by destination, never by SHA** |
+| **Where it is stated** | [`aka`](../claude/skills/aka/SKILL.md) § 0's second carve-out, **once**: its Covered, Not-covered and Lapses rows, the handoff, the host refusal and the trajectory are not restated here; `murasaki` § 6, `en`, `mukai`, `futon` § 7 and `kazaana` § 3 cite it |
+| **What it does not rule** | standalone `hatsu:aka` (one call, one run); a merge into `branch.base` (en § 5) and a release (getsuga, mugetsu) |
 
 ---
 

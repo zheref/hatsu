@@ -84,13 +84,13 @@ effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live
 `<core>/.nen/worktrees/<surface>/<name>`, handed the absolute path, the issue, its stack base and aka § 0's push scope, never raw `gh pr create`. **Its model is `direct`'s primary pick for that issue** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; the effort dial is passed where the raise exposes one and is **residue** where it does
-not (the Agent tool carries none). The primary is never the frontier tier. **The delegate runs
+not (a Claude Code Agent-tool raise carries none). The primary is never the frontier tier. **The delegate runs
 `ren` then `aka`** — on a canon repository (`nen repo classify` → `role: canon`)
 [`great-hiker`](../great-hiker/SKILL.md) §§ 3–5 in `ren`'s place, mirrors, bump and checks, **in the
 delegate, at its tier**: great-hiker § 2 raises no second subsession here (ruling 2026-10-13, 1). **This
 session runs `mukai` and `en` per effort, one at a time**: a subagent raises no subagent (hanten's
-reviewers, Illumi), and hanten § 4's reviewer checkouts are per persona. `en` is started per PR by this
-run, never offered; **a delegate never asks the wrap-up** (§ 7).
+reviewers, Illumi), and hanten § 4's reviewer checkouts are per persona. `en` is started per PR, never
+offered; **a delegate never asks the wrap-up**.
 
 **Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6, never restated
 (the maintainer's word: *"Use stacked PRs ONLY when necessary, otherwise target `main` directly"*).
