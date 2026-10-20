@@ -105,10 +105,9 @@ the UZF-26 evidence the target PR owes.
 ## 6. Drift — each row asked once
 
 Every `unmapped` row goes in **one batch** per run through
-[`bankai-rule`](https://github.com/zheref/hatsu/issues/355)'s `port-drift` (`ask-once-per-run`;
+[`bankai-rule`](../bankai-rule/SKILL.md)'s `port-drift` (`ask-once-per-run`;
 its shape: three a picker call, further calls for more rows), each answer recorded and binding at once;
-the brief re-rendered. Drift the build meets is further calls under the same row. **Until HA#355
-lands**, an `unmapped` row stops the run (*port-drift not landed*), `next` `start`. Citations read `<pair>
+the brief re-rendered. Drift the build meets is further calls under the same row. Citations read `<pair>
 <id> (branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port* — § 8's
 rulings PR first where any ruling was recorded, then `done`, no issue filed.
 
@@ -116,8 +115,7 @@ rulings PR first where any ruling was recorded, then `done`, no issue filed.
 
 [`file`](../file/SKILL.md) § 3's searches, § 4's redaction and plan, § 5's labels, `classify`,
 `direct`. **An open port issue for the source is amended** (§ 3(a)), never filed twice (§ 2 read the rest).
-**The typed call is the G1** under file § 4's composite clause (HA#355), the plan still shown; **until it
-lands, *conventions*' interim: file § 4's own confirmation**. Visibility re-read before the write (*conventions*).
+**The typed call is the G1** under file § 4's composite clause (HA#355), the plan still shown. Visibility re-read before the write (*conventions*).
 
 - **Title**: *conventions*' port-issue title, data: a newline refused, every `'` typed `'\''`, the escaped
   argument shown in the plan (zheref/nen#444). **Body**: the brief, the SEC-15 line, the source PR a

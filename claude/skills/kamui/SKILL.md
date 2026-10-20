@@ -110,8 +110,7 @@ repo scenario --repo <member checkout> --target <owner/name>`. Multi-select, **n
 none at all → said, § 8. An ungoverned scenario ([`bankai-handbooks`](../bankai-handbooks/SKILL.md)) is
 `handbook-question (CON-37)`, dropped if picked, said.
 
-**The answer is the G1 for the filings** ([`file`](../file/SKILL.md) § 4's clause, landing with
-zheref/hatsu#355; **until then, *conventions*' interim: file § 4's own confirmation per pick**). Per pick,
+**The answer is the G1 for the filings** ([`file`](../file/SKILL.md) § 4's composite clause, zheref/hatsu#355). Per pick,
 **visibility re-read** (*conventions*), then `file` §§ 3–5 by name — the four searches (an existing port
 issue for the source **amended** through § 3(a), never filed twice), the plan shown, the labels § 5 reads
 (`job/parity`, `job/implementation`, the sibling's `lang/`), and § 5's one `direct` run; **the title is
