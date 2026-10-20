@@ -306,12 +306,18 @@ expect 1 "named: other private names still hit" --names-file "$names" --named-fi
 has '1 named by ruling' "the named count is reported on a refusal"
 printf 'acme/zz-secret\nbob/zz-secret\nQux.Lab\n' > "$work/twin-names"
 expect 1 "named: a same-named repository under another owner is still a hit" --names-file "$work/twin-names" --named-file "$work/named" "$work/bare.md"
+has '1 named by ruling' "only the ruled owner's entry is counted"
+printf 'acme/zz-secret extra\n' > "$work/named-field"
+expect 2 "named: a line with a second field is refused, never collapsed" --names-file "$names" --named-file "$work/named-field" "$work/bare.md"
+printf '  acme/zz-secret  \r\n' > "$work/named-crlf"
+expect 0 "named: surrounding blanks and a CR are trimmed" --names-file "$names" --named-file "$work/named-crlf" "$work/slug.md"
 printf 'zz-secret\n' > "$work/named-bare"
 expect 2 "named: a bare name is refused" --names-file "$names" --named-file "$work/named-bare" "$work/bare.md"
 has 'not owner/name' "the bare-name refusal says why"
 expect 2 "named: an unreadable --named-file is wiring" --names-file "$names" --named-file "$work/missing-named" "$work/bare.md"
 printf '# no entries\n' > "$work/named-none"
 expect 1 "named: a comment-only named file names nothing" --names-file "$names" --named-file "$work/named-none" "$work/bare.md"
+has '0 named by ruling' "a list that names nothing counts none"
 printf 'acme/zz-secret\nacme/Qux.Lab\nacme/Plinth\n' > "$work/all-names"
 cp "$work/all-names" "$work/named-all"
 expect 2 "named: naming every private repository is a refusal" --names-file "$work/all-names" --named-file "$work/named-all" "$work/bare.md"
@@ -336,7 +342,7 @@ out="$(HOME="$work/home" XDG_CONFIG_HOME="$work/home/.config" bash "$work/bare-g
 has '0 named by ruling' "the missing default is counted as none named"
 # The committed list is pinned: its entry set is exactly the ruled set (docs/ROSTER.md section Rulings
 # of 2026-10-19 -- the Akatsuki CI repository is named). A new line needs a ruling AND this edit.
-pinned="$(sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "$here/private_name_named.txt" | tr '[:upper:]' '[:lower:]' | LC_ALL=C sort -u | tr '\n' ' ')"
+pinned="$(sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$here/private_name_named.txt" | tr '[:upper:]' '[:lower:]' | LC_ALL=C sort -u | tr '\n' ' ')"
 [ "$pinned" = "zheref/akatsuki-ai " ] && ok || bad "named: the committed list is not the ruled set (zheref/akatsuki-ai) -- read: '$pinned'"
 
 # --- --resolve and --help ----------------------------------------------------------------------

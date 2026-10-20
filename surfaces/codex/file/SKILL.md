@@ -65,7 +65,7 @@ against the current checkout's `nen/repos.json`
 — the only location nen reads it from at this pin; `--repo <path>` names another checkout's registry) — a
 `product_code`, an owner/name slug, or a repository's short name, matched exactly and
 case-insensitively, never as a prefix, and since nen `v0.2.0` resolved from **everything** the registry
-records — consumers, `product_codes` keys *and* values (a Hatsu checkout's carry `AK`, the one private
+records — consumers, `product_codes` keys *and* values (a Hatsu checkout's registry carries `AK`, the one private
 repository named by ruling, so `AK#<n>` resolves here), `maintained_tools`, `pending_onboarding`
 (verified live at `v0.3.0`: `nen repo resolve BC --repo <path>` exits `0` with the resolved slug;
 `nen repo resolve notarealtoken --repo <path>` exits `1` and its own refusal text names every valid
@@ -253,7 +253,7 @@ Exit `1` → replace each reported line's name with the legend's placeholder (`<
 write nothing; report the guard's line — an unread private list is never a pass. The guard prints
 indices, never names; keep it that way in the report.
 
-**nen runs the same refusal at the write** (nen `0.20`, zheref/nen#367, closing #329): `issue file`,
+**nen runs the same refusal at the write** (nen `0.20`, zheref/nen#367, closing zheref/nen#329): `issue file`,
 `issue comment` and `issue edit-body` read **no default ignore file** and take **one**, so every such write
 passes **§ 4's ignore file**: the guard's two lists joined into a private file, the committed named list
 (the one name ruled public, [`PUBLIC-REDACTION.md`](../../../docs/PUBLIC-REDACTION.md) § *Named private
@@ -266,8 +266,8 @@ cat "$hatsu_root/scripts/private_name_named.txt" > <d>/redaction-ignore         
 ```
 
 `--private-names-ignore-file <d>/redaction-ignore` is then § 4's ignore file on every nen write, and
-`rm -rf <d>` follows the last one: the file copies the maintainer's private list (the join retires with
-zheref/nen#441). Their exit `4`
+`rm -rf <d>` ends § 4 whichever way it ends — after the last write or before any stop is reported: the file
+copies the maintainer's private list (the join retires with zheref/nen#441). Their exit `4`
 sent nothing: after the guard read `0` it is the two guards disagreeing — stop and report it; never redact
 a name the maintainer ignored, never `--skip-private-name-check`. Their exit `1` is read on `--json`, per verb: `privateNameCheck.result` `unavailable` is the
 guard's exit `2`; on `issue file`, a § 5 label, assignee or title refusal only where stderr names that check,

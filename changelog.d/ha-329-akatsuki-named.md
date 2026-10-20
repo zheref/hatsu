@@ -1,7 +1,7 @@
 ### Added
 
 - Register `AK` (`zheref/akatsuki-ai`, the Akatsuki CI plane) in `nen/repos.json`, so `AK#<n>` resolves from a Hatsu checkout. Under the maintainer's ruling of 2026-10-19 it is the one private repository whose name may be public; its code stays private (zheref/hatsu#329).
-- Add a committed named list, `scripts/private_name_named.txt`. The private-name guard reads it by default and drops exactly the `owner/name` it carries. A bare name is refused, and a same-named repository under another owner is still a hit. The fixture covers it and pins the list's entry set (169 cases).
+- Add a committed named list, `scripts/private_name_named.txt`. The private-name guard reads it by default and drops exactly the `owner/name` it carries. A bare name is refused, and a same-named repository under another owner is still a hit. The fixture covers it and pins the list's entry set (173 cases).
 
 ### Changed
 

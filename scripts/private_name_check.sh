@@ -218,9 +218,10 @@ fi
 n_named=0
 if [ -e "$named_file" ] || [ "$named_explicit" -eq 1 ]; then
   [ -f "$named_file" ] && [ -r "$named_file" ] || die "cannot read named file '$named_file'"
-  sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "$named_file" \
+  # Ends trimmed, never the inside: `owner/name extra` keeps its space and is refused below.
+  sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$named_file" \
     | tr '[:upper:]' '[:lower:]' | LC_ALL=C sort -u > "$tmp/named"
-  ! grep -qv '^[^/][^/]*/[^/][^/]*$' "$tmp/named" \
+  ! grep -qv '^[^/[:space:]][^/[:space:]]*/[^/[:space:]][^/[:space:]]*$' "$tmp/named" \
     || die "the named file holds a line that is not owner/name (its value is not echoed): a ruling names one repository, never a bare name under every owner"
   awk -v nmf="$tmp/named" 'BEGIN { while ((getline l < nmf) > 0) nm[l]=1; close(nmf) }
     { if (!(tolower($0) in nm)) print }' "$list" > "$tmp/kept"

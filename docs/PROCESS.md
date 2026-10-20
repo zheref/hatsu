@@ -638,7 +638,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
   shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and
   comment through it. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it. From nen
-  `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
+  `v0.20.0` (zheref/nen#367, closing zheref/nen#329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
   given the script's ignore file (`file` § 4). What nen does not guard yet — `issue consolidate-close`'s
   close comments and the `pr` writers (zheref/nen#363) — is the script's alone. The committed named
   list (`scripts/private_name_named.txt`, the one name ruled public) reaches nen through `file` § 4's

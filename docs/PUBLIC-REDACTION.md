@@ -153,7 +153,7 @@ is the opposite case: the guard reads it from the committed named list, as an ex
   repository anything it has not passed. [`hatsu:backlog-synthesis`](../claude/skills/backlog-synthesis/SKILL.md),
   [`hatsu:mugetsu`](../claude/skills/mugetsu/SKILL.md) § 7 and
   [`hatsu:sharingan`](../claude/skills/sharingan/SKILL.md) § 7 run it before their own `nen issue`
-  writes. A private target is skipped. From nen `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`,
+  writes. A private target is skipped. From nen `v0.20.0` (zheref/nen#367, closing zheref/nen#329) `nen issue file`,
   `comment` and `edit-body` refuse a private name bound for a public target at exit `4`, reading the
   ignore file they are passed; the flag takes one file, so `file` § 4's ignore file joins the named list
   and the maintainer's ignore file, and every skill that writes through nen passes that one (until zheref/nen#441); a raw `gh` write, `issue consolidate-close`'s close comments and
