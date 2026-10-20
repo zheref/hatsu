@@ -200,16 +200,6 @@ function surfaceAliases(config: JsonObject, surface: string): Set<string> {
   }
   return aliases;
 }
-function roleAlias(config: JsonObject, surface: string, role: string, directAlias: string | null): string | null {
-  if ((role === "author" || role === "landing" || role === "readiness") && directAlias !== null) return directAlias;
-  const roleName = role.startsWith("reviewer · ") ? "reviewer" : null;
-  if (roleName === null) return null;
-  const roles = object(config.roles, "models.roles must be an object");
-  const tier = requiredString(roles[roleName], `models.roles.${roleName}`);
-  const key = modelSurface(surface);
-  const surfaceRow = object(config[key], `models.${key} must be an object`);
-  return stringOrNull(surfaceRow[tier], `models.${key}.${tier}`);
-}
 function sourceAlias(source: string | null, knownAliases: ReadonlySet<string>): string | null {
   if (source === null) return null;
   const match = /(?:^|; )registry alias ([A-Za-z0-9._-]+)(?:[ (;]|$)/.exec(source);
@@ -285,17 +275,16 @@ function sessionCell(session: SessionEvidence | null, surface: string, ambiguous
   return session.title ?? session.id ?? `unread — ${surface} exposes none`;
 }
 function rowSource(row: Evidence): string {
-  const detail = row.kind === "phase" ? [row.phase, row.source].filter((value): value is string => value !== null).join(" · ") : row.source;
   const base = `${row.kind}[${row.index}] · ${row.at}`;
-  return detail === null || detail === "" ? base : `${base} · ${detail}`;
+  return row.kind === "phase" && row.phase !== null ? `${base} · ${row.phase}` : base;
 }
 function deliveryRow(root: string, config: JsonObject, evidence: Evidence): DeliveryRow {
   const role = roleFor(evidence.kind, evidence.phase, evidence.source);
   const surface = evidence.surface ?? "unread — ledger records no surface";
   const knownAliases = evidence.surface === null ? new Set<string>() : surfaceAliases(config, evidence.surface);
-  const directAlias = evidence.surface === null ? null : directSessionAlias(root, evidence.effort, evidence.surface);
+  const directAlias = evidence.surface === null || role !== "author" ? null : directSessionAlias(root, evidence.effort, evidence.surface);
   const recordedAlias = evidence.model !== null && knownAliases.has(evidence.model) ? evidence.model : null;
-  const alias = recordedAlias ?? sourceAlias(evidence.source, knownAliases) ?? (evidence.surface === null ? null : roleAlias(config, evidence.surface, role, directAlias));
+  const alias = recordedAlias ?? sourceAlias(evidence.source, knownAliases) ?? sourceAlias(evidence.session?.source ?? null, knownAliases) ?? (role === "author" ? directAlias : null);
   const provenance = [evidence.source, evidence.session?.source].filter((value): value is string => value !== null).join("; ");
   const served = /(?:^|; )(?:model-kind=served(?:;|$)|exact served model from [^;]+(?:;|$))/.test(provenance);
   const exact = evidence.model !== null && recordedAlias === null && served ? evidence.model : null;
@@ -404,6 +393,9 @@ function deliveryBlock(markdownBody: string): string {
 function renderedRows(block: string): string[] {
   return block.split("\n").filter((line): boolean => /^\| .* \|$/.test(line) && !/^\| Role \|/.test(line) && !/^\|---/.test(line));
 }
+function driveLines(block: string): string[] {
+  return block.split("\n").filter((line): boolean => line.startsWith("*Drive:*"));
+}
 function shapeFindings(block: string): string[] {
   const lines = block.split("\n");
   const findings: string[] = [];
@@ -428,6 +420,9 @@ export function compareBody(body: string, expected: string): string[] {
   try { expectedBlock = deliveryBlock(expected); }
   catch (error) { return [`rendered expectation is invalid: ${error instanceof Error ? error.message : String(error)}`]; }
   findings.push(...shapeFindings(actualBlock));
+  const expectedDrive = driveLines(expectedBlock);
+  if (expectedDrive.length !== 1) findings.push("rendered expectation is invalid: expected exactly one Drive line");
+  else if (driveLines(actualBlock)[0] !== expectedDrive[0]) findings.push(`Drive differs from rendered current-effort expectation: expected ${expectedDrive[0]}`);
   const actualRows = renderedRows(actualBlock);
   const expectedRows = renderedRows(expectedBlock);
   const remaining = [...actualRows];

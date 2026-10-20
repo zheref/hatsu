@@ -885,7 +885,7 @@
   },
   "halt": {
     "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or out-of-range nen is not a halt — it is an auto-install.",
-    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.22.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.22.0 --source zheref/nen\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl … | bash` dies before it starts.\n",
+    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.24.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.24.0 --source zheref/nen\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl … | bash` dies before it starts.\n",
     "after_halt": "Stop. Do not perform the Nen-owned operation by another route — not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
   },
   "no_improvised_fallback": {

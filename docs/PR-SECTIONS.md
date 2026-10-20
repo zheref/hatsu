@@ -87,13 +87,20 @@ The prose budget is 150 words per section, excluding tables, fences and diagrams
 ```bash
 "$hatsu_root/scripts/pr_body_sections_check.sh" --body <absolute-body.md> \
   --requirements <absolute-requirements.json> --max <resolved-max>
-"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <absolute-body.md> --repo <effort-path> [--base <ref>]
+"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <absolute-body.md> --repo <effort-path> \
+  [--base <ref>] --gate-forecast <G2|G4>   # before create: PR unread
+"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <absolute-body.md> --repo <effort-path> \
+  --pr <n> --target <owner/name> [--base <ref>] --gate-forecast <G2|G4>  # after open/edit
 nen pr body-check --body-from <absolute-body.md> --requirements-from <absolute-requirements.json>
 "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <absolute-body.md>
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <absolute-body.md> --target <owner/name>
 ```
 
-Run all five before every create or body edit; after either write, read back and run the Development
+Run all five before every create or body edit; the two Delivery guard lines are alternatives by PR
+state. Its row check compares the actual effort ledgers; Drive is compared with the rendered
+expectation using the caller's gate forecast and actual PR reference. The public Source cell carries
+only ledger locator kind/index, timestamp and optional phase; free-form provenance stays in the private
+repo-local `.nen/reports/` data files (directory 0700, files 0600). After either write, read back and run the Development
 check with `--pr <owner/name#n> --base <base>`. The section guard refuses undeclared headings,
 wrong order, missing sections and an eighth reader section. Keep declaration-derived changelog and
 gate checks from `contracts/pr-composition.json` alongside them. The two HA#351 section scripts

@@ -72,35 +72,32 @@ Economics embeds under its summary with level-3 internal headings. Screenshots s
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
 In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --json`
-to an absolute file. Run `node scripts/pr_delivery.ts normalize --data <report-data.json>
+under `<path>/.nen/reports/` (directory 0700, files 0600). Run `node scripts/pr_delivery.ts normalize --data <report-data.json>
 --out <normalized.json> --repo <path> [--gate-forecast <G2|G4>]`; the optional gate token comes
 only from `nen gate derive`'s first line. Render with `nen report render --template
 templates/pr-delivery.md --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
-paste the block without typing cells. Model classification uses the ledger provenance in WORKFLOW
-§ *The effort's ledgers*; bare tokens stay unread. Dial/session values never go in notes.
-After opening, rerun report data with the actual PR (`--prs <n>`), normalize with the same derived
+paste the block without typing cells. Keep all intermediate files in that private directory.
+WORKFLOW § *The effort's ledgers* governs model provenance: bare tokens and unreported reviewer
+aliases remain unread. Public Source cells contain only ledger locator, timestamp and optional phase;
+free-form ledger notes/sources stay local. Dial/session values never go in notes.
+After opening, rerun report data with the actual PR (`--target <owner/name> --prs <n>`), normalize with the same derived
 gate, render, edit the PR body and read it back. Drive names `/en on <CODE>#<N>` and states
-readiness is `nen pr ready`'s verdict. The guard attests ledger rows and Drive syntax, while the
-gate and PR reference come from their own verbs.
+readiness is `nen pr ready`'s verdict. The guard compares ledger rows and Drive to the rendered
+expectation, using the derived gate and actual PR reference after opening.
 
-**Associated issues — body AND Development** (ruling 2026-09-12), which shibari enforces:
+**Associated issues — body AND Development** (ruling 2026-09-12):
 
-- **Every** issue the PR addresses is in the **body** table (canonical URL, scope, and a *Merging
-  this* verdict from the template's closed vocabulary) on single-issue and combined PRs, at creation,
-  every scope amendment and handover; prerequisites listed separately, a PR with none saying so.
-- **Only a closing row is in Development** (zheref/hatsu#203): its own `Closes <ref>` line on a
-  default-branch PR, else the sidebar; a body mention is not proof. **Never invent a Nen link verb;
-  never assume `Part of #N` links.**
-- **Linking and completion are different claims**: never mislabel partial work as complete to tidy the
-  sidebar, never change auto-close settings, preserve a partial issue's remaining scope, and report an
-  auto-close conflict for the maintainer's disposition before merge.
+- **Every** addressed issue is in the body table (canonical URL, scope, closed-vocabulary *Merging
+  this* verdict) at creation, amendment and handover; list prerequisites separately and say when none.
+- **Only a closing row is in Development** (zheref/hatsu#203): `Closes <ref>` on a default-branch PR,
+  else the sidebar; a body mention is not proof. Never invent a link verb or infer `Part of #N` links.
+- **Linking differs from completion**: preserve partial scope and auto-close settings; report any
+  auto-close conflict for maintainer disposition before merge.
 
-**Agent attribution** is the final heading, exactly as
-[`docs/AGENT-ATTRIBUTION.md`](../../../../docs/AGENT-ATTRIBUTION.md) specifies: **every and only the
-agents that actually participated**, never one inferred from the branch, a reviewer request or a model
-label.
+**Agent attribution** is final, as [`docs/AGENT-ATTRIBUTION.md`](../../../../docs/AGENT-ATTRIBUTION.md)
+specifies: actual participants only, never inferred from branch, reviewer request or model label.
 
-## 4. Open it, check it, write it back
+## 4. Open and check
 
 ```bash
 git -C <path> fetch origin <branch>
@@ -108,7 +105,10 @@ git -C <path> rev-parse HEAD refs/remotes/origin/<branch>     # the two MUST be 
 nen repo resolve --repo <path> --from <path>                  # -> <owner>/<name> (<CODE>)
 nen ref format --code <CODE> --kind PR --number <n>
 "$hatsu_root/scripts/pr_body_sections_check.sh" --body <abs path> --requirements <absolute-requirements.json> --max <resolved-max>
-"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <abs path> --repo <path>
+"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <abs path> --repo <path> \
+  [--base <ref>] --gate-forecast <G2|G4>  # before create: PR unread
+"$hatsu_root/scripts/pr_body_delivery_check.sh" --body <abs path> --repo <path> \
+  --pr <n> --target <owner/name> [--base <ref>] --gate-forecast <G2|G4>  # after open/edit
 "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <abs path>
 nen pr body-check --body-from <abs path> --requirements-from <absolute-requirements.json>
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
@@ -131,10 +131,9 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.
-- **The Development guard**: `--body` beside `body-check` before every write, `--pr` after `pr open`
-  and each `edit-body`; a refusal is fixed in the body or the sidebar, never claimed; off the
-  default branch it says `retarget-pending`, or `not-applicable`. Re-runs: [`en`](../en/SKILL.md) §§ 4–5,
-  [`sharingan`](../sharingan/SKILL.md) § 4.
+- **Development guard**: `--body` before each write, `--pr` after open/edit; fix refusals in body
+  or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`. Re-runs:
+  [`en`](../en/SKILL.md) §§ 4–5, [`sharingan`](../sharingan/SKILL.md) § 4.
 
 ## 5. Reviewers, and the hand to `en`
 

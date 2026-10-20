@@ -65,19 +65,19 @@ const report = {
   phases: [
     { effort, phase: "author", startedAt: "2026-10-20T10:00:00.000Z", surface: "codex", model: "sol", dial: "unread" },
     { effort, phase: "pr", startedAt: "2026-10-20T10:00:30.000Z", surface: "codex", model: "gpt-6-sol", dial: "high" },
-    { effort, phase: "readiness", startedAt: "2026-10-20T10:00:45.000Z", surface: "codex", model: "gpt-6-sol", dial: "xhigh", note: "model-kind=served; registry alias sol" },
+    { effort, phase: "readiness", startedAt: "2026-10-20T10:00:45.000Z", surface: "codex", model: "gpt-6-sol", dial: "xhigh", note: "model-kind=served; registry alias sol; PRIVATE_NOTE_CANARY" },
     { effort: "other/branch", phase: "author", startedAt: "2026-10-20T09:00:00.000Z", surface: "codex", model: "astra", dial: "max" },
   ],
   usage: [
     { effort, recordedAt: "2026-10-20T10:01:00.000Z", surface: "codex", model: "gpt-6-sol", dial: "high", source: "delegate author canon321; registry alias sol (Codex deep); exact served model from spawn_agent" },
-    { effort, recordedAt: "2026-10-20T10:02:00.000Z", surface: "codex", model: "gpt-5.6-sol", dial: "high", source: "delegate author machinery321; registry alias terra (Codex fast); exact served model from assigned adapter; hostile | <script>\n\u001b[2J\u202e" },
-    { effort, recordedAt: "2026-10-20T10:03:00.000Z", surface: "codex", model: "gpt-6-sol", dial: "high", source: "hanten § 4: hisoka, counters unavailable" },
-    { effort, recordedAt: "2026-10-20T10:03:30.000Z", surface: "claude-code", model: "claude-opus-5-5", dial: "high", source: "hanten § 4: chrollo, counters unavailable; model-kind=served" },
+    { effort, recordedAt: "2026-10-20T10:02:00.000Z", surface: "codex", model: "gpt-5.6-sol", dial: "high", source: "delegate author machinery321; registry alias terra (Codex fast); exact served model from assigned adapter; PRIVATE_USAGE_CANARY | <script>\n\u001b[2J\u202e" },
+    { effort, recordedAt: "2026-10-20T10:03:00.000Z", surface: "codex", model: "gpt-5.6-sol", dial: "xhigh", source: "hanten § 4: hisoka, counters unavailable; model-kind=served; PRIVATE_REVIEW_CANARY" },
+    { effort, recordedAt: "2026-10-20T10:03:30.000Z", surface: "claude-code", model: "claude-opus-5-5", dial: "high", source: "hanten § 4: chrollo, counters unavailable; model-kind=served; PRIVATE_CLAUDE_CANARY" },
     { effort, recordedAt: "2026-10-20T10:03:45.000Z", surface: "codex", model: "custom-opaque", dial: "high", source: "delegate author opaque321; unclassified caller token" },
     { effort: "ha-321-pr-delivery", recordedAt: "2026-10-20T08:00:00.000Z", surface: "codex", model: null, dial: null, source: "old intake" },
   ],
   sessions: [
-    { effort, recordedAt: "2026-10-20T10:00:00.020Z", surface: "codex", model: "sol", dial: "unread", title: null, id: "thread-321", source: "Codex thread id" },
+    { effort, recordedAt: "2026-10-20T10:00:00.020Z", surface: "codex", model: "sol", dial: "unread", title: null, id: "thread-321", source: "Codex thread id; PRIVATE_SESSION_CANARY" },
     { effort, recordedAt: "2026-10-20T10:00:30.020Z", surface: "codex", model: "gpt-6-sol", dial: "high", title: null, id: "served-session", source: "exact served model from harness" },
     { effort, recordedAt: "2026-10-20T10:04:00.000Z", surface: "cursor", model: "composer", dial: "medium", title: null, id: "unmatched-session", source: "session identity only" },
     { effort: "other/branch", recordedAt: "2026-10-20T09:00:00.000Z", surface: "codex", model: "astra", dial: "max", title: null, id: "other", source: "foreign" },
@@ -94,7 +94,7 @@ after((): void => {
 });
 
 test("normalization filters the exact branch and keeps served IDs separate from proved aliases", () => {
-  document = normalize(repo, report);
+  document = normalize(repo, report, "G4");
   assert.equal(document.effort, effort);
   assert.equal(document.deliveryRows.length, 9);
   const canon = document.deliveryRows.find((row): boolean => row.role.includes("canon321"));
@@ -108,18 +108,18 @@ test("normalization filters the exact branch and keeps served IDs separate from 
   const unmatched = document.deliveryRows.find((row): boolean => row.session.includes("unmatched-session"));
   assert.equal(canon?.model, "exact: gpt-6-sol · alias: sol");
   assert.equal(machinery?.model, "exact: gpt-5.6-sol · alias: terra");
-  assert.equal(reviewer?.model, "exact: gpt-6-sol · alias: sol");
-  assert.equal(claudeReviewer?.model, "exact: claude-opus-5-5 · alias: opus");
+  assert.equal(reviewer?.model, "exact: gpt-5.6-sol · alias: unread");
+  assert.equal(claudeReviewer?.model, "exact: claude-opus-5-5 · alias: unread");
   assert.equal(author?.model, "exact: unread · alias: sol");
-  assert.equal(landing?.model, "exact: gpt-6-sol · alias: sol");
+  assert.equal(landing?.model, "exact: gpt-6-sol · alias: unread");
   assert.equal(readiness?.model, "exact: gpt-6-sol · alias: sol");
-  assert.match(readiness?.source ?? "", /model-kind=served/);
+  assert.match(readiness?.source ?? "", /^phase\\\[2\\\] · 2026-10-20T10:00:45\.000Z · readiness$/);
   assert.equal(opaque?.model, "exact: unread (recorded token: custom-opaque; classification unread) · alias: unread");
   assert.match(author?.session ?? "", /thread-321/);
   assert.match(unmatched?.role ?? "", /^unread/);
   assert.ok(document.deliveryRows.every((row): boolean => !row.source.includes("old intake") && !row.session.includes("other")));
-  assert.match(machinery?.source ?? "", /\\\|/);
-  assert.match(machinery?.source ?? "", /&lt;script&gt;/);
+  assert.ok(!JSON.stringify(document).includes("PRIVATE_"));
+  assert.ok(!JSON.stringify(document).includes("&lt;script&gt;"));
   assert.ok(!JSON.stringify(document).includes("\u001b"));
   assert.ok(!JSON.stringify(document).includes("\u202e"));
   const currentHead = ok("git", ["rev-parse", "HEAD"]).trim();
@@ -146,10 +146,13 @@ test("Nen alone renders Markdown and the semantic guard names missing, duplicate
   assert.match(rendered, /exact: gpt-6-sol · alias: sol/);
   assert.match(rendered, /exact: gpt-5\.6-sol · alias: terra/);
   assert.match(rendered, /unmatched-session/);
+  assert.ok(!rendered.includes("PRIVATE_"));
   const body = `${rendered}\n# ✨ What this changes for you\n`;
   assert.deepEqual(compareBody(body, rendered), []);
-  const updatedDrive = rendered.replace(/gate forecast: unread — [^;]+; next: unread — [^;]+;/, "gate forecast: G4; next: hatsu:en on HA-PR-#321;");
-  assert.deepEqual(compareBody(`${updatedDrive}\n# Changes`, rendered), []);
+  const wrongGate = rendered.replace("gate forecast: G4", "gate forecast: G2");
+  assert.match(compareBody(`${wrongGate}\n# Changes`, rendered).join("\n"), /Drive differs from rendered current-effort expectation/);
+  const wrongPr = rendered.replace(/next: unread — [^;]+;/, "next: hatsu:en on HA-PR-#999;");
+  assert.match(compareBody(`${wrongPr}\n# Changes`, rendered).join("\n"), /Drive differs from rendered current-effort expectation/);
   const lines = rendered.split("\n");
   const dataRows = lines.filter((line): boolean => /^\| .* \|$/.test(line) && !line.startsWith("| Role "));
   const missing = rendered.replace(`${dataRows[0]}\n`, "");
@@ -186,15 +189,58 @@ test("shell guard composes report data, normalization and Nen rendering, and pro
   mkdirSync(join(repo, "templates"), { recursive: true });
   writeFileSync(join(repo, "templates/pr-delivery.md"), readFileSync(TEMPLATE));
   const realNen = ok("sh", ["-c", "command -v nen"], repo).trim();
+  const currentHead = ok("git", ["rev-parse", "HEAD"]).trim();
+  const postReport = { ...report, objects: [{ kind: "pr", number: 321, notation: "HA-PR-#321", url: "https://github.com/zheref/hatsu/pull/321", head: currentHead }] };
+  const wrongPrReport = { ...report, objects: [{ kind: "pr", number: 322, notation: "HA-PR-#322", url: "https://github.com/zheref/hatsu/pull/322", head: currentHead }] };
+  const reportPath = join(repo, ".nen/reports/report.json");
+  const postReportPath = join(repo, ".nen/reports/report-pr.json");
+  const wrongPrReportPath = join(repo, ".nen/reports/report-wrong-pr.json");
+  writeFileSync(reportPath, JSON.stringify(report), { mode: 0o600 });
+  writeFileSync(postReportPath, JSON.stringify(postReport), { mode: 0o600 });
+  writeFileSync(wrongPrReportPath, JSON.stringify(wrongPrReport), { mode: 0o600 });
+  const postDataPath = join(repo, ".nen/reports/post-normalized.json");
+  const postRenderedPath = join(repo, ".nen/reports/post-rendered.md");
+  writeFileSync(postDataPath, JSON.stringify(normalize(repo, postReport, "G4")), { mode: 0o600 });
+  ok(realNen, ["report", "render", "--template", TEMPLATE, "--data", postDataPath, "--out", postRenderedPath, "--repo", repo]);
   const bin = join(temp, "bin"); mkdirSync(bin);
   const fake = join(bin, "nen");
-  writeFileSync(fake, `#!/usr/bin/env bash\nset -euo pipefail\nif [ \"\${1:-} \${2:-}\" = 'report data' ]; then\n  [ \"\${FAKE_REPORT_FAIL:-0}\" = 0 ] || exit 7\n  cat \"$FIXTURE_REPORT\"\n  exit 0\nfi\nexec \"$REAL_NEN\" \"$@\"\n`);
+  writeFileSync(fake, `#!/usr/bin/env bash
+set -euo pipefail
+if [ "\${1:-} \${2:-}" = 'report data' ]; then
+  [ "\${FAKE_REPORT_FAIL:-0}" = 0 ] || exit 7
+  actual_target=''
+  actual_pr=''
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --target) actual_target="$2"; shift 2 ;;
+      --prs) actual_pr="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  if [ -n "\${EXPECT_TARGET:-}" ]; then [ "$actual_target" = "$EXPECT_TARGET" ] || exit 8; fi
+  if [ -n "\${EXPECT_PR:-}" ]; then [ "$actual_pr" = "$EXPECT_PR" ] || exit 8; fi
+  if [ "\${EXPECT_NO_PR:-0}" = 1 ]; then [ -z "$actual_target" ] && [ -z "$actual_pr" ] || exit 8; fi
+  cat "$FIXTURE_REPORT"
+  exit 0
+fi
+exec "$REAL_NEN" "$@"
+`);
   chmodSync(fake, 0o755);
   const body = join(temp, "guard-body.md"); writeFileSync(body, `${rendered}\n# ✨ What this changes for you\n`);
-  const env = { ...process.env, PATH: `${bin}:${process.env.PATH ?? ""}`, REAL_NEN: realNen, FIXTURE_REPORT: join(repo, ".nen/reports/report.json") };
-  const passed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main"], repo, env);
+  const postBody = join(temp, "guard-post-body.md"); writeFileSync(postBody, `${readFileSync(postRenderedPath, "utf8")}\n# ✨ What this changes for you\n`);
+  const env = { ...process.env, PATH: `${bin}:${process.env.PATH ?? ""}`, REAL_NEN: realNen, FIXTURE_REPORT: reportPath, EXPECT_NO_PR: "1" };
+  const passed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
   assert.equal(passed.status, 0, `${passed.stdout}${passed.stderr}`);
   assert.match(passed.stdout, /every current-effort ledger row/);
-  const failed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main"], repo, { ...env, FAKE_REPORT_FAIL: "1" });
+  const postEnv = { ...env, FIXTURE_REPORT: postReportPath, EXPECT_NO_PR: "0", EXPECT_TARGET: "zheref/hatsu", EXPECT_PR: "321" };
+  const postPassed = run("bash", [GUARD, "--body", postBody, "--repo", repo, "--base", "main", "--gate-forecast", "G4", "--target", "zheref/hatsu", "--pr", "321"], repo, postEnv);
+  assert.equal(postPassed.status, 0, `${postPassed.stdout}${postPassed.stderr}`);
+  const wrongPr = run("bash", [GUARD, "--body", postBody, "--repo", repo, "--base", "main", "--gate-forecast", "G4", "--target", "zheref/hatsu", "--pr", "322"], repo, { ...postEnv, FIXTURE_REPORT: wrongPrReportPath, EXPECT_PR: "322" });
+  assert.equal(wrongPr.status, 1, `${wrongPr.stdout}${wrongPr.stderr}`); assert.match(wrongPr.stdout, /Drive differs from rendered current-effort expectation/);
+  const wrongGate = run("bash", [GUARD, "--body", postBody, "--repo", repo, "--base", "main", "--gate-forecast", "G2", "--target", "zheref/hatsu", "--pr", "321"], repo, postEnv);
+  assert.equal(wrongGate.status, 1, `${wrongGate.stdout}${wrongGate.stderr}`); assert.match(wrongGate.stdout, /Drive differs from rendered current-effort expectation/);
+  const invalidPr = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4", "--target", "zheref/hatsu", "--pr", "0"], repo, env);
+  assert.equal(invalidPr.status, 2); assert.match(invalidPr.stderr, /positive integer/);
+  const failed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, { ...env, FAKE_REPORT_FAIL: "1" });
   assert.equal(failed.status, 7); assert.match(failed.stderr, /exit 7/);
 });

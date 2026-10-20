@@ -872,12 +872,18 @@ reported. Classify an exact served ID in the same ledger entry: `model-kind=serv
 `exact served model from <provenance>` in `phase.note`, `usage.source` or `session.source`.
 `registry alias <token>` may accompany it. A bare model token, even one resembling a versioned ID,
 is unclassified and renders exact ID `unread`; an alias or direct snapshot cannot prove what ran.
+For a reviewer, an alias comes only from its actual row or an explicit `registry alias <token>`
+marker, else it is `unread`; the configured reviewer tier does not prove which alias ran.
 `phase.note` may carry model provenance, never a dial or session value.
 **Every skill that runs a phase wraps its own phases, and every skill that spends records at the moment
 it spends** — never a transcription at the end of a sitting. Who writes what: `ren` § 2 (every step; usage
 at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` § 4 (one usage entry per
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
 `nen report data` merges them as `phases[]`, `usage[]` and `sessions[]` for Delivery rendering.
+Public Source cells contain only `kind[index]`, ledger timestamp and phase where present;
+free-form `phase.note`, `usage.source` and `session.source` stay local as classification evidence.
+Keep report data, normalized data and rendered fragment under the private repo-local
+`.nen/reports/` directory (mode 0700, files 0600).
 
 ## 3 · `project.launch` and `project.evidence`
 

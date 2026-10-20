@@ -2097,7 +2097,9 @@ eleven-aspect ladder. This is an actual maintainer clarification, not an inferre
    both are exposed. CLI, Codex, Cursor and Antigravity use an exposed session id; without one,
    Delivery says `unread — <surface> exposes none`. A missing ledger entry proves no identity was recorded.
 4. **Model is exact served ID plus alias.** A harness-reported served ID is shown beside its registry
-   alias. An exact ID needs `model-kind=served` or `exact served model from <provenance>` in the
+   alias. A reviewer alias comes only from its actual row or explicit `registry alias <token>`
+   marker, else `unread`; the configured tier proves nothing about what ran. An exact ID needs
+   `model-kind=served` or `exact served model from <provenance>` in the
    entry's `phase.note`, `usage.source` or `session.source`; bare tokens stay unclassified. If the
    harness exposed no ID, the alias is paired with `unread`; a direct snapshot does not prove the
    version actually served. The rendered block is checked against the ledgers before a PR
