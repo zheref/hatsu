@@ -58,8 +58,8 @@ function resolution(kind: RepositoryKind = "process", jobs: readonly string[] = 
   return resolve(source, repo, kind, jobs, new Set(facts));
 }
 function body(report: Resolution, kind: RepositoryKind = "process", source = cat): string {
-  const rows = new Map([...source.sections, ...source.footer].map((row): [string, SectionRow] => [row.id, row]));
-  return [...report.ids, ...report.footer].map((id): string => {
+  const rows = new Map([...source.preamble, ...source.sections, ...source.footer].map((row): [string, SectionRow] => [row.id, row]));
+  return [...report.preamble, ...report.ids, ...report.footer].map((id): string => {
     const row = rows.get(id) as SectionRow;
     const title = typeof row.title === "string" ? row.title : row.title[kind];
     return `${"#".repeat(row.level)} ${row.glyph} ${title}\n\nFilled.`;
@@ -89,7 +89,7 @@ test("every one of 24 cells resolves and every one of 39 taxonomy jobs is owned 
   assert.equal(jobs.length, 39);
   assert.equal(new Set(jobs).size, 39);
   assert.deepEqual(defaults(cat), { max: 7, variants: cat.variants });
-  assert.equal(Object.keys(options(cat)).length, cat.sections.length + cat.footer.length);
+  assert.equal(Object.keys(options(cat)).length, cat.preamble.length + cat.sections.length + cat.footer.length);
 });
 
 test("family folding counts distinct jobs, uses precedence for ties, and refuses unknown jobs", () => {
@@ -100,9 +100,10 @@ test("family folding counts distinct jobs, uses precedence for ties, and refuses
   assert.throws((): string => fold(cat, ["imaginary"]), /no unique declared family/);
 });
 
-test("run facts admit only conditional readers and reserved Delivery stays excluded", () => {
+test("run facts admit only conditional readers while Delivery stays an always-first preamble", () => {
   const without = resolution("process", ["machinery"], []);
   assert.ok(!without.ids.includes("across"));
+  assert.deepEqual(without.preamble, ["delivery"]);
   assert.ok(!without.footer.includes("delivery"));
   const withEconomics = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   assert.deepEqual(withEconomics.ids, ["changes", "why", "how", "improves", "across", "verify", "economics"]);
@@ -164,7 +165,7 @@ test("exact headings retain glyph tolerance, order, final footer and missing-sec
 test("the eighth admitted reader is named at the exact line", () => {
   const report = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   const rollout = cat.sections.find((row): boolean => row.id === "rollout") as SectionRow;
-  const requirements = [...report.requirements.slice(0, 7), pattern(rollout, "process"), ...report.requirements.slice(7)];
+  const requirements = [...report.requirements.slice(0, 8), pattern(rollout, "process"), ...report.requirements.slice(8)];
   const over = body(report).replace("## 📋 Completion checklist", "## 🚀 Rollout & rollback\n\nOK\n\n## 📋 Completion checklist");
   assert.ok(check(cat, over, requirements, 7)[0].some((finding): boolean => finding.includes("count exceeds max 7") && finding.includes("Rollout")));
 });
@@ -201,7 +202,7 @@ test("prose warnings are non-gating and exclude GFM tables, comments and diagram
   assert.deepEqual(check(cat, excluded, report.requirements, 7), [[], []]);
 });
 
-test("catalogue validation rejects unknown cells, duplicate jobs, bad kind titles, reserved gaps and boolean max", () => {
+test("catalogue validation rejects unknown cells, duplicate jobs, bad kind titles, preamble/footer gaps and boolean max", () => {
   const copy = fresh("ha351-contract-");
   cpSync(join(HATSU_ROOT, "contracts"), join(copy, "contracts"), { recursive: true });
   cpSync(join(HATSU_ROOT, "templates"), join(copy, "templates"), { recursive: true });
@@ -219,6 +220,9 @@ test("catalogue validation rejects unknown cells, duplicate jobs, bad kind title
   const reserved = clone(cat) as Catalogue & { footer: Array<SectionRow & { reserved?: boolean }> };
   delete reserved.footer[0]!.reserved; write(reserved);
   assert.throws((): Catalogue => catalogue(copy), /reserved must be boolean/);
+  const preamble = clone(cat) as Catalogue & { preamble: SectionRow[] };
+  preamble.preamble = []; write(preamble);
+  assert.throws((): Catalogue => catalogue(copy), /sole preamble/);
   const booleanMax = { ...clone(cat), max: true }; write(booleanMax);
   assert.throws((): Catalogue => catalogue(copy), /integer from 1 through 7/);
   const extraCell = clone(cat) as Catalogue & { variants: Record<string, string[]> };
@@ -326,7 +330,7 @@ test("configuration fill materializes all cells and preserves a consumer overrid
   const workflow = JSON.parse(readFileSync(join(repo, "nen/workflow.json"), "utf8")) as JsonWorkflow;
   assert.deepEqual(workflow.pr.sections.variants, cat.variants);
   assert.equal(workflow.pr.sections.max, 7);
-  for (const row of [...cat.sections, ...cat.footer]) assert.match(workflow.pr.$sections, new RegExp(`${row.id} — `));
+  for (const row of [...cat.preamble, ...cat.sections, ...cat.footer]) assert.match(workflow.pr.$sections, new RegExp(`${row.id} — `));
   workflow.pr.sections.variants["process.canon"] = ["changes", "why", "improves", "verify"];
   writeFileSync(join(repo, "nen/workflow.json"), JSON.stringify(workflow));
   const diagnosis = invoke("diagnose"); assert.equal(diagnosis.status, 0, `${diagnosis.stdout}${diagnosis.stderr}`);

@@ -40,10 +40,10 @@ try {
      const cat=catalogue(root);
      const ids=cat.variants[`${body.defaultKind}.${body.defaultFamily}`];
      if(!ids)throw new Error('unknown default kind/family');
-     const rows=[...ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)),...cat.footer.filter((r:any)=>!r.reserved)];
+     const rows=[...cat.preamble,...ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)),...cat.footer.filter((r:any)=>!r.reserved)];
      const expected=rows.map((row:any)=>pattern(row,body.defaultKind));
      if(!isDeepStrictEqual(load(body.file),expected))findings.push(`${body.file}: drifts from catalogue default ${body.defaultKind}.${body.defaultFamily}`);
-     for(const row of [...cat.sections,...cat.footer]) {
+     for(const row of [...cat.preamble,...cat.sections,...cat.footer]) {
        const source=text(row.template);
        if(!source.includes(`<!-- block: ${row.id};`))findings.push(`${row.template}: missing block marker`);
        if(/no CHANGELOG entry:/i.test(source))findings.push(`${row.template}: carries the fragment opt-out phrase`);

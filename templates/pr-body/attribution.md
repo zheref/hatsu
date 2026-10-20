@@ -2,7 +2,7 @@
 ## 🤝 Agent attribution
 
 <!-- Final heading. Follow docs/AGENT-ATTRIBUTION.md: only actual participants,
-canonical Hatsu persona, contribution, reviewable evidence. No model/runtime/session metadata. -->
+canonical Hatsu persona, contribution, reviewable evidence. Keep model/runtime/session metadata in Delivery. -->
 
 | Agent | Contribution | Evidence |
 |---|---|---|
