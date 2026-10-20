@@ -151,7 +151,7 @@ Quote skips (#67; README § *Shared rules the warm-up follows*), continue.
 
 ## 5 · Surfaces — what a target gets
 
-Read-only: **skip placement/provisioning**. Setup is Tenkai's. Retain § 4b's target/root/cwd;
+Read-only/no-phase: **skip placement/provisioning**. Setup is Tenkai's. Retain § 4b's target/root/cwd;
 failed isolation stops writes. Codex: `docs/surfaces/codex.md` § 5's write probe/recovery first.
 Installation: mirrors.md § 2.
 
