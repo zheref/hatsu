@@ -284,10 +284,11 @@
         "label",
         "label+comment"
       ],
-      "describe": "Whether hatsu:direct writes its verdict to the issue: none keeps it in the report and the local ledger; label applies one model/<line> label (the primary pick's model line, through nen label); label+comment adds one marker-keyed issue comment with the primary, fallback and recommended picks, tier, surface, effort and live version. Acts under build or standalone, never under ren.",
+      "describe": "Whether hatsu:direct writes its verdict to the issue: none keeps it in the report and the local ledger; label applies one model/<line> label (the primary pick's model line, through nen label); label+comment adds one marker-keyed issue comment with the primary, fallback and recommended picks, tier, surface, effort and live version. Acts under build, file (once the issue is created) or standalone, never under ren.",
       "readers": [
         "direct",
-        "build"
+        "build",
+        "file"
       ],
       "source": "docs/WORKFLOW.md § 2 (direct); contracts/direct.registry.json -> publish"
     },
@@ -303,7 +304,7 @@
         "optional",
         "off"
       ],
-      "describe": "Whether this repository uses and expects its automated (AI) reviewers -- every bot in nen/gates.json reviewers[]. required: requested within round_policy's caps and expected; the merge prompt comes only at verified Ready or at PROCESS's sixth stop. optional: requested within the caps but not waited for; with nen pr ready failing exactly rounds-owed and hanten settled, the PR goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. off: never requested (zero AI-reviewer spend), the same prompt as optional. Neither relaxes any other readiness row.",
+      "describe": "Whether this repository uses and expects its automated (AI) reviewers -- every bot in nen/gates.json reviewers[]. required: requested within round_policy's caps and expected; the merge prompt comes only at verified Ready or at PROCESS's sixth stop. optional: requested within the caps but not waited for; with nen pr ready failing exactly rounds-owed and hanten settled, the PR goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. off: never requested (zero spend on requested reviewers; installed CI reviewer lanes still run and are turned off through the consumer's caller workflow -- PROCESS, Event-driven reviewer lanes), the same prompt as optional. Neither relaxes any other readiness row.",
       "readers": [
         "sharingan",
         "en"

@@ -64,6 +64,36 @@ login, so a bot and a human are declared the same way.
 never reviews means a round is owed at every head and the gate never closes. A pattern that is too
 broad means any drive-by comment satisfies a round.
 
+**A CI reviewer lane** (an Akatsuki tier lane, written by `kuchiyose` — zheref/hatsu#331, to land) is declared beside Copilot in one
+of two shapes, read from the tier catalogue's `roundShape` for that lane — the names and logins below
+show the shapes, not which lane has which:
+
+```json
+{ "name": "sasuke",
+  "login_pattern":        { "pattern": "^sasuke-akatsuki\\[bot\\]$", "ignoreCase": true },
+  "review_check_pattern": { "pattern": "^Sasuke review$",            "ignoreCase": true } },
+{ "name": "kakuzu",
+  "login_pattern":        { "pattern": "^kakuzu-akatsuki\\[bot\\]$", "ignoreCase": true },
+  "round_check_pattern":  { "pattern": "^Kakuzu review$",            "ignoreCase": true } }
+```
+
+- **Posted review** (`sasuke` above) — the round is the formal review the lane posts under its App login
+  (under `bounded`, at any earlier head): `login_pattern`, anchored, and **never a `round_check_pattern`**
+  — an unprovisioned lane exits green without reviewing, and a green round check would count a round
+  nobody ran. `review_check_pattern` may name the lane's check, anchored; nen reads it only for a
+  `delivery_holistic_pass` reviewer.
+- **Check is the round** (`kakuzu` above) — only for a lane whose check concludes `NEUTRAL` or `SKIPPED`
+  when it did not review: `round_check_pattern` names that check, anchored. Never one that concludes
+  `SUCCESS` then (a round nobody ran) or `FAILURE` (it fails `checks-green` on every head it sits out).
+  nen matches the check **by name alone**, so a job of that name — one a pull request adds included —
+  counts; prefer the posted-review shape where the tier catalogue offers both, and a consumer diff that
+  adds or renames a job to a lane check's name is a finding for the builder-touching-workflow row.
+
+Neither shape is ever in `base_reviewers` — a lane is never requested — and every installed lane joins
+`round_quorum.any_of` (below). The behaviour is [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
+review threads*, *Event-driven reviewer lanes*, stated once; both shapes pass `nen schema check` at nen
+`0.22.0` (checked 2026-10-19).
+
 ### `approval_policy` — `"required"` or `"review-round-only"`
 
 This is the key that decides whether an empty `default_approvers` is legal, and it is load-bearing in
@@ -89,7 +119,8 @@ under `"review-round-only"`.**
 
 ### `base_reviewers` — who is requested by default
 
-The identities a new pull request asks for. Names here should exist in `reviewers`.
+The identities a new pull request asks for. Names here should exist in `reviewers`. **Never a CI
+reviewer lane**: it answers every push on its own and has no request path.
 
 ### `delivery` — which pull requests are yours
 
@@ -196,7 +227,7 @@ member's. nen `v0.21.0` refuses the key; `scripts/tenkai_adopt.sh diagnose` name
 `gates/retired-keys` with the fix (delete it). [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
 review threads* records what replaced the chain's terminus.
 
-### `round_quorum` — at least one bot reviewer's round
+### `round_quorum` — at least `minimum` bot reviewers' rounds
 
 ```json
 "round_quorum": { "any_of": ["copilot", "bugbot"], "minimum": 1 }
@@ -215,7 +246,10 @@ others, so a broad member pattern lets any login or check containing the word sa
 the `reviewers[]` entry `any_of` requires is owed on every PR once its check enrols it, which only the
 *fulfils* half of zheref/nen#361 excuses — Hatsu's own file names Copilot alone until Cursor Bugbot
 (`bugbot` here) is enrolled on the repository (the v0.20.0 release carries the
-*fulfils* half). The behaviour — what counts as a round, which unavailable member a met quorum fulfils, the one in
+*fulfils* half). **With CI reviewer lanes installed** (the maintainer's ruling of 2026-10-19), every lane
+joins `any_of`, and **`minimum` is `2` once two or more lanes are installed, `1` otherwise** — e.g.
+`{ "any_of": ["copilot", "sasuke", "kakuzu"], "minimum": 2 }`; the consequence the ruling accepts (one bot's
+round with another member still available is owed) is PROCESS's *Event-driven reviewer lanes*. The behaviour — what counts as a round, which unavailable member a met quorum fulfils, the one in
 flight it never does, the route under the pin — is [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
 review threads*, *One bot reviewer suffices*, stated once.
 
