@@ -291,14 +291,16 @@ common case and not an error.
 
 ## 5. The gate the workflow uses is the TRUSTED one
 
-If you adopt [the readiness workflow](../templates/pr-readiness.yml), its verdict step passes
-`--gates "$PWD/.trusted/nen/gates.json"` — **the copy from the base branch, never the pull request's
-own.**
+If you adopt [the readiness workflow](../templates/pr-readiness.yml), its verdict step runs
+`.trusted/scripts/readiness_ci_verdict.mts` from the base checkout. That reader passes
+`--gates` with the absolute `.trusted/nen/gates.json` path — **the base branch's copy, never the pull
+request's own.** Tenkai copies the reader into the consumer before rendering this workflow.
 
 This is not belt-and-braces. With the flag dropped, nen falls back to `<cwd>/nen/gates.json`, and the
 cwd in that job is the **pull request's head checkout** — so losing the flag hands the pull request
 the gate that judges it. It reads as a harmless simplification and it is the opposite of one.
-`scripts/tenkai_adopt.sh diagnose` reports a dropped `--gates` as drift for this reason.
+`scripts/tenkai_adopt.sh diagnose` reports a missing or changed trusted reader as drift or a staged
+prerequisite. It also compares the verdict step against the exact trusted invocation.
 
 **The practical consequence for you:** a change to `nen/gates.json` takes effect for *other* pull
 requests once it is **merged**, not while it sits in the pull request proposing it. That is correct,
@@ -378,6 +380,13 @@ passes the trusted gates path to `nen pr ready --json`, and takes its title, fai
 head from that document. This stage leaves the live workflow and Tenkai template on their old form;
 the next PR changes them after this validator and reader reach the trusted base. The JSON form
 supersedes the first-line SIGPIPE repair above, while the separate-job permission question remains.
+
+**#131 installation stage.** The live workflow and Tenkai template now invoke that exact trusted
+reader. Tenkai places it in a consumer's `scripts/` before rendering the workflow and stages the
+workflow if a Hatsu-style guard has not admitted the JSON step yet. The reader validates Nen's six
+conjuncts, including `unevaluated` rows, and writes the verdict and failing details from JSON.
+`scripts/tenkai_readiness_guard.mts` owns Tenkai's reader installation and prerequisite decisions;
+its Python engine only relays the typed result, following BC-11.
 
 **2026-10-13. Every builder step is frozen, and no run carries an expression
 ([zheref/hatsu#190](https://github.com/zheref/hatsu/issues/190)).** `surface-mirror-regenerate.yml`
