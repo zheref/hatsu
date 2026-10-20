@@ -39,7 +39,7 @@ leftover. A missing item is asked for inline (`missing-argument`).
 ## 2. When it runs — the wrap-up, offered once per delivery
 
 **A session delivery is a PR standing at en § 5's merge prompt, or merged, or a composite's run ending.**
-**Who asks**: the composite's terminus — `build` phase 6, `futon` § 10, `kazaana` § 7, `backlog-loop`
+**Who asks**: the composite's terminus — `build` phase 6, `futon` § 10, `kazaana` § 7, `kamui` § 8, `hiraishin` § 8, `backlog-loop`
 § 10 — and, where no composite holds the run (a bare `hatsu:en`), **Kurapika as the main session**
 after `en` § 8 returns; **a delegate never asks it**. The question, once, through the
 surface's own picker (row `wrap-up`): ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand` in parallel ·

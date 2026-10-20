@@ -4,7 +4,7 @@
 four agent surfaces: Claude Code, Codex, Cursor and Antigravity.**
 
 One lead persona, **Kurapika**, who names which of six work-modes he is holding before he acts; a roster of
-focused independents who review, measure, watch, file and clean up but never decide; and **fifty-four skills** that take a
+focused independents who review, measure, watch, file and clean up but never decide; and **fifty-six skills** that take a
 request, an issue, a backlog, a pull request or a release from where it is to the human gate where you
 decide. **Every deterministic step that has a verb is a verb** of the [**Nen**](https://github.com/zheref/nen)
 CLI: Nen detects, computes, formats and verifies; a skill supplies only the judgment a binary cannot.
@@ -124,6 +124,8 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 | **Classify, then route to a model** | `classify <CODE>#<N>[,…] \| backlog [<repo>]` · `direct <CODE>#<N> \| backlog` | the `lang/` and `job/` families declared (classify lands them by PR on a consumer first); `direct.publish` if you want labels written | two label axes → `nen direct resolve` → three picks on five axes; sweeps apply nothing before one confirmation |
 | **Work a severity band or one label** | `futon <repo>@<severity[+] \| label> [then tag \| tag+fanout \| <skill> \| <prose>]` | `nen/colors.yml` severity values; labels synced | one `build` per issue, PRs with an actor behind them; the `then` step runs only once every PR is merged (the **advance go**) |
 | **Work everything this surface's model can build** | `kazaana <repo> [on <line>]` | the `model/` labels (direct runs on the unlabelled first); `direct`'s records; up to 7 worktrees | `futon <repo>@model/<line> then getsuga`: parallel delegates on `direct`'s primary pick, stacks only on overlap, every PR to its merge prompt with the merge order on the register; once all are merged or closed, `getsuga` with its proposal merged autonomously; then one question whether `mugetsu` should publish |
+| **Spec a feature once, port it to the siblings** | `kamui <CODE>-IS-#<N> \| <CODE>-PR-#<N> [--dry-run]` · `kamui resume <run-id>` | the product family declared in each member's own `nen/repos.json` → `families[]` (asked and set up per missing item; a missing spec repository is a G5 hand-over line); the checkouts file | the spec PR (the pinned `github/spec-kit` set) → `ren → aka → mukai → en` to the **G2** merge prompt → `nen watch until` the merge → the sibling picker (never starred) → one port issue per pick through `file` → the start picker → `build` per pick, one after another |
+| **Port a merged PR to one sibling** | `hiraishin <CODE>-PR-#<N> [to <CODE>] [--dry-run]` · `hiraishin resume <run-id>` | the source PR merged into its base; the target governed by `bankai-handbooks`; the family's spec repository where one is declared (`kamui`'s setup) | the precondition read → `kamui`'s spec step and its **G2** wait where a spec repository is declared → the port brief, one row per concept → one batched `port-drift` call through `bankai-rule` → one port issue through `file` on the typed call → `build` on it → the rulings PR at the run's end |
 | **Drive the whole backlog to zero** | `backlog-loop` | a repository with product codes and a release lane | triage → `build` and `sharingan` across at most two efforts → `getsuga` at severity-batch boundaries → a board per cycle |
 | **Consolidate a long backlog** | `backlog-synthesis <critical\|high\|medium\|low\|all> [<repo>]` | open issues sharing a clause, file or root cause | a plan artifact → on approval one consolidated issue, originals attached and closed |
 | **See the state** | `backlog-state <repo\|all\|context>[@<gates\|severity\|label>][#<labels>]` · `backlog-board` (the same, plus `every …`) · `pr-state <CODE>#<N>` · `rikugan [for …] [as final\|register]` | read access | read-only tables and Rikugan pages; readiness is `nen pr ready`'s verdict, quoted |
@@ -198,7 +200,7 @@ tables and every ruling.
 
 ## 🧰 The skills
 
-Fifty-four, invoked as `hatsu:<name>` in your surface's spelling, fifty-five directories with `ten`. Each row:
+Fifty-six, invoked as `hatsu:<name>` in your surface's spelling, fifty-seven directories with `ten`. Each row:
 what the skill means, the steps it runs **as the skills it calls**, and who calls it. Full contracts live
 in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 [`claude/skills/README.md`](claude/skills/README.md).
@@ -236,7 +238,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `hanten` | adversarial review pre-PR: classify the change set by scope, raise one reviewer per raised scope with budget left, settle each finding | `nen review scopes` → Nobunaga · Hisoka · Feitan · Chrollo · Uvogin · Phinks · Leorio → fix or push back | `mukai`; you |
 | `kotoamatsukami` | impacted project-wide unit, UI and integration tests; a skipped suite needs a named proof | `nen shu test` on the declared suites | `mukai` |
 | `byakugan` | coverage capture and touched-file measurement against the ladder; raises the G5 under `coverage.minimum`; never runs tests | `nen shu coverage --touched` | `mukai` |
-| `shibari` | compose the PR body from the template and open one PR: evidence table, checklist, associated issues, attribution ledger, changelog fragment | `nen pr body-check` → `nen pr open` → request reviewers | `mukai`; you |
+| `shibari` | resolve kind × family sections from the catalogue and open one PR: seven reader sections maximum, kind-specific verification, compact footer | sections guard + `nen pr body-check` → `nen pr open` → request reviewers | `mukai`; you |
 | `en` | **composite**: one PR from open to verified Ready and your merge prompt, under a mandatory acting-cycle cap | landing report → `sharingan` → `murasaki` when behind → `sharingan` → observe (Illumi on a long hold) → `jutaisho` at Ready | `mukai`'s offer; `build`; you |
 | `sharingan` | drive one PR to readiness at its gate and stop: first blocking condition, threads, the owed reviewer round, the verdict | `nen pr ready` → threads → `nen pr request-reviews` | `en` (steps 2 and 4); `tensho`; you |
 | `pr-state` | one PR's readiness as the deterministic verdict, quoted, conjunct by conjunct. Read-only | `nen pr ready --explain` | you; `rikugan` |
@@ -256,6 +258,8 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `build` | **composite**: one issue to a delivery PR at its human gate | `ten → classify → direct → ren → aka → mukai → en → rikugan → the wrap-up picker` | you; `futon`; `backlog-loop` |
 | `futon` | **composite**: one selector of the backlog to PRs with an actor behind them, then the typed `then` step once every PR is merged | `build` per issue → `getsuga` for `tag`/`tag+fanout`, or the named skill, or prose mapped to skills → `rikugan` | you; `kazaana` |
 | `kazaana` | **composite**: everything this surface's model can build, drawn in and delivered — `futon <repo>@model/<line> then getsuga` with parallel delegates on `direct`'s primary pick, stacks only on overlap, the merge order on the register, the release proposal merged autonomously, then one question about publishing | `direct` on the unlabelled → `futon` → delegates author and publish (`ren` or `great-hiker`, `aka`) while this session runs `mukai` and `en` per effort → `rikugan` → `getsuga` → the publish offer → the wrap-up picker | you |
+| `kamui` | **composite**: one issue or shipped PR written once as the product family's spec-kit canon in its spec repository (G2), then one port issue per sibling you pick and the picked work started here; resumable from a record in the XDG state dir | spec step → `ren → aka → mukai → en` → `nen watch until` merged → sibling picker → `file` per pick → start picker → `build` per pick → `rikugan` | you; `hiraishin` (its spec step) |
+| `hiraishin` | **composite**: one PR merged into its base, ported to one sibling — spec first where the family declares a spec repository, a port brief with one row per concept, every unmapped row ruled once and recorded, the port issue filed on the typed call and built; resumable | precondition read → `kamui` §§ 2–4 (spec step and wait) → the port brief → `port-drift` through `bankai-rule` → `file` §§ 3–5 → `classify` → `direct` → `build` → `rikugan` | you |
 | `backlog-loop` | **composite**: the backlog to zero in severity order | triage → `build` + `sharingan` (≤ 2 efforts) → `getsuga` at batch boundaries → `backlog-board` per cycle | you |
 | `backlog-synthesis` | a long backlog reconciled into a short one, behind a plan you approve | plan artifact → `file` → sub-issues attached and closed | you |
 | `backlog-state` | the backlog as one gate-oriented table. Read-only | `nen` reads → `nen/colors.yml` status | you |
@@ -290,6 +294,8 @@ flowchart TD
     wrap --> cleanup & thirdhand[third-hand]
     futon --> build & getsuga & rikugan
     kazaana --> direct & futon & getsuga & mugetsu & cleanup
+    kamui --> ren & aka & mukai & en & file & direct & build & rikugan & wrap
+    hiraishin --> kamui & file & classify & direct & build & rikugan & wrap & br([bankai-rule · HA#355])
     cleanup --> shizuku([Shizuku])
     bl[backlog-loop] --> build & sharingan & getsuga & bb[backlog-board]
     ren --> breath & rasengan & kokusen & amaterasu & sm[spiritual-message] & jutaisho
@@ -394,7 +400,7 @@ surfaces/           GENERATED mirrors for codex/, cursor/, antigravity/: never e
 hooks/              the three harness hooks: session start (binds nen), stop bell, base-branch guard; POSIX sh, no jq
 nen/                this repository's own declarations: contract.json, workflow.json, gates.json, labels.json, repos.json, colors.yml, decisions.json
 contracts/          plugin-owned registries: permissions, the classify taxonomy, the direct registry, the config catalogue, scan rows
-templates/          the PR body, the report pages (spiritual-message and rikugan, as .html and .md, with report-examples/), the readiness and preflight workflows, release-publish.sh
+templates/          per-section PR fragments (docs/PR-SECTIONS.md), the report pages (spiritual-message and rikugan, as .html and .md, with report-examples/), the readiness and preflight workflows, release-publish.sh
 scripts/            the guards and runtime scripts an installed copy executes, each with its fixture
 docs/               WORKFLOW · PROCESS · ROSTER · STANDALONE-ENTRY · GATE-CONFIGURATION · DIRECT-MATRIX · ECONOMICS · NEN-CONTRACT
 docs/using/         setup, usage and maintenance per surface          docs/config/   every configuration file, key by key

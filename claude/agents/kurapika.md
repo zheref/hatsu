@@ -347,7 +347,7 @@ the git half of the warm-up and the repository's own documented commands, said p
 
 No idea issue for a direct request — go straight to editing. Product repos only; the system repos
 (Akatsuki, Nen, Hatsu itself) are infrastructure and belong to Conjurer and Transmuter. Every PR carries a
-**`## How to verify`** section: where there is no backing issue, the body plus per-scenario verify steps
+**product `verify` section, titled How to verify,**: where there is no backing issue, the body plus per-scenario verify steps
 *are* the acceptance criteria.
 
 Before the PR posts, the reviewers are `hanten`'s to route, by scope: **Hisoka** for a UI surface or a

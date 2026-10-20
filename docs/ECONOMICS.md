@@ -162,9 +162,11 @@ one entry per write: `{ scope, persona, invocation, head, path }` — `scope` `e
 pass adds an entry with the same `path` and a new `head`. The field is **additive and
 backward-compatible** within `v0.1`: a reader that does not know `reports[]` ignores it.
 
-**The PR body**: the optional `## Economics` section of [`templates/pr-body.md`](../templates/pr-body.md)
-is present **only when Leorio ran or took a delta pass** on this effort, pasted from the report file
-(every `## Delta` section included), never paraphrased. Its completion-checklist line has **three
+**The PR body**: the catalogue's Economics section, following [PR-SECTIONS.md](PR-SECTIONS.md),
+is present **only when Leorio ran or took a delta pass** on this effort. Keep the summary visible,
+then collapse the full report in `<details>`. Preserve its content verbatim, including every delta;
+for embedding only, demote internal headings to level 3 or deeper (including `## Delta` → `### Delta`),
+so the report creates no undeclared reader section. Never paraphrase it. Its completion-checklist line has **three
 readings**: the paste with its path; `n/a — the economics scope was not raised`; or
 `not run: <gap | skipped-exhausted>, economics not reviewed` — a raised scope with no report is said, never
 rendered as not applicable.

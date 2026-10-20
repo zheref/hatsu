@@ -265,7 +265,7 @@ Antigravity executes autonomous subagents via the `invoke_subagent` tool. In Hat
 3. **Canonical Lifecycle in Subagents**: A subagent tasked with delivering a feature, bugfix, or CI configuration must run the full Hatsu sequence:
    - `ren`: author changes and locally verify them.
    - `aka`: publish branch to remote (`nen wc publish --set-upstream`).
-   - `mukai`: execute all 10 composite phases: `/murasaki` catch-up, pre-PR `/hanten` adversarial review with settled findings, `/kokusen` local verification checkpoint, `/kotoamatsukami` impacted tests, `/byakugan` coverage bar, `/shibari` 9-part body from `templates/pr-body.md` validated via `nen pr body-check` and `pr_body_evidence_check.sh`, and `/spiritual-message as landing`.
+   - `mukai`: execute all 10 composite phases: `/murasaki` catch-up, pre-PR `/hanten` adversarial review with settled findings, `/kokusen` local verification checkpoint, `/kotoamatsukami` impacted tests, `/byakugan` coverage bar, `/shibari` kind × family body resolved from `contracts/pr-sections.json` and `templates/pr-body/`, following `docs/PR-SECTIONS.md` validated before every create/edit via `pr_body_sections_check.sh` and `nen pr body-check` and `pr_body_evidence_check.sh`, and `/spiritual-message as landing`.
    - `/en`: drive the pull request through required CI and review to verified readiness (`nen pr ready` exit 0).
 4. **Never Jump Past Mukai**: A subagent must NEVER be instructed or allowed to run raw `gh pr create` or bypass Mukai's review, test, and evidence checks.
 

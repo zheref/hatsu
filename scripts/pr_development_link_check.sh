@@ -260,7 +260,7 @@ parse_body() {
       for (i = 1; i <= n; i++) {
         if (kind[i] != "text") continue
         if (head[i]) {
-          h = norm(htxt[i])
+          h = norm(htxt[i]); sub(/^[^a-z0-9]+/, "", h)
           if (h == "associated issues" && head[i] == 2) {
             if (ss) fail(i, "a second Associated issues section")
             else { ss = i + (under[i + 1] ? 2 : 1); ins = 1; continue }
@@ -732,6 +732,12 @@ a \`stray backtick" "unbalanced code span"
   printf '%s\n' "$m_body" > "$st_dir/latin.md"; printf 'caf\351\n' >> "$st_dir/latin.md"
   bash "$st_self" --body "$st_dir/latin.md" --target octo/demo > /dev/null 2> "$st_dir/latin.err"
   verdict "invalid UTF-8 is refused" 1 $? "$st_dir/latin.err" "not valid UTF-8"
+  body "a glyph-prefixed Associated issues heading is read" 0 "$(printf '%s\n' "$m_body" | sed 's/^## Associated issues$/## 🔗 Associated issues/')"
+  body "a second glyph-prefixed issue section is refused" 1 "$m_body
+
+## 🔗 Associated issues
+
+No associated issue." "a second Associated issues section"
   # the section, its boundaries and its none phrase
   body "no Associated issues section is refused, naming the phrase" 1 "## Why
 

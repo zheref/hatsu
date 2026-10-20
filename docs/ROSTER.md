@@ -926,6 +926,51 @@ detailed as comments."*
 | **Every family and consumer repository sets both keys to `label+comment`** | Hatsu, nen and Akatsuki, and every repository carrying a `nen/workflow.json`, set `classify.publish` and `direct.publish` to `label+comment`, each through its own PR at its gate. The catalogue defaults stay (`label`, `none`) so an unset repository keeps today's behaviour; the opt-in is explicit per repository |
 | **Labels still need their declaration** | Setting the key does not declare a family: a `lang/`, `job/` or `model/` label absent from a repository's `nen/labels.json` is still the verb's refusal, named, and the comment still posts (direct § 7, classify § 5b) |
 
+## Rulings of 2026-10-19/20 — cross-platform porting (zheref/hatsu#354)
+
+Asked through the picker during the `emperor-time` intake that filed epic zheref/hatsu#354 and its children #355 `bankai-rule`, #356 `kamui` and #357 `hiraishin`; copied verbatim from the epic body, which carries the 30 challenge settlements beside them. Recorded here by `kamui`'s PR (#356) because `jutaisho` § 4 and `nen/decisions.json` → `port-siblings` cite them; `bankai-rule` (#355) cites this section rather than recording it again.
+
+The skill names **`hiraishin`** and **`kamui`** are the maintainer's own, from the invocation text (*"hiraishin": Should take a delivered PR…* / *"kamui": Same as "hiraishin", yet kamui takes an issue instead…*); `kamui` was reserved by the ruling of 2026-09-29 (*"Let's reserve Kamui for another thing later on"*) and this is that thing.
+
+**The build-order ruling was amended by the maintainer on 2026-10-20, in their own words**, before any child
+was built (recorded by the integration PR, not on the epic): *"Build HA-IS#356 and HA-IS#357 in parallel, or
+sequentially here while waiting for HA-IS#355 delivery from the other session. Have them both land and wait
+at G4 for me. Will be AFK for the next hours. Feel free to stack them using an integration branch and land a
+single integration delivery PR onto main I can take a look at when I come back. You have my permission to
+merge PRs that are not targeting main as long as everything is delivered for this effort by next time I
+check this session again in about 5 hours."* Read: #356 and #357 are built stacked on
+`integration/ha-354-porting` (futon § 5's shape, the child PRs merged there by the orchestrating session
+under that grant, `gh pr merge` denied by the harness so `git merge --no-ff` + `nen wc publish`) and land on
+`main` together as one integration PR at **G4**; #355 lands after them on its own PR, so until it merges
+both skills carry the interim [`ports.md`](config/ports.md) § *Shared conventions* names (file § 4's own
+confirmation, *port-drift not landed*). The grant covers PRs not targeting `main` only, this effort only.
+
+| Question | Answer |
+|---|---|
+| How many briefs should this idea become? | `One umbrella epic` |
+| Where should the porting handbooks live? | `bankai-handbooks (Recommended)` |
+| Does hiraishin file a porting issue on the target before building? | `Yes, file then build (Recommended)` |
+| What counts as a completely merged source PR? | `Merged into base only (Recommended)` |
+| When a source change has no target equivalent? | `Ask once, record ruling (Recommended)` |
+| How is the target named? | `Checkout, with to-clause (Recommended)` |
+| What does kamui write into the canon spec repository? | `Full spec-kit set` |
+| How is the spec repository classified so its merge stays G2? | `New role: spec (Recommended)` |
+| May the target build start before the spec PR is merged at G2? | `Wait for the spec merge` |
+| How many target repositories does one kamui call port to? | `Always ask through a picker which of all the configured siblings the new implementation should be ported to.` |
+| How do picked issues run? | `Multi-pick, sequential here (Recommended)` |
+| The handbook-rulings skill's name | `bankai-rule` |
+| How does a ruling reach bankai-handbooks? | `One PR per port run (Recommended)` |
+| Priority | `High` |
+| Challenger this run | `Nobunaga (Recommended)` |
+| Is the typed hiraishin call the G1 for the port issue? | `Typed call is the go (Recommended)` |
+| On kamui over an issue, the source's own implementation | `Source issue stays its own (Recommended)` |
+| With a spec repo, does hiraishin update the spec first? | `Yes, spec first (Recommended)` |
+| Which child owns the spec engine, in what order? (after the challenge) | `bankai-rule → kamui → hiraishin (Recommended)` |
+| Where does a run find the checkouts? (after the challenge) | `Private config, clone fallback (Recommended)` |
+| How are ruling ids allocated? (after the challenge) | `Reserve against open PRs (Recommended)` |
+
+**What the rulings bind in canon** (the epic's *Design Direction*, verbatim): **Two recorded exceptions to the star, the maintainer's ruling of 2026-10-19** (*"Always ask through a picker which of all the configured siblings…"*): the sibling picker stars none; the start picker stars the item whose primary pick is this surface and none when no item's is — jutaisho § 4 cites both (kamui's scope). **Cardinality**: both pickers page in fours (a fifth item opens a second call); under three items the picker carries the items plus *none of them*; a lone sibling is still asked, never auto-picked (the ruling says always).
+
 ## Rulings of 2026-10-20 — zheref/nen's gate path sets
 
 **Context.** The maintainer's answer through the picker, 2026-10-20, during hanten round 1 of
@@ -1710,7 +1755,7 @@ definition at `v0.67.0`. What the ruling settles:
 | **Raised by content too — and ONLY by path or content** | `hanten` § 2 raises `economics` beside the totality and workflow rows when a diff carries a **config-shaped** change matching [`docs/ECONOMICS.md`](ECONOMICS.md) § 1's content rows — the one home of the predicate — even when no path did. *"ONLY when"* means never on every diff |
 | **Leorio never rejects** | An economic delta is **not a finding** — a change that costs more is report content. A finding exists only where the maintainer cannot decide informed: an unbounded consumption (`ECON-4`), money granted or charged wrongly (`ECON-5`), an undisclosed user-facing economic change (`ECON-7`), a number with no method (`ECON-8`). No recommendation, no verdict, no vote |
 | **The rules are canon** | `ECON-1`–`ECON-8` live in [`docs/ECONOMICS.md`](ECONOMICS.md) — price and plan surface, metered consumption per user action, maintainer run cost, bounded, revenue integrity, provider and store terms, disclosure, method — resolved from `$hatsu_root/docs/ECONOMICS.md` and never remembered; the reviewer preamble § 3 admits the `ECON-` prefix from that path, Hatsu's own canon and no bankai handbook |
-| **The report, and where it goes** | Leorio **returns** it in his reply as one Markdown block (a reviewer stands in a disposable checkout and writes no file); `hanten` writes it verbatim, keyed **per effort** like the cycle ledger — `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md` — appending a `## Delta <old-head> → <new-head>` section on a delta pass, and records each write in the findings document's `reports[]` as `{scope, persona, invocation, head, path}` ([`docs/ECONOMICS.md`](ECONOMICS.md) § 5, the one home of the write and keying rules). Sections in order: summary and who is affected · delta table (dimension · ECON id · who pays · before · after · delta · confidence) · Mermaid `xychart-beta` charts, **every chart immediately followed by its data table** · case for landing · case against · what would flip the call · unestimated · method. It reaches the PR body as the optional `## Economics` section of `templates/pr-body.md`, present only when Leorio ran or took a delta pass; the checklist line's third reading is `not run: <gap | skipped-exhausted>, economics not reviewed` |
+| **The report, and where it goes** | Leorio **returns** it in his reply as one Markdown block (a reviewer stands in a disposable checkout and writes no file); `hanten` writes it verbatim, keyed **per effort** like the cycle ledger — `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md` — appending a `## Delta <old-head> → <new-head>` section on a delta pass, and records each write in the findings document's `reports[]` as `{scope, persona, invocation, head, path}` ([`docs/ECONOMICS.md`](ECONOMICS.md) § 5, the one home of the write and keying rules). Sections in order: summary and who is affected · delta table (dimension · ECON id · who pays · before · after · delta · confidence) · Mermaid `xychart-beta` charts, **every chart immediately followed by its data table** · case for landing · case against · what would flip the call · unestimated · method. It reaches the PR body as the optional Economics section resolved from `contracts/pr-sections.json` (the former `templates/pr-body.md` is retired), present only when Leorio ran or took a delta pass; the checklist line's third reading is `not run: <gap | skipped-exhausted>, economics not reviewed` |
 | **Closing line** | `Leorio-Ledger: no delta ⚪ \| delta charted 📊 [· <n> findings open] \| unread ⚠️` — three readings; `delta charted` is a difference for the maintainer to weigh, **not a rejection**, and open findings are **counted on the line** (`delta charted 📊 · 2 findings open`), never a rejection; `no delta` is valid only with zero findings open; `unread` enumerates what could not be checked and is never clean |
 | **Pins** | `model: opus` / `effort: high` / `color: green`, the `reviewer` role on the `deep` tier; tools `Read, Grep, Glob, Bash, WebSearch, WebFetch` (as Illumi's — he writes no file). Header line `💴 **Leorio · economics**` |
 | **What he never does** | never estimates from a live account's billing data, never calls a paid API to measure — synthetic runs or published price sheets only, each fetched page cited with its URL and date; never re-runs for a friendlier number |
@@ -1757,7 +1802,7 @@ target may come from configuration** — `nen/workflow.json` → `deploy.default
 its `why` reads non-production, a typed target always winning, the report saying `typed` or
 `workflow.json → deploy.defaultTarget`. `nen shu deploy` is unchanged and still takes `--target`
 explicitly; the per-stack default in nen's reference pack is nen's to add. **No new skill, and `kamui` is
-reserved.** The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
+reserved.** (The reservation is spent: `hatsu:kamui`, zheref/hatsu#356 under epic #354, 2026-10-20.) The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
 
 **Ruling 2 (19:50Z).** On HA-PR-#127 standing on #126's branch after #126 merged, the maintainer asked:
 *"Why am I being prompted to manually merge a PR that is not targeted to the main trunk branch? I don't
@@ -1998,3 +2043,40 @@ GraphQL merge mutations bypassed the guard. API reads now require individual app
 bounded read wrapper is provided. The base-branch push refusal is unchanged. The Claude Code live
 classifier and merge proof are deferred until a later eligible Ready Futon stack exists
 (zheref/hatsu#154; the review bots were exhausted in this sitting).
+
+## Rulings of 2026-10-19 — PR sections (HA#351)
+
+The maintainer ruled seven points for the catalogue-backed body:
+
+1. Seven counts **reader sections only**; Completion checklist, Associated issues, Agent attribution
+   and Delivery once HA#321 lands are a compact footer outside the cap.
+2. One `verify` id has kind-specific titles: product **How to verify** with numbered manual steps;
+   library **How a consumer verifies** with Consumer scenario / Call or import / Expected and the
+   command against the published artifact; process **What the guards prove** with Behavior changed /
+   Lane or verb run / Refuses on / Passes on and a named fixture. The non-product forms satisfy
+   `CON-17(b)`'s observable proxy; no handbook amendment.
+3. Consumer `nen/workflow.json → pr.sections` carries every default matrix cell; `$sections` beside
+   it lists every available id and purpose. An edited cell becomes consumer-owned.
+4. Six work families and the full default matrix are adopted, over classify's five derived domains.
+   [The catalogue](../contracts/pr-sections.json) owns the 39 job assignments, count fold and tie order;
+   [PR-SECTIONS.md](PR-SECTIONS.md) renders the matrix and procedure.
+5. Emoji-prefixed headings and table glyphs are adopted. Every heading matcher tolerates the prefix.
+6. The prose budget is 150 words per section outside tables, fences and diagrams: **warn, never refuse**.
+7. What this improves lists Observability, Security, Traceability, End-user experience, Autonomy,
+   Stability, Performance, Maintainability, Cost, Portability and Accessibility on every PR, marked
+   ⬆ improves / ➖ unchanged / ⬇ regresses. Unchanged rows need no explanation. The later release
+   exception below narrows “every PR”.
+
+Defaults stated on canon: Economics stays its own section with Leorio's summary visible and full
+report collapsed; internal headings embed at level 3 or deeper. The flow folds into How as a second
+diagram only when flow changed. Delivery is reserved for HA#321. The body opens with What this changes
+for you (`CON-17(a)`). Per-section fragments under `templates/pr-body/` retire `templates/pr-body.md`.
+HA#351 authorizes interim resolver/sections-check scripts until a released Nen pin carries NN#448;
+merging that dependency alone does not move Hatsu's pin. The seven-section cap includes Economics.
+
+### Clarification of 2026-10-20 — release keeps its written matrix
+
+Asked whether the improves-on-every-PR ruling overrides the release matrix, the maintainer answered
+**“Keep the release matrix as written.”** Release is therefore the explicit exception: its adopted
+cells omit `improves`, leaving room for Economics under the cap. Every other family retains the full
+eleven-aspect ladder. This is an actual maintainer clarification, not an inferred relaxation.

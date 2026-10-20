@@ -1,5 +1,8 @@
 # A/B evidence — `drive` (zheref/hatsu#2)
 
+> Historical transcript: “How to verify” below is the product verification title. Current kind-specific
+> composition is [PR-SECTIONS.md](../PR-SECTIONS.md); recorded command output is preserved.
+
 > **The skill this document records is named `sharingan` since Hatsu `v0.5.0`, and it lives at
 > [`claude/skills/sharingan/SKILL.md`](../../claude/skills/sharingan/SKILL.md).** This file keeps its
 > own name because an evidence record is dated: every transcript below was run against a skill called
