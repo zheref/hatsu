@@ -1077,8 +1077,10 @@ DIRECT_MATRIX_FROZEN = {
 # step, and the step is held to this one form. It runs the TRUSTED
 # scripts/private_name_check_fixture.sh, which exercises the TRUSTED
 # scripts/private_name_check.sh beside it over invented names, a stub gh and scratch
-# trees under mktemp: no secret, no private list, no nen, and nothing from the pull
-# request's checkout is read, executed or printed, so the output needs no fence. The
+# trees under mktemp: no secret, no private list, no nen. The fixture reads, executes and
+# prints nothing from the pull request's checkout (every path is its own or mktemp's), so
+# its output needs no fence -- a property the fixture holds on the trusted revision, not one
+# this form enforces (Feitan, SEC-7). The
 # fixture's own exit is the verdict, propagated by errexit with nothing mapped, so the
 # body is no shell verdict of its own (BC-11). Step one admitted the step-less shape
 # beside it; step two installed the step and narrowed ALLOWED_STEP_SHAPES back to one
