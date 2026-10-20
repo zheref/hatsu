@@ -1083,10 +1083,11 @@ DIRECT_MATRIX_FROZEN = {
 # this form enforces (Feitan, SEC-7). The
 # fixture's own exit is the verdict, propagated by errexit with nothing mapped, so the
 # body is no shell verdict of its own (BC-11). Step one admitted the step-less shape
-# beside it; step two installed the step and narrowed ALLOWED_STEP_SHAPES back to one
-# shape, so its absence is refused. What it proves is the guard on the trusted
-# revision, on the runner's Linux toolchain: a pull request that breaks the guard is
-# judged by main's copy, so its red lands on the pull requests after it merges.
+# beside it; step two added the step to EXPECTED_STEPS and dropped that admission, so
+# the default one-shape row applies and its absence is refused. What it proves is the
+# guard on the trusted revision (the base's copy), on the runner's Linux toolchain: a pull
+# request that breaks the guard is judged by that copy, so its red lands on the pull
+# requests after it merges, the fix included.
 REDACTION_FIXTURE_STEP = "Redaction guard fixture"
 REDACTION_FIXTURE_FROZEN = {
   "shell" => "bash",
@@ -1097,10 +1098,9 @@ REDACTION_FIXTURE_FROZEN = {
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
-  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  # One shape again: zheref/hatsu#337's two-step landing is complete, so the
-  # redaction fixture step's absence is refused as a changed step set.
-  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml")]
+  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
+  # surface-mirror-check.yml: one shape again (the default row). zheref/hatsu#337's
+  # two-step landing is complete, so the redaction fixture step's absence is refused.
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that

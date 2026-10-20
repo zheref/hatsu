@@ -488,11 +488,16 @@ validator the step and admitted both shapes, with and without it (`ALLOWED_STEP_
 `REDACTION_FIXTURE_STEP`), and froze its one form (`REDACTION_FIXTURE_FROZEN`: `set -euo pipefail`,
 then the trusted checkout's fixture; no env, no token, no `nen shu test --repo .`, no swallowed red;
 the self-test holds on both trees and runs the body against stand-in fixtures). Step two added the
-step and narrowed `EXPECTED_STEPS` to it, so its absence is refused. The fixture reads no secret and no
-private list, so the step proves main's guard on the runner's Linux toolchain; a pull request that
-breaks the guard is judged by main's copy, and its red lands on the pull requests after it merges;
-the `redaction-guard` lane, run locally before the push, stays the check on the change itself. A fork
-pull request skips the job under the same-repository guard: #337's "green" there is a skip, nothing runs.
+step to `EXPECTED_STEPS` and dropped the two-shape admission, so its absence is refused. The fixture
+reads no secret and no private list, so the step proves the base branch's guard (main's, for a pull
+request into main) on the runner's Linux toolchain; it first runs live on the first pull request opened
+after it reaches that base. A pull request that breaks the guard is judged by the base's copy, so its
+red lands on the pull requests after it merges — the fix included, which is red by the same copy until
+the maintainer merges it past that red (the #230 trap; a dated `checks.excluded` entry is the other
+route, GATE-CONFIGURATION § 3); the `redaction-guard` lane, run locally before the push, stays the
+check on the change itself. A run red at an earlier step never reaches the fixture step; the local lane
+is the reading then. The job skips a fork pull request (the same-repository guard) and a draft: #337's
+"green" there is a skip, nothing runs.
 The tree check (`redaction-tree`) needs the live list and stays on the maintainer's machine.
 
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
