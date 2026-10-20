@@ -36,13 +36,12 @@ sitting** — core's `.nen/`, the worktree list, the ledgers — so you are rais
   leftover, a prior session's leftover grouped and its ownership never assumed, and **the name rule**:
   a branch or remote head taken from the repository passes `git check-ref-format --branch` and
   `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref, admitted only by
-  `scripts/cleanup_path_admit.sh` against the porcelain list and the `.nen/worktrees/` home (no symlink,
-  traversal or control byte); each enters a command after `--`, single-quoted, and a name that fails is
-  a named row and runs nowhere.
+  `$hatsu_root/scripts/cleanup_path_admit.sh`, which prints facts and never a class; each enters a
+  command after `--`, single-quoted, and a name that fails is a named row and runs nowhere.
 - **The classes are cleanup § 5**: deterministic (a fact decides), proposed (a judgement), **named**
   (plan only — billed resources, the surface's own worktrees, a locked or open-PR worktree, a refused
-  name — never an option, never run), and its PR-state × tree-state table decides every worktree,
-  branch and remote head exactly once. **Every row is complete** — id, class, object, the exact command
+  name — never an option, never run), and its PR-state × tree-state table, read from those facts,
+  decides every worktree, branch and remote head exactly once. **Every row is complete** — id, class, object, the exact command
   (none on a named row), what it frees, evidence, owner — and a row with no evidence is not a row.
 - **The pick and pass 2 are cleanup § 6**: § 5's order, each remote delete from its worktree before that
   worktree goes, each row read back with the bytes freed; a failing row reported with its stderr and

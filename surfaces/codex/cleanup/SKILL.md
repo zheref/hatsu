@@ -33,19 +33,17 @@ $cleanup [for <scope>]
 nen parse cleanup --grammar "for [<scope>]" --line "<the arguments>"
 ```
 
-Verified at nen `0.21.0` (`docs/ab/cleanup.md` § 1): a bare `HA#210` is exit `2`. **No clause means this
-sitting** — the effort's worktree, branch and PR, resolved as [`third-hand`](../third-hand/SKILL.md)
-§ 0's table resolves them — **plus every prior leftover the inventory encounters** (§ 4). `for <CODE>#<N>`
-or `for <branch>` names one effort; `for all` is every leftover. A missing item is asked for inline
-(`missing-argument`).
+**No clause means this sitting** — the effort's worktree, branch and PR, resolved as
+[`third-hand`](../third-hand/SKILL.md) § 0's table resolves them — **plus every prior leftover the
+inventory encounters** (§ 4). `for <CODE>#<N>` or `for <branch>` names one effort; `for all` is every
+leftover. A missing item is asked for inline (`missing-argument`).
 
 ## 2. When it runs — the wrap-up, offered once per delivery
 
 **A session delivery is a PR standing at en § 5's merge prompt, or merged, or a composite's run ending.**
-**Who asks**: the composite's terminus — [`build`](../build/SKILL.md) phase 6, [`futon`](../futon/SKILL.md)
-§ 10, [`kazaana`](../kazaana/SKILL.md) § 7, [`backlog-loop`](../backlog-loop/SKILL.md) § 10 — and, where
-no composite holds the run (a bare `$en`), **Kurapika as the main session**
-after [`en`](../en/SKILL.md) § 8 returns; **a delegate never asks it**. The question, once, through the
+**Who asks**: the composite's terminus — `build` phase 6, `futon` § 10, `kazaana` § 7, `backlog-loop`
+§ 10 — and, where no composite holds the run (a bare `$en`), **Kurapika as the main session**
+after `en` § 8 returns; **a delegate never asks it**. The question, once, through the
 surface's own picker (row `wrap-up`): ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand` in parallel ·
 **C** continue iterating. **Never a merge prompt; it names no human-called phase.** On **C** the offer
 returns at the next delivery. **Once per sitting**: a `.nen/cleanup/<slug>.json` whose `result` is
@@ -56,7 +54,7 @@ leftover found later is a new scope.
 ## 3. Raise Shizuku — two passes
 
 One delegate, **`cleanup · shizuku · <model alias>`**, on her own pin (**do not pass `model`**,
-[`hanten`](../hanten/SKILL.md) § 4), never the frontier tier, raised as third-hand § 3's table raises
+`hanten` § 4), never the frontier tier, raised as third-hand § 3's table raises
 Netero — **isolation omitted / `inherit`**: she needs core's `.nen/`, the worktree list and this
 sitting's ledgers. No delegation: both passes in-session, said (PROCESS § *Surfaces and pickers*).
 
@@ -69,12 +67,12 @@ sitting's ledgers. No delegation: both passes in-session, said (PROCESS § *Surf
 core is `nen wc worktrees --repo <path> --json`'s `core`. **Every name taken from the repository is
 validated before it enters any command**, always after `--`, single-quoted: a branch or remote head
 passes `git check-ref-format --branch <name>` and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never
-a ref, admitted only by `$hatsu_root/scripts/cleanup_path_admit.sh` (its header is the rule). A name that
-fails is a **named** row showing the escaped raw name, and no command ever runs on it.
+a ref, admitted only by `$hatsu_root/scripts/cleanup_path_admit.sh` (facts, never a class; its `.ts`
+header is the rule). A failing name is a **named** row, escaped, and no command runs on it.
 
 | Class | Read | Leftover when |
 |---|---|---|
-| **worktrees** | `nen wc worktrees --repo <core> --json`; `git worktree list --porcelain` (`prunable`, `locked`); `nen wc classify --repo <wt>` | under `<core>/.nen/worktrees/<surface>/` and its branch's PR is merged or closed; `hanten-<persona>`, `prove-<n>`; a prunable entry |
+| **worktrees** | `nen wc worktrees --repo <core> --json`; `git worktree list --porcelain` (`prunable`); the admission; `nen wc classify --repo <wt>` | under `<core>/.nen/worktrees/<surface>/` and its branch's PR is merged or closed; a `kind reviewer` checkout; a prunable entry |
 | **branches** | `git branch --merged origin/<branch.base>` (the trunk excluded by name); `gh pr list --repo <owner/name> --head <branch> --state all --json number,state,mergedAt,headRefOid` | local branch merged, or its PR closed; a tracking ref origin no longer has |
 | **remote heads** | `git ls-remote --heads origin` against the merged PRs' `headRefOid` | the head branch of a merged PR origin still carries |
 | **transient reports** | `<reports.dir>/current.html`, `<reports.dir>/captures/` | `reports.retain: final-only` — `current.html` is transient; a merged effort's captures are proposed |
@@ -90,32 +88,36 @@ proposed, never deterministic. Sanitize: no credential, no path outside the chec
 
 ## 5. The plan — three classes, every row complete
 
-**Deterministic** (a mechanical fact decides): `git worktree prune`; for a Hatsu-made worktree whose PR
-is **merged** and whose tree is **`on-branch-clean`**, in this order — `git -C <wt> push origin
+**§ 5 alone classes**: **clean** is `nen wc classify`'s `on-branch-clean` plus the admission's `tree clean`
+and `locked no`; a worktree no row matches is **proposed**, owner unknown.
+
+**Deterministic** (a mechanical fact decides): `git worktree prune` (takes no path); for a `kind effort`
+worktree whose PR is **merged** and whose tree is clean, in this order — `git -C <wt> push origin
 --delete -- <branch>` **only when `git ls-remote` returns the PR's `headRefOid`** (the base-branch guard
-judges `<wt>`'s branch, never the trunk's, and refuses a trunk refspec), then `git worktree remove --
-<wt>`, then `git branch -d -- <branch>`; `hanten-<persona>` and `prove-<n>` when clean **and**
-`.nen/hanten/<key>.cycle.json` records that persona `ran` in this sitting; `git remote prune origin`;
-`rm -- <reports.dir>/current.html`.
+judges `<wt>`'s branch and refuses a trunk refspec), then the admission's printed `worktree remove`, word
+for word, then `git branch -d -- <branch>`; a `kind reviewer` checkout by the ledger alone: `tree clean`
+**and** `.nen/hanten/<key>.cycle.json` records that persona `ran` in this sitting; `git remote prune
+origin`; `rm -- <reports.dir>/current.html`.
 
 **Proposed** (a judgement; each row names what it destroys and why it is uncertain): a worktree with
 uncommitted work (every path listed — never discarded unseen); a worktree, branch or remote head whose
 PR is **closed unmerged** or that has **no PR**; a merged remote head whose SHA is not the PR's
 `headRefOid`; a merged local branch with no worktree (its remote head **named** where the sitting's checkout
 stands on the trunk: the guard refuses the push there);
-a merged effort's `captures/`; a build cache in a kept worktree; a prior session's `hanten-*` or
-`prove-*` checkout; a cache binary below the pin that no host link resolves to — `rm -r --
-"$HOME/.cache/nen/zheref_nen/<ref>"`, `<ref>` matching `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, its
+a merged effort's `captures/`; a build cache in a kept worktree; a prior session's reviewer checkout; a
+cache binary below the pin that no host link resolves to — `rm -r -- "$HOME/.cache/nen/zheref_nen/<ref>"`,
+`<ref>` matching `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, its
 realpath equal to no link's `readlink -f`; proposed because another repository may pin it.
 
 **Named** (plan only — never an option, never run): billed resources (the maintainer acts where the
 plan names them); the surface's own worktrees; a stale served copy (refreshed by `ten`); a **locked**
-worktree; a worktree whose PR is **open**; a name § 4's validation refused.
+worktree; a worktree whose PR is **open**; a name § 4's validation refused (kagutsuchi's fixed worktree
+among them).
 
 | object · PR state | merged | closed unmerged | open | no PR |
 |---|---|---|---|---|
 | worktree, clean | deterministic | proposed | named | proposed |
-| worktree, dirty | proposed | proposed | named | proposed |
+| worktree, not clean | proposed | proposed | named | proposed |
 | local branch, no worktree | proposed | proposed | named | proposed |
 | remote head | deterministic (SHA = `headRefOid`), else proposed | proposed | named | proposed |
 
@@ -139,7 +141,7 @@ with a wider flag**.
 Write `.nen/cleanup/<slug>.json` (`<slug>` as third-hand § 2's), contract `hatsu.cleanup.plan/v0.1`:
 `at`, `scope`, `plan[]`, `picked[]`, `done[]` with bytes, `freedBytes`, `result` — one of `cleaned` ·
 `partial` · `none-proposed` · `none-picked` · `already-clean` (§ 2 says which are completed). The
-directory is gitignored with `.nen/`; [`ten`](../ten/SKILL.md) never deletes it. Then say the result, the
+directory is gitignored with `.nen/`; `ten` never deletes it. Then say the result, the
 total freed, every kept row and why, and that the sitting is closed (under **B**, third-hand runs beside it).
 
 ## Residue
@@ -162,4 +164,4 @@ nen** (`nen wc prune`, to file); the raise and the marker are Hatsu's, as third-
 - **Never deletes before the pick**, never a row the maintainer did not tick, never a named row, never
   retries wider, never runs a command on a name § 4 did not validate.
 - **Never raises Shizuku on the frontier tier**; never files, merges, votes or pushes code.
-- **Never treats a prior session's leftover as this sitting's** — offered, named, never assumed.
+- **Never treats a prior session's leftover as this sitting's.**
