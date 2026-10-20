@@ -74,13 +74,12 @@ the queue. Triage, briefing and ordering are futon § 2's; an epic awaiting its 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
 
 Futon § 3–§ 6 hold: the stage label under the delegation, `nen loop slots --efforts <abs path>
---ci-cap 2 --local-cap 7 --json` (`--local-cap 7` always passed). What this file adds:
+--ci-cap 2 --local-cap 7 --json`, the cap always passed. What this file adds:
 
 **Each issue is authored and published by one delegate in its own worktree**, raised as a **builder
 effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter
 ([`claude/rules/hatsu.md`](../../rules/hatsu.md) § 6: Antigravity `Workspace: "branch"`) — titled `kazaana · kurapika · <alias>`, bound to
-`<core>/.nen/worktrees/<surface>/<name>`, handed the absolute path, the issue and its stack base, *never
-raw `gh pr create`*. **Its model is `direct`'s primary pick for that issue** — `.nen/direct/<effort>.json`,
+`<core>/.nen/worktrees/<surface>/<name>`, handed the absolute path, the issue, its stack base and aka § 0's push scope. **Its model is `direct`'s primary pick for that issue** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; the effort dial is passed where the raise exposes one and is **residue** where it does
 not (Claude Code's Agent tool carries none). The primary is never the frontier tier. **The delegate runs
@@ -147,13 +146,13 @@ fan-out, the publish outcome — `final` only if every PR merged and the tag cut
 ## Residue
 
 `nen direct registry --json` prints no `line`, so the surface → line read is the registry file (**owed to
-nen**, to file). Raising a delegate has no verb; a Claude Code raise carries no effort dial; the overlap read
+nen**, to file). Raising a delegate has no verb (nor its effort dial, § 3); the overlap read
 has none. **Owed to nen**: `nen pr merge --release-unit` reading `aiReviewers` (getsuga § 3a) — to file.
 
 ## Authority
 
 - **Permitted:** futon § 7's delegation; classify's and direct's writes after § 2's one confirmation;
-  delegates at direct's primary tier; `mukai` and `en` per effort; the typed invocation as getsuga's
+  delegates at direct's primary tier; branch pushes (aka § 0); `mukai` and `en` per effort; the typed invocation as getsuga's
   advance go; the publish offer, and `mugetsu` on a publish answer only.
 - **Not permitted:** merging a delivery PR, a G1 label, a review vote, raw `gh pr create`, a
   frontier-tier delegate, publishing without the answer, widening the selector.
