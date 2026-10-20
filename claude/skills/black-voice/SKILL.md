@@ -81,13 +81,13 @@ configuration `nen schema check` does not know: read it as ephemeral and say so 
 
 ## 4. Raise Shalnark — once
 
-One subagent, `hatsu:shalnark`, titled **`black-voice · shalnark · <model alias>`**, at
+One subagent, the plugin's `shalnark`, titled **`black-voice · shalnark · <model alias>`**, at
 `models.<surface>.fast` (his definition pins `sonnet` / `medium`, so no `model` is passed). The prompt
 carries **the absolute path of the checkout**, the **criteria list verbatim with each criterion's source**,
 the resolved UI tooling and the declared lanes. Every run is **ephemeral**.
 
 **Raised once per invocation.** He is not re-raised to retry a failure, and a flake is reported with its
-rate rather than run again until it passes. Where `hatsu:shalnark` has no definition on this surface, or
+rate rather than run again until it passes. Where `shalnark` has no definition on this surface, or
 the surface will not raise it, that is a **gap** reported exactly as [`hanten`](../hanten/SKILL.md) § 3
 reports one — named, never improvised past.
 
