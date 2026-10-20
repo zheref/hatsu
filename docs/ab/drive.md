@@ -450,6 +450,8 @@ what `drive` is for driving.
   stuck PR needs next stays this skill's.
 - **No PR-diff-fetch verb exists**, same residue `backlog-state`'s own A/B already names — `gh pr
   diff <n> --name-only` remains a necessary raw call feeding `nen gate derive --files`.
+  **Pointer (zheref/hatsu#334):** the `--files` source has moved to
+  [`docs/WORKFLOW.md`](../WORKFLOW.md) § *Gate derivation*.
 - **No PR-base-ref-fetch verb exists** either, for the identical reason (`nen pr fetch` would supply
   it and does not work) — `gh pr view --json baseRefName` remains a necessary raw call, same
   stopgap `backlog-state`'s own § 4 already discloses.
