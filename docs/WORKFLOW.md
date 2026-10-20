@@ -304,8 +304,13 @@ Every value inside a block is the model's; only the presence flags come from thi
 `generatedAt` stays what `nen report data` and `nen board build` stamp — an absolute ISO-8601 UTC
 instant, the document's truth — and the page shows it through `<time datetime="{{generatedAt}}">`
 with **`generatedAtLocal`** as the visible text. Both templates require that token, so a render
-missing it is exit `2`, never a UTC clock read as local. Fill it from one call at the plugin root
-(`ten` § 0):
+missing it is exit `2`, never a UTC clock read as local. **The plain `nen report data` fills it** from
+nen `0.22.0`, with `generatedDateLocal` and `timeZone` (pass `--tz <reports.timeZone>` when it is set).
+**Two documents take it from one call at the plugin root** (`ten` § 0) instead: a hand-built one, and a
+`--register` desk — nen keeps the desk's `generatedAtLocal`, writes the raw UTC `generatedAt` into it
+when the desk carries none, and returns `timeZone` and `generatedDateLocal` `null` when it does. Their
+`<generatedAt>` is the `generatedAt` that effort's `nen report data` stamped (for a desk, the plain
+pass's):
 
 ```bash
 "$hatsu_root/scripts/report_time.sh" --at <generatedAt> [--tz <reports.timeZone>]
@@ -316,7 +321,8 @@ missing it is exit `2`, never a UTC clock read as local. Fill it from one call a
 `date(1)` answer UTC silently. It prints `generatedAtLocal` (`Tue 22 Sep 2026 · 14:05
 America/Bogota (UTC-05:00)`), `timeZone`, and **`generatedDateLocal` — the `<YYYY-MM-DD>` of the
 dated report's file name**, so a report finished late in the evening is filed under the day it was
-finished where it was read, not under tomorrow's UTC date.
+finished where it was read, not under tomorrow's UTC date. Without `--at` it prints nothing on stdout
+and exits `2`.
 
 **Privacy: the zone name is printed on every page.** `America/Bogota` in a masthead tells every
 reader of a published report roughly where its maintainer sits. Where that is more than a repository
@@ -355,9 +361,9 @@ derived, never recalled:
 
 Pushed or not is `git rev-parse --verify --quiet origin/<branch>` after the fetch; the PR and its
 verdict are `nen report data --target … --prs <n>`'s row and `nen pr ready`'s line. **`turnLabel`**
-is `Turn <n>`, `n` counting the `report` entries in `nen report data`'s `phases[]` (the open one
-included; with no ledger, the turns this session has reported); a `landing` reads `Landing · after
-turn <n>`. **`worktree`** is the checkout's directory name when `git rev-parse --git-dir` and
+is `Turn <n>`, `n` being `nen report data`'s `turnNumber` (from `0.22.0`: the `report` entries of the
+ledger whose effort id is the branch's name, the open one included; a `null` `turnNumber`, with no
+ledger, counts the turns this session has reported); a `landing` reads `Landing · after turn <n>`. **`worktree`** is the checkout's directory name when `git rev-parse --git-dir` and
 `--git-common-dir` differ, else `core`. Red stays reserved for needs-you: only `ready` and `blocked`
 are red. **`repo`** is `nen report data`'s hosted `owner/name` from nen `0.20` (zheref/nen#375), `null`
 for a local-path or `file://` origin, which the caller fills from `nen repo resolve --from <path>`; before
@@ -408,7 +414,33 @@ conflict waiting to be resolved by coin toss.
 
 | Key | Default | Read by |
 |---|---|---|
-| `aiReviewers` | `required` | `sharingan` § 6 and `en` §§ 5–6. One value for **every automated reviewer** in `nen/gates.json` → `reviewers[]`, gating both their **use** (whether a round is requested) and their **expectation** (whether readiness waits for it). **`required`** (absent reads the same) — requested within `round_policy`'s caps and expected; **`optional`** — requested within the caps, never waited for; **`off`** — never requested, zero AI-reviewer spend. Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed` goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. The rule is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*; the maintainer's rulings of 2026-10-11 (zheref/hatsu#245). Read at the PR's **base** and the **default branch's tip**, the stricter applying, never the PR head, so a change takes effect once merged; under `optional`/`off` every `reviewers[]` entry must also be in `round_quorum.any_of` with an anchored `login_pattern` at both refs. Hatsu's own value is `optional`. `nen schema check` tolerates the key; `round_policy.maxRounds: 0` is **not** an off switch (nen still owes the round), this key is |
+| `aiReviewers` | `required` | `sharingan` § 6 and `en` §§ 5–6. One value for **every automated reviewer** in `nen/gates.json` → `reviewers[]`, gating both their **use** (whether a round is requested) and their **expectation** (whether readiness waits for it). **`required`** (absent reads the same) — requested within `round_policy`'s caps and expected; **`optional`** — requested within the caps, never waited for; **`off`** — never requested, zero spend on requested reviewers (installed CI lanes still run). Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed` goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. The rule is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*; the maintainer's rulings of 2026-10-11 (zheref/hatsu#245). Read at the PR's **base** and the **default branch's tip**, the stricter applying, never the PR head, so a change takes effect once merged; under `optional`/`off` every `reviewers[]` entry must also be in `round_quorum.any_of` with an anchored `login_pattern` at both refs. Hatsu's own value is `optional`. `nen schema check` tolerates the key; `round_policy.maxRounds: 0` is **not** an off switch (nen still owes the round), this key is. **CI reviewer lanes included** (ruling 2026-10-19, *"One value for every bot"*): a lane is never requested under any value, so for a lane the value gates only the expectation — PROCESS, *Event-driven reviewer lanes* |
+
+### `ci`
+
+```json
+"ci": { "provider": "AK", "pinned": "v1.0.0", "tiers": ["reviewers"],
+        "rulings": { "hidan": "off", "claudeAuth": "claude_code_oauth_token" } }
+```
+
+**Hatsu's own block, written by `kuchiyose` at install** (zheref/hatsu#331, the skill still to land) through
+`scripts/config_values.sh set`, one key per answer — never a hand-typed guess. It records which CI tier a
+consumer installed and the answers it was installed with; **absent means no tier is installed**. It is read
+today by `kuchiyose`; `pinned` will also be read by nen's warmup pin sweep (zheref/nen#440) and
+`tenkai`'s drift row (zheref/hatsu#331) once they land. `nen schema check` tolerates the block (it does not validate it; checked
+against nen `0.22.0` on 2026-10-19).
+
+| Key | Default | What it carries |
+|---|---|---|
+| `provider` | — | the CI provider, by its **product code** (`AK`, the Akatsuki CI repository), resolved through `nen/repos.json` (zheref/hatsu#329's ruling of 2026-10-19), so a consumer's `nen/workflow.json` carries no slug |
+| `pinned` | — | the provider's **release tag** the consumer's caller workflows reference (`uses: …@<tag>`) and the tier catalogue is read at — never a branch; a sweep for a stale pin is zheref/nen#440 |
+| `tiers[]` | `[]` | the installed tiers, by catalogue key — `reviewers` today, the lanes Sasuke, Kakuzu, Konan and Hidan; a later tier appears in the catalogue with no skill change |
+| `rulings{}` | `{}` | the per-consumer answers the catalogue's `rulings[]` lists, each asked at install through the picker: `hidan` (`on` \| `off` — *"Per consumer at install"*) and `claudeAuth` (`claude_code_oauth_token`, starred, \| `anthropic_api_key` — *"Ask at install, OAuth starred"*; the credential **type**, never its value, which lives only in the consumer's Actions secret store); the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-19 — the CI reviewers tier* |
+
+The lanes' `nen/gates.json` entries and the quorum `kuchiyose` writes beside this block are
+[`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *Event-driven reviewer lanes*, with the
+two entry shapes in [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3. Hatsu itself declares no `ci`
+block until it installs the tier through `kuchiyose` like any consumer.
 
 ### `review`
 
@@ -1583,7 +1615,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
+**`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
 parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
 publish offer; cleanup is Shizuku's sweep, required after a completed session, offered beside an optional
 `third-hand` at the wrap-up picker. **`v0.27.0` adds `third-hand`**: a wrap-up harvest after En. **`v0.28.0` states it is a separate
@@ -1965,6 +1997,10 @@ Dedicated plugin update or target setup requires its own explicit invocation; Te
 An unavailable creation tool or a harness write/trust refusal is reported with the path and exact
 failed operation; use an already-authorized adapter alternative when available. **Never change
 permissions, silently fall back to core, or widen authorization to finish.**
+On Codex, follow [the adapter's authorized write recovery](surfaces/codex.md#authorized-worktree-write-recovery)
+before ledgers or authoring: an unreviewed sandbox error is not a rejected approval. Existing task
+authority may use an exposed host review route for the bound checkout; actual rejection retains
+its reason and stops that action. This does not change persistent permissions or any human gate.
 `amenotejikara` / `nen wc swap` moves a committed tree into core and **cannot create isolation**.
 Core launch and swap remain explicit maintainer calls; authoring and delivery keep their effort
 path after either call. An isolated Ren turn reports the launch command and defers automatic core

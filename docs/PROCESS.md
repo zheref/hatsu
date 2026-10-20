@@ -233,7 +233,7 @@ verb:
 
 **A failing value is dropped and named in *Not delivered***, never rendered.
 
-**Options on a desk ask**: `star` is `"recommended"` on exactly one option and `""` on the rest — the
+**Options on a spiritual-message ask**: `star` is `"recommended"` on exactly one option and `""` on the rest — the
 page draws an inline SVG star, so the value is a label, never the glyph; `starredClass` is `"starred"`
 on that option and `""` elsewhere. A maintainer's-word ask stars none.
 
@@ -245,53 +245,52 @@ desk `--register` reads — stated once here for [`spiritual-message`](../claude
 § 3 (zheref/hatsu#291; every line verified live against nen `0.22.0`, 2026-10-19).
 
 **Two call rules.** A `--target` read runs as `"$hatsu_root/scripts/gh_token_env.sh" nen report data …`:
-without `GH_TOKEN` every PR row's `readiness` is `null` and its `verdict` `""`, the reason
-(*unevaluated … GH_TOKEN is not set*) in the row's `notes` and on stderr. **The desk is passed by absolute
-path**: a relative `--register` resolves against `--repo`'s root and is refused at exit `2` (`ENOENT`).
+without `GH_TOKEN`, every PR row whose readiness nen's own gate must compute (no readable `readiness`
+check-run verdict on its head) has `readiness` `null` and, on a `--register` document, its `verdict`
+`""`, the reason (*unevaluated … GH_TOKEN is not set*) in the row's `notes` and on stderr. **The desk is
+passed by absolute path**: a relative `--register` resolves against `--repo`'s root (`ENOENT` when it is
+not there), refused at exit `2`.
 
-**The clock.** The plain call fills `generatedAtLocal`, `generatedDateLocal` and `timeZone` (pass
-`--tz <reports.timeZone>` when it is set). Two documents are the caller's: one that carries none (a
-hand-built one, [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 *Other callers*), and the
-`--register` desk — nen keeps the desk's `generatedAtLocal` and, without one, writes the raw UTC
-`generatedAt` into it, and when the desk sets it `timeZone` and `generatedDateLocal` come back `null`.
-Both take it from one call, where **`<generatedAt>` is the `generatedAt` that effort's `nen report data`
-stamped** (for a desk, the plain pass's):
-
-```bash
-"$hatsu_root/scripts/report_time.sh" --at <generatedAt> [--tz <reports.timeZone>]
-```
-
-It prints `generatedAtLocal=`, `generatedDateLocal=` and `timeZone=` lines; without `--at` it prints
-nothing on stdout and exits `2`. A `final` file name takes this `generatedDateLocal`
-([`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Report time*).
+**The clock** is [`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Report time*: who fills `generatedAtLocal`,
+`generatedDateLocal` and `timeZone` (the plain call, from nen `0.22.0`), and the two documents that call
+`scripts/report_time.sh --at` instead — a hand-built one and a `--register` desk. A `final` file name
+takes that `generatedDateLocal`.
 
 **The extension's defaults** — spiritual-message § 4's merge. The verb's keys (`repo`, `gate`,
 `effortStage`, `stageClass`, `worktree`, `generatedAtLocal`, `turnNumber`) are filled only where they
-come back `null`, from the reason on stderr (a `null` `repo` from `nen repo resolve --from <path>`;
-*Where the effort is* in [`WORKFLOW.md`](WORKFLOW.md) § `reports`). `--graph` injects `graphJson`,
-`graphMermaid`, `graphNodes[]` and `graphEdges[]`, and `--variant` injects `sections` and `sectionList`;
-neither is written. Everything below is derived, never composed:
+come back `null`, from the reason on stderr, per *Where the effort is* in [`WORKFLOW.md`](WORKFLOW.md)
+§ `reports`. A `null` `repo` is `nen repo resolve --from <path>`'s; that resolve exits `1` in the very
+case a `repo` is `null` (a non-hosted origin outside the registry), and then the value is the
+`--target` slug when one is known, else it stays `null` — the masthead slot renders blank (verified,
+exit `0`) — and `notDelivered[]` and `footerNote` name the missing repo. *New canon*. `--graph`
+injects `graphJson`, `graphMermaid`, `graphNodes[]` and `graphEdges[]`, and
+`--variant` injects `sections` and `sectionList`; neither is written. Everything below is derived, never
+composed; a row marked *new canon* has no live source before this section (only
+[`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) and is the maintainer's to
+confirm at G4:
 
 | Key | Default, and how it is derived |
 |---|---|
 | `variant` | the `--variant` value — the render does not inject it |
-| `turnLabel` | `Turn <turnNumber>`; `landing` reads `Landing · after turn <n>`; a `null` `turnNumber` counts the turns this session reported |
-| `architectureCaption` | the graph document's `caption` — the render does not inject it |
+| `turnLabel` | from `turnNumber`, per *Where the effort is* (`Turn <n>`; `Landing · after turn <n>`) |
+| `architectureCaption` | the graph document's `caption` — the render does not inject it. `turn` and `landing` take `--graph` and refuse without it (exit `2`; spiritual-message §§ 5/6); only `turn-fast`, rendered with no `--graph`, takes `""`. *New canon* |
 | `spendPhases[]`, `hasSpendPhases`, `noSpendPhases` | `phases[]`, by spiritual-message § 4's per-phase rule |
 | `spendUsage[]`, `actionsMinutes`, `spendNote` | `usage[]`, by the same rule; `spendNote` is `""` unless a muted line is owed |
 | `tests[]`, `touchedCoverage[]` | re-mapped from `nen shu test-report` and the saved `nen shu coverage --touched`; `[]` while the owning phase has not run |
-| `ask`, `deskCleared` | `null` and the cleared line when the turn owes nothing |
+| `ask`, `deskCleared` | `null` and the cleared line when the turn owes nothing; `deskCleared` is `""` beside a non-null `ask` |
 | `readiness[]`, `prBody[]` | `[]` on `turn` and `turn-fast`; on `landing` one row each — `nen pr ready`'s verdict verbatim, [`shibari`](../claude/skills/shibari/SKILL.md)'s body |
-| `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `null` and `[]` unless the last human request was `mukai` |
+| `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `false` and `[]` unless the last human request was `mukai` (En's first `landing` included when mukai started En in the same sitting and no newer human request came) — the boolean the [`report-examples`](../templates/report-examples/) carry. *New canon* |
 | `captures[]`, `evidenceUnavailable` | `[]` and `""` when no evidence is owed or it is present; the reason when owed evidence is missing |
-| `launch` | the command [`amaterasu`](../claude/skills/amaterasu/SKILL.md) last ran on this effort, verbatim; `""` when none ran |
-| `footerNote` | `""`, or the failed `nen ref format` resolution (§ *Publishing a report*) |
+| `launch` | a `ren` turn: the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) recorded this turn, verbatim — the command it ran, or its reason line (`no launch target declared; skipped`, § 1; the profile deferral, § 1a; `core launch deferred; explicit maintainer call required`, § 3). A `landing` (launch is never a mukai step), or any turn amaterasu did not run in: the line of the last amaterasu call on this effort; with none, `no launch target declared; skipped` where `project.launch` declares no target, else `no launch in this session`. Never `""`. *New canon*: the landing and no-call cases (`no launch in this session` survives only in [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) |
+| `footerNote` | `""`; or the failed `nen ref format` resolution (§ *Publishing a report*); or, with `repo` `null`, the missing repo and why (above). *New canon*: the missing-repo clause |
 
 **The remainder is judgement, and is all the caller writes**: `title` ([`WORKFLOW.md`](WORKFLOW.md)
 § *Report titles*), the four tallies, a non-null `ask` with its options and `blocker`,
 `lastTurnRequest` and `lastTurnRequestFull` (verbatim), `lastTurnHighlights[]`, `accomplished[]`,
-`challenges[]`, `notDelivered[]`, `decisions[]` and the `captures[]` rows. No verb or script composes
-the merge; template-conformance verbs are zheref/nen#406's and zheref/nen#220's.
+`challenges[]`, `notDelivered[]`, `decisions[]`, the `captures[]` rows, and — when the last request was
+`mukai` — `mukaiLastTurn: true` with the rows of `lastTurnCorrections[]`, `lastTurnCheckIssues[]` and
+`lastTurnStops[]`. No verb or script derives the defaults above or composes the merge: that is residue
+(§ *Residue and owned dependencies*).
 
 **The desk `--register` reads.** Its full shape is `nen report data --help`'s and every refusal reprints
 it. Three rules the refusals taught (HA-PR-#278), each refused at exit `2`:
@@ -302,18 +301,21 @@ it. Three rules the refusals taught (HA-PR-#278), each refused at exit `2`:
 | `cleared` is a string — the line the page shows | `"cleared": true` | `gates[0] has 'cleared' of a boolean, not a string` |
 | a gate carries `asks` **or** `cleared`, never both and never neither; `asks` is a list, `[]` on a cleared gate | `"cleared"` beside a non-empty `asks` | `gates[0] has asks AND a 'cleared' line` |
 
-On this desk the starred option is `"star": true`, unlike the spiritual-message ask's `"recommended"`.
-A minimal valid desk — one ask, one cleared gate (exit `0`):
+On this desk the starred option is `"star": true`, unlike the spiritual-message ask's `"star": "recommended"`.
+A minimal valid desk — one ask, one cleared gate, and the `generatedAtLocal` placeholder a real desk
+fills (*The clock*, above), so a copied example never shows a raw UTC instant (exit `0`):
 
 ```json
-{ "variant": "register", "title": "Gate Register", "scope": "HA#291", "gate": "G2",
+{ "variant": "register", "title": "Gate Register", "scope": "HA#291", "gate": "G4",
+  "generatedAtLocal": "<report_time.sh --at <the plain pass's generatedAt>>",
   "gates": [
-    { "gate": "G2", "label": "Merge", "asks": [
+    { "gate": "G4", "label": "Policy merge", "asks": [
       { "kind": "MERGE", "rank": 1, "title": "Merge HA-PR-#1", "why": "its verdict is ready",
-        "options": [{ "letter": "A", "label": "Merge", "command": "gh pr merge 1 --merge",
+        "options": [{ "letter": "A", "label": "Merge",
+                      "command": "gh pr merge 1 --repo zheref/hatsu --merge --match-head-commit <sha>",
                       "consequence": "it lands", "star": true }],
         "objects": [{ "label": "HA-PR-#1", "url": "https://github.com/zheref/hatsu/pull/1" }] } ] },
-    { "gate": "G4", "label": "Policy", "cleared": "nothing owed at G4", "asks": [] } ] }
+    { "gate": "G3", "label": "Release", "cleared": "nothing owed at G3", "asks": [] } ] }
 ```
 
 ## Authority every phase shares
@@ -388,7 +390,8 @@ same mutation answers `NOT_FOUND` under one token and succeeds under another, so
 from the mutation's own response, never from the ids sent**, and check first whether Copilot already
 reviews the repository automatically. **The verb is the only route** — never a raw GraphQL
 `requestReviews(botIds:…)`, never `gh api` (zheref/hatsu#102): a request outside the verb is one no
-ceiling can count.
+ceiling can count. **An event-driven reviewer lane is never requested** (*Event-driven reviewer lanes*,
+below).
 
 ```bash
 nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [--add-bots <id,...>]
@@ -415,12 +418,64 @@ Copilot's shape — and **never a member whose round-check run at head is still 
 requested, not yet posted — wait* above: a pending request with no check is excused once the quorum is met
 (zheref/nen#361). So where Bugbot is exhausted Copilot's round suffices, and the other way around; a
 reviewer not in `any_of` is owed as before, and a stalled request or an unresolved thread fails as before.
-An unmet quorum with no member owed (an exempt member in `any_of`; unreachable in Hatsu's own file) reads
-`round quorum not met` and is one owed round of the first `any_of` member `reviewers[]` can request, under
-`sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in nen `v0.20.0`,
+An unmet quorum with no member owed (an exempt member in `any_of`, or CI reviewer lanes short of `minimum` —
+*Event-driven reviewer lanes*, below; unreachable in Hatsu's own file today, reachable on any consumer with two
+or more lanes) reads `round quorum not met` and is one owed round of the first `any_of` member **with no round
+yet** that `reviewers[]` can request, under `sharingan` § 6's bounds (this run's reading, listed in ROSTER) —
+a member that already has its round adds nothing to a count of distinct members; with no such member (only
+lanes are short) nothing is requested, and the PR ends at `cap-reached`'s terminus. The *fulfils* half ships in nen `v0.20.0`,
 the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
 as owed, the verdict is quoted as the verb prints it, and the owed member is handled by `sharingan` § 6's
 request bound. Unavailability is observed, never declared; the stop it can lead to is defined once, below.
+
+**Event-driven reviewer lanes** (the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings
+of 2026-10-19 — the CI reviewers tier*; zheref/hatsu#330 — **stated once, here**; `sharingan` § 6, `en` §§ 5–6,
+`shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`,
+[`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3, [`WORKFLOW.md`](WORKFLOW.md) § 2 (`aiReviewers`, `ci`),
+`docs/config/{workflow,gates,decisions}.json.md` and that ROSTER section cite this paragraph). A **lane** is
+a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331, to land) — that
+runs on every push to the pull request and posts under its own GitHub App login. **Its round is its formal
+review posted under that login.** Under the `bounded` reading Hatsu runs, a review at any earlier head
+counts, because no request of the lane is ever pending; and a lane, outside `base_reviewers` with no
+`enrolment_check_pattern`, is **never owed on its own** — nen counts it toward `round_quorum` only. **It is
+never requested**: never in `base_reviewers`, and `shibari` and `sharingan` never call `nen pr
+request-reviews` for a lane; a nen field declaring that is zheref/nen#440. **A push re-runs the lane**
+(`cancel-in-progress`), and its check, pending at the new head, holds `checks-green` like any running check
+until it concludes: that is the current-head wait — never a request, and never a stall by itself. A lane
+check `nen pr ready <ref> --json` lists in `meta.runnerAvailability[]` (still waiting for a runner at the
+judged head) for longer than `round_policy.stallMinutes` — its entry's `queuedMinutes`, or, where nen
+returns that null, `en`'s own first observation of it waiting at this head — is a named impossible
+condition for the watch, reported not-ready with the check's state quoted; a lane check `IN_PROGRESS` is
+bounded by the lane's own job timeout, and one that concludes `CANCELLED` or `FAILURE` at head is a fault
+in the lane, reported the same way, never a code fix to author. Both are a Hatsu reading: nen's runner
+diagnosis never moves the verdict. nen enforces no review
+**at** the new head: a lane that concludes green there without reviewing still reads as having its earlier
+round; a per-reviewer strict reading is owed to zheref/nen#440. **A lane whose check concluded green with no
+review is unavailable** (unprovisioned: the lane exits green without running, `AK`'s reviewer-lane issue):
+nen counts no round for it, so a met quorum covers it and an unmet one is owed through the quorum clause.
+**`round_check_pattern` is declared only for a lane whose check is its round**, and that check's conclusion
+when the lane did not review must be `NEUTRAL` or `SKIPPED` — never `SUCCESS`, which nen would count as a
+round nobody ran, and never `FAILURE`, which fails `checks-green` (`CON-32(a)`) on every head the lane sits
+out; its `NEUTRAL` or `SKIPPED` at head is one of *The sixth stop*'s (c) observations when `roundQuorum`
+reports it from `head` (no earlier-head round). nen matches that check **by name alone** — a job of the same
+name, one the pull request adds included, counts — so the posted-review shape, bound to the App's login,
+is preferred wherever the tier catalogue offers both. A posted-review
+lane's `reviewers[]` entry declares `login_pattern` (anchored to the App's exact login) and **no
+`round_check_pattern`**; a `review_check_pattern` may name its check, and nen reads that key only for a
+`delivery_holistic_pass` reviewer. **The quorum** (ruling *"Join any_of, minimum 2 when 2+ lanes
+installed"*): every installed lane joins `round_quorum.any_of` — which keeps (e) below true — and `minimum`
+is `2` once two or more lanes are installed, `1` otherwise. **The consequence, accepted with the ruling:**
+with `minimum` `2`, a PR on which only one bot has a round while another member is still available (a lane
+in flight, or a bot with no round yet that can still be requested) is `rounds-owed` under `sharingan` § 6's bounds —
+not-ready at `cap-reached`'s terminus once a bound is reached — and *The sixth stop* is reached only when
+every member is unavailable **by (c)'s observations**; a posted-review lane makes none of them (it is never
+requested, and declares no round check) until zheref/nen#440 exposes its state, so under `required` a PR
+whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
+Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **Until the
+nen pin carries zheref/nen#372's fix** (NN-PR-#432, merged, not yet released), nen reads `reviewers[]` and
+`round_quorum` from the checkout it is handed — the pull request's head under `en`'s call — so a PR that
+changes either key, `kuchiyose`'s install PR among them, is judged on its own declaration (SEC-6): `en`
+says so beside the quoted verdict, and the maintainer's merge is the check; the repin retires this sentence.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on
@@ -476,7 +531,11 @@ reads the key.
 paragraph). `nen/workflow.json` → `aiReviewers` is one value for **every automated reviewer** in
 `nen/gates.json` → `reviewers[]` (`CON-16`'s *configured automated reviewer*), and it gates both their
 **use** — whether `nen pr request-reviews` is called for them — and their **expectation** — whether the
-run waits for their round.
+run waits for their round. **Event-driven lanes included** (the ruling of 2026-10-19, *"One value for every
+bot"*): a lane is never requested under any value (*Event-driven reviewer lanes*, above), so the value
+gates only its expectation, and `off` on a consumer with installed lanes means their rounds are not
+expected while the lanes still run and post — a consumer turns a lane off through its own caller workflow,
+never through this value.
 
 **Where the value is read — never from the pull request itself (SEC-6).** A pull request must not relax
 its own gate, so the **effective value** is read, for every decision below (request and prompt alike), from
@@ -502,7 +561,7 @@ reads are residue, named.
 |---|---|---|---|
 | **`required`** (absent reads the same — every consumer keeps today's behaviour) | requested within `round_policy`'s caps (`sharingan` § 6) | expected | verified Ready, or *The sixth stop* (a)–(e) above |
 | **`optional`** | requested within the caps | never waited for | Ready, or the **hanten prompt** below |
-| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero AI-reviewer spend | never waited for | Ready, or the **hanten prompt** below |
+| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero spend on requested reviewers (installed CI lanes still run: *Event-driven reviewer lanes*) | never waited for | Ready, or the **hanten prompt** below |
 
 **The hanten prompt** (under an effective `optional` or `off`): when `nen pr ready <ref> --json` at the
 judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,
@@ -642,7 +701,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`cleanup`.** `git worktree remove|prune`, `git branch -d`, `git push origin --delete <branch>`, `git remote
   prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
   **owed to nen** as `nen wc prune` (to file); the raise and the `.nen/cleanup/<slug>.json` marker are Hatsu's,
-  as third-hand's are.
+  as third-hand's are. The worktree-path admission is `scripts/cleanup_path_admit.ts`, interim until
+  `nen wc prune` owns it.
 - **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
   on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
   `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until
@@ -653,6 +713,19 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   declared variant in both formats and holds block order, the desk rules, escaping placement and the checked
   examples. **Ruled 2026-10-13** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*): BC-11 binds it as
   it binds the ledger — frozen to fixes only, its header saying so, the verb filed as zheref/nen#406 and the script retiring when it lands.
+- **`spiritual-message`, `rikugan` and `backlog-board` — the report data document** (zheref/hatsu#291;
+  § *The report data document*). Two owed dependencies on `zheref/nen`, **not yet filed**, named for
+  Netero's harvest. **(a) A verb that derives the extension's defaults** — the table there, the
+  `turnLabel` from `turnNumber` and the `repo` fallback included; until it lands each default is the
+  caller's, derived by that table and named as residue on the page. zheref/nen#406 and zheref/nen#220 are
+  template-conformance verbs and do not own it. **(b) The `--register` pass's own clock**: a desk's
+  `generatedAtLocal` is the plain pass's while the register pass stamps a later `generatedAt` (measured
+  +152–168 ms at `0.22.0`, minutes with real composition between the passes); nen should localise the
+  register pass's own `generatedAt` under `--register`. **The derived context it already owns** came
+  through zheref/nen#258 (closed) and zheref/nen#375: `repo` (the hosted `owner/name`), `worktree`,
+  `effortStage`, `gate` and `stageClass` from `v0.20.0`, each `null` with its reason on stderr when a fact
+  is missing, and `generatedAtLocal`, `generatedDateLocal`, `timeZone` and `turnNumber` at the pinned
+  `0.22.0` (verified 2026-10-19).
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
@@ -748,9 +821,12 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
   shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and
   comment through it. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it. From nen
-  `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
+  `v0.20.0` (zheref/nen#367, closing zheref/nen#329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
   given the script's ignore file (`file` § 4). What nen does not guard yet — `issue consolidate-close`'s
-  close comments and the `pr` writers (zheref/nen#363) — is the script's alone.
+  close comments and the `pr` writers (zheref/nen#363) — is the script's alone. The committed named
+  list (`scripts/private_name_named.txt`, the one name ruled public) reaches nen through `file` § 4's
+  joined ignore file, because nen takes one; with it the script is BC-11 debt, frozen to fixes only, and
+  it retires when a nen private-name verb also checks a tree (zheref/nen#441).
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
@@ -805,15 +881,6 @@ pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to a
 until then the two scripts above are the mechanism and are named as such.
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
-
-- **`nen report data` derives less than a page needs**
-  ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). From nen `v0.20.0` (zheref/nen#375) it derives
-  `repo` (the hosted `owner/name`), `worktree`, `effortStage`, `gate` and `stageClass`, each `null` with its
-  reason on stderr when a fact is missing; at the pinned `0.22.0` it also fills `generatedAtLocal`,
-  `generatedDateLocal`, `timeZone` and `turnNumber` (verified 2026-10-19). The caller still fills
-  `turnLabel` from `turnNumber`, a `register` desk's `generatedAtLocal`, and a `null` `repo` from
-  `nen repo resolve` (§ *The report data document*). Each filled value is named as residue on the page
-  until the verb derives it.
 
 ## History
 

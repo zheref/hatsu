@@ -74,8 +74,9 @@ nen pr ready --repo <path> --pr <N> [--explain]                                 
 ```
 
 **Two passes** (zheref/hatsu#221): the plain call (no `--register`) reads the facts; the desk —
-[`backlog-board`](../backlog-board/SKILL.md) § 3's judgement half; its clock, shape rules and a minimal
-example: [`PROCESS.md`](../../../docs/PROCESS.md) § *The report data document* — is composed from them;
+[`backlog-board`](../backlog-board/SKILL.md) § 3's judgement half, its shape and clock in
+[`PROCESS.md`](../../../docs/PROCESS.md) § *The report data document* — is
+composed from them;
 the `--register <desk>` call then emits the register document the render fills.
 
 **`--base` is required** (exit `2` without it; verified nen 0.21.0). The scope's PRs and issues go in **one call**; a
@@ -126,7 +127,7 @@ no bell — a composite that owed a bell rang it before this step ([`jutaisho`](
 
 - **Typed**, in any checkout — § 0 runs.
 - **A `futon` `then` step**: `nen parse futon` classifies `then rikugan` and `then getsuga+rikugan` as
-  `kind: skills` steps (verified at nen `0.18.1`, 2026-09-30, `getsuga` with its own allowed gate);
+  `kind: skills` steps (verified at nen `0.22.0`, 2026-10-19; `getsuga` carries its own allowed gate);
   `then tag+rikugan` is refused at exit `2` — *'tag' and 'fanout' are reserved step names* — so the
   cut and the page are `then getsuga+rikugan`. The step
   runs after futon § 8's gate, under this skill's own authority, its scope § 2 row 1; **it and futon

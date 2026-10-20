@@ -35,6 +35,7 @@ printf '%s\n' 'scripts/pr_body_evidence_check.sh' > "$fixture_root/changed-evide
 printf '%s\n' 'scripts/send_freshness_check.sh' > "$fixture_root/changed-freshness.txt"
 printf '%s\n' 'scripts/kagutsuchi_worktree.sh' > "$fixture_root/changed-kagutsuchi-worktree.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.sh' > "$fixture_root/changed-cleanup-path-admit.txt"
+printf '%s\n' 'scripts/cleanup_path_admit.ts' > "$fixture_root/changed-cleanup-path-admit-ts.txt"
 printf '%s\n' 'scripts/hatsu_surface_link.sh' > "$fixture_root/changed-surface-link.txt"
 printf '%s\n' 'scripts/surface_link_check.sh' > "$fixture_root/changed-link-guard.txt"
 printf '%s\n' 'scripts/prose_size_check.sh' > "$fixture_root/changed-prose-guard.txt"
@@ -75,6 +76,7 @@ run_case 'evidence check script unchanged version' 1 "$fixture_root/changed-evid
 run_case 'freshness gate script unchanged version' 1 "$fixture_root/changed-freshness.txt" "$fixture_root/head-unchanged.json" 'scripts/send_freshness_check.sh'
 run_case 'kagutsuchi worktree script unchanged version' 1 "$fixture_root/changed-kagutsuchi-worktree.txt" "$fixture_root/head-unchanged.json" 'scripts/kagutsuchi_worktree.sh'
 run_case 'cleanup path admission script unchanged version' 1 "$fixture_root/changed-cleanup-path-admit.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.sh'
+run_case 'cleanup path admission implementation unchanged version' 1 "$fixture_root/changed-cleanup-path-admit-ts.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.ts'
 run_case 'surface link script unchanged version' 1 "$fixture_root/changed-surface-link.txt" "$fixture_root/head-unchanged.json" 'scripts/hatsu_surface_link.sh'
 run_case 'link guard script unchanged version' 1 "$fixture_root/changed-link-guard.txt" "$fixture_root/head-unchanged.json" 'scripts/surface_link_check.sh'
 run_case 'prose guard script unchanged version' 1 "$fixture_root/changed-prose-guard.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_size_check.sh'
