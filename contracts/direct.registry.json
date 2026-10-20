@@ -7,14 +7,15 @@
     "rulings": [
       "docs/ROSTER.md section Rulings of 2026-10-04 -- classify and direct",
       "docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance",
-      "docs/ROSTER.md section Rulings of 2026-10-19 -- every new filing runs classify and direct"
+      "docs/ROSTER.md section Rulings of 2026-10-19 -- every new filing runs classify and direct",
+      "docs/ROSTER.md section Rulings of 2026-10-19 -- Argon is a frontier alias"
     ],
     "taxonomy": "contracts/classify.taxonomy.json",
     "documentSha256": "baf720e3ffac80dc84640751ed3e0567fe61940bd1a505688a17f49c17937a93",
     "revision": {
-      "date": "2026-10-05",
-      "what": "the execution default moved from the frontier tier (Astra) to the deep tier (Sol) with Astra as EXECUTION_MAX; Terra became EXECUTION_VALUE; Grok on Cursor entered as EDITOR_FRONTIER (primary on the eight editor-shaped TypeScript cells the document preferred the Cursor IDE for, fallback elsewhere); every runner-up moved onto a different provider or surface (66 cells moved in all, counted cell by cell on the primary alias or the actionable fallback alias -- a reviewer alias read through its `also`; 60 of them to satisfy picks.fallbackRule, the other 6 forced by a primary move); standalone review cells route to the semantic reader; the picks, companions, publish and within-set blocks were added; the snapshot, list prices, served ids and effort dials were re-read live",
-      "transform": "a one-off script, not shipped; the resulting invariants are stated in this file (picks.fallbackRule, every alias's line and escalation, no frontier primary, every companion routed, every list price sourced) and checked by scripts/direct_matrix_doc.sh --self-test; the nen direct registry check is zheref/nen#389. The choice of each new runner-up followed the fallback rule by pool (an Anthropic primary falls back to Sol on Codex; an OpenAI primary to Grok on Cursor in product domains and to Opus on Claude Code in aigov; a Sonnet primary to Grok on Cursor, or to Sol for prose-shaped jobs), stated here so the moves can be re-derived."
+      "date": "2026-10-19",
+      "what": "HA#340: add Gemini 4 Argon as VISUAL_MAX on frontier by the maintainer ruling; keep 3.1 Pro on deep/pro; refresh Google thinking levels, dated prices, served availability, CLI lookup and independent measurement evidence. No routing cell moves (HA#342). The preceding 2026-10-05 routing rebalance remains in force.",
+      "transform": "Hand-edited registry data; scripts/direct_matrix_doc.sh --write regenerates the matrix and --self-test checks invariants. VISUAL_ORCHESTRATOR escalates to VISUAL_MAX; VISUAL_MAX is ranked after the existing frontier aliases, with no primary or runner-up cell assigned to it. Snapshot fallbacks are re-derived by provider/surface pool: Argon to Sol on Codex; Pro to Flash within the Google family. The consumer configuration owns the verified CLI selection, never a fetched restart override."
     },
     "readers": [
       "hatsu:direct",
@@ -26,8 +27,8 @@
     ]
   },
   "snapshot": {
-    "asOf": "2026-10-05",
-    "$comment": "The dated version AND list-price table, refreshed 2026-10-05 from the provider pages and surface CLIs named in liveLookup (every row cites its source and read date; ECON-8). A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read. `served` is what each surface's own lookup listed on the read date: the alias the maintainer types resolves to THAT id, which may lag the provider's newest (Codex serves GPT-5.6 Sol while the API lists 6.1). `listPrice` is the evidence behind the cost-aligned ordering of the picks, never a number a skill prints as today's price.",
+    "asOf": "2026-10-19",
+    "$comment": "The dated version AND list-price table, refreshed 2026-10-05 from the provider pages and surface CLIs named in liveLookup (every row cites its source and read date; ECON-8). A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read. `served` is what each surface's own lookup listed on the read date: the alias the maintainer types resolves to THAT id, which may lag the provider's newest (Codex serves GPT-5.6 Sol while the API lists 6.1). `listPrice` is the evidence behind the cost-aligned ordering of the picks, never a number a skill prints as today's price. Google Argon evidence was refreshed on 2026-10-19; other snapshot rows retain their stated 2026-10-05 dates. Each listPrice.readOn identifies its own evidence date.",
     "aliases": {
       "SEMANTIC_MAX": {
         "primary": "Claude Fable 5.1",
@@ -132,10 +133,10 @@
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://ai.google.dev/gemini-api/docs/pricing",
           "readOn": "2026-10-05",
-          "note": "Gemini 4 Argon was announced 2026-09-30 with access limited to paid API customers and AI Ultra subscribers, no model page or price on the Gemini API pricing sheet yet; it replaces this row when the persona key `pro` resolves to it"
+          "note": "Retained deep snapshot by the 2026-10-19 frontier ruling; this price was read 2026-10-05, not refreshed as an Argon price. Argon has its own VISUAL_MAX row."
         },
         "served": {
-          "antigravity": "pro (the workspace model picker; the persona key admits inherit | flash | pro)"
+          "antigravity": "Persona key pro is documented (subagents page, re-read 2026-10-19); it is not proof of a served model. agy 1.4.2 --model pro --print /model exits 1: pro is not recognized; no Gemini 3.1 Pro appears in this account listing. The deep row is retained as a snapshot, local CLI availability unverified."
         }
       },
       "VISUAL_FALLBACK": {
@@ -151,7 +152,7 @@
           "note": "$1.50 / $7.50 from 2027-01-01"
         },
         "served": {
-          "antigravity": "flash"
+          "antigravity": "agy 1.4.2 models, 2026-10-19: gemini-3.8-flash-{low,medium,high}; persona key flash remains documented, not verified as a CLI alias."
         }
       },
       "EDITOR_FRONTIER": {
@@ -194,9 +195,38 @@
         "primary": "Cursor Security Review",
         "modelId": null,
         "fallback": "EXECUTION_FRONTIER"
+      },
+      "VISUAL_MAX": {
+        "primary": "Gemini 4 Argon",
+        "modelId": "gemini-4-argon",
+        "fallback": "GPT-6.1 Sol on Codex",
+        "listPrice": {
+          "input": 2,
+          "output": 10,
+          "unit": "USD per 1M tokens, introductory tier; output includes thinking",
+          "source": "https://ai.google.dev/gemini-api/docs/latest-model",
+          "readOn": "2026-10-19",
+          "note": "Introductory $2/$10 through 2026-11-30; $4/$20 from 2026-12-01. Cached input $0.10 then $0.20. Not on Free tier. Structured dated-step fields deferred to HA#341."
+        },
+        "served": {
+          "antigravity": "2026-10-19: maintainer reports the macOS app lead picker defaults to Argon; CLI initially defaulted to Opus 5.5 Low. agy 1.0.6 listed no Gemini entries earlier today; a fresh probe found agy 1.4.2 listing gemini-4-argon-{low,medium,high}. agy --model gemini-4-argon --print /model exited 0 and selected gemini-4-argon-medium. pro and argon were refused at exit 1. IDE availability not observed locally; the 2026-10-16 id refusal in google-antigravity/antigravity-cli#1228 is historical served lag, not this newer CLI result."
+        },
+        "evidence": "snapshot.sources.artificialAnalysisArgon"
       }
     },
     "sources": {
+      "artificialAnalysisArgon": {
+        "url": "https://artificialanalysis.ai/articles/gemini-4-argon-google-top-three-labs",
+        "readOn": "2026-10-19",
+        "articleDate": "2026-09-30",
+        "quoted": [
+          "Gemini 4 Argon (high) scores 53 on the Artificial Analysis Intelligence Index",
+          "It ranks #1 on AutomationBench-AA at 78%"
+        ],
+        "summary": "The article measures Argon at high reasoning: Intelligence Index 53, matching Astra at max and above Sol at max (52); AutomationBench-AA 78%; Terminal Bench 4 57%; AA-Omniscience hallucination rate 15%. Its Intelligence Index cost per task is $1.99 at promotional prices, $3.98 at standard prices; output use averages 62k tokens versus Astra's 27k. These are third-party measurements with benchmark-specific settings, not general cost predictions.",
+        "firstParty": "https://ai.google.dev/gemini-api/docs/latest-model (read 2026-10-19): promotional input/output $2/$10 per 1M through 2026-11-30; $4/$20 from 2026-12-01; cached input $0.10 then $0.20; output includes thinking. This later dated sheet supersedes the article's undated promotion end and restricted-access statement.",
+        "$comment": "Third-party measurement beside the first-party model and price sheets, never a routing instruction; routing changes belong to HA#342 and structured dated-price/cost-per-task fields to HA#341."
+      },
       "artificialAnalysis": {
         "url": "https://artificialanalysis.ai/articles/gpt-6-1-sol-replaces-gpt-6-sol-after-just-7-days-with-near-astra-intelligence",
         "readOn": "2026-10-05",
@@ -271,7 +301,7 @@
       "line": "gemini",
       "surface": "antigravity",
       "tier": "deep",
-      "escalation": null,
+      "escalation": "VISUAL_MAX",
       "selection": "Best approved model for multimodal UI work, parallel-agent orchestration, long-context synthesis, and visual validation"
     },
     "VISUAL_FALLBACK": {
@@ -320,6 +350,15 @@
       "escalation": null,
       "reviewer": true,
       "selection": "Automated PR reviewer dedicated to exploitable security defects"
+    },
+    "VISUAL_MAX": {
+      "provider": "google",
+      "family": "gemini-argon",
+      "line": "gemini",
+      "surface": "antigravity",
+      "tier": "frontier",
+      "escalation": null,
+      "selection": "Frontier escalation for the maintainer lead on Antigravity, by the 2026-10-19 ruling; never a subagent or a routing-cell primary. Verify local Gemini availability instead of accepting a partner-model default."
     }
   },
   "picks": {
@@ -384,8 +423,8 @@
       "modelsKey": "antigravity",
       "restart": "the Antigravity workspace with Model: <alias> on the lead",
       "interactive": "the Antigravity IDE itself, or the Gemini app for a conversation",
-      "effortControl": "the model's thinking budget (pro) -- no four-step dial",
-      "lookup": "the workspace's model picker"
+      "effortControl": "Gemini 4 Argon thinking_level low|medium|high (medium default; API ceiling high), https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19; surface availability must be read separately",
+      "lookup": "The lead conversation model picker; agy models lists CLI slugs, agy --model <configured alias> --print /model verifies a selection without an inference request."
     },
     "$nonActionable": {
       "$comment": "Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. These entries provide context, not actionable picks. The 2026-10-17 ruling in docs/ROSTER.md keeps Grok Build here as a headless CI option and Cursor as the actionable Grok coding surface; any future fifth surface would require a separate great-hiker proposal, never only a registry edit.",
@@ -433,13 +472,16 @@
       "effort": "codex debug models -> supported_reasoning_levels per slug (low|medium|high|xhigh|max|ultra on 2026-10-05)"
     },
     "google": {
-      "cli": null,
+      "cli": "agy models",
       "docs": [
         "https://antigravity.google/docs/subagents",
         "https://ai.google.dev/gemini-api/docs/models",
-        "https://ai.google.dev/gemini-api/docs/pricing"
+        "https://ai.google.dev/gemini-api/docs/pricing",
+        "https://ai.google.dev/gemini-api/docs/latest-model",
+        "https://antigravity.google/blog/gemini-4-argon-in-google-antigravity/"
       ],
-      "effort": null
+      "effort": "Gemini 4 Argon thinking_level low | medium | high; medium is default, high is the documented ceiling; https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19. This API dial does not prove a surface exposes the control.",
+      "$cliEvidence": "Read 2026-10-19: agy 1.0.6 listed only partner models; a fresh 1.4.2 probe lists Argon and Flash at all three levels. agy --model gemini-4-argon --print /model returns gemini-4-argon-medium at exit 0; pro is refused at exit 1. User reports the app defaults to Argon, CLI had defaulted to Opus 5.5 Low."
     },
     "cursor": {
       "cli": "cursor-agent models",
@@ -529,14 +571,15 @@
         "high": "high",
         "max": "high"
       },
-      "$collapsed": "antigravity has no top setting: max maps to high there, said in the report; a session at high on antigravity MATCHES a recommended max because effort is compared in dial space (see mismatch). Codex gained max (and ultra) and Cursor's ids carry -xhigh, read live on 2026-10-05, so neither collapses any more; a dial the live read lists that this map lacks is quoted beside the line, never typed into it."
+      "$collapsed": "Gemini 4 Argon's documented thinking_level ceiling is high (low | medium | high, medium default; https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19), so max maps to high on antigravity by the dial's own ceiling. A session at high on antigravity MATCHES a recommended max because effort is compared in dial space (see mismatch); surface availability is read separately. Codex gained max (and ultra) and Cursor's ids carry -xhigh, read live on 2026-10-05, so neither collapses; a dial the live read lists that this map lacks is quoted beside the line, never typed into it."
     }
   },
   "aggregation": {
-    "$comment": "An issue carrying several jobs or languages resolves ONE actionable recommendation. Each (job, language) pair yields its cell. WINNER (the PRIMARY pick): count winner positions only; the alias with the most wins, ties broken by `precedence` (earlier wins). A reviewer alias (aliases.<a>.reviewer true) is never the winner: a pair it wins counts for its `also` alias. RUNNER-UP (the FALLBACK pick): the alias with the next-highest winner count among the other winning aliases, ties by `precedence`; when the winner won every pair, the most frequent runnerUp alias across the winner's pairs, a reviewer alias resolving to its `also`, ties by `precedence`. Every reviewer runnerUp in this file carries an `also`, so a runner-up always resolves to an actionable alias. Every per-pair cell is still reported so the maintainer can see where the aggregate departs from a pair. PRECEDENCE ranks the semantic alias of a tier before the execution alias of the same tier: a tie carries at least one semantic pair, and the semantic reader is the one pick the fallback cannot replace at parity (ruling of 2026-10-05); the two escalation aliases are ranked first only because nen direct registry requires every alias ranked -- no cell names one as a winner or a runner-up, so those two slots are unreachable. Companion jobs (`companions`) are kept out of the call that decides, never struck from a tally.",
+    "$comment": "An issue carrying several jobs or languages resolves ONE actionable recommendation. Each (job, language) pair yields its cell. WINNER (the PRIMARY pick): count winner positions only; the alias with the most wins, ties broken by `precedence` (earlier wins). A reviewer alias (aliases.<a>.reviewer true) is never the winner: a pair it wins counts for its `also` alias. RUNNER-UP (the FALLBACK pick): the alias with the next-highest winner count among the other winning aliases, ties by `precedence`; when the winner won every pair, the most frequent runnerUp alias across the winner's pairs, a reviewer alias resolving to its `also`, ties by `precedence`. Every reviewer runnerUp in this file carries an `also`, so a runner-up always resolves to an actionable alias. Every per-pair cell is still reported so the maintainer can see where the aggregate departs from a pair. PRECEDENCE ranks the semantic alias of a tier before the execution alias of the same tier: a tie carries at least one semantic pair, and the semantic reader is the one pick the fallback cannot replace at parity (ruling of 2026-10-05); the three escalation aliases are ranked first only because nen direct registry requires every alias ranked -- no cell names one as a winner or a runner-up, so those three slots are unreachable. Companion jobs (`companions`) are kept out of the call that decides, never struck from a tally.",
     "precedence": [
       "SEMANTIC_MAX",
       "EXECUTION_MAX",
+      "VISUAL_MAX",
       "SEMANTIC_FRONTIER",
       "EXECUTION_FRONTIER",
       "VISUAL_ORCHESTRATOR",

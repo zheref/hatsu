@@ -166,7 +166,7 @@
       "note": "Cursor-native only; provider models there are reserved for Bugbot"
     },
     "antigravity": {
-      "frontier": "ultra",
+      "frontier": "gemini-4-argon",
       "deep": "pro",
       "fast": "flash",
       "economy": "flash",

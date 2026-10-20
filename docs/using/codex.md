@@ -77,7 +77,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **51**, the fifty plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **54**, the fifty-three plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -92,7 +92,7 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Fifty-one ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Fifty-four ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
   and the warm-up would rather install fewer and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own
@@ -141,6 +141,12 @@ $hatsu:mukai
 Kurapika is the persona here through the untracked `AGENTS.override.md` the warm-up writes; there is no
 separate summon. The plugin serves skills and hooks; `ten` places personas in the target repository.
 For headless use and the linked-worktree sandbox setting, see [the Codex surface guide](../surfaces/codex.md).
+
+After creating or binding a native worktree, verify its ordinary write route before ledger or
+authoring work, even without a local permission pack. An unreviewed sandbox error follows
+[authorized worktree write recovery](../surfaces/codex.md#authorized-worktree-write-recovery);
+an actual host rejection stops the rejected action with its stated reason. Generating a config
+does not prove that the running session has reloaded its grants.
 
 
 The [Codex surface guide](../surfaces/codex.md) covers plugin read-back, hook trust,

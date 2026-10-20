@@ -20,7 +20,7 @@ workflows are deprecated and retire on 2026-11-01, so nothing here emits a workf
 | hooks read from | plugin `hooks.json`; workspace `<repo>/.agents/hooks.json`; global `~/.gemini/config/hooks.json` |
 | invocation spelling | `/<name>` |
 | worktrees | the IDE's own: "New worktree mode: The agent operates in an isolated Git worktree." (https://antigravity.google/docs/getting-started, 2026-09-30); the location is undocumented, and `invoke_subagent` `Workspace: "branch"` is accepted where the IDE puts it. **Hatsu-made** (the lead's direct work, § 11.1): `git worktree add .nen/worktrees/antigravity/<name> -b <branch>` from the core checkout, removed when the effort lands — `docs/WORKFLOW.md` § *Where worktrees live* |
-| headless command | `agy --model pro "<prompt>"` in the target repository |
+| headless command | Select the configured Google lead explicitly: `agy --model gemini-4-argon --print "<prompt>"`; verified on this machine with `--print /model` on agy 1.4.2, 2026-10-19: exit 0, `gemini-4-argon-medium`. `agy --model pro --print /model` exited 1 (unrecognized model), so `pro` is a persona tier key, not a working CLI selection here. [Headless reference](https://antigravity.google/docs/cli/headless/) documents `agy models` and explicit model slugs; re-read 2026-10-19 |
 | pointing at a local checkout | the global link names the checkout's `surfaces/antigravity`; a commit there is served from the next conversation, no copy to refresh |
 | update and activation | `hatsu:bakuryuha`: § 3 makes the link where `.agents/` copies stood, § 4 fast-forwards the checkout the link names, and `agy plugin validate` reads the plugin back; a new conversation lists the updated skills, and the CLI's `/skills reload` (from v1.2.4, typed) reloads them in the running one (§ 9); the IDE documents no reload, so personas, rules and hooks there are claimed on restart only |
 | back-compatibility | `.agent/rules` and `.agent/skills` are still read; Hatsu writes only `.agents/` |
@@ -96,12 +96,23 @@ Provenance of each step:
 |---|---|
 | file | `agents/<persona>.md` (plugin) or `.agents/agents/<name>.md` (workspace) |
 | frontmatter documented | `name`, `description` (required); `tools[]`, `mainAgent`, `subagent`, `model`, `commandExecutionPolicy`, `mcpServers`, `skills`, `plugins` |
-| model values | `inherit`, `flash`, `pro` |
+| model values | "inherit", "flash", or "pro" (https://antigravity.google/docs/subagents, re-read 2026-10-19); the documented persona key does not admit `ultra` or an Argon model id |
 | command policy | `commandExecutionPolicy`: `off`, `auto`, `eager`, `sandbox` (default `sandbox`) |
-| tier aliases (`nen/workflow.json` → `models.antigravity`) | frontier `ultra`, deep `pro`, fast `flash`, economy `flash` (the key admits no `flash_lite`) |
+| tier aliases (`nen/workflow.json` → `models.antigravity`) | Hatsu frontier `gemini-4-argon` (lead only, verified CLI selector on 2026-10-19), deep `pro` (3.1 Pro snapshot retained; local CLI refuses the alias), fast `flash`, economy `flash`. The persona key still admits only `inherit`, `flash`, `pro`; it does not admit the frontier selector. Consumers adopting HA#340 must update their frontier value after checking their own served availability |
 | what the generator writes | `model` from the persona's own Claude alias read back to its tier (`--source-surface claude`) and mapped to this row's alias (`opus` → `pro`, `sonnet` and `haiku` → `flash`); an alias outside `inherit`, `flash`, `pro` is emitted and named under `undocumentedAliases`; `commandExecutionPolicy` left at the default, because a persona-wide `auto` would approve arbitrary commands rather than the declared set |
 
-`ultra` is a matrix alias the persona key does not admit: the orchestrator tier never runs a subagent. In-session delegation is
+`gemini-4-argon` is Hatsu's configured lead selection, replacing the unverified `ultra` value under
+the maintainer's frontier ruling ([ROSTER](../ROSTER.md), 2026-10-19). The persona key does not admit
+that selection: the orchestrator tier never runs a subagent. The maintainer reports that the macOS
+app's main conversation defaults to Argon, while the CLI had defaulted to Opus 5.5 Low. A fresh
+`agy models` on 1.4.2 lists Argon and Flash at Low, Medium and High; the earlier 1.0.6 probe listed
+only partner models. `agy --model pro` is refused, not a mapping to 3.1 Pro or Argon. Keep the
+provider choice explicit instead of inheriting a partner-model default. The standalone IDE's
+picker was not observed locally; [the October 13 provider announcement](https://antigravity.google/blog/gemini-4-argon-in-google-antigravity/)
+covers App and CLI availability by plan. The October 16 [CLI id refusal](https://github.com/google-antigravity/antigravity-cli/issues/1228)
+is historical served lag; it does not override the successful 1.4.2 probe.
+
+In-session delegation is
 `invoke_subagent` with `Workspace` `branch` (isolated worktree — mandatory for all autonomous feature authoring, parity implementations, and Hanten reviewers), `inherit` (read-only long watch e.g. `en · illumi`, or in-context reporting e.g. Third-Hand's Netero), or `share`. All Hatsu-specific development efforts on Antigravity run in separate worktrees (`Workspace: "branch"`) unless explicitly instructed otherwise by the maintainer; the core checkout is reserved for the primary IDE and `/amaterasu`.
 
 
@@ -260,6 +271,18 @@ Antigravity executes autonomous subagents via the `invoke_subagent` tool. In Hat
 
 ### 11.2 Gemini-based model characteristics and prompt discipline
 Antigravity agents are backed by Google Gemini models (`pro`, `flash`). Effective delegation on this surface requires explicit prompt construction:
+
+**Argon API traits, re-read 2026-10-19** ([Google's migration guide](https://ai.google.dev/gemini-api/docs/latest-model)):
+`thinking_level` accepts `low`, `medium` (default), and `high`. State the required depth in the
+handoff and verify the surface exposes it; `max` maps to the API's actual ceiling, `high`.
+Google cautions that low thinking can reduce quality on difficult work, so evaluate the workload
+at all three levels before choosing the cheapest acceptable setting. Explicit context caches
+(`cachedContents` / `caches.create`) are unsupported; implicit caching is separate. Remove explicit
+cache creation and references from API workflows. Sampling controls `temperature`, `top_p`, and
+`top_k` are ignored. Allow enough output budget for thinking plus the answer; long outputs above
+64K need background execution. These API traits establish neither a local `pro` resolution nor
+availability in an IDE picker.
+
 1. **Explicit Negative Boundaries**: Gemini models respond with high fidelity to clear negative constraints. Every delegation prompt MUST explicitly forbid:
    - Raw `gh pr create` or direct manual git push without `nen wc publish`.
    - Single-line commit messages or commits without descriptive message bodies.
