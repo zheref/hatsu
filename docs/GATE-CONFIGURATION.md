@@ -372,6 +372,13 @@ outgrows the pipe buffer — it fails closed, Publish posting `readiness undeter
 `${explain%%$'\n'*}`; and splitting the verdict (read-only token) from Publish (the only step that
 needs `checks: write`) into two jobs changes `EXPECTED_JOBS` (hanten on step two, Phinks and Feitan).
 
+**2026-10-19, #131 policy stage.** `READINESS_FROZEN_VERDICT` also admits one next frozen form:
+`node .trusted/scripts/readiness_ci_verdict.mts`. The trusted TypeScript reader pins the event head,
+passes the trusted gates path to `nen pr ready --json`, and takes its title, failing rows and judged
+head from that document. This stage leaves the live workflow and Tenkai template on their old form;
+the next PR changes them after this validator and reader reach the trusted base. The JSON form
+supersedes the first-line SIGPIPE repair above, while the separate-job permission question remains.
+
 **2026-10-13. Every builder step is frozen, and no run carries an expression
 ([zheref/hatsu#190](https://github.com/zheref/hatsu/issues/190)).** `surface-mirror-regenerate.yml`
 holds `contents: write`, and its only push guard was lexical: `git -C . push origin

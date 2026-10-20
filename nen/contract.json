@@ -119,6 +119,11 @@
         "cwd": ".",
         "$comment": "Focused fixture for local Futon ownership metadata: a run starts before PR creation, then binds the typed selector, issue, PR, non-main base and pinned head outside the PR-controlled tree."
       },
+      "readiness-json-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Focused fixture for #131's trusted TypeScript reader of nen pr ready --json; it pins the head and returns check title and summary from structured fields."
+      },
       "trusted-guard-preflight": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -402,6 +407,13 @@
             "scripts/futon_effort_record_fixture.mts"
           ],
           "$comment": "Hermetic Futon ownership fixture: verifies bind, refresh and missing/stale/default-branch/selector refusals in a scratch Git common directory. Run when the record script, Futon binding, or En's merge guard changes."
+        }
+      },
+      "readiness-json-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": ["scripts/fixture_output_guard.sh", "node", "scripts/readiness_ci_verdict_fixture.mts"],
+          "$comment": "Hermetic fixture for #131's JSON-to-check adapter, including exit/head mismatches, hostile text, exact Nen arguments and GitHub output framing."
         }
       },
       "trusted-guard-preflight": {
