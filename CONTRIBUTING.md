@@ -117,7 +117,8 @@ directly for an unreleased change. The one exception is a pull request whose own
 § *Rulings of 2026-09-30 — En never merges*): its body carries the declared `directSection.optOut` line
 verbatim, and no other PR carries it. **That condition is unenforced by nen**: the verb honours the
 phrase anywhere, over any diff, inside an HTML comment or a code fence too, so a Hatsu-side raw-body
-check is owed (zheref/hatsu#171; the nen half is zheref/nen#239's scope).
+check is owed (zheref/hatsu#171), and so is the nen half, owed to nen and not yet filed
+([`docs/PROCESS.md`](docs/PROCESS.md) § *Residue and owned dependencies*).
 
 ## Redaction
 

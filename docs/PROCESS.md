@@ -672,14 +672,37 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `nen pr ready` row, not yet filed (origin zheref/hatsu#203). Until it lands, shibari and en quote
   the guard's `0` beside the verdict (BC-11 reads the guard's branching shell as a verb's job, a G4
   question until the verb lands).
-- **`contracts/pr-composition.json` → `gateDerive.zheref/nen`** (zheref/hatsu#334; [`ROSTER.md`](ROSTER.md)
-  § *Rulings of 2026-10-20 — zheref/nen's gate path sets*). Two items are owed, and neither is filed yet.
-  **A tree-freshness check at repin**: list nen's tree at the pinned tag (`gh api repos/zheref/nen/git/trees/<tag>`)
-  and fail when a top-level entry is in neither of the row's sets nor its explicit `G2` list (`LICENSE`,
-  `.gitignore`). Until that check exists, a top-level entry nen adds later derives `G2` without any warning,
-  so the repin is the step that has to look. **A declared home in nen**: these are another canon
-  repository's sets, held by Hatsu until nen has a home of its own that `nen gate derive` reads. That is
-  owed to nen.
+- **`contracts/pr-composition.json`, its `gateDerive.zheref/nen` row above all** (zheref/hatsu#171, #334;
+  [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-20 — zheref/nen's gate path sets*). Five items are owed,
+  and none is filed yet. **(a) A tree-freshness check at repin**: list nen's tree at the pinned tag
+  (`gh api repos/zheref/nen/git/trees/<tag>`) and fail when a top-level entry is in neither of the row's
+  sets nor its explicit `G2` list. The repin is the pull request that moves `nen/contract.json` →
+  `dependency.pinned_ref`, at the declaration gate (`ten` § 1), opened in Hatsu by `getsuga` § 7's
+  fan-out from nen's own release; the check is a lane that pull request's iteration checks run, so the
+  repin cannot land past it. When it is filed, the `G2` list (`LICENSE`, `.gitignore`) is declared as
+  data on the row — a `g2Paths` array beside `policyPaths` and `processPaths` — so the check reads it
+  and never parses prose, and whichever check refuses an unread row key by then (the
+  `scripts/pr_composition_check.sh` entry below) admits `g2Paths` in that same pull request. Until it
+  exists, a top-level entry nen adds later derives `G2` without warning, so
+  [`WORKFLOW.md`](WORKFLOW.md) § *Gate derivation* stops and asks on a path outside the sets and that
+  list. **(b) A declared home in nen** for every input this file holds, zheref/nen's sets among them,
+  read by `nen gate derive`, `nen pr body-check` and `nen changelog fragment-required` themselves; until
+  then Hatsu holds another canon repository's sets. **(c) Two `nen gate derive` refusals**: a `--files`
+  entry containing whitespace or a newline (nen 0.22.0 takes a newline-joined value as one path, so a set
+  handed over from a one-per-line source under-derives `G2`), and an empty changed-file set (it answers
+  `G2` across 0 files). **(d) `--range` passing `--no-renames`**, in `gate derive` and
+  `changelog fragment-required` alike: nen 0.22.0's `git diff --name-only <range>` drops a rename's old
+  side. Until (c) and (d) land, WORKFLOW § *Gate derivation* hands the set over as `--files-from` and
+  never uses `--range`. **(e) `changelog fragment-required` honouring `directSection.optOut` only in the
+  body's own prose**, never inside an HTML comment or a code fence; a Hatsu-side raw-body check is owed
+  beside it.
+- **`scripts/pr_composition_check.sh`** (lane `pr-composition-guard`; zheref/hatsu#171) is a python3
+  heredoc inside a shell script, so BC-11 reads it as debt: it takes no new branching, and a check it
+  lacks is owed to its TypeScript port or to nen's declared home ((b) above), never grown into the
+  heredoc. Two are owed there, not yet filed: **refusing a `gateDerive` row key `nen gate derive` never
+  reads** (`policyPath` for `policyPaths`, say), withdrawn from the heredoc in hanten round 2 of
+  zheref/hatsu#334 (Chrollo, BC-11), and **refusing a duplicate key in the declaration** (Feitan):
+  Python's `json` keeps the last of two equal keys silently, where an `object_pairs_hook` would see both.
 - **`sharingan`.** A reply's head-chain check (§ *Reviewer rounds and review threads*) is `git -C <path> fetch` then `git -C <path>
   merge-base --is-ancestor <sha> <head>`, because nen reads a PR's head but not the ancestry of a commit in it.
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json

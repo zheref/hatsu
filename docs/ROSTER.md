@@ -909,13 +909,13 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 
 ## Rulings of 2026-10-20 — zheref/nen's gate path sets
 
-**Source:** the maintainer's answer through the picker, 2026-10-20, during hanten round 1 of
+**Context.** The maintainer's answer through the picker, 2026-10-20, during hanten round 1 of
 zheref/hatsu#334. The question and the answer are recorded verbatim; the option's text, as the picker
 presented it, opens the third column in quotes.
 
 | Question | The maintainer's answer, verbatim | What it settles |
 |---|---|---|
-| *For nen's gate row, which paths should derive G4?* | `⭐ A · All but LICENSE/.gitignore` | Option text: *"Every top-level entry incl. .github/, changelog.d/, .gitattributes, bunfig.toml, .npmrc derives G4; only LICENSE and .gitignore G2; a tree-freshness check owed."* |
+| *For nen's gate row, which paths should derive G4?* | `⭐ A · All but LICENSE/.gitignore` | Option text: *"Every top-level entry incl. .github/, changelog.d/, .gitattributes, bunfig.toml, .npmrc derives G4; only LICENSE and .gitignore G2; a tree-freshness check owed."* Built by the effort `opus/kurapika/ha-334-gate-path-sets` |
 
 **What follows:**
 

@@ -29,6 +29,10 @@
 #   root -- never absolute, never `..`, never a link out -- and a scanned file that is not UTF-8 is a
 #   finding, never a silent skip.
 #
+# BC-11 DEBT. The python3 heredoc below takes no new branching: a check it lacks (an unread gate row
+# key, a duplicate key) is owed to its TypeScript port or to nen's declared home, recorded in
+# docs/PROCESS.md section Residue and owned dependencies, never grown here.
+#
 # WHO RUNS IT. The pr-composition-guard lane (`nen shu test --repo <hatsu> --lane pr-composition-guard`),
 # through scripts/pr_composition_check_fixture.sh, which proves every refusal on throwaway trees and then
 # runs this check on the repository itself. No installed copy executes it, so it is not in
@@ -153,9 +157,6 @@ for repo, row in rows.items():
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repo) or not isinstance(row, dict):
         findings.append(f"{DECL}: gateDerive row {repo!r} is not an owner/name key holding an object")
         continue
-    for key in row:
-        if key not in ("policyPaths", "processPaths", "$comment"):
-            findings.append(f"{DECL}: gateDerive.{repo} carries key {key!r}, which nen gate derive never reads (only policyPaths, processPaths and $comment)")
     policy = path_list(row.get("policyPaths"), f"gateDerive.{repo}.policyPaths")
     process = path_list(row.get("processPaths"), f"gateDerive.{repo}.processPaths")
     if not policy and not process:
