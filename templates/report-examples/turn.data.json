@@ -169,7 +169,7 @@
   "actionsMinutes": "not read",
   "spendNote": "",
   "spendUsage": [],
-  "launch": "nen report render --variant turn --template \"$hatsu_root/templates/spiritual-message.md\" \\\n  --data <doc> --out Reports/current.md --repo . && cat Reports/current.md",
+  "launch": "no launch target declared; skipped",
   "prBody": [],
   "variant": "turn"
 }

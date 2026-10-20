@@ -261,8 +261,9 @@ takes that `generatedDateLocal`.
 come back `null`, from the reason on stderr, per *Where the effort is* in [`WORKFLOW.md`](WORKFLOW.md)
 § `reports`. A `null` `repo` is `nen repo resolve --from <path>`'s; that resolve exits `1` in the very
 case a `repo` is `null` (a non-hosted origin outside the registry), and then the value is the
-`--target` slug when one is known, else the missing repo is named in `notDelivered[]` and `footerNote` —
-never a blank. `--graph` injects `graphJson`, `graphMermaid`, `graphNodes[]` and `graphEdges[]`, and
+`--target` slug when one is known, else it stays `null` — the masthead slot renders blank (verified,
+exit `0`) — and `notDelivered[]` and `footerNote` name the missing repo. *New canon*. `--graph`
+injects `graphJson`, `graphMermaid`, `graphNodes[]` and `graphEdges[]`, and
 `--variant` injects `sections` and `sectionList`; neither is written. Everything below is derived, never
 composed; a row marked *new canon* has no live source before this section (only
 [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) and is the maintainer's to
@@ -272,16 +273,16 @@ confirm at G4:
 |---|---|
 | `variant` | the `--variant` value — the render does not inject it |
 | `turnLabel` | from `turnNumber`, per *Where the effort is* (`Turn <n>`; `Landing · after turn <n>`) |
-| `architectureCaption` | the graph document's `caption`; `""` with no `--graph` — the render does not inject it. *New canon* |
+| `architectureCaption` | the graph document's `caption` — the render does not inject it. `turn` and `landing` take `--graph` and refuse without it (exit `2`; spiritual-message §§ 5/6); only `turn-fast`, rendered with no `--graph`, takes `""`. *New canon* |
 | `spendPhases[]`, `hasSpendPhases`, `noSpendPhases` | `phases[]`, by spiritual-message § 4's per-phase rule |
 | `spendUsage[]`, `actionsMinutes`, `spendNote` | `usage[]`, by the same rule; `spendNote` is `""` unless a muted line is owed |
 | `tests[]`, `touchedCoverage[]` | re-mapped from `nen shu test-report` and the saved `nen shu coverage --touched`; `[]` while the owning phase has not run |
 | `ask`, `deskCleared` | `null` and the cleared line when the turn owes nothing; `deskCleared` is `""` beside a non-null `ask` |
 | `readiness[]`, `prBody[]` | `[]` on `turn` and `turn-fast`; on `landing` one row each — `nen pr ready`'s verdict verbatim, [`shibari`](../claude/skills/shibari/SKILL.md)'s body |
-| `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `false` and `[]` unless the last human request was `mukai` (En's first `landing` in the same sitting included) — the boolean the [`report-examples`](../templates/report-examples/) carry. *New canon* |
+| `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `false` and `[]` unless the last human request was `mukai` (En's first `landing` included when mukai started En in the same sitting and no newer human request came) — the boolean the [`report-examples`](../templates/report-examples/) carry. *New canon* |
 | `captures[]`, `evidenceUnavailable` | `[]` and `""` when no evidence is owed or it is present; the reason when owed evidence is missing |
-| `launch` | the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) § 1 recorded this turn, verbatim: the command it ran, or its reason line (`no launch target declared; skipped`, the profile deferral, `core launch deferred; explicit maintainer call required`) — never `""` |
-| `footerNote` | `""`, or the failed `nen ref format` resolution (§ *Publishing a report*) |
+| `launch` | a `ren` turn: the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) recorded this turn, verbatim — the command it ran, or its reason line (`no launch target declared; skipped`, § 1; the profile deferral, § 1a; `core launch deferred; explicit maintainer call required`, § 3). A `landing` (launch is never a mukai step), or any turn amaterasu did not run in: the line of the last amaterasu call on this effort; with none, `no launch target declared; skipped` where `project.launch` declares no target, else `no launch in this session`. Never `""`. *New canon*: the landing and no-call cases (`no launch in this session` survives only in [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) |
+| `footerNote` | `""`; or the failed `nen ref format` resolution (§ *Publishing a report*); or, with `repo` `null`, the missing repo and why (above). *New canon*: the missing-repo clause |
 
 **The remainder is judgement, and is all the caller writes**: `title` ([`WORKFLOW.md`](WORKFLOW.md)
 § *Report titles*), the four tallies, a non-null `ask` with its options and `blocker`,
@@ -301,10 +302,12 @@ it. Three rules the refusals taught (HA-PR-#278), each refused at exit `2`:
 | a gate carries `asks` **or** `cleared`, never both and never neither; `asks` is a list, `[]` on a cleared gate | `"cleared"` beside a non-empty `asks` | `gates[0] has asks AND a 'cleared' line` |
 
 On this desk the starred option is `"star": true`, unlike the spiritual-message ask's `"star": "recommended"`.
-A minimal valid desk — one ask, one cleared gate (exit `0`):
+A minimal valid desk — one ask, one cleared gate, and the `generatedAtLocal` placeholder a real desk
+fills (*The clock*, above), so a copied example never shows a raw UTC instant (exit `0`):
 
 ```json
 { "variant": "register", "title": "Gate Register", "scope": "HA#291", "gate": "G4",
+  "generatedAtLocal": "<report_time.sh --at <the plain pass's generatedAt>>",
   "gates": [
     { "gate": "G4", "label": "Policy merge", "asks": [
       { "kind": "MERGE", "rank": 1, "title": "Merge HA-PR-#1", "why": "its verdict is ready",

@@ -173,8 +173,7 @@ after
 <!-- hatsu:block launch -->
 ## How to launch
 
-<pre>nen report render --variant turn --template &quot;$hatsu_root/templates/spiritual-message.md&quot; \
-  --data &lt;doc&gt; --out Reports/current.md --repo . &amp;&amp; cat Reports/current.md</pre>
+<pre>no launch target declared; skipped</pre>
 
 <!-- hatsu:block decisions -->
 ## Decisions already made

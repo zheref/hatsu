@@ -76,7 +76,8 @@ nen pr ready --repo <path> --pr <N> [--explain]                                 
 ```
 
 **Two passes** (zheref/hatsu#221): the plain call (no `--register`) reads the facts; the desk —
-[`backlog-board`](../backlog-board/SKILL.md) § 3's judgement half, its shape and clock rules there — is
+[`backlog-board`](../backlog-board/SKILL.md) § 3's judgement half, its shape and clock in
+[`PROCESS.md`](../../../docs/PROCESS.md) § *The report data document* — is
 composed from them;
 the `--register <desk>` call then emits the register document the render fills.
 

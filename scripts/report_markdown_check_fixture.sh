@@ -128,6 +128,8 @@ run_case 'and its escape is caught in the render' 1 "$t" 'an escaped entity insi
 
 t="$(make_tree fence)"
 edit "$t/templates/spiritual-message.md" '<pre>{{launch}}</pre>' $'```\n{{launch}}\n```'
+# the examples' launch is a reason line with nothing to escape; give the case a value that has some
+edit_json "$t/templates/report-examples/turn.data.json" 'd["launch"] = "npm run dev -- --host \"0.0.0.0\" && open <url>"'
 run_case 'an escaped value in a fence fails' 1 "$t" 'an escaped entity inside a code fence shows literally in GFM'
 
 t="$(make_tree icode)"
