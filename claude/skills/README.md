@@ -4,7 +4,7 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Fifty-four skills at `v0.125.0`** (fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, fifty-five directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+**Fifty-five skills at `v0.126.0`** (fifty-four at `v0.125.0`, fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, fifty-six directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
@@ -26,7 +26,7 @@ below.
 
 ---
 
-## The twenty-five that answer a request
+## The twenty-six that answer a request
 
 Seventeen were ported from the frozen reference implementation **under their existing names** — only the mechanics changed — and
 `black-voice`, `tenkai`, `limbo` and `jusshin` were authored here in the same shape: **every deterministic
@@ -62,6 +62,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`file`](file/) | Files one well-formed, correctly-labelled, non-duplicate issue — reconciled against the open backlog first, on one explicit confirmation. |
 | [`futon`](futon/) | Takes one selector's worth of the backlog — a whole severity band, or every open issue carrying one exact label — from open issues to PRs with an actor behind them, then **gates** whatever you typed after `then` — `tag` or `tag+fanout` (handed to [`getsuga`](getsuga/)), any installed skill (run under its own authority), or prose Kurapika maps to skills and verbs before acting: nothing runs until every PR this run authored is merged into `branch.base`. It cuts no tag and runs no fan-out of its own. |
 | [`getsuga`](getsuga/) | **Cuts** a release tag locally, end to end — the cut point defaulting to `nen/workflow.json` → `branch.base` (plain `main` when none is declared), never required and always overridable by a typed token — preconditions, one folded **release-proposal** PR it merges itself through `nen pr merge --release-unit` (§ 3a; `docs/ROSTER.md` § *Rulings of 2026-09-26/27/28*) or that the maintainer merges at **G4** in a canon repository (**G2** in a consumer one), the **post-merge** tag, the `CON-22` fan-out and the consumers' repin PRs. The release unit it folds in is [`susanoo`](susanoo/)'s; publication is [`mugetsu`](mugetsu/)'s, at **G3**. Prepares a release; never publishes one. |
+| [`hiraishin`](hiraishin/) | **One merged PR, ported to one sibling — a composite with its own entry, `v0.126.0`.** `hatsu:hiraishin <CODE>-PR-#<N> [to <CODE>] [--dry-run]` refuses a source not merged into its base (open, closed unmerged, an integration or stack base), a cyclic port chain and unported prerequisites; runs `kamui`'s spec step and waits at its **G2** merge where the family declares a spec repository (*spec step: none configured* otherwise); writes a port brief with one row per concept (business logic and domain UX ported as is, architecture and idiom mapped with the handbook rule on both sides); asks every unmapped row in one batched `port-drift` call through `bankai-rule`; files `port: <title> (from <CODE>-PR-#<N>)` through `file` on the typed call, which is its G1, and builds it. An all-drop brief stops at *nothing to port*. `hatsu:hiraishin resume <run-id>` continues from kamui's record. |
 | [`izanagi`](izanagi/) | Repeats a task that **acts** until a condition holds, under a **mandatory** iteration cap — an invocation without `up to <N>` is refused. |
 | [`izanami`](izanami/) | Repeats a **read-only** task until a condition holds. It looks, reports and stops; it never writes. |
 | [`jujisho`](jujisho/) | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving the union of the splits equals the original diff. |
@@ -99,7 +100,7 @@ every-session `--auto` refresh stays as it is.
 
 ## The way of working
 
-The twenty-five request-answering skills above and `great-hiker` each answer a request. The twenty-seven below are the **loop that carries every request** —
+The twenty-six request-answering skills above and `great-hiker` each answer a request. The twenty-seven below are the **loop that carries every request** —
 warm up, build, commit, launch, report, ring; pull, test, push — and the phases the maintainer calls by
 hand. [`../../docs/WORKFLOW.md`](../../docs/WORKFLOW.md) is the authority on all of it: the two configuration
 files ([`nen/contract.json`](../../nen/contract.json) → `project`, what nen **executes**;
@@ -169,7 +170,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the fifty-four. They landed with the skeleton because the plugin does not function
+Neither is one of the fifty-five. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
