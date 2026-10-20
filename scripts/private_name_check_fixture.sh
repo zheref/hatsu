@@ -173,6 +173,8 @@ chmod 644 "$work/zz-secret/f.md"
 # --- the ignore file ---------------------------------------------------------------------------
 : > "$work/ignore-empty"
 expect 1 "an empty ignore file ignores nothing" --names-file "$names" --ignore-file "$work/ignore-empty" "$work/bare.md"
+has '0 ignored by the maintainer' "a present but empty ignore file is read and reports 0 ignored"
+hasnt 'no ignore file' "a present ignore file is never reported as absent"
 printf '# names too generic to police\n\n' > "$work/ignore-comments"
 expect 1 "a comment-only ignore file ignores nothing" --names-file "$names" --ignore-file "$work/ignore-comments" "$work/bare.md"
 hasnt 'allow-empty' "no --allow-empty claimed when it was not given"
@@ -195,9 +197,17 @@ expect 1 "another owner's entry ignores nothing here" --names-file "$names" --ig
 mkdir -p "$work/home/.config/hatsu" && printf 'PLINTH\n' > "$work/home/.config/hatsu/redaction-ignore"
 expect 0 "default ignore file, case-insensitive" --names-file "$names" "$work/plinth.md"
 rm -f "$work/home/.config/hatsu/redaction-ignore"
+ln -s "$work/nope" "$work/home/.config/hatsu/redaction-ignore"
+expect 2 "a dangling default ignore-file link is a wiring fault, never absent" --names-file "$names" "$work/bare.md"
+rm -f "$work/home/.config/hatsu/redaction-ignore"
 expect 1 "ignore file never hides another name" --names-file "$names" --ignore-file "$work/ignore" "$work/bare.md"
 has '1 ignored' "ignored count reported on a refusal"
 expect 2 "explicit ignore file missing" --names-file "$names" --ignore-file "$work/nope" "$work/bare.md"
+out="$(env -u HOME -u XDG_CONFIG_HOME "$guard" --names-file "$names" "$work/bare.md" 2>&1)"; rc=$?
+[ "$rc" -eq 2 ] && ok || bad "HOME and XDG_CONFIG_HOME unset is a wiring fault: exit $rc, wanted 2 -- $out"
+has 'neither XDG_CONFIG_HOME nor HOME' "the wiring fault names why there is no default"
+out="$(env -u HOME -u XDG_CONFIG_HOME "$guard" --names-file "$names" --ignore-file "$work/ignore-empty" "$work/bare.md" 2>&1)"; rc=$?
+[ "$rc" -eq 1 ] && ok || bad "an explicit ignore file needs no HOME: exit $rc, wanted 1 -- $out"
 expect 1 "no default ignore file: still a refusal" --names-file "$names" "$work/bare.md"
 has 'no ignore file, so nothing ignored' "a refusal says no ignore file was read, never 0 ignored"
 hasnt '0 ignored by' "an absent ignore file is not reported as one that ignored 0"
@@ -320,6 +330,8 @@ expect 2 "empty names file" --names-file "$work/empty-names" "$work/bare.md"
 printf '# only a comment\n\n' > "$work/blank-names"
 expect 2 "names file with no names" --names-file "$work/blank-names" "$work/bare.md"
 expect 0 "--allow-empty accepts it" --names-file "$work/empty-names" --allow-empty "$work/bare.md"
+has 'no ignore file, so nothing ignored' "the --allow-empty ok line says no ignore file was read"
+hasnt '0 ignored' "the --allow-empty ok line never reports an absent file as 0 ignored"
 
 # --- template tokens in the report templates (ruling of 2026-10-13) -----------------------------
 # The exemption needs the Hatsu root; --hatsu-root points it at $work, whose templates/ holds copies
