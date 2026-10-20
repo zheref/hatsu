@@ -83,7 +83,9 @@
 #     called after an ordinary dictionary word -- one per line. `owner/name` ignores that repository
 #     only; a bare `name` ignores the name under every owner. It lives on the maintainer's machine,
 #     NEVER in this tree: committing it would name the very repositories it lists. Only the
-#     maintainer writes it (hatsu:file § 8). Both the ok line and a refusal say how many were ignored.
+#     maintainer writes it (hatsu:file § 8). Both the ok line and a refusal say how many were ignored,
+#     and say `no ignore file` when none was read: a default that is absent is not one that ignores 0,
+#     and a refusal on a machine without it can be the ordinary-word names alone (zheref/hatsu#149).
 #     An empty or comment-only ignore file ignores nothing; one that ignores EVERY name is a refusal
 #     (exit 2) unless --allow-empty is given.
 #
@@ -125,7 +127,11 @@ owners=()
 names_file=""
 allow_empty=0
 target=""
-ignore_file="${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/redaction-ignore"
+# Neither XDG_CONFIG_HOME nor HOME set leaves no default; that is a wiring fault (exit 2) below, never
+# bash's own unbound-variable exit 1, which reads as a finding.
+if [ -n "${XDG_CONFIG_HOME:-}" ]; then ignore_file="$XDG_CONFIG_HOME/hatsu/redaction-ignore"
+elif [ -n "${HOME:-}" ]; then ignore_file="$HOME/.config/hatsu/redaction-ignore"
+else ignore_file=""; fi
 ignore_explicit=0
 named_file="$here/private_name_named.txt"
 named_explicit=0
@@ -213,6 +219,7 @@ LC_ALL=C sort -u -o "$list" "$list"
 if ! grep -q . "$list"; then
   [ "$allow_empty" -eq 1 ] || die "the names file holds no names; pass --allow-empty if that is meant (an unset CI secret reads exactly like this)"
 fi
+[ -n "$ignore_file" ] || die "neither XDG_CONFIG_HOME nor HOME is set, so there is no default ignore file; pass --ignore-file <path>"
 # The named list: exact `owner/name` entries the maintainer ruled public (header). Read before the
 # ignore file so each count is its own; a bare name is refused, never widened to every owner.
 n_named=0
@@ -229,7 +236,9 @@ if [ -e "$named_file" ] || [ "$named_explicit" -eq 1 ]; then
   cp "$tmp/kept" "$list"
 fi
 n_ignored=0
-if [ -e "$ignore_file" ] || [ "$ignore_explicit" -eq 1 ]; then
+ignore_read=0
+if [ -e "$ignore_file" ] || [ -L "$ignore_file" ] || [ "$ignore_explicit" -eq 1 ]; then
+  ignore_read=1
   [ -f "$ignore_file" ] && [ -r "$ignore_file" ] || die "cannot read ignore file '$ignore_file'"
   sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "$ignore_file" \
     | tr '[:upper:]' '[:lower:]' | LC_ALL=C sort -u > "$tmp/ignore"
@@ -243,8 +252,13 @@ if [ -e "$ignore_file" ] || [ "$ignore_explicit" -eq 1 ]; then
   cp "$tmp/kept" "$list"
 fi
 n_names="$(grep -c . "$list")"
+if [ "$ignore_read" -eq 1 ]; then
+  ignore_desc="$n_ignored ignored by the maintainer's ignore file"
+else
+  ignore_desc="no ignore file, so nothing ignored"
+fi
 if [ "$n_names" -eq 0 ] && [ $((n_ignored + n_named)) -gt 0 ] && [ "$allow_empty" -ne 1 ]; then
-  die "every private name is ignored ($n_ignored by the ignore file, $n_named named by ruling), so nothing would be checked; pass --allow-empty if that is meant"
+  die "every private name is ignored or named ($ignore_desc; $n_named named by ruling), so nothing would be checked; pass --allow-empty if that is meant"
 fi
 n_owners="$(grep '/' "$list" | sed 's#/.*##' | LC_ALL=C sort -u | grep -c .)"
 
@@ -268,7 +282,7 @@ fi
 [ "$n_stdin" -eq 0 ] || cat > "$tmp/stdin" || die "cannot read stdin"
 
 if [ "$n_names" -eq 0 ]; then
-  echo "private_name_check: ok -- no private repositories to look for (--allow-empty; $n_ignored ignored, $n_named named by ruling)"
+  echo "private_name_check: ok -- no private repositories to look for (--allow-empty; $ignore_desc, $n_named named by ruling)"
   exit 0
 fi
 
@@ -437,8 +451,8 @@ skipped="$(cat "$tmp/skipped" 2>/dev/null || echo '?')"
 size=""
 [ "$verbose" -eq 1 ] && size="; checked against $n_names"
 case "$rc" in
-  0) echo "private_name_check: ok -- no private repository named ($source_desc list, $n_owners owner(s)$size; $n_ignored ignored by the maintainer's ignore file; $n_named named by ruling; $skipped skipped as binary or not a regular file)" ;;
-  1) echo "private_name_check: $(grep -c . "$tmp/out") mention(s) of a private repository ($n_ignored ignored by the maintainer's ignore file; $n_named named by ruling); nothing may be filed or published until they are redacted" >&2 ;;
+  0) echo "private_name_check: ok -- no private repository named ($source_desc list, $n_owners owner(s)$size; $ignore_desc; $n_named named by ruling; $skipped skipped as binary or not a regular file)" ;;
+  1) echo "private_name_check: $(grep -c . "$tmp/out") mention(s) of a private repository ($ignore_desc; $n_named named by ruling); nothing may be filed or published until they are redacted" >&2 ;;
   4) die "a file could not be read; nothing is clean until every file is" ;;
   *) die "perl failed (exit $rc); the scan did not complete, so nothing is clean" ;;
 esac
