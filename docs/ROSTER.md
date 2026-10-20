@@ -2104,3 +2104,7 @@ eleven-aspect ladder. This is an actual maintainer clarification, not an inferre
    harness exposed no ID, the alias is paired with `unread`; a direct snapshot does not prove the
    version actually served. The rendered block is checked against the ledgers before a PR
    body write. Its gate is a forecast; readiness is `nen pr ready`'s verdict.
+
+### Evidence ruling of 2026-10-20 — this Codex delivery
+
+For HA#321’s first-PR acceptance, the maintainer selected “Use actual Codex ID plus Desktop fixtures” through the surface picker. This run reports the exposed Codex session ID, leaves its unavailable title unread, and proves Claude Desktop title/id rendering with fixtures. It does not claim a live Claude Desktop session was observed.
