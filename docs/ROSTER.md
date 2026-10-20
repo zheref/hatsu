@@ -1744,7 +1744,7 @@ target may come from configuration** — `nen/workflow.json` → `deploy.default
 its `why` reads non-production, a typed target always winning, the report saying `typed` or
 `workflow.json → deploy.defaultTarget`. `nen shu deploy` is unchanged and still takes `--target`
 explicitly; the per-stack default in nen's reference pack is nen's to add. **No new skill, and `kamui` is
-reserved.** The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
+reserved.** (The reservation is spent: `hatsu:kamui`, zheref/hatsu#356 under epic #354, 2026-10-20.) The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
 
 **Ruling 2 (19:50Z).** On HA-PR-#127 standing on #126's branch after #126 merged, the maintainer asked:
 *"Why am I being prompted to manually merge a PR that is not targeted to the main trunk branch? I don't

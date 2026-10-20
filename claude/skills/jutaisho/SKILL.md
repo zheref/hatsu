@@ -1,6 +1,6 @@
 ---
 name: jutaisho
-description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the .nen/last-stop.json marker the Stop hook reads, and the in-session fallback where no hook is installed. Use when hatsu:ren reaches its sixth step, when hatsu:en reaches Ready, or when the maintainer invokes hatsu:jutaisho [at <gate>]. An ordinary turn rings rung 1 only, a turn that did nothing rings nothing, and a genuine gate gets all four parts of § 4 — the nen stop banner, the report link, lettered options with a star on the recommended decision, and the question through the surface's own option picker. Never prompts for hatsu:aka.
+description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the .nen/last-stop.json marker the Stop hook reads, and the in-session fallback where no hook is installed. Use when hatsu:ren reaches its sixth step, when hatsu:en reaches Ready, or when the maintainer invokes hatsu:jutaisho [at <gate>]. An ordinary turn rings rung 1 only, a turn that did nothing rings nothing, and a genuine gate gets all four parts of § 4 — banner, report link, lettered options with one star, the surface's own picker. Never prompts for hatsu:aka.
 ---
 
 # Jutaisho — the bell
@@ -30,7 +30,7 @@ An empty `--line` or a bare `at` parses to `gate: (clause absent)`, exit `0` —
 gap**: no `at <gate>` is a **turn bell**, nothing asked
 and no banner; with a gate it is a **stop** and § 4's whole shape is owed. An unparseable line or an
 absent `notifications` item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
+`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
 
 | The run | Rungs that fire |
 |---|---|
@@ -120,21 +120,21 @@ re-render with `blocker` filled and verify again. The stop never restates the pa
 the session's context and the workflow's state, **seeded by the matching row's
 `preferred[]` in `nen/decisions.json`** and never limited to it. Every option is an executable act
 with its exact command and consequence — never a mood, never the report. Exactly one carries
-the star, and the line says what would tip it. **Every real stop also carries a proposed process
+the star, and the line says what would tip it — save two recorded exceptions (zheref/hatsu#354): `kamui`'s
+sibling picker stars none, its start picker only the item whose primary is this surface, else none. **Every real stop also carries a proposed process
 issue** (`--propose-issue`, Netero's completeness shape) so the next session does not hit the same
 stop. **A condition whose row is `autonomous` never reaches this part**: it was resolved by its default, and the
 turn page says so with the row id.
 
-**4 · The question through the surface's own option picker** ([`docs/using/README.md`](../../../docs/using/README.md) § *The four surfaces, compared*'s
-*native option picker* row; `nen surface capabilities --surface <s>` names it) — never a paragraph
+**4 · The question through the surface's own option picker** (`nen surface capabilities --surface <s>` names it) — never a paragraph
 ending in a question mark; its options are the marker's (§ 1), shortened to the picker's length below. **A `DO` or `MERGE` ask's picker never carries the act**,
 which is the maintainer's outside the session — a `MERGE` ask is `en` § 5's merge prompt for every PR
 into `main`, the run's own included: its link and the `gh pr merge` line as a `bash` block in the message (ruling 2026-09-30).
 
-**Where the parts go (ruling of 2026-10-17, zheref/hatsu#294, the maintainer's words; caps this run's reading).** Parts 1–3 are the **chat message**: banner and table, link, the lettered options with each command
+**Where the parts go (ruling of 2026-10-17, zheref/hatsu#294).** Parts 1–3 are the **chat message**: banner and table, link, the lettered options with each command
 as its own `bash` block (CON-33(b)). The **picker** carries part 4 alone: a header of at most 12 characters (the
-gate id), one question of at most two sentences, three or four options, labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
-in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form A free-text answer is the maintainer's word: an answer
+gate id), one question of at most two sentences, three or four options (a list pages in fours, a fifth item opening a second call; under three, the items plus *none of them*), labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
+in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form. A free-text answer is the maintainer's word: an answer
 re-enters the run as that picker call; a question back is answered and re-asked once, a new call (WORKFLOW § 4 *Ask, set up, continue* step 2). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
 
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4

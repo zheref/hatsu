@@ -524,6 +524,27 @@
       "why": "Added with hatsu:emperor-time (2026-10-19): a brief has no change set, nen schema check refuses a review scope claiming no path, and Kurapika never reviews his own work, so the challenger is a declared value the maintainer has not ruled (OPEN-4). missing-configuration's default would write the answer through its owner; this row withholds that step until the ruling."
     },
     {
+      "id": "port-siblings",
+      "class": "ask-once-per-run",
+      "default": "ask once per kamui run, after its spec PR reads MERGED, through the surface's picker: which of the product family's configured siblings (every families[].members entry of the checkout's nen/repos.json but the source repository) receive a port issue. Multi-select, NO option starred (the maintainer's ruling of 2026-10-19/20, zheref/hatsu#354: \"Always ask through a picker which of all the configured siblings the new implementation should be ported to.\" -- a recorded exception to jutaisho section 4's one star); paged in fours, a fifth item opening a second call; under three items the picker carries the items plus none of them; a lone sibling is still asked, never auto-picked. A sibling whose scenario bankai-handbooks does not govern is listed marked handbook-question (CON-37) and refused if picked. The answer is the G1 for the filings (file section 4's clause, landing with zheref/hatsu#355): one port issue per picked sibling through file sections 3-5, an existing one amended, never filed twice",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "port to the siblings picked",
+          "command": "per picked sibling: file sections 3-5 by name, then nen issue file --target <owner/name> --repo <sibling checkout> ... --private-names-ignore-file <file section 4's ignore file> --json, read back with gh issue view, then hatsu:direct <CODE>#<N>",
+          "consequence": "one port issue per picked sibling, each linking the merged spec folder and the source object; then kamui section 7's start picker"
+        },
+        {
+          "key": "B",
+          "label": "none of them",
+          "command": "nothing is filed; the record's next is done",
+          "consequence": "the spec stands merged; no sibling receives a port issue; a later hatsu:kamui on the same source amends the same spec folder"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:kamui (zheref/hatsu#356) under the epic's rulings (zheref/hatsu#354): the siblings are always picked by the maintainer, so no option is recommended -- like publish-offer, a consumer's own decisions file may not star an option or give this row a default that skips the question."
+    },
+    {
       "id": "wrap-up",
       "class": "ask-once-per-run",
       "default": "ask once at a session delivery -- a PR standing at en section 5's merge prompt or merged, or a composite's run ending (en section 8, build phase 6, futon section 10, kazaana section 7) -- through the surface's own picker: cleanup, cleanup and third-hand in parallel, or continue iterating. cleanup is REQUIRED after a completed session and third-hand is optional (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of 2026-10-13, 5). The wrap-up names no human-called phase (aka, mukai, the merge, kagutsuchi, mugetsu) and is never a merge prompt. A completed .nen/cleanup/<slug>.json for the scope reads already-clean and the question is not re-asked",

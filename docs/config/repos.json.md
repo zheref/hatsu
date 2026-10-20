@@ -20,6 +20,7 @@ When it is wrong the estate is misread, quietly: an unregistered repository is r
 | `pending_onboarding` | array | optional | consumers not yet adopted; resolve as consumers | `nen repo resolve`, `nen repo classify` |
 | `product_codes` | object `{CODE: owner/name}` | required for the `<CODE>#<N>` grammar | the short code each repository is called by | `nen repo resolve`, `nen ref format`; `pr-state` § 1, `file` § 1, `backlog-state`, `sharingan`, `tensho`, `jusshin` |
 | `latest` | string | a **top-level** key; `latest (unrecorded)` when absent | the newest release this repository has cut | `nen schema check`; `getsuga` § 3 step 4 bumps it |
+| `families` | array | optional; **never in Hatsu's own file** (§ `families[]`) | the product families this repository belongs to: one spec repository and the sibling members | `hatsu:kamui` §§ 2, 5; tolerated by `nen schema check` (zheref/nen#453) |
 
 ### `consumers[]`
 
@@ -55,6 +56,22 @@ The `<CODE>` in `<CODE>#<N>`, `<CODE>-IS-#<N>` and `<CODE>-PR-#<N>`. Matched exa
 |---|---|---|---|---|
 | `<CODE>` | string → `owner/name` | letters; a code ending in a digit forces the `<CODE>#<N>` form (`pr-state` § 1) | the repository behind the code | `nen repo resolve <CODE>`, `nen ref format --code`; `pr-state`, `file`, `backlog-state`, `backlog-synthesis`, `sharingan`, `en`, `tensho`, `jusshin` |
 
+### `families[]`
+
+Optional; **declared only in a product family's own private trees** — each member's `nen/repos.json` and the spec repository's — on each one's own declaration PR, and read from each default branch ([`hatsu:kamui`](../../claude/skills/kamui/SKILL.md) § 2; epic zheref/hatsu#354). **Never in Hatsu's own registry, nor in any public tree**: the family is product-level and private ([PUBLIC-REDACTION](../PUBLIC-REDACTION.md)). nen `0.22.0` **tolerates** the key — `nen schema check` reads `ok` and validates none of it — and models neither the key nor the role: zheref/nen#453 is owed (validation, `nen repo classify` → `role: spec · gate: G2`, member resolution). Until it lands kamui reads the JSON itself and says so.
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `name` | string | required, non-empty | the family's name, as the maintainer types it | `hatsu:kamui` |
+| `spec.repo` | string | `owner/name`, required; its code in `product_codes` | the **spec repository**: the product's specification as a `github/spec-kit` set (WORKFLOW § 2 → `port`), one folder per feature | `hatsu:kamui` §§ 2–4 |
+| `spec.role` | string | exactly **`spec`** | a fourth role beside `canon`, `consumer`, `unregistered` (ruled for this epic): product specification, not governance canon | `hatsu:kamui`; `nen repo classify` once zheref/nen#453 lands |
+| `spec.gate` | string | exactly **`G2`** | the spec PR's merge gate — the maintainer's, like any product merge, never G4 | `hatsu:kamui` § 3 (the merge prompt, row `merge`) |
+| `members[]` | object[] | one per sibling platform repository | the family's platform repositories | `hatsu:kamui` § 5 (row `port-siblings`) |
+| `members[].code` | string | a key of `product_codes` | the member, resolved through `nen repo resolve` | `hatsu:kamui` |
+| `members[].platform` | string | free text (`ios`, `android`, `web`, …) | what the member ships on; shown on each sibling-picker item. The member's stack stays on its own `consumers[]` entry's `scenario` (`nen repo scenario`) | `hatsu:kamui` § 5 |
+
+The redacted fixtures [`scripts/fixtures/port-family/`](../../scripts/fixtures/port-family/) carry one member's registry **with** a family (`with-family/`, reading `ok … 1 consumers, 6 product codes`) and **without** (`without-family/`), every name a fixture placeholder that stands for no repository; `config_values.sh need --repo <fixture> --skill kamui` reads *every value it needs is set* on both.
+
 ### How `nen repo classify` reads kind and role
 
 `nen repo classify [--target <owner/name>] [--repo <path>] [--json]` gives one verdict per repository, every fact naming its source:
@@ -65,6 +82,7 @@ The `<CODE>` in `<CODE>#<N>`, `<CODE>-IS-#<N>` and `<CODE>-PR-#<N>`. Matched exa
 | `kind` | `product` \| `process` \| `library` \| `unknown` | `nen/contract.json`: a declared `project.kind` wins (the only way to read `library`), else the lanes' stacks; read only when `--target` is this checkout, otherwise `unknown` with a note |
 | `stack`, `lanes` | the default lane's stack, the lane names | `nen/contract.json` |
 | `gate` | `G4` \| `G2` | the role, by the ruling of 2026-09-18: the gate is the repository's role, not the file's kind |
+| `role: spec` | **owed** (zheref/nen#453) | a family's spec repository, gate **G2**; at nen `0.22.0` it reads `unregistered` (or `consumer`), so `hatsu:kamui` reads `families[].spec.gate` instead and says so |
 
 `scripts/tenkai_adopt.sh` reads the same split as `process` (`maintained_tools`) against `product` (`consumers`) to decide whether the repository's `release` row must be real; the kinds themselves are canon in [WORKFLOW § *Repository kinds*](../WORKFLOW.md): `process` is plugins and machinery (CLIs are process), `product` is an application or service a release deploys or uploads, `library` is declared only, `unknown` is the fallback and never a verdict. What the kind decides: the reviewer tier, and whether `hatsu:mugetsu` § 3's advance go may name the repository (`process` and `library` may; `product` and `unknown` may not).
 
@@ -79,6 +97,7 @@ The `<CODE>` in `<CODE>#<N>`, `<CODE>-IS-#<N>` and `<CODE>-PR-#<N>`. Matched exa
 | `hatsu:backlog-state` § 2, `hatsu:backlog-board` § 1 | the repository set through `nen repo resolve --from <cwd>` and `nen repo resolve all`; a missing entry is set up in the registry's own checkout on its own declaration PR |
 | `hatsu:file` § 1 | the target through `nen repo resolve <token>` |
 | `hatsu:pr-state` § 1 and every `<CODE>#<N>` grammar | `product_codes` |
+| `hatsu:kamui` §§ 2, 5 | `families[]` from each member's and the spec repository's default branch; `product_codes` for the members |
 
 ## Example
 
