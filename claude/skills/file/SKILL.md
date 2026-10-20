@@ -239,8 +239,8 @@ improvising the choreography inside `file`.
 plan shows checked text. Every title, body and comment this skill drafts — the create, the routing and criteria
 comments (§ 5), an amend, a fold, a supersede close, a `nen issue edit-body`, and a § 0 discovery write, which skips the
 confirmation but never this check — is checked against the live private list, on your own
-credentials, before it enters the plan. Write each draft to a file (a title through a quoted
-heredoc, `cat > title.txt <<'EOF'`, so no `$` or backtick in it is expanded) and hand the files over:
+credentials, before it enters the plan. Write each draft to a file with the surface's own file-writing tool
+(PROCESS § *Escaping the maintainer's words*) and hand the files over:
 
 ```bash
 bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> title.txt body.md   # an issue: the files as arguments, no pipe (#218)
@@ -324,7 +324,7 @@ comment, which `direct` § 7 writes once the issue has its number:
 
 ```bash
 nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
-  --title "<title>" --body-file <path> --label <a,b,...> --assignee <user> --private-names-ignore-file <file § 4's ignore file> \
+  --title '<title>' --body-file <path> --label <a,b,...> --assignee <user> --private-names-ignore-file <file § 4's ignore file> \
   [--forbid-family <a real, declared target stage-label family>]
 ```
 
