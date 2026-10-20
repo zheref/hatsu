@@ -21,6 +21,7 @@ is absent, what the value represents, and which workflows (skills) read it.
 | `nen/repos.json` | every repository | **the registry**: consumers, maintained tools, the canon pin, the `<CODE>` product codes, the role `nen repo classify` derives | [`repos.json.md`](repos.json.md) |
 | `nen/colors.yml` | every repository a board is rendered for | **the colour vocabulary** of a backlog row's status and an issue's severity | [`colors.yml.md`](colors.yml.md) |
 | `nen/decisions.json` | this plugin (read in every run) | **the decision matrix**: which stops a run resolves on its own, which it asks once, which are the maintainer's gates | [`decisions.json.md`](decisions.json.md) |
+| `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/checkouts`, `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` | the maintainer's machine, never a tree | **a port run's checkouts and its resumable record** (`kamui`, `hiraishin`); validated by its readers, not by `nen schema check` | [`ports.md`](ports.md) |
 | `.claude/canon-values.yml` | a consumer that mirrors the canonical handbooks | **the canon mirror declaration** `hatsu:limbo` keeps current | [`canon-values.yml.md`](canon-values.yml.md) |
 | `contracts/*`, `hooks/hooks.json`, the plugin manifests | this plugin | **plugin-owned registries** a consumer reads but does not edit: permissions, the classification taxonomy, the model registry, the config catalogue, scan rows, round-policy defaults, the hooks | [`plugin-registries.md`](plugin-registries.md) |
 

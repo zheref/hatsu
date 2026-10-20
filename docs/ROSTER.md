@@ -913,6 +913,38 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-19/20 — cross-platform porting (zheref/hatsu#354)
+
+Asked through the picker during the `emperor-time` intake that filed epic zheref/hatsu#354 and its children #355 `bankai-rule`, #356 `kamui` and #357 `hiraishin`; copied verbatim from the epic body, which carries the 30 challenge settlements beside them. Recorded here by `kamui`'s PR (#356) because `jutaisho` § 4 and `nen/decisions.json` → `port-siblings` cite them; `bankai-rule` (#355) cites this section rather than recording it again.
+
+The skill names **`hiraishin`** and **`kamui`** are the maintainer's own, from the invocation text (*"hiraishin": Should take a delivered PR…* / *"kamui": Same as "hiraishin", yet kamui takes an issue instead…*); `kamui` was reserved by the ruling of 2026-09-29 (*"Let's reserve Kamui for another thing later on"*) and this is that thing.
+
+| Question | Answer |
+|---|---|
+| How many briefs should this idea become? | `One umbrella epic` |
+| Where should the porting handbooks live? | `bankai-handbooks (Recommended)` |
+| Does hiraishin file a porting issue on the target before building? | `Yes, file then build (Recommended)` |
+| What counts as a completely merged source PR? | `Merged into base only (Recommended)` |
+| When a source change has no target equivalent? | `Ask once, record ruling (Recommended)` |
+| How is the target named? | `Checkout, with to-clause (Recommended)` |
+| What does kamui write into the canon spec repository? | `Full spec-kit set` |
+| How is the spec repository classified so its merge stays G2? | `New role: spec (Recommended)` |
+| May the target build start before the spec PR is merged at G2? | `Wait for the spec merge` |
+| How many target repositories does one kamui call port to? | `Always ask through a picker which of all the configured siblings the new implementation should be ported to.` |
+| How do picked issues run? | `Multi-pick, sequential here (Recommended)` |
+| The handbook-rulings skill's name | `bankai-rule` |
+| How does a ruling reach bankai-handbooks? | `One PR per port run (Recommended)` |
+| Priority | `High` |
+| Challenger this run | `Nobunaga (Recommended)` |
+| Is the typed hiraishin call the G1 for the port issue? | `Typed call is the go (Recommended)` |
+| On kamui over an issue, the source's own implementation | `Source issue stays its own (Recommended)` |
+| With a spec repo, does hiraishin update the spec first? | `Yes, spec first (Recommended)` |
+| Which child owns the spec engine, in what order? (after the challenge) | `bankai-rule → kamui → hiraishin (Recommended)` |
+| Where does a run find the checkouts? (after the challenge) | `Private config, clone fallback (Recommended)` |
+| How are ruling ids allocated? (after the challenge) | `Reserve against open PRs (Recommended)` |
+
+**What the rulings bind in canon** (the epic's *Design Direction*, verbatim): **Two recorded exceptions to the star, the maintainer's ruling of 2026-10-19** (*"Always ask through a picker which of all the configured siblings…"*): the sibling picker stars none; the start picker stars the item whose primary pick is this surface and none when no item's is — jutaisho § 4 cites both (kamui's scope). **Cardinality**: both pickers page in fours (a fifth item opens a second call); under three items the picker carries the items plus *none of them*; a lone sibling is still asked, never auto-picked (the ruling says always).
+
 ## Rulings of 2026-10-20 — zheref/nen's gate path sets
 
 **Context.** The maintainer's answer through the picker, 2026-10-20, during hanten round 1 of
@@ -1744,7 +1776,7 @@ target may come from configuration** — `nen/workflow.json` → `deploy.default
 its `why` reads non-production, a typed target always winning, the report saying `typed` or
 `workflow.json → deploy.defaultTarget`. `nen shu deploy` is unchanged and still takes `--target`
 explicitly; the per-stack default in nen's reference pack is nen's to add. **No new skill, and `kamui` is
-reserved.** The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
+reserved.** (The reservation is spent: `hatsu:kamui`, zheref/hatsu#356 under epic #354, 2026-10-20.) The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
 
 **Ruling 2 (19:50Z).** On HA-PR-#127 standing on #126's branch after #126 merged, the maintainer asked:
 *"Why am I being prompted to manually merge a PR that is not targeted to the main trunk branch? I don't

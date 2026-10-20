@@ -218,6 +218,15 @@ Self-hosted GitHub Actions runner naming and pools, provisioned by `hatsu:jusshi
 | `pools[].labels` | string[] | Declare `self-hosted`, OS, arch, and optionally the final `pool-<id>`; an interactive Windows pool also declares `desktop` before that final label | Nen 0.21 accepts either spelling and always normalizes to a set ending in `pool-<id>`. Jobs select the complete set, so a same-arch runner in another pool does not join by default | `nen runner plan`, `templates/runner-preflight.yml`'s `runs-on`, `hatsu:tenkai` § 5b |
 | `pools[].root.<os>` | string | a directory per OS; absent means nen's default | The runner root on a host of that OS | `nen runner plan`, `hatsu:jusshin` |
 
+### `port.specKit`
+
+Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` §§ 2–3 |
+| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` §§ 2–3 |
+
 ### Keys a consuming repository may add
 
 | Key | Type | Values · default | Represents | Read by |

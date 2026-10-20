@@ -9,7 +9,8 @@
     "reporting": "where reports are written and what they keep",
     "notifications": "how the end of a turn is announced",
     "deployment": "non-production destinations a build is sent to",
-    "publishing": "release units and production destinations"
+    "publishing": "release units and production destinations",
+    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, the port rulings"
   },
   "values": [
     {
@@ -467,6 +468,34 @@
       ],
       "question": "Which files make up a release unit here (version manifests, CHANGELOG.md)? getsuga merges its own release PR only when its diff is exactly these.",
       "source": "getsuga § 3a"
+    },
+    {
+      "id": "workflow.port.specKit.pin",
+      "file": "nen/workflow.json",
+      "path": "port.specKit.pin",
+      "domain": "port",
+      "when": "nen/workflow.json#port",
+      "kind": "open",
+      "default": "v1.2.2",
+      "describe": "The github/spec-kit release whose file set and paths kamui's spec step writes in a product family's spec repository: specs/<nnn>-<slug>/ with spec.md, plan.md, research.md, data-model.md, quickstart.md, contracts/, tasks.md and checklists/requirements.md, and .specify/memory/constitution.md once (citing CON-{n}, never overriding it). Read in the spec repository (role spec); the latest release when kamui landed, read live 2026-10-20.",
+      "readers": [
+        "kamui"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (port); kamui §§ 2-3"
+    },
+    {
+      "id": "workflow.port.specKit.layout",
+      "file": "nen/workflow.json",
+      "path": "port.specKit.layout",
+      "domain": "port",
+      "when": "nen/workflow.json#port",
+      "kind": "open",
+      "default": "specs/{nnn}-{slug}",
+      "describe": "Where kamui writes one feature's spec-kit folder in the spec repository: {nnn} the next free three-digit number (spec-kit's sequential numbering), {slug} a kebab phrase from the source's title. The source object is cited in spec.md's header and searched for before a new folder opens, so a second port of one feature amends the folder instead of opening another.",
+      "readers": [
+        "kamui"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (port); kamui §§ 2-3"
     },
     {
       "id": "workflow.runners",
