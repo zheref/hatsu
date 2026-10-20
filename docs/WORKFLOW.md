@@ -1971,6 +1971,10 @@ Dedicated plugin update or target setup requires its own explicit invocation; Te
 An unavailable creation tool or a harness write/trust refusal is reported with the path and exact
 failed operation; use an already-authorized adapter alternative when available. **Never change
 permissions, silently fall back to core, or widen authorization to finish.**
+On Codex, follow [the adapter's authorized write recovery](surfaces/codex.md#authorized-worktree-write-recovery)
+before ledgers or authoring: an unreviewed sandbox error is not a rejected approval. Existing task
+authority may use an exposed host review route for the bound checkout; actual rejection retains
+its reason and stops that action. This does not change persistent permissions or any human gate.
 `amenotejikara` / `nen wc swap` moves a committed tree into core and **cannot create isolation**.
 Core launch and swap remain explicit maintainer calls; authoring and delivery keep their effort
 path after either call. An isolated Ren turn reports the launch command and defers automatic core
