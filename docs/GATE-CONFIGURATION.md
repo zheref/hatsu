@@ -490,7 +490,9 @@ then the trusted checkout's fixture; no env, no token, no `nen shu test --repo .
 the self-test holds on both trees and runs the body against stand-in fixtures). Step two added the
 step and narrowed `EXPECTED_STEPS` to it, so its absence is refused. The fixture reads no secret and no
 private list, so the step proves main's guard on the runner's Linux toolchain; a pull request that
-breaks the guard is judged by main's copy, and its red lands on the pull requests after it merges.
+breaks the guard is judged by main's copy, and its red lands on the pull requests after it merges;
+the `redaction-guard` lane, run locally before the push, stays the check on the change itself. A fork
+pull request skips the job under the same-repository guard: #337's "green" there is a skip, nothing runs.
 The tree check (`redaction-tree`) needs the live list and stays on the maintainer's machine.
 
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
