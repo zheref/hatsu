@@ -31,11 +31,11 @@ hatsu:cleanup [for <scope>]
 nen parse cleanup --grammar "for [<scope>]" --line "<the arguments>"
 ```
 
-Verified at nen `0.21.0` (2026-10-13): `for HA#210` → `scope: HA#210`; an empty line parses with the
-clause absent, exit `0`; a bare `HA#210` is exit `2`. **No clause means this sitting** — the effort's
-worktree, branch and PR, resolved as [`third-hand`](../third-hand/SKILL.md) § 0's table resolves them —
-**plus every prior leftover the inventory encounters** (§ 4). `for <CODE>#<N>` or `for <branch>` names
-one effort; `for all` is every leftover. A missing item is asked for inline (`missing-argument`).
+Verified at nen `0.21.0` (`docs/ab/cleanup.md` § 1): a bare `HA#210` is exit `2`. **No clause means this
+sitting** — the effort's worktree, branch and PR, resolved as [`third-hand`](../third-hand/SKILL.md)
+§ 0's table resolves them — **plus every prior leftover the inventory encounters** (§ 4). `for <CODE>#<N>`
+or `for <branch>` names one effort; `for all` is every leftover. A missing item is asked for inline
+(`missing-argument`).
 
 ## 2. When it runs — the wrap-up, offered once per delivery
 
@@ -63,12 +63,12 @@ sitting's ledgers. No delegation: both passes in-session, said (PROCESS § *Surf
 
 ## 4. What she inventories — the sitting first, then every prior leftover
 
-**The first read is `git fetch origin`**: merged is judged against the fetched base, on both entries.
-The core is `nen wc worktrees --repo <path> --json`'s `core`. **Every name taken from the repository** —
-a branch, a remote head, a worktree path — **is validated before it enters any command**:
-`git check-ref-format --branch <name>` exits `0` and the name matches `^[A-Za-z0-9._/-]+$`; it is always
-passed after `--`, single-quoted. A name that fails is a **named** row showing the escaped raw name, and
-no command ever runs on it.
+**The first read is `git fetch origin`**: merged is judged against the fetched base, on both entries. The
+core is `nen wc worktrees --repo <path> --json`'s `core`. **Every name taken from the repository is
+validated before it enters any command**, always after `--`, single-quoted: a branch or remote head
+passes `git check-ref-format --branch <name>` and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never
+a ref, admitted only by `$hatsu_root/scripts/cleanup_path_admit.sh` (its header is the rule). A name that
+fails is a **named** row showing the escaped raw name, and no command ever runs on it.
 
 | Class | Read | Leftover when |
 |---|---|---|

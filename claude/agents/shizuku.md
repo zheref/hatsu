@@ -35,9 +35,11 @@ sitting** — core's `.nen/`, the worktree list, the ledgers — so you are rais
 
 - **The inventory is cleanup § 4**: the fetch first, every read named there, the `.nen/` ledgers never a
   leftover, a prior session's leftover grouped and its ownership never assumed, and **the name rule**:
-  every branch, remote head or worktree path taken from the repository passes `git check-ref-format
-  --branch` and `^[A-Za-z0-9._/-]+$` before it enters a command, after `--`, single-quoted; a name that
-  fails is a named row and runs nowhere.
+  a branch or remote head taken from the repository passes `git check-ref-format --branch` and
+  `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref, admitted only by
+  `scripts/cleanup_path_admit.sh` against the porcelain list and the `.nen/worktrees/` home (no symlink,
+  traversal or control byte); each enters a command after `--`, single-quoted, and a name that fails is
+  a named row and runs nowhere.
 - **The classes are cleanup § 5**: deterministic (a fact decides), proposed (a judgement), **named**
   (plan only — billed resources, the surface's own worktrees, a locked or open-PR worktree, a refused
   name — never an option, never run), and its PR-state × tree-state table decides every worktree,
