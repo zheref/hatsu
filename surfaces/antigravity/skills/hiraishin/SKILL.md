@@ -66,8 +66,8 @@ the state: *open*; *closed, not merged*; *merged into `<base>`* (integration or 
 
 **[`ports.md`](../../../../docs/config/ports.md) § *The run record*, cited, never redefined**: `caller`
 `hiraishin`, its `runId` shape, one `targets[]` entry; hiraishin's `next`: `setup` (§ 2) · `spec` · `wait`
-(§ 4) · `start` (§§ 5–8) · `done` · `declined`. **An existing record for the same `runId`** (one source,
-one day, another target) refuses the call, naming it. **`resume`** runs ports.md's checks before any read,
+(§ 4) · `start` (§§ 5–8) · `done` · `declined`. A second run for one source on one day (another
+target) takes the next free `-<ordinal>`. **`resume`** runs ports.md's checks before any read,
 takes no `--dry-run` and continues at the recomputed step; a `kamui` record is refused, naming
 `/kamui resume <id>`.
 

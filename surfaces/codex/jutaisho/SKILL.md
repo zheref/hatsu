@@ -121,9 +121,9 @@ re-render with `blocker` filled and verify again. The stop never restates the pa
 **3 · Crazy Slots — lettered options, at least three, ⭐ on the recommended decision.** Composed from
 the session's context and the workflow's state, **seeded by the matching row's
 `preferred[]` in `nen/decisions.json`** and never limited to it. Every option is an executable act
-with its exact command and consequence — never the report. Exactly one carries
-the star, and the line says what would tip it — save the unstarred rows (`publish-offer`, `missing-maintainer-choice`,
-`port-siblings`) and `kamui`'s start picker, starring only the item on this surface (ROSTER, 2026-10-19/20). **Every real stop also carries a proposed process
+with its exact command and consequence — never a mood, never the report. Exactly one carries
+the star, and the line says what would tip it — save `publish-offer`, `missing-maintainer-choice` and
+`port-siblings`, starring none, and `kamui`'s start picker (ROSTER, 2026-10-19/20): only the item on this surface, else none. **Every real stop also carries a proposed process
 issue** (`--propose-issue`, Netero's completeness shape) so the next session does not hit the same
 stop. **A condition whose row is `autonomous` never reaches this part**: it was resolved by its default, and the
 turn page says so with the row id.
@@ -135,9 +135,9 @@ into `main`, the run's own included: its link and the `gh pr merge` line as a `b
 
 **Where the parts go (ruling of 2026-10-17, zheref/hatsu#294).** Parts 1–3 are the **chat message**: banner and table, link, the lettered options with each command
 as its own `bash` block (CON-33(b)). The **picker** carries part 4 alone: a header of at most 12 characters (the
-gate id), one question of at most two sentences, two to four options (a list pages in fours, a fifth item a second call; under three, the items plus *none of them*), labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
+gate id), one question of at most two sentences, three or four options (a list of items pages in fours, a fifth a second call; under three items, plus *none of them*), labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
 in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form. A free-text answer is the maintainer's word: an answer
-re-enters the run as that picker call; a question back is answered and re-asked once, a new call (WORKFLOW § 4 *Ask, set up, continue* step 2). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
+re-enters the run as that picker call; a question back is answered and re-asked once, a new call (WORKFLOW § 4 step 2). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
 
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
