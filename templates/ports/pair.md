@@ -1,5 +1,5 @@
 <!-- Canonical source: zheref/bankai-handbooks · handbooks/ports/<from>--<to>.md · rendered by hatsu:bankai-rule from templates/ports/pair.md -->
-<!-- pair: <from> -> <to> · prefix: <prefix> · next: 1 -->
+<!-- pair: <from> -> <to> · prefix: <prefix> · numbering: <per pair file | global, ruled with the prefix on the adoption PR> -->
 
 # Port rulings — `<from>` → `<to>`
 
@@ -27,5 +27,5 @@ the old row is never edited.
 | id | source | target | handling | rationale | date | supersedes |
 |---|---|---|---|---|---|---|
 
-<!-- counter: the `next:` field in the header is the next free id on this file alone; the id actually
-     written is reserved against every open pull request too (hatsu:bankai-rule § 3). -->
+<!-- The rows are the only counter: an id is reserved by hatsu:bankai-rule § 3 against the tip, the run's
+     own branch, every pushed rulings branch and every open pull request, never from a header field. -->

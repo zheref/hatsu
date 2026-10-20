@@ -219,16 +219,16 @@ own stack table at resolve time, never memorized:
 > never from this table. `react-uzf-v1` and `bankai-machinery` were not in the retired skill's table
 > at all — resolve from `handbooks/INDEX.md`, never from this table once it, too, is a session old.
 
-**A port pair beside the two stacks.** A review of a port from one scenario to another cites the
-always-load set, the **target's** stack handbook and the **ports pair file**
-`<workflow.port.rulingsDir>/<from>--<to>.md` ([`bankai-rule`](../bankai-rule/SKILL.md) § 4; the
-family lands in `zheref/bankai-handbooks` through that skill, the prefix ruled on its adoption PR).
-`nen canon resolve` at `0.22.0` returns always-load plus exactly one stack and knows no pair:
-resolving one is the nen change zheref/nen#457 owes. **Until it lands, the caller passes the pair file
-through `--always-load`**, after the manifest's own five — probed in the PR that made `bankai-rule`:
-`--always-load <the five>,handbooks/ports/<from>--<to>.md` returns it as one more always-load path,
-exit `0`, and the report (§ 3) prints it on its own line as `port rulings:`. A pair with no file yet
-is `port rulings: none` — not an error, a port that has met no drift.
+**A port pair beside the two stacks.** A review of a port cites the always-load set, the **target's**
+stack handbook and the **ports pair file** `<workflow.port.rulingsDir>/<from>--<to>.md`
+([`bankai-rule`](../bankai-rule/SKILL.md) § 4; the family lands in `zheref/bankai-handbooks` through
+that skill, the prefix ruled on its adoption PR). `nen canon resolve` at `0.22.0` returns always-load
+plus exactly one stack and knows no pair; resolving one is zheref/nen#457. **Until it lands: test the
+pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; absent is
+`port rulings: none` — a port that has met no drift, not an error), **then append its path to
+`--always-load`** after the manifest's own rows. The verb **accepts and echoes** the path (it checks
+no file: `docs/ab/bankai-rule.md` § 3), and the report prints the pair once, on its `port rulings:`
+line, not in `always load`. No consumer mirror carries a pair file at `0.22.0` ([`limbo`](../limbo/SKILL.md) step 4).
 
 **Never load another stack's folder.** The verb enforces this structurally — it returns exactly one
 `stackHandbook` path, never a list — so there is nothing to improvise here even under pressure to check
@@ -243,7 +243,7 @@ Quote the resolved set; do not summarize it:
   canon: zheref/bankai-handbooks @ <tag $canon sits on>  ($canon)
   always load: <alwaysLoad, joined>
   stack handbook: <stackHandbook>
-  port rulings: <rulingsDir>/<from>--<to>.md | none        # only on a port review
+  port rulings: <rulingsDir>/<from>--<to>.md | none        # only on a port review; printed here, not under always load
 ```
 
 Then cite findings **by rule ID**, drawn only from the files just resolved: `UZF-{n}`, `SEC-{n}`,

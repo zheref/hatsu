@@ -693,7 +693,7 @@ differ (the `commits` trailer lists, `futon.advanceGo`); or structural and the r
 (`models`, `reports.sections`, the gates identity blocks). `check-catalogue` holds every default against the key
 tables in WORKFLOW § 2, so the two statements of one default cannot drift apart unnoticed.
 
-**2 · Asked, by domain.** Work the rows in the catalogue's domain order — development, versioning,
+**2 · Asked, by domain.** Work the rows in the catalogue's domain order (`contracts/config-catalogue.json` → `domains`; today development, versioning,
 testing, review, reporting, notifications, deployment, publishing — through § 6c's picker rules:
 
 | State | What Tenkai does |

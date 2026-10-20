@@ -414,7 +414,7 @@ conflict waiting to be resolved by coin toss.
 
 | Key | Default | Read by |
 |---|---|---|
-| `handbooksRepo` | `zheref/bankai-handbooks` | [`bankai-rule`](../claude/skills/bankai-rule/) § 2, `hiraishin`, `kamui`: the canon handbooks repository a port ruling lands in — read at the consumer's pinned tag (`nen/repos.json` → `pinned`), authored in a separate clone at the cache path, never the canon checkout (zheref/hatsu#354, *Checkouts*). The estate's canonical home (`CON-13`); a fork names itself here |
+| `handbooksRepo` | `zheref/bankai-handbooks` | [`bankai-rule`](../claude/skills/bankai-rule/) § 2, `hiraishin`, `kamui`: the canon handbooks repository a port ruling lands in — read at the consumer's pinned tag (`nen/repos.json` → `pinned`), authored in a separate clone at the cache path, never the canon checkout (zheref/hatsu#354, *Checkouts*). The estate's canonical home (`CON-13`); the value must be the consumer's own pinned `maintained_tools` row (`nen canon pin --source`), read at the base tip, so rulings and the matrix come from one home — a value with no pinned row is `missing-configuration` |
 | `rulingsDir` | `handbooks/ports` | the same skills, [`limbo`](../claude/skills/limbo/) step 4 and [`bankai-handbooks`](../claude/skills/bankai-handbooks/) § 2: the directory holding the ports family — one directed pair file `<from>--<to>.md` per scenario pair, rendered from `templates/ports/pair.md`, and its `INDEX.md`. A pair file is passed to `nen canon resolve --always-load` beside the always-load set until zheref/nen#457 resolves it as a port handbook. `nen schema check` tolerates the block; the domain is the catalogue's ninth, `port` (zheref/hatsu#354 criterion 4) |
 
 ### `aiReviewers`

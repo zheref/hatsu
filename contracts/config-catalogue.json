@@ -300,7 +300,7 @@
       "domain": "port",
       "kind": "open",
       "default": "zheref/bankai-handbooks",
-      "describe": "The owner/name of the canon handbooks repository a port ruling lands in (hatsu:bankai-rule § 2): its ports family is read at the consumer's pinned tag and authored in a separate clone at the cache path, never the canon checkout. The default is the estate's canonical handbooks home (CON-13); a consumer estate with its own fork names it here. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land.",
+      "describe": "The owner/name of the canon handbooks repository a port ruling lands in (hatsu:bankai-rule § 2): its ports family is read at the consumer's pinned tag and authored in a separate clone at the cache path, never the canon checkout. The default is the estate's canonical handbooks home (CON-13). Bounded: it must be the consumer's own pinned maintained_tools row (nen canon pin --source), so rulings and the matrix are read from one home; a value with no pinned row is missing-configuration, never a second home. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land. Read at the consumer's base tip, never its head (bankai-rule § 2).",
       "readers": [
         "bankai-rule"
       ],
@@ -314,7 +314,7 @@
       "domain": "port",
       "kind": "open",
       "default": "handbooks/ports",
-      "describe": "The directory inside workflow.port.handbooksRepo that holds the ports family: one directed pair file <from>--<to>.md per scenario pair and its INDEX.md (hatsu:bankai-rule § 4, rendered from templates/ports/). Read beside handbooks/stacks; the pair file is passed through nen canon resolve --always-load until zheref/nen#457 resolves it as a port handbook. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land.",
+      "describe": "The directory inside workflow.port.handbooksRepo that holds the ports family: one directed pair file <from>--<to>.md per scenario pair and its INDEX.md (hatsu:bankai-rule § 4, rendered from templates/ports/). Read beside handbooks/stacks; the pair file is passed through nen canon resolve --always-load until zheref/nen#457 resolves it as a port handbook. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land. Bounded: a relative path of [A-Za-z0-9._/-] with no '..' and no leading '/'; the skill and scripts/port_rule_reserve.sh refuse anything else.",
       "readers": [
         "bankai-rule",
         "limbo",

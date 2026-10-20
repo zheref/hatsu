@@ -65,31 +65,53 @@ to: compose-uzf-v2
 exit 0
 ```
 
-## 2. Id reservation — two branches, one open PR, distinct ids
+## 2. Id reservation — the tip, the run's own branch, sibling pushed branches, open PRs
 
-`scripts/port_rule_reserve.sh` reads the pair file at `origin/<base>` and every open PR's added rows
-under that path (`gh pr list` + `gh pr diff`, named residue until zheref/nen#456), and prints the
-next free id. The `port-rule-guard` lane (`nen shu test --repo <hatsu> --lane port-rule-guard`), the
-fixture's own `gh` stub on PATH:
+`scripts/port_rule_reserve.sh` fetches, then reads the pair file at `origin/<base>`, at the run's
+own HEAD and working tree (a batched call's second row never repeats its first — Chrollo C1 /
+Nobunaga N2 at the first head), at every other pushed `ports-*` branch (an in-flight run has no PR
+yet — Chrollo C4), and in every open PR whose file list names it (`gh pr list` + `gh pr view --json
+files` + `gh pr diff` + `gh api search/issues`, named residue until zheref/nen#456). Hostile open PRs
+(Feitan F1–F4): an id outside `^[1-9][0-9]{0,8}$` is a named refusal at exit 3, a short list or an
+unread PR is exit 1 and reserves nothing, a `+++ b/<pair>` content line in another file's hunk is
+never a header, the path is compared literally, the JSON escapes branch names. The
+`port-rule-guard` lane (`nen shu test --repo <hatsu> --lane port-rule-guard`), the fixture's own
+`gh` stub on PATH:
 
 ```
 ok    branch B reserves PT-5 past branch A's open PT-4 (exit 0)
   ok    the tip's three and PR #7's one are all seen
-  ok    --json carries next and number
+  ok    --json carries complete, next and number and parses
   ok    from branch A the same answer, PT-5: its own PT-4 is the open PR's, the tip is main
+  ok    the run's own branch counts: PT-4 first, then PT-5 from the working tree and from HEAD
+  ok    a sibling run's pushed ports-* branch with no PR is read: PT-5 past its PT-4
   ok    a pair file absent at the tip and in every PR reserves PT-1 (exit 0)
-  ok    an unreadable open PR is exit 1, never clean
+  ok    a PR not touching the pair file is never read, even with a +++ b/<pair> content line (exit 0)
+  ok    an id with a leading zero or past the ceiling is a named refusal at exit 3, listing the PR (exit 3)
+  ok    an open-PR list shorter than the repository's open total is exit 1
+  ok    an unreadable open PR diff is exit 1, never clean, and reserves nothing
+  ok    an incomplete read prints complete:false and a null next
+  ok    a quote in a branch name is escaped in --json
+  ok    a pair path with regex metacharacters is refused as usage, never spliced into a pattern
+  ok    p/x.md never reads p/xxmd (the tip's PT-1 only, next PT-2)
+  ok    a pair path with .. or a leading / is usage
   ok    a prefix with a space is usage
   ok    a clone that is not a repository is exit 2
   ok    an unknown argument is exit 2
-port-rule-guard: 9/9
-ran:           bash scripts/fixture_output_guard.sh bash scripts/port_rule_reserve_fixture.sh  -- exit 0 in 588ms
+  ok    a flag with no value is usage, never an unbound-variable crash
+  ok    a tip ref that does not resolve is a named exit 2, never PT-1
+  ok    a failed fetch of origin is a named exit 2, never a stale tip
+port-rule-guard: 22/22
 ```
 
 ## 3. Resolving a pair file beside the stacks — `--always-load` until zheref/nen#457
 
 `nen canon resolve` at `0.22.0` returns the always-load set and exactly one stack handbook. The pair
-file rides `--always-load` until nen resolves it as a port handbook:
+file rides `--always-load` until nen resolves it as a port handbook — **accepted and echoed**: the verb
+checks no file exists (a `does-not--exist.md` path is echoed the same way, Chrollo C13), so the
+caller tests existence on the canon checkout first. **No mirror carries it** at `0.22.0`: `mirror
+generate`/`check` render the stack's rules leaf only (Chrollo C2, Nobunaga N3); the limbo half of
+zheref/hatsu#354 criterion 5 is owed to zheref/nen#457.
 
 ```
 $ nen canon resolve --repo <fixture registry: acme/android-app, scenario compose-uzf-v2> --target acme/android-app --always-load handbooks/uzf-core.md,handbooks/security-baseline.md,handbooks/ux-baseline.md,handbooks/release-policy.md,handbooks/quality-baseline.md,handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --stack-dir handbooks/stacks --json   # cwd: a scratch copy of the canon checkout at v0.6.0 carrying the pair file rendered from templates/ports/pair.md
@@ -147,7 +169,8 @@ exit 0
 
 ## 5. Residue, named
 
-- The open-PR read (`gh pr list`, `gh pr diff`) — zheref/nen#456.
+- The `ruling` split at its first occurrence, in shell before the parse — zheref/nen#458 (a first-anchored clause).
+- The open-PR reads (`gh pr list`, `gh pr view --json files`, `gh pr diff`, `gh api search/issues`) — zheref/nen#456.
 - The pair file beside the stack handbook — zheref/nen#457.
 - The authoring clone at the cache path is `git clone`, `bankai-handbooks` § 0's carve-out.
 - The prefix: the template carries `<prefix>` until zheref/bankai-handbooks#4 rules it; § 4 refuses to

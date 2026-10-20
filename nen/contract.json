@@ -801,7 +801,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane) and scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) need: below it the cleanup shim refuses at exit 2, never 1. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) and scripts/futon_effort_record_fixture.mts (futon-effort-guard) need: below it the cleanup shim refuses at exit 2, never 1. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",
