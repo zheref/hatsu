@@ -18,7 +18,7 @@ git -C "$checkout" update-ref refs/remotes/origin/main HEAD
 ruby "$preflight" --root "$checkout" --base-ref origin/main > "$fixture/pass.log" 2>&1
 grep -q 'every derived trusted guard passed' "$fixture/pass.log" \
   || { cat "$fixture/pass.log"; echo 'trusted-guard-preflight-fixture: known root did not pass' >&2; exit 1; }
-for guard in branch_authorship_check.sh canon_contracts_check.sh plugin_bump_check.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
+for guard in branch_authorship_check.sh canon_contracts_check.sh plugin_bump_check.sh private_name_check_fixture.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
   grep -q "  $guard: exit 0" "$fixture/pass.log" \
     || { cat "$fixture/pass.log"; echo "trusted-guard-preflight-fixture: $guard was not run" >&2; exit 1; }
 done
