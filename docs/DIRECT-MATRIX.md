@@ -4,12 +4,12 @@
 
 > **Which model will `hatsu:direct` pick for my work — without running it?** Find the issue's job in [the grid](#the-grid--every-job-in-every-domain), read across to its domain, and that is the model, the surface it runs on and what you type. The tables and rule text on this page are rendered from the same data `nen direct resolve` reads, and `--verify` asks the verb about every cell, level and example printed here.
 
-Snapshot **2026-10-05** · 39 jobs · 5 domains · 95 job × domain routes · 204 cells · source digest `baf720e3ffac…` · skills: [`classify`](../claude/skills/classify/SKILL.md), [`direct`](../claude/skills/direct/SKILL.md)
+Snapshot **2026-10-19** · 39 jobs · 5 domains · 95 job × domain routes · 204 cells · source digest `baf720e3ffac…` · skills: [`classify`](../claude/skills/classify/SKILL.md), [`direct`](../claude/skills/direct/SKILL.md)
 
 ## Contents
 
 - [How a recommendation is made](#how-a-recommendation-is-made)
-- [The models — 12 aliases](#the-models--12-aliases)
+- [The models — 13 aliases](#the-models--13-aliases)
 - [Primary, fallback, recommended — the three picks](#primary-fallback-recommended--the-three-picks)
 - [The grid — every job in every domain](#the-grid--every-job-in-every-domain)
 - [Which domain am I in?](#which-domain-am-i-in)
@@ -39,17 +39,18 @@ job weights + counts + domain ──► effort       (low | medium | high | max)
 
 *This walkthrough is a hand-written summary; every section below it is rendered from the data.*
 
-## The models — 12 aliases
+## The models — 13 aliases
 
-Model versions are the snapshot of **2026-10-05**; `direct` reports the newest live version of the same family when it can read one. *You type* is Hatsu's own `models` spelling — a consumer repository may spell a tier differently in its own `nen/workflow.json`.
+Model versions are the snapshot of **2026-10-19**; `direct` reports the newest live version of the same family when it can read one. *You type* is Hatsu's own `models` spelling — a consumer repository may spell a tier differently in its own `nen/workflow.json`.
 
 | | Alias | Provider · line | Family | Surface | You type | Escalation | List price in / out | Model (snapshot) | If unavailable | What it is for |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 🟠 | `SEMANTIC_MAX` | anthropic · `claude` | `claude-fable` | Claude Code | `fable` (tier `frontier`) | *(a frontier alias)* | $10 / $50 | **Claude Fable 5.1** `claude-fable-5-1` | Claude Opus 5.5 at higher effort | Escalation model for unusually ambiguous, long-horizon, or reasoning-dominant work when the default semantic frontier falls short |
 | 🟢 | `EXECUTION_MAX` | openai · `gpt` | `gpt-astra` | Codex | `astra` (tier `frontier`) | *(a frontier alias)* | $10 / $50 | **GPT-6 Astra** `gpt-6-astra` | Claude Fable 5.1 | Escalation model for the hardest tool-heavy, long-horizon execution when the execution default falls short -- the maintainer's own Codex session, never a subagent (the frontier tier) |
+| 🔵 | `VISUAL_MAX` | google · `gemini` | `gemini-argon` | Antigravity | `gemini-4-argon` (tier `frontier`) | *(a frontier alias)* | $2 / $10 | **Gemini 4 Argon** `gemini-4-argon` | GPT-6.1 Sol on Codex | Frontier escalation for the maintainer lead on Antigravity, by the 2026-10-19 ruling; never a subagent or a routing-cell primary. Verify local Gemini availability instead of accepting a partner-model default. |
 | 🟠 | `SEMANTIC_FRONTIER` | anthropic · `claude` | `claude-opus` | Claude Code | `opus` (tier `deep`) | `SEMANTIC_MAX` | $4 / $20 | **Claude Opus 5.5** `claude-opus-5-5` | GPT-6.1 Sol on Codex | Best approved model for requirements, architecture, repository comprehension, state/effect semantics, difficult authorship, compatibility, and final semantic judgment |
 | 🟢 | `EXECUTION_FRONTIER` | openai · `gpt` | `gpt-sol` | Codex | `sol` (tier `deep`) | `EXECUTION_MAX` | $2 / $10 | **GPT-6.1 Sol** `gpt-6.1-sol` | Claude Opus 5.5 | Best cost-aligned model for tool-heavy build/test/debug loops, machinery, CI/CD, migrations, security execution, and computer use -- within one to two index points of the frontier execution model at one fifth of its list price (OpenAI changelog and Artificial Analysis, 2026-09-29) |
-| 🔵 | `VISUAL_ORCHESTRATOR` | google · `gemini` | `gemini-pro` | Antigravity | `pro` (tier `deep`) | — | $2 / $12 | **Gemini 3.1 Pro** `gemini-3.1-pro-preview` | Gemini 3.8 Flash | Best approved model for multimodal UI work, parallel-agent orchestration, long-context synthesis, and visual validation |
+| 🔵 | `VISUAL_ORCHESTRATOR` | google · `gemini` | `gemini-pro` | Antigravity | `pro` (tier `deep`) | `VISUAL_MAX` | $2 / $12 | **Gemini 3.1 Pro** `gemini-3.1-pro-preview` | Gemini 3.8 Flash | Best approved model for multimodal UI work, parallel-agent orchestration, long-context synthesis, and visual validation |
 | ⚫ | `EDITOR_FRONTIER` | cursor · `grok` | `grok` | Cursor | `grok` (tier `deep`) | — | $2 / $6 | **Grok 4.7** `grok-4.7` | Claude Sonnet 5.5 | Editor-native frontier-class agent, served by Cursor from the Grok line: the primary for editor-shaped TypeScript work (UI, implementation, bug fixes, migrations, delivery-ops) and the cost-aligned cross-provider fallback for execution work elsewhere |
 | 🟠 | `BALANCED_AUTHOR` | anthropic · `claude` | `claude-sonnet` | Claude Code | `sonnet` (tier `fast`) | `SEMANTIC_FRONTIER` | $2 / $10 | **Claude Sonnet 5.5** `claude-sonnet-5-5` | Grok 4.7 on Cursor | Fast frontier-quality model for scoped implementation, tests, documentation, interactive work, and high-volume maintenance |
 | 🟢 | `EXECUTION_VALUE` | openai · `gpt` | `gpt-terra` | Codex | `terra` (tier `fast`) | `EXECUTION_FRONTIER` | $2 / $12 | **GPT-5.6 Terra** `gpt-5.6-terra` | Claude Sonnet 5.5 | Fast execution model for routine coding, parallel workers, CI fixes, and high-volume automation |
@@ -58,21 +59,22 @@ Model versions are the snapshot of **2026-10-05**; `direct` reports the newest l
 | 🔍 | `PR_QUALITY_REVIEW` | cursor | `bugbot` | PR review bot | — | — | — | **Cursor Bugbot** | SEMANTIC_FRONTIER | Automated PR reviewer for quality, correctness, and repository-policy findings |
 | 🔍 | `PR_SECURITY_REVIEW` | cursor | `security-review` | PR review bot | — | — | — | **Cursor Security Review** | EXECUTION_FRONTIER | Automated PR reviewer dedicated to exploitable security defects |
 
-Legend: 🟠 Anthropic · 🟢 OpenAI · 🔵 Google · ⚫ Cursor · 🔍 a PR review bot — never a session recommendation; where one wins a cell, the actionable alias after its arrow is what you run. Row order is the tie-break `precedence`. List prices are the snapshot of **2026-10-05** in USD per million tokens, each row's source in the registry — evidence for the cost-aligned ordering, never today's price. The frontier aliases (`SEMANTIC_MAX`, `EXECUTION_MAX`) are reached only as the *recommended* pick, for **your own** session, never for a subagent.
+Legend: 🟠 Anthropic · 🟢 OpenAI · 🔵 Google · ⚫ Cursor · 🔍 a PR review bot — never a session recommendation; where one wins a cell, the actionable alias after its arrow is what you run. Row order is the tie-break `precedence`. List prices are the snapshot of **2026-10-19** in USD per million tokens, each row's source in the registry — evidence for the cost-aligned ordering, never today's price. The frontier aliases (`SEMANTIC_MAX`, `EXECUTION_MAX`, `VISUAL_MAX`) are reached only as the *recommended* pick, for **your own** session, never for a subagent.
 
-What each surface's own lookup served on 2026-10-05 (the alias you type resolves to this id, which may lag the provider's newest):
+What each surface's own lookup served on 2026-10-19 (the alias you type resolves to this id, which may lag the provider's newest):
 
 | Alias | Surface | Served id |
 |---|---|---|
 | `SEMANTIC_MAX` | Claude Code | fable (the /model picker, read in-session) |
 | `EXECUTION_MAX` | Codex | gpt-6-astra (codex debug models, 2026-10-05; levels low\|medium\|high\|xhigh\|max\|ultra) |
+| `VISUAL_MAX` | Antigravity | 2026-10-19: maintainer reports the macOS app lead picker defaults to Argon; CLI initially defaulted to Opus 5.5 Low. agy 1.0.6 listed no Gemini entries earlier today; a fresh probe found agy 1.4.2 listing gemini-4-argon-{low,medium,high}. agy --model gemini-4-argon --print /model exited 0 and selected gemini-4-argon-medium. pro and argon were refused at exit 1. IDE availability not observed locally; the 2026-10-16 id refusal in google-antigravity/antigravity-cli#1228 is historical served lag, not this newer CLI result. |
 | `SEMANTIC_FRONTIER` | Claude Code | opus (the /model picker, read in-session) |
 | `EXECUTION_FRONTIER` | Codex | gpt-5.6-sol (codex debug models, 2026-10-05: no gpt-6.1-sol or gpt-6-sol slug is listed yet, so the sol tier resolves to 5.6 on this surface until the CLI catches up) |
-| `VISUAL_ORCHESTRATOR` | Antigravity | pro (the workspace model picker; the persona key admits inherit \| flash \| pro) |
+| `VISUAL_ORCHESTRATOR` | Antigravity | Persona key pro is documented (subagents page, re-read 2026-10-19); it is not proof of a served model. agy 1.4.2 --model pro --print /model exits 1: pro is not recognized; no Gemini 3.1 Pro appears in this account listing. The deep row is retained as a snapshot, local CLI availability unverified. |
 | `EDITOR_FRONTIER` | Cursor | grok-4.7-high (cursor-agent models, 2026-10-05: grok-4.7-{low,medium,high,xhigh}[-fast] beside cursor-grok-4.6-*; the 4.7 ids carry no cursor- prefix) |
 | `BALANCED_AUTHOR` | Claude Code | sonnet (the /model picker, read in-session) |
 | `EXECUTION_VALUE` | Codex | gpt-5.6-terra (codex debug models, 2026-10-05) |
-| `VISUAL_FALLBACK` | Antigravity | flash |
+| `VISUAL_FALLBACK` | Antigravity | agy 1.4.2 models, 2026-10-19: gemini-3.8-flash-{low,medium,high}; persona key flash remains documented, not verified as a CLI alias. |
 | `MECHANICAL_EDITOR` | Cursor | composer-2.5 (cursor-agent models, 2026-10-05) |
 
 ## Primary, fallback, recommended — the three picks
@@ -93,9 +95,10 @@ What each primary escalates to when the rule fires:
 |---|---|
 | 🟠 `fable` · Claude Code | itself — nothing above it |
 | 🟢 `astra` · Codex | itself — nothing above it |
+| 🔵 `gemini-4-argon` · Antigravity | itself — nothing above it |
 | 🟠 `opus` · Claude Code | 🟠 `fable` · Claude Code |
 | 🟢 `sol` · Codex | 🟢 `astra` · Codex |
-| 🔵 `pro` · Antigravity | itself — nothing above it |
+| 🔵 `pro` · Antigravity | 🔵 `gemini-4-argon` · Antigravity |
 | ⚫ `grok` · Cursor | itself — nothing above it |
 | 🟠 `sonnet` · Claude Code | 🟠 `opus` · Claude Code |
 | 🟢 `terra` · Codex | 🟢 `sol` · Codex |
@@ -115,7 +118,7 @@ What each primary escalates to when the rule fires:
 
 The **winner** of each job's own cell — for every language, unless a language is named beneath it with its own winner. *↪ italics* means the job has no phase in that domain and borrows the route of the domain named. *—* means no issue can put that job in that domain: the [domain rules](#which-domain-am-i-in) decide before the job does. *Effort alone* is that job's level when it is the issue's only job (and in AI governance, where the domain adds one). Runner-ups are in [the job × language matrices](#job--language--one-matrix-per-domain).
 
-**Key** — 🟠 `fable` **Claude Fable 5.1** on Claude Code · 🟢 `astra` **GPT-6 Astra** on Codex · 🟠 `opus` **Claude Opus 5.5** on Claude Code · 🟢 `sol` **GPT-6.1 Sol** on Codex · 🔵 `pro` **Gemini 3.1 Pro** on Antigravity · ⚫ `grok` **Grok 4.7** on Cursor · 🟠 `sonnet` **Claude Sonnet 5.5** on Claude Code · 🟢 `terra` **GPT-5.6 Terra** on Codex · 🔵 `flash` **Gemini 3.8 Flash** on Antigravity · ⚫ `composer` **Cursor Composer 2.5** on Cursor
+**Key** — 🟠 `fable` **Claude Fable 5.1** on Claude Code · 🟢 `astra` **GPT-6 Astra** on Codex · 🔵 `gemini-4-argon` **Gemini 4 Argon** on Antigravity · 🟠 `opus` **Claude Opus 5.5** on Claude Code · 🟢 `sol` **GPT-6.1 Sol** on Codex · 🔵 `pro` **Gemini 3.1 Pro** on Antigravity · ⚫ `grok` **Grok 4.7** on Cursor · 🟠 `sonnet` **Claude Sonnet 5.5** on Claude Code · 🟢 `terra` **GPT-5.6 Terra** on Codex · 🔵 `flash` **Gemini 3.8 Flash** on Antigravity · ⚫ `composer` **Cursor Composer 2.5** on Cursor
 
 | Job | Feature | Maintenance | Parity | AI-gov | Library | Weight | Effort alone |
 |---|---|---|---|---|---|---|---|
@@ -428,15 +431,15 @@ How each surface spells the level (`effort.surfaceMap`):
 | high | `high` | `high` | `high` | `high` |
 | max | `max` | `max` | `xhigh` | `high` |
 
-`effort.surfaceMap.$collapsed`: *antigravity has no top setting: max maps to high there, said in the report; a session at high on antigravity MATCHES a recommended max because effort is compared in dial space (see mismatch). Codex gained max (and ultra) and Cursor's ids carry -xhigh, read live on 2026-10-05, so neither collapses any more; a dial the live read lists that this map lacks is quoted beside the line, never typed into it.*
+`effort.surfaceMap.$collapsed`: *Gemini 4 Argon's documented thinking_level ceiling is high (low | medium | high, medium default; https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19), so max maps to high on antigravity by the dial's own ceiling. A session at high on antigravity MATCHES a recommended max because effort is compared in dial space (see mismatch); surface availability is read separately. Codex gained max (and ultra) and Cursor's ids carry -xhigh, read live on 2026-10-05, so neither collapses; a dial the live read lists that this map lacks is quoted beside the line, never typed into it.*
 
 ## Several jobs or languages on one issue
 
 Every (job, language) pair gets its own cell; one recommendation comes out. The rule, as `aggregation.$comment` states it:
 
-> An issue carrying several jobs or languages resolves ONE actionable recommendation. Each (job, language) pair yields its cell. WINNER (the PRIMARY pick): count winner positions only; the alias with the most wins, ties broken by `precedence` (earlier wins). A reviewer alias (aliases.<a>.reviewer true) is never the winner: a pair it wins counts for its `also` alias. RUNNER-UP (the FALLBACK pick): the alias with the next-highest winner count among the other winning aliases, ties by `precedence`; when the winner won every pair, the most frequent runnerUp alias across the winner's pairs, a reviewer alias resolving to its `also`, ties by `precedence`. Every reviewer runnerUp in this file carries an `also`, so a runner-up always resolves to an actionable alias. Every per-pair cell is still reported so the maintainer can see where the aggregate departs from a pair. PRECEDENCE ranks the semantic alias of a tier before the execution alias of the same tier: a tie carries at least one semantic pair, and the semantic reader is the one pick the fallback cannot replace at parity (ruling of 2026-10-05); the two escalation aliases are ranked first only because nen direct registry requires every alias ranked -- no cell names one as a winner or a runner-up, so those two slots are unreachable. Companion jobs (`companions`) are kept out of the call that decides, never struck from a tally.
+> An issue carrying several jobs or languages resolves ONE actionable recommendation. Each (job, language) pair yields its cell. WINNER (the PRIMARY pick): count winner positions only; the alias with the most wins, ties broken by `precedence` (earlier wins). A reviewer alias (aliases.<a>.reviewer true) is never the winner: a pair it wins counts for its `also` alias. RUNNER-UP (the FALLBACK pick): the alias with the next-highest winner count among the other winning aliases, ties by `precedence`; when the winner won every pair, the most frequent runnerUp alias across the winner's pairs, a reviewer alias resolving to its `also`, ties by `precedence`. Every reviewer runnerUp in this file carries an `also`, so a runner-up always resolves to an actionable alias. Every per-pair cell is still reported so the maintainer can see where the aggregate departs from a pair. PRECEDENCE ranks the semantic alias of a tier before the execution alias of the same tier: a tie carries at least one semantic pair, and the semantic reader is the one pick the fallback cannot replace at parity (ruling of 2026-10-05); the three escalation aliases are ranked first only because nen direct registry requires every alias ranked -- no cell names one as a winner or a runner-up, so those three slots are unreachable. Companion jobs (`companions`) are kept out of the call that decides, never struck from a tally.
 
-`precedence`, earliest first: `SEMANTIC_MAX` › `EXECUTION_MAX` › `SEMANTIC_FRONTIER` › `EXECUTION_FRONTIER` › `VISUAL_ORCHESTRATOR` › `EDITOR_FRONTIER` › `BALANCED_AUTHOR` › `EXECUTION_VALUE` › `VISUAL_FALLBACK` › `MECHANICAL_EDITOR` › `PR_QUALITY_REVIEW` › `PR_SECURITY_REVIEW`.
+`precedence`, earliest first: `SEMANTIC_MAX` › `EXECUTION_MAX` › `VISUAL_MAX` › `SEMANTIC_FRONTIER` › `EXECUTION_FRONTIER` › `VISUAL_ORCHESTRATOR` › `EDITOR_FRONTIER` › `BALANCED_AUTHOR` › `EXECUTION_VALUE` › `VISUAL_FALLBACK` › `MECHANICAL_EDITOR` › `PR_QUALITY_REVIEW` › `PR_SECURITY_REVIEW`.
 
 Where no other alias is left the verb returns no runner-up, and `direct` reports it as *fallback: none distinct* ([`direct`](../claude/skills/direct/SKILL.md) § 5). Where the verb's runner-up shares the primary's provider and surface, the aggregate fallback is the highest-precedence alias in another pool among the pairs' winners and runner-ups, named beside it (`picks.fallback`; zheref/nen#389).
 
@@ -465,7 +468,7 @@ The actionable recommendation is always one of Hatsu's 4 surfaces. `direct` fill
 | **Claude Code** | `claude --model <alias> (then /effort <level>)` | /effort low\|medium\|high\|max | the harness's model picker (/model) lists the served aliases | the Claude desktop app or claude.ai, the same model family |
 | **Codex** | `codex -m <alias> -c model_reasoning_effort=<level>` | model_reasoning_effort low\|medium\|high\|xhigh\|max (ultra, automatic task delegation, exists and is never recommended) | codex debug models (slugs, default_reasoning_level and supported_reasoning_levels per slug) | ChatGPT's Codex web app or the Codex IDE extension, the same model family |
 | **Cursor** | `cursor-agent --model <alias> (the alias is resolved to its served id first, docs/surfaces/cursor.md section 1; the id carries the dial as its suffix, -<level>)` | the model id suffix: -low\|-medium\|-high\|-xhigh (a -fast variant is a speed tier, not an effort) | cursor-agent models lists the served ids with their effort suffixes | the Cursor IDE chat and Composer, the same model |
-| **Antigravity** | `the Antigravity workspace with Model: <alias> on the lead` | the model's thinking budget (pro) -- no four-step dial | the workspace's model picker | the Antigravity IDE itself, or the Gemini app for a conversation |
+| **Antigravity** | `the Antigravity workspace with Model: <alias> on the lead` | Gemini 4 Argon thinking_level low\|medium\|high (medium default; API ceiling high), https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19; surface availability must be read separately | The lead conversation model picker; agy models lists CLI slugs, agy --model <configured alias> --print /model verifies a selection without an inference request. | the Antigravity IDE itself, or the Gemini app for a conversation |
 
 Surfaces `direct` knows of and never recommends as actionable (`surfaces.$nonActionable`): Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. These entries provide context, not actionable picks. The 2026-10-17 ruling in docs/ROSTER.md keeps Grok Build here as a headless CI option and Cursor as the actionable Grok coding surface; any future fifth surface would require a separate great-hiker proposal, never only a registry edit.
 
@@ -486,13 +489,13 @@ Native IDE equivalents by language (offered beside the winner as the *interactiv
 
 ## Where the version comes from
 
-At run time `direct` reads the newest version of each pick's family and the effort dial its surface offers — the surface's own lookup first, then the provider's model page, quoted with its URL and date. Only when neither can be read does it quote the snapshot above, **with its date (2026-10-05)**, and the effort map's dial.
+At run time `direct` reads the newest version of each pick's family and the effort dial its surface offers — the surface's own lookup first, then the provider's model page, quoted with its URL and date. Only when neither can be read does it quote the snapshot above, **with its date (2026-10-19)**, and the effort map's dial.
 
 | Provider | Surface lookup | Effort dial, read live | Model pages |
 |---|---|---|---|
 | anthropic | the Claude Code model picker (/model), read in-session | /effort lists low\|medium\|high\|max in-session; the models page gives each model's default effort | https://platform.claude.com/docs/en/models/overview<br>https://platform.claude.com/docs/en/release-notes/overview<br>https://platform.claude.com/docs/en/about-claude/pricing |
 | openai | codex debug models | codex debug models -> supported_reasoning_levels per slug (low\|medium\|high\|xhigh\|max\|ultra on 2026-10-05) | https://developers.openai.com/api/docs/changelog<br>https://openai.com/index/practical-guide-building-gpt-6/<br>https://developers.openai.com/api/docs/pricing |
-| google | — | no dial | https://antigravity.google/docs/subagents<br>https://ai.google.dev/gemini-api/docs/models<br>https://ai.google.dev/gemini-api/docs/pricing |
+| google | agy models | Gemini 4 Argon thinking_level low \| medium \| high; medium is default, high is the documented ceiling; https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19. This API dial does not prove a surface exposes the control. | https://antigravity.google/docs/subagents<br>https://ai.google.dev/gemini-api/docs/models<br>https://ai.google.dev/gemini-api/docs/pricing<br>https://ai.google.dev/gemini-api/docs/latest-model<br>https://antigravity.google/blog/gemini-4-argon-in-google-antigravity/ |
 | cursor | cursor-agent models | the -<level> suffixes cursor-agent models lists for the served id (grok-4.7-low\|medium\|high\|xhigh on 2026-10-05) | https://cursor.com/docs/models<br>https://docs.x.ai/docs/models<br>https://cursor.com/changelog<br>https://cursor.com/composer |
 | copilot | — | no dial | https://docs.github.com/en/copilot/reference/ai-models/supported-models |
 
