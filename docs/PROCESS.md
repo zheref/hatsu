@@ -309,7 +309,8 @@ same mutation answers `NOT_FOUND` under one token and succeeds under another, so
 from the mutation's own response, never from the ids sent**, and check first whether Copilot already
 reviews the repository automatically. **The verb is the only route** — never a raw GraphQL
 `requestReviews(botIds:…)`, never `gh api` (zheref/hatsu#102): a request outside the verb is one no
-ceiling can count.
+ceiling can count. **An event-driven reviewer lane is never requested** (*Event-driven reviewer lanes*,
+below).
 
 ```bash
 nen pr request-reviews --target <owner/name> --pr <n> [--add-reviewers <a,b>] [--add-bots <id,...>]
@@ -336,12 +337,64 @@ Copilot's shape — and **never a member whose round-check run at head is still 
 requested, not yet posted — wait* above: a pending request with no check is excused once the quorum is met
 (zheref/nen#361). So where Bugbot is exhausted Copilot's round suffices, and the other way around; a
 reviewer not in `any_of` is owed as before, and a stalled request or an unresolved thread fails as before.
-An unmet quorum with no member owed (an exempt member in `any_of`; unreachable in Hatsu's own file) reads
-`round quorum not met` and is one owed round of the first `any_of` member `reviewers[]` can request, under
-`sharingan` § 6's bounds (this run's reading, listed in ROSTER). The *fulfils* half ships in nen `v0.20.0`,
+An unmet quorum with no member owed (an exempt member in `any_of`, or CI reviewer lanes short of `minimum` —
+*Event-driven reviewer lanes*, below; unreachable in Hatsu's own file today, reachable on any consumer with two
+or more lanes) reads `round quorum not met` and is one owed round of the first `any_of` member **with no round
+yet** that `reviewers[]` can request, under `sharingan` § 6's bounds (this run's reading, listed in ROSTER) —
+a member that already has its round adds nothing to a count of distinct members; with no such member (only
+lanes are short) nothing is requested, and the PR ends at `cap-reached`'s terminus. The *fulfils* half ships in nen `v0.20.0`,
 the pin zheref/hatsu#168 moved; a binary older than it still reads an unavailable member's round
 as owed, the verdict is quoted as the verb prints it, and the owed member is handled by `sharingan` § 6's
 request bound. Unavailability is observed, never declared; the stop it can lead to is defined once, below.
+
+**Event-driven reviewer lanes** (the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings
+of 2026-10-19 — the CI reviewers tier*; zheref/hatsu#330 — **stated once, here**; `sharingan` § 6, `en` §§ 5–6,
+`shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`,
+[`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3, [`WORKFLOW.md`](WORKFLOW.md) § 2 (`aiReviewers`, `ci`),
+`docs/config/{workflow,gates,decisions}.json.md` and that ROSTER section cite this paragraph). A **lane** is
+a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331, to land) — that
+runs on every push to the pull request and posts under its own GitHub App login. **Its round is its formal
+review posted under that login.** Under the `bounded` reading Hatsu runs, a review at any earlier head
+counts, because no request of the lane is ever pending; and a lane, outside `base_reviewers` with no
+`enrolment_check_pattern`, is **never owed on its own** — nen counts it toward `round_quorum` only. **It is
+never requested**: never in `base_reviewers`, and `shibari` and `sharingan` never call `nen pr
+request-reviews` for a lane; a nen field declaring that is zheref/nen#440. **A push re-runs the lane**
+(`cancel-in-progress`), and its check, pending at the new head, holds `checks-green` like any running check
+until it concludes: that is the current-head wait — never a request, and never a stall by itself. A lane
+check `nen pr ready <ref> --json` lists in `meta.runnerAvailability[]` (still waiting for a runner at the
+judged head) for longer than `round_policy.stallMinutes` — its entry's `queuedMinutes`, or, where nen
+returns that null, `en`'s own first observation of it waiting at this head — is a named impossible
+condition for the watch, reported not-ready with the check's state quoted; a lane check `IN_PROGRESS` is
+bounded by the lane's own job timeout, and one that concludes `CANCELLED` or `FAILURE` at head is a fault
+in the lane, reported the same way, never a code fix to author. Both are a Hatsu reading: nen's runner
+diagnosis never moves the verdict. nen enforces no review
+**at** the new head: a lane that concludes green there without reviewing still reads as having its earlier
+round; a per-reviewer strict reading is owed to zheref/nen#440. **A lane whose check concluded green with no
+review is unavailable** (unprovisioned: the lane exits green without running, `AK`'s reviewer-lane issue):
+nen counts no round for it, so a met quorum covers it and an unmet one is owed through the quorum clause.
+**`round_check_pattern` is declared only for a lane whose check is its round**, and that check's conclusion
+when the lane did not review must be `NEUTRAL` or `SKIPPED` — never `SUCCESS`, which nen would count as a
+round nobody ran, and never `FAILURE`, which fails `checks-green` (`CON-32(a)`) on every head the lane sits
+out; its `NEUTRAL` or `SKIPPED` at head is one of *The sixth stop*'s (c) observations when `roundQuorum`
+reports it from `head` (no earlier-head round). nen matches that check **by name alone** — a job of the same
+name, one the pull request adds included, counts — so the posted-review shape, bound to the App's login,
+is preferred wherever the tier catalogue offers both. A posted-review
+lane's `reviewers[]` entry declares `login_pattern` (anchored to the App's exact login) and **no
+`round_check_pattern`**; a `review_check_pattern` may name its check, and nen reads that key only for a
+`delivery_holistic_pass` reviewer. **The quorum** (ruling *"Join any_of, minimum 2 when 2+ lanes
+installed"*): every installed lane joins `round_quorum.any_of` — which keeps (e) below true — and `minimum`
+is `2` once two or more lanes are installed, `1` otherwise. **The consequence, accepted with the ruling:**
+with `minimum` `2`, a PR on which only one bot has a round while another member is still available (a lane
+in flight, or a bot with no round yet that can still be requested) is `rounds-owed` under `sharingan` § 6's bounds —
+not-ready at `cap-reached`'s terminus once a bound is reached — and *The sixth stop* is reached only when
+every member is unavailable **by (c)'s observations**; a posted-review lane makes none of them (it is never
+requested, and declares no round check) until zheref/nen#440 exposes its state, so under `required` a PR
+whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
+Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **Until the
+nen pin carries zheref/nen#372's fix** (NN-PR-#432, merged, not yet released), nen reads `reviewers[]` and
+`round_quorum` from the checkout it is handed — the pull request's head under `en`'s call — so a PR that
+changes either key, `kuchiyose`'s install PR among them, is judged on its own declaration (SEC-6): `en`
+says so beside the quoted verdict, and the maintainer's merge is the check; the repin retires this sentence.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on
@@ -397,7 +450,11 @@ reads the key.
 paragraph). `nen/workflow.json` → `aiReviewers` is one value for **every automated reviewer** in
 `nen/gates.json` → `reviewers[]` (`CON-16`'s *configured automated reviewer*), and it gates both their
 **use** — whether `nen pr request-reviews` is called for them — and their **expectation** — whether the
-run waits for their round.
+run waits for their round. **Event-driven lanes included** (the ruling of 2026-10-19, *"One value for every
+bot"*): a lane is never requested under any value (*Event-driven reviewer lanes*, above), so the value
+gates only its expectation, and `off` on a consumer with installed lanes means their rounds are not
+expected while the lanes still run and post — a consumer turns a lane off through its own caller workflow,
+never through this value.
 
 **Where the value is read — never from the pull request itself (SEC-6).** A pull request must not relax
 its own gate, so the **effective value** is read, for every decision below (request and prompt alike), from
@@ -423,7 +480,7 @@ reads are residue, named.
 |---|---|---|---|
 | **`required`** (absent reads the same — every consumer keeps today's behaviour) | requested within `round_policy`'s caps (`sharingan` § 6) | expected | verified Ready, or *The sixth stop* (a)–(e) above |
 | **`optional`** | requested within the caps | never waited for | Ready, or the **hanten prompt** below |
-| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero AI-reviewer spend | never waited for | Ready, or the **hanten prompt** below |
+| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero spend on requested reviewers (installed CI lanes still run: *Event-driven reviewer lanes*) | never waited for | Ready, or the **hanten prompt** below |
 
 **The hanten prompt** (under an effective `optional` or `off`): when `nen pr ready <ref> --json` at the
 judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,
@@ -639,9 +696,12 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
   shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and
   comment through it. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it. From nen
-  `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
+  `v0.20.0` (zheref/nen#367, closing zheref/nen#329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
   given the script's ignore file (`file` § 4). What nen does not guard yet — `issue consolidate-close`'s
-  close comments and the `pr` writers (zheref/nen#363) — is the script's alone.
+  close comments and the `pr` writers (zheref/nen#363) — is the script's alone. The committed named
+  list (`scripts/private_name_named.txt`, the one name ruled public) reaches nen through `file` § 4's
+  joined ignore file, because nen takes one; with it the script is BC-11 debt, frozen to fixes only, and
+  it retires when a nen private-name verb also checks a tree (zheref/nen#441).
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
