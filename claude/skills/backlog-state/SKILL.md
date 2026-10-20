@@ -273,7 +273,7 @@ whose base could not be determined is reported `unresolved`, never defaulted to 
 
 **The protocol is [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation***, the same
 one [`sharingan`](../sharingan/SKILL.md) § 2 reads: the role first, `nen gate derive` with both path
-sets for a canon target and no run for a consumer, `--files` from `gh pr diff <n> --name-only`
+sets for a canon target and no run for a consumer, `--files-from` carrying both sides of a rename
 (no `nen` verb fetches a remote PR's changed-file set), the derived gate standing over an asserted
 one, and the base read off the PR. It lived here as a copy for long enough to drift; one document
 owns it now.

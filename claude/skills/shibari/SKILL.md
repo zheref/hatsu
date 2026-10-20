@@ -49,7 +49,7 @@ call that G5. [Mukai](../mukai/SKILL.md) § 1 owns the grant mechanics (HA#101).
   validated as [`PROCESS.md`](../../../docs/PROCESS.md) § *Invocation and parsing* says.
 - **The range is `origin/<branch.base>...HEAD`, after `git -C <path> fetch origin <branch.base>`** —
   nothing fast-forwards *local* `main`, and **`nen gate derive` and
-  `nen changelog fragment-required` take `--files`, so a wrong set gives a confident wrong answer.**
+  `nen changelog fragment-required` take `--files-from` (WORKFLOW § *Gate derivation*).**
 - The evidence rows are `mukai` step 7's (`nen shu evidence`), **re-used, never re-derived**.
 
 ## 3. The body
@@ -105,7 +105,7 @@ nen ref format --code <CODE> --kind PR --number <n>
 nen pr body-check --body-from <abs path> --requirements-from <absolute-requirements.json>
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
 nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragment-dir <fragmentDir> \
-  --head-changelog <headChangelog> --files <the changed paths> [--body-from <abs path>]
+  --head-changelog <headChangelog> --files-from <abs list> [--body-from <abs path>]
 nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
   [--head <branch>] [--dry-run] [--json]   # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]

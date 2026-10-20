@@ -74,8 +74,10 @@ nen pr ready --repo <path> --pr <N> [--explain]                                 
 ```
 
 **Two passes** (zheref/hatsu#221): the plain call (no `--register`) reads the facts; the desk —
-[`backlog-board`](../backlog-board/SKILL.md) § 3's judgement half — is composed from them; the
-`--register <desk>` call then emits the register document the render fills.
+[`backlog-board`](../backlog-board/SKILL.md) § 3's judgement half, its shape and clock in
+[`PROCESS.md`](../../../docs/PROCESS.md) § *The report data document* — is
+composed from them;
+the `--register <desk>` call then emits the register document the render fills.
 
 **`--base` is required** (exit `2` without it; verified nen 0.21.0). The scope's PRs and issues go in **one call**; a
 merged PR is a row that reads `merged` with its merge SHA, a closed issue one that reads `closed` with
@@ -98,8 +100,7 @@ nen report render --variant <final|register> --template "$hatsu_root/templates/r
 
 A Markdown surface fills [`templates/rikugan.md`](../../../templates/rikugan.md), `--out <reports.dir>/current.md`, always `--graph` ([`PROCESS.md`](../../../docs/PROCESS.md) § *The Markdown report*).
 
-`$hatsu_root` is set in the block as [`ten`](../ten/SKILL.md) § 0 says; `generatedAtLocal` is
-`"$hatsu_root/scripts/report_time.sh"`; the `title` is the effort's headline
+`$hatsu_root` is [`ten`](../ten/SKILL.md) § 0's; the `title` is the effort's headline
 ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Report titles*).
 
 **Which variant is the scope's, not a preference.** **`final` is only for a delivered, one-effort
@@ -126,9 +127,9 @@ no bell — a composite that owed a bell rang it before this step ([`jutaisho`](
 
 - **Typed**, in any checkout — § 0 runs.
 - **A `futon` `then` step**: `nen parse futon` classifies `then rikugan` and `then getsuga+rikugan` as
-  `kind: skills` steps (verified at nen `0.18.1`, 2026-09-30: `steps: [{skill: "rikugan"}]`, and after
-  `getsuga` with its own `gate: allowed: true`); `then tag+rikugan` is refused at exit `2` — *'tag' and
-  'fanout' are reserved step names* — so the cut and the page are `then getsuga+rikugan`. The step
+  `kind: skills` steps (verified at nen `0.22.0`, 2026-10-19; `getsuga` carries its own allowed gate);
+  `then tag+rikugan` is refused at exit `2` — *'tag' and 'fanout' are reserved step names* — so the
+  cut and the page are `then getsuga+rikugan`. The step
   runs after futon § 8's gate, under this skill's own authority, its scope § 2 row 1; **it and futon
   § 10's final render are one render**, after the `then` outcome exists.
 - **The closing step of a composite that names `hatsu:rikugan` by name and hands over its scope** —

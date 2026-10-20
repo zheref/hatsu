@@ -241,7 +241,7 @@ Use that axis's per-run requirements for sections, Nen body-check, evidence and 
 before every create or edit. Verification is product **How to verify**, library **How a consumer
 verifies**, process **What the guards prove**, all one `verify` id under `CON-17(b)`. Seven reader
 sections exclude the footer; the prose budget warns at 150 words. Check whether a `changelog.d/` fragment is owed with
-`nen changelog fragment-required --files <this axis's changed paths>` and the three inputs
+`nen changelog fragment-required --files-from <this axis's changed paths, both rename sides>` (WORKFLOW § *Gate derivation*) and the three inputs
 [`contracts/pr-composition.json`](../../../contracts/pr-composition.json) → `changelogFragment`
 declares (`CON-33(a)`; zheref/hatsu#171), read rather than retyped and never eyeballed against the
 path list by hand — it answers per axis, since the two PRs' changed-path sets differ. `--spec-paths`

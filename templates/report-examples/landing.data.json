@@ -45,7 +45,7 @@
   "timeZone": "America/Bogota",
   "title": "Markdown report templates for Antigravity",
   "footerNote": "Object notation from nen ref format; verdicts quoted from nen pr ready.",
-  "turnLabel": "landing",
+  "turnLabel": "Landing · after turn 3",
   "tallyNeedsYou": 1,
   "tallyBlockers": 0,
   "tallyLanded": 4,
@@ -230,7 +230,7 @@
       "reported": false
     }
   ],
-  "launch": "nen report render --variant turn --template \"$hatsu_root/templates/spiritual-message.md\" \\\n  --data <doc> --out Reports/current.md --repo . && cat Reports/current.md",
+  "launch": "no launch target declared; skipped",
   "prBody": [
     {
       "markdown": "## Why\n\nAntigravity reports drift | the template fixes the structure & order.\n\n## How to verify\n\n```bash\nnen shu test --repo . --lane report-markdown-guard\n```"
