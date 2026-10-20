@@ -237,6 +237,85 @@ verb:
 page draws an inline SVG star, so the value is a label, never the glyph; `starredClass` is `"starred"`
 on that option and `""` elsewhere. A maintainer's-word ask stars none.
 
+## The report data document
+
+What `nen report data` already fills, what the caller derives mechanically, what is judgement, and the
+desk `--register` reads — stated once here for [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md)
+§ 4, [`rikugan`](../claude/skills/rikugan/SKILL.md) § 3 and [`backlog-board`](../claude/skills/backlog-board/SKILL.md)
+§ 3 (zheref/hatsu#291; every line verified live against nen `0.22.0`, 2026-10-19).
+
+**Two call rules.** A `--target` read runs as `"$hatsu_root/scripts/gh_token_env.sh" nen report data …`:
+without `GH_TOKEN` every PR row's `readiness` is `null` and its `verdict` `""`, the reason
+(*unevaluated … GH_TOKEN is not set*) in the row's `notes` and on stderr. **The desk is passed by absolute
+path**: a relative `--register` resolves against `--repo`'s root and is refused at exit `2` (`ENOENT`).
+
+**The clock.** The plain call fills `generatedAtLocal`, `generatedDateLocal` and `timeZone` (pass
+`--tz <reports.timeZone>` when it is set). Two documents are the caller's: one that carries none (a
+hand-built one, [`backlog-board`](../claude/skills/backlog-board/SKILL.md) § 3 *Other callers*), and the
+`--register` desk — nen keeps the desk's `generatedAtLocal` and, without one, writes the raw UTC
+`generatedAt` into it, and when the desk sets it `timeZone` and `generatedDateLocal` come back `null`.
+Both take it from one call, where **`<generatedAt>` is the `generatedAt` that effort's `nen report data`
+stamped** (for a desk, the plain pass's):
+
+```bash
+"$hatsu_root/scripts/report_time.sh" --at <generatedAt> [--tz <reports.timeZone>]
+```
+
+It prints `generatedAtLocal=`, `generatedDateLocal=` and `timeZone=` lines; without `--at` it prints
+nothing on stdout and exits `2`. A `final` file name takes this `generatedDateLocal`
+([`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Report time*).
+
+**The extension's defaults** — spiritual-message § 4's merge. The verb's keys (`repo`, `gate`,
+`effortStage`, `stageClass`, `worktree`, `generatedAtLocal`, `turnNumber`) are filled only where they
+come back `null`, from the reason on stderr (a `null` `repo` from `nen repo resolve --from <path>`;
+*Where the effort is* in [`WORKFLOW.md`](WORKFLOW.md) § `reports`). `--graph` injects `graphJson`,
+`graphMermaid`, `graphNodes[]` and `graphEdges[]`, and `--variant` injects `sections` and `sectionList`;
+neither is written. Everything below is derived, never composed:
+
+| Key | Default, and how it is derived |
+|---|---|
+| `variant` | the `--variant` value — the render does not inject it |
+| `turnLabel` | `Turn <turnNumber>`; `landing` reads `Landing · after turn <n>`; a `null` `turnNumber` counts the turns this session reported |
+| `architectureCaption` | the graph document's `caption` — the render does not inject it |
+| `spendPhases[]`, `hasSpendPhases`, `noSpendPhases` | `phases[]`, by spiritual-message § 4's per-phase rule |
+| `spendUsage[]`, `actionsMinutes`, `spendNote` | `usage[]`, by the same rule; `spendNote` is `""` unless a muted line is owed |
+| `tests[]`, `touchedCoverage[]` | re-mapped from `nen shu test-report` and the saved `nen shu coverage --touched`; `[]` while the owning phase has not run |
+| `ask`, `deskCleared` | `null` and the cleared line when the turn owes nothing |
+| `readiness[]`, `prBody[]` | `[]` on `turn` and `turn-fast`; on `landing` one row each — `nen pr ready`'s verdict verbatim, [`shibari`](../claude/skills/shibari/SKILL.md)'s body |
+| `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `null` and `[]` unless the last human request was `mukai` |
+| `captures[]`, `evidenceUnavailable` | `[]` and `""` when no evidence is owed or it is present; the reason when owed evidence is missing |
+| `launch` | the command [`amaterasu`](../claude/skills/amaterasu/SKILL.md) last ran on this effort, verbatim; `""` when none ran |
+| `footerNote` | `""`, or the failed `nen ref format` resolution (§ *Publishing a report*) |
+
+**The remainder is judgement, and is all the caller writes**: `title` ([`WORKFLOW.md`](WORKFLOW.md)
+§ *Report titles*), the four tallies, a non-null `ask` with its options and `blocker`,
+`lastTurnRequest` and `lastTurnRequestFull` (verbatim), `lastTurnHighlights[]`, `accomplished[]`,
+`challenges[]`, `notDelivered[]`, `decisions[]` and the `captures[]` rows. No verb or script composes
+the merge; template-conformance verbs are zheref/nen#406's and zheref/nen#220's.
+
+**The desk `--register` reads.** Its full shape is `nen report data --help`'s and every refusal reprints
+it. Three rules the refusals taught (HA-PR-#278), each refused at exit `2`:
+
+| Rule | A desk that breaks it | nen's refusal |
+|---|---|---|
+| an ask's `objects[]` are `{label, url}` objects | `"objects": ["https://…/pull/1"]` | `gates[0].asks[0].objects[0] is '…', not a { label, url } object` |
+| `cleared` is a string — the line the page shows | `"cleared": true` | `gates[0] has 'cleared' of a boolean, not a string` |
+| a gate carries `asks` **or** `cleared`, never both and never neither; `asks` is a list, `[]` on a cleared gate | `"cleared"` beside a non-empty `asks` | `gates[0] has asks AND a 'cleared' line` |
+
+On this desk the starred option is `"star": true`, unlike the spiritual-message ask's `"recommended"`.
+A minimal valid desk — one ask, one cleared gate (exit `0`):
+
+```json
+{ "variant": "register", "title": "Gate Register", "scope": "HA#291", "gate": "G2",
+  "gates": [
+    { "gate": "G2", "label": "Merge", "asks": [
+      { "kind": "MERGE", "rank": 1, "title": "Merge HA-PR-#1", "why": "its verdict is ready",
+        "options": [{ "letter": "A", "label": "Merge", "command": "gh pr merge 1 --merge",
+                      "consequence": "it lands", "star": true }],
+        "objects": [{ "label": "HA-PR-#1", "url": "https://github.com/zheref/hatsu/pull/1" }] } ] },
+    { "gate": "G4", "label": "Policy", "cleared": "nothing owed at G4", "asks": [] } ] }
+```
+
 ## Authority every phase shares
 
 **Shared policy is resolved at the Hatsu plugin root, never read from the consumer's working
@@ -699,10 +778,11 @@ until then the two scripts above are the mechanism and are named as such.
 - **`nen report data` derives less than a page needs**
   ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). From nen `v0.20.0` (zheref/nen#375) it derives
   `repo` (the hosted `owner/name`), `worktree`, `effortStage`, `gate` and `stageClass`, each `null` with its
-  reason on stderr when a fact is missing; the caller still fills `turnLabel` and `generatedAtLocal` (the
-  latter through `scripts/report_time.sh`), and a `null` `repo` from `nen repo resolve`
-  ([`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Where the effort is*). Each filled value is named as
-  residue on the page until the verb derives it.
+  reason on stderr when a fact is missing; at the pinned `0.22.0` it also fills `generatedAtLocal`,
+  `generatedDateLocal`, `timeZone` and `turnNumber` (verified 2026-10-19). The caller still fills
+  `turnLabel` from `turnNumber`, a `register` desk's `generatedAtLocal`, and a `null` `repo` from
+  `nen repo resolve` (§ *The report data document*). Each filled value is named as residue on the page
+  until the verb derives it.
 
 ## History
 

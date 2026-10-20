@@ -80,8 +80,7 @@ them**, keys and values per [`PROCESS.md`](../../../docs/PROCESS.md) § *Escapin
 report data*:
 
 ```
-<base data> ∪ { variant, title, gate, footerNote, generatedAtLocal,
-  turnLabel, effortStage, stageClass, worktree,
+<base data> ∪ { variant, title, footerNote, turnLabel,
   tallyNeedsYou, tallyBlockers, tallyLanded, tallyGaps, deskCleared,
   ask: null | { kind: DECIDE|DO|MERGE, gate, question, whyNow, objects[{label,url}],
     options[{letter,label,command,consequence,star,starredClass}],
@@ -106,8 +105,10 @@ bar regex), `amount` as `12.3 s` / `4 m 05 s`, `steps` as `build 41.2 s · lint 
 sets `notReported: true`, `reported: false`. `actionsMinutes` sums
 `--minutes` entries, `not read` with none; `spendNote` is `""` or one muted line. `tests[]` and
 `touchedCoverage[]` are likewise re-mapped from `shu test-report` and the saved `shu coverage
---touched`, never passed through. `generatedAtLocal`: `"$hatsu_root/scripts/report_time.sh"`; `repo`, `gate`, `turnLabel`,
-`effortStage`, `stageClass`, `worktree`: derived per `WORKFLOW.md` § *Where the effort is*.
+--touched`, never passed through. `repo`, `gate`, `effortStage`, `stageClass`, `worktree` and `generatedAtLocal`
+are the verb's; a `null` `generatedAtLocal` is `"$hatsu_root/scripts/report_time.sh" --at <generatedAt>`, that
+document's own `generatedAt`. **Every derivable default and the desk table**:
+[`PROCESS.md`](../../../docs/PROCESS.md) § *The report data document* — compose only the rest.
 
 **Record usage before rendering** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*,
 its flags) from the surface's readout — Claude Code's `/cost`, Codex's session log, Cursor and
