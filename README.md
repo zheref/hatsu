@@ -4,7 +4,7 @@
 four agent surfaces: Claude Code, Codex, Cursor and Antigravity.**
 
 One lead persona, **Kurapika**, who names which of six work-modes he is holding before he acts; a roster of
-focused independents who review, measure, watch, file and clean up but never decide; and **fifty-three skills** that take a
+focused independents who review, measure, watch, file and clean up but never decide; and **fifty-four skills** that take a
 request, an issue, a backlog, a pull request or a release from where it is to the human gate where you
 decide. **Every deterministic step that has a verb is a verb** of the [**Nen**](https://github.com/zheref/nen)
 CLI: Nen detects, computes, formats and verifies; a skill supplies only the judgment a binary cannot.
@@ -141,6 +141,7 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 | **Publish to production** (**G3**) | `mugetsu [<target>]`, **your typed go only** | the tag cut; `nen release preflight` green; a `release` row or a production target | `nen shu release` and/or `nen shu deploy --run`, one target per call |
 | **Make a repository a consumer** | `tenkai [<path>] [--slug <owner/name>]` | a checkout of the target | diagnose → `nen scaffold init` routes → the readiness workflow, permission pack, mirrors, defaults, each as its own PR at the target's gate |
 | **Keep a consumer's canon mirror current** | `limbo [for <path>] [to <tag>] [as check\|sync]` | `.claude/canon-values.yml`; the canon pin in `nen/repos.json` | `nen canon pin` → `nen canon mirror check` → regenerate on your answer → one PR → `en` |
+| **Record a port ruling** | `bankai-rule <from-scenario> to <to-scenario> [ruling <text>]` · bare `bankai-rule` for the ruling the session is discussing | the scenarios in `handbooks/stack-matrix.md`; the handbooks repository Hatsu-adopted; the prefix ruled on its adoption PR | the pair parsed (enumerated), the ruling stated back → the id reserved against the tip and every open PR → one row in `handbooks/ports/<from>--<to>.md` on the run's rulings branch → one PR per port run through `aka → mukai → en` to **G4** |
 | **Raise self-hosted runners** | `jusshin [for <owner/repo>] [pool <id>] [x <count>] [on <machine-code>]` | `nen/workflow.json` → `runners`; admin rights; a host per pool | `nen runner inventory → plan → script` (you consent once) → `verify` → preflight job → `enable` |
 | **Pair a device as a launch target** | `jujutsu pair <device>` | the device on hand; its platform tools | on-device steps → the platform probe → the declaration lands by PR |
 | **Swap a worktree into your core checkout** | `amenotejikara [list \| swap <name> [--take] \| return]` | `nen wc worktrees` | core's work parked in a pinned commit, the worktree's tree swapped in, and back |
@@ -197,7 +198,7 @@ tables and every ruling.
 
 ## 🧰 The skills
 
-Fifty-three, invoked as `hatsu:<name>` in your surface's spelling, fifty-four directories with `ten`. Each row:
+Fifty-four, invoked as `hatsu:<name>` in your surface's spelling, fifty-five directories with `ten`. Each row:
 what the skill means, the steps it runs **as the skills it calls**, and who calls it. Full contracts live
 in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 [`claude/skills/README.md`](claude/skills/README.md).
@@ -278,6 +279,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `jusshin` | a consumer's self-hosted runners as boot-persistent services, proven by a preflight job before they are switched on | `nen runner inventory → plan → script → verify → workflow → preflight → enable` | you |
 | `great-hiker` | canon prose and machinery authored once and landed on every surface with that surface's capabilities | author → `nen surface mirror generate` × 3 → check → PR at G4; `evolve` → Netero-shaped issues | you |
 | `bankai-handbooks` · `bankai-quality` | resolvers: which handbooks and rule-id prefixes govern a repository, and which QA and performance tooling | read live from the canon checkout at the pinned tag | Chrollo, Feitan, Phinks, Uvogin, Shalnark |
+| `bankai-rule` | one port ruling — what a source stack's rule or concept becomes on the target (`mirror` · `map` · `drop with note` · `target-only addition`) — as a stable-id row in the ports pair file of `bankai-handbooks`, ids reserved against open PRs, one rulings PR per port run at G4 | `nen parse` (enumerated pair) → `port_rule_reserve.sh` → the row from `templates/ports/` → `kokusen` on the authoring clone → `aka` → `mukai` → `en` | you; `hiraishin` and `kamui` at a `port-drift` answer |
 
 <details>
 <summary><b>Who calls whom</b>: the composition graph</summary>
@@ -309,6 +311,7 @@ flowchart TD
     bv[black-voice] --> shalnark([Shalnark])
     rikugan --> bb
     tensho --> shibari & sharingan
+    br[bankai-rule] --> aka & mukai & en
 ```
 
 </details>

@@ -406,6 +406,17 @@ conflict waiting to be resolved by coin toss.
 |---|---|---|
 | `publish` | `none` | `direct` only, under `build`, under `file` once the issue is created (file § 5), or standalone on an issue — never under `ren`, which cannot leave the machine (ren § 3). **`none`** (absent reads the same) keeps the verdict in the report and the local ledger `.nen/direct/<effort>.json`; **`label`** applies the primary pick's model **line** as one `model/<line>` label (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply`, a label the consumer's `nen/labels.json` has not declared being the verb's refusal; **`label+comment`** adds one marker-keyed issue comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version ([`direct`](../claude/skills/direct/) § 7; `contracts/direct.registry.json` → `publish`). The maintainer's ruling of 2026-10-05; `nen schema check` tolerates the block |
 
+### `port`
+
+```json
+"port": { "handbooksRepo": "zheref/bankai-handbooks", "rulingsDir": "handbooks/ports" }
+```
+
+| Key | Default | Read by |
+|---|---|---|
+| `handbooksRepo` | `zheref/bankai-handbooks` | [`bankai-rule`](../claude/skills/bankai-rule/) § 2, `hiraishin`, `kamui`: the canon handbooks repository a port ruling lands in — read at the consumer's pinned tag (`nen/repos.json` → `pinned`), authored in a separate clone at the cache path, never the canon checkout (zheref/hatsu#354, *Checkouts*). The estate's canonical home (`CON-13`); a fork names itself here |
+| `rulingsDir` | `handbooks/ports` | the same skills, [`limbo`](../claude/skills/limbo/) step 4 and [`bankai-handbooks`](../claude/skills/bankai-handbooks/) § 2: the directory holding the ports family — one directed pair file `<from>--<to>.md` per scenario pair, rendered from `templates/ports/pair.md`, and its `INDEX.md`. A pair file is passed to `nen canon resolve --always-load` beside the always-load set until zheref/nen#457 resolves it as a port handbook. `nen schema check` tolerates the block; the domain is the catalogue's ninth, `port` (zheref/hatsu#354 criterion 4) |
+
 ### `aiReviewers`
 
 ```json
@@ -1049,6 +1060,8 @@ repository declares `tags.identity` it names the identity `kagutsuchi`'s tag wil
 `kagutsuchi` § 3a proves fresh before the send, rebuilding through `susanoo` in a clean worktree when it
 is not (§ 3b, the maintainer's ruling of 2026-09-29: only when the latest build is not up to date with
 the target branch).
+
+**A port ruling's PR is a canon PR** ([`bankai-rule`](../claude/skills/bankai-rule/) § 6, zheref/hatsu#354): it opens once per port run on the handbooks repository and ends at `en` § 5's prompt as **G4**, the maintainer's merge, like every PR into a canon repository.
 
 **One more thing only the maintainer calls — and it is not one of the five.**
 
