@@ -232,64 +232,10 @@ jobs:
           echo "nen: ${nen_version} at $NEN_BIN"
 
       - name: Readiness verdict
-        # FROZEN. scripts/workflow_runner_policy_check.rb admits this step only in
-        # its exact form (READINESS_FROZEN_VERDICT): keys, id, env, shell and the run
-        # compared byte for byte, comment lines included -- as it admits every
-        # other step of this job (READINESS_FROZEN_STEPS). Only `name` and these
-        # YAML comments are free, so the run carries no prose of its own. The
-        # freeze binds the copy on the base branch: `pull_request_target` runs
-        # that copy, but on `pull_request_review` GitHub runs the workflow file
-        # from the pull request's merge ref, so a same-repository PR's edited
-        # copy runs on its review events before the trusted validator judges it.
-        #
-        # The reviewer identities come from the TRUSTED gates file, never the
-        # PR's copy -- a PR that could edit the gate judging it is worth nothing,
-        # the same reason the guard code is trusted-only. `--gates` takes an
-        # absolute path so it is not resolved against --repo's root: with the flag
-        # dropped, nen falls back to <cwd>/nen/gates.json, and the cwd here is the
-        # PR HEAD checkout.
-        #
-        # PINNED TO THE EVENT HEAD, AND BLIND TO ITS OWN PRIOR VERDICT
-        # (zheref/hatsu#160). `--require-head "$EVENT_HEAD"` makes nen judge
-        # exactly the SHA this run's check is published on and exit 8 when the
-        # live head has moved, so an in-flight older run can never publish a
-        # verdict about a newer tree. `--exclude-check readiness` drops this
-        # workflow's own PREVIOUS `readiness` check from the rollup by name, so a
-        # repository whose only reporting check is this one can no longer read
-        # `ready` on the strength of the last readiness check alone. By the same
-        # rule it never reads ready at all: excluding its only check leaves an
-        # empty rollup, which nen judges `not-ready: no checks reported` on every
-        # event -- add a real CI check before relying on this one.
-        # `--exclude-run` still drops THIS run's own checks.
-        #
-        # `shell: bash` runs this as `bash -eo pipefail`, and `set -uo pipefail`
-        # does not turn errexit off. `nen pr ready` exits 1 for `not-ready`, the
-        # common case this workflow exists to report, so the `|| rc=$?` on the
-        # assignment is what keeps that exit from killing the step before it
-        # writes $GITHUB_OUTPUT; the `rc` dispatch is the control flow. Exit 8
-        # (head mismatch, no verdict) titles the check `superseded`, asserts
-        # nothing about this SHA, and the step still exits 0: the run for the new
-        # head publishes the verdict that counts.
-        #
-        # ONE EVALUATION, NOT TWO: the title is the first line of the bytes
-        # already in hand, minus the "<repo>#<n>: " prefix, so the title and the
-        # summary can never describe different evaluations.
-        #
-        # nen's output embeds PR-DERIVED STRINGS (check names, reviewer logins), so
-        # it is echoed between `::stop-commands::` markers with a random nonce --
-        # GitHub's own mechanism for keeping attacker-influenced text off the
-        # workflow-command channel. The title is cut to 240 with a bash
-        # substring, which is character-wise, never `head -c`, which can split
-        # UTF-8. KNOWN, FAILS CLOSED: the first-line read `printf | head -1` is
-        # itself a pipe, so under pipefail an explain larger than the pipe buffer
-        # (128 KiB measured on macOS; a real one is a few hundred bytes) can die
-        # on SIGPIPE -- the step fails and Publish posts `readiness undetermined`,
-        # never a verdict. The fix (`${explain%%$'\n'*}`) changes this frozen
-        # body, which `main`'s trusted validator compares byte for byte, so it
-        # needs its own two-step landing (hanten on step two; recorded in
-        # docs/GATE-CONFIGURATION.md). THE HEREDOC DELIMITER IS RANDOM PER RUN: a
-        # fixed `EOF` lets a value line reading `EOF` close it early and forge
-        # the step output the next step publishes.
+        # The trusted base checkout supplies this TypeScript reader. It invokes
+        # pinned Nen once with --json, validates the exact six-row contract and
+        # event head, and writes the JSON verdict to GITHUB_OUTPUT. The PR head
+        # checkout supplies data only; no script from it runs in this job.
         id: verdict
         env:
           GH_TOKEN: ${{ github.token }}
@@ -300,34 +246,7 @@ jobs:
           EVENT_HEAD: ${{ github.event.pull_request.head.sha }}
         shell: bash
         run: |
-          set -uo pipefail
-          explain="$("$NEN" pr ready "$PR" --gh-repo "$REPO" --explain \
-            --gates "$PWD/.trusted/nen/gates.json" \
-            --exclude-run "$RUN_ID" \
-            --exclude-check readiness \
-            --require-head "$EVENT_HEAD" 2>&1)" || rc=$?
-          rc="${rc:-0}"
-          nonce="stop_$(openssl rand -hex 16)"
-          echo "::stop-commands::${nonce}"
-          printf '%s\n' "$explain"
-          echo "::${nonce}::"
-          title="$(printf '%s\n' "$explain" | head -1)"
-          title="${title#*: }"
-          case "$rc" in
-            0) title="ready — ${title}" ;;
-            1) : ;;
-            8)
-              title="superseded — the head moved while this run was evaluating"
-              explain="A newer commit was pushed before this run finished, so its verdict would have described a different tree. The run for the new head publishes the verdict that counts. Nothing is asserted about this SHA."
-              ;;
-            *) title="readiness undetermined — nen exited ${rc}" ;;
-          esac
-          title="${title:0:240}"
-          d="EOF_$(openssl rand -hex 16)"
-          {
-            printf 'title<<%s\n%s\n%s\n' "$d" "$title" "$d"
-            printf 'summary<<%s\n%s\n%s\n' "$d" "$explain" "$d"
-          } >> "$GITHUB_OUTPUT"
+          node .trusted/scripts/readiness_ci_verdict.mts
 
       - name: Publish the check on the exact PR head
         # FROZEN (READINESS_FROZEN_PUBLISH), like the verdict above.

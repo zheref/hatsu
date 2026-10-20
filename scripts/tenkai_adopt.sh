@@ -83,6 +83,7 @@ CONTRACT = "hatsu.tenkai.adoption/v0.1"
 _FIXTURES: list = []
 HOSTED_RUNNER = "ubuntu-latest"
 WORKFLOW_PATH = ".github/workflows/pr-readiness.yml"
+READINESS_READER_PATH = "scripts/readiness_ci_verdict.mts"
 
 # THE ADMITTED PRIVILEGED TRIGGERS — maintainer's ruling, 2026-09-19, as
 # corrected the same day. The closed set lives in
@@ -862,6 +863,31 @@ class GuardRegistration(Item):
         return self.detect(ctx)
 
 
+class ReadinessReader(Item):
+    """Relay TypeScript's BC-11 adoption verdict as a Tenkai item."""
+
+    MARKER = "// RENDERED BY hatsu:tenkai from scripts/readiness_ci_verdict.mts"
+
+    def __init__(self):
+        super().__init__(READINESS_READER_PATH, "trusted readiness JSON reader", "hatsu")
+
+    def detect(self, ctx):
+        return self.row(**readiness_guard(ctx, "diagnose"))
+
+    def repair(self, ctx):
+        return self.row(**readiness_guard(ctx, "apply"))
+
+
+def readiness_guard(ctx, mode):
+    """Transport only; the source, path and guard decisions are TypeScript's."""
+    script = ctx.hatsu_root / "scripts" / "tenkai_readiness_guard.mts"
+    out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root)],
+                         capture_output=True, text=True, timeout=60)
+    if out.returncode != 0:
+        raise RuntimeError(f"tenkai_readiness_guard.mts {mode} exited {out.returncode}: {out.stderr.strip()}")
+    return json.loads(out.stdout)
+
+
 class ReadinessWorkflow(Item):
     """Half two. Rendered with this repository's own slug and derived runner."""
 
@@ -891,6 +917,9 @@ class ReadinessWorkflow(Item):
         if ctx.role is None:
             return self.row(BLOCKED, "repository role is unknown; the trusted guard and pin policy "
                             "cannot be rendered safely", "record the role in nen/repos.json")
+        readiness = readiness_guard(ctx, "workflow-gate")
+        if readiness["state"] != SATISFIED:
+            return self.row(**readiness)
         if ctx.nen_ref() is None:
             return self.row(BLOCKED, "Hatsu's dependency.pinned_ref is absent or malformed; "
                             "the readiness workflow cannot bootstrap Nen", "repair Hatsu's nen/contract.json")
@@ -1002,9 +1031,8 @@ class ReadinessWorkflow(Item):
         for step_name, what in (("Readiness verdict", "the verdict step"),
                                 ("Publish the check on the exact PR head", "the Publish step")):
             if step_block(live, step_name) != step_block(expected_live, step_name):
-                drifts.append(f"{what} differs from Hatsu's current rendering — an older verdict without "
-                              f"`--exclude-check readiness` and `--require-head \"$EVENT_HEAD\"` reads a false "
-                              f"READY off its own previous readiness check (zheref/hatsu#160)")
+                drifts.append(f"{what} differs from Hatsu's current rendering — the JSON reader "
+                              f"must run from the trusted base checkout with the exact pinned environment")
         if step_block(live, "Confirm the verdict still describes the event head") is not None:
             drifts.append("the retired freshness step is still present; the pinned verdict replaces it "
                           "(`--require-head` exits 8, titled `superseded`)")
@@ -1016,26 +1044,10 @@ class ReadinessWorkflow(Item):
         # downgraded -- and `diagnose` still said `ok`. In a consumer with no
         # policy guard of its own, THIS IS THE ONLY SAFETY NET the workflow has.
         #
-        # `--gates` is matched as the WHOLE ARGUMENT, not as a flag name: the
-        # repository's own Ruby guard documents why a substring is not enough --
-        # `--gates nen/gates.json` satisfies a substring test and resolves against
-        # the PR HEAD checkout, handing the pull request the gate that judges it.
-        # MATCH THE INVOCATION, NOT THE FILE. Searching the whole live text meant a
-        # decoy -- `echo '--gates "$PWD/.trusted/nen/gates.json"'` beside a real
-        # `nen pr ready` call WITHOUT the flag -- read as satisfied. The flag is
-        # required on the line that actually runs the verb, or its continuation.
-        verdict_call = ""
-        vlines = live.splitlines()
-        for n, l in enumerate(vlines):
-            if "pr ready" in l and "echo" not in l:
-                verdict_call = "\n".join(vlines[n:n + 6])
-                break
-        if not verdict_call:
-            drifts.append("no `nen pr ready` invocation was found in the verdict step")
-        elif '--gates "$PWD/.trusted/nen/gates.json"' not in verdict_call:
-            drifts.append("the verdict step does not pass --gates with the TRUSTED absolute path, so "
-                          "nen falls back to the PR head checkout's own gates file — the PR would "
-                          "supply the gate that judges it")
+        # The complete frozen step comparison above binds the invocation and
+        # every environment value. In the JSON form, the trusted TypeScript
+        # reader owns Nen's --gates and event-head flags; they no longer appear
+        # as shell arguments in this YAML.
         # SCOPE THE TRUSTED-REF CHECK TO ITS OWN STEP BLOCK. A fixed character
         # window reached back into the PRECEDING PR-head checkout step and
         # reported every correct file as inverted -- a false positive that, under
@@ -1847,6 +1859,7 @@ def items(ctx):
     out.append(IgnoredDir("dirs/claude-worktrees", ".claude/worktrees", "where Claude Code's own isolation places its worktrees -- the one harness-native exception to .nen/worktrees/<surface>/ (ruling of 2026-09-30)"))
     out.append(NenCommitMsgHook())
     out.append(GuardRegistration())
+    out.append(ReadinessReader())
     out.append(ReadinessWorkflow())
     out.append(ReleasePublisher())
     review_scopes = ReviewScopes()
@@ -1935,7 +1948,7 @@ def self_test() -> int:
     check("zheref/hatsu's own measured facts derive hosted",
           derive_runner("public", 0)["runs_on"] == HOSTED_RUNNER)
 
-    def fixture(slug="acme/widget", with_guard=None, registered=False, role=ROLE_PROCESS):
+    def fixture(slug="acme/widget", with_guard=None, registered=False, role=ROLE_PROCESS, install_reader=True):
         d = Path(tempfile.mkdtemp(prefix="tenkai-fixture-"))
         if role is not None:
             (d / "nen").mkdir(parents=True, exist_ok=True)
@@ -1945,6 +1958,11 @@ def self_test() -> int:
         subprocess.run(["git", "-C", str(d), "init", "-q"], check=True)
         subprocess.run(["git", "-C", str(d), "remote", "add", "origin",
                         f"https://github.com/{slug}.git"], check=True)
+        if install_reader:
+            reader = d / READINESS_READER_PATH
+            reader.parent.mkdir(parents=True, exist_ok=True)
+            reader.write_text((root / READINESS_READER_PATH).read_text().replace(
+                "#!/usr/bin/env node\n", "#!/usr/bin/env node\n" + ReadinessReader.MARKER + "\n", 1))
         if with_guard:
             g = d / GUARD_PATH
             g.parent.mkdir(parents=True, exist_ok=True)
@@ -2174,29 +2192,13 @@ def self_test() -> int:
     check("the runner is repaired to the derived value",
           ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
 
-    w.write_text(w.read_text().replace('--gates "$PWD/.trusted/nen/gates.json"', ""))
+    w.write_text(w.read_text().replace("node .trusted/scripts/readiness_ci_verdict.mts",
+                                       "node scripts/readiness_ci_verdict.mts"))
     row = ReadinessWorkflow().detect(ctx_for(d))
-    check("a dropped --gates is DRIFT", row["state"] == DRIFT and "--gates" in row["detail"])
+    check("a verdict reader from the PR checkout is DRIFT", row["state"] == DRIFT)
     ReadinessWorkflow().repair(ctx_for(d))
-    check("--gates is restored", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
-
-    # zheref/hatsu#160, a consumer that adopted BEFORE the verdict was pinned
-    # (hanten on step two, Phinks' red test tenkai_stale_readiness_render_red.sh):
-    # no `--exclude-check readiness`, no `--require-head`, the freshness step
-    # back between the verdict and Publish. Every snippet check passed it, so
-    # diagnose said satisfied and apply never re-rendered it.
-    pinned = w.read_text()
-    unpinned_verdict = re.sub(r' \\\n\s*--exclude-check readiness \\\n\s*--require-head "\$EVENT_HEAD"', "", pinned)
-    check("self-test: the pinning flags were found to drop", unpinned_verdict != pinned)
-    w.write_text(unpinned_verdict)
-    row = ReadinessWorkflow().detect(ctx_for(d))
-    check("a verdict without --exclude-check and --require-head is DRIFT",
-          row["state"] == DRIFT and "false READY" in row["detail"])
-    ReadinessWorkflow().repair(ctx_for(d))
+    check("the trusted reader path is restored", ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
     repaired = w.read_text()
-    check("apply re-renders the verdict with both flags",
-          "--exclude-check readiness" in repaired and '--require-head "$EVENT_HEAD"' in repaired
-          and ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
     old_fresh = repaired.replace("      - name: Publish the check on the exact PR head\n",
                                  "      - name: Confirm the verdict still describes the event head\n"
                                  "        id: fresh\n        shell: bash\n        run: echo stale=no >> \"$GITHUB_OUTPUT\"\n\n"
@@ -2209,7 +2211,8 @@ def self_test() -> int:
     check("apply removes the freshness step",
           "Confirm the verdict still describes" not in w.read_text()
           and ReadinessWorkflow().detect(ctx_for(d))["state"] == SATISFIED)
-    w.write_text(w.read_text().replace('title="${title#*: }"', 'title="${title#*:}"'))
+    w.write_text(w.read_text().replace("node .trusted/scripts/readiness_ci_verdict.mts",
+                                       "node .trusted/scripts/readiness_ci_verdict.mts --extra"))
     check("a one-byte change to the verdict body is DRIFT",
           ReadinessWorkflow().detect(ctx_for(d))["state"] == DRIFT)
     ReadinessWorkflow().repair(ctx_for(d))
@@ -2268,72 +2271,89 @@ def self_test() -> int:
           "pull_request_review_thread:" not in tmpl_live)
     check("the shipped template carries the widened CON-32(b) types",
           "review_requested" in tmpl_live and "review_request_removed" in tmpl_live)
-    # zheref/hatsu#160: the verdict drops its own prior readiness check by name and
-    # is pinned to the event head, so a consumer whose only check is this one
-    # cannot read a false READY, and an older run cannot judge a newer tree.
-    check("the shipped template excludes its own prior readiness check by name",
-          "--exclude-check readiness" in tmpl_live)
-    check("the shipped template pins the verdict to the event head",
-          '--require-head "$EVENT_HEAD"' in tmpl_live
-          and "EVENT_HEAD: ${{ github.event.pull_request.head.sha }}" in tmpl_live)
+    # #131: the template executes only the reader in the trusted checkout.
+    # Its copied source, not the PR's tree, owns the JSON, gates, head and
+    # prior-check exclusion arguments. Exercise the rendered workflow and copy.
+    check("the shipped template invokes the trusted JSON reader",
+          "node .trusted/scripts/readiness_ci_verdict.mts" in tmpl_live
+          and "node scripts/readiness_ci_verdict.mts" not in tmpl_live)
+    check("the shipped template pins the event head in the reader environment",
+          "EVENT_HEAD: ${{ github.event.pull_request.head.sha }}" in tmpl_live)
     check("the shipped template carries no freshness step and no STALE branch",
           "steps.fresh" not in tmpl_live and "STALE" not in tmpl_live)
-    # The RENDERED output, not only the template source (Nobunaga on step two):
-    # render(ctx) is placeholder replacement today, and this pins that a
-    # rendering carries what the source promises.
     rendered = ReadinessWorkflow().render(ctx_for(fixture()))
     rendered_live = "\n".join(l for l in rendered.splitlines() if not l.lstrip().startswith("#"))
-    check("a rendering excludes its own prior readiness check and pins the event head",
-          "--exclude-check readiness" in rendered_live and '--require-head "$EVENT_HEAD"' in rendered_live
+    check("a rendering invokes the trusted JSON reader with the event head",
+          "node .trusted/scripts/readiness_ci_verdict.mts" in rendered_live
           and "EVENT_HEAD: ${{ github.event.pull_request.head.sha }}" in rendered_live
-          and "steps.fresh" not in rendered_live and "@@" not in rendered_live)
+          and "@@" not in rendered_live)
+    reader_source = (root / READINESS_READER_PATH).read_text()
+    check("the copied source pins Nen's gates, head and prior-check exclusion",
+          'resolve(".trusted/nen/gates.json")' in reader_source
+          and '"--require-head", EVENT_HEAD' in reader_source
+          and '"--exclude-check", "readiness"' in reader_source)
 
-    # THE #160 REPRO, BEFORE AND AFTER (hanten on step two, Nobunaga H3). The
-    # rendered verdict body is RUN under bash against a stub `nen` that answers
-    # the way nen v0.18.2 documents and tests it (`nen pr ready --help`: "An
-    # EMPTY rollup after exclusion is 'not-ready: no checks reported'"; nen's own
-    # src/gates/ready.test.ts at v0.18.2, "excluding the ONLY check present ...
-    # never `ready`"): the rollup holds ONE check, a prior green `readiness`. The
-    # body WITHOUT the pinning flags -- what consumers ran before #160 -- titles
-    # the check `ready`, the false READY; the shipped body titles it not-ready.
-    # What this proves is the workflow half -- the flag reaches nen and the exits
-    # route to the right title. nen's half is nen's own test, cited, not re-run.
-    def verdict_body(text):
-        lines = text.splitlines()
-        at = next(i for i, l in enumerate(lines) if l.strip() == "- name: Readiness verdict")
-        run_at = next(i for i in range(at, len(lines)) if lines[i].strip() == "run: |")
-        body = []
-        for l in lines[run_at + 1:]:
-            if l.strip().startswith("- name:"):
-                break
-            body.append(l[10:] if l.startswith(" " * 10) else l.strip())
-        return "\n".join(body).strip() + "\n"
-    def run_verdict(body):
-        with tempfile.TemporaryDirectory() as td:
-            tdp = Path(td)
-            stub = tdp / "nen"
-            stub.write_text("#!/bin/sh\n"
-                            "case \" $* \" in\n"
-                            "  *' --exclude-check readiness '*) echo 'acme/widget#7: not-ready: no checks reported (after excluding: readiness) (CON-32a)'; exit 1 ;;\n"
-                            "  *) echo 'acme/widget#7: ready'; exit 0 ;;\n"
-                            "esac\n")
-            stub.chmod(0o755)
-            out = tdp / "out"
-            out.write_text("")
-            env = dict(os.environ, NEN=str(stub), PR="7", REPO="acme/widget", RUN_ID="1",
-                       EVENT_HEAD="a" * 40, GITHUB_OUTPUT=str(out), GH_TOKEN="x")
-            subprocess.run(["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", body],
-                           env=env, cwd=td, capture_output=True, text=True, check=False)
-            m = re.search(r"^title<<(\S+)\n(.*?)\n\1$", out.read_text(), re.M | re.S)
-            return m.group(2) if m else None
-    after = verdict_body(rendered)
-    before = re.sub(r' \\\n\s*--exclude-check readiness \\\n\s*--require-head "\$EVENT_HEAD"', "", after)
-    check("self-test: the repro's before body differs from the shipped one", before != after)
-    before_title, after_title = run_verdict(before), run_verdict(after)
-    check("#160 before: with only a prior readiness check, the unpinned verdict titles itself ready (the false READY)",
-          (before_title or "").startswith("ready"))
-    check("#160 after: the shipped verdict titles the same rollup not-ready: no checks reported",
-          (after_title or "").startswith("not-ready: no checks reported"))
+    reader_repo = fixture(install_reader=False)
+    reader_ctx = ctx_for(reader_repo)
+    check("a missing reader stages the workflow",
+          ReadinessReader().detect(reader_ctx)["state"] == MISSING
+          and ReadinessWorkflow().detect(reader_ctx)["state"] == STAGED)
+    check("Tenkai installs the reader before its workflow",
+          ReadinessReader().repair(reader_ctx)["state"] == REPAIRED
+          and ReadinessWorkflow().repair(reader_ctx)["state"] == REPAIRED)
+    copied = reader_repo / READINESS_READER_PATH
+    check("the copied reader matches Hatsu's source and is marked as Tenkai-owned",
+          ReadinessReader().detect(reader_ctx)["state"] == SATISFIED
+          and ReadinessReader.MARKER in copied.read_text())
+    copied.write_text(copied.read_text().replace('"--exclude-check", "readiness"',
+                                               '"--exclude-check", "decoy"'))
+    check("a modified trusted reader is DRIFT and repair restores it",
+          ReadinessReader().detect(reader_ctx)["state"] == DRIFT
+          and ReadinessReader().repair(reader_ctx)["state"] == REPAIRED
+          and '"--exclude-check", "readiness"' in copied.read_text())
+    copied.unlink()
+    copied.symlink_to(root / READINESS_READER_PATH)
+    check("a linked reader is BLOCKED and never followed",
+          ReadinessReader().repair(reader_ctx)["state"] == BLOCKED)
+    copied.unlink()
+    ReadinessReader().repair(reader_ctx)
+
+    old_guard_repo = fixture(with_guard=True, registered=True)
+    old_guard = old_guard_repo / GUARD_PATH
+    old_guard.write_text("EXPECTED_JOBS = {'pr-readiness.yml' => 1}\n"
+                         "EXPECTED_TYPES = {'pr-readiness.yml' => 1}\n"
+                         "EXPECTED_STEPS = {'pr-readiness.yml' => 1}\n"
+                         "READINESS_FROZEN_VERDICT = :text_only\n")
+    old_ctx = ctx_for(old_guard_repo)
+    check("a text-only trusted guard stages the JSON workflow",
+          ReadinessWorkflow().detect(old_ctx)["state"] == STAGED
+          and ReadinessWorkflow().repair(old_ctx)["state"] == STAGED
+          and not (old_guard_repo / WORKFLOW_PATH).exists())
+
+    with tempfile.TemporaryDirectory() as td:
+        tdp = Path(td)
+        fake = tdp / "nen"
+        head = "a" * 40
+        specs = [("mergeable", "CON-42/1"), ("checks-green", "CON-32(a)"),
+                 ("round-stalled", "CON-32(b)"), ("rounds-owed", "CON-32(b)"),
+                 ("approvals-at-head", "CON-32(b)/CON-16"),
+                 ("unresolved-threads", "CON-32(d)")]
+        rows = [dict(id=key, clause=clause, order=i + 1, status="ready",
+                     reason=None, missing=None) for i, (key, clause) in enumerate(specs)]
+        rows[3].update(status="failed", reason="round owed")
+        report_doc = dict(contract="nen.pr.ready/v0.1", verdict="not-ready", judgedHead=head,
+                          failing=["rounds-owed"], conjuncts=rows)
+        fake.write_text("#!/bin/sh\ncat <<'JSON'\n" + json.dumps(report_doc) + "\nJSON\nexit 1\n")
+        fake.chmod(0o755)
+        output = tdp / "output"
+        reader_result = subprocess.run(["node", str(copied)], cwd=reader_repo, capture_output=True, text=True,
+                                       env=dict(os.environ, NEN=str(fake), REPO="acme/widget", PR="7",
+                                                RUN_ID="1", EVENT_HEAD=head, GITHUB_OUTPUT=str(output)))
+        check("the adopted reader publishes Nen's JSON verdict",
+              reader_result.returncode == 0 and output.is_file()
+              and "not-ready" in output.read_text() and "rounds-owed" in output.read_text(),
+              f"exit={reader_result.returncode}, stdout={reader_result.stdout!r}, "
+              f"stderr={reader_result.stderr!r}, output={output.read_text() if output.is_file() else '(absent)'}")
     check("the engine mirrors the guard's own ALLOWED_TRIGGERS",
           set(REQUIRED_TRIGGERS) == {"pull_request_target", "pull_request_review"})
 
@@ -2437,13 +2457,13 @@ def self_test() -> int:
     check("dropping the fork limb while keeping the slug is DRIFT",
           row["state"] == DRIFT and "FORK limb" in row["detail"])
 
-    # T4 -- a decoy `--gates` in an echo, with the real call missing it
+    # T4 -- a decoy trusted path in an echo, with the real call from PR HEAD
     row = mutate(lambda t: t.replace(
-        '--gates "$PWD/.trusted/nen/gates.json"', "").replace(
-        "          set -uo pipefail",
-        "          set -uo pipefail\n          echo '--gates \"$PWD/.trusted/nen/gates.json\"'", 1))
-    check("a decoy --gates beside a real call without it is DRIFT",
-          row["state"] == DRIFT and "--gates" in row["detail"])
+        "node .trusted/scripts/readiness_ci_verdict.mts",
+        "echo 'node .trusted/scripts/readiness_ci_verdict.mts'\n"
+        "          node scripts/readiness_ci_verdict.mts"))
+    check("a decoy trusted path beside a PR-root call is DRIFT",
+          row["state"] == DRIFT and "JSON reader" in row["detail"])
 
     # T5 -- github.sha is PR-controlled on pull_request_review
     row = mutate(lambda t: t.replace("ref: ${{ github.event.pull_request.base.sha }}",
@@ -2888,13 +2908,16 @@ def self_test() -> int:
             check(f"a registry shaped {shape[:22]!r} returns unknown, never a crash", False, repr(exc))
 
     # T2 — a SYMLINKED PARENT DIRECTORY must not be written through.
-    dsp = fixture(role=ROLE_PROCESS)
+    dsp = fixture(role=ROLE_PROCESS, install_reader=False)
     outside2 = Path(tempfile.mkdtemp(prefix="tenkai-outside-")); _FIXTURES.append(outside2)
     (dsp / "scripts").symlink_to(outside2)
     row = ReleasePublisher().repair(ctx_for(dsp))
     check("a symlinked parent directory is BLOCKED", row["state"] == BLOCKED)
+    reader_row = ReadinessReader().repair(ctx_for(dsp))
+    check("a symlinked reader parent directory is BLOCKED", reader_row["state"] == BLOCKED)
     check("and nothing was written outside the repository",
-          not (outside2 / "release-publish.sh").exists())
+          not (outside2 / "release-publish.sh").exists()
+          and not (outside2 / "readiness_ci_verdict.mts").exists())
 
     # T7 — the marker proves PROVENANCE; currency is proved by the bytes.
     dst = fixture(role=ROLE_PROCESS)
