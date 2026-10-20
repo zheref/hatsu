@@ -495,3 +495,13 @@ installs it under `.github/workflows/` and moves it to `PORTABLE_HOSTED_WORKFLOW
 absence a refusal. `PENDING_HOSTED_WORKFLOWS` stays in the validator, empty when nothing is pending, and
 every per-workflow table is checked at load to cover exactly the workflows it should.
 
+**Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
+`PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. It uses `pull_request`
+and only `contents: read`, because its fixtures execute the PR's code. The policy
+holds the staged YAML to one reviewed SHA-256 and also checks its trigger,
+permissions, and hosted runner; the installation PR copies that exact template.
+The workflow checks out the base revision for `nen_global.sh` and
+`unit_tests_ci.mts`, installs the contract-pinned Nen without editing the runner's
+shell profile, and invokes the PR's declared focused test lanes. The CI runner
+clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture and fences fixture output.
+
