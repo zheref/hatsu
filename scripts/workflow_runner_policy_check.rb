@@ -1060,20 +1060,8 @@ DIRECT_MATRIX_STEP = "Direct matrix drift check"
 DIRECT_MATRIX_FROZEN = {
   "shell" => "bash",
   "run" => <<~'RUN'.strip
-    set -uo pipefail
-    guard=.trusted/scripts/direct_matrix_doc.sh
-    [ -f "$guard" ] || { echo "::error::trusted workflow revision has no scripts/direct_matrix_doc.sh"; exit 1; }
-    stop="stop_$(openssl rand -hex 16)" || stop=""
-    [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the guard's output; nothing was checked."; exit 1; }
-    code=0
-    echo "::stop-commands::${stop}"
-    bash "$guard" --check "$PWD" 2>&1 || code=$?
-    printf '\n::%s::\n' "$stop"
-    case "$code" in
-      0) echo "docs/DIRECT-MATRIX.md matches the registry, taxonomy and models." ;;
-      1) echo "::error::docs/DIRECT-MATRIX.md is stale; regenerate it with the direct matrix renderer and commit the result."; exit 1 ;;
-      *) echo "::error::direct_matrix_doc.sh could not check the page (exit ${code}); see the guard output above."; exit 1 ;;
-    esac
+    set -euo pipefail
+    node .trusted/scripts/direct_matrix_ci_check.mts "$PWD"
   RUN
 }.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
@@ -2322,8 +2310,8 @@ def self_test(root)
                              end
     File.write(matrix_workflow, staged_matrix_workflow)
     validate_repo(tmp, announce: false)
-    File.write(matrix_workflow, staged_matrix_workflow.sub('bash "$guard" --check "$PWD"',
-      'bash scripts/direct_matrix_doc.sh --check "$PWD"'))
+    File.write(matrix_workflow, staged_matrix_workflow.sub('node .trusted/scripts/direct_matrix_ci_check.mts "$PWD"',
+      'node scripts/direct_matrix_ci_check.mts "$PWD"'))
     expect_rejected("PR-controlled direct matrix guard", /Direct matrix drift check.*run must be exactly the frozen form/) do
       validate_repo(tmp, announce: false)
     end
