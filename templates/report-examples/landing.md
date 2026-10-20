@@ -10,7 +10,7 @@
 <!-- hatsu:block masthead -->
 # Markdown report templates for Antigravity
 
-landing · Hatsu · spiritual-message · landing
+Landing · after turn 3 · Hatsu · spiritual-message · landing
 
 zheref/hatsu · against origin/main · 2026-10-13 11:00 CEST
 
@@ -224,7 +224,7 @@ nen shu test --repo . --lane report-markdown-guard
 
 ---
 
-landing · in review · G4 — pending · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
+Landing · after turn 3 · in review · G4 — pending · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
 
 zheref/hatsu · against origin/main · landing · 2026-10-13 11:00 CEST
 

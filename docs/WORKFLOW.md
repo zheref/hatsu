@@ -304,8 +304,13 @@ Every value inside a block is the model's; only the presence flags come from thi
 `generatedAt` stays what `nen report data` and `nen board build` stamp — an absolute ISO-8601 UTC
 instant, the document's truth — and the page shows it through `<time datetime="{{generatedAt}}">`
 with **`generatedAtLocal`** as the visible text. Both templates require that token, so a render
-missing it is exit `2`, never a UTC clock read as local. Fill it from one call at the plugin root
-(`ten` § 0):
+missing it is exit `2`, never a UTC clock read as local. **The plain `nen report data` fills it** from
+nen `0.22.0`, with `generatedDateLocal` and `timeZone` (pass `--tz <reports.timeZone>` when it is set).
+**Two documents take it from one call at the plugin root** (`ten` § 0) instead: a hand-built one, and a
+`--register` desk — nen keeps the desk's `generatedAtLocal`, writes the raw UTC `generatedAt` into it
+when the desk carries none, and returns `timeZone` and `generatedDateLocal` `null` when it does. Their
+`<generatedAt>` is the `generatedAt` that effort's `nen report data` stamped (for a desk, the plain
+pass's):
 
 ```bash
 "$hatsu_root/scripts/report_time.sh" --at <generatedAt> [--tz <reports.timeZone>]
@@ -316,7 +321,8 @@ missing it is exit `2`, never a UTC clock read as local. Fill it from one call a
 `date(1)` answer UTC silently. It prints `generatedAtLocal` (`Tue 22 Sep 2026 · 14:05
 America/Bogota (UTC-05:00)`), `timeZone`, and **`generatedDateLocal` — the `<YYYY-MM-DD>` of the
 dated report's file name**, so a report finished late in the evening is filed under the day it was
-finished where it was read, not under tomorrow's UTC date.
+finished where it was read, not under tomorrow's UTC date. Without `--at` it prints nothing on stdout
+and exits `2`.
 
 **Privacy: the zone name is printed on every page.** `America/Bogota` in a masthead tells every
 reader of a published report roughly where its maintainer sits. Where that is more than a repository
@@ -355,9 +361,9 @@ derived, never recalled:
 
 Pushed or not is `git rev-parse --verify --quiet origin/<branch>` after the fetch; the PR and its
 verdict are `nen report data --target … --prs <n>`'s row and `nen pr ready`'s line. **`turnLabel`**
-is `Turn <n>`, `n` counting the `report` entries in `nen report data`'s `phases[]` (the open one
-included; with no ledger, the turns this session has reported); a `landing` reads `Landing · after
-turn <n>`. **`worktree`** is the checkout's directory name when `git rev-parse --git-dir` and
+is `Turn <n>`, `n` being `nen report data`'s `turnNumber` (from `0.22.0`: the `report` entries of the
+ledger whose effort id is the branch's name, the open one included; a `null` `turnNumber`, with no
+ledger, counts the turns this session has reported); a `landing` reads `Landing · after turn <n>`. **`worktree`** is the checkout's directory name when `git rev-parse --git-dir` and
 `--git-common-dir` differ, else `core`. Red stays reserved for needs-you: only `ready` and `blocked`
 are red. **`repo`** is `nen report data`'s hosted `owner/name` from nen `0.20` (zheref/nen#375), `null`
 for a local-path or `file://` origin, which the caller fills from `nen repo resolve --from <path>`; before
