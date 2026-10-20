@@ -907,6 +907,25 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-19 — every new filing runs classify and direct
+
+**The maintainer's request, verbatim**, on `hatsu:kurapika`, 2026-10-19:
+
+> When filing a new issue (hatsu:file), both "classify" and "direct" should run every single time.
+
+| Ruling | What it says |
+|---|---|
+| **Both, every new filing** | [`file`](../claude/skills/file/SKILL.md) § 5 runs `classify` and then `direct` on every new filing. `classify`'s half restates the ruling of 2026-10-04 (§ *Rulings of 2026-10-04 — classify and direct*); `direct`'s half is new, and its publish extends § *Rulings of 2026-10-05 — the registry rebalance*'s opt-in `direct.publish` to `file` |
+
+**Recorded as this run's reading, the maintainer's to correct at the G4 merge:**
+
+- **Which filings.** Every **create** — an explicit filing, a § 0 discovery create and a `third-hand` pick alike, in every repository; an amend or a fold creates no issue, so neither runs there. Where no file § 4 plan renders, the picks and outcomes go in that path's report line, and [`DISCOVERY.md`](DISCOVERY.md) § *Authority and convergence* names the publish as part of a `created` result.
+- **One plan, one confirmation.** The routing row — `direct`'s three picks, resolved from the classification rows as **proposed** (no number yet; never re-classified), with the target's own checkout, kind, role and planned labels as inputs — joins file § 4's plan under the same confirmation; its comment body is a § 4 draft, redaction-checked.
+- **Publish after the number exists, and only with classification.** `direct` § 7 runs once on the new issue under the target's `direct.publish`, read at the default branch's tip, and only where the classification keys travel in the create call and the number is certain; otherwise routing is owed, said. The label and comment post **after** the create rather than in its `--label`, so `direct` keeps one publish path and its ledger — the one exception to file § 5's *in the create call* rule. The cost is a window in which the new issue carries no `model/` label: a `futon @model/<line>` or `kazaana` run in it sees the issue unrouted, and `hatsu:direct backlog` or kazaana's unlabelled arm picks it up. **The alternative, for the maintainer:** carry `model/<line>` in the create's `--label` where `direct.publish` is `label` or `label+comment` and the label is declared, restated in the report, and post only the comment after the number.
+- **Never a stop.** A missing `nen direct` verb, an empty job axis (`undirectable`) or an undeclared `model/` label is one line in the plan and report; the issue is still filed. `direct` § 6's mismatch is never asked from `file`, which builds nothing.
+
+---
+
 ## Rulings of 2026-10-05 — the registry rebalance
 
 **The maintainer's request, verbatim** (excerpt), on `hatsu:great-hiker`, 2026-10-05:
