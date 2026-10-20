@@ -907,6 +907,23 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-19 — every new filing runs classify and direct
+
+**The maintainer's request, verbatim**, on `hatsu:kurapika`, 2026-10-19:
+
+> When filing a new issue (hatsu:file), both "classify" and "direct" should run every single time.
+
+| Ruling | What it says |
+|---|---|
+| **Both, every new filing** | [`file`](../claude/skills/file/SKILL.md) § 5 runs `classify` and then `direct` on every **create** — an explicit filing, a § 0 discovery create and a `third-hand` pick alike, in every repository. An amend or a fold creates no issue, so neither runs there. `classify`'s half restates the ruling of 2026-10-04 (§ *Rulings of 2026-10-04 — classify and direct*); `direct`'s half is new |
+| **One plan, one confirmation** | The routing row — `direct`'s three picks, resolved from the classification rows as **proposed** (the issue has no number yet; never re-classified) — joins file § 4's plan beside the classification rows, under the same confirmation |
+| **Publish after the number exists** | `direct` § 7 runs once on the new issue under the target's `direct.publish`, read at the default branch's tip; `none` writes nothing. The `model/` label and comment are the one follow-up write beside the create call, through `direct`'s own verbs and ledger |
+| **Never a stop** | A missing `nen direct` verb, an empty job axis (`undirectable`) or an undeclared `model/` label is one line in the plan and report; the issue is still filed. `direct` § 6's mismatch is never asked from `file`, which builds nothing |
+
+**This run's reading, the maintainer's to correct at the G4 merge:** the label and comment post after the
+create rather than inside it, so `direct` keeps one publish path and its ledger; that is the one exception to
+file § 5's *in the create call* rule.
+
 ## Rulings of 2026-10-05 — the registry rebalance
 
 **The maintainer's request, verbatim** (excerpt), on `hatsu:great-hiker`, 2026-10-05:

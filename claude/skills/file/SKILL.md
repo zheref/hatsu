@@ -1,6 +1,6 @@
 ---
 name: file
-description: File one well-formed, correctly-labelled, non-duplicate issue — reconciling it against the open backlog first. Use when the maintainer invokes hatsu:file <problem> <repo> or a bare hatsu:file (which files what the session has just been discussing), or asks to file, open, log or raise an issue. **Also execute the shared discovery protocol when authorized work exposes a durable workflow, machinery, or owner gap.** Process-chairman findings — constitution, canon prose, machinery enhancement, duration, redundancy, autonomy gaps, deterministic jobs still done by hand, missing toolchain — are **Netero's** completeness contract (`claude/agents/netero.md`; Codex: the Netero section of `AGENTS.md`): every declared classifying label, observable acceptance criteria, and cross-references for deployment, fan-out and provisioning. Kurapika searches for duplicates to amend, near-neighbours to fold into, and issues this supersedes before writing.
+description: File one well-formed, correctly-labelled, non-duplicate issue — reconciling it against the open backlog first. Use when the maintainer invokes hatsu:file <problem> <repo> or a bare hatsu:file (which files what the session has just been discussing), or asks to file, open, log or raise an issue. **Also execute the shared discovery protocol when authorized work exposes a durable workflow, machinery, or owner gap.** Process-chairman findings — constitution, canon prose, machinery enhancement, duration, redundancy, autonomy gaps, deterministic jobs still done by hand, missing toolchain — are **Netero's** completeness contract (`claude/agents/netero.md`; Codex: the Netero section of `AGENTS.md`): every declared classifying label, observable acceptance criteria, and cross-references for deployment, fan-out and provisioning. Kurapika searches for duplicates to amend, near-neighbours to fold into, and issues this supersedes before writing. Every new filing runs classify and direct.
 ---
 
 **Shared policy location:** `docs/DISCOVERY.md`, `docs/WORKFLOW.md`,
@@ -38,7 +38,9 @@ route for that protocol; it is not permission to start an unrelated build.
 The maintainer's standing authority covers **capture, four-pass reconciliation, and the narrow
 GitHub write selected by the protocol**: create a distinct issue, add material evidence to a
 duplicate, or fold compatible scope into a neighbour. It needs no second confirmation per
-discovery. The normal explicit `hatsu:file` invocation still uses the reviewed plan in §4.
+discovery. The normal explicit `hatsu:file` invocation still uses the reviewed plan in §4. A
+discovery **create** runs § 5's classification and routing rows exactly as an explicit filing does;
+an amend or a fold creates nothing, so neither runs there.
 
 Standing authority never covers a stage/release label, closing or superseding an active effort,
 merging, publishing, changing canon, or implementing the discovered owner work. Preserve the
@@ -268,7 +270,10 @@ all of it. The plan states, in this order:
 1. **What is being filed** — the drafted title and body, in full. Not a summary of a body you
    will write afterwards; the actual text.
 2. **The labels** that will be applied, each with its one-line basis (§ 5) — the classification rows
-   (`lang/`, `job/`) with their confidence, from [`hatsu:classify`](../classify/SKILL.md) § 3.
+   (`lang/`, `job/`) with their confidence, from [`hatsu:classify`](../classify/SKILL.md) § 3 — and
+   the **routing** row beside them: [`hatsu:direct`](../direct/SKILL.md)'s three picks for those rows,
+   with the `model/` label and the comment body § 7 there will post under the target's
+   `direct.publish` (§ 5).
 3. **Duplicates found** — which issue is being amended, with what comment, and any severity bump.
 4. **Fold candidates** — which issue absorbs which requirement, or *none, and why not*.
 5. **Supersede candidates** — which issues close, with the comment text, and any excluded for an
@@ -296,7 +301,8 @@ those drafts** — do not render a second G5 DECIDE, and do not file unselected 
 
 ## 5. Labels — so the loop can triage without reading it
 
-Applied **in the create call**, never as a follow-up edit:
+Applied **in the create call**, never as a follow-up edit — save the routing row's `model/` label and
+comment, which `direct` § 7 writes once the issue has its number:
 
 ```bash
 nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
@@ -324,6 +330,7 @@ skill's create labels; where a real family exists, the flag makes that exclusion
 | **Severity** | Exactly one severity label from the target repo's own severity vocabulary | Propose with one line of reasoning; the plan carries it |
 | **Kind** | Bug / handbook-question / epic / QA, as the target repo's taxonomy names them | What the issue *is* |
 | **Classification** | The `lang/<key>` and `job/<key>` keys [`hatsu:classify`](../classify/SKILL.md) § 3 proposes for the drafted text — **always run, every filing, every repository** (the maintainer's ruling of 2026-10-04); the rows join this plan and this one confirmation. **One reading per state:** the families declared in the target's `nen/labels.json` **and** present on GitHub (classify § 2's `declared` and `github` both `ok`) → the keys travel in the create call's `--label`; the `nen classify` verbs absent at the pin, or declared but not yet synced, or not declared → the keys are **shown in the plan and named owed**, kept out of `--label`, and **the filing proceeds** without them (never a declaration started from `file`; classify § 4 names the owed landing). An axis classify cannot decide stays empty, said | Proposed from `contracts/classify.taxonomy.json`, validated against the target's `nen/labels.json` (the one source of truth for its labels); never a key the target has not declared |
+| **Routing** | [`hatsu:direct`](../direct/SKILL.md)'s verdict — **always run, every new filing, every repository, right after the classification row** (the maintainer's ruling of 2026-10-19, ROSTER § *Rulings of 2026-10-19*). The issue has no number yet, so direct § 2 reads the classification rows as **proposed** (never re-classified) and § 3's `nen direct resolve` takes them as `--lang`/`--job`, with the kind label as `--kind`; its three picks join this plan and this one confirmation. **After the create returns the number**, direct § 7 runs on it once under the target's `direct.publish`, read at the default branch's tip: `none` (or absent, or any other value) writes nothing, said; `label` the primary's `model/<line>` through direct's own verb and ledger; `label+comment` that and the marker comment. **The filing never waits on it:** the probe's `missing-tool`, an `undirectable` (empty job) axis or an undeclared `model/` label is one line in the plan and the report, and the issue is still filed. direct § 6's mismatch is never asked here — `file` builds nothing | `contracts/direct.registry.json` through `nen direct resolve`; the label value is the primary's line only, never a tier, version or effort |
 | **Stage** | **None** | Zero stage labels before release; the stage-that-is-the-release-trigger is the human's. Use `--forbid-family` only when the target's declared taxonomy supplies that family. |
 
 **Assign the human maintainer** — a specific user, never an org login — so the issue reaches
@@ -346,8 +353,9 @@ from a fixed list carried in this file.
 
 ## 6. After filing — offer the build
 
-Report the issue in object notation with its number linked, then offer the next verb in one
-line:
+Report the issue in object notation with its number linked — with the classification and routing
+rows' outcomes (§ 5: applied, owed, published, refused or unrouted, each said) — then offer the next
+verb in one line:
 
 ```
 hatsu:build <CODE>#<N>
@@ -365,7 +373,9 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
 
 - **Permitted:** the lane/agent labels on the issue it files and on the neighbours the plan
   names; the severity and kind labels; the comments (`nen issue comment`) and closes the plan states;
-  `nen label apply --run` for a severity bump the plan named, logged in its ledger.
+  `nen label apply --run` for a severity bump the plan named, logged in its ledger; on the issue it
+  files, the `lang/`/`job/` keys in the create call and, under the target's `direct.publish` only,
+  direct § 7's one `model/<line>` label and one marker comment.
 - **Not permitted:** any stage label (and, where the target declares its family, `--forbid-family`
   makes this a refusal), any
   G1 mode label, any merge, any review vote, any close the plan did not name.
