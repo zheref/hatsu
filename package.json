@@ -1,0 +1,11 @@
+{
+  "name": "hatsu-machinery-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:unit": "vitest run scripts/unit_tests_ci_fixture.test.mts"
+  },
+  "devDependencies": {
+    "vitest": "5.0.5"
+  }
+}

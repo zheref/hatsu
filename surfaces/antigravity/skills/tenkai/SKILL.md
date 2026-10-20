@@ -183,6 +183,7 @@ either operation.
 | `Reports/`, `.nen/` | **Hatsu** | Created **and** git-ignored. Both halves: an unignored `Reports/` puts a rendered HTML report into somebody's next commit |
 | the `commit-msg` trailer hook | **nen** | **Routed** to `nen scaffold init` — § 6. Tenkai writes no hook |
 | the policy-guard registration | **Hatsu** | **Routed**, and it gates the item below — § 5a |
+| `scripts/readiness_ci_verdict.mts` | **Hatsu** | Copied into the consumer before the readiness workflow is rendered. `scripts/tenkai_readiness_guard.mts` owns the adoption decisions (BC-11); a symlink or hand-written reader is never overwritten |
 | `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner — § 5. **A file Tenkai did not render is never overwritten** |
 | other privileged workflows | **Hatsu** | **Observation only.** Named, never written — § 5d |
 | `scripts/release-publish.sh` | **Hatsu** | Rendered — **only in a process/system repository** — § 6a; product publishers are chosen by their owners |
@@ -331,9 +332,8 @@ quotes the defect it prevents, including the literal slug) — the one comment r
 comment, because there the comment is the property:
 
 - a `runs-on` that no longer matches what this repository derives (§ 5b);
-- a **dropped `--gates`** — nen falls back to `<cwd>/nen/gates.json`, and the cwd in that job is the
-  **PR head checkout**, so losing the flag hands the pull request the gate that judges it. It reads
-  as a harmless simplification and is not one;
+- a **missing or changed trusted JSON reader** — its source pins `--gates` to the base checkout;
+  running a reader from the PR head hands the pull request the gate that judges it;
 - any surviving `@@TOKEN@@`, which means the file was copied rather than rendered;
 - a **trigger set that is not exactly the admitted two** — § 5c; it matters in both directions,
   because an extra one may be an event no workflow can even register with.
@@ -429,8 +429,8 @@ Two things follow, and neither is left implicit:
 
 - **§ 5's drift checks and the rendered job's own guards are the safety net** in a consumer with no guard of its own. That is why
   they assert the inherited hardening — the trusted checkout's ref, `persist-credentials` on **every**
-  checkout step, no write scope beyond `checks`, no `${{ }}` inside a `run:` body, and `--gates`
-  matched as a **whole argument** rather than a flag name.
+  checkout step, no write scope beyond `checks`, no `${{ }}` inside a `run:` body, and the exact
+  trusted reader invocation and installed source.
 - **Every other privileged workflow in the repository is named** — `pull_request_target`,
   `workflow_run`, `issue_comment`, `workflow_call` — as an **observation row that writes nothing**.
   Installing the guard into a consumer is a separate, maintainer-owned change; this item exists so
@@ -770,9 +770,9 @@ State, out loud, in this order:
   `scripts/workflow_runner_policy_check.rb`'s own frozen `HOSTED_RUNNER` mandate to consume
   `runner-policy`'s derivation is a **separate change to that file**, and it is named here rather
   than smuggled into an adoption run.
-- **`nen pr ready --json`.** The rendered workflow still derives its check title by `head -1` and a
-  prose-prefix strip. It works, and it parses human-readable text: the day nen rewords that line,
-  every consumer's signal breaks silently. Filed against `zheref/nen`, not improvised here.
+- **The JSON readiness reader.** Tenkai installs the reader before its workflow. A process repository
+  whose trusted workflow guard still admits only the old text step stages the workflow until its
+  exact JSON step is admitted in a separate policy PR.
 - **Writing a declaration value has no nen verb.** `config_values.sh` scans and inserts JSON
   itself (§ 6d's `fill` and `set`), and relies on nen reading every `$`-prefixed key as metadata — a
   convention zheref/nen's loaders follow (`src/schema/source.ts`) but no published contract states.
