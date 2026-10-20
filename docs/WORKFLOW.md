@@ -1063,16 +1063,20 @@ repository declares `tags.identity` it names the identity `kagutsuchi`'s tag wil
 is not (§ 3b, the maintainer's ruling of 2026-09-29: only when the latest build is not up to date with
 the target branch).
 
-**One more thing only the maintainer calls — and it is not one of the five.**
+**Two more things only the maintainer calls — and neither is one of the five.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`black-voice`](../claude/skills/black-voice/) | **post-merge UI validation.** Resolves the merged PR and the acceptance criteria of the issues it closed, raises **Shalnark** once to drive every criterion through ephemeral automated UI tests, and publishes pass / fail / not-testable per criterion | it runs *after* the gate, on work already merged, and guessing which PR was meant wastes the whole run |
+| [`hiraishin`](../claude/skills/hiraishin/) | **a merged PR, ported to one sibling.** Refuses a source not merged into its base, runs `kamui`'s spec step and waits at its **G2** merge where the family declares a spec repository, writes the port brief, asks every unmapped row in one batched `port-drift` call, files the port issue — the typed call is its **G1** — and builds it to the target's merge prompt | it runs *after* the gate, on work already merged, and every port starts on the maintainer's typed call: an automatic port on merge is out of the epic's scope (zheref/hatsu#354) |
 
-**It sits outside the five deliberately.** It crosses no gate, decides nothing and blocks nothing —
+**`black-voice` sits outside the five deliberately.** It crosses no gate, decides nothing and blocks nothing —
 it is an optional look back at a delivery, so nothing schedules it: not `ren`, `mukai`, `en`, `futon`
 or `backlog-loop`, and no agent proposes it. **Never automatic and never from a composite**, and the
-skill refuses mechanically rather than on manners — see its § 1.
+skill refuses mechanically rather than on manners — see its § 1. **`hiraishin` is outside the five for
+the same reason it is typed only**: it runs after the gate, on work already merged; it crosses no gate but
+the G1 its own typed call carries for the port issue, ends at the target's **G2**, and is never started
+from a composite or on a merge (zheref/hatsu#354).
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
@@ -1659,6 +1663,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
+**`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` § 3's spec step and **G2** wait where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from kamui's record (zheref/hatsu#357, epic #354).
 **`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
 parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
