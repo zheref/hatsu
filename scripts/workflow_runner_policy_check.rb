@@ -2374,11 +2374,12 @@ def self_test(root)
       validate_repo(tmp, announce: false)
       FileUtils.rm(installed)
     end
-    PENDING_UNIT_TEST_WORKFLOWS.each do |name|
+    (PENDING_UNIT_TEST_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS).uniq.each do |name|
       staged = File.join(root, "templates", name)
       fail_policy("self-test: staged #{name} is missing") unless File.file?(staged)
       installed = File.join(tmp, ".github/workflows", name)
-      FileUtils.cp(staged, installed)
+      original_installed = File.file?(installed) ? File.read(installed) : nil
+      FileUtils.cp(staged, installed) unless original_installed
       validate_repo(tmp, announce: false)
       original_unit_tests = File.read(installed)
       File.write(installed, original_unit_tests.sub("contents: read", "contents: write"))
@@ -2389,7 +2390,11 @@ def self_test(root)
       expect_rejected("unit-tests runner cannot come from PR", /changed from the staged/) do
         validate_repo(tmp, announce: false)
       end
-      FileUtils.rm(installed)
+      if original_installed
+        File.write(installed, original_installed)
+      else
+        FileUtils.rm(installed)
+      end
     end
 
     plugin = File.join(tmp, ".github/workflows/plugin-bump-check.yml")
