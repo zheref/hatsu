@@ -479,6 +479,20 @@ two added the step to the workflow and narrowed `EXPECTED_STEPS` to it, one shap
 canon-contract failure reads as a red `surface-mirror-check`, and a run red at the drift step never
 reaches it (a check of its own would be the #135 route).
 
+**2026-10-20. The redaction-guard fixture runs in CI
+([zheref/hatsu#337](https://github.com/zheref/hatsu/issues/337)), both steps landed.**
+`scripts/private_name_check_fixture.sh`, the `redaction-guard` lane's hermetic fixture, ran only when a
+session ran that lane. It now runs as a `Redaction guard fixture` step of `surface-mirror-check.yml`,
+right before the finish step, landed the #223 way under the frozen-step rule. Step one taught the
+validator the step and admitted both shapes, with and without it (`ALLOWED_STEP_SHAPES`,
+`REDACTION_FIXTURE_STEP`), and froze its one form (`REDACTION_FIXTURE_FROZEN`: `set -euo pipefail`,
+then the trusted checkout's fixture; no env, no token, no `nen shu test --repo .`, no swallowed red;
+the self-test holds on both trees and runs the body against stand-in fixtures). Step two added the
+step and narrowed `EXPECTED_STEPS` to it, so its absence is refused. The fixture reads no secret and no
+private list, so the step proves main's guard on the runner's Linux toolchain; a pull request that
+breaks the guard is judged by main's copy, and its red lands on the pull requests after it merges.
+The tree check (`redaction-tree`) needs the live list and stays on the maintainer's machine.
+
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
 stages its file at `templates/<name>`, where the self-test judges it as if installed; the second

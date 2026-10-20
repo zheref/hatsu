@@ -295,6 +295,7 @@ EXPECTED_STEPS = {
     "Surface-mirror drift check",
     "Canon data contracts check",
     "Direct matrix drift check",
+    "Redaction guard fixture",
     "Finish check on the exact PR head"
   ],
   # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
@@ -1071,16 +1072,17 @@ DIRECT_MATRIX_FROZEN = {
     node .trusted/scripts/direct_matrix_ci_check.mts "$PWD"
   RUN
 }.freeze
-# The redaction-guard fixture in CI (zheref/hatsu#337, step one of a two-step landing):
-# surface-mirror-check.yml may carry "Redaction guard fixture" right before its finish
-# step, and wherever it does the step is held to this one form. It runs the TRUSTED
+# The redaction-guard fixture in CI (zheref/hatsu#337, both steps landed):
+# surface-mirror-check.yml carries "Redaction guard fixture" right before its finish
+# step, and the step is held to this one form. It runs the TRUSTED
 # scripts/private_name_check_fixture.sh, which exercises the TRUSTED
 # scripts/private_name_check.sh beside it over invented names, a stub gh and scratch
 # trees under mktemp: no secret, no private list, no nen, and nothing from the pull
 # request's checkout is read, executed or printed, so the output needs no fence. The
 # fixture's own exit is the verdict, propagated by errexit with nothing mapped, so the
-# body is no shell verdict of its own (BC-11). Step two installs the step and narrows
-# ALLOWED_STEP_SHAPES back to one shape. What it proves is the guard on the trusted
+# body is no shell verdict of its own (BC-11). Step one admitted the step-less shape
+# beside it; step two installed the step and narrowed ALLOWED_STEP_SHAPES back to one
+# shape, so its absence is refused. What it proves is the guard on the trusted
 # revision, on the runner's Linux toolchain: a pull request that breaks the guard is
 # judged by main's copy, so its red lands on the pull requests after it merges.
 REDACTION_FIXTURE_STEP = "Redaction guard fixture"
@@ -1094,10 +1096,9 @@ REDACTION_FIXTURE_FROZEN = {
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  # Two shapes while zheref/hatsu#337 lands: the current one, and the current one
-  # with the redaction fixture before the finish step. Step two narrows it to the latter.
-  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml"),
-                                  EXPECTED_STEPS.fetch("surface-mirror-check.yml").dup.insert(-2, REDACTION_FIXTURE_STEP)]
+  # One shape again: zheref/hatsu#337's two-step landing is complete, so the
+  # redaction fixture step's absence is refused as a changed step set.
+  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml")]
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
