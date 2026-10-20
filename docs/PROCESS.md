@@ -357,9 +357,11 @@ counts, because no request of the lane is ever pending; and a lane, outside `bas
 never requested**: never in `base_reviewers`, and `shibari` and `sharingan` never call `nen pr
 request-reviews` for a lane; a nen field declaring that is zheref/nen#440. **A push re-runs the lane**
 (`cancel-in-progress`), and its check, pending at the new head, holds `checks-green` like any running check
-until it concludes: that is the current-head wait — never a request, and never a stall by itself; a lane
-check still `QUEUED` or `WAITING` past `round_policy.stallMinutes` is a named impossible condition for the
-watch, reported not-ready with the check's state quoted (this delivery's reading). nen enforces no review
+until it concludes: that is the current-head wait — never a request, and never a stall by itself. A lane
+check still waiting for a runner (nen's `meta.waitingChecks`: `QUEUED`, `WAITING`, `PENDING`, `REQUESTED`)
+longer than `round_policy.stallMinutes`, timed from `en`'s own first observation of it waiting at this head
+(nen exposes no queue age), is a named impossible condition for the watch, reported not-ready with the
+check's state quoted — a Hatsu reading; nen enforces no lane stall. nen enforces no review
 **at** the new head: a lane that concludes green there without reviewing still reads as having its earlier
 round; a per-reviewer strict reading is owed to zheref/nen#440. **A lane whose check concluded green with no
 review is unavailable** (unprovisioned: the lane exits green without running, `AK`'s reviewer-lane issue):
@@ -367,7 +369,8 @@ nen counts no round for it, so a met quorum covers it and an unmet one is owed t
 **`round_check_pattern` is declared only for a lane whose check is its round**, and that check's conclusion
 when the lane did not review must be `NEUTRAL` or `SKIPPED` — never `SUCCESS`, which nen would count as a
 round nobody ran, and never `FAILURE`, which fails `checks-green` (`CON-32(a)`) on every head the lane sits
-out; its `NEUTRAL` or `SKIPPED` at head is one of *The sixth stop*'s (c) observations. A posted-review
+out; its `NEUTRAL` or `SKIPPED` at head is one of *The sixth stop*'s (c) observations when `roundQuorum`
+reports it from `head` (no earlier-head round). A posted-review
 lane's `reviewers[]` entry declares `login_pattern` (anchored to the App's exact login) and **no
 `round_check_pattern`**; a `review_check_pattern` may name its check, and nen reads that key only for a
 `delivery_holistic_pass` reviewer. **The quorum** (ruling *"Join any_of, minimum 2 when 2+ lanes
