@@ -236,7 +236,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `hanten` | adversarial review pre-PR: classify the change set by scope, raise one reviewer per raised scope with budget left, settle each finding | `nen review scopes` → Nobunaga · Hisoka · Feitan · Chrollo · Uvogin · Phinks · Leorio → fix or push back | `mukai`; you |
 | `kotoamatsukami` | impacted project-wide unit, UI and integration tests; a skipped suite needs a named proof | `nen shu test` on the declared suites | `mukai` |
 | `byakugan` | coverage capture and touched-file measurement against the ladder; raises the G5 under `coverage.minimum`; never runs tests | `nen shu coverage --touched` | `mukai` |
-| `shibari` | compose the PR body from the template and open one PR: evidence table, checklist, associated issues, attribution ledger, changelog fragment | `nen pr body-check` → `nen pr open` → request reviewers | `mukai`; you |
+| `shibari` | resolve kind × family sections from the catalogue and open one PR: seven reader sections maximum, kind-specific verification, compact footer | sections guard + `nen pr body-check` → `nen pr open` → request reviewers | `mukai`; you |
 | `en` | **composite**: one PR from open to verified Ready and your merge prompt, under a mandatory acting-cycle cap | landing report → `sharingan` → `murasaki` when behind → `sharingan` → observe (Illumi on a long hold) → `jutaisho` at Ready | `mukai`'s offer; `build`; you |
 | `sharingan` | drive one PR to readiness at its gate and stop: first blocking condition, threads, the owed reviewer round, the verdict | `nen pr ready` → threads → `nen pr request-reviews` | `en` (steps 2 and 4); `tensho`; you |
 | `pr-state` | one PR's readiness as the deterministic verdict, quoted, conjunct by conjunct. Read-only | `nen pr ready --explain` | you; `rikugan` |
@@ -394,7 +394,7 @@ surfaces/           GENERATED mirrors for codex/, cursor/, antigravity/: never e
 hooks/              the three harness hooks: session start (binds nen), stop bell, base-branch guard; POSIX sh, no jq
 nen/                this repository's own declarations: contract.json, workflow.json, gates.json, labels.json, repos.json, colors.yml, decisions.json
 contracts/          plugin-owned registries: permissions, the classify taxonomy, the direct registry, the config catalogue, scan rows
-templates/          the PR body, the report pages (spiritual-message and rikugan, as .html and .md, with report-examples/), the readiness and preflight workflows, release-publish.sh
+templates/          per-section PR fragments (docs/PR-SECTIONS.md), the report pages (spiritual-message and rikugan, as .html and .md, with report-examples/), the readiness and preflight workflows, release-publish.sh
 scripts/            the guards and runtime scripts an installed copy executes, each with its fixture
 docs/               WORKFLOW · PROCESS · ROSTER · STANDALONE-ENTRY · GATE-CONFIGURATION · DIRECT-MATRIX · ECONOMICS · NEN-CONTRACT
 docs/using/         setup, usage and maintenance per surface          docs/config/   every configuration file, key by key

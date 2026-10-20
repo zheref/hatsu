@@ -1,5 +1,8 @@
 # A/B evidence — `tensho` (zheref/hatsu#2)
 
+> Historical transcript: “How to verify” below is the product verification title. Current kind-specific
+> composition is [PR-SECTIONS.md](../PR-SECTIONS.md); recorded command output is preserved.
+
 Port of `claude/skills/tensho/SKILL.md`: turning a dirty working copy into one PR standing ready at
 its gate. Old mechanics: prose reasoning over `git status`/`git diff` by hand — a four-case table
 for where the checkout sits, a six-category flag list for what never gets staged blind, unchecked
