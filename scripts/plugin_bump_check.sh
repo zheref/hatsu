@@ -255,6 +255,11 @@ fi
 #                       From v0.66.0 this matters twice over: Codex installs
 #                       Hatsu by COPYING the checkout into a slot keyed on this
 #                       version, so an unbumped script change never reaches it.
+#   scripts/cleanup_path_admit.sh, scripts/cleanup_path_admit.ts
+#                     — cleanup § 4 admits every worktree path through the shim
+#                       (which execs the .ts beside it) from `$hatsu_root/scripts/`
+#                       (zheref/hatsu#333); a stale copy of either would admit a
+#                       path the canon refuses, or report facts § 5 no longer reads.
 #   scripts/hatsu_surface_link.sh
 #                     — bakuryuha § 3 makes each surface's first-party install
 #                       through it (v0.66.0), run from the checkout it serves;
@@ -326,6 +331,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/dist_tag.sh'
   'scripts/send_freshness_check.sh'
   'scripts/kagutsuchi_worktree.sh'
+  'scripts/cleanup_path_admit.sh'
+  'scripts/cleanup_path_admit.ts'
   'scripts/hatsu_surface_link.sh'
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'

@@ -36,10 +36,13 @@ surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `cont
 runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/nen_global.sh`,
 `scripts/hanten_cycle_ledger.sh`, `scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
-`scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`, `scripts/hatsu_surface_link.sh`,
-`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/private_name_check.sh`,
+`scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`, `scripts/cleanup_path_admit.sh`,
+`scripts/cleanup_path_admit.ts`, `scripts/hatsu_surface_link.sh`,
+`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/canon_contracts_check.sh`,
+`scripts/publish_gate.sh`, `scripts/private_name_check.sh`,
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
-`scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
+`scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`,
+`scripts/gh_token_env.sh`, `scripts/nen_reach_probe.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts

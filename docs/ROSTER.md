@@ -36,7 +36,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in a canon repository (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)), which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge prompt that ends every PR into `main` (`en` § 5). May merge a recorded Futon-owned stacked delivery PR only through `nen pr merge --delivery` at Ready (§ *Ruling of 2026-10-19 — recorded Futon delivery merges*); Futon may merge locally into its own integration branch. Never votes, never self-reviews. | drives *to* G2/G4; never crosses either gate |
 | **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR, merges it himself through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*) and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; publishes one, or uploads a build, only on the maintainer's own go — by name, in their own words, or as a step of their own `futon` `then` chain (the advance go, `mugetsu` § 3), which Emitter runs (amended in place by the 2026-09-30 clarification under § *Rulings of 2026-09-26/27/28*, ruling 2(a)). | **G3** stays the human's (`CON-6`) |
-| **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. | **G1** stays the human's (`CON-4`) |
+| **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. The ceremony is [`hatsu:emperor-time`](../claude/skills/emperor-time/SKILL.md) (`v0.116.0`): direct, interview, challenge (by a raised persona — **OPEN-4**), reconcile, file, offer the build. | **G1** stays the human's (`CON-4`) |
 
 **Kurapika is local-only.** His prior trajectory in the upstream canon — local surface retired into another
 persona's nature, himself earmarked as a CI Product-Owner App — is **superseded** by the ratified migration
@@ -625,7 +625,8 @@ repositories are canon.
   `bootstrap/`. Its workflows run against other repositories, so a merge there changes what they do.
   **The trailer rule is untouched by this**: `Akatsuki-Agent:` is still written only by an Akatsuki
   roster agent, and a Hatsu persona still refuses it. Being canon is about which gate a change to it
-  stands at, not about who may sign a commit.
+  stands at, not about who may sign a commit. **Named since 2026-10-19** as `zheref/akatsuki-ai`, code
+  `AK` (§ *Rulings of 2026-10-19 — the Akatsuki CI repository is named*).
 - **`<scaffold-repo>`** — and this one *sharpens* the rule rather than just extending it. It
   carries **no constitution prose at all**: it is a TypeScript package (`source/`, `scripts/`,
   `package.json`). It is canon because **a scaffolder writes the setup into every repository it
@@ -891,6 +892,8 @@ fixed shape and crosses no gate, and **Shalnark** hands his pass / fail / not-te
 | **OPEN-1** | Illumi's and Killua's final roles | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 5): Illumi is **provisioned** for `en`'s long watch, and his definition landed at `v0.5.0` scoped to exactly that. His other proposed engines — `backlog-loop`, `futon`, `senkei` — **and the whole of Killua's row, remain OPEN**: a G4-class ruling by the maintainer, **unmade**. Provisioned is not ratified. |
 | **OPEN-2** | Gon's delegation-grammar clause | **Untouched.** Drafted here; ratified with the P3 constitution in the migration tracker (private). **Until then, Gon crosses no gate.** |
 | **OPEN-3** | Genei Ryodan bench adoption — which profiles activate, and when | **PARTIALLY RULED 2026-09-09** (§ *Rulings*, 4): **Feitan** (security only) and **Chrollo** (architecture and handbook conformance) are activated, definitions at `v0.5.0`. **FURTHER RULED 2026-09-19** (§ *Rulings of 2026-09-19 — Nobunaga, Shalnark, the review preamble*): **Shalnark** is activated as the optional post-merge UI validation automator, reachable only through `hatsu:black-voice`, definition at `v0.42.0`; **Nobunaga**, never benched, is activated as the general code reviewer in the same ruling. **FURTHER RULED 2026-10-13** (§ *Rulings of 2026-10-13*, 4): **Shizuku** is activated as cleanup, reachable only through `hatsu:cleanup`, definition at `v0.108.0`. The other **three** profiles — Machi, Kortopi, Pakunoda — remain **bench doc only**, unscheduled. |
+| **OPEN-4** | Who challenges a product brief adversarially, under what contract and what cap — [`emperor-time`](../claude/skills/emperor-time/SKILL.md) § 4 | **OPEN since 2026-10-19.** `hanten`'s reviewers are routed by `nen review scopes` over a change set, and a scope claiming no path is refused by `nen schema check` at `0.22.0` (*"names no paths. A scope that claims nothing can never be raised by any diff"*), so a brief's challenger is a declared value, not a scope. Kurapika never reviews his own work (`claude/agents/kurapika.md` § *Hard limits*). Three questions, drafted as the picker on the PR that landed the skill: **(a) who** — ⭐ **A** Nobunaga (adversarial reading, scope completeness) · **B** Phinks (the `QA-2` hypothesis classes, over a brief) · **C** Chrollo; **(b) under what contract** — whether a reviewer persona may be raised outside `hanten` at all, and the return shape (the preamble's § 4 with `path` = the brief's field, or a declared brief-challenge mode in the preamble); **(c) the cap and its ledger** — the skill ships two rounds counted nowhere. The declared home proposed: `nen/workflow.json` → `intake.challenger`, a Hatsu-own key on the `aiReviewers` precedent — read from the **session's** checkout (who challenges is Hatsu policy, not consumer policy), value set `{nobunaga, phinks, chrollo}` with its `$intake` annotation and catalogue row, an out-of-set value re-asking. Until ruled, `nen/decisions.json` row `intake-challenger` asks once per run and the answer binds that run only, **never written**. |
+| **AK OPEN-4** | Hidan's activation — the Akatsuki CI repository's own `OPEN-4`, a different register from Hatsu's `OPEN-4` above, recorded here because Hatsu installs the tier | **RULED 2026-10-19 per consumer** (§ *Rulings of 2026-10-19 — the CI reviewers tier*, 3): asked at install by `kuchiyose`, recorded in the consumer's `ci.rulings.hidan`. **Closed.** |
 | **Attribution** | Which trailers a commit may carry, and which of them this plane writes | **RULED 2026-09-09** (§ *Rulings of 2026-09-09*, 2), **REFINED 2026-09-10** (§ *Rulings of 2026-09-10*, *Two provenance trailers*): two provenance trailers, one per plane — this roster writes `Hatsu-Agent`, the CI plane writes `Akatsuki-Agent`, both are admitted by policy, and no other AI attribution trailer is ever recorded. **Closed.** |
 
 **Nothing above is resolved by reading this document confidently.** Where a row says PARTIALLY RULED, the
@@ -910,6 +913,159 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-20 — worktree-local ledgers are disposable
+
+**The question, verbatim**, put through the picker on `hatsu:kurapika`, 2026-10-20, during hanten round 2 on [#333](https://github.com/zheref/hatsu/issues/333):
+
+> A worktree holding its own .nen/ ledgers: how should cleanup treat it?
+
+**The maintainer's answer, verbatim** (the picker is the source):
+
+> **C · Ledgers are disposable** — A merged effort's worktree-local ledgers may go with it; core's markers suffice.
+
+| Ruling | What follows from it |
+|---|---|
+| **Core's `.nen/` is the record** | [`cleanup`](../claude/skills/cleanup/SKILL.md) § 4's *the `.nen/` ledgers are the record and never a leftover* and its Authority's *touching a `.nen/` ledger* mean **core's** `.nen/`. A worktree's own `.nen/` goes with its worktree. |
+| **Reported, never counted** | `scripts/cleanup_path_admit.ts` reports an ignored `.nen/` at an admitted worktree's root truthfully, as `!! .nen/ (worktree-local ledgers, removed with the worktree; disposable — ROSTER § Rulings of 2026-10-20)`, and that line alone does not make the tree dirty, so a merged, otherwise-clean effort worktree reaches § 5's deterministic row. Any other ignored entry still makes the tree dirty and is listed. The script's header states the rule; everything else cites it. |
+| **Not a licence past the worktree** | Nothing here lets cleanup touch core's `.nen/`, and a nested repository under an ignored worktree-local directory is still refused by the admission. |
+
+---
+
+## Rulings of 2026-10-19 — the CI reviewers tier
+
+**The maintainer's answers, verbatim**, through the picker during the Kurapika intake of 2026-10-19 that
+filed the first Akatsuki CI tier — the reviewer lanes Sasuke, Kakuzu, Konan and Hidan — as installable on
+any Hatsu-enabled repository (zheref/hatsu#329, #330, #331; zheref/nen#440; `AK` issues in the Akatsuki CI
+repository, which stays private — its name made public by the ruling recorded below, zheref/hatsu#329). Each question as asked, then the answer
+picked; *(Recommended)* marks the option the picker starred:
+
+1. *"How should the Akatsuki reviewers relate to the one-value aiReviewers setting?"*
+   > One value for every bot
+2. *"How do the Akatsuki reviewers sit in the round quorum?"*
+   > Join any_of, minimum 2 when 2+ lanes installed
+3. *"Does Hidan join the first reviewers tier?"*
+   > Per consumer at install
+4. *"Which GitHub App identities should the reviewers run under?"*
+   > Create the -akatsuki Apps (Recommended)
+5. *"Which Claude billing should the reviewers tier default to on a consumer?"*
+   > Ask at install, OAuth starred (Recommended)
+6. *"Should jutsu register the lane checks as required status checks on the consumer's main?"*
+   > Yes, print the ruleset step
+7. *"Should the CI repository itself be adopted as a Hatsu consumer first, so the loop can build, review and tag it?"*
+   > Yes, tenkai first (Recommended)
+8. *"Keep the skill name jutsu, beside jujutsu, jujisho and jusshin?"*
+   > Rename to kuchiyose
+
+(`jutsu` in questions 6 and 8 is the installer's working name, renamed by answer 8.)
+
+| Ruling | What it says |
+|---|---|
+| **1 · One `aiReviewers` value** | `nen/workflow.json` → `aiReviewers` covers every automated reviewer, the lanes included; a lane is never requested, so for a lane the value gates only whether its round is expected. `off` with lanes installed: their rounds are not expected while the lanes still run and post; a consumer turns a lane off through its own caller workflow. [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer* and *Event-driven reviewer lanes*, stated once there |
+| **2 · The quorum** | Every installed lane joins `round_quorum.any_of`; `minimum` is `2` once two or more lanes are installed, `1` otherwise. Accepted with it: one bot's round while another member is still available is `rounds-owed` under `sharingan` § 6's bounds, *The sixth stop* only when every member is unavailable, and under `optional`/`off` the hanten prompt unchanged. *Derived in zheref/hatsu#330's review, ratified by its G4 merge:* a posted-review lane makes none of (c)'s observations until zheref/nen#440, so under `required` a PR with such a lane installed and its quorum unmet ends at `cap-reached`'s terminus. PROCESS, *Event-driven reviewer lanes*, stated once there |
+| **3 · Hidan per consumer** | Hidan's activation is asked per consumer at install, recorded in the consumer's `ci.rulings.hidan` ([`WORKFLOW.md`](WORKFLOW.md) § 2 → `ci`). **The Akatsuki CI repository's `OPEN-4`** (*AK OPEN-4* in § *Open items*; Hatsu's own `OPEN-4` is another question) — Hidan's activation — **is ruled per consumer** |
+| **4 · App identities** | The lanes run under new `-akatsuki` GitHub Apps, one login per lane, which each lane's anchored `login_pattern` names ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3); creating them is the maintainer's ceremony |
+| **5 · Claude billing** | Asked at install, the subscription OAuth token (`claude_code_oauth_token`) starred and the metered API key the alternative. `ci.rulings.claudeAuth` records the credential **type** — one of those two names — never its value: the secret lives only in the consumer's Actions secret store |
+| **6 · Required status checks** | The installer prints the ruleset step that registers the lane checks as required status checks on the consumer's default branch; it never applies the ruleset itself |
+| **7 · The CI repository adopted first** | The Akatsuki CI repository is adopted as a Hatsu consumer through `tenkai` before its lanes are tagged, so its own issues run through `hatsu:build` and `getsuga` cuts its first tag |
+| **8 · The skill's name** | The installer is **`hatsu:kuchiyose`** (zheref/hatsu#331), not `jutsu` |
+
+**Read under the constitution:** rulings 1 and 2 are read under `CON-16` (only enabled reviewers gate) and
+`CON-32(b)` (the verdict is `nen pr ready`'s, quoted, nothing relaxed); neither changes either clause.
+Cited from PROCESS's *Event-driven reviewer lanes*, `GATE-CONFIGURATION.md` § 3 and `WORKFLOW.md` § 2 → `ci`.
+
+---
+
+## Rulings of 2026-10-19 — the Akatsuki CI repository is named
+
+**Context.** zheref/hatsu#329: the CI plane's repository is private, `docs/PUBLIC-REDACTION.md` forbade
+naming it in this public tree, so its code `AK` could not enter `nen/repos.json` and every `AK` issue was
+driven only from inside that checkout. Earlier on 2026-10-19 the maintainer ruled, through the picker,
+that it **stays private** (the answer, verbatim: *"Stays private"*). The `hatsu:build` effort for #329 then
+asked the remaining question through the picker: a git-ignored overlay (`.nen/repos.local.json`) or a
+committed placeholder row. The maintainer typed this answer in the picker's free field instead:
+
+> Since akatsuki-ai is a private repository we don't want to avoid people hearing from, this is the only
+> exception when avoiding to name private repositories. We can name this one despite staying
+> code-private. So, feel free to mention it open.
+
+| Question | The maintainer's answer, verbatim | What it settles |
+|---|---|---|
+| **zheref/hatsu#329** — *how is a private maintained tool registered without naming it in a public tree: a git-ignored overlay, or a committed placeholder row?* | `Since akatsuki-ai is a private repository we don't want to avoid people hearing from, this is the only exception when avoiding to name private repositories. We can name this one despite staying code-private. So, feel free to mention it open.` | **Neither.** `zheref/akatsuki-ai` is the **one named private repository**. Its code stays private and its name is public. `docs/PUBLIC-REDACTION.md` § *Named private repositories* records the exception, and its legend row `<ci-plane-repo>` names it. `nen/repos.json` carries it under `maintained_tools`, with `AK` under `product_codes`. `nen repo resolve AK` answers `via code` from a Hatsu checkout and `nen repo classify --target zheref/akatsuki-ai` answers role canon, gate G4. `scripts/private_name_named.txt` is the one committed exemption list, exact `owner/name` only and a bare name refused. `scripts/private_name_check.sh` reads it by default, with fixture cases in `redaction-guard`. `hatsu:file` § 4 joins it with the maintainer's ignore file into the one file nen's guard takes. `hatsu:build` § 1 resolves a code against the checkout it stands in, as `classify` § 1 does. No overlay and no placeholder row is built, and nen's `repo resolve` needs nothing new. Built by the effort `opus/kurapika/ha-329-akatsuki-named` |
+
+**This run's readings, the maintainer's to correct:** (1) the ruling makes the **name** public, not the
+contents: the repository's files, prose and transcripts stay private; (2) its object ids are written
+`AK-IS-#<n>` / `AK-PR-#<n>`, outside the object-id rule's placeholder prefix; (3) the existing
+`<ci-plane-repo>` placeholders stand and are not rewritten: new text names the repository; (4)
+`kuchiyose` (zheref/hatsu#331) spells `ci.provider` as the code `AK`, resolved through this registry, so a
+consumer's `nen/workflow.json` carries no slug; (5) every other private repository is unchanged, and a
+second named repository needs a ruling of its own. **Owed to nen:** `nen issue` takes one
+`--private-names-ignore-file`, so the named list reaches nen's guard only through `file` § 4's joined
+file. A nen verb reading a repository's committed named list would retire that join (zheref/nen#441).
+**BC-11 debt, recorded as the 2026-10-17 ruling on #290 q3 recorded its three:** the named list adds
+branching to a shell guard with a three-way exit, so `scripts/private_name_check.sh` is frozen to fixes
+only pending its port to a nen private-name verb that also checks a tree (zheref/nen#441), and it retires
+at that repin (Chrollo, hanten on this effort). The alternative is to drop the committed list and put the
+one exact `owner/name` in the maintainer's own ignore file, with the guard unchanged; the cost is no
+record in the tree and no bare-name refusal. That choice is the maintainer's at this PR's G4.
+
+---
+
+## Rulings of 2026-10-19 — Argon is a frontier alias
+
+**The two options as asked**, on `hatsu:build HA#340`:
+
+- “Argon replaces the deep/pro row (recommended)”
+- “Argon becomes a new frontier alias”
+
+**The maintainer's ruling, verbatim:**
+
+> Argon becomes a new frontier alias
+
+**The picker question as asked:**
+
+> What does Antigravity’s lead model picker show on your machine, and what does `agy --model pro` serve? Please include any app/CLI version or access limitation you see; HA#340 requires this observed answer in the ruling.
+
+**The maintainer's answer, verbatim:**
+
+> Not sure how to answer this. If I open the macOS Antigravity app how do I know which is the lead model? By default is always picking Argon. But by default when open the Antigravity CLI, it's picking Opus 5.5 Low (which we don't want to use on this surface preferably since we're aiming to seize provider-specific models here).
+
+**Implementation of the ruling (agent interpretation, not additional maintainer words).**
+`VISUAL_MAX` is the Google frontier alias; `VISUAL_ORCHESTRATOR` retains the 3.1 Pro deep
+snapshot and escalates to it. The frontier alias appears only through the existing recommended
+pick rule; no routing cell changes here (HA#342 owns those). The alias is ranked after the two
+existing frontier aliases to preserve their ordering. Argon's independent measurement evidence
+is contextual, never a routing instruction. Prices are dated: $2/$10 per 1M input/output tokens
+through 2026-11-30, $4/$20 from 2026-12-01, per Google's sheet re-read 2026-10-19 (ECON-8).
+
+The lead is the main conversation's selected model; the app observation establishes Argon there.
+It does not establish what `pro` means in the CLI. A local 2026-10-19 probe initially found
+`agy` 1.0.6 and no Gemini models in its listing. A fresh probe later found 1.4.2, with Argon and
+Flash at Low/Medium/High. `agy --model pro --print /model` exited 1 with an unrecognized-model
+error; `agy --model argon --print /model` also exited 1. `agy --model gemini-4-argon --print /model`
+exited 0 and returned `gemini-4-argon-medium`. This is selection evidence without an inference
+request. Hatsu therefore sets `models.antigravity.frontier` to the verified `gemini-4-argon`
+selection instead of the unverified `ultra`. The stable registry alias remains `VISUAL_MAX`;
+the concrete CLI selection belongs to consumer configuration. Deep remains `pro`, whose local
+CLI availability is explicitly unverified. The persona key still admits only `inherit`, `flash`,
+`pro`; the frontier selection is lead-only, never emitted for a subagent.
+
+**Fan-out.** Consumers adopting this frontier alias must update their own
+`models.antigravity.frontier` after verifying local availability. This delivery changes Hatsu's
+configuration only. Do not accept an Opus default as proof of a Google model selection.
+The standalone IDE picker was not observed on this machine; historical CLI rollout failures
+remain dated served lag, not evidence against the successful 1.4.2 selection.
+
+**Folded evolve findings (Netero shape), HA#340.** The stale headless `pro` row risks selecting
+an unavailable alias: its evidence is the exit-1 probe, settled by the verified explicit frontier
+selection. The tier row's unverified `ultra` and missing frontier model obscured what the lead
+runs: the ruling, app observation and CLI read-back settle it. The persona-values row remains
+unchanged in meaning, re-quoted and dated from the provider. The missing thinking dial and API
+prompt constraints risk under-budgeting difficult work or relying on unsupported caching:
+Google's migration sheet settles both in guide § 11.2. Each drifted row is folded here rather
+than filed as a duplicate surface-drift issue; no generator model-value expansion is authorized.
+
+---
+
 ## Rulings of 2026-10-19 — every new filing runs classify and direct
 
 **The maintainer's request, verbatim**, on `hatsu:kurapika`, 2026-10-19:
@@ -926,6 +1082,26 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
 - **One plan, one confirmation.** The routing row — `direct`'s three picks, resolved from the classification rows as **proposed** (no number yet; never re-classified), with the target's own checkout, kind, role and planned labels as inputs — joins file § 4's plan under the same confirmation; its comment body is a § 4 draft, redaction-checked.
 - **Publish after the number exists, and only with classification.** `direct` § 7 runs once on the new issue under the target's `direct.publish`, read at the default branch's tip, and only where the classification keys travel in the create call and the number is certain; otherwise routing is owed, said. The label and comment post **after** the create rather than in its `--label`, so `direct` keeps one publish path and its ledger — the one exception to file § 5's *in the create call* rule. The cost is a window in which the new issue carries no `model/` label: a `futon @model/<line>` or `kazaana` run in it sees the issue unrouted, and `hatsu:direct backlog` or kazaana's unlabelled arm picks it up. **The alternative, for the maintainer:** carry `model/<line>` in the create's `--label` where `direct.publish` is `label` or `label+comment` and the label is declared, restated in the report, and post only the comment after the number.
 - **Never a stop.** A missing `nen direct` verb, an empty job axis (`undirectable`) or an undeclared `model/` label is one line in the plan and report; the issue is still filed. `direct` § 6's mismatch is never asked from `file`, which builds nothing.
+
+---
+
+## Reading of 2026-10-19 — a typed composite's delegated publication (unruled; the maintainer's to correct at G4)
+
+**This run's reading, the maintainer's to correct at the G4 merge** — never a ruling the maintainer
+made. Its evidence is zheref/hatsu#332, filed from the `hatsu:kazaana zheref/nen` sitting; its
+*Evidence* section reads, verbatim (excerpt):
+
+> The maintainer explicitly corrected the interpretation: Kazaana is a Futon wrapper and should autonomously publish working-branch commits needed to deliver the matching backlog.
+
+That is the filer's report of a correction, not the maintainer's own words, and nothing here quotes it
+as theirs.
+
+| Reading | What it says |
+|---|---|
+| **What it stands on** | Ruling 1 of § *Rulings of 2026-10-13 — kazaana, Shizuku activated, …*: each queued issue is authored **and published** by a delegate. § *Rulings of 2026-09-30 — En never merges*, row *Where an effort stops*: a futon effort on an integration branch runs `aka` to publish its own effort branch; on the stacked or per-issue shape its push is futon § 4 → build § 5's |
+| **What it reads** | A typed `futon` or `kazaana` line is the maintainer's one standing publish call for each queued effort's own working branch on the run's target repository, **scoped by destination, never by SHA** |
+| **Where it is stated** | [`aka`](../claude/skills/aka/SKILL.md) § 0's second carve-out, **once**: its Covered, Not-covered and Lapses rows, the handoff, the host refusal and the trajectory are not restated here; `murasaki` § 6, `en`, `mukai`, `futon` § 7 and `kazaana` § 3 cite it |
+| **What it does not rule** | standalone `hatsu:aka` (one call, one run); a merge into `branch.base` (en § 5) and a release (getsuga, mugetsu) |
 
 ---
 
@@ -1056,7 +1232,7 @@ open.
 | **Small ruling 3** — *PROCESS.md:94 says "a stop that is not a gate is a G5 with a DECIDE or DO ask": what class is a non-gate stop?* | `(a) A refusal row (Recommended)` | Option text: *"A non-gate stop is a refusal: it names the act and where to resume, no banner or picker; PROCESS:94 is rewritten and the decisions matrix gains the refusal class (shared with #176's on-device-act). Consequence: the five G5s stay five."* [`PROCESS.md`](PROCESS.md) § *Reporting a phase* now says so, citing WORKFLOW § 4 *What is not a gap*, and the other homes of the old reading (the lead persona, `sharingan`, the skill-shell rule's named stop) read refusal too; **this run's reading, the maintainer's to correct:** the `refusal` class itself waits on nen (the #176 row above). Built by the same effort — **2026-10-17:** q1 and q4 retire this row's refusal-class and five-count clauses; a non-gate stop is still a refusal (§ *Rulings of 2026-10-17*) |
 | **Small ruling 4** — *slot freeing for stacked efforts in `nen loop slots` (futon § 6): when does a stacked effort free its local slot?* | `(a) At PR-open, filed on zheref/nen (Recommended)` | Option text: *"A stacked effort frees its local slot when its PR opens on the previous branch; a nen request records it. Consequence: a 22-PR stack never exhausts the local cap of 7; nen loop slots learns a stacked state."* [`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests* rule 4 already counts the slot freed when the PR stands at its stacked base with hanten settled; the nen request (`nen loop slots` reading a `stacked` state) goes through the harvest. Built by the same effort |
 | **Small ruling 5** — *BC-11 on the CI nen-digest step (the pinned-binary sha256 compare in pr-readiness and surface-mirror-check): glue, or owed to a nen verb?* | `(a) Glue, not a predicate (Recommended)` | Option text: *"The digest compare is workflow glue reading one contract key; BC-11 does not bind it. Consequence: it stays in the two workflows; a tenkai rendered-digest follow-up still files as a nen request under Part C."* [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md)'s 2026-10-13 digest entry now records the ruling in place of its open question (the step lives in three workflows: the two checks and the regenerate builder). **How far it reaches is this run's reading, the maintainer's to correct:** rows #223 and #218 (i) cite it for a shell script with a three-way exit, which BC-11's text names as TypeScript's by default — one reading or two is the handbook question on the harvest. Built by the same effort — **reversed 2026-10-17 by q3**: the compare is a verdict, frozen to fixes only pending nen's digest check (§ *Rulings of 2026-10-17*) |
-| **zheref/hatsu#149** — *private repository names in issue bodies (partly ruled): rewrite the listed bodies, ship the run-time guard, or both?* | `(a) Bodies now + guard lane (Recommended)` | Option text: *"Rewrite the listed issue bodies (and #102's title) to the legend's placeholders now, with your explicit go per edit since each publishes on GitHub; ship the run-time guard (bare names, case-insensitive, whole-word, against the live gh repo list --visibility private, never committed) as a Hatsu lane; file the pre-filing check as a nen request. Consequence: ~17 edit gos during the build; the lane is skipped where no credentials resolve."* **What the build found:** the guard landed with v0.81.0 (HA-PR-#196; lane `redaction-guard` runs its hermetic fixture) and `nen issue file`, `comment` and `edit-body` refuse a private name at exit 4 given the guard's ignore file (nen 0.20.0, zheref/nen#367): criteria 2(a) and 3 were delivered before this ruling. Criterion 2(b), the tree check at kokusen or as a live lane, stays deferred as [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md) § *How it is guarded* says (the tree is not yet clean), so the option's live-guard lane is owed with it and **#149 stays open**; this reverses v0.81.0's "guard only, no rewrites" for the listed bodies. Of criterion 1's sixteen issues: #48, #85, #89, #93, #101, #102 (title too), #107, #108, #111, #113, #133 and #146 approved and rewritten on the maintainer's go per edit (four picker calls); #49, #60 and #63 left as they are (the maintainer's call, batch 1); #57 already clean, no edit needed. Left behind, the maintainer's own (the G5 DO rows on the register): each rewritten issue's pre-rewrite revisions still show the names in GitHub's public edit history until deleted one by one ("Delete revision from history"); #102's rename event still shows its old title (a GitHub Support request; never retitle it again); and the one name in #48 and #85 that reads as an ordinary dictionary word is PUBLIC-REDACTION's ignore-file case (`~/.config/hatsu/redaction-ignore`, a DO, never committed). **This run's reading, the maintainer's to correct at the G4 merge:** the dictionary-word case and treating the fixture lane as the ruled lane. The nen request — the pre-filing check honouring the same ignore file, and nothing wider (small ruling 1) — goes through the harvest. Built by the effort `fable/kurapika/ha-149-issue-bodies-redacted` — **accepted 2026-10-17** (§ *Rulings of 2026-10-17*) |
+| **zheref/hatsu#149** — *private repository names in issue bodies (partly ruled): rewrite the listed bodies, ship the run-time guard, or both?* | `(a) Bodies now + guard lane (Recommended)` | Option text: *"Rewrite the listed issue bodies (and #102's title) to the legend's placeholders now, with your explicit go per edit since each publishes on GitHub; ship the run-time guard (bare names, case-insensitive, whole-word, against the live gh repo list --visibility private, never committed) as a Hatsu lane; file the pre-filing check as a nen request. Consequence: ~17 edit gos during the build; the lane is skipped where no credentials resolve."* **What the build found:** the guard landed with v0.81.0 (HA-PR-#196; lane `redaction-guard` runs its hermetic fixture) and `nen issue file`, `comment` and `edit-body` refuse a private name at exit 4 given the guard's ignore file (nen 0.20.0, zheref/nen#367): criteria 2(a) and 3 were delivered before this ruling. Criterion 2(b), the tree check at kokusen or as a live lane, stays deferred as [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md) § *How it is guarded* says (the tree is not yet clean), so the option's live-guard lane is owed with it and **#149 stays open**; this reverses v0.81.0's "guard only, no rewrites" for the listed bodies. Of criterion 1's sixteen issues: #48, #85, #89, #93, #101, #102 (title too), #107, #108, #111, #113, #133 and #146 approved and rewritten on the maintainer's go per edit (four picker calls); #49, #60 and #63 left as they are (the maintainer's call, batch 1); #57 already clean, no edit needed. Left behind, the maintainer's own (the G5 DO rows on the register): each rewritten issue's pre-rewrite revisions still show the names in GitHub's public edit history until deleted one by one ("Delete revision from history"); #102's rename event still shows its old title (a GitHub Support request; never retitle it again); and the one name in #48 and #85 that reads as an ordinary dictionary word is PUBLIC-REDACTION's ignore-file case (`~/.config/hatsu/redaction-ignore`, a DO, never committed). **This run's reading, the maintainer's to correct at the G4 merge:** the dictionary-word case and treating the fixture lane as the ruled lane. The nen request — the pre-filing check honouring the same ignore file, and nothing wider (small ruling 1) — goes through the harvest. Built by the effort `fable/kurapika/ha-149-issue-bodies-redacted` — **accepted 2026-10-17** (§ *Rulings of 2026-10-17*) — **2026-10-19:** criterion 2(b) landed as the `redaction-tree` lane (§ *Rulings of 2026-10-17*, the #289 item 10 row; HA-PR-#305), so the deferral and *stays open* above are spent; whether #149 closes is the maintainer's word ([`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md) § *How it is guarded*) |
 
 ---
 
