@@ -155,7 +155,7 @@ frontier tier.**
 
 | Surface | How he is raised | Isolation |
 |---|---|---|
-| **Claude Code** | the harness Agent tool, `subagent_type` the Netero persona (`/netero`) | **omitted** — he needs this sitting's report, last-stop, cycle ledger and transcript, not an isolated checkout of the plugin |
+| **Claude Code** | the harness Agent tool, `subagent_type` the Netero persona (the plugin's `netero`) | **omitted** — he needs this sitting's report, last-stop, cycle ledger and transcript, not an isolated checkout of the plugin |
 | **Cursor** | the netero definition under `.cursor/agents/netero.md`, invoked as that surface documents; if the harness only offers a generic worker, load the definition into it and keep the title | omitted, same reason |
 | **Antigravity** | `invoke_subagent`: `TypeName` `netero` (the registered agent), `Role` the title, `Prompt` pass 1's harvest brief, `Workspace: "inherit"` | **`inherit`**, never `"branch"`. `branch` cuts an isolated worktree that hides this sitting's `.nen/` and `Reports/`. `"share"` is acceptable only when it is the same checkout. Model **`pro`**, never `ultra` |
 | **Codex** (ChatGPT app, CLI, IDE) | spawn **one** in-session subagent — current Codex releases enable this by default; a skill instruction is a documented trigger. Invoke `spawn_agent` (or the session's equivalent spawn tool) titled `third-hand · netero · <model alias>`. Load Netero's definition from `AGENTS.override.md` / the mirrored persona. Never a second `codex exec` process for this harvest | Codex V2 agents **share the parent's working directory** — that is what this harvest needs. Never `astra` |
