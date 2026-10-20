@@ -1,10 +1,38 @@
 [
-  { "name": "Why", "pattern": "^## Why\\s*$" },
-  { "name": "How", "pattern": "^## How\\s*$" },
-  { "name": "What this changes for you", "pattern": "^## What this changes for you\\s*$" },
-  { "name": "How to verify", "pattern": "^## How to verify\\s*$" },
-  { "name": "Evidence", "pattern": "^## Evidence\\s*$" },
-  { "name": "Completion checklist", "pattern": "^## Completion checklist\\s*$" },
-  { "name": "Associated issues", "pattern": "^## Associated issues\\s*$" },
-  { "name": "Agent attribution", "pattern": "^## Agent attribution\\s*$(?![\\s\\S]*^#{1,2}[ \\t])" }
+  {
+    "name": "changes",
+    "pattern": "^ {0,3}#[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?What\\ this\\ changes\\ for\\ you[ \\t]*$"
+  },
+  {
+    "name": "why",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Why[ \\t]*$"
+  },
+  {
+    "name": "how",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?How[ \\t]*$"
+  },
+  {
+    "name": "improves",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?What\\ this\\ improves[ \\t]*$"
+  },
+  {
+    "name": "across",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Across\\ repositories[ \\t]*$"
+  },
+  {
+    "name": "verify",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?What\\ the\\ guards\\ prove[ \\t]*$"
+  },
+  {
+    "name": "checklist",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Completion\\ checklist[ \\t]*$"
+  },
+  {
+    "name": "issues",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Associated\\ issues[ \\t]*$"
+  },
+  {
+    "name": "attribution",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Agent\\ attribution[ \\t]*$"
+  }
 ]

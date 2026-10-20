@@ -125,6 +125,14 @@ ledger sits under the checkout's git-ignored `.nen/`. Every application is a led
 `failed` row is quoted, never retried blind. **One pass over `--open`**: an issue left undecidable is picked
 up by the next run, never guessed.
 
+## 5b. Publish — `classify.publish`
+
+`label` (default; absent or other reads it) or `label+comment`, read as [`direct`](../direct/SKILL.md) § 7
+reads its key and marker rule (`<!-- hatsu:classify -->`). After § 5's `--run` or `file`'s create, one comment
+per labelled issue — applied keys, confidence, signals, low keys *not applied*, undecidable axes, a
+`Classify:` trailer — via `nen issue comment --body-file` (scratch file). Never under `ren` or inline; issue
+text never enters the body.
+
 ## 6. Report
 
 One line, then the table: `classify · <scope> · <n> issues · <k> classified · <u> undecidable · <s>
@@ -136,15 +144,14 @@ ledger path. Then what is owed, offered never started: the declaration's landing
 ## Residue
 
 The judgement of § 3 is prose by design — nen owns operations, not reading an issue — and the per-issue
-read is `status --with-body`'s. The `nen classify` family ships in nen `v0.20.0` (zheref/nen#370, carried to `main` by #380), the pin
-zheref/hatsu#168 moved; on an older binary the verbs are absent and § 2's probe says so: the run continues where it can (row `missing-tool`), the classification shown
-and named owed, nothing labelled by hand. Hatsu's own declaration in `nen/labels.json` was written by hand
-once, for that reason, and is byte-equal to what `nen classify install --write` writes.
+read is `status --with-body`'s. The `nen classify` family ships in nen `v0.20.0` (zheref/nen#370); an older binary is § 2's probe, nothing
+labelled by hand. Hatsu's own declaration was hand-written once, byte-equal to `--write`'s.
 
 ## Authority
 
 - **Permitted:** reading issues and labels; the § 4 `--write` on the step-2 answer (uncommitted);
-  `--sync` once the declaration is landed; `apply --run` on the confirmed plan; a taxonomy proposal.
+  `--sync` once the declaration is landed; `apply --run` on the confirmed plan; § 5b's comment; a taxonomy
+  proposal.
 - **Not permitted:** any stage, severity, kind or gate label; a label the taxonomy or `nen/labels.json`
   lacks; `--include-low`; a commit, push, PR or merge of its own; starting `ren`, `aka` or `mukai`.
 

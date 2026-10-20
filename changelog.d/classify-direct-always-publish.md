@@ -1,0 +1,3 @@
+### Added
+
+- **`classify.publish`** (`label` | `label+comment`, catalogue id `workflow.classify.publish`): under `label+comment`, `hatsu:classify` § 5b posts one marker-keyed `<!-- hatsu:classify -->` comment per labelled issue carrying the applied `lang/`/`job/` keys with confidence and cited signals, the low keys and any undecidable axis, idempotent on the poster's own marker, never under `ren` or for an inline effort. `file` and `build` name it beside `direct.publish`. Hatsu's own value is `label+comment` for both keys, on the maintainer's request of 2026-10-20 (ROSTER § *Rulings of 2026-10-20 — classify and direct always write back*); the family and consumer repositories set both through their own PRs. Plugin bumped to 0.127.0.

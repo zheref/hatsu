@@ -279,7 +279,11 @@ read back before any retry. Their dry runs read the target's visibility, so they
 are not offline, and `--body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
-all of it. The plan states, in this order:
+all of it. **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the
+plan is still shown** (the ruling of 2026-10-19/20, zheref/hatsu#354: `hiraishin`'s typed call is the G1 for
+its port issue, `kamui`'s sibling picker the G1 for its filings). A stand-in covers only what the plan
+shows: a close of an issue that has an open PR, or a severity change, is still asked under § 8, or left
+out of the composite's plan. The plan states, in this order:
 
 1. **What is being filed** — the drafted title and body, in full. Not a summary of a body you
    will write afterwards; the actual text.
@@ -287,7 +291,7 @@ all of it. The plan states, in this order:
    (`lang/`, `job/`) with their confidence, from [`hatsu:classify`](../classify/SKILL.md) § 3 — and
    the **routing** row beside them: [`hatsu:direct`](../direct/SKILL.md)'s three picks for those rows,
    with the `model/` label and the comment body § 7 there will post under the target's
-   `direct.publish` (§ 5).
+   `direct.publish` (§ 5), and classify § 5b's criteria comment under `classify.publish`.
 3. **Duplicates found** — which issue is being amended, with what comment, and any severity bump.
 4. **Fold candidates** — which issue absorbs which requirement, or *none, and why not*.
 5. **Supersede candidates** — which issues close, with the comment text, and any excluded for an
@@ -389,7 +393,8 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
   names; the severity and kind labels; the comments (`nen issue comment`) and closes the plan states;
   `nen label apply --run` for a severity bump the plan named, logged in its ledger; on the issue it
   files, the `lang/`/`job/` keys in the create call and, under the target's `direct.publish` only,
-  direct § 7's one `model/<line>` label and one marker comment.
+  direct § 7's one `model/<line>` label and one marker comment; under `classify.publish` only, classify
+  § 5b's one criteria comment.
 - **Not permitted:** any stage label (and, where the target declares its family, `--forbid-family`
   makes this a refusal), any
   G1 mode label, any merge, any review vote, any close the plan did not name.

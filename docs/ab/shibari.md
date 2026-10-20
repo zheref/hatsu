@@ -1,5 +1,8 @@
 # A/B evidence — `shibari` (new skill, wave 3)
 
+> Historical transcript: “How to verify” below is the product verification title. Current kind-specific
+> composition is [PR-SECTIONS.md](../PR-SECTIONS.md); recorded command output is preserved.
+
 `claude/skills/shibari/SKILL.md`: compose the pull-request body — why, how, what this changes for
 the consumer, how to verify, a mermaid diagram where a flow changed, the `UZF-26` evidence table,
 the completion checklist, `Closes #N` — open the PR on it from the last pushed commit, check it by

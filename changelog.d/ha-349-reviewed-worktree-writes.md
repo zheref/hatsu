@@ -1,3 +1,0 @@
-### Fixed
-
-- **Codex recovers authorized worktree writes through the exposed host review route** ([#349](https://github.com/zheref/hatsu/issues/349)). The adapter distinguishes task authority, active sandbox grants, review requests and actual rejections; verifies a harmless ordinary write before ledger/placement work, including without a local pack; and stops rejected actions with the host's reason. Ten, Breath and shared worktree policy point to that protocol, with observed admission evidence and a rejection transcript fixture. Persistent permissions, isolation, trailer checks and human merge/release gates remain intact. The three supported surface mirrors are regenerated with the delivery version.
