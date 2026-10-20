@@ -11,7 +11,7 @@
 #        every routing cell's surface is its alias's, `also` is actionable, the bands partition the
 #        scores, the precedence ranks every alias, the snapshot date is a date (exit 0 valid, 1 invalid)
 #   2. nen classify labels  --taxonomy contracts/classify.taxonomy.json
-#        the taxonomy's own invariants as nen 0.21.0 states them: unique keys, every label's colour,
+#        the taxonomy's own invariants as nen states them: unique keys, every label's colour,
 #        description and axis well-formed (exit 0 valid, 1 invalid). Two invariants the issue names --
 #        every phase of the document covered, at least one phase per job -- are NOT checked by this
 #        verb at this pin (hanten on #223, Nobunaga: a job with no phase passes); they are nen's to
@@ -96,5 +96,5 @@ if [ "$fail" = 1 ]; then
   echo "canon_contracts_check: a canon data contract breaks an invariant nen states; fix the data, never the guard" >&2
   exit 1
 fi
-echo "canon_contracts_check: the registry, the taxonomy and nen/labels.json hold every invariant nen 0.21.0 states (the two phase-coverage invariants are nen's to add)"
+echo "canon_contracts_check: the registry, the taxonomy and nen/labels.json hold every invariant nen states (the two phase-coverage invariants are nen's to add)"
 exit 0
