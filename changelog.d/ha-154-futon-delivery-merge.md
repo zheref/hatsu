@@ -1,3 +1,0 @@
-### Changed
-
-- **#154 Futon delivery merges** ([#154](https://github.com/zheref/hatsu/issues/154)). Futon records its invocation before a PR opens and binds stacked delivery PRs to that run. En may merge only a recorded PR with a pinned Ready verdict through Nen's bounded non-main delivery guard. Main-bound PRs remain at the maintainer gate. The Claude Code permission pack admits that exact command, keeps direct `gh pr merge` denied, and removes broad `gh api *` access that could bypass the guard. Node 22.18 or newer is required for the TypeScript record helper. Live classifier proof awaits a later eligible Ready Futon stack.
