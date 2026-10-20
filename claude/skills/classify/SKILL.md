@@ -84,7 +84,7 @@ Grade every candidate key by `classification.signals` and its confidence rule. A
 level** (`high`, `medium`), `confidence` the lowest among them; **low keys are listed in the report and
 never applied by this skill**. **An axis with no key at any level is undecidable**: it stays empty and the
 issue is listed with the reason (row `classify-undecidable`); a decided axis applies independently.
-Only keys in **the taxonomy ∩ the target's `nen/labels.json`** are proposed; a key the vocabulary lacks is a
+Only keys in **the taxonomy ∩ the target's `nen/labels.json`** are applied; a key the vocabulary lacks is a
 proposal for the taxonomy ([`file`](../file/SKILL.md) on `zheref/hatsu`), never a label. An **inline
 effort** ends here: the report carries the row and no label is written.
 

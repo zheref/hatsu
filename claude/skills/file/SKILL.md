@@ -236,8 +236,8 @@ improvising the choreography inside `file`.
 ## 4. The plan, and the one confirmation
 
 **Redaction comes first** ([`docs/PUBLIC-REDACTION.md`](../../../docs/PUBLIC-REDACTION.md)), so the
-plan shows checked text. Every title, body and comment this skill drafts — the create, the routing comment
-(§ 5), an amend, a fold, a supersede close, a `nen issue edit-body`, and a § 0 discovery write, which skips the
+plan shows checked text. Every title, body and comment this skill drafts — the create, the routing and criteria
+comments (§ 5), an amend, a fold, a supersede close, a `nen issue edit-body`, and a § 0 discovery write, which skips the
 confirmation but never this check — is checked against the live private list, on your own
 credentials, before it enters the plan. Write each draft to a file (a title through a quoted
 heredoc, `cat > title.txt <<'EOF'`, so no `$` or backtick in it is expanded) and hand the files over:
