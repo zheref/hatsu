@@ -910,6 +910,24 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   never at `main`, and never write to it.
 
 
+## Rulings of 2026-10-20 — worktree-local ledgers are disposable
+
+**The question, verbatim**, put through the picker on `hatsu:kurapika`, 2026-10-20, during hanten round 2 on [#333](https://github.com/zheref/hatsu/issues/333):
+
+> A worktree holding its own .nen/ ledgers: how should cleanup treat it?
+
+**The maintainer's answer, verbatim** (the picker is the source):
+
+> **C · Ledgers are disposable** — A merged effort's worktree-local ledgers may go with it; core's markers suffice.
+
+| Ruling | What follows from it |
+|---|---|
+| **Core's `.nen/` is the record** | [`cleanup`](../claude/skills/cleanup/SKILL.md) § 4's *the `.nen/` ledgers are the record and never a leftover* and its Authority's *touching a `.nen/` ledger* mean **core's** `.nen/`. A worktree's own `.nen/` goes with its worktree. |
+| **Reported, never counted** | `scripts/cleanup_path_admit.ts` reports an ignored `.nen/` at an admitted worktree's root truthfully, as `!! .nen/ (worktree-local ledgers, removed with the worktree; disposable — ROSTER § Rulings of 2026-10-20)`, and that line alone does not make the tree dirty, so a merged, otherwise-clean effort worktree reaches § 5's deterministic row. Any other ignored entry still makes the tree dirty and is listed. The script's header states the rule; everything else cites it. |
+| **Not a licence past the worktree** | Nothing here lets cleanup touch core's `.nen/`, and a nested repository under an ignored worktree-local directory is still refused by the admission. |
+
+---
+
 ## Rulings of 2026-10-19 — the CI reviewers tier
 
 **The maintainer's answers, verbatim**, through the picker during the Kurapika intake of 2026-10-19 that
