@@ -72,7 +72,7 @@ never writes. A missing argument or configuration item is asked and set up inlin
 | 12 | Publish, one PR at the gate step 1 named, reviewer requested, hand off | `nen wc publish --repo <path> --set-upstream` (`--dry-run` first) · `nen pr open --repo <path> --target <slug> --base <branch.base> --title-file/--body-file` · `nen pr request-reviews` · [`$en on <CODE>#<N>`](../en/SKILL.md) |
 
 **PR body**: what changes for the consumer (pin, surfaces, per-surface counts), the
-`Surface | File | Issue` table `--markdown-out` wrote, the kind-specific **verify** section (product: **How to verify**) (step 5's command,
+`Surface | File | Issue` table `--markdown-out` wrote, **verify** by kind (product: **How to verify**; step 5's command,
 expected `drift: none`, exit `0`), `Closes #N` where a repin issue exists. The merge is the maintainer's,
 at `en` § 5's prompt (row `own-pr-merge`); **limbo performs none**.
 
