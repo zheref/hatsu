@@ -919,6 +919,19 @@ Asked through the picker during the `emperor-time` intake that filed epic zheref
 
 The skill names **`hiraishin`** and **`kamui`** are the maintainer's own, from the invocation text (*"hiraishin": Should take a delivered PR…* / *"kamui": Same as "hiraishin", yet kamui takes an issue instead…*); `kamui` was reserved by the ruling of 2026-09-29 (*"Let's reserve Kamui for another thing later on"*) and this is that thing.
 
+**The build-order ruling was amended by the maintainer on 2026-10-20, in their own words**, before any child
+was built (recorded by the integration PR, not on the epic): *"Build HA-IS#356 and HA-IS#357 in parallel, or
+sequentially here while waiting for HA-IS#355 delivery from the other session. Have them both land and wait
+at G4 for me. Will be AFK for the next hours. Feel free to stack them using an integration branch and land a
+single integration delivery PR onto main I can take a look at when I come back. You have my permission to
+merge PRs that are not targeting main as long as everything is delivered for this effort by next time I
+check this session again in about 5 hours."* Read: #356 and #357 are built stacked on
+`integration/ha-354-porting` (futon § 5's shape, the child PRs merged there by the orchestrating session
+under that grant, `gh pr merge` denied by the harness so `git merge --no-ff` + `nen wc publish`) and land on
+`main` together as one integration PR at **G4**; #355 lands after them on its own PR, so until it merges
+both skills carry the interim [`ports.md`](config/ports.md) § *Shared conventions* names (file § 4's own
+confirmation, *port-drift not landed*). The grant covers PRs not targeting `main` only, this effort only.
+
 | Question | Answer |
 |---|---|
 | How many briefs should this idea become? | `One umbrella epic` |

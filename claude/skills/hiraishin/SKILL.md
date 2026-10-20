@@ -36,9 +36,12 @@ nen repo resolve <CODE> --repo <checkout>
 
 **First token `resume` → the second template, else the first**, never both. Verified at nen `0.22.0`:
 `FI-PR-#42 to FA --dry-run` → `source` · `target` · `[--dry-run]: present`; `resume` alone exits `2`.
-**A `to` with no code** parses at exit `0` (zheref/nen#366): refused, asked. **Bare**: the PR the session
-is discussing, stated back first. Unknown code, `ref parse` exit `2`, empty line: `missing-argument`, the
-verb's line quoted; an `IS` is kamui's (`hatsu:kamui <obj>`). **Target**: the checkout's `origin`, or `to
+**A `to` with no code** parses at exit `0` (zheref/nen#366): refused when the target slot is absent and the
+line's last token before `--dry-run` is `to` (*conventions*), asked. **Bare**: the PR the session
+is discussing, stated back first; none derivable → `missing-argument`, typed. Unknown code, `ref parse` exit
+`2`: `missing-argument`, the verb's line quoted; an `IS` is kamui's (`hatsu:kamui <obj>`). **The conventions
+both porting skills share** are [`ports.md`](../../../docs/config/ports.md) § *Shared conventions*, cited
+below as *conventions*, never restated. **Target**: the checkout's `origin`, or `to
 <CODE>`; equal to the source, refused. Both checkouts: [`ports.md`](../../../docs/config/ports.md) § *The checkouts file*. **Either
 repository ungoverned** (`nen canon resolve`, no scenario): `handbook-question (CON-37)`.
 
@@ -52,21 +55,26 @@ gh api repos/<source>/pulls/<N>/files --paginate --jq '.[].filename'
 A `gh` failure is refused, its line quoted. The file list's count must equal `changedFiles` (`--json
 files` stops at 100), else refused, both counts named. Printed: state and `baseRefName` beside the
 source's `branch.base` (absent, `main`). **Only `mergedAt` set on that base proceeds**; a refusal names
-the state: *open*; *closed, not merged*; *merged into `<base>`* (integration or stack).
+the state: *open*; *closed, not merged*; *merged into `<base>`* (integration or stack) — *conventions*' PR-source
+read. **Visibility** (*conventions*): a private source to a public target is refused (SEC-8).
 
+- **Already ported** — read here, before any write: `"$hatsu_root/scripts/gh_token_env.sh" nen issue search
+  --target <target> --subject '(from <CODE>-PR-#<N>)'` (*conventions*' title); a completed port issue or a
+  merged port PR ends the run *already ported*; an open port PR stops, `hatsu:en` offered on it; an open
+  port issue is § 7's amend. Exit `1` is a refusal, the verb's line quoted, never *no port*.
 - **A port of a port** (`port: … (from <X>-PR-#<M>)`) is followed: **the original is the source** for
   §§ 2–7, the port cited as the route; an original on the target is *already on the target*; a chain
   revisiting an object is cyclic. Both refused, cited.
 - **Unported prerequisites** — a concept introduced by an earlier merged source PR with no target
-  equivalent and no port (`gh_token_env.sh nen issue search --target <target> --subject '(from
-  <CODE>-PR-#<M>)'`) — stop the run, each named; `next` `setup`; the maintainer's typed word overrides.
+  equivalent and no port (the same search, `(from <CODE>-PR-#<M>)`) — stop the run, each named; `next`
+  `setup`; the maintainer's typed word overrides.
 
 ## 3. The run record
 
 **[`ports.md`](../../../docs/config/ports.md) § *The run record*, cited, never redefined**: `caller`
 `hiraishin`, its `runId` shape, one `targets[]` entry; hiraishin's `next`: `setup` (§ 2) · `spec` · `wait`
-(§ 4) · `start` (§§ 5–8) · `done` · `declined`. A second run for one source on one day (another
-target) takes the next free `-<ordinal>`. **`resume`** runs ports.md's checks before any read,
+(§ 4) · `start` (§§ 5–8) · `done` · `declined`; `family`, `specRepo` and `specPr` null on the no-spec route.
+Ordinals are ports.md's (one record per target). **`resume`** runs ports.md's checks before any read,
 takes no `--dry-run` and continues at the recomputed step; a `kamui` record is refused, naming
 `hatsu:kamui resume <id>`.
 
@@ -76,8 +84,9 @@ takes no `--dry-run` and continues at the recomputed step; a `kamui` record is r
 spec repository's copy the truth. **A family not listing both source and target** is refused.
 **Declared**: [`kamui`](../kamui/SKILL.md) § 2 first, by name, each item its outcome there; then
 kamui § 3 on the shipped PR — its search amends a spec folder, **attaches to an open spec PR** for the
-feature, never a second — and kamui § 4's **G2** wait; `MERGED` → § 5, `next` `start`; `CLOSED` →
-*spec declined*. Two records may share one spec PR. **None**: *spec step: none configured*, not a gap.
+feature, never a second — and kamui § 4's **G2** wait; `MERGED` → § 5, `next` `start`; **a folder already
+current, no PR opened** → `specFolder` recorded, § 5, `next` `start`; `CLOSED` → *spec declined*. Two records
+may share one spec PR. **None**: *spec step: none configured*, not a gap; `next` `start`.
 
 ## 5. The port brief — one row per concept
 
@@ -99,20 +108,19 @@ Every `unmapped` row goes in **one batch** per run through
 its shape: three a picker call, further calls for more rows), each answer recorded and binding at once;
 the brief re-rendered. Drift the build meets is further calls under the same row. **Until HA#355
 lands**, an `unmapped` row stops the run (*port-drift not landed*), `next` `start`. Citations read `<pair>
-<id> (branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port*, `done`.
+<id> (branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port* — § 8's
+rulings PR first where any ruling was recorded, then `done`, no issue filed.
 
 ## 7. The port issue — file §§ 3–5 by name
 
 [`file`](../file/SKILL.md) § 3's searches, § 4's redaction and plan, § 5's labels, `classify`,
-`direct`. **An open port issue for the source is amended** (§ 3(a)); a completed one or a merged port
-PR ends the run *already ported*; an open port PR stops, `hatsu:en` offered on it. **The typed call is
-the G1** under file § 4's composite clause (HA#355), the plan still shown; until it lands, and for a
-**private source to a public target** (`gh repo view --json visibility`, both), file § 4's own
-confirmation — the source's object id placeheld per the legend, the real one in the record only.
+`direct`. **An open port issue for the source is amended** (§ 3(a)), never filed twice (§ 2 read the rest).
+**The typed call is the G1** under file § 4's composite clause (HA#355), the plan still shown; **until it
+lands, *conventions*' interim: file § 4's own confirmation**. Visibility re-read before the write (*conventions*).
 
-- **Title** `port: <source PR title> (from <CODE>-PR-#<N>)`, data: a newline refused, every `'` typed
-  `'\''`, the escaped argument shown in the plan (zheref/nen#444). **Body**: the brief, the SEC-15 line,
-  the source PR a **cross-reference**, never a Development link.
+- **Title**: *conventions*' port-issue title, data: a newline refused, every `'` typed `'\''`, the escaped
+  argument shown in the plan (zheref/nen#444). **Body**: the brief, the SEC-15 line, the source PR a
+  **cross-reference**, never a Development link.
 - **Labels**: file § 5's, plus `job/parity`, `job/implementation`, the target's `lang/<key>`, kind
   `enhancement`; `direct`'s `model/<line>` under the target's `direct.publish`.
 
@@ -127,10 +135,11 @@ The read-back is **explicit**, quoted (`idea file` takes no ignore file, #444); 
 
 **The build go is the same typed call, said separately**: `hatsu:build <CODE>#<n>` here, to a `CON-32`-ready
 PR at the target's **G2**, *Associated issues* naming the port issue (closing) and the source PR
-(reference). **The rulings PR opens once, at the run's end**, through `bankai-rule` and `mukai`, never
-draft — whenever a ruling was recorded, drops included; none recorded, none opened. The landing report
-names it, the citations it replaces, Hatsu's repin and the target's pin follow-up. Then `rikugan`,
-`cleanup` with `third-hand` offered; release is the target's `getsuga`/`mugetsu`.
+(reference); **hiraishin holds build's phase 6** (the wrap-up, asked once; en § 8's `rikugan` renders as
+usual), a build's end read as *conventions* say. **The rulings PR opens once, at the run's end**, through
+`bankai-rule` and `mukai`, never draft — whenever a ruling was recorded, drops included; none recorded, none
+opened. The landing report names it, the citations it replaces, Hatsu's repin and the target's pin
+follow-up; release is the target's `getsuga`/`mugetsu`.
 
 ## 9. `--dry-run`
 
@@ -158,5 +167,6 @@ evidence comes from `scripts/fixtures/port-family/`**, never a private product's
   prerequisite without the maintainer's typed word.
 - **Never proceeds with an `unmapped` row**, never re-asks a row already ruled in the run.
 - **Never files a port issue twice**, never makes the source PR a Development link.
-- **Never names a product, private repository or business rule** in a public tree.
+- **Never names a product, private repository or business rule** in a public tree, issue or PR body;
+  never ports a private source to a public target.
 - **Never writes** under `--dry-run` outside the scratch directory; **never merges**.

@@ -10,7 +10,7 @@
 
 - `jutaisho` § 4 names every ask that stars none (`publish-offer`, `missing-maintainer-choice`, `port-siblings`) and `kamui`'s start picker, which stars only the item on this surface. It adds the paging rule (pages of four, plus *none of them* under three) and stays under its ceiling. `docs/config/decisions.json.md` lists the same exceptions.
 - `kagutsuchi` § *Residue* retires the reservation of the name `kamui`, which ROSTER now records as spent.
-- `STANDALONE-ENTRY` §§ 4 and 7b name `kamui`, the first composite to carry a `## 0.`; thirty-one skills now carry one.
-- The README, the skills index and the `docs/using/` counts read fifty-four skills and fifty-five directories with `ten`.
+- `STANDALONE-ENTRY` §§ 4 and 7b name `kamui`, the first composite to carry a `## 0.`; one more skill carries one.
+- The README, the skills index and the `docs/using/` counts move up by one skill and one directory (the final totals are hiraishin's fragment's).
 - The tenkai, cleanup and plugin-registries lists name `port` and `kamui`.
 - `kamui` joins the dieted skills.
