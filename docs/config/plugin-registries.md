@@ -18,14 +18,28 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 |---|---|---|---|---|
 | `contract` | string | `hatsu.permissions/v0.1` | the shape version | `scripts/permissions_pack.sh`, `nen surface mirror generate --permissions` |
 | `scope` | object | `repository`, `worktrees`, `associated`, `enforced_by` | what the pack is scoped to, and that only Codex enforces a root (`sandbox_workspace_write.writable_roots`); Claude Code and Cursor allowlists are exe-and-argument patterns | a reader; the generator's Codex branch |
-| `allow[]` | `{exe, args, why}` | 46 rows at the pinned build (`nen *`, `gh pr *`, `gh issue *`, `gh api *`, `gh run *`, `git …`, the bootstrap `curl`) | the commands a session is never asked about | both renderers |
+| `allow[]` | `{exe, args, why}` | bounded Nen, GitHub, Git, script and bootstrap rows; no `gh api *` | the commands a session is never asked about | both renderers |
 | `deny[]` | `{exe, args, why}` | 22 rows (`git push origin main`, every `--force` spelling, …) | the second line behind `hooks/guard-base-branch.sh` | both renderers |
 | `surfaces` | object | `cursor: {allow[], deny[]}`, `codex: {network_access}` | per-surface rows transcribed after the shared list, for that surface only | `nen surface mirror generate` |
 | `$comment`, `$comment_removed_gh_auth_token` | string | metadata | the rationale; why `gh auth token` is not allowed (a credential leak an allowlist exists to prevent) | a reader |
 
 **Rendered where.** `scripts/permissions_pack.sh --surface <s> (--render | --install --target <path>)`, run by the warm-up (`hatsu:ten` § 5) and by `hatsu:tenkai` § 2, never by a hook. Per surface: Claude Code `.claude/settings.local.json`, `permissions.allow` / `permissions.deny` as `Bash(<exe> <args>)`, rendered directly and **merged** into the user's own untracked file (never `.claude/settings.json`); Codex `.codex/config.toml` (`approval_policy`, `sandbox_mode`, `writable_roots`, `network_access`) and `.codex/hooks.json`, **copied** from the generated `surfaces/codex/`; Cursor `.cursor/cli.json` (`Shell(<exe> <args>)`, plus the tree-wide `Read(./**)` and `Write(./**)` rows) and `.cursor/hooks.json`, copied from `surfaces/cursor/`; Antigravity none, because no allowlist file exists and a per-persona `commandExecutionPolicy: auto` would approve arbitrary commands, so the pack there is the hooks the mirror places. Only a Hatsu consumer (a target carrying `nen/contract.json` or `nen/workflow.json`) gets a pack; every written path is excluded through `info/exclude`, never `.gitignore`.
 
-**May a consumer override it?** Not the contract. On Claude Code the consumer's own entries in `.claude/settings.local.json` are kept: the merge adds and never removes. On Codex and Cursor a file without nen's generated marker is the consumer's and is left alone and named; a tracked destination is never touched. A generator that has not run (no `surfaces/<s>/config.toml`) places nothing rather than improvising the text.
+**May a consumer override it?** Not the contract. On Claude Code the consumer's own entries in `.claude/settings.local.json` are kept except obsolete API reader grants and the unsafe `Bash(gh api *)` grant, which #326 removes on upgrade. On Codex and Cursor a file without nen's generated marker is the consumer's and is left alone and named; a tracked destination is never touched. A generator that has not run (no `surfaces/<s>/config.toml`) places nothing rather than improvising the text.
+
+### Read-only GitHub API access (#326)
+
+The installed Claude pack grants `node '<exact installed absolute Hatsu root>/scripts/gh_api_read.mts' *`. The caller substitutes the resolved root literally in the Bash command; leaving `$hatsu_root` in command text does not match. Cursor and Codex receive no Node grant from this row. The TypeScript entrypoint accepts named operations only; it builds fixed REST GET endpoints and one fixed GraphQL `query` with variables, then invokes `gh` without a shell. It rejects caller-supplied methods, endpoints, bodies, uploads, options and GraphQL documents before starting `gh`. Raw `gh api` has no pack grant. The separate `gh pr *` row is constrained by its `gh pr merge *` deny; #154's Nen-only delivery merge remains unchanged.
+
+| Runtime read | Entrypoint operation | Why it is in the pack |
+|---|---|---|
+| `scripts/private_name_check.sh`: private repository list with `visibility=private`, `per_page=100`, pagination and name projection | `private-repos` | The public-text guard must read the complete live private list. |
+| `sharingan`: branch rules and protected branch required checks | `branch-rules`, `required-checks` | A missing required check vetoes readiness. |
+| `build`: issue's PR marker; `PROCESS`: workflow declaration at a ref | `issue-pr`, `workflow-content` | These are ordinary issue and configuration reads. |
+| `spiritual-message`: Actions run timing; `cleanup`: caches and artifacts | `actions-timing`, `actions-caches`, `actions-artifacts` | These are fixed REST GET paths. |
+| `file`: issue edit count | `issue-edits` | The only packed GraphQL form is a fixed query with typed variables. |
+
+`release-publish.sh` reads a tag ref through `gh api` internally, under the release command's separate authority; `tag-ref` is available for direct audit reads. `tenkai_adopt.sh`'s repository lookup is also internal to its script. `direct`'s marker lookup, `illumi`'s arbitrary GraphQL read, generic `izanami` observations and any undocumented endpoint still require an explicit surface permission prompt. CI's check-run POST/PATCH and cleanup DELETE run under workflow credentials, outside this pack. The helper does not accept raw GraphQL text, so a `mergePullRequest` mutation cannot be smuggled into its query.
 
 ## `contracts/classify.taxonomy.json`
 

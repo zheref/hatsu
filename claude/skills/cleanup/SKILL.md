@@ -77,7 +77,7 @@ row, escaped, and no command runs on it.
 | **remote heads** | `git ls-remote --heads origin` against the merged PRs' `headRefOid` | the head branch of a merged PR origin still carries |
 | **transient reports** | `<reports.dir>/current.html`, `<reports.dir>/captures/` | `reports.retain: final-only` — `current.html` is transient; a merged effort's captures are proposed |
 | **caches** | `~/.cache/nen/zheref_nen/<ref>/` against `pinned_ref` and `readlink -f` of the host links (`~/.local/bin/nen`, `command -v nen`, each surface's linked `nen`); `nen surface status` (#289); build caches in a dead worktree | a binary below the pin no link resolves to; a stale served copy (refreshed by `ten`, never deleted); `DerivedData`, `.gradle`, `node_modules` there |
-| **billed** | `nen runner inventory --json`; `gh release list`; `gh api repos/<o>/<n>/actions/caches` and `…/artifacts` | an online runner host, a draft release, an Actions cache or artifact — named with size and age, **plan only** |
+| **billed** | `nen runner inventory --json`; `gh release list`; `node '<Hatsu root>/scripts/gh_api_read.mts' actions-caches <o/r>` or `actions-artifacts <o/r>` (paste the absolute root) | runners, releases, caches, artifacts — size and age, **plan only** |
 | **the surface's own** | the surface's worktree tool, as `docs/surfaces/<surface>.md` names it | its stale worktrees, named for the surface's own cleanup |
 
 Sizes are `du -sk <path>`, read before the plan. **Core's `.nen/` ledgers — `phase`, `usage`, `direct`,

@@ -404,7 +404,7 @@ named; for an in-flight discovery, only the §0/`DISCOVERY.md` reconciliation ou
 
 ## 8. Hard limits
 
-> **A rewrite of a public issue is not the end of it**: the pre-rewrite revisions stay in GitHub's public edit history until the maintainer deletes them, and a retitle leaves a rename event — [`PUBLIC-REDACTION.md`](../../../docs/PUBLIC-REDACTION.md) § *How it is guarded* (zheref/hatsu#289 item 11). After a rewrite the skill reads the history back (`gh api graphql -f query='{ repository(owner:"<o>",name:"<n>") { issue(number:<N>) { userContentEdits(first:50) { totalCount } } } }'`) and hands the deletion over as a runnable block — one `gh issue view <N> --repo <o/n> --web` per issue, the maintainer deleting each revision in the browser (no API deletes one).
+> **A rewrite of a public issue is not the end of it**: the pre-rewrite revisions stay in GitHub's public edit history until the maintainer deletes them, and a retitle leaves a rename event — [`PUBLIC-REDACTION.md`](../../../docs/PUBLIC-REDACTION.md) § *How it is guarded* (zheref/hatsu#289 item 11). After a rewrite read the history (`node '<installed Hatsu root>/scripts/gh_api_read.mts' issue-edits <owner/repo> <N>`; paste the absolute root literally) and hand deletion over — one `gh issue view <N> --repo <o/n> --web` per issue; the maintainer deletes each revision in the browser (no API deletes one).
 
 > A command handed to the maintainer here is one complete `bash` block per command, where to run it said — WORKFLOW § 4's hand-over rule (ruling of 2026-10-17, zheref/hatsu#295).
 
