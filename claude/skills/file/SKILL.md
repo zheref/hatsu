@@ -324,7 +324,7 @@ comment, which `direct` § 7 writes once the issue has its number:
 
 ```bash
 nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
-  --title "<title>" --body-file <path> --label <a,b,...> --assignee <user> --private-names-ignore-file <file § 4's ignore file> \
+  --title '<title>' --body-file <path> --label <a,b,...> --assignee <user> --private-names-ignore-file <file § 4's ignore file> \
   [--forbid-family <a real, declared target stage-label family>]
 ```
 
