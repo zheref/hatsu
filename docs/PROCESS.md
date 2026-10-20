@@ -640,7 +640,10 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   comment through it. It reads `gh api 'user/repos?visibility=private'` live; nothing caches it. From nen
   `v0.20.0` (zheref/nen#367, closing #329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
   given the script's ignore file (`file` § 4). What nen does not guard yet — `issue consolidate-close`'s
-  close comments and the `pr` writers (zheref/nen#363) — is the script's alone.
+  close comments and the `pr` writers (zheref/nen#363) — is the script's alone. The committed named
+  list (`scripts/private_name_named.txt`, the one name ruled public) reaches nen through `file` § 4's
+  joined ignore file, because nen takes one; with it the script is BC-11 debt, frozen to fixes only, and
+  it retires when a nen private-name verb also checks a tree (zheref/nen#441).
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the
