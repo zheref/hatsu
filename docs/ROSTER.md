@@ -1089,6 +1089,91 @@ record in the tree and no bare-name refusal. That choice is the maintainer's at 
 
 ---
 
+## Rulings of 2026-10-20 — Gemini 3.1 Pro as the hallucination-shaped fallback (HA#342)
+
+**Context.** zheref/hatsu#342 asked four questions about routing Gemini 4 Argon by its measured profile.
+On 2026-10-20, in the `hatsu:kazaana zheref/hatsu` sitting, the maintainer chose to rule them now with
+Gemini 3.1 Pro in Argon's place. The context recorded with that choice:
+
+> Gemini 4 Argon (`VISUAL_MAX`) stays on the frontier tier by the 2026-10-19 ruling, never a subagent or a
+> routing-cell primary, so the deep-tier Google candidate for a fallback is Gemini 3.1 Pro
+> (`VISUAL_ORCHESTRATOR`, antigravity, tier deep, `pro`).
+
+**The four questions as asked through the picker**, the options lettered as asked (⭐ the recommendation),
+and the maintainer's answers verbatim:
+
+| | The question as asked | The options | The maintainer's answer, verbatim |
+|---|---|---|---|
+| **Q1** | *Reading-shaped fallback: does Gemini 3.1 Pro replace Sol on the Opus-primary reading cells?* | A ⭐ Yes, every reading cell (40) · B Only hallucination cells (21: requirements, analysis, drift-review, evals, triage, deprecation, parity, prose-authoring; Sol kept elsewhere) · C No, keep Sol | `B Only hallucination cells` |
+| **Q2** | *Long-context primaries: the discovery/backlog cells where Google already backs Opus?* | A ⭐ Opus stays primary · B Google on parity pair only · C Google on all four | `A ⭐ Opus stays primary` |
+| **Q3** | *Terminal cells: Google stays off every execution-side primary and fallback and the 24 execution-adjacent Opus cells?* | A ⭐ Yes, standing rule (recorded in the alias's selection text) · B Allow Pro on security | `A ⭐ Yes, standing rule` |
+| **Q4** | *Flash (VISUAL_FALLBACK) routes in no cell today. Keep or retire the alias?* | A ⭐ Keep, in-pool fallback later (routed as the in-pool fallback for Gemini primaries once HA#341's quota-aware fallback exists) · B Retire the alias | `A ⭐ Keep, in-pool fallback later` |
+
+**The evidence**, from the issue body (read 2026-10-19). Artificial Analysis, *Gemini 4 Argon: Google is
+back as one of the top three labs in intelligence achieved*, 2026-09-30
+(https://artificialanalysis.ai/articles/gemini-4-argon-google-top-three-labs); Argon tested at `high`, the
+others at `max`:
+
+| Measure | Argon | Beside it |
+|---|---|---|
+| Intelligence Index | 53 | GPT-6 Astra 53 · GPT-6.1 Sol 52 |
+| AutomationBench-AA (agentic) | **78 %, #1** | Claude Sonnet 5.5 71 % |
+| AA-Omniscience hallucination rate | **15 %** (lowest above 45 on the index) | Astra 51 % · Sol 54 % |
+| AA-Omniscience accuracy | 50 % (−5 vs 3.1 Pro) | Astra 63 % |
+| Terminal Bench 4 | **57 %** | Sonnet 64 % · Opus 60 % · Astra 59 % |
+| Output tokens per index task | **62k** | Astra 27k |
+| Cost per index task | $1.99 at the intro price · **$3.98 standard** | Astra $3.26 · Sol $0.72 |
+| AA-Briefcase analytical / presentation Elo | 1576 / 1308, both "lower" | — |
+
+The issue also cites Google's own table
+(https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-argon/, as quoted
+by https://www.deeplearning.ai/the-batch/gemini-4-argons-benchmarks-and-availability and
+https://dev.to/max_quimby/gemini-4-argon-wins-12-of-18-benchmarks-code-isnt-one-2h70) and the provider's
+model page (https://ai.google.dev/gemini-api/docs/latest-model). Those figures are vendor-reported or
+provider facts. No number from them enters the registry, which cites only the third-party measurement above.
+
+**What follows**, in [`contracts/direct.registry.json`](../contracts/direct.registry.json) (`source.revision`
+counts each move):
+
+| Ruling | Applied |
+|---|---|
+| **Q1 B** | The fallback (`runnerUp`) of 21 Opus-primary cells moves from `EXECUTION_FRONTIER` (GPT-6.1 Sol, Codex) to `VISUAL_ORCHESTRATOR` (Gemini 3.1 Pro, Antigravity): requirements 3, analysis 10, triage 2, deprecation 2, prose-authoring 1, evals 1, drift-review 1 and parity 1. Each move satisfies `picks.fallbackRule`, Google on Antigravity against Anthropic on Claude Code. The other 19 reading cells keep Sol: accessibility 10, architecture 5, observability 3 and discovery/library 1 |
+| **Q2 A** | No move. Opus stays primary on the five cells Pro already backs: discovery/feature, discovery/parity, backlog/feature, backlog/parity and ux/parity (csharp) |
+| **Q3 A** | No move. `aliases.VISUAL_ORCHESTRATOR.selection` states the standing rule beside the measured profile, with its source and date: never an execution-side primary or fallback, never the fallback on an execution-adjacent Opus cell. Those 24 cells keep Sol: implementation 12, bug-fix 5, security 3, review 2, api-design 1 and integration 1 |
+| **Q4 A** | No move. `VISUAL_FALLBACK` (Gemini Flash) stays, routed in no cell. Its `selection` says it becomes the in-pool fallback for the Gemini primaries once zheref/hatsu#341's quota-aware fallback exists |
+
+Counts read off the registry before and after, over its 204 cells:
+
+| | Before | After |
+|---|---|---|
+| Opus-primary cells whose fallback is Sol | 64 | 43 |
+| Opus-primary cells whose fallback is Pro | 5 | 26 |
+| Cells whose fallback is Pro, any primary | 11 | 32 |
+| Cells whose fallback is Sol, any primary | 78 | 57 |
+| Winners moved | — | 0 |
+| Cells breaking `picks.fallbackRule` | 0 | 0 |
+| Cells naming a frontier alias, Argon included | 0 | 0 |
+
+**Unchanged:** `VISUAL_MAX` (Argon) is in no cell, and `picks.recommended` is untouched, so a subagent is
+never raised on Argon.
+
+**This run's readings, the maintainer's to correct at the G4 merge:**
+
+1. **Q3's premise does not hold on four cells.** The question asks whether Google *stays* off every
+   execution-side fallback. Four execution-side cells already name Pro as Sol's fallback, from before this
+   ruling: `release/parity/*`, `ui-automation/feature/csharp`, `ui-automation/maintenance/csharp` and
+   `ui-automation/parity/csharp`. No answer says where they go, so this delivery moves none of them, and
+   the `selection` text names them as open. Their destination is the maintainer's word. The 2026-10-05
+   method by pool would send an OpenAI primary's fallback to Grok on Cursor in a product domain.
+2. **The source's interactive notes stay.** Two moved fallbacks carry one: `analysis/maintenance/*` and
+   `analysis/maintenance/typescript`. Only the alias and the surface moved. The 2026-10-05 rebalance kept
+   the note on 16 of the 17 moved cells that had one.
+3. **The post-merge sweep is owed.** `hatsu:direct backlog zheref/hatsu` runs once after the merge and
+   reports which directed issues change a pick, publishing under `direct.publish`. The pre-merge dry count
+   is in the PR body.
+
+---
+
 ## Rulings of 2026-10-19 — Argon is a frontier alias
 
 **The two options as asked**, on `hatsu:build HA#340`:
