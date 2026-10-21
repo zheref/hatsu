@@ -1189,6 +1189,35 @@ never raised on Argon.
 
 ---
 
+## Rulings of 2026-10-21 — the port rule prefix (HA#355)
+
+**The question, verbatim**, put through the picker on 2026-10-21, in the `hatsu:kazaana zheref/hatsu`
+sitting (composed `hatsu:futon zheref/hatsu@model/claude then getsuga`), for
+[zheref/hatsu#355](https://github.com/zheref/hatsu/issues/355)'s open question 1. zheref/bankai-handbooks#4,
+the adoption PR the brief named for the question, merged on 2026-10-21 without answering it:
+
+> HA#355 needs the port-rule prefix for handbooks/ports/. Which numbering?
+
+**The maintainer's answer, verbatim** (the picker is the source). The option not picked was **A**,
+`PT-{n}` per pair file:
+
+> **B PT-{n}, one global counter**
+
+| HR | Ruling | What it binds | Status |
+|---|---|---|---|
+| <a id="hr-34"></a>**HR-34** | **Prefix `PT`, one global counter.** One counter runs across every pair file of the rulings directory (`workflow.port.rulingsDir`, default `handbooks/ports`), so an id is unique without its pair and is cited alone, `PT-7`; the pair may be named beside it for reading. | `templates/ports/pair.md`'s header reads `prefix: PT · numbering: global`, and `templates/ports/INDEX.md` cites by id. [`bankai-rule`](../claude/skills/bankai-rule/SKILL.md) § 3 reserves against **every** pair file at the tip, at the run's own HEAD and working tree, on every sibling `ports-*` branch, and in every open same-repository PR touching one. `scripts/port_rule_reserve.sh` implements it: the next id is one past the highest `PT-<n>` in any of them, and `--check` refuses one id in two pair files. Lane `port-rule-guard` proves it. The G5 stop that held the global case is retired; [`hiraishin`](../claude/skills/hiraishin/SKILL.md) cites by id. | ruled |
+
+**The HR id.** HR-34 is **reserved against HA-PR-#391**, which is open and unmerged. #391 starts the HR id space
+at HR-1 … HR-33, and its HR-2 gives each later ruling row the next id. If #391 renumbers before it merges, this row follows it.
+
+**Still owed, not ruled here:** the first `ports/` rulings PR on zheref/bankai-handbooks, which writes the
+first pair file from the template; the review preamble § 3's `PT-` prefix entry, which lands with Hatsu's
+repin PR after a bankai-handbooks tag (`CON-13`); the pin bump itself; `limbo`'s mirror of `ports/`, which
+waits on zheref/nen#457; and the open-PR id-reservation verb, zheref/nen#456, until which the script's `gh`
+reads stay residue. zheref/hatsu#355 stays open on criteria 4 and 5's handbooks half.
+
+---
+
 ## Rulings of 2026-10-19 — Argon is a frontier alias
 
 **The two options as asked**, on `hatsu:build HA#340`:

@@ -15,6 +15,13 @@
 # 1 and reserves nothing; a `"` in a branch name still yields JSON that parses; a pair path with
 # regex metacharacters, `..` or a leading `/` is usage (never spliced into a pattern); a symlinked working-tree pair file is
 # refused; a flag with no value and an unresolvable or unfetchable tip are named exits.
+# ONE GLOBAL COUNTER (the maintainer's ruling of 2026-10-21, HR-34; docs/ROSTER.md § Rulings of
+# 2026-10-21 — the port rule prefix (HA#355)): the next id exceeds every PT-<n> in every pair file of
+# the rulings directory — two pair files at the tip, a sibling branch adding a third, an open PR adding
+# a fourth, a file this run creates — a pair file with no rows yet takes the directory's next id, an
+# empty directory starts at PT-1, and --check catches one id in two different pair files (against the
+# tip, a sibling, a PR, or this branch's own second file); a pair file named out of shape in a counted
+# place is a named refusal at exit 3.
 set -euo pipefail
 
 command -v jq >/dev/null 2>&1 || { echo "port-rule-guard fixture: jq is required (the --json case parses the output)" >&2; exit 2; }
@@ -43,6 +50,11 @@ cat > "$origin/$pair" <<'MD'
 MD
 printf '| PT-1 | a | b | mirror | x | 2026-10-20 | |\n' > "$origin/p/x.md"
 printf 'q\n' > "$origin/q.md"
+# the global case's own rulings directory: two pair files whose ids interleave, and an INDEX with no id rows
+mkdir -p "$origin/global/ports"
+printf '| PT-1 | SW-1 | KT-1 | mirror | x | 2026-10-21 | |\n| PT-4 | SW-4 | KT-4 | map | x | 2026-10-21 | |\n' > "$origin/global/ports/a--b.md"
+printf '| PT-2 | RC-2 | KT-2 | mirror | x | 2026-10-21 | |\n| PT-3 | RC-3 | KT-3 | map | x | 2026-10-21 | |\n' > "$origin/global/ports/c--d.md"
+printf '| From | To | File | Rulings | Last ruling |\n|---|---|---|---|---|\n| a | b | a--b.md | 2 | 2026-10-21 |\n' > "$origin/global/ports/INDEX.md"
 g -C "$origin" add -A >/dev/null
 g -C "$origin" commit -qm tip
 g clone -q "$origin" "$clone"
@@ -176,7 +188,7 @@ check "run against the run's worktree (clone root on main): its own unpushed PT-
 # --check: a duplicate between this branch and a sibling pushed branch is exit 3; no duplicate is exit 0
 printf '%s\n' "$(sed 's/| PT-5 | SW-11/| PT-4 | SW-11/' "$wt/$pair")" > "$wt/$pair"
 bash "$guard" --worktree "$wt" --target acme/widget --pair-file "$pair" --prefix PT --check >/dev/null 2>"$root/ec.txt"; rcck=$?
-check "--check: an id this branch adds that a sibling branch carries is exit 3, naming both" '[ "$rcck" = 3 ] && grep -q "PT-4 also at branch origin/fable/kurapika/ports-swiftui-tca-uzf-v2--compose-uzf-v2-run1" "$root/ec.txt"'
+check "--check: an id this branch adds that a sibling branch carries is exit 3, naming both" '[ "$rcck" = 3 ] && grep -qF "PT-4 ($pair) also at branch origin/fable/kurapika/ports-swiftui-tca-uzf-v2--compose-uzf-v2-run1 ($pair)" "$root/ec.txt"'
 printf '%s\n' "$(sed 's/| PT-4 | SW-11/| PT-5 | SW-11/' "$wt/$pair")" > "$wt/$pair"
 bash "$guard" --worktree "$wt" --target acme/widget --pair-file "$pair" --prefix PT --check >/dev/null 2>&1; rcok=$?
 check "--check: no duplicate is exit 0" '[ "$rcok" = 0 ]'
@@ -194,7 +206,9 @@ g -C "$clone" switch -q main
 export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n"
 
 outn="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file handbooks/ports/react-uzf-v1--compose-uzf-v2.md --prefix PT)"; rcn=$?
-check "a pair file absent at the tip and in every PR reserves PT-1 (exit $rcn)" '[ "$rcn" = 0 ] && printf "%s" "$outn" | grep -q "^next: PT-1$"'
+check "a pair file absent at the tip and in every PR takes the directory's next id, PT-5, never PT-1 (exit $rcn)" '[ "$rcn" = 0 ] && printf "%s" "$outn" | grep -q "^next: PT-5$"'
+oute="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file fresh/ports/a--b.md --prefix PT)"; rce=$?
+check "an empty rulings directory starts the counter at PT-1 (exit $rce)" '[ "$rce" = 0 ] && printf "%s" "$oute" | grep -q "^next: PT-1$"'
 
 # hostile: a PR whose files do not name the pair file is never read, whatever its diff text says
 export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n8\ttrue\tevil\tq.md\t$root/diff8.txt\n"
@@ -207,7 +221,7 @@ check "a header line inside another file's hunk is never a header: PT-77 not see
 # a PR that names the pair file with no hunk header for it (a rename) is unread; a deletion is read as empty
 export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n15\tfalse\tren\t$pair\t$root/diff15.txt\n"
 bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$pair" --prefix PT >/dev/null 2>"$root/e15.txt"; rc15=$?
-check "a PR naming the pair file with no hunk header (a rename) is exit 1, named, never read as empty" '[ "$rc15" = 1 ] && grep -q "PR #15 names the pair file but its diff carries no hunk header" "$root/e15.txt"'
+check "a PR naming the pair file with no hunk header (a rename) is exit 1, named, never read as empty" '[ "$rc15" = 1 ] && grep -qF "PR #15 names the pair file $pair but its diff carries no hunk header" "$root/e15.txt"'
 export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n16\tfalse\tdel\t$pair\t$root/diff16.txt\n"
 out16="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$pair" --prefix PT)"; rc16=$?
 check "a PR deleting the pair file is read as empty, exit 0" '[ "$rc16" = 0 ] && printf "%s" "$out16" | grep -q "^next: PT-5$"'
@@ -269,6 +283,76 @@ bash "$guard" --bogus >/dev/null 2>&1; rcb=$?
 check "an unknown argument is exit 2" '[ "$rcb" = 2 ]'
 bash "$guard" --worktree >/dev/null 2>&1; rcv=$?
 check "a flag with no value is usage, never an unbound-variable crash" '[ "$rcv" = 2 ]'
+bash "$guard" --worktree "$clone" --target acme/widget --pair-file "x.md" --prefix PT >/dev/null 2>&1; rcnd=$?
+check "a pair path with no directory is usage: the counter is the rulings directory's" '[ "$rcnd" = 2 ]'
+
+# ONE GLOBAL COUNTER: two pair files at the tip (PT-1..PT-4 interleaved), a sibling branch adding PT-6 to a
+# third file, an open same-repository PR adding PT-8 to a fourth, a fork PR's PT-50 listed and never counted
+gp=global/ports
+g -C "$clone" switch -q -c opus/kurapika/ports-e--f-run9
+printf '| PT-6 | SW-6 | KT-6 | map | sibling, third file | 2026-10-21 | |\n' > "$clone/$gp/e--f.md"
+g -C "$clone" add "$gp/e--f.md"; g -C "$clone" commit -qm "sibling adds PT-6 in e--f"
+g -C "$clone" push -q origin opus/kurapika/ports-e--f-run9
+g -C "$clone" switch -q main
+g -C "$clone" branch -q -D opus/kurapika/ports-e--f-run9
+cat > "$root/diff21.txt" <<EOF
+diff --git a/$gp/g--h.md b/$gp/g--h.md
+new file mode 100644
+--- /dev/null
++++ b/$gp/g--h.md
+@@ -0,0 +1,1 @@
++| PT-8 | RC-8 | KT-8 | map | open PR, fourth file | 2026-10-21 | |
+EOF
+cat > "$root/diff22.txt" <<EOF
+diff --git a/$gp/k--l.md b/$gp/k--l.md
+new file mode 100644
+--- /dev/null
++++ b/$gp/k--l.md
+@@ -0,0 +1,1 @@
++| PT-50 | RC-9 | KT-9 | map | fork | 2026-10-21 | |
+EOF
+export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n21\tfalse\tgh21\t$gp/g--h.md\t$root/diff21.txt\n22\ttrue\tfk22\t$gp/k--l.md\t$root/diff22.txt\n"
+g -C "$clone" switch -q -c sonnet/kurapika/ports-a--b-run10
+outg="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT)"; rcg=$?
+check "global: the next id exceeds every pair file's -- the tip's two, a sibling's third, a PR's fourth: PT-9 (exit $rcg)" '[ "$rcg" = 0 ] && printf "%s" "$outg" | grep -q "^next: PT-9$"'
+check "global: every read is named with its file" 'printf "%s" "$outg" | grep -qF "PT-4 tip origin/main in $gp/a--b.md" && printf "%s" "$outg" | grep -qF "PT-3 tip origin/main in $gp/c--d.md" && printf "%s" "$outg" | grep -qF "PT-6 branch origin/opus/kurapika/ports-e--f-run9 in $gp/e--f.md" && printf "%s" "$outg" | grep -qF "PT-8 PR #21 (gh21) in $gp/g--h.md" && printf "%s" "$outg" | grep -qF "PT-50 PR #22 (fk22) fork, not counted in $gp/k--l.md"'
+outgj="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/i--j.md" --prefix PT --json)"
+check "global: a pair with no file yet takes the same PT-9, never PT-1 (--json parses)" 'printf "%s" "$outgj" | jq -e ".complete == true and .next == \"PT-9\" and .number == 9" >/dev/null'
+printf '| PT-9 | RC-1 | SW-1 | map | a file this run creates | 2026-10-21 | |\n' > "$clone/$gp/m--n.md"
+outgw="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT)"
+check "global: a pair file this run creates in its working tree counts: next PT-10" 'printf "%s" "$outgw" | grep -q "^next: PT-10$" && printf "%s" "$outgw" | grep -qF "PT-9 working tree in $gp/m--n.md"'
+# --check across pair files
+gck() { bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT --check >/dev/null 2>"$root/gck.txt"; }
+printf '| PT-10 | SW-10 | KT-10 | map | same id, second file | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+printf '| PT-10 | RC-10 | SW-10 | map | same id, first file | 2026-10-21 | |\n' >> "$clone/$gp/m--n.md"
+gck; rcg1=$?
+check "global --check: one id in two of this branch's own pair files is exit 3, naming both files" '[ "$rcg1" = 3 ] && grep -qF "PT-10 ($gp/a--b.md) also at working tree ($gp/m--n.md)" "$root/gck.txt"'
+g -C "$clone" checkout -q -- "$gp/a--b.md"; rm -f "$clone/$gp/m--n.md"
+printf '| PT-6 | SW-60 | KT-60 | map | collides with the sibling | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+gck; rcg2=$?
+check "global --check: an id a sibling branch carries in a DIFFERENT pair file is exit 3" '[ "$rcg2" = 3 ] && grep -qF "PT-6 ($gp/a--b.md) also at branch origin/opus/kurapika/ports-e--f-run9 ($gp/e--f.md)" "$root/gck.txt"'
+g -C "$clone" checkout -q -- "$gp/a--b.md"
+printf '| PT-2 | SW-20 | KT-20 | map | collides with the tip, other file | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+gck; rcg3=$?
+check "global --check: an id the tip carries in a DIFFERENT pair file is exit 3, never skipped as a merged row" '[ "$rcg3" = 3 ] && grep -qF "PT-2 ($gp/a--b.md) also at tip origin/main ($gp/c--d.md)" "$root/gck.txt"'
+g -C "$clone" checkout -q -- "$gp/a--b.md"
+printf '| PT-8 | SW-80 | KT-80 | map | collides with the open PR | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+gck; rcg4=$?
+check "global --check: an id an open PR adds to a DIFFERENT pair file is exit 3" '[ "$rcg4" = 3 ] && grep -qF "PT-8 ($gp/a--b.md) also at PR #21 (gh21) ($gp/g--h.md)" "$root/gck.txt"'
+g -C "$clone" checkout -q -- "$gp/a--b.md"
+printf '| PT-9 | SW-90 | KT-90 | map | its own | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+gck; rcg5=$?
+check "global --check: the reserved PT-9 beside the tip's carried rows is no duplicate, exit 0" '[ "$rcg5" = 0 ]'
+g -C "$clone" checkout -q -- "$gp/a--b.md"
+# hostile: a same-repository PR naming a pair file out of shape is a named refusal; a fork's is ignored
+export STUB_PRS="23\tfalse\tbadname\t$gp/bad name.md\t$root/diff21.txt\n"
+bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT >/dev/null 2>"$root/e23.txt"; rc23=$?
+check "global: a same-repository PR naming a pair file out of shape is a named refusal at exit 3" '[ "$rc23" = 3 ] && grep -q "pair file named outside" "$root/e23.txt" && grep -q "PR #23 (badname)" "$root/e23.txt"'
+export STUB_PRS="24\ttrue\tbadfork\t$gp/bad name.md\t$root/diff21.txt\n"
+outbf="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT)"; rc24=$?
+check "global: a fork PR naming a pair file out of shape is ignored, exit 0, PT-7 past the sibling's PT-6" '[ "$rc24" = 0 ] && printf "%s" "$outbf" | grep -q "^next: PT-7$"'
+g -C "$clone" switch -q main
+g -C "$clone" branch -q -D sonnet/kurapika/ports-a--b-run10
 export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n"
 bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$pair" --prefix PT --base mian >/dev/null 2>"$root/eb.txt"; rct=$?
 check "a tip ref that does not resolve is a named exit 2, never PT-1" '[ "$rct" = 2 ] && grep -q "origin/mian does not resolve" "$root/eb.txt"'
