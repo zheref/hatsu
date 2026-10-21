@@ -4,7 +4,7 @@
 
 ## What it decides
 
-This is the **policy half** of the two-file model: `nen/contract.json` → `project` says what nen executes, this file says what the workflow decides with. Branch shape, which declared verbs run per iteration, the coverage ladder, where reports go and what is kept, how loud the bell is, which trailers a commit may carry, the readiness monitor's cap, the run profile, the model tiers per surface, review routing, the release unit, the advance-go gate and whether `hatsu:direct` publishes. **Every value here is a policy default, not a fact about the machine.**
+This is the **policy half** of the two-file model: `nen/contract.json` → `project` says what nen executes, this file says what the workflow decides with. Branch shape, which declared verbs run per iteration, the coverage ladder, where reports go and what is kept, how loud the bell is, which trailers a commit may carry, the readiness monitor's cap, the run profile, the model tiers per surface, review routing, the release unit, the advance-go gate and whether `hatsu:classify` and `hatsu:direct` publish. **Every value here is a policy default, not a fact about the machine.**
 
 Nen validates the whole file and reads a few slices itself: `nen commit format` and `nen wc squash` take `commits.allowedAttributionTrailers`, `nen shu coverage --touched` takes the `coverage` ladder, `nen review scopes` takes `review.scopes`, `nen report render --variant` takes `reports.sections`, `nen release unit-check` and `nen pr merge --release-unit` take `release.unitPaths`, `nen parse futon` takes `futon.advanceGo`, the `nen runner` family takes `runners`. Everything else is read by the skills, which is a read rather than a residue: nen validates the file, it does not hand the values out. In WORKFLOW.md's words, **a wrong `workflow.json` produces a correct command run at the wrong moment, which is silent**; a wrong `project` block fails loudly. Almost every skill depends on some key here, from `hatsu:breath` cutting the branch to `hatsu:mugetsu` reading the advance-go gate.
 
@@ -181,11 +181,21 @@ The **advance-go gate**: which repository kinds a typed `hatsu:futon ... then <s
 | `advanceGo.getsuga` | string[] | the same set. Hatsu's own: all three | Whether a `then getsuga` step may cut on the advance go | the same |
 | `advanceGo.kagutsuchi` | string[] | the same set. Hatsu's own: all three | Whether a `then kagutsuchi` step may send on the advance go | the same |
 
+### `classify.publish`
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `publish` | enum | `label` · `label+comment`; **`label`** (absent reads the same; any other value reads `label`, said). Hatsu's own is `label+comment`, on the maintainer's request of 2026-10-20 | Whether `hatsu:classify` writes its resolved criteria to the issue beyond the `lang/` and `job/` labels, read at the default branch's tip, never the checkout. `label` applies the labels through `nen classify apply` and keeps the rest in the report and the ledger; `label+comment` adds one marker-keyed comment per classified issue: every decided key with its confidence, status and signal category, unapplied keys marked *not applied* with their reason, the low keys and any undecidable axis, never issue text. The whole contract is `contracts/classify.taxonomy.json` → `publish`. Acts standalone, under `build`, or under `hatsu:file` once the issue is created; never under `ren` or for an inline effort | `hatsu:classify` § 5b, `hatsu:build`, `hatsu:file` § 5 |
+
 ### `direct.publish`
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `publish` | enum | `none` · `label` · `label+comment`; **`none`** (absent reads the same; any other value reads `none`, said). Hatsu's own is `label+comment`, on the maintainer's request of 2026-10-11 | Whether `hatsu:direct` writes its verdict to the issue on GitHub. `none` keeps it in the report and the local ledger `.nen/direct/<effort>.json`; `label` applies the primary pick's model **line** as one `model/<line>` label (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply`, a label the consumer's `nen/labels.json` has not declared being the verb's refusal; `label+comment` adds one marker-keyed issue comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version. Acts under `build`, under `hatsu:file` once the issue is created (file § 5), or standalone, never under `ren`, which cannot leave the machine (the maintainer's ruling of 2026-10-05) | `hatsu:direct` § 7, `hatsu:build`, `hatsu:file` § 5 |
+
+### `port`
+
+The porting keys (`zheref/hatsu#354`): `handbooksRepo`, the canon handbooks repository a port ruling lands in (default `zheref/bankai-handbooks`), and `rulingsDir`, the directory of its ports family (default `handbooks/ports`, one directed pair file per scenario pair plus `INDEX.md`). Read by `bankai-rule`, `limbo` and `bankai-handbooks` (and the port composites `hiraishin` and `kamui`, zheref/hatsu#357 and #356, not yet shipped); both have defaults, so an unset consumer reads them through `config_values.sh need --skill bankai-rule`. Domain `port` in the catalogue.
 
 ### `aiReviewers`
 
@@ -217,6 +227,15 @@ Self-hosted GitHub Actions runner naming and pools, provisioned by `hatsu:jusshi
 | `pools[].mode` | enum | `service` · `interactive`; absent means `service` on Windows and Linux and `interactive` on macOS, whose runner is always a LaunchAgent | A service runs in session 0, which has no desktop; an interactive pool's runners are logon tasks in one dedicated account's signed-in desktop session, online only while it is signed in. Declaring one, the mode is asked with that cost said, never assumed | `nen runner plan` (contract `nen.runner.plan/v0.2`), `nen runner script`, `nen runner workflow` (the `MODE` placeholder), `hatsu:jusshin` § 3 |
 | `pools[].labels` | string[] | Declare `self-hosted`, OS, arch, and optionally the final `pool-<id>`; an interactive Windows pool also declares `desktop` before that final label | Nen 0.21 accepts either spelling and always normalizes to a set ending in `pool-<id>`. Jobs select the complete set, so a same-arch runner in another pool does not join by default | `nen runner plan`, `templates/runner-preflight.yml`'s `runs-on`, `hatsu:tenkai` § 5b |
 | `pools[].root.<os>` | string | a directory per OS; absent means nen's default | The runner root on a host of that OS | `nen runner plan`, `hatsu:jusshin` |
+
+### `port.specKit`
+
+Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` §§ 2–3 |
+| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` §§ 2–3 |
 
 ### Keys a consuming repository may add
 
@@ -278,6 +297,7 @@ Illustrative only: a plain product repository on the default lane `app`, with a 
   },
   "mukai": { "autoEn": false, "$autoEn": "one of: true | false" },
   "release": { "unitPaths": ["CHANGELOG.md", "changelog.d/**", "App/Info.plist"] },
+  "classify": { "publish": "label", "$publish": "one of: label | label+comment" },
   "direct": { "publish": "none", "$publish": "one of: none | label | label+comment" }
 }
 ```
@@ -307,6 +327,7 @@ Three more are asked, not defaulted, because `null` is an answer: `launch.defaul
 - [`scripts/config_values.sh`](../../scripts/config_values.sh), header comments
 - [`claude/skills/jusshin/SKILL.md`](../../claude/skills/jusshin/SKILL.md) § 2 and § 3 (`runners`)
 - [`claude/skills/susanoo/SKILL.md`](../../claude/skills/susanoo/SKILL.md) § 5a and [`claude/skills/kagutsuchi/SKILL.md`](../../claude/skills/kagutsuchi/SKILL.md) § 4a (`tags`)
+- [`claude/skills/classify/SKILL.md`](../../claude/skills/classify/SKILL.md) (`classify.publish`)
 - [`claude/skills/direct/SKILL.md`](../../claude/skills/direct/SKILL.md) (`models`, `direct.publish`)
 - [`claude/skills/jutaisho/SKILL.md`](../../claude/skills/jutaisho/SKILL.md) § 1 (`notifications`)
 - [`claude/skills/spiritual-message/SKILL.md`](../../claude/skills/spiritual-message/SKILL.md) (`reports`, `reports.timeZone`)

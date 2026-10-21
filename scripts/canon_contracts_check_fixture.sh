@@ -69,12 +69,12 @@ fresh
 rm "$tmp/r/nen/labels.json"
 expect "wiring: a missing nen/labels.json is exit 2" 2 "missing"
 
-# 4c. the verdict nen 0.21.0 gives a job with no phase is PINNED here (a false green the header no longer
+# 4c. the verdict the pinned nen gives a job with no phase is PINNED here (a false green the header no longer
 # claims otherwise): when nen learns the two phase-coverage invariants this case flips, and the header
 # and this case are updated together (hanten on #223, Phinks P1)
 fresh
 break_file "$tmp/r/contracts/classify.taxonomy.json" 's/"phases": \{[^{}]*(\{[^{}]*\}[^{}]*)*\}/"phases": {}/g' && \
-expect "pinned: a job with no phase passes at nen 0.21.0 (phase coverage is nen's to add)" 0 "hold every invariant nen 0.21.0 states"
+expect "pinned: a job with no phase passes (phase coverage is nen's to add)" 0 "hold every invariant nen states"
 fresh
 chmod 000 "$tmp/r/nen/labels.json"
 expect "wiring: an unreadable nen/labels.json is exit 2" 2 "not readable"
@@ -101,7 +101,7 @@ if [ "$code" = 2 ]; then passed=$((passed+1)); echo "ok    wiring: a --root that
 rm -rf "$tmp/r"; mkdir -p "$tmp/r/contracts" "$tmp/r/nen"
 cp "$root/contracts/direct.registry.json" "$root/contracts/classify.taxonomy.json" "$tmp/r/contracts/"
 cp "$root/nen/labels.json" "$tmp/r/nen/"
-expect "committed data: every invariant holds" 0 "hold every invariant nen 0.21.0 states"
+expect "committed data: every invariant holds" 0 "hold every invariant nen states"
 
 echo "canon_contracts_check_fixture: $passed passed, $failed failed"
 [ "$failed" = 0 ]

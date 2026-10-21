@@ -1,5 +1,8 @@
 # A/B evidence — `drive` (zheref/hatsu#2)
 
+> Historical transcript: “How to verify” below is the product verification title. Current kind-specific
+> composition is [PR-SECTIONS.md](../PR-SECTIONS.md); recorded command output is preserved.
+
 > **The skill this document records is named `sharingan` since Hatsu `v0.5.0`, and it lives at
 > [`claude/skills/sharingan/SKILL.md`](../../claude/skills/sharingan/SKILL.md).** This file keeps its
 > own name because an evidence record is dated: every transcript below was run against a skill called
@@ -450,6 +453,8 @@ what `drive` is for driving.
   stuck PR needs next stays this skill's.
 - **No PR-diff-fetch verb exists**, same residue `backlog-state`'s own A/B already names — `gh pr
   diff <n> --name-only` remains a necessary raw call feeding `nen gate derive --files`.
+  **Pointer (zheref/hatsu#334):** the `--files` source has moved to
+  [`docs/WORKFLOW.md`](../WORKFLOW.md) § *Gate derivation*.
 - **No PR-base-ref-fetch verb exists** either, for the identical reason (`nen pr fetch` would supply
   it and does not work) — `gh pr view --json baseRefName` remains a necessary raw call, same
   stopgap `backlog-state`'s own § 4 already discloses.

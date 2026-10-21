@@ -8,6 +8,8 @@
     "enforced_by": "Codex only, through sandbox_workspace_write.writable_roots. Claude Code and Cursor allowlists are exe-and-argument PATTERNS with no root syntax: their scope is that the rendered file lives in this checkout's own .claude/ or .cursor/ directory and applies to sessions opened there, and nothing in the file refuses an allowed command pointed at another checkout. The deny rows and hooks/guard-base-branch.sh are the second line on every surface."
   },
   "$comment_removed_gh_auth_token": "REMOVED (Feitan F1, 2026-09-20): the shared allow list used to carry {exe: gh, args: 'auth token'}. Every verb that needs GH_TOKEN reads it out of gh's OWN credential store at call time (gh api/pr/issue/run/label all resolve auth internally) -- nothing in this codebase pipes 'gh auth token' output anywhere it needs to be. Allowing the bare command meant a session could run it and have the live OAuth token printed straight into the transcript, which is a credential leak an allowlist exists to prevent, not to grant.",
+  "$comment_removed_gh_api": "REMOVED (#154, Feitan SEC-9, 2026-10-19): gh api * permitted PUT pulls/<N>/merge and GraphQL mergePullRequest, bypassing Nen's bounded delivery guard. #326 restores named, audited reads through scripts/gh_api_read.mts only; do not restore a wildcard gh api grant.",
+  "claude_code_api_reader": "scripts/gh_api_read.mts",
   "allow": [
     {
       "exe": "nen",
@@ -25,6 +27,11 @@
       "why": "mugetsu § 5a executes the declared plugin lane only after the maintainer's advance go and green preflight (2026-09-28 ruling; #156); no deploy or direct gh release grant"
     },
     {
+      "exe": "nen",
+      "args": "pr merge * --delivery --requirements-from * --repo * --require-head * --run",
+      "why": "en § 5 may merge only a recorded Futon-owned stacked delivery PR after Nen Ready and a pinned current head (#154); Nen refuses protected bases, and no direct gh merge is granted"
+    },
+    {
       "exe": "curl",
       "args": "-fsSL https://raw.githubusercontent.com/zheref/*",
       "why": "the warm-up fetches nen's checksum-verified bootstrap script to a file"
@@ -38,11 +45,6 @@
       "exe": "gh",
       "args": "issue *",
       "why": "filing and reconciling issues"
-    },
-    {
-      "exe": "gh",
-      "args": "api *",
-      "why": "reads the verbs perform through gh"
     },
     {
       "exe": "gh",
@@ -142,7 +144,7 @@
     {
       "exe": "git",
       "args": "merge *",
-      "why": "ao catches the branch up"
+      "why": "ao catches a branch up and futon may merge locally into its own integration branch; neither grants a trunk push"
     },
     {
       "exe": "git",
@@ -294,7 +296,7 @@
     {
       "exe": "gh",
       "args": "pr merge *",
-      "why": "no agent in this plane merges"
+      "why": "direct gh merge is never granted; en uses only Nen's bounded delivery form for a recorded Ready Futon stack, and main remains the maintainer's"
     },
     {
       "exe": "gh",

@@ -34,7 +34,7 @@ believes he is holding, so they can catch him holding the wrong one before he ac
 | **Enhancer** | **Product code.** Edit product/feature code in the local checkout, build and test locally, open the PR. Branch `kurapika/<slug>`. | **G2** (`CON-5`) |
 | **Conjurer** | **Canon & governance authoring** — the constitution, handbooks, schemas, agent definitions, taxonomies, thresholds. Conjured contracts *with conditions*: a clause states what it binds, what it costs, when it lapses, and what happens when it is broken. | **G4** (`CON-7`) **in a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)); the same edit in a consumer repository is **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
 | **Transmuter** | **Machinery** — Nen verbs and their tests, scaffolding, hooks, workflows, generators, plugin manifests, contract files. The standing transmutation is *improvised shell → deterministic verb*. | **G4** (`CON-7`) **for canon machinery** — machinery in a canon repository (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)), which *is* the process. The same file kinds in a consumer repository are that repository's **configuration** and stand at **G2** — § *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind* |
-| **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge prompt that ends every PR into `main` (`en` § 5, § *Rulings of 2026-09-30 — En never merges*). Merges only locally (`git merge --no-ff`) into futon's own integration branch, never a PR. Never votes, never self-reviews. | drives *to* a gate; never crosses G2/G4 |
+| **Manipulator** | **GitHub-side ops** — drives, wakes, labels, retargets, cascades, thread stewardship, and the merge prompt that ends every PR into `main` (`en` § 5). May merge a recorded Futon-owned stacked delivery PR only through `nen pr merge --delivery` at Ready (§ *Ruling of 2026-10-19 — recorded Futon delivery merges*); Futon may merge locally into its own integration branch. Never votes, never self-reviews. | drives *to* G2/G4; never crosses either gate |
 | **Emitter** | **Release & fan-out** — `susanoo` builds the release unit, `getsuga` opens the release-proposal PR, merges it himself through `nen pr merge --release-unit` (§ *Rulings of 2026-09-26/27/28*) and cuts the post-merge tag, and the repin fan-out follows: collation, preflight, `latest`. Prepares a release; publishes one, or uploads a build, only on the maintainer's own go — by name, in their own words, or as a step of their own `futon` `then` chain (the advance go, `mugetsu` § 3), which Emitter runs (amended in place by the 2026-09-30 clarification under § *Rulings of 2026-09-26/27/28*, ruling 2(a)). | **G3** stays the human's (`CON-6`) |
 | **Specialist** | **Product intake** — his kept Product-Owner canon. A raw thought elicited into a decision-complete brief, filed only on explicit confirmation. The ceremony is [`hatsu:emperor-time`](../claude/skills/emperor-time/SKILL.md) (`v0.116.0`): direct, interview, challenge (by a raised persona — **OPEN-4**), reconcile, file, offer the build. | **G1** stays the human's (`CON-4`) |
 
@@ -871,6 +871,9 @@ Clause ids are the inherited constitution's; the rewritten constitution keeps th
 | **G4** | `CON-7` | Policy / spec change — **authoring or maintaining a canon repository** (the repositories `nen repo classify` reports as `role: canon` (`nen/repos.json` → `maintained_tools`)): the repositories whose product is the process, so a merge there changes what every other repository does. A consumer repository's own `nen/*.json`, CI workflow or `scripts/` entry is **configuration, and stands at G2** (§ *Rulings of 2026-09-18 — G4 is the repository's role, not the file's kind*) | **The same as G2** — every PR into `main` ends at the merge prompt (`en` § 5, ruling of 2026-09-30); only `getsuga` § 3a's own release proposal is merged by an agent, at `canon-merge` too. Futon's local `git merge` into its own integration branch (futon § 5) is not a G4 act |
 | **G5** | `CON-47` | Any other human-only decision or action | **Never** — its definition *is* "the decision is theirs" |
 
+The G2/G4 rows govern merges into `main`. They do not bar En's bounded merge of a recorded
+Futon-owned stacked delivery PR into a non-main base (§ *Ruling of 2026-10-19*).
+
 **No agent in this roster casts a `request_changes` review — for any reason, on any PR.** They run on the
 human's credentials, so GitHub records the vote as **theirs**, and casting one manufactures their governance
 vote on a PR they have not read. The substitutes: **`sharingan`'s channel** for findings an automated reviewer
@@ -909,6 +912,103 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
   never at `main`, and never write to it.
 
+
+## Rulings of 2026-10-20 — classify and direct always write back
+
+**Context.** The maintainer's request, 2026-10-20, recorded verbatim: *"Have all Hatsu family repos and
+existing registered consumer repos be configured to ALWAYS label AND comment on a classify and/or direct
+workflow so that any resolved criteria by these skills always stays on original scope issues as labels and
+detailed as comments."* The request is the maintainer's; **every row below is this run's reading of it, the
+maintainer's to correct at the G4 merge** (zheref/hatsu#369).
+
+| Ruling | What it says |
+|---|---|
+| **`classify.publish` is new** | `nen/workflow.json` → `classify.publish`, one of `label` (the default, the 2026-10-04 behaviour) \| `label+comment` (catalogue id `workflow.classify.publish`), read at the default branch's tip, never the checkout. There is no `none`: classify's labels were never opt-in |
+| **One contract, in data** | The comment's whole contract — when, which issues, marker, verb, idempotence, shape, untrusted text, body file, failure, confirmation — is [`contracts/classify.taxonomy.json`](../contracts/classify.taxonomy.json) → `publish`, as direct's is `contracts/direct.registry.json` → `publish`; [`classify`](../claude/skills/classify/SKILL.md) § 5b points at it. Signals are posted as category ids, never as issue text |
+| **The criteria reach the issue even when a label cannot** | Read from *"always stays on original scope issues"*: the comment posts for every issue whose classification decided an axis, an unapplied key (undeclared family, owed declaration, failed apply) listed *not applied* with its reason. Direct already does the same for a refused `model/` label (`publish.label.replace`) |
+| **Every family and consumer repository sets both keys to `label+comment`** | Each through its own PR at its gate: zheref/nen#460, zheref/akatsuki-ai#53, zheref/kro-pwa#110, and five private consumers' PRs (every local checkout carrying a `nen/workflow.json`; both registries list no consumers). Four of them also declare the `lang/`, `job/` and `model/` families, three the `nen/repos.json` they lacked. **Owed:** zheref/bankai-handbooks, whose adoption (zheref/bankai-handbooks#4) sets `direct.publish: none` and no `classify` block — both keys after it lands. The catalogue defaults stay (`label`, `none`), so an unset repository keeps today's behaviour |
+
+## Rulings of 2026-10-19/20 — cross-platform porting (zheref/hatsu#354)
+
+Asked through the picker during the `emperor-time` intake that filed epic zheref/hatsu#354 and its children #355 `bankai-rule`, #356 `kamui` and #357 `hiraishin`; copied verbatim from the epic body, which carries the 30 challenge settlements beside them. Recorded here by `kamui`'s PR (#356) because `jutaisho` § 4 and `nen/decisions.json` → `port-siblings` cite them; `bankai-rule` (#355) cites this section rather than recording it again.
+
+The skill names **`hiraishin`** and **`kamui`** are the maintainer's own, from the invocation text (*"hiraishin": Should take a delivered PR…* / *"kamui": Same as "hiraishin", yet kamui takes an issue instead…*); `kamui` was reserved by the ruling of 2026-09-29 (*"Let's reserve Kamui for another thing later on"*) and this is that thing.
+
+**The build-order ruling was amended by the maintainer on 2026-10-20, in their own words**, before any child
+was built (recorded by the integration PR, not on the epic): *"Build HA-IS#356 and HA-IS#357 in parallel, or
+sequentially here while waiting for HA-IS#355 delivery from the other session. Have them both land and wait
+at G4 for me. Will be AFK for the next hours. Feel free to stack them using an integration branch and land a
+single integration delivery PR onto main I can take a look at when I come back. You have my permission to
+merge PRs that are not targeting main as long as everything is delivered for this effort by next time I
+check this session again in about 5 hours."* Read: #356 and #357 are built stacked on
+`integration/ha-354-porting` (futon § 5's shape, the child PRs merged there by the orchestrating session
+under that grant, `gh pr merge` denied by the harness so `git merge --no-ff` + `nen wc publish`) and land on
+`main` together as one integration PR at **G4**; #355 lands after them on its own PR, so until it merges
+both skills carry the interim [`ports.md`](config/ports.md) § *Shared conventions* names (file § 4's own
+confirmation, *port-drift not landed*). The grant covers PRs not targeting `main` only, this effort only.
+
+| Question | Answer |
+|---|---|
+| How many briefs should this idea become? | `One umbrella epic` |
+| Where should the porting handbooks live? | `bankai-handbooks (Recommended)` |
+| Does hiraishin file a porting issue on the target before building? | `Yes, file then build (Recommended)` |
+| What counts as a completely merged source PR? | `Merged into base only (Recommended)` |
+| When a source change has no target equivalent? | `Ask once, record ruling (Recommended)` |
+| How is the target named? | `Checkout, with to-clause (Recommended)` |
+| What does kamui write into the canon spec repository? | `Full spec-kit set` |
+| How is the spec repository classified so its merge stays G2? | `New role: spec (Recommended)` |
+| May the target build start before the spec PR is merged at G2? | `Wait for the spec merge` |
+| How many target repositories does one kamui call port to? | `Always ask through a picker which of all the configured siblings the new implementation should be ported to.` |
+| How do picked issues run? | `Multi-pick, sequential here (Recommended)` |
+| The handbook-rulings skill's name | `bankai-rule` |
+| How does a ruling reach bankai-handbooks? | `One PR per port run (Recommended)` |
+| Priority | `High` |
+| Challenger this run | `Nobunaga (Recommended)` |
+| Is the typed hiraishin call the G1 for the port issue? | `Typed call is the go (Recommended)` |
+| On kamui over an issue, the source's own implementation | `Source issue stays its own (Recommended)` |
+| With a spec repo, does hiraishin update the spec first? | `Yes, spec first (Recommended)` |
+| Which child owns the spec engine, in what order? (after the challenge) | `bankai-rule → kamui → hiraishin (Recommended)` |
+| Where does a run find the checkouts? (after the challenge) | `Private config, clone fallback (Recommended)` |
+| How are ruling ids allocated? (after the challenge) | `Reserve against open PRs (Recommended)` |
+
+**What the rulings bind in canon** (the epic's *Design Direction*, verbatim): **Two recorded exceptions to the star, the maintainer's ruling of 2026-10-19** (*"Always ask through a picker which of all the configured siblings…"*): the sibling picker stars none; the start picker stars the item whose primary pick is this surface and none when no item's is — jutaisho § 4 cites both (kamui's scope). **Cardinality**: both pickers page in fours (a fifth item opens a second call); under three items the picker carries the items plus *none of them*; a lone sibling is still asked, never auto-picked (the ruling says always).
+
+## Rulings of 2026-10-20 — zheref/nen's gate path sets
+
+**Context.** The maintainer's answer through the picker, 2026-10-20, during hanten round 1 of
+zheref/hatsu#334. The question and the answer are recorded verbatim; the option's text, as the picker
+presented it, opens the third column in quotes.
+
+| Question | The maintainer's answer, verbatim | What it settles |
+|---|---|---|
+| *For nen's gate row, which paths should derive G4?* | `⭐ A · All but LICENSE/.gitignore` | Option text: *"Every top-level entry incl. .github/, changelog.d/, .gitattributes, bunfig.toml, .npmrc derives G4; only LICENSE and .gitignore G2; a tree-freshness check owed."* Built by the effort `opus/kurapika/ha-334-gate-path-sets` |
+
+**What follows:**
+
+- **The row.** [`contracts/pr-composition.json`](../contracts/pr-composition.json) → `gateDerive.zheref/nen` lists every top-level entry of nen's tracked tree at `v0.23.0` (`1d2fb6f`) and at nen `main` on 2026-10-20: `.github/` whole rather than only `.github/workflows/`, `changelog.d/` and `.gitattributes` included, and `bunfig.toml` and `.npmrc` as literal entries though absent from both trees. `nen/` and `schemas/` stay the policy set and the rest is the process set. Only `LICENSE` and `.gitignore` derive `G2`. Each member's reason is in the row's `$comment`, and `scripts/pr_composition_check_fixture.sh` records the gate each representative change derives, asked of `nen gate derive` itself.
+- **The fall-through, stated.** A top-level entry nen adds later that neither set lists derives `G2` until the row moves. That is why the **tree-freshness check** is owed: at a repin, list nen's tree at the pinned tag and fail when a top-level entry is in neither set nor the explicit `G2` list (`LICENSE`, `.gitignore`). It is recorded in [`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies* and is not yet filed.
+- **For nen only.** zheref/hatsu's own row is unchanged, so a diff of only its `README.md` or `CHANGELOG.md` still derives `G2` there.
+- **Who holds the sets.** Hatsu holds zheref/nen's sets until nen has a declared home of its own that `nen gate derive` reads. That home is owed to nen and is not yet filed.
+
+---
+
+## Rulings of 2026-10-20 — worktree-local ledgers are disposable
+
+**The question, verbatim**, put through the picker on `hatsu:kurapika`, 2026-10-20, during hanten round 2 on [#333](https://github.com/zheref/hatsu/issues/333):
+
+> A worktree holding its own .nen/ ledgers: how should cleanup treat it?
+
+**The maintainer's answer, verbatim** (the picker is the source):
+
+> **C · Ledgers are disposable** — A merged effort's worktree-local ledgers may go with it; core's markers suffice.
+
+| Ruling | What follows from it |
+|---|---|
+| **Core's `.nen/` is the record** | [`cleanup`](../claude/skills/cleanup/SKILL.md) § 4's *the `.nen/` ledgers are the record and never a leftover* and its Authority's *touching a `.nen/` ledger* mean **core's** `.nen/`. A worktree's own `.nen/` goes with its worktree. |
+| **Reported, never counted** | `scripts/cleanup_path_admit.ts` reports an ignored `.nen/` at an admitted worktree's root truthfully, as `!! .nen/ (worktree-local ledgers, removed with the worktree; disposable — ROSTER § Rulings of 2026-10-20)`, and that line alone does not make the tree dirty, so a merged, otherwise-clean effort worktree reaches § 5's deterministic row. Any other ignored entry still makes the tree dirty and is listed. The script's header states the rule; everything else cites it. |
+| **Not a licence past the worktree** | Nothing here lets cleanup touch core's `.nen/`, and a nested repository under an ignored worktree-local directory is still refused by the admission. |
+
+---
 
 ## Rulings of 2026-10-19 — the CI reviewers tier
 
@@ -1064,6 +1164,26 @@ than filed as a duplicate surface-drift issue; no generator model-value expansio
 
 ---
 
+## Reading of 2026-10-19 — a typed composite's delegated publication (unruled; the maintainer's to correct at G4)
+
+**This run's reading, the maintainer's to correct at the G4 merge** — never a ruling the maintainer
+made. Its evidence is zheref/hatsu#332, filed from the `hatsu:kazaana zheref/nen` sitting; its
+*Evidence* section reads, verbatim (excerpt):
+
+> The maintainer explicitly corrected the interpretation: Kazaana is a Futon wrapper and should autonomously publish working-branch commits needed to deliver the matching backlog.
+
+That is the filer's report of a correction, not the maintainer's own words, and nothing here quotes it
+as theirs.
+
+| Reading | What it says |
+|---|---|
+| **What it stands on** | Ruling 1 of § *Rulings of 2026-10-13 — kazaana, Shizuku activated, …*: each queued issue is authored **and published** by a delegate. § *Rulings of 2026-09-30 — En never merges*, row *Where an effort stops*: a futon effort on an integration branch runs `aka` to publish its own effort branch; on the stacked or per-issue shape its push is futon § 4 → build § 5's |
+| **What it reads** | A typed `futon` or `kazaana` line is the maintainer's one standing publish call for each queued effort's own working branch on the run's target repository, **scoped by destination, never by SHA** |
+| **Where it is stated** | [`aka`](../claude/skills/aka/SKILL.md) § 0's second carve-out, **once**: its Covered, Not-covered and Lapses rows, the handoff, the host refusal and the trajectory are not restated here; `murasaki` § 6, `en`, `mukai`, `futon` § 7 and `kazaana` § 3 cite it |
+| **What it does not rule** | standalone `hatsu:aka` (one call, one run); a merge into `branch.base` (en § 5) and a release (getsuga, mugetsu) |
+
+---
+
 ## Rulings of 2026-10-05 — the registry rebalance
 
 **The maintainer's request, verbatim** (excerpt), on `hatsu:great-hiker`, 2026-10-05:
@@ -1102,7 +1222,7 @@ Answered through the surface's picker, 2026-10-05:
 | **Sol is the execution default, Astra the escalation** | `EXECUTION_FRONTIER` names the GPT Sol family on Codex's `deep` tier; a new `EXECUTION_MAX` names Astra on the `frontier` tier as the escalation, mirroring `SEMANTIC_MAX`; `EXECUTION_VALUE` moves to Terra on the `fast` tier. No cell names a frontier alias as its primary |
 | **Grok enters as a Cursor deep alias** | `EDITOR_FRONTIER` (provider `cursor`, line `grok`, Cursor's `deep` tier) is the primary on the eight editor-shaped TypeScript cells the source document preferred the Cursor IDE for (ui, implementation, bug-fix, migration, delivery-ops) and the cross-provider fallback for execution work elsewhere. Grok Build and GitHub Copilot are listed as **non-actionable** surfaces (`surfaces.$nonActionable`); a fifth Hatsu surface is a proposal (zheref/hatsu#236), never a registry edit. The Cursor guide's live-resolve pattern is corrected to match both `grok-*` and `cursor-grok-*` ids |
 | **Three picks, the recommended by rule** | Every cell yields a **primary** (the cell's winner: cost-aligned best), a **fallback** (its runner-up, on another provider or surface in every cell — `picks.fallbackRule`; 66 cells moved in all, 60 of them to satisfy it; at the aggregate of several pairs the reader names the highest-precedence other-pool alias where the verb's runner-up shares the primary's pool, until zheref/nen#389) and a **recommended** (cost-agnostic best) derived by `picks.recommended`: the primary's `escalation` when the highest job weight is 4 or the effort is `max`, else the primary. Deterministic from facts the verb reports; computing it inside `nen direct resolve` is a nen follow-up |
-| **Publishing is opt-in** | `nen/workflow.json` → `direct.publish`, one of `none` (default, the 2026-10-04 behaviour) \| `label` \| `label+comment` (catalogue id `workflow.direct.publish`). `label` applies the primary's model **line** only, as `model/<line>` (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply` — declared in the consumer's `nen/labels.json` first, by hand, because nen's classify contract carries exactly two axes; `label+comment` adds one marker-keyed issue comment with the three picks, tier, surface, dial and live version, closing with a `Direct:` trailer. The PR body stays free of model metadata (CON-51) |
+| **Publishing is opt-in** | `nen/workflow.json` → `direct.publish`, one of `none` (default, the 2026-10-04 behaviour) \| `label` \| `label+comment` (catalogue id `workflow.direct.publish`). `label` applies the primary's model **line** only, as `model/<line>` (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply` — declared in the consumer's `nen/labels.json` first, by hand, because nen's classify contract carries exactly two axes; `label+comment` adds one marker-keyed issue comment with the three picks, tier, surface, dial and live version, closing with a `Direct:` trailer. The PR body's Delivery preamble reports ledger-backed model metadata under the 2026-10-19 ruling; commit metadata remains CON-51(c) |
 
 **Pushed back, and recorded as this run's reading (the maintainer's to correct):** (1) the tier keys stay
 `frontier / deep / fast / economy` — the request's `light` is `economy`, and renaming a key touches every
@@ -1637,7 +1757,7 @@ definition at `v0.67.0`. What the ruling settles:
 | **Raised by content too — and ONLY by path or content** | `hanten` § 2 raises `economics` beside the totality and workflow rows when a diff carries a **config-shaped** change matching [`docs/ECONOMICS.md`](ECONOMICS.md) § 1's content rows — the one home of the predicate — even when no path did. *"ONLY when"* means never on every diff |
 | **Leorio never rejects** | An economic delta is **not a finding** — a change that costs more is report content. A finding exists only where the maintainer cannot decide informed: an unbounded consumption (`ECON-4`), money granted or charged wrongly (`ECON-5`), an undisclosed user-facing economic change (`ECON-7`), a number with no method (`ECON-8`). No recommendation, no verdict, no vote |
 | **The rules are canon** | `ECON-1`–`ECON-8` live in [`docs/ECONOMICS.md`](ECONOMICS.md) — price and plan surface, metered consumption per user action, maintainer run cost, bounded, revenue integrity, provider and store terms, disclosure, method — resolved from `$hatsu_root/docs/ECONOMICS.md` and never remembered; the reviewer preamble § 3 admits the `ECON-` prefix from that path, Hatsu's own canon and no bankai handbook |
-| **The report, and where it goes** | Leorio **returns** it in his reply as one Markdown block (a reviewer stands in a disposable checkout and writes no file); `hanten` writes it verbatim, keyed **per effort** like the cycle ledger — `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md` — appending a `## Delta <old-head> → <new-head>` section on a delta pass, and records each write in the findings document's `reports[]` as `{scope, persona, invocation, head, path}` ([`docs/ECONOMICS.md`](ECONOMICS.md) § 5, the one home of the write and keying rules). Sections in order: summary and who is affected · delta table (dimension · ECON id · who pays · before · after · delta · confidence) · Mermaid `xychart-beta` charts, **every chart immediately followed by its data table** · case for landing · case against · what would flip the call · unestimated · method. It reaches the PR body as the optional `## Economics` section of `templates/pr-body.md`, present only when Leorio ran or took a delta pass; the checklist line's third reading is `not run: <gap | skipped-exhausted>, economics not reviewed` |
+| **The report, and where it goes** | Leorio **returns** it in his reply as one Markdown block (a reviewer stands in a disposable checkout and writes no file); `hanten` writes it verbatim, keyed **per effort** like the cycle ledger — `<reports.dir>/hanten/<branch-slug>[-pr<N>].economics.md` — appending a `## Delta <old-head> → <new-head>` section on a delta pass, and records each write in the findings document's `reports[]` as `{scope, persona, invocation, head, path}` ([`docs/ECONOMICS.md`](ECONOMICS.md) § 5, the one home of the write and keying rules). Sections in order: summary and who is affected · delta table (dimension · ECON id · who pays · before · after · delta · confidence) · Mermaid `xychart-beta` charts, **every chart immediately followed by its data table** · case for landing · case against · what would flip the call · unestimated · method. It reaches the PR body as the optional Economics section resolved from `contracts/pr-sections.json` (the former `templates/pr-body.md` is retired), present only when Leorio ran or took a delta pass; the checklist line's third reading is `not run: <gap | skipped-exhausted>, economics not reviewed` |
 | **Closing line** | `Leorio-Ledger: no delta ⚪ \| delta charted 📊 [· <n> findings open] \| unread ⚠️` — three readings; `delta charted` is a difference for the maintainer to weigh, **not a rejection**, and open findings are **counted on the line** (`delta charted 📊 · 2 findings open`), never a rejection; `no delta` is valid only with zero findings open; `unread` enumerates what could not be checked and is never clean |
 | **Pins** | `model: opus` / `effort: high` / `color: green`, the `reviewer` role on the `deep` tier; tools `Read, Grep, Glob, Bash, WebSearch, WebFetch` (as Illumi's — he writes no file). Header line `💴 **Leorio · economics**` |
 | **What he never does** | never estimates from a live account's billing data, never calls a paid API to measure — synthetic runs or published price sheets only, each fetched page cited with its URL and date; never re-runs for a friendlier number |
@@ -1684,7 +1804,7 @@ target may come from configuration** — `nen/workflow.json` → `deploy.default
 its `why` reads non-production, a typed target always winning, the report saying `typed` or
 `workflow.json → deploy.defaultTarget`. `nen shu deploy` is unchanged and still takes `--target`
 explicitly; the per-stack default in nen's reference pack is nen's to add. **No new skill, and `kamui` is
-reserved.** The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
+reserved.** (The reservation is spent: `hatsu:kamui`, zheref/hatsu#356 under epic #354, 2026-10-20.) The per-target rule holds: one call, one target, one send; `mugetsu` at **G3** is untouched.
 
 **Ruling 2 (19:50Z).** On HA-PR-#127 standing on #126's branch after #126 merged, the maintainer asked:
 *"Why am I being prompted to manually merge a PR that is not targeted to the main trunk branch? I don't
@@ -1901,3 +2021,90 @@ with reconciliation, material-change-only writes, sanitized pending records and 
 unrelated implementation, labels, closures, merges or releases. Reviewers relay findings to the
 coordinating writer. [DISCOVERY.md](DISCOVERY.md) owns the protocol. These changes are delivered
 before a new tag is considered; this ruling does not itself authorize a tag or release.
+
+## Ruling of 2026-10-19 — recorded Futon delivery merges
+
+The maintainer narrowed the 2026-09-30 “En never merges” ruling: En may merge **only a
+Futon-owned stacked delivery PR**, only when `nen pr ready` says **Ready** at its pinned current
+head, and only through Nen's bounded `pr merge --delivery` guard. The exhausted-reviewer sixth
+stop never counts as Ready for this exception. A PR into the default branch or `branch.base`, an
+unowned PR, and any failing or unknown gate remain at the maintainer's merge handoff. Getsuga's
+release-unit exception remains separate.
+
+Ownership is a durable record in the repository's Git common directory. Futon records its typed
+invocation before a PR exists, then binds the selected issue, delivery PR, intended non-main base
+and head to that run. The helper checks that the run predates the PR and the PR body cites the
+issue; this is procedural provenance, not cryptographic proof of the user's keystrokes. En
+verifies it against GitHub before acting; the PR title, branch name and session memory prove
+nothing. A changed head must be rebound by the same effort. En plans the Nen merge, rechecks the
+live body and Ready verdict at the same SHA, runs it only on a passing plan, and reads the merged
+state back. A denial leaves the record and gate evidence intact and hands the exact command to
+the maintainer. The permission pack admits only that bounded Nen form, never direct `gh pr
+merge`, `--admin` or `--auto`; its former broad `gh api *` grant is removed because REST and
+GraphQL merge mutations bypassed the guard. API reads now require individual approval until a
+bounded read wrapper is provided. The base-branch push refusal is unchanged. The Claude Code live
+classifier and merge proof are deferred until a later eligible Ready Futon stack exists
+(zheref/hatsu#154; the review bots were exhausted in this sitting).
+
+## Rulings of 2026-10-19 — PR sections (HA#351)
+
+The maintainer ruled seven points for the catalogue-backed body:
+
+1. Seven counts **reader sections only**; Completion checklist, Associated issues, Agent attribution
+   and Delivery are outside the cap. Delivery is placed first as metadata; the others follow the readers.
+2. One `verify` id has kind-specific titles: product **How to verify** with numbered manual steps;
+   library **How a consumer verifies** with Consumer scenario / Call or import / Expected and the
+   command against the published artifact; process **What the guards prove** with Behavior changed /
+   Lane or verb run / Refuses on / Passes on and a named fixture. The non-product forms satisfy
+   `CON-17(b)`'s observable proxy; no handbook amendment.
+3. Consumer `nen/workflow.json → pr.sections` carries every default matrix cell; `$sections` beside
+   it lists every available id and purpose. An edited cell becomes consumer-owned.
+4. Six work families and the full default matrix are adopted, over classify's five derived domains.
+   [The catalogue](../contracts/pr-sections.json) owns the 39 job assignments, count fold and tie order;
+   [PR-SECTIONS.md](PR-SECTIONS.md) renders the matrix and procedure.
+5. Emoji-prefixed headings and table glyphs are adopted. Every heading matcher tolerates the prefix.
+6. The prose budget is 150 words per section outside tables, fences and diagrams: **warn, never refuse**.
+7. What this improves lists Observability, Security, Traceability, End-user experience, Autonomy,
+   Stability, Performance, Maintainability, Cost, Portability and Accessibility on every PR, marked
+   ⬆ improves / ➖ unchanged / ⬇ regresses. Unchanged rows need no explanation. The later release
+   exception below narrows “every PR”.
+
+Defaults stated on canon: Economics stays its own section with Leorio's summary visible and full
+report collapsed; internal headings embed at level 3 or deeper. The flow folds into How as a second
+diagram only when flow changed. The first reader section is What this changes for you (`CON-17(a)`),
+after the Delivery preamble. Per-section fragments under `templates/pr-body/` retire `templates/pr-body.md`.
+HA#351 authorizes interim resolver/sections-check scripts until a released Nen pin carries NN#448;
+merging that dependency alone does not move Hatsu's pin. The seven-section cap includes Economics.
+
+### Clarification of 2026-10-20 — release keeps its written matrix
+
+Asked whether the improves-on-every-PR ruling overrides the release matrix, the maintainer answered
+**“Keep the release matrix as written.”** Release is therefore the explicit exception: its adopted
+cells omit `improves`, leaving room for Economics under the cap. Every other family retains the full
+eleven-aspect ladder. This is an actual maintainer clarification, not an inferred relaxation.
+
+## Rulings of 2026-10-19 — PR Delivery (HA#321)
+
+1. **PR-body provenance is restored; commits stay persona-only.** The first heading is `## Delivery`,
+   before the first reader section. It gives the actor/phase role, surface, model, effort dial, session
+   and ledger source. This reverses the PR-body half of the 2026-09-12 ruling. `CON-51(c)` and the
+   final, persona-only `## Agent attribution` section are unchanged.
+2. **Wait for Nen's ledger verbs.** Nen v0.24.0 shipped NN#437; Hatsu repins before publishing this
+   change. The dial and session are recorded through `nen phase begin`, `nen usage record` and
+   `nen session record`, never stored in interim notes or typed into the body from memory. A
+   `phase.note` may attest model provenance, but carries no dial or session value.
+3. **Session is title where read, else id.** Claude Code desktop reports title plus session id when
+   both are exposed. CLI, Codex, Cursor and Antigravity use an exposed session id; without one,
+   Delivery says `unread — <surface> exposes none`. A missing ledger entry proves no identity was recorded.
+4. **Model is exact served ID plus alias.** A harness-reported served ID is shown beside its registry
+   alias. A reviewer alias comes only from its actual row or explicit `registry alias <token>`
+   marker, else `unread`; the configured tier proves nothing about what ran. An exact ID needs
+   `model-kind=served` or `exact served model from <provenance>` in the
+   entry's `phase.note`, `usage.source` or `session.source`; bare tokens stay unclassified. If the
+   harness exposed no ID, the alias is paired with `unread`; a direct snapshot does not prove the
+   version actually served. The rendered block is checked against the ledgers before a PR
+   body write. Its gate is a forecast; readiness is `nen pr ready`'s verdict.
+
+### Evidence ruling of 2026-10-20 — this Codex delivery
+
+For HA#321’s first-PR acceptance, the maintainer selected “Use actual Codex ID plus Desktop fixtures” through the surface picker. This run reports the exposed Codex session ID, leaves its unavailable title unread, and proves Claude Desktop title/id rendering with fixtures. It does not claim a live Claude Desktop session was observed.

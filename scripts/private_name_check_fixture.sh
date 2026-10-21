@@ -272,7 +272,7 @@ mkdir -p "$bin"
 cat > "$bin/gh" <<'EOF'
 #!/usr/bin/env bash
 case "$*" in
-  "api user/repos?visibility=private&per_page=100 --paginate -q .[].full_name")
+  "api --method GET user/repos?visibility=private&per_page=100 --paginate --jq .[].full_name")
     [ -n "${STUB_FAIL:-}" ] && { echo "HTTP 401: Bad credentials" >&2; exit 1; }
     [ -n "${STUB_EMPTY:-}" ] && exit 0
     echo acme/zz-secret; echo acme/Qux.Lab; echo other-org/orchard-x ;;
@@ -286,7 +286,7 @@ case "$*" in
 esac
 EOF
 chmod +x "$bin/gh"
-sysbin="/usr/bin:/bin"
+sysbin="/usr/bin:/bin:$(dirname "$(command -v node)")"
 live() { PATH="$bin:$sysbin" expect "$@"; }
 live 1 "live list: bare name" "$work/bare.md"
 live 0 "live list: clean" "$work/clean.md"

@@ -489,6 +489,8 @@ not a choice to skip mechanizing it, a verified dead end.
   ready` fetches a remote PR's changed-file list; `gh pr diff <n> --name-only` remains a necessary
   raw call feeding `--files` (`SKILL.md` § 4). This is not an improvised replacement for anything
   `nen` owns — nothing owns this fetch yet, and it is named as residue rather than left unstated.
+  **Pointer (zheref/hatsu#334):** the `--files` source has moved to
+  [`docs/WORKFLOW.md`](../WORKFLOW.md) § *Gate derivation*.
 - **A lone PR referencing no open issue** is invisible to `nen backlog fetch`'s issue-keyed shape
   (§ "3. Fetching" note in `SKILL.md`); no verb currently reshapes this the other way round.
 - **The historical framing** in the old skill's opening ("backlog-loop reports what its own run

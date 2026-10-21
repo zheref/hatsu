@@ -233,9 +233,90 @@ verb:
 
 **A failing value is dropped and named in *Not delivered***, never rendered.
 
-**Options on a desk ask**: `star` is `"recommended"` on exactly one option and `""` on the rest — the
+**Options on a spiritual-message ask**: `star` is `"recommended"` on exactly one option and `""` on the rest — the
 page draws an inline SVG star, so the value is a label, never the glyph; `starredClass` is `"starred"`
 on that option and `""` elsewhere. A maintainer's-word ask stars none.
+
+## The report data document
+
+What `nen report data` already fills, what the caller derives mechanically, what is judgement, and the
+desk `--register` reads — stated once here for [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md)
+§ 4, [`rikugan`](../claude/skills/rikugan/SKILL.md) § 3 and [`backlog-board`](../claude/skills/backlog-board/SKILL.md)
+§ 3 (zheref/hatsu#291; every line verified live against nen `0.22.0`, 2026-10-19).
+
+**Two call rules.** A `--target` read runs as `"$hatsu_root/scripts/gh_token_env.sh" nen report data …`:
+without `GH_TOKEN`, every PR row whose readiness nen's own gate must compute (no readable `readiness`
+check-run verdict on its head) has `readiness` `null` and, on a `--register` document, its `verdict`
+`""`, the reason (*unevaluated … GH_TOKEN is not set*) in the row's `notes` and on stderr. **The desk is
+passed by absolute path**: a relative `--register` resolves against `--repo`'s root (`ENOENT` when it is
+not there), refused at exit `2`.
+
+**The clock** is [`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Report time*: who fills `generatedAtLocal`,
+`generatedDateLocal` and `timeZone` (the plain call, from nen `0.22.0`), and the two documents that call
+`scripts/report_time.sh --at` instead — a hand-built one and a `--register` desk. A `final` file name
+takes that `generatedDateLocal`.
+
+**The extension's defaults** — spiritual-message § 4's merge. The verb's keys (`repo`, `gate`,
+`effortStage`, `stageClass`, `worktree`, `generatedAtLocal`, `turnNumber`) are filled only where they
+come back `null`, from the reason on stderr, per *Where the effort is* in [`WORKFLOW.md`](WORKFLOW.md)
+§ `reports`. A `null` `repo` is `nen repo resolve --from <path>`'s; that resolve exits `1` in the very
+case a `repo` is `null` (a non-hosted origin outside the registry), and then the value is the
+`--target` slug when one is known, else it stays `null` — the masthead slot renders blank (verified,
+exit `0`) — and `notDelivered[]` and `footerNote` name the missing repo. *New canon*. `--graph`
+injects `graphJson`, `graphMermaid`, `graphNodes[]` and `graphEdges[]`, and
+`--variant` injects `sections` and `sectionList`; neither is written. Everything below is derived, never
+composed; a row marked *new canon* has no live source before this section (only
+[`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) and is the maintainer's to
+confirm at G4:
+
+| Key | Default, and how it is derived |
+|---|---|
+| `variant` | the `--variant` value — the render does not inject it |
+| `turnLabel` | from `turnNumber`, per *Where the effort is* (`Turn <n>`; `Landing · after turn <n>`) |
+| `architectureCaption` | the graph document's `caption` — the render does not inject it. `turn` and `landing` take `--graph` and refuse without it (exit `2`; spiritual-message §§ 5/6); only `turn-fast`, rendered with no `--graph`, takes `""`. *New canon* |
+| `spendPhases[]`, `hasSpendPhases`, `noSpendPhases` | `phases[]`, by spiritual-message § 4's per-phase rule |
+| `spendUsage[]`, `actionsMinutes`, `spendNote` | `usage[]`, by the same rule; `spendNote` is `""` unless a muted line is owed |
+| `tests[]`, `touchedCoverage[]` | re-mapped from `nen shu test-report` and the saved `nen shu coverage --touched`; `[]` while the owning phase has not run |
+| `ask`, `deskCleared` | `null` and the cleared line when the turn owes nothing; `deskCleared` is `""` beside a non-null `ask` |
+| `readiness[]`, `prBody[]` | `[]` on `turn` and `turn-fast`; on `landing` one row each — `nen pr ready`'s verdict verbatim, [`shibari`](../claude/skills/shibari/SKILL.md)'s body |
+| `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `false` and `[]` unless the last human request was `mukai` (En's first `landing` included when mukai started En in the same sitting and no newer human request came) — the boolean the [`report-examples`](../templates/report-examples/) carry. *New canon* |
+| `captures[]`, `evidenceUnavailable` | `[]` and `""` when no evidence is owed or it is present; the reason when owed evidence is missing |
+| `launch` | a `ren` turn: the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) recorded this turn, verbatim — the command it ran, or its reason line (`no launch target declared; skipped`, § 1; the profile deferral, § 1a; `core launch deferred; explicit maintainer call required`, § 3). A `landing` (launch is never a mukai step), or any turn amaterasu did not run in: the line of the last amaterasu call on this effort; with none, `no launch target declared; skipped` where `project.launch` declares no target, else `no launch in this session`. Never `""`. *New canon*: the landing and no-call cases (`no launch in this session` survives only in [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) |
+| `footerNote` | `""`; or the failed `nen ref format` resolution (§ *Publishing a report*); or, with `repo` `null`, the missing repo and why (above). *New canon*: the missing-repo clause |
+
+**The remainder is judgement, and is all the caller writes**: `title` ([`WORKFLOW.md`](WORKFLOW.md)
+§ *Report titles*), the four tallies, a non-null `ask` with its options and `blocker`,
+`lastTurnRequest` and `lastTurnRequestFull` (verbatim), `lastTurnHighlights[]`, `accomplished[]`,
+`challenges[]`, `notDelivered[]`, `decisions[]`, the `captures[]` rows, and — when the last request was
+`mukai` — `mukaiLastTurn: true` with the rows of `lastTurnCorrections[]`, `lastTurnCheckIssues[]` and
+`lastTurnStops[]`. No verb or script derives the defaults above or composes the merge: that is residue
+(§ *Residue and owned dependencies*).
+
+**The desk `--register` reads.** Its full shape is `nen report data --help`'s and every refusal reprints
+it. Three rules the refusals taught (HA-PR-#278), each refused at exit `2`:
+
+| Rule | A desk that breaks it | nen's refusal |
+|---|---|---|
+| an ask's `objects[]` are `{label, url}` objects | `"objects": ["https://…/pull/1"]` | `gates[0].asks[0].objects[0] is '…', not a { label, url } object` |
+| `cleared` is a string — the line the page shows | `"cleared": true` | `gates[0] has 'cleared' of a boolean, not a string` |
+| a gate carries `asks` **or** `cleared`, never both and never neither; `asks` is a list, `[]` on a cleared gate | `"cleared"` beside a non-empty `asks` | `gates[0] has asks AND a 'cleared' line` |
+
+On this desk the starred option is `"star": true`, unlike the spiritual-message ask's `"star": "recommended"`.
+A minimal valid desk — one ask, one cleared gate, and the `generatedAtLocal` placeholder a real desk
+fills (*The clock*, above), so a copied example never shows a raw UTC instant (exit `0`):
+
+```json
+{ "variant": "register", "title": "Gate Register", "scope": "HA#291", "gate": "G4",
+  "generatedAtLocal": "<report_time.sh --at <the plain pass's generatedAt>>",
+  "gates": [
+    { "gate": "G4", "label": "Policy merge", "asks": [
+      { "kind": "MERGE", "rank": 1, "title": "Merge HA-PR-#1", "why": "its verdict is ready",
+        "options": [{ "letter": "A", "label": "Merge",
+                      "command": "gh pr merge 1 --repo zheref/hatsu --merge --match-head-commit <sha>",
+                      "consequence": "it lands", "star": true }],
+        "objects": [{ "label": "HA-PR-#1", "url": "https://github.com/zheref/hatsu/pull/1" }] } ] },
+    { "gate": "G3", "label": "Release", "cleared": "nothing owed at G3", "asks": [] } ] }
+```
 
 ## Authority every phase shares
 
@@ -461,9 +542,11 @@ its own gate, so the **effective value** is read, for every decision below (requ
 `nen/workflow.json` at **two refs**, never from the local checkout (which is the PR head):
 
 ```bash
-gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<baseRefOid>"        -H 'Accept: application/vnd.github.raw'
-gh api "repos/<owner>/<name>/contents/nen/workflow.json?ref=<default branch>"   -H 'Accept: application/vnd.github.raw'
+node '<installed Hatsu root>/scripts/gh_api_read.mts' workflow-content <owner/name> <baseRefOid>
+node '<installed Hatsu root>/scripts/gh_api_read.mts' workflow-content <owner/name> <default-branch>
 ```
+
+Replace the root placeholder with the resolved absolute Hatsu plugin root before sending the Bash command; the installed Claude permission rule matches that literal path, not a shell variable.
 
 — the pull request's base commit, and the default branch's tip — and the **stricter** of the two applies:
 `required` > `optional` > `off`. A read that fails, a file or key that is absent, a file that does not parse,
@@ -582,6 +665,16 @@ dangling link; `2` is a wiring stop, quoted. Only `0` reads current. **Ten never
 generates a mirror**; `surface_bootstrap.sh` is the pre-skill shell carve-out; Cursor lists
 `.cursor/skills` **before installing**; the models are the TARGET's `nen/workflow.json` → `models`.
 
+## PR composition before every write
+
+[PR-SECTIONS.md](PR-SECTIONS.md) is the shared procedure for `shibari`, `tensho`, `jujisho` and
+review-driven body edits. Resolve kind × family sections and per-run requirements before drafting;
+reuse Mukai's evidence, economics and gate-hit facts. Run the sections, Nen body-check, evidence
+and Development guards before every create/edit, and verify Development after reading the write
+back. Seven reader sections exclude the compact footer; prose beyond 150 words warns only.
+Kind-specific verification is the `CON-17(b)` observable proxy; **How to verify** is the product title.
+NN#448 is merged but does not replace the authorized interim scripts until a released pin carries it.
+
 ## Residue and owned dependencies
 
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
@@ -611,6 +704,14 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
   dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
   restated.
+- **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
+  before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
+  trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
+  `gh pr view --json files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
+  **owed to nen**, zheref/nen#456; a ports pair file rides `nen canon resolve --always-load` and reaches no
+  mirror until zheref/nen#457; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
+  carve-out); the rule prefix and the numbering scope are read from the pair file's header once
+  zheref/bankai-handbooks#4 rules them.
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
   --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
@@ -620,7 +721,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`cleanup`.** `git worktree remove|prune`, `git branch -d`, `git push origin --delete <branch>`, `git remote
   prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
   **owed to nen** as `nen wc prune` (to file); the raise and the `.nen/cleanup/<slug>.json` marker are Hatsu's,
-  as third-hand's are.
+  as third-hand's are. The worktree-path admission is `scripts/cleanup_path_admit.ts`, interim until
+  `nen wc prune` owns it.
 - **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
   on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
   `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until
@@ -631,6 +733,19 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   declared variant in both formats and holds block order, the desk rules, escaping placement and the checked
   examples. **Ruled 2026-10-13** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*): BC-11 binds it as
   it binds the ledger — frozen to fixes only, its header saying so, the verb filed as zheref/nen#406 and the script retiring when it lands.
+- **`spiritual-message`, `rikugan` and `backlog-board` — the report data document** (zheref/hatsu#291;
+  § *The report data document*). Two owed dependencies on `zheref/nen`, **not yet filed**, named for
+  Netero's harvest. **(a) A verb that derives the extension's defaults** — the table there, the
+  `turnLabel` from `turnNumber` and the `repo` fallback included; until it lands each default is the
+  caller's, derived by that table and named as residue on the page. zheref/nen#406 and zheref/nen#220 are
+  template-conformance verbs and do not own it. **(b) The `--register` pass's own clock**: a desk's
+  `generatedAtLocal` is the plain pass's while the register pass stamps a later `generatedAt` (measured
+  +152–168 ms at `0.22.0`, minutes with real composition between the passes); nen should localise the
+  register pass's own `generatedAt` under `--register`. **The derived context it already owns** came
+  through zheref/nen#258 (closed) and zheref/nen#375: `repo` (the hosted `owner/name`), `worktree`,
+  `effortStage`, `gate` and `stageClass` from `v0.20.0`, each `null` with its reason on stderr when a fact
+  is missing, and `generatedAtLocal`, `generatedDateLocal`, `timeZone` and `turnNumber` at the pinned
+  `0.22.0` (verified 2026-10-19).
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
@@ -650,6 +765,37 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `nen pr ready` row, not yet filed (origin zheref/hatsu#203). Until it lands, shibari and en quote
   the guard's `0` beside the verdict (BC-11 reads the guard's branching shell as a verb's job, a G4
   question until the verb lands).
+- **`contracts/pr-composition.json`, its `gateDerive.zheref/nen` row above all** (zheref/hatsu#171, #334;
+  [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-20 — zheref/nen's gate path sets*). Five items are owed,
+  and none is filed yet. **(a) A tree-freshness check at repin**: list nen's tree at the pinned tag
+  (`gh api repos/zheref/nen/git/trees/<tag>`) and fail when a top-level entry is in neither of the row's
+  sets nor its explicit `G2` list. The repin is the pull request that moves `nen/contract.json` →
+  `dependency.pinned_ref`, at the declaration gate (`ten` § 1), opened in Hatsu by `getsuga` § 7's
+  fan-out from nen's own release; the check is a lane that pull request's iteration checks run, so the
+  repin cannot land past it. When it is filed, the `G2` list (`LICENSE`, `.gitignore`) is declared as
+  data on the row — a `g2Paths` array beside `policyPaths` and `processPaths` — so the check reads it
+  and never parses prose, and whichever check refuses an unread row key by then (the
+  `scripts/pr_composition_check.sh` entry below) admits `g2Paths` in that same pull request. Until it
+  exists, a top-level entry nen adds later derives `G2` without warning, so
+  [`WORKFLOW.md`](WORKFLOW.md) § *Gate derivation* stops and asks on a path outside the sets and that
+  list. **(b) A declared home in nen** for every input this file holds, zheref/nen's sets among them,
+  read by `nen gate derive`, `nen pr body-check` and `nen changelog fragment-required` themselves; until
+  then Hatsu holds another canon repository's sets. **(c) Two `nen gate derive` refusals**: a `--files`
+  entry containing whitespace or a newline (nen 0.22.0 takes a newline-joined value as one path, so a set
+  handed over from a one-per-line source under-derives `G2`), and an empty changed-file set (it answers
+  `G2` across 0 files). **(d) `--range` passing `--no-renames`**, in `gate derive` and
+  `changelog fragment-required` alike: nen 0.22.0's `git diff --name-only <range>` drops a rename's old
+  side. Until (c) and (d) land, WORKFLOW § *Gate derivation* hands the set over as `--files-from` and
+  never uses `--range`. **(e) `changelog fragment-required` honouring `directSection.optOut` only in the
+  body's own prose**, never inside an HTML comment or a code fence; a Hatsu-side raw-body check is owed
+  beside it.
+- **`scripts/pr_composition_check.sh`** (lane `pr-composition-guard`; zheref/hatsu#171) is a python3
+  heredoc inside a shell script, so BC-11 reads it as debt: it takes no new branching, and a check it
+  lacks is owed to its TypeScript port or to nen's declared home ((b) above), never grown into the
+  heredoc. Two are owed there, not yet filed: **refusing a `gateDerive` row key `nen gate derive` never
+  reads** (`policyPath` for `policyPaths`, say), withdrawn from the heredoc in hanten round 2 of
+  zheref/hatsu#334 (Chrollo, BC-11), and **refusing a duplicate key in the declaration** (Feitan):
+  Python's `json` keeps the last of two equal keys silently, where an `object_pairs_hook` would see both.
 - **`sharingan`.** A reply's head-chain check (§ *Reviewer rounds and review threads*) is `git -C <path> fetch` then `git -C <path>
   merge-base --is-ancestor <sha> <head>`, because nen reads a PR's head but not the ancestry of a commit in it.
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
@@ -691,6 +837,8 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   zheref/hatsu#168 moved; on an older binary those verbs are absent, § 2's probe says so, and the skill
   continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, ten § 2's install named).
   The GitHub half of a declaration is `nen classify install --sync`, with `nen labels sync` the whole-file form.
+  Under `classify.publish`, the marker read is `gh api`, read-only, and the comment is `nen issue comment`'s,
+  unledgered (`contracts/classify.taxonomy.json` → `publish.residue`).
 - **`file`.** The private-name check before every write to a public repository
   (`scripts/private_name_check.sh`, zheref/hatsu#149) stays the first guard, run before the plan so the plan
   shows checked text: `file`, `backlog-synthesis`, `mugetsu` and `sharingan` pipe each title, body and
@@ -755,14 +903,6 @@ pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to a
 until then the two scripts above are the mechanism and are named as such.
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
-
-- **`nen report data` derives less than a page needs**
-  ([zheref/nen#258](https://github.com/zheref/nen/issues/258)). From nen `v0.20.0` (zheref/nen#375) it derives
-  `repo` (the hosted `owner/name`), `worktree`, `effortStage`, `gate` and `stageClass`, each `null` with its
-  reason on stderr when a fact is missing; the caller still fills `turnLabel` and `generatedAtLocal` (the
-  latter through `scripts/report_time.sh`), and a `null` `repo` from `nen repo resolve`
-  ([`WORKFLOW.md`](WORKFLOW.md) § `reports`, *Where the effort is*). Each filled value is named as
-  residue on the page until the verb derives it.
 
 ## History
 

@@ -97,13 +97,14 @@ There are two execution/policy configuration files, and the split is not stylist
 | **Validated by** | `nen schema check` (the `nen/contract.json` row) | `nen schema check` (the `nen/workflow.json` row) — both at the build `nen/contract.json` pins; dated evidence retains the version it actually exercised |
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
-> independently.** `dependency.minimum` is `0.22` and `dependency.pinned_ref` is `v0.22.0`: the first is the
-> pin this repository declares, the second is the build its bootstrap installs. **The range `minimum`
+> independently.** `dependency.minimum` is `0.24` and `dependency.pinned_ref` is `v0.24.0`: the first is the
+> capability minimum, the second is the build its bootstrap installs. This repin adopts NN#437's
+> phase/usage dials, session ledger and report data `sessions[]`; older Nen cannot supply them. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
 > `minimum` pin it satisfies, and `nen shu tools` applies it, prints it as `compat floor:` and carries it
 > in `--json`. Per the maintainer's ruling of 2026-09-10 — *exact minor is fine, unless there is a
-> breaking change* — `minimum` moves **only** when nen's CHANGELOG carries a real bullet under
-> `### Breaking / consumer notes`, while `pinned_ref` may move on its own to a newer release inside the
+> breaking change* — `minimum` moves for a breaking compatibility floor or an adopted feature unavailable
+> in earlier releases, while `pinned_ref` may move on its own to a newer release inside the
 > range. Every PR that changes `dependency.pinned_ref` runs `bash scripts/direct_matrix_doc.sh --verify`
 > with that newly pinned nen and quotes the complete `N printed claims agree ... <version>` output line
 > in its PR body; this proves the readable routing matrix still agrees with the verb after a repin.
@@ -130,6 +131,20 @@ The `$schema` is `nen.workflow/v0.1`. Every `$comment` key is Hatsu's own prose,
 loader and read by nothing in nen. **Hatsu's own copy** of this file is
 [`../nen/workflow.json`](../nen/workflow.json); the values below are the shape and the defaults a repository
 gets when it declares nothing.
+
+### `pr.sections`
+
+| Key | Default | Read by |
+|---|---|---|
+| `max` | `7` | resolver and sections guard; reader count only, never the compact footer |
+| `variants` | every kind × family cell from `contracts/pr-sections.json` | `shibari`, `tensho`, `jujisho` before each body write |
+| `$sections` | every available id and purpose, beside `sections` under `pr` | author and consumer configuration review |
+
+`config_values.sh --fill` materializes the **full** default matrix and the `$sections` annotation;
+it never overwrites an edited cell. That cell becomes consumer-owned, not a canon-following default.
+[PR-SECTIONS.md](PR-SECTIONS.md) owns family folding, conditional run facts, the seven-section cap,
+the kind-specific verification aids and the warning-only 150-word prose budget. `max` is configurable
+up to seven; a smaller cap requires a fitting cell, never silent section truncation.
 
 ### `branch`
 
@@ -304,8 +319,13 @@ Every value inside a block is the model's; only the presence flags come from thi
 `generatedAt` stays what `nen report data` and `nen board build` stamp — an absolute ISO-8601 UTC
 instant, the document's truth — and the page shows it through `<time datetime="{{generatedAt}}">`
 with **`generatedAtLocal`** as the visible text. Both templates require that token, so a render
-missing it is exit `2`, never a UTC clock read as local. Fill it from one call at the plugin root
-(`ten` § 0):
+missing it is exit `2`, never a UTC clock read as local. **The plain `nen report data` fills it** from
+nen `0.22.0`, with `generatedDateLocal` and `timeZone` (pass `--tz <reports.timeZone>` when it is set).
+**Two documents take it from one call at the plugin root** (`ten` § 0) instead: a hand-built one, and a
+`--register` desk — nen keeps the desk's `generatedAtLocal`, writes the raw UTC `generatedAt` into it
+when the desk carries none, and returns `timeZone` and `generatedDateLocal` `null` when it does. Their
+`<generatedAt>` is the `generatedAt` that effort's `nen report data` stamped (for a desk, the plain
+pass's):
 
 ```bash
 "$hatsu_root/scripts/report_time.sh" --at <generatedAt> [--tz <reports.timeZone>]
@@ -316,7 +336,8 @@ missing it is exit `2`, never a UTC clock read as local. Fill it from one call a
 `date(1)` answer UTC silently. It prints `generatedAtLocal` (`Tue 22 Sep 2026 · 14:05
 America/Bogota (UTC-05:00)`), `timeZone`, and **`generatedDateLocal` — the `<YYYY-MM-DD>` of the
 dated report's file name**, so a report finished late in the evening is filed under the day it was
-finished where it was read, not under tomorrow's UTC date.
+finished where it was read, not under tomorrow's UTC date. Without `--at` it prints nothing on stdout
+and exits `2`.
 
 **Privacy: the zone name is printed on every page.** `America/Bogota` in a masthead tells every
 reader of a published report roughly where its maintainer sits. Where that is more than a repository
@@ -355,9 +376,9 @@ derived, never recalled:
 
 Pushed or not is `git rev-parse --verify --quiet origin/<branch>` after the fetch; the PR and its
 verdict are `nen report data --target … --prs <n>`'s row and `nen pr ready`'s line. **`turnLabel`**
-is `Turn <n>`, `n` counting the `report` entries in `nen report data`'s `phases[]` (the open one
-included; with no ledger, the turns this session has reported); a `landing` reads `Landing · after
-turn <n>`. **`worktree`** is the checkout's directory name when `git rev-parse --git-dir` and
+is `Turn <n>`, `n` being `nen report data`'s `turnNumber` (from `0.22.0`: the `report` entries of the
+ledger whose effort id is the branch's name, the open one included; a `null` `turnNumber`, with no
+ledger, counts the turns this session has reported); a `landing` reads `Landing · after turn <n>`. **`worktree`** is the checkout's directory name when `git rev-parse --git-dir` and
 `--git-common-dir` differ, else `core`. Red stays reserved for needs-you: only `ready` and `blocked`
 are red. **`repo`** is `nen report data`'s hosted `owner/name` from nen `0.20` (zheref/nen#375), `null`
 for a local-path or `file://` origin, which the caller fills from `nen repo resolve --from <path>`; before
@@ -390,6 +411,16 @@ conflict waiting to be resolved by coin toss.
 |---|---|---|
 | `autoEn` | `false` | `mukai` only. **Only JSON `true` starts `en` immediately** once the PR is open and the landing report rendered; `false`, absent or any other value makes mukai ring the turn bell and ask through the surface's native picker whether to start `hatsu:en on <CODE>#<N>` now (rulings 8 and 9 R4). `nen schema check` tolerates the block (it does not validate it) |
 
+### `classify`
+
+```json
+"classify": { "publish": "label" }
+```
+
+| Key | Default | Read by |
+|---|---|---|
+| `publish` | `label` | `classify` only, standalone, under `build`, and under `file` (and the filers composing it) once the issue is created — never under `ren` or for an inline effort; read at the default branch's tip, never the checkout. **`label`** (absent or any other value reads the same) applies the `lang/` and `job/` labels only; **`label+comment`** adds one marker-keyed criteria comment per classified issue — every decided key with its confidence, status and signal category, unapplied keys marked *not applied* with their reason, never issue text ([`classify`](../claude/skills/classify/) § 5b; `contracts/classify.taxonomy.json` → `publish`). The maintainer's request of 2026-10-20; `nen schema check` tolerates the block |
+
 ### `direct`
 
 ```json
@@ -400,6 +431,17 @@ conflict waiting to be resolved by coin toss.
 |---|---|---|
 | `publish` | `none` | `direct` only, under `build`, under `file` once the issue is created (file § 5), or standalone on an issue — never under `ren`, which cannot leave the machine (ren § 3). **`none`** (absent reads the same) keeps the verdict in the report and the local ledger `.nen/direct/<effort>.json`; **`label`** applies the primary pick's model **line** as one `model/<line>` label (`claude`, `gpt`, `gemini`, `grok`, `composer`) through `nen label apply`, a label the consumer's `nen/labels.json` has not declared being the verb's refusal; **`label+comment`** adds one marker-keyed issue comment carrying the primary, fallback and recommended picks with tier, surface, effort dial and the live-read version ([`direct`](../claude/skills/direct/) § 7; `contracts/direct.registry.json` → `publish`). The maintainer's ruling of 2026-10-05; `nen schema check` tolerates the block |
 
+### `port`
+
+```json
+"port": { "handbooksRepo": "zheref/bankai-handbooks", "rulingsDir": "handbooks/ports" }
+```
+
+| Key | Default | Read by |
+|---|---|---|
+| `handbooksRepo` | `zheref/bankai-handbooks` | [`bankai-rule`](../claude/skills/bankai-rule/) § 2 (and the port composites `hiraishin`, `kamui` — zheref/hatsu#357, #356, not yet shipped): the canon handbooks repository a port ruling lands in — read at the consumer's pinned tag (`nen/repos.json` → `pinned`), authored in a separate clone at the cache path, never the canon checkout (zheref/hatsu#354, *Checkouts*). The estate's canonical home (`CON-13`); the value must be the consumer's own pinned `maintained_tools` row (`nen canon pin --source`), read at the base tip, so rulings and the matrix come from one home — a value with no pinned row is `missing-configuration` |
+| `rulingsDir` | `handbooks/ports` | the same skills, [`limbo`](../claude/skills/limbo/) step 4 and [`bankai-handbooks`](../claude/skills/bankai-handbooks/) § 2: the directory holding the ports family — one directed pair file `<from>--<to>.md` per scenario pair, rendered from `templates/ports/pair.md`, and its `INDEX.md`. A pair file is passed to `nen canon resolve --always-load` beside the always-load set until zheref/nen#457 resolves it as a port handbook. `nen schema check` tolerates the block; the domain is the catalogue's ninth, `port` (zheref/hatsu#354 criterion 4) |
+
 ### `aiReviewers`
 
 ```json
@@ -409,6 +451,19 @@ conflict waiting to be resolved by coin toss.
 | Key | Default | Read by |
 |---|---|---|
 | `aiReviewers` | `required` | `sharingan` § 6 and `en` §§ 5–6. One value for **every automated reviewer** in `nen/gates.json` → `reviewers[]`, gating both their **use** (whether a round is requested) and their **expectation** (whether readiness waits for it). **`required`** (absent reads the same) — requested within `round_policy`'s caps and expected; **`optional`** — requested within the caps, never waited for; **`off`** — never requested, zero spend on requested reviewers (installed CI lanes still run). Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed` goes to the merge prompt on hanten's rounds, the not-ready verdict quoted verbatim. The rule is [`PROCESS.md`](PROCESS.md) § *Reviewer rounds and review threads*, *AI reviewers per consumer*; the maintainer's rulings of 2026-10-11 (zheref/hatsu#245). Read at the PR's **base** and the **default branch's tip**, the stricter applying, never the PR head, so a change takes effect once merged; under `optional`/`off` every `reviewers[]` entry must also be in `round_quorum.any_of` with an anchored `login_pattern` at both refs. Hatsu's own value is `optional`. `nen schema check` tolerates the key; `round_policy.maxRounds: 0` is **not** an off switch (nen still owes the round), this key is. **CI reviewer lanes included** (ruling 2026-10-19, *"One value for every bot"*): a lane is never requested under any value, so for a lane the value gates only the expectation — PROCESS, *Event-driven reviewer lanes* |
+
+### `port`
+
+```json
+"port": { "specKit": { "pin": "v1.2.2", "layout": "specs/{nnn}-{slug}" } }
+```
+
+Read in a product family's **spec repository** (role `spec`, [`config/repos.json.md`](config/repos.json.md) § `families[]`); `nen schema check` tolerates the block. Both catalogue rows apply only where a `port` block exists (`when`), so `fill` never writes them into an unrelated repository. The epic's `handbooksRepo` and `rulingsDir` land with `bankai-rule` (zheref/hatsu#355).
+
+| Key | Default | Read by |
+|---|---|---|
+| `specKit` → `pin` | `v1.2.2` | `kamui` §§ 2–3: the `github/spec-kit` release whose file set and paths the spec step writes (`specs/<nnn>-<slug>/`'s seven entries plus `checklists/requirements.md`, and `.specify/memory/constitution.md` once, citing `CON-{n}`, never overriding it). Read live on 2026-10-20 as the latest release; moved by the spec repository's own declaration PR |
+| `specKit` → `layout` | `specs/{nnn}-{slug}` | `kamui` §§ 2–3: where one feature's folder is written; `{nnn}` is the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title. The source object is cited in `spec.md`'s header and searched for before a new folder opens |
 
 ### `ci`
 
@@ -518,9 +573,12 @@ plane. Model, surface, runtime, session, and generated-credit attribution are fo
 persona from a runtime alias or stamp a default persona blindly. Existing commits and dated transcripts
 are historical and are not rewritten.
 
-The final section of every PR body is also [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
+The first heading of every PR body is `## Delivery`, reporting surface, recorded model and alias,
+effort dial and session from the effort's ledgers. This reverses only the PR-body half of the
+2026-09-12 ruling (maintainer ruling 2026-10-19); `CON-51(c)` and commit messages stay as above.
+The final heading is [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
 of each actual participant's canonical Hatsu persona, role/contribution, and evidence. Runtime
-alias/display name and model are not recorded and never replace the canonical persona. Commit
+alias/display name and model are not recorded in that final section and never replace the canonical persona. Commit
 messages may still carry ordinary non-attribution trailers such as `Closes` where appropriate.
 
 [`hatsu:shibari`](../claude/skills/shibari/SKILL.md) owns the PR-body ledger. [`hatsu:kokusen`](../claude/skills/kokusen/SKILL.md)
@@ -784,30 +842,48 @@ substitution in the title.** Never silently honoured, never silently dropped.
 
 ---
 
-### The effort's ledgers — phases and usage
+### The effort's ledgers — phases, usage and sessions
 
-**Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100). Two
-ledgers per effort, both generated output under `.nen/`, both keyed by the **branch** — `--effort
-<branch>`, never the PR-keyed form the hanten cycle ledger uses — so one effort names one phase file
-and one usage file across every skill that writes them:
+**Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100, #321).
+Three ledgers per effort, generated under `.nen/` and keyed by the **branch** — `--effort <branch>`,
+never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
 ```bash
-nen phase begin --effort <branch> --phase <step-name> --surface <s> [--model <alias>]   # before a step
+nen phase begin --effort <branch> --phase <step-name> --surface <s> [--model <reported-model>] --dial <level>   # before a step
 nen phase end   --effort <branch> --phase <step-name> --exit <code>                      # after it
 nen shu <verb> --repo <path> --effort <branch>          # a step inside an open phase lands under it
-nen usage record --effort <branch> --surface <s> [--model <alias>] \
+nen usage record --effort <branch> --surface <s> [--model <reported-model>] --dial <level> \
   --input/--output/--cache-read/--cache-write <n> [--minutes <n>] --source "<call site: readout>"
-nen usage record --effort <branch> --surface <s> --not-reported                          # no readout
+nen usage record --effort <branch> --surface <s> --dial <level> --not-reported           # no readout
+nen session record --effort <branch> --surface <s> [--model <reported-model>] --dial <level> \
+  [--title <reported-title>] [--id <reported-id>] --source "<harness readout>"          # first phase, when exposed
 ```
 
 `.nen/phases/<effort>.json` holds one timed entry per phase, a refused step included; `.nen/usage/<effort>.json`
 one entry per reading, `source` naming the call site and the readout (Claude Code's `/cost`, the Agent
 tool's result totals for a subagent, Codex's session log; `--not-reported` on a surface exposing none).
+`--dial` is the actual surface effort level, recorded at each begin and usage write, not carried in
+`--note`. At the effort's first phase, record a session title plus id where the Claude desktop
+exposes both; on CLI, Codex, Cursor and Antigravity record the id if exposed. `session record`
+requires a real title or id: if neither is exposed, leave `sessions[]` empty and render
+`unread — <surface> exposes none`. Never invent a value or transcribe it at PR composition.
+The model field records the harness's reported token, or the registry alias when no token is
+reported. Classify an exact served ID in the same ledger entry: `model-kind=served` or
+`exact served model from <provenance>` in `phase.note`, `usage.source` or `session.source`.
+`registry alias <token>` may accompany it. A bare model token, even one resembling a versioned ID,
+is unclassified and renders exact ID `unread`; an alias or direct snapshot cannot prove what ran.
+For a reviewer, an alias comes only from its actual row or an explicit `registry alias <token>`
+marker, else it is `unread`; the configured reviewer tier does not prove which alias ran.
+`phase.note` may carry model provenance, never a dial or session value.
 **Every skill that runs a phase wraps its own phases, and every skill that spends records at the moment
 it spends** — never a transcription at the end of a sitting. Who writes what: `ren` § 2 (every step; usage
 at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` § 4 (one usage entry per
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
-`nen report data` merges both as `phases[]` and `usage[]`.
+`nen report data` merges them as `phases[]`, `usage[]` and `sessions[]` for Delivery rendering.
+Public Source cells contain only `kind[index]`, ledger timestamp and phase where present;
+free-form `phase.note`, `usage.source` and `session.source` stay local as classification evidence.
+Keep report data, normalized data and rendered fragment under the private repo-local
+`.nen/reports/` directory (mode 0700, files 0600).
 
 ## 3 · `project.launch` and `project.evidence`
 
@@ -987,6 +1063,37 @@ It loops. **It never pushes and never opens a pull request.**
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
+En may also merge a **recorded Futon-owned stacked delivery PR** into a non-main base when Nen
+Ready, live body, current-head ownership and `nen pr merge --delivery` all pass. This narrow
+non-main path is [`en`](../claude/skills/en/SKILL.md) § 5 and
+[`ROSTER.md`](ROSTER.md) § *Ruling of 2026-10-19 — recorded Futon delivery merges*;
+the table's main-bound merge gate is unchanged.
+
+### Recorded Futon delivery ownership
+
+At the start of a typed Futon run, before any PR opens, Futon records the original invocation
+and retains the returned run ID in its effort record. After it opens each stacked delivery PR
+and after each update to its head, it binds that run ID, selected issue, live PR, non-main base,
+head branch and full GitHub head SHA. The plugin-root TypeScript helper parses the invocation,
+checks the selected issue and live PR, requires the run to predate the PR, and requires its body
+to cite the selected issue. It stores the claim in the repository's Git common directory,
+outside the PR-controlled tree. The same effort may refresh its head; another run, issue,
+selector, base or branch cannot take over the record. Verify immediately after binding.
+No record is made for an integration PR or a PR into `branch.base`.
+
+```bash
+node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
+node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree> --pr <N> --run <id printed by start> --issue <issue-N> --base <live non-main base> --head <live head branch> --sha <full live head SHA>
+node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
+```
+
+A missing, mismatched or stale record leaves En at the maintainer handoff; it never infers
+ownership from the branch name, PR title or session memory. En verifies again against the
+same head immediately before its bounded merge ([`en`](../claude/skills/en/SKILL.md) § 5).
+The local record supplies **procedural provenance**, not cryptographic proof of who typed the
+invocation; only Futon may run `start`, and En only runs `verify`. A host running this `.mts`
+helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
+
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
 The **wrap-up picker** at every session delivery — a PR at `en` § 5's merge prompt or merged, a composite's run
 ending — asks once (row `wrap-up`): ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
@@ -1013,16 +1120,25 @@ repository declares `tags.identity` it names the identity `kagutsuchi`'s tag wil
 is not (§ 3b, the maintainer's ruling of 2026-09-29: only when the latest build is not up to date with
 the target branch).
 
-**One more thing only the maintainer calls — and it is not one of the five.**
+**A port ruling's PR is a canon PR** ([`bankai-rule`](../claude/skills/bankai-rule/) § 6, zheref/hatsu#354): it opens once per port run on the handbooks repository and ends at `en` § 5's prompt as **G4**, the maintainer's merge, like every PR into a canon repository.
+
+**Two more things only the maintainer calls — and neither is one of the five.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
 | [`black-voice`](../claude/skills/black-voice/) | **post-merge UI validation.** Resolves the merged PR and the acceptance criteria of the issues it closed, raises **Shalnark** once to drive every criterion through ephemeral automated UI tests, and publishes pass / fail / not-testable per criterion | it runs *after* the gate, on work already merged, and guessing which PR was meant wastes the whole run |
+| [`hiraishin`](../claude/skills/hiraishin/) | **a merged PR, ported to one sibling.** Refuses a source not merged into its base, runs `kamui`'s spec step and waits at its **G2** merge where the family declares a spec repository, writes the port brief, asks every unmapped row in one batched `port-drift` call, files the port issue — the typed call is its **G1** — and builds it to the target's merge prompt | it runs *after* the gate, on work already merged, and every port starts on the maintainer's typed call: an automatic port on merge is out of the epic's scope (zheref/hatsu#354) |
 
-**It sits outside the five deliberately.** It crosses no gate, decides nothing and blocks nothing —
+**`black-voice` sits outside the five deliberately.** It crosses no gate, decides nothing and blocks nothing —
 it is an optional look back at a delivery, so nothing schedules it: not `ren`, `mukai`, `en`, `futon`
 or `backlog-loop`, and no agent proposes it. **Never automatic and never from a composite**, and the
-skill refuses mechanically rather than on manners — see its § 1.
+skill refuses mechanically rather than on manners — see its § 1. **`hiraishin` is outside the five for
+the same reason it is typed only**: it runs after the gate, on work already merged; it crosses no gate but
+the G1 its own typed call carries for the port issue, ends at the target's **G2**, and is never started
+from a composite or on a merge (zheref/hatsu#354). **`kamui` is typed only for the same reason**: it writes
+a product's spec (the spec repository's **G2**), fans port issues out on the sibling picker's answer (its
+ruled G1) and starts the picked builds; nothing schedules it and no composite calls it — `hiraishin` calls
+its §§ 2–4 by name, never the whole.
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
@@ -1222,7 +1338,9 @@ through their prefixes, and their vocabulary — every key, prefix and colour �
 `nen classify install --write` populates it from the taxonomy, the change **lands through its own declaration
 PR at that repository's gate**, and GitHub is synced only after (`nen classify install --sync`,
 which refuses an unlanded declaration — the family ships from the `v0.20.0` pin). The domains are
-derived at run time by the taxonomy's `domains.rule`, never labelled. Nothing else about classification is
+derived at run time by the taxonomy's `domains.rule`, never labelled. `classify.publish` (`label`, the default, or
+`label+comment`, § 2) decides whether the resolved criteria are also written to the issue as one marker-keyed
+comment (classify § 5b; catalogue id `workflow.classify.publish`). Nothing else about classification is
 authored here.
 
 ### `direct` — the model, surface and effort, as a configuration consequence
@@ -1339,16 +1457,16 @@ local commit, and aka runs it before squash and after catch-up if the tree moved
 **exactly one**. The body is not a template preference; it is what makes the PR reviewable by someone who was
 not in the session:
 
-| Section | What goes in it |
-|---|---|
-| **why** | the problem, in the reader's terms — effect first, cost stated |
-| **how** | the approach, and what was rejected |
-| **what changes for the consumer** | the observable delta for whoever depends on this |
-| **how to verify** | runnable steps. Where there is no backing issue, this section **is** the acceptance criteria |
-| **a mermaid diagram** | where a flow changed — and only then |
-| **the evidence table** | one table per top-level screen, states as **columns**, in the stack's own `project.evidence` mechanism (§ 3) |
-| **the checklist** | the repository's own |
-| **`Closes #N`** | GitHub's native autolink, kept beside the object notation |
+The body follows [PR-SECTIONS.md](PR-SECTIONS.md), resolving the catalogue's kind × family cell
+from the repository classification, issue jobs, consumer `pr.sections` and Mukai's run facts. It
+opens with the ledger-rendered Delivery preamble, then consumer effect and cost in **What this changes for you**; tables and diagrams carry
+the decision. Non-release rows carry the eleven-aspect improves ladder; release rows follow the
+written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
+library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
+`CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
+Delivery is outside the reader cap; checklist, associated issues and final attribution are compact footer blocks.
+The sections and Delivery guards and Nen's per-run requirements check join evidence and Development checks before
+**every** create or edit. No undeclared heading may grow a second composition contract.
 
 The verbs: `nen pr open` (the one PR, from the pushed head, at nen `0.13`: exit `2` when the head is not
 on the remote, exit `1` naming an open PR for the branch), `nen pr body-check` (the body's completeness),
@@ -1531,7 +1649,7 @@ the installed plugin directory, which changes on every update, so it is never wr
 Several skills build an absolute path from the plugin root — `pr-state`, `sharingan`, `backlog-state`,
 `futon`, `tensho` and `getsuga` for `nen pr ready --gates`, `ten` for `nen/contract.json`, `hanten`
 for a persona's definition under `claude/agents/`, and `en`, `shibari`, `sharingan`, `spiritual-message`,
-`backlog-board`, `black-voice` and `templates/pr-body.md` for the report clock and the PR-body evidence
+`backlog-board`, `black-voice` and `templates/pr-body/` for the report clock and the PR-body evidence
 check (`"$hatsu_root/scripts/report_time.sh"`, `"$hatsu_root/scripts/pr_body_evidence_check.sh"`). (A
 report's *template* is not on this list: it is the target repository's own `templates/<name>.html`,
 named by that repository's `nen/workflow.json`.) **The name they
@@ -1609,6 +1727,8 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
+**`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic #354).
+**`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
 parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
 publish offer; cleanup is Shizuku's sweep, required after a completed session, offered beside an optional
@@ -1801,7 +1921,7 @@ settled it.
 
 ```bash
 nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
-                --files <the changed paths> [--asserted <G2|G4>]
+                --files-from <an absolute file, one changed path per line> [--asserted <G2|G4>]
 ```
 
 - **The path sets are the target repository's own canon**, not a universal set; nen ships none, and a
@@ -1813,12 +1933,32 @@ nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
   with no row there has no declared sets: the run says so and asks (§ 4 *Ask, set up, continue*),
   never improvising one, and the row is written by a Hatsu PR at Hatsu's `G4`.
 - **`zheref/hatsu`'s process set carries `contracts/` and `templates/`**, so a diff of the
-  declaration, `contracts/pr-body.requirements.json` or `templates/pr-body.md` derives `G4`, as it
-  did while this section held the sets — **this run's reading, the maintainer's to confirm at the
-  `G4` merge (zheref/hatsu#171)**.
-- **`--files` is caller data** — the verb fetches nothing — and comes from
-  `gh pr diff <n> --repo <owner/name> --name-only`. A wrong file set gives the verb, and
-  `nen changelog fragment-required` beside it, a confident wrong answer.
+  declaration, `contracts/pr-body.requirements.json` or the PR-section fragments derives `G4`, as it
+  did while this section held the sets — **confirmed by the maintainer's ruling of 2026-10-13**
+  ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13 — the handbook questions, answered through
+  the picker*, small ruling 2; zheref/hatsu#171).
+- **`zheref/nen` has its own row** (zheref/hatsu#334): its sets, and why each member is in them,
+  are the row's and its `$comment`'s, never restated here; the representative changes and the gate
+  each derives are `pr-composition-guard`'s cases, decided by `nen gate derive` itself — **the
+  maintainer's ruling of 2026-10-20** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-20 —
+  zheref/nen's gate path sets*). Every other canon repository still has no row until one is
+  written, and no row stands in for all of them.
+- **`--files` is caller data** — the verb fetches nothing — and must carry **both sides of every
+  rename**. **The hand-off is a file**: write the source to an absolute temp file and pass
+  `--files-from <file>`. On a PR the source is
+  `gh api repos/<owner>/<name>/pulls/<n>/files --paginate --jq '.[] | .filename, (.previous_filename // empty)'`;
+  locally it is `git diff --name-only --no-renames <base>...<head>`. Both print one path per line
+  and `--files` is comma-separated: nen 0.22.0 reads a newline-joined `--files` value as **one**
+  path, so a real PR under-derives `G2`. **The source must exit `0` and the file must hold at least
+  one path before the verb runs** — nen answers `G2` for an empty set, so a failed fetch or an empty
+  set never derives; the run stops and says which. **Never `--range`**: nen 0.22.0 computes it with a
+  rename-blind `git diff --name-only`, which drops a rename's old side, and `gh pr diff --name-only`
+  lists only a rename's new name too, so moving and rewriting a process file out of its set derived
+  `G2` (zheref/hatsu#334). **Until the tree-freshness check exists** ([`PROCESS.md`](PROCESS.md)
+  § *Residue and owned dependencies*), a `zheref/nen` path whose top-level part is in neither of its
+  row's sets nor its explicit G2 list (LICENSE and .gitignore) **stops and asks** (fail closed)
+  rather than deriving `G2`. A wrong file set gives the verb, and `nen changelog fragment-required`
+  beside it, a confident wrong answer.
 - **The declaration keeps both `nen/` and `schemas/`**: a prefix is taken literally and nen's own
   taxonomy resolution never sees it, so an un-migrated target still edits a real `schemas/*.json` and
   that edit is still policy. **Listing both under-derives nothing; dropping `schemas/` would.**
@@ -1827,6 +1967,11 @@ nen gate derive --policy-paths <policyPaths> --process-paths <processPaths> \
 - **The verb reports; it does not gate**, and **a derived gate stands over an asserted one** —
   `--asserted` prints the mismatch itself, and the run says it in one line, drives to the derived
   gate, and carries the correction into its stop.
+
+**The same matched-path fact selects `across`.** For a process repository, carry the fresh
+`nen gate derive` policy/process hit into the section resolver as `--policy-hit`; a repository's
+role alone does not activate it. The ordered cell must also contain `across`. Reuse the declared
+sets above, never copy them into the section catalogue or prose.
 
 **3 · It is the diff's half of the derivation only.** A pull request that is not ready **has no
 gate** — it is in progress and owned by its author — so a body names the gate the PR **will** stand at
@@ -1842,6 +1987,10 @@ has ended.
 ---
 
 ## The UZF-26 evidence shape
+
+The catalogue's `evidence` section is product-only and conditional on declared `project.evidence.globs`;
+[PR-SECTIONS.md](PR-SECTIONS.md) selects it. Glyph-prefixed Evidence headings keep this exact shape.
+When absent, state the no-evidence fact in the checklist rather than creating an undeclared heading.
 
 Moved here on 2026-09-20 (zheref/hatsu#89) from `shibari` § 5, which owned it alone;
 [`spiritual-message`](../claude/skills/spiritual-message/SKILL.md) § 3 fills its own `evidence[]` from the same rows.
@@ -1971,6 +2120,10 @@ Dedicated plugin update or target setup requires its own explicit invocation; Te
 An unavailable creation tool or a harness write/trust refusal is reported with the path and exact
 failed operation; use an already-authorized adapter alternative when available. **Never change
 permissions, silently fall back to core, or widen authorization to finish.**
+On Codex, follow [the adapter's authorized write recovery](surfaces/codex.md#authorized-worktree-write-recovery)
+before ledgers or authoring: an unreviewed sandbox error is not a rejected approval. Existing task
+authority may use an exposed host review route for the bound checkout; actual rejection retains
+its reason and stops that action. This does not change persistent permissions or any human gate.
 `amenotejikara` / `nen wc swap` moves a committed tree into core and **cannot create isolation**.
 Core launch and swap remain explicit maintainer calls; authoring and delivery keep their effort
 path after either call. An isolated Ren turn reports the launch command and defers automatic core

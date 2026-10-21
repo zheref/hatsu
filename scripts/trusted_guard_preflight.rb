@@ -91,6 +91,7 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
     'surface_mirror_check.sh' => ['bash', File.join(trusted, 'scripts/surface_mirror_check.sh'), root],
     'surface_link_check.sh' => ['bash', File.join(trusted, 'scripts/surface_link_check.sh'), root],
     'prose_size_check.sh' => ['bash', File.join(trusted, 'scripts/prose_size_check.sh'), root],
+    'private_name_check_fixture.sh' => ['bash', File.join(trusted, 'scripts/private_name_check_fixture.sh')],
     'plugin_bump_check.sh' => ['bash', File.join(trusted, 'scripts/plugin_bump_check.sh'), changed,
                                 File.join(trusted, '.claude-plugin/plugin.json'),
                                 File.join(root, '.claude-plugin/plugin.json'), draft_body],

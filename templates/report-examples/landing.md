@@ -10,7 +10,7 @@
 <!-- hatsu:block masthead -->
 # Markdown report templates for Antigravity
 
-landing · Hatsu · spiritual-message · landing
+Landing · after turn 3 · Hatsu · spiritual-message · landing
 
 zheref/hatsu · against origin/main · 2026-10-13 11:00 CEST
 
@@ -195,8 +195,7 @@ Antigravity reports no token counts | recorded as not reported
 <!-- hatsu:block launch -->
 ## How to launch
 
-<pre>nen report render --variant turn --template &quot;$hatsu_root/templates/spiritual-message.md&quot; \
-  --data &lt;doc&gt; --out Reports/current.md --repo . &amp;&amp; cat Reports/current.md</pre>
+<pre>no launch target declared; skipped</pre>
 
 <!-- hatsu:block decisions -->
 ## Decisions already made
@@ -224,7 +223,7 @@ nen shu test --repo . --lane report-markdown-guard
 
 ---
 
-landing · in review · G4 — pending · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
+Landing · after turn 3 · in review · G4 — pending · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
 
 zheref/hatsu · against origin/main · landing · 2026-10-13 11:00 CEST
 

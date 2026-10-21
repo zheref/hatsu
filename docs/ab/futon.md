@@ -1,5 +1,8 @@
 # A/B evidence — `futon`
 
+> Historical transcript: “How to verify” below is the product verification title. Current kind-specific
+> composition is [PR-SECTIONS.md](../PR-SECTIONS.md); recorded command output is preserved.
+
 Run: 2026-09-02T02:37Z (UTC) for the original port session (commit `876efa7`, authored
 `2026-09-01T21:37:43-05:00`) — every transcript below except § 5. § 5's `nen loop slots`
 transcripts were re-run for the M1 review-finding fix at 2026-09-02T02:50–02:52Z (UTC); see the

@@ -18,14 +18,28 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 |---|---|---|---|---|
 | `contract` | string | `hatsu.permissions/v0.1` | the shape version | `scripts/permissions_pack.sh`, `nen surface mirror generate --permissions` |
 | `scope` | object | `repository`, `worktrees`, `associated`, `enforced_by` | what the pack is scoped to, and that only Codex enforces a root (`sandbox_workspace_write.writable_roots`); Claude Code and Cursor allowlists are exe-and-argument patterns | a reader; the generator's Codex branch |
-| `allow[]` | `{exe, args, why}` | 46 rows at the pinned build (`nen *`, `gh pr *`, `gh issue *`, `gh api *`, `gh run *`, `git …`, the bootstrap `curl`) | the commands a session is never asked about | both renderers |
+| `allow[]` | `{exe, args, why}` | bounded Nen, GitHub, Git, script and bootstrap rows; no `gh api *` | the commands a session is never asked about | both renderers |
 | `deny[]` | `{exe, args, why}` | 22 rows (`git push origin main`, every `--force` spelling, …) | the second line behind `hooks/guard-base-branch.sh` | both renderers |
 | `surfaces` | object | `cursor: {allow[], deny[]}`, `codex: {network_access}` | per-surface rows transcribed after the shared list, for that surface only | `nen surface mirror generate` |
 | `$comment`, `$comment_removed_gh_auth_token` | string | metadata | the rationale; why `gh auth token` is not allowed (a credential leak an allowlist exists to prevent) | a reader |
 
 **Rendered where.** `scripts/permissions_pack.sh --surface <s> (--render | --install --target <path>)`, run by the warm-up (`hatsu:ten` § 5) and by `hatsu:tenkai` § 2, never by a hook. Per surface: Claude Code `.claude/settings.local.json`, `permissions.allow` / `permissions.deny` as `Bash(<exe> <args>)`, rendered directly and **merged** into the user's own untracked file (never `.claude/settings.json`); Codex `.codex/config.toml` (`approval_policy`, `sandbox_mode`, `writable_roots`, `network_access`) and `.codex/hooks.json`, **copied** from the generated `surfaces/codex/`; Cursor `.cursor/cli.json` (`Shell(<exe> <args>)`, plus the tree-wide `Read(./**)` and `Write(./**)` rows) and `.cursor/hooks.json`, copied from `surfaces/cursor/`; Antigravity none, because no allowlist file exists and a per-persona `commandExecutionPolicy: auto` would approve arbitrary commands, so the pack there is the hooks the mirror places. Only a Hatsu consumer (a target carrying `nen/contract.json` or `nen/workflow.json`) gets a pack; every written path is excluded through `info/exclude`, never `.gitignore`.
 
-**May a consumer override it?** Not the contract. On Claude Code the consumer's own entries in `.claude/settings.local.json` are kept: the merge adds and never removes. On Codex and Cursor a file without nen's generated marker is the consumer's and is left alone and named; a tracked destination is never touched. A generator that has not run (no `surfaces/<s>/config.toml`) places nothing rather than improvising the text.
+**May a consumer override it?** Not the contract. On Claude Code the consumer's own entries in `.claude/settings.local.json` are kept except obsolete API reader grants and the unsafe `Bash(gh api *)` grant, which #326 removes on upgrade. On Codex and Cursor a file without nen's generated marker is the consumer's and is left alone and named; a tracked destination is never touched. A generator that has not run (no `surfaces/<s>/config.toml`) places nothing rather than improvising the text.
+
+### Read-only GitHub API access (#326)
+
+The installed Claude pack grants `node '<exact installed absolute Hatsu root>/scripts/gh_api_read.mts' *`. The caller substitutes the resolved root literally in the Bash command; leaving `$hatsu_root` in command text does not match. Cursor and Codex receive no Node grant from this row. The TypeScript entrypoint accepts named operations only; it builds fixed REST GET endpoints and one fixed GraphQL `query` with variables, then invokes `gh` without a shell. It rejects caller-supplied methods, endpoints, bodies, uploads, options and GraphQL documents before starting `gh`. Raw `gh api` has no pack grant. The separate `gh pr *` row is constrained by its `gh pr merge *` deny; #154's Nen-only delivery merge remains unchanged.
+
+| Runtime read | Entrypoint operation | Why it is in the pack |
+|---|---|---|
+| `scripts/private_name_check.sh`: private repository list with `visibility=private`, `per_page=100`, pagination and name projection | `private-repos` | The public-text guard must read the complete live private list. |
+| `sharingan`: branch rules and protected branch required checks | `branch-rules`, `required-checks` | A missing required check vetoes readiness. |
+| `build`: issue's PR marker; `PROCESS`: workflow declaration at a ref | `issue-pr`, `workflow-content` | These are ordinary issue and configuration reads. |
+| `spiritual-message`: Actions run timing; `cleanup`: caches and artifacts | `actions-timing`, `actions-caches`, `actions-artifacts` | These are fixed REST GET paths. |
+| `file`: issue edit count | `issue-edits` | The only packed GraphQL form is a fixed query with typed variables. |
+
+`release-publish.sh` reads a tag ref through `gh api` internally, under the release command's separate authority; `tag-ref` is available for direct audit reads. `tenkai_adopt.sh`'s repository lookup is also internal to its script. `direct`'s marker lookup, `illumi`'s arbitrary GraphQL read, generic `izanami` observations and any undocumented endpoint still require an explicit surface permission prompt. CI's check-run POST/PATCH and cleanup DELETE run under workflow credentials, outside this pack. The helper does not accept raw GraphQL text, so a `mergePullRequest` mutation cannot be smuggled into its query.
 
 ## `contracts/classify.taxonomy.json`
 
@@ -86,7 +100,7 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 |---|---|---|---|---|
 | `$schema` | string | `hatsu.config-catalogue/v1` | the shape | `scripts/config_values.sh` |
 | `$comment` | string | the ruling, what is deliberately not listed and why, the row-field legend | the authority on the file | a reader |
-| `domains` | map | `development`, `versioning`, `testing`, `review`, `reporting`, `notifications`, `deployment`, `publishing` | the order Tenkai asks in | `config_values.sh diagnose`; `tenkai` § 6d |
+| `domains` | map | `development`, `versioning`, `testing`, `review`, `reporting`, `notifications`, `deployment`, `publishing`, `port` | the order Tenkai asks in | `config_values.sh diagnose`; `tenkai` § 6d |
 | `values[]` | rows (`workflow.aiReviewers`, enum `required` \| `optional` \| `off`, default `required`, asked at adoption, among them) | `id`, `file`, `path`, `domain`, `kind` (`enum` \| `subset` \| `open` \| `external` \| `secret-env`), `options?`, `default?`, `describe`, `readers[]`, `source`, `question?`, `setup?`, `requiredBy?`, `ask?` (`adoption` \| `on-use`), `when?`, `candidatesFrom?`, `nullIsAnswer?`, `choice?`, `sourceTable?`, `nonProductionTarget?` (`set` refuses a target whose `why` is not non-production or that lacks `nonProduction: true`, which nen `0.21`+ requires), `landsByPR?` | one settable value: 29 `nen/workflow.json` rows, `gates.approval_policy`, `gates.reviewers`, and the `contract.project.*` rows (`defaultLane`, `kind`, `targets`, `launch`) at the pinned build | `config_values.sh diagnose|fill|need|set|check-catalogue` |
 
 **Read by.** `scripts/config_values.sh` is the only reader: `diagnose` reports per row, `fill` writes the defaults and `$<key>` annotations into a declaration that already exists (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set --id <id> --value <JSON>` writes one chosen value after the question was asked, `check-catalogue` holds every default to `docs/WORKFLOW.md`'s key tables. `hatsu:tenkai` § 6d runs it on adoption; `hatsu:ten` § 6 step 5b runs `need` at every phase's warm-up.
@@ -127,21 +141,21 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 
 ## `contracts/pr-composition.json` and `contracts/pr-body.requirements.json`
 
-**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the nen half is zheref/nen#239): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from [`templates/pr-body.md`](../../templates/pr-body.md); `pr-composition.json` holds the rest and says where that array comes from.
+**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the declared Nen home remains owed; docs/PROCESS.md records it): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from the default process × canon cell in [`contracts/pr-sections.json`](../../contracts/pr-sections.json); `pr-composition.json` holds the rest and says where that array comes from.
 
 ### Keys (`pr-composition.json`)
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `contract` | string | `hatsu.pr-composition/v1` | the shape | `scripts/pr_composition_check.sh` |
-| `readers[]` | paths | the six files that cite it | every surface that hands the values to a verb, each checked to cite this file | `scripts/pr_composition_check.sh` |
-| `bodyRequirements` | object | `file`, `template`, `optionalHeadings[]` (`The flow`, `Economics`) | the requirements array, the template it is derived from, and the headings whose own comments make them optional | `hatsu:shibari` § 4, `hatsu:tensho` § 5 |
-| `gateDerive.<owner/name>` | object | `policyPaths[]`, `processPaths[]`; one row, `zheref/hatsu` | a canon repository's two `nen gate derive` sets, passed comma-joined; `zheref/hatsu`'s process set includes `contracts/` and `templates/` (this run's reading, the maintainer's to confirm at the `G4` merge); a canon repository with no row has none, and the run asks | [`docs/WORKFLOW.md`](../WORKFLOW.md) § *Gate derivation* |
-| `changelogFragment` | object | `specPaths[]`, `fragmentDir` (`changelog.d`), `headChangelog` (`CHANGELOG.md`), `directSection {when, optOut}` | `nen changelog fragment-required`'s inputs, and the one opt-out line, for a pull request whose own diff changes `CHANGELOG.md` | `hatsu:shibari` § 4, `hatsu:tensho` § 5, `hatsu:jujisho` § 6, `templates/pr-body.md` check (b) |
+| `readers[]` | paths | the declared readers that cite it | every surface that hands the values to a verb, each checked to cite this file | `scripts/pr_composition_check.sh` |
+| `bodyRequirements` | object | `file`, `catalogue`, `defaultKind`, `defaultFamily` | default fixture requirements, the section catalogue and fragments, and the cell the fixture derives from; actual runs resolve their own array | `hatsu:shibari` § 4, `hatsu:tensho` § 5 |
+| `gateDerive.<owner/name>` | object | `policyPaths[]`, `processPaths[]`; two rows, `zheref/hatsu` and `zheref/nen` | a canon repository's two `nen gate derive` sets, passed comma-joined; `zheref/hatsu`'s process set includes `contracts/` and `templates/` (the maintainer's ruling of 2026-10-13); `zheref/nen`'s row carries its basis in its own `$comment` (zheref/hatsu#334; the maintainer's ruling of 2026-10-20, [`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-10-20 — zheref/nen's gate path sets*); a canon repository with no row has none, and the run asks | [`docs/WORKFLOW.md`](../WORKFLOW.md) § *Gate derivation* |
+| `changelogFragment` | object | `specPaths[]`, `fragmentDir` (`changelog.d`), `headChangelog` (`CHANGELOG.md`), `directSection {when, optOut}` | `nen changelog fragment-required`'s inputs, and the one opt-out line, for a pull request whose own diff changes `CHANGELOG.md` | `hatsu:shibari` § 4, `hatsu:tensho` § 5, `hatsu:jujisho` § 6, `docs/PR-SECTIONS.md` |
 
-**Validated by.** The `pr-composition-guard` lane: the array against the template's headings, the Gate derivation section against the declared sets, and no literal copy of a set anywhere in the canon prose.
+**Validated by.** The `pr-composition-guard` and `pr-sections-guard` lanes: every catalogue id, cell, template and job ownership, the fixture array against its declared default cell, the Gate derivation section against the declared sets, and no literal copy of a set anywhere in the canon prose.
 
-**May a consumer override it?** No. A consumer is `G2` by role and `nen gate derive` is not run there; a canon repository's sets are a row here, and this file lives only in Hatsu, so the row for another canon repository (zheref/nen, zheref/bankai-handbooks) is written by a Hatsu PR at Hatsu's `G4` — the writer [`WORKFLOW.md`](../WORKFLOW.md) § 4 step 3 names once the run has asked. No such row is seeded.
+**May a consumer override it?** No. A consumer is `G2` by role and `nen gate derive` is not run there; a canon repository's sets are a row here, and this file lives only in Hatsu, so the row for another canon repository (zheref/nen, zheref/bankai-handbooks) is written by a Hatsu PR at Hatsu's `G4` — the writer [`WORKFLOW.md`](../WORKFLOW.md) § 4 step 3 names once the run has asked. `zheref/nen`'s row was written that way (zheref/hatsu#334); no row is seeded for any other.
 
 ## `contracts/reference.gates.json`
 

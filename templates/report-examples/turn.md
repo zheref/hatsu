@@ -10,7 +10,7 @@
 <!-- hatsu:block masthead -->
 # Markdown report templates for Antigravity
 
-turn 3 · Hatsu · spiritual-message · turn
+Turn 3 · Hatsu · spiritual-message · turn
 
 zheref/hatsu · against origin/main · 2026-10-13 11:00 CEST
 
@@ -173,8 +173,7 @@ after
 <!-- hatsu:block launch -->
 ## How to launch
 
-<pre>nen report render --variant turn --template &quot;$hatsu_root/templates/spiritual-message.md&quot; \
-  --data &lt;doc&gt; --out Reports/current.md --repo . &amp;&amp; cat Reports/current.md</pre>
+<pre>no launch target declared; skipped</pre>
 
 <!-- hatsu:block decisions -->
 ## Decisions already made
@@ -184,7 +183,7 @@ after
 
 ---
 
-turn 3 · blocked · G5 — yours · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
+Turn 3 · blocked · G5 — yours · fmc-215 · fable/kurapika/ha-215-markdown-report-templates
 
 zheref/hatsu · against origin/main · turn · 2026-10-13 11:00 CEST
 

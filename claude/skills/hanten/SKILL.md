@@ -111,11 +111,11 @@ never piped: its exit is the gate. A moved ref or a commit in the range is a G5 
 the changed paths map to (WORKFLOW § *The local verification gate* step 3; prose-only reads `lanes: not applicable`),
 `nen shu test --repo <path> --lane <lane> --effort <branch>` inside a `nen phase` (WORKFLOW § *The
 effort's ledgers*). The brief carries per lane the head SHA, command and exit (kurapika.md's table: `0` handed over; `1` red, carried; `3`/`4` `not run`, nen's reason quoted; `2`/`5` a wiring stop). A reviewer re-runs a fixture only where its head differs from the record, naming it; a lane the brief left out that applies is run and named, or declared unread; a not-run row is never clean (§ 2a).
-**Say what was raised before the reviews return**: scopes, personas, aliases, gaps, `used`/`max`, the
-lanes run.
-**As each returns, one `nen usage record` — never a transcription after the round** (#100;
-WORKFLOW.md § *The effort's ledgers*, its flags): `--effort <branch>` (only the cycle ledger is
-PR-keyed), `--source "hanten § 4: <persona>, <readout>"`.
+**Before reviews return**, name scopes, personas, gaps, `used`/`max` and lanes run.
+**On each return**, `nen usage record --effort <branch> --surface <s> --dial <level>
+[--model <reported-model>] --source "hanten § 4: <persona>, <readout>[; model-kind=served]"` with WORKFLOW's count
+or `--not-reported` flags (#100). Only the cycle ledger is PR-keyed. Record a reviewer session
+only with exposed title/id; mark served only when attested.
 
 ## 5. One fixed finding shape
 

@@ -78,13 +78,22 @@ PENDING_HOSTED_WORKFLOWS = %w[].freeze
 # directly to main", not "never trust the PR's own copy of anything".
 BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 
+# A pull_request job executes PR fixtures with contents: read and no write
+# credential. Register the staged template before installing the workflow so
+# main's trusted validator knows its exact shape when the second PR lands.
+PENDING_UNIT_TEST_WORKFLOWS = %w[].freeze
+REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
+UNIT_TESTS_WORKFLOW_SHA256 = "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94".freeze
+
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
 # refuses any `.github/workflows/*.yml` whose basename is in neither list,
 # rather than letting it fall through unchecked — a new workflow is exactly
 # the thing a PR-controlled diff could add to gain a privileged trigger this
 # policy never reasoned about, so silence is not an option the fail-closed
 # design allows.
-KNOWN_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS + BUILDER_WORKFLOWS).freeze
+PRIVILEGED_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS + BUILDER_WORKFLOWS).freeze
+KNOWN_WORKFLOWS = (PRIVILEGED_WORKFLOWS +
+  PENDING_UNIT_TEST_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS).freeze
 
 EXPECTED_JOBS = {
   "plugin-bump-check.yml" => "check",
@@ -295,6 +304,7 @@ EXPECTED_STEPS = {
     "Surface-mirror drift check",
     "Canon data contracts check",
     "Direct matrix drift check",
+    "Redaction guard fixture",
     "Finish check on the exact PR head"
   ],
   # No "Assert the guard script keeps its exec bit in-tree": this workflow runs
@@ -608,6 +618,12 @@ READINESS_FROZEN_VERDICT = {
     } >> "$GITHUB_OUTPUT"
   RUN
 }.freeze
+# Stage one of #131 admits the next trusted TypeScript reader without changing
+# the live workflow. The entire step remains frozen; the script itself must be
+# present on the trusted base before a workflow may invoke it.
+READINESS_FROZEN_VERDICT_NEXT = READINESS_FROZEN_VERDICT.merge(
+  "run" => "node .trusted/scripts/readiness_ci_verdict.mts"
+).freeze
 READINESS_FROZEN_PUBLISH = {
   "if" => "${{ always() }}",
   "env" => {
@@ -640,7 +656,7 @@ READINESS_FROZEN_STEPS = {
   "Read the pinned nen ref from trusted nen/contract.json" => READINESS_FROZEN_PIN,
   "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => NEN_BOOTSTRAP_NEXT,
   NEN_DIGEST_STEP => NEN_DIGEST_FROZEN,
-  READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT,
+  READINESS_VERDICT_STEP => [READINESS_FROZEN_VERDICT, READINESS_FROZEN_VERDICT_NEXT],
   READINESS_PUBLISH_STEP => READINESS_FROZEN_PUBLISH
 }.freeze
 #
@@ -1065,10 +1081,35 @@ DIRECT_MATRIX_FROZEN = {
     node .trusted/scripts/direct_matrix_ci_check.mts "$PWD"
   RUN
 }.freeze
+# The redaction-guard fixture in CI (zheref/hatsu#337, both steps landed):
+# surface-mirror-check.yml carries "Redaction guard fixture" right before its finish
+# step, and the step is held to this one form. It runs the TRUSTED
+# scripts/private_name_check_fixture.sh, which exercises the TRUSTED
+# scripts/private_name_check.sh beside it over invented names, a stub gh and scratch
+# trees under mktemp: no secret, no private list, no nen. The fixture reads, executes and
+# prints nothing from the pull request's checkout (every path is its own or mktemp's), so
+# its output needs no fence -- a property the fixture holds on the trusted revision, not one
+# this form enforces (Feitan, SEC-7). The
+# fixture's own exit is the verdict, propagated by errexit with nothing mapped, so the
+# body is no shell verdict of its own (BC-11). Step one admitted the step-less shape
+# beside it; step two added the step to EXPECTED_STEPS and dropped that admission, so
+# the default one-shape row applies and its absence is refused. What it proves is the
+# guard on the trusted revision (the base's copy), on the runner's Linux toolchain: a pull
+# request that breaks the guard is judged by that copy, so its red lands on the pull
+# requests after it merges, the fix included.
+REDACTION_FIXTURE_STEP = "Redaction guard fixture"
+REDACTION_FIXTURE_FROZEN = {
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    bash .trusted/scripts/private_name_check_fixture.sh
+  RUN
+}.freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
   "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
-  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]],
-  "surface-mirror-check.yml" => [EXPECTED_STEPS.fetch("surface-mirror-check.yml")]
+  "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
+  # surface-mirror-check.yml: one shape again (the default row). zheref/hatsu#337's
+  # two-step landing is complete, so the redaction fixture step's absence is refused.
 ).freeze
 
 # surface-mirror-regenerate.yml's own trigger shape. `nil` marks an event that
@@ -1096,15 +1137,15 @@ BUILDER_PERMISSIONS = {
 # silence -- stops this script at load, before it judges anything.
 PR_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).freeze
 {
-  "EXPECTED_JOBS" => [EXPECTED_JOBS.keys, KNOWN_WORKFLOWS],
-  "EXPECTED_STEPS" => [EXPECTED_STEPS.keys, KNOWN_WORKFLOWS],
+  "EXPECTED_JOBS" => [EXPECTED_JOBS.keys, PRIVILEGED_WORKFLOWS],
+  "EXPECTED_STEPS" => [EXPECTED_STEPS.keys, PRIVILEGED_WORKFLOWS],
   "ALLOWED_JOB_GUARDS" => [ALLOWED_JOB_GUARDS.keys, PR_WORKFLOWS],
   "BASE_TYPES" => [BASE_TYPES.keys, PR_WORKFLOWS],
   "HARDENED_TYPES" => [HARDENED_TYPES.keys, PR_WORKFLOWS],
   "CHECK_CREATION" => [CHECK_CREATION.keys, PR_WORKFLOWS],
   "BUILDER_TRIGGERS" => [BUILDER_TRIGGERS.keys, BUILDER_WORKFLOWS],
   "BUILDER_PERMISSIONS" => [BUILDER_PERMISSIONS.keys, BUILDER_WORKFLOWS],
-  "the two cancel-in-progress lists" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN, KNOWN_WORKFLOWS]
+  "the two cancel-in-progress lists" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN, PRIVILEGED_WORKFLOWS]
 }.each do |table, (have, want)|
   next if have.sort == want.sort
   abort "workflow-runner-policy: #{table} covers #{have.sort.join(", ")}, not #{want.sort.join(", ")}: a workflow's registration is incomplete"
@@ -1883,6 +1924,10 @@ def validate_workflow(path, hatsu: false)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == DIRECT_MATRIX_STEP }, DIRECT_MATRIX_FROZEN,
                           "#{path} #{DIRECT_MATRIX_STEP.inspect}")
     end
+    if File.basename(path) == "surface-mirror-check.yml" && step_names.include?(REDACTION_FIXTURE_STEP)
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == REDACTION_FIXTURE_STEP }, REDACTION_FIXTURE_FROZEN,
+                          "#{path} #{REDACTION_FIXTURE_STEP.inspect}")
+    end
     # The digest step in its one admitted form wherever a workflow carries it,
     # and the bootstrap beside it in the form the digest step selects.
     if carries_digest
@@ -2024,6 +2069,10 @@ def validate_workflow(path, hatsu: false)
     REQUIRED_STEP_ARGS.fetch(File.basename(path), {}).each do |step_name, spec|
       step = step_maps.find { |candidate| scalar(candidate["name"]) == step_name }
       fail_policy("#{path} has no step named #{step_name.inspect}") unless step
+      # #131's exact next form runs the TypeScript reader from .trusted. That
+      # reader fixes --gates and the head pin in source, and the frozen-step
+      # comparison above has already checked the whole invocation and env.
+      next if step_name == READINESS_VERDICT_STEP && scalar(step["run"]).to_s.strip == READINESS_FROZEN_VERDICT_NEXT.fetch("run")
       # Logical commands: continuation lines joined, so a flag on its own
       # continuation still belongs to the invocation it continues.
       # SEGMENTS, NOT PHYSICAL LINES. `nen pr ready --gates "..."; nen pr ready`
@@ -2079,16 +2128,36 @@ def validate_workflow(path, hatsu: false)
   end
 end
 
+def validate_unit_tests_workflow(path)
+  fail_policy("#{path} must be a regular workflow file") if File.symlink?(path) || !File.file?(path)
+  document = Psych.parse_file(path)
+  fail_policy("#{path} is empty") unless document && document.root
+  reject_duplicate_keys(document.root, path)
+  root = mapping(document.root, path)
+  triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
+  fail_policy("#{path} must use only pull_request") unless triggers.keys == ["pull_request"]
+  permissions = mapping(root.fetch("permissions") { fail_policy("#{path} has no permissions") }, "#{path} permissions")
+  fail_policy("#{path} must have only contents: read") unless permissions.keys == ["contents"] && scalar(permissions["contents"]) == "read"
+  jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs") }, "#{path} jobs")
+  fail_policy("#{path} must have only unit-tests job") unless jobs.keys == ["unit-tests"]
+  job = mapping(jobs.fetch("unit-tests"), "#{path} unit-tests")
+  fail_policy("#{path} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
+  fail_policy("#{path} has changed from the staged, reviewed read-only test job") unless
+    Digest::SHA256.file(path).hexdigest == UNIT_TESTS_WORKFLOW_SHA256
+end
+
 def validate_repo(root, announce: true)
   paths = Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).sort
   fail_policy("#{root} has no workflows") if paths.empty?
   basenames = paths.map { |path| File.basename(path) }
-  missing = PORTABLE_HOSTED_WORKFLOWS - basenames
+  missing = (PORTABLE_HOSTED_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS) - basenames
   fail_policy("#{root} is missing required workflows: #{missing.join(', ')}") unless missing.empty?
   unknown = basenames - KNOWN_WORKFLOWS
   fail_policy("#{root} carries undeclared workflow(s): #{unknown.join(', ')} — every workflow under .github/workflows/ needs a declared policy entry before it can be trusted") unless unknown.empty?
   paths.each do |path|
-    if BUILDER_WORKFLOWS.include?(File.basename(path))
+    if (PENDING_UNIT_TEST_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS).include?(File.basename(path))
+      validate_unit_tests_workflow(path)
+    elsif BUILDER_WORKFLOWS.include?(File.basename(path))
       validate_builder_workflow(path)
     else
       validate_workflow(path, hatsu: File.file?(File.join(root, "templates/pr-readiness.yml")))
@@ -2291,6 +2360,15 @@ def self_test(root)
     FileUtils.mkdir_p(File.join(tmp, ".github/workflows"))
     Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each { |path| FileUtils.cp(path, File.join(tmp, ".github/workflows")) }
     validate_repo(tmp, announce: false)
+    REQUIRED_UNIT_TEST_WORKFLOWS.each do |name|
+      installed = File.join(tmp, ".github/workflows", name)
+      original_required = File.read(installed)
+      FileUtils.rm(installed)
+      expect_rejected("required unit test workflow cannot disappear", /missing required workflows/) do
+        validate_repo(tmp, announce: false)
+      end
+      File.write(installed, original_required)
+    end
     # Prove the staged shape is accepted before it is installed, and that a
     # pull-request checkout cannot substitute its own renderer for trusted code.
     matrix_workflow = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
@@ -2325,6 +2403,28 @@ def self_test(root)
       FileUtils.cp(staged, installed)
       validate_repo(tmp, announce: false)
       FileUtils.rm(installed)
+    end
+    (PENDING_UNIT_TEST_WORKFLOWS + REQUIRED_UNIT_TEST_WORKFLOWS).uniq.each do |name|
+      staged = File.join(root, "templates", name)
+      fail_policy("self-test: staged #{name} is missing") unless File.file?(staged)
+      installed = File.join(tmp, ".github/workflows", name)
+      original_installed = File.file?(installed) ? File.read(installed) : nil
+      FileUtils.cp(staged, installed) unless original_installed
+      validate_repo(tmp, announce: false)
+      original_unit_tests = File.read(installed)
+      File.write(installed, original_unit_tests.sub("contents: read", "contents: write"))
+      expect_rejected("unit-tests must stay read-only", /must have only contents: read/) do
+        validate_repo(tmp, announce: false)
+      end
+      File.write(installed, original_unit_tests.sub("node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts"))
+      expect_rejected("unit-tests runner cannot come from PR", /changed from the staged/) do
+        validate_repo(tmp, announce: false)
+      end
+      if original_installed
+        File.write(installed, original_installed)
+      else
+        FileUtils.rm(installed)
+      end
     end
 
     plugin = File.join(tmp, ".github/workflows/plugin-bump-check.yml")
@@ -2709,6 +2809,17 @@ def self_test(root)
     fail_policy("self-test: the pin step's GITHUB_OUTPUT line is not where the env-write fixtures expect it") unless readiness_frozen.scan(pin_out).length == 1
     File.write(readiness, readiness_frozen)
     validate_repo(tmp, announce: false)
+    fail_policy("self-test: trusted readiness JSON reader is missing") unless File.file?(File.join(root, "scripts/readiness_ci_verdict.mts"))
+    readiness_next = readiness_with.call(verdict: READINESS_FROZEN_VERDICT_NEXT)
+    File.write(readiness, readiness_next)
+    validate_repo(tmp, announce: false)
+    changed_next = readiness_with.call(verdict: READINESS_FROZEN_VERDICT_NEXT.merge(
+      "run" => "node scripts/readiness_ci_verdict.mts"
+    ))
+    fixture_changed!("readiness JSON reader from untrusted checkout", readiness_next, changed_next)
+    File.write(readiness, changed_next)
+    expect_rejected("readiness JSON reader from untrusted checkout") { validate_repo(tmp) }
+    File.write(readiness, readiness_frozen)
     verdict_run = READINESS_FROZEN_VERDICT.fetch("run")
     publish_run = READINESS_FROZEN_PUBLISH.fetch("run")
     with_run = ->(run) { readiness_with.call(verdict: READINESS_FROZEN_VERDICT.merge("run" => run)) }
@@ -2854,10 +2965,11 @@ def self_test(root)
     # Built from READINESS_RENDERED_STEPS with tenkai's three placeholders
     # filled, on the checkout's own header. A process rendering is the base;
     # each fixture breaks one arm of the second admitted form.
-    rendered_with = lambda do |guard: "true", fallback: "false", ref: "v0.18.2", steps: READINESS_RENDERED_STEPS|
+    rendered_old = READINESS_RENDERED_STEPS.merge(READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT)
+    rendered_with = lambda do |guard: "true", fallback: "false", ref: "v0.18.2", steps: rendered_old|
       fill = { "TENKAI_GUARD_REQUIRED" => guard, "TENKAI_PIN_FALLBACK_ALLOWED" => fallback, "TENKAI_FALLBACK_REF" => ref }
       readiness_prefix + steps.map do |name, frozen|
-        concrete = frozen.transform_values do |value|
+        concrete = (frozen.is_a?(Array) ? frozen.first : frozen).transform_values do |value|
           value.is_a?(Hash) ? value.to_h { |key, val| [key, val.is_a?(Regexp) ? fill.fetch(key) : val] } : value
         end
         render_step(name, concrete)
@@ -2866,6 +2978,10 @@ def self_test(root)
     rendered_process = rendered_with.call
     File.write(readiness, rendered_process)
     validate_repo(tmp, announce: false)
+    rendered_next = rendered_with.call(steps: rendered_old.merge(READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT_NEXT))
+    File.write(readiness, rendered_next)
+    validate_repo(tmp, announce: false)
+    File.write(readiness, rendered_process)
     File.write(readiness, rendered_with.call(guard: "false", fallback: "true"))
     validate_repo(tmp, announce: false)
     policy_name = "Enforce workflow runner policy from trusted workflow revision"
@@ -3308,6 +3424,72 @@ def self_test(root)
       File.write(surface, surface_original)
     end
     validate_repo(tmp, announce: false)
+
+    # The redaction-guard fixture step (zheref/hatsu#337), held on BOTH trees the
+    # two-step landing produces, the canon-contracts block's way: the positive base
+    # is the live file when it carries the step, else the live file with the frozen
+    # step rendered before the finish step; the step-less text is admitted only
+    # while ALLOWED_STEP_SHAPES still lists a shape without it. Moved, doubled, run
+    # from the pull request's checkout, through the pull request's lane
+    # declaration, with a red swallowed, without errexit or with a token in its env:
+    # each is refused on either tree.
+    redaction_finish = "      - name: #{finish_step}\n"
+    redaction_line = "      - name: #{REDACTION_FIXTURE_STEP}\n"
+    redaction_block = render_step(REDACTION_FIXTURE_STEP, REDACTION_FIXTURE_FROZEN)
+    redaction_installed = surface_original.include?(redaction_line)
+    surface_redaction = if redaction_installed
+                          surface_original
+                        else
+                          fixture_sub("surface-mirror-check with the redaction fixture step", surface_original,
+                                      redaction_finish, redaction_block + "\n" + redaction_finish, step: REDACTION_FIXTURE_STEP)
+                        end
+    fail_policy("self-test: the redaction fixture carries no step") unless surface_redaction.include?(redaction_line)
+    redaction_without = if redaction_installed
+                          surface_original.sub(/^#{Regexp.escape(redaction_line)}.*?(?=^#{Regexp.escape(redaction_finish)})/m, "")
+                        else
+                          surface_original
+                        end
+    fail_policy("self-test: could not derive the redaction-less fixture") if redaction_without.include?(redaction_line) || redaction_without == surface_redaction
+    File.write(surface, surface_redaction)
+    validate_repo(tmp, announce: false)
+    File.write(surface, redaction_without)
+    if ALLOWED_STEP_SHAPES.fetch("surface-mirror-check.yml").any? { |shape| !shape.include?(REDACTION_FIXTURE_STEP) }
+      validate_repo(tmp, announce: false)
+    else
+      expect_rejected("surface-mirror-check without the redaction fixture step", /step set or order changed/) { validate_repo(tmp) }
+    end
+    File.write(surface, surface_original)
+    redaction_anchor = "      - name: #{DIRECT_MATRIX_STEP}\n"
+    fail_policy("self-test: the redaction fixture's move anchor is not a surface-mirror-check.yml step") unless redaction_without.include?(redaction_anchor)
+    redaction_moved = redaction_without.sub(redaction_anchor, redaction_block + "\n" + redaction_anchor)
+    File.write(surface, redaction_moved)
+    expect_rejected("redaction fixture step moved before the direct matrix step", /step set or order changed/) { validate_repo(tmp) }
+    File.write(surface, surface_original)
+    redaction_doubled = surface_redaction.sub(redaction_finish, redaction_block + "\n" + redaction_finish)
+    fail_policy("self-test: the doubled redaction fixture did not change the text") if redaction_doubled == surface_redaction
+    File.write(surface, redaction_doubled)
+    expect_rejected("redaction fixture step doubled", /step set or order changed/) { validate_repo(tmp) }
+    File.write(surface, surface_original)
+    redaction_run = "          bash .trusted/scripts/private_name_check_fixture.sh\n"
+    redaction_frozen = /#{Regexp.escape(REDACTION_FIXTURE_STEP)}.*(must be exactly the frozen form|may carry only)/
+    [
+      ["redaction fixture run from the PR checkout", redaction_run, "          bash scripts/private_name_check_fixture.sh\n"],
+      ["redaction fixture through the PR's lane declaration", redaction_run,
+       "          nen shu test --lane redaction-guard --repo .\n"],
+      ["redaction fixture with its red swallowed", redaction_run,
+       "          bash .trusted/scripts/private_name_check_fixture.sh || true\n"],
+      ["redaction fixture without errexit",
+       "          set -euo pipefail\n#{redaction_run}", "          set -uo pipefail\n#{redaction_run}"],
+      # Anchored on the body, not the name line: step two may comment the step
+      # between its name and its keys, and the case must hold on that tree too.
+      ["redaction fixture with GH_TOKEN in its env",
+       "        shell: bash\n        run: |\n          set -euo pipefail\n#{redaction_run}",
+       "        env:\n          GH_TOKEN: ${{ github.token }}\n        shell: bash\n        run: |\n          set -euo pipefail\n#{redaction_run}"]
+    ].each do |label, from, to|
+      hostile.call(label, surface, surface_redaction, from, to, step: REDACTION_FIXTURE_STEP, reason: redaction_frozen)
+      File.write(surface, surface_original)
+    end
+    validate_repo(tmp, announce: false)
     # Hatsu's own repository carries only its own readiness form (Feitan,
     # hanten on #230): with templates/pr-readiness.yml at the root, its own form
     # passes and tenkai's rendering of it is refused.
@@ -3428,6 +3610,36 @@ def self_test(root)
         forged_outside = out.sub(fence, "").lines.any? { |line| line.start_with?("::warning") }
         ok = status.exitstatus == want_status && want_text.all? { |text| out.include?(text) } && fence_ok && !forged_outside
         fail_policy("self-test: #{CANON_CONTRACTS_STEP.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
+      end
+    end
+
+    # --- the redaction fixture step's body, executed (zheref/hatsu#337) -----
+    # The frozen form under bash -eo pipefail, as Actions runs it, with a stand-in
+    # for the trusted fixture: its pass is the step's pass, and its red, its
+    # wiring exit and its absence each fail the step with the fixture's own exit,
+    # never a pass. The real fixture over a broken guard is the lane's to prove
+    # (redaction-guard); it is not run here, where every workflow pays for it.
+    Dir.mktmpdir("hatsu-redaction-fixture") do |tmpdir|
+      dir = File.realpath(tmpdir)
+      fixture_dir = File.join(dir, ".trusted/scripts")
+      FileUtils.mkdir_p(fixture_dir)
+      fixture = File.join(fixture_dir, "private_name_check_fixture.sh")
+      write_fixture = lambda do |exit_code, line|
+        File.write(fixture, "#!/bin/sh\necho '#{line}'\nexit #{exit_code}\n")
+      end
+      [
+        ["a fixture that passes", -> { write_fixture.call(0, "redaction-guard: 3 passed, 0 failed") }, 0,
+         "redaction-guard: 3 passed, 0 failed"],
+        ["a fixture that fails a case", -> { write_fixture.call(1, "FAIL  bare name: exit 0, wanted 1") }, 1,
+         "FAIL  bare name"],
+        ["a fixture that cannot run", -> { write_fixture.call(2, "wiring") }, 2, "wiring"],
+        ["no trusted fixture", -> { FileUtils.rm_f(fixture) }, 127, "private_name_check_fixture.sh"]
+      ].each do |label, arrange, want_status, want_text|
+        arrange.call
+        out, status = Open3.capture2e({ "PATH" => ENV.fetch("PATH") }, "bash", "--noprofile", "--norc", "-eo", "pipefail",
+                                      "-c", REDACTION_FIXTURE_FROZEN.fetch("run"), chdir: dir, unsetenv_others: true)
+        ok = status.exitstatus == want_status && out.include?(want_text)
+        fail_policy("self-test: #{REDACTION_FIXTURE_STEP.inspect} with #{label} exited #{status.exitstatus}, printing #{out.strip.inspect}") unless ok
       end
     end
 

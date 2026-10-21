@@ -291,14 +291,16 @@ common case and not an error.
 
 ## 5. The gate the workflow uses is the TRUSTED one
 
-If you adopt [the readiness workflow](../templates/pr-readiness.yml), its verdict step passes
-`--gates "$PWD/.trusted/nen/gates.json"` — **the copy from the base branch, never the pull request's
-own.**
+If you adopt [the readiness workflow](../templates/pr-readiness.yml), its verdict step runs
+`.trusted/scripts/readiness_ci_verdict.mts` from the base checkout. That reader passes
+`--gates` with the absolute `.trusted/nen/gates.json` path — **the base branch's copy, never the pull
+request's own.** Tenkai copies the reader into the consumer before rendering this workflow.
 
 This is not belt-and-braces. With the flag dropped, nen falls back to `<cwd>/nen/gates.json`, and the
 cwd in that job is the **pull request's head checkout** — so losing the flag hands the pull request
 the gate that judges it. It reads as a harmless simplification and it is the opposite of one.
-`scripts/tenkai_adopt.sh diagnose` reports a dropped `--gates` as drift for this reason.
+`scripts/tenkai_adopt.sh diagnose` reports a missing or changed trusted reader as drift or a staged
+prerequisite. It also compares the verdict step against the exact trusted invocation.
 
 **The practical consequence for you:** a change to `nen/gates.json` takes effect for *other* pull
 requests once it is **merged**, not while it sits in the pull request proposing it. That is correct,
@@ -371,6 +373,20 @@ read (`printf '%s\n' "$explain" | head -1`) can die on SIGPIPE under `pipefail` 
 outgrows the pipe buffer — it fails closed, Publish posting `readiness undetermined` — and the fix is
 `${explain%%$'\n'*}`; and splitting the verdict (read-only token) from Publish (the only step that
 needs `checks: write`) into two jobs changes `EXPECTED_JOBS` (hanten on step two, Phinks and Feitan).
+
+**2026-10-19, #131 policy stage.** `READINESS_FROZEN_VERDICT` also admits one next frozen form:
+`node .trusted/scripts/readiness_ci_verdict.mts`. The trusted TypeScript reader pins the event head,
+passes the trusted gates path to `nen pr ready --json`, and takes its title, failing rows and judged
+head from that document. This stage leaves the live workflow and Tenkai template on their old form;
+the next PR changes them after this validator and reader reach the trusted base. The JSON form
+supersedes the first-line SIGPIPE repair above, while the separate-job permission question remains.
+
+**#131 installation stage.** The live workflow and Tenkai template now invoke that exact trusted
+reader. Tenkai places it in a consumer's `scripts/` before rendering the workflow and stages the
+workflow if a Hatsu-style guard has not admitted the JSON step yet. The reader validates Nen's six
+conjuncts, including `unevaluated` rows, and writes the verdict and failing details from JSON.
+`scripts/tenkai_readiness_guard.mts` owns Tenkai's reader installation and prerequisite decisions;
+its Python engine only relays the typed result, following BC-11.
 
 **2026-10-13. Every builder step is frozen, and no run carries an expression
 ([zheref/hatsu#190](https://github.com/zheref/hatsu/issues/190)).** `surface-mirror-regenerate.yml`
@@ -472,10 +488,41 @@ two added the step to the workflow and narrowed `EXPECTED_STEPS` to it, one shap
 canon-contract failure reads as a red `surface-mirror-check`, and a run red at the drift step never
 reaches it (a check of its own would be the #135 route).
 
+**2026-10-20. The redaction-guard fixture runs in CI
+([zheref/hatsu#337](https://github.com/zheref/hatsu/issues/337)), both steps landed.**
+`scripts/private_name_check_fixture.sh`, the `redaction-guard` lane's hermetic fixture, ran only when a
+session ran that lane. It now runs as a `Redaction guard fixture` step of `surface-mirror-check.yml`,
+right before the finish step, landed the #223 way under the frozen-step rule. Step one taught the
+validator the step and admitted both shapes, with and without it (`ALLOWED_STEP_SHAPES`,
+`REDACTION_FIXTURE_STEP`), and froze its one form (`REDACTION_FIXTURE_FROZEN`: `set -euo pipefail`,
+then the trusted checkout's fixture; no env, no token, no `nen shu test --repo .`, no swallowed red;
+the self-test holds on both trees and runs the body against stand-in fixtures). Step two added the
+step to `EXPECTED_STEPS` and dropped the two-shape admission, so its absence is refused. The fixture
+reads no secret and no private list, so the step proves the base branch's guard (main's, for a pull
+request into main) on the runner's Linux toolchain; it first runs live on the first pull request opened
+after it reaches that base. A pull request that breaks the guard is judged by the base's copy, so its
+red lands on the pull requests after it merges — the fix included, which is red by the same copy until
+the maintainer merges it past that red (the #230 trap; a dated `checks.excluded` entry is the other
+route, GATE-CONFIGURATION § 3); the `redaction-guard` lane, run locally before the push, stays the
+check on the change itself. A run red at an earlier step never reaches the fixture step; the local lane
+is the reading then. The job skips a fork pull request (the same-repository guard) and a draft: #337's
+"green" there is a skip, nothing runs.
+The tree check (`redaction-tree`) needs the live list and stays on the maintainer's machine.
+
 **The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
 stages its file at `templates/<name>`, where the self-test judges it as if installed; the second
 installs it under `.github/workflows/` and moves it to `PORTABLE_HOSTED_WORKFLOWS`, which makes its
 absence a refusal. `PENDING_HOSTED_WORKFLOWS` stays in the validator, empty when nothing is pending, and
 every per-workflow table is checked at load to cover exactly the workflows it should.
+
+**Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
+`PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. It uses `pull_request`
+and only `contents: read`, because its fixtures execute the PR's code. The policy
+holds the staged YAML to one reviewed SHA-256 and also checks its trigger,
+permissions, and hosted runner; the installation PR copies that exact template.
+The workflow checks out the base revision for `nen_global.sh` and
+`unit_tests_ci.mts`, installs the contract-pinned Nen without editing the runner's
+shell profile, and invokes the PR's declared focused test lanes. The CI runner
+clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture and fences fixture output.
 
