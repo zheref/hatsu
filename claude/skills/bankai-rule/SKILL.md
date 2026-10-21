@@ -60,8 +60,8 @@ and the head alone goes through `nen parse`; the split is residue (zheref/nen#45
 (default `handbooks/ports`; catalogue domain `port`) are **read at the consumer's base tip, never
 its head**, and **bounded**: `handbooksRepo` is the consumer's pinned `maintained_tools` row
 (`nen canon pin --source`; none → `missing-configuration`), one home for rulings and matrix;
-`rulingsDir` is `/`-joined segments of `[A-Za-z0-9_-][A-Za-z0-9._-]*` (no empty, `.` or `..` one); one
-trailing `/` is stripped before `<rulingsDir>/<from>--<to>.md` is built.
+one trailing `/` is stripped from `rulingsDir`, then the grammar applies: `/`-joined segments of
+`[A-Za-z0-9_-][A-Za-z0-9._-]*`, no empty, `.` or `..` one.
 
 ```bash
 "$hatsu_root/scripts/config_values.sh" need --repo <consumer checkout> --skill bankai-rule   # ten § 6 step 5b
@@ -93,8 +93,9 @@ Run against **the run's rulings worktree** (§ 2), never the clone root: it fetc
 reads **every pair file** (`<rulingsDir>/*.md`) at **four places**: `origin/<branch.base>`; **this
 branch** (HEAD and the working tree, so a batched call's second row never repeats its first); **every
 other rulings branch**, pushed or local; and every open **same-repository** PR touching one (forks
-never read; the run's own push and PR read as this branch); a failed read is exit `1`. An id outside
-`^[1-9][0-9]{0,8}$` is a named refusal (exit `3`); **exit `1` reserves nothing — stop, never write**.
+never read; the run's own push and PR read as this branch); a failed read is exit `1`; a headerless file is
+counted. An id outside `^[1-9][0-9]{0,8}$` is a named refusal (exit `3`); **non-zero reserves nothing —
+stop, never write**; a `--check` duplicate is told by its `also at` line (`docs/ab` § 2).
 **A run that has not pushed is invisible elsewhere**, so two runs can take one id: **`--check`** (the
 same reads as a duplicate pass over any two files, exit `3` naming both) runs at every
 [`ao`](../ao/SKILL.md) catch-up, before `mukai` opens the PR and before `en`'s prompt; a duplicate is
@@ -121,8 +122,7 @@ A pair with no file is created from `templates/ports/pair.md` (header, scope, th
 `map`/`mirror` rows fill the equivalence table, the other two the drift table. **Before any write**:
 `bash "$hatsu_root/scripts/private_name_check.sh" --ignore-file <d>/redaction-ignore <pair file>
 <INDEX.md>` ([`file`](../file/SKILL.md) § 4's ignore file); then `nen shu lint --repo <the run's
-worktree>` — on `zheref/bankai-handbooks`, `scripts/canon_check.sh all`, **which exists once its
-adoption PR has merged**; before that the verb refuses at exit `2`, row `missing-tool` — and
+worktree>` — on `zheref/bankai-handbooks`, `scripts/canon_check.sh all` — and
 [`kokusen`](../kokusen/SKILL.md) there, `--type feat --scope ports`, trailer `Hatsu-Agent: kurapika`.
 
 ## 5. `port-drift` — one picker call per run, three questions a call
@@ -144,7 +144,7 @@ through [`aka`](../aka/SKILL.md) → [`mukai`](../mukai/SKILL.md) from the run's
 **G4** prompt. Standalone, one PR per call. **Until it merges the citing port PR writes `<from>--<to>
 PT-<n> (branch <ref>, unmerged)`**, and the landing report names the follow-ups: Hatsu's repin
 (`nen/repos.json` → `pinned`, tag first, `CON-13`) and **each consumer's `nen canon pin` with a
-follow-up rewriting its citations** to `<id> @ <tag>`.
+follow-up rewriting its citations** to `<from>--<to> PT-<n> @ <tag>`.
 
 **Reading a pair file for review.** `nen canon resolve` (`0.22.0`) returns always-load plus one stack
 and **no mirror carries a pair file**: a reviewer reads it live through
@@ -176,7 +176,7 @@ reads (zheref/nen#456); the pair file through `--always-load` (zheref/nen#457); 
 
 ## Hard limits
 
-- **Never writes a row without the maintainer's answer**, nor on an exit-`1` read.
+- **Never writes a row without the maintainer's answer**, nor on a non-zero read.
 - **Never parses the ruling through the grammar**; never a scenario the matrix does not list,
   never `bankai-machinery`; never a `handbooksRepo` that is not the pinned row, never the keys from
   a branch head; never a write outside the clone or into the reading copy.

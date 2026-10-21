@@ -707,7 +707,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
-  `gh pr view --json files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
+  `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
   **owed to nen**, zheref/nen#456; a ports pair file rides `nen canon resolve --always-load` and reaches no
   mirror until zheref/nen#457; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
   carve-out).

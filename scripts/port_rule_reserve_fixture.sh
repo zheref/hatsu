@@ -26,6 +26,11 @@
 # others to --check; a failed read (a missing blob, an unreadable file) is exit 1, never empty; a row's
 # first cell is read with any padding; a fork PR is never read; a PR-checkout local head is skipped;
 # --target and --prefix are checked; a foreign pair-file header and an out-of-shape name are exit 3.
+# HANTEN ROUND 2 (T1-T6, T15): own is decided by ancestry (a same-named branch or PR of another run is
+# counted), one id in two rows of one file is a duplicate, every GFM row form is counted and every
+# look-alike refused, the header test is total (PR sections, indentation, key case, numbering value),
+# a '.' remote is read and a refs/pull head skipped by count, JSON escapes control characters, a
+# --target name is a segment, and the shipped template renders into a clean pair file.
 set -euo pipefail
 
 command -v jq >/dev/null 2>&1 || { echo "port-rule-guard fixture: jq is required (the --json case parses the output)" >&2; exit 2; }
@@ -87,7 +92,7 @@ diff --git a/$pair b/$pair
 +++ b/$pair
 @@ -1,1 +1,1 @@
 -<!-- pair: swiftui-tca-uzf-v2 -> compose-uzf-v2 · prefix: PT -->
-+<!-- pair: swiftui-tca-uzf-v2 -> compose-uzf-v2 · prefix: PT (typo fixed) -->
++<!-- pair: swiftui-tca-uzf-v2 -> compose-uzf-v2 · prefix: PT · numbering: global (typo fixed) -->
 diff --git a/q.md b/q.md
 --- a/q.md
 +++ b/q.md
@@ -137,7 +142,7 @@ diff --git a/p/xxmd b/p/xxmd
 +| PT-8 | x | y | mirror | lookalike | 2026-10-20 | |
 EOF
 
-# the gh stub. STUB_PRS: lines "num<TAB>fork<TAB>ref<TAB>files(comma)<TAB>diff-file"; STUB_TOTAL overrides
+# the gh stub. STUB_PRS: lines "num<TAB>fork<TAB>ref<TAB>files(comma)<TAB>diff-file[<TAB>headRefOid]"; STUB_TOTAL overrides
 # the search total; STUB_CHANGED overrides changedFiles for PR 7 (a short file list)
 stub="$root/bin"; mkdir -p "$stub"
 cat > "$stub/gh" <<'SH'
@@ -145,7 +150,7 @@ cat > "$stub/gh" <<'SH'
 prs() { printf '%b' "${STUB_PRS:-}"; }
 case "$1 $2" in
   "api search/issues"*) if [ -n "${STUB_TOTAL:-}" ]; then echo "$STUB_TOTAL"; else prs | grep -c . || true; fi ;;
-  "pr list") prs | awk -F'\t' -v ch="${STUB_CHANGED:-}" '{ n=split($4, a, ","); if (ch != "" && $1 == 7) n=ch; printf "%s\t%s\t%s\t%s\n", $1, $2, n, $3 }' ;;
+  "pr list") prs | awk -F'\t' -v ch="${STUB_CHANGED:-}" '{ n=split($4, a, ","); if (ch != "" && $1 == 7) n=ch; printf "%s\t%s\t%s\t%s\t%s\n", $1, $2, n, $3, $6 }' ;;
   "api --paginate") n="${3#repos/*/pulls/}"; n="${n%/files}"; prs | awk -F'\t' -v n="$n" '$1==n {gsub(",", "\n", $4); print $4}' ;;
   "pr diff") n="$3"; f="$(prs | awk -F'\t' -v n="$n" '$1==n {print $5}')"; if [ -n "$f" ] && [ -f "$f" ]; then cat "$f"; else exit 1; fi ;;
   *) exit 2 ;;
@@ -381,9 +386,9 @@ bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md"
 check "S2: --check after the run's own push is exit 0, its pushed copy never a sibling" '[ "$rcs2a" = 0 ]'
 g -C "$clone" diff main..HEAD > "$root/diff40.txt"
 g -C "$clone" push -q origin --delete haiku/kurapika/ports-own-run11
-export STUB_PRS="40\tfalse\thaiku/kurapika/ports-own-run11\t$gp/a--b.md\t$root/diff40.txt\n"
+export STUB_PRS="40\tfalse\thaiku/kurapika/ports-own-run11\t$gp/a--b.md\t$root/diff40.txt\t$(g -C "$clone" rev-parse HEAD)\n"
 bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT --check >/dev/null 2>&1; rcs2b=$?
-check "S2: --check with only the run's own PR open is exit 0" '[ "$rcs2b" = 0 ]'
+check "S2: --check with only the run's own PR open (its headRefOid an ancestor of HEAD) is exit 0" '[ "$rcs2b" = 0 ]'
 export STUB_PRS=""
 g -C "$clone" switch -q main
 g -C "$clone" branch -q -D haiku/kurapika/ports-own-run11
@@ -430,7 +435,7 @@ g -C "$clone" config branch.x/y/ports-prcheckout.merge refs/pull/5/head
 g -C "$clone" config branch.x/y/ports-otherremote.remote upstream
 g -C "$clone" config branch.x/y/ports-otherremote.merge refs/heads/main
 outs6="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT 2>"$root/es6.txt")"; rcs6=$?
-check "S6: a local head tracking refs/pull/* or another remote is skipped and named, never counted (next PT-7)" '[ "$rcs6" = 0 ] && printf "%s" "$outs6" | grep -q "^next: PT-7$" && grep -q "skipped local head x/y/ports-prcheckout: it tracks refs/pull/5/head" "$root/es6.txt" && grep -q "skipped local head x/y/ports-otherremote: it tracks remote upstream" "$root/es6.txt"'
+check "S6: a local head tracking refs/pull/* or a remote whose URL is not origin's is skipped, counted by reason, never named or counted (next PT-7)" '[ "$rcs6" = 0 ] && printf "%s" "$outs6" | grep -q "^next: PT-7$" && grep -q "skipped 1 local ports-\* head(s) tracking refs/pull" "$root/es6.txt" && grep -q "skipped 1 local ports-\* head(s) tracking a remote whose URL is not origin" "$root/es6.txt" && ! grep -q "x/y/ports-" "$root/es6.txt"'
 g -C "$clone" branch -q -D x/y/ports-prcheckout x/y/ports-otherremote
 # S5: a fork PR is never read -- a mode-change diff, an unreadable diff, a short file list: exit 0, next unchanged
 export STUB_PRS="7\ttrue\tf7\t$pair\t$root/diff15.txt\n31\ttrue\tf31\t$pair\t$root/missing.txt\n32\ttrue\tf32\t$pair\t$root/diff15.txt\n"
@@ -442,6 +447,133 @@ printf '|PT-40|SW-40|KT-40|map|tight|2026-10-21||\n|  PT-41  |  SW-41 | KT-41 | 
 g -C "$origin" commit -qam "hand-tightened rows"
 outs4="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT)"; rcs4=$?
 check "S4: tip rows '|PT-40|' and '|  PT-41  |' are counted: next PT-42" '[ "$rcs4" = 0 ] && printf "%s" "$outs4" | grep -q "^next: PT-42$"'
+
+# HANTEN ROUND 2 (2026-10-21): the settlements T1-T6 and T15, each a row (the global next is PT-42 here)
+export STUB_PRS=""
+# T1: "own" is decided by ancestry, never by name. Another run pushed a same-named branch and opened its PR
+g -C "$clone" switch -q -c haiku/kurapika/ports-same-run14
+printf '| PT-50 | SW-50 | KT-50 | map | the other run | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+g -C "$clone" commit -qam "another run adds PT-50"
+othersha="$(g -C "$clone" rev-parse HEAD)"
+g -C "$clone" push -q origin haiku/kurapika/ports-same-run14
+g -C "$clone" diff main..HEAD > "$root/diff41.txt"
+g -C "$clone" switch -q main
+g -C "$clone" branch -q -D haiku/kurapika/ports-same-run14
+g -C "$clone" switch -q --no-track -c haiku/kurapika/ports-same-run14 main
+outt1="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT)"; rct1=$?
+check "T1: a same-named pushed branch that is not an ancestor of HEAD is a sibling: its PT-50 is counted, next PT-51" '[ "$rct1" = 0 ] && printf "%s" "$outt1" | grep -q "^next: PT-51$" && printf "%s" "$outt1" | grep -qF "PT-50 branch origin/haiku/kurapika/ports-same-run14 in $gp/a--b.md"'
+printf '| PT-50 | SW-51 | KT-51 | map | this run | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT --check >/dev/null 2>"$root/et1a.txt"; rct1a=$?
+check "T1: --check catches this run's PT-50 against the same-named branch's PT-50, exit 3" '[ "$rct1a" = 3 ] && grep -qF "PT-50 ($gp/a--b.md) also at branch origin/haiku/kurapika/ports-same-run14" "$root/et1a.txt"'
+g -C "$clone" push -q origin --delete haiku/kurapika/ports-same-run14
+export STUB_PRS="41\tfalse\thaiku/kurapika/ports-same-run14\t$gp/a--b.md\t$root/diff41.txt\t$othersha\n"
+bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT --check >/dev/null 2>"$root/et1b.txt"; rct1b=$?
+check "T1: a same-named PR whose headRefOid is not an ancestor of HEAD is read as an open PR: --check exit 3" '[ "$rct1b" = 3 ] && grep -qF "PT-50 ($gp/a--b.md) also at PR #41" "$root/et1b.txt"'
+export STUB_PRS=""
+g -C "$clone" checkout -q -- "$gp/a--b.md"
+# T1: one id in two rows of one pair file in this run's own place is a duplicate
+printf '| PT-60 | SW-60 | KT-60 | map | first | 2026-10-21 | |\n| PT-60 | SW-61 | KT-61 | map | second | 2026-10-21 | |\n' >> "$clone/$gp/a--b.md"
+bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT --check >/dev/null 2>"$root/et1c.txt"; rct1c=$?
+check "T1: one id in two rows of the same pair file is a --check duplicate, exit 3" '[ "$rct1c" = 3 ] && grep -qF "PT-60 ($gp/a--b.md) also at a second row of the same file (working tree)" "$root/et1c.txt"'
+g -C "$clone" checkout -q -- "$gp/a--b.md"
+# T2: every GFM row form is counted, every look-alike refused by name
+rowcase() { # $1 the line, then the expectation is read by the caller from $rcr and $outr
+  printf '%s\n' "$1" > "$clone/$gp/w--x.md"
+  outr="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT 2>"$root/er.txt")"; rcr=$?
+  rm -f "${clone:?}/${gp:?}/w--x.md"
+}
+rowcase 'PT-70 | a | b | map | pipe-less | 2026-10-21 | |'; r1="$rcr $(printf '%s' "$outr" | head -1)"
+rowcase '   | PT-70 | a | b | map | three spaces | 2026-10-21 | |'; r2="$rcr $(printf '%s' "$outr" | head -1)"
+rowcase '| **PT-70** | a | b | map | bold | 2026-10-21 | |'; r3="$rcr $(printf '%s' "$outr" | head -1)"
+rowcase '| `PT-70` | a | b | map | code | 2026-10-21 | |'; r4="$rcr $(printf '%s' "$outr" | head -1)"
+rowcase '| *PT-70* | a | b | map | emphasis | 2026-10-21 | |'; r5="$rcr $(printf '%s' "$outr" | head -1)"
+check "T2: a pipe-less row, a three-space indent, bold, code and emphasis first cells are each counted: next PT-71 ($r1 / $r2 / $r3 / $r4 / $r5)" '[ "$r1" = "0 next: PT-71" ] && [ "$r2" = "0 next: PT-71" ] && [ "$r3" = "0 next: PT-71" ] && [ "$r4" = "0 next: PT-71" ] && [ "$r5" = "0 next: PT-71" ]'
+rowcase '    | PT-70 | a | b | map | four spaces | 2026-10-21 | |'; q1=$rcr; grep -q "indented past three spaces" "$root/er.txt" || q1=x
+rowcase '| ~~PT-70~~ | a | b | map | struck | 2026-10-21 | |'; q2=$rcr; grep -q "not a counted row" "$root/er.txt" || q2=x
+rowcase '| PT-70a | a | b | map | suffix | 2026-10-21 | |'; q3=$rcr; grep -q "not a counted row" "$root/er.txt" || q3=x
+rowcase '| SW-3 | a | b | map | another prefix | 2026-10-21 | |'; q4=$rcr; grep -q "another prefix, SW-3 (a handbook-question)" "$root/er.txt" || q4=x
+check "T2: a row indented four spaces, a struck or suffixed PT cell, and another prefix's first cell are each a named exit 3 ($q1 $q2 $q3 $q4)" '[ "$q1" = 3 ] && [ "$q2" = 3 ] && [ "$q3" = 3 ] && [ "$q4" = 3 ]'
+rowcase '| id | source | target | handling | rationale | date | supersedes |'; h1="$rcr $(printf '%s' "$outr" | head -1)"
+rowcase '|---|---|---|---|---|---|---|'; h2="$rcr $(printf '%s' "$outr" | head -1)"
+check "T2: the header row and the separator row are not rows (next PT-42)" '[ "$h1" = "0 next: PT-42" ] && [ "$h2" = "0 next: PT-42" ]'
+printf '| PT-1 | a | b | map | x | 2026-10-21 | |\n```\n|PT-80| example |\n```\n' > "$clone/$gp/w--x.md"
+outfence="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT | head -1)"
+rm -f "${clone:?}/${gp:?}/w--x.md"
+check "T2: a row inside a fenced example is counted too, the documented safe over-count (next PT-81)" '[ "$outfence" = "next: PT-81" ]'
+# T3: the header refusal is total -- every variant below is a named exit 3
+hdrs=( '<!-- pair: a -> b · numbering: per-pair · prefix: PT · numbering: global -->'
+       ' <!-- pair: a -> b · prefix: SW · numbering: per-pair -->'
+       '<!-- prefix: PT · numbering: global.per-pair -->'
+       '<!-- prefix: PT · numbering: global; numbering: per-pair -->'
+       '<!-- pair: a -> b · Prefix: XY · Numbering: per-pair -->'
+       '<!-- pair: a -> b · prefix: PT · numbering: globalish -->' )
+hres=""
+for h in "${hdrs[@]}"; do
+  printf '%s\n| PT-2 | a | b | map | x | 2026-10-21 | |\n' "$h" > "$clone/$gp/w--x.md"
+  bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT >/dev/null 2>"$root/eh.txt"; r=$?
+  grep -q "header is not .prefix: PT · numbering: global" "$root/eh.txt" || r="x$r"
+  hres="$hres $r"
+done
+rm -f "${clone:?}/${gp:?}/w--x.md"
+check "T3: a doubled numbering, an indented foreign header, global.per-pair, a second numbering, capitalised keys and globalish are each a named exit 3 (got$hres)" '[ "$hres" = " 3 3 3 3 3 3" ]'
+printf '  <!-- pair: a -> b · PREFIX: PT · Numbering: global -->\n| PT-2 | a | b | map | x | 2026-10-21 | |\n' > "$clone/$gp/w--x.md"
+bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT >/dev/null 2>&1; rch3=$?
+rm -f "${clone:?}/${gp:?}/w--x.md"
+check "T3: the ruled header indented, with keys in any case, is accepted (exit 0)" '[ "$rch3" = 0 ]'
+cat > "$root/diff42.txt" <<EOF
+diff --git a/$gp/y--z.md b/$gp/y--z.md
+new file mode 100644
+--- /dev/null
++++ b/$gp/y--z.md
+@@ -0,0 +1,2 @@
++<!-- pair: y -> z · prefix: SW · numbering: per-pair -->
++| PT-2 | y | z | map | x | 2026-10-21 | |
+EOF
+export STUB_PRS="42\tfalse\tgh42\t$gp/y--z.md\t$root/diff42.txt\n"
+bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT >/dev/null 2>"$root/eh42.txt"; rch42=$?
+check "T3: an open same-repository PR adding a pair file with a foreign header is a named exit 3, as at the tip" '[ "$rch42" = 3 ] && grep -q "header is not.*y--z.md at PR #42" "$root/eh42.txt"'
+export STUB_PRS=""
+g -C "$clone" switch -q main
+g -C "$clone" branch -q -D haiku/kurapika/ports-same-run14
+# T4: a local head whose remote is '.' is read; a refs/pull merge is skipped, by count, never by name
+g -C "$clone" switch -q -c x/y/ports-dotremote
+printf '| PT-95 | a | b | map | a local run tracking . | 2026-10-21 | |\n' > "$clone/$gp/dd--ee.md"
+g -C "$clone" add "$gp/dd--ee.md"; g -C "$clone" commit -qm "local run"
+g -C "$clone" switch -q main
+g -C "$clone" config branch.x/y/ports-dotremote.remote .
+g -C "$clone" config branch.x/y/ports-dotremote.merge refs/heads/main
+g -C "$clone" branch -q x/y/ports-secretname main
+g -C "$clone" config branch.x/y/ports-secretname.remote origin
+g -C "$clone" config branch.x/y/ports-secretname.merge refs/pull/9/head
+outt4="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT 2>"$root/et4.txt")"; rct4=$?
+check "T4: a local head tracking '.' is read (next PT-96)" '[ "$rct4" = 0 ] && printf "%s" "$outt4" | grep -q "^next: PT-96$"'
+check "T4: a refs/pull/* head is skipped by count and reason, never by name" 'grep -q "skipped 1 local ports-\* head(s) tracking refs/pull/\*" "$root/et4.txt" && ! grep -q "secretname" "$root/et4.txt" && ! printf "%s" "$outt4" | grep -q "secretname"'
+g -C "$clone" branch -q -D x/y/ports-dotremote x/y/ports-secretname
+# T5: JSON escapes every control character
+cat > "$root/diff43.txt" <<EOF
+diff --git a/$gp/a--b.md b/$gp/a--b.md
+--- a/$gp/a--b.md
++++ b/$gp/a--b.md
+@@ -2,0 +3,1 @@
++| PT-44 | SW-44 | KT-44 | map | control-char branch | 2026-10-21 | |
+EOF
+export STUB_PRS="43\tfalse\tctl\001x\t$gp/a--b.md\t$root/diff43.txt\n"
+outt5="$(bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$gp/a--b.md" --prefix PT --json 2>/dev/null)"
+check "T5: a control character in a branch name is escaped as \\u0001 and the JSON parses" 'printf "%s" "$outt5" | jq -e ".seen | length > 0" >/dev/null && printf "%s" "$outt5" | grep -qF "ctl\\u0001x"'
+export STUB_PRS=""
+# T6: --target's name is a segment: acme/. and acme/.. are usage
+bash "$guard" --worktree "$clone" --target 'acme/.' --pair-file "$pair" --prefix PT >/dev/null 2>&1; rct6a=$?
+bash "$guard" --worktree "$clone" --target 'acme/..' --pair-file "$pair" --prefix PT >/dev/null 2>&1; rct6b=$?
+check "T6: --target acme/. and acme/.. are usage, exit 2" '[ "$rct6a" = 2 ] && [ "$rct6b" = 2 ]'
+# T15: the shipped template, rendered, is a clean pair file: exit 0, its rows counted
+to="$root/tmpl-origin"; tc="$root/tmpl-clone"
+g init -q -b main "$to"; mkdir -p "$to/handbooks/ports"
+sed 's/<from>/swiftui-tca-uzf-v2/g; s/<to>/compose-uzf-v2/g; s/<from-prefix>/SW/g; s/<to-prefix>/KT/g' "$repo_root/templates/ports/pair.md" > "$to/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md"
+sed 's/<from>/swiftui-tca-uzf-v2/g; s/<to>/compose-uzf-v2/g' "$repo_root/templates/ports/INDEX.md" > "$to/handbooks/ports/INDEX.md"
+printf '| PT-3 | SW-1 | KT-1 | map | rendered | 2026-10-21 | |\n' >> "$to/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md"
+g -C "$to" add -A; g -C "$to" commit -qm tmpl; g clone -q "$to" "$tc"
+outt15="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT 2>&1)"; rct15=$?
+check "T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
 export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n"
 bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$pair" --prefix PT --base mian >/dev/null 2>"$root/eb.txt"; rct=$?
 check "a tip ref that does not resolve is a named exit 2, never PT-1" '[ "$rct" = 2 ] && grep -q "origin/mian does not resolve" "$root/eb.txt"'

@@ -77,16 +77,27 @@ own HEAD and working tree (a batched call's second row never repeats its first �
 Nobunaga N2 at the first head), at every other pushed or local `ports-*` branch (Chrollo C4; a run that has not pushed is
 otherwise invisible, so `--check` repeats the reads as a duplicate pass at catch-up and the gate — Chrollo C16),
 and in every open same-repository PR whose file list names one of them (a fork PR never read at all, listed by number — Feitan F8, hanten round 1 S5; the run's own push and own PR read as
-this branch, never as others — S2) (`gh pr list` + `gh pr view --json
-files` + `gh pr diff` + `gh api search/issues`, named residue until zheref/nen#456). Hostile open PRs
+this branch, never as others — S2) (`gh pr list` + `gh api --paginate
+repos/<t>/pulls/<n>/files` + `gh pr diff` + `gh api search/issues`, named residue until zheref/nen#456). Hostile open PRs
 (Feitan F1–F4): an id outside `^[1-9][0-9]{0,8}$`, or a counted pair file named outside
 `^[A-Za-z0-9_-][A-Za-z0-9._-]*\.md$` (its path printed through `%q`, S9), is a named refusal at exit 3, a short list, an
 unread PR, a failed git listing or blob read and an unreadable working-tree file are exit 1 and reserve
 nothing (S3), a row's first cell is read with any padding (S4), a `--pair-file` with an empty, `.` or `..`
 segment is exit 2 (S1), a local `ports-*` head tracking `refs/pull/*` or another remote is skipped (S6), a `+++ b/<pair>` content line in another file's hunk is
-never a header, the path is compared literally, the JSON escapes branch names. The
-`port-rule-guard` lane (`nen shu test --repo <hatsu> --lane port-rule-guard`), the fixture's own
-`gh` stub on PATH:
+never a header, the path is compared literally, the JSON escapes branch names. **Own is decided by ancestry, never by name** (hanten round 2, T1): `origin/<current>` and the
+PR whose head is the current branch are this run's own only when they are ancestors of HEAD (the PR
+by its `headRefOid`); a same-named branch or PR of another run is read and counted. **Rows** (T2):
+every line with a `|` is judged by its first cell, emphasis stripped; `PT-<n>` indented at most three
+spaces is counted, any other `PT-<digits>` first cell or another prefix's `[A-Z]+-[0-9]+` is a named
+exit 3; a row in a fenced example is counted too, a safe over-count. **Headers** (T3): a `<!--` line
+naming `prefix:` or `numbering:` (keys in any case, at any indent, in a file or in an open PR's added
+lines) must read exactly one `prefix: PT · numbering: global`, `global` followed by whitespace, `)`,
+`·` or `-->`, else exit 3; **a headerless file is counted.** **Telling the exits apart** (bankai-rule
+§ 3): a non-zero exit reserves nothing; among exit 3s, a `--check` duplicate is the one whose lines
+read `also at`, every other exit 3 a refusal of a shape. Local heads (T4): a remote unset or `.` is
+read; `refs/pull/*` and a remote whose URL is not origin's are skipped, reported by count and reason.
+The `port-rule-guard` lane (`nen shu test --repo <hatsu> --lane port-rule-guard`), the fixture's own
+`gh` stub on PATH, at bash 5.3 and at `/bin/bash` 3.2:
 
 ```
 ok    branch B reserves PT-5 past branch A's open PT-4 (exit 0)
@@ -138,18 +149,34 @@ ok    branch B reserves PT-5 past branch A's open PT-4 (exit 0)
   ok    S7: a --target outside owner/name's shape is usage, exit 2
   ok    S8: a --prefix other than PT is usage, exit 2, named
   ok    S2: --check after the run's own push is exit 0, its pushed copy never a sibling
-  ok    S2: --check with only the run's own PR open is exit 0
+  ok    S2: --check with only the run's own PR open (its headRefOid an ancestor of HEAD) is exit 0
   ok    S3: a sibling whose blob is missing is exit 1, named, complete:false and a null next
   ok    S3: a working-tree pair file at mode 000 is exit 1, named, complete:false and a null next
   ok    S8: a pair file whose header declares a foreign prefix or numbering is exit 3, named
   ok    S9: a working-tree pair file named out of shape is exit 3, its path named
   ok    S9: a sibling's pair file named out of shape is exit 3, its path and branch named
-  ok    S6: a local head tracking refs/pull/* or another remote is skipped and named, never counted (next PT-7)
+  ok    S6: a local head tracking refs/pull/* or a remote whose URL is not origin's is skipped, counted by reason, never named or counted (next PT-7)
   ok    S5: fork PRs with a mode-change diff, an unreadable diff and a short file list are listed, never read: exit 0, next PT-4
   ok    S4: tip rows '|PT-40|' and '|  PT-41  |' are counted: next PT-42
+  ok    T1: a same-named pushed branch that is not an ancestor of HEAD is a sibling: its PT-50 is counted, next PT-51
+  ok    T1: --check catches this run's PT-50 against the same-named branch's PT-50, exit 3
+  ok    T1: a same-named PR whose headRefOid is not an ancestor of HEAD is read as an open PR: --check exit 3
+  ok    T1: one id in two rows of the same pair file is a --check duplicate, exit 3
+  ok    T2: a pipe-less row, a three-space indent, bold, code and emphasis first cells are each counted: next PT-71 (0 next: PT-71 / 0 next: PT-71 / 0 next: PT-71 / 0 next: PT-71 / 0 next: PT-71)
+  ok    T2: a row indented four spaces, a struck or suffixed PT cell, and another prefix's first cell are each a named exit 3 (3 3 3 3)
+  ok    T2: the header row and the separator row are not rows (next PT-42)
+  ok    T2: a row inside a fenced example is counted too, the documented safe over-count (next PT-81)
+  ok    T3: a doubled numbering, an indented foreign header, global.per-pair, a second numbering, capitalised keys and globalish are each a named exit 3 (got 3 3 3 3 3 3)
+  ok    T3: the ruled header indented, with keys in any case, is accepted (exit 0)
+  ok    T3: an open same-repository PR adding a pair file with a foreign header is a named exit 3, as at the tip
+  ok    T4: a local head tracking '.' is read (next PT-96)
+  ok    T4: a refs/pull/* head is skipped by count and reason, never by name
+  ok    T5: a control character in a branch name is escaped as \u0001 and the JSON parses
+  ok    T6: --target acme/. and acme/.. are usage, exit 2
+  ok    T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, the row counted: exit 0, next PT-4
   ok    a tip ref that does not resolve is a named exit 2, never PT-1
   ok    a failed fetch of origin is a named exit 2, never a stale tip
-port-rule-guard: 60/60
+port-rule-guard: 76/76
 ```
 
 ## 3. Resolving a pair file beside the stacks — `--always-load` until zheref/nen#457
@@ -218,7 +245,7 @@ exit 0
 ## 5. Residue, named
 
 - The `ruling` split at its first occurrence, in shell before the parse — zheref/nen#458 (a first-anchored clause).
-- The open-PR reads (`gh pr list`, `gh pr view --json files`, `gh pr diff`, `gh api search/issues`) — zheref/nen#456.
+- The open-PR reads (`gh pr list`, `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues`) — zheref/nen#456.
 - The pair file beside the stack handbook — zheref/nen#457.
 - The authoring clone at the cache path is `git clone`, `bankai-handbooks` § 0's carve-out.
 - The script takes the run's rulings worktree (`--worktree`), never reads a fork PR, matches a hunk header only in a file's header region, paginates the file list, prunes on fetch
