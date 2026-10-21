@@ -143,8 +143,7 @@ is the decision to start here, said once (*conventions*: a build's end). Picks r
 holds build's phase 6** (the wrap-up; en § 8's `rikugan` renders as usual): each build's merge prompt stays
 on § 8's register while the next starts; a build's G5 stops the chain (`next: start`, the rest recorded);
 any other end is recorded `stopped`, the chain continues. A behaviour with no target idiom is `port-drift`,
-raised through `bankai-rule` (landing with zheref/hatsu#355; **until then it stops that build**, *port-drift
-not landed*); **a kamui run is one port run**.
+raised through `bankai-rule` § 5; **a kamui run is one port run**.
 
 ## 8. Ending the run
 

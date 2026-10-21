@@ -1203,12 +1203,16 @@ the adoption PR the brief named for the question, merged on 2026-10-21 without a
 
 > **B PT-{n}, one global counter**
 
-| HR | Ruling | What it binds | Status |
-|---|---|---|---|
-| <a id="hr-34"></a>**HR-34** | **Prefix `PT`, one global counter.** One counter runs across every pair file of the rulings directory (`workflow.port.rulingsDir`, default `handbooks/ports`), so an id is unique without its pair and is cited alone, `PT-7`; the pair may be named beside it for reading. | `templates/ports/pair.md`'s header reads `prefix: PT · numbering: global`, and `templates/ports/INDEX.md` cites by id. [`bankai-rule`](../claude/skills/bankai-rule/SKILL.md) § 3 reserves against **every** pair file at the tip, at the run's own HEAD and working tree, on every sibling `ports-*` branch, and in every open same-repository PR touching one. `scripts/port_rule_reserve.sh` implements it: the next id is one past the highest `PT-<n>` in any of them, and `--check` refuses one id in two pair files. Lane `port-rule-guard` proves it. The G5 stop that held the global case is retired; [`hiraishin`](../claude/skills/hiraishin/SKILL.md) cites by id. | ruled |
+| Question as asked | Options shown | Picked | Status | What it settles |
+|---|---|---|---|---|
+| HA#355 needs the port-rule prefix for handbooks/ports/. Which numbering? | A `PT-{n}` per pair file · B `PT-{n}`, one global counter | `B PT-{n}, one global counter` | ruled | The prefix is `PT`, and one counter runs across every pair file |
 
-**The HR id.** HR-34 is **reserved against HA-PR-#391**, which is open and unmerged. #391 starts the HR id space
-at HR-1 … HR-33, and its HR-2 gives each later ruling row the next id. If #391 renumbers before it merges, this row follows it.
+**What follows:**
+
+- `templates/ports/pair.md`'s header reads `prefix: PT · numbering: global` and cites this section. Citations keep the epic's ruled form, `<from>--<to> PT-<n> (branch <ref>, unmerged)` until the rulings PR merges. The global counter guarantees uniqueness across pair files; it does not change how a ruling is cited.
+- [`bankai-rule`](../claude/skills/bankai-rule/SKILL.md) § 3 reserves against every pair file under `workflow.port.rulingsDir`: at the tip, at the run's own HEAD and working tree, on every sibling `ports-*` branch, and in every open same-repository PR touching one. `scripts/port_rule_reserve.sh` takes the next id as one past the highest `PT-<n>` in any of them. Its `--check` refuses one id in two pair files. A `--prefix` other than `PT` is exit 2. A pair file declaring another prefix or numbering is exit 3. Lane `port-rule-guard` proves each case. The G5 stop that held the global case is retired.
+
+**Its relation to HA-PR-#391.** #391 is open and unmerged. Its HR-9 (picked 2026-10-20, *"Merge the adoption PR; global PT-{n} ids"*) records the same answer to the same question, and this block re-confirms it. The block carries no HR id, following `main`'s convention; #391's retro-anchoring (its HR-2) assigns its id.
 
 **Still owed, not ruled here:** the first `ports/` rulings PR on zheref/bankai-handbooks, which writes the
 first pair file from the template; the review preamble § 3's `PT-` prefix entry, which lands with Hatsu's

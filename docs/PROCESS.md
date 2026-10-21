@@ -710,9 +710,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   `gh pr view --json files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
   **owed to nen**, zheref/nen#456; a ports pair file rides `nen canon resolve --always-load` and reaches no
   mirror until zheref/nen#457; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
-  carve-out); the rule prefix (`PT`) and the numbering scope (one global counter) are ruled
-  (ROSTER § *Rulings of 2026-10-21 — the port rule prefix (HA#355)*, HR-34) and read from the pair
-  file's header.
+  carve-out).
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
   --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
