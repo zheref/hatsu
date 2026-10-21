@@ -1138,8 +1138,8 @@ counts each move):
 | Ruling | Applied |
 |---|---|
 | **Q1 B** | The fallback (`runnerUp`) of 21 Opus-primary cells moves from `EXECUTION_FRONTIER` (GPT-6.1 Sol, Codex) to `VISUAL_ORCHESTRATOR` (Gemini 3.1 Pro, Antigravity): requirements 3, analysis 10, triage 2, deprecation 2, prose-authoring 1, evals 1, drift-review 1 and parity 1. Each move satisfies `picks.fallbackRule`, Google on Antigravity against Anthropic on Claude Code. The other 19 reading cells keep Sol: accessibility 10, architecture 5, observability 3 and discovery/library 1 |
-| **Q2 A** | No move. Opus stays primary on the five cells Pro already backs: discovery/feature, discovery/parity, backlog/feature, backlog/parity and ux/parity (csharp) |
-| **Q3 A** | No move. `aliases.VISUAL_ORCHESTRATOR.selection` states the standing rule beside the measured profile, with its source and date: never an execution-side primary or fallback, never the fallback on an execution-adjacent Opus cell. Those 24 cells keep Sol: implementation 12, bug-fix 5, security 3, review 2, api-design 1 and integration 1 |
+| **Q2 A** | No move. Opus stays primary on the four discovery/backlog cells the question asked about: discovery/feature, discovery/parity, backlog/feature and backlog/parity. ux/parity (csharp), also Opus-primary with Pro as fallback, is unchanged as this run's reading, not part of the answer |
+| **Q3 A** | No move. `aliases.VISUAL_ORCHESTRATOR.selection` states the standing rule beside the measured profile, with its source and date: never an execution-side primary or fallback (execution-side: a cell whose primary is an `EXECUTION_*`, `EDITOR_FRONTIER` or `MECHANICAL_EDITOR` alias — 84 at this revision), never the fallback on an execution-adjacent Opus cell. Those 24 cells keep Sol: implementation 12, bug-fix 5, security 3, review 2, api-design 1 and integration 1 |
 | **Q4 A** | No move. `VISUAL_FALLBACK` (Gemini Flash) stays, routed in no cell. Its `selection` says it becomes the in-pool fallback for the Gemini primaries once zheref/hatsu#341's quota-aware fallback exists |
 
 Counts read off the registry before and after, over its 204 cells:
@@ -1171,6 +1171,21 @@ never raised on Argon.
 3. **The post-merge sweep is owed.** `hatsu:direct backlog zheref/hatsu` runs once after the merge and
    reports which directed issues change a pick, publishing under `direct.publish`. The pre-merge dry count
    is in the PR body.
+4. **The rule holds per cell, not at the aggregate.** An issue carrying both a hallucination-shaped job
+   and an execution job aggregates to the semantic primary with Pro as the other-pool fallback
+   (`picks.fallback` at the aggregate): `nen direct resolve --kind product --lang swift --job
+   requirements,analysis,implementation` reads `runnerUp VISUAL_ORCHESTRATOR` at this revision and
+   `EXECUTION_FRONTIER` before it, and the matrix page's own example *Porting a screen from Swift to
+   Kotlin* (parity + ui) moves its aggregate fallback from Sol to Pro. Q3 asked about cells; whether the
+   aggregate should also keep Google off issues that include execution work is the maintainer's word.
+5. **Pro's own hallucination rate is unmeasured in this record.** The evidence table above is Argon's;
+   Artificial Analysis's page for Gemini 3.1 Pro Preview
+   (https://artificialanalysis.ai/models/gemini-3-1-pro-preview, read 2026-10-20) lists Intelligence
+   Index 30 and $1.30 per index task and shows no AA-Omniscience accuracy or hallucination value; the
+   issue's only Pro figure is the accuracy delta (+5 on Argon's 50 %). The routing rests on the line's
+   Argon measurement, by the maintainer's choice (Q1 B). *Execution-side* in Q3 means a cell whose
+   primary is an `EXECUTION_*`, `EDITOR_FRONTIER` or `MECHANICAL_EDITOR` alias (84 at this revision);
+   the ten ui-automation cells whose primary is Pro are not execution-side under that definition.
 
 ---
 
