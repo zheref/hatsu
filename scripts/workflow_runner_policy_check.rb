@@ -363,6 +363,7 @@ EXPECTED_STEPS = {
     "Start check on the exact PR head",
     "Checkout PR head (data only — nothing from here is executed)",
     "Checkout guard code from the trusted workflow revision",
+    "Set up Node for the canon prose lint",
     "Enforce workflow runner policy from trusted workflow revision",
     "Canon prose lint",
     "Finish check on the exact PR head"
@@ -422,27 +423,40 @@ PROSE_FROZEN_GUARD = {
 # scripts/prose_ambiguity_check.mts reads the pull request's checkout as its
 # root against the trusted contracts/prose.lint.json, its output fenced by
 # `::stop-commands::` with a fresh token because file names and quoted text come
-# from the PR's tree; a finding outside the baseline, a stale baseline row or a
-# wiring refusal fails the check. Frozen like PROSE_FROZEN_GUARD, one form.
+# from the PR's tree; a finding outside the baseline, a stale baseline row, a
+# row grown over the trusted revision's baseline (--base-baseline, so the CI
+# form refuses growth without a merge base) or a wiring refusal fails the check.
+# Frozen like PROSE_FROZEN_GUARD, one form; the node it runs on is pinned by the
+# frozen setup step below (unit-tests.yml's pin), the only setup action admitted.
 CANON_LINT_WORKFLOW = "prose-ambiguity-check.yml"
 CANON_LINT_STEP = "Canon prose lint"
+CANON_LINT_NODE_STEP = "Set up Node for the canon prose lint"
+CANON_LINT_NODE_USES = "actions/setup-node@v7"
+CANON_LINT_FROZEN_NODE = {
+  "uses" => CANON_LINT_NODE_USES,
+  "with" => {
+    "node-version" => "24",
+    "package-manager-cache" => "false"
+  }
+}.freeze
 CANON_LINT_FROZEN_GUARD = {
   "shell" => "bash",
   "run" => <<~'RUN'.strip
     set -uo pipefail
     guard=.trusted/scripts/prose_ambiguity_check.mts
     rules=.trusted/contracts/prose.lint.json
-    [ -f "$guard" ] && [ -f "$rules" ] || { echo "::error::trusted workflow revision has no scripts/prose_ambiguity_check.mts or contracts/prose.lint.json"; exit 1; }
+    base=.trusted/contracts/prose.lint.baseline.json
+    [ -f "$guard" ] && [ -f "$rules" ] && [ -f "$base" ] || { echo "::error::trusted workflow revision has no scripts/prose_ambiguity_check.mts, contracts/prose.lint.json or contracts/prose.lint.baseline.json"; exit 1; }
     stop="stop_$(openssl rand -hex 16)" || stop=""
     [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the lint's output; nothing was read."; exit 1; }
     code=0
     echo "::stop-commands::${stop}"
-    node "$guard" --root "$PWD" --rules "$PWD/$rules" 2>&1 || code=$?
+    node "$guard" --root "$PWD" --rules "$PWD/$rules" --base-baseline "$PWD/$base" 2>&1 || code=$?
     printf '\n::%s::\n' "$stop"
     case "$code" in
       0) echo "no canon prose finding outside the baseline." ;;
       1)
-        echo "::error::a canon prose finding outside contracts/prose.lint.baseline.json, or a stale baseline row; each is named above. Fix the prose or remove the stale row; the baseline never grows (HR-13)."
+        echo "::error::a canon prose finding outside contracts/prose.lint.baseline.json, a stale baseline row, or a row grown over the base revision's baseline; each is named above. Fix the prose or remove the stale row; the baseline never grows (HR-13)."
         exit 1
         ;;
       *)
@@ -1965,6 +1979,9 @@ def validate_workflow(path, hatsu: false)
     if File.basename(path) == CANON_LINT_WORKFLOW
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_STEP }, CANON_LINT_FROZEN_GUARD,
                           "#{path} #{CANON_LINT_STEP.inspect}")
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_NODE_STEP }, CANON_LINT_FROZEN_NODE,
+                          "#{path} #{CANON_LINT_NODE_STEP.inspect}")
+      extra_uses = [CANON_LINT_NODE_USES]
     end
     if File.basename(path) == "plugin-bump-check.yml" && step_names.include?(TRAILER_GUARD_STEP)
       trailer_step = step_maps.find { |step| scalar(step["name"]) == TRAILER_GUARD_STEP }
@@ -3738,6 +3755,9 @@ def self_test(root)
         [
           ["canon lint run from the PR checkout", "guard=.trusted/scripts/prose_ambiguity_check.mts", "guard=scripts/prose_ambiguity_check.mts", CANON_LINT_STEP],
           ["canon lint reading the PR's own rules", "rules=.trusted/contracts/prose.lint.json", "rules=contracts/prose.lint.json", CANON_LINT_STEP],
+          ["canon lint without the base baseline", %Q{ --base-baseline "$PWD/$base"}, "", CANON_LINT_STEP],
+          ["canon lint growing against the PR's own baseline", "base=.trusted/contracts/prose.lint.baseline.json", "base=contracts/prose.lint.baseline.json", CANON_LINT_STEP],
+          ["canon lint on an unpinned node", "node-version: '24'", "node-version: 'latest'", CANON_LINT_NODE_STEP],
           ["canon lint that passes a finding", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
           ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
           ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]

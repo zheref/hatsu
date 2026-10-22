@@ -960,15 +960,19 @@ change after it lands, [HR-2](#hr-2)).
 
 1. **A unique, dated title**: `## Rulings of <YYYY-MM-DD> — <what was ruled>`. No two sections share a
    title; a second sitting on one day names its own subject.
-2. **A Context line** quoting the maintainer verbatim, typed words in quotation marks, a picked label
-   as the label exactly as the picker returned it. A paraphrase is the lead's reading and says so;
-   private names are placeheld per [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
+2. **A Source line and a Capture class line**, as § *Rulings of 2026-10-20 — the SDD assessment
+   sitting* carries them: the Source names what was asked, where and when; the Capture class says
+   how each answer was captured (a picked label exactly as the picker returned it, or typed words
+   quoted verbatim, each row saying which) and which picks depart from the recommendation. A
+   paraphrase is the lead's reading and says so; private names are placeheld per
+   [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
 3. **The ruling table**, one row per ruling: the HR id with its anchor
-   (`<a id="hr-n"></a>**HR-n**`), the question as asked, the options shown, the pick, the status
-   (`ruled`, `reading`, `reversed by HR-m`, `superseded by HR-m`) and what it settles.
+   (`<a id="hr-n"></a>**HR-n**`), the question as asked, the options shown, the pick, the status and
+   what it settles. The status grammar is **How HR ids are read**, in § *Rulings of 2026-10-20 — the
+   SDD assessment sitting*, cited, never restated.
 4. **Trailing open rows**: a question the sitting left open is an `OPEN-n` row in § *Open items, in
-   one place* with its options and no default, and any prose marker that waits on it names it
-   ([`PROCESS.md`](PROCESS.md) § *An unresolved question in prose*).
+   one place*, whose *What is open* cell carries the options shown, with no default; any prose marker
+   that waits on it names it ([`PROCESS.md`](PROCESS.md) § *An unresolved question in prose*).
 
 A reading is recorded as a row whose status is `reading`; it authorises no push, merge or release path
 ([HR-3](#hr-3)) until a ruling row ratifies it.

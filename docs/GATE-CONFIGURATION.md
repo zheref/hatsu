@@ -528,9 +528,12 @@ clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture and fences fixture outp
 
 **2026-10-22. The canon prose lint, step one (HR-13).** `prose-ambiguity-check.yml` is registered in
 `PENDING_HOSTED_WORKFLOWS` and staged at `templates/prose-ambiguity-check.yml`, its guard step frozen
-(`CANON_LINT_FROZEN_GUARD`): the validator's self-test judges the staged file as if installed and refuses
-five hostile edits of it (the guard or the rules read from the PR, a finding passed, the output
-unfenced, the check renamed). Step two, once `main` trusts this validator, copies the file to
+(`CANON_LINT_FROZEN_GUARD`), and its node pinned by a frozen `actions/setup-node` step, the one setup
+action admitted and only for this workflow: the validator's self-test judges the staged file as if
+installed and refuses eight hostile edits of it (the guard, the rules or the base baseline read from the
+PR, `--base-baseline` dropped so the baseline could grow, a finding passed, the output unfenced, the check
+renamed, node unpinned). `scripts/trusted_guard_preflight.rb` derives `.mts` guards too and runs this one
+through its adapter, so the pre-PR preflight never skips it once step two installs the file. Step two, once `main` trusts this validator, copies the file to
 `.github/workflows/` and moves its name to `PORTABLE_HOSTED_WORKFLOWS`. The check it creates,
 `canon-lint`, stays ADVISORY; requiring it after one tagged release of green runs with a shrinking
 baseline is the maintainer's own ruleset edit, never a run's.

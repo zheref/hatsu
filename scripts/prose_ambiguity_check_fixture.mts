@@ -2,13 +2,14 @@
 // prose_ambiguity_check_fixture.mts — the canon-lint lane's fixture (HR-13, HR-4).
 // Hermetic and offline: throwaway Hatsu-shaped roots prove every fail rule fires on a planted
 // copy by its id and every advisory rule is printed and never counted; the hostile cases (CRLF,
-// a heading inside a fence, folded frontmatter, a symlink leaving the root, a marker naming a
-// human-gate row, an unparseable contract, an unreadable and a non-UTF-8 file) each read as
-// named; the baseline admits, goes stale and refuses to grow under --base; and the committed
-// tree reads clean. These cases are the acceptance criteria owed to `nen canon lint`
+// a heading inside a fence, folded frontmatter, a symlink leaving the root walked or linked, a
+// marker naming a human-gate row, an unparseable or renumbered contract, an unreadable and a
+// non-UTF-8 file, a 200 KB bracket paragraph) each read as named; the baseline admits, goes
+// stale (a deleted file's row too) and refuses to grow, summed per key, under --base and under
+// the CI form's --base-baseline; and the committed tree reads clean. These cases are the acceptance criteria owed to `nen canon lint`
 // (zheref/nen#481). Run: nen shu test --lane canon-lint --repo <hatsu>.
 import assert from 'node:assert/strict';
-import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -150,8 +151,16 @@ try {
   planted('PL-11', '# P\n\n[NEEDS missing-argument: a?] OPEN-1.\n\n[NEEDS missing-argument: b?] OPEN-2.\n\n[NEEDS missing-argument: c?] OPEN-3.\n\n[NEEDS missing-argument: d?] OPEN-4.\n', /over the limit of 3/, 'PL-11 a fourth marker in one skill');
   {
     const root = base();
-    put(root, 'claude/skills/plant/SKILL.md', '# P\n\n[NEEDS missing-configuration: is the cap a catalogue value?] OPEN-9 waits.\n[NEEDS ambiguous-intent: which reading?] (zheref/hatsu#9).\n');
+    put(root, 'claude/skills/plant/SKILL.md', '# P\n\n[NEEDS missing-configuration: is the cap a catalogue value?] OPEN-9 waits.\n[NEEDS missing-maintainer-choice: which reading?] (zheref/hatsu#9).\n');
     expectClean(root, 'PL-11 well-formed markers on ask-class rows with ledgers are clean');
+  }
+  planted('PL-11', '# P\n\n[NEEDS ambiguous-intent: which reading?] OPEN-1.\n', /row ambiguous-intent is a human gate/, 'PL-11 every human-gate row is refused, ambiguous-intent included (HR-4)');
+  {
+    const root = base();
+    const c = JSON.parse(readFileSync(join(root, 'contracts/prose.lint.json'), 'utf8'));
+    c.markerRows.push('ambiguous-intent');
+    put(root, 'contracts/prose.lint.json', JSON.stringify(c));
+    expectWiring(root, /markerRows names ambiguous-intent, which is class human-gate/, 'contract: a human-gate marker row is refused (HR-4)');
   }
   planted('PL-12', '# P\n\nThe push path is HR-2.\n', /HR-2 is status reading/, 'PL-12 a reading cited as ruled');
   {
@@ -187,10 +196,11 @@ try {
   planted('PL-04', 'See [`target`](../target/SKILL.md) § 7.\n', /§ 7 — no such heading/, 'hostile: folded frontmatter carries no heading');
   {
     const root = base();
-    put(root, 'claude/skills/plant/SKILL.md', '---\nname: plant\ndescription: >\n  folded\n  text\n---\n\nFixed in #77.\n');
+    put(root, 'claude/skills/plant/SKILL.md', '---\nname: plant\ndescription: fixed in #76\n  folded\n  text\n---\n\nFixed in #77.\n');
     const r = lint(root);
     assert.match(r.stdout, /plant\/SKILL\.md:8 · PL-05/, `frontmatter line numbers\n${r.stdout}`);
-    console.log('ok    hostile: lines after folded frontmatter keep their numbers');
+    assert.match(r.stdout, /plant\/SKILL\.md:3 · PL-05 · .*#76/, `a finding inside the frontmatter names its own line\n${r.stdout}`);
+    console.log('ok    hostile: frontmatter findings and lines after folded frontmatter keep their numbers');
   }
   {
     const root = base();
@@ -233,6 +243,88 @@ try {
     expectWiring(notHatsu, /not a Hatsu checkout/, 'wiring: a root that is not a Hatsu checkout');
   }
 
+  // --- parsing edges (Nobunaga, Phinks) ---
+  {
+    const root = base();
+    put(root, 'docs/t.md', '# T\n\n1. **RETIRED.** The old step.\n2. The pin v0.1.0 is current; fixed in #12.\n');
+    const r = lint(root);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /docs\/t\.md:4 · PL-03 · pin v0\.1\.0/);
+    assert.match(r.stdout, /docs\/t\.md:4 · PL-05/);
+    console.log('ok    RETIRED: a list item ends at the next item at the same indent');
+  }
+  {
+    const root = base();
+    put(root, 'docs/t.md', '# T\n\nUse `"` as the delimiter. See [gone](nowhere.md) and the pin v0.1.0 here. Then "x" ends.\n');
+    const r = lint(root);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, / · PL-04 · nowhere\.md — no such file/);
+    assert.match(r.stdout, / · PL-03 · pin v0\.1\.0/);
+    put(root, 'docs/u.md', '# U\n\nAn opening " and the pin v0.1.0\nhere, closed " on the next line.\n');
+    assert.match(lint(root).stdout, /docs\/u\.md:3 · PL-03 · pin v0\.1\.0/);
+    console.log('ok    quoted words: a quote inside a code span pairs nothing, and quotes pair within one line');
+  }
+  {
+    const root = base();
+    put(root, 'docs/t.md', '# T\n\n## The `prose_size_check` lane\n\n## A _stressed_ word\n\nSee [a](#the-prose_size_check-lane) and [b](#a-stressed-word).\n');
+    expectClean(root, 'slug: GitHub keeps `_` in a code span and drops emphasis underscores');
+    put(root, 'docs/t.md', '# T\n\n## The `prose_size_check` lane\n\nSee [a](#the-prosesizecheck-lane).\n');
+    expectFinding(root, 'PL-04', /no anchor #the-prosesizecheck-lane/, 'slug: an anchor with the underscore dropped resolves to nothing');
+  }
+  {
+    const root = base();
+    const outside = join(scratch, `leak-${n}.md`);
+    writeFileSync(outside, '# Secret Heading\n');
+    mkdirSync(join(root, 'misc'), { recursive: true });
+    symlinkSync(outside, join(root, 'misc/leak.md'));
+    put(root, 'docs/t.md', '# T\n\nSee [x](../misc/leak.md#guess-wrong).\n');
+    expectWiring(root, /link \.\.\/misc\/leak\.md#guess-wrong in docs\/t\.md resolves through a symlink leaving the root/, 'hostile: a linked symlink leaving the root, outside the walk');
+  }
+  {
+    const root = base();
+    put(root, 'docs/t.md', `# T\n\n${'['.repeat(200_000)}\n\n${'word '.repeat(40_000)}by hand.\n`);
+    const t0 = Date.now();
+    const r = lint(root);
+    const ms = Date.now() - t0;
+    assert.ok(ms < 15_000, `a 200 KB '[' paragraph took ${ms} ms`);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /docs\/t\.md:\d+ · PL-01/);
+    console.log(`ok    hostile: a 200 KB '[' paragraph and a 200 KB clause read in ${ms} ms (bounded spans)`);
+  }
+  {
+    const root = base();
+    put(root, 'claude/skills/empty/SKILL.md', '');
+    put(root, 'docs/with space.md', '# W\n\nFixed in #3.\n');
+    put(root, 'docs/fence.md', '# F\n\n```sh\nFixed in #4.\n');
+    put(root, 'docs/front.md', '---\nname: x\nFixed in #6.\n');
+    const r = lint(root);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /docs\/with space\.md:3 · PL-05/);
+    assert.doesNotMatch(r.stdout, /docs\/fence\.md/);
+    assert.match(r.stdout, /docs\/front\.md:3 · PL-05/);
+    assert.doesNotMatch(r.stdout, /empty\/SKILL\.md/);
+    console.log('ok    hostile: an empty file is clean, a spaced path is named, an unclosed fence exempts the rest, an unclosed frontmatter is linted');
+  }
+
+  // --- the contract's fixed ids (Chrollo BC-6, Phinks QA-18) ---
+  const contractWith = (edit: (c: { rules: Array<Record<string, unknown>>; [k: string]: unknown }) => void): string => {
+    const root = base();
+    const c = JSON.parse(readFileSync(join(root, 'contracts/prose.lint.json'), 'utf8'));
+    edit(c);
+    put(root, 'contracts/prose.lint.json', JSON.stringify(c));
+    return root;
+  };
+  expectWiring(contractWith((c) => { c.rules.find((r) => r.id === 'PL-03')!.id = 'PL-13'; }), /PL-13 has no handler; rule ids are fixed/, 'contract: a renumbered rule is refused');
+  expectWiring(contractWith((c) => { c.rules.find((r) => r.id === 'PL-05')!.class = 'hedge'; }), /PL-05 is class hedge, but its handler is bare-ref/, 'contract: a reclassed rule is refused');
+  expectWiring(contractWith((c) => { delete c.rules.find((r) => r.id === 'PL-03')!.patterns; }), /PL-03 \(stale-version\) lacks patterns/, 'contract: a class missing a key its handler reads is refused');
+  expectWiring(contractWith((c) => { delete c.rules.find((r) => r.id === 'PL-12')!.pattern; }), /PL-12 \(reading-cited-as-ruled\) lacks pattern/, 'contract: PL-12 with no pattern is refused, never green');
+  expectWiring(contractWith((c) => { delete c.retired; }), /lacks retired\.rules/, 'contract: retired.rules is required');
+  {
+    const root = contractWith((c) => { (c.retired as { rules: string[] }).rules = ['PL-02', 'PL-03', 'PL-10']; c.extra = 'tolerated'; });
+    put(root, 'docs/t.md', '# T\n\n> **RETIRED.** Fixed in #9.\n');
+    expectFinding(root, 'PL-05', /#9/, 'contract: a RETIRED block is exempt only from retired.rules (an unknown key is tolerated)');
+  }
+
   // --- the ratchet ---
   {
     const root = base();
@@ -256,11 +348,58 @@ try {
     assert.equal(grown.status, 1, grown.stdout + grown.stderr);
     assert.match(grown.stdout, /added over fixture-base; the baseline only shrinks/);
     console.log('ok    baseline: --base refuses a row the base did not carry');
+    // The CI form: no --base, the trusted base copy passed as --base-baseline.
+    const trusted = join(scratch, `trusted-${n}.json`);
+    writeFileSync(trusted, '{"findings":[]}\n');
+    const ci = lint(root, '--base-baseline', trusted);
+    assert.equal(ci.status, 1, ci.stdout + ci.stderr);
+    assert.match(ci.stdout, /added over .*trusted-\d+\.json; the baseline only shrinks/);
+    assert.equal(lint(root).status, 0, 'without a base the grown baseline reads clean, which is why CI passes one');
+    console.log('ok    baseline: the CI form refuses growth over the trusted base copy with no merge base');
+    // A row raised from 1 to 2 (two identical findings) is growth, summed per key.
+    writeFileSync(trusted, JSON.stringify({ findings: rows }));
+    put(root, 'claude/skills/plant/SKILL.md', '# P\n\nFixed in #154 last week.\n\nFixed in #154 last week.\n');
+    put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: rows.map((r) => ({ ...r, count: 2 })) }));
+    assert.match(lint(root, '--base-baseline', trusted).stdout, /added over/);
+    // The same budget split into two rows of one is a repeated key: refused.
+    put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [...rows, ...rows] }));
+    expectWiring(root, /repeats the row/, 'baseline: a split row is a repeated key, refused', '--base-baseline', trusted);
+    console.log('ok    baseline: growth is summed per key');
+    // --base scopes findings to changed files: an unchanged file's finding is not reported.
+    put(root, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n');
+    put(root, 'claude/skills/plant/SKILL.md', '# P\n\nClean now.\n');
+    put(root, 'docs/old.md', '# O\n\nFixed in #8.\n');
+    git('-c', 'user.name=f', '-c', 'user.email=f@f', 'add', '-A'); git('-c', 'user.name=f', '-c', 'user.email=f@f', 'commit', '-qm', 'scope');
+    git('branch', '-f', 'fixture-scope');
+    put(root, 'claude/skills/plant/SKILL.md', '# P\n\nClean still.\n');
+    const scoped = lint(root, '--base', 'fixture-scope');
+    assert.equal(scoped.status, 0, scoped.stdout + scoped.stderr);
+    assert.doesNotMatch(scoped.stdout, /docs\/old\.md/);
+    console.log('ok    --base: an unchanged file\'s finding is not reported');
+    // A row for a deleted file is stale, under --base and without it.
+    put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [{ path: 'docs/deleted.md', rule: 'PL-05', text: 'x', count: 3 }] }));
+    for (const extra of [[], ['--base', 'fixture-scope']]) {
+      const st = lint(root, ...extra);
+      assert.equal(st.status, 1, st.stdout + st.stderr);
+      assert.match(st.stdout, /baseline · PL-05 · docs\/deleted\.md · x — no longer found/);
+    }
+    console.log('ok    baseline: a row whose file the walk does not read is stale, with or without --base');
+    // A base that carries no baseline says so.
+    rmSync(join(root, 'contracts/prose.lint.baseline.json'));
+    git('-c', 'user.name=f', '-c', 'user.email=f@f', 'add', '-A'); git('-c', 'user.name=f', '-c', 'user.email=f@f', 'commit', '-qm', 'no baseline');
+    git('branch', '-f', 'fixture-bare');
+    put(root, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n');
+    const bare = lint(root, '--base', 'fixture-bare');
+    assert.match(bare.stdout, /notice: fixture-bare carries no contracts\/prose\.lint\.baseline\.json; baseline growth is not checked/);
+    console.log('ok    --base: a base with no baseline is said, never silently skipped');
+    expectWiring(root, /--base-baseline .*missing/, 'wiring: a missing --base-baseline file', '--base-baseline', join(scratch, 'nope.json'));
   }
   {
     const root = base();
     put(root, 'contracts/pl03.json', JSON.stringify({ findings: [{ path: 'claude/skills/target/SKILL.md', rule: 'PL-03', text: 'pin v0.1.0', count: 1 }] }));
     expectWiring(root, /PL-03 is never baselined/, 'baseline: a PL-03 row is refused (HR-13)', '--baseline', 'contracts/pl03.json');
+    put(root, 'contracts/pl04.json', JSON.stringify({ findings: [{ path: 'claude/skills/citer/SKILL.md', rule: 'PL-04', text: 'x — no such file', count: 1 }] }));
+    expectWiring(root, /PL-04 is never baselined/, 'baseline: a PL-04 row is refused (HR-13)', '--baseline', 'contracts/pl04.json');
   }
 
   // --- the committed tree reads clean ---

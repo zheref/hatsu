@@ -691,7 +691,7 @@ NN#448 is merged but does not replace the authorized interim scripts until a rel
 [NEEDS <row-id>: <question>]
 ```
 
-- **`<row-id>` is an ask-class row** of `nen/decisions.json`: `missing-maintainer-choice`, `missing-argument`, `missing-configuration` or `ambiguous-intent` (the list is `contracts/prose.lint.json` → `markerRows`). A human-gate row is refused: a gate is a stop, not a question.
+- **`<row-id>` is an ask-once-per-run row** of `nen/decisions.json` that `contracts/prose.lint.json` → `markerRows` lists; the guard refuses a contract that lists a row of any other class. Every human-gate row is refused: a gate is a stop, not a question.
 - **At most three per skill**, each with a ledger reference in its paragraph: an `OPEN-n` row in [`ROSTER.md`](ROSTER.md) or a `zheref/<repo>#N` issue.
 - **No default.** No run, agent or surface resolves a marker by a derived answer; the row's own stop applies until the maintainer rules.
 - **It closes in one commit**: the ruling lands in ROSTER citing the `OPEN-n` or the issue, and the marker is deleted in that same commit.
@@ -703,8 +703,9 @@ NN#448 is merged but does not replace the authorized interim scripts until a rel
 where a verb should own it, it is an **owned dependency** with an issue, never a silent workaround.
 
 **Every Residue item cites its issue as `zheref/<repo>#N`, or the literal `unfiled`** — a bare `#N`, a
-deferral to nen with no issue, or a residue with neither is not one (`PL-10`, `PL-02`, `PL-05` in
-`contracts/prose.lint.json`). `unfiled` is an admission, never a resting state: the next discovery
+deferral to nen with no issue, or a residue with neither is not one (`PL-02` and `PL-05` in
+`contracts/prose.lint.json` fail; the lint reports `PL-10` as advisory, and the contract's severity
+is the answer). `unfiled` is an admission, never a resting state: the next discovery
 pass files it through `hatsu:file` and replaces the word with the reference.
 
 **Named residue, by skill** — the live list; each skill's `Residue` section points here.

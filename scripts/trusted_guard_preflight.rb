@@ -60,7 +60,7 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
       next unless job.is_a?(Hash)
       (job['steps'] || []).each do |step|
         next unless step.is_a?(Hash) && step['run'].is_a?(String)
-        step['run'].scan(%r{\.trusted/scripts/([A-Za-z0-9_.-]+\.(?:sh|rb))}) do |match|
+        step['run'].scan(%r{\.trusted/scripts/([A-Za-z0-9_.-]+\.(?:sh|rb|mts|ts))}) do |match|
           guards[match.first] ||= []
           guards[match.first] << File.basename(workflow)
         end
@@ -97,14 +97,25 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
                                 File.join(root, '.claude-plugin/plugin.json'), draft_body],
     'canon_contracts_check.sh' => [{ 'NEN' => ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen')) },
                                    'bash', File.join(trusted, 'scripts/canon_contracts_check.sh'), '--root', root],
+    # The canon prose lint (HR-13): the trusted guard and rules over this tree, growth held
+    # against the trusted baseline, as prose-ambiguity-check.yml's frozen step runs it.
+    'prose_ambiguity_check.mts' => ['node', File.join(trusted, 'scripts/prose_ambiguity_check.mts'), '--root', root,
+                                     '--rules', File.join(trusted, 'contracts/prose.lint.json'),
+                                     '--base-baseline', File.join(trusted, 'contracts/prose.lint.baseline.json')],
+    'direct_matrix_ci_check.mts' => ['node', File.join(trusted, 'scripts/direct_matrix_ci_check.mts'), root],
     'branch_authorship_check.sh' => ['sh', File.join(trusted, 'scripts/branch_authorship_check.sh'),
                                       '--repo', root, '--base', base_sha,
                                       '--forbid-trailers-from', File.join(trusted, 'nen/workflow.json'), '--forbidden-only']
   }
-  unknown = guards.keys - adapters.keys
+  # Derived, and named as not run: each reads what only exists once the PR is open.
+  not_before_pr = {
+    'readiness_ci_verdict.mts' => "formats the open PR's live nen pr ready verdict; there is no PR before creation"
+  }
+  unknown = guards.keys - adapters.keys - not_before_pr.keys
   fail_preflight("no local invocation for trusted guard(s): #{unknown.sort.join(', ')}") unless unknown.empty?
   failed = []
-  guards.keys.sort.each do |name|
+  (guards.keys & not_before_pr.keys).sort.each { |name| puts "  #{name}: not run (#{not_before_pr.fetch(name)})" }
+  (guards.keys - not_before_pr.keys).sort.each do |name|
     output, errors, status = Open3.capture3(*adapters.fetch(name))
     puts "  #{name}: exit #{status.exitstatus}"
     if status.success?

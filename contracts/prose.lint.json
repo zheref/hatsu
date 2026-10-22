@@ -1,7 +1,7 @@
 {
   "$schema": "nen.prose-lint/v0.1",
   "contract": "hatsu.prose-lint/v0.1",
-  "$comment": "The single home of the canon prose lint's rules (HR-13, HR-4; docs/config/prose.lint.json.md). scripts/prose_ambiguity_check.mts reads this file and implements each rule by its class; no skill restates a pattern. A rule's severity is `fail` (counted against contracts/prose.lint.baseline.json, exit 1 when outside it) or `advisory` (printed, never counted, never baselined). The port of the verdict is owed to `nen canon lint` (zheref/nen#481); the citation resolver to `nen ref resolve --citation` (zheref/nen#482).",
+  "$comment": "The single home of the canon prose lint's rules (HR-13, HR-4; docs/config/prose.lint.json.md). scripts/prose_ambiguity_check.mts reads this file; rule ids are fixed, each with one handler whose class the guard checks at load (a renumbered or reclassed rule, or a class missing a key its handler reads, is refused at exit 2); no skill restates a pattern. A rule's severity is `fail` (counted against contracts/prose.lint.baseline.json, exit 1 when outside it) or `advisory` (printed, never counted, never baselined). The port of the verdict is owed to `nen canon lint` (zheref/nen#481); the citation resolver to `nen ref resolve --citation` (zheref/nen#482).",
   "authority": "HR-13 (ratchet, PL-03 and PL-04 empty from day one; code fences and quoted maintainer words exempt) and HR-4 (the one marker shape) in docs/ROSTER.md. Where this file and a page describing it disagree, this file is right.",
   "paths": {
     "include": [
@@ -27,7 +27,11 @@
       "CHANGELOG*"
     ],
     "rules": ["PL-03"],
-    "$records": "Dated evidence and history records: a version literal there is what was true when it was written. docs/ROSTER.md is one because a ruling's words are never changed after it lands (HR-2). RETIRED blocks are exempt from the same rules wherever they sit."
+    "$records": "Dated evidence and history records: a version literal there is what was true when it was written. docs/ROSTER.md is one because a ruling's words are never changed after it lands (HR-2). RETIRED blocks are exempt from retired.rules wherever they sit."
+  },
+  "retired": {
+    "rules": ["PL-02", "PL-03", "PL-05", "PL-10"],
+    "$retired": "The rules a RETIRED block (a `> **RETIRED…` quote, a `**RETIRED` paragraph or list item) is exempt from, wherever it sits: what it retired was true when it was written. A `para` block ends at a blank line, a heading or a list item at the same or a shallower indent."
   },
   "versionSource": {
     "file": "nen/contract.json",
@@ -35,7 +39,8 @@
     "pinned": "/dependency/pinned_ref"
   },
   "decisionsFile": "nen/decisions.json",
-  "markerRows": ["missing-maintainer-choice", "missing-argument", "missing-configuration", "ambiguous-intent"],
+  "markerRows": ["missing-maintainer-choice", "missing-argument", "missing-configuration"],
+  "$markerRows": "HR-4: a marker names an ask-once-per-run row of decisionsFile, and only these; the guard refuses a contract that lists a row of any other class at exit 2, and a marker naming a human-gate row is a finding (a gate is a stop, not a question).",
   "markerLimit": 3,
   "emptyBaseline": ["PL-03", "PL-04"],
   "rulingsFile": "docs/ROSTER.md",

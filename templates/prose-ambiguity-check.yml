@@ -10,8 +10,9 @@
 # scripts/prose_ambiguity_check.mts reads Hatsu's canon prose against contracts/prose.lint.json and
 # the shrink-only contracts/prose.lint.baseline.json; its own header names the rules and the exits.
 # The guard and the rules come from the trusted workflow revision; the PR checkout is only the root
-# it reads, and its baseline the PR's own (a PR that fixes a finding removes the row). A finding
-# outside the baseline or a stale row fails the check; a wiring refusal fails it too, never a pass.
+# it reads, and its baseline the PR's own (a PR that fixes a finding removes the row), held against
+# the trusted revision's copy by --base-baseline so it never grows. A finding outside the baseline, a
+# stale row or a grown row fails the check; a wiring refusal fails it too, never a pass.
 #
 # The hardening is prose-size-check.yml's, step for step: the guard from the trusted revision, the
 # PR checkout as data, `persist-credentials: false` on both checkouts, the output fenced between
@@ -66,6 +67,14 @@ jobs:
           path: .trusted
           persist-credentials: false
 
+      - name: Set up Node for the canon prose lint
+        # The guard is TypeScript run by node's type stripping (>= 22.18); pinned as
+        # unit-tests.yml pins it, so the runner image's node never decides the verdict.
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
       - name: Enforce workflow runner policy from trusted workflow revision
         shell: bash
         run: |
@@ -83,17 +92,18 @@ jobs:
           set -uo pipefail
           guard=.trusted/scripts/prose_ambiguity_check.mts
           rules=.trusted/contracts/prose.lint.json
-          [ -f "$guard" ] && [ -f "$rules" ] || { echo "::error::trusted workflow revision has no scripts/prose_ambiguity_check.mts or contracts/prose.lint.json"; exit 1; }
+          base=.trusted/contracts/prose.lint.baseline.json
+          [ -f "$guard" ] && [ -f "$rules" ] && [ -f "$base" ] || { echo "::error::trusted workflow revision has no scripts/prose_ambiguity_check.mts, contracts/prose.lint.json or contracts/prose.lint.baseline.json"; exit 1; }
           stop="stop_$(openssl rand -hex 16)" || stop=""
           [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the lint's output; nothing was read."; exit 1; }
           code=0
           echo "::stop-commands::${stop}"
-          node "$guard" --root "$PWD" --rules "$PWD/$rules" 2>&1 || code=$?
+          node "$guard" --root "$PWD" --rules "$PWD/$rules" --base-baseline "$PWD/$base" 2>&1 || code=$?
           printf '\n::%s::\n' "$stop"
           case "$code" in
             0) echo "no canon prose finding outside the baseline." ;;
             1)
-              echo "::error::a canon prose finding outside contracts/prose.lint.baseline.json, or a stale baseline row; each is named above. Fix the prose or remove the stale row; the baseline never grows (HR-13)."
+              echo "::error::a canon prose finding outside contracts/prose.lint.baseline.json, a stale baseline row, or a row grown over the base revision's baseline; each is named above. Fix the prose or remove the stale row; the baseline never grows (HR-13)."
               exit 1
               ;;
             *)

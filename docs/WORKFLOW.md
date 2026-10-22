@@ -393,6 +393,8 @@ are red. **`repo`** is `nen report data`'s hosted `owner/name` from nen `0.20` (
 for a local-path or `file://` origin, which the caller fills from `nen repo resolve --from <path>`; before
 `0.20` it was the checkout's directory name, the worktree's in a worktree.
 
+#### Retention — what `retain` keeps
+
 **The retention rule — and what it does *not* say.** A report is published at three moments — every
 turn, at landing, and once current-head readiness is verified — and `retain: final-only` means **only
 the last one is KEPT**: the **`final`** variant, a one-effort Rikugan with a cleared desk —
