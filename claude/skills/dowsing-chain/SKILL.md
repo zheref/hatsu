@@ -66,8 +66,8 @@ owed, #493): every FR, SC, story line and value ends in a citation or exactly on
 inferred rows stay in `research.md`; stack idiom only in `plan.md`'s platform sections; *Assumptions* holds
 ruled lines only; `parity.md`'s `absent` is never *not needed*; contracts copied, never retyped. An
 unbacked sentence gets a marker (row `spec-claim-unverified`); a screen two capabilities reach is row
-`spec-slice`. Every file passes `private_name_check.sh` and the secret scan (`contracts/scans.json`
-`secretScan` over the worktree's diff), a hit refused (*conventions*); **nen spec check**, **cite-check** owed (#493).
+`spec-slice`. Every file passes `private_name_check.sh` and `secretScan`'s pinned gitleaks over the staged diff
+(`protect --staged`) before each commit, a hit refused; **not scanned is a STOP**, no commit, never a pass (*conventions*); **nen spec check**, **cite-check** owed (#493).
 
 ## 5. Clarification — one sitting per run
 
@@ -101,7 +101,7 @@ hand-edited.
 
 `dispatch <family>` after `MERGED`: row `spec-dispatch` — every marker-free gap group, **none starred**,
 paged in fours; no G1 (unruled, *conventions*). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
-by name, its § 4 confirmation per dispatch, each body passing this skill's § 4 scans first; the title and body
+by name, its § 4 confirmation per dispatch, each rendered body file scanned first (`detect --no-git`, § 4's stop); the title and body
 *conventions* state (`Spec: specs/<nnn>-<slug>@<sha>`, scenarios verbatim as source data), an existing issue
 amended with `nen issue edit-body --expect-body-sha256`; `classify` and `direct` per filing; one epic per
 folder, mode label **proposed** (row `mode-label`), children by `nen issue attach-sub`. `--via build` runs
