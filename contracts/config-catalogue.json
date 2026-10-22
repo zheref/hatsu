@@ -10,6 +10,7 @@
     "notifications": "how the end of a turn is announced",
     "deployment": "non-production destinations a build is sent to",
     "publishing": "release units and production destinations",
+    "intake": "product intake: which intake examiner challenges which part of a brief (Hatsu's own checkout only)",
     "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them"
   },
   "values": [
@@ -363,6 +364,90 @@
       "source": "docs/WORKFLOW.md § 2 (aiReviewers); docs/PROCESS.md § Reviewer rounds and review threads, AI reviewers per consumer",
       "ask": "adoption",
       "question": "Should this repository's AI reviewers be required (requested and waited for), optional (requested, never waited for) or off (never requested, no AI-reviewer spend)?"
+    },
+    {
+      "id": "workflow.intake.challenger.brief",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.brief",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "satotz",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on every brief: its problem, audience, success criteria, priority and scope boundaries, and the Design Direction the rendered examiner drafts (HR-31); also every artifact the map names no examiner for (HR-26). Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the brief artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+    },
+    {
+      "id": "workflow.intake.challenger.spec",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.spec",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "lippo",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on a brief that touches a specification -- a product family's spec.md, a spec folder, a capture run's output: edge cases, error and boundary states, conflicts with the spec in force. Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the spec artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+    },
+    {
+      "id": "workflow.intake.challenger.platform",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.platform",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "buhara",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on a brief that names a platform -- nearly every brief: each platform's constraints, the parity promised across them, the stack where the product does not exist yet. Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the platform artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+    },
+    {
+      "id": "workflow.intake.challenger.rendered",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.rendered",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "bisky",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on a brief that names anything rendered: the rendered parts, after drafting the brief's Design Direction (HR-27, HR-37). Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the rendered artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
     },
     {
       "id": "workflow.monitor.maxCycles",

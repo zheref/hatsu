@@ -205,6 +205,17 @@ A top-level key, Hatsu's own (the maintainer's rulings of 2026-10-11, zheref/hat
 |---|---|---|---|---|
 | `aiReviewers` | enum | `required` · `optional` · `off`; **`required`** (absent reads the same, so every consumer keeps today's behaviour; a value outside the three is `missing-configuration`, `required` applying meanwhile). Hatsu's own is `optional`, on the maintainer's ruling | `required`: bots requested within `round_policy`'s caps and expected. `optional`: requested within the caps, never waited for. `off`: never requested — zero spend on requested reviewers; installed CI lanes still run, turned off through the consumer's caller workflow. Under `optional` and `off` a PR whose `nen pr ready` fails only on `rounds-owed`, hanten settled, goes to en § 5's merge prompt on hanten's rounds with the not-ready verdict quoted verbatim; nothing else is relaxed. `round_policy.maxRounds: 0` is not an off switch; this key is. CI reviewer lanes are covered too and never requested under any value (ruling 2026-10-19; PROCESS, *Event-driven reviewer lanes*) | `hatsu:sharingan` § 6, `hatsu:en` §§ 5–6, `hatsu:pr-state` § 2 |
 
+### `intake.challenger`
+
+A top-level block, Hatsu's own (the maintainer's rulings HR-21, HR-24 and HR-37, [`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-10-21 — the SDD sitting's follow-up questions*). A map from a brief's **artifact** to the **intake examiner** `hatsu:emperor-time` § 4 raises on it ([`docs/INTAKE-CHALLENGE.md`](../INTAKE-CHALLENGE.md) § 1). Read from **Hatsu's own checkout**, never a consumer's: who challenges a brief is Hatsu policy. Every examiner whose artifact a brief matches challenges it (HR-25); an artifact the map does not name goes to `satotz`, said (HR-26). Catalogue ids `workflow.intake.challenger.<artifact>`, domain `intake`, each row carrying `when: nen/workflow.json#intake`, so `fill` writes nothing into a repository without the block; set through `config_values.sh set`, which refuses a value outside the four examiners. An absent key or an out-of-set value is decisions row `intake-challenger`'s once-per-run ask, never written by the run. `nen schema check` tolerates the block and reads none of it.
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `brief` | enum | `satotz` · `lippo` · `buhara` · `bisky`; **`satotz`** | The brief itself — problem, audience, success criteria, priority, scope boundaries — and the Design Direction Bisky drafts (HR-31) | `hatsu:emperor-time` § 4 |
+| `spec` | enum | the same four; **`lippo`** | A brief touching a specification: a product family's `spec.md`, a spec folder, a capture run's output | `hatsu:emperor-time` § 4 |
+| `platform` | enum | the same four; **`buhara`** | A brief naming a platform — nearly every brief | `hatsu:emperor-time` § 4 |
+| `rendered` | enum | the same four; **`bisky`** | A brief naming anything rendered; Bisky also drafts its Design Direction (`emperor-time` § 3, HR-27) | `hatsu:emperor-time` §§ 3–4 |
+
 ### `ci`
 
 A top-level block, Hatsu's own, written by `hatsu:kuchiyose` at install (zheref/hatsu#331, to land; the maintainer's rulings of 2026-10-19). Absent means no CI tier is installed. `nen schema check` tolerates it. The full description is [`docs/WORKFLOW.md`](../WORKFLOW.md) § 2 → `ci`.
