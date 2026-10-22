@@ -74,12 +74,12 @@ the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
 
-Futon §§ 3–6 hold: delegated stage label and `nen loop slots --efforts <abs path>
---ci-cap 2 --local-cap 7 --json`. This file adds:
+Futon §§ 3–6 hold (delegated stage label, futon's `nen loop slots` argv). This file
+adds:
 
 **One delegate authors and publishes each issue in its worktree**, raised as a **builder
 effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter
-([`claude/rules/hatsu.md`](../../rules/hatsu.md) § 6: Antigravity `Workspace: "branch"`) — titled `kazaana · kurapika · <alias>`, bound to
+([`claude/rules/hatsu.md`](../../rules/hatsu.md) § *How work is done*: Antigravity `Workspace: "branch"`) — titled `kazaana · kurapika · <alias>`, bound to
 `<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope (HR-20); never raw `gh pr create`. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `--dial` on phase/usage calls

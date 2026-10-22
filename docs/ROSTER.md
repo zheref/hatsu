@@ -941,6 +941,26 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   for a new precedence claim.
 
 
+## The ruling template
+
+Every ruling section from 2026-10-22 on takes this shape; older sections keep theirs (no ruling's words
+change after it lands, [HR-2](#hr-2)).
+
+1. **A unique, dated title**: `## Rulings of <YYYY-MM-DD> — <what was ruled>`. No two sections share a
+   title; a second sitting on one day names its own subject.
+2. **A Context line** quoting the maintainer verbatim, typed words in quotation marks, a picked label
+   as the label exactly as the picker returned it. A paraphrase is the lead's reading and says so;
+   private names are placeheld per [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
+3. **The ruling table**, one row per ruling: the HR id with its anchor
+   (`<a id="hr-n"></a>**HR-n**`), the question as asked, the options shown, the pick, the status
+   (`ruled`, `reading`, `reversed by HR-m`, `superseded by HR-m`) and what it settles.
+4. **Trailing open rows**: a question the sitting left open is an `OPEN-n` row in § *Open items, in
+   one place* with its options and no default, and any prose marker that waits on it names it
+   ([`PROCESS.md`](PROCESS.md) § *An unresolved question in prose*).
+
+A reading is recorded as a row whose status is `reading`; it authorises no push, merge or release path
+([HR-3](#hr-3)) until a ruling row ratifies it.
+
 ## Rulings of 2026-10-20 — the SDD assessment sitting
 
 **Source.** The SDD assessment report, https://claude.ai/artifact/8xpxVny7NgPFZ2RbAoC74T, Part 9, read by the maintainer on 2026-10-20 and answered through sixteen picker questions: the report's fifteen and one follow-up (its Q15b, recorded here as HR-16).

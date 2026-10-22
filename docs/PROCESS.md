@@ -528,7 +528,9 @@ the round ceiling; the merge stays the maintainer's (`en` never merges). Any unm
 one of (a)–(e) stays under `sharingan` § 6's bounds. Nothing in this paragraph is read by a Hatsu script; the verb
 reads the key.
 
-**AI reviewers per consumer — `aiReviewers`** (the maintainer's rulings of 2026-10-11,
+### AI reviewers per consumer — `aiReviewers`
+
+(The maintainer's rulings of 2026-10-11,
 [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — AI reviewers per consumer*; zheref/hatsu#245 —
 **stated once, here**; `sharingan` § 6, `en` §§ 5–6, `pr-state` § 2, `nen/decisions.json` row
 `ai-reviewers`, `docs/WORKFLOW.md` § 2 → `aiReviewers` and `docs/config/workflow.json.md` cite this
@@ -651,7 +653,7 @@ states the rule; zheref/hatsu#295).
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
 **in the plugin** — said, still placed, regenerated in a PR. **On Claude Code there is no mirror**, so
 `mirrors:` is whether the copy Claude Code serves IS the source (zheref/hatsu#122), the permission pack
-placed beside it ([`SURFACES.md`](SURFACES.md) § 2):
+placed beside it ([`using/mirrors.md`](using/mirrors.md) § 2):
 
 ```bash
 nen surface status --surface claude-code --plugin hatsu --root "$hatsu_root"
@@ -679,13 +681,35 @@ back. Seven reader sections exclude the compact footer; prose beyond 150 words w
 Kind-specific verification is the `CON-17(b)` observable proxy; **How to verify** is the product title.
 NN#448 is merged but does not replace the authorized interim scripts until a released pin carries it.
 
+## An unresolved question in prose
+
+[HR-4](ROSTER.md#hr-4) admits one shape for a question canon prose leaves open, and only one:
+
+```text
+[NEEDS <row-id>: <question>]
+```
+
+- **`<row-id>` is an ask-class row** of `nen/decisions.json`: `missing-maintainer-choice`, `missing-argument`, `missing-configuration` or `ambiguous-intent` (the list is `contracts/prose.lint.json` → `markerRows`). A human-gate row is refused: a gate is a stop, not a question.
+- **At most three per skill**, each with a ledger reference in its paragraph: an `OPEN-n` row in [`ROSTER.md`](ROSTER.md) or a `zheref/<repo>#N` issue.
+- **No default.** No run, agent or surface resolves a marker by a derived answer; the row's own stop applies until the maintainer rules.
+- **It closes in one commit**: the ruling lands in ROSTER citing the `OPEN-n` or the issue, and the marker is deleted in that same commit.
+- A to-do word or any other bracket is not a marker; `scripts/prose_ambiguity_check.mts` refuses it (`PL-11`).
+
 ## Residue and owned dependencies
 
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
 where a verb should own it, it is an **owned dependency** with an issue, never a silent workaround.
 
+**Every Residue item cites its issue as `zheref/<repo>#N`, or the literal `unfiled`** — a bare `#N`, a
+deferral to nen with no issue, or a residue with neither is not one (`PL-10`, `PL-02`, `PL-05` in
+`contracts/prose.lint.json`). `unfiled` is an admission, never a resting state: the next discovery
+pass files it through `hatsu:file` and replaces the word with the reference.
+
 **Named residue, by skill** — the live list; each skill's `Residue` section points here.
 
+- **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
+  TypeScript verdict, frozen to fixes: its port is owed to `nen canon lint` (zheref/nen#481) and its
+  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin.
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
@@ -747,7 +771,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   register pass's own `generatedAt` under `--register`. **The derived context it already owns** came
   through zheref/nen#258 (closed) and zheref/nen#375: `repo` (the hosted `owner/name`), `worktree`,
   `effortStage`, `gate` and `stageClass` from `v0.20.0`, each `null` with its reason on stderr when a fact
-  is missing, and `generatedAtLocal`, `generatedDateLocal`, `timeZone` and `turnNumber` at the pinned
+  is missing, and `generatedAtLocal`, `generatedDateLocal`, `timeZone` and `turnNumber` at nen
   `0.22.0` (verified 2026-10-19).
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch

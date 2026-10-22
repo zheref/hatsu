@@ -121,7 +121,7 @@ whether Breath warmed or only re-verified. Continuation never bypasses isolation
 **A new request is a new effort unless the caller explicitly continues the current one.** Sitting
 on a clean feature branch from a previous effort is not a continuation
 ([zheref/hatsu#60](https://github.com/zheref/hatsu/issues/60); [`hatsu:breath`](../breath/SKILL.md)
-§ 3a). Breath still runs, still fetches the configured base, and still cuts a newly rendered
+§ 2a). Breath still runs, still fetches the configured base, and still cuts a newly rendered
 branch. Reuse is only for an explicit "continue" / "same effort" / "on this branch", or for
 turn 2+ of a loop whose step 1 already cut *this* branch in this session.
 

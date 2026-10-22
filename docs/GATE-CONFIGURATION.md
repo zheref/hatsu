@@ -526,3 +526,11 @@ The workflow checks out the base revision for `nen_global.sh` and
 shell profile, and invokes the PR's declared focused test lanes. The CI runner
 clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture and fences fixture output.
 
+**2026-10-22. The canon prose lint, step one (HR-13).** `prose-ambiguity-check.yml` is registered in
+`PENDING_HOSTED_WORKFLOWS` and staged at `templates/prose-ambiguity-check.yml`, its guard step frozen
+(`CANON_LINT_FROZEN_GUARD`): the validator's self-test judges the staged file as if installed and refuses
+five hostile edits of it (the guard or the rules read from the PR, a finding passed, the output
+unfenced, the check renamed). Step two, once `main` trusts this validator, copies the file to
+`.github/workflows/` and moves its name to `PORTABLE_HOSTED_WORKFLOWS`. The check it creates,
+`canon-lint`, stays ADVISORY; requiring it after one tagged release of green runs with a shrinking
+baseline is the maintainer's own ruleset edit, never a run's.

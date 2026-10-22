@@ -190,5 +190,5 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
   typed `then` step** (mugetsu § 3) whose parse `gate` reads `allowed: true`, never from prose.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
-*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen v0.15.1+ (pin
-v0.21.0); an older binary's exit `2` is relayed.*
+*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` are nen's from v0.15.1; an older binary's exit
+`2` is relayed.*
