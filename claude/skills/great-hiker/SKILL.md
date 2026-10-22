@@ -9,7 +9,7 @@ description: Author and maintain canon prose and canon machinery in the governan
 Great Hiker writes once, under `claude/` and `contracts/`, and proves the writing reached Claude Code,
 Codex, Cursor and Antigravity with what each one can carry (ruling of 2026-09-19, zheref/hatsu#93).
 The gate is **G4** (`CON-7`) in a canon repository, the repository's role and never the file's kind
-(`docs/ROSTER.md` § *Rulings of 2026-09-18*).
+(`docs/ROSTER.md` HR-76).
 
 ## 1. Invocation and grammar
 

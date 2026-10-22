@@ -57,7 +57,7 @@ never writes. A missing argument or configuration item is asked and set up inlin
 
 | # | Step | Owned by |
 |---|---|---|
-| 1 | Slug, role, gate — **`G2` for a consumer, `G4` for a canon repository**; the role decides (ROSTER § *Rulings of 2026-09-18*). No `.claude/canon-values.yml`: `canon mirror: not applicable`, stop | `nen repo classify --repo <path> --json` |
+| 1 | Slug, role, gate — **`G2` for a consumer, `G4` for a canon repository**; the role decides (ROSTER HR-76, HR-77). No `.claude/canon-values.yml`: `canon mirror: not applicable`, stop | `nen repo classify --repo <path> --json` |
 | 2 | The pin: `source`, `ref` (`nen.canon.pin/v0.1`). Exit `1` — no `maintained_tools[].pinned`, several, or a non-tag — is `missing-configuration`: candidates listed, the tag **typed**, recorded, re-read | `nen canon pin --repo <path> --json` |
 | 3 | The canon checkout **at that tag**, re-verified by `describe --exact-match`; then the latest tag, for the *behind* line | [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 0 (residue 1–2) |
 | 4 | `--rules-dir`: the scenario the consumer's own registry records, `--always-load` read fresh off `handbooks/INDEX.md`. **A ports pair file is NOT mirrored at nen `0.22.0`**: `mirror generate`/`check` render the stack's rules leaf only and take no always-load set, so a pair file whose `to` is this scenario (`<workflow.port.rulingsDir>/<from>--<scenario>.md`) reaches no consumer mirror; a reviewer reads it live through [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 2 until zheref/nen#457 resolves and mirrors it (the limbo half of zheref/hatsu#354 criterion 5 is owed there, not met here) | `nen canon resolve --repo <path> --target <slug> --always-load <…> --stack-dir "$canon/handbooks/stacks" --leaf rules` |

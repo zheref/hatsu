@@ -98,7 +98,7 @@ with its missing capability.
 
 `Hatsu-Agent: <persona>`, **no other attribution trailer** (`Akatsuki-*`, `Co-Authored-By:`,
 `Signed-off-by:`, "Generated with …"). Git author stays the human; `--no-verify` and force-push never;
-test-target files only (`docs/ROSTER.md` § *Rulings of 2026-09-10*).
+test-target files only (`docs/ROSTER.md` HR-325).
 
 ## 10 · Brief-challenge mode
 

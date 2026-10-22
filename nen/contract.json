@@ -310,6 +310,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/pr_criteria_check.mts, the acceptance-criterion coverage guard (HR-11; SDD plan piece P7), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: closing issues derived from the Associated issues table (closing verdicts only, canonical URLs only); AC ids from '- AC-{n}:' rows outside comments and fences; an issue with no AC row is not-verifiable, never a pass; a missing row, missing, contradicts, an unknown or twice-named criterion, a coverage outside the vocabulary, empty or placeholder evidence and unrequested off a none row are refused; no closing issue passes with zero criteria; the CLI's --body, --pr and --json through a stub nen and a stub gh read via scripts/gh_token_env.sh, exit codes 0, 1, 2, 3 and 5, hostile text sanitised; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants (HR-10). Run it only as `nen shu test --lane criteria --repo <hatsu>` when the script, its fixture, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
+      },
+      "clause-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor and any id=\"hr-N\" anchor not in the canonical form exit 1, a gap is a notice at exit 0 listing at most 20, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity, an empty id space, an id that is not a safe integer or exceeds the definition count plus 1000, and a path holding a comma, colon or line break exit 2; its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -867,6 +872,17 @@
           ],
           "$comment": "The criteria fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
         }
+      },
+      "clause-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/clause_id_guard_fixture.mts"
+          ],
+          "$comment": "Hermetic HR id guard fixture plus one read of the live docs/ROSTER.md (HR-2)."
+        }
       }
     },
     "preconditions": {
@@ -905,7 +921,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) and scripts/futon_effort_record_fixture.mts (futon-effort-guard) need: below it the cleanup shim refuses at exit 2, never 1. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), and scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",
