@@ -423,7 +423,7 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": 480,
-      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget.",
+      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget. One meaning, wall-clock run age, never summed effort minutes: this row owns it and nen#498's settling pass aligns nen run budget to it; tokens stay advisory until nen#490's verb lands.",
       "readers": [
         "futon",
         "kazaana"
