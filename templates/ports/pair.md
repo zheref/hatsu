@@ -10,9 +10,10 @@ never a product, a screen, a business rule or an object id. The directed pair is
 reverse direction is its own file. Ids are `PT-<n>` from **one counter across every pair file**, so no
 two pair files share an id; a ruling is cited as `<from>--<to> PT-<n>`. Ids are
 append-only — a reversal is a new row with `supersedes`, the old row is never edited.
-`rationale` is the picked label, or the maintainer's typed words verbatim; `redraft` is its
-technology-level restatement. Words naming a product live in the private spec's `## Platform
-decisions` (zheref/hatsu `docs/config/ports.md`), never here.
+`rationale` is the picked label, or the maintainer's typed words verbatim, and never names a product,
+a screen, a business rule or an object id; `redraft` is its technology-level restatement. Words naming
+a product live in the private spec's `## Platform decisions` (zheref/hatsu `docs/config/ports.md`),
+the `rationale` then holding the picked label only; with no spec folder they are refused, never here.
 
 ## Scope
 

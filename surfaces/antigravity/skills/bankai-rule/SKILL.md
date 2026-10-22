@@ -38,9 +38,8 @@ case "$line" in 'ruling '*) head=''; ruling="${line#ruling }" ;; *) head="${line
 ```
 
 The scenario ids are read fresh off `handbooks/stack-matrix.md` at the pinned canon checkout
-([`bankai-handbooks`](../bankai-handbooks/SKILL.md) §§ 0, 2), never from this file. Verified at nen
-`0.22.0` (`docs/ab` § 1): the pair parses, exit `0`; a scenario outside the set is refused by name,
-exit `2`. **The split precedes the parse**: nen anchors `to` and `ruling` on their *last* occurrence,
+([`bankai-handbooks`](../bankai-handbooks/SKILL.md) §§ 0, 2), never from this file; a scenario outside
+the set is refused by name, exit `2` (nen `0.22.0`, `docs/ab` § 1). **The split precedes the parse**: nen anchors `to` and `ruling` on their *last* occurrence,
 so a ruling saying *maps to*, handed whole, is refused by the enumerated `<to>` — never mis-parsed —
 and the head alone goes through `nen parse`; the split is residue (zheref/nen#458). **Totality:**
 
@@ -51,7 +50,7 @@ and the head alone goes through `nen parse`; the split is residue (zheref/nen#45
 | `ruling <text>` alone, or empty | the bare form: the session's pair (candidates asked) with the typed or discussed text |
 | `ruling` with no text | the bare form, the ruling asked |
 | no handling, or a fifth | asked (`missing-argument`) with the four |
-| words naming a product, screen, business rule or object id | the spec's `## Platform decisions` (ports.md); the label the `rationale` |
+| words naming a product, screen, business rule or object id | under a composite with a spec folder, its `## Platform decisions` write, the label the `rationale`; else **refused**, redrafted technology-level, stated back (ports.md) |
 | `from` = `to`, `bankai-machinery`, an ungoverned scenario | refused: directed pairs; `handbook-question` (`CON-37`) |
 | any other `nen parse` exit `2` | its message and corrected line quoted, the slot asked (`missing-argument`) |
 
@@ -80,7 +79,7 @@ its builds, a `hiraishin` run one, a call one); §§ 3–7 act in it, never in t
 
 ## 3. Reserve the id — against every place a row can be
 
-**Prefix `PT`, one global counter** — ROSTER HR-9, re-confirmed by HR-34: no two pair files share an id.
+**Prefix `PT`, one global counter** (ports.md § *Canon and ids*: HR-9, HR-34).
 `--prefix` other than `PT` is exit `2`; a pair file whose header declares other than `prefix: PT ·
 numbering: global` is exit `3`, a `handbook-question`.
 
@@ -115,8 +114,8 @@ A pair with no file is created from `templates/ports/pair.md` (header, scope, th
 | `source` | a rule id (`SW-`/`KT-`/`RC-`/`UX-`/`UZF-`/`SEC-`/`QA-`/`REL-`) or a named technology concept |
 | `target` | the equivalent id or concept on the `to` stack, or `none` |
 | `handling` | § 5's four, per ports.md § *Mirror versus map* |
-| `rationale` | the picked label, or the typed words **verbatim**, byte-equal to the answer (§ 1's totality) |
-| `redraft` | **technology-level** restatement: stacks, rules, idioms, the reason — **never** a product, screen, business rule, object id or private repository; the plan shows answer → redraft before kokusen |
+| `rationale` | the picked label, or the typed words **verbatim**, byte-equal to the answer, save § 1's product row, which this yields to; **never** a product, screen, business rule, object id or private repository |
+| `redraft` | **technology-level** restatement (stacks, rules, idioms, the reason), the same never; the plan shows answer → redraft before kokusen |
 | `date` | `YYYY-MM-DD` |
 | `supersedes` | `<id>` where this row reverses one; the old row is never edited |
 
@@ -130,7 +129,7 @@ worktree>` — on `zheref/bankai-handbooks`, `scripts/canon_check.sh all` — an
 
 When a port composite meets rows with no target equivalent, every unmapped row goes into **one**
 picker call (`nen/decisions.json` row `port-drift`, `ask-once-per-run`; jutaisho § 4's shape):
-each question names the source rule or concept and the target stack; options in the row's order,
+each question names the source concept and the target stack; options in the row's order,
 **A** `map to <equivalent>` with its source line · **B** `mirror` · **C** `drop with note` · **D**
 `target-only addition`; **A** ⭐ only when quoted from an existing pair row or an explicit handbook
 cross-reference, else **C** ⭐; **three questions a call**, a fourth row opens a second call. A free-text answer is the row's
@@ -147,8 +146,7 @@ PT-<n> (branch <ref>, unmerged)`**, and the landing report names the follow-ups:
 (`nen/repos.json` → `pinned`, tag first, `CON-13`) and **each consumer's `nen canon pin` with a
 follow-up rewriting its citations** to `<from>--<to> PT-<n> @ <tag>`.
 
-**Reading a pair file for review.** `nen canon resolve` (`0.22.0`) returns always-load plus one stack
-and **no mirror carries a pair file**: a reviewer reads it live through
+**Reading a pair file for review.** **No mirror carries one** (`nen canon resolve`, `0.22.0`): a reviewer reads it live through
 [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 2 until zheref/nen#457 ([`limbo`](../limbo/SKILL.md)
 step 4). The preamble's prefix list moves in Hatsu's repin PR.
 

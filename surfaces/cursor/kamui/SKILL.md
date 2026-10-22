@@ -82,7 +82,7 @@ that PR then § 4's `specPr`; several → asked; none → a new folder.
 **The pinned set** (`github/spec-kit` `v1.2.2`, read 2026-10-20 from its `templates/`): `specs/<nnn>-<slug>/`
 with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`,
 `checklists/requirements.md`, plus Hatsu's two (ports.md § *Product-level divergence*): `spec.md`'s
-private `## Platform decisions` and the folder's `ports.md` ledger; once, `.specify/memory/constitution.md`,
+private `## Platform decisions` and the folder's `port-ledger.md`; once, `.specify/memory/constitution.md`,
 citing `CON-{n}`, never overriding it. `<nnn>`: the next free three digits across `origin/<base>` and open spec PRs' folders. `spec.md`'s header
 cites the source and its linked objects; **verbatim source text only as fenced source data** (*conventions*);
 platform sections where platforms differ. Every file passes `private_name_check.sh`. The PR runs
@@ -144,13 +144,13 @@ is the decision to start here, said once (*conventions*: a build's end). Picks r
 holds build's phase 6** (the wrap-up; en § 8's `rikugan` renders as usual): each build's merge prompt stays
 on § 8's register while the next starts; a build's G5 stops the chain (`next: start`, the rest recorded);
 any other end is recorded `stopped`, the chain continues. A behaviour with no target idiom is
-`port-drift` through `bankai-rule` § 5, after `## Platform decisions` is read; each answer writes its row
-and the ledger's in the same run (ports.md); **a kamui run is one port run**.
+`port-drift` through `bankai-rule` § 5, after `## Platform decisions` is read; kamui owns each answer's
+amendment PR and fills the ledger's `PR` cell at the build's end; sequencing per ports.md (HR-6); **a kamui run is one port run**.
 
 ## 8. Ending the run
 
 `bankai-rule` opens the run's one rulings PR where a `port-drift` ruling was recorded (#355); then
-[`rikugan`](../rikugan/SKILL.md) `for <the spec PR and every port issue and PR> as register`, each `nen pr
+[`rikugan`](../rikugan/SKILL.md) `for <the spec and amendment PRs, every port issue and PR> as register`, each `nen pr
 ready` verdict quoted; `next: done`; the wrap-up once (row `wrap-up`). Unpicked issues: named with their
 recommended surface and restart line.
 
@@ -164,7 +164,7 @@ zheref/nen#453, #454, #444, #450.
 
 ## Authority
 
-- **Permitted:** reads; setup declaration PRs; the spec PR through `mukai`; `nen issue file`/comment on
+- **Permitted:** reads; setup declaration PRs; the spec PR and its amendment PR (ports.md) through `mukai`; `nen issue file`/comment on
   picked siblings; direct's publish; the record; `/build` per start pick.
 - **Not permitted:** `gh repo create`; a family, product, private repository or business rule in
   Hatsu's registry or a public tree; a stage or G1 mode label.

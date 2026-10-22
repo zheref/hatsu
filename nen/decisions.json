@@ -498,11 +498,11 @@
     {
       "id": "port-drift",
       "class": "ask-once-per-run",
-      "default": "ask once per run, every unmapped row of the port batched into ONE picker call -- three questions a call, a fourth row opens a second call in the same run, never a question per row (the maintainer's ruling of 2026-10-19/20, zheref/hatsu#354: 'Ask once, record ruling'); each question names the source rule or concept and the target stack; the answer binds the current port the moment it is given and becomes one row with a reserved id in the ports pair file through hatsu:bankai-rule sections 3-4 (asked by the port composites hiraishin and kamui, zheref/hatsu#357 and #356, not yet shipped), on the run's rulings branch. Before asking, the spec's private '## Platform decisions' section is read (docs/config/ports.md, Product-level divergence): a row already answering the concept for the same platform is cited, never asked; a concept no entry of ports.md's mirror-versus-map list names is 'unclassifiable' and asked here, never classified by the agent. Option A is starred ONLY when its equivalent is quoted from an existing pair row or an explicit handbook cross-reference, its source line shown; an agent-derived equivalent is listed unstarred with its source line and C is starred (derived per ask). The pair row's rationale is the picked label or the maintainer's typed words verbatim, byte-equal to the answer; its redraft is the technology-level restatement, shown before/after in the plan before kokusen; words naming a product go to the spec's '## Platform decisions' row in the same run, never the public pair file",
+      "default": "ask once per run, every unmapped row of the port batched into ONE picker call -- three questions a call, a fourth row opens a second call in the same run, never a question per row (the maintainer's ruling of 2026-10-19/20, zheref/hatsu#354: 'Ask once, record ruling'); each question names the source rule or concept and the target stack; the answer binds the current port the moment it is given and becomes one row with a reserved id in the ports pair file through hatsu:bankai-rule sections 3-4 (asked by the port composites hatsu:hiraishin and hatsu:kamui), on the run's rulings branch. Before asking, the spec's private '## Platform decisions' section is read (docs/config/ports.md, Product-level divergence): a row already answering the concept for the same platform is cited, never asked; a concept no entry of ports.md's mirror-versus-map list names is 'unclassifiable' and asked here, never classified by the agent. Option A is starred ONLY when its equivalent is quoted from an existing pair row or an explicit handbook cross-reference, its source line shown; an agent-derived equivalent is listed unstarred with its source line and C is starred. The star is set per ask, never statically: no option of this row carries 'recommended'. The pair row's rationale is the picked label or the maintainer's typed words verbatim, byte-equal to the answer, and never names a product, screen, business rule or object id; its redraft is the technology-level restatement, shown before/after in the plan before kokusen; words naming a product go, under a composite with a spec folder, to the spec's '## Platform decisions' row in the same run with the handling label as the rationale, and are otherwise refused from the pair file with a technology-level restatement asked (hatsu:bankai-rule section 1)",
       "preferred": [
         {
           "key": "A",
-          "label": "map to <nearest equivalent on the target>",
+          "label": "map to <equivalent> (source line shown)",
           "command": "hatsu:bankai-rule <from> to <to> ruling <source> maps to <the equivalent> -- shown with its source line; starred only when quoted from an existing pair row or an explicit handbook cross-reference",
           "consequence": "an equivalence row, handling map; the port implements the equivalent"
         },
@@ -516,8 +516,7 @@
           "key": "C",
           "label": "drop with note",
           "command": "hatsu:bankai-rule <from> to <to> ruling <source> dropped: <why, technology-level>",
-          "consequence": "a drift row; the port leaves it out and the PR says so",
-          "recommended": true
+          "consequence": "a drift row; the port leaves it out and the PR says so"
         },
         {
           "key": "D",

@@ -106,8 +106,9 @@ nen resolves pairs); a concept no entry names is `unclassifiable`, asked in § 6
 Every `unmapped` or `unclassifiable` row goes in **one batch** per run through
 [`bankai-rule`](../bankai-rule/SKILL.md)'s `port-drift` (`ask-once-per-run`;
 its shape: three a picker call, further calls for more rows), each answer binding at once, recorded in
-the pair file and, in the same run, the spec's `## Platform decisions` and ledger (ports.md); brief
-re-rendered. Drift the build meets is further calls under the same row. Citations read `<pair> PT-<n>
+the pair file and, in the same run, the spec's `## Platform decisions` and `port-ledger.md` on hiraishin's
+amendment PR, its `PR` cell filled at the build's end, sequencing per ports.md (HR-6); on the no-spec route
+the words stay in the brief (ports.md); brief re-rendered. Drift the build meets is further calls under the same row. Citations read `<pair> PT-<n>
 (branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port* — § 8's
 rulings PR first where any ruling was recorded, then `done`, no issue filed.
 
@@ -156,8 +157,8 @@ evidence comes from `scripts/fixtures/port-family/`**, never a private product's
 
 ## Authority
 
-- **Permitted:** the reads; the record; kamui's §§ 2–4 by name; the `port-drift` batch; § 7's filing or
-  amend; `build` on the port issue; the rulings PR through `bankai-rule`.
+- **Permitted:** the reads; the record; kamui's §§ 2–4 by name; the `port-drift` batch and its spec
+  amendment PR (ports.md); § 7's filing or amend; `build` on the port issue; the rulings PR through `bankai-rule`.
 - **Not permitted:** any merge; a draft PR; a G1 mode or stage label; a second source or target; the
   spec engine or `port-drift` reimplemented; a phase's contract changed.
 
