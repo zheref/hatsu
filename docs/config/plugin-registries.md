@@ -1,6 +1,6 @@
 # Plugin-owned registries — the data files a consumer reads but never edits
 
-> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `pr-composition-guard`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
+> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `pr-composition-guard`, `issue-shape`, `criteria`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
 
 ## What it decides
 
@@ -100,8 +100,8 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 |---|---|---|---|---|
 | `$schema` | string | `hatsu.config-catalogue/v1` | the shape | `scripts/config_values.sh` |
 | `$comment` | string | the ruling, what is deliberately not listed and why, the row-field legend | the authority on the file | a reader |
-| `domains` | map | `development`, `versioning`, `testing`, `review`, `reporting`, `notifications`, `deployment`, `publishing`, `port` | the order Tenkai asks in | `config_values.sh diagnose`; `tenkai` § 6d |
-| `values[]` | rows (`workflow.aiReviewers`, enum `required` \| `optional` \| `off`, default `required`, asked at adoption, among them) | `id`, `file`, `path`, `domain`, `kind` (`enum` \| `subset` \| `open` \| `external` \| `secret-env`), `options?`, `default?`, `describe`, `readers[]`, `source`, `question?`, `setup?`, `requiredBy?`, `ask?` (`adoption` \| `on-use`), `when?`, `candidatesFrom?`, `nullIsAnswer?`, `choice?`, `sourceTable?`, `nonProductionTarget?` (`set` refuses a target whose `why` is not non-production or that lacks `nonProduction: true`, which nen `0.21`+ requires), `landsByPR?` | one settable value: 29 `nen/workflow.json` rows, `gates.approval_policy`, `gates.reviewers`, and the `contract.project.*` rows (`defaultLane`, `kind`, `targets`, `launch`) at the pinned build | `config_values.sh diagnose|fill|need|set|check-catalogue` |
+| `domains` | map | `development`, `versioning`, `testing`, `review`, `reporting`, `notifications`, `deployment`, `publishing`, `intake`, `port`, `autonomy` | the order Tenkai asks in | `config_values.sh diagnose`; `tenkai` § 6d |
+| `values[]` | rows (`workflow.aiReviewers`, enum `required` \| `optional` \| `off`, default `required`, asked at adoption, among them) | `id`, `file`, `path`, `domain`, `kind` (`enum` \| `subset` \| `open` \| `external` \| `secret-env`), `options?`, `default?`, `describe`, `readers[]`, `source`, `question?`, `setup?`, `requiredBy?`, `ask?` (`adoption` \| `on-use`), `when?`, `candidatesFrom?`, `nullIsAnswer?`, `choice?`, `sourceTable?`, `nonProductionTarget?` (`set` refuses a target whose `why` is not non-production or that lacks `nonProduction: true`, which nen requires), `landsByPR?` | one settable value: the `nen/workflow.json` rows, `gates.approval_policy`, `gates.reviewers`, and the `contract.project.*` rows (`defaultLane`, `kind`, `targets`, `launch`) at the pinned build | `config_values.sh diagnose|fill|need|set|check-catalogue` |
 
 **Read by.** `scripts/config_values.sh` is the only reader: `diagnose` reports per row, `fill` writes the defaults and `$<key>` annotations into a declaration that already exists (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set --id <id> --value <JSON>` writes one chosen value after the question was asked, `check-catalogue` holds every default to `docs/WORKFLOW.md`'s key tables. `hatsu:tenkai` § 6d runs it on adoption; `hatsu:ten` § 6 step 5b runs `need` at every phase's warm-up.
 
@@ -141,7 +141,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/pr-composition.json` and `contracts/pr-body.requirements.json`
 
-**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the declared Nen home remains owed; docs/PROCESS.md records it): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from the default process × canon cell in [`contracts/pr-sections.json`](../../contracts/pr-sections.json); `pr-composition.json` holds the rest and says where that array comes from.
+**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the declared Nen home remains owed; docs/PROCESS.md records it): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from the default process × canon cell in [`contracts/pr-sections.json`](../../contracts/pr-sections.json); `pr-composition.json` holds the rest and says where that array comes from. A catalogue section declaring `content: true` (today `verify`, HR-11) derives a second row, `<id>-content`, carrying `content: true` (nen ignores the key): the heading followed, past blank lines and comments, by something other than the next heading, so an empty section fails both `nen pr body-check` and `scripts/pr_body_sections_check.sh`.
 
 ### Keys (`pr-composition.json`)
 
@@ -157,6 +157,40 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **May a consumer override it?** No. A consumer is `G2` by role and `nen gate derive` is not run there; a canon repository's sets are a row here, and this file lives only in Hatsu, so the row for another canon repository (zheref/nen, zheref/bankai-handbooks) is written by a Hatsu PR at Hatsu's `G4` — the writer [`WORKFLOW.md`](../WORKFLOW.md) § 4 step 3 names once the run has asked. `zheref/nen`'s row was written that way (zheref/hatsu#334); no row is seeded for any other.
 
+## `contracts/issue-sections.json`
+
+**Purpose.** The shape of an issue Hatsu files (ROSTER HR-4; SDD plan piece P6): the sections each kind carries, which must be present and non-empty, the `AC-`, `SC-`, `AS-` and `OQ-` row shapes, and the vague-adjective and technology-term lists an acceptance row is read against. `templates/issue-body/<kind>.md` is the body each kind starts from. The verbs that will own the read are owed to nen (zheref/nen#476, zheref/nen#477); until then `scripts/issue_body_check.mts` reads this file.
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `contract` | string | `hatsu.issue-sections/v1` | the shape | `scripts/issue_body_check.mts` |
+| `sections.<id>` | object | `heading`, optional `rows`, optional `none` | one level-2 heading; `rows` names its row shape; `none` admits a lone `None.` | the same |
+| `common[]` | section ids | the eight every kind shares | what a body checked without `--kind` must carry | the same |
+| `kinds.<kind>` | object | `template`, `required[]`, `optional[]`; kinds `product`, `defect`, `machinery`, `canon-gap`, `epic` | the template path and the required and optional sections | the same, and the `issue-shape` lane's template check |
+| `rows.<shape>` | object | `pattern`, `prefix`, and for `success` `measure`, for `question` `resolvedPattern` | a row's shape, and what makes a list item claim to be one | the same |
+| `vagueAdjectives[]`, `technologyTerms` | word lists, patterns | as shipped | the words and patterns reported in an acceptance row | the same |
+
+**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the script; `scripts/pr_criteria_check.mts` reads `rows.acceptance` for the `- AC-{n}:` rows a closing issue carries (HR-11). **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; a consumer's own catalogue waits on the nen verbs.
+
+**The nen verb reads this shape (route chosen: nen adapts).** zheref/nen#498 as reviewed at `48e9fc0` parses a different catalogue grammar (`sections` an array of `{id, title, level, content[], rows}`, `kinds` a map of kind to section ids) and has no optional sections, `noneText`, `technologyTerms` or dated `resolvedPattern`. Hatsu keeps its contract as is: nen#498's settling pass makes the verb read `hatsu.issue-sections/v1` — object `sections`, `kinds.<kind>` with `required[]` and `optional[]`, the top-level `rows`, `noneText` and `technologyTerms`. `scripts/issue_body_check.mts` and the `issue-shape` lane retire at the repin that ships that verb, not before.
+
+## `contracts/hanten-findings.schema.json`
+
+**Purpose.** The JSON Schema (`$id` `hatsu.hanten.findings/v0.1`) of the findings record `hatsu:hanten` § 5 writes per effort at `<reports.dir>/hanten/<branch-slug>.json` (ROSTER HR-10; SDD plan piece P7): `scopes[]`, `findings[]` and `reports[]`; a finding's six reviewer fields plus `id`, `scope`, `persona` and `disposition`.
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
+| `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
+| `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
+| `$defs.finding` (rule `CON-{n}` or `HR-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10: critical by shape, never pushed back | the same |
+
+**Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the 0.24 pin. **May a consumer override it?** No.
+
 ## `contracts/reference.gates.json`
 
 **Purpose.** The frozen reference repository (`<reference-repo>`, [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)) ships no gates file of its own and `nen pr ready` never falls back to a built-in reviewer set, so judging a PR there needs `--gates` pointed at a file carrying its identities. This is that file, a copy of nen's own shadow-window-validated fixture taken at nen `v0.1.0`.
@@ -170,6 +204,10 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `default_approvers`, `base_reviewers`, `delivery` | as in [`gates.json.md`](gates.json.md) | the reference repository's own values | its approval set and delivery shape | `nen pr ready` |
 
 **Read by.** `hatsu:pr-state` § 2, `hatsu:en`, `hatsu:getsuga`, `hatsu:backlog-state`, `hatsu:tensho`, always as the absolute `--gates "$hatsu_root/contracts/reference.gates.json"` (a relative `--gates` resolves against `--repo`), and only for that one repository. A repository that ships its own `nen/gates.json` needs no `--gates` at all. **May a consumer override it?** No, and it is never reused as another repository's reviewer set (`hatsu:senkei`).
+
+## `contracts/prose.lint.json` and `contracts/prose.lint.baseline.json`
+
+**Purpose.** The canon prose lint's rules, `PL-01` … `PL-12`, and the shrink-only baseline of the findings the tree carried when the guard landed ([HR-13](../ROSTER.md#hr-13)). Read by `scripts/prose_ambiguity_check.mts` (lane `canon-lint`); never by a consumer. Keys, the exemptions and who reads it: [`prose.lint.json.md`](prose.lint.json.md).
 
 ## `hooks/hooks.json`
 
@@ -232,7 +270,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `metadata.description` | string | the long description, with the skill count and the nen pin as prose | the listing | the host |
 | `plugins[]` | `{name, source, description}` | one entry, `source: ./` | the plugin this marketplace serves | the host |
 
-**May a consumer override it?** No. On Claude Code the first-party install retires the shadowing `hatsu@hatsu` cache entry in favour of the in-place `~/.claude/skills/hatsu` link; the marketplace remains what Codex installs from ([`docs/using/README.md`](../using/README.md) § 1).
+**May a consumer override it?** No. On Claude Code the first-party install retires the shadowing `hatsu@hatsu` cache entry in favour of the in-place `~/.claude/skills/hatsu` link; the marketplace remains what Codex installs from ([`docs/using/README.md`](../using/README.md) § *The four surfaces, compared*).
 
 ## Example
 

@@ -312,7 +312,9 @@ answers exit `4` with its own reason whatever `--target` says; a runnable row wi
 3. `nen schema check --repo <path>` — the four taxonomy rows and the contract row, with the migration state.
 4. `nen shu tools --repo <path>` — the host verdict, on its own exit code.
 
-For a project that does not exist yet: `nen scaffold new --stack <id> --name <project> --dir <path>
+For a project that does not exist yet, use [`hatsu:okiro`](../skills/okiro/SKILL.md) in the empty
+target directory: one plan and confirmation, approved post-steps, adoption and one initial Hatsu
+commit. Okiro composes the underlying `nen scaffold new --stack <id> --name <project> --dir <path>
 --marker-env <VAR> [--agent-trailer <key> --run-trailer <key>] --dry-run`, then without — the manifest
 that identifies the stack, `nen/contract.json` as `shu detect` proposes it off that marker, the CI workflow
 and `.gitignore`, into an empty directory it refuses to merge into. **At the pinned build the commit-msg
@@ -393,8 +395,9 @@ pipeline doing work a verb should own, that is the port. Keep the retirement hon
 carries the logic has not retired anything, and a test asserting the old body is still live is telling you
 the truth.
 
-Standing a repository up is this mode's: `nen shu detect` → `nen scaffold init` (or `nen scaffold new` for
-a tree that does not exist yet) → `nen schema check` → `nen shu tools`, in that order and with `--dry-run`
+Standing a repository up is this mode's: [`hatsu:okiro`](../skills/okiro/SKILL.md) for an empty
+directory; for an existing tree, `nen shu detect` → `nen scaffold init` → `nen schema check` →
+`nen shu tools`, in that order and with `--dry-run`
 first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block by hand for a
 repository `detect` cannot propose one for, and replacing a proposed seat with the command the repository
 actually runs: both are declarations of machinery, landed as PRs at **G4** *where the repository being
@@ -498,8 +501,9 @@ canon** — the surface that was retired into another persona's nature and is no
 
 **The ceremony is [`hatsu:emperor-time`](../skills/emperor-time/SKILL.md)** — direct the session on the
 idea, interview, challenge, reconcile, file on confirmation, offer the build. Elicit a raw thought into a decision-complete brief: problem, audience, platforms, constraints, observable
-success criteria, priority, scope boundaries, and a **Design Direction** for anything with UI (bring
-**Hisoka** in for that). **Search first** — the idea may already be filed, or be a duplicate wearing new
+success criteria, priority, scope boundaries, and a **Design Direction** for anything with UI (**Bisky**
+drafts it). The brief is challenged by the **intake examiners** — Satotz, Lippo, Buhara, Bisky — never by
+you and never by a code reviewer (`docs/ROSTER.md` § *The intake examiners*). **Search first** — the idea may already be filed, or be a duplicate wearing new
 words. Challenge weak ideas rather than filing them politely. Split a conversation that contains three
 ideas into three. File **only on explicit confirmation**, through `nen idea file`, which verifies the
 issue read back exactly as submitted. It takes **`--forbid-family <ns>:<family>`** exactly as
@@ -508,8 +512,8 @@ nor the `USAGE` constant, so the source tree was the only thing that said it exi
 repository's stage-label family on every call, because a stage label is the release trigger and is the
 maintainer's. Its `--target` refuses a missing **and** a malformed value at exit `2` from `0.7` too,
 where a malformed one used to be printed and returned at exit `1`. Never apply a G1 mode label. A brief for a product that does not
-exist yet names its stack; once it clears G1, the first Enhancer/Transmuter act is `nen scaffold new
---stack <id> --name <project> --dir <path>` (§ *The `shu` verbs*), never a hand-assembled tree.
+exist yet names its stack; once it clears G1, the first Enhancer/Transmuter act is
+[`hatsu:okiro`](../skills/okiro/SKILL.md) in its empty target directory (§ *The `shu` verbs*).
 
 ---
 
@@ -671,7 +675,7 @@ canonical persona, contribution, and evidence; see
   earlier clause that treated the harness mandate as binding and recorded the tension as unresolved — it is
   resolved, and the P3 constitution inherits the answer rather than being owed one. **Commits already on
   `main` carrying the old single key are not rewritten**; they record what was written then
-  (`docs/ROSTER.md` § *Rulings of 2026-09-10*).
+  (`docs/ROSTER.md` HR-54).
 - **"The human" never means you.** Where a clause enumerates who may act, you are covered **only** where
   Kurapika is named explicitly. Running on the human's credentials is not being them — it is the reason
   the distinction matters at all.
@@ -750,13 +754,15 @@ résumé PR touching `nen/contract.json`, `nen/gates.json`, `.github/workflows/p
 | **Illumi** (`illumi.md`) | **The long watch** — `en`'s step 5 observation hold before Ready, when it must outlive the session. Read-only through `nen watch until`; he wakes you and acts on nothing | **PROVISIONED, not fully ratified** (`OPEN-1`, partially closed 2026-09-09) — that watch **only**; `backlog-loop`, `futon` and `senkei` stay **OPEN** |
 | **Leorio** (`leorio.md`) | **Economics review, advisory** — raised only when a change may move money (users' or the maintainer's). Cites `ECON-{n}` from `docs/ECONOMICS.md`; returns a charted report with the case both ways. A cost is never a finding; he never rejects, recommends or votes | **Ratified 2026-09-30**; **definition at `v0.67.0`** — a `hanten` reviewer |
 | **Shizuku** (`shizuku.md`) | **Cleanup, and cleanup only** — after a session delivery she inventories what the effort used, locally and on GitHub, and every prior session's leftover; returns a plan split into deterministic and proposed rows; removes only what the maintainer picked, never a tree she has not inspected, never a `.nen/` ledger | **ACTIVATED 2026-10-13** from the bench (`OPEN-3`, further closed); **definition at `v0.108.0`** — reached only through `hatsu:cleanup`, required after a completed session |
+| **Intake examiners** (`satotz.md`, `lippo.md`, `buhara.md`, `bisky.md`) | **Challenge a product brief at capture intake, and nothing else** — the brief, the spec, the platforms, anything rendered, by `intake.challenger`; Bisky also drafts the Design Direction. Raised by `emperor-time` § 4 in the review preamble's brief-challenge mode; they never review code | **Ratified 2026-10-21** (HR-23, HR-24, HR-38); a cast of their own, outside the Ryodan |
 | **Killua** | *Proposed:* delegate-run watchdog paired with Gon, plus fast single-object interventions | **OPEN** — a G4-class ruling, unmade |
 | **Genei Ryodan bench** | Machi · Kortopi · Pakunoda | **BENCH ONLY** — no activation; the open half of `OPEN-3` (Shalnark activated 2026-09-19, Shizuku 2026-10-13) |
 
 **The tier pins.** Each definition carries `model:` and `effort:` frontmatter, resolved from
 `nen/workflow.json → models` and never from a version string: **Gon**, **Phinks**, **Feitan**, **Chrollo** and
 **Leorio** on the **deep** tier (`opus`) at effort `high`, **Hisoka** on **fast** (`sonnet`) at `high`, **Uvogin** and
-**Shizuku** on **fast** at `medium`, **Illumi** on **economy** (`haiku`) at `medium`.
+**Shizuku** on **fast** at `medium`, **Illumi** on **economy** (`haiku`) at `medium`, the four **intake examiners**
+on **deep** at `high`.
 **Yours carries neither, deliberately.** You are the main session and you inherit whatever the maintainer is
 running; pinning the lead persona would either cap their own conversation or hand a subagent the frontier
 tier, and this file is loaded both ways.

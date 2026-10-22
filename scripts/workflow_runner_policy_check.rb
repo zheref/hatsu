@@ -66,7 +66,9 @@ PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr
 # any workflow it does not know, so the registration lands first. The pull
 # request that installs it moves it to PORTABLE_HOSTED_WORKFLOWS. Empty when
 # nothing is pending.
-PENDING_HOSTED_WORKFLOWS = %w[].freeze
+# prose-ambiguity-check.yml (HR-13, the canon prose ratchet lint) is staged at
+# templates/ by its step one; its step two installs it and moves it to the list above.
+PENDING_HOSTED_WORKFLOWS = %w[prose-ambiguity-check.yml].freeze
 
 # The one non-PR-targeting workflow this policy admits: a push-to-main /
 # workflow_dispatch BUILDER that regenerates surfaces/ and opens a PR, never a
@@ -100,7 +102,8 @@ EXPECTED_JOBS = {
   "surface-mirror-check.yml" => "surface-mirror-check",
   "pr-readiness.yml" => "readiness",
   "surface-mirror-regenerate.yml" => "regenerate",
-  "prose-size-check.yml" => "prose-size-check"
+  "prose-size-check.yml" => "prose-size-check",
+  "prose-ambiguity-check.yml" => "canon-lint"
 }.freeze
 
 # The job-level same-repository guard each PR-targeting workflow must carry.
@@ -137,7 +140,8 @@ ALLOWED_JOB_GUARDS = {
   "surface-mirror-check.yml" => [SAME_REPO_GUARD, DRAFT_SKIP_GUARD].freeze,
   "pr-readiness.yml" => [SAME_REPO_GUARD, DRAFT_SKIP_GUARD].freeze,
   # New with the hardened shape, so it never knew the bare guard.
-  "prose-size-check.yml" => [DRAFT_SKIP_GUARD].freeze
+  "prose-size-check.yml" => [DRAFT_SKIP_GUARD].freeze,
+  "prose-ambiguity-check.yml" => [DRAFT_SKIP_GUARD].freeze
 }.freeze
 
 # `cancel-in-progress` is a PR-GUARD property, not a builder one. A guard
@@ -146,7 +150,7 @@ ALLOWED_JOB_GUARDS = {
 # written when the `git status --porcelain` check below runs, so it is
 # FORBIDDEN there instead — the second push queues behind the first rather
 # than racing it.
-CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml].freeze
+CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml prose-ambiguity-check.yml].freeze
 CANCEL_IN_PROGRESS_FORBIDDEN = %w[surface-mirror-regenerate.yml].freeze
 
 # REGENERATE_PATHS is the exact `paths:` filter surface-mirror-regenerate.yml's
@@ -225,6 +229,9 @@ BASE_TYPES = {
   # the guard reads files, never the body or the title.
   "prose-size-check.yml" => {
     "pull_request_target" => %w[opened synchronize reopened ready_for_review]
+  },
+  "prose-ambiguity-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened ready_for_review]
   }
 }.freeze
 HARDENED_TYPES = {
@@ -239,6 +246,9 @@ HARDENED_TYPES = {
     "pull_request_review" => %w[submitted edited dismissed]
   },
   "prose-size-check.yml" => {
+    "pull_request_target" => %w[opened synchronize reopened ready_for_review]
+  },
+  "prose-ambiguity-check.yml" => {
     "pull_request_target" => %w[opened synchronize reopened ready_for_review]
   }
 }.freeze
@@ -277,7 +287,8 @@ CHECK_CREATION = {
   "plugin-bump-check.yml" => :start,
   "surface-mirror-check.yml" => :start,
   "pr-readiness.yml" => :end,
-  "prose-size-check.yml" => :start
+  "prose-size-check.yml" => :start,
+  "prose-ambiguity-check.yml" => :start
 }.freeze
 
 EXPECTED_STEPS = {
@@ -346,6 +357,16 @@ EXPECTED_STEPS = {
     "Enforce workflow runner policy from trusted workflow revision",
     "Prose size guard",
     "Finish check on the exact PR head"
+  ],
+  # prose-size-check.yml's shape, its guard step the canon prose lint (HR-13).
+  "prose-ambiguity-check.yml" => [
+    "Start check on the exact PR head",
+    "Checkout PR head (data only — nothing from here is executed)",
+    "Checkout guard code from the trusted workflow revision",
+    "Set up Node for the canon prose lint",
+    "Enforce workflow runner policy from trusted workflow revision",
+    "Canon prose lint",
+    "Finish check on the exact PR head"
   ]
 }.freeze
 
@@ -392,6 +413,56 @@ PROSE_FROZEN_GUARD = {
         ;;
       *)
         echo "::error::the prose guard could not run (exit ${code}), a wiring refusal: scripts/prose_size_check.sh's header names every cause. See its output above."
+        exit 1
+        ;;
+    esac
+  RUN
+}.freeze
+
+# THE CANON PROSE LINT, ON EVERY PULL REQUEST (HR-13). The trusted revision's
+# scripts/prose_ambiguity_check.mts reads the pull request's checkout as its
+# root against the trusted contracts/prose.lint.json, its output fenced by
+# `::stop-commands::` with a fresh token because file names and quoted text come
+# from the PR's tree; a finding outside the baseline, a stale baseline row, a
+# row grown over the trusted revision's baseline (--base-baseline, so the CI
+# form refuses growth without a merge base) or a wiring refusal fails the check.
+# Frozen like PROSE_FROZEN_GUARD, one form; the node it runs on is pinned by the
+# frozen setup step below (unit-tests.yml's pin), the only setup action admitted.
+CANON_LINT_WORKFLOW = "prose-ambiguity-check.yml"
+CANON_LINT_STEP = "Canon prose lint"
+CANON_LINT_NODE_STEP = "Set up Node for the canon prose lint"
+# Pinned by full commit SHA (SEC-14), as READINESS_RENDERED_CHECKOUT is: the job holds a
+# checks: write token, so a floating tag is never admitted. v7.1.0.
+CANON_LINT_NODE_USES = "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1"
+CANON_LINT_FROZEN_NODE = {
+  "uses" => CANON_LINT_NODE_USES,
+  "with" => {
+    "node-version" => "24",
+    "package-manager-cache" => "false"
+  }
+}.freeze
+CANON_LINT_FROZEN_GUARD = {
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -uo pipefail
+    guard=.trusted/scripts/prose_ambiguity_check.mts
+    rules=.trusted/contracts/prose.lint.json
+    base=.trusted/contracts/prose.lint.baseline.json
+    [ -f "$guard" ] && [ -f "$rules" ] && [ -f "$base" ] || { echo "::error::trusted workflow revision has no scripts/prose_ambiguity_check.mts, contracts/prose.lint.json or contracts/prose.lint.baseline.json"; exit 1; }
+    stop="stop_$(openssl rand -hex 16)" || stop=""
+    [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the lint's output; nothing was read."; exit 1; }
+    code=0
+    echo "::stop-commands::${stop}"
+    node "$guard" --root "$PWD" --rules "$PWD/$rules" --base-baseline "$PWD/$base" 2>&1 || code=$?
+    printf '\n::%s::\n' "$stop"
+    case "$code" in
+      0) echo "no canon prose finding outside the baseline." ;;
+      1)
+        echo "::error::a canon prose finding outside contracts/prose.lint.baseline.json, a stale baseline row, or a row grown over the base revision's baseline; each is named above. Fix the prose or remove the stale row; the baseline never grows (HR-13)."
+        exit 1
+        ;;
+      *)
+        echo "::error::the canon prose lint could not run (exit ${code}), a wiring refusal: scripts/prose_ambiguity_check.mts's header names every cause. See its output above."
         exit 1
         ;;
     esac
@@ -1906,6 +1977,13 @@ def validate_workflow(path, hatsu: false)
     if File.basename(path) == PROSE_WORKFLOW
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == PROSE_GUARD_STEP }, PROSE_FROZEN_GUARD,
                           "#{path} #{PROSE_GUARD_STEP.inspect}")
+    end
+    if File.basename(path) == CANON_LINT_WORKFLOW
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_STEP }, CANON_LINT_FROZEN_GUARD,
+                          "#{path} #{CANON_LINT_STEP.inspect}")
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_NODE_STEP }, CANON_LINT_FROZEN_NODE,
+                          "#{path} #{CANON_LINT_NODE_STEP.inspect}")
+      extra_uses = [CANON_LINT_NODE_USES]
     end
     if File.basename(path) == "plugin-bump-check.yml" && step_names.include?(TRAILER_GUARD_STEP)
       trailer_step = step_maps.find { |step| scalar(step["name"]) == TRAILER_GUARD_STEP }
@@ -3669,6 +3747,26 @@ def self_test(root)
         ["prose-size-check on a self-hosted runner", "runs-on: ubuntu-latest", "runs-on: [self-hosted, macOS, ARM64]", nil]
       ].each { |label, from, to, step| hostile.call(label, prose, prose_original, from, to, step: step) }
       File.write(prose, prose_original)
+
+      # --- prose-ambiguity-check.yml, staged (HR-13): judged as if installed ---
+      canon_source = File.join(root, "templates", CANON_LINT_WORKFLOW)
+      if File.file?(canon_source)
+        canon = File.join(tmp, ".github/workflows", CANON_LINT_WORKFLOW)
+        canon_original = File.read(canon_source)
+        canon_offender = %Q{the baseline never grows (HR-13)."\n              exit 1\n}
+        [
+          ["canon lint run from the PR checkout", "guard=.trusted/scripts/prose_ambiguity_check.mts", "guard=scripts/prose_ambiguity_check.mts", CANON_LINT_STEP],
+          ["canon lint reading the PR's own rules", "rules=.trusted/contracts/prose.lint.json", "rules=contracts/prose.lint.json", CANON_LINT_STEP],
+          ["canon lint without the base baseline", %Q{ --base-baseline "$PWD/$base"}, "", CANON_LINT_STEP],
+          ["canon lint growing against the PR's own baseline", "base=.trusted/contracts/prose.lint.baseline.json", "base=contracts/prose.lint.baseline.json", CANON_LINT_STEP],
+          ["canon lint on an unpinned node", "node-version: '24'", "node-version: 'latest'", CANON_LINT_NODE_STEP],
+          ["canon lint's setup-node on a floating tag", "uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0", "uses: actions/setup-node@v7", CANON_LINT_NODE_STEP],
+          ["canon lint that passes a finding", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
+          ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
+          ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]
+        ].each { |label, from, to, step| hostile.call(label, canon, canon_original, from, to, step: step) }
+        FileUtils.rm_f(canon)
+      end
 
       # The guard step RUNS as frozen: its own constant under bash as Actions
       # runs it, the trusted guard beside this validator measuring a scratch

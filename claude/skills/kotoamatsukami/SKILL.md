@@ -181,7 +181,7 @@ request was about to open. Kotoamatsukami reports red; the phase that was about 
 what that costs. **The turn (or landing) page carries spiritual-message's `blocker` payload** — step,
 rule, expected versus actual, this-run visual evidence or an explicit unavailable reason —
 before [`hatsu:jutaisho`](../jutaisho/SKILL.md) links it
-([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56); [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 5a).
+([zheref/hatsu#56](https://github.com/zheref/hatsu/issues/56); [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 4).
 
 ## 4. Impact selection — run only what this change can move
 

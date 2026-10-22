@@ -21,6 +21,12 @@ and the day it was fetched, is the matching file under [`../surfaces/`](../surfa
 
 ---
 
+## Starting a new project
+
+Use [`hatsu:okiro`](okiro.md) in an empty directory: a stack picker read from Nen's packs,
+one plan and confirmation, scaffolding and adoption, then one verified initial Hatsu commit.
+`--dry-run` writes nothing; existing trees use `hatsu:tenkai`.
+
 ## The four surfaces, compared
 
 | | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |

@@ -83,12 +83,13 @@ Three checks per persona: `ls "$hatsu_root/claude/agents/<persona>.md"`, the sam
 `_review-preamble.md` (missing is a gap too), and the surface's own agent registry for `hatsu:<persona>`.
 Raisable → raise; present, not raisable → **§ 7's adapter, disclosed as weaker** (`"adapted": "…"`); **absent → a
 gap**: the persona, the raising paths, **this scope not reviewed** — never a pass, never improvised.
+**Never an examiner** (`satotz`, `lippo`, `buhara`, `bisky`; HR-23): a gap.
 
 ## 4. Raising a reviewer, and its cost
 
 On Claude Code the reviewer is an Agent-tool subagent, one per scope, in parallel:
 `subagent_type` `hatsu:<persona>`, `description` **`hanten · <persona> · <model alias>`**, `model`
-`models.<surface>.<tier>` for the scope's `tier` — the scope's, never the session's (WORKFLOW § `models`; absent where a persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, § 5's
+`models.<surface>.<tier>` for the scope's `tier` — the scope's, never the session's (WORKFLOW § `models`; absent where a persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, closing issue refs quoted, § 5's
 shape, the preamble's **absolute** path (ECONOMICS.md's too where `economics` is raised),
 *"do not request a worktree"*, and `nen: <path>` with its pin — the one `ten` § 2 bound, since **a
 subagent inherits no `PATH`** (#107) — prefixing every block. Unresolvable, the prompt names every
@@ -119,57 +120,54 @@ only with exposed title/id; mark served only when attested.
 
 ## 5. One fixed finding shape
 
-**Every reviewer returns findings in one shape; hanten records nothing else** (example: preamble
-§ 4):
+**Every reviewer returns findings in one shape; hanten records nothing else**:
 
 | Field | What it must carry |
 |---|---|
-| `rule` | **a rule id** (`UX-3`, `SEC-…`, `ECON-4`, a WCAG SC, a HIG reference), never a bare preference |
+| `rule` | **a rule id** (`UX-3`, `SEC-…`, `ECON-4`, a WCAG SC, a HIG reference, `<CODE>#<N>/AC-<k>`, `CON-{n}`, `HR-{n}`), never a bare preference |
 | `severity` | `critical` \| `high` \| `medium` \| `low` \| `nit` ([Hisoka's ladder](../../agents/hisoka.md)) |
 | `path`, `line` | where, exactly; no location is a note |
 | `evidence` | **what was observed or measured**, a number with its method; never the rule restated |
 | `proposedFix` | what would settle it, proposed, never applied |
 
-**A "finding" without `rule` or `evidence` is a note.** The record is one ignored
+The record is one ignored
 `hatsu.hanten.findings/v0.1` document at `<reports.dir>/hanten/<branch-slug>.json`: `scopes[]` (persona,
 tier, model, `used`/`max`, `invocation` = `ran` | `delta` | `skipped-exhausted`, plus `adapted`, `gap` or
 the security `scans`) and `findings[]` (the six fields plus `id`, `scope`, `persona`, `disposition`), plus
 `reports[]` (`{scope, persona, invocation, head, path}` per report file). **Leorio's report returns in his reply**; hanten writes it per effort, a
 delta pass **appended** (ECONOMICS.md § 5).
 **Hanten is the sole discovery writer**; Kurapika alone applies
-[`docs/DISCOVERY.md`](../../../docs/DISCOVERY.md).
+`docs/DISCOVERY.md`.
 
 ## 6. Settle every finding — fixed, or pushed back with a reason
 
 | `state` | When | `detail` carries |
 |---|---|---|
 | **`fixed`** | the change was made | what changed, where |
-| **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement; never "disagree" or "out of scope" alone |
+| **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement; never "disagree" or "out of scope" alone; never on a `CON-`/`HR-` rule, critical by shape: fixed or deferred to a named amendment PR (HR-10) |
 | **`deferred`** | it outlives this branch | the tracked item, or its durable `pending` record. An untracked deferral is `unsettled` |
 
 **A push-back is an argument, not a veto**. Every disposition reaches the PR body through
-[`shibari`](../shibari/SKILL.md); a `fixed` one is proved by `iteration.checks`, one editing a dieted
+`shibari`; a `fixed` one is proved by `iteration.checks`, one editing a dieted
 file quotes its `prose_size_check.sh --headroom` line (#119). **A finding
 is work, not a gate.**
 
 **An unsettled finding is a G5** (`nen/decisions.json` row `unsettled-finding`, `CON-47`), only when no
 disposition is choosable without the maintainer: record it, what was tried,
-the alternatives, and stop in [`jutaisho`](../jutaisho/SKILL.md) § 4's shape. **Never
-one re-grading a severity.**
+the alternatives, and stop in `jutaisho` § 4's shape.
 
 **One bot round is requested after hanten settles** (`sharingan` § 6).
 
 ## 7. On a surface that is not Claude Code
 
-§ 4's mechanism is Claude Code's; the contract is **[PROCESS.md](../../../docs/PROCESS.md) § Surfaces
+§ 4's mechanism is Claude Code's; the contract is **PROCESS.md § Surfaces
 and pickers**: the worker at the scope's tier, a copy of the repo, § 5's shape, the pinned `nen` by absolute path, or none where the worker carries it (preamble § 2).
 
 ## Authority
 
 Preamble § 7 is every reviewer's refusal list. **Hanten may** read the working copy, raise reviewers,
 write the findings record, Leorio's report and the ledgers, edit the working copy to settle a finding,
-and render the stop. **It may not** push, commit, PR, label,
-merge, tag, deploy or vote (PROCESS.md § Authority every phase shares).
+and render the stop; **nothing else** (PROCESS.md § Authority every phase shares).
 
 ## Hard limits
 
@@ -178,6 +176,6 @@ merge, tag, deploy or vote (PROCESS.md § Authority every phase shares).
   (§ 4's fallback aside), or with `isolation: "worktree"`; never an exhausted reviewer.
 - Never skips a scan or guard row silently, calls a not-run row clean, or waives the workflow gate.
 - Never records a finding missing `rule` or `evidence`, lets a reviewer file an issue, leaves one
-  undisposed, re-grades a severity away, or accepts an uncited push-back.
+  undisposed, re-grades a severity away (no G5 option), or accepts an uncited push-back.
 - Never presents an in-session pass as a raised reviewer, by-hand work as a verb's output, or an
   unrecorded spend as recorded.

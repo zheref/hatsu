@@ -42,8 +42,8 @@ the advance go [`mugetsu`](../mugetsu/SKILL.md) § 3 defines — still never pro
 a stop's options and a composite must never offer — and a standalone run is precisely where such an offer
 would read as the pipeline knowing best.
 
-**Second carve-out — a typed composite's delegated publication** — this run's reading of
-zheref/hatsu#332, recorded in [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Reading of 2026-10-19 — a typed composite's delegated publication (unruled; the maintainer's to correct at G4)*. It stands on two
+**Second carve-out — a typed composite's delegated publication** — the maintainer's ruling
+[HR-20](../../../docs/ROSTER.md#hr-20) (zheref/hatsu#332), ratifying [`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Reading of 2026-10-19 — a typed composite's delegated publication* unchanged. It stands on two
 rulings already made: kazaana's delegate **authors and publishes** each queued issue (ROSTER § *Rulings
 of 2026-10-13*, ruling 1), and a futon effort on an integration branch **runs `aka` to publish its own effort branch** (ROSTER
 § *Rulings of 2026-09-30 — En never merges*, row *Where an effort stops*); on the stacked or per-issue

@@ -64,8 +64,8 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **57**, the fifty-six plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
-| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **13**, twelve personas plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **59**, the fifty-eight plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **18**: every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
 `2026.09.08-6caf4ff` found a skill through a symlink **inside** the workspace and through one pointing
@@ -220,7 +220,7 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
    this host one listing carried the fifty-one mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims fifty-six ordinary
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims fifty-eight ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a

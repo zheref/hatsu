@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a G5 by the ruling of 2026-10-17; G5 is the open class of what only the human can do, these rows its recorded kinds), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10, kazaana section 7 and kamui section 8), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)), mode-label and intake-challenger (emperor-time sections 4 and 6), port-siblings (kamui section 5), port-drift (bankai-rule section 5, answered for the port composites hiraishin and kamui, zheref/hatsu#357 and #356). Data-only until a skill cites them: merge, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a G5 by the ruling of 2026-10-17; G5 is the open class of what only the human can do, these rows its recorded kinds), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10, kazaana section 7 and kamui section 8), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)), mode-label (emperor-time section 6, dowsing-chain section 8), intake-challenger and intake-stall (emperor-time section 4, dowsing-chain section 6), port-siblings (kamui section 5), port-drift (bankai-rule section 5, answered for the port composites hiraishin and kamui, zheref/hatsu#357 and #356), spec-capture-scope, spec-slice, spec-clarify, spec-claim-unverified, spec-dispatch, spec-coverage, spec-conflict and spec-converge-filing (dowsing-chain sections 2, 4, 5, 8, 9 and 10; docs/config/spec-repo.md; spec-coverage owed, zheref/hatsu#405). Data-only until a skill cites them: merge, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -498,14 +498,13 @@
     {
       "id": "port-drift",
       "class": "ask-once-per-run",
-      "default": "ask once per run, every unmapped row of the port batched into ONE picker call -- three questions a call, a fourth row opens a second call in the same run, never a question per row (the maintainer's ruling of 2026-10-19/20, zheref/hatsu#354: 'Ask once, record ruling'); each question names the source rule or concept and the target stack; the answer binds the current port the moment it is given and becomes one row with a reserved id in the ports pair file through hatsu:bankai-rule sections 3-4 (asked by the port composites hiraishin and kamui, zheref/hatsu#357 and #356, not yet shipped), on the run's rulings branch; a free-text answer is the maintainer's word and the row's rationale verbatim",
+      "default": "ask once per run, every unmapped row of the port batched into ONE picker call -- three questions a call, a fourth row opens a second call in the same run, never a question per row (the maintainer's ruling of 2026-10-19/20, zheref/hatsu#354: 'Ask once, record ruling'); each question names the source rule or concept and the target stack; the answer binds the current port the moment it is given and becomes one row with a reserved id in the ports pair file through hatsu:bankai-rule sections 3-4 (asked by the port composites hatsu:hiraishin and hatsu:kamui), on the run's rulings branch. Before asking, the spec's private '## Platform decisions' section is read (docs/config/ports.md, Product-level divergence): a row already answering the concept for the same platform is cited, never asked; a concept no entry of ports.md's mirror-versus-map list names is 'unclassifiable' and asked here, never classified by the agent. Option A is starred ONLY when its equivalent is quoted from an existing pair row or an explicit handbook cross-reference, its source line shown; an agent-derived equivalent is listed unstarred with its source line and C is starred. The star is set per ask, never statically: no option of this row carries 'recommended'. The pair row's rationale is the picked label or the maintainer's typed words verbatim, byte-equal to the answer, and never names a product, screen, business rule or object id; its redraft is the technology-level restatement, shown before/after in the plan before kokusen; words naming a product go, under a composite with a spec folder, to the spec's '## Platform decisions' row in the same run with the handling label as the rationale, and are otherwise refused from the pair file with a technology-level restatement asked (hatsu:bankai-rule section 1)",
       "preferred": [
         {
           "key": "A",
-          "label": "map to <nearest equivalent on the target>",
-          "command": "hatsu:bankai-rule <from> to <to> ruling <source> maps to <the derived equivalent> -- the equivalent derived from the target's stack handbook and starred",
-          "consequence": "an equivalence row, handling map; the port implements the equivalent",
-          "recommended": true
+          "label": "map to <equivalent> (source line shown)",
+          "command": "hatsu:bankai-rule <from> to <to> ruling <source> maps to <the equivalent> -- shown with its source line; starred only when quoted from an existing pair row or an explicit handbook cross-reference",
+          "consequence": "an equivalence row, handling map; the port implements the equivalent"
         },
         {
           "key": "B",
@@ -527,35 +526,41 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-19/20 (zheref/hatsu#354, 'When a source change has no target equivalent?' -> 'Ask once, record ruling'; the challenge settlement 'port-drift per row' -> one batched picker call per run): a drift is the maintainer's decision, asked once and recorded as canon so the next port never asks it again; four handlings and no fifth (bankai-rule section 4)."
+      "why": "Ruling 2026-10-19/20 (zheref/hatsu#354, 'When a source change has no target equivalent?' -> 'Ask once, record ruling'; the challenge settlement 'port-drift per row' -> one batched picker call per run): a drift is the maintainer's decision, asked once and recorded as canon so the next port never asks it again; four handlings and no fifth (bankai-rule section 4). SDD plan 2026-10-22 (porting-drift): a pre-starred agent-derived equivalent became append-only canon on one tap, and one rationale field held both the maintainer's words and the agent's redraft -- so the star is earned by a quoted source, and the row keeps both side by side."
     },
     {
       "id": "intake-challenger",
       "class": "ask-once-per-run",
-      "default": "ask once per run, through the surface's picker, which persona challenges a product brief in emperor-time section 4, Nobunaga starred; the answer binds that run only and is NEVER written to nen/workflow.json or the catalogue while docs/ROSTER.md OPEN-4 is open (the ruling lands the key intake.challenger, its catalogue row and Hatsu's own value); a declared or typed value outside the three, kurapika included, re-asks; a persona with no definition is hanten section 3's gap, the brief unchallenged, said",
+      "default": "read nen/workflow.json -> intake.challenger from Hatsu's own checkout ($hatsu_root), never the target's, and raise in emperor-time section 4 every intake examiner whose artifact the brief matches (brief -> satotz, spec -> lippo, platform -> buhara, rendered -> bisky as Hatsu's value; HR-24, HR-25, HR-38), with no question; a key missing from the map names no examiner for that artifact, which goes to satotz, said in the run (HR-26). Only where intake.challenger itself is absent or not an object, or a value is outside the intake cast, does the run ask, once per run and per artifact, the star on that artifact's HR-24 examiner (derived per ask; no option below is statically starred); the answer binds that run and is NEVER written by it (Hatsu's value changes by a G4 PR through scripts/config_values.sh set). A code reviewer (a hanten persona) or kurapika is never a value and re-asks (HR-23); a persona with no definition is hanten section 3's gap, that part unchallenged, said. The map routes challenges only: bisky drafts the Design Direction and satotz challenges it, by name, whatever the map says (HR-27, HR-31)",
       "preferred": [
         {
           "key": "A",
-          "label": "Nobunaga",
-          "command": "raise hatsu:nobunaga as emperor-time section 4 states, title emperor-time · nobunaga · <alias>",
-          "consequence": "adversarial reading and scope completeness over the brief, two rounds at most",
-          "recommended": true
+          "label": "Satotz",
+          "command": "raise hatsu:satotz as docs/INTAKE-CHALLENGE.md section 3 states, title emperor-time · satotz · <alias>",
+          "consequence": "the brief's problem, audience, criteria, priority and scope boundaries, and Bisky's Design Direction (HR-31)",
+          "recommended": false
         },
         {
           "key": "B",
-          "label": "Phinks",
-          "command": "raise hatsu:phinks the same way",
-          "consequence": "the QA-2 hypothesis classes applied to the brief"
+          "label": "Lippo",
+          "command": "raise hatsu:lippo the same way",
+          "consequence": "the spec: edge cases, error and boundary states, conflicts with the specification in force"
         },
         {
           "key": "C",
-          "label": "Chrollo",
-          "command": "raise hatsu:chrollo the same way",
-          "consequence": "architecture and handbook conformance over the brief's stack and scope"
+          "label": "Buhara",
+          "command": "raise hatsu:buhara the same way",
+          "consequence": "the platforms: each platform's constraints, parity, the stack"
+        },
+        {
+          "key": "D",
+          "label": "Bisky",
+          "command": "raise hatsu:bisky the same way",
+          "consequence": "the rendered parts, after her Design Direction draft (HR-27)"
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:emperor-time (2026-10-19): a brief has no change set, nen schema check refuses a review scope claiming no path, and Kurapika never reviews his own work, so the challenger is a declared value the maintainer has not ruled (OPEN-4). missing-configuration's default would write the answer through its owner; this row withholds that step until the ruling."
+      "why": "Added with hatsu:emperor-time (2026-10-19) to ask while OPEN-4 was open; rewritten when OPEN-4's rulings landed (docs/ROSTER.md HR-23 ... HR-38): the challenger is a dedicated intake cast isolated from code review, declared as a map from artifact to examiner (HR-21), every matching examiner challenging (HR-25). The ask remains only for an absent or out-of-set value; the star is derived per ask, that artifact's HR-24 examiner. docs/INTAKE-CHALLENGE.md section 1."
     },
     {
       "id": "port-siblings",
@@ -654,6 +659,206 @@
       ],
       "proposeIssue": false,
       "why": "Ruling 2026-10-13: once the tag is cut successfully, offer the maintainer through a picker whether mugetsu should be started to publish a new release under the last cut tag in the session. This is the one question an agent asks about G3: mugetsu section 1's no-agent-ever-prompts and missing-maintainer-choice's typed-never-picked are amended for this question alone; the gate itself (row release-go) is unchanged and the answer is the maintainer's own word, never starred, never derived. Because the answer crosses G3, this row is bound like a human-gate row: a consumer's own decisions file may not reclassify it, give it a default, or star an option (docs/config/decisions.json.md section The three row classes). The kind gate is the target's futon.advanceGo.mugetsu as nen parse futon reads it (declared, or nen's default where absent) on the target's nen repo classify kind; zero declared destinations is no offer; several are one unstarred option each."
+    },
+    {
+      "id": "intake-stall",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "continue",
+          "command": "re-raise every stalled examiner, active, for another round (docs/INTAKE-CHALLENGE.md section 4)",
+          "consequence": "the loop goes on; no round is counted (HR-29)"
+        },
+        {
+          "key": "B",
+          "label": "stop and go on with the open questions",
+          "command": "emperor-time section 5 on the brief as it stands",
+          "consequence": "the brief is filed only on section 6's confirmation, every unsettled challenge an open question in it, the maintainer's at G1 (HR-32)"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "The stop: in emperor-time section 4's challenge loop, when no intake examiner remains active and at least one has stalled -- its round amended, answered or withdrew none of its challenges and raised no new one (HR-35) -- ask the maintainer through the picker, at EVERY such stop, never defaulted (HR-30, HR-36); each stalled examiner's unsettled challenges are already open questions in the brief (HR-37). Rulings of 2026-10-21 (docs/ROSTER.md HR-29, HR-30, HR-32 ... HR-37): intake challenge rounds are never counted, a stall is judged per examiner and drops that examiner, and the maintainer's stop is the loop's only bound -- a ruled exception, for the intake challenge alone, to izanagi section 6 and en's cap limit. Human-gate because the maintainer is asked at every all-stalled stop (HR-36)."
+    },
+    {
+      "id": "spec-capture-scope",
+      "class": "ask-once-per-run",
+      "default": "ask once per capture run, after dowsing-chain section 2 folds the members' inventory rows into one capability map (one row per user-facing capability reachable from navigation or a feature flag, a generic slug proposed for each): which capabilities this run captures. A capability already holding a folder on the spec repository's origin/<base> routes to recapture, never capture. The answer is recorded in the run record's scope[] and binds this run only",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "all <N> capabilities",
+          "command": "capture every capability on the map, in waves of spec.capture.foldersPerPr folders",
+          "consequence": "one spec PR per wave at G2 until the map is captured",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "only the slugs I type",
+          "command": "capture the typed slugs, each checked against the map and the slug pattern of docs/config/spec-repo.md",
+          "consequence": "the rest of the map stays uncaptured and is listed on the desk"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. The scope is the maintainer's to narrow; the whole map is the default because a partial canon is the drift the skill exists to end."
+    },
+    {
+      "id": "spec-slice",
+      "class": "ask-once-per-run",
+      "default": "ask once per run, three questions a call (a fourth opens a second call in the same run), for each screen or state the inventory reaches from two capabilities: which capability's folder specifies it. The star is derived per ask: the capability whose navigation edge reaches it first in the reference platform's inventory; none when no reading is cited. The answer is written to the folder's research.md with the rows it moved",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "<the capability whose navigation edge reaches it first>",
+          "command": "specify it in that capability's folder; the other folder cites it by FR id",
+          "consequence": "one owner folder, one cross-reference"
+        },
+        {
+          "key": "B",
+          "label": "<the other capability>",
+          "command": "specify it in the other folder; the first cites it by FR id",
+          "consequence": "one owner folder, one cross-reference"
+        },
+        {
+          "key": "C",
+          "label": "its own capability folder",
+          "command": "add a capability to the map and capture it in this run's next wave",
+          "consequence": "a shared folder both capabilities cite"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Which capability a shared screen belongs to is a product judgement the inventory cannot make; no option is statically starred."
+    },
+    {
+      "id": "spec-clarify",
+      "class": "ask-once-per-run",
+      "default": "ask once per run the wave's markers ranked by Spec Kit clarify's taxonomy, in ONE sitting per run of at most spec.clarify.maxQuestions (5 by the proposed default), spec.clarify.maxRounds counting successive runs, not rounds inside one (3 by the proposed default; the cap is the owed nen spec check --markers --rank --max, zheref/nen#493), three questions a call, short options. A platform contradiction on one rule is a question whose options are the two cited readings. The typed answer lands VERBATIM as a CL-nnn entry under spec.md's ## Clarifications -> ### Session <date> (question as asked, options shown, answer quoted, lines it ruled), written with the surface's file tool, and the FR cites [ruled: CL-nnn]. A declined or over-cap question stays a marker; a story holding any marker is clarifying and is excluded from dispatch and wave. The star is derived per ask (the reading a declared-tier citation carries); NONE is starred where the answer is a priority, an audience, a threshold or 'intentional' (WORKFLOW section 4, the maintainer's word is never derived). Never raises a mid-run G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "<the first cited reading>",
+          "command": "write CL-nnn with this answer verbatim and replace the marker with [ruled: CL-nnn]",
+          "consequence": "the FR or SC is specified on this reading"
+        },
+        {
+          "key": "B",
+          "label": "<the second cited reading>",
+          "command": "the same, with this answer",
+          "consequence": "the FR or SC is specified on this reading"
+        },
+        {
+          "key": "C",
+          "label": "leave it a marker",
+          "command": "keep the marker; the question is listed on the desk",
+          "consequence": "the story stays clarifying and cannot be dispatched"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Bounded so the agent can neither interrogate indefinitely nor silently stop asking; the answer is quoted, never paraphrased."
+    },
+    {
+      "id": "spec-claim-unverified",
+      "class": "autonomous",
+      "default": "a spec statement with no backing inventory row, a citation that does not resolve, or a value only inferred gets exactly one marker in place of prose: [NEEDS CLARIFICATION: <question>] where a picker could settle it, [NEEDS RULING] where only the maintainer's word may (a priority, an audience, a threshold, 'intentional'), [UNVERIFIED] otherwise; the sentence is kept, an inferred row stays in research.md, and the marker is counted per folder in the spec PR body, INDEX.md and the desk",
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Citation-or-marker: the skill never writes a sentence it cannot point at, and never drops one silently either."
+    },
+    {
+      "id": "spec-dispatch",
+      "class": "ask-once-per-run",
+      "default": "ask once per dispatch run, after the folders it names read MERGED, through the surface's picker: which gap groups receive an issue. Each item is `<folder> · <story> · <member> · <direct's primary>` for every [ ] group whose story holds zero markers. Multi-select, NO option starred (the porting rulings' fan-out picker, like port-siblings); paged in fours, a fifth item opening a second call; an empty answer reads none. The answer is NOT the filings' G1 (no ruling makes it one; listed unruled in docs/config/spec-repo.md): per pick, visibility re-read PRIVATE, then file sections 3-5 by name, file section 4's own one-plan confirmation running per dispatch, with the title `spec: <story> (F<nnn>/US<k> · <platform>)`, an existing issue amended with its body sha guard, never filed twice; one capability epic per folder, its mode label proposed and never applied (row mode-label)",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "file the groups picked",
+          "command": "per pick: file sections 3-5, nen issue file ... --private-names-ignore-file <file section 4's ignore file> --json, read back with gh issue view; the epic through nen issue attach-sub",
+          "consequence": "one issue per picked story and member, each citing the folder at its merged sha"
+        },
+        {
+          "key": "B",
+          "label": "none of them",
+          "command": "nothing is filed; the run goes to the desk",
+          "consequence": "the folders stand merged; a later dispatch asks again"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Filings always pass this picker and then file section 4's confirmation, since whether this picker may stand as their G1 is unruled (a recommendation for the maintainer's next sitting); only builds of already-filed, marker-free issues run on the typed wave call. No option is recommended, and a consumer's own decisions file may not star one (advisory, as port-siblings)."
+    },
+    {
+      "id": "spec-coverage",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "satisfy it",
+          "command": "return the effort to rasengan for a test named by the SC id, then kokusen and the Spec section again",
+          "consequence": "the SC reads satisfied - test <id>"
+        },
+        {
+          "key": "B",
+          "label": "defer it with my reason",
+          "command": "write `F<nnn>-SC-### - deferred - <the maintainer's reason, verbatim> · <follow-up object>` in the Spec section, filing the follow-up through hatsu:file",
+          "consequence": "shibari opens the PR with the deferral stated"
+        },
+        {
+          "key": "C",
+          "label": "stop this effort",
+          "command": "nen stop --who Kurapika --gate G5 --mark; the run continues with the next effort",
+          "consequence": "no PR opens; the issue stays open with its resume line on the desk"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. A delivery PR on a spec-derived issue whose Spec section leaves an SC neither satisfied nor deferred, or cites an id the issue does not carry, is meant not to open: the gap is the maintainer's to resolve, never defaulted. OWED: shibari has no Spec section yet, so no skill raises this row; today the build's delegate writes the section and its reviewers check it, and the stop lands with zheref/nen#493's catalogue row plus a shibari change (zheref/hatsu#405)."
+    },
+    {
+      "id": "spec-conflict",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "amend the spec to the code",
+          "command": "a new FR id with a supersedes line and a CL-nnn quoting this answer, in the recapture PR",
+          "consequence": "the canon follows the shipped behaviour"
+        },
+        {
+          "key": "B",
+          "label": "file the code as a defect",
+          "command": "hatsu:file on the member, citing the FR and both ranges",
+          "consequence": "the spec stands; the code is brought back to it"
+        },
+        {
+          "key": "C",
+          "label": "keep both, marked",
+          "command": "a [NEEDS RULING] marker with both citations beside the FR",
+          "consequence": "the story returns to clarifying and leaves dispatch"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Recapture found a merged FR the code now contradicts: which one is right is the maintainer's word, quoted verbatim, never an agent's edit (the living spec's one human stop)."
+    },
+    {
+      "id": "spec-converge-filing",
+      "class": "ask-once-per-run",
+      "default": "ask once per recapture or wave run that leaves convergence gaps (behaviour with no FR, an FR with no delivering PR, a parity GAP): whether they are proposed on the desk or filed; the spec repository's spec.autonomy.convergeFiling, when declared, answers it without asking",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "propose them on the desk",
+          "command": "list each gap on the desk with its dispatch line; file nothing",
+          "consequence": "a later dispatch run's picker files the ones picked",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "file them on the pick",
+          "command": "the spec-dispatch picker over the gaps, then file sections 3-5 per pick",
+          "consequence": "issues for the picked gaps in this run"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Keeps black-voice's never-file-without-a-pick rule for the gaps a run discovers."
     }
   ]
 }

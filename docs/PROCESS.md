@@ -9,9 +9,11 @@ in each skill that points at it**; moving a rule here moved where it is written,
 It sits beside [`WORKFLOW.md`](WORKFLOW.md) (the configuration keys, the phases, the gates and the
 decision matrix), [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) (a phase called cold),
 [`DISCOVERY.md`](DISCOVERY.md) (gaps found during authorized work) and [`SURFACES.md`](SURFACES.md)
-(the surfaces). **Precedence, one order, stated identically in [`WORKFLOW.md`](WORKFLOW.md):** a
-skill's own hard limit **>** `WORKFLOW.md` **>** this page. This page is **binding wherever the skill
-is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this page is the bug.
+(the surfaces). **Precedence among canon prose and rulings** is one order ([HR-1](ROSTER.md#hr-1)),
+owned by the `precedence` key of [`../nen/contract.json`](../nen/contract.json) and restated once, at the
+top of [`WORKFLOW.md`](WORKFLOW.md); a configuration file's value still beats any prose copy of it. This
+page is **binding wherever the skill is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this page is
+the bug.
 *Assembled 2026-09-22 from the passages the skill diet moved out of the capped skills, so each skill keeps headroom for its own rules.*
 
 ## Standalone entry
@@ -335,6 +337,10 @@ label, merge, tag, deploy or review vote the phase does not hold in its own righ
 signalling phase carries **no `CON-25`-equivalent delegation**: its authority is exactly its own
 *Permitted* list, whatever called it.
 
+**A reading never authorises a push, merge or release path** ([HR-3](ROSTER.md#hr-3)): such a path
+cites a ruling-status row, and a path whose only authority is a reading asks once per run (row
+`missing-maintainer-choice`).
+
 ## Reviewer rounds and review threads
 
 The **policy** — when a round is owed, the cap, never before [`hanten`](../claude/skills/hanten/SKILL.md)
@@ -524,7 +530,9 @@ the round ceiling; the merge stays the maintainer's (`en` never merges). Any unm
 one of (a)–(e) stays under `sharingan` § 6's bounds. Nothing in this paragraph is read by a Hatsu script; the verb
 reads the key.
 
-**AI reviewers per consumer — `aiReviewers`** (the maintainer's rulings of 2026-10-11,
+### AI reviewers per consumer — `aiReviewers`
+
+(The maintainer's rulings of 2026-10-11,
 [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — AI reviewers per consumer*; zheref/hatsu#245 —
 **stated once, here**; `sharingan` § 6, `en` §§ 5–6, `pr-state` § 2, `nen/decisions.json` row
 `ai-reviewers`, `docs/WORKFLOW.md` § 2 → `aiReviewers` and `docs/config/workflow.json.md` cite this
@@ -647,7 +655,7 @@ states the rule; zheref/hatsu#295).
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
 **in the plugin** — said, still placed, regenerated in a PR. **On Claude Code there is no mirror**, so
 `mirrors:` is whether the copy Claude Code serves IS the source (zheref/hatsu#122), the permission pack
-placed beside it ([`SURFACES.md`](SURFACES.md) § 2):
+placed beside it ([`using/mirrors.md`](using/mirrors.md) § 2):
 
 ```bash
 nen surface status --surface claude-code --plugin hatsu --root "$hatsu_root"
@@ -675,13 +683,36 @@ back. Seven reader sections exclude the compact footer; prose beyond 150 words w
 Kind-specific verification is the `CON-17(b)` observable proxy; **How to verify** is the product title.
 NN#448 is merged but does not replace the authorized interim scripts until a released pin carries it.
 
+## An unresolved question in prose
+
+[HR-4](ROSTER.md#hr-4) admits one shape for a question canon prose leaves open, and only one:
+
+```text
+[NEEDS <row-id>: <question>]
+```
+
+- **`<row-id>` is an ask-once-per-run row** of `nen/decisions.json` that `contracts/prose.lint.json` → `markerRows` lists; the guard refuses a contract that lists a row of any other class. Every human-gate row is refused: a gate is a stop, not a question.
+- **At most three per skill**, each with a ledger reference in its paragraph: an `OPEN-n` row in [`ROSTER.md`](ROSTER.md) or a `zheref/<repo>#N` issue.
+- **No default.** No run, agent or surface resolves a marker by a derived answer; the row's own stop applies until the maintainer rules.
+- **It closes in one commit**: the ruling lands in ROSTER citing the `OPEN-n` or the issue, and the marker is deleted in that same commit.
+- A to-do word or any other bracket is not a marker; `scripts/prose_ambiguity_check.mts` refuses it (`PL-11`).
+
 ## Residue and owned dependencies
 
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
 where a verb should own it, it is an **owned dependency** with an issue, never a silent workaround.
 
+**Every Residue item cites its issue as `zheref/<repo>#N`, or the literal `unfiled`** — a bare `#N`, a
+deferral to nen with no issue, or a residue with neither is not one (`PL-02` and `PL-05` in
+`contracts/prose.lint.json` fail; the lint reports `PL-10` as advisory, and the contract's severity
+is the answer). `unfiled` is an admission, never a resting state: the next discovery
+pass files it through `hatsu:file` and replaces the word with the reference.
+
 **Named residue, by skill** — the live list; each skill's `Residue` section points here.
 
+- **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
+  TypeScript verdict, frozen to fixes: its port is owed to `nen canon lint` (zheref/nen#481) and its
+  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin.
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
@@ -707,11 +738,10 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
 - **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
-  `gh pr view --json files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
+  `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
   **owed to nen**, zheref/nen#456; a ports pair file rides `nen canon resolve --always-load` and reaches no
   mirror until zheref/nen#457; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
-  carve-out); the rule prefix and the numbering scope are read from the pair file's header once
-  zheref/bankai-handbooks#4 rules them.
+  carve-out).
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
   --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
@@ -744,7 +774,7 @@ where a verb should own it, it is an **owned dependency** with an issue, never a
   register pass's own `generatedAt` under `--register`. **The derived context it already owns** came
   through zheref/nen#258 (closed) and zheref/nen#375: `repo` (the hosted `owner/name`), `worktree`,
   `effortStage`, `gate` and `stageClass` from `v0.20.0`, each `null` with its reason on stderr when a fact
-  is missing, and `generatedAtLocal`, `generatedDateLocal`, `timeZone` and `turnNumber` at the pinned
+  is missing, and `generatedAtLocal`, `generatedDateLocal`, `timeZone` and `turnNumber` at nen
   `0.22.0` (verified 2026-10-19).
 - **`futon` § 5.** The local `git merge --no-ff` of a hanten-settled effort branch into the run's
   integration branch, in a worktree on that branch, has no nen verb (`nen wc catch-up` brings a branch
@@ -900,7 +930,11 @@ to fixes only pending its port), filed as zheref/nen#407 item 18. A worktree ver
 fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/zheref/nen/issues/299)),
 and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);
-until then the two scripts above are the mechanism and are named as such.
+until then the two scripts above are the mechanism and are named as such. The canon `precedence` key of
+[`../nen/contract.json`](../nen/contract.json) ([HR-1](ROSTER.md#hr-1)) is tolerated, not validated, by
+`nen schema check` at the pin: validating it and refusing a drifted restatement in `WORKFLOW.md` are owed to
+[zheref/nen#474](https://github.com/zheref/nen/issues/474) (BC-11 keeps the drift case out of
+`scripts/canon_contracts_check.sh`, frozen to fixes only); until that repin nothing checks the order.
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 

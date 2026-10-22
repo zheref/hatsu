@@ -22,8 +22,8 @@ and nen hard-codes no system's vocabulary.
 
 | Path | |
 |---|---|
-| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 57 directories (fifty-six plus `ten`) |
-| `claude/agents/<persona>.md` | **authored.** The one source, twelve personas plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
+| `claude/skills/<name>/SKILL.md` | **authored.** The one source, 59 directories (fifty-eight plus `ten`) |
+| `claude/agents/<persona>.md` | **authored.** The one source, every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include (`_review-preamble.md`, the shared reviewer protocol and not a persona: `agents/_review-preamble.md` on Cursor and Antigravity, a `## _review-preamble` section in Codex's `AGENTS.md`) |
 | `hooks/hooks.json`, `contracts/permissions.json`, `nen/workflow.json` | **authored.** The inputs the generator renders hooks, permissions and model config from |
 | `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.codex-plugin/plugin.json` | **authored.** The manifests: Claude Code's, the marketplace both Claude Code and Codex read, and the Codex overlay (`skills`, `hooks`, `interface`), held at the Claude manifest's `version` by `scripts/plugin_bump_check.sh` |
 | `surfaces/codex/<name>/SKILL.md`, `AGENTS.md`, `agents/*.toml`, `config.toml`, `config.toml.fragment`, `hooks.json` | **generated** |

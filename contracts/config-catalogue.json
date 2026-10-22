@@ -1,6 +1,6 @@
 {
   "$schema": "hatsu.config-catalogue/v1",
-  "$comment": "The values a consumer may set in its nen/workflow.json, nen/gates.json or nen/contract.json that a Hatsu skill reads and that either carry a canon default safe to write out or are needed by a skill, with the default its readers apply when it is absent. The maintainer's ruling of 2026-10-01 (docs/ROSTER.md § Rulings of 2026-10-01): the configuration files show every optionally settable value at its default, a fixed-set value carries a `$<key>` sibling listing its options, and a skill that needs a value nobody has set guides the maintainer through setting it instead of stopping. scripts/config_values.sh is the only reader: `diagnose` reports, `fill` writes the defaults and annotations (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set` writes one chosen value. Each `default` is the one canon already states, cited in `source`, and `check-catalogue` holds it against docs/WORKFLOW.md's key tables. Two kinds of value are not listed, because writing a snapshot would stop it following its source: one derived at run time (iteration.lane from project.defaultLane, reports.timeZone from the host), and one whose default a reader resolves from a Hatsu canon file only when the key is absent (gates.json round_policy, sharingan § 6 and contracts/round_policy.default.json; nen reads the same keys from v0.21.0 and enforces no ceiling it was not given). NOT LISTED, each for a stated reason (a snapshot or a guess would change behaviour, or nen owns the key): values derived at run time (iteration.lane, reports.timeZone; profile.default, which nen derives from profile.allowed, is listed for its options and never given a default); values a reader resolves from a Hatsu canon file only when absent (gates round_policy.minRounds/.maxRounds, nen's keys from v0.21.0); values nen also reads whose built-in default may differ from the skills' (commits.allowedAttributionTrailers, commits.forbiddenTrailers, commits.runTrailer, futon.advanceGo, gates round_policy.stallMinutes, gates version); structural blocks whose shape is the repository's own (models, reports.sections, gates delivery, dependabot_carve_out, checks.excluded, round_quorum, default_approvers, base_reviewers -- Hatsu's check_exclusions and reviewer_fallback are retired, ruling 2026-10-04, and nen v0.21.0 refuses both); and nen/repos.json, nen/labels.json and the YAML files, which tenkai's other items own. Row fields: `kind` enum (a fixed set, `options` lists it) | subset (a list drawn from a fixed set, annotated `any of:`) | open (any value of its shape) | external (needs a step on an outside platform, `setup` names it) | secret-env (an environment-variable NAME, never the secret); `requiredBy` the skills that cannot run while it is unset; `ask` adoption (Tenkai asks for it) | on-use (only some repositories need it: Tenkai offers it, and the first skill in `requiredBy` to run asks then); `when` a <file>#<path> that must be non-empty for the row to apply; `candidatesFrom` a <file>#<path> whose keys are the picker's options; `nullIsAnswer` a null its readers treat as a deliberate answer (ask on each call), never outstanding; `choice: maintainer` a value WORKFLOW § 4 says is typed, never picked (row missing-maintainer-choice): candidates shown for reference, none starred; `sourceTable: false` a default documented in docs/WORKFLOW.md's prose rather than its key tables, which `check-catalogue` then holds to a line naming the key; `nonProductionTarget` `set` refuses a target whose `why` does not read non-production or that is not marked project.targets.<name>.nonProduction: true (nen 0.21+ FAILs schema check without it, zheref/nen#300); `landsByPR` a value that lands through its declaration PR before it runs, so the phase does not resume on it. `nen schema check` stays the authority on each file's validity; this catalogue is Hatsu's list of what Hatsu reads.",
+  "$comment": "The values a consumer may set in its nen/workflow.json, nen/gates.json or nen/contract.json that a Hatsu skill reads and that either carry a canon default safe to write out or are needed by a skill, with the default its readers apply when it is absent. The maintainer's ruling of 2026-10-01 (docs/ROSTER.md § Rulings of 2026-10-01): the configuration files show every optionally settable value at its default, a fixed-set value carries a `$<key>` sibling listing its options, and a skill that needs a value nobody has set guides the maintainer through setting it instead of stopping. scripts/config_values.sh is the only reader: `diagnose` reports, `fill` writes the defaults and annotations (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set` writes one chosen value. Each `default` is the one canon already states, cited in `source`, and `check-catalogue` holds it against docs/WORKFLOW.md's key tables. Two kinds of value are not listed, because writing a snapshot would stop it following its source: one derived at run time (iteration.lane from project.defaultLane, reports.timeZone from the host), and one whose default a reader resolves from a Hatsu canon file only when the key is absent (gates.json round_policy, sharingan § 6 and contracts/round_policy.default.json; nen reads the same keys from v0.21.0 and enforces no ceiling it was not given). LISTED BUT HATSU-OWN: the workflow.intake.challenger.* rows (domain intake) are Hatsu's own policy, read from Hatsu's checkout only and gated by `when: nen/workflow.json#intake`, so fill never writes them into a consumer; a consumer's own intake block is tolerated and never read by emperor-time. NOT LISTED, each for a stated reason (a snapshot or a guess would change behaviour, or nen owns the key): values derived at run time (iteration.lane, reports.timeZone; profile.default, which nen derives from profile.allowed, is listed for its options and never given a default); values a reader resolves from a Hatsu canon file only when absent (gates round_policy.minRounds/.maxRounds, nen's keys from v0.21.0); values nen also reads whose built-in default may differ from the skills' (commits.allowedAttributionTrailers, commits.forbiddenTrailers, commits.runTrailer, futon.advanceGo, gates round_policy.stallMinutes, gates version); structural blocks whose shape is the repository's own (models, reports.sections, gates delivery, dependabot_carve_out, checks.excluded, round_quorum, default_approvers, base_reviewers -- Hatsu's check_exclusions and reviewer_fallback are retired, ruling 2026-10-04, and nen v0.21.0 refuses both); and nen/repos.json, nen/labels.json and the YAML files, which tenkai's other items own. Row fields: `kind` enum (a fixed set, `options` lists it) | subset (a list drawn from a fixed set, annotated `any of:`) | open (any value of its shape) | external (needs a step on an outside platform, `setup` names it) | secret-env (an environment-variable NAME, never the secret); `requiredBy` the skills that cannot run while it is unset; `ask` adoption (Tenkai asks for it) | on-use (only some repositories need it: Tenkai offers it, and the first skill in `requiredBy` to run asks then); `when` a <file>#<path> that must be non-empty for the row to apply; `candidatesFrom` a <file>#<path> whose keys are the picker's options; `nullIsAnswer` a null its readers treat as a deliberate answer (ask on each call), never outstanding; `choice: maintainer` a value WORKFLOW § 4 says is typed, never picked (row missing-maintainer-choice): candidates shown for reference, none starred; `sourceTable: false` a default documented in docs/WORKFLOW.md's prose rather than its key tables, which `check-catalogue` then holds to a line naming the key; `nonProductionTarget` `set` refuses a target whose `why` does not read non-production or that is not marked project.targets.<name>.nonProduction: true (nen 0.21+ FAILs schema check without it, zheref/nen#300); `landsByPR` a value that lands through its declaration PR before it runs, so the phase does not resume on it. `nen schema check` stays the authority on each file's validity; this catalogue is Hatsu's list of what Hatsu reads.",
   "domains": {
     "development": "the inner loop: which checks run while authoring, what launches",
     "versioning": "branches, commits and tags",
@@ -10,7 +10,9 @@
     "notifications": "how the end of a turn is announced",
     "deployment": "non-production destinations a build is sent to",
     "publishing": "release units and production destinations",
-    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them"
+    "intake": "product intake: which intake examiner challenges which part of a brief (Hatsu's own checkout only)",
+    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them",
+    "autonomy": "unattended batches: the typed --idle profile's pre-answered rows, slot release, terminal state and budget (HR-5)"
   },
   "values": [
     {
@@ -320,7 +322,7 @@
       "domain": "port",
       "kind": "open",
       "default": "zheref/bankai-handbooks",
-      "describe": "The owner/name of the canon handbooks repository a port ruling lands in (hatsu:bankai-rule § 2): its ports family is read at the consumer's pinned tag and authored in a separate clone at the cache path, never the canon checkout. The default is the estate's canonical handbooks home (CON-13). Bounded: it must be the consumer's own pinned maintained_tools row (nen canon pin --source), so rulings and the matrix are read from one home; a value with no pinned row is missing-configuration, never a second home. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land. Read at the consumer's base tip, never its head (bankai-rule § 2).",
+      "describe": "The owner/name of the canon handbooks repository a port ruling lands in (hatsu:bankai-rule § 2): its ports family is read at the consumer's pinned tag and authored in a separate clone at the cache path, never the canon checkout. The default is the estate's canonical handbooks home (CON-13). Bounded: it must be the consumer's own pinned maintained_tools row (nen canon pin --source), so rulings and the matrix are read from one home; a value with no pinned row is missing-configuration, never a second home. hiraishin and kamui (zheref/hatsu#357, #356, shipped) reach it through bankai-rule's port-drift and the pair file it names. Read at the consumer's base tip, never its head (bankai-rule § 2).",
       "readers": [
         "bankai-rule"
       ],
@@ -334,7 +336,7 @@
       "domain": "port",
       "kind": "open",
       "default": "handbooks/ports",
-      "describe": "The directory inside workflow.port.handbooksRepo that holds the ports family: one directed pair file <from>--<to>.md per scenario pair and its INDEX.md (hatsu:bankai-rule § 4, rendered from templates/ports/). Read beside handbooks/stacks; the pair file is passed through nen canon resolve --always-load until zheref/nen#457 resolves it as a port handbook. hiraishin and kamui (zheref/hatsu#356, #357) read it too once they land. Bounded: a relative path of [A-Za-z0-9._/-] with no '..' and no leading '/'; the skill and scripts/port_rule_reserve.sh refuse anything else.",
+      "describe": "The directory inside workflow.port.handbooksRepo that holds the ports family: one directed pair file <from>--<to>.md per scenario pair and its INDEX.md (hatsu:bankai-rule § 4, rendered from templates/ports/). Read beside handbooks/stacks; the pair file is passed through nen canon resolve --always-load until zheref/nen#457 resolves it as a port handbook. hiraishin and kamui (zheref/hatsu#357, #356, shipped) reach it through bankai-rule's port-drift and the pair file it names. Bounded: one or more '/'-joined segments of [A-Za-z0-9_-][A-Za-z0-9._-]* -- no empty, '.' or '..' segment, no leading '/' or './'; one trailing '/' is stripped, then the grammar applies, and the pair path is <rulingsDir>/<from>--<to>.md; the skill and scripts/port_rule_reserve.sh refuse anything else.",
       "readers": [
         "bankai-rule",
         "limbo",
@@ -365,6 +367,174 @@
       "question": "Should this repository's AI reviewers be required (requested and waited for), optional (requested, never waited for) or off (never requested, no AI-reviewer spend)?"
     },
     {
+      "id": "workflow.idle.decisions",
+      "file": "nen/workflow.json",
+      "path": "idle.decisions",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": {
+        "harness-attribution-switch": "hold",
+        "host-nen-link": "hold",
+        "missing-consumer-declaration": "default",
+        "missing-argument": "default",
+        "missing-configuration": "default",
+        "missing-maintainer-choice": "hold",
+        "mode-unknown": "default",
+        "direct-mismatch": "default",
+        "port-drift": "hold",
+        "intake-challenger": "hold",
+        "port-siblings": "hold",
+        "wrap-up": "default",
+        "cleanup-plan": "hold",
+        "publish-offer": "refuse",
+        "spec-capture-scope": "hold",
+        "spec-slice": "hold",
+        "spec-clarify": "hold",
+        "spec-dispatch": "hold",
+        "spec-converge-filing": "hold"
+      },
+      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold (publish-offer refuse). A floor fails start at exit 1: publish-offer is always refuse; host-nen-link, harness-attribution-switch and missing-maintainer-choice are at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), the five spec-* rows held (dowsing-chain is not an idle-run skill; spec-capture-scope and spec-converge-filing star an option), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
+    },
+    {
+      "id": "workflow.idle.terminal",
+      "file": "nen/workflow.json",
+      "path": "idle.terminal",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "enum",
+      "default": "ready-at-prompt-or-integration",
+      "options": [
+        "ready-at-prompt-or-integration",
+        "ready-at-prompt"
+      ],
+      "describe": "The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5), or Ready at the prompt only. Never main, never getsuga, mugetsu or kagutsuchi.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle); docs/ROSTER.md HR-5"
+    },
+    {
+      "id": "workflow.idle.budget.minutes",
+      "file": "nen/workflow.json",
+      "path": "idle.budget.minutes",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": 480,
+      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget. One meaning, wall-clock run age, never summed effort minutes: this row owns it and nen#498's settling pass aligns nen run budget to it; tokens stay advisory until nen#490's verb lands.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle)"
+    },
+    {
+      "id": "workflow.idle.budget.tokens",
+      "file": "nen/workflow.json",
+      "path": "idle.budget.tokens",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": 4000000,
+      "describe": "Tokens an idle run may spend. Advisory and unread until zheref/nen#490 lands: no skill sums nen usage itself, and minutes remain the enforced bound.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle)"
+    },
+    {
+      "id": "workflow.intake.challenger.brief",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.brief",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "satotz",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on every brief: its problem, audience, success criteria, priority and scope boundaries, and every artifact the map names no examiner for (HR-26); the Design Direction's challenger is satotz by name, not through this key (HR-31). Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the brief artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+    },
+    {
+      "id": "workflow.intake.challenger.spec",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.spec",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "lippo",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on a brief that touches a specification -- a product family's spec.md, a spec folder, a capture run's output: edge cases, error and boundary states, conflicts with the spec in force. Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the spec artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+    },
+    {
+      "id": "workflow.intake.challenger.platform",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.platform",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "buhara",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on a brief that names a platform -- nearly every brief: each platform's constraints, the parity promised across them, the stack where the product does not exist yet. Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the platform artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+    },
+    {
+      "id": "workflow.intake.challenger.rendered",
+      "file": "nen/workflow.json",
+      "path": "intake.challenger.rendered",
+      "domain": "intake",
+      "when": "nen/workflow.json#intake",
+      "kind": "enum",
+      "default": "bisky",
+      "options": [
+        "satotz",
+        "lippo",
+        "buhara",
+        "bisky"
+      ],
+      "describe": "The intake examiner emperor-time section 4 raises on a brief that names anything rendered: its rendered parts; the Design Direction's drafter is bisky by name, not through this key (HR-27, HR-38). Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "readers": [
+        "emperor-time"
+      ],
+      "question": "Which intake examiner challenges the rendered artifact of a brief?",
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+    },
+    {
       "id": "workflow.monitor.maxCycles",
       "file": "nen/workflow.json",
       "path": "monitor.maxCycles",
@@ -391,6 +561,20 @@
         "sharingan"
       ],
       "source": "en § 1"
+    },
+    {
+      "id": "workflow.monitor.localSlotFrees",
+      "file": "nen/workflow.json",
+      "path": "monitor.localSlotFrees",
+      "domain": "review",
+      "kind": "open",
+      "default": "merged",
+      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by zheref/nen#498's nen loop slots (unreleased, not at the 0.24.0 pin), so until the repin futon section 6 keeps the effort's ready/prompted flags false in its efforts file until the local merge; an idle start fails on any other value.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/ROSTER.md HR-257 (Rulings of 2026-09-30, Slots and stops); docs/WORKFLOW.md § 2 (monitor)"
     },
     {
       "id": "workflow.notifications.rungs",
@@ -495,7 +679,7 @@
       "path": "review.scopes",
       "domain": "review",
       "kind": "open",
-      "describe": "Hanten's routing: scope name → {persona, tier, budget, paths[]}. Without it no change set can be classified and no reviewer raised.",
+      "describe": "Hanten's routing: scope name → {persona, tier, budget, paths[]}. Without it no change set can be classified and no reviewer raised. set refuses an intake examiner (an intake.challenger option) as a persona: examiners challenge only at capture intake, never as hanten reviewers (HR-23).",
       "readers": [
         "hanten"
       ],

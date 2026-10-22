@@ -44,9 +44,9 @@ from the next conversation; `/bakuryuha` fast-forwards it and ends with what to 
 
 The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
-- 57 skills (fifty-six plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
+- 59 skills (fifty-eight plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
 - `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
-- `agents/<persona>.md` — twelve personas plus the preamble include
+- `agents/<persona>.md` — every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include
 - `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
 
 In this mode, no files are written into your target repositories. Open any workspace in Antigravity or use the CLI (`agy`), and run `/ten`.
@@ -63,8 +63,8 @@ Open Antigravity in that repository and run `/ten`. The warm-up performs `--inst
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **57** mirrored skill directories — the fifty-six plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
-| `<repo>/.agents/agents/<persona>.md` | twelve personas plus the preamble include, copied from `surfaces/antigravity/agents/` |
+| `<repo>/.agents/skills/<name>/` | **59** mirrored skill directories — the fifty-eight plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
+| `<repo>/.agents/agents/<persona>.md` | every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include, copied from `surfaces/antigravity/agents/` |
 | `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
 | `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |

@@ -1,0 +1,52 @@
+{
+  "$comment": "Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, Fixtures): a family member's registry carrying the same families[] entry as the spec repository's copy, so section 1 reads no missing-configuration. A member copy that differs from the spec repository's is missing-configuration (HR-16: families[] lands on each member and on the spec repository through its own G2 PR). Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the fixture-* row).",
+  "consumers": [
+    {
+      "repo": "fixture-owner/fixture-ios",
+      "scenario": "swiftui-tca-uzf-v2",
+      "consumes": []
+    }
+  ],
+  "maintained_tools": [
+    {
+      "repo": "zheref/hatsu",
+      "role": "Hatsu workflow and skill prose"
+    },
+    {
+      "repo": "zheref/nen",
+      "role": "Shared deterministic machinery"
+    }
+  ],
+  "product_codes": {
+    "FI": "fixture-owner/fixture-ios",
+    "FA": "fixture-owner/fixture-android",
+    "FW": "fixture-owner/fixture-web",
+    "FS": "fixture-owner/fixture-spec",
+    "HA": "zheref/hatsu",
+    "NN": "zheref/nen"
+  },
+  "families": [
+    {
+      "name": "fixture-family",
+      "spec": {
+        "repo": "fixture-owner/fixture-spec",
+        "role": "spec",
+        "gate": "G2"
+      },
+      "members": [
+        {
+          "code": "FI",
+          "platform": "ios"
+        },
+        {
+          "code": "FA",
+          "platform": "android"
+        },
+        {
+          "code": "FW",
+          "platform": "web"
+        }
+      ]
+    }
+  ]
+}

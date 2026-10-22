@@ -222,7 +222,7 @@ own stack table at resolve time, never memorized:
 **A port pair beside the two stacks.** A review of a port cites the always-load set, the **target's**
 stack handbook and the **ports pair file** `<workflow.port.rulingsDir>/<from>--<to>.md`
 ([`bankai-rule`](../bankai-rule/SKILL.md) § 4; the family lands in `zheref/bankai-handbooks` through
-that skill, the prefix ruled on its adoption PR). `nen canon resolve` at `0.22.0` returns always-load
+that skill; prefix `PT`, one global counter: ROSTER § *Rulings of 2026-10-21 — the port rule prefix (HA#355)*). `nen canon resolve` at `0.22.0` returns always-load
 plus exactly one stack and knows no pair; resolving one is zheref/nen#457. **Until it lands: test the
 pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; absent is
 `port rulings: none` — a port that has met no drift, not an error), **then append its path to

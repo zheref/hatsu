@@ -48,6 +48,42 @@ try {
   calls = readFileSync(log, 'utf8').trim().split('\n');
   assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||', 'API lane not selected');
 
+  writeFileSync(join(repo, 'scripts', 'clause_id_guard.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('clause_id_guard.mts has no required fixture'), 'missing clause-guard fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'clause_id_guard_fixture.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `clause-guard path refused: ${result.stderr}`);
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||', 'clause-guard lane not selected');
+
+  writeFileSync(join(repo, 'scripts', 'prose_ambiguity_check.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('prose_ambiguity_check.mts has no required fixture'), 'missing canon-lint fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'prose_ambiguity_check_fixture.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `canon-lint path refused: ${result.stderr}`);
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
+
+  let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||';
+  for (const [script, fixture, lane] of [['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
+    ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
+    ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard']]) {
+    writeFileSync(join(repo, 'scripts', script), '');
+    result = run();
+    assert(result.status === 2 && result.stderr.includes(`${script} has no required fixture`), `missing ${lane} fixture did not refuse`);
+    writeFileSync(join(repo, 'scripts', fixture), '');
+    writeFileSync(log, '');
+    result = run();
+    assert(result.status === 0, `${lane} path refused: ${result.stderr}`);
+    expected += `,${lane}||`;
+    calls = readFileSync(log, 'utf8').trim().split('\n');
+    assert(calls.join(',') === expected, `${lane} lane not selected (BC-9)`);
+  }
+
   result = run({ HATSU_FAIL_LANE: 'permissions-pack-guard' });
   assert(result.status === 1 && result.stderr.includes('permissions-pack-guard failed'), 'failing lane was not red');
   result = run({}, join(dir, 'missing-nen'));
