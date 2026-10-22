@@ -10,5 +10,3 @@
 - **En's cap ledger outlives the effort worktree.** en §§ 2 and 7 pass `nen loop iterate` a `--repo` that is the git common directory (`git rev-parse --path-format=absolute --git-common-dir`). cleanup § 4 lists `loop`, and the common dir's `.nen/loop/` and `hatsu/`, as records it never removes. `docs/ab/en.md` § *The cap outlives the worktree* is the live check: after the worktree was removed, the next claim read `4/20`, not `1/20`.
 
 - **Bytes paid for the idle prose.** futon dropped its opening tagline, the sentence on a CI-authored PR from before the run, the line *a run that ends with one of its own PRs short of merged has not ended* (§§ 8 and 10 still require the merge), and § 11's restatement of the `then`-step gate, which now cites § 8. § 12 cites WORKFLOW § *Idle batches* instead of restating it. kazaana dropped § 3's `nen loop slots` argv and § 4's restatement of futon § 9, both now cited. en dropped the restated cap mechanics in § 6 and the argv in its Residue retired-verb row, both now cited to § 2. futon and cleanup are smaller than on the base.
-
-Plugin bumped to 0.131.6.

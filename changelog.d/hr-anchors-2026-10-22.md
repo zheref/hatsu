@@ -4,4 +4,4 @@
 
 ### Added
 
-- **`scripts/clause_id_guard.mts`, lane `clause-guard`.** Ported from Akatsuki's clause-id guard: HR definitions are counted and citations never, a duplicated id, a disagreeing anchor or any `id="hr-N"` anchor out of the canonical form exits 1, a gap is a notice capped at 20 listed ids, a tooling failure exits 2 (including an unsafe or oversized id and a path that would forge annotation properties), and HR-2 never matches HR-20. Its fixture runs 24 cases, the last over the live roster. The trusted unit-tests runner selects the lane whenever the guard exists. Plugin bumped to 0.131.6.
+- **`scripts/clause_id_guard.mts`, lane `clause-guard`.** Ported from Akatsuki's clause-id guard: HR definitions are counted and citations never, a duplicated id, a disagreeing anchor or any `id="hr-N"` anchor out of the canonical form exits 1, a gap is a notice capped at 20 listed ids, a tooling failure exits 2 (including an unsafe or oversized id and a path that would forge annotation properties), and HR-2 never matches HR-20. Its fixture runs 24 cases, the last over the live roster. The trusted unit-tests runner selects the lane whenever the guard exists.
