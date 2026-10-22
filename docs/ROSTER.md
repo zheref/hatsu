@@ -966,8 +966,8 @@ change after it lands, [HR-2](#hr-2)).
    quoted verbatim, each row saying which) and which picks depart from the recommendation. A
    paraphrase is the lead's reading and says so; private names are placeheld per
    [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
-3. **The ruling table**, one row per ruling: the HR id with its anchor
-   (`<a id="hr-n"></a>**HR-n**`), the question as asked, the options shown, the pick, the status and
+3. **The ruling table**, one row per ruling: the HR id with its anchor, in the form every HR row
+   above carries, the question as asked, the options shown, the pick, the status and
    what it settles. The status grammar is **How HR ids are read**, in § *Rulings of 2026-10-20 — the
    SDD assessment sitting*, cited, never restated.
 4. **Trailing open rows**: a question the sitting left open is an `OPEN-n` row in § *Open items, in

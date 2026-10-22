@@ -1,7 +1,7 @@
 {
   "$comment": "The canon prose lint ratchet (HR-13; docs/config/prose.lint.json.md). The fail-severity findings the tree carried when the guard landed, keyed by path, rule and normalised text (never a line number). Shrink-only: a PR removes the row of a finding it fixes, in the same commit, and never adds one. PL-03 and PL-04 are never baselined. Prose never cites this file.",
   "frozenAt": {
-    "base": "6ca0bb2ef",
+    "base": "4ed61ee77",
     "read": "node scripts/prose_ambiguity_check.mts --root . --json, on the PR head that froze it"
   },
   "findings": [
@@ -992,7 +992,7 @@
     {
       "path": "claude/skills/hiraishin/SKILL.md",
       "rule": "PL-02",
-      "text": "file in `--always-load` until nen resolves pairs) · `drop",
+      "text": "file in `--always-load` until nen resolves pairs); a conc",
       "count": 1
     },
     {
@@ -1298,7 +1298,7 @@
     {
       "path": "claude/skills/kamui/SKILL.md",
       "rule": "PL-05",
-      "text": "` takes no ignore file, #444). Each body links the m",
+      "text": "` takes no ignore file, #444). Each body is *convent",
       "count": 1
     },
     {
@@ -6705,12 +6705,6 @@
       "path": "docs/config/decisions.json.md",
       "rule": "PL-11",
       "text": "DS CLARIFICATION: …]`, `[NEEDS RULING]` or `[UNVERIFIE — not [NEEDS <row-id>: question]",
-      "count": 1
-    },
-    {
-      "path": "docs/config/decisions.json.md",
-      "rule": "PL-05",
-      "text": "mui` (zheref/hatsu#357, #356, not yet shipped) |",
       "count": 1
     },
     {
