@@ -1416,6 +1416,9 @@ futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/ne
    integration branch (futon § 5, En's recorded delivery merge). **Never a merge into `main`, never
    `getsuga`, `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host
    scheduler may re-invoke the build, never a release.
+6. **Two run manifests, one gate.** Hatsu's run manifest (`hatsu.futon.run/v0.2`, `futon_effort_record.mts`) and
+   nen's (`nen.run/v0.1`, `nen run start|append|verify|budget`) remain two files until the follow-up nen issue
+   lands; **the `then` gate reads Hatsu's record**, and nen's is never read in its place.
 
 ### `classify` — the two label axes, and the one place their vocabulary lives
 
