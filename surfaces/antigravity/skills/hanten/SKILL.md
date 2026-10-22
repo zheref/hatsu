@@ -178,6 +178,6 @@ and render the stop; **nothing else** (PROCESS.md § Authority every phase share
   (§ 4's fallback aside), or with `isolation: "worktree"`; never an exhausted reviewer.
 - Never skips a scan or guard row silently, calls a not-run row clean, or waives the workflow gate.
 - Never records a finding missing `rule` or `evidence`, lets a reviewer file an issue, leaves one
-  undisposed, re-grades a severity away (in a G5 too), or accepts an uncited push-back.
+  undisposed, re-grades a severity away (no G5 option), or accepts an uncited push-back.
 - Never presents an in-session pass as a raised reviewer, by-hand work as a verb's output, or an
   unrecorded spend as recorded.

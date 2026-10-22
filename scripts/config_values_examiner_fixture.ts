@@ -81,6 +81,12 @@ test("--hatsu-root before the mode hides nothing: the guard reads the engine's o
   refused(result, EXAMINER, before);
 });
 
+test("--hatsu-root before fill still writes the section-options annotation", () => {
+  const result = spawnSync("bash", [SCRIPT, "--hatsu-root", HATSU_ROOT, "fill", "--repo", repo], { encoding: "utf8" });
+  assert.equal(result.status, 0, `${result.stdout}${result.stderr}`);
+  assert.match(JSON.parse(written()).pr.$sections, /available sections: /);
+});
+
 test("a literal the engine accepts but strict JSON does not (NaN) is refused, never passed through", () => {
   refused(run("--id", "workflow.review.scopes", "--value", '{"ui":{"persona":"bisky","tier":"fast","budget":NaN,"paths":["x"]}}'), /not strict JSON.*HR-23/, written());
 });

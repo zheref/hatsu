@@ -9,7 +9,7 @@ import { catalogue, defaults, options } from './pr_sections.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
-const mode = args[0];
+let mode = args[0];
 let scratch: string | undefined;
 function plain(value: unknown): string { return String(value).replace(/[\p{Cc}\p{Cf}]/gu, ''); }
 /** HR-23: an intake examiner challenges only at capture intake; machinery, not prose, keeps one out of review.scopes. */
@@ -46,6 +46,8 @@ try {
       root = resolve(args[++i]);
     } else forwarded.push(args[i]);
   }
+  // The engine's mode is the first forwarded token: --hatsu-root may come before it.
+  mode = forwarded[0];
   const declaration = JSON.parse(readFileSync(join(root,'contracts/config-catalogue.json'),'utf8'));
   if (!Array.isArray(declaration.values)) throw new Error('configuration catalogue values must be an array');
   let cat: any;
@@ -62,8 +64,7 @@ try {
       default:'available sections: '+Object.entries(options(cat)).map(([id,purpose])=>`${id} — ${purpose}`).join(' | '),
       readers:['shibari','tensho','jujisho'],requiredBy:[],describe:'Available PR section ids and purposes.'});
   }
-  // The engine's mode is the first forwarded token: --hatsu-root may come before it.
-  if (forwarded[0] === 'set') refuseExaminerReviewer(declaration.values, forwarded.slice(1));
+  if (mode === 'set') refuseExaminerReviewer(declaration.values, forwarded.slice(1));
   scratch = mkdtempSync(join(tmpdir(),'hatsu-config-catalogue-'));
   mkdirSync(join(scratch,'contracts'));
   writeFileSync(join(scratch,'contracts/config-catalogue.json'),JSON.stringify(declaration,null,2)+'\n');
