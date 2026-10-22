@@ -106,7 +106,7 @@ Spec folders and a capture's output are an intake artifact (HR-23): they are cha
 |---|---|---|---|
 | `spec-capture-scope` | ask-once-per-run | after the capability map: **A** all N ⭐ · **B** the typed slugs | A |
 | `spec-slice` | ask-once-per-run, three a call | a shared screen or state reachable from two capabilities | derived per ask |
-| `spec-clarify` | ask-once-per-run: one sitting of at most `spec.clarify.maxQuestions`; `maxRounds` counts successive runs | the ranked markers of the wave; a platform contradiction's options are the two cited readings | derived per ask; **none** for a priority, audience, threshold or *intentional* |
+| `spec-clarify` | ask-once-per-run: one round per run, of at most `spec.clarify.maxQuestions`; `spec.clarify.maxRounds` bounds successive runs (SP-11 as amended on bankai-handbooks #12) | the ranked markers of the wave; a platform contradiction's options are the two cited readings | derived per ask; **none** for a priority, audience, threshold or *intentional* |
 | `spec-claim-unverified` | autonomous | a sentence with no backing row or an unverifiable citation | — (it gets a marker) |
 | `spec-dispatch` | ask-once-per-run, multi-select paged in fours | after a capture merges: `folder · story · member · direct's primary` for every marker-free gap group; **not a G1** (unruled, above): `file` § 4 confirms per dispatch | **none** (the porting rulings' fan-out picker) |
 | `spec-coverage` | human-gate G5 (owed: no skill raises it until shibari's change, [zheref/hatsu#405](https://github.com/zheref/hatsu/issues/405)) | a delivery PR whose Spec section leaves an SC neither satisfied nor deferred, or cites an id the issue does not carry | none |
@@ -136,8 +136,8 @@ Read from the **spec repository's** `nen/workflow.json`. The `port` domain exist
 
 | Key | Proposed default | Options |
 |---|---|---|
-| `spec.clarify.maxQuestions` | `5` | a positive integer — questions per round |
-| `spec.clarify.maxRounds` | `3` | a positive integer — rounds per run |
+| `spec.clarify.maxQuestions` | `5` | a positive integer — questions per round (one round per run) |
+| `spec.clarify.maxRounds` | `3` | a positive integer — successive runs, one round each, before the remaining markers stay open |
 | `spec.capture.foldersPerPr` | `4` | a positive integer — folders per wave PR |
 | `spec.maxBytes` | none | a positive integer — a folder file's ceiling |
 | `spec.autonomy.platformOrder` | none — typed | the members' platforms, in order |
