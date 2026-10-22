@@ -513,7 +513,9 @@ The tree check (`redaction-tree`) needs the live list and stays on the maintaine
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
 stages its file at `templates/<name>`, where the self-test judges it as if installed; the second
 installs it under `.github/workflows/` and moves it to `PORTABLE_HOSTED_WORKFLOWS`, which makes its
-absence a refusal. `PENDING_HOSTED_WORKFLOWS` stays in the validator, empty when nothing is pending, and
+absence a refusal, and removes the staged copy: once the name leaves `PENDING_HOSTED_WORKFLOWS` nothing
+reads `templates/<name>`, so a copy left behind is unread and can drift (`templates/pr-readiness.yml` is
+the one `templates/` twin that legitimately stays, as tenkai's source). `PENDING_HOSTED_WORKFLOWS` stays in the validator, empty when nothing is pending, and
 every per-workflow table is checked at load to cover exactly the workflows it should.
 
 **Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
@@ -538,14 +540,16 @@ through its adapter, so the pre-PR preflight never skips it once step two instal
 `canon-lint`, stays ADVISORY; requiring it after one tagged release of green runs with a shrinking
 baseline is the maintainer's own ruleset edit, never a run's.
 
-**Step two landed (Hatsu 0.134.0).** `prose-ambiguity-check.yml` is installed at
+**2026-10-22. The canon prose lint, step two (HR-13; HA-PR-#420).** `prose-ambiguity-check.yml` is installed at
 `.github/workflows/prose-ambiguity-check.yml`, the staged file moved with only its header comment
 rewritten (the frozen steps are byte for byte the ones step one froze), and its name moved to
 `PORTABLE_HOSTED_WORKFLOWS`; `PENDING_HOSTED_WORKFLOWS` is empty again. The self-test judges the
 installed copy, refuses its absence and refuses the nine hostile edits against it. A
 `pull_request_target` workflow runs from the base branch's copy, so the pull request that installed it
 could not run it: its first live run is the first pull request opened after that merge. The check stays
-ADVISORY, in no ruleset, until the maintainer's own edit after one tagged release of green runs (HR-13).
+ADVISORY for the merge, in no ruleset, until the maintainer's own edit after one tagged release of green
+runs (HR-13); a red run still reads the pull request not-ready under `CON-32(a)`, as a red
+`prose-size-check` does (§ 5 above).
 With the file on `main`, `scripts/trusted_guard_preflight.rb` derives the lint from it on every
 pre-PR run; its adapter hands the lint the trusted contracts from a copy under the root's git-ignored
 `.nen/`, removed with the run, because the lint refuses a `--rules` or `--base-baseline` path
@@ -562,6 +566,10 @@ and the lint's own fixture invokes it through a symlinked directory and requires
 the `plugin-version-refs-guard` lane whenever `scripts/plugin_version_refs.ts` exists beside its
 fixture, so `unit-tests.yml` runs `scripts/plugin_version_refs.ts --check-nen-pin` over the pull
 request's committed tree (the fixture's last case): a repin that leaves `docs/NEN-CONTRACT.md`'s
-echoed pin line stale fails the check. No workflow file changed, so this is a one-step landing; the
+echoed pin line stale fails the check. The lane is the pull request's own definition (`nen shu test --repo
+<PR root>` reads its `nen/contract.json`), so this catches a careless repin, not a hostile one; the pin
+the trusted workflows run on is read from `.trusted`. A pull request that also rewrites the fixture's last
+case or the lane's argv passes it; a trusted frozen step is the later route for that, a two-step landing of
+its own. No workflow file changed, so this is a one-step landing; the
 runner is the base revision's copy, so the lane runs from the first pull request after the one that
 added it merged.
