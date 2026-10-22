@@ -10,8 +10,9 @@ finding** — the date is part of the record.
 
 ## 1. Dry run — `hatsu:hiraishin FI-PR-#42 to FA --dry-run` over the fixtures
 
-**Run: 2026-10-22 (UTC), nen `0.24.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), from a
-Hatsu checkout at `4baf46d65`.** Inputs: `scripts/fixtures/port-family/with-family` (the source's registry:
+**Run: 2026-10-22 (UTC), nen `0.24.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), from the
+working tree of `fable/kurapika/port-term-guard` over base `4baf46d65` — the head this PR lands; every
+command below reads only files that exist at the base too, so it reruns from `main`.** Inputs: `scripts/fixtures/port-family/with-family` (the source's registry:
 `FI`, scenario `swiftui-tca-uzf-v2`; `FA` and `FW` as codes and family members) and
 `scripts/fixtures/spec-family/specs/001-fixture-capability/spec.md` (the spec folder standing in for the
 source feature's spec). **No GitHub call of any kind was made** — `fixture-owner/*` never reaches `gh` or a
@@ -70,7 +71,7 @@ swiftui-tca-uzf-v2
 exit=0
 
 $ nen repo scenario --repo scripts/fixtures/port-family/with-family --target fixture-owner/fixture-android
-nen: 'fixture-owner/fixture-android' is recorded in …/with-family/nen/repos.json (as product code 'FA' ('fixture-owner/fixture-android')), but on no row that can carry a 'scenario' field …
+nen: 'fixture-owner/fixture-android' is recorded in <checkout>/scripts/fixtures/port-family/with-family/nen/repos.json (as product code 'FA' ('fixture-owner/fixture-android')), but on no row that can carry a 'scenario' field -- only consumers[], maintained_tools[] and pending_onboarding[] rows do, and a product_codes value is a name rather than a row. To give it one, add a row for it under maintained_tools[] if it is one of this registry's own tool repositories, pending_onboarding[] if it has not adopted the machinery yet, or consumers[] if it consumes it, with a 'scenario'.
 exit=1
 ```
 
@@ -125,13 +126,15 @@ judgement:
 
 ```
 $ grep -n 'AC-\|FR-\|SC-\|US-' scripts/fixtures/spec-family/specs/001-fixture-capability/spec.md
+4:form once, an acceptance scenario's folder-global `AC-###` (SP-10), MUST only on a `declared` line (FR-002's `[ruled: CL-001]`), the Clarifications session shape, the prose-made line and a longer fence around a backtick run. Every path, sha and value is a placeholder;
 25:### US-1 — A user opens the fixture list (Priority: [NEEDS RULING])
-29:1. **AC-001**: **Given** an empty fixture list, **When** the user opens it, **Then** the empty state is shown. …
-39:- **FR-001**: The system shows the empty state when the list holds no item. …
+29:1. **AC-001**: **Given** an empty fixture list, **When** the user opens it, **Then** the empty state is shown. [src: FI:Tests/FixtureListTests.swift:12-20 @ 0000000000000000000000000000000000000001 · declared] [src: FA:app/src/test/FixtureListTest.kt:30-41 @ 0000000000000000000000000000000000000002 · declared]
+39:- **FR-001**: The system shows the empty state when the list holds no item. [src: FI:Sources/FixtureList/FixtureListState.swift:40-52 @ 0000000000000000000000000000000000000001 · observed]
 40:- **FR-002**: The system MUST keep the list's sort order across a restart. [ruled: CL-001]
 41:- **FR-003**: The system refreshes the list on return to the screen. [UNVERIFIED]
-42:- **FR-004**: The system removes an item the user deletes. … [STALE @ 0000000000000000000000000000000000000000]
+42:- **FR-004**: The system removes an item the user deletes. [src: FW:src/fixture-list/selectors.ts:8-19 @ 0000000000000000000000000000000000000003 · observed] [STALE @ 0000000000000000000000000000000000000000]
 50:- **SC-001**: The empty state appears within a typed threshold of opening the list. [NEEDS RULING]
+60:- **CL-001** — Question as asked: *Is the sort order kept across a restart?* · Options shown: A kept · B reset to default · Answer, verbatim: `A kept` · Rules: FR-002.
 exit=0
 ```
 

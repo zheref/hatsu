@@ -166,14 +166,14 @@ is the opposite case: the guard reads it from the committed named list, as an ex
 - **Tree content:** `bash scripts/private_name_check.sh --tree .`, run by the maintainer, reads every
   tracked and untracked-not-ignored file's contents, its path and a symlink's target, and counts what
   it skips. **The tree reads clean on 2026-10-18 but for ordinary-word names** (HA-PR-#305, zheref/hatsu#289 item 10): three entries on the live list are English words used as words (`docs/DISCOVERY.md`, `docs/WORKFLOW.md`, the skills), and the ignore file carries them — the maintainer's, one `name` or `owner/name` per line, written by `bash scripts/private_name_check.sh --resolve <k>` read at a terminal, never by a session. The tree check is the `redaction-tree` lane (`nen shu test --lane redaction-tree --repo <hatsu>`), run on the maintainer's credentials with that ignore file: issue #149's criterion 2(b), landed. It is still not a CI step, because CI holds no private list. **Without the ignore file the lane is red by design**, and the guard says so — `no ignore file, so nothing ignored`, never `0 ignored` — so a session reports the refusal's mention count and its distinct-index count and hands the red lane to the maintainer — to run with the ignore file, or to resolve the indices at a terminal; a session never judges a refusal to be no leak, and never writes the file to turn the lane green.
-- **Product terms in a public pair file:** [`scripts/product_term_check.sh`](../scripts/product_term_check.sh) is
-  the sibling guard for the words the private-name guard does not know — a product, a screen, a business
+- **Product terms in a public pair file:** [`scripts/product_term_check.mts`](../scripts/product_term_check.mts), behind the shim
+  `product_term_check.sh`, is the sibling guard for the words the private-name guard does not know — a product, a screen, a business
   rule, an object id — in `zheref/bankai-handbooks`' `handbooks/ports/*.md`, which
   [`hatsu:bankai-rule`](../claude/skills/bankai-rule/SKILL.md) § 4 writes and runs it on before any write. It
   reads the maintainer's term list at `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/product-terms`, beside the
   ignore file and under the same rule — on the maintainer's machine, never in a tree, written only by the
-  maintainer — and **refuses with no list** (`missing-configuration`) rather than passing; an object id in a
-  table row is refused by shape with no list at all; a hit prints an index, never the term.
+  maintainer — and **refuses with no list** (`missing-configuration`) rather than passing; an object reference in a
+  table row (an object id, or a `<CODE>#<n>` ref — § *The object-id rule*) is refused by shape with no list at all; a hit prints an index, never the term.
   [`docs/config/ports.md`](config/ports.md) § *The product-term guard* states it once, and the
   `product-term-guard` lane proves it.
 

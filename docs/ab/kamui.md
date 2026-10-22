@@ -9,8 +9,9 @@ date below is part of the record.
 
 ## 1. Dry run — `hatsu:kamui FI-IS-#7 --dry-run` over the fixtures
 
-**Run: 2026-10-22 (UTC), nen `0.24.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), from a
-Hatsu checkout at `4baf46d65`.** Inputs: `scripts/fixtures/port-family/with-family` (the source member's
+**Run: 2026-10-22 (UTC), nen `0.24.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), from the
+working tree of `fable/kurapika/port-term-guard` over base `4baf46d65` — the head this PR lands; every
+command below reads only files that exist at the base too, so it reruns from `main`.** Inputs: `scripts/fixtures/port-family/with-family` (the source member's
 registry, `FI`, scenario `swiftui-tca-uzf-v2`), `scripts/fixtures/port-family/spec-repo` (the family's spec
 repository: registry and `port.specKit.*`) and `scripts/fixtures/spec-family/specs/` (one folder,
 `001-fixture-capability`). **No GitHub call of any kind was made**: `fixture-owner/*` is an unclaimed login
@@ -112,10 +113,17 @@ repository: <checkout>/scripts/fixtures/port-family/spec-repo
   ok    nen/labels.json  4 labels
   ok    nen/repos.json  1 consumers, 6 product codes, latest (unrecorded)
   ok    nen/colors.yml  absent (optional)
-  warn  nen/gates.json  <checkout>/scripts/fixtures/port-family/spec-repo/nen/gates.json: no such file. …
+  warn  nen/gates.json  <checkout>/scripts/fixtures/port-family/spec-repo/nen/gates.json: no such file. Nen reads this repository's taxonomy from 'nen/gates.json' in the TARGET repo and has no built-in copy to fall back on -- a binary that guessed the names would report a taxonomy this repository does not have. Point it at a checkout that carries the file with --repo <path>, or add the file.
   ok    nen/contract.json  absent (optional)
   ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}' off 'main', checks: build
-  …
+  ok    nen/workflow.json#reports.sections  none declared
+  ok    nen/workflow.json#review.scopes  none declared
+  ok    nen/workflow.json#profile  default standard; allowed fast, standard, thorough
+  ok    nen/workflow.json#runners  none declared
+  ok    nen/workflow.json#deploy.defaultTarget  none declared (a caller's tooling asks; nen shu deploy still requires --target)
+  ok    nen/workflow.json#release  none declared (release unit-check refuses an undeclared unit)
+  ok    nen/decisions.json  absent (none declared)
+  ok    .claude/rules/  absent (optional): no .claude/canon-values.yml
 exit=0
 ```
 
@@ -157,11 +165,11 @@ swiftui-tca-uzf-v2
 exit=0
 
 $ nen repo scenario --repo scripts/fixtures/port-family/with-family --target fixture-owner/fixture-android
-nen: 'fixture-owner/fixture-android' is recorded in …/with-family/nen/repos.json (as product code 'FA' ('fixture-owner/fixture-android')), but on no row that can carry a 'scenario' field -- only consumers[], maintained_tools[] and pending_onboarding[] rows do, and a product_codes value is a name rather than a row. …
+nen: 'fixture-owner/fixture-android' is recorded in <checkout>/scripts/fixtures/port-family/with-family/nen/repos.json (as product code 'FA' ('fixture-owner/fixture-android')), but on no row that can carry a 'scenario' field -- only consumers[], maintained_tools[] and pending_onboarding[] rows do, and a product_codes value is a name rather than a row. To give it one, add a row for it under maintained_tools[] if it is one of this registry's own tool repositories, pending_onboarding[] if it has not adopted the machinery yet, or consumers[] if it consumes it, with a 'scenario'.
 exit=1
 
 $ nen repo scenario --repo scripts/fixtures/port-family/with-family --target fixture-owner/fixture-web
-nen: 'fixture-owner/fixture-web' is recorded in … but on no row that can carry a 'scenario' field …
+nen: 'fixture-owner/fixture-web' is recorded in <checkout>/scripts/fixtures/port-family/with-family/nen/repos.json (as product code 'FW' ('fixture-owner/fixture-web')), but on no row that can carry a 'scenario' field -- only consumers[], maintained_tools[] and pending_onboarding[] rows do, and a product_codes value is a name rather than a row. To give it one, add a row for it under maintained_tools[] if it is one of this registry's own tool repositories, pending_onboarding[] if it has not adopted the machinery yet, or consumers[] if it consumes it, with a 'scenario'.
 exit=1
 ```
 

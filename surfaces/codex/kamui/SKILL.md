@@ -41,7 +41,7 @@ nen ref parse '<head>#<n>' --repo <checkout>
 nen repo resolve <CODE> --repo <checkout>
 ```
 
-**One template for both is refused by construction** (probes: HA-PR-#366; the dry run: `docs/ab/kamui.md`). **Any exit `2`** (either parse, `ref parse`) or `repo resolve`'s
+**One template for both is refused by construction** (probes: HA-PR-#366). **Any exit `2`** (either parse, `ref parse`) or `repo resolve`'s
 refusal is `missing-argument`, the verb's line quoted. A `run_id` not shaped as ports.md states is refused
 before any read. **A PR input must be merged into the source's `branch.base`** (*conventions*, the PR-source
 read), else refused naming its state. **Bare `$kamui`**: the object this session is discussing, stated
@@ -155,7 +155,7 @@ ready` verdict quoted; `next: done`; the wrap-up once (row `wrap-up`). Unpicked 
 recommended surface and restart line.
 
 **`--dry-run`** runs § 1, § 2's report, the § 3 folder plan, the sibling list and each filing plan, then
-ends, writing nothing.
+ends, writing nothing (recorded, dated: `docs/ab/kamui.md`).
 
 ## Residue
 

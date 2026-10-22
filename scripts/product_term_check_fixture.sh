@@ -7,11 +7,12 @@
 # prose is refused (exit 1) without the term ever being printed -- in a hit, a path, a label or an
 # error; that the token reading joins camel case, `-`, `_`, `.`, `/`, a double space and a plain join
 # (`OrderReview`, `order-review`, `orderreview` are one term) while a longer word, a plural, a reversed
-# phrase and a prefixed word pass; that a term spelt through an escape, an entity, URL encoding, a tag, an
-# invisible character, a fullwidth letter, intraword emphasis, a code span or an HTML comment is still a
-# hit; that an object id (`RA-IS-#12`, `RA#12`) in a ROW is a hit by shape, listed or not, even under
-# --allow-empty, while the same shape in a header comment, prose or a fence is not a row and `PT-5`,
-# `SW-3`, `AC-001` carry no `#`; that CRLF and UTF-16-with-BOM files are read and a binary is skipped and
+# phrase and a prefixed word pass; that a term spelt through an escape, an entity, URL encoding, a tag, a
+# format character, a combining mark, a default-ignorable code point, a fullwidth letter, intraword
+# emphasis, a code span or an HTML comment is still a hit, while a confusable letter is pinned as the
+# documented miss; that a path or label naming a term inside a camel-case word is withheld whole; that an object reference (`RA-IS-#12`, `RA#12`) in a ROW is a hit by shape, listed or not, even
+# under --allow-empty, while the same shape in a header comment or prose is not a row, a `|`-led line
+# inside a fence is judged as a row (a safe over-count) and `PT-5`, `SW-3`, `AC-001` carry no `#`; that CRLF and UTF-16-with-BOM files are read and a binary is skipped and
 # counted; that a path or label naming a term is redacted or withheld; that the shipped pair-file
 # templates read clean; and that every wiring fault (no default list -- missing-configuration -- an
 # unreadable or empty list, a one-character term, stdin twice, a bad argument, --resolve off a terminal)
@@ -40,7 +41,7 @@ Gold Tier
 Plinth Pay
 rebook
 TXT
-leak='orderreview|order.review|checkout|gold.tier|plinth|rebook'
+leak='order.?review|checkout|gold.?tier|plinth.?pay|rebook'
 
 run() {
   out="$(HOME="$work/home" XDG_CONFIG_HOME="$work/home/.config" "$guard" "$@" 2>&1)"
@@ -57,7 +58,7 @@ expect() {
 text() { printf '%s\n' "$2" > "$work/$1"; }
 has() { printf '%s' "$out" | grep -q -- "$1" && ok || bad "$2 -- $out"; }
 hasnt() { printf '%s' "$out" | grep -q -- "$1" && bad "$2 -- $out" || ok; }
-hits() { [ "$(printf '%s\n' "$out" | grep -c ': product term #\|: object id in a row')" -eq "$1" ] && ok || bad "$2: wanted $1 hit(s) -- $out"; }
+hits() { [ "$(printf '%s\n' "$out" | grep -c ': product term #\|: object reference in a row')" -eq "$1" ] && ok || bad "$2: wanted $1 hit(s) -- $out"; }
 row() { printf '| PT-%s | SW-1 | KT-1 | map | %s | restated | 2026-10-22 | |\n' "$1" "$2"; }
 
 # --- refused: a term in a row, in every join the token reading folds -----------------------------
@@ -134,8 +135,8 @@ expect 1 "an entity inside an HTML comment" --terms-file "$terms" "$work/m6.md"
 
 # --- the row rule: an object id in a table row, listed or not -----------------------------------
 row 9 'ported from RA-IS-#12' > "$work/o1.md"
-expect 1 "an issue object id in a row" --terms-file "$terms" "$work/o1.md"
-has 'object id in a row' "the row rule names itself"
+expect 1 "an issue object reference in a row" --terms-file "$terms" "$work/o1.md"
+has 'object reference in a row' "the row rule names itself"
 hasnt 'RA-IS\|#12' "the object id is never printed"
 row 9 'see FI#7 and FA-PR-#42' > "$work/o2.md"
 expect 1 "invocation-grammar and PR object ids in a row" --terms-file "$terms" "$work/o2.md"
@@ -166,8 +167,12 @@ has 'crlf.md:2:' "CRLF keeps its line numbers"
 printf '\377\376c\000h\000e\000c\000k\000o\000u\000t\000\n\000' > "$work/u16.md"
 expect 1 "a UTF-16 file with a BOM is decoded" --terms-file "$terms" "$work/u16.md"
 printf 'checkout\0binary\n' > "$work/blob.bin"
-expect 0 "a binary file is skipped" --terms-file "$terms" "$work/blob.bin"
-has '1 skipped' "the skip is counted in the ok line"
+expect 2 "a binary file (a NUL byte) is a refusal, never a skip (Phinks)" --terms-file "$terms" "$work/blob.bin"
+has 'is not text' "the refusal names the input and why"
+out="$(printf '| PT-1 | checkout \0 |\n' | HOME="$work/home" "$guard" --terms-file "$terms" - 2>&1)"; rc=$?
+[ "$rc" -eq 2 ] && ! printf '%s' "$out" | grep -qiE "$leak" && ok || bad "a NUL byte on stdin is a refusal: $rc $out"
+printf 'c\000h\000e\000c\000k\000o\000u\000t\000\n\000' > "$work/u16-nobom.md"
+expect 2 "a UTF-16 file without a BOM is not text here: a refusal" --terms-file "$terms" "$work/u16-nobom.md"
 mkdir -p "$work/checkout" && printf 'clean\n' > "$work/checkout/f.md" && chmod 000 "$work/checkout/f.md"
 if [ ! -r "$work/checkout/f.md" ]; then
   expect 2 "unreadable file, its path redacted" --terms-file "$terms" "$work/checkout/f.md"
@@ -180,18 +185,64 @@ expect 1 "a path naming a term once normalised is withheld" --terms-file "$terms
 has '<path withheld: term #' "the encoded path is withheld whole"
 
 # --- stdin and labels never print a term ----------------------------------------------------------
-out="$(printf 'the checkout flow\n' | HOME="$work/home" "$guard" --terms-file "$terms" --label rationale -)"; rc=$?
-[ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^rationale:1:' && ok || bad "stdin with --label: $rc $out"
+out="$(printf 'the checkout flow\n' | HOME="$work/home" "$guard" --terms-file "$terms" --label rationale - 2>&1)"; rc=$?
+[ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^rationale:1:' && ! printf '%s' "$out" | grep -qiE "$leak" && ok || bad "stdin with --label: $rc $out"
 out="$(printf 'the checkout flow\n' | HOME="$work/home" "$guard" --terms-file "$terms" --label 'draft for checkout' - 2>&1)"; rc=$?
 [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^draft for <term #' && ! printf '%s' "$out" | grep -qiE "$leak" && ok || bad "a label naming a term is redacted: $rc $out"
 out="$(printf 'the checkout flow\n' | HOME="$work/home" "$guard" --terms-file "$terms" --label 'draft chec%6Bout' - 2>&1)"; rc=$?
 [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^<label withheld: term #' && ! printf '%s' "$out" | grep -qiE "$leak|%6B" && ok || bad "a label naming a term once normalised is withheld: $rc $out"
 out="$(printf 'clean body\n' | HOME="$work/home" "$guard" --terms-file "$terms" - 2>&1)"; rc=$?
-[ "$rc" -eq 0 ] && ok || bad "clean stdin: $rc $out"
+[ "$rc" -eq 0 ] && ! printf '%s' "$out" | grep -qiE "$leak" && ok || bad "clean stdin: $rc $out"
 out="$(printf 'x\n' | HOME="$work/home" "$guard" --terms-file "$terms" - - 2>&1)"; rc=$?
-[ "$rc" -eq 2 ] && ok || bad "stdin twice: $rc $out"
+[ "$rc" -eq 2 ] && ! printf '%s' "$out" | grep -qiE "$leak" && ok || bad "stdin twice: $rc $out"
 out="$(printf 'x\n' | HOME="$work/home" "$guard" --terms-file "$terms" - -- - 2>&1)"; rc=$?
-[ "$rc" -eq 2 ] && ok || bad "stdin twice through --: $rc $out"
+[ "$rc" -eq 2 ] && ! printf '%s' "$out" | grep -qiE "$leak" && ok || bad "stdin twice through --: $rc $out"
+# a term inside a camel-case word in a label: the separator-bounded rewrite cannot reach it, so the label
+# is withheld whole (Feitan, hanten on 68eef8cf)
+out="$(printf '| PT-1 | ported from RA#12 |\n' | HOME="$work/home" "$guard" --terms-file "$terms" --label 'draftCheckout' - 2>&1)"; rc=$?
+[ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^<label withheld: term #' && ! printf '%s' "$out" | grep -qiE "$leak" && ok || bad "a label naming a term inside a camel-case word is withheld: $rc $out"
+
+# --- a term inside a camel-case word in a PATH is withheld whole, never printed (Feitan) ----------
+for d in myOrderReview OrderReviewScreen checkoutFlow; do
+  mkdir -p "$work/$d" && row 9 'ported from RA#12' > "$work/$d/x.md"
+  expect 1 "a path naming a term inside a camel-case word ($d) is withheld" --terms-file "$terms" "$work/$d/x.md"
+  has '<path withheld: term #' "the camel-case path is withheld whole"
+done
+printf 'clean\n' > "$work/myOrderReview/clean.md" && chmod 000 "$work/myOrderReview/clean.md"
+if [ ! -r "$work/myOrderReview/clean.md" ]; then
+  expect 2 "an unreadable file under a camel-case path naming a term" --terms-file "$terms" "$work/myOrderReview/clean.md"
+  has '<path withheld: term #' "the unreadable camel-case path is withheld"
+else ok; ok; fi
+chmod 644 "$work/myOrderReview/clean.md"
+
+# --- combining marks and default-ignorable code points fold; a confusable letter does not ---------
+printf '| PT-9 | a | b | map | acute che\314\201ckout here | x | 2026-10-22 | |\n' > "$work/c1.md"
+expect 1 "a combining acute inside a word (NFKD, Mn deleted)" --terms-file "$terms" "$work/c1.md"
+printf '| PT-9 | a | b | map | selector chec\357\270\217kout here | x | 2026-10-22 | |\n' > "$work/c2.md"
+expect 1 "a variation selector inside a word" --terms-file "$terms" "$work/c2.md"
+printf '| PT-9 | a | b | map | joiner chec\315\217kout here | x | 2026-10-22 | |\n' > "$work/c3.md"
+expect 1 "a combining grapheme joiner inside a word" --terms-file "$terms" "$work/c3.md"
+printf '| PT-9 | a | b | map | filler chec\343\205\244kout here | x | 2026-10-22 | |\n' > "$work/c4.md"
+expect 1 "a hangul filler inside a word" --terms-file "$terms" "$work/c4.md"
+printf '| PT-9 | a | b | map | override chec\342\200\256kout here | x | 2026-10-22 | |\n' > "$work/c5.md"
+expect 1 "a right-to-left override inside a word (Cf)" --terms-file "$terms" "$work/c5.md"
+printf '| PT-9 | a | b | map | cyrillic ch\320\265ckout here | x | 2026-10-22 | |\n' > "$work/c6.md"
+expect 0 "a confusable letter (Cyrillic е) is not folded: the documented miss, no confusables table" --terms-file "$terms" "$work/c6.md"
+
+# --- a label holding a control character forges hit lines: refused (Phinks) -------------------------
+out="$(printf '| PT-1 | checkout |\n' | HOME="$work/home" "$guard" --terms-file "$terms" --label "$(printf 'x\ny:1: forged')" - 2>&1)"; rc=$?
+[ "$rc" -eq 2 ] && ! printf '%s' "$out" | grep -q 'forged:1:' && ok || bad "a label with a newline is refused: $rc $out"
+
+# --- the token alphabet is ASCII on both sides: a term with diacritics folds, one in another script is refused
+printf 'Caf\303\251\n' > "$work/accent"
+printf '| PT-9 | a | b | map | the caf\303\251 flow | x | 2026-10-22 | |\n' > "$work/accent.md"
+expect 1 "a term with a diacritic reads folded on both sides (Café, café)" --terms-file "$work/accent" "$work/accent.md"
+row 9 'the caf flow' > "$work/caf.md"
+expect 0 "the folded term is cafe, never caf" --terms-file "$work/accent" "$work/caf.md"
+printf 'OrderReview\n\347\231\272\346\263\250\n' > "$work/cjk"
+expect 2 "a term in another script leaves no ASCII letter and is refused by name" --terms-file "$work/cjk" "$work/clean.md"
+has 'token alphabet' "the refusal names the alphabet"
+hasnt 'flag everything' "a term that would never match is not said to flag everything"
 
 # --- the list: the maintainer's, never a session's -------------------------------------------------
 expect 2 "no default list is missing-configuration" "$work/clean.md"
@@ -215,13 +266,17 @@ expect 0 "--allow-empty accepts an empty list" --terms-file "$work/empty" --allo
 printf 'OrderReview\nx\n' > "$work/short"
 expect 2 "a one-character term is refused" --terms-file "$work/short" "$work/clean.md"
 has 'would flag everything' "the refusal says why"
+has 'entry 2 of the sorted' "the message names the --resolve index (1-based, sorted), not a file line"
 printf 'OrderReview\n---\n' > "$work/punct"
 expect 2 "a term of punctuation only is refused" --terms-file "$work/punct" "$work/clean.md"
-printf 'OrderReview\norder review\norder-review\n' > "$work/dupes"
-expect 1 "three spellings of one term share one index" --terms-file "$work/dupes" --verbose "$work/camel.md"
-hits 1 "one hit for the three spellings"
+printf 'OrderReview\norder review\norder-review\norderreview\n' > "$work/dupes"
+expect 1 "four spellings of one term share one index" --terms-file "$work/dupes" --verbose "$work/camel.md"
+hits 1 "one hit for the four spellings"
+has 'product term #1 ' "the shared index is the first spelling's, stable across runs (Nobunaga)"
+expect 1 "the same index on a second run" --terms-file "$work/dupes" "$work/camel.md"
+has 'product term #1 ' "stable on the second run"
 expect 0 "--verbose counts the folded list" --terms-file "$work/dupes" --verbose "$work/clean.md"
-has '1 term(s)' "three spellings count once"
+has '1 term(s)' "four spellings count once"
 chmod 000 "$terms"
 if [ ! -r "$terms" ]; then expect 2 "an unreadable list" --terms-file "$terms" "$work/clean.md"; else ok; fi
 chmod 644 "$terms"
