@@ -28,6 +28,11 @@
     "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?What\\ the\\ guards\\ prove[ \\t]*$"
   },
   {
+    "name": "verify-content",
+    "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?What\\ the\\ guards\\ prove[ \\t]*$(?=(?:\\s|<!--[\\s\\S]*?-->)*(?!#{1,6}[ \\t]|<!--)\\S)",
+    "content": true
+  },
+  {
     "name": "checklist",
     "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Completion\\ checklist[ \\t]*$"
   },

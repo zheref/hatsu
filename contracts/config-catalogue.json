@@ -11,7 +11,8 @@
     "deployment": "non-production destinations a build is sent to",
     "publishing": "release units and production destinations",
     "intake": "product intake: which intake examiner challenges which part of a brief (Hatsu's own checkout only)",
-    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them"
+    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them",
+    "autonomy": "unattended batches: the typed --idle profile's pre-answered rows, slot release, terminal state and budget (HR-5)"
   },
   "values": [
     {
@@ -366,6 +367,90 @@
       "question": "Should this repository's AI reviewers be required (requested and waited for), optional (requested, never waited for) or off (never requested, no AI-reviewer spend)?"
     },
     {
+      "id": "workflow.idle.decisions",
+      "file": "nen/workflow.json",
+      "path": "idle.decisions",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": {
+        "harness-attribution-switch": "hold",
+        "host-nen-link": "hold",
+        "missing-consumer-declaration": "default",
+        "missing-argument": "default",
+        "missing-configuration": "default",
+        "missing-maintainer-choice": "hold",
+        "mode-unknown": "default",
+        "direct-mismatch": "default",
+        "port-drift": "hold",
+        "intake-challenger": "hold",
+        "port-siblings": "hold",
+        "wrap-up": "default",
+        "cleanup-plan": "hold",
+        "publish-offer": "refuse",
+        "spec-capture-scope": "hold",
+        "spec-slice": "hold",
+        "spec-clarify": "hold",
+        "spec-dispatch": "hold",
+        "spec-converge-filing": "hold"
+      },
+      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold (publish-offer refuse). A floor fails start at exit 1: publish-offer is always refuse; host-nen-link, harness-attribution-switch and missing-maintainer-choice are at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), the five spec-* rows held (dowsing-chain is not an idle-run skill; spec-capture-scope and spec-converge-filing star an option), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
+    },
+    {
+      "id": "workflow.idle.terminal",
+      "file": "nen/workflow.json",
+      "path": "idle.terminal",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "enum",
+      "default": "ready-at-prompt-or-integration",
+      "options": [
+        "ready-at-prompt-or-integration",
+        "ready-at-prompt"
+      ],
+      "describe": "The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5), or Ready at the prompt only. Never main, never getsuga, mugetsu or kagutsuchi.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle); docs/ROSTER.md HR-5"
+    },
+    {
+      "id": "workflow.idle.budget.minutes",
+      "file": "nen/workflow.json",
+      "path": "idle.budget.minutes",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": 480,
+      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget. One meaning, wall-clock run age, never summed effort minutes: this row owns it and nen#498's settling pass aligns nen run budget to it; tokens stay advisory until nen#490's verb lands.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle)"
+    },
+    {
+      "id": "workflow.idle.budget.tokens",
+      "file": "nen/workflow.json",
+      "path": "idle.budget.tokens",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": 4000000,
+      "describe": "Tokens an idle run may spend. Advisory and unread until zheref/nen#490 lands: no skill sums nen usage itself, and minutes remain the enforced bound.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle)"
+    },
+    {
       "id": "workflow.intake.challenger.brief",
       "file": "nen/workflow.json",
       "path": "intake.challenger.brief",
@@ -476,6 +561,20 @@
         "sharingan"
       ],
       "source": "en § 1"
+    },
+    {
+      "id": "workflow.monitor.localSlotFrees",
+      "file": "nen/workflow.json",
+      "path": "monitor.localSlotFrees",
+      "domain": "review",
+      "kind": "open",
+      "default": "merged",
+      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by zheref/nen#498's nen loop slots (unreleased, not at the 0.24.0 pin), so until the repin futon section 6 keeps the effort's ready/prompted flags false in its efforts file until the local merge; an idle start fails on any other value.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/ROSTER.md HR-257 (Rulings of 2026-09-30, Slots and stops); docs/WORKFLOW.md § 2 (monitor)"
     },
     {
       "id": "workflow.notifications.rungs",

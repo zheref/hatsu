@@ -113,12 +113,13 @@ Which attribution trailers a prospective commit may carry. The maintainer's ruli
 
 ### `monitor`
 
-`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `.nen/loop/<id>.json`, keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle.
+`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `<git common dir>/.nen/loop/<id>.json` — en §§ 2 and 7 pass `nen loop iterate` the git common directory as `--repo`, so the cap outlives the effort worktree and `hatsu:cleanup` never removes it — keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle. The block also holds futon's local-slot release (`localSlotFrees`, HR-257).
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `maxCycles` | open (integer) | **`20`** | En's acting-cycle cap on one PR. A different number from `nen/gates.json` → `round_policy.maxRounds`, the reviewer-round cap | `hatsu:en`, `hatsu:senkei`, `hatsu:izanagi` (through `nen loop iterate`) |
 | `pollSeconds` | open (integer) | **`300`** | Seconds between En's quiet observations of a pending PR | `hatsu:en`, `hatsu:sharingan` |
+| `localSlotFrees` | fixed | **`merged`**, the only value an `--idle` `start` accepts | When an effort's local slot (futon § 6) frees: at its local merge, for every futon run — HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*). Its reader is zheref/nen#498's `nen loop slots`, unreleased and not at the `0.24.0` pin, whose verb frees at `ready+prompted`; until the repin futon § 6 keeps the effort's `ready`/`prompted` flags false in its efforts file until the local merge ([WORKFLOW § 2](../WORKFLOW.md#monitor)), a gap owed until the repin | `hatsu:futon` § 6, `hatsu:kazaana`, `nen loop slots` (zheref/nen#498, unreleased), `futon_effort_record.mts start` |
 
 ### `profile`
 
@@ -241,12 +242,23 @@ Self-hosted GitHub Actions runner naming and pools, provisioned by `hatsu:jusshi
 
 ### `port.specKit`
 
-Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
+Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356) and `hatsu:dowsing-chain` §§ 1, 4 ([`spec-repo.md`](spec-repo.md)); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` §§ 2–3 |
-| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` §§ 2–3 |
+| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` §§ 2–3, `hatsu:dowsing-chain` §§ 3–4 |
+| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` §§ 2–3, `hatsu:dowsing-chain` § 4 |
+
+### `idle`
+
+The **idle profile** (HR-5), read only by a `hatsu:futon` or `hatsu:kazaana` run whose typed line carries `--idle`, never by an attended one. Catalogue domain `autonomy`, `when: nen/workflow.json#idle`: the rows apply where the block is declared, and an absent key is its catalogue default. `scripts/futon_effort_record.mts start` reads it from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed), and records that commit as the run manifest's `idle.source`. nen tolerates the block and reads none of it. The protocol is [`WORKFLOW.md`](../WORKFLOW.md) § 4 *Idle batches*; the key table is § 2 `idle`.
+
+| Key | Catalogue id | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|---|
+| `decisions` | `workflow.idle.decisions` | open (object) | one of `default` · `hold` · `refuse` per `ask-once-per-run` row of `nen/decisions.json`; **`default` where the row stars an option, `hold` otherwise**, with `harness-attribution-switch`, `host-nen-link`, `cleanup-plan`, `port-drift` and the five `spec-*` rows (the starred `spec-capture-scope` and `spec-converge-filing` among them: `dowsing-chain` is not an idle-run skill) `hold` and `publish-offer` `refuse` | The batch answer to each ask-once row. A row the map does not name is `hold` (`publish-offer` `refuse`). A floor fails `start` at exit 1: `publish-offer` is always `refuse`; `host-nen-link`, `harness-attribution-switch` and `missing-maintainer-choice` at most `hold`; `default` on a row that stars no option | `hatsu:futon` § 12, `hatsu:kazaana` § 1, `futon_effort_record.mts start` |
+| `terminal` | `workflow.idle.terminal` | enum | **`ready-at-prompt-or-integration`** · `ready-at-prompt` | The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch; never `main`, `getsuga`, `mugetsu` or `kagutsuchi` | `hatsu:futon` § 12, `hatsu:kazaana` |
+| `budget.minutes` | `workflow.idle.budget.minutes` | open (integer) | **`480`** | The enforced bound: minutes since the manifest's `startedAt` (one meaning, wall-clock run age; nen#498 aligns `nen run budget` to it), read as `status`'s `overBudget`; past it the rest park as `parked:budget` | `hatsu:futon` § 12, `futon_effort_record.mts status` |
+| `budget.tokens` | `workflow.idle.budget.tokens` | open (integer) | **`4000000`** | Advisory and unread until zheref/nen#490 lands; no skill sums `nen usage` itself | none yet |
 
 ### Keys a consuming repository may add
 
@@ -284,7 +296,7 @@ Illustrative only: a plain product repository on the default lane `app`, with a 
     "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by",
                           "Generated-by", "Generated-with", "Reviewed-by"]
   },
-  "monitor": { "maxCycles": 20, "pollSeconds": 300 },
+  "monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "merged" },
   "profile": { "allowed": ["fast", "standard", "thorough"],
                "$allowed": "any of: fast | standard | thorough",
                "$default": "one of: fast | standard | thorough" },

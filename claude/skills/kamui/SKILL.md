@@ -79,8 +79,9 @@ a `spec.md` it changes carries the object. One hit **amends that folder** — an
 that PR then § 4's `specPr`; several → asked; none → a new folder.
 **The pinned set** (`github/spec-kit` `v1.2.2`, read 2026-10-20 from its `templates/`): `specs/<nnn>-<slug>/`
 with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`,
-`checklists/requirements.md`; once, `.specify/memory/constitution.md`, citing `CON-{n}`, never overriding
-it. `<nnn>`: the next free three digits across `origin/<base>` and open spec PRs' folders. `spec.md`'s header
+`checklists/requirements.md`, plus Hatsu's two (ports.md § *Product-level divergence*): `spec.md`'s
+private `## Platform decisions` and the folder's `port-ledger.md`; once, `.specify/memory/constitution.md`,
+citing `CON-{n}`, never overriding it. `<nnn>`: the next free three digits across `origin/<base>` and open spec PRs' folders. `spec.md`'s header
 cites the source and its linked objects; **verbatim source text only as fenced source data** (*conventions*);
 platform sections where platforms differ. Every file passes `private_name_check.sh`. The PR runs
 [`ren`](../ren/SKILL.md) → [`aka`](../aka/SKILL.md) → [`mukai`](../mukai/SKILL.md) → [`en`](../en/SKILL.md)
@@ -122,16 +123,14 @@ gh issue view <N> --repo <owner/name> --json title,body,labels
 ```
 
 Each `'` in the title becomes `'\''`; a newline refuses (no `--title-file` at `0.22.0`, zheref/nen#444).
-The second line is the **explicit read-back** (`idea file` takes no ignore file, #444). Each body links the
-merged spec folder and the source; **the source issue stays its own**, never closed or superseded.
+The second line is the **explicit read-back**. Each body is
+*conventions*' port issue body, never a link alone; **the source issue stays its own**, never closed or superseded.
 
 ## 6. The record, and `resume`
 
-ports.md § *The run record*: `schema`, `caller: kamui`, `runId`, `source`, `family`, `specRepo`, `specPr`,
-`specFolder`, `targets[]`, `next`, `at`, written at each step boundary. `resume <run-id>` runs ports.md's
-checks — a `caller: hiraishin` record **refused**, its resume line named — **recomputes the step from live
-state** (no `siblings` or `start` before `specPr` reads `MERGED` or `specFolder` stands on `origin/<base>`),
-and continues from any checkout.
+ports.md § *The run record*, `caller: kamui`, written at each step boundary. `resume <run-id>` runs
+ports.md's checks — a `caller: hiraishin` record **refused**, **the step recomputed from live state** — and
+continues from any checkout.
 
 ## 7. The start picker — multi-pick, sequential here
 
@@ -142,13 +141,14 @@ is the decision to start here, said once (*conventions*: a build's end). Picks r
 [`hatsu:build`](../build/SKILL.md) one after another, **visibility re-read** before each start; **kamui
 holds build's phase 6** (the wrap-up; en § 8's `rikugan` renders as usual): each build's merge prompt stays
 on § 8's register while the next starts; a build's G5 stops the chain (`next: start`, the rest recorded);
-any other end is recorded `stopped`, the chain continues. A behaviour with no target idiom is `port-drift`,
-raised through `bankai-rule` § 5; **a kamui run is one port run**.
+any other end is recorded `stopped`, the chain continues. A behaviour with no target idiom is
+`port-drift` through `bankai-rule` § 5, after `## Platform decisions` is read; kamui owns each answer's
+amendment PR and fills the ledger's `PR` cell at the build's end; sequencing per ports.md (HR-6); **a kamui run is one port run**.
 
 ## 8. Ending the run
 
 `bankai-rule` opens the run's one rulings PR where a `port-drift` ruling was recorded (#355); then
-[`rikugan`](../rikugan/SKILL.md) `for <the spec PR and every port issue and PR> as register`, each `nen pr
+[`rikugan`](../rikugan/SKILL.md) `for <the spec and amendment PRs, every port issue and PR> as register`, each `nen pr
 ready` verdict quoted; `next: done`; the wrap-up once (row `wrap-up`). Unpicked issues: named with their
 recommended surface and restart line.
 
@@ -162,11 +162,10 @@ zheref/nen#453, #454, #444, #450.
 
 ## Authority
 
-- **Permitted:** reads; setup declaration PRs; the spec PR through `mukai`; `nen issue file`/comment on
+- **Permitted:** reads; setup declaration PRs; the spec PR and its amendment PR (ports.md) through `mukai`; `nen issue file`/comment on
   picked siblings; direct's publish; the record; `hatsu:build` per start pick.
-- **Not permitted:** a merge; `gh repo create`; a family, product, private repository or business rule in
-  Hatsu's registry or a public tree; a stage or G1 mode label; a build before the merge; closing the source
-  issue.
+- **Not permitted:** `gh repo create`; a family, product, private repository or business rule in
+  Hatsu's registry or a public tree; a stage or G1 mode label.
 
 ## Hard limits
 

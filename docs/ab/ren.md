@@ -6,7 +6,7 @@ pass per request, never pushing, ending only on `hatsu:aka` or `hatsu:tensho`.
 
 > **Dated 2026-09-10 — the turn's order changed after this record was written.** The header line
 > above reads step 2 as `rasengan`-the-build, and the record's own § 2 table calls it *build*. The
-> maintainer's ruling of 2026-09-10 ([`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*) folds
+> maintainer's ruling of 2026-09-10 ([`../ROSTER.md`](../ROSTER.md) HR-55, HR-58) folds
 > that step into `rasengan`, which is the **authoring** phase, and seats the compile-before-commit in
 > `kokusen`. The order is now six whole steps: `breath`¹ (and it proves the base tip) → `rasengan`²
 > (author the change) → `kokusen`³ (verify the tree, then commit) → `amaterasu`⁴ → `spiritual-message`⁵ →
