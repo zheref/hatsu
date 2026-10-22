@@ -25,6 +25,16 @@ function expectStatus(result: ReturnType<typeof spawnSync>, status: number, name
 }
 try {
   expectStatus(execute('git', ['init', '-q']), 0, 'git init');
+  const git = (argv: string[]) => execute('git', ['-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', ...argv]);
+  mkdirSync(join(root, 'nen'));
+  // SEC-15: the idle profile is read from the remote default branch only; publish to origin/main.
+  const commitWorkflow = (value: unknown, message: string, publish = true) => {
+    writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify(value));
+    expectStatus(git(['add', 'nen/workflow.json']), 0, `stage ${message}`);
+    expectStatus(git(['commit', '-q', '-m', message]), 0, `commit ${message}`);
+    if (publish) expectStatus(git(['update-ref', 'refs/remotes/origin/main', 'HEAD']), 0, `publish ${message}`);
+  };
+  commitWorkflow({}, 'empty declaration');
   const gh = join(bin, 'gh');
   writeFileSync(gh, `#!/usr/bin/env node
 const a=process.argv.slice(2); const e=process.env;
@@ -148,14 +158,7 @@ else process.exit(2);
   assert.equal(existsSync(lock), false, 'the stale lock is gone after the park');
   expectStatus(manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon --idle hatsu@model/gpt']), 0,
     '--idle typed before @ is stripped before nen parse');
-  const git = (argv: string[]) => execute('git', ['-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', ...argv]);
-  mkdirSync(join(root, 'nen'));
-  const commitWorkflow = (value: unknown, message: string) => {
-    writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify(value));
-    expectStatus(git(['add', 'nen/workflow.json']), 0, `stage ${message}`);
-    expectStatus(git(['commit', '-q', '-m', message]), 0, `commit ${message}`);
-  };
-  const idleStart = () => manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle']);
+  const idleStart = (env: Record<string, string> = {}) => manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle'], env);
   commitWorkflow({ idle: { decisions: { 'wrap-up': 'always' } } }, 'out of vocabulary');
   expectStatus(idleStart(), 1, 'a resolution outside default|hold|refuse refused');
   for (const [row, resolution] of [['publish-offer', 'default'], ['publish-offer', 'hold'], ['host-nen-link', 'default'],
@@ -173,15 +176,28 @@ else process.exit(2);
   assert.match(partialOut, /pre-answered mode-unknown → default/);
   assert.match(partialOut, /pre-answered cleanup-plan → hold/, 'an unnamed row holds');
   assert.match(partialOut, /pre-answered publish-offer → refuse/, 'an unnamed publish-offer refuses');
-  assert.match(partialOut, /idle profile read from HEAD at [0-9a-f]{40}/, 'the committed source is recorded');
+  assert.match(partialOut, /idle profile read from origin\/main at [0-9a-f]{40}/, 'the committed source is recorded');
   writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify({ idle: { decisions: { 'publish-offer': 'default' } } }));
   expectStatus(idleStart(), 0, 'an uncommitted working-tree edit is never read');
   const good = String(git(['rev-parse', 'HEAD']).stdout).trim();
-  expectStatus(git(['update-ref', 'refs/remotes/origin/main', good]), 0, 'origin/main at the good commit');
   expectStatus(git(['commit', '-q', '-a', '-m', 'bad on HEAD']), 0, 'commit a forbidden map on HEAD');
   const based = idleStart();
-  expectStatus(based, 0, 'the base branch\'s committed copy wins over HEAD');
+  expectStatus(based, 0, 'the default branch\'s committed copy wins over HEAD');
   assert.match(String(based.stdout), new RegExp(`idle profile read from origin/main at ${good}`));
+  // SEC-15: HEAD's branch.base never picks the ref; a pushed branch it names is never read.
+  commitWorkflow({ branch: { base: 'evil' }, idle: { decisions: { 'cleanup-plan': 'default' } } }, 'base redirected', false);
+  expectStatus(git(['update-ref', 'refs/remotes/origin/evil', 'HEAD']), 0, 'push the redirect target');
+  const redirected = idleStart();
+  expectStatus(redirected, 0, 'a branch.base on HEAD never redirects the read');
+  assert.match(String(redirected.stdout), new RegExp(`idle profile read from origin/main at ${good}`));
+  assert.match(String(redirected.stdout), /pre-answered cleanup-plan → hold/, 'the redirected default never applies');
+  expectStatus(idleStart({ FAKE_DEFAULT: 'trunk' }), 1, 'an unfetched default branch refuses the start, never falls back to HEAD');
+  const empty = String(git(['hash-object', '-t', 'tree', '/dev/null']).stdout).trim();
+  const bare = String(git(['commit-tree', empty, '-m', 'no declaration']).stdout).trim();
+  expectStatus(git(['update-ref', 'refs/remotes/origin/bare', bare]), 0, 'a default branch with no nen/workflow.json');
+  const refused = idleStart({ FAKE_DEFAULT: 'bare' });
+  expectStatus(refused, 1, 'a default branch with no nen/workflow.json refuses the start');
+  assert.match(String(refused.stderr), /has no nen\/workflow\.json/, 'the refusal names its reason');
   console.log('futon-effort: start, bind, refresh, missing/stale/default/foreign-selector refusals, the run manifest and the idle floor passed');
 } finally {
   rmSync(scratch, { recursive: true, force: true });

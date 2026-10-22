@@ -2,8 +2,9 @@
 // Local, durable evidence that a delivery PR belongs to one typed Futon run, and the run manifest:
 // every PR the run opened, whatever its base, and an idle run's pre-answered and parked rows (HR-5).
 // Stored under the Git common directory, outside every PR-controlled tree. The idle profile is read from
-// the COMMITTED nen/workflow.json of origin/<branch.base> (else HEAD's committed copy), never the working
-// tree, and the commit it came from is recorded in the manifest's idle.source.
+// the COMMITTED nen/workflow.json of the remote default branch only (origin/HEAD, else gh's
+// defaultBranchRef; SEC-15), never HEAD or a ref HEAD names, never the working tree; a default branch
+// with no nen/workflow.json refuses the start, and the commit read is recorded in idle.source.
 import { execFileSync } from 'node:child_process';
 import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
@@ -28,7 +29,7 @@ type Kind = 'delivery' | 'integration' | 'release';
 type Opened = { issue: number | null; pr: number; base: string; kind: Kind; head: string };
 type Resolution = 'default' | 'hold' | 'refuse';
 type Idle = { decisions: Array<{ row: string; resolution: Resolution }>; localSlotFrees: string; terminal: string;
-  budget: { minutes: number; tokens: number }; source: { ref: string | null; commit: string | null } };
+  budget: { minutes: number; tokens: number }; source: { ref: string; commit: string } };
 type Parked = { issue: number; row: string; at: string };
 // v0.1 runs (no manifest) still read; every new start writes v0.2.
 type RunRecord = { contract: 'hatsu.futon.run/v0.1' | 'hatsu.futon.run/v0.2'; id: string; repo: string; invocation: string;
@@ -151,22 +152,25 @@ function splitIdle(line: string): { invocation: string; idle: boolean } {
 function parseFuton(root: string, line: string): Parsed {
   return json<Parsed>('nen', ['parse', 'futon', '--repo', root, splitIdle(line).invocation, '--json'], root);
 }
-// The committed nen/workflow.json the idle profile is read from: origin/<branch.base> (branch.base from
-// HEAD's committed copy, else main), falling back to HEAD; never the working tree, never a symlink.
-function committedWorkflow(root: string): { declared: unknown; ref: string | null; commit: string | null } {
+// The committed nen/workflow.json the idle profile is read from: the REMOTE DEFAULT branch only
+// (origin/HEAD, else gh's defaultBranchRef), never a ref HEAD's own commit names, never HEAD, never the
+// working tree, never a symlink (SEC-15). A default ref with no nen/workflow.json refuses the start.
+function committedWorkflow(root: string): { declared: unknown; ref: string; commit: string } {
   const tryRun = (args: string[]): string | null => { try { return run('git', args, root); } catch { return null; } };
-  const read = (ref: string): { declared: unknown; ref: string; commit: string } | null => {
-    const commit = tryRun(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]);
-    if (!commit) return null;
-    const entry = tryRun(['ls-tree', commit, 'nen/workflow.json']);
-    if (!entry) return null;
-    if (entry.startsWith('120000')) fail(`nen/workflow.json at ${ref} is a symlink`);
-    return { declared: JSON.parse(run('git', ['show', `${commit}:nen/workflow.json`], root)), ref, commit };
-  };
-  const head = read('HEAD');
-  const branch = (head?.declared as { branch?: { base?: unknown } } | undefined)?.branch?.base;
-  const base = typeof branch === 'string' && /^[A-Za-z0-9._/-]+$/.test(branch) ? branch : 'main';
-  return read(`origin/${base}`) ?? head ?? { declared: {}, ref: null, commit: null };
+  const symbolic = tryRun(['symbolic-ref', '--quiet', 'refs/remotes/origin/HEAD']);
+  let branch = symbolic?.startsWith('refs/remotes/origin/') ? symbolic.slice('refs/remotes/origin/'.length) : null;
+  if (!branch) {
+    try { branch = json<{ defaultBranchRef: { name: string } }>('gh', ['repo', 'view', '--json', 'defaultBranchRef'], root).defaultBranchRef.name; }
+    catch { fail('idle profile unread: the remote default branch is unknown (no origin/HEAD, gh repo view failed)'); }
+  }
+  if (!branch || !/^[A-Za-z0-9._/-]+$/.test(branch)) fail(`idle profile unread: default branch name ${branch} is malformed`);
+  const ref = `origin/${branch}`;
+  const commit = tryRun(['rev-parse', '--verify', '--quiet', `refs/remotes/${ref}^{commit}`]);
+  if (!commit) fail(`idle profile unread: ${ref} is not fetched`);
+  const entry = tryRun(['ls-tree', commit, 'nen/workflow.json']);
+  if (!entry) fail(`idle profile unread: ${ref} at ${commit} has no nen/workflow.json`);
+  if (entry.startsWith('120000')) fail(`nen/workflow.json at ${ref} is a symlink`);
+  return { declared: JSON.parse(run('git', ['show', `${commit}:nen/workflow.json`], root)), ref, commit };
 }
 // Rows an idle run may never pre-answer past a floor: publish-offer is always refuse (HR-5, never a release);
 // the maintainer's own host and harness acts, and the never-derived maintainer choice (2026-09-23), at most hold.
@@ -309,7 +313,7 @@ function main(argv: string[]): void {
       invocation, selector, startedAt: new Date().toISOString(), idle, prs: [], parked: [] };
     writeRecord(runPath(root, id, true), run);
     console.log(`futon-effort: run ${id} recorded for ${run.repo}@${selector}${idle ? ' (idle)' : ''}`);
-    if (idle) console.log(`futon-effort: idle profile read from ${idle.source.ref ?? 'the catalogue defaults'}${idle.source.commit ? ` at ${idle.source.commit}` : ''}`);
+    if (idle) console.log(`futon-effort: idle profile read from ${idle.source.ref} at ${idle.source.commit}`);
     for (const row of idle?.decisions ?? []) console.log(`futon-effort: pre-answered ${row.row} → ${row.resolution}`);
     return;
   }

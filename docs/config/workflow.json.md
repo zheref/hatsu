@@ -251,7 +251,7 @@ Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](r
 
 ### `idle`
 
-The **idle profile** (HR-5), read only by a `hatsu:futon` or `hatsu:kazaana` run whose typed line carries `--idle`, never by an attended one. Catalogue domain `autonomy`, `when: nen/workflow.json#idle`: the rows apply where the block is declared, and an absent key is its catalogue default. `scripts/futon_effort_record.mts start` reads it from the **committed** `nen/workflow.json` of `origin/<branch.base>` (else `HEAD`'s committed copy), never the working tree, and records that commit as the run manifest's `idle.source`. nen tolerates the block and reads none of it. The protocol is [`WORKFLOW.md`](../WORKFLOW.md) § 4 *Idle batches*; the key table is § 2 `idle`.
+The **idle profile** (HR-5), read only by a `hatsu:futon` or `hatsu:kazaana` run whose typed line carries `--idle`, never by an attended one. Catalogue domain `autonomy`, `when: nen/workflow.json#idle`: the rows apply where the block is declared, and an absent key is its catalogue default. `scripts/futon_effort_record.mts start` reads it from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed), and records that commit as the run manifest's `idle.source`. nen tolerates the block and reads none of it. The protocol is [`WORKFLOW.md`](../WORKFLOW.md) § 4 *Idle batches*; the key table is § 2 `idle`.
 
 | Key | Catalogue id | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|---|
