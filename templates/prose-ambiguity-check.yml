@@ -69,8 +69,9 @@ jobs:
 
       - name: Set up Node for the canon prose lint
         # The guard is TypeScript run by node's type stripping (>= 22.18); pinned as
-        # unit-tests.yml pins it, so the runner image's node never decides the verdict.
-        uses: actions/setup-node@v7
+        # unit-tests.yml pins it, so the runner image's node never decides the verdict. The action is
+        # pinned by full commit SHA (SEC-14): this job holds a checks: write token.
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           package-manager-cache: false

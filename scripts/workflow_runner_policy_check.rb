@@ -431,7 +431,9 @@ PROSE_FROZEN_GUARD = {
 CANON_LINT_WORKFLOW = "prose-ambiguity-check.yml"
 CANON_LINT_STEP = "Canon prose lint"
 CANON_LINT_NODE_STEP = "Set up Node for the canon prose lint"
-CANON_LINT_NODE_USES = "actions/setup-node@v7"
+# Pinned by full commit SHA (SEC-14), as READINESS_RENDERED_CHECKOUT is: the job holds a
+# checks: write token, so a floating tag is never admitted. v7.1.0.
+CANON_LINT_NODE_USES = "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1"
 CANON_LINT_FROZEN_NODE = {
   "uses" => CANON_LINT_NODE_USES,
   "with" => {
@@ -3758,6 +3760,7 @@ def self_test(root)
           ["canon lint without the base baseline", %Q{ --base-baseline "$PWD/$base"}, "", CANON_LINT_STEP],
           ["canon lint growing against the PR's own baseline", "base=.trusted/contracts/prose.lint.baseline.json", "base=contracts/prose.lint.baseline.json", CANON_LINT_STEP],
           ["canon lint on an unpinned node", "node-version: '24'", "node-version: 'latest'", CANON_LINT_NODE_STEP],
+          ["canon lint's setup-node on a floating tag", "uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0", "uses: actions/setup-node@v7", CANON_LINT_NODE_STEP],
           ["canon lint that passes a finding", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
           ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
           ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]
