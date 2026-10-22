@@ -14,17 +14,25 @@ let scratch: string | undefined;
 function plain(value: unknown): string { return String(value).replace(/[\p{Cc}\p{Cf}]/gu, ''); }
 /** HR-23: an intake examiner challenges only at capture intake; machinery, not prose, keeps one out of review.scopes. */
 function refuseExaminerReviewer(rows: any[], argv: string[]): void {
-  const flag = (name: string) => { const at = argv.indexOf(name); return at >= 0 ? argv[at+1] : undefined; };
-  const literal = flag('--value');
-  if (flag('--id') !== 'workflow.review.scopes' || literal === undefined) return;
+  // The frozen engine's own argv walk: a flag consumes the next token, and the last occurrence wins.
+  const opts: Record<string, string> = {};
+  for (let i=0; i<argv.length; i++) {
+    if (argv[i] === '--json') continue;
+    if (['--repo','--skill','--id','--value','--domain'].includes(argv[i]) && i+1 < argv.length) { opts[argv[i]] = argv[++i]; continue; }
+    return; // the engine refuses an unknown or incomplete argument itself
+  }
+  if (opts['--id'] !== 'workflow.review.scopes' || opts['--value'] === undefined) return;
   // The examiner set is the catalogue's intake.challenger options: one list, never a second copy here.
-  const examiners = new Set(rows.filter(row => String(row.path ?? '').startsWith('intake.challenger.')).flatMap(row => row.options ?? []).map(String));
+  // hanten § 3 resolves claude/agents/<persona>.md, so a path or a namespaced form still reaches the file.
+  const fold = (name: string) => plain(name).normalize('NFKC').trim().toLowerCase().split(/[\\/]/).pop()!.replace(/^hatsu:/, '').replace(/\.md$/, '').trim();
+  const examiners = new Set(rows.filter(row => String(row.path ?? '').startsWith('intake.challenger.')).flatMap(row => row.options ?? []).map(fold));
   if (examiners.size === 0) throw new Error('refusing workflow.review.scopes: the catalogue names no intake examiner (intake.challenger.* options) to refuse');
   let value: unknown;
-  try { value = JSON.parse(literal); } catch { return; } // the engine refuses a malformed literal itself
+  // Fail closed: the engine's json.loads accepts literals (NaN, Infinity) this check cannot read.
+  try { value = JSON.parse(opts['--value']); } catch { throw new Error('refusing workflow.review.scopes: --value is not strict JSON, so no intake examiner check can read it (HR-23)'); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) return;
   for (const [scope, entry] of Object.entries(value as Record<string, any>)) {
-    const persona = typeof entry?.persona === 'string' ? entry.persona.trim().toLowerCase() : '';
+    const persona = typeof entry?.persona === 'string' ? fold(entry.persona) : '';
     if (examiners.has(persona)) throw new Error(`refusing review.scopes.${scope}.persona = ${JSON.stringify(entry.persona)}: an intake examiner (${[...examiners].join(' | ')}) challenges only at capture intake and is never a hanten reviewer (HR-23)`);
   }
 }
@@ -54,7 +62,8 @@ try {
       default:'available sections: '+Object.entries(options(cat)).map(([id,purpose])=>`${id} — ${purpose}`).join(' | '),
       readers:['shibari','tensho','jujisho'],requiredBy:[],describe:'Available PR section ids and purposes.'});
   }
-  if (mode === 'set') refuseExaminerReviewer(declaration.values, forwarded);
+  // The engine's mode is the first forwarded token: --hatsu-root may come before it.
+  if (forwarded[0] === 'set') refuseExaminerReviewer(declaration.values, forwarded.slice(1));
   scratch = mkdtempSync(join(tmpdir(),'hatsu-config-catalogue-'));
   mkdirSync(join(scratch,'contracts'));
   writeFileSync(join(scratch,'contracts/config-catalogue.json'),JSON.stringify(declaration,null,2)+'\n');
