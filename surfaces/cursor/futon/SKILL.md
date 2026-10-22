@@ -68,7 +68,7 @@ is reported **truncated**. Then:
 - **`bankai:handbook-question` items and design calls are briefed, never guessed**, and never hold
   the scope open.
 - **Shape** (HR-4): `node "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N>` per selected
-  issue; a non-zero exit skips it, registered **needs-clarification**, never authored.
+  issue; a non-zero exit skips it, **needs-clarification**: blocked, never authored (§ 10).
 - **Order within the scope** with `nen backlog order`, as `backlog-loop` § 5 does.
 
 **State the queue before advancing anything** — count, issues, exclusions and why.

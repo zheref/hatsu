@@ -1,6 +1,6 @@
 # Plugin-owned registries — the data files a consumer reads but never edits
 
-> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `pr-composition-guard`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
+> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `pr-composition-guard`, `issue-shape`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
 
 ## What it decides
 

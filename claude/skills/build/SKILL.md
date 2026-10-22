@@ -40,8 +40,7 @@ nen repo resolve <CODE> --repo <this checkout>
 ```
 
 Case-insensitive; **a code is resolved, never guessed**; a missing argument or configuration item is
-asked for and set up inline (`missing-argument`, `missing-configuration`;
-[`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
+asked for and set up inline (`missing-argument`, `missing-configuration`).
 
 **If `#<N>` is a PR** (`node '<Hatsu root>/scripts/gh_api_read.mts' issue-pr <owner/repo> <N>`; substitute the absolute root),
 run [`hatsu:en on <CODE>#<N>`](../en/SKILL.md); do not re-author.
@@ -63,7 +62,7 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
   maintainer's decision (`CON-4`), never an agent's.
 - **Read requirements**: title, body, acceptance criteria, constraints, then `node
   "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N> --json` (zheref/nen#476, #477): an open `OQ-{n}`
-  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4).
+  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4); exit `2`, `3` or `5` a G5, never a pass.
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
@@ -168,7 +167,7 @@ Every report follows [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting
 delivery PR `CON-32`-Ready (rows `merge`, `canon-merge`), a `MERGE` whose verdict says everything. **G5**: a
 stuck build or capability gap, `DECIDE`/`DO` with the proposed issue (a tool per `missing-tool`). The run
 **ends** when the PR stands Ready at its gate, the issue is closed, § 1 handed a PR to `en`, direct's **B**
-ended it, `en` was offered and not started, or at a G5 stop — any other ending is a G5: say which, and that the
+ended it, `en` was offered and not started, or at a G1 or G5 stop — any other ending is a G5: say which, and that the
 delegation lapsed.
 
 ## 8. Resuming & Residue

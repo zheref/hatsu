@@ -117,6 +117,17 @@ assert.deepEqual(ids(good.replace("- ~~OQ-1~~ → A: the build stops (2026-10-21
 assert.deepEqual(ids(good.replace("- ~~OQ-1~~ → A: the build stops (2026-10-21, HR-4)", "- what about later?")), ["row-shape"]);
 assert.deepEqual(ids(good.replace("- ~~OQ-1~~", "- ~~OQ-2~~")), ["numbering"]);
 assert.equal(checkBody(good.replace("does", "x"), "product", catalogue).ok, false, "product requires its own sections");
+const oqLine = "- ~~OQ-1~~ → A: the build stops (2026-10-21, HR-4)";
+assert.deepEqual(ids(good.replace(oqLine, "OQ-1 (G1): written as prose?")), ["row-shape"], "a row id outside a list item fails closed");
+assert.deepEqual(ids(good.replace(oqLine, "1. OQ-1 (G1): a numbered item?")), ["row-shape"]);
+assert.deepEqual(ids(good.replace(oqLine, "* OQ-1 (G1): a starred item?")), ["row-shape"]);
+assert.deepEqual(ids(good.replace("- AC-2: Given", "AC-2: Given")), ["row-shape"]);
+assert.deepEqual(ids(good.replace(oqLine, "None.").replace("Run the check", "- OQ-1 (G1): hidden in plan notes?\n\nRun the check")), ["misplaced-row"]);
+assert.deepEqual(ids(`- OQ-1 (G1): above every heading?\n\n${good}`), ["misplaced-row"]);
+assert.deepEqual(ids(good.replace("Then the build proceeds", `Then ${"When ".repeat(1000)}`)), ["line-too-long"], "an over-long row is refused before any pattern runs");
+const started = Date.now();
+checkBody(good.replace("Then the build proceeds", `the ${"When x ".repeat(560)}`), "machinery", catalogue);
+assert.ok(Date.now() - started < 2000, "a long row without Then settles in under two seconds");
 
 // 8. Hostile text never reaches the report raw.
 const hostile = checkBody(good.replace("- AC-2: Given", "- AC-2: \u001b[31mGiven"), "machinery", catalogue);

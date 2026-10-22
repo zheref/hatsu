@@ -18,7 +18,9 @@
 //
 // WHAT IS A MISS: a required heading absent or empty; a heading twice; an
 // optional heading present but empty; a list item in a rows section that is
-// not that section's row shape; row numbers not 1..n in order; a success row
+// not that section's row shape, or a row id outside a list item; a question
+// row outside its section; a line over 4,000 characters in a rows section
+// (never fed to the row patterns); row numbers not 1..n in order; a success row
 // carrying no number or percentage; a vague adjective or a technology term in
 // an acceptance row; and every OPEN question row (HR-4: a build refuses an
 // issue with an open row, a batch skips it).
@@ -62,6 +64,8 @@ type Catalogue = {
 type Block = { title: string; line: number; lines: { text: string; line: number }[] };
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+const MAX_LINE = 4000;
+const ROW_ID = /\b(AC|SC|AS|OQ)-[0-9]+\b/;
 const USAGE = "usage: node scripts/issue_body_check.mts (--body-file <path> | --ref <CODE>#<N>) [--kind <kind>] [--repo <checkout>] [--json]";
 
 class Stop extends Error {
@@ -83,14 +87,14 @@ const clean = (text: string): string => text.replace(/[\x00-\x08\x0b-\x1f\x7f]/g
 function blocks(body: string): Block[] {
   // Comments become blank lines so line numbers still name the body's own lines.
   const text = body.replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?(-->|$)/g, (m) => m.replace(/[^\n]/g, ""));
-  const out: Block[] = [];
+  const out: Block[] = [{ title: "", line: 0, lines: [] }];
   let fenced = false;
   text.split("\n").forEach((raw, index) => {
     const line = index + 1;
     if (/^\s*(```|~~~)/.test(raw)) fenced = !fenced;
     const heading = fenced ? null : /^##\s+(.+?)\s*#*\s*$/.exec(raw);
     if (heading && !raw.startsWith("###")) { out.push({ title: heading[1].trim(), line, lines: [] }); return; }
-    if (out.length) out[out.length - 1].lines.push({ text: raw, line });
+    out[out.length - 1].lines.push({ text: raw, line });
   });
   return out;
 }
@@ -106,7 +110,8 @@ export function checkBody(body: string, kind: string | null, catalogue: Catalogu
   const spec = kind ? catalogue.kinds[kind] : { required: catalogue.common, optional: [] as string[] };
   if (!spec) throw new Stop(2, `unknown kind '${kind}'; the catalogue names ${Object.keys(catalogue.kinds).join(", ")}`);
   const found = new Map<string, Block>();
-  for (const block of blocks(body)) {
+  const all = blocks(body);
+  for (const block of all.slice(1)) {
     const key = block.title.toLowerCase();
     if (found.has(key)) miss("duplicate-section", block.title, block.line, `'## ${block.title}' appears more than once`);
     else found.set(key, block);
@@ -128,7 +133,13 @@ export function checkBody(body: string, kind: string | null, catalogue: Catalogu
     const numbers: number[] = [];
     for (const entry of content) {
       const text = entry.text.trim();
-      if (!text.startsWith("- ") && !text.startsWith("* ")) continue;
+      if (text.length > MAX_LINE) { miss("line-too-long", section.heading, entry.line, `a line of ${text.length} characters; rows are read up to ${MAX_LINE}`); continue; }
+      const listItem = /^([-*+]|[0-9]+[.)])\s/.test(text);
+      if (!listItem) {
+        // A row id outside a list item would escape the count: fail closed (HR-4).
+        if (ROW_ID.test(text)) miss("row-shape", section.heading, entry.line, `a row id outside a '- ' list item: '${text}'`);
+        continue;
+      }
       if (!new RegExp(rows.prefix).test(text)) { miss("row-shape", section.heading, entry.line, `a list item that is not a row: '${text}'`); continue; }
       const open = new RegExp(rows.pattern).exec(text);
       const closed = rows.resolvedPattern ? new RegExp(rows.resolvedPattern).exec(text) : null;
@@ -162,6 +173,18 @@ export function checkBody(body: string, kind: string | null, catalogue: Catalogu
     const expected = numbers.map((_, index) => index + 1);
     if (numbers.some((n, index) => n !== expected[index])) {
       miss("numbering", section.heading, block.line, `rows numbered ${numbers.join(",")}; expected 1..${numbers.length} in order`);
+    }
+  }
+  // A question row anywhere but its own section, the text above the first heading included, is
+  // never left uncounted (HR-4).
+  const questions = found.get(catalogue.sections["open-questions"].heading.toLowerCase());
+  const prefix = new RegExp(catalogue.rows.question.prefix);
+  for (const block of all) {
+    if (block === questions) continue;
+    for (const entry of block.lines) {
+      if (entry.text.length <= MAX_LINE && prefix.test(entry.text.trim())) {
+        miss("misplaced-row", block.title || null, entry.line, `a question row outside '## ${catalogue.sections["open-questions"].heading}'`);
+      }
     }
   }
   report.ok = misses.length === 0;
