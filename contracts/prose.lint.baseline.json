@@ -992,12 +992,6 @@
     {
       "path": "claude/skills/hiraishin/SKILL.md",
       "rule": "PL-05",
-      "text": "` takes no ignore file, #444); an amend quotes its c",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hiraishin/SKILL.md",
-      "rule": "PL-05",
       "text": "en**: a file-fed title (#444), a dangling clause ref",
       "count": 1
     },
@@ -1287,12 +1281,6 @@
       "path": "claude/skills/jutaisho/SKILL.md",
       "rule": "PL-05",
       "text": "age <m>`, a fixed argv (#289). **Residue:** `osascri",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/kamui/SKILL.md",
-      "rule": "PL-05",
-      "text": "` takes no ignore file, #444). Each body is *convent",
       "count": 1
     },
     {

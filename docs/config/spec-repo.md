@@ -47,7 +47,7 @@ As [`ports.md`](ports.md) § *Shared conventions* states them: `{slug}` (a capab
 
 **Never renumbered after a merge.** A reversed statement gets a new id and a `supersedes <id>` line; a removed one keeps its id under a marker.
 
-**No `OQ-{n}` rows in a family `spec.md`.** An open question is the `[NEEDS CLARIFICATION: …]` marker of § *Citations and markers* (row `spec-clarify`), Spec Kit's form of HR-4's bound marker, settled by `[ruled: CL-nnn]`, never an `OQ-{n}` row. **An acceptance scenario is UZF-21(d)'s `AC-###`** (SP-10): the numbered scenario under a `US-n` in the pinned Spec Kit layout carries it, folder-global, `F<nnn>-AC-###` outside the folder. The per-member difference lives in `parity.md` (SP-6), and `spec.md` § `## Platform decisions` is the record of the maintainer's typed words that a parity row cites.
+**No `OQ-{n}` rows in a family `spec.md`.** An open question is the `NEEDS CLARIFICATION` marker of § *Citations and markers* (row `spec-clarify`), Spec Kit's form of HR-4's bound marker, settled by `[ruled: CL-nnn]`, never an `OQ-{n}` row. **An acceptance scenario is UZF-21(d)'s `AC-###`** (SP-10): the numbered scenario under a `US-n` in the pinned Spec Kit layout carries it, folder-global, `F<nnn>-AC-###` outside the folder. The per-member difference lives in `parity.md` (SP-6), and `spec.md` § `## Platform decisions` is the record of the maintainer's typed words that a parity row cites.
 
 ## Citations and markers
 
@@ -173,7 +173,7 @@ Validated whole and newline-refusing (Python `re.fullmatch`), before any path is
 
 ## Fixtures
 
-[`../../scripts/fixtures/spec-family/`](../../scripts/fixtures/spec-family/) — offline inputs only, every slug a `fixture-*` placeholder ([`PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)), never handed to a networked command. **No lane runs them yet** (owed, [zheref/hatsu#405](https://github.com/zheref/hatsu/issues/405)); they are inputs, checked by hand. **The `nen repo classify` and `nen repo resolve` readings below hold only on a copy of `spec-repo/` into its own repository whose origin is `fixture-owner/fixture-spec`**; run in place they read the enclosing Hatsu checkout's slug, role canon, gate G4:
+[`../../scripts/fixtures/spec-family/`](../../scripts/fixtures/spec-family/) — offline inputs only, every slug a `fixture-*` placeholder ([`PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)), never handed to a networked command. **No lane runs them yet** (owed, [zheref/hatsu#405](https://github.com/zheref/hatsu/issues/405)); they are inputs, checked by hand:
 
 | Path | Inputs for |
 |---|---|
@@ -181,6 +181,8 @@ Validated whole and newline-refusing (Python `re.fullmatch`), before any path is
 | `member/nen/repos.json` | a member's copy of the same `families[]` (identical, so no `missing-configuration`) |
 | `specs/001-fixture-capability/spec.md` | every citation and marker form once, the Clarifications session shape, the prose-made line, and a source-data block carrying a triple-backtick run inside a longer fence — the input the owed `nen spec check` is tested against |
 | `run-record.json` | a `hatsu.spec.run/v0.1` record at `next: constitution` |
+
+**The `nen repo classify` and `nen repo resolve` readings above hold only on a copy of `spec-repo/` into its own repository whose origin is `fixture-owner/fixture-spec`**; run in place they read the enclosing Hatsu checkout's slug, role canon, gate G4.
 
 ## Sources
 
