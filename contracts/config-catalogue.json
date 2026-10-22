@@ -397,21 +397,6 @@
       "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
     },
     {
-      "id": "workflow.idle.localSlotFrees",
-      "file": "nen/workflow.json",
-      "path": "idle.localSlotFrees",
-      "domain": "autonomy",
-      "when": "nen/workflow.json#idle",
-      "kind": "open",
-      "default": "merged",
-      "describe": "When an idle run frees a local slot (futon section 6): at its local or delivery merge, the one value ROSTER § Rulings of 2026-09-30, Slots and stops rules; any other value fails start.",
-      "readers": [
-        "futon",
-        "kazaana"
-      ],
-      "source": "docs/WORKFLOW.md § 2 (idle); docs/ROSTER.md § Rulings of 2026-09-30, Slots and stops"
-    },
-    {
       "id": "workflow.idle.terminal",
       "file": "nen/workflow.json",
       "path": "idle.terminal",
@@ -571,6 +556,20 @@
         "sharingan"
       ],
       "source": "en § 1"
+    },
+    {
+      "id": "workflow.monitor.localSlotFrees",
+      "file": "nen/workflow.json",
+      "path": "monitor.localSlotFrees",
+      "domain": "review",
+      "kind": "open",
+      "default": "merged",
+      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; nen loop slots reads it, and an idle start fails on any other value.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/ROSTER.md HR-257 (Rulings of 2026-09-30, Slots and stops); docs/WORKFLOW.md § 2 (monitor)"
     },
     {
       "id": "workflow.notifications.rungs",

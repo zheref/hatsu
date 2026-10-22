@@ -705,7 +705,7 @@ wording — so the two verbs cannot disagree about what is admitted. On top of t
 ### `monitor`
 
 ```json
-"monitor": { "maxCycles": 20, "pollSeconds": 300 }
+"monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "merged" }
 ```
 
 `en`'s `izanagi` cap and its poll interval. **The cap is grammar, not a default**: a watch loop invoked
@@ -730,10 +730,14 @@ worth stating here rather than only in the skills:
   session, the cap is per landing. Ending a landing closes the ledger with `--release <why>`, which a cap
   never blocks.
 
+| Key | Default | Read by |
+|---|---|---|
+| `localSlotFrees` | `merged` | `futon` § 6, every futon run, attended or `--idle`: **fixed** at `merged` by HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*) — an effort's local slot frees at its local merge. The one key that says so; `nen loop slots` reads it (absent, nen frees at `ready+prompted`, earlier than HR-257), and an `--idle` `start` (`futon_effort_record.mts`) fails on any other value |
+
 ### `idle`
 
 ```json
-"idle": { "decisions": { "<ask-once row>": "default" }, "localSlotFrees": "merged",
+"idle": { "decisions": { "<ask-once row>": "default" },
           "terminal": "ready-at-prompt-or-integration", "budget": { "minutes": 480, "tokens": 4000000 } }
 ```
 
@@ -745,7 +749,6 @@ default. § *Idle batches* is the protocol.
 | Key | Default | Read by |
 |---|---|---|
 | `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` otherwise; `harness-attribution-switch` and `host-nen-link` `hold` (each stars an act on the maintainer's own harness or host), `cleanup-plan` `hold` (an unattended remote branch deletion can close a stacked child, § *Stacked pull requests*), `port-drift` `hold` (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354), `publish-offer` `refuse` (HR-5: never a release) | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name is `hold` (`publish-offer` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer` is always `refuse`; `host-nen-link`, `harness-attribution-switch` and `missing-maintainer-choice` are at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. Read from the **committed** `nen/workflow.json` of `origin/<branch.base>` (else `HEAD`'s committed copy), never the working tree; the commit is recorded as the manifest's `idle.source` |
-| `localSlotFrees` | `merged` | `futon` § 6 under `--idle`: **fixed** at `merged`, ROSTER § *Rulings of 2026-09-30*, *Slots and stops* — a slot frees at its local merge. Any other value fails `start` |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5); `ready-at-prompt` stops short of the integration merge. Never `main`, never `getsuga` or `mugetsu` |
 | `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim: minutes since the run manifest's `startedAt` (`futon_effort_record.mts status`, `overBudget`) are the **enforced** bound; past it no effort is claimed and the rest park as `parked:budget`. `tokens` is **advisory and unread** until `nen run budget` lands (zheref/nen#490): no skill sums `nen usage` itself |
 
@@ -1409,7 +1412,7 @@ futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/ne
 4. **Bounds.** Before each claim, `status` gives the elapsed minutes against `idle.budget.minutes`
    (`overBudget`); past it nothing new is claimed and the rest park as `parked:budget`. **Minutes are the
    enforced bound; `idle.budget.tokens` is advisory and unread** until zheref/nen#490 lands — never an
-   improvised sum of nen's records. A local slot frees at its merge (`idle.localSlotFrees`, fixed `merged`);
+   improvised sum of nen's records. A local slot frees at its merge (`monitor.localSlotFrees`, fixed `merged`, HR-257);
    `nen loop slots` reads no record yet (zheref/nen#487), overlap is still judged (zheref/nen#488) and stage
    exclusivity unchecked (zheref/nen#489). En's cap is the git common dir's (en § 2).
 5. **Terminal.** `idle.terminal`: every PR Ready at its merge prompt, or merged into a **non-main**

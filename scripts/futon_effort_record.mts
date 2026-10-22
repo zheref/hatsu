@@ -203,9 +203,11 @@ function idleProfile(root: string): Idle {
     if (resolution === 'default' && !starred) fail(`idle.decisions.${row} may not be default: the row stars no option`);
     return { row, resolution: resolution as Resolution };
   });
-  const localSlotFrees = pick('localSlotFrees');
+  // HR-257 binds every futon run, so the key lives in monitor, the block nen loop slots reads.
+  const monitor = source.declared && typeof source.declared === 'object' ? (source.declared as { monitor?: { localSlotFrees?: unknown } }).monitor : undefined;
+  const localSlotFrees = monitor?.localSlotFrees ?? catalogue.values.find((row) => row.id === 'workflow.monitor.localSlotFrees')?.default;
   if (localSlotFrees !== 'merged')
-    fail('idle.localSlotFrees must be merged (ROSTER § Rulings of 2026-09-30, Slots and stops)');
+    fail('monitor.localSlotFrees must be merged (HR-257, Slots and stops)');
   const terminal = pick('terminal');
   if (terminal !== 'ready-at-prompt-or-integration' && terminal !== 'ready-at-prompt')
     fail('idle.terminal must be ready-at-prompt-or-integration or ready-at-prompt');
@@ -213,7 +215,7 @@ function idleProfile(root: string): Idle {
   const tokens = pick('budget.tokens');
   if (!Number.isSafeInteger(minutes) || (minutes as number) < 1 || !Number.isSafeInteger(tokens) || (tokens as number) < 1)
     fail('idle.budget.minutes and idle.budget.tokens must be positive integers');
-  return { decisions, localSlotFrees, terminal, budget: { minutes: minutes as number, tokens: tokens as number },
+  return { decisions, localSlotFrees: localSlotFrees as string, terminal, budget: { minutes: minutes as number, tokens: tokens as number },
     source: { ref: source.ref, commit: source.commit } };
 }
 // One writer at a time on a manifest: appends from two sessions must not lose each other's rows.

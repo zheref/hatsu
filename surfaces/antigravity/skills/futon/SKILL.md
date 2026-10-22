@@ -104,7 +104,7 @@ nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --json
 ```
 
 The **CI** plane caps at 2, frees at PR-open, and holds only legacy-CI PRs. The **local** plane caps
-at 7 and frees when the effort is **merged** — locally, with an integration branch (§ 5), `--idle` too. **`--local-cap 7` is futon's own policy,
+at 7 and frees when the effort is **merged** — locally, with an integration branch (§ 5); `monitor.localSlotFrees`, HR-257. **`--local-cap 7` is futon's own policy,
 always passed**; omitting it is exit `2`. **The budgets are never traded**: a full local one is back-pressure.
 
 ## 7. Authority — the CON-25 delegation

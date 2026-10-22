@@ -163,8 +163,8 @@ else process.exit(2);
     commitWorkflow({ idle: { decisions: { [row]: resolution } } }, `${row} ${resolution}`);
     expectStatus(idleStart(), 1, `the floor refuses ${row}: ${resolution}`);
   }
-  commitWorkflow({ idle: { localSlotFrees: 'ready+prompted' } }, 'slot widened');
-  expectStatus(idleStart(), 1, 'localSlotFrees is the ruled merged only');
+  commitWorkflow({ monitor: { localSlotFrees: 'ready+prompted' } }, 'slot widened');
+  expectStatus(idleStart(), 1, 'monitor.localSlotFrees is the ruled merged only (HR-257)');
   commitWorkflow({ branch: { base: 'main' }, idle: { decisions: { 'wrap-up': 'hold', 'mode-unknown': 'default' } } }, 'partial map');
   const partial = idleStart();
   expectStatus(partial, 0, 'a partial idle.decisions with valid values starts');

@@ -119,6 +119,7 @@ Which attribution trailers a prospective commit may carry. The maintainer's ruli
 |---|---|---|---|---|
 | `maxCycles` | open (integer) | **`20`** | En's acting-cycle cap on one PR. A different number from `nen/gates.json` → `round_policy.maxRounds`, the reviewer-round cap | `hatsu:en`, `hatsu:senkei`, `hatsu:izanagi` (through `nen loop iterate`) |
 | `pollSeconds` | open (integer) | **`300`** | Seconds between En's quiet observations of a pending PR | `hatsu:en`, `hatsu:sharingan` |
+| `localSlotFrees` | fixed | **`merged`**, the only value an `--idle` `start` accepts | When an effort's local slot (futon § 6) frees: at its local merge, for every futon run — HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*). Absent, `nen loop slots` frees at `ready+prompted` | `hatsu:futon` § 6, `hatsu:kazaana`, `nen loop slots`, `futon_effort_record.mts start` |
 
 ### `profile`
 
@@ -255,7 +256,6 @@ The **idle profile** (HR-5), read only by a `hatsu:futon` or `hatsu:kazaana` run
 | Key | Catalogue id | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|---|
 | `decisions` | `workflow.idle.decisions` | open (object) | one of `default` · `hold` · `refuse` per `ask-once-per-run` row of `nen/decisions.json`; **`default` where the row stars an option, `hold` otherwise**, with `harness-attribution-switch`, `host-nen-link`, `cleanup-plan` and `port-drift` `hold` and `publish-offer` `refuse` | The batch answer to each ask-once row. A row the map does not name is `hold` (`publish-offer` `refuse`). A floor fails `start` at exit 1: `publish-offer` is always `refuse`; `host-nen-link`, `harness-attribution-switch` and `missing-maintainer-choice` at most `hold`; `default` on a row that stars no option | `hatsu:futon` § 12, `hatsu:kazaana` § 1, `futon_effort_record.mts start` |
-| `localSlotFrees` | `workflow.idle.localSlotFrees` | fixed | **`merged`**, the only value `start` accepts | When an idle run frees a local slot: at its merge, ROSTER § *Rulings of 2026-09-30*, *Slots and stops* | `hatsu:futon` § 6 |
 | `terminal` | `workflow.idle.terminal` | enum | **`ready-at-prompt-or-integration`** · `ready-at-prompt` | The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch; never `main`, `getsuga`, `mugetsu` or `kagutsuchi` | `hatsu:futon` § 12, `hatsu:kazaana` |
 | `budget.minutes` | `workflow.idle.budget.minutes` | open (integer) | **`480`** | The enforced bound: minutes since the manifest's `startedAt`, read as `status`'s `overBudget`; past it the rest park as `parked:budget` | `hatsu:futon` § 12, `futon_effort_record.mts status` |
 | `budget.tokens` | `workflow.idle.budget.tokens` | open (integer) | **`4000000`** | Advisory and unread until zheref/nen#490 lands; no skill sums `nen usage` itself | none yet |
@@ -296,7 +296,7 @@ Illustrative only: a plain product repository on the default lane `app`, with a 
     "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by",
                           "Generated-by", "Generated-with", "Reviewed-by"]
   },
-  "monitor": { "maxCycles": 20, "pollSeconds": 300 },
+  "monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "merged" },
   "profile": { "allowed": ["fast", "standard", "thorough"],
                "$allowed": "any of: fast | standard | thorough",
                "$default": "one of: fast | standard | thorough" },
