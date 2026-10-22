@@ -569,7 +569,7 @@
       "domain": "review",
       "kind": "open",
       "default": "merged",
-      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; nen loop slots reads it, and an idle start fails on any other value.",
+      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by zheref/nen#498's nen loop slots (unreleased, not at the 0.24.0 pin), so until the repin futon section 6 keeps the effort's ready/prompted flags false in its efforts file until the local merge; an idle start fails on any other value.",
       "readers": [
         "futon",
         "kazaana"

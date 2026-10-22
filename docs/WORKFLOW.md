@@ -708,9 +708,9 @@ wording — so the two verbs cannot disagree about what is admitted. On top of t
 "monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "merged" }
 ```
 
-`en`'s `izanagi` cap and its poll interval. **The cap is grammar, not a default**: a watch loop invoked
+`en`'s `izanagi` cap and its poll interval. The block also holds futon's local-slot release (`localSlotFrees`, HR-257). **The cap is grammar, not a default**: a watch loop invoked
 without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refuses an invocation with no
-`up to <N>`. § 5 is where both keys are actually spent, and where the long watch hands over to Illumi.
+`up to <N>`. § 5 is where both of en's keys are actually spent, and where the long watch hands over to Illumi.
 
 **From nen `0.7` the cap is ENFORCED by the binary rather than counted in a skill's prose.**
 `nen loop iterate --id <id> --line "<task> until <condition> up to <N>"` claims one acting iteration
@@ -732,7 +732,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `merged` | `futon` § 6, every futon run, attended or `--idle`: **fixed** at `merged` by HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*) — an effort's local slot frees at its local merge. The one key that says so; `nen loop slots` reads it (absent, nen frees at `ready+prompted`, earlier than HR-257), and an `--idle` `start` (`futon_effort_record.mts`) fails on any other value |
+| `localSlotFrees` | `merged` | `futon` § 6, every futon run, attended or `--idle`: **fixed** at `merged` by HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*) — an effort's local slot frees at its local merge. The one key that says so. Its reader is zheref/nen#498's `nen loop slots`, unreleased and not at the `0.24.0` pin, whose `nen loop slots` reads no such key and frees a local slot at `ready+prompted`, earlier than HR-257. **Until the repin, futon § 6 holds the slot itself**: it keeps the effort's `ready` and `prompted` flags `false` in its efforts file until the local merge; the gap in nen is owed until the repin. An `--idle` `start` (`futon_effort_record.mts`) fails on any other value |
 
 ### `idle`
 
@@ -1412,8 +1412,8 @@ futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/ne
 4. **Bounds.** Before each claim, `status` gives the elapsed minutes against `idle.budget.minutes`
    (`overBudget`); past it nothing new is claimed and the rest park as `parked:budget`. **Minutes are the
    enforced bound; `idle.budget.tokens` is advisory and unread** until zheref/nen#490 lands — never an
-   improvised sum of nen's records. A local slot frees at its merge (`monitor.localSlotFrees`, fixed `merged`, HR-257);
-   `nen loop slots` reads no record yet (zheref/nen#487), overlap is still judged (zheref/nen#488) and stage
+   improvised sum of nen's records. A local slot frees at its merge (`monitor.localSlotFrees`, fixed `merged`, HR-257; read only from
+   zheref/nen#498, so until the repin futon keeps `ready`/`prompted` false to the merge, § 2 `monitor`); `nen loop slots` reads no record yet (zheref/nen#487), overlap is still judged (zheref/nen#488) and stage
    exclusivity unchecked (zheref/nen#489). En's cap is the git common dir's (en § 2).
 5. **Terminal.** `idle.terminal`: every PR Ready at its merge prompt, or merged into a **non-main**
    integration branch (futon § 5, En's recorded delivery merge). **Never a merge into `main`, never

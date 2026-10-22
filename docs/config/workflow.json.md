@@ -113,13 +113,13 @@ Which attribution trailers a prospective commit may carry. The maintainer's ruli
 
 ### `monitor`
 
-`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `<git common dir>/.nen/loop/<id>.json` — en §§ 2 and 7 pass `nen loop iterate` the git common directory as `--repo`, so the cap outlives the effort worktree and `hatsu:cleanup` never removes it — keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle.
+`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `<git common dir>/.nen/loop/<id>.json` — en §§ 2 and 7 pass `nen loop iterate` the git common directory as `--repo`, so the cap outlives the effort worktree and `hatsu:cleanup` never removes it — keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle. The block also holds futon's local-slot release (`localSlotFrees`, HR-257).
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `maxCycles` | open (integer) | **`20`** | En's acting-cycle cap on one PR. A different number from `nen/gates.json` → `round_policy.maxRounds`, the reviewer-round cap | `hatsu:en`, `hatsu:senkei`, `hatsu:izanagi` (through `nen loop iterate`) |
 | `pollSeconds` | open (integer) | **`300`** | Seconds between En's quiet observations of a pending PR | `hatsu:en`, `hatsu:sharingan` |
-| `localSlotFrees` | fixed | **`merged`**, the only value an `--idle` `start` accepts | When an effort's local slot (futon § 6) frees: at its local merge, for every futon run — HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*). Absent, `nen loop slots` frees at `ready+prompted` | `hatsu:futon` § 6, `hatsu:kazaana`, `nen loop slots`, `futon_effort_record.mts start` |
+| `localSlotFrees` | fixed | **`merged`**, the only value an `--idle` `start` accepts | When an effort's local slot (futon § 6) frees: at its local merge, for every futon run — HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*). Its reader is zheref/nen#498's `nen loop slots`, unreleased and not at the `0.24.0` pin, whose verb frees at `ready+prompted`; until the repin futon § 6 keeps the effort's `ready`/`prompted` flags false in its efforts file until the local merge ([WORKFLOW § 2](../WORKFLOW.md#monitor)), a gap owed until the repin | `hatsu:futon` § 6, `hatsu:kazaana`, `nen loop slots` (zheref/nen#498, unreleased), `futon_effort_record.mts start` |
 
 ### `profile`
 

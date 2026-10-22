@@ -134,7 +134,7 @@
     "maxCycles": 20,
     "pollSeconds": 300,
     "localSlotFrees": "merged",
-    "$localSlotFrees": "fixed: merged (HR-257, Slots and stops): an effort's local slot frees at its local merge, for every futon run; nen loop slots reads it",
+    "$localSlotFrees": "fixed: merged (HR-257, Slots and stops): an effort's local slot frees at its local merge, for every futon run; read by zheref/nen#498's nen loop slots (unreleased, not at the 0.24.0 pin); until the repin futon section 6 keeps the effort's ready/prompted flags false in its efforts file until the local merge (WORKFLOW section 2)",
     "$comment": "en's izanagi cap and its poll interval. The cap is grammar, not a default: a watch loop with no cap does not run."
   },
   "profile": {
