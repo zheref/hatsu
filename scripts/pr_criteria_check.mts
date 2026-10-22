@@ -305,7 +305,10 @@ function main(): number {
     const prefix = acceptancePrefix();
     let body: string;
     if (options.body !== undefined) {
-      try { body = readFileSync(resolve(options.body), "utf8"); } catch { throw new Stop(2, `cannot read --body '${clean(options.body)}'`); }
+      let bytes: Buffer;
+      try { bytes = readFileSync(resolve(options.body)); } catch { throw new Stop(2, `cannot read --body '${clean(options.body)}'`); }
+      // QA-16: an invalid byte is refused, never replaced with U+FFFD and read as clean.
+      try { body = new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { throw new Stop(2, `--body '${clean(options.body)}' is not valid UTF-8`); }
     } else {
       const pr = /^([A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*)#([1-9][0-9]{0,8})$/.exec(options.pr as string);
       if (!pr || !SLUG.test(pr[1])) throw new Stop(2, `--pr '${clean(options.pr as string)}' is not <owner/name#N>`);

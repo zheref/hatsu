@@ -244,7 +244,10 @@ function main(): number {
     const catalogue = loadCatalogue();
     let body: string;
     if (options.bodyFile !== undefined) {
-      try { body = readFileSync(resolve(options.bodyFile), "utf8"); } catch { throw new Stop(2, `cannot read --body-file '${clean(options.bodyFile)}'`); }
+      let bytes: Buffer;
+      try { bytes = readFileSync(resolve(options.bodyFile)); } catch { throw new Stop(2, `cannot read --body-file '${clean(options.bodyFile)}'`); }
+      // QA-16: an invalid byte is refused, never replaced with U+FFFD and read as clean.
+      try { body = new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { throw new Stop(2, `--body-file '${clean(options.bodyFile)}' is not valid UTF-8`); }
     } else body = readRef(options.ref as string, resolve(options.repo));
     const report = checkBody(body, options.kind ?? null, catalogue);
     if (json) process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);

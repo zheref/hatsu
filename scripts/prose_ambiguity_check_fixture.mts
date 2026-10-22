@@ -258,6 +258,14 @@ try {
     assert.ok(!r.stderr.includes('SYNTHETIC'), `the invalid-JSON message quoted the file\n${r.stderr}`);
     console.log('ok    hostile: an invalid JSON file is named, never quoted');
   }
+  {
+    const root = base();
+    put(root, 'claude/skills/plant/SKILL.md', '# P\n\nFixed in #154 last week.\n');
+    put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [{ path: 'claude/skills/plant/SKILL.md', rule: 'PL-05', text: '#154', count: 1, extra: 1 }] }));
+    expectWiring(root, /a row with an unknown key "extra"/, 'QA-16: a baseline row with an unexpected field');
+    put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [], zzz: 1 }));
+    expectWiring(root, /unknown top-level key "zzz"/, 'QA-16: a baseline with an unexpected top-level key');
+  }
   expectWiring(base(), /unknown flag --nope/, 'wiring: an unknown flag', '--nope');
   {
     const notHatsu = join(scratch, 'plain');

@@ -478,6 +478,9 @@ function git(root: string, args: string[]): string {
 function loadBaseline(text: string, rel: string, empty: string[]): BaselineRow[] {
   let b: unknown;
   try { b = JSON.parse(text); } catch { return wiring(`${rel} is not valid JSON`); }
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return wiring(`${rel} is not an object`);
+  // QA-16: an unexpected field is refused, never ignored.
+  for (const k of Object.keys(b)) if (!['$comment', 'frozenAt', 'findings'].includes(k)) wiring(`${rel} has an unknown top-level key ${JSON.stringify(k)}`);
   const rows = (b as { findings?: unknown }).findings;
   if (!Array.isArray(rows)) return wiring(`${rel} lacks findings[]`);
   const keys = new Set<string>();
@@ -488,6 +491,7 @@ function loadBaseline(text: string, rel: string, empty: string[]): BaselineRow[]
       keys.add(k);
     }
     if (typeof r.path !== 'string' || typeof r.rule !== 'string' || typeof r.text !== 'string' || !Number.isInteger(r.count) || r.count < 1) wiring(`${rel} has a malformed row`);
+    for (const k of Object.keys(r)) if (!['path', 'rule', 'text', 'count'].includes(k)) wiring(`${rel} has a row with an unknown key ${JSON.stringify(k)}`);
     if (empty.includes(r.rule)) wiring(`${rel}: ${r.rule} is never baselined (HR-13); fix the prose instead`);
   }
   return rows as BaselineRow[];

@@ -148,6 +148,12 @@ const parsed = JSON.parse(r.stdout);
 assert.equal(parsed.contract, "hatsu.issue-body-check/v1");
 assert.equal(parsed.kind, "common");
 assert.equal(parsed.questions.open, 1);
+// QA-16: a body with an invalid UTF-8 byte is refused at exit 2, never read as clean.
+const binFile = join(dir, "good-bin.md");
+writeFileSync(binFile, Buffer.concat([Buffer.from(good.replace("- SC-1", "- SC-1\u0000")), Buffer.from([0xff, 0xfe])]));
+r = run(["--body-file", binFile, "--kind", "machinery"]);
+assert.equal(r.status, 2, `a non-UTF-8 body: ${r.stdout}${r.stderr}`);
+assert.match(r.stderr, /not valid UTF-8/);
 for (const args of [[], ["--body-file", goodFile, "--ref", "HA#1"], ["--bogus"], ["--body-file"], ["--ref", "HA-1"], ["--ref", "HA#0"],
   ["--body-file", join(dir, "absent.md")], ["--body-file", goodFile, "--kind", "nope"]]) {
   r = run(args);

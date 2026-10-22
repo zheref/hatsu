@@ -162,6 +162,12 @@ assert.ok(!r.stdout.includes("\u001b") && !r.stdout.includes("\u202e"), "hostile
 answer("repos/example-owner/example-repo/pulls/12", { number: 12, body: good });
 r = run(["--pr", "example-owner/example-repo#12"]);
 assert.equal(r.status, 0, r.stdout + r.stderr);
+// QA-16: a body with an invalid UTF-8 byte is refused at exit 2, never read as clean.
+const binFile = join(dir, "good-bin.md");
+writeFileSync(binFile, Buffer.concat([Buffer.from(good), Buffer.from([0xff, 0xfe])]));
+r = run(["--body", binFile]);
+assert.equal(r.status, 2, `a non-UTF-8 body: ${r.stdout}${r.stderr}`);
+assert.match(r.stderr, /not valid UTF-8/);
 for (const args of [[], ["--body", goodFile, "--pr", "a/b#1"], ["--bogus"], ["--body"], ["--pr", "a/b-1"], ["--pr", "a/b#0"], ["--body", join(dir, "absent.md")]]) {
   r = run(args);
   assert.equal(r.status, 2, `${args.join(" ")}: ${r.stderr}`);
