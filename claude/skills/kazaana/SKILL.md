@@ -68,7 +68,8 @@ lands in exactly one set:
   the set stays **unrouted**, listed, the opt-in's path named.
 
 **Then refetch** — the same verb again — and re-partition: a `model/<line>` applied under this run joins
-the queue. Triage, briefing and ordering are futon § 2's; an epic awaiting its mode label is **G1**
+the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4: a failed check is listed
+**needs-clarification**); an epic awaiting its mode label is **G1**
 (`mode-label`). **State the queue before advancing anything**: count, issues, exclusions, § 3's plan.
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
@@ -105,7 +106,7 @@ Futon § 9 whole: the Rikugan register every cycle, no banner on a progress turn
 merge prompt a **G2/G4** gate event ([`jutaisho`](../jutaisho/SKILL.md) § 4). **The desk carries the
 merge plan** (ruling 2026-10-12): independent PRs first, one line each, then each stack **bottom-up** by
 WORKFLOW rule 5 — one `MERGE` ask only for a PR whose base reads `branch.base`; a stacked PR is
-presented nowhere as mergeable. **The final report names the same order.**
+presented nowhere as mergeable.
 
 ## 5. The `then getsuga` step — held, then cut; the proposal is never theirs to merge
 

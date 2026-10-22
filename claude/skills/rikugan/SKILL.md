@@ -71,6 +71,7 @@ was touched; the session's impression of it does not.
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> --register <desk> --json  # an object scope
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --backlog --register <desk> --json                       # a repository scope
 nen pr ready --repo <path> --pr <N> [--explain]                                                                                          # per PR, quoted verbatim
+node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>  # quoted beside the verdict (HR-11)
 ```
 
 **Two passes** (zheref/hatsu#221): the plain call (no `--register`) reads the facts; the desk —
@@ -83,7 +84,7 @@ the `--register <desk>` call then emits the register document the render fills.
 merged PR is a row that reads `merged` with its merge SHA, a closed issue one that reads `closed` with
 what closed it; nothing in scope is dropped. Every
 PR row's `verdict` is `nen pr ready`'s **verbatim** (`readiness{verdict,reason,source}`,
-[`backlog-board`](../backlog-board/SKILL.md) § 2): a PR the sweep marks Ready is still quoted. The gate per row is [`backlog-state`](../backlog-state/SKILL.md)'s classification,
+`backlog-board` § 2): a PR the sweep marks Ready is still quoted. The gate per row is [`backlog-state`](../backlog-state/SKILL.md)'s classification,
 unchanged; the labels and their times are the run's own record. **Nothing is recomputed by eye, and
 nothing comes from session memory.**
 
@@ -98,9 +99,9 @@ nen report render --variant <final|register> --template "$hatsu_root/templates/r
   --data <the § 3 document> --out <path below> --repo <path> [--graph <file>]
 ```
 
-A Markdown surface fills [`templates/rikugan.md`](../../../templates/rikugan.md), `--out <reports.dir>/current.md`, always `--graph` ([`PROCESS.md`](../../../docs/PROCESS.md) § *The Markdown report*).
+A Markdown surface fills [`templates/rikugan.md`](../../../templates/rikugan.md), `--out <reports.dir>/current.md`, always `--graph` (`PROCESS.md` § *The Markdown report*).
 
-`$hatsu_root` is [`ten`](../ten/SKILL.md) § 0's; the `title` is the effort's headline
+`$hatsu_root` is `ten` § 0's; the `title` is the effort's headline
 ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Report titles*).
 
 **Which variant is the scope's, not a preference.** **`final` is only for a delivered, one-effort

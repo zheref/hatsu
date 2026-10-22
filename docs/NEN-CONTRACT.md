@@ -52,14 +52,14 @@ FAIL by pointer — and [`docs/WORKFLOW.md`](WORKFLOW.md) documents both.
 
 ## The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.22`**, with the bootstrap installing **`v0.22.0`**.
-Those are two values and they move independently. Hatsu adopts the `nen parse` list slots and alternations and the `--label`/`--severity` filters on `nen backlog fetch` and `nen report data`, executed by `hatsu:backlog-state` and `hatsu:backlog-board` (v0.22.0, zheref/hatsu#297), nen's own reading of `nen/gates.json` — `checks.excluded` in place of Hatsu's retired `check_exclusions`, and `round_policy.minRounds`/`.maxRounds` as nen keys, with the request ceiling in `nen pr request-reviews` (v0.21.0, zheref/hatsu#227) — the `nen classify` and `nen direct` families, executed by `hatsu:classify` and `hatsu:direct`, and the round quorum that fulfils its members' rounds (v0.20.0), the `nen runner` family, introduced in
+*Current pin, echoed for convenience:* **`nen >= 0.24`**, with the bootstrap installing **`v0.24.0`**.
+Those are two values and they move independently (`scripts/plugin_version_refs.sh --check-nen-pin` exits `1` when this line disagrees with the contract; the `plugin-version-refs-guard` lane runs it on the committed tree, by hand at each repin, and no CI step runs it yet). Hatsu adopts the phase and usage `--dial`, `nen session record`/`show` and report data `sessions[]` (v0.24.0, zheref/hatsu#321), the `nen parse` list slots and alternations and the `--label`/`--severity` filters on `nen backlog fetch` and `nen report data`, executed by `hatsu:backlog-state` and `hatsu:backlog-board` (v0.22.0, zheref/hatsu#297), nen's own reading of `nen/gates.json` — `checks.excluded` in place of Hatsu's retired `check_exclusions`, and `round_policy.minRounds`/`.maxRounds` as nen keys, with the request ceiling in `nen pr request-reviews` (v0.21.0, zheref/hatsu#227) — the `nen classify` and `nen direct` families, executed by `hatsu:classify` and `hatsu:direct`, and the round quorum that fulfils its members' rounds (v0.20.0), the `nen runner` family, introduced in
 v0.18.0 and executed by `hatsu:jusshin`, with its interactive desktop mode and `@@MODE@@` (v0.19.0), on top of `nen canon pin` and `nen canon mirror generate|check
 --surfaces` (v0.16.0, `hatsu:limbo`), the futon label selector, `then` skill chains and advance-go gate, the
 `library` kind, `nen release unit-check` and `nen pr merge --release-unit` (v0.15.0, fail-closed in
 v0.15.1); each feature requirement raised the minimum. Nen's compatibility floor stayed 0.7 until v0.17.0
-raised it to 0.17, v0.18.0 to 0.18, v0.19.0 to 0.19, v0.20.0 to 0.20, v0.21.0 to 0.21 and v0.22.0 to 0.22, each for breaking consumer notes, which this pin absorbs. The live skill surface is **fifty**, fifty-one
-directories per surface with `ten`.
+raised it to 0.17, v0.18.0 to 0.18, v0.19.0 to 0.19, v0.20.0 to 0.20, v0.21.0 to 0.21, v0.22.0 to 0.22 and, by v0.24.0, to 0.24, each for breaking consumer notes, which this pin absorbs. Every repin's adoptions and absorbed notes are in
+[`docs/history/nen-repins.md`](history/nen-repins.md).
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary
 ships `COMPATIBLE_MINOR_FLOOR` (`src/version.ts`), the lowest `minimum` pin that build satisfies, and
