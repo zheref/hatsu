@@ -75,6 +75,13 @@
 # escapes `"`, `\` and every control character; a working-tree pair file is read only when it is
 # a regular file whose realpath sits inside the worktree.
 #
+# COST — NO SLOWER THAN ONE FILE PER PLACE (the maintainer's ruling on HA-PR-#392: no performance decrease
+# against the per-file reader). One ls-tree per place lists its pair files; ONE `git cat-file --batch`
+# serves every blob of every place and ONE awk judges every line of every file, so the process count is
+# the number of places plus two, whatever the number of pair files, and the work is linear in rows.
+# Duplicates are found once, after collection, by one awk over the seen lines. Lane port-rule-guard holds
+# a 3000-row scaling case to a 30 s bound (docs/ab/bankai-rule.md § 2 carries the benchmark).
+#
 # RESIDUE, NAMED. The open-PR reads are `gh pr list`, `gh api --paginate repos/<t>/pulls/<n>/files`,
 # `gh pr diff` and `gh api search/issues`: harness shell for a GitHub read, until zheref/nen#456
 # lands a verb; this script is the one place it lives. The `gh` it runs is the first on PATH — the
@@ -153,120 +160,187 @@ classify() { # a repository path: 0 a pair file (a direct *.md child of the ruli
 printable() { printf '%q' "$1"; }
 
 rc=0
-seen=()
 bad=()
-mine=()     # "n<TAB>file<TAB>where": ids this branch carries (HEAD or working tree)
-selfdup=()  # "n<TAB>file<TAB>where": an id in two rows of one pair file in one of this branch's places
-tipids=()   # "n<TAB>file": ids at the tip
-tipdup=()   # "n<TAB>file": an id twice in one tip file (merged; never this run's to renumber)
-others=()   # "n<TAB>file<TAB>where": ids at sibling branches and same-repository PRs
-max=0
 TAB=$'\t'
-inlist() { # needle, then the list
-  local x="$1" e; shift
-  for e in "$@"; do [ "$e" = "$x" ] && return 0; done
-  return 1
-}
+SEENF="$work/seen"; : > "$SEENF"   # every seen line, in read order (also fork, own-PR and skip entries)
+seenadd() { printf '%s\n' "$1" >> "$SEENF"; }
 unread() { echo "port_rule_reserve: $1; its ids are unknown, nothing is reserved" >&2; rc=1; }
-note() { # number-text, where, file
-  local n="$1" where="$2" file="$3"
-  if [[ "$n" =~ ^[1-9][0-9]{0,8}$ ]]; then
-    seen+=("$prefix-$n $where in $file")
-    [ "$((10#$n))" -gt "$max" ] && max=$((10#$n))
-    case "$where" in
-      tip*)
-        inlist "$n$TAB$file" "${tipids[@]+"${tipids[@]}"}" && tipdup+=("$n$TAB$file")
-        tipids+=("$n$TAB$file") ;;
-      "branch HEAD"|"working tree")
-        inlist "$n$TAB$file$TAB$where" "${mine[@]+"${mine[@]}"}" && selfdup+=("$n$TAB$file$TAB$where")
-        mine+=("$n$TAB$file$TAB$where") ;;
-      *) others+=("$n$TAB$file$TAB$where") ;;
-    esac
-  else
-    bad+=("$prefix-$n $where in $file")
+max=0
+
+# THE READ PLAN. Every place's pair files are QUEUED, in the order the places are read (tip, HEAD, working
+# tree, siblings), into one LIST ("idx<TAB>kind<TAB>group<TAB>path<TAB>src"): kind b a blob (its oid in
+# OIDS, served by ONE `git cat-file --batch` for every place), f a file read from src, x a file named out of
+# shape, u an unreadable one, m a message (an unread listing, said in its place). Groups carry each place's
+# label and class. ONE awk (JUDGE) then judges every file of every place in that order, so the process count
+# is one ls-tree per place plus two, whatever the number of pair files and rows. A PR section is its own
+# one-entry plan. JUDGE: per file, the header pass first (a foreign header refuses the file and skips its
+# rows), then every line carrying a `|` judged by its first cell. Counted ids and their seen lines go to
+# IDS and SEEN; whatever bash must still word comes back on stdout as an indexed record, in read order:
+# B<TAB>message · X|U<TAB>idx<TAB>group · N<TAB>idx · Q<TAB>F|P<TAB>idx<TAB>group<TAB>cell · M<TAB>max.
+# POSIX/BWK awk, run under LC_ALL=C (bytes; `·` is matched as its two bytes).
+IFS= read -r -d '' JUDGE_AWK <<'AWK' || true
+function lead_of(s,   i, c, L) {
+  L = length(s); i = 1
+  while (i <= L) { c = substr(s, i, 1); if (c == " " || c == "\t" || c == "\r" || c == "\f" || c == VT) i++; else break }
+  return substr(s, 1, i - 1)
+}
+function trim(s) { sub("^" SP "+", "", s); sub(SP "+$", "", s); return s }
+function cnt(s, k,   t) { t = s; return gsub(k, "", t) }
+function count(num, W, path) {
+  if (substr(num, 1, 1) != "0" && length(num) <= 9) {
+    print PFX "-" num " " W " in " path
+    if (num + 0 > MAX) MAX = num + 0
+  } else print "B\t" PFX "-" num " " W " in " path > REC
+}
+function judge(idx, g, path,   i, ld, body, low, cell, L2, c1, p, num, W, C, IDS, line, rest, sp) {
+  W = GL[g]
+  for (i = 1; i <= nl; i++) {
+    if (!index(buf[i], "<!--")) continue
+    ld = lead_of(buf[i]); body = substr(buf[i], length(ld) + 1)
+    if (substr(body, 1, 4) != "<!--") continue
+    low = tolower(body)
+    if (!index(low, "prefix:") && !index(low, "numbering:")) continue
+    if (cnt(low, "prefix:") != 1 || cnt(low, "numbering:") != 1 || body !~ HDR) {
+      print "B\ta pair file whose header is not 'prefix: PT · numbering: global' (a handbook-question): " path " at " W > REC
+      return
+    }
+  }
+  for (i = 1; i <= nl; i++) {
+    line = buf[i]
+    if (!index(line, "|")) continue
+    if (substr(line, 1, 5) == "| PT-") {   # the common row, `| PT-<digits> |`: judged exactly as below, without the general walk
+      rest = substr(line, 6); sp = index(rest, " |")
+      if (sp > 1) { num = substr(rest, 1, sp - 1); if (num !~ /[^0-9]/) { count(num, W, path); continue } }
+    }
+    ld = lead_of(line); body = substr(line, length(ld) + 1)
+    cell = body; if (substr(cell, 1, 1) == "|") cell = substr(cell, 2)
+    p = index(cell, "|"); if (p) cell = substr(cell, 1, p - 1)
+    cell = trim(cell)
+    while (1) {
+      L2 = length(cell)
+      if (L2 >= 5 && ((substr(cell, 1, 2) == "**" && substr(cell, L2 - 1) == "**") || (substr(cell, 1, 2) == "__" && substr(cell, L2 - 1) == "__"))) cell = substr(cell, 3, L2 - 4)
+      else if (L2 >= 3 && ((c1 = substr(cell, 1, 1)) == "*" || c1 == "_" || c1 == "`") && substr(cell, L2, 1) == c1) cell = substr(cell, 2, L2 - 2)
+      else break
+      cell = trim(cell)
+    }
+    if (cell ~ /^PT-[0-9]+$/) {
+      num = substr(cell, 4)
+      if (index(ld, "\t") || substr(ld, 1, 4) == "    ") { print "B\ta PT row indented past three spaces (not a table row) in " path " at " W > REC; continue }
+      count(num, W, path)
+    } else if (cell ~ /^[A-Z]+-[0-9]+$/) print "Q\tF\t" idx "\t" g "\t" cell > REC
+    else if (cell ~ /PT-[0-9]/) print "Q\tP\t" idx "\t" g "\t" cell > REC
+  }
+}
+function readfile(e,   src, r, ln) {
+  src = Src[e]; nl = 0
+  r = (getline ln < src)
+  if (r < 0) { print "U\t" e "\t" G[e] > REC; return }
+  while (r > 0) { buf[++nl] = ln; r = (getline ln < src) }
+  close(src)
+  judge(e, G[e], Pth[e])
+}
+function adv() {
+  cur++
+  while (cur <= ne && K[cur] != "b") {
+    if (K[cur] == "x") print "X\t" cur "\t" G[cur] > REC
+    else if (K[cur] == "u") print "U\t" cur "\t" G[cur] > REC
+    else if (K[cur] == "m") print "N\t" cur > REC
+    else if (K[cur] == "f") readfile(cur)
+    cur++
+  }
+}
+function field(s, n,   i, t) { for (i = 1; i < n; i++) { t = index(s, "\t"); s = substr(s, t + 1) } ; t = index(s, "\t"); return t ? substr(s, 1, t - 1) : s }
+BEGIN {
+  VT = sprintf("%c", 11); SP = "[ \t\r\f" VT "]"
+  HDR = "[Pp][Rr][Ee][Ff][Ii][Xx]: PT · [Nn][Uu][Mm][Bb][Ee][Rr][Ii][Nn][Gg]: global(" SP "|\\)|·|-->)"
+  PFX = ENVIRON["PFX"]; REC = ENVIRON["REC"]; MAX = 0
+  while ((getline ln < ENVIRON["JGROUPS"]) > 0) { g = field(ln, 1); GC[g] = field(ln, 2); t = index(ln, "\t"); r = substr(ln, t + 1); t = index(r, "\t"); GL[g] = substr(r, t + 1) }
+  close(ENVIRON["JGROUPS"])
+  ne = 0
+  while ((getline ln < ENVIRON["LIST"]) > 0) {
+    ne++; K[ne] = field(ln, 2); G[ne] = field(ln, 3); Pth[ne] = field(ln, 4)
+    r = ln; for (i = 1; i <= 4; i++) { t = index(r, "\t"); r = substr(r, t + 1) } ; Src[ne] = r
+  }
+  close(ENVIRON["LIST"])
+  cur = 0; adv(); state = 0
+}
+state == 0 {
+  if ($0 ~ / missing$/) { print "U\t" cur "\t" G[cur] > REC; adv(); next }
+  size = $3 + 0; got = 0; nl = 0
+  if (size == 0) { judge(cur, G[cur], Pth[cur]); adv(); state = 2 } else state = 1
+  next
+}
+state == 1 {
+  buf[++nl] = $0; got += length($0) + 1
+  if (got >= size) { judge(cur, G[cur], Pth[cur]); adv(); state = (got == size) ? 2 : 0 }
+  next
+}
+state == 2 { state = 0; next }
+END {
+  while (cur <= ne) { if (K[cur] == "b") { print "U\t" cur "\t" G[cur] > REC; adv() } else adv() }
+  print "M\t" MAX > REC
+}
+AWK
+LIST="$work/list"; OIDS="$work/oids"; GRPF="$work/groups"
+plan_reset() { : > "$LIST"; : > "$OIDS"; : > "$GRPF"; ng=0; ni=0; }
+plan_group() { ng=$((ng + 1)); printf '%s\t%s\t%s\n' "$ng" "$1" "$2" >> "$GRPF"; glabel[ng]="$2"; }   # class, label
+plan_entry() { ni=$((ni + 1)); gnames[ni]="$3"; printf '%s\t%s\t%s\t%s\t%s\n' "$ni" "$1" "$ng" "$2" "$4" >> "$LIST"; }   # kind, listed path, name, src
+plan_ref() { # a git ref, its label: every pair file at that ref, queued (one ls-tree)
+  local ref="$1" label="$2" ent meta path kind c rest obj cls
+  case "$label" in tip*) cls=tip ;; "branch HEAD") cls=mine ;; *) cls=others ;; esac
+  plan_group "$cls" "$label"
+  if ! git -C "$clone" ls-tree -z "$ref" -- "$dir/" > "$work/ls" 2>/dev/null; then
+    msgs[ni + 1]="$label: the tree could not be listed"; plan_entry m - "" ""; return 0
   fi
-}
-header_ok() { # a header line (leading whitespace stripped): 0 the ruled header, 1 anything else
-  local line="$1" low rest
-  low="$(printf '%s' "$line" | tr 'A-Z' 'a-z')"
-  rest="${low//prefix:/}"; [ $(( (${#low} - ${#rest}) / 7 )) = 1 ] || return 1
-  rest="${low//numbering:/}"; [ $(( (${#low} - ${#rest}) / 10 )) = 1 ] || return 1
-  [[ "$line" =~ $HDRSHAPE ]]
-}
-take() { # content, where, file: a pair file's (or a PR section's added) lines -- header first, then every row
-  local content="$1" where="$2" file="$3" line lead body cell low
-  while IFS= read -r line; do
-    lead="${line%%[![:space:]]*}"; body="${line#"$lead"}"
-    case "$body" in
-      "<!--"*)
-        low="$(printf '%s' "$body" | tr 'A-Z' 'a-z')"
-        case "$low" in *prefix:*|*numbering:*)
-          if ! header_ok "$body"; then
-            bad+=("a pair file whose header is not 'prefix: PT · numbering: global' (a handbook-question): $(printable "$file") at $where")
-            return 0
-          fi ;;
-        esac
-        continue ;;
-    esac
-  done <<< "$content"
-  while IFS= read -r line; do
-    lead="${line%%[![:space:]]*}"; body="${line#"$lead"}"
-    case "$body" in *"|"*) ;; *) continue ;; esac
-    cell="${body#|}"; cell="${cell%%|*}"
-    cell="${cell#"${cell%%[![:space:]]*}"}"; cell="${cell%"${cell##*[![:space:]]}"}"
-    while :; do
-      case "$cell" in
-        '**'?*'**'|'__'?*'__') cell="${cell:2:$((${#cell} - 4))}" ;;
-        '*'?*'*'|'_'?*'_'|'`'?*'`') cell="${cell:1:$((${#cell} - 2))}" ;;
-        *) break ;;
-      esac
-      cell="${cell#"${cell%%[![:space:]]*}"}"; cell="${cell%"${cell##*[![:space:]]}"}"
-    done
-    if [[ "$cell" =~ ^PT-([0-9]+)$ ]]; then
-      n="${BASH_REMATCH[1]}"
-      case "$lead" in *"$TAB"*|"    "*) bad+=("a PT row indented past three spaces (not a table row) in $(printable "$file") at $where"); continue ;; esac
-      note "$n" "$where" "$file"
-    elif [[ "$cell" =~ ^[A-Z]+-[0-9]+$ ]]; then
-      bad+=("a first cell carrying another prefix, $(printable "$cell") (a handbook-question), in $(printable "$file") at $where")
-    elif [[ "$cell" == *PT-[0-9]* ]]; then
-      bad+=("a PT id in first-cell position that is not a counted row, $(printable "$cell"), in $(printable "$file") at $where")
-    fi
-  done <<< "$content"
-}
-note_ref() { # a git ref, its label: every pair file at that ref
-  local ref="$1" label="$2" ent meta path kind c content lst="$work/ls"
-  if ! git -C "$clone" ls-tree -z "$ref" -- "$dir/" > "$lst" 2>/dev/null; then unread "$label: the tree could not be listed"; return 0; fi
   while IFS= read -r -d '' ent; do
     meta="${ent%%"$TAB"*}"; path="${ent#*"$TAB"}"
-    kind="${meta#* }"; kind="${kind%% *}"
+    kind="${meta#* }"; rest="${kind#* }"; kind="${kind%% *}"; obj="${rest%% *}"
     [ "$kind" = blob ] || continue
     classify "$path"; c=$?
     [ "$c" = 1 ] && continue
-    if [ "$c" = 2 ]; then bad+=("a pair file named outside $NAMESHAPE: $(printable "$path") at $label"); continue; fi
-    content="$(git -C "$clone" show "$ref:$path" 2>/dev/null)" || { unread "$label: $(printable "$path") could not be read"; continue; }
-    take "$content" "$label" "$path"
-  done < "$lst"
+    if [ "$c" = 2 ]; then plan_entry x - "$path" ""; continue; fi
+    plan_entry b "$path" "$path" "$ref"; printf '%s\n' "$obj" >> "$OIDS"
+  done < "$work/ls"
 }
-attip() { # n, file: is this (id, file) a row the tip carries?
-  inlist "$1$TAB$2" "${tipids[@]+"${tipids[@]}"}"
-}
-jsonstr() { # a JSON string body: quote, backslash and every U+0000-U+001F escaped
-  local s="$1" out="" i ch o
-  local LC_ALL=C
-  for ((i = 0; i < ${#s}; i++)); do
-    ch="${s:i:1}"
-    case "$ch" in
-      '"') out="$out\\\"" ;;
-      '\') out="$out\\\\" ;;
-      $'\t') out="$out\\t" ;;
-      $'\n') out="$out\\n" ;;
-      $'\r') out="$out\\r" ;;
-      *) printf -v o '%d' "'$ch"
-         if [ "$o" -ge 0 ] && [ "$o" -lt 32 ]; then printf -v o '\\u%04x' "$o"; out="$out$o"; else out="$out$ch"; fi ;;
+plan_run() { # judge the whole plan: one cat-file --batch for every queued blob, one awk; then word the records
+  local stream="$work/stream" l i g rest cell nm
+  if [ -s "$OIDS" ] && ! git -C "$clone" cat-file --batch < "$OIDS" > "$stream" 2>/dev/null; then
+    # cat-file could not serve the batch (a partial clone whose promisor is away): read each blob alone, so a
+    # missing one is unread by name and the others are still judged, exactly as one read per file
+    local fb="$work/fb" k gg p s ln
+    rm -rf "${fb:?}"; mkdir -p "$fb"
+    while IFS= read -r ln; do
+      i="${ln%%"$TAB"*}"; rest="${ln#*"$TAB"}"; k="${rest%%"$TAB"*}"; rest="${rest#*"$TAB"}"; gg="${rest%%"$TAB"*}"; rest="${rest#*"$TAB"}"; p="${rest%%"$TAB"*}"; s="${rest#*"$TAB"}"
+      if [ "$k" = b ]; then
+        if git -C "$clone" show "$s:$p" > "$fb/$i" 2>/dev/null; then printf '%s\tf\t%s\t%s\t%s\n' "$i" "$gg" "$p" "$fb/$i"; else printf '%s\tu\t%s\t%s\t\n' "$i" "$gg" "$p"; fi
+      else printf '%s\n' "$ln"; fi
+    done < "$LIST" > "$LIST.fb"
+    mv "$LIST.fb" "$LIST"; : > "$stream"
+  elif [ ! -s "$OIDS" ]; then : > "$stream"; fi
+  # the judge's seen lines go straight to the seen file (buffered stdout); its few records to REC
+  : > "$work/rec"
+  PFX="$prefix" REC="$work/rec" JGROUPS="$GRPF" LIST="$LIST" LC_ALL=C awk "$JUDGE_AWK" < "$stream" >> "$SEENF"
+  while IFS= read -r l; do
+    case "$l" in
+      B"$TAB"*) bad+=("${l#B"$TAB"}") ;;
+      M"$TAB"*) i="${l#M"$TAB"}"; [ "$i" -gt "$max" ] && max="$i" ;;
+      N"$TAB"*) i="${l#N"$TAB"}"; unread "${msgs[i]}" ;;
+      X"$TAB"*|U"$TAB"*)
+        rest="${l#?"$TAB"}"; i="${rest%%"$TAB"*}"; g="${rest#*"$TAB"}"; nm="${gnames[i]}"
+        case "$l" in
+          X*) if [ "${glabel[g]}" = "working tree" ]; then bad+=("a pair file named outside $NAMESHAPE: $(printable "$nm") in the working tree"); else bad+=("a pair file named outside $NAMESHAPE: $(printable "$nm") at ${glabel[g]}"); fi ;;
+          *) unread "${glabel[g]}: $(printable "$nm") could not be read" ;;
+        esac ;;
+      Q"$TAB"?"$TAB"*)
+        rest="${l#Q"$TAB"?"$TAB"}"; i="${rest%%"$TAB"*}"; rest="${rest#*"$TAB"}"; g="${rest%%"$TAB"*}"; cell="${rest#*"$TAB"}"; nm="${gnames[i]}"
+        case "$l" in
+          Q"$TAB"F*) bad+=("a first cell carrying another prefix, $(printable "$cell") (a handbook-question), in $(printable "$nm") at ${glabel[g]}") ;;
+          *) bad+=("a PT id in first-cell position that is not a counted row, $(printable "$cell"), in $(printable "$nm") at ${glabel[g]}") ;;
+        esac ;;
     esac
-  done
-  printf '%s' "$out"
+  done < "$work/rec"
 }
+exit2_after_flush() { plan_run; echo "$1" >&2; exit 2; }   # a refusal in the working tree: the places before it were read, as they always were
 realdir() { ( cd "$1" 2>/dev/null && pwd -P ); }
 
 # 1. the tip, fetched and pruned (a clone whose fetch refspec does not cover every head cannot see sibling branches)
@@ -284,37 +358,45 @@ else
   git -C "$clone" rev-parse --verify -q "$tipref" >/dev/null || { echo "port_rule_reserve: $clone has no origin and $base does not resolve -- the tip is unread, nothing is reserved" >&2; exit 2; }
   echo "port_rule_reserve: $clone has no origin; the local $base is the tip" >&2
 fi
-note_ref "$tipref" "tip $tipref"
+plan_reset
+plan_ref "$tipref" "tip $tipref"
 
 # 2. this run's own branch: HEAD and the working tree (regular files inside the worktree, never a symlink)
-note_ref HEAD "branch HEAD"
-if [ -L "$clone/$dir" ]; then echo "port_rule_reserve: $clone/$dir is a symlink -- refusing to read it" >&2; exit 2; fi
+plan_ref HEAD "branch HEAD"
+if [ -L "$clone/$dir" ]; then exit2_after_flush "port_rule_reserve: $clone/$dir is a symlink -- refusing to read it"; fi
 if [ -d "$clone/$dir" ]; then
   ddir="$(realdir "$clone/$dir")"; wdir="$(realdir "$clone")"
-  case "$ddir/" in "$wdir"/*) ;; *) echo "port_rule_reserve: $clone/$dir resolves outside the worktree -- refusing to read it" >&2; exit 2 ;; esac
+  case "$ddir/" in "$wdir"/*) ;; *) exit2_after_flush "port_rule_reserve: $clone/$dir resolves outside the worktree -- refusing to read it" ;; esac
   shopt -s nullglob dotglob
+  plan_group mine "working tree"
   for f in "$clone/$dir"/*; do
     rel="$dir/${f##*/}"
     classify "$rel"; c=$?
     [ "$c" = 1 ] && continue
     if [ -L "$f" ] || [ ! -f "$f" ]; then
-      echo "port_rule_reserve: $(printable "$f") is a symlink or not a regular file -- refusing to read it" >&2; exit 2
+      exit2_after_flush "port_rule_reserve: $(printable "$f") is a symlink or not a regular file -- refusing to read it"
     fi
-    if [ "$c" = 2 ]; then bad+=("a pair file named outside $NAMESHAPE: $(printable "$rel") in the working tree"); continue; fi
-    content="$(cat -- "$f" 2>/dev/null)" || { unread "working tree: $(printable "$rel") could not be read"; continue; }
-    take "$content" "working tree" "$rel"
+    if [ "$c" = 2 ]; then plan_entry x - "$rel" ""; else plan_entry f "$rel" "$rel" "$f"; fi
   done
   shopt -u nullglob dotglob
 elif [ -e "$clone/$dir" ]; then
-  echo "port_rule_reserve: $clone/$dir is not a directory -- refusing to read it" >&2; exit 2
+  exit2_after_flush "port_rule_reserve: $clone/$dir is not a directory -- refusing to read it"
 fi
 
 # 3. every rulings branch already pushed to origin, and every local ports-* head of this clone that is not
 #    this run's own (another run authoring in the same clone; ports-* at one to four path segments)
 current="$(git -C "$clone" symbolic-ref -q --short HEAD 2>/dev/null || true)"
 if ! refs="$(git -C "$clone" for-each-ref --format='%(refname)%09%(refname:short)' 'refs/remotes/origin/ports-*' 'refs/remotes/origin/*/ports-*' 'refs/remotes/origin/*/*/ports-*' 'refs/remotes/origin/*/*/*/ports-*' 'refs/heads/ports-*' 'refs/heads/*/ports-*' 'refs/heads/*/*/ports-*' 'refs/heads/*/*/*/ports-*' 2>/dev/null)"; then
-  unread "the rulings branches of $clone could not be listed"; refs=""
+  msgs[ni + 1]="the rulings branches of $clone could not be listed"; plan_group others "-"; plan_entry m - "" ""; refs=""
 fi
+# every local branch's upstream, read ONCE (never two git config calls per head)
+bcfg="$(git -C "$clone" config --get-regexp '^branch\..*\.(merge|remote)$' 2>/dev/null || true)"
+bconf() { # branch, key: its configured value in REPLY, or empty (no subshell)
+  local want="branch.$1.$2 " line
+  REPLY=""
+  while IFS= read -r line; do case "$line" in "$want"*) REPLY="${line#"$want"}"; return 0 ;; esac; done <<< "$bcfg"
+  return 0
+}
 skip_pull=0; skip_remote=0
 while IFS="$TAB" read -r full short; do
   [ -n "$full" ] || continue
@@ -328,8 +410,7 @@ while IFS="$TAB" read -r full short; do
   case "$full" in
     refs/heads/*)
       bname="${full#refs/heads/}"
-      umerge="$(git -C "$clone" config --get "branch.$bname.merge" 2>/dev/null || true)"
-      uremote="$(git -C "$clone" config --get "branch.$bname.remote" 2>/dev/null || true)"
+      bconf "$bname" merge; umerge="$REPLY"; bconf "$bname" remote; uremote="$REPLY"
       case "$umerge" in refs/pull/*) skip_pull=$((skip_pull + 1)); continue ;; esac
       if [ -n "$uremote" ] && [ "$uremote" != . ]; then
         uurl="$(git -C "$clone" remote get-url "$uremote" 2>/dev/null)" || uurl="$uremote"
@@ -337,14 +418,15 @@ while IFS="$TAB" read -r full short; do
       fi
       ;;
   esac
-  note_ref "$full" "branch $short"
+  plan_ref "$full" "branch $short"
 done <<< "$refs"
+plan_run   # the tip, HEAD, the working tree and every sibling, judged in that order
 if [ "$skip_pull" -gt 0 ]; then
-  seen+=("skipped $skip_pull local head(s): a PR checkout (merge ref refs/pull/*)")
+  seenadd "skipped $skip_pull local head(s): a PR checkout (merge ref refs/pull/*)"
   echo "port_rule_reserve: skipped $skip_pull local ports-* head(s) tracking refs/pull/* (a PR checkout, not a rulings run)" >&2
 fi
 if [ "$skip_remote" -gt 0 ]; then
-  seen+=("skipped $skip_remote local head(s): tracking a remote whose URL is not origin's")
+  seenadd "skipped $skip_remote local head(s): tracking a remote whose URL is not origin's"
   echo "port_rule_reserve: skipped $skip_remote local ports-* head(s) tracking a remote whose URL is not origin's" >&2
 fi
 
@@ -359,10 +441,10 @@ fi
 while IFS="$TAB" read -r num fork changed ref oid; do
   [ -n "$num" ] || continue
   [[ "$num" =~ ^[0-9]+$ ]] || { unread "an open PR listed with a non-numeric number"; continue; }
-  if [ "$fork" = true ]; then seen+=("PR #$num fork, not read"); continue; fi
+  if [ "$fork" = true ]; then seenadd "PR #$num fork, not read"; continue; fi
   if [ -n "$current" ] && [ "$ref" = "$current" ] && [[ "${oid-}" =~ ^[0-9a-f]{40}$ ]] \
      && git -C "$clone" merge-base --is-ancestor "$oid" HEAD 2>/dev/null; then
-    seen+=("PR #$num this run's own branch, read as HEAD"); continue
+    seenadd "PR #$num this run's own branch, read as HEAD"; continue
   fi
   files="$(gh api --paginate "repos/${target}/pulls/${num}/files" --jq '.[].filename' 2>/dev/null)" || { unread "PR #$num's file list could not be read"; continue; }
   nfiles=0; [ -n "$files" ] && nfiles="$(printf '%s\n' "$files" | grep -c .)"
@@ -394,7 +476,8 @@ while IFS="$TAB" read -r num fork changed ref oid; do
   [ "$failed" = 1 ] && continue
   for s in "${sections[@]+"${sections[@]}"}"; do
     fl="${s%%"$TAB"*}"; section="${s#*"$TAB"}"
-    take "$section" "$where" "$fl"
+    printf '%s\n' "$section" > "$work/section"
+    plan_reset; plan_group others "$where"; plan_entry f "$fl" "$fl" "$work/section"; plan_run
   done
 done <<< "$prs"
 
@@ -407,35 +490,30 @@ fi
 if [ "$check" = 1 ]; then
   # one counter across every pair file: an id this branch adds collides with the same id ANYWHERE else --
   # the tip in another file, a sibling or a PR in any file, this branch's own row in a second file, or a
-  # second row of the same file in one of this branch's places
-  dups=(); judged=""
-  for e in "${selfdup[@]+"${selfdup[@]}"}"; do
-    m="${e%%"$TAB"*}"; rest="${e#*"$TAB"}"; mf="${rest%%"$TAB"*}"; mw="${rest#*"$TAB"}"
-    inlist "$m$TAB$mf" "${tipdup[@]+"${tipdup[@]}"}" && continue  # merged twice at the tip: never this run's to renumber
-    dups+=("$prefix-$m ($mf) also at a second row of the same file ($mw)")
-  done
-  for e in "${mine[@]+"${mine[@]}"}"; do
-    m="${e%%"$TAB"*}"; rest="${e#*"$TAB"}"; mf="${rest%%"$TAB"*}"
-    case "$judged" in *"|$m$TAB$mf|"*) continue ;; esac
-    judged="$judged|$m$TAB$mf|"
-    attip "$m" "$mf" && continue
-    for t in "${tipids[@]+"${tipids[@]}"}"; do
-      [ "${t%%"$TAB"*}" = "$m" ] && dups+=("$prefix-$m ($mf) also at tip $tipref (${t#*"$TAB"})")
-    done
-    for o in "${others[@]+"${others[@]}"}"; do
-      on="${o%%"$TAB"*}"; orest="${o#*"$TAB"}"; of="${orest%%"$TAB"*}"; ow="${orest#*"$TAB"}"
-      [ "$on" = "$m" ] || continue
-      attip "$on" "$of" && continue  # the tip's own row, carried on that branch: listed against the tip above
-      dups+=("$prefix-$m ($mf) also at $ow ($of)")
-    done
-    for o in "${mine[@]+"${mine[@]}"}"; do
-      on="${o%%"$TAB"*}"; orest="${o#*"$TAB"}"; of="${orest%%"$TAB"*}"; ow="${orest#*"$TAB"}"
-      [ "$on" = "$m" ] && [ "$of" != "$mf" ] && dups+=("$prefix-$m ($mf) also at $ow ($of)")
-    done
-  done
-  if [ "${#dups[@]}" -gt 0 ]; then
+  # second row of the same file in one of this branch's places. Judged ONCE, after collection, by one awk
+  # over the three id lists (linear in rows), the messages then sorted unique.
+  # the counted ids are re-read from the seen file: each is one line `PT-<n> <where> in <file>`, the file a
+  # shape-checked path (no space), so the where is what lies between; the class follows the where
+  dupsout="$(LC_ALL=C awk -v pfx="$prefix" -v tipref="$tipref" '
+      substr($0, 1, 3) != "PT-" { next }
+      { sp = index($0, " "); n = substr($0, 4, sp - 4); if (n == "" || n ~ /[^0-9]/) next
+        f = $NF; rest = substr($0, sp + 1); w = substr(rest, 1, length(rest) - length(f) - 4)
+        if (substr(w, 1, 4) == "tip ") { k = n SUBSEP f; tc[k]++; tf[n] = tf[n] f "\n"; next }
+        if (w == "branch HEAD" || w == "working tree") { k = n "\t" f "\t" w; mc[k]++; d = n SUBSEP f; if (!(d in md)) { md[d] = 1; mn[++nm] = n; mf[nm] = f }
+                  mlist[n] = mlist[n] f "\t" w "\n"; next }
+        on[++no] = n; of[no] = f; ow[no] = w }
+      END {
+        for (k in mc) if (mc[k] >= 2) { split(k, a, "\t"); if (tc[a[1] SUBSEP a[2]] >= 2) continue
+          print pfx "-" a[1] " (" a[2] ") also at a second row of the same file (" a[3] ")" }
+        for (i = 1; i <= no; i++) if (!((on[i] SUBSEP of[i]) in tc)) ob[on[i]] = ob[on[i]] of[i] "\t" ow[i] "\n"
+        for (j = 1; j <= nm; j++) { n = mn[j]; f = mf[j]; if ((n SUBSEP f) in tc) continue
+          c = split(tf[n], L, "\n"); for (x = 1; x <= c; x++) if (L[x] != "") print pfx "-" n " (" f ") also at tip " tipref " (" L[x] ")"
+          c = split(ob[n], L, "\n"); for (x = 1; x <= c; x++) if (L[x] != "") { split(L[x], b, "\t"); print pfx "-" n " (" f ") also at " b[2] " (" b[1] ")" }
+          c = split(mlist[n], L, "\n"); for (x = 1; x <= c; x++) if (L[x] != "") { split(L[x], b, "\t"); if (b[1] != f) print pfx "-" n " (" f ") also at " b[2] " (" b[1] ")" } }
+      }' "$SEENF")"
+  if [ -n "$dupsout" ]; then
     echo "port_rule_reserve --check: this branch adds an id another place carries (one counter across every pair file) -- renumber this branch's rows (never a merged one):" >&2
-    printf '%s\n' "${dups[@]}" | sort -u | sed 's/^/  /' >&2
+    printf '%s\n' "$dupsout" | sort -u | sed 's/^/  /' >&2
     exit 3
   fi
   if [ "$rc" = 0 ]; then echo "port_rule_reserve --check: no duplicate -- every id this branch adds is its own"; else echo "port_rule_reserve --check: incomplete read (a place was unread); not judged" >&2; fi
@@ -450,10 +528,19 @@ fi
 complete=true; [ "$rc" = 0 ] || complete=false
 if [ "$json" = 1 ]; then
   if [ "$complete" = true ]; then printf '{"complete":true,"next":"%s-%s","number":%s,"seen":[' "$prefix" "$next" "$next"; else printf '{"complete":false,"next":null,"number":null,"seen":['; fi
-  first=1; for s in "${seen[@]+"${seen[@]}"}"; do [ $first = 1 ] || printf ','; first=0; printf '"%s"' "$(jsonstr "$s")"; done
+  # every seen line as a JSON string: quote, backslash and every U+0000-U+001F escaped, in one awk pass
+  LC_ALL=C awk 'BEGIN { for (i = 1; i < 32; i++) cc[sprintf("%c", i)] = i; re = "[\"\\\\"; for (i = 1; i < 32; i++) re = re sprintf("%c", i); re = re "]"; first = 1 }
+    { s = $0
+      if (s ~ re) { o = ""; L = length(s)
+        for (i = 1; i <= L; i++) { c = substr(s, i, 1)
+          if (c == "\"") o = o "\\\""; else if (c == "\\") o = o "\\\\"
+          else if (c in cc) { k = cc[c]; if (k == 9) o = o "\\t"; else if (k == 10) o = o "\\n"; else if (k == 13) o = o "\\r"; else o = o sprintf("\\u%04x", k) }
+          else o = o c }
+        s = o }
+      printf "%s\"%s\"", (first ? "" : ","), s; first = 0 }' "$SEENF"
   printf ']}\n'
 else
   if [ "$complete" = true ]; then printf 'next: %s-%s\n' "$prefix" "$next"; else printf 'next: (none reserved -- the read was incomplete)\n'; fi
-  for s in "${seen[@]+"${seen[@]}"}"; do printf '  seen: %s\n' "$s"; done
+  LC_ALL=C awk '{ print "  seen: " $0 }' "$SEENF"
 fi
 exit "$rc"

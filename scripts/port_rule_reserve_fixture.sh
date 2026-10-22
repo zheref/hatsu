@@ -31,6 +31,8 @@
 # look-alike refused, the header test is total (PR sections, indentation, key case, numbering value),
 # a '.' remote is read and a refs/pull head skipped by count, JSON escapes control characters, a
 # --target name is a segment, and the shipped template renders into a clean pair file.
+# SCALING: 3000 rows across 6 pair files plus siblings reserve the right id within 30 s (a quadratic
+# regression fails the lane).
 set -euo pipefail
 
 command -v jq >/dev/null 2>&1 || { echo "port-rule-guard fixture: jq is required (the --json case parses the output)" >&2; exit 2; }
@@ -574,6 +576,30 @@ printf '| PT-3 | SW-1 | KT-1 | map | rendered | 2026-10-21 | |\n' >> "$to/handbo
 g -C "$to" add -A; g -C "$to" commit -qm tmpl; g clone -q "$to" "$tc"
 outt15="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT 2>&1)"; rct15=$?
 check "T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
+
+# SCALING (the maintainer's perf ruling on HA-PR-#392): 3000 rows across 6 pair files plus two siblings must
+# reserve the right id within a generous bound, so a quadratic regression fails the lane rather than a user
+so="$root/scale-origin"; sc="$root/scale-clone"
+g init -q -b main "$so"; mkdir -p "$so/handbooks/ports"
+for k in 1 2 3 4 5 6; do
+  awk -v k="$k" 'BEGIN { print "<!-- pair: a" k " -> b" k " · prefix: PT · numbering: global -->"; print "| id | source | target | handling | rationale | date | supersedes |"; print "|---|---|---|---|---|---|---|"
+    for (i = 1; i <= 500; i++) printf "| PT-%d | SW-1 | KT-1 | map | scale | 2026-10-21 | |\n", (k - 1) * 500 + i }' > "$so/handbooks/ports/a$k--b$k.md"
+done
+g -C "$so" add -A; g -C "$so" commit -qm scale; g clone -q "$so" "$sc"
+for s in 1 2; do
+  g -C "$sc" switch -q -c "opus/kurapika/ports-a1--b1-scale$s" main
+  printf '| PT-%d | SW-2 | KT-2 | map | sibling | 2026-10-21 | |\n' "$((3000 + s))" >> "$sc/handbooks/ports/a$((s + 1))--b$((s + 1)).md"
+  g -C "$sc" commit -qam "sibling $s"; g -C "$sc" push -q origin "opus/kurapika/ports-a1--b1-scale$s"
+  g -C "$sc" switch -q main
+done
+g -C "$sc" switch -q -c sonnet/kurapika/ports-a1--b1-scale-me main
+export STUB_PRS=""
+nl=$'\n'   # the first line is compared in the shell: a grep -q on 3000 seen lines would SIGPIPE under pipefail
+t0=$SECONDS
+outsc="$(bash "$guard" --worktree "$sc" --target acme/widget --pair-file handbooks/ports/a1--b1.md --prefix PT 2>&1)"; rcsc=$?
+bash "$guard" --worktree "$sc" --target acme/widget --pair-file handbooks/ports/a1--b1.md --prefix PT --check >/dev/null 2>&1; rcsc2=$?
+el=$((SECONDS - t0))
+check "SCALE: 3000 rows in 6 pair files and two siblings reserve PT-3003 and --check is clean, both within 30 s (took ${el} s)" '[ "$rcsc" = 0 ] && [ "${outsc%%$nl*}" = "next: PT-3003" ] && [ "$rcsc2" = 0 ] && [ "$el" -le 30 ]'
 export STUB_PRS="7\tfalse\ta\t$pair\t$root/diff7.txt\n"
 bash "$guard" --worktree "$clone" --target acme/widget --pair-file "$pair" --prefix PT --base mian >/dev/null 2>"$root/eb.txt"; rct=$?
 check "a tip ref that does not resolve is a named exit 2, never PT-1" '[ "$rct" = 2 ] && grep -q "origin/mian does not resolve" "$root/eb.txt"'

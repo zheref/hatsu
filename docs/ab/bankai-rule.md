@@ -174,10 +174,38 @@ ok    branch B reserves PT-5 past branch A's open PT-4 (exit 0)
   ok    T5: a control character in a branch name is escaped as \u0001 and the JSON parses
   ok    T6: --target acme/. and acme/.. are usage, exit 2
   ok    T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, the row counted: exit 0, next PT-4
+  ok    SCALE: 3000 rows in 6 pair files and two siblings reserve PT-3003 and --check is clean, both within 30 s (took 1 s)
   ok    a tip ref that does not resolve is a named exit 2, never PT-1
   ok    a failed fetch of origin is a named exit 2, never a stale tip
-port-rule-guard: 76/76
+port-rule-guard: 77/77
 ```
+
+**Cost — no slower than main's one-file read** (the maintainer's ruling on HA-PR-#392: no performance
+decrease, the structural cost of reading the whole directory included). One `git ls-tree` per place lists
+its pair files; one `git cat-file --batch` serves every blob of every place; one POSIX awk judges every
+line of every file in read order; duplicates are found once, after collection, by one awk over the seen
+lines. The process count is the number of places plus two, whatever the number of pair files, and the
+work is linear in rows. Every exit, message and output line is unchanged: a differential harness ran the
+round-2 script and this one side by side on every guard call of the fixture and of every hanten repro and
+compared stdout, stderr and the exit byte for byte, with zero mismatches. The scaling case above holds 3000
+rows to 30 s; the round-2 script took 178 s on it.
+
+Method: `perfbench.sh <scratch> <files> <rows> <siblings> <prs>` times main's script (`old`) against this
+one (`new`) on one throwaway rulings directory, `gh` stubbed so the network side is equal (the stated
+number of open same-repository PRs, none touching a pair file), 5 runs each, the median reported, on an
+Apple M4 Max, macOS 27.0, GNU bash 5.3.20, git 2.54.0, `/usr/bin/awk` (BWK 20200816).
+
+| Tree (files × rows, siblings, PRs) | old median (s) | new median (s) | Same `next:` |
+|---|---|---|---|
+| realistic, 6 × 100, 3, 5 | 0.32 | 0.27 | PT-605, both |
+| many small files, 20 × 50, 3, 5 | 0.30 | 0.28 | PT-1005, both |
+| heavy, 6 × 1000, 10, 20 | 1.34 | 0.88 | PT-6012, both |
+| one large file, 1 × 200000, 0, 0 | 42.13 | 3.25 | `(none)` for both from the harness itself; PT-200003 for both with its `seq` guarded |
+
+The quadratic round-2 script, measured before this change, took 4.3 s and 410 s on the first and third
+rows. On the last row, BSD `seq 1 0` counts down, so the harness's stub lists two PRs against a search
+total of zero and both scripts refuse the short list at exit 1 after the same reads; a copy with `seq`
+guarded (one run) printed PT-200003 for both, in 46.6 s and 4.7 s.
 
 ## 3. Resolving a pair file beside the stacks — `--always-load` until zheref/nen#457
 
