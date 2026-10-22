@@ -147,7 +147,7 @@ are placed by this step at adoption and refreshed by the warm-up's `surface_boot
 never overwritten, and the same `diagnose` follow-up covers its row.
 
 **State is written by a script with fixtures, never counted in prose.** This is the same rule
-[`scripts/hanten_cycle_ledger.sh`](../../../scripts/hanten_cycle_ledger.sh) carries and for the same
+hanten's review-cycle ledger follows (`nen review ledger`, zheref/nen#346), and for the same
 reason: a skill that counted adoption items in its own reply would get the count right on the turn it
 was written and wrong on every turn after. **Relay the engine's rows; never re-derive one by eye, and
 never report an item this skill checked by hand as though the engine had.**

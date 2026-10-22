@@ -529,7 +529,7 @@ One row per scope:
 |---|---|
 | `persona` | the agent file raised for this scope — `claude/agents/<persona>.md`. A scope whose persona has no definition is a **gap**, never improvised past |
 | `tier` | `models.<surface>.<tier>` of the `models` block below, read at use, **never the frontier tier** |
-| `budget` | reviews of this scope **per effort** — a branch plus its PR — counted in `.nen/hanten/<branch-slug>[-pr<N>].cycle.json` by `scripts/hanten_cycle_ledger.sh`, which reads this value; never per session or repository, and a new PR number starts full. Remediation does not reset it (ruling 2026-09-28, ROSTER ruling 9 R2) |
+| `budget` | reviews of this scope **per effort** — a branch plus its PR — counted in `.nen/hanten/<branch-slug>[-pr<N>].cycle.json` by `nen review ledger`, which reads this value; never per session or repository, and a new PR number starts full. Remediation does not reset it (ruling 2026-09-28, ROSTER ruling 9 R2) |
 | `paths` | prefixes or globs in `nen report data`'s tier-table grammar. **One path may raise several scopes**, and a path no row claims is reported as `unclaimed` |
 
 **`code`'s `paths` is `**`, deliberately: it claims every path**, so Nobunaga is the default reviewer
@@ -715,9 +715,9 @@ without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refu
 **From nen `0.7` the cap is ENFORCED by the binary rather than counted in a skill's prose.**
 `nen loop iterate --id <id> --line "<task> until <condition> up to <N>"` claims one acting iteration
 against the cap its own line states and **refuses the claim past it**, exit `1` — so `maxCycles` is a
-number a verb holds a caller to, not one a caller is trusted to remember. The ledger is
-`.nen/loop/<id>.json` under `--repo`, in the same dot-prefixed generated tree `nen stop --mark` writes to,
-never the committed `nen/`. **`en` passes the git common directory as `--repo`**
+number a verb holds a caller to, not one a caller is trusted to remember. From nen 0.26 the ledger is
+`<git-common-dir>/.nen/loop/<id>.json` of `--repo` (`.nen/loop/<id>.json` under `--repo` only outside a git
+repository), never the committed `nen/`. **`en` passes the git common directory as `--repo`**
 (`git rev-parse --path-format=absolute --git-common-dir`), so the ledger outlives the effort worktree
 and `cleanup` never removes it (`docs/ab/en.md` § *The cap outlives the worktree*). Two consequences
 worth stating here rather than only in the skills:
@@ -1343,11 +1343,13 @@ readiness pass**, then resumes its own verb after validation. The caller remains
 its operation; Tenkai owns detection and the setup conversation. An effort artifact is different:
 the `.nen/hanten/` review ledger is local audit state, created by Breath when it cuts the branch, or
 by Hanten § 1's `ensure` for a branch Breath did not cut when no trace of an earlier ledger survives
-(`hanten_cycle_ledger.sh` header). Recovery is for a **lost** one — `ensure`'s exit `4`: a trace says a
+(`nen review ledger`, zheref/nen#346). Its roster and maxima are the target's `review.scopes` alone: nen
+has no fallback persona or budget, and a missing or malformed policy, or an unstamped ledger missing a
+declared reviewer's row, is exit `2`, restored by hand. Recovery is for a **lost** one — `ensure`'s exit `4`: a trace says a
 ledger was opened under the key before. A branch name reused after its branch was merged and deleted
 reads lost too, by design: its marker never expires, so it is settled here, never silently re-opened. Tenkai diagnoses it, but its `apply` cannot create review
 history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
-cycle under the key, Hanten runs `hanten_cycle_ledger.sh recover-first
+cycle under the key, Hanten runs `nen review ledger recover-first
 --confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original
 used counts. Unreconstructable prior review history is a **safety precondition**, not a missing
 configuration value; it stops at G5 rather than issuing a fresh budget.

@@ -67,7 +67,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-if os.name == "nt":   # the same split scripts/hanten_cycle_ledger.sh makes for its own lock
+if os.name == "nt":   # msvcrt byte-range locks on Windows, fcntl elsewhere
     import msvcrt
     _windows_thread_lock = threading.Lock()
 else:
@@ -665,7 +665,7 @@ def declaration_lock(repo):
         return
     if os.name == "nt":
         # a directory cannot be byte-range locked on Windows: lock a file under .nen/, which
-        # tenkai git-ignores, with msvcrt as hanten_cycle_ledger.sh does
+        # tenkai git-ignores, with msvcrt
         (repo.path / ".nen").mkdir(exist_ok=True)
         fd = os.open(str(repo.path / ".nen" / "config_values.lock"), os.O_RDWR | os.O_CREAT, 0o600)
         _windows_thread_lock.acquire()

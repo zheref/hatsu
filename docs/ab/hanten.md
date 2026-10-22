@@ -405,8 +405,8 @@ take the remaining path to G5.
 ## Cycle-budget regression — live, 2026-09-15
 
 Hanten's reviewer conversation still has no executable agent-flow runner. The **invocation budget** does:
-[`scripts/hanten_cycle_ledger.sh`](../../scripts/hanten_cycle_ledger.sh) is the writer § 2a names, and
-`--self-test` is the recorded proof that remediation cannot reset counts and that Chrollo cannot run twice.
+[`scripts/hanten_cycle_ledger.sh`](https://github.com/zheref/hatsu/blob/4baf46d65/scripts/hanten_cycle_ledger.sh) was the writer § 2a named (retired for `nen review ledger` at nen v0.26.0, zheref/hatsu#216), and
+its `--self-test` was the recorded proof that remediation cannot reset counts and that Chrollo cannot run twice.
 
 **Run:** 2026-09-15, `nen 0.10.0`, host Darwin, Hatsu checkout `grok/kurapika/netero-breath-g5`.
 Re-run after the fail-closed writer (v0.30.0): 2026-09-16, same host, same checkout.

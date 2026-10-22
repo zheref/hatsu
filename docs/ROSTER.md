@@ -1861,7 +1861,7 @@ to the open question `docs/PROCESS.md` § *Residue and owned dependencies* had c
 | Ruling | What it says |
 |---|---|
 | <a id="hr-243"></a>**HR-243** (ruled) **BC-11 binds `scripts/hanten_cycle_ledger.sh`** | BC-11 (`zheref/bankai-handbooks` v0.6.0, the `bankai-machinery` stack handbook: embedded Python that predates RR-PR-#753 is frozen debt, and growing it is a finding) binds the hanten cycle ledger. The ledger's Python grew on 2026-10-02 (zheref/hatsu#169, `ensure` and its trace reads) — that growth is the BC-11 finding, and zheref/nen#346 is its remediation. Until the verb lands the script is **frozen**: fixes only, no new subcommand or verdict (the issue's words; "no new trace read" is the recorder's reading of the same clause). Its header says so |
-| <a id="hr-244"></a>**HR-244** (ruled) **The ledger is owed to nen** | zheref/nen#346 owns the review-cycle ledger (`init`, `ensure`, `decide`, `record`, `show`, `recover-first`) as a nen verb. When it ships, `hanten` §§ 1–4 and `breath` § 3b call the verb, the script and its self-test retire, and lane `ledger-guard` points at nen's own tests. zheref/hatsu#216 closes on that step, not before |
+| <a id="hr-244"></a>**HR-244** (ruled) **The ledger is owed to nen** | zheref/nen#346 owns the review-cycle ledger (`init`, `ensure`, `decide`, `record`, `show`, `recover-first`) as a nen verb. When it ships, `hanten` §§ 1–4 and `breath` § 3b call the verb, the script and its self-test retire, and lane `ledger-guard` points at nen's own tests. zheref/hatsu#216 closes on that step, not before. **Delivered on nen v0.26.0** (zheref/hatsu#216, 2026-10-22): hanten and breath call `nen review ledger`; the script, its late-persona fixture and lane `ledger-guard` are retired, and the ledger's tests are nen's own (`src/review/ledger.test.ts`) |
 | <a id="hr-245"></a>**HR-245** (ruled) **Where it is stated** | `docs/PROCESS.md` § *Residue and owned dependencies* (the `ten` § 5 entry) names the owned dependency; the script header names the freeze; this section is the ruling's record |
 
 ---
@@ -2205,7 +2205,7 @@ amended by this one, and says so in place.
    the source* ([`getsuga`](../claude/skills/getsuga/SKILL.md) § 1; `scripts/getsuga_default_cut_point_red.sh`).
    **R2** *"What is an effort for the hanten budget?"* — *a branch PLUS its PR: key the ledger by branch
    and PR number, so every new PR starts every reviewer fresh even on a reused branch name*
-   (`scripts/hanten_cycle_ledger.sh --pr <N>`, `<branch-slug>-pr<N>.cycle.json`, maxima read from the
+   (`nen review ledger … --pr <N>` from nen v0.26.0, `<branch-slug>-pr<N>.cycle.json`, maxima read from the
    target's `review.scopes.<scope>.budget`; [`hanten`](../claude/skills/hanten/SKILL.md) § 2b).
    **R3** *"breath's once-per-session guard?"* — *once per EFFORT, not per session*
    ([`breath`](../claude/skills/breath/SKILL.md) § 0, [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) § 3).

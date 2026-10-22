@@ -22,7 +22,7 @@ nen parse hanten \
 **`against <base>` names the base**; otherwise P3 supplies it (STANDALONE-ENTRY.md § 3). **`all` means every raised scope**; `for <scope>` narrows; unknown scopes (exit `2`) ask with the nine. Missing arguments or configuration are set up inline (WORKFLOW.md § 4).
 
 **Fail-closed cycle ledger:** `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show` refuse its absence.
-Every entry first runs `"$hatsu_root/scripts/hanten_cycle_ledger.sh" ensure --repo <path> --branch <branch> [--pr <n>]`:
+Every entry first runs `nen review ledger ensure --repo <path> --branch <branch> [--pr <n>] --json`:
 `opened` (say so) or `present`; exit `3` stops on trunk. Exit `4` means a lost ledger: recover **in this turn**
 (WORKFLOW.md § 4). A first cycle needs the maintainer's picker confirmation for
 `recover-first <same args> --confirmed-first-cycle`; prior reviews restore their counts. Unknown history is
@@ -69,7 +69,7 @@ counted by the ledger; **one persona, one budget** (his smallest): two of his sc
 raised together are one raise.
 
 ```bash
-"$hatsu_root/scripts/hanten_cycle_ledger.sh" decide --repo <path> --branch <branch> [--pr <N>] \
+nen review ledger decide --repo <path> --branch <branch> [--pr <N>] --json \
   --applicable <csv of personas the classification raised>
 ```
 

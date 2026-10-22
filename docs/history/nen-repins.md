@@ -44,19 +44,48 @@ adoption narrative in the contract.
 | `v0.21.0` | 0.21 | 0.21 | 2026-10-11 | `a03865101` | #245 | [§ v0.21.0](#v0210) |
 | `v0.22.0` | 0.22 | 0.22 | 2026-10-18 | `f58d5a683` | #315 | [§ v0.22.0](#v0220) |
 | `v0.24.0` | 0.24 | 0.24 | 2026-10-20 | `d9645c8e3` | #374 | [§ v0.24.0](#v0240) |
+| `v0.26.0` | 0.26 | 0.26 | 2026-10-22 | @@COMMIT@@ | @@PR@@ | [§ v0.26.0](#v0260) |
 
 One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
 `pinned_ref` unchanged at `v0.16.0`.
 
 The minimum's own path, as the contract recorded it: 0.13, then 0.14, 0.15, 0.16, 0.18, 0.19, 0.20,
-0.21, 0.22 and 0.24. Nen raised its floor to 0.17 at v0.17.0, to 0.18 at v0.18.0 (the maintainer's
+0.21, 0.22, 0.24 and 0.26. Nen raised its floor to 0.17 at v0.17.0, to 0.18 at v0.18.0 (the maintainer's
 ruling of 2026-09-30: nen commit format's new exit 2 on an unreadable commitlint config with prose lines
 over 100, zheref/nen#302, is breaking), to 0.19 at v0.19.0, to 0.20 at v0.20.0, to 0.21 at v0.21.0, to
-0.22 at v0.22.0 and to 0.24 by v0.24.0. So 0.18 was the minimum on both counts at that repin, the
+0.22 at v0.22.0, to 0.24 by v0.24.0 and to 0.26 at v0.26.0. So 0.18 was the minimum on both counts at that repin, the
 feature and the floor, as 0.19 was at the v0.19.0 repin, 0.20 at the v0.20.0 repin (the classify and
 direct families), 0.21 at the v0.21.0 repin (the floor and nen's gates keys), 0.22 at the v0.22.0 repin
-(v0.22.0 moved the floor to 0.22 and Hatsu adopted the list slots and backlog filters) and 0.24 at the
-v0.24.0 repin.
+(v0.22.0 moved the floor to 0.22 and Hatsu adopted the list slots and backlog filters), 0.24 at the
+v0.24.0 repin and 0.26 at the v0.26.0 repin (the floor and `nen review ledger`).
+
+## v0.26.0
+
+zheref/hatsu#216 adopts released v0.26.0 (release PR NN#499, published 2026-10-22): `nen review ledger
+init|ensure|decide|record|show|recover-first` (zheref/nen#346, NN-PR-#471) replaces
+`scripts/hanten_cycle_ledger.sh` in hanten §§ 1–2b, breath § 3b and tenkai's review-ledger row; the script,
+its late-persona fixture and lane `ledger-guard` retire. The verb reads the roster and maxima from
+`review.scopes` alone (no built-in personas or fallback budgets) and has no late-persona exception: an
+unstamped ledger missing a declared reviewer's row refuses at exit `2` and is restored by hand. The pin
+crosses v0.25.0 (no breaking notes, floor 0.24) and v0.26.0 (floor 0.26). Absorbed, note by note:
+
+- **`pr open` adopts an open PR at exit `0`** (`existing: true`) for the same head, base and head commit:
+  shibari § 4 says so.
+- **`--json` refusals arrive as one `nen.refusal/v0.1` envelope on stdout** for `issue file`, `idea file`,
+  `canon resolve` and `commit format`: file § 4 reads `refused[]` instead of stderr (emperor-time cites file
+  § 4); no Hatsu caller reads `canon resolve` or `commit format` refusals under `--json`.
+- **Ledger homes in the git common directory**: the loop ledger is `<git-common-dir>/.nen/loop/<id>.json`
+  of `--repo` (izanagi § 3 and WORKFLOW § *`monitor`* updated; en already said so); Hatsu reads no stop
+  answer or run manifest home.
+- **`parse --grammar` refuses an unintroduced later slot**: all 36 skill grammars return the same exits on
+  0.24.0 and 0.26.0 (144 runs, none differing).
+- **`pr ready` and `pr merge --release-unit` read `aiReviewers`**: no Hatsu change here; getsuga § 3a's and
+  kazaana § Residue's "owed to nen" clause is zheref/hatsu#380's to rewrite.
+- **`pr converge` exits** and **`repo classify`'s spec role**: no Hatsu caller yet (zheref/hatsu#413 adopts
+  `pr converge`; `nen/repos.json` declares no families).
+
+v0.25.0's `pr sections resolve` envelope fix (NN#464) makes the retirement of Hatsu's interim PR-section
+resolver possible; that retirement is separate and not adopted here.
 
 ## v0.24.0
 

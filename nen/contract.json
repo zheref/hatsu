@@ -1,6 +1,6 @@
 {
   "$schema": "nen.contract/v0.1",
-  "$comment": "Authoritative Hatsu/Nen dependency and execution declaration. HA321 adopts released Nen v0.24.0 for phase/usage dials and session ledgers. Feature minimum and compatible-minor floor are 0.24; older releases cannot supply this delivery evidence. Prior adoption history remains in dependency.minimum_semantics.",
+  "$comment": "Authoritative Hatsu/Nen dependency and execution declaration. HA216 adopts released Nen v0.26.0 for nen review ledger, the review-cycle ledger hanten and breath call (zheref/nen#346). Feature minimum and compatible-minor floor are 0.26; older releases do not carry the verb. The adoption history is docs/history/nen-repins.md.",
   "contract": "hatsu-nen-dependency",
   "contract_version": 2,
   "decision": "D10",
@@ -12,17 +12,17 @@
     "name": "nen",
     "source": "zheref/nen",
     "repository": "https://github.com/zheref/nen",
-    "minimum": "0.24",
+    "minimum": "0.26",
     "minimum_semantics": "MAJOR.MINOR capability minimum, checked by nen shu tools against the installed binary and its compatibility floor: the OLDEST nen release carrying every verb Hatsu executes, raised for a breaking floor or a newly adopted feature and never moved back; the rule and every repin's adoptions and absorbed breaking notes are in docs/history/nen-repins.md.",
     "zero_major_caveat": {
       "applies_while": "the installed and pinned majors are both 0",
-      "rule": "For major-zero pins, the binary accepts a declared minor at or above its compatible-minor floor and no newer than its own minor. Hatsu minimum0.24 and Nen0.24.0/floor0.24 satisfy; lower pins are refused by this release. Read the exact verdict through nen shu tools; an unparseable version is unknown and unsatisfied.",
+      "rule": "For major-zero pins, the binary accepts a declared minor at or above its compatible-minor floor and no newer than its own minor. Hatsu minimum0.26 and Nen0.26.0/floor0.26 satisfy; lower pins are refused by this release. Read the exact verdict through nen shu tools; an unparseable version is unknown and unsatisfied.",
       "why": "SemVer 2.0.0 clause 4: at major version zero the public API is unstable and anything MAY change at any time, so at 0.x the MINOR is the breaking-change vehicle. Read at its strictest that made '0.7' mean '>=0.7.0 <0.8.0' EXACTLY, and every minor — breaking or not — owed a repin PR in every consuming repository; a repin owed unconditionally is a repin nobody reads. The maintainer's ruling of 2026-09-10 narrows it to 'exact minor is fine, unless there is a breaking change', and the fact that makes the distinction decidable is one the binary SHIPS rather than one a consumer infers: nen's release step sets COMPATIBLE_MINOR_FLOOR to a release's own minor when that release's CHANGELOG '### Breaking / consumer notes' section carries a real bullet, and leaves it where it stands when it carries none (zheref/nen#200; docs/USAGE.md 'the compatibility floor' and 'the release-time floor step', guarded by src/version.test.ts, which reads the topmost released section and fails the build when the two disagree). So the floor is what says which releases broke something, carried as data into a checkout that no longer exists rather than derived from prose at run time. It is a floor and never a ceiling, and it only ever WIDENS what is accepted — which is why nen's own notes for it record that it is not itself a breaking change. The floor is seeded at 0.7 because v0.7.0's notes ARE breaking, and those four changes are the reason this contract originally adopted minimum 0.7 (since raised to 0.14 for adopted features) at all: `nen stage triage` gained the `local-config` and `large` detectors, so a working copy that answered exit 0 answers exit 1 on the same bytes; every relative own-path flag resolves against `--repo`'s root instead of the PROCESS's directory, so one unchanged command line run from a worktree reads a different file; a missing or malformed `--target` exits 2 rather than 1 across sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` READS `nen/gates.json`'s `dependabot_carve_out`, so a pull request that answered `not-ready` can answer `ready` against an unchanged file. Each is a silent change of meaning rather than a new flag, which is exactly what a floor exists to record.",
       "on_a_higher_minor": "A newer release that keeps a compatibility floor admitting this feature minimum may satisfy the pin without a change. A raised floor above minimum requires an explicit compatibility repin. An installed binary older than minimum needs the published pinned_ref. Read the Nen verdict rather than downgrade a matching newer binary.",
       "from_1_0_onward": "Once nen reaches 1.0, minimum 'X.Y' means >=X.Y.0 <(X+1).0.0 — backward-compatible WITHIN the major, so a higher minor or patch satisfies it and the compatibility floor is not consulted at all. nen already answers that way for a 1.x pin today; this contract is bumped to say so when nen's own line gets there."
     },
-    "pinned_ref": "v0.24.0",
-    "pinned_ref_semantics": "Bootstrap release ref v0.24.0 darwin-arm64 c285c8b48f5c76f96de798bd544322b64fa1be6f5a27f12024a717ea1a2bfe03; linux-x64 e01874978c29dc996c72581402ebe36793686c3d526d57b94de0bd4eaba3509c; windows-x64 0a521516e91dbdee63cfcb5739b2718439b0cf98ab34eb874f7d99807db47b3a. Published v0.24.0, release PR462 merged at f8dd01f3f6d6775e1673d2876ebb569bb872df8b. All three assets and SHA256SUMS published 2026-10-20. Host bootstrap checksum verified and executes 0.24.0; NN#437 delivery ledgers are available. Compatibility floor0.24, minimum0.24. HA321 adopts dial/session/report data; it does not retire the PR-section fallback. Historical pins are recorded in git and CHANGELOG.",
+    "pinned_ref": "v0.26.0",
+    "pinned_ref_semantics": "Bootstrap release ref v0.26.0 darwin-arm64 7ed48b59b55584bdf83b6077e89018582464383c44bfeb2b957ad38fd1802c92; linux-x64 03b3961d921f62a2b0dd328590c93a8e746bcc0aa42076d4b3c95b513a37d3c3; windows-x64 9f218b93ebd7fd747296c11cf96176d817602b9879b6fd025ff3d420da651ee7. Published v0.26.0, release PR499 merged at b1bca16db93e0a710753c5612bc92027e10bc727. All three assets and SHA256SUMS published 2026-10-22. Host bootstrap checksum verified and executes 0.26.0; NN#346 nen review ledger is available. Compatibility floor0.26, minimum0.26. HA216 adopts nen review ledger. Historical pins are recorded in git and docs/history/nen-repins.md.",
     "pinned_ref_bootstrap_caveat": "A TAG IS NOT A RELEASE, and this is the durable rule for EVERY value `pinned_ref` ever takes, not a note about one of them. `bootstrap/nen.sh` resolves the binary and its SHA256SUMS from the GitHub RELEASE at --ref; the tag's own tree carries the script but no assets. TWO CASES, AND THEY FAIL AT DIFFERENT STEPS. A `pinned_ref` whose TAG EXISTS but whose RELEASE is not published exits 6 (EXIT_MANIFEST — SHA256SUMS unfetchable) on both install_paths. A `pinned_ref` whose TAG DOES NOT EXIST YET NEVER REACHES EXIT 6 AT ALL: `raw.githubusercontent.com` 404s on the script itself, so `curl -f` exits 22 (or 56 mid-transfer), no file is created, and the second step never runs. Saying `exit 6` for both was wrong in a way that costs debugging time — an operator looking for a manifest failure when what is missing is the tag. Either way the warm-up halts per `halt`. That is the fail-closed guard working rather than a defect in this file, and exit 6 is one of the two codes that is NEVER retried. THE RULE THIS IMPLIES: never move `pinned_ref` to a ref whose release is unpublished without knowing that the halt is the cost. CI DOES SEE IT, and that sentence used to say the opposite: `.github/workflows/surface-mirror-check.yml` reads `dependency.pinned_ref` out of this file and bootstraps it, so a pull request that moves the pin ahead of the release goes RED at that step — `curl` 404s on the raw script, or the script exits 6 on an unfetchable SHA256SUMS — on every pull request, not only the one that moved it. That is the guard working where it can be seen rather than only on a developer's machine, and it is a reason to sequence the repin behind the release rather than a reason to weaken either. Publishing the release is the nen maintainer's act and the only thing that clears it.",
     "version_probe": [
       "nen",
@@ -36,17 +36,17 @@
       "script_path_in_source": "bootstrap/nen.sh",
       "sha256": {
         "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified. CI reads linux-x64: the three workflows that bootstrap nen refuse a binary whose sha256 differs from main's copy of this key (zheref/hatsu#230), so a repin that leaves it behind fails every pull request after it closed.",
-        "darwin-arm64": "c285c8b48f5c76f96de798bd544322b64fa1be6f5a27f12024a717ea1a2bfe03",
-        "linux-x64": "e01874978c29dc996c72581402ebe36793686c3d526d57b94de0bd4eaba3509c",
-        "windows-x64": "0a521516e91dbdee63cfcb5739b2718439b0cf98ab34eb874f7d99807db47b3a"
+        "darwin-arm64": "7ed48b59b55584bdf83b6077e89018582464383c44bfeb2b957ad38fd1802c92",
+        "linux-x64": "03b3961d921f62a2b0dd328590c93a8e746bcc0aa42076d4b3c95b513a37d3c3",
+        "windows-x64": "9f218b93ebd7fd747296c11cf96176d817602b9879b6fd025ff3d420da651ee7"
       },
-      "url": "https://raw.githubusercontent.com/zheref/nen/v0.24.0/bootstrap/nen.sh",
-      "fetch": "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.24.0/bootstrap/nen.sh -o <local-file>",
+      "url": "https://raw.githubusercontent.com/zheref/nen/v0.26.0/bootstrap/nen.sh",
+      "fetch": "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.26.0/bootstrap/nen.sh -o <local-file>",
       "fetch_must_be_two_step": {
         "rule": "ALWAYS fetch to a file, then run that file. NEVER pipe the script into bash.",
         "why": "The script runs under `set -u` and reads ${BASH_SOURCE[0]}. Piped into `bash -s --` there is no BASH_SOURCE, so it dies with `BASH_SOURCE[0]: unbound variable` and exits 1 — a code that appears in NO table here, from a script that never reached its own argument parsing. It looks like an ordinary failure and is not one; it means the invocation form was wrong. Reproduced against this contract's pinned ref.",
-        "wrong": "curl -fsSL <url> | bash -s -- --ref v0.24.0",
-        "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.24.0 --source zheref/nen"
+        "wrong": "curl -fsSL <url> | bash -s -- --ref v0.26.0",
+        "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.26.0 --source zheref/nen"
       },
       "flags": {
         "--ref": "Required, no default. The tag to pin to.",
@@ -271,11 +271,6 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/branch_authorship_check.sh (zheref/hatsu#170: every commit in the OUTGOING range -- @{upstream} or the ls-remote SHA, never origin/<base> -- carries the run's Hatsu-Agent provenance under --require-agent, with identity as the weak second signal; --trunk drops the base's own history and exempts only a merge of the trunk whose tree is git's own clean merge; hanten § 4's return, aka § 4 before the squash and aka § 7 / murasaki § 6 before the push run it) and scripts/publish_gate_check.sh (zheref/hatsu#188: every documented catch-up-and-publish block is one && chain with nothing negated on it, and murasaki shows the full gated form once, or calls scripts/publish_gate.sh, the same chain shipped as one command, #218). Hermetic and offline: throwaway repositories and files under a temp dir; nothing is pushed but a local bare repository."
       },
-      "ledger-guard": {
-        "stack": "claude-code-plugin",
-        "cwd": ".",
-        "$comment": "The focused lane for scripts/hanten_cycle_ledger.sh, hanten's fail-closed review-budget ledger. It shipped with an embedded --self-test and no lane (Phinks, hanten on 265c2533), so a budget-minting defect could land with nothing routed to catch it. One entry runs both: the late-persona fixture calls the script's --self-test first, then drives the ledgers that already knew a late persona."
-      },
       "cleanup-path-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -339,7 +334,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, ledger-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
@@ -789,17 +784,6 @@
           "$comment": "Hermetic and offline, 138 cases. branch_authorship_check.sh: a clean branch, an empty range and a present trailer pass; --require-agent stops a reviewer persona's commit and a trailer-less one on the maintainer's own identity; a foreign author or committer and a missing required trailer stop at exit 1 naming the SHA, author and file count; a clean trunk merge passes only with --trunk, an evil merge and a clean merge of a non-trunk branch stop even with it; trunk history a catch-up brought in is out of range; RED-1 the outgoing range passes past a published web-flow commit; hostile subjects are sanitised; a malformed --require-trailer, --require-agent or --allow-email, an unresolvable base or trunk, a non-repository, an unknown argument, no identity at all and --trunk on a git without merge-tree --write-tree are exit 2; zheref/hatsu#314: the capability is read off `git merge-tree -h`, so a range with no exemption to prove passes on a git that cannot write, a supported git whose proof write is denied is exit 2 naming its exit status and git's sanitised error and never the version floor, a missing-trailer finding or a printed finding, and a conflicted trunk merge is judged at exit 1; the proof writes only a throwaway object directory, so a clean merge passes and an evil one (whose tree the store lacks) is judged at exit 1 on a read-only store and neither adds an object to it; an unrelated-history merge and a shallow clone are exit 2 without a denied-write diagnosis or a grant advice (RED-314a/b); exit 0 with no tree id is exit 2, never a finding; git's quoted text is labelled untrusted, its control bytes print as ?, and it is bounded to three lines and 300 characters; round 2: every read judges the objects as stored, so an evil merge replaced by a clean one under refs/replace and a commit hidden from the range by info/grafts are judged at exit 1; a blob:none partial clone whose proof needs a fetch is exit 2 offline, never a pass; grant advice needs its trigger inside the quoted lines; the throwaway directory is made under TMPDIR, removed on exit, and an unusable TMPDIR is exit 2 naming the directory used, as the grant advice does. publish_gate_check.sh: the full gated && block passes (redirections are not separators, a quoted # hides nothing); a ;, a ||, a bare newline, a pipe (glued to the publish too), a lone &, a negated catch-up, authorship check or noOp read, a second ungated publish, an authorship check on its own line and a ~~~, nested or unterminated fence each fail, as does a publish spelled with doubled spaces or a tab; a murasaki with no full gated block fails; the owners carry a file-level policy -- in murasaki or mukai every publish needs its own catch-up and authorship check, in aka its own authorship check, so a bare publish block beside a gated one fails, and anywhere a publish ahead of the check its block names fails (Copilot on HA-PR-#192); a directory or unreadable file is exit 2; the live skills pass. Run it as `nen shu test --lane publish-integrity-guard --repo <hatsu>` when either script or the publish prose changes."
         }
       },
-      "ledger-guard": {
-        "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "bash",
-            "scripts/hanten_cycle_ledger_late_persona_fixture.sh"
-          ],
-          "$comment": "Hermetic and offline: throwaway repositories under a temp dir. The script's own --self-test (budgets from workflow.json, decide/record, recover-first, PR-keyed ledgers, concurrency, late-persona hydration, and ensure for zheref/hatsu#169: an app-created branch opened, a breath-created one untouched, the trunk refused (origin/HEAD included), a lost ledger reported and never re-opened -- after git clean, after its worktree is removed, while another worktree holds it, beside another PR's ledger, under a stale lock -- the current PR's own PR-keyed ledger read as present, a sibling branch (x/ten-preflight, x/ten-pr2-notes beside x/ten) never a trace, a young in-flight lock waited on rather than read as lost, two concurrent ensures over 30 trials each (a stale lock always lost, a fresh branch never), a refused read leaving no lock; the appended ensure cases fail the lane too), then a lost, deleted or re-cased late-persona row refused in a ledger that already knew him (personasAtOpen, lateHydrated), with a 0.66.0-shaped ledger still hydrating. Run it as `nen shu test --lane ledger-guard --repo <hatsu>` when scripts/hanten_cycle_ledger.sh changes."
-        }
-      },
       "cleanup-path-guard": {
         "test": {
           "exe": "bash",
@@ -956,8 +940,8 @@
       "when": "`nen --version` is not found on PATH, exits non-zero, or prints something unparseable — and equally when the binary on PATH is so old it has no `nen bootstrap` at all (exit 2, `unknown command`), since the re-pin path below presupposes that verb.",
       "path": "The shell bootstrap, directly.",
       "commands": [
-        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.24.0/bootstrap/nen.sh -o <local-file>",
-        "bash <local-file> --ref v0.24.0 --source zheref/nen"
+        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.26.0/bootstrap/nen.sh -o <local-file>",
+        "bash <local-file> --ref v0.26.0 --source zheref/nen"
       ],
       "why_shell_here": "Chicken-and-egg, and it is the ONLY reason shell is permitted anywhere on this path. `nen bootstrap` is a nen subcommand, so invoking it presupposes the binary that is precisely what is missing. The script exists because a bootstrap written in the language its own output provides cannot run before that output exists. This is the sole carve-out; it does not generalize to any other operation."
     },
@@ -965,8 +949,8 @@
       "when": "`nen shu tools --repo <this checkout>` answers the `nen` row `present-but-wrong-version` — the binary parses and does not satisfy `minimum` under dependency.zero_major_caveat's floor rule. The row is the verdict; the range is never recomputed here. TWO SHAPES, ONE PATH: a pin BELOW the build's compatibility floor (the row names the repin, and no build of that line will ever satisfy it — the fix is a pull request against this file, not an install), and a binary OLDER than the pin (the install below is the whole fix).",
       "path": "Re-pin THROUGH NEN'S OWN VERB. A working nen is on PATH, so the chicken-and-egg rationale does not apply and the shell path is not the one to reach for.",
       "commands": [
-        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.24.0/bootstrap/nen.sh -o <local-file>",
-        "nen bootstrap --ref v0.24.0 --source zheref/nen --script <local-file>"
+        "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.26.0/bootstrap/nen.sh -o <local-file>",
+        "nen bootstrap --ref v0.26.0 --source zheref/nen --script <local-file>"
       ],
       "why_script_flag_is_required": "VERIFIED, and it contradicts what the verb's name suggests: `nen bootstrap` does not fetch the script. It runs the checksum bootstrap rather than reimplementing it, so it needs bootstrap/nen.sh ON DISK — from a checkout carrying it (--repo) or named with --script / $NEN_BOOTSTRAP_SH. A Hatsu user has no nen checkout, so --script with the freshly fetched file is the form that works; without it the verb exits 7. Deliberate on nen's part: a compiled binary has no sibling bootstrap/ directory, and guessing one is how a nonexistent path becomes a silent failure.",
       "exit_codes": "The verb propagates the script's codes unchanged — a forced failure through the verb returns 6, verified — plus its own 7 above."
@@ -974,7 +958,7 @@
   },
   "halt": {
     "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or out-of-range nen is not a halt — it is an auto-install.",
-    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.24.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.24.0 --source zheref/nen\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl … | bash` dies before it starts.\n",
+    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.26.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.26.0 --source zheref/nen\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl … | bash` dies before it starts.\n",
     "after_halt": "Stop. Do not perform the Nen-owned operation by another route — not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
   },
   "no_improvised_fallback": {
