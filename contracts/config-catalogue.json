@@ -679,7 +679,7 @@
       "path": "review.scopes",
       "domain": "review",
       "kind": "open",
-      "describe": "Hanten's routing: scope name → {persona, tier, budget, paths[]}. Without it no change set can be classified and no reviewer raised.",
+      "describe": "Hanten's routing: scope name → {persona, tier, budget, paths[]}. Without it no change set can be classified and no reviewer raised. set refuses an intake examiner (an intake.challenger option) as a persona: examiners challenge only at capture intake, never as hanten reviewers (HR-23).",
       "readers": [
         "hanten"
       ],
