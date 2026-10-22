@@ -4,7 +4,7 @@ import { join, dirname, resolve, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
-import { catalogue, pattern } from './pr_sections.ts';
+import { catalogue, requirementsFor } from './pr_sections.ts';
 const here=dirname(fileURLToPath(import.meta.url));
 const DECL='contracts/pr-composition.json';
 const findings:string[]=[];
@@ -41,7 +41,7 @@ try {
      const ids=cat.variants[`${body.defaultKind}.${body.defaultFamily}`];
      if(!ids)throw new Error('unknown default kind/family');
      const rows=[...cat.preamble,...ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)),...cat.footer.filter((r:any)=>!r.reserved)];
-     const expected=rows.map((row:any)=>pattern(row,body.defaultKind));
+     const expected=requirementsFor(rows,body.defaultKind);
      if(!isDeepStrictEqual(load(body.file),expected))findings.push(`${body.file}: drifts from catalogue default ${body.defaultKind}.${body.defaultFamily}`);
      for(const row of [...cat.preamble,...cat.sections,...cat.footer]) {
        const source=text(row.template);

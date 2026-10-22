@@ -256,7 +256,11 @@ one-directional confirmation pass that may only veto. Read it there.
 Two things en relies on and does not re-derive:
 
 - **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
-  satisfied**, both deterministic, neither re-derived by eye — and the Development guard
+  satisfied AND the criteria guard
+  (`node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>`, HR-11) exits `0`**, all
+  deterministic, none re-derived by eye: a `missing` or `contradicts` verify row, an acceptance
+  criterion with no row or a closing issue with no criteria is not ready whatever the gate verdict —
+  and the Development guard
   (`"$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#N> --base <branch.base>`,
   zheref/hatsu#203) in exactly one of three cases, decided by the PR's own base first: **(1)** the PR's
   base is the default branch, whatever `branch.base` declares — the guard verifies fully and its `0` is
@@ -285,7 +289,7 @@ because a long watch is where the temptation compounds.
 ## 5. The merge prompt and recorded Futon delivery exception
 
 **Not under [`getsuga`](../getsuga/SKILL.md) § 3.** For a release proposal getsuga started en on, this
-step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check` and Development-guard verdicts and its
+step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check`, criteria and Development-guard verdicts and its
 `judged head:` back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
 by the exception of 2026-10-01). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
 that stop** and presents this section's prompt for the proposal.
@@ -303,8 +307,10 @@ hold at the **same current full head SHA**:
 2. `nen pr ready <N> --gh-repo <owner/name> --require-head <SHA> --explain` exits `0` and says
    **Ready**. The reviewer sixth stop and exhausted bot limits do **not** qualify.
 3. `nen pr body-check` succeeds against the live body and the current
-   `contracts/pr-body.requirements.json` from this plugin root. En still settles every finding
-   and thread under § 4 before this gate.
+   `contracts/pr-body.requirements.json` from this plugin root, and
+   `node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>` exits `0` beside it (HR-11:
+   a `missing` or `contradicts` row is not ready whatever the gate verdict). En still settles every
+   finding and thread under § 4 before this gate.
 4. `nen pr merge <N> --delivery --requirements-from <absolute plugin-root contracts/pr-body.requirements.json> --repo <effort-worktree> --require-head <SHA>` returns a passing plan. Nen independently checks
    the non-main, unprotected base, Ready, body, current head and author. Run the same command
    with `--run` only after those gates pass; then read GitHub's `mergedAt` and base back. Its

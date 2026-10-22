@@ -1,6 +1,6 @@
 # Plugin-owned registries — the data files a consumer reads but never edits
 
-> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `pr-composition-guard`, `issue-shape`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
+> **Lives in** this plugin (`zheref/hatsu`), under `contracts/`, `hooks/`, `.claude-plugin/` and `.codex-plugin/` · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; several are rendered into other files by a script or by `nen surface mirror generate` · **Validated by** the guard lanes of `nen/contract.json` (`permissions-pack-guard`, `direct-matrix-guard`, `config-values-guard`, `pr-composition-guard`, `issue-shape`, `criteria`, `surface-mirror-guard`, `plugin-bump-guard`) and `claude plugin validate . --strict` (the `plugin` lane's `lint` seat) · **Authority** each file's own `$comment` or `description`; [`docs/using/mirrors.md`](../using/mirrors.md) § 2 for which files are authored and which generated
 
 ## What it decides
 
@@ -141,7 +141,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/pr-composition.json` and `contracts/pr-body.requirements.json`
 
-**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the declared Nen home remains owed; docs/PROCESS.md records it): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from the default process × canon cell in [`contracts/pr-sections.json`](../../contracts/pr-sections.json); `pr-composition.json` holds the rest and says where that array comes from.
+**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the declared Nen home remains owed; docs/PROCESS.md records it): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from the default process × canon cell in [`contracts/pr-sections.json`](../../contracts/pr-sections.json); `pr-composition.json` holds the rest and says where that array comes from. A catalogue section declaring `content: true` (today `verify`, HR-11) derives a second row, `<id>-content`, carrying `content: true` (nen ignores the key): the heading followed, past blank lines and comments, by something other than the next heading, so an empty section fails both `nen pr body-check` and `scripts/pr_body_sections_check.sh`.
 
 ### Keys (`pr-composition.json`)
 
@@ -172,7 +172,22 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `rows.<shape>` | object | `pattern`, `prefix`, and for `success` `measure`, for `question` `resolvedPattern` | a row's shape, and what makes a list item claim to be one | the same |
 | `vagueAdjectives[]`, `technologyTerms` | word lists, patterns | as shipped | the words and patterns reported in an acceptance row | the same |
 
-**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the script. **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; a consumer's own catalogue waits on the nen verbs.
+**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the script; `scripts/pr_criteria_check.mts` reads `rows.acceptance` for the `- AC-{n}:` rows a closing issue carries (HR-11). **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; a consumer's own catalogue waits on the nen verbs.
+
+## `contracts/hanten-findings.schema.json`
+
+**Purpose.** The JSON Schema (`$id` `hatsu.hanten.findings/v0.1`) of the findings record `hatsu:hanten` § 5 writes per effort at `<reports.dir>/hanten/<branch-slug>.json` (ROSTER HR-10; SDD plan piece P7): `scopes[]`, `findings[]` and `reports[]`; a finding's six reviewer fields plus `id`, `scope`, `persona` and `disposition`.
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
+| `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
+| `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
+| `$defs.finding` (rule `CON-{n}` or `HR-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10: critical by shape, never pushed back | the same |
+
+**Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the 0.24 pin. **May a consumer override it?** No.
 
 ## `contracts/reference.gates.json`
 
