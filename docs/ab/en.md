@@ -426,3 +426,32 @@ on `origin/main`, and flattening them would lose the base merge. The expected En
 First publication follows the authorizing workflow's existing authority; an En continuation of an
 already published PR needs no new Aka call. This scenario exercises the entry routing rule; it does
 not change either skill's push or merge authority.
+
+## The cap outlives the worktree — 2026-10-22 (HR-5, D2)
+
+En § 2 passes `nen loop iterate` a `--repo` that is the git common directory, so the cap ledger is
+`<common>/.nen/loop/en-<CODE>-<N>.json` and survives `cleanup` removing the effort worktree; cleanup
+§ 4 lists `loop` and the common dir's `.nen/loop/` among the records it never removes. Before this,
+the ledger sat in the effort worktree's `.nen/`, which cleanup removes with it, and a re-invoked En
+started again at cycle 1.
+
+**Live check, nen 0.24.0, 2026-10-22.** A scratch repository with one linked worktree; three claims
+from the worktree, the worktree removed, one more claim:
+
+```sh
+s=$(mktemp -d)
+git init -q "$s/core" && git -C "$s/core" commit -q --allow-empty -m base
+git -C "$s/core" worktree add -q "$s/effort" -b effort
+common=$(cd "$s/effort" && git rev-parse --path-format=absolute --git-common-dir)
+line="take HA-PR-#999 to its human gate until it is Ready up to 20"
+for i in 1 2 3; do nen loop iterate --id en-HA-999 --line "$line" --repo "$common"; done
+git -C "$s/core" worktree remove --force "$s/effort"
+nen loop iterate --id en-HA-999 --line "$line" --repo "$common"
+nen loop iterate --id en-HA-999 --line "$line" --release "check done" --repo "$common"
+```
+
+Observed: `iteration 1/20`, `2/20`, `3/20` with the ledger at `<common>/.nen/loop/en-HA-999.json`;
+after the removal the next claim printed `iteration 4/20 -- … 16 remaining after this one`, exit `0`,
+not `1/20`; the release printed `released en-HA-999 after 4/20 iteration(s): check done`. A ledger
+lost outright (the common dir's `.nen/` deleted) still reads as fresh: the refusal of a lost ledger
+is owed to nen (zheref/nen#487).

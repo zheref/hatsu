@@ -26,7 +26,7 @@ composite calls skip their own `## 0.`** ([`STANDALONE-ENTRY.md`](../../../docs/
 **P1 — `hatsu:ten kazaana` opens this run** ([`ten`](../ten/SKILL.md) § 6).
 
 ```
-hatsu:kazaana <repo> [on <line>]
+hatsu:kazaana <repo> [on <line>] [--idle]
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
@@ -52,6 +52,10 @@ composes, and for nothing else** ([`mugetsu`](../mugetsu/SKILL.md) § 3 *Record*
 quoted at the echo, bound to the tag this run cuts, lapsing at a G5 or a halt; the step's `gate` line is
 relayed as parsed. **Say the run has started** (a bounded `CON-25` delegation, futon § 7).
 
+**`--idle`** is stripped before both parses and carried onto the futon line: futon § 12 whole. The
+go then reaches no `then getsuga` — held at `idle.terminal` — and § 6 asks nothing (`publish-offer`
+refused).
+
 ## 2. The inventory — labelled, unlabelled, directed, refetched
 
 `nen backlog fetch --repo-slug <owner/name> --json` — never cached, never `--limit`. Every open issue
@@ -74,8 +78,7 @@ the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
 
-Futon §§ 3–6 hold: delegated stage label and `nen loop slots --efforts <abs path>
---ci-cap 2 --local-cap 7 --json`. This file adds:
+Futon §§ 3–6 hold. This file adds:
 
 **One delegate authors and publishes each issue in its worktree**, raised as a **builder
 effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter
@@ -102,8 +105,7 @@ a slot frees per rule 4.
 
 ## 4. The register, and the merge plan
 
-Futon § 9 whole: the Rikugan register every cycle, no banner on a progress turn, every PR at en § 5's
-merge prompt a **G2/G4** gate event ([`jutaisho`](../jutaisho/SKILL.md) § 4). **The desk carries the
+Futon § 9 whole. **The desk carries the
 merge plan** (ruling 2026-10-12): independent PRs first, one line each, then each stack **bottom-up** by
 WORKFLOW rule 5 — one `MERGE` ask only for a PR whose base reads `branch.base`; a stacked PR is
 presented nowhere as mergeable.
@@ -111,11 +113,10 @@ presented nowhere as mergeable.
 ## 5. The `then getsuga` step — held, then cut; the proposal is never theirs to merge
 
 **Kazaana's own gate** (ruling 2026-10-13, 2; futon § 8 reads *merged* alone): nothing after `then`
-runs until every PR this run authored is **merged into `branch.base`, or closed by the maintainer** — a
+runs until every PR this run authored (the manifest's `status`; `manifest: absent` holds it) is **merged into `branch.base`, or closed by the maintainer** — a
 PR closed unmerged is reported as not delivered, its issue left open, and holds nothing; **a child of a
 closed stacked PR is stranded** (WORKFLOW rule 5, en § 6), reported, and holds the gate until the
-maintainer closes or retargets it. Until then the run is **held at its gate**, every merge prompt
-standing (futon § 8). Then [`getsuga`](../getsuga/SKILL.md) runs under its own authority at the
+maintainer closes or retargets it; till then futon § 8 holds. Then [`getsuga`](../getsuga/SKILL.md) runs under its own authority at the
 configuration default cut point, and **its § 3a's kazaana paragraph is the one statement of the rule**
 the maintainer gave — *"NEVER prompted to the maintainer to merge himself"*: transient conditions held
 through en's observation hold, every declaration-gate fall-back a **G5 halt** handing the exact command,
