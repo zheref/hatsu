@@ -80,6 +80,8 @@ The run id's pattern, outside the table so its alternation reads as written (`gr
 | `drop with note` | refactor-only (no behaviour changes), unless the target carries the same debt |
 | `target-only addition` | a new idiom with no source (the target's platform requires it; the source has nothing to port) |
 
+The UI entries of the `map` row (gesture, navigation container, system dialogs, permissions, theming) defer to UX-13's adapt list in `bankai-handbooks`, the owner of the UI half; the technology-level entries (storage API, architecture, dev-ops: lane, CI step) are owned here.
+
 ## Product-level divergence — the spec's home for it
 
 A pair file is public and technology-level (`templates/ports/pair.md`), so **a product-level adaptation never lands there**: the pair row's `rationale` holds the picked handling label only ([`bankai-rule`](../../claude/skills/bankai-rule/SKILL.md) § 1). Its home is the private spec folder, written **in the same run as the `port-drift` answer**, on the spec repository's own **amendment PR** (kamui § 3's route, **G2**). **One owner for the write**: the composite that raised the `port-drift` — kamui § 7 or hiraishin § 6 — at drift time; the amendment PR is on that composite's Permitted list and on kamui § 8's `rikugan` register.
