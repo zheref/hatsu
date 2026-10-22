@@ -122,7 +122,14 @@ instead because of it.
 
 **Never invent an acceptance criterion to fill the shape.** An issue whose acceptance criteria
 were guessed will be built to the guess. If a criterion is genuinely the maintainer's call, name
-it as an open question inside the issue rather than resolving it silently.
+it as an open question inside the issue rather than resolving it silently — an `OQ-{n}` row (HR-4), which a
+build refuses and a batch skips until it is answered.
+
+**The body is its kind's template** — `templates/issue-body/<kind>.md` at the plugin root,
+for `product`, `defect`, `machinery`, `canon-gap` or `epic`, the sections and row shapes owned by
+[`contracts/issue-sections.json`](../../../contracts/issue-sections.json): acceptance rows `AC-{n}` in
+Given/When/Then, intent only; measurable `SC-{n}` rows; `AS-{n}` assumptions naming their source; `OQ-{n}`
+open questions; a flag, verb or path only under *Plan notes*.
 
 ## 3. Reconcile against the backlog — the four searches
 
@@ -277,6 +284,16 @@ else a create that may have landed — `nen issue search` the title before any r
 `not posted, unverified` — read the comments back before any retry; on `edit-body`, `outcome`, the body
 read back before any retry. Their dry runs read the target's visibility, so they
 are not offline, and `--body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
+
+**Then the shape, on a create's body, before the plan** (HR-4; owed to nen as zheref/nen#476 and #477):
+
+```bash
+node "$hatsu_root/scripts/issue_body_check.mts" --kind <product|defect|machinery|canon-gap|epic> --body-file <absolute body.md>
+```
+
+Exit `0` → the body enters the plan. Exit `1` → each miss it lists is fixed in the draft and the check re-run, or
+shown in the plan's part 1 as an unfixed miss; an open `OQ-{n}` row is shown there too. Exit `2`, `3` or `5` is
+reported, never read as a pass.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
 all of it. **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the

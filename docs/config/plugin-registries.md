@@ -157,6 +157,23 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **May a consumer override it?** No. A consumer is `G2` by role and `nen gate derive` is not run there; a canon repository's sets are a row here, and this file lives only in Hatsu, so the row for another canon repository (zheref/nen, zheref/bankai-handbooks) is written by a Hatsu PR at Hatsu's `G4` — the writer [`WORKFLOW.md`](../WORKFLOW.md) § 4 step 3 names once the run has asked. `zheref/nen`'s row was written that way (zheref/hatsu#334); no row is seeded for any other.
 
+## `contracts/issue-sections.json`
+
+**Purpose.** The shape of an issue Hatsu files (ROSTER HR-4; SDD plan piece P6): the sections each kind carries, which must be present and non-empty, the `AC-`, `SC-`, `AS-` and `OQ-` row shapes, and the vague-adjective and technology-term lists an acceptance row is read against. `templates/issue-body/<kind>.md` is the body each kind starts from. The verbs that will own the read are owed to nen (zheref/nen#476, zheref/nen#477); until then `scripts/issue_body_check.mts` reads this file.
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `contract` | string | `hatsu.issue-sections/v1` | the shape | `scripts/issue_body_check.mts` |
+| `sections.<id>` | object | `heading`, optional `rows`, optional `none` | one level-2 heading; `rows` names its row shape; `none` admits a lone `None.` | the same |
+| `common[]` | section ids | the eight every kind shares | what a body checked without `--kind` must carry | the same |
+| `kinds.<kind>` | object | `template`, `required[]`, `optional[]`; kinds `product`, `defect`, `machinery`, `canon-gap`, `epic` | the template path and the required and optional sections | the same, and the `issue-shape` lane's template check |
+| `rows.<shape>` | object | `pattern`, `prefix`, and for `success` `measure`, for `question` `resolvedPattern` | a row's shape, and what makes a list item claim to be one | the same |
+| `vagueAdjectives[]`, `technologyTerms` | word lists, patterns | as shipped | the words and patterns reported in an acceptance row | the same |
+
+**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the script. **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; a consumer's own catalogue waits on the nen verbs.
+
 ## `contracts/reference.gates.json`
 
 **Purpose.** The frozen reference repository (`<reference-repo>`, [`docs/PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)) ships no gates file of its own and `nen pr ready` never falls back to a built-in reviewer set, so judging a PR there needs `--gates` pointed at a file carrying its identities. This is that file, a copy of nen's own shadow-window-validated fixture taken at nen `v0.1.0`.

@@ -298,6 +298,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "HA321 focused Delivery normalization, rendering and body/ledger consistency fixtures. No project-wide regression or coverage capture."
+      },
+      "issue-shape": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/issue_body_check.mts, the issue-shape guard over contracts/issue-sections.json and templates/issue-body/ (HR-4; SDD plan piece P6), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: every kind's template carries exactly its catalogue headings and fails unfilled; required, duplicate, empty and optional headings; AC, SC, AS and OQ row shapes and numbering; vague adjectives and technology terms in acceptance rows; open and resolved question counts; hostile text sanitised; exit codes 0, 1, 2, 3 and 5; and --ref resolved through a stub nen and read through scripts/gh_token_env.sh against a stub gh. Run it only as `nen shu test --lane issue-shape --repo <hatsu>` when the script, its fixture, the catalogue or a template changes. It is not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -317,7 +322,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, ledger-guard, port-rule-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes (plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, ledger-guard, port-rule-guard, issue-shape, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
@@ -832,6 +837,17 @@
             "scripts/pr_body_delivery_check_fixture.sh"
           ],
           "why": "Focused actual Nen report/render integration and hostile ledger/body fixtures for the mandatory metadata preamble."
+        }
+      },
+      "issue-shape": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/issue_body_check_fixture.mts"
+          ],
+          "$comment": "The issue-shape fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
         }
       }
     },

@@ -61,7 +61,9 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
   `closedByPullRequestsReferences`).
 - **If an epic awaiting approval**: stop at **G1** (row `mode-label`) — the mode label is the
   maintainer's decision (`CON-4`), never an agent's.
-- **Read requirements**: title, body, acceptance criteria, constraints.
+- **Read requirements**: title, body, acceptance criteria, constraints, then `node
+  "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N> --json` (zheref/nen#476, #477): an open `OQ-{n}`
+  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4).
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
@@ -116,8 +118,7 @@ Build runs § 2b's intake, then:
 --surface <s> [--model <reported-model>] --dial <level>`, with WORKFLOW's served-model `--note`
 only when attested; `nen phase end` closes each phase;
 the first phase records `nen session record` when the harness exposes an identity. `nen usage record`
-at every § 7 report carries `--dial <level>` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The
-effort's ledgers*) — **owed on every target, a stage taxonomy or not**. On a target whose `nen/labels.json`
+at every § 7 report carries `--dial <level>` — **owed on every target, a stage taxonomy or not**. On a target whose `nen/labels.json`
 declares no delivery stages, WORKFLOW § *A target repository with no delivery-stage taxonomy* holds as
 written; build's one addition: the
 release into building is the typed invocation, and § 1's handoff of a PR to `en` holds (hatsu#229).
@@ -145,9 +146,8 @@ continue; each runs only the maintainer's pick.
 `CON-25`'s fourth carve-out, bounded to the pipeline phases: the canonical pipeline for the target issue,
 classify's labels under this run's go and direct's verdict recorded, each one's issue publish under its own
 key; authoring and commits in the isolated
-worktree (Conventional Commits, `Hatsu-Agent: Kurapika`); the push through `aka` and the PR through `mukai`'s
-`shibari`, linking the issue; `en` until `nen pr ready` exits `0`. No CI plane: no builder wakes, stage
-routing or wave coordination. Never a merge (G2/G4 stay the maintainer's), a G1 mode label, a review vote,
+worktree; the push through `aka` and the PR through `mukai`'s
+`shibari`, linking the issue; `en` until `nen pr ready` exits `0`. Never a merge (G2/G4 stay the maintainer's), a G1 mode label, a review vote,
 or work on core.
 
 **The delegation expires when the run ends. Say when it ends.**
@@ -162,10 +162,9 @@ is a **G5** naming it, in [`jutaisho`](../jutaisho/SKILL.md) § 4's shape; filin
 
 Every report follows [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a phase*:
 [`spiritual-message`](../spiritual-message/SKILL.md) for `ren` turns and the `mukai` landing,
-[`rikugan`](../rikugan/SKILL.md) for the final state at `en`'s terminus; a gate quotes `nen pr ready`'s
-verdict verbatim.
+[`rikugan`](../rikugan/SKILL.md) for the final state at `en`'s terminus.
 
-**G1**: an epic awaiting its mode label (row `mode-label`), a `DECIDE` with the trade-off. **G2/G4**: the
+**G1**: an epic awaiting its mode label (row `mode-label`) or an open `OQ-{n}` row (§ 2), a `DECIDE` with the trade-off. **G2/G4**: the
 delivery PR `CON-32`-Ready (rows `merge`, `canon-merge`), a `MERGE` whose verdict says everything. **G5**: a
 stuck build or capability gap, `DECIDE`/`DO` with the proposed issue (a tool per `missing-tool`). The run
 **ends** when the PR stands Ready at its gate, the issue is closed, § 1 handed a PR to `en`, direct's **B**
