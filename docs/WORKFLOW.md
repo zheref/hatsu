@@ -8,10 +8,15 @@ skills under [`../claude/skills/`](../claude/skills/) are the authority on what 
 disagree, **the file wins and this document is the bug** — the same rule
 [`../nen/contract.json`](../nen/contract.json) already states for itself.
 
-**Precedence among the prose, one order, stated identically in [`PROCESS.md`](PROCESS.md):** a
-skill's own hard limit **>** this document **>** [`PROCESS.md`](PROCESS.md). `PROCESS.md` is binding
-wherever the skill is silent; where a skill's hard limit is narrower than either page, the hard limit
-holds.
+**Precedence among canon prose and rulings, one order ([HR-1](ROSTER.md#hr-1)), owned by the
+`precedence` key of [`../nen/contract.json`](../nen/contract.json), which wins over this copy:**
+`skill.hardLimit` **>** `roster.ruling` **>** `nen/decisions.json` **>** `docs/WORKFLOW.md` **>**
+`docs/PROCESS.md` **>** `akatsuki.CON` **>** `handbooks`. The key's `$precedence` comment names each
+entry. The order ranks canon texts only: a configuration file's value still beats any prose copy of it,
+the rule above. A text outside the list yields to every listed entry and the conflict is filed (this
+run's reading, owed a ruling: [`ROSTER.md`](ROSTER.md) OPEN-6). This is the order's one restatement;
+[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. Nothing checks the
+key or this copy yet: that is owed to [zheref/nen#474](https://github.com/zheref/nen/issues/474).
 
 ---
 
