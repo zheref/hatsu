@@ -275,7 +275,7 @@ whether they ran or were skipped-exhausted. **Step 6's line names the commits it
 pushed** (`<old>..<new>`), or says the tree was already clean and level, so a reader can tell a run
 that published a review's fixes from one that had nothing to publish.
 
-Then the handover line, which is [`hatsu:shibari`](../shibari/SKILL.md) § 10's and is not restated
+Then the handover line, which is [`hatsu:shibari`](../shibari/SKILL.md) § 5's and is not restated
 here: the object notation, the base, the derived gate as a **forecast**, the three body checks, the
 evidence mechanism used and what it published, the reviewers requested, and then the bell and the
 picker — *start `hatsu:en on <CODE>#<N>` now?* — which closes Mukai; the maintainer's answer starts En or not. Under `mukai.autoEn`

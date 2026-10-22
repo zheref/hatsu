@@ -101,7 +101,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `$schema` | string | `hatsu.config-catalogue/v1` | the shape | `scripts/config_values.sh` |
 | `$comment` | string | the ruling, what is deliberately not listed and why, the row-field legend | the authority on the file | a reader |
 | `domains` | map | `development`, `versioning`, `testing`, `review`, `reporting`, `notifications`, `deployment`, `publishing`, `intake`, `port`, `autonomy` | the order Tenkai asks in | `config_values.sh diagnose`; `tenkai` § 6d |
-| `values[]` | rows (`workflow.aiReviewers`, enum `required` \| `optional` \| `off`, default `required`, asked at adoption, among them) | `id`, `file`, `path`, `domain`, `kind` (`enum` \| `subset` \| `open` \| `external` \| `secret-env`), `options?`, `default?`, `describe`, `readers[]`, `source`, `question?`, `setup?`, `requiredBy?`, `ask?` (`adoption` \| `on-use`), `when?`, `candidatesFrom?`, `nullIsAnswer?`, `choice?`, `sourceTable?`, `nonProductionTarget?` (`set` refuses a target whose `why` is not non-production or that lacks `nonProduction: true`, which nen `0.21`+ requires), `landsByPR?` | one settable value: the `nen/workflow.json` rows, `gates.approval_policy`, `gates.reviewers`, and the `contract.project.*` rows (`defaultLane`, `kind`, `targets`, `launch`) at the pinned build | `config_values.sh diagnose|fill|need|set|check-catalogue` |
+| `values[]` | rows (`workflow.aiReviewers`, enum `required` \| `optional` \| `off`, default `required`, asked at adoption, among them) | `id`, `file`, `path`, `domain`, `kind` (`enum` \| `subset` \| `open` \| `external` \| `secret-env`), `options?`, `default?`, `describe`, `readers[]`, `source`, `question?`, `setup?`, `requiredBy?`, `ask?` (`adoption` \| `on-use`), `when?`, `candidatesFrom?`, `nullIsAnswer?`, `choice?`, `sourceTable?`, `nonProductionTarget?` (`set` refuses a target whose `why` is not non-production or that lacks `nonProduction: true`, which nen requires), `landsByPR?` | one settable value: the `nen/workflow.json` rows, `gates.approval_policy`, `gates.reviewers`, and the `contract.project.*` rows (`defaultLane`, `kind`, `targets`, `launch`) at the pinned build | `config_values.sh diagnose|fill|need|set|check-catalogue` |
 
 **Read by.** `scripts/config_values.sh` is the only reader: `diagnose` reports per row, `fill` writes the defaults and `$<key>` annotations into a declaration that already exists (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set --id <id> --value <JSON>` writes one chosen value after the question was asked, `check-catalogue` holds every default to `docs/WORKFLOW.md`'s key tables. `hatsu:tenkai` § 6d runs it on adoption; `hatsu:ten` § 6 step 5b runs `need` at every phase's warm-up.
 
@@ -203,6 +203,10 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **Read by.** `hatsu:pr-state` § 2, `hatsu:en`, `hatsu:getsuga`, `hatsu:backlog-state`, `hatsu:tensho`, always as the absolute `--gates "$hatsu_root/contracts/reference.gates.json"` (a relative `--gates` resolves against `--repo`), and only for that one repository. A repository that ships its own `nen/gates.json` needs no `--gates` at all. **May a consumer override it?** No, and it is never reused as another repository's reviewer set (`hatsu:senkei`).
 
+## `contracts/prose.lint.json` and `contracts/prose.lint.baseline.json`
+
+**Purpose.** The canon prose lint's rules, `PL-01` … `PL-12`, and the shrink-only baseline of the findings the tree carried when the guard landed ([HR-13](../ROSTER.md#hr-13)). Read by `scripts/prose_ambiguity_check.mts` (lane `canon-lint`); never by a consumer. Keys, the exemptions and who reads it: [`prose.lint.json.md`](prose.lint.json.md).
+
 ## `hooks/hooks.json`
 
 **Purpose.** Hatsu's three harness hooks, the two things a skill cannot do (a notification after the model has stopped, a reflex refusal before a push lands) plus the host binding of the pinned nen. Neither is a nen-owned step; every deterministic step the skills take stays a nen verb. The scripts are POSIX sh, use no `jq`, `yq` or `python`, and fail open, the guard excepted.
@@ -264,7 +268,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `metadata.description` | string | the long description, with the skill count and the nen pin as prose | the listing | the host |
 | `plugins[]` | `{name, source, description}` | one entry, `source: ./` | the plugin this marketplace serves | the host |
 
-**May a consumer override it?** No. On Claude Code the first-party install retires the shadowing `hatsu@hatsu` cache entry in favour of the in-place `~/.claude/skills/hatsu` link; the marketplace remains what Codex installs from ([`docs/using/README.md`](../using/README.md) § 1).
+**May a consumer override it?** No. On Claude Code the first-party install retires the shadowing `hatsu@hatsu` cache entry in favour of the in-place `~/.claude/skills/hatsu` link; the marketplace remains what Codex installs from ([`docs/using/README.md`](../using/README.md) § *The four surfaces, compared*).
 
 ## Example
 

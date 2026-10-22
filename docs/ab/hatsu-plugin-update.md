@@ -1,6 +1,6 @@
 # Evidence — plugin source update (`hatsu_plugin_update.sh`)
 
-Hatsu `0.32.0`. The checked command behind [`hatsu-warmup`](../../claude/skills/hatsu-warmup/SKILL.md)
+Hatsu `0.32.0`. The checked command behind [`hatsu-warmup`](../../claude/skills/ten/SKILL.md)
 § 4b: keep a consumer plugin checkout on trunk or the newest release tag, and name (or run) Claude
 Code's `claude plugin update` for a versioned cache that is not a git checkout.
 

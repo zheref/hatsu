@@ -1,0 +1,130 @@
+# prose-ambiguity-check — the canon prose ratchet lint, run on every pull request (HR-13, HR-4).
+#
+# STAGED, NOT INSTALLED. This file ships at templates/prose-ambiguity-check.yml and is registered in
+# scripts/workflow_runner_policy_check.rb's PENDING_HOSTED_WORKFLOWS, the #135 ordering
+# docs/GATE-CONFIGURATION.md requires of a new workflow: `main`'s trusted validator refuses any
+# workflow it does not know, so step one teaches it this file and freezes its guard step; step two,
+# once that validator is the one `main` trusts, copies this file to .github/workflows/ and moves the
+# name to PORTABLE_HOSTED_WORKFLOWS.
+#
+# scripts/prose_ambiguity_check.mts reads Hatsu's canon prose against contracts/prose.lint.json and
+# the shrink-only contracts/prose.lint.baseline.json; its own header names the rules and the exits.
+# The guard and the rules come from the trusted workflow revision; the PR checkout is only the root
+# it reads, and its baseline the PR's own (a PR that fixes a finding removes the row), held against
+# the trusted revision's copy by --base-baseline so it never grows. A finding outside the baseline, a
+# stale row or a grown row fails the check; a wiring refusal fails it too, never a pass.
+#
+# The hardening is prose-size-check.yml's, step for step: the guard from the trusted revision, the
+# PR checkout as data, `persist-credentials: false` on both checkouts, the output fenced between
+# `::stop-commands::` and a fresh token because file names and quoted text come from the PR's tree,
+# the check created on the exact PR head and always finished. No `paths:` filter.
+#
+# ENFORCEMENT POSTURE: ADVISORY. The context is `canon-lint`; it becomes required only after one
+# tagged release of green runs with a shrinking baseline (HR-13), by the maintainer's own ruleset
+# edit (docs/GATE-CONFIGURATION.md). Renaming the job or the check silently un-requires it.
+name: prose-ambiguity-check
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: prose-ambiguity-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  contents: read
+
+jobs:
+  canon-lint:
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Start check on the exact PR head
+        id: head_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          id="$(gh api --method POST "repos/${REPO}/check-runs" -f name=canon-lint -f head_sha="$HEAD_SHA" -f status=in_progress --jq .id)"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR head (data only — nothing from here is executed)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Checkout guard code from the trusted workflow revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: .trusted
+          persist-credentials: false
+
+      - name: Set up Node for the canon prose lint
+        # The guard is TypeScript run by node's type stripping (>= 22.18); pinned as
+        # unit-tests.yml pins it, so the runner image's node never decides the verdict.
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Enforce workflow runner policy from trusted workflow revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
+
+      - name: Canon prose lint
+        # FROZEN (CANON_LINT_FROZEN_GUARD in scripts/workflow_runner_policy_check.rb):
+        # keys, shell and the run compared byte for byte; only `name` and these
+        # comments are free. The guard and its rules are the trusted revision's,
+        # the PR checkout only the root it reads. Exit 1 names each finding as
+        # `path:line · PL-nn · text`; exit 2 is wiring, never a pass.
+        shell: bash
+        run: |
+          set -uo pipefail
+          guard=.trusted/scripts/prose_ambiguity_check.mts
+          rules=.trusted/contracts/prose.lint.json
+          base=.trusted/contracts/prose.lint.baseline.json
+          [ -f "$guard" ] && [ -f "$rules" ] && [ -f "$base" ] || { echo "::error::trusted workflow revision has no scripts/prose_ambiguity_check.mts, contracts/prose.lint.json or contracts/prose.lint.baseline.json"; exit 1; }
+          stop="stop_$(openssl rand -hex 16)" || stop=""
+          [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the lint's output; nothing was read."; exit 1; }
+          code=0
+          echo "::stop-commands::${stop}"
+          node "$guard" --root "$PWD" --rules "$PWD/$rules" --base-baseline "$PWD/$base" 2>&1 || code=$?
+          printf '\n::%s::\n' "$stop"
+          case "$code" in
+            0) echo "no canon prose finding outside the baseline." ;;
+            1)
+              echo "::error::a canon prose finding outside contracts/prose.lint.baseline.json, a stale baseline row, or a row grown over the base revision's baseline; each is named above. Fix the prose or remove the stale row; the baseline never grows (HR-13)."
+              exit 1
+              ;;
+            *)
+              echo "::error::the canon prose lint could not run (exit ${code}), a wiring refusal: scripts/prose_ambiguity_check.mts's header names every cause. See its output above."
+              exit 1
+              ;;
+          esac
+
+      - name: Finish check on the exact PR head
+        if: ${{ always() && steps.head_check.outputs.id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          CHECK_ID: ${{ steps.head_check.outputs.id }}
+          JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$JOB_STATUS" in
+            success) conclusion=success ;;
+            cancelled) conclusion=cancelled ;;
+            *) conclusion=failure ;;
+          esac
+          gh api --method PATCH "repos/${REPO}/check-runs/${CHECK_ID}" -f status=completed -f conclusion="$conclusion" >/dev/null

@@ -58,6 +58,16 @@ try {
   calls = readFileSync(log, 'utf8').trim().split('\n');
   assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||', 'clause-guard lane not selected');
 
+  writeFileSync(join(repo, 'scripts', 'prose_ambiguity_check.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('prose_ambiguity_check.mts has no required fixture'), 'missing canon-lint fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'prose_ambiguity_check_fixture.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `canon-lint path refused: ${result.stderr}`);
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
+
   result = run({ HATSU_FAIL_LANE: 'permissions-pack-guard' });
   assert(result.status === 1 && result.stderr.includes('permissions-pack-guard failed'), 'failing lane was not red');
   result = run({}, join(dir, 'missing-nen'));

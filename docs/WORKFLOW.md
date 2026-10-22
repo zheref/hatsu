@@ -113,8 +113,8 @@ There are two execution/policy configuration files, and the split is not stylist
 > range. Every PR that changes `dependency.pinned_ref` runs `bash scripts/direct_matrix_doc.sh --verify`
 > with that newly pinned nen and quotes the complete `N printed claims agree ... <version>` output line
 > in its PR body; this proves the readable routing matrix still agrees with the verb after a repin.
-> Wherever this document says *"at the pinned nen `0.7.0`"* it names the build the fact was
-> verified against; [`../nen/contract.json`](../nen/contract.json) is the only place either value is
+> Wherever this document says *"at nen `0.7.0`"* it names the build the fact was
+> verified against, never the pin; [`../nen/contract.json`](../nen/contract.json) is the only place either value is
 > written down, and the warm-up
 > ([`ten`](../claude/skills/ten/SKILL.md) § 1) reads the verdict rather than computing
 > it.
@@ -245,7 +245,7 @@ lowered to clear it** — that is the one move `byakugan` will not make, and a r
 `minimum` is a G5, not a smaller number.
 
 `nen shu coverage --threshold <n>` **reports** `met: true|false` and never changes its exit code; nen does not
-decide whether a number is good enough. At the pinned nen `0.7.0`, `--touched --base <ref>` filters the rows
+decide whether a number is good enough. At nen `0.7.0`, `--touched --base <ref>` filters the rows
 to the files the diff names and — with no `--threshold` — reads the ladder here itself, printing a `ladder:`
 line and a `band` per row (`under-minimum` / `minimum` / `recommended` / `ideal`). It still never gates.
 
@@ -350,7 +350,9 @@ should say, set `reports.timeZone` to a fixed-offset zone — `Etc/GMT+5` keeps 
 Bogota without the city (POSIX sign: `Etc/GMT+5` is UTC−05:00) — and note that a fixed offset does not
 follow daylight saving.
 
-**Report titles — a headline, never the branch** (maintainer's request, 2026-09-22). The `title`
+#### Report titles — a headline, never the branch
+
+(Maintainer's request, 2026-09-22.) The `title`
 token is the page's `<h1>`, its `<title>` and so the Artifact's name, and a branch name repeated
 there says nothing the masthead's meta line does not already say. For `turn`, `turn-fast`,
 `landing` and `final` it is **one synthesized headline, at most 60 characters, naming what the
@@ -363,7 +365,9 @@ unless what the effort delivers has changed. `register` keeps its fixed *Gate Re
 Artifact address is keyed on the branch, never on the title, so a better headline never mints a new
 URL. A notation cited anywhere on the page is still `nen ref format`'s, never memory.
 
-**Where the effort is — said every turn, in two places** (maintainer's request, 2026-09-22). Every
+#### Where the effort is — said every turn, in two places
+
+(Maintainer's request, 2026-09-22.) Every
 Ren turn ends with the effort's **stage** and **gate** visible without scrolling: at the top of the
 turn's chat line ([`ren`](../claude/skills/ren/SKILL.md) § 6) and on the report page, whose masthead
 carries a turn badge on the eyebrow, the title, a meta line (repo, base, local time) and **a second,
@@ -388,6 +392,8 @@ ledger, counts the turns this session has reported); a `landing` reads `Landing 
 are red. **`repo`** is `nen report data`'s hosted `owner/name` from nen `0.20` (zheref/nen#375), `null`
 for a local-path or `file://` origin, which the caller fills from `nen repo resolve --from <path>`; before
 `0.20` it was the checkout's directory name, the worktree's in a worktree.
+
+#### Retention — what `retain` keeps
 
 **The retention rule — and what it does *not* say.** A report is published at three moments — every
 turn, at landing, and once current-head readiness is verified — and `retain: final-only` means **only
@@ -572,7 +578,7 @@ value when the key is absent) rings the surface's own line and nothing else; `"a
 `rungs` lists, every turn. A gate always rings everything `rungs` lists, whatever `turn` says, and `turn`
 can never conjure a rung `rungs` withheld. It exists because the two readings of "does a plain turn ring?"
 were both supportable in `jutaisho`'s text and disagreed about every turn of every effort; one declared
-value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at the pinned nen `0.7.0`** — a closed set of
+value settles it. **`turn` is IN the `nen.workflow/v0.1` shape at nen `0.7.0`** — a closed set of
 `"rung1"` and `"all"`, refused by pointer on anything else, and written into every policy file
 `nen scaffold init` generates. It began as a Hatsu addition; the retirement is recorded in
 [`claude/skills/jutaisho/SKILL.md`](../claude/skills/jutaisho/SKILL.md) § Residue.
@@ -651,9 +657,9 @@ repository does not carry it.
 grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no output = Cursor's default applies; the IDE toggle has no file check here
 ```
 
-**Enforcement is three-layered, and at the pinned nen `0.7.0` two of the three are mechanical.**
+**Enforcement is three-layered, and at nen `0.7.0` two of the three are mechanical.**
 
-| Layer | What refuses | Where it lives | Live at the pinned nen `0.7.0`? |
+| Layer | What refuses | Where it lives | Live at nen `0.7.0`? |
 |---|---|---|---|
 | **(a)** the **skills'** own refusal — `kokusen` reads the rendered message before it commits and the written tip after (§ 5), `aka` the message before it squashes and every outgoing commit immediately before it pushes (§ 7) | agent-side | this repository | **yes**, and it is the layer Hatsu ships |
 | **(b)** the target repository's **`commit-msg` hook**, generated from `allowedAttributionTrailers` by `nen scaffold init` | the target repository's `.git/hooks/` | **target-dependent** — it exists only in a repository `nen scaffold init` has stood up; this week in `zheref/nen`; `<product-repo-A>` and kro-pwa already carry one | **target-dependent** |
@@ -666,7 +672,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 > attribution claim, so it is not folded into `allowedAttributionTrailers`; absent (`null`) by default, it
 > makes the second requirement optional where `--run-trailer` used to be mandatory. **`--marker-env` is the
 > only flag `nen scaffold init` still requires unconditionally**, and its missing-flag refusal names it and
-> says what the other two default to — verified live at the pinned `0.7.0`, exit `2`
+> says what the other two default to — verified live at nen `0.7.0`, exit `2`
 > (`docs/ab/kokusen.md` § *Retired at nen 0.6*).
 >
 > **A policy whose `allowedAttributionTrailers` does not admit the resolved key generates a hook whose
@@ -678,7 +684,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 > (c) are what it actually has.
 | **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the keys it admits, verified live against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
 
-So **at the pinned `0.7.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
+So **at nen `0.7.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
 layer (b) stays target-dependent**: a repository scaffolded with the hook has a refusal that fires on
 *every* commit however it was made, and one that has not — this repository included — has (a) and (c).
 **A raw `git commit --file` carrying `Co-Authored-By` on a feature branch is still caught by (a) only**,
@@ -926,7 +932,7 @@ Keep report data, normalized data and rendered fragment under the private repo-l
 
 ## 3 · `project.launch` and `project.evidence`
 
-Two blocks of nen's `project` shape that began as Hatsu extensions. **At the pinned nen `0.7.0` both are
+Two blocks of nen's `project` shape that began as Hatsu extensions. **At nen `0.7.0` both are
 PARSED and EXECUTED**: `launch` by `nen shu dev|run --target <name>`, `evidence` by
 `nen shu evidence --base <ref>`. They are no longer preserved-and-unread, and that changes what a typo
 costs.
@@ -1556,7 +1562,7 @@ The verbs: `nen pr open` (the one PR, from the pushed head, at nen `0.13`: exit 
 on the remote, exit `1` naming an open PR for the branch), `nen pr body-check` (the body's completeness),
 `nen changelog fragment-required` (whether this change owes a fragment), `nen gate derive` (which gate
 the PR stands at — **derived, never labelled by `shibari`**), `nen pr edit-body` to write the body back,
-and `nen pr request-reviews` to request the reviewers. **`nen pr edit-body --target <owner/name> --pr <n> --body-file <path>` exists at the pinned
+and `nen pr request-reviews` to request the reviewers. **`nen pr edit-body --target <owner/name> --pr <n> --body-file <path>` exists from nen
 `0.5.0`** and replaces the body outright from the file's bytes, certifying the number before any write and
 refusing an issue number at exit `2`. `gh pr edit --body-file` is retired with it (§ 7).
 
@@ -1602,7 +1608,7 @@ effort `medium`. He is **provisioned, not ratified** (`OPEN-1`, partially closed
 He is **read-only by discipline, and the definition says which** — his frontmatter carries no `Edit`, `Write`
 or `MultiEdit`, but it does carry `Bash`, because every observation is a program and `Bash` can push, commit
 and merge as easily as it can read. What holds is the **command allowlist** in
-[`illumi.md`](../claude/agents/illumi.md) § *Your tools*; anything off it is a wake, not a command. He acts
+[`illumi.md`](../claude/agents/illumi.md) § *The allowlist*; anything off it is a wake, not a command. He acts
 on nothing. Each observation he records five facts (the readiness verdict *quoted*, the checks, review activity,
 base drift, terminal state), compares them against the previous observation, and **wakes Kurapika** when one of
 seven conditions fires: Ready, a new review or thread, a check gone red, the branch behind or conflicted,
@@ -1628,7 +1634,7 @@ cache, which is what the version bump in `.claude-plugin/plugin.json` exists to 
 
 ## 6 · The hooks
 
-[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`: first the pinned `nen` bound on the host through `scripts/nen_global.sh` — `~/.local/bin/nen` and the shell rc's PATH block, opt-out `HATSU_NEN_GLOBAL=0|false|no|off` or `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/nen-global` reading `off`, ruling 2026-09-30 — then a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/SURFACES.md`](SURFACES.md) § 1), `Stop` and `PreToolUse`. **None is a nen-owned step** — the binding runs nen's own bootstrap and links what it verified.
+[`../hooks/hooks.json`](../hooks/hooks.json) carries three Claude Code hooks: `SessionStart` (`hooks/session-start.sh`: first the pinned `nen` bound on the host through `scripts/nen_global.sh` — `~/.local/bin/nen` and the shell rc's PATH block, opt-out `HATSU_NEN_GLOBAL=0|false|no|off` or `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/nen-global` reading `off`, ruling 2026-09-30 — then a warm-up reminder on Claude Code and, on a mirrored surface, a mirror refresh in a repository that already adopted Hatsu, fail-open; [`docs/using/README.md`](using/README.md) § *The four surfaces, compared*), `Stop` and `PreToolUse`. **None is a nen-owned step** — the binding runs nen's own bootstrap and links what it verified.
 They are executed by the harness *around* a session rather than by a skill *inside* one, and they exist for
 the three things a skill structurally cannot do: a skill only runs when the model calls it, by the time the
 model has stopped talking, or has already typed the push, it is too late — and **binding the host's `nen`
@@ -1645,7 +1651,7 @@ is verified; a watchdog bounds it at about 50 s even where no `timeout` exists.
 manifest, discovered at the plugin's own `hooks/` path; `nen surface mirror generate --hooks` renders the
 same three rows into the hook file each other surface documents (Codex `.codex/hooks.json` with `Stop`,
 Cursor `.cursor/hooks.json` with `stop`, Antigravity `.agents/hooks.json` or the global plugin's
-`hooks.json` with `Stop`; [`docs/SURFACES.md`](SURFACES.md) § 1), and the warm-up places that file. So
+`hooks.json` with `Stop`; [`docs/using/README.md`](using/README.md) § *The four surfaces, compared*), and the warm-up places that file. So
 the bell's in-session fallback in [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 5 keys on one fact,
 **was a hook file placed here**, never on a surface list: where none was placed the skill rings rungs 2
 and 3 itself, says so, and removes `.nen/last-stop.json` once the stop is answered; where one was placed
@@ -2453,7 +2459,7 @@ calls.
 | `izanagi`, the v0.3.0 transcript | `export GH_TOKEN=$(gh auth token)` | a dated record of what ran, never a block to run |
 | `illumi.md`, the long watch; `izanami` § 2 | `nen watch until --command "<string>"` | row (b)'s workaround; no `--pr` predicate expresses it |
 | `bankai-handbooks` § 2, the canon checkout | `[ -d … ] \|\| git clone …` | a plain `git clone` into a path that does not exist, else nothing; the `\|\|` stays until the block is split |
-| [`docs/using/cursor.md`](using/cursor.md) § *Model selection*, the grok selection | an inline `$(…)` read | an improvised read, never a skill block; a named stop where refused |
+| [`docs/using/cursor.md`](using/cursor.md) § *The model matrix*, the grok selection | an inline `$(…)` read | an improvised read, never a skill block; a named stop where refused |
 
 
 ## Writing a commit — the message and the two streams

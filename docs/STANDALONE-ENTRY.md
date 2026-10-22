@@ -98,7 +98,7 @@ the checkout.
 **P1b · A phase that must prove a base proves it on a tree holding none of the effort** —
 maintainer's ruling, 2026-09-18. Verifying a base *underneath* work already written produces a red
 nobody can attribute: the base may have been broken all along, or the work may have broken it, and no
-amount of prose settles which. [`hatsu:breath`](../claude/skills/breath/SKILL.md) § 0c is the live
+amount of prose settles which. [`hatsu:breath`](../claude/skills/breath/SKILL.md) § 0 is the live
 case and the pattern is general — **preserve, prove, place, restore**:
 
 | Step | What it does | The rule it carries |
@@ -197,7 +197,7 @@ and **named**. What cannot is asked, through **the surface's own native option p
 derived recommendation **starred** and the evidence for it in the question — **never lettered options
 in the reply** when that picker exists.
 
-**[`SURFACES.md`](SURFACES.md) § 1 is the authority on which tool that is on each surface and what
+**[`using/README.md`](using/README.md) § *The four surfaces, compared* is the authority on which tool that is on each surface and what
 flags it takes.** It is not copied here: a capability table reproduced in a second file is the shape
 that goes stale the next time a surface adds a flag. Two Codex-specific behaviours are worth carrying
 because they change what may be asked rather than how: `questions` is capped at **1–3** with

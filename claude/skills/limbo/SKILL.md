@@ -96,7 +96,7 @@ byte moves:**
 ## 4. The pin — read, reported, moved only on the typed word
 
 `nen canon pin` reads; **nothing in nen writes one.** A pin behind the canon's latest tag is reported
-— `pin v0.6.0 · latest v0.7.0 · behind` — with the exact line to type, and **is never moved on limbo's
+— `pin <tag> · latest <tag> · behind` — with the exact line to type, and **is never moved on limbo's
 own authority**: which canon governs a repository decides which rules its reviewers cite, so it is the
 owner's decision, made visibly in one PR — why nen refuses a floating `--ref` at all. With `to <tag>`: the tag must resolve on the canon
 (`refs/tags/<tag>`, residue 3), `maintained_tools[].pinned` is edited, `nen schema check` re-reads it

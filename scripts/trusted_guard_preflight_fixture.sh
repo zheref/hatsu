@@ -18,10 +18,13 @@ git -C "$checkout" update-ref refs/remotes/origin/main HEAD
 ruby "$preflight" --root "$checkout" --base-ref origin/main > "$fixture/pass.log" 2>&1
 grep -q 'every derived trusted guard passed' "$fixture/pass.log" \
   || { cat "$fixture/pass.log"; echo 'trusted-guard-preflight-fixture: known root did not pass' >&2; exit 1; }
-for guard in branch_authorship_check.sh canon_contracts_check.sh plugin_bump_check.sh private_name_check_fixture.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
+for guard in branch_authorship_check.sh canon_contracts_check.sh direct_matrix_ci_check.mts plugin_bump_check.sh private_name_check_fixture.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
   grep -q "  $guard: exit 0" "$fixture/pass.log" \
     || { cat "$fixture/pass.log"; echo "trusted-guard-preflight-fixture: $guard was not run" >&2; exit 1; }
 done
+
+grep -q '  readiness_ci_verdict.mts: not run (' "$fixture/pass.log" \
+  || { cat "$fixture/pass.log"; echo 'trusted-guard-preflight-fixture: the readiness verdict was not named as not run' >&2; exit 1; }
 
 # A broken candidate contract must be rejected by the trusted canon guard.
 printf '{invalid json\n' > "$checkout/contracts/direct.registry.json"
@@ -90,6 +93,32 @@ set -e
 [ "$code" -eq 1 ] && grep -q 'prose_size_check.sh: exit 1' "$fixture/alternate.log" \
   || { cat "$fixture/alternate.log"; echo 'trusted-guard-preflight-fixture: alternate base guard was not run' >&2; exit 1; }
 
+# A base workflow running the TypeScript canon lint is derived (.mts) and run through
+# its adapter, never refused as unknown and never skipped.
+git -C "$checkout" reset -q --hard refs/remotes/origin/main
+git -C "$checkout" clean -q -fd
+mkdir -p "$checkout/contracts"
+cp "$source_root/scripts/prose_ambiguity_check.mts" "$source_root/scripts/prose_ambiguity_check_fixture.mts" "$checkout/scripts/"
+cp "$source_root/contracts/prose.lint.json" "$source_root/contracts/prose.lint.baseline.json" "$checkout/contracts/"
+cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
+  fixture-canon-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: node .trusted/scripts/prose_ambiguity_check.mts --root "$PWD"
+YAML
+git -C "$checkout" add -A
+git -C "$checkout" commit -qm 'fixture: a base workflow running the canon lint'
+git -C "$checkout" update-ref refs/remotes/origin/preflight-canon HEAD
+ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon --list > "$fixture/canon-list.log" 2>&1 \
+  && grep -q '  prose_ambiguity_check.mts (plugin-bump-check.yml)' "$fixture/canon-list.log" \
+  || { cat "$fixture/canon-list.log"; echo 'trusted-guard-preflight-fixture: the .mts canon lint was not derived' >&2; exit 1; }
+set +e
+ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-lint.log" 2>&1
+set -e
+grep -q '  prose_ambiguity_check.mts: exit [0-9]' "$fixture/canon-lint.log" \
+  && ! grep -q 'no local invocation' "$fixture/canon-lint.log" \
+  || { cat "$fixture/canon-lint.log"; echo 'trusted-guard-preflight-fixture: the canon lint adapter did not run' >&2; exit 1; }
+
 # Discover unknown scripts from the base workflow and refuse missing wiring.
 cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
   fixture-unknown-guard:
@@ -108,4 +137,4 @@ set -e
 [ "$code" -eq 2 ] && grep -q 'no local invocation for trusted guard(s): unrecognized_guard.sh' "$fixture/unknown.log" \
   || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: unknown trusted guard was not a wiring error' >&2; exit 1; }
 
-echo 'trusted-guard-preflight-fixture: ok (canon pass/red, unknown guard refusal, old guard regression cases)'
+echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the .mts canon lint derived and run, unknown guard refusal, old guard regression cases)'
