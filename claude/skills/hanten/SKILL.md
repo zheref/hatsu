@@ -83,6 +83,7 @@ Three checks per persona: `ls "$hatsu_root/claude/agents/<persona>.md"`, the sam
 `_review-preamble.md` (missing is a gap too), and the surface's own agent registry for `hatsu:<persona>`.
 Raisable → raise; present, not raisable → **§ 7's adapter, disclosed as weaker** (`"adapted": "…"`); **absent → a
 gap**: the persona, the raising paths, **this scope not reviewed** — never a pass, never improvised.
+**Never an intake examiner** (`satotz`, `lippo`, `buhara`, `bisky`; HR-23): a gap.
 
 ## 4. Raising a reviewer, and its cost
 
@@ -154,8 +155,7 @@ is work, not a gate.**
 
 **An unsettled finding is a G5** (`nen/decisions.json` row `unsettled-finding`, `CON-47`), only when no
 disposition is choosable without the maintainer: record it, what was tried,
-the alternatives, and stop in [`jutaisho`](../jutaisho/SKILL.md) § 4's shape. **Never
-one re-grading a severity.**
+the alternatives, and stop in [`jutaisho`](../jutaisho/SKILL.md) § 4's shape.
 
 **One bot round is requested after hanten settles** (`sharingan` § 6).
 
@@ -168,8 +168,7 @@ and pickers**: the worker at the scope's tier, a copy of the repo, § 5's shape,
 
 Preamble § 7 is every reviewer's refusal list. **Hanten may** read the working copy, raise reviewers,
 write the findings record, Leorio's report and the ledgers, edit the working copy to settle a finding,
-and render the stop. **It may not** push, commit, PR, label,
-merge, tag, deploy or vote (PROCESS.md § Authority every phase shares).
+and render the stop; **nothing else** (PROCESS.md § Authority every phase shares).
 
 ## Hard limits
 

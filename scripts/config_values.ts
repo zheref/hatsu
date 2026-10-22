@@ -12,6 +12,22 @@ const args = process.argv.slice(2);
 const mode = args[0];
 let scratch: string | undefined;
 function plain(value: unknown): string { return String(value).replace(/[\p{Cc}\p{Cf}]/gu, ''); }
+/** HR-23: an intake examiner challenges only at capture intake; machinery, not prose, keeps one out of review.scopes. */
+function refuseExaminerReviewer(rows: any[], argv: string[]): void {
+  const flag = (name: string) => { const at = argv.indexOf(name); return at >= 0 ? argv[at+1] : undefined; };
+  const literal = flag('--value');
+  if (flag('--id') !== 'workflow.review.scopes' || literal === undefined) return;
+  // The examiner set is the catalogue's intake.challenger options: one list, never a second copy here.
+  const examiners = new Set(rows.filter(row => String(row.path ?? '').startsWith('intake.challenger.')).flatMap(row => row.options ?? []).map(String));
+  if (examiners.size === 0) throw new Error('refusing workflow.review.scopes: the catalogue names no intake examiner (intake.challenger.* options) to refuse');
+  let value: unknown;
+  try { value = JSON.parse(literal); } catch { return; } // the engine refuses a malformed literal itself
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+  for (const [scope, entry] of Object.entries(value as Record<string, any>)) {
+    const persona = typeof entry?.persona === 'string' ? entry.persona.trim().toLowerCase() : '';
+    if (examiners.has(persona)) throw new Error(`refusing review.scopes.${scope}.persona = ${JSON.stringify(entry.persona)}: an intake examiner (${[...examiners].join(' | ')}) challenges only at capture intake and is never a hanten reviewer (HR-23)`);
+  }
+}
 const safeOutput=(value:string)=>value.replace(/\r\n?/g,'\n').split('\n').map(plain).join('\n');
 try {
   let root = dirname(here);
@@ -38,6 +54,7 @@ try {
       default:'available sections: '+Object.entries(options(cat)).map(([id,purpose])=>`${id} — ${purpose}`).join(' | '),
       readers:['shibari','tensho','jujisho'],requiredBy:[],describe:'Available PR section ids and purposes.'});
   }
+  if (mode === 'set') refuseExaminerReviewer(declaration.values, forwarded);
   scratch = mkdtempSync(join(tmpdir(),'hatsu-config-catalogue-'));
   mkdirSync(join(scratch,'contracts'));
   writeFileSync(join(scratch,'contracts/config-catalogue.json'),JSON.stringify(declaration,null,2)+'\n');
