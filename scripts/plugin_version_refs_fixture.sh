@@ -66,4 +66,28 @@ code=$?
 set -e
 [ "$code" -eq 2 ] || fail "same-version refusal exited $code, expected 2"
 
-echo 'plugin-version-refs-fixture: list-only, conservative write, mirrors and ambiguity passed'
+# --check-nen-pin: the page's echoed pin line against the contract's two values.
+pin="$tmp/pin"
+mkdir -p "$pin/nen" "$pin/docs"
+printf '{"dependency": {"minimum": "0.9", "pinned_ref": "v0.9.0"}}\n' > "$pin/nen/contract.json"
+echo_line() {
+  printf '# Range\n\n*Current pin, echoed for convenience:* **`nen >= %s`**, with the bootstrap installing **`%s`**.\n' \
+    "$1" "$2" > "$pin/docs/NEN-CONTRACT.md"
+}
+pin_case() { # <expected exit> <label>
+  set +e
+  bash "$here/plugin_version_refs.sh" --check-nen-pin --root "$pin" > "$tmp/pin.log" 2>&1
+  code=$?
+  set -e
+  [ "$code" -eq "$1" ] || fail "nen pin $2 exited $code, expected $1: $(cat "$tmp/pin.log")"
+}
+echo_line 0.9 v0.9.0; pin_case 0 'agreement'
+grep -Fq 'nen pin echo agrees (nen >= 0.9, v0.9.0)' "$tmp/pin.log" || fail 'agreement line missing'
+echo_line 0.8 v0.9.0; pin_case 1 'stale minimum'
+grep -Fq 'echoes nen >= 0.8 installing v0.9.0; nen/contract.json says minimum 0.9, pinned_ref v0.9.0' \
+  "$tmp/pin.log" || fail 'drift line missing'
+echo_line 0.9 v0.8.0; pin_case 1 'stale pinned_ref'
+printf 'no pin line here\n' > "$pin/docs/NEN-CONTRACT.md"; pin_case 2 'missing pin line'
+echo_line 0.9 v0.9.0; printf '{"dependency": {}}\n' > "$pin/nen/contract.json"; pin_case 2 'contract without values'
+
+echo 'plugin-version-refs-fixture: list-only, conservative write, mirrors, ambiguity and the nen pin echo passed'

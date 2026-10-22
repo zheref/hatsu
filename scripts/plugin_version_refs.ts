@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // #158: inspect tracked references to a version and rewrite only exact,
 // unambiguous forms. Mirrors and PR bodies require separate human steps.
+// --check-nen-pin: docs/NEN-CONTRACT.md's echoed pin line must name
+// nen/contract.json's dependency.minimum and pinned_ref (0 agree, 1 drift).
 import { lstatSync, readFileSync, readlinkSync, realpathSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -22,8 +24,37 @@ function inside(root: string, candidate: string): boolean {
   return !!rel && !rel.startsWith('..') && !isAbsolute(rel);
 }
 
+const PIN_LINE = '*Current pin, echoed for convenience:*';
+
+function checkNenPin(root: string): void {
+  const dep = JSON.parse(readFileSync(join(root, 'nen/contract.json'), 'utf8')).dependency ?? {};
+  const { minimum, pinned_ref: pinned } = dep;
+  if (typeof minimum !== 'string' || typeof pinned !== 'string') {
+    refuse('nen/contract.json has no dependency.minimum or dependency.pinned_ref string');
+  }
+  const page = readFileSync(join(root, 'docs/NEN-CONTRACT.md'), 'utf8').split('\n');
+  const hits = page.filter((line) => line.startsWith(PIN_LINE));
+  if (hits.length !== 1) refuse(`docs/NEN-CONTRACT.md carries ${hits.length} pin line(s), expected 1`);
+  const echoedMin = /`nen >= ([0-9.]+)`/.exec(hits[0])?.[1];
+  const echoedRef = /installing \*\*`(v[0-9.]+)`\*\*/.exec(hits[0])?.[1];
+  if (echoedMin === minimum && echoedRef === pinned) {
+    console.log(`plugin-version-refs: nen pin echo agrees (nen >= ${minimum}, ${pinned})`);
+    return;
+  }
+  console.log(`plugin-version-refs: drift: docs/NEN-CONTRACT.md echoes nen >= ${echoedMin ?? '?'} installing ${echoedRef ?? '?'}; nen/contract.json says minimum ${minimum}, pinned_ref ${pinned}`);
+  process.exitCode = 1;
+}
+
 function main(args: string[]): void {
   let rootArg = process.cwd();
+  if (args.includes('--check-nen-pin')) {
+    const rest = args.filter((arg) => arg !== '--check-nen-pin');
+    if (rest.length && !(rest.length === 2 && rest[0] === '--root')) refuse('use --check-nen-pin [--root DIR]');
+    if (rest.length) rootArg = rest[1];
+    try { checkNenPin(realpathSync(rootArg)); }
+    catch (error) { refuse((error as Error).message); }
+    return;
+  }
   let from: string | undefined;
   let to: string | undefined;
   let write = false;
@@ -38,7 +69,7 @@ function main(args: string[]): void {
     else to = value;
   }
   if (!from || !to || !/^\d+\.\d+\.\d+$/.test(from) || !/^\d+\.\d+\.\d+$/.test(to)) {
-    refuse('use --from X.Y.Z --to X.Y.Z');
+    refuse('use --from X.Y.Z --to X.Y.Z [--write], or --check-nen-pin');
   }
   if (from === to) refuse('old and new versions are the same');
   let root: string;
