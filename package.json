@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:unit": "vitest run scripts/unit_tests_ci_fixture.test.mts"
+    "test:unit": "vitest run --testTimeout 15000 scripts/unit_tests_ci_fixture.test.mts scripts/release_changelog_fixture.test.mts scripts/tenkai_release_guard_fixture.test.mts"
   },
   "devDependencies": {
     "vitest": "5.0.5"

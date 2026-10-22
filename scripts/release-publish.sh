@@ -58,7 +58,7 @@
 #   * a release ALREADY exists for that tag      -> 1  (one go publishes one
 #     target once; re-publishing is never the fix)
 #   * an --asset path that does not exist        -> 1
-#   * no `python3`                               -> 2  (it composes the notes)
+#   * no `node`                                  -> 2  (it composes the notes)
 #   * no section for the tag in the changelog    -> 1  (the notes are the
 #     changelog's; this script does not write them)
 set -euo pipefail
@@ -122,6 +122,30 @@ CL
   case "$N" in *"gh release create"*) ok 0 "the plan shows the exact command" ;; *) ok 1 "the plan shows the exact command" ;; esac
   case "$N" in *"1 section"*) ok 0 "one section between v2.0.0 and v1.0.0" ;; *) ok 1 "one section between v2.0.0 and v1.0.0" ;; esac
 
+  cat > "$T/CHANGELOG-3.md" <<'CL'
+# Changelog
+
+### Unreleased
+
+- later work
+
+### v2.0.0 — collated release
+
+- this release
+
+### v1.0.0 — prior release
+
+- older work
+CL
+  THREE="$(SELF_TEST=0 bash "$0" --tag v2.0.0 --repo "$T" --slug acme/widget \
+    --changelog "$T/CHANGELOG-3.md" --previous-tag v1.0.0 --dry-run 2>/dev/null || true)"
+  case "$THREE" in *"1 section"*) ok 0 "a nen-collated ### release section is admitted" ;; *) ok 1 "a nen-collated ### release section is admitted" ;; esac
+  case "$THREE" in *"title      : v2.0.0 — collated release"*) ok 0 "the ### section supplies the release title" ;; *) ok 1 "the ### section supplies the release title" ;; esac
+  sed '/^### Unreleased$/,/^- later work$/d' "$T/CHANGELOG-3.md" > "$T/CHANGELOG-3-no-anchor.md"
+  FALLBACK="$(SELF_TEST=0 bash "$0" --tag v2.0.0 --repo "$T" --slug acme/widget \
+    --changelog "$T/CHANGELOG-3-no-anchor.md" --dry-run 2>/dev/null || true)"
+  case "$FALLBACK" in *"1 section"*) ok 0 "without Unreleased the first version section sets the level" ;; *) ok 1 "without Unreleased the first version section sets the level" ;; esac
+
   echo "a tag that closes a MULTI-version gap carries every section in it"
   M="$(SELF_TEST=0 bash "$0" --tag v2.0.0 --repo "$T" --slug acme/widget \
         --changelog "$T/CHANGELOG.md" --previous-tag v0.1.0 --dry-run 2>/dev/null || true)"
@@ -154,6 +178,31 @@ CL
   printf '# Changelog\n\n## v1.0.0 — only this\n\n- x\n' > "$T/partial.md"
   SELF_TEST=0 bash "$0" --tag v2.0.0 --repo "$T" --slug acme/widget --changelog "$T/partial.md" --dry-run >/dev/null 2>&1
   ok "$([ $? -eq 1 ] && echo 0 || echo 1)" "no section for the tag refuses (1) — notes are never invented"
+  printf '# Changelog\n\nNo version sections here.\n' > "$T/no-sections.md"
+  SELF_TEST=0 bash "$0" --tag v2.0.0 --repo "$T" --slug acme/widget --changelog "$T/no-sections.md" --dry-run >/dev/null 2>&1
+  ok "$([ $? -eq 1 ] && echo 0 || echo 1)" "no recognisable release heading refuses (1)"
+  cat > "$T/mixed-level.md" <<'CL'
+# Changelog
+### Unreleased
+### v2.0.0 — current
+- current work
+## v1.0.0 — previous
+- already shipped
+CL
+  SELF_TEST=0 bash "$0" --tag v2.0.0 --repo "$T" --slug acme/widget \
+    --changelog "$T/mixed-level.md" --previous-tag v1.0.0 --dry-run >/dev/null 2>&1
+  ok "$([ $? -eq 1 ] && echo 0 || echo 1)" "a previous tag at a different heading level refuses before notes can include it"
+  ( cd "$T" && git tag v2026 )
+  printf '# Changelog\n\n## v2026 — annual release\n\n- annual work\n' > "$T/annual.md"
+  ANNUAL="$(SELF_TEST=0 bash "$0" --tag v2026 --repo "$T" --slug acme/widget \
+    --changelog "$T/annual.md" --dry-run 2>/dev/null || true)"
+  case "$ANNUAL" in *"title      : v2026 — annual release"*) ok 0 "the first v* section accepts an undotted existing tag" ;; *) ok 1 "the first v* section accepts an undotted existing tag" ;; esac
+  mkdir -p "$T/bad-node"
+  printf '#!/bin/sh\nexit 2\n' > "$T/bad-node/node"
+  chmod +x "$T/bad-node/node"
+  SELF_TEST=0 PATH="$T/bad-node:$PATH" bash "$0" --tag v2.0.0 --repo "$T" --slug acme/widget \
+    --changelog "$T/CHANGELOG.md" --dry-run >/dev/null 2>&1
+  ok "$([ $? -eq 2 ] && echo 0 || echo 1)" "a TypeScript runtime failure is an environment defect (2)"
   set -e
 
   echo "the shipped copy and the template it was cut from cannot drift silently"
@@ -168,6 +217,13 @@ CL
   else
     ok 0 "not applicable: no adjacent template (consumer layout)"
   fi
+  if [ -f "$SCRIPT_DIR/../templates/release_changelog.mts" ]; then
+    if cmp -s "$SCRIPT_DIR/../templates/release_changelog.mts" "$SCRIPT_DIR/release_changelog.mts"; then
+      ok 0 "templates/release_changelog.mts matches scripts/release_changelog.mts byte-for-byte"
+    else
+      ok 1 "templates/release_changelog.mts matches scripts/release_changelog.mts byte-for-byte"
+    fi
+  fi
 
   printf '\n'
   if [ "$fails" -gt 0 ]; then
@@ -181,11 +237,11 @@ fi
 # --------------------------------------------------------------------------
 [ -d "$REPO" ] || die "--repo '$REPO' is not a directory"
 command -v git >/dev/null 2>&1 || die "no 'git' on PATH"
-# python3 composes the notes and the title. Unvalidated, a missing interpreter
-# made the heredoc exit 127, which was then folded into the generic "no section"
-# refusal and reported as exit 1 -- a repository defect dressed as a changelog
-# one. An absent interpreter is an ENVIRONMENT defect and exits 2.
-command -v python3 >/dev/null 2>&1 || die "no 'python3' on PATH — it composes the notes and the title from the changelog"
+# The adjacent TypeScript helper composes notes and title. Missing tooling is an
+# environment defect, not a changelog refusal.
+command -v node >/dev/null 2>&1 || die "no 'node' on PATH — it composes the notes and the title from the changelog"
+HELPER="$(cd "$(dirname "$0")" && pwd)/release_changelog.mts"
+[ -r "$HELPER" ] || die "release_changelog.mts is missing beside release-publish.sh"
 
 # --tag IS OPTIONAL, AND THAT IS WHAT MAKES THE DECLARED ROW RUNNABLE.
 # `nen shu release` runs the lane's argv with no arguments of its own -- it has
@@ -245,38 +301,22 @@ done
 # A tag that closes a multi-version gap carries every section in that gap —
 # silently shipping only the newest would misreport what the tag contains.
 NOTES_FILE="$(mktemp)"
-trap 'rm -f "$NOTES_FILE"' EXIT
+TITLE_FILE="$(mktemp)"
+COUNT_FILE="$(mktemp)"
+trap 'rm -f "$NOTES_FILE" "$TITLE_FILE" "$COUNT_FILE"' EXIT
 set +e
-python3 - "$CHANGELOG" "$TAG" "${PREV:-}" > "$NOTES_FILE" <<'PY'
-import re, sys
-text, tag = open(sys.argv[1]).read(), sys.argv[2]
-prev = sys.argv[3] if len(sys.argv) > 3 else ""
-secs = re.split(r"(?m)^## ", text)[1:]
-out, seen = [], False
-for s in secs:
-    ver = s.split("\n")[0].split(" ")[0].strip()
-    if prev and ver == prev and seen:
-        break
-    if ver == tag:
-        seen = True
-    if seen:
-        out.append("## " + s.rstrip() + "\n")
-if not out:
-    raise SystemExit(3)
-sys.stdout.write("\n".join(out))
-PY
+node "$HELPER" "$CHANGELOG" "$TAG" "${PREV:-}" "$NOTES_FILE" "$TITLE_FILE" "$COUNT_FILE"
 notes_rc=$?
 set -e
-[ "$notes_rc" -eq 0 ] || refuse "no '## $TAG' section in '$CHANGELOG'. The notes are the changelog's; this script does not write them."
+case "$notes_rc" in
+  0) ;;
+  4) refuse "no Unreleased or v* section at Markdown heading level 2–6 in '$CHANGELOG'. The notes are the changelog's; this script does not write them." ;;
+  3) refuse "no '$TAG' section at the changelog's release heading level in '$CHANGELOG'. The notes are the changelog's; this script does not write them." ;;
+  *) die "release_changelog.mts failed (exit $notes_rc); Node 22.18+ and a readable changelog are required." ;;
+esac
 
 if [ -z "$TITLE" ]; then
-  TITLE="$(python3 - "$CHANGELOG" "$TAG" <<'PY'
-import re, sys
-t = open(sys.argv[1]).read(); tag = sys.argv[2]
-m = re.search(rf"(?m)^## {re.escape(tag)}\b(.*)$", t)
-print(f"{tag}{m.group(1)}" if m else tag)
-PY
-)"
+  TITLE="$(cat "$TITLE_FILE")"
 fi
 
 if [ "$DRY" = "1" ]; then
@@ -286,7 +326,7 @@ if [ "$DRY" = "1" ]; then
   printf '  previous   : %s\n' "${PREV:-(none - first release)}"
   printf '  title      : %s\n' "$TITLE"
   printf '  notes      : %s bytes, %s section(s) from %s\n' \
-    "$(wc -c < "$NOTES_FILE" | tr -d ' ')" "$(grep -c '^## ' "$NOTES_FILE" || true)" "$CHANGELOG"
+    "$(wc -c < "$NOTES_FILE" | tr -d ' ')" "$(cat "$COUNT_FILE")" "$CHANGELOG"
   printf '  assets     : %s\n' "${#ASSETS[@]}"
   printf '  command    : gh release create %s --repo %s --verify-tag%s\n' "$TAG" "$SLUG" "$LATEST_FLAG"
   printf '  latest     : %s\n' "$LATEST_WHY"

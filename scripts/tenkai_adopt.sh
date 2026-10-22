@@ -1223,15 +1223,10 @@ class ReadinessWorkflow(Item):
 
 
 class ReleasePublisher(Item):
-    """Hatsu's to render, for a PROCESS repository only.
-
-    A product repository publishes however its own stack publishes; Tenkai has
-    no opinion there and asserts none. A process/system repository's releases
-    are consumed by other repositories, so it needs a publisher that exists.
-    """
+    """Relay the process publisher's TypeScript BC-11 ownership verdict."""
 
     REL = "scripts/release-publish.sh"
-    MARKER = "RENDERED BY hatsu:tenkai from `templates/release-publish.sh`"
+    HELPER_REL = "scripts/release_changelog.mts"
 
     def __init__(self):
         super().__init__(self.REL, "the release publisher mugetsu's declared row runs", "hatsu")
@@ -1247,61 +1242,22 @@ class ReleasePublisher(Item):
             return self.row(SATISFIED,
                             "the generic process-repository publisher is not installed in a "
                             "product; product lane release rows audit each destination")
-        p = ctx.repo / self.REL
-        if p.is_symlink():
-            return self.row(BLOCKED, f"{self.REL} is a symlink — Tenkai does not follow one out of "
-                                     f"the repository it was pointed at",
-                            "replace it with a regular file")
-        if not p.is_file():
-            return self.row(MISSING,
-                            "absent — a process/system repository whose releases other repositories "
-                            "consume has no publisher for `nen shu release` to run",
-                            "render templates/release-publish.sh")
-        have = p.read_text()
-        if self.MARKER not in have:
-            return self.row(DRIFT,
-                            "a release-publish.sh is present that Tenkai did not render — "
-                            "it will not be overwritten",
-                            "review by hand, then delete it and re-run apply")
-        # THE MARKER PROVES PROVENANCE, NOT CURRENCY. A publisher rendered three
-        # versions ago keeps the marker forever, so marker-only meant a stale
-        # engine was reported satisfied and no later run ever repaired it --
-        # precisely the "looks installed and does nothing" class this tool exists
-        # to end. The bytes are compared against the shipped template.
-        if have != ctx.template("release-publish.sh"):
-            return self.row(DRIFT,
-                            "the rendered publisher differs from the shipped template — it was "
-                            "rendered by an older Tenkai, or hand-edited since",
-                            "re-render templates/release-publish.sh")
-        return self.row(SATISFIED, "present, and byte-identical to the shipped template")
+        return self.row(**release_guard(ctx, "diagnose"))
 
     def repair(self, ctx):
-        cur = self.detect(ctx)
-        # A STALE rendering IS repaired; a FOREIGN file is not. The two are
-        # different findings and only one of them is Tenkai's to overwrite.
-        if cur["state"] in (SATISFIED, BLOCKED):
-            return cur
-        if cur["state"] == DRIFT and "did not render" in cur["detail"]:
-            return cur
-        p = ctx.repo / self.REL
-        # THE PARENT COUNTS TOO. Checking only the final file left `scripts/`
-        # itself: a symlinked directory pointing out of the target meant
-        # `mkdir(exist_ok=True)` followed it and the publisher was written
-        # OUTSIDE `--repo`. Every directory between the root and the file is
-        # asked, not just the leaf.
-        rel = Path(self.REL)
-        probe = ctx.repo
-        for part in rel.parts[:-1]:
-            probe = probe / part
-            if probe.is_symlink():
-                return self.row(BLOCKED,
-                                f"{probe.relative_to(ctx.repo)} is a symlinked directory — writing "
-                                f"through it would land outside the repository Tenkai was pointed at",
-                                "replace it with a real directory")
-        p.parent.mkdir(parents=True, exist_ok=True)
-        _atomic_write(p, ctx.template("release-publish.sh"))
-        p.chmod(0o755)
-        return self.row(REPAIRED, f"rendered to {self.REL} — declare it as the lane's `release` row")
+        if ctx.role != ROLE_PROCESS:
+            return self.detect(ctx)
+        return self.row(**release_guard(ctx, "apply"))
+
+
+def release_guard(ctx, mode):
+    """Transport only; publisher, helper and ownership decisions are TypeScript's."""
+    script = ctx.hatsu_root / "scripts" / "tenkai_release_guard.mts"
+    out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root)],
+                         capture_output=True, text=True, timeout=60)
+    if out.returncode != 0:
+        raise RuntimeError(f"tenkai_release_guard.mts {mode} exited {out.returncode}: {out.stderr.strip()}")
+    return json.loads(out.stdout)
 
 
 class ReleaseRow(Item):
@@ -2917,11 +2873,14 @@ def self_test() -> int:
     check("a symlinked reader parent directory is BLOCKED", reader_row["state"] == BLOCKED)
     check("and nothing was written outside the repository",
           not (outside2 / "release-publish.sh").exists()
+          and not (outside2 / "release_changelog.mts").exists()
           and not (outside2 / "readiness_ci_verdict.mts").exists())
 
     # T7 — the marker proves PROVENANCE; currency is proved by the bytes.
     dst = fixture(role=ROLE_PROCESS)
     ReleasePublisher().repair(ctx_for(dst))
+    check("a process publisher installs its TypeScript notes helper",
+          (dst / ReleasePublisher.HELPER_REL).read_text() == (root / "templates" / "release_changelog.mts").read_text())
     stale = (dst / ReleasePublisher.REL)
     stale.write_text(stale.read_text().replace("set -euo pipefail",
                                                "set -euo pipefail\n# an older rendering", 1))
@@ -2931,12 +2890,28 @@ def self_test() -> int:
     ReleasePublisher().repair(ctx_for(dst))
     check("and a stale rendering IS repaired",
           ReleasePublisher().detect(ctx_for(dst))["state"] == SATISFIED)
+    (dst / ReleasePublisher.HELPER_REL).write_text("// stale\n")
+    check("a foreign TypeScript helper is DRIFT",
+          ReleasePublisher().detect(ctx_for(dst))["state"] == DRIFT)
+    check("and a foreign helper is not overwritten",
+          ReleasePublisher().repair(ctx_for(dst))["state"] == DRIFT and
+          (dst / ReleasePublisher.HELPER_REL).read_text() == "// stale\n")
+    (dst / ReleasePublisher.HELPER_REL).write_text(
+        (root / "templates" / "release_changelog.mts").read_text() + "\n// older rendering\n")
+    check("a marked but stale TypeScript helper is DRIFT",
+          ReleasePublisher().detect(ctx_for(dst))["state"] == DRIFT)
+    ReleasePublisher().repair(ctx_for(dst))
+    check("and the helper is re-rendered",
+          ReleasePublisher().detect(ctx_for(dst))["state"] == SATISFIED)
 
     # The shipped template and Hatsu's own rendering are ONE engine.
     tmpl = (root / "templates" / "release-publish.sh").read_text()
     mine = (root / "scripts" / "release-publish.sh").read_text()
     check("templates/release-publish.sh and scripts/release-publish.sh are the same engine",
           tmpl == mine)
+    check("templates/release_changelog.mts and scripts/release_changelog.mts are the same engine",
+          (root / "templates" / "release_changelog.mts").read_text() ==
+          (root / "scripts" / "release_changelog.mts").read_text())
 
     print("\nCLAIMS THAT HAD NO FIXTURE — the combination that rots quietly")
     # A TUNED colors.yml MUST SURVIVE. § 4 and Hard limits both promise the engine

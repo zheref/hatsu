@@ -185,7 +185,7 @@ either operation.
 | `scripts/readiness_ci_verdict.mts` | **Hatsu** | Copied into the consumer before the readiness workflow is rendered. `scripts/tenkai_readiness_guard.mts` owns the adoption decisions (BC-11); a symlink or hand-written reader is never overwritten |
 | `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner — § 5. **A file Tenkai did not render is never overwritten** |
 | other privileged workflows | **Hatsu** | **Observation only.** Named, never written — § 5d |
-| `scripts/release-publish.sh` | **Hatsu** | Rendered — **only in a process/system repository** — § 6a; product publishers are chosen by their owners |
+| `scripts/release-publish.sh`, `scripts/release_changelog.mts` | **Hatsu** | Rendered together — **only in a process/system repository** — § 6a; product publishers are chosen by their owners |
 | the default lane's `release` row | **nen** | In a process repository, a seat gets an exact row offered — § 6a |
 | `lane/<lane>/<verb>` in a product | **nen** | Every declared command is checked; unsupported seats and missing iteration checks are routed — § 6b |
 | `workflow/<join>` in a product | **consumer configuration** | Checks toolchain, test selection and results, coverage, and visual evidence links across the declarations — § 6c |
@@ -547,8 +547,8 @@ that disagrees with the practice is a bug in the declaration**, and the seat is 
 
 **Two halves, and the ownership line runs between them:**
 
-- **`scripts/release-publish.sh` is Hatsu's to render in a process repository**, from
-  `templates/release-publish.sh` — the same engine Hatsu runs on itself. A product needs its own
+- **`scripts/release-publish.sh` and its adjacent TypeScript notes helper are Hatsu's to render in a process repository**, from
+  `templates/release-publish.sh` and `templates/release_changelog.mts` — the same engine Hatsu runs on itself. A process repository needs Node 22.18+ for the helper. A product needs its own
   publisher for its chosen destination. **A publisher Tenkai did not render is never overwritten.**
 - **The `release` row is nen's**, so Tenkai **routes** it and **offers** the exact row to paste,
   composed from **this repository's own default lane and declared stack** for a process repository.
