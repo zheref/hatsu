@@ -63,8 +63,8 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
 - **If an epic awaiting approval**: stop at **G1** (row `mode-label`) — the mode label is the
   maintainer's decision (`CON-4`), never an agent's.
 - **Read requirements**: title, body, acceptance criteria, constraints, then `node
-  "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N> --json` (zheref/nen#476, #477): an open `OQ-{n}`
-  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4); exit `2`, `3` or `5` a G5, never a pass.
+  "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N> --json`: an open `OQ-{n}`
+  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4); any other miss is listed, never a stop; exit `2`, `3` or `5` a G5.
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
