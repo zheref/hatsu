@@ -47,7 +47,7 @@ As [`ports.md`](ports.md) § *Shared conventions* states them: `{slug}` (a capab
 
 **Never renumbered after a merge.** A reversed statement gets a new id and a `supersedes <id>` line; a removed one keeps its id under a marker.
 
-**No `OQ-{n}` rows and no separate `AC-{n}` space in a family `spec.md`.** An open question is a marker, `[NEEDS CLARIFICATION: …]`, settled by `[ruled: CL-nnn]` (HR-4's prose form), never an `OQ-{n}` row. UZF-21(d)/(e)'s `AC-{n}` maps onto the numbered acceptance scenario under a `US-n` in the pinned Spec Kit layout. The per-member difference lives in `parity.md` (SP-6), and `spec.md` § `## Platform decisions` is the record of the maintainer's typed words that a parity row cites.
+**No `OQ-{n}` rows and no separate `AC-{n}` space in a family `spec.md`.** An open question is the table's `NEEDS CLARIFICATION` marker, settled by `[ruled: CL-nnn]` (HR-4's prose form), never an `OQ-{n}` row. UZF-21(d)/(e)'s `AC-{n}` maps onto the numbered acceptance scenario under a `US-n` in the pinned Spec Kit layout. The per-member difference lives in `parity.md` (SP-6), and `spec.md` § `## Platform decisions` is the record of the maintainer's typed words that a parity row cites.
 
 ## Citations and markers
 
@@ -108,7 +108,7 @@ Spec folders and a capture's output are an intake artifact (HR-23): they are cha
 |---|---|---|---|
 | `spec-capture-scope` | ask-once-per-run | after the capability map: **A** all N ⭐ · **B** the typed slugs | A |
 | `spec-slice` | ask-once-per-run, three a call | a shared screen or state reachable from two capabilities | derived per ask |
-| `spec-clarify` | ask-once-per-run: one round per run, of at most `spec.clarify.maxQuestions`; `spec.clarify.maxRounds` bounds successive runs (SP-11 as amended on bankai-handbooks #12) | the ranked markers of the wave; a platform contradiction's options are the two cited readings | derived per ask; **none** for a priority, audience, threshold or *intentional* |
+| `spec-clarify` | ask-once-per-run: one round per run, of at most `spec.clarify.maxQuestions`; `spec.clarify.maxRounds` bounds successive runs (SP-11 as amended on zheref/bankai-handbooks#12) | the ranked markers of the wave; a platform contradiction's options are the two cited readings | derived per ask; **none** for a priority, audience, threshold or *intentional* |
 | `spec-claim-unverified` | autonomous | a sentence with no backing row or an unverifiable citation | — (it gets a marker) |
 | `spec-dispatch` | ask-once-per-run, multi-select paged in fours | after a capture merges: `folder · story · member · direct's primary` for every marker-free gap group; **not a G1** (unruled, above): `file` § 4 confirms per dispatch | **none** (the porting rulings' fan-out picker) |
 | `spec-coverage` | human-gate G5 (owed: no skill raises it until shibari's change, [zheref/hatsu#405](https://github.com/zheref/hatsu/issues/405)) | a delivery PR whose Spec section leaves an SC neither satisfied nor deferred, or cites an id the issue does not carry | none |
