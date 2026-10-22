@@ -4,7 +4,7 @@
 four agent surfaces: Claude Code, Codex, Cursor and Antigravity.**
 
 One lead persona, **Kurapika**, who names which of six work-modes he is holding before he acts; a roster of
-focused independents who review, measure, watch, file and clean up but never decide; and **fifty-seven skills** that take a
+focused independents who review, measure, watch, file and clean up but never decide; and **the skills** that take a
 request, an issue, a backlog, a pull request or a release from where it is to the human gate where you
 decide. **Every deterministic step that has a verb is a verb** of the [**Nen**](https://github.com/zheref/nen)
 CLI: Nen detects, computes, formats and verifies; a skill supplies only the judgment a binary cannot.
@@ -217,7 +217,7 @@ until the brief carries no ambiguity and no conflict with current specifications
 
 ## 🧰 The skills
 
-Fifty-seven, invoked as `hatsu:<name>` in your surface's spelling, fifty-eight directories with `ten`. Each row:
+One directory each, `ten` included, invoked as `hatsu:<name>` in your surface's spelling. Each row:
 what the skill means, the steps it runs **as the skills it calls**, and who calls it. Full contracts live
 in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 [`claude/skills/README.md`](claude/skills/README.md).
