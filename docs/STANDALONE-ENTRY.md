@@ -238,7 +238,7 @@ where a maintainer believes a change has been reviewed, tested and reported beca
   must not carry a list of its callers, because the list is what goes stale — `sharingan` naming only
   `en` while `build`, `futon`, `getsuga`, `backlog-loop` and `jujisho` all reach it is exactly that
   failure. **Both sides state it**: every composite that calls a `## 0.`-bearing phase carries the
-  skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `kazaana`, `kamui`, `hiraishin`, `getsuga`, `backlog-loop`, `tensho`,
+  skip clause — `ren`, `mukai`, `en`, `build`, `futon`, `kazaana`, `kamui`, `hiraishin`, `dowsing-chain`, `getsuga`, `backlog-loop`, `tensho`,
   `jujisho`, `senkei`, `ten` — and every phase states the generic condition rather than a caller list.
   **The failure this prevents is a composite and a § 0 deriving the same value two ways**: a `build`
   run that passes `sharingan` a PR number must not have § 0 re-derive one from `gh pr list`.
@@ -333,7 +333,7 @@ the general rule and the skill states its own stricter one.
 **It never offers to run the successor.** The five phases that are the maintainer's alone —
 `aka`, `mukai`, the merge, `kagutsuchi`, `mugetsu` — are never prompted for, from a standalone run
 least of all, because a cold entry is exactly where a prompt reads as *the pipeline knows what it is
-doing* (`ROSTER.md` § *Rulings of 2026-09-09*, 1). `en` § 5's merge prompt is not such a prompt: it
+doing* (`ROSTER.md` HR-42). `en` § 5's merge prompt is not such a prompt: it
 presents a PR's link and merge line; its picker never carries the merge act; the maintainer merges outside the session (`ROSTER.md` § *Rulings of 2026-09-30 — En never merges*).
 Nor are the two offers of the ruling of 2026-10-13: the wrap-up picker (`cleanup` · `cleanup` and `third-hand` ·
 continue — [`cleanup`](../claude/skills/cleanup/SKILL.md) § 2) names no phase of the five, and
@@ -369,7 +369,7 @@ both.
 | [`rikugan`](../claude/skills/rikugan/SKILL.md) | S3 + S4 — the scope, in its § 2 order: handed over by the composite that names it, typed, the objects the session's last completed workflow touched (read from that run's record), else the checkout (the branch's open or merged PR and the issues its body closes); **P1b is declined** (read-only) and **P3 is declined** — the subject is a state, not a delta, and `(fetched <sha>)` is never asserted. Terminal in its own pipeline: the hand-back line says so | the scope, as **free text**, only when neither the session nor the checkout yields one (`missing-argument`) — never the whole backlog by default |
 
 
-### 7b · Eighteen whose `## 0.` adds P1, orientation and expectations only
+### 7b · Nineteen whose `## 0.` adds P1, orientation and expectations only
 
 These inherit no caller state. Their `## 0.` says P1 still applies, states what their run does **not**
 cover, and — for the two the contract used to mis-file — names why.
@@ -394,7 +394,8 @@ cover, and — for the two the contract used to mis-file — names why.
 | [`bankai-rule`](../claude/skills/bankai-rule/SKILL.md) | Typed, or reached from a port composite (`kamui`, `hiraishin` — zheref/hatsu#356, #357, shipped at `v0.126.0`) at a `port-drift` answer, then skipped. P1 `hatsu:ten bankai-rule`; **P1b and P3 are declined** (a ruling, not a delta); P2, P4 (the pair with both scenario slots enumerated and the ruling split off before the parse, stated back; the bare form is the ruling the session is discussing) and P5, naming what is not running: no build, no merge, no write to the canon checkout, no mirror |
 | [`kamui`](../claude/skills/kamui/SKILL.md) | Typed — its wired position; `hiraishin` (zheref/hatsu#357) calls its §§ 2–4 and § 6's record and holds § 0 for them. P1 `hatsu:ten kamui`; **P1b and P3 are declined** (the subject is a source object; each repository's own `breath` runs inside `ren`); P2, P4 (the object by its § 1, two `nen parse` templates chosen by the literal first token; an empty line is the object the session is discussing, stated back first) and P5, naming what is not running: no merge, no repository creation, no build before the spec PR merges. It is also a composite and carries the § 4 skip clause for every phase it calls |
 | [`hiraishin`](../claude/skills/hiraishin/SKILL.md) | Typed — its wired position; no composite calls it. P1 `hatsu:ten hiraishin`; **P1b and P3 are declined** (the subject is a merged PR, not a delta here; each repository's own `breath` runs inside `ren`); P2, P4 (the source and target by its § 1, two `nen parse` templates chosen by the literal first token; an empty line is the PR the session is discussing, stated back first; the target is the checkout's `origin` unless `to <CODE>` names another) and P5, naming what is not running: no merge, no second source or target. It holds `kamui`'s § 0 when it calls kamui §§ 2–4, and carries the § 4 skip clause for every phase it calls |
+| [`dowsing-chain`](../claude/skills/dowsing-chain/SKILL.md) | Typed — its wired position; no composite calls it. P1 `hatsu:ten dowsing-chain`; **P1b and P3 are declined** (the subjects are source repositories; each spec PR's `breath` runs inside `ren`); P2, P4 (five `nen parse` templates chosen by the literal first token, flags in template order; a bare call is the family the session is discussing, stated back first; member tokens resolved against the invoking checkout's registry before the spec repository is located) and P5, naming what is not running: no merge, no repository creation, no build before a spec merge, no write outside the spec checkout's worktree and scratch, no product name in a public tree. It is also a composite and carries the § 4 skip clause for every phase it calls |
 
-**The skills with no `## 0.` at all** are the composites (save `kamui` and `hiraishin`, whose `## 0.` is each one's typed entry, § 7b), the loop engines, and the three read-only
+**The skills with no `## 0.` at all** are the composites (save `kamui`, `hiraishin` and `dowsing-chain`, whose `## 0.` is each one's typed entry, § 7b), the loop engines, and the three read-only
 resolvers § 4 names — `pr-state`, `backlog-state`, `bankai-handbooks` — which reach P1 through
 whatever called them.

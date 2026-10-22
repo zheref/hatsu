@@ -8,10 +8,15 @@ skills under [`../claude/skills/`](../claude/skills/) are the authority on what 
 disagree, **the file wins and this document is the bug** — the same rule
 [`../nen/contract.json`](../nen/contract.json) already states for itself.
 
-**Precedence among the prose, one order, stated identically in [`PROCESS.md`](PROCESS.md):** a
-skill's own hard limit **>** this document **>** [`PROCESS.md`](PROCESS.md). `PROCESS.md` is binding
-wherever the skill is silent; where a skill's hard limit is narrower than either page, the hard limit
-holds.
+**Precedence among canon prose and rulings, one order ([HR-1](ROSTER.md#hr-1)), owned by the
+`precedence` key of [`../nen/contract.json`](../nen/contract.json), which wins over this copy:**
+`skill.hardLimit` **>** `roster.ruling` **>** `nen/decisions.json` **>** `docs/WORKFLOW.md` **>**
+`docs/PROCESS.md` **>** `akatsuki.CON` **>** `handbooks`. The key's `$precedence` comment names each
+entry. The order ranks canon texts only: a configuration file's value still beats any prose copy of it,
+the rule above. A text outside the list yields to every listed entry and the conflict is filed (this
+run's reading, owed a ruling: [`ROSTER.md`](ROSTER.md) OPEN-6). This is the order's one restatement;
+[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. Nothing checks the
+key or this copy yet: that is owed to [zheref/nen#474](https://github.com/zheref/nen/issues/474).
 
 ---
 
@@ -177,7 +182,7 @@ Each entry of `checks` is the **name of a declared verb**, not a command line: e
 `nen shu <check> --lane <lane>` for each entry, in order.
 
 > **The compile-before-commit is `kokusen`'s, and `rasengan` is the AUTHORING phase** — the maintainer's
-> ruling of 2026-09-10 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-10*). The same pair of keys is read
+> ruling of 2026-09-10 ([`ROSTER.md`](ROSTER.md) HR-55, HR-56). The same pair of keys is read
 > three times on purpose: a tree moves with every line written after the last check, so the only run a
 > commit can rest on is the one taken by the phase holding the index. A verb named here that the lane seats as unsupported is
 exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["lint"]`, because
@@ -466,8 +471,8 @@ Read in a product family's **spec repository** (role `spec`, [`config/repos.json
 
 | Key | Default | Read by |
 |---|---|---|
-| `specKit` → `pin` | `v1.2.2` | `kamui` §§ 2–3: the `github/spec-kit` release whose file set and paths the spec step writes (`specs/<nnn>-<slug>/`'s seven entries plus `checklists/requirements.md`, and `.specify/memory/constitution.md` once, citing `CON-{n}`, never overriding it). Read live on 2026-10-20 as the latest release; moved by the spec repository's own declaration PR |
-| `specKit` → `layout` | `specs/{nnn}-{slug}` | `kamui` §§ 2–3: where one feature's folder is written; `{nnn}` is the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title. The source object is cited in `spec.md`'s header and searched for before a new folder opens |
+| `specKit` → `pin` | `v1.2.2` | `kamui` §§ 2–3 and `dowsing-chain` §§ 3–4: the `github/spec-kit` release whose file set and paths the spec step writes (`specs/<nnn>-<slug>/`'s seven entries plus `checklists/requirements.md`, and `.specify/memory/constitution.md` once, citing `CON-{n}`, never overriding it). Read live on 2026-10-20 as the latest release; moved by the spec repository's own declaration PR |
+| `specKit` → `layout` | `specs/{nnn}-{slug}` | `kamui` §§ 2–3 and `dowsing-chain` § 4: where one feature's folder is written; `{nnn}` is the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title. The source object is cited in `spec.md`'s header and searched for before a new folder opens |
 
 ### `intake`
 
@@ -552,7 +557,7 @@ section and restates nothing:
 A declared `project.kind` (`product`, `process` or `library`) is the repository's own word and wins
 over the derivation; `sources.kind` in the `--json` names what the lanes alone would have read. The
 declaration is a `nen/contract.json` change and **lands through that repository's own declaration
-gate** (§ *Rulings of 2026-09-18*: G4 in a canon repository, G2 in a consumer one) before anything
+gate** (HR-76, HR-77: G4 in a canon repository, G2 in a consumer one) before anything
 reads it. What the kind decides: the reviewer tier above, and whether [`mugetsu`](../claude/skills/mugetsu/)
 § 3's advance go may name it — `process` and `library` may, `product` and `unknown` may not.
 
@@ -710,7 +715,10 @@ without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refu
 against the cap its own line states and **refuses the claim past it**, exit `1` — so `maxCycles` is a
 number a verb holds a caller to, not one a caller is trusted to remember. The ledger is
 `.nen/loop/<id>.json` under `--repo`, in the same dot-prefixed generated tree `nen stop --mark` writes to,
-never the committed `nen/`. Two consequences worth stating here rather than only in the skills:
+never the committed `nen/`. **`en` passes the git common directory as `--repo`**
+(`git rev-parse --path-format=absolute --git-common-dir`), so the ledger outlives the effort worktree
+and `cleanup` never removes it (`docs/ab/en.md` § *The cap outlives the worktree*). Two consequences
+worth stating here rather than only in the skills:
 
 - **The cap cannot be raised by re-typing the invocation.** The `--line` is restated on every claim and a
   claim whose line differs from the running one is refused at exit `2`, naming both. A cap a caller can
@@ -719,6 +727,25 @@ never the committed `nen/`. Two consequences worth stating here rather than only
   a re-invoked landing resumes the same count rather than restarting at cycle 1 — the watch is per
   session, the cap is per landing. Ending a landing closes the ledger with `--release <why>`, which a cap
   never blocks.
+
+### `idle`
+
+```json
+"idle": { "decisions": { "<ask-once row>": "default" }, "localSlotFrees": "merged",
+          "terminal": "ready-at-prompt-or-integration", "budget": { "minutes": 480, "tokens": 4000000 } }
+```
+
+The **idle profile** (HR-5): read only by a `futon` or `kazaana` run whose typed line carries
+`--idle`, never by an attended one. The rows apply where the block is declared
+(`contracts/config-catalogue.json`, `when: nen/workflow.json#idle`); an absent key is its catalogue
+default. § *Idle batches* is the protocol.
+
+| Key | Default | Read by |
+|---|---|---|
+| `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` otherwise; `harness-attribution-switch` and `host-nen-link` `hold` (each stars an act on the maintainer's own harness or host), `cleanup-plan` `hold` (an unattended remote branch deletion can close a stacked child, § *Stacked pull requests*), `port-drift` `hold` (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354), `publish-offer` `refuse` (HR-5: never a release) | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name is `hold` (`publish-offer` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer` is always `refuse`; `host-nen-link`, `harness-attribution-switch` and `missing-maintainer-choice` are at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. Read from the **committed** `nen/workflow.json` of `origin/<branch.base>` (else `HEAD`'s committed copy), never the working tree; the commit is recorded as the manifest's `idle.source` |
+| `localSlotFrees` | `merged` | `futon` § 6 under `--idle`: **fixed** at `merged`, ROSTER § *Rulings of 2026-09-30*, *Slots and stops* — a slot frees at its local merge. Any other value fails `start` |
+| `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5); `ready-at-prompt` stops short of the integration merge. Never `main`, never `getsuga` or `mugetsu` |
+| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim: minutes since the run manifest's `startedAt` (`futon_effort_record.mts status`, `overBudget`) are the **enforced** bound; past it no effort is claimed and the rest park as `parked:budget`. `tokens` is **advisory and unread** until `nen run budget` lands (zheref/nen#490): no skill sums `nen usage` itself |
 
 ### `models`
 
@@ -1095,12 +1122,25 @@ checks the selected issue and live PR, requires the run to predate the PR, and r
 to cite the selected issue. It stores the claim in the repository's Git common directory,
 outside the PR-controlled tree. The same effort may refresh its head; another run, issue,
 selector, base or branch cannot take over the record. Verify immediately after binding.
-No record is made for an integration PR or a PR into `branch.base`.
+No ownership record is made for an integration PR or a PR into `branch.base`.
+
+**The run manifest is separate from ownership** (HR-5, contract `hatsu.futon.run/v0.2`): `start`
+writes it, and after **every** PR the run opens — delivery, integration or release, **whatever its
+base**, `main` included — `append` records `{issue, pr, base, kind, head}` from the live PR. A re-append
+of the same PR refreshes its base and head and never duplicates it; a PR opened before the run started,
+or recorded under another kind or issue, is refused. `status` prints the manifest; futon § 8's `then`
+gate and kazaana § 5 read every PR this run authored from it, never from memory, and each PR's state
+live. `park` records an idle effort's `parked:<row>` (§ *Idle batches*). A v0.1 run reads, carries no
+manifest, and refuses `append` and `park`; its `status` prints `manifest: absent`, omits `prs` and exits `2`,
+and futon § 8 and kazaana § 5 read that as the gate **held**, never met by an empty set; the port to `nen run start|append|verify` is owed to nen (zheref/nen#486).
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
 node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree> --pr <N> --run <id printed by start> --issue <issue-N> --base <live non-main base> --head <live head branch> --sha <full live head SHA>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
+node "$hatsu_root/scripts/futon_effort_record.mts" append --repo <checkout> --run <id> --pr <N> --kind delivery|integration|release [--issue <issue-N>]
+node "$hatsu_root/scripts/futon_effort_record.mts" park --repo <checkout> --run <id> --issue <issue-N> --row <row | budget | residue:<skill> | g5:<class>>
+node "$hatsu_root/scripts/futon_effort_record.mts" status --repo <checkout> --run <id>
 ```
 
 A missing, mismatched or stale record leaves En at the maintainer handoff; it never infers
@@ -1138,7 +1178,7 @@ the target branch).
 
 **A port ruling's PR is a canon PR** ([`bankai-rule`](../claude/skills/bankai-rule/) § 6, zheref/hatsu#354): it opens once per port run on the handbooks repository and ends at `en` § 5's prompt as **G4**, the maintainer's merge, like every PR into a canon repository.
 
-**Two more things only the maintainer calls — and neither is one of the five.**
+**More things only the maintainer calls — and none is one of the five.**
 
 | Phase | What it does | Why it is the human's |
 |---|---|---|
@@ -1154,7 +1194,10 @@ the G1 its own typed call carries for the port issue, ends at the target's **G2*
 from a composite or on a merge (zheref/hatsu#354). **`kamui` is typed only for the same reason**: it writes
 a product's spec (the spec repository's **G2**), fans port issues out on the sibling picker's answer (its
 ruled G1) and starts the picked builds; nothing schedules it and no composite calls it — `hiraishin` calls
-its §§ 2–4 by name, never the whole.
+its §§ 2–4 by name, never the whole. **`dowsing-chain` is typed only for the same reason**: it writes a whole
+product family's spec from its members' code (each spec PR the spec repository's **G2**), files issues only on
+its dispatch picker plus `file` § 4's own confirmation, and builds only on the typed `wave` call; no composite
+calls it ([`config/spec-repo.md`](config/spec-repo.md)).
 
 Asking *"shall I push now?"* at the end of a turn is how a human-called phase becomes an agent-called one by
 attrition. The loop simply stops and waits.
@@ -1342,6 +1385,35 @@ nothing restated:
 — or, where the value is the maintainer's word, *"typed, never picked (`missing-maintainer-choice`)"*,
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
+
+### Idle batches
+
+**HR-5's idle profile, activated only by a typed `--idle`** on a `futon` line (and on `kazaana`, which
+composes it): `hatsu:futon <repo>@<selector> --idle [then …]`. nen 0.24's `nen parse futon` reads the
+token as part of an exact label, so it is stripped before parsing — the record does it in `start`, and
+futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/nen#491). The keys are § 2's `idle`.
+
+1. **Pre-answers.** `start` resolves `idle.decisions` for every `ask-once-per-run` row of
+   `nen/decisions.json` and records each as a pre-answered row in the run manifest, read from the
+   **committed** `nen/workflow.json` of `origin/<branch.base>` (else `HEAD`'s), never the working tree, its
+   commit recorded as `idle.source`; § 2's floor fails `start` at exit 1. The register lists
+   them every cycle. Where a skill would ask a row: `default` takes its starred option and says so;
+   `hold` or `refuse` asks nothing and **parks the effort** (`park … --row <row>`), and the run moves to
+   the next one. **No picker is shown in an idle run.**
+2. **Stops park, they do not end the run.** A G5 parks the effort as `parked:g5:<class>`; a harness
+   permission denial is a G5. A human-gate row is never pre-answered: the effort stands at that gate.
+3. **Residue parks.** In the batch, a step a skill marks *by hand* or *no verb* is never improvised as
+   shell: the effort parks as `parked:residue:<skill>`.
+4. **Bounds.** Before each claim, `status` gives the elapsed minutes against `idle.budget.minutes`
+   (`overBudget`); past it nothing new is claimed and the rest park as `parked:budget`. **Minutes are the
+   enforced bound; `idle.budget.tokens` is advisory and unread** until zheref/nen#490 lands — never an
+   improvised sum of nen's records. A local slot frees at its merge (`idle.localSlotFrees`, fixed `merged`);
+   `nen loop slots` reads no record yet (zheref/nen#487), overlap is still judged (zheref/nen#488) and stage
+   exclusivity unchecked (zheref/nen#489). En's cap is the git common dir's (en § 2).
+5. **Terminal.** `idle.terminal`: every PR Ready at its merge prompt, or merged into a **non-main**
+   integration branch (futon § 5, En's recorded delivery merge). **Never a merge into `main`, never
+   `getsuga`, `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host
+   scheduler may re-invoke the build, never a release.
 
 ### `classify` — the two label axes, and the one place their vocabulary lives
 
@@ -1743,6 +1815,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
+**`v0.131.6` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs owed, zheref/nen#493).
 **`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic #354).
 **`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
@@ -1922,7 +1995,7 @@ The three cases below are mutually exclusive and total, and **the PR's own base 
 
 **The protocol `hatsu:sharingan` and `hatsu:shibari` both need, stated once.** Moved here on
 2026-09-20 (zheref/hatsu#89) from `sharingan` § 2 and `shibari` § 7(c), which carried duplicate
-copies; both now point here. [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-18* remains the authority
+copies; both now point here. [`ROSTER.md`](ROSTER.md) HR-76 and HR-77 remain the authority
 on the ruling itself.
 
 **1 · The repository's ROLE decides the gate, before any path is looked at.** **G4 is a canon

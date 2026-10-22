@@ -162,6 +162,25 @@ test("exact headings retain glyph tolerance, order, final footer and missing-sec
   assert.ok(check(cat, valid.replace("## 🧭 Why", "### 🧭 Why"), report.requirements, 7)[0].some((finding): boolean => finding.includes("missing heading")));
 });
 
+test("HR-11: an empty verify heading fails through its derived content requirement", () => {
+  const report = resolution();
+  const valid = body(report);
+  const at = report.requirements.findIndex((row): boolean => row.name === "verify-content");
+  assert.ok(at > 0 && report.requirements[at - 1]?.name === "verify" && report.requirements[at]?.content === true);
+  const heading = "## ✅ What the guards prove\n\nFilled.";
+  assert.ok(valid.includes(heading));
+  for (const empty of ["## ✅ What the guards prove\n", "## ✅ What the guards prove\n\n<!-- a kept comment\nover two lines -->\n", "## ✅ What the guards prove\n\n### A subheading only"]) {
+    const findings = check(cat, valid.replace(heading, empty), report.requirements, 7)[0];
+    assert.ok(findings.includes("empty section verify: its heading carries no content"), findings.join("; "));
+  }
+  assert.deepEqual(check(cat, valid.replace(heading, "## ✅ What the guards prove\n\n<!-- note -->\n| Criterion | Coverage | Evidence |"), report.requirements, 7)[0], []);
+  const missing = check(cat, valid.replace(heading, ""), report.requirements, 7)[0];
+  assert.ok(missing.includes("missing heading verify") && !missing.some((finding): boolean => finding.startsWith("empty section")));
+  const orphan = [...report.requirements, { name: "nowhere-content", pattern: "^x", content: true }];
+  assert.ok(check(cat, valid, orphan, 7)[0].includes("content requirement nowhere-content names no heading requirement"));
+  assert.throws((): unknown => check(cat, valid, [...report.requirements, { name: "bad", pattern: "^x", content: "yes" }], 7), /content must be true/);
+});
+
 test("the eighth admitted reader is named at the exact line", () => {
   const report = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   const rollout = cat.sections.find((row): boolean => row.id === "rollout") as SectionRow;

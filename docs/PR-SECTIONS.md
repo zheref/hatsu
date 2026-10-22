@@ -69,6 +69,10 @@ missing evidence. The catalogue supplies the heading glyphs; guards tolerate tho
 | process | What the guards prove | Behavior changed / Lane or verb run / Refuses on / Passes on; name the fixture |
 
 The non-product forms satisfy `CON-17(b)`'s observable proxy; the handbook is not amended.
+Every kind's verify section also carries one Criterion / Coverage / Evidence row per AC id of each
+closing issue (HR-11): `<CODE>#<N>/AC-<k>`; satisfied · partial · missing · contradicts · unrequested;
+a test name, path:line or scenario. `scripts/pr_criteria_check.mts` refuses a missing row, `missing`
+or `contradicts`, and a closing issue with no criteria; an empty verify heading fails `body-check`.
 Compatibility carries Symbol / Before / After / Consumer action and a semver verdict. Across
 repositories answers what another repository does differently after merge, recording rulings.
 Release unit carries Archive / Version / Size / Provenance / Verification and the `CON-22` fan-out. Rollout carries Target /

@@ -41,7 +41,7 @@ reviewer identities in it are Hatsu's. Yours are yours.
 
 **A gate is not a merge.** `nen pr ready` says whether the gate's conditions hold; the human merge
 decision stays outside it, at `G2` in your repository (`CON-5`) — or `G4` (`CON-7`) if your
-repository's *product is the process*. See [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-18*.
+repository's *product is the process*. See [`ROSTER.md`](ROSTER.md) HR-76, HR-77.
 
 ---
 

@@ -4,7 +4,7 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-**Fifty-six skills at `v0.126.0`** (fifty-four at `v0.125.0`, fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`, fifty-six directories per surface with `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+A history of the count, never the current one (`ls -d claude/skills/*/` is): fifty-seven skills at `v0.131.6` (fifty-six at `v0.126.0`, fifty-four at `v0.125.0`, fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`; one directory each per surface, plus `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
@@ -26,7 +26,7 @@ below.
 
 ---
 
-## The twenty-six that answer a request
+## The twenty-eight that answer a request
 
 Seventeen were ported from the frozen reference implementation **under their existing names** — only the mechanics changed — and
 `black-voice`, `tenkai`, `limbo` and `jusshin` were authored here in the same shape: **every deterministic
@@ -68,6 +68,7 @@ mechanics, and a live transcript showing the same verdict from fewer improvised 
 | [`izanami`](izanami/) | Repeats a **read-only** task until a condition holds. It looks, reports and stops; it never writes. |
 | [`jujisho`](jujisho/) | Splits a mixed working copy into up to two stacked branches and PRs, by axis, proving the union of the splits equals the original diff. |
 | [`kamui`](kamui/) | **One feature, every platform — a composite with its own entry, `v0.125.0`.** `hatsu:kamui <CODE>-IS-#<N> \| <CODE>-PR-#<N> [--dry-run]` writes the source once as the product family's `github/spec-kit` set in its spec repository (role `spec`, **G2**), waits for that merge, asks which configured siblings receive a port issue (row `port-siblings`, never starred, paged in fours), files one per pick through `file`, then starts the picks as `build` one after another from a start picker; `hatsu:kamui resume <run-id>` continues from the record in the XDG state dir. Missing setup is asked per item; creating a repository is a G5 hand-over line. A family is never declared in Hatsu's own registry. |
+| [`dowsing-chain`](dowsing-chain/) | **One product family, one living spec — a composite with its own entry, `v0.131.6`.** `hatsu:dowsing-chain <repos> [--family <name>] [--scope <slugs>] [--dry-run]` reads every member's build-system membership into evidence rows, lands a constitution PR first, merged by you at G2, then writes one `github/spec-kit` folder per capability in waves at **G2** in the family's private spec repository — every statement cited `[src: <CODE>:<path>:<l1>-<l2> @ <sha> · <tier>]` or exactly one marker — with one bounded clarify sitting and the intake examiners' challenge; `dispatch <family>` files only what the never-starred `spec-dispatch` picker names, `wave <family>` builds filed marker-free issues through `futon` on the typed call, `recapture <family>` appends a convergence diff; `resume <run-id>` continues from the XDG record. Conventions in [`spec-repo.md`](../../docs/config/spec-repo.md); the nen spec verbs are owed (zheref/nen#493), so the inventory is prose-made and unverified until they land. Never merges, never creates a repository. |
 | [`pr-state`](pr-state/) | Reports one PR's readiness as the deterministic gate's verdict, quoted verbatim, with the conjunct-by-conjunct reason. Read-only. |
 | [`senkei`](senkei/) | Inventories a consuming product repo's own backlog — epics, integration branches, open PRs — classifies every effort and states a Ready/not-Ready call for each PR. **Not read-only**: it re-runs a dead reviewer job (`nen run rerun-failed`) and hands any other stalled PR to `sharingan`. It applies no routing label, no stage label without per-action confirmation, and never merges. |
 | [`sharingan`](sharingan/) | Drives one open PR to readiness at its gate and stops there — first blocking condition, thread stewardship, wakes. Never merges, never votes. **Renamed from `drive` at `v0.5.0`** — same behaviour, and `hatsu:drive` no longer resolves. |
@@ -171,7 +172,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the fifty-six. They landed with the skeleton because the plugin does not function
+Neither is one of the fifty-seven. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

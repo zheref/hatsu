@@ -161,9 +161,10 @@ inherited-and-forgotten default is dangerous in.
 > refused** — [`izanagi`](../izanagi/SKILL.md) § 3's retirement, inherited whole:
 >
 > ```bash
+> git rev-parse --path-format=absolute --git-common-dir   # <common>, in the effort worktree
 > nen loop iterate --id en-<CODE>-<N> \
 >   --line "take <CODE>-PR-#<N> to its human gate until it is Ready up to <monitor.maxCycles>" \
->   --repo <path>
+>   --repo <common>
 > ```
 >
 > Exit `0` prints `iteration <n>/<cap>` and how many remain — the verb's own word is *iteration*, and
@@ -175,12 +176,13 @@ inherited-and-forgotten default is dangerous in.
 > `docs/ab/izanagi.md` § *Retired at nen 0.7*).
 >
 > **The `--id` is the PULL REQUEST, not the session**, and that is a decision with a consequence
-> worth stating: the ledger is `.nen/loop/en-<CODE>-<N>.json` under `--repo`, it outlives the
-> session (§ 7), so **a re-invoked `hatsu:en` on the same PR resumes the same cap rather than
+> worth stating: the ledger is `.nen/loop/en-<CODE>-<N>.json` under the **git common directory**, so it
+> outlives the session (§ 7) and the effort worktree, which cleanup removes (`docs/ab/en.md` § *The cap
+> outlives the worktree*), so **a re-invoked `hatsu:en` on the same PR resumes the same cap rather than
 > starting again at cycle 1**. That is the honest reading of "twenty acting cycles to ready this PR" — a cap
 > a session boundary reset would be a cap nobody has. When the readiness drive genuinely ends — Ready,
 > closed, or handed to the maintainer at a gate — close the ledger with
-> `nen loop iterate --id en-<CODE>-<N> --line "<same line>" --release "<why>"`; a loop at its cap can
+> `nen loop iterate --id en-<CODE>-<N> --line "<same line>" --release "<why>" --repo <common>`; a loop at its cap can
 > always still be released, and a fresh cap after that is a **new `--id`**, chosen deliberately and
 > said out loud, never a re-typed line.
 
@@ -256,7 +258,11 @@ one-directional confirmation pass that may only veto. Read it there.
 Two things en relies on and does not re-derive:
 
 - **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
-  satisfied**, both deterministic, neither re-derived by eye — and the Development guard
+  satisfied AND the criteria guard
+  (`node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>`, HR-11) exits `0`**, all
+  deterministic, none re-derived by eye: a `missing` or `contradicts` verify row, an acceptance
+  criterion with no row or a closing issue with no criteria is not ready whatever the gate verdict —
+  and the Development guard
   (`"$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#N> --base <branch.base>`,
   zheref/hatsu#203) in exactly one of three cases, decided by the PR's own base first: **(1)** the PR's
   base is the default branch, whatever `branch.base` declares — the guard verifies fully and its `0` is
@@ -285,7 +291,7 @@ because a long watch is where the temptation compounds.
 ## 5. The merge prompt and recorded Futon delivery exception
 
 **Not under [`getsuga`](../getsuga/SKILL.md) § 3.** For a release proposal getsuga started en on, this
-step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check` and Development-guard verdicts and its
+step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check`, criteria and Development-guard verdicts and its
 `judged head:` back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
 by the exception of 2026-10-01). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
 that stop** and presents this section's prompt for the proposal.
@@ -303,8 +309,10 @@ hold at the **same current full head SHA**:
 2. `nen pr ready <N> --gh-repo <owner/name> --require-head <SHA> --explain` exits `0` and says
    **Ready**. The reviewer sixth stop and exhausted bot limits do **not** qualify.
 3. `nen pr body-check` succeeds against the live body and the current
-   `contracts/pr-body.requirements.json` from this plugin root. En still settles every finding
-   and thread under § 4 before this gate.
+   `contracts/pr-body.requirements.json` from this plugin root, and
+   `node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>` exits `0` beside it (HR-11:
+   a `missing` or `contradicts` row is not ready whatever the gate verdict). En still settles every
+   finding and thread under § 4 before this gate.
 4. `nen pr merge <N> --delivery --requirements-from <absolute plugin-root contracts/pr-body.requirements.json> --repo <effort-worktree> --require-head <SHA>` returns a passing plan. Nen independently checks
    the non-main, unprotected base, Ready, body, current head and author. Run the same command
    with `--run` only after those gates pass; then read GitHub's `mergedAt` and base back. Its
@@ -432,9 +440,7 @@ step, never an observation inside this watch.
 
 > **`--max-iterations` is still not the cap.** Its own `--help` says so — *"a SAFETY bound, not
 > izanagi's mandatory cap"* — and it bounds **watch observations**, not the count of acting cycles.
-> **The cap is `nen loop iterate`'s from nen `0.7`** (§ 2): a cycle is claimed against
-> `monitor.maxCycles` before it acts, and the claim is refused at the cap. Two different verbs, two
-> different bounds, and neither substitutes for the other.
+> **The cap is `nen loop iterate`'s** (§ 2). Two verbs, two bounds; neither substitutes for the other.
 
 **What counts as a cycle — and it is what en CLAIMS, not what the watch observes.** A cycle is spent
 when en **acts**: goes back to step 2, pushes a fix, re-requests a review. **An observation that
@@ -490,8 +496,8 @@ re-invocation** — `hatsu:en on <CODE>#<N>` re-fetches everything and re-decide
 (`sharingan` § 9's rule). Notes worth keeping go in the run's transcript, never trusted over a
 fetch.
 
-**One thing does survive the session, deliberately: the cap.** `.nen/loop/en-<CODE>-<N>.json` is a
-file, so a re-invocation on the same PR resumes the same count (§ 2) — the watch is per session, the
+**One thing does survive the session, deliberately: the cap.** `<common>/.nen/loop/en-<CODE>-<N>.json` is a
+file under the git common directory (§ 2), so a re-invocation on the same PR resumes the same count (§ 2) — the watch is per session, the
 cap is per readiness drive. Say the resumed `<n>/<cap>` out loud on the first claim of a resumed run, so the
 maintainer sees a budget being continued rather than one silently restarting.
 
@@ -576,10 +582,8 @@ returned — `cleanup` required, `third-hand` optional. Cleaning and harvesting 
    and its missing `--no-push` (step 3, named in [`ao`](../ao/SKILL.md)), `nen stop` plus the
    `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 6, named in
    [`jutaisho`](../jutaisho/SKILL.md)).
-2. **RETIRED at nen `0.7`: counting cycles against the cap.** `nen loop iterate --id en-<CODE>-<N>
-   --line "<the invocation>"` claims each acting cycle and REFUSES the claim at
-   `monitor.maxCycles`, exit `1` (§ 2, § 6; `izanagi` § 3's retirement, verified live in
-   `docs/ab/izanagi.md` § *Retired at nen 0.7*). `nen parse izanagi` still refuses a missing `N`
+2. **RETIRED at nen `0.7`: counting cycles against the cap.** `nen loop iterate` claims each acting
+   cycle and refuses past the cap (§ 2). `nen parse izanagi` still refuses a missing `N`
    once at parse time and `nen watch until --max-iterations` still bounds one observation — three
    different jobs, and only the middle one used to be this skill's. **What stays en's is DECIDING
    which cycles to claim** (§ 6: en acts, so en claims; an observation that changed nothing does

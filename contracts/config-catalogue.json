@@ -11,7 +11,8 @@
     "deployment": "non-production destinations a build is sent to",
     "publishing": "release units and production destinations",
     "intake": "product intake: which intake examiner challenges which part of a brief (Hatsu's own checkout only)",
-    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them"
+    "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them",
+    "autonomy": "unattended batches: the typed --idle profile's pre-answered rows, slot release, terminal state and budget (HR-5)"
   },
   "values": [
     {
@@ -364,6 +365,100 @@
       "source": "docs/WORKFLOW.md § 2 (aiReviewers); docs/PROCESS.md § Reviewer rounds and review threads, AI reviewers per consumer",
       "ask": "adoption",
       "question": "Should this repository's AI reviewers be required (requested and waited for), optional (requested, never waited for) or off (never requested, no AI-reviewer spend)?"
+    },
+    {
+      "id": "workflow.idle.decisions",
+      "file": "nen/workflow.json",
+      "path": "idle.decisions",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": {
+        "harness-attribution-switch": "hold",
+        "host-nen-link": "hold",
+        "missing-consumer-declaration": "default",
+        "missing-argument": "default",
+        "missing-configuration": "default",
+        "missing-maintainer-choice": "hold",
+        "mode-unknown": "default",
+        "direct-mismatch": "default",
+        "port-drift": "hold",
+        "intake-challenger": "hold",
+        "port-siblings": "hold",
+        "wrap-up": "default",
+        "cleanup-plan": "hold",
+        "publish-offer": "refuse"
+      },
+      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold (publish-offer refuse). A floor fails start at exit 1: publish-offer is always refuse; host-nen-link, harness-attribution-switch and missing-maintainer-choice are at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of origin/<branch.base> (else HEAD's), never the working tree.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
+    },
+    {
+      "id": "workflow.idle.localSlotFrees",
+      "file": "nen/workflow.json",
+      "path": "idle.localSlotFrees",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": "merged",
+      "describe": "When an idle run frees a local slot (futon section 6): at its local or delivery merge, the one value ROSTER § Rulings of 2026-09-30, Slots and stops rules; any other value fails start.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle); docs/ROSTER.md § Rulings of 2026-09-30, Slots and stops"
+    },
+    {
+      "id": "workflow.idle.terminal",
+      "file": "nen/workflow.json",
+      "path": "idle.terminal",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "enum",
+      "default": "ready-at-prompt-or-integration",
+      "options": [
+        "ready-at-prompt-or-integration",
+        "ready-at-prompt"
+      ],
+      "describe": "The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5), or Ready at the prompt only. Never main, never getsuga, mugetsu or kagutsuchi.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle); docs/ROSTER.md HR-5"
+    },
+    {
+      "id": "workflow.idle.budget.minutes",
+      "file": "nen/workflow.json",
+      "path": "idle.budget.minutes",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": 480,
+      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle)"
+    },
+    {
+      "id": "workflow.idle.budget.tokens",
+      "file": "nen/workflow.json",
+      "path": "idle.budget.tokens",
+      "domain": "autonomy",
+      "when": "nen/workflow.json#idle",
+      "kind": "open",
+      "default": 4000000,
+      "describe": "Tokens an idle run may spend. Advisory and unread until zheref/nen#490 lands: no skill sums nen usage itself, and minutes remain the enforced bound.",
+      "readers": [
+        "futon",
+        "kazaana"
+      ],
+      "source": "docs/WORKFLOW.md § 2 (idle)"
     },
     {
       "id": "workflow.intake.challenger.brief",
