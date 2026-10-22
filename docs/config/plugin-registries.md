@@ -174,6 +174,8 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the script; `scripts/pr_criteria_check.mts` reads `rows.acceptance` for the `- AC-{n}:` rows a closing issue carries (HR-11). **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; a consumer's own catalogue waits on the nen verbs.
 
+**The nen verb reads this shape (route chosen: nen adapts).** zheref/nen#498 as reviewed at `48e9fc0` parses a different catalogue grammar (`sections` an array of `{id, title, level, content[], rows}`, `kinds` a map of kind to section ids) and has no optional sections, `noneText`, `technologyTerms` or dated `resolvedPattern`. Hatsu keeps its contract as is: nen#498's settling pass makes the verb read `hatsu.issue-sections/v1` — object `sections`, `kinds.<kind>` with `required[]` and `optional[]`, the top-level `rows`, `noneText` and `technologyTerms`. `scripts/issue_body_check.mts` and the `issue-shape` lane retire at the repin that ships that verb, not before.
+
 ## `contracts/hanten-findings.schema.json`
 
 **Purpose.** The JSON Schema (`$id` `hatsu.hanten.findings/v0.1`) of the findings record `hatsu:hanten` § 5 writes per effort at `<reports.dir>/hanten/<branch-slug>.json` (ROSTER HR-10; SDD plan piece P7): `scopes[]`, `findings[]` and `reports[]`; a finding's six reviewer fields plus `id`, `scope`, `persona` and `disposition`.
