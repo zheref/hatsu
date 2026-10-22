@@ -8,10 +8,11 @@ skills under [`../claude/skills/`](../claude/skills/) are the authority on what 
 disagree, **the file wins and this document is the bug** — the same rule
 [`../nen/contract.json`](../nen/contract.json) already states for itself.
 
-**Precedence among the prose, one order, stated identically in [`PROCESS.md`](PROCESS.md):** a
-skill's own hard limit **>** this document **>** [`PROCESS.md`](PROCESS.md). `PROCESS.md` is binding
-wherever the skill is silent; where a skill's hard limit is narrower than either page, the hard limit
-holds.
+**Precedence, one order ([HR-1](ROSTER.md#hr-1)), stated identically in [`PROCESS.md`](PROCESS.md)
+and owned by the `precedence` key of [`../nen/contract.json`](../nen/contract.json), which wins over both
+copies:** `skill.hardLimit` **>** `roster.ruling` **>** `nen/decisions.json` **>** `docs/WORKFLOW.md`
+**>** `docs/PROCESS.md` **>** `akatsuki.CON` **>** `handbooks`. The key's `$precedence` comment names
+each entry. `PROCESS.md` is binding wherever the skill is silent.
 
 ---
 

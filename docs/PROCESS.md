@@ -9,9 +9,13 @@ in each skill that points at it**; moving a rule here moved where it is written,
 It sits beside [`WORKFLOW.md`](WORKFLOW.md) (the configuration keys, the phases, the gates and the
 decision matrix), [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) (a phase called cold),
 [`DISCOVERY.md`](DISCOVERY.md) (gaps found during authorized work) and [`SURFACES.md`](SURFACES.md)
-(the surfaces). **Precedence, one order, stated identically in [`WORKFLOW.md`](WORKFLOW.md):** a
-skill's own hard limit **>** `WORKFLOW.md` **>** this page. This page is **binding wherever the skill
-is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this page is the bug.
+(the surfaces). **Precedence, one order ([HR-1](ROSTER.md#hr-1)), stated identically in
+[`WORKFLOW.md`](WORKFLOW.md) and owned by the `precedence` key of
+[`../nen/contract.json`](../nen/contract.json), which wins over both copies:** `skill.hardLimit` **>**
+`roster.ruling` **>** `nen/decisions.json` **>** `docs/WORKFLOW.md` **>** `docs/PROCESS.md` **>**
+`akatsuki.CON` **>** `handbooks`. The key's `$precedence` comment names each entry. This page is **binding
+wherever the skill is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this page is
+the bug.
 *Assembled 2026-09-22 from the passages the skill diet moved out of the capped skills, so each skill keeps headroom for its own rules.*
 
 ## Standalone entry

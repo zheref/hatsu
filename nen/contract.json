@@ -6,6 +6,8 @@
   "decision": "D10",
   "authority": "THIS FILE IS THE SINGLE SOURCE OF TRUTH for the Nen dependency. Any version, ref, URL or command echoed in README.md, docs/, an agent definition or a SKILL.md is a convenience copy of a value that lives here. Where a copy disagrees with this file, this file wins and the copy is the bug. Read the values from here at run time; never act on a remembered version. There is exactly one copy of this contract, at nen/contract.json. A second file carrying the same pin would be a second source of truth, which is the thing this clause forbids.",
   "summary": "Hatsu depends hard on the Nen CLI. Every deterministic step is a Nen verb. The dependency fails closed with auto-install: out of the declared range or absent, the checksum-verified bootstrap runs itself; only if the bootstrap fails does the session halt with the exact command. A Nen-owned operation is NEVER improvised in prose.",
+  "$precedence": "Which canon text wins when two disagree, the first entry highest (docs/ROSTER.md HR-1, ruled 2026-10-20; finding C1 of the SDD assessment). skill.hardLimit: a skill's own Hard limits section. roster.ruling: a ruled row of docs/ROSTER.md, an HR id or a dated ruling. akatsuki.CON: a CON id of the Akatsuki constitution (zheref/akatsuki-ai CONSTITUTION.md), read at the tag nen/repos.json pins on its entry. handbooks: zheref/bankai-handbooks at the tag nen/repos.json pins. docs/WORKFLOW.md and docs/PROCESS.md each restate this order once, citing HR-1 and this key.",
+  "precedence": ["skill.hardLimit", "roster.ruling", "nen/decisions.json", "docs/WORKFLOW.md", "docs/PROCESS.md", "akatsuki.CON", "handbooks"],
   "dependency": {
     "name": "nen",
     "source": "zheref/nen",

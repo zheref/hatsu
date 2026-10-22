@@ -932,13 +932,14 @@ unruled half is as open as it was, and the ruled half is the maintainer's, recor
   Hatsu roster, and the local-plane row), D10 (the Nen dependency), D17 (local DX ships first), §12 (the P2
   card), §13 (the OPEN items). **It supersedes the upstream constitution and handbooks.**
 - Anything not stated there or in [zheref/hatsu#1](https://github.com/zheref/hatsu/issues/1) resolves through
-  the upstream constitution and handbooks — the canon of the frozen reference implementation, cited by path
-  and rule id: `CONSTITUTION.md`, `handbooks/quality-baseline.md` (`QA-{n}`), `handbooks/ux-baseline.md`
-  (`UX-{n}`), `handbooks/uzf-core.md` (`UZF-26`). That repository is **frozen**; read it at its snapshot tag,
-  never at `main`, and never write to it.
-- **[HR-1](#hr-1) retires the second bullet's fallback.** The `precedence` array in `nen/contract.json` that
-  replaces it is owed to a follow-up PR; until it lands the bullet is kept for reference and is not cited
-  for a new precedence claim.
+  the `precedence` array in [`../nen/contract.json`](../nen/contract.json) ([HR-1](#hr-1)). Its residual
+  authority is the **Akatsuki constitution** — `CONSTITUTION.md` in zheref/akatsuki-ai, cited by `CON-{n}` —
+  read at the tag [`../nen/repos.json`](../nen/repos.json) pins on its entry, never at `main`; below it, last,
+  the handbooks of zheref/bankai-handbooks at that file's pin. The entry carries no pin yet: the repository
+  has no tag (`gh api repos/zheref/akatsuki-ai/tags` listed `0` tags on 2026-10-22;
+  [zheref/akatsuki-ai#50](https://github.com/zheref/akatsuki-ai/issues/50) owes the first one), so until one
+  is cut and pinned a `CON-{n}` citation names the commit it was read at. The frozen reference
+  implementation's canon is no longer a fallback.
 
 
 ## Rulings of 2026-10-20 — the SDD assessment sitting

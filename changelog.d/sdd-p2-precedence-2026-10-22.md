@@ -1,0 +1,3 @@
+### Changed
+
+- **One machine-readable precedence order ([HR-1](../docs/ROSTER.md#hr-1)).** `nen/contract.json` gains a top-level `precedence` array — `skill.hardLimit` › `roster.ruling` › `nen/decisions.json` › `docs/WORKFLOW.md` › `docs/PROCESS.md` › `akatsuki.CON` › `handbooks` — with a `$precedence` comment naming each entry; `nen schema check` at the pin tolerates the key and does not yet validate it. `docs/WORKFLOW.md` and `docs/PROCESS.md` restate the order once, identically, citing HR-1 and the key, in place of the three-item order. `docs/ROSTER.md` § *Sources* retires the frozen reference implementation's fallback: the residual authority is the Akatsuki constitution at the tag `nen/repos.json` pins (none yet; the repository has no tag). Plugin bumped to 0.131.2.
