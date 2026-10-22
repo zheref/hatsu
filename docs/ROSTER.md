@@ -1399,6 +1399,8 @@ than filed as a duplicate surface-drift issue; no generator model-value expansio
 
 **Ratified by [HR-20](#hr-20) on 2026-10-21**, its wording below unchanged: this section's rows now stand as a ruling, and HR-3's bar on citing a reading no longer applies to it. The heading keeps its old words because [`aka`](../claude/skills/aka/SKILL.md) § 0 and its citers cite it by title.
 
+**Superseded by [HR-20](#hr-20)**; a reading-status row is never cited for a push, merge or release path ([HR-3](#hr-3)).
+
 **This run's reading, the maintainer's to correct at the G4 merge** — never a ruling the maintainer
 made. Its evidence is zheref/hatsu#332, filed from the `hatsu:kazaana zheref/nen` sitting; its
 *Evidence* section reads, verbatim (excerpt):

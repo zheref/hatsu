@@ -26,6 +26,8 @@ export interface SectionRow {
   readonly $comment: string;
   readonly when?: "evidence" | "economics" | "policy-hit";
   readonly reserved?: boolean;
+  /** HR-11: the heading must carry content; derives a second, whole-body requirement `<id>-content`. */
+  readonly content?: boolean;
 }
 export interface Catalogue {
   readonly contract: "hatsu.pr-sections/v1";
@@ -38,7 +40,8 @@ export interface Catalogue {
   readonly precedence: readonly string[];
   readonly variants: Readonly<Record<string, readonly string[]>>;
 }
-export interface Requirement { readonly name: string; readonly pattern: string }
+/** `content: true` marks a whole-body pattern (the heading followed by content); nen ignores the key. */
+export interface Requirement { readonly name: string; readonly pattern: string; readonly content?: true }
 export interface Resolution {
   readonly cell: string;
   readonly max: number;
@@ -155,6 +158,7 @@ export function catalogue(root = ROOT): Catalogue {
     } else if (row.reserved !== undefined) {
       throw new Error(`${id}: reader sections cannot be reserved`);
     }
+    if (row.content !== undefined && row.content !== true) throw new Error(`${id}: content must be true or absent`);
     if (typeof row.template !== "string" || row.template.length === 0) throw new Error(`${id}: missing template`);
     declaredPath(absoluteRoot, row.template, "file");
     if (typeof row.$comment !== "string" || row.$comment.length === 0) throw new Error(`${id}: missing section description`);
@@ -230,6 +234,18 @@ export function pattern(row: SectionRow, kind: RepositoryKind): Requirement {
   const title = typeof row.title === "string" ? row.title : row.title[kind];
   return { name: row.id, pattern: `^ {0,3}${"#".repeat(row.level)}[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?${escapePythonRegex(title)}[ \\t]*$` };
 }
+/**
+ * HR-11: a row declaring `content` also requires its heading to be followed, past blank lines and
+ * HTML comments, by something that is not the next heading -- so an empty heading fails in both
+ * nen pr body-check (whole body) and check() below. Python- and JS-compatible.
+ */
+export function contentPattern(row: SectionRow, kind: RepositoryKind): Requirement {
+  return { name: `${row.id}-content`, pattern: `${pattern(row, kind).pattern}(?=(?:\\s|<!--[\\s\\S]*?-->)*(?!#{1,6}[ \\t]|<!--)\\S)`, content: true };
+}
+/** The requirement rows for a resolved section list, in order: each heading, then its content row. */
+export function requirementsFor(rows: readonly SectionRow[], kind: RepositoryKind): Requirement[] {
+  return rows.flatMap((row): Requirement[] => row.content === true ? [pattern(row, kind), contentPattern(row, kind)] : [pattern(row, kind)]);
+}
 
 function optionalWorkflow(repo: string): JsonObject {
   const path = declaredPath(repo, "nen/workflow.json", "file", true);
@@ -264,7 +280,7 @@ export function resolve(cat: Catalogue, repo: string, kind: RepositoryKind, jobs
   if (readers.length > maximum) throw new Error(`${cell}: ${readers.length} admitted readers exceed max ${maximum}`);
   const footer = cat.footer.filter((row): boolean => row.reserved !== true && (row.when === undefined || facts.has(row.when)));
   const preamble = cat.preamble.filter((row): boolean => row.when === undefined || facts.has(row.when));
-  return { cell, max: maximum, preamble: preamble.map((row): string => row.id), ids: readers.map((row): string => row.id), footer: footer.map((row): string => row.id), requirements: [...preamble, ...readers, ...footer].map((row): Requirement => pattern(row, kind)) };
+  return { cell, max: maximum, preamble: preamble.map((row): string => row.id), ids: readers.map((row): string => row.id), footer: footer.map((row): string => row.id), requirements: requirementsFor([...preamble, ...readers, ...footer], kind) };
 }
 
 function git(repo: string, args: readonly string[]): string[] {
@@ -429,7 +445,8 @@ function validateRequirements(requirements: unknown): Requirement[] {
     if (typeof row.name !== "string" || row.name.length === 0 || typeof row.pattern !== "string" || row.pattern.length === 0) throw new Error("requirements must contain name/pattern objects");
     try { new RegExp(row.pattern, "im"); }
     catch (error) { throw new Error(`requirement ${JSON.stringify(row.name)} has an invalid pattern: ${error instanceof Error ? error.message : String(error)}`); }
-    return { name: row.name, pattern: row.pattern };
+    if (row.content !== undefined && row.content !== true) throw new Error(`requirement ${JSON.stringify(row.name)}: content must be true or absent`);
+    return row.content === true ? { name: row.name, pattern: row.pattern, content: true } : { name: row.name, pattern: row.pattern };
   });
 }
 
@@ -459,7 +476,7 @@ export function check(cat: Catalogue, body: string, rawRequirements: unknown, ma
   let previous = -1;
   let readers = 0;
   for (const [number, text] of headings) {
-    const matches = compiled.flatMap((regex, index): number[] => regex.test(text) ? [index] : []);
+    const matches = compiled.flatMap((regex, index): number[] => requirements[index]?.content !== true && regex.test(text) ? [index] : []);
     if (matches.length !== 1) { findings.push(`line ${number}: ${matches.length === 0 ? "undeclared" : "ambiguous"} heading ${text}`); continue; }
     const at = matches[0] as number;
     if (at <= previous) findings.push(`line ${number}: out-of-order or repeated heading ${text}`);
@@ -470,7 +487,14 @@ export function check(cat: Catalogue, body: string, rawRequirements: unknown, ma
       if (readers === maximum + 1) findings.push(`line ${number}: reader count exceeds max ${maximum}: ${text}`);
     }
   }
-  requirements.forEach((row, index): void => { if (!seen.has(index)) findings.push(`missing heading ${row.name}`); });
+  const visible = lines.join("\n");
+  requirements.forEach((row, index): void => {
+    if (row.content !== true) { if (!seen.has(index)) findings.push(`missing heading ${row.name}`); return; }
+    // HR-11: a content row reads the whole visible body; its heading's own absence is already named.
+    const heading = requirements.findIndex((other): boolean => other.content !== true && `${other.name}-content` === row.name);
+    if (heading === -1) findings.push(`content requirement ${row.name} names no heading requirement`);
+    else if (seen.has(heading) && !(compiled[index] as RegExp).test(visible)) findings.push(`empty section ${requirements[heading]?.name}: its heading carries no content`);
+  });
   const warnings: string[] = [];
   let title = "preamble";
   let words = 0;

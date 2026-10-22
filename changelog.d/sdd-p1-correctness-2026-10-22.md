@@ -7,4 +7,4 @@
 
 - **`hatsu:great-hiker` § 2** routes prose to `models.<surface>.deep` (Opus on Claude Code, `pro` on Antigravity), no longer a Fable subsession its own Hard limits and `models.rule` forbid.
 - **`docs/NEN-CONTRACT.md` § *The range*** echoes `nen >= 0.24` installing `v0.24.0`, names the v0.24.0 adoption and floor, and drops a stale skill count.
-- **Hand-typed counts** dropped from `README.md`, `claude/skills/README.md` and `docs/surfaces/codex.md`; **`hatsu:futon`'s residue** no longer restates the pin. Plugin bumped to 0.131.1.
+- **Hand-typed counts** dropped from `README.md`, `claude/skills/README.md` and `docs/surfaces/codex.md`; **`hatsu:futon`'s residue** no longer restates the pin. Plugin bumped to 0.131.4.

@@ -335,6 +335,10 @@ label, merge, tag, deploy or review vote the phase does not hold in its own righ
 signalling phase carries **no `CON-25`-equivalent delegation**: its authority is exactly its own
 *Permitted* list, whatever called it.
 
+**A reading never authorises a push, merge or release path** ([HR-3](ROSTER.md#hr-3)): such a path
+cites a ruling-status row, and a path whose only authority is a reading asks once per run (row
+`missing-maintainer-choice`).
+
 ## Reviewer rounds and review threads
 
 The **policy** — when a round is owed, the cap, never before [`hanten`](../claude/skills/hanten/SKILL.md)

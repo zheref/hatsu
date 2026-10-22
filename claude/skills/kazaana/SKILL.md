@@ -68,7 +68,8 @@ lands in exactly one set:
   the set stays **unrouted**, listed, the opt-in's path named.
 
 **Then refetch** — the same verb again — and re-partition: a `model/<line>` applied under this run joins
-the queue. Triage, briefing and ordering are futon § 2's; an epic awaiting its mode label is **G1**
+the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4: a failed check is listed
+**needs-clarification**); an epic awaiting its mode label is **G1**
 (`mode-label`). **State the queue before advancing anything**: count, issues, exclusions, § 3's plan.
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
@@ -79,7 +80,7 @@ Futon §§ 3–6 hold: delegated stage label and `nen loop slots --efforts <abs 
 **One delegate authors and publishes each issue in its worktree**, raised as a **builder
 effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter
 ([`claude/rules/hatsu.md`](../../rules/hatsu.md) § 6: Antigravity `Workspace: "branch"`) — titled `kazaana · kurapika · <alias>`, bound to
-`<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope; never raw `gh pr create`. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
+`<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope (HR-20); never raw `gh pr create`. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `--dial` on phase/usage calls
 and title/id at its first phase when exposed; shibari reads its ledgers. The primary
@@ -105,7 +106,7 @@ Futon § 9 whole: the Rikugan register every cycle, no banner on a progress turn
 merge prompt a **G2/G4** gate event ([`jutaisho`](../jutaisho/SKILL.md) § 4). **The desk carries the
 merge plan** (ruling 2026-10-12): independent PRs first, one line each, then each stack **bottom-up** by
 WORKFLOW rule 5 — one `MERGE` ask only for a PR whose base reads `branch.base`; a stacked PR is
-presented nowhere as mergeable. **The final report names the same order.**
+presented nowhere as mergeable.
 
 ## 5. The `then getsuga` step — held, then cut; the proposal is never theirs to merge
 
@@ -153,10 +154,10 @@ has none. **Owed to nen**: `nen pr merge --release-unit` reading `aiReviewers` (
 ## Authority
 
 - **Permitted:** futon § 7's delegation; classify's and direct's writes after § 2's one confirmation;
-  delegates at direct's primary tier; branch pushes (aka § 0); `mukai` and `en` per effort; the typed invocation as getsuga's
+  delegates at direct's primary tier; branch pushes (aka § 0, HR-20); `mukai` and `en` per effort; the typed invocation as getsuga's
   advance go; the publish offer, and `mugetsu` on a publish answer only.
 - **Not permitted:** merging a delivery PR, a G1 label, a review vote, raw `gh pr create`, a
-  frontier-tier delegate, a release without the answer, widening the selector.
+  frontier-tier delegate, widening the selector.
 
 ## Hard limits
 
