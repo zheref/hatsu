@@ -123,7 +123,7 @@ gh issue view <N> --repo <owner/name> --json title,body,labels
 ```
 
 Each `'` in the title becomes `'\''`; a newline refuses (no `--title-file` at `0.22.0`, zheref/nen#444).
-The second line is the **explicit read-back** (`idea file` takes no ignore file, #444). Each body is
+The second line is the **explicit read-back**. Each body is
 *conventions*' port issue body, never a link alone; **the source issue stays its own**, never closed or superseded.
 
 ## 6. The record, and `resume`

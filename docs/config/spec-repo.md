@@ -173,7 +173,7 @@ Validated whole and newline-refusing (Python `re.fullmatch`), before any path is
 
 ## Fixtures
 
-[`../../scripts/fixtures/spec-family/`](../../scripts/fixtures/spec-family/) — offline inputs only, every slug a `fixture-*` placeholder ([`PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)), never handed to a networked command. **No lane runs them yet** (owed, [zheref/hatsu#405](https://github.com/zheref/hatsu/issues/405)); they are inputs, checked by hand:
+[`../../scripts/fixtures/spec-family/`](../../scripts/fixtures/spec-family/) — offline inputs only, every slug a `fixture-*` placeholder ([`PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md)), never handed to a networked command. **No lane runs them yet** (owed, [zheref/hatsu#405](https://github.com/zheref/hatsu/issues/405)); they are inputs, checked by hand. **The `nen repo classify` and `nen repo resolve` readings below hold only on a copy of `spec-repo/` into its own repository whose origin is `fixture-owner/fixture-spec`**; run in place they read the enclosing Hatsu checkout's slug, role canon, gate G4:
 
 | Path | Inputs for |
 |---|---|

@@ -92,7 +92,7 @@ resolving one is an agent answering confidently from the wrong file.
 **What the warm-up refuses**, and these are hard limits rather than preferences:
 
 - **A destination it did not create is left untouched, and named in the report.** A previous Hatsu install
-  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Fifty-seven ordinary
+  is replaced; a **tracked** path is always somebody else's, whatever it looks like. Fifty-eight ordinary
   words are being claimed at once — `build`, `file`, `en`, `ao`, `ren` — so a collision is not a rare case,
   and the warm-up would rather install fewer and say so than overwrite one file it did not write.
 - **It never writes your `.gitignore`.** Everything it places is excluded through the repository's own

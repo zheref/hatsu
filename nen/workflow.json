@@ -582,7 +582,12 @@
       "port-siblings": "hold",
       "wrap-up": "default",
       "cleanup-plan": "hold",
-      "publish-offer": "refuse"
+      "publish-offer": "refuse",
+      "spec-capture-scope": "hold",
+      "spec-slice": "hold",
+      "spec-clarify": "hold",
+      "spec-dispatch": "hold",
+      "spec-converge-filing": "hold"
     },
     "terminal": "ready-at-prompt-or-integration",
     "$terminal": "one of: ready-at-prompt-or-integration | ready-at-prompt",

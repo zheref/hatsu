@@ -387,14 +387,19 @@
         "port-siblings": "hold",
         "wrap-up": "default",
         "cleanup-plan": "hold",
-        "publish-offer": "refuse"
+        "publish-offer": "refuse",
+        "spec-capture-scope": "hold",
+        "spec-slice": "hold",
+        "spec-clarify": "hold",
+        "spec-dispatch": "hold",
+        "spec-converge-filing": "hold"
       },
       "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold (publish-offer refuse). A floor fails start at exit 1: publish-offer is always refuse; host-nen-link, harness-attribution-switch and missing-maintainer-choice are at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of origin/<branch.base> (else HEAD's), never the working tree.",
       "readers": [
         "futon",
         "kazaana"
       ],
-      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
+      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), the five spec-* rows held (dowsing-chain is not an idle-run skill; spec-capture-scope and spec-converge-filing star an option), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
     },
     {
       "id": "workflow.idle.terminal",

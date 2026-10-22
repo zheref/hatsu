@@ -131,7 +131,7 @@ rulings PR first where any ruling was recorded, then `done`, no issue filed.
 gh issue view <n> --repo <owner/name> --json title,body,labels
 ```
 
-The read-back is **explicit**, quoted (`idea file` takes no ignore file, #444); an amend quotes its comment.
+The read-back is **explicit**, quoted; an amend quotes its comment.
 
 ## 8. Build, then the rulings PR
 

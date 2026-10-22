@@ -344,7 +344,7 @@ for `mugetsu`, form (4) of its § 0, rather than proposing it.
 
 ## 7. The skills that carry a `## 0. Standalone entry`
 
-**Thirty-three do**, and they fall into two groups. The split is the useful fact: a reader asking *what
+**Thirty-four do**, and they fall into two groups. The split is the useful fact: a reader asking *what
 will this derive if I type it cold* needs the first table, and a reader asking *does P1 apply* needs
 both.
 

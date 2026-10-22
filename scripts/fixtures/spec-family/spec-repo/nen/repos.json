@@ -1,5 +1,5 @@
 {
-  "$comment": "Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, Fixtures): the family's spec repository's own registry, the copy dowsing-chain section 1 reads as the truth for families[]. It lists itself under consumers[] with no scenario, so nen repo classify derives role consumer, gate G2, until zheref/nen#453 models role spec. Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the fixture-* row).",
+  "$comment": "Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, Fixtures): the family's spec repository's own registry, the copy dowsing-chain section 1 reads as the truth for families[]. It lists itself under consumers[] with no scenario, so nen repo classify derives role consumer, gate G2, until zheref/nen#453 models role spec. That reading (and nen repo resolve's) holds only on a copy of spec-repo/ into its own repository whose origin is fixture-owner/fixture-spec; run in place, the enclosing Hatsu checkout's slug wins and it reads role canon, gate G4. Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the fixture-* row).",
   "consumers": [
     {
       "repo": "fixture-owner/fixture-spec",
