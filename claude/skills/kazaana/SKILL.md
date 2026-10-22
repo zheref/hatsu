@@ -72,8 +72,8 @@ lands in exactly one set:
   the set stays **unrouted**, listed, the opt-in's path named.
 
 **Then refetch** — the same verb again — and re-partition: a `model/<line>` applied under this run joins
-the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4: a failed check is listed
-**needs-clarification**); an epic awaiting its mode label is **G1**
+the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4, build § 2's rule: only an open
+`OQ-{n}` row skips); an epic awaiting its mode label is **G1**
 (`mode-label`). **State the queue before advancing anything**: count, issues, exclusions, § 3's plan.
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary

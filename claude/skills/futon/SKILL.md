@@ -40,7 +40,7 @@ is a label**, matched exactly as typed (case and spaces kept, quotes stripped) a
 empty selector gets none), the answer is re-parsed, and a missing argument or
 configuration item is set up inline (`missing-argument`, `missing-configuration`). **A re-parsed picker answer never carries a `then`
 step**; the maintainer retypes it. **The selector
-is the maintainer's word: never derived.** No `then` clause is not a gap (§ 8).
+is the maintainer's word: never derived.**
 
 **Echo the full parse before anything is fetched** — repo, selector, the `then` clause as classified or
 *build-only*, the integration branch if one is cut — and **say the run has started** (a bounded `CON-25`
@@ -62,9 +62,10 @@ is reported **truncated**. Then:
   label, triage **orders only, never selects**. Say which, every time.
 - **`bankai:handbook-question` items and design calls are briefed, never guessed**, and never hold
   the scope open.
-- **Shape** (HR-4): `node "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N>` per selected
-  issue; a non-zero exit skips it, **needs-clarification**: blocked, never authored (§ 10).
-- **Order within the scope** with `nen backlog order`, as `backlog-loop` § 5 does.
+- **Shape** (HR-4): [`build`](../build/SKILL.md) § 2's check and rule per selected issue: an open `OQ-{n}`
+  row skips it, **blocked, needs-clarification** (§ 10); another miss is listed, never skips; exit `2`,
+  `3` or `5` stops the queue statement, the host failure named, never an issue state.
+- **Order within the scope** with `nen backlog order` (§ 3).
 
 **State the queue before advancing anything** — count, issues, exclusions and why.
 
@@ -85,8 +86,8 @@ declares as [`build`](../build/SKILL.md) § 5 lays them out, in the effort's own
 
 ## 5. Done is merged into `branch.base`
 
-> Work is **not done at PR-open, nor at Ready**: done is merged into `branch.base` by the maintainer
-> at en § 5's prompt (ruling 2026-09-30; "main" reads as `branch.base`).
+> **Not done at PR-open, nor at Ready**: the maintainer merges at en § 5's prompt (ruling 2026-09-30;
+> "main" reads as `branch.base`).
 
 **An integration branch** takes hanten-settled efforts by local merge, no sub-PR or
 `gh pr merge` (ROSTER § *Rulings of 2026-09-30*). The other shape is stacked per-issue
@@ -115,8 +116,7 @@ is the publish call** for each effort's branch (aka § 0, HR-20). **Futon may no
 
 ## 8. The `then` clause — futon gates it, never performs it
 
-**No `then` clause, nothing after the run**: never a cut because the scope looks done. The clause
-starts at the first whole-word `then` after `@`; a bare `then` is exit `2`.
+**No `then` clause, nothing after the run** (§ 11). The clause starts at the first whole-word `then` after `@`; a bare `then` is exit `2`.
 
 **Futon's own job at the clause is exactly one gate**: nothing after `then` runs until every PR this
 run authored — the manifest's `status`, never memory; `manifest: absent` holds it — is **merged into `branch.base`** (§ 5) — an integration-branch effort once the
@@ -186,7 +186,7 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 
 ## 12. `--idle` — the unattended profile (HR-5)
 
-WORKFLOW § *Idle batches* is the protocol, cited, not restated. Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
+WORKFLOW § *Idle batches* is the protocol. Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
 *Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen from v0.15.1;
 an older binary's exit `2` is relayed.*
