@@ -50,23 +50,22 @@ configuration item is asked for and set up inline (`missing-argument`, `missing-
 the picker and written to the `nen/repos.json` entry in the registry's own checkout, on its own
 declaration PR at that repository's gate, then the resolution re-run.
 
-> **A machinery repository recorded only under `maintained_tools` is the one class this verb cannot resolve, and that is expected, not a defect.**
-> Only a `consumers[]` entry carries a `scenario`. `zheref/bankai-handbooks` (a repository cannot be its own
-> consumer), `zheref/hatsu` and `zheref/nen` sit under `maintained_tools` in both the public canon registry
-> and Hatsu's own, so `nen repo scenario --repo <either registry> --target <any of the three>` refuses at
-> exit `1` with the *recorded-but-not-a-consumer* reason (*"only a consumers[] entry carries a 'scenario'
-> field"*) — verified live for `zheref/hatsu` at nen `0.15.1`, and exactly how the frozen `<reference-repo>`
-> refused for itself at the port (`docs/ab/bankai-quality.md` § 2.1). That refusal is the expected answer
-> for a machinery repository, not a configuration defect to repair by writing a registry entry — **unless
-> the row itself carries a `scenario`**: nen `0.24.0` reads that field off a `maintained_tools` row too, so
-> against Hatsu's own registry, whose `zheref/hatsu` row declares one, `nen repo scenario --repo <hatsu
-> checkout> --target zheref/hatsu` answers `bankai-machinery` at exit `0` (read 2026-10-22). Their
-> scenario is **`bankai-machinery`** — renamed at handbook set v0.6 from the frozen repository's own name
-> (`handbooks/INDEX.md`; `MIGRATION.md` § 3 there), the **`BC-` prefix kept** — the scenario `INDEX.md`
-> states for the CI plane, the CLI and the local plugin. Read that literal from `INDEX.md`, say so, and
-> never route it through this verb as though a registry had answered. This is the one scenario resolution
-> this skill still does by direct read, and only because there is structurally no registry entry to
-> resolve it against.
+> **A machinery repository is resolved from its own `maintained_tools` row from nen `0.24.0`; the canon registry's rows are the one class this verb still refuses, and that is expected.**
+> `zheref/bankai-handbooks` (a repository cannot be its own consumer), `zheref/hatsu` and `zheref/nen` sit
+> under `maintained_tools` in both the public canon registry and Hatsu's own. A row that declares a
+> `scenario` answers: `nen repo scenario --repo <hatsu checkout> --target zheref/hatsu` → `bankai-machinery`,
+> exit `0` (read 2026-10-22; Hatsu's row declares it). A row without one refuses at exit `1`: *"its row
+> there carries no 'scenario' field. Add one to its maintained_tools[] row to record which scenario
+> governs it"* — the verb's own remedy, landed on that repository's own declaration PR at its gate
+> ([`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 1). Through nen `0.15.1` the refusal read *"only a
+> consumers[] entry carries a 'scenario' field"* (`docs/ab/bankai-quality.md` § 2.1 records the frozen
+> `<reference-repo>` refusing for itself the same way at the port); that sentence is history. The canon
+> registry is the one a session never amends (**G4**), and its rows carry no `scenario`, so for a target it
+> refuses their scenario is **`bankai-machinery`** — renamed at handbook set v0.6 from the frozen
+> repository's own name (`handbooks/INDEX.md`; `MIGRATION.md` § 3 there), the **`BC-` prefix kept** — the
+> scenario `INDEX.md` states for the CI plane, the CLI and the local plugin. Read that literal from
+> `INDEX.md`, say so, and never route it through this verb as though a registry had answered. This is the
+> one scenario resolution this skill still does by direct read, and only for the registry it cannot amend.
 
 ## 2. Load the quality canon — always, live, never from memory
 
@@ -252,7 +251,7 @@ Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate 
 - **Measurement is tool-pinned per scenario** (`QA-12`) — a cross-tool number is a `diagnostic`, never a
   budget check, and stays labelled as one.
 - **The verdict marker is `Quality-Gate:`, never `Verdict:`** (`QA-21`) — that marker is reserved for the
-  CI review gates (Sasuke, Tenma, the design reviewer — the handbook dropped Bisky's name at `v0.11.0`) that still run in the consuming product repos' own CI today, and
+  CI review gates (Sasuke, Tenma, the design reviewer — named by role since handbook set v0.7, read here at `v0.11.0`) that still run in the consuming product repos' own CI today, and
   a quality report must never collide with it. This resolver produces the tooling choice and the
   threshold/method-block computations that feed that line; Phinks emits it, per his own file.
 - **No LLM-improvised fallback for a Nen-owned operation, ever.** If `nen` is unavailable and the

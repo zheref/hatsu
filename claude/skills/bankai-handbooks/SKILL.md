@@ -97,24 +97,25 @@ answers today — tried in this order, never guessed past:
 
 1. **`zheref/bankai-handbooks`' own `nen/repos.json`** — the consumer registry `CON-13` names. At
    `v0.11.0`, as at `v0.6.0`, it records **no consumers**: the repository is public and the estate's product
-   repositories are private, so they are not named there. Every `--target` is therefore refused today
-   with the verb's own sentence — verified live at nen `0.15.1`: `nen repo scenario --repo
-   "$canon" --target zheref/hatsu` → *"'zheref/hatsu' is recorded in …
-   nen/repos.json (under 'maintained_tools'), but only a consumers[] entry carries a 'scenario'
-   field"*, exit `1`.
+   repositories are private, so they are not named there, and its `maintained_tools` rows carry no
+   `scenario`. Every `--target` is therefore refused today with the verb's own sentence — at nen
+   `0.24.0`, read 2026-10-22: `nen repo scenario --repo "$canon" --target zheref/hatsu` → *"'<slug>' is recorded in … nen/repos.json (under 'maintained_tools'), but its row there carries no 'scenario' field. Add one to its maintained_tools[] row to record which scenario governs it -- that row carries the field exactly as a consumers[] entry does"*, exit `1` (at `0.15.1` the sentence read *"only a
+   consumers[] entry carries a 'scenario' field"*; the diagnosis is the same, the remedy is now named).
 2. **The target's own checkout**, when its `nen/repos.json` records itself under `consumers[]` with a
    `scenario` — verified live at nen `0.15.1` against a registry carrying exactly one such entry:
    `nen repo scenario --repo <that checkout> --target <its slug>` → the scenario, exit `0`, and
    `nen canon resolve` against the same `--repo` → the full set (§ 2).
 
 A repository recorded only under `maintained_tools` — a machinery repository: `zheref/bankai-handbooks`
-itself, `zheref/hatsu`, `zheref/nen` — has no `consumers[]` scenario in **any** registry by construction,
-and both answers above refuse it with the same sentence **unless its own row carries a `scenario`**: at
-nen `0.24.0` the verb reads that field off a `maintained_tools` row too (`nen repo scenario --repo <hatsu
-checkout> --target zheref/hatsu` → `bankai-machinery`, exit `0`, read 2026-10-22 — Hatsu's own row
-declares it). A row without one still refuses, and that is the expected answer, not a defect to
-repair by writing a registry entry: its scenario is `bankai-machinery`, read from `handbooks/INDEX.md`
-(§ 2) — the one direct read this skill keeps, spelled out in [`bankai-quality`](../bankai-quality/SKILL.md) § 1.
+itself, `zheref/hatsu`, `zheref/nen` — has no `consumers[]` scenario in **any** registry by construction.
+From nen `0.24.0` its **own `maintained_tools` row may carry the field**, and the verb reads it there:
+`nen repo scenario --repo <hatsu checkout> --target zheref/hatsu` → `bankai-machinery`, exit `0` (read
+2026-10-22; Hatsu's row declares it). A row without the field refuses at exit `1` with the sentence
+above, whose remedy — add `scenario` to that row — lands on **that repository's own** declaration PR at
+its gate, as any `missing-configuration` does. The one registry a session never amends is the canon
+registry (`zheref/bankai-handbooks`, **G4**): for a target it refuses, the scenario is
+`bankai-machinery`, read from `handbooks/INDEX.md` (§ 2) — the one direct read this skill keeps,
+spelled out in [`bankai-quality`](../bankai-quality/SKILL.md) § 1.
 
 A target neither registry records is a **`missing-configuration`** finding, asked for and set up
 inline (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
@@ -150,8 +151,10 @@ the order above is what runs, and an OPEN item stays OPEN.
   #73): the checkout carries **no registry** (`<checkout>/nen/repos.json: no such file`); the target
   is **not recorded anywhere** in it (*"not as a consumer, a product-code value, a maintained tool, or a
   pending onboarding"*); or it **is recorded but not as a consumer** — under `maintained_tools`,
-  `pending_onboarding`, or only as a `product_codes` value — and *"only a consumers[] entry carries a
-  'scenario' field"*. Relay the sentence; it is the diagnosis, and the third one is what the canon
+  `pending_onboarding`, or only as a `product_codes` value — a `maintained_tools` row without the
+  field refusing with *"its row there carries no 'scenario' field. Add one to its maintained_tools[]
+  row …"* (nen `0.24.0`; through `0.15.1` the sentence read *"only a consumers[] entry carries a
+  'scenario' field"*). Relay the sentence; it is the diagnosis, and the third one is what the canon
   registry answers for every target today (above).
 - **Exit `2`** → an **invocation** mistake: an omitted or malformed `--target`, an omitted `--repo`,
   or a `--repo` path that does not exist on disk — since nen `0.7` (`zheref/nen#93`) across the
@@ -188,10 +191,13 @@ handbooks/release-policy.md, handbooks/quality-baseline.md
 ```
 
 — `UZF-{n}`, `SEC-{n}`, `UX-{n}`, `REL-{n}`, `QA-{n}` respectively. **Two families sit in `INDEX.md`
-beside that table from `v0.11.0`, loaded with the set and never in place of it:** `handbooks/spec/authoring.md`
-(`SP-{n}`) when the work authors, amends or reviews a product family's spec folder, or an issue, PR or
-test quotes an `SP-` id; and the `handbooks/ports/` pair file (`PT-{n}`) on a port (below). Neither is a
-row of `--always-load` on an ordinary build or review. `CONVENTIONS.md` sits in the same
+beside that table from `v0.11.0`, loaded with the set and never in place of it**, each read live from
+`$canon` at the pin and **appended to `--always-load` after the manifest's own rows** (the verb echoes
+the path and opens no file): `handbooks/spec/authoring.md` (`SP-{n}`) on **every capture, amendment,
+convergence or review of a spec folder, and for any issue, PR or test that quotes a spec id** — a
+folder citation `specs/<nnn>-<slug>@<sha>` or a folder-qualified `F<nnn>-AC/FR/SC-<nnn>` (`SP-8`,
+`SP-10`), `INDEX.md`'s own trigger, quoted, never paraphrased; and the `handbooks/ports/` pair file
+(`PT-{n}`) on a port (below). Neither is a row on an ordinary build or review. `CONVENTIONS.md` sits in the same
 manifest's catalog and is **not** part of the always-load set — `INDEX.md` says so: it is the output
 shape every agent follows, cited by `CON-3`, `CON-17` and `CON-32`, not a rule family. **Read the
 table yourself before every resolve rather than pasting this list from memory next session** — that
@@ -225,7 +231,7 @@ own stack table at resolve time, never memorized:
 > *Name and prefix* record the rename. **The `BC-` rule-id prefix is unchanged**, so every existing
 > `BC-{n}` citation across the estate stays valid — never rewrite one.
 >
-> **What `v0.11.0` adds to the stacks.** Each of the three product stack handbooks ends in an informative
+> **What changed between `v0.6.0` and `v0.11.0`.** Each of the three product stack handbooks ends in an informative
 > *Appendix — capture reader* (no new `SW-`/`KT-`/`RC-` id): the table a capture reader uses to turn
 > that stack's files into the row kinds of `handbooks/spec/authoring.md` → *Capture row kinds*. For
 > `react-uzf-v1` it maps the suffixes `…Page.tsx` → `screen`, a route file → `navigation`, `…Feature.ts`
@@ -235,8 +241,11 @@ own stack table at resolve time, never memorized:
 > `UZF-21` gained clauses (a)–(f) (the family spec repository as canon, the spec deciding over code, the
 > spec as the input to a port, `AC-`/`SC-` rows, platform notes as a disposition table, `OQ-` rows),
 > `UX-13` governs cross-platform adaptation, and `SEC-15` binds every lane that reads a body, comment,
-> diff or fetched page it did not author. `QA-26` is reserved and never cited. Open the resolved files;
-> this note is a map of the tag's diff, not the text.
+> diff or fetched page it did not author. `QA-26` is reserved and never cited. Each product stack's
+> `rules/` feature-documentation and session-completion files carry `UZF-21(a)`'s generated pointer and
+> `(e)`'s platform-notes table, `UZF-23` gained the family-member spec conjunct, and the `UZF` severity
+> table gained `UZF-21` rows — the files a consumer mirror picks up at its own repin. Open the resolved
+> files; this note is a map of the tags' diff, not the text.
 >
 > **The public registry names no consumer per row.** The retired skill's table carried a "recorded
 > consumer today" column read off the frozen registry; `zheref/bankai-handbooks`' registry records
@@ -244,19 +253,23 @@ own stack table at resolve time, never memorized:
 > never from this table. `react-uzf-v1` and `bankai-machinery` were not in the retired skill's table
 > at all — resolve from `handbooks/INDEX.md`, never from this table once it, too, is a session old.
 
-**A port pair beside the two stacks.** A review of a port cites the always-load set, the **target's**
-stack handbook and the **ports pair file** `<workflow.port.rulingsDir>/<from>--<to>.md`
+**A port pair beside the target stack.** A review of a port cites the always-load set, the **target's**
+stack handbook and the **ports pair file** `<workflow.port.rulingsDir>/<from>--<to>.md` — read beside
+the target stack, never as a second stack: a source-stack id a pair row names is **cited, never loaded**
+(`CON-13` *Port rulings*; `stack-matrix.md` § *How resolution works*)
 ([`bankai-rule`](../bankai-rule/SKILL.md) § 4; the family is in `zheref/bankai-handbooks` from
 `v0.11.0` — `handbooks/ports/INDEX.md` and the six directed pair files of the three product stacks, each
 with zero rulings at that tag, rows appended through that skill; prefix `PT`, one global counter: ROSTER §
 *Rulings of 2026-10-21 — the port rule prefix (HA#355)*). `nen canon resolve` at `0.24.0` returns always-load
 plus exactly one stack and knows no pair; resolving one is zheref/nen#457. **Until it lands: test the
 pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; absent is
-`port rulings: none` — a port that has met no drift, not an error), **then append its path to
+`port rulings: none` — a port that has met no drift, not an error; **a present file whose two tables
+hold no `PT-` row — every pair at `v0.11.0` — reads `port rulings: none (file present, 0 rows)`** and is
+still appended, so a row added at a later tag is read without a prose change), **then append its path to
 `--always-load`** after the manifest's own rows. The verb **accepts and echoes** the path (it checks
 no file: `docs/ab/bankai-rule.md` § 3; the run of 2026-10-22 at `v0.11.0` is `docs/ab/bankai-handbooks.md`
 § *Repin to v0.11.0*), and the report prints the pair once, on its `port rulings:`
-line, not in `always load`. No consumer mirror carries a pair file at `0.22.0` ([`limbo`](../limbo/SKILL.md) step 4).
+line, not in `always load`. No consumer mirror carries a pair file at `0.24.0` ([`limbo`](../limbo/SKILL.md) step 4).
 
 **Never load another stack's folder.** The verb enforces this structurally — it returns exactly one
 `stackHandbook` path, never a list — so there is nothing to improvise here even under pressure to check
@@ -271,14 +284,17 @@ Quote the resolved set; do not summarize it:
   canon: zheref/bankai-handbooks @ <tag $canon sits on>  ($canon)
   always load: <alwaysLoad, joined>
   stack handbook: <stackHandbook>
-  port rulings: <rulingsDir>/<from>--<to>.md | none        # only on a port review; printed here, not under always load
+  spec: handbooks/spec/authoring.md | none                  # only when § 2's spec trigger held; printed here, not under always load
+  port rulings: <rulingsDir>/<from>--<to>.md | none (file present, 0 rows)   # only on a port review; printed here, not under always load
 ```
 
 Then cite findings **by rule ID**, drawn only from the files just resolved: `UZF-{n}`, `SEC-{n}`,
 `UX-{n}`, `REL-{n}`, `QA-{n}` from the always-load set; `SW-{n}` / `KT-{n}` / `RC-{n}` / `BC-{n}` from
-whichever ONE stack file resolved for this repo. Never improvise a policy that is not written in one of
-these files, and never cite a rule ID belonging to a stack folder other than the one that just
-resolved.
+whichever ONE stack file resolved for this repo; `SP-{n}` only when the `spec:` line names the file;
+`PT-{n}` only from the pair file on the `port rulings:` line, cited as `<from>--<to> PT-<n>` at the
+tag it was read at — and a **source-stack id that pair row names is cited through the row, its folder
+never loaded**. Never improvise a policy that is not written in one of these files, and never cite a
+rule ID belonging to a stack folder other than the one that just resolved, save through a pair row.
 
 ## 4. When a rule is missing or ambiguous
 

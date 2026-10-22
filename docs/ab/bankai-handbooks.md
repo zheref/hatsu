@@ -354,7 +354,8 @@ verb this skill actually calls.
 `nen/repos.json` → `maintained_tools` → `zheref/bankai-handbooks` → `pinned` moved from `v0.6.0` to
 `v0.11.0` through `nen canon pin --repo <hatsu> --write v0.11.0 --canon-checkout "$canon"` (nen
 `0.24.0`): `before: v0.6.0 · after: v0.11.0 · changed: true · written: true · recordedIn: nen/repos.json
-(maintained_tools[2].pinned)`, one line of the file changed. The verb's trailing note that "the canon
+(maintained_tools[2].pinned)`, the tag resolved to commit `042110ba540a4ce4defa1c62105f56009e29b9a9` in the
+cache checkout (`tag.commit`), one line of the file changed. The verb's trailing note that "the canon
 mirror now names v0.6.0" names a mirror Hatsu does not carry (`nen schema check`: `.claude/rules/
 absent (optional)`), so nothing was regenerated. `$canon` sat on the tag before any read: `git -C "$canon"
 describe --tags --exact-match` → `v0.11.0`, `status --porcelain` empty.
@@ -373,25 +374,38 @@ v0.6, `BC-` kept).
 $ nen repo scenario --repo <scratch registry> --target acme/web-app
 react-uzf-v1                                                                              # exit 0
 $ nen canon resolve --repo <scratch registry> --target acme/web-app \
-    --always-load handbooks/uzf-core.md,handbooks/security-baseline.md,handbooks/ux-baseline.md,handbooks/release-policy.md,handbooks/quality-baseline.md,handbooks/ports/react-uzf-v1--compose-uzf-v2.md \
+    --always-load handbooks/uzf-core.md,handbooks/security-baseline.md,handbooks/ux-baseline.md,handbooks/release-policy.md,handbooks/quality-baseline.md,handbooks/spec/authoring.md,handbooks/ports/compose-uzf-v2--react-uzf-v1.md \
     --stack-dir handbooks/stacks --json
 { "scenario": "react-uzf-v1",
   "alwaysLoad": [ "handbooks/uzf-core.md", "handbooks/security-baseline.md", "handbooks/ux-baseline.md",
                   "handbooks/release-policy.md", "handbooks/quality-baseline.md",
-                  "handbooks/ports/react-uzf-v1--compose-uzf-v2.md" ],
+                  "handbooks/spec/authoring.md", "handbooks/ports/compose-uzf-v2--react-uzf-v1.md" ],
   "stackHandbook": "handbooks/stacks/react-uzf-v1/architecture.md" }                      # exit 0
 ```
 
 Every path above, `handbooks/spec/authoring.md`, and the four pair files that name `react-uzf-v1`
 (`react-uzf-v1--compose-uzf-v2`, `react-uzf-v1--swiftui-tca-uzf-v2`, `compose-uzf-v2--react-uzf-v1`,
 `swiftui-tca-uzf-v2--react-uzf-v1`) exist in `$canon` at the tag; each pair file carries its
-`prefix: PT · numbering: global` header and zero rows. The verb still echoes the pair path without
-opening it (zheref/nen#457 unchanged at `0.24.0`).
+`prefix: PT · numbering: global` header and zero rows. The pair appended is the one whose **target** is
+`react-uzf-v1` (`compose-uzf-v2--react-uzf-v1`), read beside the target stack as `CON-13` says; the spec
+handbook rides the same flag. The verb echoes both paths without opening either (zheref/nen#457
+unchanged at `0.24.0`).
 
 **A reading the skill's § 1 did not expect.** `nen repo scenario --repo <hatsu checkout> --target
 zheref/hatsu` → `bankai-machinery`, exit `0`: at `0.24.0` the verb reads `scenario` off a
-`maintained_tools` row when the row declares one, as Hatsu's own does. Both resolver skills now say so;
-a row without the field still refuses with the *recorded-but-not-a-consumer* sentence.
+`maintained_tools` row when the row declares one, as Hatsu's own does. A row without the field refuses
+with a sentence that is no longer the one the skills quoted:
+
+```
+$ nen repo scenario --repo <hatsu checkout> --target zheref/nen
+nen: 'zheref/nen' is recorded in <hatsu checkout>/nen/repos.json (under 'maintained_tools'), but its row
+there carries no 'scenario' field. Add one to its maintained_tools[] row to record which scenario governs
+it -- that row carries the field exactly as a consumers[] entry does, so the repository needs recording
+nowhere else.                                                                              # exit 1
+$ nen repo scenario --repo "$canon" --target zheref/hatsu                                   # the same sentence, exit 1
+```
+
+Both resolver skills now quote this sentence and keep the `0.15.1` wording as history.
 
 **What `v0.11.0` adds for a `react-uzf-v1` session.** `handbooks/stacks/react-uzf-v1/architecture.md`
 ends in *Appendix — capture reader* (informative, no `RC-` id): file suffix → UZF concept → the

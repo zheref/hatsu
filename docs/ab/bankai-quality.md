@@ -311,8 +311,8 @@ full re-read of that section alongside the corrected table above.
 
 Read at `zheref/bankai-handbooks` `v0.11.0` (`$canon` on the tag, `describe --tags --exact-match` →
 `v0.11.0`), beside the repin recorded in `docs/ab/bankai-handbooks.md` § *Repin to v0.11.0*.
-`git -C "$canon" diff v0.6.0 v0.11.0 -- handbooks/quality-baseline.md` is five lines added, one
-changed: § A gains **`QA-26 — Reserved`** (withdrawn before it merged; its rule is `SP-14` in
+`git -C "$canon" diff v0.6.0 v0.11.0 -- handbooks/quality-baseline.md` is five insertions and one
+deletion (`--numstat` → `5 1`): § A gains **`QA-26 — Reserved`** (withdrawn before it merged; its rule is `SP-14` in
 `spec/authoring.md`, scoped to spec folders), and the `Quality-Gate:` note names "the design reviewer"
 where `v0.6.0` named Bisky. §§ B–C — the tooling matrix and the measurement matrix the skill's §§ 3–4
 transcribe — are byte-identical between the two tags, so both tables stand as transcribed.
@@ -334,5 +334,8 @@ exit: 0
 ```
 
 `nen repo scenario --repo <hatsu checkout> --target zheref/hatsu` answers `bankai-machinery` at exit `0`
-at nen `0.24.0`, because Hatsu's own `maintained_tools` row declares the field; the skill's § 1 note
-records the reading beside the refusal it still gives a row without one.
+at nen `0.24.0`, because Hatsu's own `maintained_tools` row declares the field. A row without one
+(`--target zheref/nen` against the same registry, or `--target zheref/hatsu` against `$canon`) exits `1`
+with *"its row there carries no 'scenario' field. Add one to its maintained_tools[] row …"* — the
+transcript is in `docs/ab/bankai-handbooks.md` § *Repin to v0.11.0*; the skill's § 1 note quotes it and
+keeps the `0.15.1` sentence as history.

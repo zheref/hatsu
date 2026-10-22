@@ -410,12 +410,6 @@
     {
       "path": "claude/skills/bankai-handbooks/SKILL.md",
       "rule": "PL-06",
-      "text": "e verb's own sentence — verified live at nen `0.15.1`: `nen r",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/bankai-handbooks/SKILL.md",
-      "rule": "PL-06",
       "text": "with a `scenario` — verified live at nen `0.15.1` against",
       "count": 1
     },
