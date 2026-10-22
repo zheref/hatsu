@@ -303,6 +303,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/issue_body_check.mts, the issue-shape guard over contracts/issue-sections.json and templates/issue-body/ (HR-4; SDD plan piece P6), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: every kind's template carries exactly its catalogue headings and fails unfilled; required, duplicate, empty and optional headings; AC, SC, AS and OQ row shapes and numbering; vague adjectives and technology terms in acceptance rows; open and resolved question counts; hostile text sanitised; exit codes 0, 1, 2, 3 and 5; and --ref resolved through a stub nen and read through scripts/gh_token_env.sh against a stub gh. Run it only as `nen shu test --lane issue-shape --repo <hatsu>` when the script, its fixture, the catalogue or a template changes. It is not a general suite."
+      },
+      "criteria": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/pr_criteria_check.mts, the acceptance-criterion coverage guard (HR-11; SDD plan piece P7), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: closing issues derived from the Associated issues table (closing verdicts only, canonical URLs only); AC ids from '- AC-{n}:' rows outside comments and fences; an issue with no AC row is not-verifiable, never a pass; a missing row, missing, contradicts, an unknown or twice-named criterion, a coverage outside the vocabulary, empty or placeholder evidence and unrequested off a none row are refused; no closing issue passes with zero criteria; the CLI's --body, --pr and --json through a stub nen and a stub gh read via scripts/gh_token_env.sh, exit codes 0, 1, 2, 3 and 5, hostile text sanitised; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants (HR-10). Run it only as `nen shu test --lane criteria --repo <hatsu>` when the script, its fixture, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -848,6 +853,17 @@
             "scripts/issue_body_check_fixture.mts"
           ],
           "$comment": "The issue-shape fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
+        }
+      },
+      "criteria": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/pr_criteria_check_fixture.mts"
+          ],
+          "$comment": "The criteria fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
         }
       }
     },

@@ -216,6 +216,11 @@ fi
 #                     — the issue-shape guard (HR-4), run by build § 2, file § 4,
 #                       emperor-time § 6 and futon § 2 from `$hatsu_root/scripts/`;
 #                       a stale copy passes a body a fixed one refuses.
+#   scripts/pr_criteria_check.mts
+#                     — the acceptance-criterion coverage guard (HR-11), run by
+#                       shibari § 4, en §§ 4–5 and rikugan § 3 from
+#                       `$hatsu_root/scripts/`; a stale copy passes a PR a fixed
+#                       one refuses.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -352,6 +357,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/gh_token_env.sh'
   'scripts/nen_reach_probe.sh'
   'scripts/issue_body_check.mts'
+  'scripts/pr_criteria_check.mts'
   '.mcp.json'
 )
 

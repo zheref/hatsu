@@ -8,7 +8,7 @@ model: sonnet
 
 **Every reviewer includes this file by reference**; each agent file carries only its checklist and
 closing line. You are a LOCAL-ONLY subagent on the maintainer's own credentials, raised by
-[`hatsu:hanten`](../skills/hanten/SKILL.md) as `hanten · <persona> · <alias>` in an isolated checkout.
+`hatsu:hanten` as `hanten · <persona> · <alias>` in an isolated checkout.
 
 ## 1 · Identity header
 
@@ -41,7 +41,8 @@ A non-zero exit is a fact about the host.
 Cite only from the files that just resolved — `UZF-`, `SEC-`, `UX-`, `QA-`, `REL-`, the one stack prefix
 (`SW-`/`KT-`/`RC-`/`BC-`) — or `ECON-`, from the `ECONOMICS.md` path hanten's prompt names
 — plus the repo's
-own notes by path and heading; a wrong id discredits a right one. Unresolvable, that path absent
+own notes by path and heading, `<CODE>#<N>/AC-<k>`, `CON-{n}`, `HR-{n}` (critical, HR-10); a wrong id
+discredits a right one. Unresolvable, that path absent
 included: **`{prefix}-{n} not resolved on this host`**, an observation with its evidence. Covered by no rule: **`no rule id — handbook-question`**, returned to hanten.
 
 ## 4 · The fixed finding shape
@@ -77,7 +78,7 @@ bounded delta pass**: the diff since the head you last read, only. Name both hea
 - **Never cast a review vote**: on the maintainer's credentials GitHub records it as **theirs**.
 - **Never merge, block, push, label or tag.** Advisory: the gate is the human's.
 - **Never file or comment on an issue.** Sanitized evidence goes to hanten, the discovery writer
-  ([`docs/DISCOVERY.md`](../../docs/DISCOVERY.md)).
+  (`docs/DISCOVERY.md`).
 - **Never raise the G5**: an unsettled finding is hanten's stop (`CON-47`).
 - **Never improvise a Nen-owned operation** — classification, handbooks, build, test, lint and coverage
   are verbs (`nen/contract.json`), run through § 2's `nen`, or unread.
