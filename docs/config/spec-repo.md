@@ -47,6 +47,8 @@ As [`ports.md`](ports.md) § *Shared conventions* states them: `{slug}` (a capab
 
 **Never renumbered after a merge.** A reversed statement gets a new id and a `supersedes <id>` line; a removed one keeps its id under a marker.
 
+**No `OQ-{n}` rows and no separate `AC-{n}` space in a family `spec.md`.** An open question is a marker, `[NEEDS CLARIFICATION: …]`, settled by `[ruled: CL-nnn]` (HR-4's prose form), never an `OQ-{n}` row. UZF-21(d)/(e)'s `AC-{n}` maps onto the numbered acceptance scenario under a `US-n` in the pinned Spec Kit layout. The per-member difference lives in `parity.md` (SP-6), and `spec.md` § `## Platform decisions` is the record of the maintainer's typed words that a parity row cites.
+
 ## Citations and markers
 
 Every FR, SC, story line, entity field, product rule and quoted value ends in **exactly one** of:
