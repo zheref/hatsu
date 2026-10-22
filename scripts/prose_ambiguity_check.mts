@@ -105,7 +105,22 @@ function readText(abs: string, rel: string): string {
 
 function readJson(abs: string, rel: string): unknown {
   const t = readText(abs, rel);
-  try { return JSON.parse(t); } catch (e) { return wiring(`${rel} is not valid JSON: ${(e as Error).message}`); }
+  // The file is named, never quoted: a parser's message echoes the bytes it read (SEC-7).
+  try { return JSON.parse(t); } catch { return wiring(`${rel} is not valid JSON`); }
+}
+
+// SEC-7: every contract-named read (the rules contract, versionSource.file, decisionsFile, the rulings
+// file, declaredValues matches, the baseline) passes the walk's check: inside the root, and a symlink,
+// or a symlinked parent, whose real path leaves the root is wiring (exit 2). An absent path returns its
+// absolute path for the caller's own missing-file message.
+function inside(root: string, realRoot: string, rel: string): string {
+  const abs = resolve(root, rel);
+  if (abs !== root && !abs.startsWith(root + sep)) return wiring(`${rel} leaves the root`);
+  try { lstatSync(abs); } catch { return abs; }
+  let real = '';
+  try { real = realpathSync(abs); } catch { return wiring(`symlink ${rel} is dangling`); }
+  if (real !== realRoot && !real.startsWith(realRoot + sep)) return wiring(`symlink ${rel} leaves the root`);
+  return abs;
 }
 
 function pointer(obj: unknown, ptr: string): unknown {
@@ -301,7 +316,7 @@ type Ctx = { root: string; realRoot: string; c: Contract; rules: Map<string, Rul
 
 function loadDoc(ctx: Ctx, rel: string): Doc | null {
   if (ctx.docs.has(rel)) return ctx.docs.get(rel) ?? null;
-  const abs = join(ctx.root, rel);
+  const abs = inside(ctx.root, ctx.realRoot, rel);
   if (!existsSync(abs) || !statSync(abs).isFile()) return null;
   const d = parseDoc(rel, readText(abs, rel));
   ctx.docs.set(rel, d);
@@ -448,8 +463,8 @@ function declaredNumbers(ctx: Ctx): Set<string> {
     const re = globToRegex(g);
     const dir = g.includes('/') ? g.slice(0, g.lastIndexOf('/')) : '.';
     let names: string[] = [];
-    try { names = readdirSync(join(ctx.root, dir)); } catch { wiring(`declaredValues directory ${dir} cannot be listed`); }
-    for (const n of names) { const rel = dir === '.' ? n : `${dir}/${n}`; if (re.test(rel)) add(readJson(join(ctx.root, rel), rel)); }
+    try { names = readdirSync(inside(ctx.root, ctx.realRoot, dir)); } catch (e) { if (e instanceof Wiring) throw e; wiring(`declaredValues directory ${dir} cannot be listed`); }
+    for (const n of names) { const rel = dir === '.' ? n : `${dir}/${n}`; if (re.test(rel)) add(readJson(inside(ctx.root, ctx.realRoot, rel), rel)); }
   }
   return out;
 }
@@ -460,7 +475,7 @@ function git(root: string, args: string[]): string {
 
 function loadBaseline(text: string, rel: string, empty: string[]): BaselineRow[] {
   let b: unknown;
-  try { b = JSON.parse(text); } catch (e) { return wiring(`${rel} is not valid JSON: ${(e as Error).message}`); }
+  try { b = JSON.parse(text); } catch { return wiring(`${rel} is not valid JSON`); }
   const rows = (b as { findings?: unknown }).findings;
   if (!Array.isArray(rows)) return wiring(`${rel} lacks findings[]`);
   const keys = new Set<string>();
@@ -490,12 +505,12 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
     const realRoot = realpathSync(root);
     if (!existsSync(join(root, 'nen/contract.json')) || !existsSync(join(root, '.claude-plugin/plugin.json'))) wiring(`root ${root} is not a Hatsu checkout (no nen/contract.json or .claude-plugin/plugin.json)`);
     const rulesRel = a.get('--rules') ?? 'contracts/prose.lint.json';
-    const c = loadContract(resolve(root, rulesRel), rulesRel);
-    const nenContract = readJson(join(root, c.versionSource.file), c.versionSource.file);
+    const c = loadContract(inside(root, realRoot, rulesRel), rulesRel);
+    const nenContract = readJson(inside(root, realRoot, c.versionSource.file), c.versionSource.file);
     const min = pointer(nenContract, c.versionSource.minimum);
     const pin = pointer(nenContract, c.versionSource.pinned);
     if (typeof min !== 'string' || typeof pin !== 'string') wiring(`${c.versionSource.file} lacks the minimum or pinned_ref the contract names`);
-    const decisions = readJson(join(root, c.decisionsFile), c.decisionsFile) as { rows?: Array<{ id: string; class: string }> };
+    const decisions = readJson(inside(root, realRoot, c.decisionsFile), c.decisionsFile) as { rows?: Array<{ id: string; class: string }> };
     if (!Array.isArray(decisions.rows)) wiring(`${c.decisionsFile} lacks rows[]`);
     for (const r of c.markerRows) {
       const row = (decisions.rows ?? []).find((x) => x.id === r);
@@ -532,7 +547,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
     }
     const findings: Finding[] = [];
     for (const f of files) findings.push(...check(ctx, loadDoc(ctx, f) ?? wiring(`cannot read ${f}`)));
-    const baselineAbs = resolve(root, baselineRel);
+    const baselineAbs = inside(root, realRoot, baselineRel);
     const rows = existsSync(baselineAbs) ? loadBaseline(readText(baselineAbs, baselineRel), baselineRel, c.emptyBaseline) : wiring(`baseline ${baselineRel} is missing`);
     const budget = new Map<string, number>();
     for (const r of rows) budget.set(keyOf(r), (budget.get(keyOf(r)) ?? 0) + r.count);

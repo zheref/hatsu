@@ -236,6 +236,28 @@ try {
     put(root, 'contracts/prose.lint.baseline.json', '[');
     expectWiring(root, /baseline\.json is not valid JSON/, 'wiring: an unparseable baseline');
   }
+  // SEC-7: a contract-named read never follows a symlink out of the root, and never echoes bytes.
+  for (const rel of ['nen/zz.json', 'nen/decisions.json', 'contracts/prose.lint.baseline.json']) {
+    const root = base();
+    const outside = join(scratch, `contract-leak-${n}.json`);
+    writeFileSync(outside, 'SYNTHETIC_PLACEHOLDER\n');
+    rmSync(join(root, rel), { force: true });
+    symlinkSync(outside, join(root, rel));
+    const r = lint(root);
+    assert.equal(r.status, 2, `${rel}: expected exit 2, got ${r.status}\n${r.stdout}${r.stderr}`);
+    assert.match(r.stderr, new RegExp(`symlink ${rel.replace(/[.]/g, '\\.')} leaves the root`), `${rel}: the refusal names it\n${r.stderr}`);
+    assert.ok(!r.stderr.includes('SYNTHETIC'), `${rel}: a byte from outside the root reached the log\n${r.stderr}`);
+    console.log(`ok    hostile: a contract-named read of ${rel} through a symlink leaving the root (exit 2, nothing echoed)`);
+  }
+  {
+    const root = base();
+    put(root, 'nen/zz.json', 'SYNTHETIC_PLACEHOLDER\n');
+    const r = lint(root);
+    assert.equal(r.status, 2, r.stdout + r.stderr);
+    assert.match(r.stderr, /nen\/zz\.json is not valid JSON\n$/, r.stderr);
+    assert.ok(!r.stderr.includes('SYNTHETIC'), `the invalid-JSON message quoted the file\n${r.stderr}`);
+    console.log('ok    hostile: an invalid JSON file is named, never quoted');
+  }
   expectWiring(base(), /unknown flag --nope/, 'wiring: an unknown flag', '--nope');
   {
     const notHatsu = join(scratch, 'plain');
