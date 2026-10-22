@@ -36,8 +36,7 @@ nen repo resolve <CODE> --repo <checkout>
 
 **First token `resume` → the second template, else the first**, never both. Verified at nen `0.22.0`:
 `FI-PR-#42 to FA --dry-run` → `source` · `target` · `[--dry-run]: present`; `resume` alone exits `2`.
-**A `to` with no code** parses at exit `0` (zheref/nen#366): refused when the target slot is absent and the
-line's last token before `--dry-run` is `to` (*conventions*), asked. **Bare**: the PR the session
+**A dangling `to`** (zheref/nen#366) is refused as *conventions* say, asked. **Bare**: the PR the session
 is discussing, stated back first; none derivable → `missing-argument`, typed. Unknown code, `ref parse` exit
 `2`: `missing-argument`, the verb's line quoted; an `IS` is kamui's (`hatsu:kamui <obj>`). **The conventions
 both porting skills share** are [`ports.md`](../../../docs/config/ports.md) § *Shared conventions*, cited
@@ -55,8 +54,8 @@ gh api repos/<source>/pulls/<N>/files --paginate --jq '.[].filename'
 A `gh` failure is refused, its line quoted. The file list's count must equal `changedFiles` (`--json
 files` stops at 100), else refused, both counts named. Printed: state and `baseRefName` beside the
 source's `branch.base` (absent, `main`). **Only `mergedAt` set on that base proceeds**; a refusal names
-the state: *open*; *closed, not merged*; *merged into `<base>`* (integration or stack) — *conventions*' PR-source
-read. **Visibility** (*conventions*): a private source to a public target is refused (SEC-8).
+the state (*conventions*' PR-source read; *merged into `<base>`* covers integration and stack).
+**Visibility** (*conventions*): a private source to a public target is refused (SEC-8).
 
 - **Already ported** — read here, before any write: `"$hatsu_root/scripts/gh_token_env.sh" nen issue search
   --target <target> --subject '(from <CODE>-PR-#<N>)'` (*conventions*' title); a completed port issue or a
@@ -95,30 +94,32 @@ In the session's scratch directory, **shown before any write**:
 | Concept (feature · screen · reducer · lane), its source files | Target equivalent | Ruling | Handling |
 |---|---|---|---|
 
-**Handling** is `bankai-rule`'s (HA#355): `mirror` (business logic, domain UX) · `map` (architecture,
-UX idiom, dev-ops; the handbook rule cited on both sides, the ports pair file in `--always-load` until
-nen resolves pairs) · `drop with note` (a refactor, unless the target has the same debt) · `target-only
-addition`. **Ruling**: a ports id, `<pair> PT-<n> (branch <ref>, unmerged)`, or `unmapped`. Below:
-the UZF-26 evidence the target PR owes.
+**Handling** is `bankai-rule`'s (HA#355), **citing its entry** in ports.md § *Mirror versus map*
+(`map: gesture`; a `map` cites the handbook rule on both sides, the pair file in `--always-load` until
+nen resolves pairs); a concept no entry names is `unclassifiable`, asked in § 6. **Ruling**: a ports id,
+`<pair> PT-<n> (branch <ref>, unmerged)`, a `## Platform decisions` row cited (ports.md), or
+`unmapped`. Below: the UZF-26 evidence the target PR owes.
 
 ## 6. Drift — each row asked once
 
-Every `unmapped` row goes in **one batch** per run through
+Every `unmapped` or `unclassifiable` row goes in **one batch** per run through
 [`bankai-rule`](../bankai-rule/SKILL.md)'s `port-drift` (`ask-once-per-run`;
-its shape: three a picker call, further calls for more rows), each answer recorded and binding at once;
-the brief re-rendered. Drift the build meets is further calls under the same row. Citations read `<pair>
-PT-<n> (branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port* — § 8's
+its shape: three a picker call, further calls for more rows), each answer binding at once, recorded in
+the pair file and, in the same run, the spec's `## Platform decisions` and `port-ledger.md` on hiraishin's
+amendment PR, its `PR` cell filled at the build's end, sequencing per ports.md (HR-6); on the no-spec route
+the words stay in the brief (ports.md); brief re-rendered. Drift the build meets is further calls under the same row. Citations read `<pair> PT-<n>
+(branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port* — § 8's
 rulings PR first where any ruling was recorded, then `done`, no issue filed.
 
 ## 7. The port issue — file §§ 3–5 by name
 
 [`file`](../file/SKILL.md) § 3's searches, § 4's redaction and plan, § 5's labels, `classify`,
-`direct`. **An open port issue for the source is amended** (§ 3(a)), never filed twice (§ 2 read the rest).
+`direct`. **An open port issue for the source is amended** (§ 3(a); § 2 read the rest).
 **The typed call is the G1** under file § 4's composite clause (HA#355), the plan still shown. Visibility re-read before the write (*conventions*).
 
 - **Title**: *conventions*' port-issue title, data: a newline refused, every `'` typed `'\''`, the escaped
-  argument shown in the plan (zheref/nen#444). **Body**: the brief, the SEC-15 line, the source PR a
-  **cross-reference**, never a Development link.
+  argument shown in the plan (zheref/nen#444). **Body**: *conventions*' port issue body (a link alone
+  refused), the brief, the SEC-15 line, the source PR a **cross-reference**, never a Development link.
 - **Labels**: file § 5's, plus `job/parity`, `job/implementation`, the target's `lang/<key>`, kind
   `enhancement`; `direct`'s `model/<line>` under the target's `direct.publish`; the criteria and routing comments
   under their keys (file § 5).
@@ -155,8 +156,8 @@ evidence comes from `scripts/fixtures/port-family/`**, never a private product's
 
 ## Authority
 
-- **Permitted:** the reads; the record; kamui's §§ 2–4 by name; the `port-drift` batch; § 7's filing or
-  amend; `build` on the port issue; the rulings PR through `bankai-rule`.
+- **Permitted:** the reads; the record; kamui's §§ 2–4 by name; the `port-drift` batch and its spec
+  amendment PR (ports.md); § 7's filing or amend; `build` on the port issue; the rulings PR through `bankai-rule`.
 - **Not permitted:** any merge; a draft PR; a G1 mode or stage label; a second source or target; the
   spec engine or `port-drift` reimplemented; a phase's contract changed.
 
@@ -168,4 +169,4 @@ evidence comes from `scripts/fixtures/port-family/`**, never a private product's
 - **Never files a port issue twice**, never makes the source PR a Development link.
 - **Never names a product, private repository or business rule** in a public tree, issue or PR body;
   never ports a private source to a public target.
-- **Never writes** under `--dry-run` outside the scratch directory; **never merges**.
+- **Never merges**; `--dry-run`: § 9.

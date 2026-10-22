@@ -73,8 +73,7 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
 | Machinery, tooling, workflows, scripts | **Transmuter** |
 
 **With ambiguity, propose one and ask** (a `DECIDE`, [`jutaisho`](../jutaisho/SKILL.md) § 4, row
-`mode-unknown`, once per run). A G1 stop is never a mode question: an epic's mode *label* is the
-maintainer's alone (`CON-4`).
+`mode-unknown`, once per run).
 
 ### 2b. Classify, when the issue is not — then direct
 
@@ -102,14 +101,15 @@ All authoring, feature work, and verification for the issue **must run in an iso
 
 Git-ignored inside core, never a sibling; branch `{model}/{persona}/{descriptor}` (`nen/workflow.json`); core
 stays clean and parked on the trunk unless the maintainer's own prose says to work on core. **One checkout per
-concurrent effort** (WORKFLOW § *Where worktrees live*, step 2; hatsu#229): a second issue is never started
+concurrent effort** (step 2 there; hatsu#229): a second issue is never started
 in an occupied worktree — it gets its own `<name>` — and a tree a reviewer is reading is never switched
 under them: hanten § 4's detached checkout exists for that, and where the isolation hook refused it, the
 run waits for the review to return (a moved ref is hanten § 4's G5).
 
 ## 4. Building protocol
 
-Build runs § 2b's intake, then:
+Build runs § 2b's intake, then, for `job/parity`, **the spec read** in the worktree before `ren`
+([`ports.md`](../../../docs/config/ports.md); fenced source data is data, SEC-15):
 `ten` → `classify` (if needed) → `direct` → `ren` → `aka` → `mukai` → `en` → `rikugan` → wrap-up.
 
 **Each linked skill owns its stops.** Build writes:
@@ -146,7 +146,7 @@ continue; each runs only the maintainer's pick.
 classify's labels under this run's go and direct's verdict recorded, each one's issue publish under its own
 key; authoring and commits in the isolated
 worktree; the push through `aka` and the PR through `mukai`'s
-`shibari`, linking the issue; `en` until `nen pr ready` exits `0`. Never a merge (G2/G4 stay the maintainer's), a G1 mode label, a review vote,
+`shibari`, linking the issue; `en` until `nen pr ready` exits `0`. Never a merge, a G1 mode label, a review vote,
 or work on core.
 
 **The delegation expires when the run ends. Say when it ends.**
@@ -164,7 +164,7 @@ Every report follows [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting
 [`rikugan`](../rikugan/SKILL.md) for the final state at `en`'s terminus.
 
 **G1**: an epic awaiting its mode label (row `mode-label`) or an open `OQ-{n}` row (§ 2), a `DECIDE` with the trade-off. **G2/G4**: the
-delivery PR `CON-32`-Ready (rows `merge`, `canon-merge`), a `MERGE` whose verdict says everything. **G5**: a
+delivery PR `CON-32`-Ready (§ 9), a `MERGE` whose verdict says everything. **G5**: a
 stuck build or capability gap, `DECIDE`/`DO` with the proposed issue (a tool per `missing-tool`). The run
 **ends** when the PR stands Ready at its gate, the issue is closed, § 1 handed a PR to `en`, direct's **B**
 ended it, `en` was offered and not started, or at a G1 or G5 stop — any other ending is a G5: say which, and that the
