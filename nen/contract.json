@@ -320,6 +320,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor and any id=\"hr-N\" anchor not in the canonical form exit 1, a gap is a notice at exit 0 listing at most 20, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity, an empty id space, an id that is not a safe integer or exceeds the definition count plus 1000, and a path holding a comma, colon or line break exit 2; its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
+      },
+      "product-term-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/product_term_check.sh (zheref/hatsu#354, wave 3 of the SDD assessment: porting closes the loop), the product-term guard hatsu:bankai-rule section 4 runs on a drafted pair row and on the pair file and INDEX before any write, beside private_name_check.sh (which matches private repository names only and is frozen under BC-11). Text is compared against the maintainer's own product-term list at ${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/product-terms -- a sibling of the redaction ignore file: on the maintainer's machine, never in a tree, written only by the maintainer -- or a --terms-file (a fixture's); NO default list is missing-configuration (exit 2), never a pass, and an empty list is exit 2 unless --allow-empty. Matching is by token: the term and every line read lower-case with a camel-case boundary and every run of non-alphanumerics as one separator, the term's words touching or one separator apart (OrderReview, order-review, order_review and orderreview are one term; checkouts, precheckout and orders review are other words), a line that could hide a term also read normalised exactly as the private-name guard reads it (URL encoding, entities, tags, escapes, NFKC, format characters, dashes; then comments, `*` and backticks removed). An object id (<CODE>-<IS|PR>-#<n>, <CODE>#<n>) in a TABLE ROW is a hit by shape with no list, even under --allow-empty; the same shape in a header comment, prose or a fence is not a row, and PT-<n>, SW-{n} and the other rule ids carry no `#`. A hit, a path and a label are printed with an index and never the term; a path or label naming a term only once normalised is withheld whole; --resolve prints to a terminal only. Its fixture is hermetic and offline (invented terms, no gh, no network; 102 cases): every join, every encoding and markup split, the row rule in and out of a row, CRLF, UTF-16 with a BOM, a skipped binary, redacted and withheld paths and labels, the shipped templates/ports/pair.md and INDEX.md reading clean, a rendered pair file refused at its one product row, and every wiring fault (no default list, a dangling link, an unreadable or empty list, a one-character term, stdin twice, a bad argument, --resolve off a terminal) at exit 2. Run it as `nen shu test --lane product-term-guard --repo <hatsu>` when the script or its fixture changes; docs/ab/bankai-rule.md section 6 records the dry run that exercises the guard. It is not a general suite and not yet a CI step."
       }
     },
     "defaultLane": "plugin",
@@ -897,6 +902,17 @@
             "scripts/clause_id_guard_fixture.mts"
           ],
           "$comment": "Hermetic HR id guard fixture plus one read of the live docs/ROSTER.md (HR-2)."
+        }
+      },
+      "product-term-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "bash",
+            "scripts/product_term_check_fixture.sh"
+          ],
+          "$comment": "A permanent, deterministic fixture for the product-term guard, through the shared output guard like every other focused lane. Requires bash, perl with Encode and Unicode::Normalize, and mktemp; no gh and no network. Run it as `nen shu test --lane product-term-guard --repo <hatsu>` when scripts/product_term_check.sh or its fixture changes; run the guard itself on a drafted row as hatsu:bankai-rule section 4 does, against the maintainer's own list."
         }
       }
     },

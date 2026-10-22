@@ -39,7 +39,7 @@ nen ref parse '<head>#<n>' --repo <checkout>
 nen repo resolve <CODE> --repo <checkout>
 ```
 
-**One template for both is refused by construction** (probes: HA-PR-#366). **Any exit `2`** (either parse, `ref parse`) or `repo resolve`'s
+**One template for both is refused by construction** (probes: HA-PR-#366; the dry run: `docs/ab/kamui.md`). **Any exit `2`** (either parse, `ref parse`) or `repo resolve`'s
 refusal is `missing-argument`, the verb's line quoted. A `run_id` not shaped as ports.md states is refused
 before any read. **A PR input must be merged into the source's `branch.base`** (*conventions*, the PR-source
 read), else refused naming its state. **Bare `hatsu:kamui`**: the object this session is discussing, stated

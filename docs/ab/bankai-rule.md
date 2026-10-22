@@ -279,3 +279,162 @@ exit 0
 - The script takes the run's rulings worktree (`--worktree`), never reads a fork PR, matches a hunk header only in a file's header region, paginates the file list, prunes on fetch
   and refuses a symlinked working-tree file; `--check` is the duplicate pass at catch-up and the gate
   (hanten round 2: Chrollo C15–C16, Feitan F8–F12).
+
+## 6. The dry run — `--dry-run` over the fixtures, dated
+
+**Run: 2026-10-22 (UTC), nen `0.24.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), from a
+Hatsu checkout at `4baf46d65`.** The SDD assessment's wave 3 (*porting closes the loop*, zheref/hatsu#354)
+owes one real dry run per port skill; **this is bankai-rule's, and a stale one is a finding** — the date is
+part of the record. `--dry-run` joined the grammar in this same change (§ 1: the last token, stripped before
+the `ruling` split; §§ 1–3 read, § 4's two guards on the drafted row, nothing written). Inputs: the consumer
+fixture `scripts/fixtures/port-family/with-family`; a scratch **rulings repository** rendered from
+`templates/ports/pair.md` and `INDEX.md` (an `origin` with one commit and no rows, a clone, the run's
+worktree under the clone's `.nen/worktrees/claude-code/`), standing in for `zheref/bankai-handbooks`'
+authoring clone; a `gh` stand-in on `PATH` answering *no open PRs* for the reserve's two reads
+(zheref/nen#456); and a two-term stand-in for the maintainer's product-term list (invented terms). **No
+GitHub call was made** save the private-name guard's live list read, which is the maintainer's own
+credentials reading their own list; no `fixture-owner/*` slug reached a networked verb.
+
+### § 1 — the split, then the parse
+
+```
+$ line="swiftui-tca-uzf-v2 to compose-uzf-v2 ruling the OrderReview sheet becomes a ModalBottomSheet --dry-run"
+$ case "$line" in *' --dry-run') dry=1; line="${line% --dry-run}" ;; *) dry=0 ;; esac
+$ case "$line" in 'ruling '*) head=''; ruling="${line#ruling }" ;; *) head="${line%% ruling *}"; [ "$head" = "$line" ] && ruling='' || ruling="${line#* ruling }" ;; esac
+dry=1
+head=swiftui-tca-uzf-v2 to compose-uzf-v2
+ruling=the OrderReview sheet becomes a ModalBottomSheet
+
+$ nen parse bankai-rule --grammar "<from:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery> to <to:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery>" --line "$head"
+from: swiftui-tca-uzf-v2
+to: compose-uzf-v2
+exit=0
+```
+
+The ruling text — holding the word *sheet* and a product-shaped word — never reaches the grammar; the head
+alone does (§ 1 of this record). The scenario ids above are the matrix's at `v0.6.0`, read for the record,
+not from the skill.
+
+### § 2 — what the run reads
+
+```
+$ bash scripts/config_values.sh need --repo scripts/fixtures/port-family/with-family --skill bankai-rule
+bankai-rule: every value it needs is set.
+exit=0
+
+$ nen canon pin --repo scripts/fixtures/port-family/with-family --source zheref/bankai-handbooks
+nen: <checkout>/scripts/fixtures/port-family/with-family/nen/repos.json records no 'pinned' tag for zheref/bankai-handbooks under maintained_tools. Record one (maintained_tools[].pinned) so the pin is data.
+exit=1
+
+$ nen canon pin --repo . --source zheref/bankai-handbooks
+source: zheref/bankai-handbooks
+ref: v0.6.0
+recorded in: <checkout>/nen/repos.json (maintained_tools[].pinned)
+exit=0
+```
+
+`need` reads green: both `port.*` keys are at their defaults, said. **The fixture consumer pins no handbooks
+repository**, so `handbooksRepo` is `missing-configuration` there (§ 2: the pinned `maintained_tools` row,
+none → stop) — a live run on that consumer stops here, the maintainer asked to record the pin; the dry run
+lists it and reads the pin off Hatsu's own registry (`v0.6.0`) to show the shape. The reading copy
+(`nen canon checkout`) and the cache-path clone are not touched: the scratch repository stands in for the
+clone, and the worktree is cut under its `.nen/worktrees/claude-code/`.
+
+### § 3 — the reservation, against a rulings directory with no rows
+
+```
+$ PATH=<stub gh>:$PATH bash scripts/port_rule_reserve.sh --worktree <scratch>/clone/.nen/worktrees/claude-code/ports-dry --target fixture-owner/fixture-handbooks --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT --json
+{"complete":true,"next":"PT-1","number":1,"seen":[]}
+exit=0
+
+$ PATH=<stub gh>:$PATH bash scripts/port_rule_reserve.sh --worktree … --target fixture-owner/fixture-handbooks --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT --check
+port_rule_reserve --check: no duplicate -- every id this branch adds is its own
+exit=0
+```
+
+The rendered template carries no row at the tip, on this branch, on no sibling and in no open PR (the
+stand-in answers *none*), so the counter starts at `PT-1` and `--check` is clean. `--target` is the
+stand-in's `owner/name`, shape-checked and handed only to the `gh` stand-in. Nothing is reserved by a dry run
+beyond printing the id it would take.
+
+### § 4 — the two guards on the drafted row, then on the pair file and INDEX
+
+The drafted row, the ruling verbatim in `rationale`, the `redraft` still to write:
+
+```
+$ printf '| PT-1 | SwiftUI .sheet | ModalBottomSheet | map | %s | <redraft> | 2026-10-22 | |\n' "$ruling" > <scratch>/row.md
+| PT-1 | SwiftUI .sheet | ModalBottomSheet | map | the OrderReview sheet becomes a ModalBottomSheet | <redraft> | 2026-10-22 | |
+
+$ bash scripts/product_term_check.sh --terms-file <scratch>/product-terms <scratch>/row.md
+<scratch>/row.md:1: product term #2 -- restate it technology-level, or move the words to the spec folder (docs/config/ports.md section The product-term guard)
+product_term_check: 1 mention(s) of a product term or an object id in a row; the row is restated technology-level, or its words moved to the spec folder, before anything is written (docs/config/ports.md section The product-term guard)
+exit=1
+
+$ bash scripts/product_term_check.sh <scratch>/row.md   # the default list, absent on this machine
+product_term_check: missing-configuration: no product-term list at ~/.config/hatsu/product-terms -- the maintainer writes it by hand (docs/config/ports.md section The product-term guard), one term per line; a session never does, and nothing is clean until it exists
+exit=2
+```
+
+**The hit is § 1's product row**: standalone (no brief, no spec folder) the words are refused and the row is
+redrafted technology-level and said back; under a composite with a spec folder the words would go to
+`spec.md § ## Platform decisions` and the picked label (`map`) would be the `rationale`. The index names the
+list's second entry and never the term. **With no list the guard refuses, never passes** — on this machine
+the maintainer's file does not exist, so a live `bankai-rule` run stops at `missing-configuration` until it
+is written. The redraft, re-run to `0`:
+
+```
+$ printf '| PT-1 | SwiftUI .sheet | ModalBottomSheet | map | map | a SwiftUI sheet presentation becomes a Compose ModalBottomSheet; the business rule it carries is unchanged | 2026-10-22 | |\n' > <scratch>/row2.md
+$ bash scripts/product_term_check.sh --terms-file <scratch>/product-terms <scratch>/row2.md
+product_term_check: ok -- no product term and no object id in a row (the --terms-file list; 0 skipped as binary or not a regular file)
+exit=0
+```
+
+Then the pair file and INDEX as they would be written — the rendered template and the INDEX row — through
+both guards; the private-name guard against the **live** list on the maintainer's credentials (no ignore file
+on this machine, said; one name ruled public dropped):
+
+```
+$ bash scripts/private_name_check.sh <worktree>/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md <worktree>/handbooks/ports/INDEX.md
+private_name_check: ok -- no private repository named (live list, 8 owner(s); no ignore file, so nothing ignored; 1 named by ruling; 0 skipped as binary or not a regular file)
+exit=0
+
+$ bash scripts/product_term_check.sh --terms-file <scratch>/product-terms <worktree>/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md <worktree>/handbooks/ports/INDEX.md
+product_term_check: ok -- no product term and no object id in a row (the --terms-file list; 0 skipped as binary or not a regular file)
+exit=0
+
+$ git -C <worktree> status --porcelain | wc -l
+0
+```
+
+The template's header cites a Hatsu ruling by object id (`HA#355`) inside an HTML comment: not a row, not a
+hit — the row rule judges table rows only. **Nothing was written**: the worktree is clean, no row, no INDEX
+count moved, no commit, no PR; `nen shu lint` and `kokusen` are the write path's and did not run.
+
+### The lane
+
+`nen shu test --repo <hatsu> --lane product-term-guard` — `scripts/product_term_check_fixture.sh`, hermetic
+and offline, **102 passed, 0 failed** at GNU bash 5.3 and at `/bin/bash` 3.2.57 on this host: every join
+(camel case, `-`, `_`, `.`, `/`, a double space, a plain join), the whole-token rule (`checkouts`,
+`precheckout`, `orders review` pass), every encoding and markup split (entities, URL encoding, zero-width
+and soft hyphen, fullwidth, a backslash escape, a tag, a comment, a code span, intraword emphasis), the row
+rule in and out of a row (an issue id, an invocation-grammar id, a PR id, through entities, indented, inside
+a fence; a header comment, prose, `PT-5`, `SW-3`, `AC-001`, a bare number, four capitals pass), CRLF,
+UTF-16 with a BOM, a skipped binary, a redacted and a withheld path and label, stdin once and twice, and
+every wiring fault: no default list (`missing-configuration`, who writes it), a dangling link, an unreadable,
+empty or comment-only list, a one-character or punctuation-only term, an unknown option, `--resolve` off a
+terminal. The shipped `templates/ports/pair.md` and `INDEX.md` read clean; a rendered pair file with one
+technology-level row reads clean and is refused at the one product row appended to it.
+
+### Findings against the binary and the fixtures
+
+1. **The fixture consumer pins no handbooks repository**, so a live `bankai-rule` run on it stops at § 2
+   (`nen canon pin` exit `1`, quoted above). The fixture was built for `kamui`'s family read, not for a
+   rulings run; the dry run says so rather than pinning one. Adding a `pinned` row to the fixture is a
+   fixture decision, not this record's.
+2. **No product-term list exists on this machine**, so every live `bankai-rule` write is refused at
+   `missing-configuration` until the maintainer writes
+   `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/product-terms`. That is the design (ports.md § *The product-term
+   guard*): the guard never reads green over a list it does not have, and a session never writes the file.
+3. **`--check` on a rulings directory with no rows and no siblings is a trivially clean pass.** The lane's
+   two-branch and global cases (§ 2 of this record) are where `--check` earns its keep; the dry run shows the
+   call and its exit, not the collision.
