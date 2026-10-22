@@ -372,7 +372,7 @@ new `nen.loop.iterate/v0.1`.
 *Retired at nen* sections are evidence about `nen shu build`/`test`/`lint`/`detect`/`tools` and about
 the build proof, and none of that changed. What changed is **which phase those verbs belong to**.
 
-**The ruling** (maintainer, 2026-09-10 — [`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*,
+**The ruling** (maintainer, 2026-09-10 — [`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10 — the release side lands at `v0.6.0`*,
 *`rasengan` is the AUTHORING phase*): `rasengan` **builds the thing** — it is the phase in which
 Kurapika writes the code that answers the request, on the stack the declaration names. It was never
 "run the build command before committing".

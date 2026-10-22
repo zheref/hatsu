@@ -46,7 +46,7 @@ never pushes.**
 > ### The ruling of 2026-09-10 — rasengan AUTHORS; it is not "compile before commit"
 >
 > The maintainer's ruling, recorded in [`docs/ROSTER.md`](../../../docs/ROSTER.md)
-> § *Rulings of 2026-09-10*: **rasengan is the authoring phase** — Kurapika builds the code that
+> HR-55: **rasengan is the authoring phase** — Kurapika builds the code that
 > answers the request, on the repository's stack. *Build* in this skill's name always meant **build
 > the thing**, and this file used to read it as *run the build command*.
 >

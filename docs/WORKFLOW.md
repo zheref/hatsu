@@ -177,7 +177,7 @@ Each entry of `checks` is the **name of a declared verb**, not a command line: e
 `nen shu <check> --lane <lane>` for each entry, in order.
 
 > **The compile-before-commit is `kokusen`'s, and `rasengan` is the AUTHORING phase** — the maintainer's
-> ruling of 2026-09-10 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-10*). The same pair of keys is read
+> ruling of 2026-09-10 ([`ROSTER.md`](ROSTER.md) HR-55, HR-56). The same pair of keys is read
 > three times on purpose: a tree moves with every line written after the last check, so the only run a
 > commit can rest on is the one taken by the phase holding the index. A verb named here that the lane seats as unsupported is
 exit `4` and its seat is quoted, not worked around. Hatsu's own `checks` is `["lint"]`, because
@@ -548,7 +548,7 @@ section and restates nothing:
 A declared `project.kind` (`product`, `process` or `library`) is the repository's own word and wins
 over the derivation; `sources.kind` in the `--json` names what the lanes alone would have read. The
 declaration is a `nen/contract.json` change and **lands through that repository's own declaration
-gate** (§ *Rulings of 2026-09-18*: G4 in a canon repository, G2 in a consumer one) before anything
+gate** (HR-76, HR-77: G4 in a canon repository, G2 in a consumer one) before anything
 reads it. What the kind decides: the reviewer tier above, and whether [`mugetsu`](../claude/skills/mugetsu/)
 § 3's advance go may name it — `process` and `library` may, `product` and `unknown` may not.
 
@@ -1918,7 +1918,7 @@ The three cases below are mutually exclusive and total, and **the PR's own base 
 
 **The protocol `hatsu:sharingan` and `hatsu:shibari` both need, stated once.** Moved here on
 2026-09-20 (zheref/hatsu#89) from `sharingan` § 2 and `shibari` § 7(c), which carried duplicate
-copies; both now point here. [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-18* remains the authority
+copies; both now point here. [`ROSTER.md`](ROSTER.md) HR-76 and HR-77 remain the authority
 on the ruling itself.
 
 **1 · The repository's ROLE decides the gate, before any path is looked at.** **G4 is a canon

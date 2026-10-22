@@ -312,7 +312,7 @@
       "clause-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor exits 1, a gap is a notice at exit 0, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity and an empty id space exit 2; its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
+        "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor and any id=\"hr-N\" anchor not in the canonical form exit 1, a gap is a notice at exit 0 listing at most 20, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity, an empty id space, an id that is not a safe integer or exceeds the definition count plus 1000, and a path holding a comma, colon or line break exit 2; its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -919,7 +919,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) and scripts/futon_effort_record_fixture.mts (futon-effort-guard) need: below it the cleanup shim refuses at exit 2, never 1. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), and scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",

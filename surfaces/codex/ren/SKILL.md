@@ -79,7 +79,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 > **Step 2 is the change itself, and it stopped being half-numbered on 2026-09-10.** This table used
 > to carry a step `1.5` — *"the work"*, owned by no skill — beside a step 2 called *build*, which read
 > `rasengan` as *run the build command* rather than *build the thing*. The maintainer's ruling
-> ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-10*) settles it: **`rasengan` IS
+> ([`docs/ROSTER.md`](../../../docs/ROSTER.md) HR-55) settles it: **`rasengan` IS
 > the authoring phase**, so the work has a skill, the six whole numbers are six skills again, and the
 > compile-before-commit sits with the phase that stages the tree.
 
