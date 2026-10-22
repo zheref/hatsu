@@ -4,7 +4,7 @@
 four agent surfaces: Claude Code, Codex, Cursor and Antigravity.**
 
 One lead persona, **Kurapika**, who names which of six work-modes he is holding before he acts; a roster of
-focused independents who review, measure, watch, file and clean up but never decide; and **fifty-six skills** that take a
+focused independents who review, measure, watch, file and clean up but never decide; and **fifty-seven skills** that take a
 request, an issue, a backlog, a pull request or a release from where it is to the human gate where you
 decide. **Every deterministic step that has a verb is a verb** of the [**Nen**](https://github.com/zheref/nen)
 CLI: Nen detects, computes, formats and verifies; a skill supplies only the judgment a binary cannot.
@@ -125,6 +125,7 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 | **Work a severity band or one label** | `futon <repo>@<severity[+] \| label> [then tag \| tag+fanout \| <skill> \| <prose>]` | `nen/colors.yml` severity values; labels synced | one `build` per issue, PRs with an actor behind them; the `then` step runs only once every PR is merged (the **advance go**) |
 | **Work everything this surface's model can build** | `kazaana <repo> [on <line>]` | the `model/` labels (direct runs on the unlabelled first); `direct`'s records; up to 7 worktrees | `futon <repo>@model/<line> then getsuga`: parallel delegates on `direct`'s primary pick, stacks only on overlap, every PR to its merge prompt with the merge order on the register; once all are merged or closed, `getsuga` with its proposal merged autonomously; then one question whether `mugetsu` should publish |
 | **Spec a feature once, port it to the siblings** | `kamui <CODE>-IS-#<N> \| <CODE>-PR-#<N> [--dry-run]` · `kamui resume <run-id>` | the product family declared in each member's own `nen/repos.json` → `families[]` (asked and set up per missing item; a missing spec repository is a G5 hand-over line); the checkouts file | the spec PR (the pinned `github/spec-kit` set) → `ren → aka → mukai → en` to the **G2** merge prompt → `nen watch until` the merge → the sibling picker (never starred) → one port issue per pick through `file` → the start picker → `build` per pick, one after another |
+| **Capture a product family's code into one spec** | `dowsing-chain <repos> [--family <name>] [--scope <slugs>] [--dry-run]` · `dowsing-chain recapture \| dispatch \| wave <family> …` · `dowsing-chain resume <run-id>` | `families[]` declared on each member and on a **private** spec repository through their own G2 PRs (HR-16); the checkouts file; the nen spec verbs owed (zheref/nen#493): the inventory is prose-made and unverified until they land | inventory by build-system membership → the constitution PR → folders in waves, every sentence cited or marked → one bounded clarify sitting → the intake examiners → `ren → aka → mukai → en` to the **G2** prompt → the `spec-dispatch` picker (never starred) → `file` per pick → `wave`: `futon` per member on the typed call → `recapture` as an append-only diff → `rikugan` |
 | **Port a merged PR to one sibling** | `hiraishin <CODE>-PR-#<N> [to <CODE>] [--dry-run]` · `hiraishin resume <run-id>` | the source PR merged into its base; the target governed by `bankai-handbooks`; the family's spec repository where one is declared (`kamui`'s setup) | the precondition read → `kamui`'s spec step and its **G2** wait where a spec repository is declared → the port brief, one row per concept → one batched `port-drift` call through `bankai-rule` → one port issue through `file` on the typed call → `build` on it → the rulings PR at the run's end |
 | **Drive the whole backlog to zero** | `backlog-loop` | a repository with product codes and a release lane | triage → `build` and `sharingan` across at most two efforts → `getsuga` at severity-batch boundaries → a board per cycle |
 | **Consolidate a long backlog** | `backlog-synthesis <critical\|high\|medium\|low\|all> [<repo>]` | open issues sharing a clause, file or root cause | a plan artifact → on approval one consolidated issue, originals attached and closed |
@@ -216,7 +217,7 @@ until the brief carries no ambiguity and no conflict with current specifications
 
 ## 🧰 The skills
 
-Fifty-six, invoked as `hatsu:<name>` in your surface's spelling, fifty-seven directories with `ten`. Each row:
+Fifty-seven, invoked as `hatsu:<name>` in your surface's spelling, fifty-eight directories with `ten`. Each row:
 what the skill means, the steps it runs **as the skills it calls**, and who calls it. Full contracts live
 in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 [`claude/skills/README.md`](claude/skills/README.md).
@@ -275,6 +276,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `futon` | **composite**: one selector of the backlog to PRs with an actor behind them, then the typed `then` step once every PR is merged | `build` per issue → `getsuga` for `tag`/`tag+fanout`, or the named skill, or prose mapped to skills → `rikugan` | you; `kazaana` |
 | `kazaana` | **composite**: everything this surface's model can build, drawn in and delivered — `futon <repo>@model/<line> then getsuga` with parallel delegates on `direct`'s primary pick, stacks only on overlap, the merge order on the register, the release proposal merged autonomously, then one question about publishing | `direct` on the unlabelled → `futon` → delegates author and publish (`ren` or `great-hiker`, `aka`) while this session runs `mukai` and `en` per effort → `rikugan` → `getsuga` → the publish offer → the wrap-up picker | you |
 | `kamui` | **composite**: one issue or shipped PR written once as the product family's spec-kit canon in its spec repository (G2), then one port issue per sibling you pick and the picked work started here; resumable from a record in the XDG state dir | spec step → `ren → aka → mukai → en` → `nen watch until` merged → sibling picker → `file` per pick → start picker → `build` per pick → `rikugan` | you; `hiraishin` (its spec step) |
+| `dowsing-chain` | **composite**: a product family's sibling repositories read into one private, living `github/spec-kit` canon — every statement cited to code at a sha with a confidence tier or marked, the constitution first, folders in waves at G2 — then issues filed only from a picker at a pinned spec sha, builds on the typed wave call, recapture as a diff; resumable from a record in the XDG state dir; conventions in `docs/config/spec-repo.md` | `nen parse` → inventory → constitution → capture → clarify → the intake examiners → `ren → aka → mukai → en` → `nen watch until` merged → dispatch picker → `file` → `futon` → `rikugan` | you |
 | `hiraishin` | **composite**: one PR merged into its base, ported to one sibling — spec first where the family declares a spec repository, a port brief with one row per concept, every unmapped row ruled once and recorded, the port issue filed on the typed call and built; resumable | precondition read → `kamui` §§ 2–4 (spec step and wait) → the port brief → `port-drift` through `bankai-rule` → `file` §§ 3–5 → `classify` → `direct` → `build` → `rikugan` | you |
 | `backlog-loop` | **composite**: the backlog to zero in severity order | triage → `build` + `sharingan` (≤ 2 efforts) → `getsuga` at batch boundaries → `backlog-board` per cycle | you |
 | `backlog-synthesis` | a long backlog reconciled into a short one, behind a plan you approve | plan artifact → `file` → sub-issues attached and closed | you |
@@ -311,6 +313,7 @@ flowchart TD
     futon --> build & getsuga & rikugan
     kazaana --> direct & futon & getsuga & mugetsu & cleanup
     kamui --> ren & aka & mukai & en & file & direct & build & rikugan & wrap
+    dc[dowsing-chain] --> ren & aka & mukai & en & file & classify & direct & build & futon & rikugan & wrap
     hiraishin --> kamui & file & classify & direct & build & rikugan & wrap & br([bankai-rule · HA#355])
     cleanup --> shizuku([Shizuku])
     bl[backlog-loop] --> build & sharingan & getsuga & bb[backlog-board]
@@ -411,7 +414,7 @@ The long form, the verdict table and the host binding: [`docs/NEN-CONTRACT.md`](
 ```
 .claude-plugin/     plugin.json + marketplace.json: the manifest every surface installs from; `version` is the cache key
 .codex-plugin/      the Codex plugin overlay pointing at the same skills and generated hooks
-claude/             the one AUTHORED copy: skills/<name>/SKILL.md (50 + ten), agents/<persona>.md (12 + 4 examiners), commands/kurapika.md, rules/
+claude/             the one AUTHORED copy: skills/<name>/SKILL.md (57 + ten), agents/<persona>.md (12 + 4 examiners), commands/kurapika.md, rules/
 surfaces/           GENERATED mirrors for codex/, cursor/, antigravity/: never edited by hand (docs/using/mirrors.md)
 hooks/              the three harness hooks: session start (binds nen), stop bell, base-branch guard; POSIX sh, no jq
 nen/                this repository's own declarations: contract.json, workflow.json, gates.json, labels.json, repos.json, colors.yml, decisions.json

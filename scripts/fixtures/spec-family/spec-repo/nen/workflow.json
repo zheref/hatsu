@@ -1,0 +1,26 @@
+{
+  "$comment": "Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, The spec repository's keys): the port block at the catalogue's defaults (contracts/config-catalogue.json, workflow.port.specKit.*) and the PROPOSED spec block at the defaults the design names. The spec catalogue domain is owed (zheref/nen#493), so config_values.sh diagnose --domain spec refuses at exit 2 today and these keys are read by hand; nen schema check passes the unknown block. The autonomy keys the maintainer types are placeheld with fixture values.",
+  "port": {
+    "specKit": {
+      "pin": "v1.2.2",
+      "layout": "specs/{nnn}-{slug}"
+    }
+  },
+  "spec": {
+    "clarify": {
+      "maxQuestions": 5,
+      "maxRounds": 3
+    },
+    "capture": {
+      "foldersPerPr": 4
+    },
+    "autonomy": {
+      "platformOrder": ["ios", "android", "web"],
+      "referencePlatform": "ios",
+      "maxInFlight": { "ios": 1, "android": 1, "web": 1 },
+      "unmetSc": "refuse",
+      "convergeFiling": "propose",
+      "waveEnds": "all-at-prompt"
+    }
+  }
+}
