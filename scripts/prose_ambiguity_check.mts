@@ -204,6 +204,8 @@ function walk(root: string, realRoot: string, globs: string[]): string[] {
   return out;
 }
 
+// QA-15: every link-target quantifier is bounded (2,048 characters), as the label is (600), so a
+// line of '[a](' with no ')' costs linear time, never quadratic.
 const mask = (s: string, a: number, b: number): string => s.slice(0, a) + s.slice(a, b).replace(/[^\n]/g, ' ') + s.slice(b);
 
 function exempt(text: string): string {
@@ -220,14 +222,14 @@ function exempt(text: string): string {
 // (`_`), space or hyphen, spaces to hyphens. `_` is kept, inside code spans always and outside
 // them unless it is emphasis markup at a word edge.
 export function slug(heading: string): string {
-  const t = heading.trim().toLowerCase().replace(/<[^>]+>/g, '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+  const t = heading.trim().toLowerCase().replace(/<[^>]+>/g, '').replace(/\[([^\]]{0,600})\]\([^)]{0,2048}\)/g, '$1')
     .split(/(`[^`]*`)/).map((part) => part.startsWith('`') ? part.replace(/`/g, '')
       : part.replace(/[*~]/g, '').replace(/(?<![\p{L}\p{N}])_+|_+(?![\p{L}\p{N}])/gu, '')).join('');
   return t.replace(/[^\p{L}\p{M}\p{N}\p{Pc} -]/gu, '').replace(/ /g, '-');
 }
 
 export function norm(s: string): string {
-  return s.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`_"“”‘’']/g, '').replace(/…/g, '').replace(/\s+/g, ' ').trim().toLowerCase().replace(/^[^\p{L}\p{N}§]+/u, '').replace(/[.:,;]+$/, '');
+  return s.replace(/\[([^\]]{0,600})\]\([^)]{0,2048}\)/g, '$1').replace(/[*`_"“”‘’']/g, '').replace(/…/g, '').replace(/\s+/g, ' ').trim().toLowerCase().replace(/^[^\p{L}\p{N}§]+/u, '').replace(/[.:,;]+$/, '');
 }
 
 function parseDoc(rel: string, raw: string): Doc {
@@ -386,7 +388,7 @@ function check(ctx: Ctx, d: Doc): Finding[] {
     });
     // PL-04 — relative links and the `§` citation a link carries.
     const unspanned = masked.replace(/`[^`\n]*`/g, (x) => ' '.repeat(x.length)); // a link inside a code span is text
-    for (const m of unspanned.matchAll(/\[[^\]]{0,600}?\]\(([^)\s]+)\)((?:'s)?\s*§§?\s*(?:(\d+[a-z]?(?:\.\d+)*)|\*([^*\n]+)\*))?/g)) {
+    for (const m of unspanned.matchAll(/\[[^\]]{0,600}?\]\(([^)\s]{1,2048})\)((?:'s)?\s*§§?\s*(?:(\d+[a-z]?(?:\.\d+)*)|\*([^*\n]+)\*))?/g)) {
       const target = m[1];
       if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('<')) continue;
       const res = resolveTarget(ctx, d.path, target);
@@ -404,7 +406,7 @@ function check(ctx: Ctx, d: Doc): Finding[] {
     }
     const bare = re('PL-05');
     if (bare) for (const m of flat.matchAll(bare)) {
-      if (/\]\([^)\s]*$/.test(flat.slice(0, m.index))) continue; // inside a link target
+      if (/\]\([^)\s]{0,2048}$/.test(flat.slice(Math.max(0, m.index - 2051), m.index))) continue; // inside a link target
       add('PL-05', p, m.index ?? 0, ctxOf(m.index ?? 0, m[0].length));
     }
     const ver6 = re('PL-06'); const date = re('PL-06', 'date'); const ev = re('PL-06', 'evidence');

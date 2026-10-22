@@ -315,6 +315,16 @@ try {
   }
   {
     const root = base();
+    put(root, 'docs/t.md', `# T\n\n${'[a]('.repeat(250_000)}\n`);
+    const t0 = Date.now();
+    const r = lint(root);
+    const ms = Date.now() - t0;
+    assert.ok(ms < 15_000, `a 1 MB '[a](' line took ${ms} ms (QA-15)`);
+    assert.ok(r.status === 0 || r.status === 1, r.stdout + r.stderr);
+    console.log(`ok    hostile: a 1 MB '[a](' line with no ')' read in ${ms} ms (bounded link targets, QA-15)`);
+  }
+  {
+    const root = base();
     put(root, 'claude/skills/empty/SKILL.md', '');
     put(root, 'docs/with space.md', '# W\n\nFixed in #3.\n');
     put(root, 'docs/fence.md', '# F\n\n```sh\nFixed in #4.\n');
