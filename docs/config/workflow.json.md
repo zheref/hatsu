@@ -113,7 +113,7 @@ Which attribution trailers a prospective commit may carry. The maintainer's ruli
 
 ### `monitor`
 
-`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `.nen/loop/<id>.json`, keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle.
+`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `<git common dir>/.nen/loop/<id>.json` — en §§ 2 and 7 pass `nen loop iterate` the git common directory as `--repo`, so the cap outlives the effort worktree and `hatsu:cleanup` never removes it — keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
@@ -241,12 +241,24 @@ Self-hosted GitHub Actions runner naming and pools, provisioned by `hatsu:jusshi
 
 ### `port.specKit`
 
-Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
+Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356) and `hatsu:dowsing-chain` §§ 1, 4 ([`spec-repo.md`](spec-repo.md)); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` §§ 2–3 |
-| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` §§ 2–3 |
+| `pin` | string | a `github/spec-kit` release tag; **`v1.2.2`** (the latest release when kamui landed, read 2026-10-20) | The spec-kit release whose file set and paths kamui writes: `specs/<nnn>-<slug>/` with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`, `checklists/requirements.md`, and `.specify/memory/constitution.md` once | `hatsu:kamui` §§ 2–3, `hatsu:dowsing-chain` §§ 3–4 |
+| `layout` | string | a path template; **`specs/{nnn}-{slug}`** — `{nnn}` the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title | Where one feature's folder is written | `hatsu:kamui` §§ 2–3, `hatsu:dowsing-chain` § 4 |
+
+### `idle`
+
+The **idle profile** (HR-5), read only by a `hatsu:futon` or `hatsu:kazaana` run whose typed line carries `--idle`, never by an attended one. Catalogue domain `autonomy`, `when: nen/workflow.json#idle`: the rows apply where the block is declared, and an absent key is its catalogue default. `scripts/futon_effort_record.mts start` reads it from the **committed** `nen/workflow.json` of `origin/<branch.base>` (else `HEAD`'s committed copy), never the working tree, and records that commit as the run manifest's `idle.source`. nen tolerates the block and reads none of it. The protocol is [`WORKFLOW.md`](../WORKFLOW.md) § 4 *Idle batches*; the key table is § 2 `idle`.
+
+| Key | Catalogue id | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|---|
+| `decisions` | `workflow.idle.decisions` | open (object) | one of `default` · `hold` · `refuse` per `ask-once-per-run` row of `nen/decisions.json`; **`default` where the row stars an option, `hold` otherwise**, with `harness-attribution-switch`, `host-nen-link`, `cleanup-plan` and `port-drift` `hold` and `publish-offer` `refuse` | The batch answer to each ask-once row. A row the map does not name is `hold` (`publish-offer` `refuse`). A floor fails `start` at exit 1: `publish-offer` is always `refuse`; `host-nen-link`, `harness-attribution-switch` and `missing-maintainer-choice` at most `hold`; `default` on a row that stars no option | `hatsu:futon` § 12, `hatsu:kazaana` § 1, `futon_effort_record.mts start` |
+| `localSlotFrees` | `workflow.idle.localSlotFrees` | fixed | **`merged`**, the only value `start` accepts | When an idle run frees a local slot: at its merge, ROSTER § *Rulings of 2026-09-30*, *Slots and stops* | `hatsu:futon` § 6 |
+| `terminal` | `workflow.idle.terminal` | enum | **`ready-at-prompt-or-integration`** · `ready-at-prompt` | The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch; never `main`, `getsuga`, `mugetsu` or `kagutsuchi` | `hatsu:futon` § 12, `hatsu:kazaana` |
+| `budget.minutes` | `workflow.idle.budget.minutes` | open (integer) | **`480`** | The enforced bound: minutes since the manifest's `startedAt`, read as `status`'s `overBudget`; past it the rest park as `parked:budget` | `hatsu:futon` § 12, `futon_effort_record.mts status` |
+| `budget.tokens` | `workflow.idle.budget.tokens` | open (integer) | **`4000000`** | Advisory and unread until zheref/nen#490 lands; no skill sums `nen usage` itself | none yet |
 
 ### Keys a consuming repository may add
 

@@ -77,7 +77,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 > **Step 2 is the change itself, and it stopped being half-numbered on 2026-09-10.** This table used
 > to carry a step `1.5` — *"the work"*, owned by no skill — beside a step 2 called *build*, which read
 > `rasengan` as *run the build command* rather than *build the thing*. The maintainer's ruling
-> ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-10*) settles it: **`rasengan` IS
+> ([`docs/ROSTER.md`](../../../docs/ROSTER.md) HR-55) settles it: **`rasengan` IS
 > the authoring phase**, so the work has a skill, the six whole numbers are six skills again, and the
 > compile-before-commit sits with the phase that stages the tree.
 
@@ -121,7 +121,7 @@ whether Breath warmed or only re-verified. Continuation never bypasses isolation
 **A new request is a new effort unless the caller explicitly continues the current one.** Sitting
 on a clean feature branch from a previous effort is not a continuation
 ([zheref/hatsu#60](https://github.com/zheref/hatsu/issues/60); [`hatsu:breath`](../breath/SKILL.md)
-§ 3a). Breath still runs, still fetches the configured base, and still cuts a newly rendered
+§ 2a). Breath still runs, still fetches the configured base, and still cuts a newly rendered
 branch. Reuse is only for an explicit "continue" / "same effort" / "on this branch", or for
 turn 2+ of a loop whose step 1 already cut *this* branch in this session.
 

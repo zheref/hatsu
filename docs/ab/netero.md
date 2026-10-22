@@ -17,7 +17,7 @@ real `hatsu:file` under this protocol.
 
 | Fact | Where |
 |---|---|
-| Ratified independent, not a bench activation, not a provision | `docs/ROSTER.md` § *Rulings of 2026-09-14* |
+| Ratified independent, not a bench activation, not a provision | `docs/ROSTER.md` HR-60 |
 | Listed in `plugin.json` `agents` | `.claude-plugin/plugin.json` |
 | Deep tier, effort high, `model: opus` | frontmatter; Cursor maps deep → grok |
 | Writer for process-chairman class | `docs/DISCOVERY.md` Capture and ownership |

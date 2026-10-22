@@ -25,7 +25,7 @@ rule.
 
 > **Dated note, 2026-09-10 — the key changed after this record was made; the record did not.** Every
 > transcript below is verbatim and stays that way. The maintainer's ruling of 2026-09-10
-> ([`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*, *Two provenance trailers*) split
+> ([`docs/ROSTER.md`](../ROSTER.md) HR-51..HR-54) split
 > provenance in two: a **local** Hatsu session writes **`Hatsu-Agent: <persona>`**, and
 > `Akatsuki-Agent:` is the **autonomous CI plane's** key, which nothing on this plane writes. So read
 > every `Akatsuki-Agent=…` below as *what was written on the day*, not as what to write now. What the
@@ -446,7 +446,7 @@ toward flagging.
 
 ## The commit gate at the ruling of 2026-09-10
 
-**The maintainer's ruling of 2026-09-10** ([`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10*,
+**The maintainer's ruling of 2026-09-10** ([`../ROSTER.md`](../ROSTER.md) § *Rulings of 2026-09-10 — the release side lands at `v0.6.0`*,
 *`rasengan` is the AUTHORING phase*) seats the compile-before-commit **here**: kokusen runs this
 repository's declared `iteration.checks` over the finished tree and refuses to commit on red. The
 rows above are untouched; this section records what that gate actually does on **this** repository,

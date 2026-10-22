@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // #154: a Futon claim is local to the Git common dir and fails closed when stale.
+// HR-5: the run manifest records every PR the run opened, whatever its base, and an idle run's rows.
 import assert from 'node:assert/strict';
-import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, renameSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -35,7 +36,8 @@ else process.exit(2);
   chmodSync(gh, 0o755);
   const nen = join(bin, 'nen');
   writeFileSync(nen, `#!/usr/bin/env node
-if(process.argv[2]==='parse'&&process.argv[3]==='futon') console.log(JSON.stringify({repo:'zheref/hatsu',label:process.env.FAKE_BAND?null:'model/gpt',band:process.env.FAKE_BAND||null}));
+if(process.argv.some((a)=>/(^|\s)--idle(\s|$)/.test(a))) process.exit(3);
+else if(process.argv[2]==='parse'&&process.argv[3]==='futon') console.log(JSON.stringify({repo:'zheref/hatsu',label:process.env.FAKE_BAND?null:'model/gpt',band:process.env.FAKE_BAND||null}));
 else process.exit(2);
 `);
   chmodSync(nen, 0o755);
@@ -81,7 +83,106 @@ else process.exit(2);
   renameSync(metadata, parked);
   symlinkSync(parked, metadata);
   expectStatus(call('verify', [], { FAKE_SHA: 'b'.repeat(40) }), 1, 'symlinked metadata parent refused');
-  console.log('futon-effort: start, bind, refresh, and missing/stale/default/foreign-selector refusals passed');
+  rmSync(metadata);
+  renameSync(parked, metadata);
+  const manifestCall = (argv: string[], env: Record<string, string> = {}) =>
+    execute(process.execPath, [script, ...argv], env);
+  expectStatus(manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle --idle']),
+    1, 'a doubled --idle refused');
+  expectStatus(manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt then getsuga --idle']),
+    1, '--idle after then refused');
+  const idleStarted = manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle then rikugan']);
+  expectStatus(idleStarted, 0, 'idle run starts with --idle stripped before nen parse');
+  const idleId = /run ([0-9a-f]{32}) recorded/.exec(String(idleStarted.stdout))?.[1];
+  assert.ok(idleId, 'idle start returns a run id');
+  assert.match(String(idleStarted.stdout), /pre-answered publish-offer → refuse/, 'publish-offer is refused under idle');
+  assert.match(String(idleStarted.stdout), /pre-answered wrap-up → default/, 'a starred row takes its default');
+  const status = () => JSON.parse(String(manifestCall(['status', '--repo', root, '--run', idleId]).stdout));
+  const fresh = status();
+  assert.equal(fresh.contract, 'hatsu.futon.run/v0.2');
+  assert.equal(fresh.idle.localSlotFrees, 'merged');
+  assert.equal(fresh.idle.terminal, 'ready-at-prompt-or-integration');
+  assert.ok(fresh.idle.decisions.length > 0 && fresh.idle.decisions.every((d: { resolution: string }) =>
+    ['default', 'hold', 'refuse'].includes(d.resolution)), 'every ask-once row carries one resolution');
+  const append = (argv: string[], env: Record<string, string> = {}) =>
+    manifestCall(['append', '--repo', root, '--run', idleId, ...argv], env);
+  expectStatus(append(['--pr', '21', '--kind', 'delivery', '--issue', '154']), 0, 'delivery PR appended');
+  expectStatus(append(['--pr', '30', '--kind', 'integration'], { FAKE_BASE: 'main', FAKE_BODY: 'integration' }), 0,
+    'a PR into the default branch is appended too');
+  expectStatus(append(['--pr', '21', '--kind', 'delivery', '--issue', '154'], { FAKE_SHA: 'c'.repeat(40) }), 0,
+    'a re-append refreshes the head, never duplicates');
+  expectStatus(append(['--pr', '21', '--kind', 'integration']), 1, 'a recorded PR cannot change kind');
+  expectStatus(append(['--pr', '31', '--kind', 'delivery']), 1, 'a delivery PR names its issue');
+  expectStatus(append(['--pr', '32', '--kind', 'delivery', '--issue', '154'], { FAKE_CREATED: '2000-01-01T00:00:00Z' }), 1,
+    'a PR opened before the run is refused');
+  expectStatus(append(['--pr', '33', '--kind', 'other']), 1, 'an unknown kind refused');
+  expectStatus(manifestCall(['park', '--repo', root, '--run', idleId, '--issue', '160', '--row', 'port-siblings']), 0, 'effort parked');
+  expectStatus(manifestCall(['park', '--repo', root, '--run', idleId, '--issue', '161', '--row', 'Bad Row']), 1, 'a malformed row refused');
+  const after = status();
+  assert.deepEqual(after.prs.map((e: { pr: number; base: string; kind: string; head: string }) => [e.pr, e.base, e.kind, e.head]),
+    [[30, 'main', 'integration', 'a'.repeat(40)], [21, 'stack', 'delivery', 'c'.repeat(40)]]);
+  assert.deepEqual(after.parked.map((e: { issue: number; row: string }) => [e.issue, e.row]), [[160, 'port-siblings']]);
+  assert.equal(after.overBudget, false);
+  writeFileSync(join(root, '.git', 'hatsu', 'futon', `run-${runId}.json`), JSON.stringify({
+    contract: 'hatsu.futon.run/v0.1', id: runId, repo: 'zheref/hatsu', invocation, selector: 'model/gpt', startedAt: '1999-01-01T00:00:00Z' }));
+  expectStatus(manifestCall(['append', '--repo', root, '--run', runId, '--pr', '21', '--kind', 'delivery', '--issue', '154']), 1,
+    'a v0.1 run still refuses an append');
+  expectStatus(manifestCall(['park', '--repo', root, '--run', runId, '--issue', '160', '--row', 'wrap-up']), 1,
+    'a v0.1 run refuses a park');
+  const legacy = manifestCall(['status', '--repo', root, '--run', runId]);
+  expectStatus(legacy, 2, 'status on a v0.1 run exits 2: the then gate is held, never vacuously met');
+  const legacyOut = JSON.parse(String(legacy.stdout));
+  assert.equal(legacyOut.manifest, 'absent');
+  assert.equal('prs' in legacyOut, false, 'a v0.1 status omits prs');
+  const overId = 'f'.repeat(32);
+  writeFileSync(join(root, '.git', 'hatsu', 'futon', `run-${overId}.json`), JSON.stringify({
+    contract: 'hatsu.futon.run/v0.2', id: overId, repo: 'zheref/hatsu', invocation, selector: 'model/gpt',
+    startedAt: '1999-01-01T00:00:00Z', idle: { ...fresh.idle, budget: { minutes: 1, tokens: 1 } }, prs: [], parked: [] }));
+  assert.equal(JSON.parse(String(manifestCall(['status', '--repo', root, '--run', overId]).stdout)).overBudget, true,
+    'a run past idle.budget.minutes reads overBudget');
+  const lock = join(root, '.git', 'hatsu', 'futon', `run-${idleId}.json.lock`);
+  writeFileSync(lock, '');
+  utimesSync(lock, new Date('2000-01-01T00:00:00Z'), new Date('2000-01-01T00:00:00Z'));
+  expectStatus(manifestCall(['park', '--repo', root, '--run', idleId, '--issue', '162', '--row', 'budget']), 0,
+    'a crashed writer\'s stale lock is cleared');
+  assert.equal(existsSync(lock), false, 'the stale lock is gone after the park');
+  expectStatus(manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon --idle hatsu@model/gpt']), 0,
+    '--idle typed before @ is stripped before nen parse');
+  const git = (argv: string[]) => execute('git', ['-c', 'user.name=fixture', '-c', 'user.email=fixture@example.invalid', ...argv]);
+  mkdirSync(join(root, 'nen'));
+  const commitWorkflow = (value: unknown, message: string) => {
+    writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify(value));
+    expectStatus(git(['add', 'nen/workflow.json']), 0, `stage ${message}`);
+    expectStatus(git(['commit', '-q', '-m', message]), 0, `commit ${message}`);
+  };
+  const idleStart = () => manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle']);
+  commitWorkflow({ idle: { decisions: { 'wrap-up': 'always' } } }, 'out of vocabulary');
+  expectStatus(idleStart(), 1, 'a resolution outside default|hold|refuse refused');
+  for (const [row, resolution] of [['publish-offer', 'default'], ['publish-offer', 'hold'], ['host-nen-link', 'default'],
+      ['harness-attribution-switch', 'default'], ['missing-maintainer-choice', 'default'], ['port-siblings', 'default']]) {
+    commitWorkflow({ idle: { decisions: { [row]: resolution } } }, `${row} ${resolution}`);
+    expectStatus(idleStart(), 1, `the floor refuses ${row}: ${resolution}`);
+  }
+  commitWorkflow({ idle: { localSlotFrees: 'ready+prompted' } }, 'slot widened');
+  expectStatus(idleStart(), 1, 'localSlotFrees is the ruled merged only');
+  commitWorkflow({ branch: { base: 'main' }, idle: { decisions: { 'wrap-up': 'hold', 'mode-unknown': 'default' } } }, 'partial map');
+  const partial = idleStart();
+  expectStatus(partial, 0, 'a partial idle.decisions with valid values starts');
+  const partialOut = String(partial.stdout);
+  assert.match(partialOut, /pre-answered wrap-up → hold/);
+  assert.match(partialOut, /pre-answered mode-unknown → default/);
+  assert.match(partialOut, /pre-answered cleanup-plan → hold/, 'an unnamed row holds');
+  assert.match(partialOut, /pre-answered publish-offer → refuse/, 'an unnamed publish-offer refuses');
+  assert.match(partialOut, /idle profile read from HEAD at [0-9a-f]{40}/, 'the committed source is recorded');
+  writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify({ idle: { decisions: { 'publish-offer': 'default' } } }));
+  expectStatus(idleStart(), 0, 'an uncommitted working-tree edit is never read');
+  const good = String(git(['rev-parse', 'HEAD']).stdout).trim();
+  expectStatus(git(['update-ref', 'refs/remotes/origin/main', good]), 0, 'origin/main at the good commit');
+  expectStatus(git(['commit', '-q', '-a', '-m', 'bad on HEAD']), 0, 'commit a forbidden map on HEAD');
+  const based = idleStart();
+  expectStatus(based, 0, 'the base branch\'s committed copy wins over HEAD');
+  assert.match(String(based.stdout), new RegExp(`idle profile read from origin/main at ${good}`));
+  console.log('futon-effort: start, bind, refresh, missing/stale/default/foreign-selector refusals, the run manifest and the idle floor passed');
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }

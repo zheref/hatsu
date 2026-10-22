@@ -25,6 +25,20 @@ if (existsSync(join(root, 'scripts', 'gh_api_read.mts'))) {
   }
   lanes.push('gh-api-read-guard');
 }
+if (existsSync(join(root, 'scripts', 'clause_id_guard.mts'))) {
+  if (!existsSync(join(root, 'scripts', 'clause_id_guard_fixture.mts'))) {
+    console.error('unit-tests-ci: clause_id_guard.mts has no required fixture');
+    process.exit(2);
+  }
+  lanes.push('clause-guard');
+}
+if (existsSync(join(root, 'scripts', 'prose_ambiguity_check.mts'))) {
+  if (!existsSync(join(root, 'scripts', 'prose_ambiguity_check_fixture.mts'))) {
+    console.error('unit-tests-ci: prose_ambiguity_check.mts has no required fixture');
+    process.exit(2);
+  }
+  lanes.push('canon-lint');
+}
 const fence = `unit_tests_${randomBytes(16).toString('hex')}`;
 for (const lane of lanes) {
   console.log(`unit-tests-ci: ${lane}`);
