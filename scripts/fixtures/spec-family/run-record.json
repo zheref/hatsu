@@ -1,0 +1,22 @@
+{
+  "schema": "hatsu.spec.run/v0.1",
+  "caller": "dowsing-chain",
+  "runId": "dowsing-chain-fixture-family-capture-20261022",
+  "mode": "capture",
+  "family": "fixture-family",
+  "specRepo": "fixture-owner/fixture-spec",
+  "members": [
+    { "code": "FI", "platform": "ios", "sha": "0000000000000000000000000000000000000001" },
+    { "code": "FA", "platform": "android", "sha": "0000000000000000000000000000000000000002" },
+    { "code": "FW", "platform": "web", "sha": "0000000000000000000000000000000000000003" }
+  ],
+  "scope": ["fixture-capability"],
+  "constitutionPr": "FS-PR-#1",
+  "wavePrs": [],
+  "folders": [],
+  "targets": [],
+  "clarify": { "round": 0, "asked": 0, "answered": 0 },
+  "preAnswered": [],
+  "next": "constitution",
+  "at": "2026-10-22T00:00:00Z"
+}
