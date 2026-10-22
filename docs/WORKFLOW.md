@@ -471,7 +471,7 @@ Read in a product family's **spec repository** (role `spec`, [`config/repos.json
 "intake": { "challenger": { "brief": "satotz", "spec": "lippo", "platform": "buhara", "rendered": "bisky" } }
 ```
 
-Hatsu's own block (ROSTER HR-21, HR-24, HR-37), read from **Hatsu's checkout only**, never a consumer's; `nen schema check` tolerates it. The four catalogue rows apply only where the block exists (`when: nen/workflow.json#intake`), so `fill` writes nothing into a consumer. Full description: [`config/workflow.json.md`](config/workflow.json.md) § `intake.challenger` and [`INTAKE-CHALLENGE.md`](INTAKE-CHALLENGE.md) § 1.
+Hatsu's own block (ROSTER HR-21, HR-24, HR-38), read from **Hatsu's checkout only**, never a consumer's; `nen schema check` tolerates it. The four catalogue rows apply only where the block exists (`when: nen/workflow.json#intake`), so `fill` writes nothing into a consumer. Full description: [`config/workflow.json.md`](config/workflow.json.md) § `intake.challenger` and [`INTAKE-CHALLENGE.md`](INTAKE-CHALLENGE.md) § 1.
 
 | Key | Default | Read by |
 |---|---|---|

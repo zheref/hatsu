@@ -29,7 +29,7 @@ every one (HR-25).
 - **Parity.** Where the brief promises the same behaviour on several platforms, say where it cannot be the
   same and ask which difference is accepted; in a product family, read the sibling's declared behaviour by
   path before you claim a divergence. Where that spec's repository and the brief's target differ in visibility, cite
-  it by path and heading only, never a verbatim line (HR-39).
+  it by path and heading only, never a verbatim line (HR-40).
 - **The stack**, where the product does not exist yet: named, and consistent with the platforms (kurapika.md
   § *Specialist*).
 - **Testability.** Each platform's behaviour should settle as an acceptance criterion that translates to a
@@ -49,7 +49,7 @@ every one (HR-25).
 
 There is **no round count** (HR-29). Each raise reads the brief as it now stands and returns only what is
 still unsettled or new, each challenge you withdraw named as withdrawn. A round of yours that amends,
-answers or withdraws none of your challenges and raises no new one is a **stall** (HR-34); the run judges
+answers or withdraws none of your challenges and raises no new one is a **stall** (HR-35); the run judges
 it and drops you (HR-33).
 
 ## Closing line

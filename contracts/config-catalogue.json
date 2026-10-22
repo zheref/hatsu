@@ -384,7 +384,7 @@
         "emperor-time"
       ],
       "question": "Which intake examiner challenges the brief artifact of a brief?",
-      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
     },
     {
       "id": "workflow.intake.challenger.spec",
@@ -405,7 +405,7 @@
         "emperor-time"
       ],
       "question": "Which intake examiner challenges the spec artifact of a brief?",
-      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
     },
     {
       "id": "workflow.intake.challenger.platform",
@@ -426,7 +426,7 @@
         "emperor-time"
       ],
       "question": "Which intake examiner challenges the platform artifact of a brief?",
-      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
     },
     {
       "id": "workflow.intake.challenger.rendered",
@@ -442,12 +442,12 @@
         "buhara",
         "bisky"
       ],
-      "describe": "The intake examiner emperor-time section 4 raises on a brief that names anything rendered: its rendered parts; the Design Direction's drafter is bisky by name, not through this key (HR-27, HR-37). Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
+      "describe": "The intake examiner emperor-time section 4 raises on a brief that names anything rendered: its rendered parts; the Design Direction's drafter is bisky by name, not through this key (HR-27, HR-38). Every examiner whose artifact a brief matches challenges it (HR-25). Read from Hatsu's own checkout only: who challenges a brief is Hatsu policy, so the row applies only where nen/workflow.json declares an intake block and is never filled into a consumer. A value outside the four intake examiners re-asks under decisions row intake-challenger; a code reviewer is never a value (HR-23).",
       "readers": [
         "emperor-time"
       ],
       "question": "Which intake examiner challenges the rendered artifact of a brief?",
-      "source": "docs/ROSTER.md HR-21, HR-24, HR-37; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
+      "source": "docs/ROSTER.md HR-21, HR-24, HR-38; docs/INTAKE-CHALLENGE.md section 1; emperor-time section 4"
     },
     {
       "id": "workflow.monitor.maxCycles",

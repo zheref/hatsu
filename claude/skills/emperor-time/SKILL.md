@@ -67,7 +67,7 @@ invent a criterion**: an open one is written into the brief as an open question.
 surfacing here splits (§ 1).
 
 **Design Direction.** Where the brief names a rendered surface, raise **Bisky** once, as § 4 raises an
-examiner ([`INTAKE-CHALLENGE.md`](../../../docs/INTAKE-CHALLENGE.md) § 2): she returns a `## Design Direction` section citing `UX-{n}` (HR-27, HR-37); Kurapika
+examiner ([`INTAKE-CHALLENGE.md`](../../../docs/INTAKE-CHALLENGE.md) § 2): she returns a `## Design Direction` section citing `UX-{n}` (HR-27, HR-38); Kurapika
 folds it in, **Satotz** challenges it in § 4 (HR-31), the maintainer confirms it with the brief; a
 missing direction is an open question, never a stop.
 
@@ -90,10 +90,10 @@ tier.
 current specifications, every criterion ideally testable. Kurapika settles each challenge by **amending
 the brief** or **pushing back with the reason written into it**. Only a clear closing marker is a pass. An examiner
 whose round settles nothing new has **stalled**, and one unread or silent is never a pass: either drops
-out, its unsettled challenges open questions in the brief (HR-33, HR-34, HR-36). When none remains
+out, its unsettled challenges open questions in the brief (HR-33, HR-35, HR-37). When none remains
 active: all passed → § 5; none stalled → § 5, the unchallenged parts open questions; one stalled → **row
 `intake-stall`** asks the maintainer, every time: continue, or § 5 with the open questions, the
-maintainer's at G1 (HR-30, HR-32, HR-35).
+maintainer's at G1 (HR-30, HR-32, HR-36).
 
 ## 5. Reconcile — file § 3's four searches, on the brief
 

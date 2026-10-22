@@ -532,7 +532,7 @@
     {
       "id": "intake-challenger",
       "class": "ask-once-per-run",
-      "default": "read nen/workflow.json -> intake.challenger from Hatsu's own checkout ($hatsu_root), never the target's, and raise in emperor-time section 4 every intake examiner whose artifact the brief matches (brief -> satotz, spec -> lippo, platform -> buhara, rendered -> bisky as Hatsu's value; HR-24, HR-25, HR-37), with no question; a key missing from the map names no examiner for that artifact, which goes to satotz, said in the run (HR-26). Only where intake.challenger itself is absent or not an object, or a value is outside the intake cast, does the run ask, once per run and per artifact, the star on that artifact's HR-24 examiner (derived per ask; no option below is statically starred); the answer binds that run and is NEVER written by it (Hatsu's value changes by a G4 PR through scripts/config_values.sh set). A code reviewer (a hanten persona) or kurapika is never a value and re-asks (HR-23); a persona with no definition is hanten section 3's gap, that part unchallenged, said. The map routes challenges only: bisky drafts the Design Direction and satotz challenges it, by name, whatever the map says (HR-27, HR-31)",
+      "default": "read nen/workflow.json -> intake.challenger from Hatsu's own checkout ($hatsu_root), never the target's, and raise in emperor-time section 4 every intake examiner whose artifact the brief matches (brief -> satotz, spec -> lippo, platform -> buhara, rendered -> bisky as Hatsu's value; HR-24, HR-25, HR-38), with no question; a key missing from the map names no examiner for that artifact, which goes to satotz, said in the run (HR-26). Only where intake.challenger itself is absent or not an object, or a value is outside the intake cast, does the run ask, once per run and per artifact, the star on that artifact's HR-24 examiner (derived per ask; no option below is statically starred); the answer binds that run and is NEVER written by it (Hatsu's value changes by a G4 PR through scripts/config_values.sh set). A code reviewer (a hanten persona) or kurapika is never a value and re-asks (HR-23); a persona with no definition is hanten section 3's gap, that part unchallenged, said. The map routes challenges only: bisky drafts the Design Direction and satotz challenges it, by name, whatever the map says (HR-27, HR-31)",
       "preferred": [
         {
           "key": "A",
@@ -561,7 +561,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:emperor-time (2026-10-19) to ask while OPEN-4 was open; rewritten when OPEN-4's rulings landed (docs/ROSTER.md HR-23 ... HR-37): the challenger is a dedicated intake cast isolated from code review, declared as a map from artifact to examiner (HR-21), every matching examiner challenging (HR-25). The ask remains only for an absent or out-of-set value; the star is derived per ask, that artifact's HR-24 examiner. docs/INTAKE-CHALLENGE.md section 1."
+      "why": "Added with hatsu:emperor-time (2026-10-19) to ask while OPEN-4 was open; rewritten when OPEN-4's rulings landed (docs/ROSTER.md HR-23 ... HR-38): the challenger is a dedicated intake cast isolated from code review, declared as a map from artifact to examiner (HR-21), every matching examiner challenging (HR-25). The ask remains only for an absent or out-of-set value; the star is derived per ask, that artifact's HR-24 examiner. docs/INTAKE-CHALLENGE.md section 1."
     },
     {
       "id": "port-siblings",
@@ -680,7 +680,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "The stop: in emperor-time section 4's challenge loop, when no intake examiner remains active and at least one has stalled -- its round amended, answered or withdrew none of its challenges and raised no new one (HR-34) -- ask the maintainer through the picker, at EVERY such stop, never defaulted (HR-30, HR-35); each stalled examiner's unsettled challenges are already open questions in the brief (HR-36). Rulings of 2026-10-21 (docs/ROSTER.md HR-29, HR-30, HR-32 ... HR-36): intake challenge rounds are never counted, a stall is judged per examiner and drops that examiner, and the maintainer's stop is the loop's only bound -- a ruled exception, for the intake challenge alone, to izanagi section 6 and en's cap limit. Human-gate because the maintainer is asked at every all-stalled stop (HR-35)."
+      "why": "The stop: in emperor-time section 4's challenge loop, when no intake examiner remains active and at least one has stalled -- its round amended, answered or withdrew none of its challenges and raised no new one (HR-35) -- ask the maintainer through the picker, at EVERY such stop, never defaulted (HR-30, HR-36); each stalled examiner's unsettled challenges are already open questions in the brief (HR-37). Rulings of 2026-10-21 (docs/ROSTER.md HR-29, HR-30, HR-32 ... HR-37): intake challenge rounds are never counted, a stall is judged per examiner and drops that examiner, and the maintainer's stop is the loop's only bound -- a ruled exception, for the intake challenge alone, to izanagi section 6 and en's cap limit. Human-gate because the maintainer is asked at every all-stalled stop (HR-36)."
     }
   ]
 }

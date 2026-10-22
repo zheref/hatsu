@@ -115,7 +115,7 @@ The rows at the time of writing, with the class, the default or gate, and the sk
 | `supply-chain-failure` | G5 | A checksum or manifest failure in the bootstrap is a security event the maintainer must see; never retried | `hatsu:ten`, `hatsu:jusshin` |
 | `unruled-policy-surface` | G5 | A consumer repository declaring a policy surface of its own is unruled; until ruled it is G2 and a genuine-looking exception is brought to the maintainer | `hatsu:backlog-state` |
 | `ambiguous-intent` | G5 | A genuinely ambiguous request, a scope change, or conflicting requirements canon does not adjudicate: **A** (starred) the narrowest reading, **B** the wider reading, **C** restate the request. Brought once, through Crazy Slots | `hatsu:rasengan` |
-| `intake-stall` | G5 | In `emperor-time` § 4's uncounted challenge loop, no intake examiner active and at least one stalled (HR-34): asked at every such stop, never defaulted, no star (HR-35). **A** continue, the stalled examiners re-entering · **B** go on to filing with the open questions, the maintainer's at G1 (HR-32) | `hatsu:emperor-time` |
+| `intake-stall` | G5 | In `emperor-time` § 4's uncounted challenge loop, no intake examiner active and at least one stalled (HR-35): asked at every such stop, never defaulted, no star (HR-36). **A** continue, the stalled examiners re-entering · **B** go on to filing with the open questions, the maintainer's at G1 (HR-32) | `hatsu:emperor-time` |
 
 </details>
 
