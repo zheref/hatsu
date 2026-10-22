@@ -436,7 +436,9 @@ CANON_LINT_NODE_STEP = "Set up Node for the canon prose lint"
 # Pinned by full commit SHA (SEC-14), as READINESS_RENDERED_CHECKOUT is: the job holds a
 # checks: write token, so this setup action is admitted at this SHA only. The job's two
 # first-party actions/checkout@v7 steps stay on ADMITTED_USES' vetted tag, as every PR
-# workflow's do; pinning those by SHA is a landing of its own across the five. v7.1.0.
+# workflow's do; pinning those by SHA is a landing of its own across the five
+# pull_request_target workflows (seven files carry actions/checkout@v7: unit-tests.yml
+# and surface-mirror-regenerate.yml too). v7.1.0.
 CANON_LINT_NODE_USES = "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1"
 CANON_LINT_FROZEN_NODE = {
   "uses" => CANON_LINT_NODE_USES,
@@ -3822,13 +3824,13 @@ def self_test(root)
       validate_repo(tmp, announce: false)
     end
 
-  # --- prose-ambiguity-check.yml (HR-13) -------------------------------------
-  # Installed by its step two, and required to be: its absence is refused, as
-  # prose-size-check.yml's is, so a checkout without it never reaches these cases
-  # (the first validate_repo(tmp) above refused it for the missing file already).
-  # Step one judged the staged copy at templates/ as if installed; that copy left
-  # with the landing, so the installed file is the one judged here. Guarded by its
-  # own File.file? only, beside the prose-size block, not inside it.
+    # --- prose-ambiguity-check.yml (HR-13) -------------------------------------
+    # Installed by its step two, and required to be: its absence is refused, as
+    # prose-size-check.yml's is, so a checkout without it never reaches these cases
+    # (the first validate_repo(tmp) above refused it for the missing file already).
+    # Step one judged the staged copy at templates/ as if installed; that copy left
+    # with the landing, so the installed file is the one judged here. Guarded by its
+    # own File.file? only, beside the prose-size block, not inside it.
     canon_source = File.join(root, ".github/workflows", CANON_LINT_WORKFLOW)
     if File.file?(canon_source)
       canon = File.join(tmp, ".github/workflows", CANON_LINT_WORKFLOW)

@@ -717,8 +717,10 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   it sits in no ruleset and becomes required only after one tagged release of green runs with a
   shrinking baseline (HR-13), by the maintainer's own ruleset edit
   ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § *The new-workflow rule*). Advisory for the
-  merge, that is: a red run still reads the pull request not-ready under `CON-32(a)`, which counts every
-  reported check, so Hatsu's own readiness loop stops on it.
+  merge, that is: a red run still reads the pull request not-ready, because `nen pr ready`'s `CON-32(a)`
+  row counts every reported check ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 2; the clause text
+  at the handbook pin says required checks, a gap for a G4 handbook question), so Hatsu's own readiness
+  loop stops on it.
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the

@@ -513,9 +513,10 @@ The tree check (`redaction-tree`) needs the live list and stays on the maintaine
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
 stages its file at `templates/<name>`, where the self-test judges it as if installed; the second
 installs it under `.github/workflows/` and moves it to `PORTABLE_HOSTED_WORKFLOWS`, which makes its
-absence a refusal, and removes the staged copy: once the name leaves `PENDING_HOSTED_WORKFLOWS` nothing
-reads `templates/<name>`, so a copy left behind is unread and can drift (`templates/pr-readiness.yml` is
-the one `templates/` twin that legitimately stays, as tenkai's source). `PENDING_HOSTED_WORKFLOWS` stays in the validator, empty when nothing is pending, and
+absence a refusal, and removes the staged copy: once a name leaves `PENDING_HOSTED_WORKFLOWS` for
+`PORTABLE_HOSTED_WORKFLOWS` nothing reads `templates/<name>`, so a copy left behind is unread and can
+drift. Two `templates/` twins stay by design: `templates/pr-readiness.yml`, tenkai's source, and
+`templates/unit-tests.yml`, the staged copy the self-test requires for each unit-test workflow. `PENDING_HOSTED_WORKFLOWS` stays in the validator, empty when nothing is pending, and
 every per-workflow table is checked at load to cover exactly the workflows it should.
 
 **Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
@@ -540,16 +541,18 @@ through its adapter, so the pre-PR preflight never skips it once step two instal
 `canon-lint`, stays ADVISORY; requiring it after one tagged release of green runs with a shrinking
 baseline is the maintainer's own ruleset edit, never a run's.
 
-**2026-10-22. The canon prose lint, step two (HR-13; HA-PR-#420).** `prose-ambiguity-check.yml` is installed at
-`.github/workflows/prose-ambiguity-check.yml`, the staged file moved with only its header comment
+**2026-10-22. The canon prose lint, step two (HR-13; HA-PR-#420).** `prose-ambiguity-check.yml` is
+installed at `.github/workflows/prose-ambiguity-check.yml`, the staged file moved with only its header comment
 rewritten (the frozen steps are byte for byte the ones step one froze), and its name moved to
 `PORTABLE_HOSTED_WORKFLOWS`; `PENDING_HOSTED_WORKFLOWS` is empty again. The self-test judges the
-installed copy, refuses its absence and refuses the nine hostile edits against it. A
+installed copy, refuses its absence and refuses the nine hostile edits against it (step one's eight and
+the floating `setup-node` tag its record did not count). A
 `pull_request_target` workflow runs from the base branch's copy, so the pull request that installed it
 could not run it: its first live run is the first pull request opened after that merge. The check stays
 ADVISORY for the merge, in no ruleset, until the maintainer's own edit after one tagged release of green
-runs (HR-13); a red run still reads the pull request not-ready under `CON-32(a)`, as a red
-`prose-size-check` does (§ 5 above).
+runs (HR-13); a red run still reads the pull request not-ready, because `nen pr ready`'s `CON-32(a)` row
+counts every reported check (§ 2; the clause text at the handbook pin says required checks, a gap for a
+G4 handbook question), as a red `prose-size-check` does (the 2026-10-13 prose-diet guard record above).
 With the file on `main`, `scripts/trusted_guard_preflight.rb` derives the lint from it on every
 pre-PR run; its adapter hands the lint the trusted contracts from a copy under the root's git-ignored
 `.nen/`, removed with the run, because the lint refuses a `--rules` or `--base-baseline` path
@@ -559,8 +562,13 @@ directory is the symlinked spelling `mktmpdir` hands back (`/var` → `/private/
 lint's entry guard compared that unresolved argv path with its resolved module URL, so the trusted lint
 ran nothing and exited 0, a false pass that read as a green adapter. The preflight now resolves its
 temporary directory's real path before any guard runs, the lint's entry guard compares real paths, and
-the fixtures prove it: the preflight's red-lint and no-rules cases leave no copy and name the lint's exit,
-and the lint's own fixture invokes it through a symlinked directory and requires the verdict.
+the fixtures prove it: the preflight's red-lint case names the lint's exit 1 and its no-rules case the
+missing contract, both leaving no copy; the preflight refuses a derived lint that exits 0 without its
+`canon-lint:` verdict line as wiring, never a pass, and a red that is the lint's own finding names its
+remedy (fix the prose or remove the stale row) instead of the two-step landing, which stays the remedy
+for a guard-shape red; and the lint's own fixture invokes it through a symlinked directory and requires
+the verdict. `scripts/pr_sections.ts` carries the same unresolved
+comparison in its entry guard and is not touched here: it is the third-hand harvest's (unfiled).
 
 **2026-10-22. The nen pin echo, checked on every pull request.** `scripts/unit_tests_ci.mts` selects
 the `plugin-version-refs-guard` lane whenever `scripts/plugin_version_refs.ts` exists beside its

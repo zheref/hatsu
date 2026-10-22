@@ -6,6 +6,13 @@ require 'tmpdir'
 require 'fileutils'
 require 'pathname'
 
+# Every guard's output is UTF-8 (the lint's summary carries a middle dot). Under LANG unset or C --
+# macOS's default outside an interactive shell -- Ruby 2.6 tags Open3's strings US-ASCII and a
+# regexp match over them raises ArgumentError (invalid byte sequence), as workflow_runner_policy_check.rb
+# records for its own reads. Set both defaults here, once, before any guard runs.
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8
+
 def fail_preflight(message, code = 2)
   warn "trusted-guard-preflight: #{message}"
   exit code
@@ -138,8 +145,17 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
     (guards.keys - not_before_pr.keys).sort.each do |name|
       output, errors, status = Open3.capture3(*adapters.fetch(name))
       puts "  #{name}: exit #{status.exitstatus}"
-      if status.success?
+      # A verdict guard's exit 0 counts only with its verdict line: a guard whose entry guard did
+      # not match its argv path exits 0 having run nothing, and that read as green once (Feitan,
+      # hanten round 2 on HA-PR-#420). The lint's line is its own; another guard's is added here
+      # when that guard joins the list.
+      verdict_lines = { 'prose_ambiguity_check.mts' => /^canon-lint: / }
+      silent = status.success? && verdict_lines.key?(name) && !output.match?(verdict_lines.fetch(name))
+      if status.success? && !silent
         puts "    #{output.lines.map(&:strip).reject(&:empty?).last}" unless output.empty?
+      elsif silent
+        warn "trusted-guard-preflight: #{name} exited 0 without its verdict line (#{verdict_lines.fetch(name).source}): it did not run, a wiring failure, never a pass"
+        failed << name
       else
         puts output unless output.empty?
         warn errors unless errors.empty?
@@ -147,7 +163,18 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
       end
     end
     unless failed.empty?
-      warn "trusted-guard-preflight: red #{failed.join(', ')}; use the two-step landing in docs/GATE-CONFIGURATION.md § 6 (2026-09-20 and 2026-09-30 rulings): land a guard that accepts both shapes first, then change its input in a follow-up PR."
+      # A finding-type guard's red is the author's own prose, not a guard-shape change: its remedy is
+      # named instead of the two-step landing (Phinks, hanten round 2 on HA-PR-#420).
+      finding_remedies = {
+        'prose_ambiguity_check.mts' => 'fix the prose or remove the stale baseline row (docs/config/prose.lint.json.md); the baseline never grows (HR-13)'
+      }
+      shape = failed - finding_remedies.keys
+      remedies = (failed & finding_remedies.keys).map { |name| "#{name}: #{finding_remedies.fetch(name)}" }
+      warn "trusted-guard-preflight: red #{failed.join(', ')}"
+      remedies.each { |line| warn "trusted-guard-preflight: #{line}" }
+      unless shape.empty?
+        warn "trusted-guard-preflight: #{shape.join(', ')}: use the two-step landing in docs/GATE-CONFIGURATION.md § 6 (2026-09-20 and 2026-09-30 rulings): land a guard that accepts both shapes first, then change its input in a follow-up PR."
+      end
       exit 1
     end
     puts 'trusted-guard-preflight: every derived trusted guard passed'
