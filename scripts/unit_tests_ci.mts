@@ -27,6 +27,9 @@ const gated: Array<[string, string, string]> = [
   ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
   ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
+  // Its last case runs --check-nen-pin on the PR checkout itself, so a repin that leaves
+  // docs/NEN-CONTRACT.md's echoed pin line stale fails unit-tests.yml on every pull request.
+  ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

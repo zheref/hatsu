@@ -34,7 +34,7 @@ The baseline is a ratchet, not a truth: the findings the tree carried when the g
 
 ## Who reads it
 
-`scripts/prose_ambiguity_check.mts`, through the `canon-lint` lane (`nen shu test --lane canon-lint`, kokusen's focused route when the guard, its fixture, the contract or the baseline changes) and the advisory pull-request check staged at [`templates/prose-ambiguity-check.yml`](../../templates/prose-ambiguity-check.yml). A prose PR that removes a finding removes its baseline row in the same commit and quotes the before and after counts from `--json`. The port of the verdict is owed to `nen canon lint` (zheref/nen#481) and the citation resolver to `nen ref resolve --citation` (zheref/nen#482); the script retires at that repin.
+`scripts/prose_ambiguity_check.mts`, through the `canon-lint` lane (`nen shu test --lane canon-lint`, kokusen's focused route when the guard, its fixture, the contract or the baseline changes) and the advisory pull-request check `canon-lint` ([`.github/workflows/prose-ambiguity-check.yml`](../../.github/workflows/prose-ambiguity-check.yml); required only after one tagged release of green runs, HR-13). A prose PR that removes a finding removes its baseline row in the same commit and quotes the before and after counts from `--json`. The port of the verdict is owed to `nen canon lint` (zheref/nen#481) and the citation resolver to `nen ref resolve --citation` (zheref/nen#482); the script retires at that repin.
 
 ## Sources
 

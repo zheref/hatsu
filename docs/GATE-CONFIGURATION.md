@@ -537,3 +537,25 @@ through its adapter, so the pre-PR preflight never skips it once step two instal
 `.github/workflows/` and moves its name to `PORTABLE_HOSTED_WORKFLOWS`. The check it creates,
 `canon-lint`, stays ADVISORY; requiring it after one tagged release of green runs with a shrinking
 baseline is the maintainer's own ruleset edit, never a run's.
+
+**Step two landed (Hatsu 0.134.0).** `prose-ambiguity-check.yml` is installed at
+`.github/workflows/prose-ambiguity-check.yml`, the staged file moved with only its header comment
+rewritten (the frozen steps are byte for byte the ones step one froze), and its name moved to
+`PORTABLE_HOSTED_WORKFLOWS`; `PENDING_HOSTED_WORKFLOWS` is empty again. The self-test judges the
+installed copy, refuses its absence and refuses the nine hostile edits against it. A
+`pull_request_target` workflow runs from the base branch's copy, so the pull request that installed it
+could not run it: its first live run is the first pull request opened after that merge. The check stays
+ADVISORY, in no ruleset, until the maintainer's own edit after one tagged release of green runs (HR-13).
+With the file on `main`, `scripts/trusted_guard_preflight.rb` derives the lint from it on every
+pre-PR run; its adapter hands the lint the trusted contracts from a copy under the root's git-ignored
+`.nen/`, removed with the run, because the lint refuses a `--rules` or `--base-baseline` path
+outside `--root` (step one's adapter passed the trusted checkout's own paths, which sit outside it,
+and its fixture accepted any exit; the fixture now requires exit 0 and no copy left behind).
+
+**2026-10-22. The nen pin echo, checked on every pull request.** `scripts/unit_tests_ci.mts` selects
+the `plugin-version-refs-guard` lane whenever `scripts/plugin_version_refs.ts` exists beside its
+fixture, so `unit-tests.yml` runs `scripts/plugin_version_refs.ts --check-nen-pin` over the pull
+request's committed tree (the fixture's last case): a repin that leaves `docs/NEN-CONTRACT.md`'s
+echoed pin line stale fails the check. No workflow file changed, so this is a one-step landing; the
+runner is the base revision's copy, so the lane runs from the first pull request after the one that
+added it merged.

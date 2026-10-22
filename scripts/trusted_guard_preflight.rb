@@ -86,49 +86,67 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
   draft_body = body || File.join(temporary, 'body.md')
   File.write(draft_body, '') unless body
   fail_preflight("body #{draft_body} is unreadable") unless File.file?(draft_body) && File.readable?(draft_body)
-  adapters = {
-    'workflow_runner_policy_check.rb' => ['ruby', File.join(trusted, 'scripts/workflow_runner_policy_check.rb'), '--self-test', root],
-    'surface_mirror_check.sh' => ['bash', File.join(trusted, 'scripts/surface_mirror_check.sh'), root],
-    'surface_link_check.sh' => ['bash', File.join(trusted, 'scripts/surface_link_check.sh'), root],
-    'prose_size_check.sh' => ['bash', File.join(trusted, 'scripts/prose_size_check.sh'), root],
-    'private_name_check_fixture.sh' => ['bash', File.join(trusted, 'scripts/private_name_check_fixture.sh')],
-    'plugin_bump_check.sh' => ['bash', File.join(trusted, 'scripts/plugin_bump_check.sh'), changed,
-                                File.join(trusted, '.claude-plugin/plugin.json'),
-                                File.join(root, '.claude-plugin/plugin.json'), draft_body],
-    'canon_contracts_check.sh' => [{ 'NEN' => ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen')) },
-                                   'bash', File.join(trusted, 'scripts/canon_contracts_check.sh'), '--root', root],
-    # The canon prose lint (HR-13): the trusted guard and rules over this tree, growth held
-    # against the trusted baseline, as prose-ambiguity-check.yml's frozen step runs it.
-    'prose_ambiguity_check.mts' => ['node', File.join(trusted, 'scripts/prose_ambiguity_check.mts'), '--root', root,
-                                     '--rules', File.join(trusted, 'contracts/prose.lint.json'),
-                                     '--base-baseline', File.join(trusted, 'contracts/prose.lint.baseline.json')],
-    'direct_matrix_ci_check.mts' => ['node', File.join(trusted, 'scripts/direct_matrix_ci_check.mts'), root],
-    'branch_authorship_check.sh' => ['sh', File.join(trusted, 'scripts/branch_authorship_check.sh'),
-                                      '--repo', root, '--base', base_sha,
-                                      '--forbid-trailers-from', File.join(trusted, 'nen/workflow.json'), '--forbidden-only']
-  }
-  # Derived, and named as not run: each reads what only exists once the PR is open.
-  not_before_pr = {
-    'readiness_ci_verdict.mts' => "formats the open PR's live nen pr ready verdict; there is no PR before creation"
-  }
-  unknown = guards.keys - adapters.keys - not_before_pr.keys
-  fail_preflight("no local invocation for trusted guard(s): #{unknown.sort.join(', ')}") unless unknown.empty?
-  failed = []
-  (guards.keys & not_before_pr.keys).sort.each { |name| puts "  #{name}: not run (#{not_before_pr.fetch(name)})" }
-  (guards.keys - not_before_pr.keys).sort.each do |name|
-    output, errors, status = Open3.capture3(*adapters.fetch(name))
-    puts "  #{name}: exit #{status.exitstatus}"
-    if status.success?
-      puts "    #{output.lines.map(&:strip).reject(&:empty?).last}" unless output.empty?
-    else
-      puts output unless output.empty?
-      warn errors unless errors.empty?
-      failed << name
+  # The canon lint refuses a --rules or --base-baseline path outside --root (its hardening against a
+  # link that leaves the tree, exit 2), and `trusted` sits outside it. So where the lint is derived,
+  # the trusted contracts are copied under <root>/.nen/ -- git-ignored, and outside the lint's own
+  # walk -- for this run only, and removed with it (the ensure below).
+  lint_contracts = nil
+  if guards.key?('prose_ambiguity_check.mts')
+    FileUtils.mkdir_p(File.join(root, '.nen'))
+    lint_contracts = Dir.mktmpdir('trusted-guard-preflight-', File.join(root, '.nen'))
+    %w[prose.lint.json prose.lint.baseline.json].each do |name|
+      source = File.join(trusted, 'contracts', name)
+      fail_preflight("trusted revision has no contracts/#{name} for the canon lint") unless File.file?(source)
+      FileUtils.cp(source, File.join(lint_contracts, name))
     end
   end
-  unless failed.empty?
-    warn "trusted-guard-preflight: red #{failed.join(', ')}; use the two-step landing in docs/GATE-CONFIGURATION.md § 6 (2026-09-20 and 2026-09-30 rulings): land a guard that accepts both shapes first, then change its input in a follow-up PR."
-    exit 1
+  begin
+    adapters = {
+      'workflow_runner_policy_check.rb' => ['ruby', File.join(trusted, 'scripts/workflow_runner_policy_check.rb'), '--self-test', root],
+      'surface_mirror_check.sh' => ['bash', File.join(trusted, 'scripts/surface_mirror_check.sh'), root],
+      'surface_link_check.sh' => ['bash', File.join(trusted, 'scripts/surface_link_check.sh'), root],
+      'prose_size_check.sh' => ['bash', File.join(trusted, 'scripts/prose_size_check.sh'), root],
+      'private_name_check_fixture.sh' => ['bash', File.join(trusted, 'scripts/private_name_check_fixture.sh')],
+      'plugin_bump_check.sh' => ['bash', File.join(trusted, 'scripts/plugin_bump_check.sh'), changed,
+                                  File.join(trusted, '.claude-plugin/plugin.json'),
+                                  File.join(root, '.claude-plugin/plugin.json'), draft_body],
+      'canon_contracts_check.sh' => [{ 'NEN' => ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen')) },
+                                     'bash', File.join(trusted, 'scripts/canon_contracts_check.sh'), '--root', root],
+      # The canon prose lint (HR-13): the trusted guard and rules over this tree, growth held
+      # against the trusted baseline, as prose-ambiguity-check.yml's frozen step runs it.
+      'prose_ambiguity_check.mts' => ['node', File.join(trusted, 'scripts/prose_ambiguity_check.mts'), '--root', root,
+                                       '--rules', File.join(lint_contracts.to_s, 'prose.lint.json'),
+                                       '--base-baseline', File.join(lint_contracts.to_s, 'prose.lint.baseline.json')],
+      'direct_matrix_ci_check.mts' => ['node', File.join(trusted, 'scripts/direct_matrix_ci_check.mts'), root],
+      'branch_authorship_check.sh' => ['sh', File.join(trusted, 'scripts/branch_authorship_check.sh'),
+                                        '--repo', root, '--base', base_sha,
+                                        '--forbid-trailers-from', File.join(trusted, 'nen/workflow.json'), '--forbidden-only']
+    }
+    # Derived, and named as not run: each reads what only exists once the PR is open.
+    not_before_pr = {
+      'readiness_ci_verdict.mts' => "formats the open PR's live nen pr ready verdict; there is no PR before creation"
+    }
+    unknown = guards.keys - adapters.keys - not_before_pr.keys
+    fail_preflight("no local invocation for trusted guard(s): #{unknown.sort.join(', ')}") unless unknown.empty?
+    failed = []
+    (guards.keys & not_before_pr.keys).sort.each { |name| puts "  #{name}: not run (#{not_before_pr.fetch(name)})" }
+    (guards.keys - not_before_pr.keys).sort.each do |name|
+      output, errors, status = Open3.capture3(*adapters.fetch(name))
+      puts "  #{name}: exit #{status.exitstatus}"
+      if status.success?
+        puts "    #{output.lines.map(&:strip).reject(&:empty?).last}" unless output.empty?
+      else
+        puts output unless output.empty?
+        warn errors unless errors.empty?
+        failed << name
+      end
+    end
+    unless failed.empty?
+      warn "trusted-guard-preflight: red #{failed.join(', ')}; use the two-step landing in docs/GATE-CONFIGURATION.md § 6 (2026-09-20 and 2026-09-30 rulings): land a guard that accepts both shapes first, then change its input in a follow-up PR."
+      exit 1
+    end
+    puts 'trusted-guard-preflight: every derived trusted guard passed'
+  ensure
+    FileUtils.rm_rf(lint_contracts) if lint_contracts
   end
-  puts 'trusted-guard-preflight: every derived trusted guard passed'
 end

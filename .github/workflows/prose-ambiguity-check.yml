@@ -1,11 +1,12 @@
 # prose-ambiguity-check — the canon prose ratchet lint, run on every pull request (HR-13, HR-4).
 #
-# STAGED, NOT INSTALLED. This file ships at templates/prose-ambiguity-check.yml and is registered in
-# scripts/workflow_runner_policy_check.rb's PENDING_HOSTED_WORKFLOWS, the #135 ordering
-# docs/GATE-CONFIGURATION.md requires of a new workflow: `main`'s trusted validator refuses any
-# workflow it does not know, so step one teaches it this file and freezes its guard step; step two,
-# once that validator is the one `main` trusts, copies this file to .github/workflows/ and moves the
-# name to PORTABLE_HOSTED_WORKFLOWS.
+# INSTALLED, step two of the new-workflow rule (docs/GATE-CONFIGURATION.md, the #135 ordering). Step one
+# shipped this file at templates/prose-ambiguity-check.yml, registered in
+# scripts/workflow_runner_policy_check.rb's PENDING_HOSTED_WORKFLOWS with its guard step frozen, so
+# `main`'s trusted validator knew its exact shape before the file existed here; step two moved the file
+# to .github/workflows/ and the name to PORTABLE_HOSTED_WORKFLOWS, so its absence is now a refusal. A
+# `pull_request_target` workflow runs from the base branch's copy, so its first live run is the first
+# pull request opened after step two merged.
 #
 # scripts/prose_ambiguity_check.mts reads Hatsu's canon prose against contracts/prose.lint.json and
 # the shrink-only contracts/prose.lint.baseline.json; its own header names the rules and the exits.

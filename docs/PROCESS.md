@@ -712,7 +712,11 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 
 - **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
   TypeScript verdict, frozen to fixes: its port is owed to `nen canon lint` (zheref/nen#481) and its
-  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin.
+  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin. Its
+  pull-request check, `canon-lint` from `.github/workflows/prose-ambiguity-check.yml`, is **advisory**:
+  it sits in no ruleset and becomes required only after one tagged release of green runs with a
+  shrinking baseline (HR-13), by the maintainer's own ruleset edit
+  ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § *The new-workflow rule*).
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the

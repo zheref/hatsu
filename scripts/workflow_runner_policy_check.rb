@@ -57,7 +57,10 @@ end
 # prose-size-check.yml (zheref/hatsu#135) was registered ahead of its file, the
 # #80 ordering: step one knew and judged it without requiring it, while it
 # shipped inert at templates/; step two installed it and listed it here.
-PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml].freeze
+# prose-ambiguity-check.yml (HR-13, the canon prose ratchet lint) landed the
+# same way: step one staged it at templates/ in PENDING_HOSTED_WORKFLOWS below
+# with its guard step frozen; step two installed it and listed it here.
+PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml prose-ambiguity-check.yml].freeze
 
 # REGISTERED AHEAD OF ITS FILE, A PERMANENT TIER (docs/GATE-CONFIGURATION.md,
 # the new-workflow rule; Chrollo, hanten on #135): a portable, hosted
@@ -65,10 +68,9 @@ PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr
 # at templates/<name>, but does not yet require -- `main`'s validator refuses
 # any workflow it does not know, so the registration lands first. The pull
 # request that installs it moves it to PORTABLE_HOSTED_WORKFLOWS. Empty when
-# nothing is pending.
-# prose-ambiguity-check.yml (HR-13, the canon prose ratchet lint) is staged at
-# templates/ by its step one; its step two installs it and moves it to the list above.
-PENDING_HOSTED_WORKFLOWS = %w[prose-ambiguity-check.yml].freeze
+# nothing is pending. Last used by prose-ambiguity-check.yml (HR-13), whose step
+# two moved it to the list above.
+PENDING_HOSTED_WORKFLOWS = %w[].freeze
 
 # The one non-PR-targeting workflow this policy admits: a push-to-main /
 # workflow_dispatch BUILDER that regenerates surfaces/ and opens a PR, never a
@@ -3748,11 +3750,20 @@ def self_test(root)
       ].each { |label, from, to, step| hostile.call(label, prose, prose_original, from, to, step: step) }
       File.write(prose, prose_original)
 
-      # --- prose-ambiguity-check.yml, staged (HR-13): judged as if installed ---
-      canon_source = File.join(root, "templates", CANON_LINT_WORKFLOW)
+      # --- prose-ambiguity-check.yml (HR-13) -----------------------------------
+      # Installed by its step two, and required to be: its absence is refused, as
+      # prose-size-check.yml's is. Step one judged the staged copy at templates/
+      # as if installed; that copy left with the landing, so the installed file is
+      # the one judged here.
+      canon_source = File.join(root, ".github/workflows", CANON_LINT_WORKFLOW)
       if File.file?(canon_source)
         canon = File.join(tmp, ".github/workflows", CANON_LINT_WORKFLOW)
         canon_original = File.read(canon_source)
+        File.write(canon, canon_original)
+        validate_repo(tmp, announce: false)
+        FileUtils.rm(canon)
+        expect_rejected("#{CANON_LINT_WORKFLOW} missing") { validate_repo(tmp) }
+        File.write(canon, canon_original)
         canon_offender = %Q{the baseline never grows (HR-13)."\n              exit 1\n}
         [
           ["canon lint run from the PR checkout", "guard=.trusted/scripts/prose_ambiguity_check.mts", "guard=scripts/prose_ambiguity_check.mts", CANON_LINT_STEP],
@@ -3765,7 +3776,7 @@ def self_test(root)
           ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
           ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]
         ].each { |label, from, to, step| hostile.call(label, canon, canon_original, from, to, step: step) }
-        FileUtils.rm_f(canon)
+        File.write(canon, canon_original)
       end
 
       # The guard step RUNS as frozen: its own constant under bash as Actions

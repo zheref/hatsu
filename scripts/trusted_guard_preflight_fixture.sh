@@ -94,12 +94,15 @@ set -e
   || { cat "$fixture/alternate.log"; echo 'trusted-guard-preflight-fixture: alternate base guard was not run' >&2; exit 1; }
 
 # A base workflow running the TypeScript canon lint is derived (.mts) and run through
-# its adapter, never refused as unknown and never skipped.
+# its adapter, never refused as unknown and never skipped -- and it PASSES on the clean
+# trusted tree: the adapter hands the lint the trusted contracts from inside the root,
+# since the lint refuses a path outside it (exit 2, which this case once accepted).
+# The lint, its fixture and its contracts are the checkout's own at origin/main.
 git -C "$checkout" reset -q --hard refs/remotes/origin/main
 git -C "$checkout" clean -q -fd
-mkdir -p "$checkout/contracts"
-cp "$source_root/scripts/prose_ambiguity_check.mts" "$source_root/scripts/prose_ambiguity_check_fixture.mts" "$checkout/scripts/"
-cp "$source_root/contracts/prose.lint.json" "$source_root/contracts/prose.lint.baseline.json" "$checkout/contracts/"
+for owned in scripts/prose_ambiguity_check.mts contracts/prose.lint.json contracts/prose.lint.baseline.json; do
+  [ -f "$checkout/$owned" ] || { echo "trusted-guard-preflight-fixture: origin/main has no $owned" >&2; exit 1; }
+done
 cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
   fixture-canon-lint:
     runs-on: ubuntu-latest
@@ -115,9 +118,11 @@ ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon --list > 
 set +e
 ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-lint.log" 2>&1
 set -e
-grep -q '  prose_ambiguity_check.mts: exit [0-9]' "$fixture/canon-lint.log" \
+grep -q '  prose_ambiguity_check.mts: exit 0' "$fixture/canon-lint.log" \
   && ! grep -q 'no local invocation' "$fixture/canon-lint.log" \
-  || { cat "$fixture/canon-lint.log"; echo 'trusted-guard-preflight-fixture: the canon lint adapter did not run' >&2; exit 1; }
+  || { cat "$fixture/canon-lint.log"; echo 'trusted-guard-preflight-fixture: the canon lint adapter did not run green' >&2; exit 1; }
+[ -z "$(find "$checkout/.nen" -maxdepth 1 -name 'trusted-guard-preflight-*' 2>/dev/null)" ] \
+  || { echo 'trusted-guard-preflight-fixture: the canon lint contracts copy was left under .nen/' >&2; exit 1; }
 
 # Discover unknown scripts from the base workflow and refuse missing wiring.
 cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
@@ -137,4 +142,4 @@ set -e
 [ "$code" -eq 2 ] && grep -q 'no local invocation for trusted guard(s): unrecognized_guard.sh' "$fixture/unknown.log" \
   || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: unknown trusted guard was not a wiring error' >&2; exit 1; }
 
-echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the .mts canon lint derived and run, unknown guard refusal, old guard regression cases)'
+echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the .mts canon lint derived and run green from inside the root, unknown guard refusal, old guard regression cases)'
