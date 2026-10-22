@@ -141,7 +141,7 @@ classified it:
   `refused: <skill> (<reason>) [default|declared]` line, never re-judged; the rest of the chain runs.
 - **`then <prose>`**: Kurapika states which skills and verbs the words map to **before acting**,
   then runs them; fan-out prose maps to getsuga's `CON-22` lane. **Prose never maps to `kagutsuchi`
-  or `mugetsu`** — those are typed steps or nothing. Words no skill or verb covers are a **G5
+  or `mugetsu`** (§ 11). Words no skill or verb covers are a **G5
   `DECIDE`** brief, never improvised shell.
 
 ## 9. Reporting — the register, every cycle
@@ -183,7 +183,8 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 - **Never applies a G1 mode label.**
 - **Never batches the merges** — one merge and report per effort.
 - **Never runs `nen release preflight`, `nen fanout compute/record` or `nen shu deploy --run`
-  itself**, and reaches `kagutsuchi` or `mugetsu` only as § 8 allows.
+  itself**, and reaches `kagutsuchi` or `mugetsu` **only as a typed `then` step** whose parse `gate`
+  reads `allowed: true`, never from prose (§ 8).
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open.**
 
 ## 12. `--idle` — the unattended profile (HR-5)

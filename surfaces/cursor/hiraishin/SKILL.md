@@ -171,4 +171,4 @@ evidence comes from `scripts/fixtures/port-family/`**, never a private product's
 - **Never files a port issue twice**, never makes the source PR a Development link.
 - **Never names a product, private repository or business rule** in a public tree, issue or PR body;
   never ports a private source to a public target.
-- **Never merges**; `--dry-run`: § 9.
+- **Never writes** under `--dry-run` outside the scratch directory (§ 9); **never merges**.
