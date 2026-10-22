@@ -465,6 +465,18 @@ Read in a product family's **spec repository** (role `spec`, [`config/repos.json
 | `specKit` → `pin` | `v1.2.2` | `kamui` §§ 2–3: the `github/spec-kit` release whose file set and paths the spec step writes (`specs/<nnn>-<slug>/`'s seven entries plus `checklists/requirements.md`, and `.specify/memory/constitution.md` once, citing `CON-{n}`, never overriding it). Read live on 2026-10-20 as the latest release; moved by the spec repository's own declaration PR |
 | `specKit` → `layout` | `specs/{nnn}-{slug}` | `kamui` §§ 2–3: where one feature's folder is written; `{nnn}` is the next free three-digit number (spec-kit's `sequential` numbering), `{slug}` a kebab phrase from the source's title. The source object is cited in `spec.md`'s header and searched for before a new folder opens |
 
+### `intake`
+
+```json
+"intake": { "challenger": { "brief": "satotz", "spec": "lippo", "platform": "buhara", "rendered": "bisky" } }
+```
+
+Hatsu's own block (ROSTER HR-21, HR-24, HR-37), read from **Hatsu's checkout only**, never a consumer's; `nen schema check` tolerates it. The four catalogue rows apply only where the block exists (`when: nen/workflow.json#intake`), so `fill` writes nothing into a consumer. Full description: [`config/workflow.json.md`](config/workflow.json.md) § `intake.challenger` and [`INTAKE-CHALLENGE.md`](INTAKE-CHALLENGE.md) § 1.
+
+| Key | Default | Read by |
+|---|---|---|
+| `challenger` → `brief` · `spec` · `platform` · `rendered` | `satotz` · `lippo` · `buhara` · `bisky` | `emperor-time` § 4: every examiner whose artifact a brief matches challenges it (HR-25); a key missing from the map goes to `satotz` (HR-26); the map routes challenges only — Bisky drafts the Design Direction and Satotz challenges it by name |
+
 ### `ci`
 
 ```json

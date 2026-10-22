@@ -695,7 +695,7 @@ differ (the `commits` trailer lists, `futon.advanceGo`); or structural and the r
 tables in WORKFLOW § 2, so the two statements of one default cannot drift apart unnoticed.
 
 **2 · Asked, by domain.** Work the rows in the catalogue's domain order (`contracts/config-catalogue.json` → `domains`; today development, versioning,
-testing, review, reporting, notifications, deployment, publishing, port) — through § 6c's picker rules:
+testing, review, reporting, notifications, deployment, publishing, intake, port) — through § 6c's picker rules:
 
 | State | What Tenkai does |
 |---|---|

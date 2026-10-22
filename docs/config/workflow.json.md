@@ -207,14 +207,14 @@ A top-level key, Hatsu's own (the maintainer's rulings of 2026-10-11, zheref/hat
 
 ### `intake.challenger`
 
-A top-level block, Hatsu's own (the maintainer's rulings HR-21, HR-24 and HR-37, [`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-10-21 — the SDD sitting's follow-up questions*). A map from a brief's **artifact** to the **intake examiner** `hatsu:emperor-time` § 4 raises on it ([`docs/INTAKE-CHALLENGE.md`](../INTAKE-CHALLENGE.md) § 1). Read from **Hatsu's own checkout**, never a consumer's: who challenges a brief is Hatsu policy. Every examiner whose artifact a brief matches challenges it (HR-25); an artifact the map does not name goes to `satotz`, said (HR-26). Catalogue ids `workflow.intake.challenger.<artifact>`, domain `intake`, each row carrying `when: nen/workflow.json#intake`, so `fill` writes nothing into a repository without the block; set through `config_values.sh set`, which refuses a value outside the four examiners. An absent key or an out-of-set value is decisions row `intake-challenger`'s once-per-run ask, never written by the run. `nen schema check` tolerates the block and reads none of it.
+A top-level block, Hatsu's own (the maintainer's rulings HR-21, HR-24 and HR-37, [`docs/ROSTER.md`](../ROSTER.md) § *Rulings of 2026-10-21 — the SDD sitting's follow-up questions*). A map from a brief's **artifact** to the **intake examiner** `hatsu:emperor-time` § 4 raises on it ([`docs/INTAKE-CHALLENGE.md`](../INTAKE-CHALLENGE.md) § 1). Read from **Hatsu's own checkout**, never a consumer's: who challenges a brief is Hatsu policy. Every examiner whose artifact a brief matches challenges it (HR-25); an artifact the map does not name goes to `satotz`, said (HR-26). **The map routes challenges only**: Bisky drafts the Design Direction and Satotz challenges it by name, whatever the map says (HR-27, HR-31), so no value can make an examiner challenge her own draft. Catalogue ids `workflow.intake.challenger.<artifact>`, domain `intake`, each row carrying `when: nen/workflow.json#intake`, so `fill` writes nothing into a repository without the block; set through `config_values.sh set`, which refuses a value outside the four examiners. An absent or non-object `intake.challenger`, or an out-of-set value, is decisions row `intake-challenger`'s once-per-run ask, never written by the run. `nen schema check` tolerates the block and reads none of it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `brief` | enum | `satotz` · `lippo` · `buhara` · `bisky`; **`satotz`** | The brief itself — problem, audience, success criteria, priority, scope boundaries — and the Design Direction Bisky drafts (HR-31) | `hatsu:emperor-time` § 4 |
+| `brief` | enum | `satotz` · `lippo` · `buhara` · `bisky`; **`satotz`** | The brief itself — problem, audience, success criteria, priority, scope boundaries | `hatsu:emperor-time` § 4 |
 | `spec` | enum | the same four; **`lippo`** | A brief touching a specification: a product family's `spec.md`, a spec folder, a capture run's output | `hatsu:emperor-time` § 4 |
 | `platform` | enum | the same four; **`buhara`** | A brief naming a platform — nearly every brief | `hatsu:emperor-time` § 4 |
-| `rendered` | enum | the same four; **`bisky`** | A brief naming anything rendered; Bisky also drafts its Design Direction (`emperor-time` § 3, HR-27) | `hatsu:emperor-time` §§ 3–4 |
+| `rendered` | enum | the same four; **`bisky`** | A brief naming anything rendered | `hatsu:emperor-time` § 4 |
 
 ### `ci`
 

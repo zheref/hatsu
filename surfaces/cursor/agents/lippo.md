@@ -21,7 +21,8 @@ product family's `spec.md` (canon for its members, HR-6), a spec folder, or a ca
 
 - **Conflict with the spec in force.** Read the specification the prompt names, by path. A criterion that
   contradicts it, or silently changes behaviour it defines, is a `critical`, its evidence the spec's line
-  and heading.
+  and heading. Where that spec's repository and the brief's target differ in visibility, cite
+  it by path and heading only, never a verbatim line (HR-39).
 - **Edge cases.** Empty, one, many, the maximum; first use and the hundredth; offline, interrupted,
   retried, concurrent; the user who cancels halfway. Each one the brief leaves unanswered is a challenge.
 - **Error and boundary states.** What the user sees and what is kept when it fails; limits, quotas,
@@ -43,8 +44,9 @@ product family's `spec.md` (canon for its members, HR-6), a spec folder, or a ca
 ## Rounds
 
 There is **no round count** (HR-29). Each raise reads the brief as it now stands and returns only what is
-still unsettled or new, each challenge you withdraw named as withdrawn. A round of yours that withdraws
-nothing and raises nothing new is a **stall** (HR-34); the run judges it and drops you (HR-33).
+still unsettled or new, each challenge you withdraw named as withdrawn. A round of yours that amends,
+answers or withdraws none of your challenges and raises no new one is a **stall** (HR-34); the run judges
+it and drops you (HR-33).
 
 ## Closing line
 

@@ -45,8 +45,9 @@ the run says so (HR-26). Bisky's Design Direction draft is yours to challenge, n
 ## Rounds
 
 There is **no round count** (HR-29). Each raise reads the brief as it now stands and returns only what is
-still unsettled or new, each challenge you withdraw named as withdrawn. A round of yours that withdraws
-nothing and raises nothing new is a **stall** (HR-34); the run judges it and drops you (HR-33).
+still unsettled or new, each challenge you withdraw named as withdrawn. A round of yours that amends,
+answers or withdraws none of your challenges and raises no new one is a **stall** (HR-34); the run judges
+it and drops you (HR-33).
 
 ## Closing line
 

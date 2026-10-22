@@ -88,10 +88,12 @@ tier.
 
 **No round is counted** (HR-29): back and forth until the brief carries no ambiguity and no conflict with
 current specifications, every criterion ideally testable. Kurapika settles each challenge by **amending
-the brief** or **pushing back with the reason written into it**. An examiner whose round settles nothing
-new has **stalled** and drops out, its unsettled challenges open questions in the brief (HR-33, HR-34,
-HR-36). When none remains active and one stalled, **row `intake-stall`** asks the maintainer, every time:
-continue, or go on to § 5 with the open questions, the maintainer's at G1 (HR-30, HR-32, HR-35).
+the brief** or **pushing back with the reason written into it**. Only a clear closing marker is a pass. An examiner
+whose round settles nothing new has **stalled**, and one unread or silent is never a pass: either drops
+out, its unsettled challenges open questions in the brief (HR-33, HR-34, HR-36). When none remains
+active: all passed → § 5; none stalled → § 5, the unchallenged parts open questions; one stalled → **row
+`intake-stall`** asks the maintainer, every time: continue, or § 5 with the open questions, the
+maintainer's at G1 (HR-30, HR-32, HR-35).
 
 ## 5. Reconcile — file § 3's four searches, on the brief
 
