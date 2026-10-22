@@ -1473,6 +1473,20 @@ class ReviewScopes(Item):
         return self.detect(ctx)  # consumer policy is chosen by its owner
 
 
+def nen_below_pin(nen, hatsu_root):
+    """None when `nen --version` meets the contract's dependency.minimum; else the reason, quoted."""
+    try:
+        minimum = json.loads((hatsu_root / "nen" / "contract.json").read_text())["dependency"]["minimum"]
+        want = tuple(int(x) for x in str(minimum).split(".")[:2])
+        out = subprocess.run([nen, "--version"], capture_output=True, text=True, timeout=30)
+        have = tuple(int(x) for x in out.stdout.strip().split(".")[:2])
+    except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as exc:
+        return f"the nen on PATH or the contract's minimum could not be read: {exc}"
+    if have < want:
+        return f"the nen on PATH is {out.stdout.strip()}, below the pinned minimum {minimum}: it has no review ledger verb"
+    return None
+
+
 class ReviewLedger(Item):
     """Diagnose the active effort's local review history without resetting it."""
 
@@ -1520,10 +1534,16 @@ class ReviewLedger(Item):
         # The ledger's validity is nen's verdict, never re-derived here (zheref/nen#346):
         # `show` loads it through the verb's own loader -- roster from review.scopes,
         # history and counts checked -- and writes nothing.
+        if ReviewScopes().detect(ctx)["state"] != SATISFIED:
+            return self.row(ROUTED, "review.scopes is missing or malformed, so nen cannot read the ledger's roster",
+                            "configure review.scopes (the review-scopes row), then re-run; never restore history for it")
         nen = shutil.which("nen")
         if nen is None:
             return self.row(BLOCKED, "nen is not on PATH, so the review ledger cannot be read",
                             "bind the pinned nen (hatsu:ten), then re-run; never judge the ledger by hand")
+        below = nen_below_pin(nen, ctx.hatsu_root)
+        if below:
+            return self.row(BLOCKED, below, "bind the pinned nen (hatsu:ten), then re-run; never judge the ledger by hand")
         argv = [nen, "review", "ledger", "show", "--repo", str(ctx.repo), "--branch", name, "--json"]
         if expected_pr:
             argv += ["--pr", str(expected_pr)]
@@ -1534,6 +1554,12 @@ class ReviewLedger(Item):
                             "re-run once nen runs; never judge the ledger by hand")
         if shown.returncode != 0:
             reason = next((line for line in shown.stderr.splitlines() if line.strip()), f"exit {shown.returncode}")
+            if shown.returncode == 1:
+                return self.row(BLOCKED, f"the review ledger is locked or unreadable: {reason}",
+                                "re-run once the lock clears; never recover or re-init for it")
+            if "unknown option" in reason or "unknown subcommand" in reason:
+                return self.row(BLOCKED, f"the nen on PATH has no review ledger verb: {reason}",
+                                "bind the pinned nen (hatsu:ten), then re-run")
             return self.row(BLOCKED, f"nen review ledger show refused the ledger: {reason}",
                             "restore the original reviewer history with its used counts; never reset the cycle")
         key = f"PR #{expected_pr}" if expected_pr else "branch"
@@ -1977,8 +2003,14 @@ def self_test() -> int:
           and not (review_repo / ".nen" / "hanten").exists())
     # Ledgers are written by the verb itself, then mutated: nen's loader is the judge (zheref/nen#346).
     def ledger_verb(*args):
-        subprocess.run(["nen", "review", "ledger", *args, "--repo", str(review_repo), "--json"],
-                       check=True, capture_output=True)
+        try:
+            done = subprocess.run(["nen", "review", "ledger", *args, "--repo", str(review_repo), "--json"],
+                                  capture_output=True, text=True)
+        except OSError as exc:
+            sys.exit(f"tenkai_adopt --self-test: nen could not run ({exc}) -- the review cases need the pinned nen on PATH")
+        if done.returncode != 0:
+            sys.exit(f"tenkai_adopt --self-test: `nen review ledger {args[0]}` exited {done.returncode}: "
+                     f"{done.stderr.strip()} -- the review cases need the pinned nen (>= the contract's minimum) on PATH")
     ledger = review_repo / ".nen" / "hanten" / "topic-review.cycle.json"
     ledger_verb("init", "--branch", "topic/review")
     ledger_verb("record", "--branch", "topic/review", "--persona", "nobunaga", "--outcome", "ran")
@@ -2025,9 +2057,43 @@ def self_test() -> int:
     pr_ledger.write_text(json.dumps(wrong_pr))
     check("wrong PR number in ledger is blocked",
           ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    pr_ledger.write_text(json.dumps(dict(wrong_pr, pr=7)))
+
+    def detect_with_nen(script):
+        """Detect with a stand-in `nen` first on PATH; the real PATH is restored after."""
+        fake_bin = Path(tempfile.mkdtemp(prefix="tenkai-nen-"))
+        (fake_bin / "nen").write_text(script)
+        (fake_bin / "nen").chmod(0o755)
+        saved_path = os.environ["PATH"]
+        os.environ["PATH"] = f"{fake_bin}{os.pathsep}{saved_path}"
+        try:
+            return ReviewLedger().detect(review_ctx)
+        finally:
+            os.environ["PATH"] = saved_path
+            shutil.rmtree(fake_bin, ignore_errors=True)
+    git_dir = Path(shutil.which("git")).parent
+    old_nen = detect_with_nen("#!/bin/sh\necho 0.24.0\n")
+    check("a nen below the pinned minimum is blocked as a binding gap, never as damaged history",
+          old_nen["state"] == BLOCKED and "below the pinned minimum" in old_nen["detail"]
+          and "restore" not in old_nen["action"])
+    os.environ["PATH"], saved = f"{git_dir}", os.environ["PATH"]
+    try:
+        no_nen = ReviewLedger().detect(review_ctx) if shutil.which("nen") is None else None
+    finally:
+        os.environ["PATH"] = saved
+    check("no nen on PATH is blocked as a binding gap, never as damaged history",
+          no_nen is not None and no_nen["state"] == BLOCKED and "not on PATH" in no_nen["detail"]
+          and "restore" not in no_nen["action"])
+    locked = detect_with_nen('#!/bin/sh\n[ "$1" = --version ] && { echo 9.99.0; exit 0; }\n'
+                             'echo "nen review: review ledger: lock timeout on the ledger" >&2\nexit 1\n')
+    check("a ledger lock or I/O failure (exit 1) asks for a re-run, never a history restore",
+          locked["state"] == BLOCKED and "locked or unreadable" in locked["detail"]
+          and "restore" not in locked["action"])
     review_workflow.write_text("{}")
     check("missing review scopes are routed as configuration",
           ReviewScopes().detect(review_ctx)["state"] == ROUTED)
+    check("the ledger row routes missing review scopes to configuration, never to a history restore",
+          ReviewLedger().detect(review_ctx)["state"] == ROUTED)
 
     print("\ngreenfield — diagnose then apply then apply again")
     d = fixture()

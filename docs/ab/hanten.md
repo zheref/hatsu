@@ -463,7 +463,7 @@ invocations inside one cycle.
 hand where a repository's layout defeated it (§ Residue 5's named gap, now closed). `nen/workflow.json`
 gains a `review.scopes` block, and classification is `nen review scopes --base <ref> --repo <path> --json`.
 The hand table and the "gap worth naming" callout are retired to the session history file; the budgets they
-used to carry are now `review.scopes[].budget`, still counted by `scripts/hanten_cycle_ledger.sh`.
+used to carry are now `review.scopes[].budget`, still counted by `scripts/hanten_cycle_ledger.sh` (retired for `nen review ledger` at nen v0.26.0, zheref/hatsu#216).
 
 ### Verified live, in this worktree, at nen `0.11.0` + the `review` verb from `zheref/nen` reports-reviewers
 
@@ -541,8 +541,8 @@ raises the `surfaces` scope declared in `nen/workflow.json` (Phinks, budget 1, t
 `scripts/surface_link_check.sh` and `scripts/surface_mirror_check.sh` handed to him first). Verified
 live on the effort that added it: `nen schema check --repo .` reports
 `nen/workflow.json#review.scopes  7 scope(s): … surfaces (phinks), release (phinks)`, and the ledger
-script keeps one budget per persona (`scripts/hanten_cycle_ledger.sh` reads `budget` by persona, the
-later scope winning), which is why § 2b says one persona, one budget. § 4 records each reviewer's
+script kept one budget per persona (`scripts/hanten_cycle_ledger.sh` read `budget` by persona, the
+later scope winning; `nen review ledger`, which replaced it at nen v0.26.0, takes the smallest), which is why § 2b says one persona, one budget. § 4 records each reviewer's
 spend with `nen usage record` as it returns (`--source "hanten § 4: <persona>, <readout>"`); the
 verb refuses an entry with no number and no `--not-reported` at exit 2 (its own `--help`), so an
 unrecorded reviewer cannot read as recorded. The prose stayed under 12,288 bytes through five named

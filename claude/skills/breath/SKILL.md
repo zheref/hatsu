@@ -131,7 +131,7 @@ nen shu warmup --repo <path> --branch <rendered name> --from <branch.base | the 
 **§ 3b · Opening the Hanten cycle ledger.** Once the branch exists (exit `0` or `4`, or a
 no-declaration git half that cut `--branch`):
 `nen review ledger init --repo <path> --branch <rendered name> --json`. Exit `0`
-is a new cycle; `2 already exists` is reported, never reset; a file missing later is a lost ledger
+is a new cycle, others [WORKFLOW](../../../docs/WORKFLOW.md) § *The review ledger's exits*; a file missing later is a lost ledger
 for [`hanten`](../hanten/SKILL.md), not a second `init`. **One `init` per branch, never silent;
 continuation never cuts or inits again.** A branch breath did not cut gets it from hanten § 1's `ensure`.
 

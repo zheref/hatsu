@@ -24,7 +24,7 @@ nen parse hanten \
 
 **Fail-closed cycle ledger:** `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show` refuse its absence.
 Every entry first runs `nen review ledger ensure --repo <path> --branch <branch> [--pr <n>] --json`:
-`opened` (say so) or `present`; exit `3` stops on trunk. Exit `4` means a lost ledger: recover **in this turn**
+`opened` (say so) or `present`; other exits: [WORKFLOW](../../../../docs/WORKFLOW.md) § *The review ledger's exits*. Exit `4` means a lost ledger: recover **in this turn**
 (WORKFLOW.md § 4). A first cycle needs the maintainer's picker confirmation for
 `recover-first <same args> --confirmed-first-cycle`; prior reviews restore their counts. Unknown history is
 G5 naming the restore path; headless or refused stops. **Never fabricate review history or reset a budget.**

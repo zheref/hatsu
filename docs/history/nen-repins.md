@@ -66,7 +66,9 @@ init|ensure|decide|record|show|recover-first` (zheref/nen#346, NN-PR-#471) repla
 `scripts/hanten_cycle_ledger.sh` in hanten §§ 1–2b, breath § 3b and tenkai's review-ledger row; the script,
 its late-persona fixture and lane `ledger-guard` retire. The verb reads the roster and maxima from
 `review.scopes` alone (no built-in personas or fallback budgets) and has no late-persona exception: an
-unstamped ledger missing a declared reviewer's row refuses at exit `2` and is restored by hand. The pin
+unstamped ledger missing a declared reviewer's row refuses at exit `2` and is restored by hand. nen's mutex
+does not exclude the script's OS lock, so legacy writers stop first: WORKFLOW § *The review ledger's exits*
+(*Switching writers*) names how a stale installed copy is found and drained. The pin
 crosses v0.25.0 (no breaking notes, floor 0.24) and v0.26.0 (floor 0.26). Absorbed, note by note:
 
 - **`pr open` adopts an open PR at exit `0`** (`existing: true`) for the same head, base and head commit:
@@ -75,10 +77,11 @@ crosses v0.25.0 (no breaking notes, floor 0.24) and v0.26.0 (floor 0.26). Absorb
   `canon resolve` and `commit format`: file § 4 reads `refused[]` instead of stderr (emperor-time cites file
   § 4); no Hatsu caller reads `canon resolve` or `commit format` refusals under `--json`.
 - **Ledger homes in the git common directory**: the loop ledger is `<git-common-dir>/.nen/loop/<id>.json`
-  of `--repo` (izanagi § 3 and WORKFLOW § *`monitor`* updated; en already said so); Hatsu reads no stop
-  answer or run manifest home.
-- **`parse --grammar` refuses an unintroduced later slot**: all 36 skill grammars return the same exits on
-  0.24.0 and 0.26.0 (144 runs, none differing).
+  of `--repo` (izanagi § 3 and WORKFLOW § *`monitor`* updated; en already said so); stop answers and run
+  manifests move to `<git-common-dir>/.nen/stops/` and `.nen/runs/`, under the common-dir `.nen/` cleanup § 4 now keeps as records;
+  no Hatsu skill reads them yet.
+- **`parse --grammar` refuses an unintroduced later slot**: the 36 (skill, grammar) pairs this run extracted return the
+  same exits on 0.24.0 and 0.26.0 (144 runs, none differing).
 - **`pr ready` and `pr merge --release-unit` read `aiReviewers`**: no Hatsu change here; getsuga § 3a's and
   kazaana § Residue's "owed to nen" clause is zheref/hatsu#380's to rewrite.
 - **`pr converge` exits** and **`repo classify`'s spec role**: no Hatsu caller yet (zheref/hatsu#413 adopts

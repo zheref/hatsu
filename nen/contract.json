@@ -574,7 +574,7 @@
             "scripts/tenkai_adopt.sh",
             "--self-test"
           ],
-          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline. It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes."
+          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes."
         }
       },
       "pr-composition-guard": {

@@ -89,8 +89,8 @@ which seeds only `ten`; that skill's every-session refresh calls the same script
 
 **On the installed plugin path** you need one binary, plus `git`, `gh` and **`python3`, a
 prerequisite you install yourself where the host lacks it** — a minimal Linux image, or a macOS host
-without the Command Line Tools, has none: several skill scripts run Python (`hanten`'s cycle ledger,
-`tenkai`'s adoption, `kagutsuchi`'s worktree among them), and without it those steps stop. `jq` is optional there: the warm-up's checks use it when present and
+without the Command Line Tools, has none: several skill scripts run Python (`tenkai`'s adoption,
+`kagutsuchi`'s worktree among them), and without it those steps stop. `jq` is optional there: the warm-up's checks use it when present and
 say what they could not read without it (`ten` § 5 reports Claude Code's install record unread, never a
 stop). `yq` is never needed. (The repository's own CI is a separate matter — `scripts/plugin_bump_check.sh`
 requires `jq`.)

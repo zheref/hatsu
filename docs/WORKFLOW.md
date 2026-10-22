@@ -1344,8 +1344,8 @@ its operation; Tenkai owns detection and the setup conversation. An effort artif
 the `.nen/hanten/` review ledger is local audit state, created by Breath when it cuts the branch, or
 by Hanten § 1's `ensure` for a branch Breath did not cut when no trace of an earlier ledger survives
 (`nen review ledger`, zheref/nen#346). Its roster and maxima are the target's `review.scopes` alone: nen
-has no fallback persona or budget, and a missing or malformed policy, or an unstamped ledger missing a
-declared reviewer's row, is exit `2`, restored by hand. Recovery is for a **lost** one — `ensure`'s exit `4`: a trace says a
+has no fallback persona or budget, so a missing or malformed policy is exit `2` and configured, and an
+unstamped ledger missing a declared reviewer's row is exit `2` and restored by hand (the table below). Recovery is for a **lost** one — `ensure`'s exit `4`: a trace says a
 ledger was opened under the key before. A branch name reused after its branch was merged and deleted
 reads lost too, by design: its marker never expires, so it is settled here, never silently re-opened. Tenkai diagnoses it, but its `apply` cannot create review
 history. Hanten inspects prior review evidence; after the maintainer confirms this is the first
@@ -1353,6 +1353,28 @@ cycle under the key, Hanten runs `nen review ledger recover-first
 --confirmed-first-cycle`, recording the recovery in the file. Otherwise it restores the original
 used counts. Unreconstructable prior review history is a **safety precondition**, not a missing
 configuration value; it stops at G5 rather than issuing a fresh budget.
+
+**The review ledger's exits.** They route every `nen review ledger` call
+hanten and breath make (`ensure`, `init`, `decide`, `record`, `show`), read with `--json`; the refusal's
+text, not the exit alone, picks the row (zheref/hatsu#216):
+
+| Exit | The verb says | Route |
+|---|---|---|
+| `0` | `opened`, `present`, a new cycle, the document | say which, continue |
+| `1` | a lock timeout or an I/O failure | stop naming the ledger path; re-run once the lock clears; never a recovery, never an `init` |
+| `2` | the ledger already exists (`init`) | report it, never reset; hanten § 1's `ensure` owns a branch breath did not open |
+| `2` | `review.scopes` is missing or malformed | `missing-configuration`: Tenkai configures `review.scopes`, then the same call re-runs |
+| `2` | `unknown option` or `unknown subcommand` | a nen below 0.26 is first on `PATH`: bind the pinned nen (ten § 2), then re-run |
+| `2` | missing, corrupt or ambiguous history (an unstamped ledger missing a declared reviewer's row) | restore the original counts; unreconstructable is G5, never a fresh budget |
+| `2` | any other refusal (a bad argument, a budget misused) | a wiring stop, quoted |
+| `3` | `ensure` refused: its `reason` names the trunk, `HEAD`, an empty branch or a `refs/*` name | stop: no effort ledger on that ref |
+| `4` | `ensure: lost`, with `traces[]` | the recovery above |
+
+**Switching writers.** nen's mutex (`<ledger>.lock`) does not exclude the retired script's OS lock
+(`.cycle.lock`). A Hatsu below 0.134.0 still runs `scripts/hanten_cycle_ledger.sh` from its own
+`$hatsu_root`; an installed copy whose root still holds that file is stale. Finish or stop every hanten
+and breath session on such a copy, and refresh it (`hatsu:bakuryuha`, or ten's freshness check), before a
+0.134.0 session writes the same `.nen/hanten/` ledger.
 
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
 [`PROCESS.md`](PROCESS.md) § *Exit codes and refusals* and `claude/rules/hatsu.md` cite this list:
@@ -1574,7 +1596,8 @@ The sections and Delivery guards and Nen's per-run requirements check join evide
 **every** create or edit. No undeclared heading may grow a second composition contract.
 
 The verbs: `nen pr open` (the one PR, from the pushed head, at nen `0.13`: exit `2` when the head is not
-on the remote, exit `1` naming an open PR for the branch), `nen pr body-check` (the body's completeness),
+on the remote, exit `1` naming an open PR for the branch; from nen `0.26`, exit `0` with `existing: true`
+adopting the PR already open at this base and head commit), `nen pr body-check` (the body's completeness),
 `nen changelog fragment-required` (whether this change owes a fragment), `nen gate derive` (which gate
 the PR stands at — **derived, never labelled by `shibari`**), `nen pr edit-body` to write the body back,
 and `nen pr request-reviews` to request the reviewers. **`nen pr edit-body --target <owner/name> --pr <n> --body-file <path>` exists from nen
