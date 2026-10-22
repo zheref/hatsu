@@ -564,5 +564,31 @@
       "rendered": "bisky",
       "$rendered": "one of: satotz | lippo | buhara | bisky"
     }
+  },
+  "idle": {
+    "decisions": {
+      "harness-attribution-switch": "hold",
+      "host-nen-link": "hold",
+      "missing-consumer-declaration": "default",
+      "missing-argument": "default",
+      "missing-configuration": "default",
+      "missing-maintainer-choice": "hold",
+      "mode-unknown": "default",
+      "direct-mismatch": "default",
+      "port-drift": "default",
+      "intake-challenger": "hold",
+      "port-siblings": "hold",
+      "wrap-up": "default",
+      "cleanup-plan": "default",
+      "publish-offer": "refuse"
+    },
+    "localSlotFrees": "merged",
+    "$localSlotFrees": "one of: ready+prompted | merged | stacked-open",
+    "terminal": "ready-at-prompt-or-integration",
+    "$terminal": "one of: ready-at-prompt-or-integration | ready-at-prompt",
+    "budget": {
+      "minutes": 480,
+      "tokens": 4000000
+    }
   }
 }

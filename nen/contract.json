@@ -445,7 +445,7 @@
             "node",
             "scripts/futon_effort_record_fixture.mts"
           ],
-          "$comment": "Hermetic Futon ownership fixture: verifies bind, refresh and missing/stale/default-branch/selector refusals in a scratch Git common directory. Run when the record script, Futon binding, or En's merge guard changes."
+          "$comment": "Hermetic Futon ownership and run-manifest fixture: verifies bind, refresh and missing/stale/default-branch/selector refusals, and the manifest (idle start with --idle stripped, append whatever the base, park, status), in a scratch Git common directory. Run when the record script, Futon binding, or En's merge guard changes."
         }
       },
       "readiness-json-guard": {
