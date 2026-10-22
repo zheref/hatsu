@@ -298,6 +298,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "HA321 focused Delivery normalization, rendering and body/ledger consistency fixtures. No project-wide regression or coverage capture."
+      },
+      "clause-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor exits 1, a gap is a notice at exit 0, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity and an empty id space exit 2; its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -832,6 +837,17 @@
             "scripts/pr_body_delivery_check_fixture.sh"
           ],
           "why": "Focused actual Nen report/render integration and hostile ledger/body fixtures for the mandatory metadata preamble."
+        }
+      },
+      "clause-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/clause_id_guard_fixture.mts"
+          ],
+          "$comment": "Hermetic HR id guard fixture plus one read of the live docs/ROSTER.md (HR-2)."
         }
       }
     },
