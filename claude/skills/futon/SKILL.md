@@ -191,4 +191,5 @@ pre-answered rows; a held or refused row, a G5, a *by hand* step or the budget p
 (`park`) and the run moves on, no picker shown; it ends at `idle.terminal`, its `then` held — never
 `main`, `getsuga` or `mugetsu`.
 
-*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen v0.15.1+; an older binary's exit `2` is relayed.*
+*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen from v0.15.1;
+an older binary's exit `2` is relayed.*

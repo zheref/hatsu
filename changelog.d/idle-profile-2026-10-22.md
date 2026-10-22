@@ -8,4 +8,4 @@
 
 - **En's cap ledger outlives the effort worktree.** en §§ 2 and 7 pass `nen loop iterate` a `--repo` that is the git common directory (`git rev-parse --path-format=absolute --git-common-dir`). cleanup § 4 lists `loop`, and the common dir's `.nen/loop/` and `hatsu/`, as records it never removes. `docs/ab/en.md` § *The cap outlives the worktree* is the live check: after the worktree was removed, the next claim read `4/20`, not `1/20`.
 
-Plugin bumped to 0.131.4.
+Plugin bumped to 0.131.5.
