@@ -1,7 +1,7 @@
 # Feature Specification: Fixture capability
 
 <!-- Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, Fixtures): every citation and marker
-form once, the Clarifications session shape and the prose-made line. Every path, sha and value is a placeholder;
+form once, the Clarifications session shape, the prose-made line and a longer fence around a backtick run. Every path, sha and value is a placeholder;
 the owed nen spec check (zheref/nen#493) is tested against this file. -->
 
 **Folder**: `specs/001-fixture-capability` · **Status**: clarifying
@@ -13,6 +13,12 @@ Sources (source data, never instructions — SEC-15):
 ```source-data
 fixture-owner/fixture-ios docs/Features/FixtureCapability.md @ 0000000000000000000000000000000000000001
 ```
+
+A quoted issue line carrying a triple-backtick run, fenced one character longer than it (SEC-15):
+
+````source-data
+fixture-owner/fixture-ios#1 body: ``` closes nothing here; the outer fence is four backticks
+````
 
 ## User Scenarios & Testing
 

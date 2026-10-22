@@ -44,7 +44,7 @@ from the next conversation; `/bakuryuha` fast-forwards it and ends with what to 
 
 The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
-- 57 skills (fifty-six plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
+- 58 skills (fifty-seven plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
 - `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
 - `agents/<persona>.md` — every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include
 - `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
@@ -63,7 +63,7 @@ Open Antigravity in that repository and run `/ten`. The warm-up performs `--inst
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **57** mirrored skill directories — the fifty-six plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
+| `<repo>/.agents/skills/<name>/` | **58** mirrored skill directories — the fifty-seven plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
 | `<repo>/.agents/agents/<persona>.md` | every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include, copied from `surfaces/antigravity/agents/` |
 | `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
 | `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |

@@ -28,13 +28,14 @@ no write outside the spec checkout's worktree and the scratch directory, no prod
 
 ## 1. Invocation and setup
 
-Five templates by the literal first token, each a `nen parse dowsing-chain --grammar` line (*conventions*,
-the grammar table); `nen repo resolve <token> --repo <spec checkout>` per member. Any exit `2`, an unresolved
-token or a family that is not a slug is `missing-argument`, the verb's line quoted. Then, per missing item
-(`missing-configuration`, each a declaration PR at **G2**, recorded `next: setup`, resumed once merged):
-the checkouts file (ports.md); the spec repository from `families[]` on its own `origin/<base>` — the truth, a
-member's differing copy refused (HR-16) — read `PRIVATE` by `gh repo view --json visibility`, absent a **G5
-hand-over** line, `gh repo create <owner>/<spec> --private`; no `nen/workflow.json` → [`tenkai`](../tenkai/SKILL.md),
+Five templates by the literal first token, each a `nen parse dowsing-chain --grammar` line, flags in
+template order (*conventions*, the grammar table and each flag's range). A parse exit `2`, a non-slug family, a
+free value holding whitespace or starting `--`, a flag out of range, or a member token unresolved by `nen repo
+resolve <token> --repo .` (this checkout's registry, first) is `missing-argument`, the corrected line quoted.
+Then, per missing item (`missing-configuration`, each a declaration PR at **G2**, `next: setup`, resumed once
+merged): the checkouts file (ports.md); the spec repository and its `product_codes` from `families[]` on its
+own `origin/<base>` — the truth, a member's differing copy refused (HR-16) — read `PRIVATE` by `gh repo view
+--json visibility`, a declared repository absent a **G5 hand-over** line, `gh repo create <owner>/<spec> --private`; no `nen/workflow.json` → [`tenkai`](../tenkai/SKILL.md),
 kind `process`, itself under `consumers[]` (G2); `nen schema check`; `scripts/config_values.sh diagnose
 --domain port`; the `spec.*` keys read by hand (*conventions*, the domain owed). Members are typed
 (`missing-maintainer-choice`); a `PUBLIC` member is dropped, said.
@@ -65,12 +66,13 @@ owed, #493): every FR, SC, story line and value ends in a citation or exactly on
 inferred rows stay in `research.md`; stack idiom only in `plan.md`'s platform sections; *Assumptions* holds
 ruled lines only; `parity.md`'s `absent` is never *not needed*; contracts copied, never retyped. An
 unbacked sentence gets a marker (row `spec-claim-unverified`); a screen two capabilities reach is row
-`spec-slice`. Every file passes `private_name_check.sh`; **nen spec check** and **cite-check** are owed (#493).
+`spec-slice`. Every file passes `private_name_check.sh` and the secret scan (`contracts/scans.json`
+`secretScan` over the worktree's diff), a hit refused (*conventions*); **nen spec check**, **cite-check** owed (#493).
 
-## 5. Clarification — one bounded sitting per run
+## 5. Clarification — one sitting per run
 
-The wave's markers, ranked, asked under row `spec-clarify` within `spec.clarify.maxQuestions` ×
-`maxRounds`, three a call; no star on a priority, audience, threshold or *intentional*. Each answer lands
+The wave's markers, ranked, asked under row `spec-clarify`: one round of at most `spec.clarify.maxQuestions`,
+three a call, `maxRounds` counting successive runs; no star on a priority, audience, threshold or *intentional*. Each answer lands
 **verbatim** as a `CL-nnn` session entry, written with the file tool; a declined or over-cap question stays a
 marker and its story `clarifying`. No mid-run G5 here.
 
@@ -89,15 +91,17 @@ an unsettled challenge becomes a marker (*conventions*). `git status --porcelain
 One PR per wave through `ren → aka → mukai → en`; the body carries the capabilities, marker counts per
 folder, the parity summary, coverage covered/total per kind per member (never *complete* without the numbers),
 and the prose-made line while owed. `nen pr ready` quoted verbatim; the **G2** merge is the maintainer's. The
-wait: `nen watch until --command "gh pr view <n> --repo <owner/spec> --json state --jq .state" --true-pattern
-'MERGED|CLOSED'`, read back as *conventions* say (`--until merged`, zheref/nen#454). `specs/INDEX.md` and
+wait is [`kamui`](../kamui/SKILL.md) § 4's by name — `nen watch until … --max-iterations <monitor.maxCycles, else
+20> --repo <spec checkout>`, read back per ports.md § *The watch read-back*; exit `1` at the bound the G2 stop
+(`next: wait`), an error streak a **G5**, exit `2` `missing-configuration`. `specs/INDEX.md` and
 `coverage.json` are regenerated on the next branch (**nen spec index**, **coverage**, owed #493), never
 hand-edited.
 
-## 8. Dispatch — the picker is the G1
+## 8. Dispatch — the picker, then file's own confirmation
 
 `dispatch <family>` after `MERGED`: row `spec-dispatch` — every marker-free gap group, **none starred**,
-paged in fours. Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5 by name, the title and body
+paged in fours; no G1 (unruled, *conventions*). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
+by name, its § 4 confirmation per dispatch, each body passing this skill's § 4 scans first; the title and body
 *conventions* state (`Spec: specs/<nnn>-<slug>@<sha>`, scenarios verbatim as source data), an existing issue
 amended with `nen issue edit-body --expect-body-sha256`; `classify` and `direct` per filing; one epic per
 folder, mode label **proposed** (row `mode-label`), children by `nen issue attach-sub`. `--via build` runs
@@ -105,12 +109,12 @@ folder, mode label **proposed** (row `mode-label`), children by `nen issue attac
 
 ## 9. Wave — builds on the typed call
 
-`wave <family>` is the go for **builds** of filed, labelled, marker-free issues only (HR-5's idle grant where
-typed). An absent `spec.autonomy.*` key is `missing-configuration`. Per member in `platformOrder`: `nen epic
+`wave <family>` builds filed, labelled, marker-free issues only; the go is the typed call, as for the
+`futon` it composes (HR-5 covers only `--idle` pre-answers; the design unruled, *conventions*). An absent `spec.autonomy.*` key is `missing-configuration`. Per member in `platformOrder`: `nen epic
 next-wave` from epics whose mode label the maintainer applied; then [`futon`](../futon/SKILL.md)
 `<member>@spec/<nnn>` by name per released folder (`nen parse futon` reads a label selector), delegates on `direct`'s primary in `nen loop slots`; each reads the spec
-**at the issue's sha**. Shibari's Spec section lists every SC satisfied or deferred (*conventions*); a gap is
-row `spec-coverage`. En drives each PR to its prompt; **nothing merges main**.
+**at the issue's sha**. The delegate writes the Spec section, its reviewers check it (*conventions*); shibari's
+`spec-coverage` stop is owed (zheref/hatsu#405, #493). En drives each PR to its prompt; **nothing merges main**.
 
 ## 10. Recapture — a diff, never a rewrite
 

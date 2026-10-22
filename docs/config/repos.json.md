@@ -20,7 +20,7 @@ When it is wrong the estate is misread, quietly: an unregistered repository is r
 | `pending_onboarding` | array | optional | consumers not yet adopted; resolve as consumers | `nen repo resolve`, `nen repo classify` |
 | `product_codes` | object `{CODE: owner/name}` | required for the `<CODE>#<N>` grammar | the short code each repository is called by | `nen repo resolve`, `nen ref format`; `pr-state` § 1, `file` § 1, `backlog-state`, `sharingan`, `tensho`, `jusshin` |
 | `latest` | string | a **top-level** key; `latest (unrecorded)` when absent | the newest release this repository has cut | `nen schema check`; `getsuga` § 3 step 4 bumps it |
-| `families` | array | optional; **never in Hatsu's own file** (§ `families[]`) | the product families this repository belongs to: one spec repository and the sibling members | `hatsu:kamui` §§ 2, 5; `hatsu:hiraishin` § 4; tolerated by `nen schema check` (zheref/nen#453) |
+| `families` | array | optional; **never in Hatsu's own file** (§ `families[]`) | the product families this repository belongs to: one spec repository and the sibling members | `hatsu:kamui` §§ 2, 5; `hatsu:hiraishin` § 4; `hatsu:dowsing-chain` § 1; tolerated by `nen schema check` (zheref/nen#453) |
 
 ### `consumers[]`
 
@@ -99,6 +99,7 @@ The redacted fixtures [`scripts/fixtures/port-family/`](../../scripts/fixtures/p
 | `hatsu:pr-state` § 1 and every `<CODE>#<N>` grammar | `product_codes` |
 | `hatsu:kamui` §§ 2, 5 | `families[]` from each member's and the spec repository's default branch; `product_codes` for the members |
 | `hatsu:hiraishin` § 4 | `families[]` through `hatsu:kamui` § 2 (the spec repository's copy the truth): the spec repository (role `spec`) and whether source and target are both members |
+| `hatsu:dowsing-chain` § 1 | member tokens through `nen repo resolve <token> --repo .` (the invoking checkout's registry) first; then `families[]` from the spec repository's default branch (the truth, a member's differing copy refused) and its `product_codes` — an absent spec repository or code is `missing-configuration` ([`spec-repo.md`](spec-repo.md)) |
 
 ## Example
 
