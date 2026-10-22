@@ -74,11 +74,11 @@ export class Stop extends Error {
   constructor(code: number, message: string) { super(message); this.code = code; }
 }
 
-export const clean = (text: string): string => text.replace(/[\x00-\x08\x0b-\x1f\x7f​-‏‪-‮⁦-⁩﻿]/g, "?").slice(0, 160);
+export const clean = (text: string): string => text.replace(/[\x00-\x08\x0b-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069\uFEFF]/g, "?").slice(0, 160);
 
 /** Comments and fenced lines become blank lines, so line numbers still name the body's own lines. */
 export function visible(body: string): string[] {
-  const text = body.replace(/^﻿/, "").replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?(-->|$)/g, (m) => m.replace(/[^\n]/g, ""));
+  const text = body.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").replace(/<!--[\s\S]*?(-->|$)/g, (m) => m.replace(/[^\n]/g, ""));
   let fence: string | null = null;
   return text.split("\n").map((line) => {
     const marker = /^ {0,3}(`{3,}|~{3,})/.exec(line);
@@ -204,12 +204,16 @@ export function checkBody(body: string, read: IssueReader, verifyTitles = titles
   }
   const seen = new Map<string, Row>();
   const unrequested: Row[] = [];
-  if (closing.length > 0) {
+  {
+    // Rows are read whenever the table is there: a criterion row on a body with no closing issue is
+    // an unknown criterion, never silently ignored. The section and table are owed only with closing issues.
     const verify = sections(lines, (name) => verifyTitles.includes(name));
     const table = verify.length === 1 ? tables(verify[0]).filter((t) => t.header.join("|") === "Criterion|Coverage|Evidence") : [];
-    if (verify.length !== 1) refuse("verify-section", null, verify[1]?.start ?? null, verify.length ? "a second verify section" : "no verify section, with closing issues to cover");
-    else if (table.length !== 1) refuse("criteria-table", null, verify[0].start, table.length ? "a second '| Criterion | Coverage | Evidence |' table" : "no '| Criterion | Coverage | Evidence |' table, with closing issues to cover");
-    for (const row of table[0]?.rows ?? []) {
+    if (verify.length > 1) refuse("verify-section", null, verify[1]?.start ?? null, "a second verify section");
+    else if (verify.length === 0 && closing.length > 0) refuse("verify-section", null, null, "no verify section, with closing issues to cover");
+    else if (table.length > 1) refuse("criteria-table", null, verify[0].start, "a second '| Criterion | Coverage | Evidence |' table");
+    else if (table.length === 0 && closing.length > 0) refuse("criteria-table", null, verify[0].start, "no '| Criterion | Coverage | Evidence |' table, with closing issues to cover");
+    for (const row of table.length === 1 ? table[0].rows : []) {
       const [criterion = "", coverage = "", evidence = "", ...extra] = row.cells;
       const shaped = CRITERION.exec(criterion);
       const key = shaped ? `${shaped[1].toUpperCase()}#${shaped[2]}/AC-${shaped[3]}` : criterion;

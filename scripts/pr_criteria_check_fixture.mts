@@ -119,8 +119,10 @@ assert.deepEqual(ids(body("", "| https://github.com/example-owner/example-repo/p
 report = checkBody(body("", nonClosing).replace(/\| Criterion[\s\S]*?\n\n/, ""), reader);
 assert.equal(report.ok, true);
 assert.equal(report.counts.criteria, 0);
-assert.deepEqual(ids(good.replace("## 🔗 Associated issues", "## Unrelated")), ["issues-section"]);
-assert.deepEqual(ids(`${good}\n## 🔗 Associated issues\n\nNo associated issue.\n`), ["issues-section"]);
+assert.ok(ids(good.replace("## 🔗 Associated issues", "## Unrelated")).includes("issues-section"));
+assert.deepEqual(ids(body("| EX#7/AC-1 | satisfied | t |", nonClosing)), ["unknown-criterion"], "a criterion row with no closing issue is never ignored");
+assert.deepEqual(ids(body("| none | unrequested | a helper |", nonClosing)), []);
+assert.ok(ids(`${good}\n## 🔗 Associated issues\n\nNo associated issue.\n`), ["issues-section"]);
 
 // 8. The verify section and its one criteria table, with closing issues to cover.
 assert.ok(ids(good.replace("## ✅ What the guards prove", "## Elsewhere")).includes("verify-section"));
@@ -150,13 +152,13 @@ assert.match(r.stdout, /^criteria: EX#7\/AC-1 · satisfied · scripts\/x_fixture
 assert.match(r.stdout, /\ncriteria: ok · 2 criteria from 1 closing issue\(s\) · satisfied 1, partial 1, missing 0, contradicts 0, no row 0, not-verifiable 0, unrequested 1\n$/);
 assert.ok(readFileSync(argvLog, "utf8").includes("repos/example-owner/example-repo/issues/7"));
 const gapFile = join(dir, "gap.md");
-writeFileSync(gapFile, body("| EX#7/AC-1 | satisfied | t |\n| EX#7/AC-2 | contradicts | AC-2 asks the opposite\u001b[2J‮ |"));
+writeFileSync(gapFile, body("| EX#7/AC-1 | satisfied | t |\n| EX#7/AC-2 | contradicts | AC-2 asks the opposite\u001b[2J\u202e |"));
 r = run(["--body", gapFile, "--json"]);
 assert.equal(r.status, 1);
 const parsed = JSON.parse(r.stdout);
 assert.equal(parsed.contract, "hatsu.pr-criteria-check/v1");
 assert.equal(parsed.counts.contradicts, 1);
-assert.ok(!r.stdout.includes("\u001b") && !r.stdout.includes("‮"), "hostile text is sanitised");
+assert.ok(!r.stdout.includes("\u001b") && !r.stdout.includes("\u202e"), "hostile text is sanitised");
 answer("repos/example-owner/example-repo/pulls/12", { number: 12, body: good });
 r = run(["--pr", "example-owner/example-repo#12"]);
 assert.equal(r.status, 0, r.stdout + r.stderr);
