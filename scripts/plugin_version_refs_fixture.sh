@@ -89,5 +89,21 @@ grep -Fq 'echoes nen >= 0.8 installing v0.9.0; nen/contract.json says minimum 0.
 echo_line 0.9 v0.8.0; pin_case 1 'stale pinned_ref'
 printf 'no pin line here\n' > "$pin/docs/NEN-CONTRACT.md"; pin_case 2 'missing pin line'
 echo_line 0.9 v0.9.0; printf '{"dependency": {}}\n' > "$pin/nen/contract.json"; pin_case 2 'contract without values'
+printf '{"dependency": \n' > "$pin/nen/contract.json"; pin_case 2 'malformed contract JSON'
+printf '{"dependency": {"minimum": "0.9", "pinned_ref": "v0.9.0"}}\n' > "$pin/nen/contract.json"
+rm -f "$pin/docs/NEN-CONTRACT.md"; pin_case 2 'missing page'
+echo_line 0.9 v0.9.0; tail -n 1 "$pin/docs/NEN-CONTRACT.md" >> "$pin/docs/NEN-CONTRACT.md"; pin_case 2 'duplicated pin line'
+printf '*Current pin, echoed for convenience:* nen at least 0.9.\n' > "$pin/docs/NEN-CONTRACT.md"; pin_case 2 'unparseable pin line'
+outside="$tmp/outside"; mkdir -p "$outside"; echo_line 0.9 v0.9.0; mv "$pin/docs/NEN-CONTRACT.md" "$outside/page.md"
+ln -s "$outside/page.md" "$pin/docs/NEN-CONTRACT.md"; pin_case 2 'page resolving outside the root'
+rm -f "$pin/docs/NEN-CONTRACT.md"
+spaced="$tmp/a root"; mv "$pin" "$spaced"; pin="$spaced"; echo_line 0.9 v0.9.0; pin_case 0 'root with a space'
 
-echo 'plugin-version-refs-fixture: list-only, conservative write, mirrors, ambiguity and the nen pin echo passed'
+# The committed tree itself: the live echo must agree, so a repin that leaves it stale fails this lane.
+set +e
+bash "$here/plugin_version_refs.sh" --check-nen-pin --root "$here/.." > "$tmp/live.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 0 ] || fail "the committed tree's nen pin echo exited $code: $(cat "$tmp/live.log")"
+
+echo 'plugin-version-refs-fixture: list-only, conservative write, mirrors, ambiguity, the nen pin echo and the live echo passed'

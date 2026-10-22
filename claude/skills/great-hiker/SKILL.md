@@ -37,8 +37,10 @@ the request is **the maintainer's word: never derived** or inferred from the ses
 
 | Kind | Paths | Mode | Runs as |
 |---|---|---|---|
-| **prose** | `claude/skills/*/SKILL.md`, `claude/agents/*.md`, `docs/**`, `templates/*.md`, `docs/surfaces/*.md` | Conjurer | **`models.claude.deep`** (Opus) at the effort below |
-| **machinery** | `scripts/**`, `hooks/**`, `templates/*.yml`, `templates/*.html`, `contracts/**`, `nen/*.json`, `.codex-plugin/*`, generators | Transmuter | **`models.claude.fast`** (Sonnet) at the effort the work needs |
+| **prose** | `claude/**/*.md`, `docs/**`, `templates/**/*.md`, `changelog.d/*`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` | Conjurer | **`models.<surface>.deep`** at the effort below |
+| **machinery** | `scripts/**`, `hooks/**`, `contracts/**`, `nen/*`, `templates/**` (not `.md`), `.claude-plugin/*`, `.codex-plugin/*`, `.github/workflows/*`, `package*.json` | Transmuter | **`models.<surface>.fast`** at the effort the work needs |
+| none | `surfaces/**` | | generated (§ 4), never authored |
+| none | any other path | | asked (row `missing-maintainer-choice`) |
 
 **Effort by skills touched**, for prose: one section of one file is **low**, one whole skill or persona
 is **medium**, a change across skills or a new skill is **high**. `--effort` on the request overrides
@@ -47,10 +49,9 @@ prose first so the machinery reads the wording it must carry.
 
 How a subsession is raised, per surface, is [`hanten`](../hanten/SKILL.md) § 4 and § 7 (a surface that
 is not Claude Code) and [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The matrix, per surface*, and
-none of it is restated here. What is this skill's: which tier each kind runs on, prose on `models.<surface>.deep`
-(on Claude Code `opus`; on Antigravity `pro` via `invoke_subagent`)
-and machinery on `models.<surface>.fast` (Sonnet on Claude, `flash` on Antigravity), and the effort
-heuristic itself. The title is `great-hiker · kurapika · <alias>`. A missing tool or model id is
+none of it is restated here. What is this skill's: the tier per kind (`deep` is `opus`, `sol`, `pro`;
+`fast` is `sonnet`, `terra`, `flash`, `composer`) and the effort heuristic. Cursor's `deep` is
+`grok`, its `frontier` alias, so the Hard limit sends its prose to `fast`. The title is `great-hiker · kurapika · <alias>`. A missing tool or model id is
 resolved by `nen shu tools --install` (row `missing-tool`), never with elevation.
 
 ## 3. Author in the canonical source
@@ -172,6 +173,6 @@ rule is waived is evidence to file, not a waiver.
   on the maintainer's call).
 - **Never runs a subsession on the frontier tier**, on any surface, whatever the alias collision.
 - **Never widens the effort past the request's `--effort` override**, and never raises machinery
-  work above `models.claude.fast`.
+  work above `models.<surface>.fast`.
 - **Never improvises a Nen-owned operation** (`nen/contract.json`); a missing verb is residue, named.
 - **Never writes `Akatsuki-Agent`**: the trailer is `Hatsu-Agent: kurapika`.

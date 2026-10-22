@@ -717,7 +717,7 @@
             "bash",
             "scripts/plugin_version_refs_fixture.sh"
           ],
-          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts or its fixture changes."
+          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts, its fixture, nen/contract.json or docs/NEN-CONTRACT.md changes (every repin). Its last case runs --check-nen-pin on the committed tree, so a repin that leaves the page's echoed pin stale fails this lane; no CI step runs it yet, because every pr-readiness.yml step and the canon-contracts step are FROZEN (scripts/workflow_runner_policy_check.rb)."
         }
       },
       "pr-body-guard": {

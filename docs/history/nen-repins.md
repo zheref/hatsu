@@ -45,6 +45,9 @@ adoption narrative in the contract.
 | `v0.22.0` | 0.22 | 0.22 | 2026-10-18 | `f58d5a683` | #315 | [§ v0.22.0](#v0220) |
 | `v0.24.0` | 0.24 | 0.24 | 2026-10-20 | `d9645c8e3` | #374 | [§ v0.24.0](#v0240) |
 
+One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
+`pinned_ref` unchanged at `v0.16.0`.
+
 The minimum's own path, as the contract recorded it: 0.13, then 0.14, 0.15, 0.16, 0.18, 0.19, 0.20,
 0.21, 0.22 and 0.24. Nen raised its floor to 0.17 at v0.17.0, to 0.18 at v0.18.0 (the maintainer's
 ruling of 2026-09-30: nen commit format's new exit 2 on an unreadable commitlint config with prose lines
