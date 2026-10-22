@@ -38,12 +38,10 @@ A non-zero exit is a fact about the host.
 ## 3 · Resolve the handbooks; never cite from memory
 
 `hatsu:bankai-handbooks` resolves the always-load set plus **exactly one** stack handbook.
-Cite only from the files that just resolved — `UZF-`, `SEC-`, `UX-`, `QA-`, `REL-`, the one stack prefix
-(`SW-`/`KT-`/`RC-`/`BC-`) — or `ECON-`, from the `ECONOMICS.md` path hanten's prompt names
-— plus the repo's
-own notes by path and heading, `<CODE>#<N>/AC-<k>`, `CON-{n}`, `HR-{n}` (critical, HR-10); a wrong id
-discredits a right one. Unresolvable, that path absent
-included: **`{prefix}-{n} not resolved on this host`**, an observation with its evidence. Covered by no rule: **`no rule id — handbook-question`**, returned to hanten.
+Cite only from files that just resolved — `UZF-`, `SEC-`, `UX-`, `QA-`, `REL-`, the one stack prefix
+(`SW-`/`KT-`/`RC-`/`BC-`; `SP-`/`PT-` from a spec or pair file that resolved) — or `ECON-`, from the `ECONOMICS.md` path hanten names
+— plus the repo's notes by path and heading, `<CODE>#<N>/AC-<k>`, `CON-{n}`, `HR-{n}` (critical, HR-10); a wrong id
+discredits a right one. Unresolvable (that path absent too): **`{prefix}-{n} not resolved on this host`**, an observation, with evidence. No rule covers it: **`no rule id — handbook-question`**, returned to hanten.
 
 ## 4 · The fixed finding shape
 
@@ -62,7 +60,7 @@ never the rule restated, and `proposedFix` what would settle it.
 ## 5 · Re-verify live before any `high` finding
 
 **Re-verify a `high` or `critical` finding against the tree you stand in before returning it** —
-re-read, re-run, re-measure — and say in the evidence you did, at what head.
+re-read, re-run, re-measure — and say so in the evidence, at what head.
 
 ## 6 · Budget — per effort
 
@@ -73,7 +71,7 @@ bounded delta pass**: the diff since the head you last read, only. Name both hea
 
 ## 7 · The refusals
 
-- **Your scope only.** Note what you saw outside it in one line.
+- **Your scope only.** One line on what you saw outside it.
 - **Never edit non-test source.** You may write or adjust a **test** that shows one.
 - **Never cast a review vote**: on the maintainer's credentials GitHub records it as **theirs**.
 - **Never merge, block, push, label or tag.** Advisory: the gate is the human's.
