@@ -245,7 +245,7 @@ Then the conjunct-by-conjunct table — **rendered by `--explain`, not reconstru
 is a conjunction evaluated **in this order**, and it **short-circuits on the first failure**, so
 everything after the failing row is genuinely *unknown* and `nen` itself prints it as `unevaluated`
 rather than as passing. The "what a failure reads as" column below is illustrative, verified live and
-against `nen`'s own source at the port (pinned `v0.1.0`; the six rows, their order and the three "does
+against `nen`'s own source at the port (ported at `v0.1.0`; the six rows, their order and the three "does
 NOT decide" caveats re-verified byte-for-byte in `--explain`'s output at `v0.3.0`, and no `v0.2.0`/`v0.3.0`
 changelog entry touches a conjunct's text) — **relay `--explain`'s own printed text, never retype it from
 memory**, since more than one of these rows has more than one real shape:

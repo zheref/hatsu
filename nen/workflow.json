@@ -133,6 +133,8 @@
   "monitor": {
     "maxCycles": 20,
     "pollSeconds": 300,
+    "localSlotFrees": "merged",
+    "$localSlotFrees": "fixed: merged (HR-257, Slots and stops): an effort's local slot frees at its local merge, for every futon run; read by zheref/nen#498's nen loop slots (unreleased, not at the 0.24.0 pin); until the repin futon section 6 keeps the effort's ready/prompted flags false in its efforts file until the local merge (WORKFLOW section 2)",
     "$comment": "en's izanagi cap and its poll interval. The cap is grammar, not a default: a watch loop with no cap does not run."
   },
   "profile": {
@@ -563,6 +565,35 @@
       "$platform": "one of: satotz | lippo | buhara | bisky",
       "rendered": "bisky",
       "$rendered": "one of: satotz | lippo | buhara | bisky"
+    }
+  },
+  "idle": {
+    "decisions": {
+      "harness-attribution-switch": "hold",
+      "host-nen-link": "hold",
+      "missing-consumer-declaration": "default",
+      "missing-argument": "default",
+      "missing-configuration": "default",
+      "missing-maintainer-choice": "hold",
+      "mode-unknown": "default",
+      "direct-mismatch": "default",
+      "port-drift": "hold",
+      "intake-challenger": "hold",
+      "port-siblings": "hold",
+      "wrap-up": "default",
+      "cleanup-plan": "hold",
+      "publish-offer": "refuse",
+      "spec-capture-scope": "hold",
+      "spec-slice": "hold",
+      "spec-clarify": "hold",
+      "spec-dispatch": "hold",
+      "spec-converge-filing": "hold"
+    },
+    "terminal": "ready-at-prompt-or-integration",
+    "$terminal": "one of: ready-at-prompt-or-integration | ready-at-prompt",
+    "budget": {
+      "minutes": 480,
+      "tokens": 4000000
     }
   }
 }

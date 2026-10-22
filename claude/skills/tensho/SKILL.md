@@ -292,7 +292,7 @@ owns it now.
 `maintained_tools`), whose product *is* the process — derives with its own path sets.
 **Everything else is `G2` by role and the verb is not run**: a consumer's `nen/*.json`, its CI
 workflow and its `scripts/` are its own configuration, not anybody's canon. Maintainer's ruling,
-2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18*). A consumer that
+2026-09-18 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) HR-77). A consumer that
 looks like a genuine exception is a **G5**, never an improvised path set.
 
 `Closes #N` only if the PR completes an issue; `Part of #N` otherwise (`nen ref format`/`nen ref
