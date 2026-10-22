@@ -739,7 +739,7 @@
             "bash",
             "scripts/plugin_version_refs_fixture.sh"
           ],
-          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts, its fixture, nen/contract.json or docs/NEN-CONTRACT.md changes (every repin). Its last case runs --check-nen-pin on the committed tree, so a repin that leaves the page's echoed pin stale fails this lane -- and unit-tests.yml, which runs this lane on every pull request through scripts/unit_tests_ci.mts (the trusted runner selects it whenever the guard exists beside its fixture), so no frozen pr-readiness.yml step is needed for it."
+          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts, its fixture, nen/contract.json or docs/NEN-CONTRACT.md changes (every repin). Its last case runs --check-nen-pin on the committed tree, so a repin that leaves the page's echoed pin stale fails this lane -- and unit-tests.yml, which runs this lane on every pull request through scripts/unit_tests_ci.mts (the trusted runner selects it whenever the guard exists beside its fixture). The lane argv and the fixture are the pull request's own, so that run catches a stale echo, not a pull request that also rewrites the fixture or the lane; a trusted frozen step (a two-step landing, docs/GATE-CONFIGURATION.md) stays the later route for that."
         }
       },
       "pr-body-guard": {

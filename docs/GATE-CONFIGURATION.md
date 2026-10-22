@@ -550,7 +550,13 @@ With the file on `main`, `scripts/trusted_guard_preflight.rb` derives the lint f
 pre-PR run; its adapter hands the lint the trusted contracts from a copy under the root's git-ignored
 `.nen/`, removed with the run, because the lint refuses a `--rules` or `--base-baseline` path
 outside `--root` (step one's adapter passed the trusted checkout's own paths, which sit outside it,
-and its fixture accepted any exit; the fixture now requires exit 0 and no copy left behind).
+and its fixture accepted any exit). A second defect hid behind the first: the preflight's temporary
+directory is the symlinked spelling `mktmpdir` hands back (`/var` → `/private/var` on macOS), and the
+lint's entry guard compared that unresolved argv path with its resolved module URL, so the trusted lint
+ran nothing and exited 0, a false pass that read as a green adapter. The preflight now resolves its
+temporary directory's real path before any guard runs, the lint's entry guard compares real paths, and
+the fixtures prove it: the preflight's red-lint and no-rules cases leave no copy and name the lint's exit,
+and the lint's own fixture invokes it through a symlinked directory and requires the verdict.
 
 **2026-10-22. The nen pin echo, checked on every pull request.** `scripts/unit_tests_ci.mts` selects
 the `plugin-version-refs-guard` lane whenever `scripts/plugin_version_refs.ts` exists beside its

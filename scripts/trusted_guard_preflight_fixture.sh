@@ -97,7 +97,7 @@ set -e
 # its adapter, never refused as unknown and never skipped -- and it PASSES on the clean
 # trusted tree: the adapter hands the lint the trusted contracts from inside the root,
 # since the lint refuses a path outside it (exit 2, which this case once accepted).
-# The lint, its fixture and its contracts are the checkout's own at origin/main.
+# The lint and its two contracts are the checkout's own at origin/main.
 git -C "$checkout" reset -q --hard refs/remotes/origin/main
 git -C "$checkout" clean -q -fd
 for owned in scripts/prose_ambiguity_check.mts contracts/prose.lint.json contracts/prose.lint.baseline.json; do
@@ -124,6 +124,34 @@ grep -q '  prose_ambiguity_check.mts: exit 0' "$fixture/canon-lint.log" \
 [ -z "$(find "$checkout/.nen" -maxdepth 1 -name 'trusted-guard-preflight-*' 2>/dev/null)" ] \
   || { echo 'trusted-guard-preflight-fixture: the canon lint contracts copy was left under .nen/' >&2; exit 1; }
 
+# The red path: a finding in the working tree outside the baseline makes the derived lint exit 1,
+# the preflight red naming it, and the contracts copy is still removed (the ensure covers the exit).
+printf '\nThis fixture step is done by hand.\n' >> "$checkout/docs/GATE-CONFIGURATION.md"
+set +e
+ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-red-lint.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 1 ] && grep -q '  prose_ambiguity_check.mts: exit 1' "$fixture/canon-red-lint.log" \
+  || { cat "$fixture/canon-red-lint.log"; echo "trusted-guard-preflight-fixture: a planted finding did not redden the canon lint (exit $code)" >&2; exit 1; }
+[ -z "$(find "$checkout/.nen" -maxdepth 1 -name 'trusted-guard-preflight-*' 2>/dev/null)" ] \
+  || { echo 'trusted-guard-preflight-fixture: the contracts copy was left under .nen/ after a red lint' >&2; exit 1; }
+git -C "$checkout" checkout -q -- docs/GATE-CONFIGURATION.md
+
+# A trusted base that derives the lint but lacks one of its contracts is a wiring refusal (exit 2),
+# named, and leaves no copy behind either: the copy loop runs inside the same begin/ensure.
+git -C "$checkout" rm -q contracts/prose.lint.json
+git -C "$checkout" commit -qm 'fixture: a base deriving the canon lint without its rules'
+git -C "$checkout" update-ref refs/remotes/origin/preflight-canon-norules HEAD
+set +e
+ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon-norules > "$fixture/canon-norules.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 2 ] && grep -q 'trusted revision has no contracts/prose.lint.json for the canon lint' "$fixture/canon-norules.log" \
+  || { cat "$fixture/canon-norules.log"; echo "trusted-guard-preflight-fixture: a base without the lint rules was not a wiring refusal (exit $code)" >&2; exit 1; }
+[ -z "$(find "$checkout/.nen" -maxdepth 1 -name 'trusted-guard-preflight-*' 2>/dev/null)" ] \
+  || { echo 'trusted-guard-preflight-fixture: the contracts copy was left under .nen/ after a wiring refusal' >&2; exit 1; }
+git -C "$checkout" reset -q --hard refs/remotes/origin/preflight-canon
+
 # Discover unknown scripts from the base workflow and refuse missing wiring.
 cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
   fixture-unknown-guard:
@@ -142,4 +170,4 @@ set -e
 [ "$code" -eq 2 ] && grep -q 'no local invocation for trusted guard(s): unrecognized_guard.sh' "$fixture/unknown.log" \
   || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: unknown trusted guard was not a wiring error' >&2; exit 1; }
 
-echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the .mts canon lint derived and run green from inside the root, unknown guard refusal, old guard regression cases)'
+echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the .mts canon lint derived and run green from inside the root with its red and no-rules paths leaving no copy, unknown guard refusal, old guard regression cases)'

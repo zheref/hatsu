@@ -44,6 +44,11 @@ fail_preflight('base ref is not a valid branch') unless system('git', 'check-ref
 base_sha = command!('git', '-C', root, 'rev-parse', '--verify', "#{base}^{commit}").strip
 
 Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
+  # The real path, never the symlinked one mktmpdir hands back (/var -> /private/var on macOS): a
+  # TypeScript guard whose entry guard compares its argv path with its resolved module URL runs
+  # NOTHING and exits 0 when the two spellings differ -- a false pass, found by the fixture's
+  # red-lint case. Every trusted script below is invoked by this path.
+  temporary = File.realpath(temporary)
   archive = File.join(temporary, 'trusted.tar')
   File.binwrite(archive, command!('git', '-C', root, 'archive', '--format=tar', base_sha))
   trusted = File.join(temporary, 'trusted')
@@ -91,16 +96,16 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
   # the trusted contracts are copied under <root>/.nen/ -- git-ignored, and outside the lint's own
   # walk -- for this run only, and removed with it (the ensure below).
   lint_contracts = nil
-  if guards.key?('prose_ambiguity_check.mts')
-    FileUtils.mkdir_p(File.join(root, '.nen'))
-    lint_contracts = Dir.mktmpdir('trusted-guard-preflight-', File.join(root, '.nen'))
-    %w[prose.lint.json prose.lint.baseline.json].each do |name|
-      source = File.join(trusted, 'contracts', name)
-      fail_preflight("trusted revision has no contracts/#{name} for the canon lint") unless File.file?(source)
-      FileUtils.cp(source, File.join(lint_contracts, name))
-    end
-  end
   begin
+    if guards.key?('prose_ambiguity_check.mts')
+      FileUtils.mkdir_p(File.join(root, '.nen'))
+      lint_contracts = Dir.mktmpdir('trusted-guard-preflight-', File.join(root, '.nen'))
+      %w[prose.lint.json prose.lint.baseline.json].each do |name|
+        source = File.join(trusted, 'contracts', name)
+        fail_preflight("trusted revision has no contracts/#{name} for the canon lint") unless File.file?(source)
+        FileUtils.cp(source, File.join(lint_contracts, name))
+      end
+    end
     adapters = {
       'workflow_runner_policy_check.rb' => ['ruby', File.join(trusted, 'scripts/workflow_runner_policy_check.rb'), '--self-test', root],
       'surface_mirror_check.sh' => ['bash', File.join(trusted, 'scripts/surface_mirror_check.sh'), root],
