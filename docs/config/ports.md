@@ -61,11 +61,38 @@ The run id's pattern, outside the table so its alternation reads as written (`gr
 | **Visibility, re-read before every write** | `gh repo view <owner/name> --json visibility` on the target right before a filing or a build start: anything but `PRIVATE` drops that sibling, said; a private source ported to a public target is **refused** (SEC-8) — no placeholder route |
 | **Slug, number and layout** | `{slug}` matches `^[a-z0-9]+(-[a-z0-9]+)*$`, `{nnn}` `^[0-9]{3}$`; a `layout` containing `..`, starting with `/` or resolving outside its first path segment is refused; the folder search runs under that first segment, never a hard-coded `specs/` |
 | **Source text in a spec** | verbatim issue or PR text enters `spec.md`/`tasks.md` only inside fenced blocks labelled *source data*, never as imperative task lines (SEC-15); the spec PR's reviewers check it |
+| **The port issue body** | kamui § 5 and hiraishin § 7 file it carrying, inside one fenced block labelled *source data*, `spec.md`'s user stories and acceptance scenarios **verbatim with their ids** (`US-<n>`, `FR-<nnn>`, `SC-<nnn>`) and **that platform's `tasks.md` rows**, beside the spec folder at the merged ref (`<owner/spec> specs/<nnn>-<slug> @ <sha>`) and the source. **A link alone is refused**: the plan shows the block before the write. With no spec repository (hiraishin's *spec step: none configured*) the brief is the body, said |
+| **The spec read** | `build` § 2, for a `job/parity` issue: the spec folder the body cites is opened — `spec.md`, `tasks.md`, the platform section and § *Platform decisions* — before `rasengan`, recorded `nen phase begin --effort <branch> --phase spec-read --note '<owner/spec> <folder> @ <sha>'` and closed by `nen phase end`. A body that cites no folder is that build's G5 for a port issue kamui or hiraishin filed, and *no spec* for any other |
 | **The watch read-back** | after `nen watch until` exits `0`, `gh pr view … --json state`: `MERGED` continues, `CLOSED` ends the run *spec declined*; anything else returns to `wait`; a `gh` failure is reported, never read as a state |
 | **The two multi-select pickers on Codex** | `request_user_input` takes at most three single-select questions a call, so on the Codex CLI `port-siblings` and the start picker ask **one yes/no question per item, pages of three**; Claude Code (`multiSelect`), Cursor (`allow_multiple`) and Antigravity (`is_multi_select`) take the multi-select form paged in fours (jutaisho § 4) |
 | **`run_id` validation** | whole-string, newline-refusing: Python `re.fullmatch` or an equivalent that refuses any whitespace inside the token; `grep -Ex` alone accepts a newline-spanning token and is not the validator |
 | **A dangling `to`** | `nen parse` drops a trailing `to` with no code at exit `0` (zheref/nen#366): the skill refuses when the target slot is absent while the raw line's last token (before `--dry-run`) is `to` |
 | **A build's end** | kamui § 7 and hiraishin § 8 hold `build`'s phase 6 (the wrap-up), while en § 8's `rikugan` renders as usual; a G5 stops the chain; any other end (`direct-mismatch` **B**, an existing PR handed to `en`) is recorded `stopped` and the chain continues; an off-surface pick answers build § 2b's `direct-mismatch` *continue* from that decision | A `next` of `done` or `declined` is reported as finished and nothing runs. A missing file is refused naming the path it looked for. **A fresh invocation whose `runId` already has a record** (the same source, the same day) never overwrites it: a record not yet `done`/`declined` is offered as `resume <run-id>` (`missing-argument`); a finished one takes the id with an ordinal suffix `-2`, `-3`, ….
+
+## Mirror versus map — the enumerated list
+
+`bankai-rule` § 5's four handlings, decided by **the entry a concept matches, never by judgement**. hiraishin § 5's *Handling* column cites the entry (`map: navigation container`); a concept no entry names is **`unclassifiable`**, an asked row in the run's one `port-drift` batch, never classified by the agent.
+
+| Handling | The entries |
+|---|---|
+| `mirror` — carried unchanged | business rule · data lifecycle (create, retain, sync, delete) · copy (user-facing text) · acceptance outcome (what an `SC-<nnn>` observes) |
+| `map` — the target's idiom, the handbook rule cited on both sides | gesture · navigation container · system dialogs · permissions · storage API · theming |
+| `drop with note` | refactor-only (no behaviour changes), unless the target carries the same debt |
+| `target-only addition` | a new idiom with no source (the target's platform requires it; the source has nothing to port) |
+
+## Product-level divergence — the spec's home for it
+
+A pair file is public and technology-level (`templates/ports/pair.md`), so **a product-level adaptation never lands there**. Its home is the private spec folder, written **in the same run as the `port-drift` answer**, on the spec repository's own amendment PR (kamui § 3's route, **G2**):
+
+- **`spec.md` § `## Platform decisions`** — one row per adaptation: `AC id` (`SC-<nnn>` or `FR-<nnn>`) · `platform` · `decision` · `the maintainer's words`, verbatim (the picked label where none were typed) · `alternatives` (the options not picked) · `PT id` (the pair row's, cited `<from>--<to> PT-<n>`). Product terms are allowed here and only here.
+- **`specs/<nnn>-<slug>/ports.md`** — the per-feature ledger, one row per port: `target` (code) · `issue` · `PR` (object notation; `—` until it opens) · `PT ids` · `date`.
+
+**A later port reads `## Platform decisions` before asking**: a row already answering a concept for the same platform is cited in the brief, never asked again; a row for another platform is shown as context, never applied.
+
+## Canon and ids — the rulings this page rests on
+
+- **[HR-6](../ROSTER.md#hr-6)** — for a family member, the private spec repository's `spec.md` is product canon; `docs/Features/<Name>.md` in a member is a **generated pointer** (the folder path and its tag), never a second canon; a port PR owes a spec revision first; *"the code is the tie-breaker"* is retired.
+- **[HR-9](../ROSTER.md#hr-9)** (re-confirmed by [HR-34](../ROSTER.md#hr-34)) — port ruling ids are **`PT-{n}` from one global counter** across every pair file, reserved by `bankai-rule` § 3 (`scripts/port_rule_reserve.sh`, landed in zheref/hatsu#392).
 
 ## Sources
 
