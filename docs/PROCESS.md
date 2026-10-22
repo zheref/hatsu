@@ -9,9 +9,11 @@ in each skill that points at it**; moving a rule here moved where it is written,
 It sits beside [`WORKFLOW.md`](WORKFLOW.md) (the configuration keys, the phases, the gates and the
 decision matrix), [`STANDALONE-ENTRY.md`](STANDALONE-ENTRY.md) (a phase called cold),
 [`DISCOVERY.md`](DISCOVERY.md) (gaps found during authorized work) and [`SURFACES.md`](SURFACES.md)
-(the surfaces). **Precedence, one order, stated identically in [`WORKFLOW.md`](WORKFLOW.md):** a
-skill's own hard limit **>** `WORKFLOW.md` **>** this page. This page is **binding wherever the skill
-is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this page is the bug.
+(the surfaces). **Precedence among canon prose and rulings** is one order ([HR-1](ROSTER.md#hr-1)),
+owned by the `precedence` key of [`../nen/contract.json`](../nen/contract.json) and restated once, at the
+top of [`WORKFLOW.md`](WORKFLOW.md); a configuration file's value still beats any prose copy of it. This
+page is **binding wherever the skill is silent**; where it and `WORKFLOW.md` disagree, `WORKFLOW.md` wins and this page is
+the bug.
 *Assembled 2026-09-22 from the passages the skill diet moved out of the capped skills, so each skill keeps headroom for its own rules.*
 
 ## Standalone entry
@@ -903,7 +905,11 @@ to fixes only pending its port), filed as zheref/nen#407 item 18. A worktree ver
 fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/zheref/nen/issues/299)),
 and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);
-until then the two scripts above are the mechanism and are named as such.
+until then the two scripts above are the mechanism and are named as such. The canon `precedence` key of
+[`../nen/contract.json`](../nen/contract.json) ([HR-1](ROSTER.md#hr-1)) is tolerated, not validated, by
+`nen schema check` at the pin: validating it and refusing a drifted restatement in `WORKFLOW.md` are owed to
+[zheref/nen#474](https://github.com/zheref/nen/issues/474) (BC-11 keeps the drift case out of
+`scripts/canon_contracts_check.sh`, frozen to fixes only); until that repin nothing checks the order.
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 
