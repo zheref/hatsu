@@ -1,7 +1,7 @@
 # Feature Specification: Fixture capability
 
 <!-- Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, Fixtures): every citation and marker
-form once, the Clarifications session shape, the prose-made line and a longer fence around a backtick run. Every path, sha and value is a placeholder;
+form once, an acceptance scenario's folder-global `AC-###` (SP-10), MUST only on a `declared` line (FR-002's `[ruled: CL-001]`), the Clarifications session shape, the prose-made line and a longer fence around a backtick run. Every path, sha and value is a placeholder;
 the owed nen spec check (zheref/nen#493) is tested against this file. -->
 
 **Folder**: `specs/001-fixture-capability` · **Status**: clarifying
@@ -26,7 +26,7 @@ fixture-owner/fixture-ios#1 body: ``` closes nothing here; the outer fence is fo
 
 **Independent Test**: written from a quoted test assertion only.
 
-1. **Given** an empty fixture list, **When** the user opens it, **Then** the empty state is shown. [src: FI:Tests/FixtureListTests.swift:12-20 @ 0000000000000000000000000000000000000001 · declared] [src: FA:app/src/test/FixtureListTest.kt:30-41 @ 0000000000000000000000000000000000000002 · declared]
+1. **AC-001**: **Given** an empty fixture list, **When** the user opens it, **Then** the empty state is shown. [src: FI:Tests/FixtureListTests.swift:12-20 @ 0000000000000000000000000000000000000001 · declared] [src: FA:app/src/test/FixtureListTest.kt:30-41 @ 0000000000000000000000000000000000000002 · declared]
 
 ### Edge Cases
 
@@ -36,10 +36,10 @@ fixture-owner/fixture-ios#1 body: ``` closes nothing here; the outer fence is fo
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST show the empty state when the list holds no item. [src: FI:Sources/FixtureList/FixtureListState.swift:40-52 @ 0000000000000000000000000000000000000001 · observed]
+- **FR-001**: The system shows the empty state when the list holds no item. [src: FI:Sources/FixtureList/FixtureListState.swift:40-52 @ 0000000000000000000000000000000000000001 · observed]
 - **FR-002**: The system MUST keep the list's sort order across a restart. [ruled: CL-001]
-- **FR-003**: The system MUST refresh the list on return to the screen. [UNVERIFIED]
-- **FR-004**: The system MUST remove an item the user deletes. [src: FW:src/fixture-list/selectors.ts:8-19 @ 0000000000000000000000000000000000000003 · observed] [STALE @ 0000000000000000000000000000000000000000]
+- **FR-003**: The system refreshes the list on return to the screen. [UNVERIFIED]
+- **FR-004**: The system removes an item the user deletes. [src: FW:src/fixture-list/selectors.ts:8-19 @ 0000000000000000000000000000000000000003 · observed] [STALE @ 0000000000000000000000000000000000000000]
 
 ### Key Entities
 
