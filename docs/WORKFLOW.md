@@ -8,10 +8,15 @@ skills under [`../claude/skills/`](../claude/skills/) are the authority on what 
 disagree, **the file wins and this document is the bug** — the same rule
 [`../nen/contract.json`](../nen/contract.json) already states for itself.
 
-**Precedence among the prose, one order, stated identically in [`PROCESS.md`](PROCESS.md):** a
-skill's own hard limit **>** this document **>** [`PROCESS.md`](PROCESS.md). `PROCESS.md` is binding
-wherever the skill is silent; where a skill's hard limit is narrower than either page, the hard limit
-holds.
+**Precedence among canon prose and rulings, one order ([HR-1](ROSTER.md#hr-1)), owned by the
+`precedence` key of [`../nen/contract.json`](../nen/contract.json), which wins over this copy:**
+`skill.hardLimit` **>** `roster.ruling` **>** `nen/decisions.json` **>** `docs/WORKFLOW.md` **>**
+`docs/PROCESS.md` **>** `akatsuki.CON` **>** `handbooks`. The key's `$precedence` comment names each
+entry. The order ranks canon texts only: a configuration file's value still beats any prose copy of it,
+the rule above. A text outside the list yields to every listed entry and the conflict is filed (this
+run's reading, owed a ruling: [`ROSTER.md`](ROSTER.md) OPEN-6). This is the order's one restatement;
+[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. Nothing checks the
+key or this copy yet: that is owed to [zheref/nen#474](https://github.com/zheref/nen/issues/474).
 
 ---
 
@@ -1742,7 +1747,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.131.5` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs owed, zheref/nen#493).
+**`v0.131.6` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs owed, zheref/nen#493).
 **`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic #354).
 **`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
