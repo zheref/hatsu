@@ -551,5 +551,18 @@
         ]
       }
     }
+  },
+  "intake": {
+    "$comment": "Hatsu's own key (docs/ROSTER.md HR-21, HR-24, HR-38): intake.challenger maps a brief's artifact to the intake examiner hatsu:emperor-time section 4 raises on it, read from Hatsu's own checkout and never a consumer's (who challenges a brief is Hatsu policy). Every matching examiner challenges (HR-25); an artifact the map names no examiner for goes to satotz (HR-26). Values written by scripts/config_values.sh set; docs/INTAKE-CHALLENGE.md section 1. nen tolerates the key and reads none of it.",
+    "challenger": {
+      "brief": "satotz",
+      "$brief": "one of: satotz | lippo | buhara | bisky",
+      "spec": "lippo",
+      "$spec": "one of: satotz | lippo | buhara | bisky",
+      "platform": "buhara",
+      "$platform": "one of: satotz | lippo | buhara | bisky",
+      "rendered": "bisky",
+      "$rendered": "one of: satotz | lippo | buhara | bisky"
+    }
   }
 }

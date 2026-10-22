@@ -119,7 +119,7 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 
 | Workflow | Start it | Prerequisites | What runs |
 |---|---|---|---|
-| **Take a raw idea in** | `emperor-time <idea> [<repo>]` · bare `emperor-time` for the idea the session is discussing | `nen/labels.json`; `gh` authenticated; the challenger persona (asked once until OPEN-4 is ruled) | `direct` on the idea → interview rounds to a decision-complete brief (**Hisoka** for a Design Direction) → adversarial challenge rounds → `file` § 3's four searches → one issue through `nen idea file` on your confirmation → `build` offered |
+| **Take a raw idea in** | `emperor-time <idea> [<repo>]` · bare `emperor-time` for the idea the session is discussing | `nen/labels.json`; `gh` authenticated; Hatsu's `intake.challenger` map | `direct` on the idea → interview rounds to a decision-complete brief (**Bisky** drafts a Design Direction) → the intake examiners challenge it, uncounted, until it is unambiguous → `file` § 3's four searches → one issue through `nen idea file` on your confirmation → `build` offered |
 | **File an issue** | `file <problem> <repo>` · bare `file` for what the session just discussed | `nen/labels.json`; the backlog reconciled first | duplicate search → `classify` → one issue on your confirmation |
 | **Classify, then route to a model** | `classify <CODE>#<N>[,…] \| backlog [<repo>]` · `direct <CODE>#<N> \| backlog` | the `lang/` and `job/` families declared (classify lands them by PR on a consumer first); `classify.publish` / `direct.publish` for criteria comments and `model/` labels | two label axes → `nen direct resolve` → three picks on five axes; sweeps apply nothing before one confirmation |
 | **Work a severity band or one label** | `futon <repo>@<severity[+] \| label> [then tag \| tag+fanout \| <skill> \| <prose>]` | `nen/colors.yml` severity values; labels synced | one `build` per issue, PRs with an actor behind them; the `then` step runs only once every PR is merged (the **advance go**) |
@@ -197,6 +197,21 @@ Killua and the rest of Illumi's row are **open** sub-decisions; Machi, Kortopi a
 on the **bench** with no definition and may not be acted as. [`docs/ROSTER.md`](docs/ROSTER.md) carries both
 tables and every ruling.
 
+### The intake examiners
+
+Intake challenge has a cast of its own, isolated from code review: the Hunter Exam's examiners, with
+Bisky in Menchi's place. They challenge **only** at capture intake, in `emperor-time` § 4, and never
+review code. Every examiner whose artifact a brief matches challenges it, round after uncounted round,
+until the brief carries no ambiguity and no conflict with current specifications
+([`docs/INTAKE-CHALLENGE.md`](docs/INTAKE-CHALLENGE.md)). All are **advisory**: they write nothing.
+
+| | Examiner | Artifact (`intake.challenger`) | Challenges | Standing |
+|---|---|---|---|---|
+| 🟦 | **[Satotz](claude/agents/satotz.md)** | `brief`, and anything unmapped | problem, audience, success criteria, priority, scope boundaries; Bisky's Design Direction | ratified 2026-10-21 |
+| 🟧 | **[Lippo](claude/agents/lippo.md)** | `spec` | edge cases, error and boundary states, conflicts with the spec in force | ratified 2026-10-21 |
+| 🟥 | **[Buhara](claude/agents/buhara.md)** | `platform` | each platform's constraints, parity across them, the stack | ratified 2026-10-21 |
+| 🩷 | **[Bisky](claude/agents/bisky.md)** | `rendered` | drafts the Design Direction, then challenges the rendered parts | ratified 2026-10-21 |
+
 ---
 
 ## 🧰 The skills
@@ -252,7 +267,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 
 | Skill | Meaning | Steps · calls | Called by |
 |---|---|---|---|
-| `emperor-time` | product intake, the Specialist's ceremony: one raw idea directed, interviewed into a decision-complete brief, challenged by a raised persona, reconciled, filed only on your confirmation; several ideas become several briefs | `direct` → picker rounds (Hisoka for UI) → the challenger (OPEN-4) → `nen issue search` → `nen idea file` → `build` offered | you |
+| `emperor-time` | product intake, the Specialist's ceremony: one raw idea directed, interviewed into a decision-complete brief, challenged by the intake examiners, reconciled, filed only on your confirmation; several ideas become several briefs | `direct` → picker rounds (Bisky for UI) → the examiners ([`INTAKE-CHALLENGE`](docs/INTAKE-CHALLENGE.md)) → `nen issue search` → `nen idea file` → `build` offered | you |
 | `file` | one well-formed, correctly labelled, non-duplicate issue | duplicate search → `classify` → `direct` → `nen issue create` on your confirmation | you; `third-hand`; the discovery protocol |
 | `classify` | the two label axes, `lang/<key>` and `job/<key>`, on an issue, a set, a backlog or an inline effort | `nen classify apply`; the families landed by PR on a consumer first; a criteria comment under `classify.publish` | `file`; `build`; you |
 | `direct` | which model should do the work and where: three picks (primary, fallback, recommended) on five axes, read live | `nen direct resolve` → compare with this session → publish only where `direct.publish` opts in | `build`, `ren`, `file`; you |
@@ -314,7 +329,7 @@ flowchart TD
     futon --> wrap
     kazaana --> wrap
     file --> classify
-    et[emperor-time] --> direct & hisoka & challenger([challenger · OPEN-4])
+    et[emperor-time] --> direct & satotz([Satotz]) & lippo([Lippo]) & buhara([Buhara]) & bisky([Bisky])
     bv[black-voice] --> shalnark([Shalnark])
     rikugan --> bb
     tensho --> shibari & sharingan
@@ -396,14 +411,14 @@ The long form, the verdict table and the host binding: [`docs/NEN-CONTRACT.md`](
 ```
 .claude-plugin/     plugin.json + marketplace.json: the manifest every surface installs from; `version` is the cache key
 .codex-plugin/      the Codex plugin overlay pointing at the same skills and generated hooks
-claude/             the one AUTHORED copy: skills/<name>/SKILL.md (50 + ten), agents/<persona>.md (12), commands/kurapika.md, rules/
+claude/             the one AUTHORED copy: skills/<name>/SKILL.md (50 + ten), agents/<persona>.md (12 + 4 examiners), commands/kurapika.md, rules/
 surfaces/           GENERATED mirrors for codex/, cursor/, antigravity/: never edited by hand (docs/using/mirrors.md)
 hooks/              the three harness hooks: session start (binds nen), stop bell, base-branch guard; POSIX sh, no jq
 nen/                this repository's own declarations: contract.json, workflow.json, gates.json, labels.json, repos.json, colors.yml, decisions.json
 contracts/          plugin-owned registries: permissions, the classify taxonomy, the direct registry, the config catalogue, scan rows
 templates/          per-section PR fragments (docs/PR-SECTIONS.md), the report pages (spiritual-message and rikugan, as .html and .md, with report-examples/), the readiness and preflight workflows, release-publish.sh
 scripts/            the guards and runtime scripts an installed copy executes, each with its fixture
-docs/               WORKFLOW · PROCESS · ROSTER · STANDALONE-ENTRY · GATE-CONFIGURATION · DIRECT-MATRIX · ECONOMICS · NEN-CONTRACT
+docs/               WORKFLOW · PROCESS · ROSTER · STANDALONE-ENTRY · GATE-CONFIGURATION · DIRECT-MATRIX · ECONOMICS · NEN-CONTRACT · INTAKE-CHALLENGE
 docs/using/         setup, usage and maintenance per surface          docs/config/   every configuration file, key by key
 docs/surfaces/      each surface's dated evolution record              docs/ab/       per-skill evidence of the port
 CHANGELOG.md        what each release changed; changelog.d/ holds the fragments getsuga collates
