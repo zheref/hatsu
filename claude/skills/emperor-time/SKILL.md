@@ -12,9 +12,6 @@ description: Take one raw product idea into one decision-complete brief and, onl
 GitHub reads of § 5 and the writes of § 6. One condition, stated in advance: **nothing is filed before
 the maintainer's own word.**
 
-> **Take my raw idea, interview me until the brief is decision-complete, attack it, check it is not
-> already filed, file it only when I say so, then offer the build.**
-
 `$hatsu_root` in a block is the absolute path ten § 0 printed, typed.
 
 ## 0. Standalone entry
@@ -40,7 +37,7 @@ verb's own list.
 **No idea derivable** — a bare form in a session that discussed none, a line that is only a repository
 token — **is typed, never inferred** (`missing-argument`, `missing-maintainer-choice`). **A product with no
 repository yet** files into the repository the maintainer names, typed; none named, the ceremony ends at
-§ 6 with the brief written, nothing filed, `nen scaffold new` named as the successor after G1 (kurapika.md
+§ 6 with the brief written, nothing filed, `hatsu:okiro` named as the successor after G1 (kurapika.md
 § *Specialist*). **Several ideas are several briefs**, §§ 2–7 per brief, never merged.
 
 ## 2. Direct the session, once, never a block
@@ -108,6 +105,9 @@ supersede** → this skill writes nothing: the plan shows them and hands the bri
 owns those writes; **(d) umbrella**, three or more → `hatsu:backlog-synthesis`, terminal here.
 
 ## 6. The plan, the one confirmation, the filing
+
+After G1, offer [`hatsu:okiro`](../okiro/SKILL.md) for the new product's empty directory;
+it owns bootstrap, adoption and the first commit. Never start it from intake.
 
 **Redaction first** (file § 4): `bash
 "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> title.txt brief.md [comment.md]` — exit
