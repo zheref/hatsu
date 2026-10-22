@@ -105,7 +105,7 @@ nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --json
 ```
 
 The **CI** plane caps at 2, frees at PR-open, and holds only legacy-CI PRs. The **local** plane caps
-at 7 and frees when the effort is **merged** — locally, with an integration branch (§ 5); `--idle`: `idle.localSlotFrees`. **`--local-cap 7` is futon's own policy,
+at 7 and frees when the effort is **merged** — locally, with an integration branch (§ 5), `--idle` too. **`--local-cap 7` is futon's own policy,
 always passed**; omitting it is exit `2`. **The budgets are never traded**: a full local one is back-pressure.
 
 ## 7. Authority — the CON-25 delegation
@@ -121,7 +121,7 @@ is the publish call** for each effort's branch (aka § 0, HR-20). **Futon may no
 starts at the first whole-word `then` after `@`; a bare `then` is exit `2`.
 
 **Futon's own job at the clause is exactly one gate**: nothing after `then` runs until every PR this
-run authored — the manifest's `status`, never memory — is **merged into `branch.base`** (§ 5) — an integration-branch effort once the
+run authored — the manifest's `status`, never memory; `manifest: absent` holds it — is **merged into `branch.base`** (§ 5) — an integration-branch effort once the
 integration PR merges. Till then hold it, keep each merge prompt standing on the register desk (mugetsu § 3), every
 PR still short named with its verdict. A legacy-CI PR does not hold it. Then, as `nen parse futon`
 classified it:
@@ -163,7 +163,7 @@ report: **G4/G2** at en § 5's merge prompt for every PR into `branch.base`,
 The run ends when **every issue in the selector's scope** is merged into `branch.base` — **none
 stranded on the integration branch** (a closed integration PR ends the run, en § 6) — (or, legacy-CI, open with its own actor), or briefed awaiting
 a decision, or blocked with its blocker named — **and the `then` clause, if typed, has run or is
-held at its gate**.
+held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
 
 Say the run has ended; the delegation lapses. The final report is [`$rikugan`](../rikugan/SKILL.md)
 over this run's scope — its § 2 futon row, the `then` outcome included (§ 8's one render); `final` only if every PR merged, else `register` with the asks. Then the
@@ -184,14 +184,11 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 - **Never batches the merges** — one merge and report per effort.
 - **Never runs `nen release preflight`, `nen fanout compute/record` or `nen shu deploy --run`
   itself**, and reaches `kagutsuchi` or `mugetsu` only as § 8 allows.
-- **Never leaves the delegation open.**
+- **Never hand-authors the status board** (§ 9); **never leaves the delegation open.**
 
 ## 12. `--idle` — the unattended profile (HR-5)
 
-WORKFLOW § *Idle batches*, whole: `--idle` stripped before § 1's parse; `start` records the
-pre-answered rows; a held or refused row, a G5, a *by hand* step or the budget parks the effort
-(`park`) and the run moves on, no picker shown; it ends at `idle.terminal`, its `then` held — never
-`main`, `getsuga` or `mugetsu`.
+WORKFLOW § *Idle batches* is the protocol, cited, not restated. Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
 *Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen from v0.15.1;
 an older binary's exit `2` is relayed.*

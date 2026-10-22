@@ -77,7 +77,7 @@ but `0` admits nothing; failing names become **named** rows, escaped, and no com
 | **the surface's own** | surface worktree tool (`docs/surfaces/<surface>.md`) | its stale worktrees, named for surface's own cleanup |
 
 Sizes are `du -sk <path>`, read before plan. **Core's `.nen/` ledgers — `phase`, `usage`, `direct`,
-`hanten`, `third-hand`, `cleanup`, `loop`, `last-stop.json` — and the git common dir's `.nen/loop/` (En's cap) and `hatsu/` are records, never leftovers**; a worktree's own
+`hanten`, `third-hand`, `cleanup`, `loop`, `last-stop.json` — and the git common dir's `.nen/loop/` and `hatsu/` are records, never leftovers**; a worktree's own
 `.nen/` goes with it (ROSTER § *Rulings of 2026-10-20*). Prior leftovers (not this sitting's effort)
 grouped under *prior sessions*, **ownership never assumed** — dirt, detached checkouts and caches
 proposed, never deterministic. Sanitize: no credentials, no paths outside checkout and caches.

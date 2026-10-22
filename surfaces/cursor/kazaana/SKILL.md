@@ -115,7 +115,7 @@ presented nowhere as mergeable.
 ## 5. The `then getsuga` step — held, then cut; the proposal is never theirs to merge
 
 **Kazaana's own gate** (ruling 2026-10-13, 2; futon § 8 reads *merged* alone): nothing after `then`
-runs until every PR this run authored (the manifest's `status`) is **merged into `branch.base`, or closed by the maintainer** — a
+runs until every PR this run authored (the manifest's `status`; `manifest: absent` holds it) is **merged into `branch.base`, or closed by the maintainer** — a
 PR closed unmerged is reported as not delivered, its issue left open, and holds nothing; **a child of a
 closed stacked PR is stranded** (WORKFLOW rule 5, en § 6), reported, and holds the gate until the
 maintainer closes or retargets it; till then futon § 8 holds. Then [`getsuga`](../getsuga/SKILL.md) runs under its own authority at the

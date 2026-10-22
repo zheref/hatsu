@@ -575,15 +575,15 @@
       "missing-maintainer-choice": "hold",
       "mode-unknown": "default",
       "direct-mismatch": "default",
-      "port-drift": "default",
+      "port-drift": "hold",
       "intake-challenger": "hold",
       "port-siblings": "hold",
       "wrap-up": "default",
-      "cleanup-plan": "default",
+      "cleanup-plan": "hold",
       "publish-offer": "refuse"
     },
     "localSlotFrees": "merged",
-    "$localSlotFrees": "one of: ready+prompted | merged | stacked-open",
+    "$localSlotFrees": "fixed: merged (ROSTER § Rulings of 2026-09-30, Slots and stops)",
     "terminal": "ready-at-prompt-or-integration",
     "$terminal": "one of: ready-at-prompt-or-integration | ready-at-prompt",
     "budget": {

@@ -382,19 +382,19 @@
         "missing-maintainer-choice": "hold",
         "mode-unknown": "default",
         "direct-mismatch": "default",
-        "port-drift": "default",
+        "port-drift": "hold",
         "intake-challenger": "hold",
         "port-siblings": "hold",
         "wrap-up": "default",
-        "cleanup-plan": "default",
+        "cleanup-plan": "hold",
         "publish-offer": "refuse"
       },
-      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold.",
+      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold (publish-offer refuse). A floor fails start at exit 1: publish-offer is always refuse; host-nen-link, harness-attribution-switch and missing-maintainer-choice are at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of origin/<branch.base> (else HEAD's), never the working tree.",
       "readers": [
         "futon",
         "kazaana"
       ],
-      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold)"
+      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
     },
     {
       "id": "workflow.idle.localSlotFrees",
@@ -402,14 +402,9 @@
       "path": "idle.localSlotFrees",
       "domain": "autonomy",
       "when": "nen/workflow.json#idle",
-      "kind": "enum",
+      "kind": "open",
       "default": "merged",
-      "options": [
-        "ready+prompted",
-        "merged",
-        "stacked-open"
-      ],
-      "describe": "When an idle run frees a local slot (futon section 6): at its local or delivery merge, the default the ROSTER's 2026-09-30 Slots and stops row rules.",
+      "describe": "When an idle run frees a local slot (futon section 6): at its local or delivery merge, the one value ROSTER § Rulings of 2026-09-30, Slots and stops rules; any other value fails start.",
       "readers": [
         "futon",
         "kazaana"
@@ -428,7 +423,7 @@
         "ready-at-prompt-or-integration",
         "ready-at-prompt"
       ],
-      "describe": "The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5), or Ready at the prompt only. Never main, never getsuga or mugetsu.",
+      "describe": "The furthest an idle run goes: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5), or Ready at the prompt only. Never main, never getsuga, mugetsu or kagutsuchi.",
       "readers": [
         "futon",
         "kazaana"
@@ -458,7 +453,7 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": 4000000,
-      "describe": "Tokens an idle run may spend, summed from the efforts' nen usage records; past it no effort is claimed and the rest park as parked:budget. Unreported usage counts as unread, never as zero.",
+      "describe": "Tokens an idle run may spend. Advisory and unread until zheref/nen#490 lands: no skill sums nen usage itself, and minutes remain the enforced bound.",
       "readers": [
         "futon",
         "kazaana"

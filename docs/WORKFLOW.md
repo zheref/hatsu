@@ -733,10 +733,10 @@ default. § *Idle batches* is the protocol.
 
 | Key | Default | Read by |
 |---|---|---|
-| `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` otherwise; `harness-attribution-switch` and `host-nen-link` `hold` (each stars an act on the maintainer's own harness or host), `publish-offer` `refuse` (HR-5: never a release) | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name is `hold` |
-| `localSlotFrees` | `merged` | `futon` § 6 under `--idle`: one of `ready+prompted` · `merged` · `stacked-open`. `merged` is ROSTER § *Rulings of 2026-09-30*, *Slots and stops* — a slot frees at its local merge — taken as the ask-once default for an idle run |
+| `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` otherwise; `harness-attribution-switch` and `host-nen-link` `hold` (each stars an act on the maintainer's own harness or host), `cleanup-plan` `hold` (an unattended remote branch deletion can close a stacked child, § *Stacked pull requests*), `port-drift` `hold` (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354), `publish-offer` `refuse` (HR-5: never a release) | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name is `hold` (`publish-offer` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer` is always `refuse`; `host-nen-link`, `harness-attribution-switch` and `missing-maintainer-choice` are at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. Read from the **committed** `nen/workflow.json` of `origin/<branch.base>` (else `HEAD`'s committed copy), never the working tree; the commit is recorded as the manifest's `idle.source` |
+| `localSlotFrees` | `merged` | `futon` § 6 under `--idle`: **fixed** at `merged`, ROSTER § *Rulings of 2026-09-30*, *Slots and stops* — a slot frees at its local merge. Any other value fails `start` |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5); `ready-at-prompt` stops short of the integration merge. Never `main`, never `getsuga` or `mugetsu` |
-| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim: minutes since the run manifest's `startedAt` (`futon_effort_record.mts status`), tokens summed from the efforts' `nen usage` records; past either, no effort is claimed and the rest park as `parked:budget`. Unreported usage is unread, never zero; `nen run budget` is owed to nen (zheref/nen#490) |
+| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim: minutes since the run manifest's `startedAt` (`futon_effort_record.mts status`, `overBudget`) are the **enforced** bound; past it no effort is claimed and the rest park as `parked:budget`. `tokens` is **advisory and unread** until `nen run budget` lands (zheref/nen#490): no skill sums `nen usage` itself |
 
 ### `models`
 
@@ -1122,7 +1122,8 @@ of the same PR refreshes its base and head and never duplicates it; a PR opened 
 or recorded under another kind or issue, is refused. `status` prints the manifest; futon § 8's `then`
 gate and kazaana § 5 read every PR this run authored from it, never from memory, and each PR's state
 live. `park` records an idle effort's `parked:<row>` (§ *Idle batches*). A v0.1 run reads, carries no
-manifest, and refuses `append`; the port to `nen run start|append|verify` is owed to nen (zheref/nen#486).
+manifest, and refuses `append` and `park`; its `status` prints `manifest: absent`, omits `prs` and exits `2`,
+and futon § 8 and kazaana § 5 read that as the gate **held**, never met by an empty set; the port to `nen run start|append|verify` is owed to nen (zheref/nen#486).
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
@@ -1139,32 +1140,6 @@ same head immediately before its bounded merge ([`en`](../claude/skills/en/SKILL
 The local record supplies **procedural provenance**, not cryptographic proof of who typed the
 invocation; only Futon may run `start`, and En only runs `verify`. A host running this `.mts`
 helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
-
-### Idle batches
-
-**HR-5's idle profile, activated only by a typed `--idle`** on a `futon` line (and on `kazaana`, which
-composes it): `hatsu:futon <repo>@<selector> --idle [then …]`. nen 0.24's `nen parse futon` reads the
-token as part of an exact label, so it is stripped before parsing — the record does it in `start`, and
-futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/nen#491). The keys are § 2's `idle`.
-
-1. **Pre-answers.** `start` resolves `idle.decisions` for every `ask-once-per-run` row of
-   `nen/decisions.json` and records each as a pre-answered row in the run manifest; the register lists
-   them every cycle. Where a skill would ask a row: `default` takes its starred option and says so;
-   `hold` or `refuse` asks nothing and **parks the effort** (`park … --row <row>`), and the run moves to
-   the next one. **No picker is shown in an idle run.**
-2. **Stops park, they do not end the run.** A G5 parks the effort as `parked:g5:<class>`; a harness
-   permission denial is a G5. A human-gate row is never pre-answered: the effort stands at that gate.
-3. **Residue parks.** In the batch, a step a skill marks *by hand* or *no verb* is never improvised as
-   shell: the effort parks as `parked:residue:<skill>`.
-4. **Bounds.** Before each claim, `status` gives the elapsed minutes against `idle.budget.minutes`
-   (`overBudget`); tokens are summed from the efforts' `nen usage` records against `idle.budget.tokens`,
-   unreported usage read as unread. Past either, nothing new is claimed and the rest park as
-   `parked:budget`. A local slot frees per `idle.localSlotFrees`; `nen loop slots` reads no record yet
-   (zheref/nen#487), overlap is still judged (zheref/nen#488) and stage exclusivity unchecked (zheref/nen#489). En's cap is the git common dir's (en § 2).
-5. **Terminal.** `idle.terminal`: every PR Ready at its merge prompt, or merged into a **non-main**
-   integration branch (futon § 5, En's recorded delivery merge). **Never a merge into `main`, never
-   `getsuga`, `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host
-   scheduler may re-invoke the build, never a release.
 
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
 The **wrap-up picker** at every session delivery — a PR at `en` § 5's merge prompt or merged, a composite's run
@@ -1398,6 +1373,35 @@ nothing restated:
 — or, where the value is the maintainer's word, *"typed, never picked (`missing-maintainer-choice`)"*,
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
+
+### Idle batches
+
+**HR-5's idle profile, activated only by a typed `--idle`** on a `futon` line (and on `kazaana`, which
+composes it): `hatsu:futon <repo>@<selector> --idle [then …]`. nen 0.24's `nen parse futon` reads the
+token as part of an exact label, so it is stripped before parsing — the record does it in `start`, and
+futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/nen#491). The keys are § 2's `idle`.
+
+1. **Pre-answers.** `start` resolves `idle.decisions` for every `ask-once-per-run` row of
+   `nen/decisions.json` and records each as a pre-answered row in the run manifest, read from the
+   **committed** `nen/workflow.json` of `origin/<branch.base>` (else `HEAD`'s), never the working tree, its
+   commit recorded as `idle.source`; § 2's floor fails `start` at exit 1. The register lists
+   them every cycle. Where a skill would ask a row: `default` takes its starred option and says so;
+   `hold` or `refuse` asks nothing and **parks the effort** (`park … --row <row>`), and the run moves to
+   the next one. **No picker is shown in an idle run.**
+2. **Stops park, they do not end the run.** A G5 parks the effort as `parked:g5:<class>`; a harness
+   permission denial is a G5. A human-gate row is never pre-answered: the effort stands at that gate.
+3. **Residue parks.** In the batch, a step a skill marks *by hand* or *no verb* is never improvised as
+   shell: the effort parks as `parked:residue:<skill>`.
+4. **Bounds.** Before each claim, `status` gives the elapsed minutes against `idle.budget.minutes`
+   (`overBudget`); past it nothing new is claimed and the rest park as `parked:budget`. **Minutes are the
+   enforced bound; `idle.budget.tokens` is advisory and unread** until zheref/nen#490 lands — never an
+   improvised sum of nen's records. A local slot frees at its merge (`idle.localSlotFrees`, fixed `merged`);
+   `nen loop slots` reads no record yet (zheref/nen#487), overlap is still judged (zheref/nen#488) and stage
+   exclusivity unchecked (zheref/nen#489). En's cap is the git common dir's (en § 2).
+5. **Terminal.** `idle.terminal`: every PR Ready at its merge prompt, or merged into a **non-main**
+   integration branch (futon § 5, En's recorded delivery merge). **Never a merge into `main`, never
+   `getsuga`, `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host
+   scheduler may re-invoke the build, never a release.
 
 ### `classify` — the two label axes, and the one place their vocabulary lives
 

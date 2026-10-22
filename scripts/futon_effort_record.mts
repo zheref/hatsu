@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // Local, durable evidence that a delivery PR belongs to one typed Futon run, and the run manifest:
 // every PR the run opened, whatever its base, and an idle run's pre-answered and parked rows (HR-5).
-// Stored under the Git common directory, outside every PR-controlled tree.
+// Stored under the Git common directory, outside every PR-controlled tree. The idle profile is read from
+// the COMMITTED nen/workflow.json of origin/<branch.base> (else HEAD's committed copy), never the working
+// tree, and the commit it came from is recorded in the manifest's idle.source.
 import { execFileSync } from 'node:child_process';
-import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
@@ -26,7 +28,7 @@ type Kind = 'delivery' | 'integration' | 'release';
 type Opened = { issue: number | null; pr: number; base: string; kind: Kind; head: string };
 type Resolution = 'default' | 'hold' | 'refuse';
 type Idle = { decisions: Array<{ row: string; resolution: Resolution }>; localSlotFrees: string; terminal: string;
-  budget: { minutes: number; tokens: number } };
+  budget: { minutes: number; tokens: number }; source: { ref: string | null; commit: string | null } };
 type Parked = { issue: number; row: string; at: string };
 // v0.1 runs (no manifest) still read; every new start writes v0.2.
 type RunRecord = { contract: 'hatsu.futon.run/v0.1' | 'hatsu.futon.run/v0.2'; id: string; repo: string; invocation: string;
@@ -149,34 +151,61 @@ function splitIdle(line: string): { invocation: string; idle: boolean } {
 function parseFuton(root: string, line: string): Parsed {
   return json<Parsed>('nen', ['parse', 'futon', '--repo', root, splitIdle(line).invocation, '--json'], root);
 }
-// The idle profile: the target's nen/workflow.json `idle` block over the plugin's catalogue defaults;
-// every ask-once-per-run row of the plugin's nen/decisions.json gets one resolution, unnamed rows `hold`.
+// The committed nen/workflow.json the idle profile is read from: origin/<branch.base> (branch.base from
+// HEAD's committed copy, else main), falling back to HEAD; never the working tree, never a symlink.
+function committedWorkflow(root: string): { declared: unknown; ref: string | null; commit: string | null } {
+  const tryRun = (args: string[]): string | null => { try { return run('git', args, root); } catch { return null; } };
+  const read = (ref: string): { declared: unknown; ref: string; commit: string } | null => {
+    const commit = tryRun(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]);
+    if (!commit) return null;
+    const entry = tryRun(['ls-tree', commit, 'nen/workflow.json']);
+    if (!entry) return null;
+    if (entry.startsWith('120000')) fail(`nen/workflow.json at ${ref} is a symlink`);
+    return { declared: JSON.parse(run('git', ['show', `${commit}:nen/workflow.json`], root)), ref, commit };
+  };
+  const head = read('HEAD');
+  const branch = (head?.declared as { branch?: { base?: unknown } } | undefined)?.branch?.base;
+  const base = typeof branch === 'string' && /^[A-Za-z0-9._/-]+$/.test(branch) ? branch : 'main';
+  return read(`origin/${base}`) ?? head ?? { declared: {}, ref: null, commit: null };
+}
+// Rows an idle run may never pre-answer past a floor: publish-offer is always refuse (HR-5, never a release);
+// the maintainer's own host and harness acts, and the never-derived maintainer choice (2026-09-23), at most hold.
+const FLOOR: { [row: string]: Resolution } = { 'publish-offer': 'refuse', 'host-nen-link': 'hold',
+  'harness-attribution-switch': 'hold', 'missing-maintainer-choice': 'hold' };
+const LATITUDE: { [r in Resolution]: number } = { refuse: 0, hold: 1, default: 2 };
+// The idle profile: the committed idle block over the plugin's catalogue defaults; every ask-once-per-run
+// row of the plugin's nen/decisions.json gets one resolution, unnamed rows hold (publish-offer refuse).
 function idleProfile(root: string): Idle {
   const plugin = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-  const rows = (JSON.parse(readFileSync(join(plugin, 'nen', 'decisions.json'), 'utf8')) as { rows: Array<{ id: string; class: string }> })
-    .rows.filter((row) => row.class === 'ask-once-per-run').map((row) => row.id);
+  const rows = (JSON.parse(readFileSync(join(plugin, 'nen', 'decisions.json'), 'utf8')) as
+    { rows: Array<{ id: string; class: string; preferred?: Array<{ recommended?: boolean }> }> })
+    .rows.filter((row) => row.class === 'ask-once-per-run')
+    .map((row) => ({ id: row.id, starred: (row.preferred ?? []).some((option) => option.recommended === true) }));
   const catalogue = JSON.parse(readFileSync(join(plugin, 'contracts', 'config-catalogue.json'), 'utf8')) as
     { values: Array<{ id: string; default?: unknown }> };
   const fallback = (id: string): unknown => catalogue.values.find((row) => row.id === `workflow.idle.${id}`)?.default;
-  const workflow = join(root, 'nen', 'workflow.json');
-  if (existsSync(workflow) && lstatSync(workflow).isSymbolicLink()) fail('nen/workflow.json is a symlink');
-  const declared = (existsSync(workflow) ? (JSON.parse(readFileSync(workflow, 'utf8')) as { idle?: Record<string, unknown> }).idle : undefined) ?? {};
+  const source = committedWorkflow(root);
+  const idleBlock = source.declared && typeof source.declared === 'object' ? (source.declared as { idle?: unknown }).idle : undefined;
+  const declared = idleBlock ?? {};
   const pick = (id: string): unknown => {
     let value: unknown = declared;
-    for (const key of id.split('.')) value = value && typeof value === 'object' ? (value as Record<string, unknown>)[key] : undefined;
+    for (const key of id.split('.')) value = value && typeof value === 'object' ? (value as { [key: string]: unknown })[key] : undefined;
     return value ?? fallback(id);
   };
   const map = pick('decisions') ?? {};
   if (typeof map !== 'object' || map === null || Array.isArray(map)) fail('idle.decisions must be an object');
-  const decisions = rows.map((row) => {
-    const resolution = (map as Record<string, unknown>)[row] ?? 'hold';
+  const decisions = rows.map(({ id: row, starred }) => {
+    const resolution = (map as { [key: string]: unknown })[row] ?? FLOOR[row] ?? 'hold';
     if (resolution !== 'default' && resolution !== 'hold' && resolution !== 'refuse')
       fail(`idle.decisions.${row} must be default, hold or refuse`);
+    const floor = FLOOR[row];
+    if (floor && LATITUDE[resolution] > LATITUDE[floor]) fail(`idle.decisions.${row} may not be ${resolution}: at most ${floor}`);
+    if (resolution === 'default' && !starred) fail(`idle.decisions.${row} may not be default: the row stars no option`);
     return { row, resolution: resolution as Resolution };
   });
   const localSlotFrees = pick('localSlotFrees');
-  if (localSlotFrees !== 'ready+prompted' && localSlotFrees !== 'merged' && localSlotFrees !== 'stacked-open')
-    fail('idle.localSlotFrees must be ready+prompted, merged or stacked-open');
+  if (localSlotFrees !== 'merged')
+    fail('idle.localSlotFrees must be merged (ROSTER § Rulings of 2026-09-30, Slots and stops)');
   const terminal = pick('terminal');
   if (terminal !== 'ready-at-prompt-or-integration' && terminal !== 'ready-at-prompt')
     fail('idle.terminal must be ready-at-prompt-or-integration or ready-at-prompt');
@@ -184,15 +213,22 @@ function idleProfile(root: string): Idle {
   const tokens = pick('budget.tokens');
   if (!Number.isSafeInteger(minutes) || (minutes as number) < 1 || !Number.isSafeInteger(tokens) || (tokens as number) < 1)
     fail('idle.budget.minutes and idle.budget.tokens must be positive integers');
-  return { decisions, localSlotFrees, terminal, budget: { minutes: minutes as number, tokens: tokens as number } };
+  return { decisions, localSlotFrees, terminal, budget: { minutes: minutes as number, tokens: tokens as number },
+    source: { ref: source.ref, commit: source.commit } };
 }
 // One writer at a time on a manifest: appends from two sessions must not lose each other's rows.
+// A lock older than STALE_LOCK_MS is a crashed writer's and is removed once.
+const STALE_LOCK_MS = 10 * 60 * 1000;
 function withLock<T>(path: string, act: () => T): T {
   const lock = `${path}.lock`;
   for (let attempt = 0; ; attempt++) {
     try { closeSync(openSync(lock, 'wx', 0o600)); break; }
     catch (cause) {
-      if ((cause as { code?: string }).code !== 'EEXIST' || attempt >= 50) fail(`Futon run manifest is locked: ${lock}`);
+      if ((cause as { code?: string }).code !== 'EEXIST') fail(`Futon run manifest lock failed: ${lock}`);
+      let age = 0;
+      try { age = Date.now() - statSync(lock).mtimeMs; } catch { continue; }
+      if (age > STALE_LOCK_MS) { try { unlinkSync(lock); } catch { /* another writer took it */ } continue; }
+      if (attempt >= 50) fail(`Futon run manifest is locked: ${lock} (a stale lock clears after 10 minutes, or remove it by hand)`);
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
     }
   }
@@ -271,6 +307,7 @@ function main(argv: string[]): void {
       invocation, selector, startedAt: new Date().toISOString(), idle, prs: [], parked: [] };
     writeRecord(runPath(root, id, true), run);
     console.log(`futon-effort: run ${id} recorded for ${run.repo}@${selector}${idle ? ' (idle)' : ''}`);
+    if (idle) console.log(`futon-effort: idle profile read from ${idle.source.ref ?? 'the catalogue defaults'}${idle.source.commit ? ` at ${idle.source.commit}` : ''}`);
     for (const row of idle?.decisions ?? []) console.log(`futon-effort: pre-answered ${row.row} → ${row.resolution}`);
     return;
   }
@@ -320,8 +357,16 @@ function manifest(root: string, command: string, args: Map<string, string>): voi
   if (command === 'status') {
     const run = readRun(path);
     const elapsedMinutes = Math.floor((Date.now() - Date.parse(run.startedAt)) / 60000);
-    console.log(JSON.stringify({ ...run, idle: run.idle ?? null, prs: run.prs ?? [], parked: run.parked ?? [], elapsedMinutes,
-      overBudget: run.idle ? elapsedMinutes >= run.idle.budget.minutes : false }, null, 2));
+    // A v0.1 run has no manifest: the then gate is HELD on it, never met by an empty set (futon § 8).
+    if (run.contract !== 'hatsu.futon.run/v0.2') {
+      const { prs: _prs, parked: _parked, ...rest } = run;
+      console.log(JSON.stringify({ ...rest, manifest: 'absent', elapsedMinutes }, null, 2));
+      process.exitCode = 2;
+      return;
+    }
+    // overBudget reads minutes only; the token bound is advisory and unread until zheref/nen#490.
+    console.log(JSON.stringify({ ...run, manifest: 'present', idle: run.idle ?? null, prs: run.prs ?? [], parked: run.parked ?? [],
+      elapsedMinutes, overBudget: run.idle ? elapsedMinutes >= run.idle.budget.minutes : false }, null, 2));
     return;
   }
   if (command === 'park') {
