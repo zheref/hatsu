@@ -1269,16 +1269,16 @@ the adoption PR the brief named for the question, merged on 2026-10-21 without a
 
 > **B PT-{n}, one global counter**
 
-| Question as asked | Options shown | Picked | Status | What it settles |
-|---|---|---|---|---|
-| HA#355 needs the port-rule prefix for handbooks/ports/. Which numbering? | A `PT-{n}` per pair file · B `PT-{n}`, one global counter | `B PT-{n}, one global counter` | ruled | The prefix is `PT`, and one counter runs across every pair file |
+| HR | Question as asked | Options shown | Picked | Status | What it settles |
+|---|---|---|---|---|---|
+| <a id="hr-34"></a>**HR-34** | HA#355 needs the port-rule prefix for handbooks/ports/. Which numbering? | A `PT-{n}` per pair file · B `PT-{n}`, one global counter | `B PT-{n}, one global counter` | ruled | The prefix is `PT`, and one counter runs across every pair file. Re-confirms [HR-9](#hr-9)'s id-scheme half |
 
 **What follows:**
 
 - `templates/ports/pair.md`'s header reads `prefix: PT · numbering: global` and cites this section. Citations keep the epic's ruled form, `<from>--<to> PT-<n> (branch <ref>, unmerged)` until the rulings PR merges. The global counter guarantees uniqueness across pair files; it does not change how a ruling is cited.
 - [`bankai-rule`](../claude/skills/bankai-rule/SKILL.md) § 3 reserves against every pair file under `workflow.port.rulingsDir`: at the tip, at the run's own HEAD and working tree, on every sibling `ports-*` branch, and in every open same-repository PR touching one. `scripts/port_rule_reserve.sh` takes the next id as one past the highest `PT-<n>` in any of them. Its `--check` refuses one id in two pair files. A `--prefix` other than `PT` is exit 2. A pair file declaring another prefix or numbering is exit 3. Lane `port-rule-guard` proves each case. The G5 stop that held the global case is retired.
 
-**Its relation to HA-PR-#391.** #391 is open and unmerged. Its HR-9 (picked 2026-10-20, `Merge the adoption PR; global PT-{n} ids (Recommended)`) records the same id-scheme answer, and this block re-confirms it. The block carries no HR id, following `main`'s convention; #391's retro-anchoring (its HR-2) assigns its id.
+**Its relation to [HR-9](#hr-9).** HR-9 (picked 2026-10-20 on HA-PR-#391, `Merge the adoption PR; global PT-{n} ids (Recommended)`) records the same id-scheme answer; HR-34 re-confirms it and supersedes nothing. HR-34 takes the next free id under [HR-2](#hr-2) because #391 merged first; a merged HR id never moves.
 
 **Still owed, not ruled here:** the first `ports/` rulings PR on zheref/bankai-handbooks, which writes the
 first pair file from the template; the review preamble § 3's `PT-` prefix entry, which lands with Hatsu's

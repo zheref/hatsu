@@ -79,7 +79,7 @@ its builds, a `hiraishin` run one, a call one); §§ 3–7 act in it, never in t
 
 ## 3. Reserve the id — against every place a row can be
 
-**Prefix `PT`, one global counter** — ROSTER § *Rulings of 2026-10-21 — the port rule prefix
+**Prefix `PT`, one global counter** — ROSTER HR-34, § *Rulings of 2026-10-21 — the port rule prefix
 (HA#355)* (*"Which numbering?"* → *"B PT-{n}, one global counter"*): no two pair files share an id.
 `--prefix` other than `PT` is exit `2`; a pair file whose header declares other than `prefix: PT ·
 numbering: global` is exit `3`, a `handbook-question`.
