@@ -379,7 +379,7 @@ cover, and — for the two the contract used to mis-file — names why.
 | [`gyo`](../claude/skills/gyo/SKILL.md) | Already total: lint reads the tree, not a delta. P1 only |
 | [`ao`](../claude/skills/ao/SKILL.md) | Already total: `from <base>`, and § 3 reads the checkout. P1, and the base resolves against the **fetched** `origin/` ref |
 | [`susanoo`](../claude/skills/susanoo/SKILL.md) | Already total, and § 1 says so — it runs inside `getsuga` **and** by name. P1, plus which commit and whether the tree was clean |
-| [`aka`](../claude/skills/aka/SKILL.md) | **Always the maintainer's call**, never wired — a typed `futon` or `kazaana` line is that call for its own working branches, initial and maintenance pushes, scoped by destination (aka § 0, zheref/hatsu#332). P1, plus the unpushed/published boundary § 4 squashes on |
+| [`aka`](../claude/skills/aka/SKILL.md) | **Always the maintainer's call**, never wired — a typed `futon` or `kazaana` line is that call for its own working branches, initial and maintenance pushes, scoped by destination (aka § 0, HR-20). P1, plus the unpushed/published boundary § 4 squashes on |
 | [`jutaisho`](../claude/skills/jutaisho/SKILL.md) | Already total. P1, plus: a run that did nothing rings nothing |
 | [`shibari`](../claude/skills/shibari/SKILL.md) | Already total, and both-ways by § 1. P1, plus the one cold precondition — the branch must already be pushed — and the rule that a missing evidence section says so rather than being filled |
 | [`rasengan`](../claude/skills/rasengan/SKILL.md) | **Deliberately caller-bound** (§ 4): the request is the input. P1, plus *ask for the request, never infer it* |

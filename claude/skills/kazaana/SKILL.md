@@ -79,7 +79,7 @@ Futon §§ 3–6 hold: delegated stage label and `nen loop slots --efforts <abs 
 **One delegate authors and publishes each issue in its worktree**, raised as a **builder
 effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter
 ([`claude/rules/hatsu.md`](../../rules/hatsu.md) § 6: Antigravity `Workspace: "branch"`) — titled `kazaana · kurapika · <alias>`, bound to
-`<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope; never raw `gh pr create`. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
+`<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope (HR-20); never raw `gh pr create`. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `--dial` on phase/usage calls
 and title/id at its first phase when exposed; shibari reads its ledgers. The primary
@@ -153,10 +153,10 @@ has none. **Owed to nen**: `nen pr merge --release-unit` reading `aiReviewers` (
 ## Authority
 
 - **Permitted:** futon § 7's delegation; classify's and direct's writes after § 2's one confirmation;
-  delegates at direct's primary tier; branch pushes (aka § 0); `mukai` and `en` per effort; the typed invocation as getsuga's
+  delegates at direct's primary tier; branch pushes (aka § 0, HR-20); `mukai` and `en` per effort; the typed invocation as getsuga's
   advance go; the publish offer, and `mugetsu` on a publish answer only.
 - **Not permitted:** merging a delivery PR, a G1 label, a review vote, raw `gh pr create`, a
-  frontier-tier delegate, a release without the answer, widening the selector.
+  frontier-tier delegate, widening the selector.
 
 ## Hard limits
 
