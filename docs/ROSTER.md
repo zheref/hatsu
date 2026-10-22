@@ -1255,6 +1255,39 @@ never raised on Argon.
 
 ---
 
+## Rulings of 2026-10-21 — the port rule prefix (HA#355)
+
+**The question, verbatim**, put through the picker on 2026-10-21, in the `hatsu:kazaana zheref/hatsu`
+sitting (composed `hatsu:futon zheref/hatsu@model/claude then getsuga`), for
+[zheref/hatsu#355](https://github.com/zheref/hatsu/issues/355)'s open question 1. zheref/bankai-handbooks#4,
+the adoption PR the brief named for the question, merged on 2026-10-21 without answering it:
+
+> HA#355 needs the port-rule prefix for handbooks/ports/. Which numbering?
+
+**The maintainer's answer, verbatim** (the picker is the source). The option not picked was **A**,
+`PT-{n}` per pair file:
+
+> **B PT-{n}, one global counter**
+
+| HR | Question as asked | Options shown | Picked | Status | What it settles |
+|---|---|---|---|---|---|
+| <a id="hr-34"></a>**HR-34** | HA#355 needs the port-rule prefix for handbooks/ports/. Which numbering? | A `PT-{n}` per pair file · B `PT-{n}`, one global counter | `B PT-{n}, one global counter` | ruled | The prefix is `PT`, and one counter runs across every pair file. Re-confirms [HR-9](#hr-9)'s id-scheme half |
+
+**What follows:**
+
+- `templates/ports/pair.md`'s header reads `prefix: PT · numbering: global` and cites this section. Citations keep the epic's ruled form, `<from>--<to> PT-<n> (branch <ref>, unmerged)` until the rulings PR merges. The global counter guarantees uniqueness across pair files; it does not change how a ruling is cited.
+- [`bankai-rule`](../claude/skills/bankai-rule/SKILL.md) § 3 reserves against every pair file under `workflow.port.rulingsDir`: at the tip, at the run's own HEAD and working tree, on every sibling `ports-*` branch, and in every open same-repository PR touching one. `scripts/port_rule_reserve.sh` takes the next id as one past the highest `PT-<n>` in any of them. Its `--check` refuses one id in two pair files. A `--prefix` other than `PT` is exit 2. A pair file declaring another prefix or numbering is exit 3. Lane `port-rule-guard` proves each case. The G5 stop that held the global case is retired.
+
+**Its relation to [HR-9](#hr-9).** HR-9 (picked 2026-10-20 on HA-PR-#391, `Merge the adoption PR; global PT-{n} ids (Recommended)`) records the same id-scheme answer; HR-34 re-confirms it and supersedes nothing. HR-34 takes the next free id under [HR-2](#hr-2) because #391 merged first; a merged HR id never moves.
+
+**Still owed, not ruled here:** the first `ports/` rulings PR on zheref/bankai-handbooks, which writes the
+first pair file from the template; the review preamble § 3's `PT-` prefix entry, which lands with Hatsu's
+repin PR after a bankai-handbooks tag (`CON-13`); the pin bump itself; `limbo`'s mirror of `ports/`, which
+waits on zheref/nen#457; and the open-PR id-reservation verb, zheref/nen#456, until which the script's `gh`
+reads stay residue. zheref/hatsu#355 stays open on criteria 4 and 5's handbooks half.
+
+---
+
 ## Rulings of 2026-10-19 — Argon is a frontier alias
 
 **The two options as asked**, on `hatsu:build HA#340`:
