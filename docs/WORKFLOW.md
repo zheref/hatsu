@@ -1111,6 +1111,12 @@ It loops. **It never pushes and never opens a pull request.**
 | [`kagutsuchi`](../claude/skills/kagutsuchi/) | a non-production upload, **per target**: `nen shu deploy --target <name>` prints the plan always; § 3a's freshness gate reads the archive's build SHA against `HEAD` and `origin/<branch.base>`'s tip on a clean tree, and **only when it is not the tip's build** § 3b runs `susanoo` first in one idempotent clean worktree under core's `.nen/` (the maintainer's gitignored files copied from core, `project.fromCore`, § 3) and sends from there; `--run` acts only on a call — the target **typed, or the declared `deploy.defaultTarget`** (§ 2) | the blast radius leaves this machine |
 | [`mugetsu`](../claude/skills/mugetsu/) | publication, **per target**, **G3**: only on the maintainer's own go (mugetsu § 0), with the preflight green and the tag already cut — one target per call; with no target typed, the single declared destination and the latest cut tag with no published release (ruling of 2026-09-28) | the blast radius is other people's users |
 
+The generated release publisher and its adjacent TypeScript helper compose notes from the changelog's own release headings, at
+Markdown levels 2–6. The `Unreleased` heading sets the level when present; otherwise the first
+`v*` section does. A target tag absent at that level, or a changelog with no recognisable
+release heading, is a refusal before publication. A previous tag at a different level also refuses before publication. Process consumers need Node 22.18+ for the helper. `nen changelog collate`'s `###` sections and
+existing `##` sections both follow this rule.
+
 En may also merge a **recorded Futon-owned stacked delivery PR** into a non-main base when Nen
 Ready, live body, current-head ownership and `nen pr merge --delivery` all pass. This narrow
 non-main path is [`en`](../claude/skills/en/SKILL.md) § 5 and

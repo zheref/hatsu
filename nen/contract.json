@@ -219,7 +219,7 @@
       "release-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/release-publish.sh, following this repository's one-lane-per-executable-guard pattern. The publisher's fixtures are hermetic and offline: they build a throwaway git repository with two tags and a changelog, and prove notes composition, the multi-version gap case, the DERIVED tag, and every refusal -- publishing nothing, ever."
+        "$comment": "The focused lane for scripts/release-publish.sh and scripts/release_changelog.mts, following this repository's one-lane-per-executable-guard pattern. The publisher's fixtures are hermetic and offline: they build a throwaway git repository with tags and changelogs at levels 2 and 3, and prove notes composition, mixed-level refusal, undotted v* fallback, the DERIVED tag, and every refusal -- publishing nothing, ever. The TypeScript helper also runs through pinned Vitest in unit-tests-ci-guard."
       },
       "dist-tag-guard": {
         "stack": "claude-code-plugin",
@@ -438,8 +438,8 @@
       "unit-tests-ci-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/unit_tests_ci_fixture.test.mts"],
-          "$comment": "Pinned Vitest fixture for the trusted CI test runner and its lane selection, failure boundary, token clearing, and output fence. Install locked dependencies with npm ci --ignore-scripts first."
+          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--testTimeout", "15000", "scripts/unit_tests_ci_fixture.test.mts", "scripts/release_changelog_fixture.test.mts", "scripts/tenkai_release_guard_fixture.test.mts"],
+          "$comment": "Pinned Vitest fixtures for the trusted CI test runner, release-changelog parser, and Tenkai publisher adoption guard. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {
@@ -671,7 +671,7 @@
             "scripts/release-publish.sh",
             "--self-test"
           ],
-          "$comment": "Run it as `nen shu test --lane release-guard --repo <hatsu>` when scripts/release-publish.sh or templates/release-publish.sh changes."
+          "$comment": "Run it as `nen shu test --lane release-guard --repo <hatsu>` when scripts/release-publish.sh, scripts/release_changelog.mts or their templates change. The companion Vitest fixture runs in unit-tests-ci-guard."
         }
       },
       "dist-tag-guard": {
@@ -936,7 +936,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",

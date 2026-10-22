@@ -34,6 +34,15 @@ case "${1:-}" in
   --version) echo "0.16.0"; exit 0 ;;
 esac
 if [ "${1:-}" = surface ] && [ "${2:-}" = mirror ] && [ "${3:-}" = generate ]; then
+  surface="" root=""
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --surface) surface="$2"; shift 2 ;;
+      --hooks-root) root="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  [ -z "${STUB_GEN_LOG:-}" ] || [ -z "$surface" ] || printf '%s %s\n' "$surface" "$root" >> "$STUB_GEN_LOG"
   echo "nen surface mirror generate --surface <s> ..."; exit 0
 fi
 surface="" root=""
@@ -107,6 +116,25 @@ grep -Fq '. "$SELF_DIR/surface_mirror_check.sh"' "$repo/scripts/surface_mirror_r
   fail "roots: regeneration does not source the check owner"
 ! grep -q ") root='" "$repo/.github/workflows/surface-mirror-regenerate.yml" ||
   fail "roots: regeneration workflow carries a second hooks-root table"
+# Capture the actual --hooks-root arguments on both paths; a future independent
+# root in regeneration must fail here.
+check_roots="$calls"
+gen_log="$fixture_root/generate.log"
+: > "$gen_log"
+NEN_BIN="$stub" STUB_GEN_LOG="$gen_log" bash "$repo/scripts/surface_mirror_regenerate.sh" "$tree" >/dev/null ||
+  fail 'roots: shared regeneration refused the synthetic tree'
+gen_roots="$(cat "$gen_log")"
+[ "$check_roots" = "$gen_roots" ] || fail "roots: check and regeneration disagree: check=$check_roots; regenerate=$gen_roots"
+
+mkdir -p "$fixture_root/mutated-scripts"
+cp "$guard" "$fixture_root/mutated-scripts/surface_mirror_check.sh"
+sed 's/--hooks-root "$(hooks_root_for "$surface")"/--hooks-root "wrong-root"/' \
+  "$repo/scripts/surface_mirror_regenerate.sh" > "$fixture_root/mutated-scripts/surface_mirror_regenerate.sh"
+: > "$gen_log"
+NEN_BIN="$stub" STUB_GEN_LOG="$gen_log" bash "$fixture_root/mutated-scripts/surface_mirror_regenerate.sh" "$tree" >/dev/null ||
+  fail 'roots: mutated regeneration did not run'
+[ "$check_roots" != "$(cat "$gen_log")" ] || fail 'roots: a regenerated root differing from the check was not detected'
+echo 'ok    roots: a changed regeneration root is refused'
 # docs/using/mirrors.md § 3 no longer writes the roots: it runs scripts/surface_mirror_regenerate.sh,
 # which sources hooks_root_for from the check itself (zheref/hatsu#218); a copy coming back is a finding.
 ! grep -q ") root='" "$repo/docs/using/mirrors.md" || fail "roots: docs/using/mirrors.md writes its own hooks roots again; § 3 runs scripts/surface_mirror_regenerate.sh"
