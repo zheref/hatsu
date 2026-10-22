@@ -18,26 +18,23 @@ if (!existsSync(join(root, 'nen', 'contract.json'))) {
   process.exit(2);
 }
 const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack-guard'];
-if (existsSync(join(root, 'scripts', 'gh_api_read.mts'))) {
-  if (!existsSync(join(root, 'scripts', 'gh_api_read_fixture.mts'))) {
-    console.error('unit-tests-ci: gh_api_read.mts has no required fixture');
+// Each executable guard runs here once it exists, and refuses without its fixture (BC-9: a guard's
+// suite must actually execute in unit-tests.yml).
+const gated: Array<[string, string, string]> = [
+  ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
+  ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
+  ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
+  ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
+  ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
+  ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
+];
+for (const [script, fixture, lane] of gated) {
+  if (!existsSync(join(root, 'scripts', script))) continue;
+  if (!existsSync(join(root, 'scripts', fixture))) {
+    console.error(`unit-tests-ci: ${script} has no required fixture`);
     process.exit(2);
   }
-  lanes.push('gh-api-read-guard');
-}
-if (existsSync(join(root, 'scripts', 'clause_id_guard.mts'))) {
-  if (!existsSync(join(root, 'scripts', 'clause_id_guard_fixture.mts'))) {
-    console.error('unit-tests-ci: clause_id_guard.mts has no required fixture');
-    process.exit(2);
-  }
-  lanes.push('clause-guard');
-}
-if (existsSync(join(root, 'scripts', 'prose_ambiguity_check.mts'))) {
-  if (!existsSync(join(root, 'scripts', 'prose_ambiguity_check_fixture.mts'))) {
-    console.error('unit-tests-ci: prose_ambiguity_check.mts has no required fixture');
-    process.exit(2);
-  }
-  lanes.push('canon-lint');
+  lanes.push(lane);
 }
 const fence = `unit_tests_${randomBytes(16).toString('hex')}`;
 for (const lane of lanes) {
