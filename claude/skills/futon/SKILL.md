@@ -42,8 +42,7 @@ reads the **selector**, classifies `then` (§ 8) and enforces a terminal's scope
 is a label**, matched exactly as typed (case and spaces kept, quotes stripped) and **never expanded**. A trailing `+` on a non-severity token is part of the label (`c++`); `--json` sets
 `band` or `label`, never both. **Exit `2` asks, never ends**: the corrected line goes to the picker (an
 empty selector gets none), the answer is re-parsed, and a missing argument or
-configuration item is set up inline (`missing-argument`, `missing-configuration`;
-[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4). **A re-parsed picker answer never carries a `then`
+configuration item is set up inline (`missing-argument`, `missing-configuration`). **A re-parsed picker answer never carries a `then`
 step**; the maintainer retypes it. **The selector
 is the maintainer's word: never derived.** No `then` clause is not a gap (§ 8).
 
@@ -66,8 +65,9 @@ is reported **truncated**. Then:
   label, triage **orders only, never selects**. Say which, every time.
 - **`bankai:handbook-question` items and design calls are briefed, never guessed**, and never hold
   the scope open.
-- **Order within the scope** with `nen backlog order`, as `backlog-loop` § 5 does: higher severity
-  first, **`critical` pre-empting everything**.
+- **Shape** (HR-4): `node "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N>` per selected
+  issue; a non-zero exit skips it, **needs-clarification**: blocked, never authored (§ 10).
+- **Order within the scope** with `nen backlog order`, as `backlog-loop` § 5 does.
 
 **State the queue before advancing anything** — count, issues, exclusions and why.
 
@@ -190,5 +190,5 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
   typed `then` step** (mugetsu § 3) whose parse `gate` reads `allowed: true`, never from prose.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open**.
 
-*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen v0.15.1+ (pin
-v0.21.0); an older binary's exit `2` is relayed.*
+*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen from v0.15.1;
+an older binary's exit `2` is relayed.*
