@@ -454,4 +454,4 @@ Observed: `iteration 1/20`, `2/20`, `3/20` with the ledger at `<common>/.nen/loo
 after the removal the next claim printed `iteration 4/20 -- … 16 remaining after this one`, exit `0`,
 not `1/20`; the release printed `released en-HA-999 after 4/20 iteration(s): check done`. A ledger
 lost outright (the common dir's `.nen/` deleted) still reads as fresh: the refusal of a lost ledger
-is owed to nen with the run manifest's port.
+is owed to nen (zheref/nen#487).
