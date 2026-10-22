@@ -198,6 +198,25 @@ else process.exit(2);
   const refused = idleStart({ FAKE_DEFAULT: 'bare' });
   expectStatus(refused, 1, 'a default branch with no nen/workflow.json refuses the start');
   assert.match(String(refused.stderr), /has no nen\/workflow\.json/, 'the refusal names its reason');
+  // SEC-15: refs/remotes/origin/HEAD is read first; gh's defaultBranchRef only when it is absent.
+  const originHead = (target: string) => expectStatus(git(['symbolic-ref', 'refs/remotes/origin/HEAD', `refs/remotes/origin/${target}`]), 0, `origin/HEAD → ${target}`);
+  originHead('main');
+  const viaHead = idleStart();
+  expectStatus(viaHead, 0, 'origin/HEAD set: the profile is read through it');
+  assert.match(String(viaHead.stdout), new RegExp(`idle profile read from origin/main at ${good}`), 'origin/HEAD → origin/main is the read');
+  const overGh = idleStart({ FAKE_DEFAULT: 'trunk' });
+  expectStatus(overGh, 0, 'origin/HEAD wins over gh, whose unfetched default would refuse');
+  assert.match(String(overGh.stdout), new RegExp(`idle profile read from origin/main at ${good}`));
+  const evil = String(git(['rev-parse', 'refs/remotes/origin/evil']).stdout).trim();
+  originHead('evil');
+  const symbolicWins = idleStart();
+  expectStatus(symbolicWins, 0, 'origin/HEAD naming a branch other than gh\'s default is the read');
+  assert.match(String(symbolicWins.stdout), new RegExp(`idle profile read from origin/evil at ${evil}`), 'the symbolic ref wins over FAKE_DEFAULT');
+  originHead('bare');
+  const headBare = idleStart();
+  expectStatus(headBare, 1, 'origin/HEAD at a commit with no nen/workflow.json refuses the start');
+  assert.match(String(headBare.stderr), /origin\/bare at [0-9a-f]{40} has no nen\/workflow\.json/, 'the refusal names the symbolic ref');
+  expectStatus(git(['symbolic-ref', '--delete', 'refs/remotes/origin/HEAD']), 0, 'drop origin/HEAD');
   console.log('futon-effort: start, bind, refresh, missing/stale/default/foreign-selector refusals, the run manifest and the idle floor passed');
 } finally {
   rmSync(scratch, { recursive: true, force: true });
