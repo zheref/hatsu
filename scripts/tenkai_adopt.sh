@@ -1557,9 +1557,12 @@ class ReviewLedger(Item):
             if shown.returncode == 1:
                 return self.row(BLOCKED, f"the review ledger is locked or unreadable: {reason}",
                                 "re-run once the lock clears; never recover or re-init for it")
+            if "nen/workflow.json" in reason or "review.scopes" in reason:
+                return self.row(ROUTED, f"nen cannot read review.scopes as a roster: {reason}",
+                                "configure review.scopes (the review-scopes row), then re-run; never restore history for it")
             if "unknown option" in reason or "unknown subcommand" in reason:
-                return self.row(BLOCKED, f"the nen on PATH has no review ledger verb: {reason}",
-                                "bind the pinned nen (hatsu:ten), then re-run")
+                return self.row(BLOCKED, f"nen review ledger show refused its own arguments: {reason}",
+                                "a wiring stop: quote it and re-run once the call or the binding is fixed")
             return self.row(BLOCKED, f"nen review ledger show refused the ledger: {reason}",
                             "restore the original reviewer history with its used counts; never reset the cycle")
         key = f"PR #{expected_pr}" if expected_pr else "branch"
@@ -2071,16 +2074,18 @@ def self_test() -> int:
         finally:
             os.environ["PATH"] = saved_path
             shutil.rmtree(fake_bin, ignore_errors=True)
-    git_dir = Path(shutil.which("git")).parent
+    git_only = Path(tempfile.mkdtemp(prefix="tenkai-gitonly-"))
+    (git_only / "git").symlink_to(shutil.which("git"))
     old_nen = detect_with_nen("#!/bin/sh\necho 0.24.0\n")
     check("a nen below the pinned minimum is blocked as a binding gap, never as damaged history",
           old_nen["state"] == BLOCKED and "below the pinned minimum" in old_nen["detail"]
           and "restore" not in old_nen["action"])
-    os.environ["PATH"], saved = f"{git_dir}", os.environ["PATH"]
+    os.environ["PATH"], saved = str(git_only), os.environ["PATH"]
     try:
         no_nen = ReviewLedger().detect(review_ctx) if shutil.which("nen") is None else None
     finally:
         os.environ["PATH"] = saved
+        shutil.rmtree(git_only, ignore_errors=True)
     check("no nen on PATH is blocked as a binding gap, never as damaged history",
           no_nen is not None and no_nen["state"] == BLOCKED and "not on PATH" in no_nen["detail"]
           and "restore" not in no_nen["action"])
@@ -2094,6 +2099,11 @@ def self_test() -> int:
           ReviewScopes().detect(review_ctx)["state"] == ROUTED)
     check("the ledger row routes missing review scopes to configuration, never to a history restore",
           ReviewLedger().detect(review_ctx)["state"] == ROUTED)
+    review_workflow.write_text(json.dumps({"branch": {"base": "main"}, "review": {
+        "scopes": {"code": {"persona": "nobunaga", "budget": 2, "paths": ["**"]}}}}))
+    malformed = ReviewLedger().detect(review_ctx)
+    check("a non-empty but malformed review.scopes (no tier) routes to configuration, never to a history restore",
+          malformed["state"] == ROUTED and "restore the original" not in malformed["action"])
 
     print("\ngreenfield — diagnose then apply then apply again")
     d = fixture()

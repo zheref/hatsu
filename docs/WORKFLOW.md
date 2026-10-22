@@ -1355,25 +1355,27 @@ used counts. Unreconstructable prior review history is a **safety precondition**
 configuration value; it stops at G5 rather than issuing a fresh budget.
 
 **The review ledger's exits.** They route every `nen review ledger` call
-hanten and breath make (`ensure`, `init`, `decide`, `record`, `show`), read with `--json`; the refusal's
+hanten and breath make (`ensure`, `init`, `decide`, `record`, `show`, `recover-first`), read with `--json`; the refusal's
 text, not the exit alone, picks the row (zheref/hatsu#216):
 
 | Exit | The verb says | Route |
 |---|---|---|
-| `0` | `opened`, `present`, a new cycle, the document | say which, continue |
+| `0` | `opened`, `present`, a new cycle, the document | say which, continue; relay a `durable marker` warning to the maintainer: lost-ledger detection for this key is weakened |
 | `1` | a lock timeout or an I/O failure | stop naming the ledger path; re-run once the lock clears; never a recovery, never an `init` |
 | `2` | the ledger already exists (`init`) | report it, never reset; hanten § 1's `ensure` owns a branch breath did not open |
 | `2` | `review.scopes` is missing or malformed | `missing-configuration`: Tenkai configures `review.scopes`, then the same call re-runs |
-| `2` | `unknown option` or `unknown subcommand` | a nen below 0.26 is first on `PATH`: bind the pinned nen (ten § 2), then re-run |
+| `2` | `unknown option` or `unknown subcommand` | read `nen --version`: below 0.26, bind the pinned nen (ten § 2) and re-run; at or above it, a wiring stop, quoted |
+| `2` | `recover-first` refused (no `--confirmed-first-cycle`, or a ledger already there) | stop; never retried without the maintainer's confirmation, never over an existing ledger |
 | `2` | missing, corrupt or ambiguous history (an unstamped ledger missing a declared reviewer's row) | restore the original counts; unreconstructable is G5, never a fresh budget |
 | `2` | any other refusal (a bad argument, a budget misused) | a wiring stop, quoted |
 | `3` | `ensure` refused: its `reason` names the trunk, `HEAD`, an empty branch or a `refs/*` name | stop: no effort ledger on that ref |
 | `4` | `ensure: lost`, with `traces[]` | the recovery above |
+| any other | nen absent (`127`), killed or crashed | stop and quote it; never a recovery, an `init` or a fresh budget |
 
 **Switching writers.** nen's mutex (`<ledger>.lock`) does not exclude the retired script's OS lock
 (`.cycle.lock`). A Hatsu below 0.134.0 still runs `scripts/hanten_cycle_ledger.sh` from its own
 `$hatsu_root`; an installed copy whose root still holds that file is stale. Finish or stop every hanten
-and breath session on such a copy, and refresh it (`hatsu:bakuryuha`, or ten's freshness check), before a
+and breath session on such a copy, and refresh it (`hatsu:bakuryuha`, or ten § 4b's `hatsu_plugin_update.sh --auto`), before a
 0.134.0 session writes the same `.nen/hanten/` ledger.
 
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
