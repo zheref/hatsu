@@ -98,7 +98,7 @@ In the session's scratch directory, **shown before any write**:
 **Handling** is `bankai-rule`'s (HA#355): `mirror` (business logic, domain UX) · `map` (architecture,
 UX idiom, dev-ops; the handbook rule cited on both sides, the ports pair file in `--always-load` until
 nen resolves pairs) · `drop with note` (a refactor, unless the target has the same debt) · `target-only
-addition`. **Ruling**: a ports id, `<pair> <reserved id> (branch <ref>, unmerged)`, or `unmapped`. Below:
+addition`. **Ruling**: a ports id, `<pair> PT-<n> (branch <ref>, unmerged)`, or `unmapped`. Below:
 the UZF-26 evidence the target PR owes.
 
 ## 6. Drift — each row asked once
@@ -107,7 +107,7 @@ Every `unmapped` row goes in **one batch** per run through
 [`bankai-rule`](../bankai-rule/SKILL.md)'s `port-drift` (`ask-once-per-run`;
 its shape: three a picker call, further calls for more rows), each answer recorded and binding at once;
 the brief re-rendered. Drift the build meets is further calls under the same row. Citations read `<pair>
-<id> (branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port* — § 8's
+PT-<n> (branch <ref>, unmerged)` until the pins move. **All `drop with note`**: *nothing to port* — § 8's
 rulings PR first where any ruling was recorded, then `done`, no issue filed.
 
 ## 7. The port issue — file §§ 3–5 by name
