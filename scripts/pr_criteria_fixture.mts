@@ -7,7 +7,7 @@
 // through `nen issue criteria` (offline, --body-file), the verb `pr converge` reads criteria with.
 // Needs the pinned nen (NEN=<path> overrides `nen`); absent, the lane fails, never passes.
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -16,6 +16,7 @@ const root = join(import.meta.dirname, "..");
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 const catalogue = join(root, "contracts/issue-sections.json");
 const dir = mkdtempSync(join(tmpdir(), "hatsu-criteria-"));
+process.on("exit", () => rmSync(dir, { recursive: true, force: true }));
 
 // 1. Every reader runs the verb with Hatsu's catalogue (shibari § 4, en §§ 4-5, rikugan § 3).
 const verb = 'nen pr converge --target <owner/name> --pr <';
@@ -28,16 +29,22 @@ for (const [skill, count] of [["shibari", 1], ["en", 2], ["rikugan", 1]] as cons
 }
 
 // 2. One owner (AC-2, SC-1): no Hatsu script computes coverage and no canon file restates the
-// verb's blocking words or evidence rule. CHANGELOG history is a record and is not read.
-const banned = [/pr_criteria_check/, /refuses a missing row/i, /blocking words?/i, /evidence (is )?required/i];
+// verb's blocking words, none-word or evidence rule. CHANGELOG history is a record and is not read;
+// docs/ROSTER.md's HR-11 row is the ruling itself, the rule's source, and is exempt by name.
+const banned = [/pr_criteria_check/, /refuses a missing row/i, /blocking words?/i, /evidence (is )?required/i,
+  /missing`?\s*(or|and|,)\s*`?contradicts/i, /\bno criteria\b/i, /unrequested only/i, /whose criterion is none/i];
+const exempt = (path: string, line: string) => path === "docs/ROSTER.md" && line.startsWith('| <a id="hr-11"></a>**HR-11**');
 const walk = (path: string): string[] => statSync(join(root, path)).isDirectory()
   ? readdirSync(join(root, path)).flatMap((name) => walk(join(path, name))) : [path];
 const own = relative(root, join(import.meta.dirname, "pr_criteria_fixture.mts"));
-for (const path of ["claude", "docs", "templates", "contracts", "scripts", "nen", "CONTRIBUTING.md"].flatMap(walk)) {
+for (const path of ["claude", "docs", "templates", "contracts", "scripts", "nen", "surfaces", "CONTRIBUTING.md"].flatMap(walk)) {
   if (path === own || !/\.(md|json|mts|ts|sh|yml)$/.test(path)) continue;
-  const text = read(path);
-  for (const re of banned) assert.ok(!re.test(text), `${path} restates the coverage rule (${re})`);
+  const lines = read(path).split("\n").filter((line) => !exempt(path, line));
+  for (const re of banned) assert.ok(!lines.some((line) => re.test(line)), `${path} restates the coverage rule (${re})`);
 }
+// The restatement this PR retired from en § 4 is caught, and the ROSTER exemption is that row alone.
+assert.ok(banned.some((re) => re.test("a `missing` or `contradicts` verify row, an acceptance criterion with no row")));
+assert.ok(read("docs/ROSTER.md").split("\n").filter((line) => exempt("docs/ROSTER.md", line)).length === 1);
 assert.equal("coverage" in JSON.parse(readFileSync(catalogue, "utf8")), false, "Hatsu keeps nen's coverage defaults (AS-1)");
 
 // 3. The catalogue as the verb reads it: list rows in the acceptance section, comments and fences
@@ -63,7 +70,36 @@ report = criteria(section("- AC-12-001 (P1): Given a When b Then c"));
 assert.equal(report.verifiable, false);
 assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Given a When b Then c"]);
 
-// 4. The verify template carries the criteria table; the requirements array carries verify-content.
+// Hostile text (SEC-15): the plain output neutralises ESC and U+202E. --json escapes ESC but carries
+// U+202E raw at nen 0.26.0 -- a documented miss owed to nen, pinned so the fix updates this case.
+{
+  const file = join(dir, "hostile.md");
+  writeFileSync(file, "## Acceptance criteria\n\n- AC-1: Given a\u202e When \u001b[2J b Then c\n- AC-12-001 (P1): Given \u202e x \u001b[31m When b Then c\n");
+  const plain = spawnSync(nen, ["issue", "criteria", "--body-file", file], { encoding: "utf8" });
+  assert.equal(plain.status, 0, plain.stderr);
+  assert.ok(!/[\u001b\u202e]/.test(plain.stdout), "plain output carries a raw control or bidi character");
+  const json = spawnSync(nen, ["issue", "criteria", "--body-file", file, "--json"], { encoding: "utf8" });
+  assert.ok(!json.stdout.includes("\u001b"), "--json carries a raw ESC");
+  assert.ok(json.stdout.includes("\u202e"), "nen now neutralises U+202E in --json: drop this pinned miss");
+}
+
+// 4. en's not-applicable reading (zheref/hatsu#413, G4): converge's closingSource
+// none-on-non-default-base is not applicable only while the Development guard's --body form exits 0,
+// which holds exactly when the Associated issues table has no closing row.
+{
+  const en = read("claude/skills/en/SKILL.md");
+  assert.ok(en.includes("`none-on-non-default-base`") && en.includes("**not applicable**") && en.includes("Development guard's `--body` form exits `0`"));
+  const table = (verdict: string) => `## 🔗 Associated issues\n\n| Issue | Scope this PR implements | Merging this |\n|---|---|---|\n| https://github.com/example-owner/example-repo/issues/7 | x | **${verdict}** |\n`;
+  const guard = (body: string) => {
+    const file = join(dir, `issues-${Math.random().toString(36).slice(2)}.md`);
+    writeFileSync(file, body);
+    return spawnSync("bash", [join(root, "scripts/pr_development_link_check.sh"), "--body", file, "--target", "example-owner/example-repo"], { encoding: "utf8" }).status;
+  };
+  assert.equal(guard(table("delivers part")), 0, "a stacked delivers-part body: the reading applies");
+  assert.equal(guard(table("completes it")), 1, "a closing row with no Closes line: the reading never applies");
+}
+
+// 5. The verify template carries the criteria table; the requirements array carries verify-content.
 const template = read("templates/pr-body/verify.md");
 assert.ok(template.includes("| Criterion | Coverage | Evidence |") && template.includes("satisfied · partial · missing · contradicts · unrequested"));
 assert.ok(template.includes("nen pr converge"), "the template names the verb that judges the table");
@@ -74,7 +110,7 @@ const contentRe = new RegExp(content.pattern, "im");
 assert.ok(contentRe.test("## ✅ What the guards prove\n\n<!-- c -->\n| a |"));
 assert.ok(!contentRe.test("## ✅ What the guards prove\n\n<!-- c\nd -->\n\n## 🔗 Associated issues\n"));
 
-// 5. contracts/hanten-findings.schema.json: the disposition contract (HR-10).
+// 6. contracts/hanten-findings.schema.json (a deliberate tenant: the lane that runs in CI unconditionally): the disposition contract (HR-10).
 const schema = JSON.parse(read("contracts/hanten-findings.schema.json"));
 assert.equal(schema.$id, "hatsu.hanten.findings/v0.1");
 const disposition = schema.$defs.disposition;
@@ -95,4 +131,4 @@ for (const no of ["UX-3", "HA#7/AC-1", "HR-0", "CON-"]) assert.ok(!constitutiona
 assert.equal(finding.then.properties.severity.const, "critical");
 assert.deepEqual(finding.then.properties.disposition.properties.state.enum, ["fixed", "deferred"]);
 
-console.log("criteria: readers cite nen pr converge with Hatsu's catalogue, no restated coverage rule, the catalogue read through nen issue criteria, template and requirements wiring, and the findings schema passed");
+console.log("criteria: readers cite nen pr converge with Hatsu's catalogue, no restated coverage rule, the catalogue read through nen issue criteria, hostile text, en's not-applicable reading, template and requirements wiring, and the findings schema passed");

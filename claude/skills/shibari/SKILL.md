@@ -127,14 +127,16 @@ nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/
   (zheref/hatsu#171). Fix `body-check` exit `1`; `fragment-required` follows its `changelogFragment`.
 - **Derive the gate** per [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*;
   report it as a forecast. Shibari neither labels a gate nor writes `readiness`;
-  [`en`](../en/SKILL.md) quotes `nen pr ready` after this run.
+  `en` quotes `nen pr ready` after this run.
 - **The body is written only after sections, Delivery, Nen body-check, evidence, Development and changelog checks pass, before every create and edit.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
-  the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
-  `--repo`'s root**, so the body is written to an **absolute** path.
+  the number before any write**, refusing a 404/410. The body file is **absolute**
+  (a relative one resolves against `--repo`).
 - **Development guard**: `--body` before each write, `--pr` after open/edit; fix refusals in body
   or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`. Re-runs:
   `en` §§ 4–5, `sharingan` § 4.
+- **`pr converge`** (HR-11) reads the live PR: after open and every edit; on `1` fix the verify
+  table, `edit-body`, re-run. Never hand to `en` on `1`.
 
 ## 5. Reviewers, and the hand to `en`
 
@@ -145,7 +147,7 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--a
 **Reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one round after
 [`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request, of `base_reviewers`,
 never of a CI lane (PROCESS, *Event-driven reviewer lanes*).
-[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* owns token and bot mechanics. Read success from the mutation response, never the ids sent.
+[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* owns token and bot mechanics.
 
 **Then one line, and stop:** notation, base, forecast gate, check results, quoted Development
 guard line, evidence mechanism, any § 1 permission stop, requested reviewers and Mukai's En offer
@@ -169,4 +171,4 @@ Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned 
   treats an untracked evidence gap as a sanctioned incompleteness.
 - **Never passes a body as an inline `--body` string**, reports a reviewer as requested when the call
   no-opped, or reports a missing Development link as present.
-- **Never fires the `nen stop` banner**, and **never presents by-hand `git`/`gh` as a verb's output.**
+- **Never presents by-hand `git`/`gh` as a verb's output.**

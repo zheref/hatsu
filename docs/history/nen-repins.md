@@ -84,8 +84,10 @@ crosses v0.25.0 (no breaking notes, floor 0.24) and v0.26.0 (floor 0.26). Absorb
   same exits on 0.24.0 and 0.26.0 (144 runs, none differing).
 - **`pr ready` and `pr merge --release-unit` read `aiReviewers`**: no Hatsu change here; getsuga § 3a's and
   kazaana § Residue's "owed to nen" clause is zheref/hatsu#380's to rewrite.
-- **`pr converge` exits** and **`repo classify`'s spec role**: no Hatsu caller yet (zheref/hatsu#413 adopts
-  `pr converge`; `nen/repos.json` declares no families).
+- **`pr converge` exits**: adopted by en §§ 4–5, shibari § 4 and rikugan § 3 in the PR that closed
+  zheref/hatsu#413, with `nen issue criteria` read by the `criteria` lane; the interim
+  Hatsu coverage guard retired. **`repo classify`'s spec role**: no Hatsu caller
+  (`nen/repos.json` declares no families).
 
 v0.25.0's `pr sections resolve` envelope fix (NN#464) makes the retirement of Hatsu's interim PR-section
 resolver possible; that retirement is separate and not adopted here.
