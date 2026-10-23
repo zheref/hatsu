@@ -1003,7 +1003,9 @@ predict`, never by `nen run park` — the 25 parks above sit in nen's `parked[]`
 dry predictions, not real parks; (2) the maintainer's ruling of 2026-10-23 (`R-2026-10-23-01`, WORKFLOW § 2
 `idle`) resolves every starred row `default`, so the 19 rows read default 11 · hold 7 · refuse 1 once the
 committed `nen/workflow.json` carries the new map; (3) slots also count the claimed efforts without a PR
-(WORKFLOW § *Idle batches* rule 4), which a dry run has none of.
+(WORKFLOW § *Idle batches* rule 4), which a dry run has none of. (4) zheref/hatsu#425 was ruled `ready+prompted`
+(`R-2026-10-23-20`): a slot frees once the PR is Ready and its prompt shown, so an unattended night is no
+longer held at seven efforts by the merge; the *one night authors 7* line above reads the old `merged` rule.
 
 **Not exercised live**: a real (non-dry) idle run; `nen run append` and `nen loop slots --from-run` over open
 PRs (none exist in a dry run); `nen wc overlap` (no effort branches exist).

@@ -107,8 +107,8 @@ nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target chec
 
 Both counted, summed: delivery PRs from the manifest, and the claimed efforts with none or merged only locally (WORKFLOW § *Idle batches* rule 4).
 
-The **CI** plane caps at 2, frees at PR-open, holds only legacy-CI PRs. The **local** plane caps
-at 7 and frees when the effort is **merged** — locally, with an integration branch (§ 5); `monitor.localSlotFrees`, HR-257: a printed rule other than `merged` is WORKFLOW § 2 `monitor`'s hold. **`--local-cap 7` is futon's own policy,
+The **CI** plane (legacy-CI PRs only) caps at 2, frees at PR-open. The **local** plane caps
+at 7 and frees at **`ready+prompted`** (PR Ready, prompt shown); a claimed effort with no PR holds its slot till then or its local merge (`monitor.localSlotFrees`, `R-2026-10-23-20`, WORKFLOW § 2). **`--local-cap 7` is futon's own policy,
 always passed**; omitted, exit `2`. **The budgets are never traded**: a full local one is back-pressure.
 
 ## 7. Authority — the CON-25 delegation
@@ -172,7 +172,7 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
   never self-reviews, impersonates a reviewer or casts `request_changes`; **never publishes a release
   itself** — the cut is getsuga's, publication mugetsu's; **never cuts without a typed `then`**.
 - **Never claims a CI author for a PR it opened**, never abandons its own at PR-open (§ 5), never claims readiness `nen pr ready` + `nen pr body-check` did not give.
-- **Never exceeds 2 CI-plane objects or 7 local worktrees**; never lets two efforts share a file concurrently.
+- **Never exceeds 2 CI-plane objects or 7 local slots**; never lets two efforts share a file concurrently.
 - **Never widens its selector** (§ 1).
 - **Never applies a G1 mode label.**
 - **Never batches the merges** — one merge and report per effort.

@@ -232,15 +232,16 @@ function idleProfile(root: string): Idle {
     if (resolution === 'default' && !starred) fail(`idle.decisions.${row} may not be default: the row stars no option`);
     return { row, resolution: resolution as Resolution };
   });
-  // HR-257 binds every futon run, so the key lives in monitor, the block nen loop slots reads; nen reads an
-  // idle.localSlotFrees first where a consumer declares one, so a declared value there is held to the same floor.
+  // The slot rule binds every futon run, so the key lives in monitor, the block nen loop slots reads; nen reads an
+  // idle.localSlotFrees first where a consumer declares one, so a declared value there is held to the same rule.
+  // ready+prompted is the maintainer's pick on zheref/hatsu#425 (R-2026-10-23-20), amending HR-257's merged.
   const monitor = source.declared && typeof source.declared === 'object' ? (source.declared as { monitor?: { localSlotFrees?: unknown } }).monitor : undefined;
   const idleSlot = (declared as { localSlotFrees?: unknown }).localSlotFrees;
-  if (idleSlot !== undefined && idleSlot !== 'merged')
-    fail('idle.localSlotFrees must be merged where declared (HR-257, Slots and stops)');
+  if (idleSlot !== undefined && idleSlot !== 'ready+prompted')
+    fail('idle.localSlotFrees must be ready+prompted where declared (R-2026-10-23-20, zheref/hatsu#425)');
   const localSlotFrees = monitor?.localSlotFrees ?? catalogue.values.find((row) => row.id === 'workflow.monitor.localSlotFrees')?.default;
-  if (localSlotFrees !== 'merged')
-    fail('monitor.localSlotFrees must be merged (HR-257, Slots and stops)');
+  if (localSlotFrees !== 'ready+prompted')
+    fail('monitor.localSlotFrees must be ready+prompted (R-2026-10-23-20, zheref/hatsu#425)');
   const terminal = pick('terminal');
   if (terminal !== 'ready-at-prompt-or-integration' && terminal !== 'ready-at-prompt')
     fail('idle.terminal must be ready-at-prompt-or-integration or ready-at-prompt');

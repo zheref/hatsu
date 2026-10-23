@@ -113,13 +113,13 @@ Which attribution trailers a prospective commit may carry. The maintainer's ruli
 
 ### `monitor`
 
-`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `<git common dir>/.nen/loop/<id>.json` — en §§ 2 and 7 pass `nen loop iterate` the git common directory as `--repo`, so the cap outlives the effort worktree and `hatsu:cleanup` never removes it — keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle. The block also holds futon's local-slot release (`localSlotFrees`, HR-257).
+`hatsu:en`'s acting-cycle cap and its poll interval. **The cap is grammar, not a default**: a watch loop with no cap does not run, and from nen `0.7` `nen loop iterate --line "<task> until <condition> up to <N>"` holds the caller to the cap its own line states, refusing a claim past it. The ledger is `<git common dir>/.nen/loop/<id>.json` — en §§ 2 and 7 pass `nen loop iterate` the git common directory as `--repo`, so the cap outlives the effort worktree and `hatsu:cleanup` never removes it — keyed on the pull request, so a re-invoked landing resumes the same count. Quiet polls spend no cycle. The block also holds futon's local-slot release (`localSlotFrees`, zheref/hatsu#425, `R-2026-10-23-20`).
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `maxCycles` | open (integer) | **`20`** | En's acting-cycle cap on one PR. A different number from `nen/gates.json` → `round_policy.maxRounds`, the reviewer-round cap | `hatsu:en`, `hatsu:senkei`, `hatsu:izanagi` (through `nen loop iterate`) |
 | `pollSeconds` | open (integer) | **`300`** | Seconds between En's quiet observations of a pending PR | `hatsu:en`, `hatsu:sharingan` |
-| `localSlotFrees` | fixed | **`merged`**, the only value an `--idle` `start` accepts | When an effort's local slot (futon § 6) frees: at its local merge, for every futon run — HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*). Read by `nen loop slots --repo <checkout>` from nen `0.26.0`, which holds an open, unmerged PR's slot and prints the rule and its source ([WORKFLOW § 2](../WORKFLOW.md#monitor)); futon § 6 counts `--from-run <run id>` with `--repo`, and whenever the printed rule is not `merged` holds a slot for every unmerged delivery PR `nen run verify` lists; `start` refuses a declared `idle.localSlotFrees` other than `merged` too; nen also knows `stacked-open`, and which ruling binds a stacked effort's slot is zheref/hatsu#425's | `hatsu:futon` § 6, `hatsu:kazaana`, `nen loop slots --from-run --repo`, `futon_effort_record.mts start` |
+| `localSlotFrees` | fixed | **`ready+prompted`**, the only value an `--idle` `start` accepts | When an effort's local slot (futon § 6) frees: once its PR is Ready and its merge prompt (a stacked PR: its Ready stop) was shown, for every futon run, stacked or not — the maintainer's pick on zheref/hatsu#425 (`R-2026-10-23-20`), amending HR-257's *at its local merge*. A claimed effort with no PR holds its slot until then, or until its local merge into the integration branch. Read by `nen loop slots --from-run --repo` from nen `0.26.0`, which prints the rule and its source ([WORKFLOW § 2](../WORKFLOW.md#monitor)); any other printed rule fails closed (every unmerged delivery PR `nen run verify` lists holds a slot); `start` refuses any other value here or under `idle.localSlotFrees` | `hatsu:futon` § 6, `hatsu:kazaana`, `nen loop slots --from-run --repo`, `futon_effort_record.mts start` |
 
 ### `profile`
 
@@ -296,7 +296,7 @@ Illustrative only: a plain product repository on the default lane `app`, with a 
     "forbiddenTrailers": ["Co-Authored-By", "Claude-Session", "Signed-off-by",
                           "Generated-by", "Generated-with", "Reviewed-by"]
   },
-  "monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "merged" },
+  "monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "ready+prompted" },
   "profile": { "allowed": ["fast", "standard", "thorough"],
                "$allowed": "any of: fast | standard | thorough",
                "$default": "one of: fast | standard | thorough" },

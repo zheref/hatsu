@@ -706,10 +706,10 @@ wording — so the two verbs cannot disagree about what is admitted. On top of t
 ### `monitor`
 
 ```json
-"monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "merged" }
+"monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "ready+prompted" }
 ```
 
-`en`'s `izanagi` cap and its poll interval. The block also holds futon's local-slot release (`localSlotFrees`, HR-257). **The cap is grammar, not a default**: a watch loop invoked
+`en`'s `izanagi` cap and its poll interval. The block also holds futon's local-slot release (`localSlotFrees`, zheref/hatsu#425, `R-2026-10-23-20`). **The cap is grammar, not a default**: a watch loop invoked
 without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refuses an invocation with no
 `up to <N>`. § 5 is where both of en's keys are actually spent, and where the long watch hands over to Illumi.
 
@@ -733,7 +733,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `merged` | `futon` § 6, every futon run, attended or `--idle`: **fixed** at `merged` by HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*) — an effort's local slot frees at its local merge. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it holds every open, unmerged PR's slot and prints the rule and its source (`docs/ab/futon.md`, 2026-10-22). futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>`, every field read from the run's manifest and the live PRs, none typed (zheref/hatsu#423), summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4), and reads that printed rule: `merged` → the verdict stands; any other rule (the key undeclared, nen's own default `ready+prompted`, another checkout's file) → every `delivery` row of `nen run verify --json`'s `prs[]` whose `state` is not merged holds a local slot until its local merge, the interim that still holds HR-257 where nen does not. `start` refuses an `idle.localSlotFrees` other than `merged` as it refuses one under `monitor` (nen reads the idle key first where a consumer declares one; Hatsu declares none). nen also knows `stacked-open` (a PR stacked on another effort's branch frees at PR-open), the reading § *Stacked pull requests* rule 4 states; which ruling binds a stacked effort's slot is zheref/hatsu#425's (G4). An `--idle` `start` (`futon_effort_record.mts`) fails on any other value |
+| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 (`R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees` |
 
 ### `idle`
 
@@ -1475,16 +1475,16 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
 4. **Bounds.** Before each claim, `nen run budget` (§ 2 `idle` → `budget`, its four exit rows) gives the
    wall-clock minutes against the ceiling `start` printed; at `remaining.minutes` `0` nothing new is claimed
    and the rest park as `parked:budget`. The token bound is advisory where the ledgers are unread (§ 2).
-   **Slots are counted from two sources and summed** (futon § 6, § 2 `monitor`, HR-257: a slot is held from
-   the claim until the local merge): `nen loop slots --from-run <run id>` counts the run's delivery PRs, and
+   **Slots are counted from two sources and summed** (futon § 6, § 2 `monitor`, `R-2026-10-23-20`: a slot is held from
+   the claim until `ready+prompted`): `nen loop slots --from-run <run id>` counts the run's delivery PRs, and
    `nen loop slots --efforts <abs path>` counts the run's claimed efforts that have no delivery PR — every
    effort worktree of this run (`nen wc worktrees`) whose branch no `nen run verify` row names, one object
    `{"id": "<CODE>#<N>", "plane": "local", "prOpen": false, "ready": false, "prompted": false, "merged":
    <its branch is an ancestor of the integration branch>}`; the run claims only while the two `local.occupied`
    sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs only and refuses `--efforts` beside it:
-   a claimed-efforts count in the manifest is owed to nen.) A slot frees at the effort's local merge into the
-   integration branch; under `merged` the rest **wait** (back-pressure) and park as `parked:budget` only when the
-   minutes elapse; how a stacked effort's slot is counted is zheref/hatsu#425's.
+   a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` (`R-2026-10-23-20`): the effort's PR Ready and
+   its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
+   (back-pressure) and park as `parked:budget` only when the minutes elapse.
    Overlap is `nen wc overlap --efforts <branches> --repo <checkout>` once branches exist (before that it is
    judged from the paths each effort would touch), its verdict cited in the stacking decision; `nen stage
    check --exclusive` holds an issue to one stage label where the target declares a stage family. En's cap is
@@ -1511,7 +1511,7 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    --run <id> --issue <CODE>#<N> --row <row>` — never in nen's `parked[]`, HR-5's real park state: a
    pre-answered `hold`/`refuse` row, `g5-<class>` (a decide, a dependency), a human-gate row, `missing-tool`,
    `residue-<skill>`; a claimable effort inside `--local-cap` in queue order is `dry-prompt` (it would stand
-   at its prompt, holding its slot under `merged`), and the remainder `dry-waiting-slot`. The register states
+   at its prompt, which frees its slot under `ready+prompted`), and the remainder `dry-waiting-slot`. The register states
    the `dry-prompt` count as the efforts one night can author, every pre-answered row with its resolution, and
    every prediction `profile` prints (`docs/ab/futon.md` § 2026-10-23).
 8. **Every decision taken for the maintainer is listed** (the ruling of 2026-10-23). A decision is every
@@ -2793,9 +2793,9 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is
    presented nowhere as mergeable** (ruling 2 of 2026-09-29, kept by the 2026-09-30 amendment): the
    merge prompt exists only for the PR whose base reads `branch.base` at that moment. A stacked effort's
-   local slot is counted freed at PR-open on its stacked base, hanten settled (ruling of 2026-10-13,
-   ROSTER § *Rulings of 2026-10-13*, small ruling 4) — nen `0.26.0` encodes this reading as `stacked-open` (a
-   `stacked` effort field); which ruling binds a stacked effort's slot is zheref/hatsu#425's.
+   local slot frees as every effort's does, at `ready+prompted`: its PR Ready and its Ready stop shown
+   (zheref/hatsu#425, `R-2026-10-23-20`, which reconciles small ruling 4 of 2026-10-13 — *freed at PR-open on its
+   stacked base, hanten settled* — and HR-257 to that one value; nen's `stacked-open` is not used).
 5. **Merging, bottom-up, one at a time, with `--merge`, never a squash** (a squash would re-carry the
    lower PR's commits into the next diff). After each merge the run — or `hatsu:en <next>` — **retargets
    the next PR to `branch.base` first** (`nen pr retarget --base <branch.base>`, en § 5 check 1) **and only

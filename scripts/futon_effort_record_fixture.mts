@@ -156,7 +156,7 @@ else process.exit(2);
   assert.equal(answers['publish-offer'], 'refuse', 'the answers travel to nen as idleAnswers');
   assert.ok(Object.values(answers).every((r) => ['default', 'hold', 'refuse'].includes(r as string)));
   const fresh = record(idleId);
-  assert.equal(fresh.idle.localSlotFrees, 'merged');
+  assert.equal(fresh.idle.localSlotFrees, 'ready+prompted');
   assert.equal(fresh.idle.terminal, 'ready-at-prompt-or-integration');
   assert.equal('decisions' in fresh.idle, false, 'the answers live in nen\'s manifest, not the record');
   assert.match(String(idleStarted.stdout), /budget --max-minutes 480 --max-tokens 4000000/);
@@ -208,12 +208,15 @@ else process.exit(2);
   expectStatus(stamped, 0, 'a start with nen\'s own startedAt');
   const stampedId = /run ([0-9a-f]{32}) recorded/.exec(String(stamped.stdout))?.[1] ?? '';
   assert.equal(record(stampedId).startedAt, '2026-02-03T04:05:06.000Z', 'the record copies nen\'s startedAt: one owner');
-  commitWorkflow({ monitor: { localSlotFrees: 'ready+prompted' } }, 'slot widened');
-  expectStatus(idleStart(), 1, 'monitor.localSlotFrees is the ruled merged only (HR-257)');
-  commitWorkflow({ idle: { localSlotFrees: 'stacked-open' } }, 'idle slot widened');
-  expectStatus(idleStart(), 1, 'a declared idle.localSlotFrees is held to the same floor (HR-257)');
-  commitWorkflow({ idle: { localSlotFrees: 'merged' } }, 'idle slot ruled');
-  expectStatus(idleStart(), 0, 'idle.localSlotFrees: merged starts');
+  // zheref/hatsu#425 (R-2026-10-23-20): ready+prompted is the one value; merged and stacked-open are refused.
+  for (const value of ['merged', 'stacked-open']) {
+    commitWorkflow({ monitor: { localSlotFrees: value } }, `slot ${value}`);
+    expectStatus(idleStart(), 1, `monitor.localSlotFrees ${value} refused: the ruled value is ready+prompted`);
+    commitWorkflow({ idle: { localSlotFrees: value } }, `idle slot ${value}`);
+    expectStatus(idleStart(), 1, `a declared idle.localSlotFrees ${value} is held to the same rule`);
+  }
+  commitWorkflow({ monitor: { localSlotFrees: 'ready+prompted' }, idle: { localSlotFrees: 'ready+prompted' } }, 'slot ruled');
+  expectStatus(idleStart(), 0, 'localSlotFrees: ready+prompted starts');
   commitWorkflow({ branch: { base: 'main' }, idle: { decisions: { 'wrap-up': 'hold', 'mode-unknown': 'default' } } }, 'partial map');
   const partial = idleStart();
   expectStatus(partial, 0, 'a partial idle.decisions with valid values starts');

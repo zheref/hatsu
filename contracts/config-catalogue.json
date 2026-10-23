@@ -568,13 +568,13 @@
       "path": "monitor.localSlotFrees",
       "domain": "review",
       "kind": "open",
-      "default": "merged",
-      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by nen loop slots --from-run --repo from nen 0.26.0, which holds an open unmerged PR's slot; whenever the printed rule is not merged, futon section 6 holds a slot for every unmerged delivery PR nen run verify lists (the stacked-slot reading is zheref/hatsu#425's); an idle start fails on any other value here or under idle.localSlotFrees.",
+      "default": "ready+prompted",
+      "describe": "When an effort's local slot frees (futon section 6): once its PR is Ready and its merge prompt or Ready stop was shown, ready+prompted, the maintainer's pick on zheref/hatsu#425 (R-2026-10-23-20) amending HR-257's merged for every futon run, stacked or not; a claimed effort with no PR holds its slot until then, or until its local merge into the integration branch; read by nen loop slots --from-run --repo from nen 0.26.0; an idle start fails on any other value here or under idle.localSlotFrees.",
       "readers": [
         "futon",
         "kazaana"
       ],
-      "source": "docs/ROSTER.md HR-257 (Rulings of 2026-09-30, Slots and stops); docs/WORKFLOW.md § 2 (monitor)"
+      "source": "zheref/hatsu#425 (R-2026-10-23-20, amending docs/ROSTER.md HR-257, Rulings of 2026-09-30, Slots and stops); docs/WORKFLOW.md § 2 (monitor)"
     },
     {
       "id": "workflow.notifications.rungs",
