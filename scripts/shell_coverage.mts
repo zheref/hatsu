@@ -150,8 +150,15 @@ const caches = !where.error && where.status === 0 ? (where.stdout ?? '').split('
 if (caches.length !== gems.length) {
   uninstrumented(`bashcov ${bashcovPin} with simplecov ${simplecovPin} and simplecov-lcov ${lcovPin} is not installed (nen shu tools --repo . --install)`);
 }
+// An absent cached .gem (an install with no cache, a cleaned cache) cannot be verified: that is a
+// measurement that cannot happen, so the lane still runs, uninstrumented. A present one that differs
+// fails closed.
+const uncached = gems.filter((_gem, i) => !existsSync(caches[i]));
+if (uncached.length) {
+  uninstrumented(`gem cache absent for ${uncached.map((gem) => `${gem.name} ${gem.version}`).join(', ')}, so its checksum cannot be verified; reinstall through nen shu tools --repo . --install`);
+}
 gems.forEach((gem, i) => {
-  if (!existsSync(caches[i]) || sha256(caches[i]) !== gem.digest) {
+  if (sha256(caches[i]) !== gem.digest) {
     fail(`${lane}: ${gem.name} ${gem.version} at ${caches[i]} does not match its pinned gemSha256; reinstall it (gem uninstall --user-install ${gem.name} -v ${gem.version}, then nen shu tools --repo . --install)`);
   }
 });

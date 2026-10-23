@@ -116,6 +116,18 @@ it('refuses a gem whose checksum differs from its pin, and a pin that is not exa
   expect(run(capture).stderr).toContain('to an exact version and a gemSha256');
 });
 
+it('runs uninstrumented, still testable, when a gem cache is absent', () => {
+  const { root, run, report } = fixture();
+  rmSync(join(root, 'gems/bashcov-4.0.0.gem'));
+  const result = run(capture);
+  expect(result.status).toBe(0);
+  expect(result.stderr).toContain('ran uninstrumented (gem cache absent for bashcov 4.0.0');
+  expect(readFileSync(join(root, 'ran.log'), 'utf8')).toBe('ran\n');
+  expect(existsSync(report)).toBe(false);
+  expect(existsSync(join(root, 'program'))).toBe(false);
+  expect(run(capture, { HATSU_SHELL_COVERAGE: 'require' }).status).toBe(2);
+});
+
 it('refuses an LCOV source outside the repository and leaves no report', () => {
   const { run, report } = fixture();
   const result = run(capture, { FAKE_SF: '/tmp/outside.sh' });

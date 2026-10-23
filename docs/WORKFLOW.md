@@ -260,7 +260,7 @@ lanes. The `coverage` row is extraction only, and it refuses a report whose `pro
 sha256 of the report and of every file it names) no longer matches the tree. The gems are pinned by
 version, not by checksum, in nen: its `gem-user` installer carries no digest, so each row's `gemSha256`
 (the rubygems.org SHA256 of the `.gem`) is checked by the helper against the installed cache before
-anything runs under it, and a mismatch refuses. SimpleCov is activated at its pin before Bashcov. The
+anything runs under it: a mismatch refuses, and an absent cache runs the lane uninstrumented. SimpleCov is activated at its pin before Bashcov. The
 gems install into the shared user gem home, where a plain `require` in another project also finds them;
 remove one with `gem uninstall --user-install <gem> -v <version>`. No dependency-audit row covers them
 (`contracts/scans.json` selects rows by stack, and a host toolchain is none): they are **not scanned**.
