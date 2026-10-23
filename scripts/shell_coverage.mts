@@ -14,15 +14,21 @@
 // once, uninstrumented, the stale report is removed, and stderr says so: nen then records no
 // capture, and `nen shu coverage --from-capture` refuses rather than reading an old number.
 // HATSU_SHELL_COVERAGE=require turns a missing tool into exit 2; HATSU_COVERAGE_BASH names the Bash 5+
-// to try first. --verify is the lane's `coverage`
-// row: it reads the report already on disk and runs no fixture (byakugan § 3-4: the coverage row
-// extracts, it never reruns tests). --bash-version is `nen shu tools`'s probe for the bash row.
+// to try first. SimpleCov and Bashcov are activated at the exact versions project.toolchain pins, and
+// each installed .gem is checked against the row's gemSha256 before anything runs under it: a
+// mismatch is exit 2 (nen's gem-user installer pins by version only). A capture writes
+// coverage/<lane>/provenance.json, the sha256 of the report and of every file it names.
+// --verify is the lane's `coverage` row: it runs no fixture (byakugan § 3-4: the coverage row
+// extracts, it never reruns tests) and refuses a report whose provenance no longer matches the tree.
+// --bash-version is `nen shu tools`'s probe for the bash row.
 //
 // EXIT CODES
-//   0  the fixture passed (instrumented or not) · --verify found a report · a Bash 5+ was found
-//   1  the fixture failed (an incomplete Bashcov trace on a passing fixture is 0, no report)
-//   2  usage, an undeclared invocation, a missing report, or a required tool absent
+//   0  the fixture passed (instrumented or not) · --verify found a current report · a Bash 5+ was found
+//   1  the fixture failed (a trace Bashcov could not parse is re-run plain, and that run decides)
+//   2  usage, an undeclared invocation, a missing or stale report, a required tool absent, a pin
+//      that is not exact, or a gem whose checksum differs from its pin
 import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { delimiter, dirname, join, relative, resolve, sep } from 'node:path';
 import { platform } from 'node:process';
@@ -62,11 +68,25 @@ const root = process.cwd();
 const dir = join(root, 'coverage', lane);
 const report = join(dir, 'lcov.info');
 const shown = relative(root, report);
+const provenance = join(dir, 'provenance.json');
+const sha256 = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex');
+const sources = (text: string) => [...text.matchAll(/^SF:(.+)$/gm)].map((m) => m[1]);
 if (mode === '--verify') {
+  const rerun = `run \`nen shu test --lane ${lane}\` with Bashcov installed`;
   if (!existsSync(report) || !readFileSync(report, 'utf8').includes('SF:scripts/')) {
-    fail(`${shown} holds no shell coverage; run \`nen shu test --lane ${lane}\` with Bashcov installed first`);
+    fail(`${shown} holds no shell coverage; ${rerun} first`);
   }
-  console.log(`shell-coverage: read ${shown}; no fixture ran`);
+  let recorded: any;
+  try { recorded = JSON.parse(readFileSync(provenance, 'utf8')); }
+  catch { fail(`${shown} has no readable ${relative(root, provenance)}, so its tree is unknown; ${rerun}`); }
+  if (recorded?.lane !== lane || recorded?.report !== sha256(report)) {
+    fail(`${shown} is not the report ${relative(root, provenance)} recorded; ${rerun}`);
+  }
+  const files: Record<string, string> = recorded?.files ?? {};
+  const named = sources(readFileSync(report, 'utf8'));
+  const stale = named.filter((path) => !files[path] || !existsSync(join(root, path)) || sha256(join(root, path)) !== files[path]);
+  if (stale.length) fail(`${shown} is stale: ${stale.join(', ')} changed since the capture; ${rerun}`);
+  console.log(`shell-coverage: read ${shown}, current for its ${named.length} files; no fixture ran`);
   process.exit(0);
 }
 
@@ -93,22 +113,26 @@ const setting = (process.env.HATSU_SHELL_COVERAGE ?? 'auto').toLowerCase();
 if (!['auto', '0', 'off', 'require'].includes(setting)) {
   fail(`HATSU_SHELL_COVERAGE=${setting} is not one of auto, 0, off, require`);
 }
-// Bashcov runs at the exact versions project.toolchain pins, activated through RubyGems, so a user
-// gem home off PATH still resolves and a newer installed release is never picked up silently.
+// SimpleCov is activated at its pin BEFORE Bashcov, so Bashcov's own '~> 1.1' never resolves to a
+// newer installed release; a user gem home off PATH still resolves.
 const pins = contract?.project?.toolchain ?? {};
-const bashcovPin = String(pins.bashcov?.version ?? '');
-const lcovPin = String(pins['simplecov-lcov']?.version ?? '');
-if (!/^\d+\.\d+\.\d+$/.test(bashcovPin) || !/^\d+\.\d+\.\d+$/.test(lcovPin)) {
-  fail('nen/contract.json must pin project.toolchain.bashcov and simplecov-lcov to exact versions');
+const gems = ['simplecov', 'bashcov', 'simplecov-lcov'].map((name) => ({
+  name, version: String(pins[name]?.version ?? ''), digest: String(pins[name]?.gemSha256 ?? ''),
+}));
+for (const gem of gems) {
+  if (!/^\d+\.\d+\.\d+$/.test(gem.version) || !/^[0-9a-f]{64}$/.test(gem.digest)) {
+    fail(`nen/contract.json must pin project.toolchain.${gem.name} to an exact version and a gemSha256`);
+  }
 }
-const launcher = ['-e', "gem 'bashcov', ARGV.shift; load Gem.bin_path('bashcov', 'bashcov')", bashcovPin];
+const [simplecovPin, bashcovPin, lcovPin] = gems.map((gem) => gem.version);
+const launcher = ['-e', "gem 'simplecov', ARGV.shift; gem 'bashcov', ARGV.shift; load Gem.bin_path('bashcov', 'bashcov')", simplecovPin, bashcovPin];
 const bashcov = spawnSync('ruby', [...launcher, '--version'], { encoding: 'utf8' });
 const bash = findBash();
 const missing = bashcov.error || bashcov.status !== 0
-  ? `bashcov ${bashcovPin} is not installed (nen shu tools --repo . --install)`
+  ? `bashcov ${bashcovPin} with simplecov ${simplecovPin} is not installed (nen shu tools --repo . --install)`
   : !bash ? 'no Bash 5+ is installed' : '';
 const scratch = ['.resultset.json', '.resultset.json.lock', '.last_run.json'].map((name) => join(dir, name));
-for (const stale of [report, ...scratch]) rmSync(stale, { force: true });
+for (const stale of [report, provenance, ...scratch]) rmSync(stale, { force: true });
 
 function plain(exe: string): number {
   const run = spawnSync(exe, [fixture, ...extra], { cwd: root, stdio: 'inherit' });
@@ -122,6 +146,16 @@ if (setting === '0' || setting === 'off' || missing) {
   console.error(`shell-coverage: ${lane} ran uninstrumented (${missing || `HATSU_SHELL_COVERAGE=${setting}`}); no coverage captured`);
   process.exit(status);
 }
+// Each gem's cached .gem must match its pinned digest before any code from it runs here.
+const where = spawnSync('ruby', ['-e', 'ARGV.each_slice(2) { |n, v| puts Gem::Specification.find_by_name(n, v).cache_file }',
+  ...gems.flatMap((gem) => [gem.name, gem.version])], { encoding: 'utf8' });
+const caches = where.status === 0 ? (where.stdout ?? '').split('\n').filter(Boolean) : [];
+if (caches.length !== gems.length) fail(`${lane}: cannot locate the installed .gem files to verify their checksums`);
+gems.forEach((gem, i) => {
+  if (!existsSync(caches[i]) || sha256(caches[i]) !== gem.digest) {
+    fail(`${lane}: ${gem.name} ${gem.version} at ${caches[i]} does not match its pinned gemSha256; reinstall it (gem uninstall --user-install ${gem.name} -v ${gem.version}, then nen shu tools --repo . --install)`);
+  }
+});
 const bash5 = bash!;
 if (interp === 'sh') {
   const status = plain('sh');
@@ -144,16 +178,24 @@ if (run.stdout) process.stdout.write(run.stdout);
 // Bashcov can leak its trace prefix through children that re-enter a shell; drop only those lines.
 const stderr = (run.stderr ?? '').replace(/^\+BASHCOV>[^\n]*\n/gm, '');
 if (stderr) process.stderr.write(stderr);
+// A trace Bashcov could not parse (children interleaving on the trace fd) is a measurement that did
+// not happen. No report is kept, so nothing reads a partial one; a passing run stays green, and a
+// failing one is re-run plain, because the abort cannot be told apart from the fixture's own failure.
+const aborted = /Aborting early; coverage report will be incomplete|XtraceError|terminated with exception/i.test(run.stderr ?? '');
+if (aborted) {
+  rmSync(report, { force: true });
+  if (run.status !== 0) {
+    console.error(`shell-coverage: ${lane}: Bashcov's trace is incomplete and the run exited ${run.status}; re-running it uninstrumented`);
+    const status = plain(interp);
+    console.error(`shell-coverage: ${lane} ran uninstrumented after an incomplete trace; no coverage captured`);
+    process.exit(status);
+  }
+  console.error(`shell-coverage: ${lane} passed, but Bashcov's trace is incomplete; no coverage captured`);
+  process.exit(0);
+}
 if (run.error || run.status !== 0) {
   rmSync(report, { force: true });
   fail(`${lane} fixture failed under Bashcov (${run.error?.message ?? `exit ${run.status}`})`, 1);
-}
-// The fixture passed. A trace Bashcov could not parse (children interleaving on the trace fd) is a
-// measurement that did not happen, not a red test: no report is kept, so nothing reads a partial one.
-if (/Aborting early; coverage report will be incomplete|XtraceError|terminated with exception/i.test(run.stderr ?? '')) {
-  rmSync(report, { force: true });
-  console.error(`shell-coverage: ${lane} passed, but Bashcov's trace is incomplete; no coverage captured`);
-  process.exit(0);
 }
 if (!existsSync(report)) fail(`${lane}: Bashcov wrote no ${shown}`);
 let files = 0;
@@ -171,5 +213,10 @@ if (!files) {
   fail(`${lane}: Bashcov reported no repository script`);
 }
 writeFileSync(report, normalized);
+const recorded: Record<string, string> = {};
+for (const path of sources(normalized)) {
+  if (existsSync(join(root, path))) recorded[path] = sha256(join(root, path));
+}
+writeFileSync(provenance, `${JSON.stringify({ lane, report: sha256(report), files: recorded }, null, 2)}\n`);
 for (const leftover of scratch) rmSync(leftover, { force: true });
 console.log(`shell-coverage: ${lane} wrote ${shown} for ${files} script files`);

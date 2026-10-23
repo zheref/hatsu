@@ -255,12 +255,24 @@ runs its `scripts/*.sh` fixture through `scripts/shell_coverage.mts`: with the p
 and the three pinned gems (Bashcov, SimpleCov, simplecov-lcov) that `nen/contract.json` → `project.toolchain` declares (`nen shu tools --repo .
 --install` puts the gems in the user gem home), its `test` row writes `coverage/<lane>/lcov.info` and nen
 records the capture; `nen shu coverage --lane <lane> --repo . --touched --base origin/<base>
---from-capture` then reads that capture and runs no fixture. The `coverage` row is extraction only. Without
+--from-capture` then reads that capture and runs no fixture, and byakugan passes `--from-capture` on these
+lanes. The `coverage` row is extraction only, and it refuses a report whose `provenance.json` (the
+sha256 of the report and of every file it names) no longer matches the tree. The gems are pinned by
+version, not by checksum, in nen: its `gem-user` installer carries no digest, so each row's `gemSha256`
+(the rubygems.org SHA256 of the `.gem`) is checked by the helper against the installed cache before
+anything runs under it, and a mismatch refuses. SimpleCov is activated at its pin before Bashcov. The
+gems install into the shared user gem home, where a plain `require` in another project also finds them;
+remove one with `gem uninstall --user-install <gem> -v <version>`. No dependency-audit row covers them
+(`contracts/scans.json` selects rows by stack, and a host toolchain is none): they are **not scanned**.
+A `nen shu tools` exit `5` on these rows alone is *unmeasured, still testable* (PROCESS § *Exit codes
+and refusals*). Without
 Bashcov the fixture still runs, once and uninstrumented, and says so, and `--from-capture` refuses for want
 of a capture: unmeasured, never a clean zero. A POSIX `sh` fixture runs under `sh` first, then
 instrumented. Only scripts the fixture executed in place are reported, so a script a fixture copies to a
-temporary root, or one another lane exercises, is `unmatched` here. A lane whose fixture Bashcov cannot
-measure yet (its trace leaks into the output the fixture asserts on, or cannot be parsed) seats its
+temporary root, or one another lane exercises, is `unmatched` here. A trace Bashcov cannot parse
+captures nothing; a run that also exited non-zero is re-run plain, and that run's exit decides. A lane
+whose fixture Bashcov cannot measure yet (its trace leaks into the output the fixture asserts on, or
+cannot be parsed) seats its
 `coverage` row with that reason instead. `HATSU_SHELL_COVERAGE=0` skips the
 instrumentation and `require` refuses without it. The TypeScript guards have no line-coverage tool
 declared yet (the `plugin` lane's `coverage` seat). The ladder above is unchanged.

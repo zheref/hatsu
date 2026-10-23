@@ -589,13 +589,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "surface-link-guard",
             "bash",
             "scripts/surface_link_check_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors."
+          "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/surface-link-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane surface-link-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/surface-link-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): Bashcov 4.0.0 cannot parse this fixture's trace (XtraceError: interleaved child output on the trace descriptor; it aborts with an incomplete report, measured 2026-10-23), so an instrumented run would capture nothing. Until a tracer reads it, this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "surface-link-guard"
+          ],
+          "artifacts": [
+            "coverage/surface-link-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/surface-link-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "redaction-guard": {
@@ -1188,7 +1204,7 @@
           "$comment": "Hermetic and offline, 138 cases. branch_authorship_check.sh: a clean branch, an empty range and a present trailer pass; --require-agent stops a reviewer persona's commit and a trailer-less one on the maintainer's own identity; a foreign author or committer and a missing required trailer stop at exit 1 naming the SHA, author and file count; a clean trunk merge passes only with --trunk, an evil merge and a clean merge of a non-trunk branch stop even with it; trunk history a catch-up brought in is out of range; RED-1 the outgoing range passes past a published web-flow commit; hostile subjects are sanitised; a malformed --require-trailer, --require-agent or --allow-email, an unresolvable base or trunk, a non-repository, an unknown argument, no identity at all and --trunk on a git without merge-tree --write-tree are exit 2; zheref/hatsu#314: the capability is read off `git merge-tree -h`, so a range with no exemption to prove passes on a git that cannot write, a supported git whose proof write is denied is exit 2 naming its exit status and git's sanitised error and never the version floor, a missing-trailer finding or a printed finding, and a conflicted trunk merge is judged at exit 1; the proof writes only a throwaway object directory, so a clean merge passes and an evil one (whose tree the store lacks) is judged at exit 1 on a read-only store and neither adds an object to it; an unrelated-history merge and a shallow clone are exit 2 without a denied-write diagnosis or a grant advice (RED-314a/b); exit 0 with no tree id is exit 2, never a finding; git's quoted text is labelled untrusted, its control bytes print as ?, and it is bounded to three lines and 300 characters; round 2: every read judges the objects as stored, so an evil merge replaced by a clean one under refs/replace and a commit hidden from the range by info/grafts are judged at exit 1; a blob:none partial clone whose proof needs a fetch is exit 2 offline, never a pass; grant advice needs its trigger inside the quoted lines; the throwaway directory is made under TMPDIR, removed on exit, and an unusable TMPDIR is exit 2 naming the directory used, as the grant advice does. publish_gate_check.sh: the full gated && block passes (redirections are not separators, a quoted # hides nothing); a ;, a ||, a bare newline, a pipe (glued to the publish too), a lone &, a negated catch-up, authorship check or noOp read, a second ungated publish, an authorship check on its own line and a ~~~, nested or unterminated fence each fail, as does a publish spelled with doubled spaces or a tab; a murasaki with no full gated block fails; the owners carry a file-level policy -- in murasaki or mukai every publish needs its own catch-up and authorship check, in aka its own authorship check, so a bare publish block beside a gated one fails, and anywhere a publish ahead of the check its block names fails (Copilot on HA-PR-#192); a directory or unreadable file is exit 2; the live skills pass. Run it as `nen shu test --lane publish-integrity-guard --repo <hatsu>` when either script or the publish prose changes."
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): this lane was red uninstrumented on the measuring host on 2026-10-23, so its instrumented run could not be verified. Wire it through scripts/shell_coverage.mts once it passes there; until then it is unmeasured, never a clean zero."
+          "unsupported": "Not measured yet (zheref/hatsu#148): under a UTF-8 locale this lane passes uninstrumented, and under Bashcov 4.0.0 the trace of a child shell reaches the output it asserts on, so the instrumented run fails (measured 2026-10-23). Under an empty or C locale it is red uninstrumented as well, on the untouched base too: Ruby's JSON parse of a non-ASCII byte raises Encoding::InvalidByteSequenceError. Until the fixture keeps its assertions off the trace, this lane is unmeasured, never a clean zero."
         }
       },
       "cleanup-path-guard": {
@@ -1470,7 +1486,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "Bashcov 4.0.0 requires Ruby 3.2 or newer (zheref/hatsu#148). Verify-only: select that Ruby yourself, then let nen install the pinned user-local gems below."
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). Bashcov 4.0.0 requires Ruby 3.2 or newer (zheref/hatsu#148). Verify-only: select that Ruby yourself, then let nen install the pinned user-local gems below."
       },
       "bash": {
         "version": ">=5.0.0",
@@ -1481,10 +1497,11 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "Bashcov needs BASH_XTRACEFD, which macOS /bin/bash 3.2 lacks. The probe finds a Bash 5+ (Homebrew, the Linux system bash, or PATH) without changing PATH or the login shell. Verify-only."
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). Bashcov needs BASH_XTRACEFD, which macOS /bin/bash 3.2 lacks. The probe finds a Bash 5+ (Homebrew, the Linux system bash, or PATH) without changing PATH or the login shell. Verify-only."
       },
       "simplecov": {
         "version": "1.3.2",
+        "gemSha256": "2a22ec1759f1b8db60881a2e038758956fc69ef93ed669be0bde0678de6d0e85",
         "probe": [
           "ruby",
           "-e",
@@ -1492,10 +1509,11 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "gem-user",
-        "why": "Bashcov 4.0.0's coverage engine, pinned so its own '~> 1.1' dependency resolves to one known version. User-local gem home only."
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). Bashcov 4.0.0's coverage engine, pinned so its own '~> 1.1' dependency resolves to one known version. User-local gem home only. Pinned by version through nen, whose gem-user installer carries no digest; gemSha256 is the rubygems.org SHA256 of the .gem (read 2026-10-23), which scripts/shell_coverage.mts checks against the installed cache before anything runs under it, and refuses on a mismatch. nen does not read gemSha256. These gems are on no dependency-audit row (contracts/scans.json selects rows by stack). Uninstall: gem uninstall --user-install <gem> -v <version>."
       },
       "bashcov": {
         "version": "4.0.0",
+        "gemSha256": "de056ab2513fe960d2eba7f3963d36cafa0479b88f4d56ca238048176690e5ba",
         "probe": [
           "ruby",
           "-e",
@@ -1503,10 +1521,11 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "gem-user",
-        "why": "The pinned shell line-coverage tool the focused shell lanes run under scripts/shell_coverage.mts (zheref/hatsu#148, UZF-19). Without it those lanes still pass, uninstrumented, and capture nothing. User-local gem home only."
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). The pinned shell line-coverage tool the focused shell lanes run under scripts/shell_coverage.mts (zheref/hatsu#148, UZF-19). Without it those lanes still pass, uninstrumented, and capture nothing. User-local gem home only. Pinned by version through nen, whose gem-user installer carries no digest; gemSha256 is the rubygems.org SHA256 of the .gem (read 2026-10-23), which scripts/shell_coverage.mts checks against the installed cache before anything runs under it, and refuses on a mismatch. nen does not read gemSha256. These gems are on no dependency-audit row (contracts/scans.json selects rows by stack). Uninstall: gem uninstall --user-install <gem> -v <version>."
       },
       "simplecov-lcov": {
         "version": "0.9.0",
+        "gemSha256": "7a77a31e200a595ed4b0249493056efd0c920601f53d2ef135ca34ee796346cd",
         "probe": [
           "ruby",
           "-e",
@@ -1514,7 +1533,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "gem-user",
-        "why": "The pinned LCOV formatter .simplecov loads, so nen reads each lane report as lcov. User-local gem home only."
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). The pinned LCOV formatter .simplecov loads, so nen reads each lane report as lcov. User-local gem home only. Pinned by version through nen, whose gem-user installer carries no digest; gemSha256 is the rubygems.org SHA256 of the .gem (read 2026-10-23), which scripts/shell_coverage.mts checks against the installed cache before anything runs under it, and refuses on a mismatch. nen does not read gemSha256. These gems are on no dependency-audit row (contracts/scans.json selects rows by stack). Uninstall: gem uninstall --user-install <gem> -v <version>."
       }
     }
   },
