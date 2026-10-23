@@ -1,0 +1,3 @@
+### Fixed
+
+- **`scripts/pr_body_delivery_check.sh` renders the Delivery expectation from Hatsu's own `templates/pr-delivery.md`**, resolved beside the script, instead of `<--repo>/templates/pr-delivery.md`. A consumer carries no such file, so on any non-Hatsu target (zheref/nen's NN-PR-#507 the first seen) the guard exited 2 with `could not read '<target>/templates/pr-delivery.md' (ENOENT)` and could never pass; a target that did carry one would have had its own text checked as the expectation. The fixture now runs the guard against a target with no `templates/` and again with a planted template it must ignore, and fails against the old guard.

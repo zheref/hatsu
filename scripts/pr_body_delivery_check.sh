@@ -76,6 +76,9 @@ if [ "$status" -ne 0 ]; then
 fi
 chmod 600 "$data"
 node "$here/pr_delivery.ts" normalize --data "$data" --out "$normalized" --repo "$repo" --gate-forecast "$gate_forecast"
-nen report render --template "$repo/templates/pr-delivery.md" --data "$normalized" --out "$expected" --repo "$repo"
+# The template is this plugin's, never the target's: a consumer carries no
+# templates/pr-delivery.md, and one it carried would be target-controlled text
+# standing in for the expectation the body is checked against.
+nen report render --template "$here/../templates/pr-delivery.md" --data "$normalized" --out "$expected" --repo "$repo"
 chmod 600 "$normalized" "$expected"
 node "$here/pr_delivery.ts" check --body "$body" --expected "$expected" --repo "$repo"

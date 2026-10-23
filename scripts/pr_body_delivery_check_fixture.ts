@@ -185,9 +185,9 @@ test("CLI writes mode 0600 and refuses output and input symlinks", () => {
   assert.equal(outsideBodyRead.status, 0, `${outsideBodyRead.stdout}${outsideBodyRead.stderr}`);
 });
 
-test("shell guard composes report data, normalization and Nen rendering, and propagates report failure", () => {
-  mkdirSync(join(repo, "templates"), { recursive: true });
-  writeFileSync(join(repo, "templates/pr-delivery.md"), readFileSync(TEMPLATE));
+test("shell guard composes report data, normalization and Nen rendering from the plugin's own template, and propagates report failure", () => {
+  // The target carries no templates/ (a consumer never does): the guard renders from the plugin root.
+  rmSync(join(repo, "templates"), { recursive: true, force: true });
   const realNen = ok("sh", ["-c", "command -v nen"], repo).trim();
   const currentHead = ok("git", ["rev-parse", "HEAD"]).trim();
   const postReport = { ...report, objects: [{ kind: "pr", number: 321, notation: "HA-PR-#321", url: "https://github.com/zheref/hatsu/pull/321", head: currentHead }] };
@@ -232,6 +232,12 @@ exec "$REAL_NEN" "$@"
   const passed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
   assert.equal(passed.status, 0, `${passed.stdout}${passed.stderr}`);
   assert.match(passed.stdout, /every current-effort ledger row/);
+  // A template the target plants is never read in place of the plugin's.
+  mkdirSync(join(repo, "templates"), { recursive: true });
+  writeFileSync(join(repo, "templates/pr-delivery.md"), "## 📬 Delivery\n\nplanted by the target\n");
+  const planted = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
+  assert.equal(planted.status, 0, `${planted.stdout}${planted.stderr}`);
+  rmSync(join(repo, "templates"), { recursive: true, force: true });
   const postEnv = { ...env, FIXTURE_REPORT: postReportPath, EXPECT_NO_PR: "0", EXPECT_TARGET: "zheref/hatsu", EXPECT_PR: "321" };
   const postPassed = run("bash", [GUARD, "--body", postBody, "--repo", repo, "--base", "main", "--gate-forecast", "G4", "--target", "zheref/hatsu", "--pr", "321"], repo, postEnv);
   assert.equal(postPassed.status, 0, `${postPassed.stdout}${postPassed.stderr}`);
