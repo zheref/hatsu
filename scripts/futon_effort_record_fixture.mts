@@ -59,8 +59,9 @@ if(a[0]==='parse'&&a[1]==='futon'){ const line=a[4]||'';
 else if(a[0]==='run'&&a[1]==='start'){
   if(e.FAKE_NEN_START==='refuse'){ console.error('nen run: refused'); process.exit(1); }
   const at=(f)=>a[a.indexOf(f)+1]; const answers=a.includes('--idle-answers')?JSON.parse(at('--idle-answers')):null;
+  if(answers&&e.FAKE_TAMPER) answers['publish-offer']='default';
   console.log(JSON.stringify({outcome:e.FAKE_NEN_START||'started',path:'<common>/.nen/runs/'+at('--id')+'.json',
-    manifest:{contract:'nen.run/v0.1',id:at('--id'),repo:at('--target'),startedAt:'2026-01-01T00:00:00Z',idleAnswers:answers,prs:[],parked:[]}})); }
+    manifest:{contract:'nen.run/v0.1',id:at('--id'),repo:at('--target'),startedAt:e.FAKE_STARTED||new Date().toISOString(),idleAnswers:answers,prs:[],parked:[]}})); }
 else process.exit(2);
 `);
   chmodSync(nen, 0o755);
@@ -167,7 +168,16 @@ else process.exit(2);
     const dryId = /run ([0-9a-f]{32}) recorded/.exec(String(dry.stdout))?.[1] ?? '';
     assert.equal(record(dryId).dry, true, 'the record says the run was dry');
     assert.equal(record(dryId).invocation, line, 'the typed line is kept whole');
+    expectStatus(call('bind', bind.map((part) => part === runId ? dryId : part)), 1, 'a dry run binds no PR (zheref/hatsu#424/AC-2)');
+    const predicted = manifestCall(['predict', '--repo', root, '--run', dryId, '--issue', 'HA#154', '--row', 'dry-prompt']);
+    expectStatus(predicted, 0, 'a dry run records its prediction on the record');
+    assert.deepEqual(record(dryId).predictions.map((p: { issue: string; row: string }) => [p.issue, p.row]), [['HA#154', 'dry-prompt']]);
+    expectStatus(manifestCall(['predict', '--repo', root, '--run', dryId, '--issue', 'HA#155', '--row', 'g5:decide']), 1, 'a colon row refused');
+    expectStatus(manifestCall(['predict', '--repo', root, '--run', dryId, '--issue', '155', '--row', 'g5-decide']), 1, 'a bare number refused');
   }
+  expectStatus(manifestCall(['predict', '--repo', root, '--run', runId, '--issue', 'HA#154', '--row', 'dry-prompt']), 1,
+    'a real run records no prediction: its stops are nen run park\'s');
+  assert.equal(nenCalls().some((argv) => argv[0] === 'run' && argv[1] === 'park'), false, 'predictions never reach nen\'s parked[]');
   for (const [line, why] of [['hatsu:futon hatsu@model/gpt --dry-run', 'a dry run without --idle'],
       ['hatsu:futon hatsu@model/gpt --idle --dry-run --dry-run', 'a doubled --dry-run'],
       ['hatsu:futon hatsu@model/gpt --idle then rikugan --dry-run', '--dry-run after then'],
@@ -179,11 +189,25 @@ else process.exit(2);
   const idleStart = (env: Record<string, string> = {}) => manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle'], env);
   commitWorkflow({ idle: { decisions: { 'wrap-up': 'always' } } }, 'out of vocabulary');
   expectStatus(idleStart(), 1, 'a resolution outside default|hold|refuse refused');
-  for (const [row, resolution] of [['publish-offer', 'default'], ['publish-offer', 'hold'], ['host-nen-link', 'default'],
-      ['harness-attribution-switch', 'default'], ['missing-maintainer-choice', 'default'], ['port-siblings', 'default']]) {
+  // The ruling of 2026-10-23: unattended except an irreversible act. The floor is publish-offer refuse and
+  // missing-maintainer-choice at most hold; a row that stars nothing can never be default.
+  for (const [row, resolution] of [['publish-offer', 'default'], ['publish-offer', 'hold'],
+      ['missing-maintainer-choice', 'default'], ['port-siblings', 'default']]) {
     commitWorkflow({ idle: { decisions: { [row]: resolution } } }, `${row} ${resolution}`);
     expectStatus(idleStart(), 1, `the floor refuses ${row}: ${resolution}`);
   }
+  for (const row of ['host-nen-link', 'harness-attribution-switch', 'cleanup-plan']) {
+    commitWorkflow({ idle: { decisions: { [row]: 'default' } } }, `${row} default`);
+    const lifted = idleStart();
+    expectStatus(lifted, 0, `${row}: default is admitted, a reversible act (ruling of 2026-10-23)`);
+    assert.match(String(lifted.stdout), new RegExp(`pre-answered ${row} → default`));
+  }
+  commitWorkflow({}, 'no idle map');
+  expectStatus(idleStart({ FAKE_TAMPER: '1' }), 1, 'nen storing other answers than the floor resolved refuses the start');
+  const stamped = idleStart({ FAKE_STARTED: '2026-02-03T04:05:06.000Z' });
+  expectStatus(stamped, 0, 'a start with nen\'s own startedAt');
+  const stampedId = /run ([0-9a-f]{32}) recorded/.exec(String(stamped.stdout))?.[1] ?? '';
+  assert.equal(record(stampedId).startedAt, '2026-02-03T04:05:06.000Z', 'the record copies nen\'s startedAt: one owner');
   commitWorkflow({ monitor: { localSlotFrees: 'ready+prompted' } }, 'slot widened');
   expectStatus(idleStart(), 1, 'monitor.localSlotFrees is the ruled merged only (HR-257)');
   commitWorkflow({ idle: { localSlotFrees: 'stacked-open' } }, 'idle slot widened');
@@ -196,7 +220,9 @@ else process.exit(2);
   const partialOut = String(partial.stdout);
   assert.match(partialOut, /pre-answered wrap-up → hold/);
   assert.match(partialOut, /pre-answered mode-unknown → default/);
-  assert.match(partialOut, /pre-answered cleanup-plan → hold/, 'an unnamed row holds');
+  assert.match(partialOut, /pre-answered cleanup-plan → default/, 'an unnamed starred row takes its default (ruling of 2026-10-23)');
+  assert.match(partialOut, /pre-answered port-drift → hold/, 'an unnamed row that stars nothing holds');
+  assert.match(partialOut, /pre-answered missing-maintainer-choice → hold/, 'the never-derived choice holds');
   assert.match(partialOut, /pre-answered publish-offer → refuse/, 'an unnamed publish-offer refuses');
   assert.match(partialOut, /idle profile read from origin\/main at [0-9a-f]{40}/, 'the committed source is recorded');
   writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify({ idle: { decisions: { 'publish-offer': 'default' } } }));
@@ -207,12 +233,12 @@ else process.exit(2);
   expectStatus(based, 0, 'the default branch\'s committed copy wins over HEAD');
   assert.match(String(based.stdout), new RegExp(`idle profile read from origin/main at ${good}`));
   // SEC-15: HEAD's branch.base never picks the ref; a pushed branch it names is never read.
-  commitWorkflow({ branch: { base: 'evil' }, idle: { decisions: { 'cleanup-plan': 'default' } } }, 'base redirected', false);
+  commitWorkflow({ branch: { base: 'evil' }, idle: { decisions: { 'mode-unknown': 'hold' } } }, 'base redirected', false);
   expectStatus(git(['update-ref', 'refs/remotes/origin/evil', 'HEAD']), 0, 'push the redirect target');
   const redirected = idleStart();
   expectStatus(redirected, 0, 'a branch.base on HEAD never redirects the read');
   assert.match(String(redirected.stdout), new RegExp(`idle profile read from origin/main at ${good}`));
-  assert.match(String(redirected.stdout), /pre-answered cleanup-plan → hold/, 'the redirected default never applies');
+  assert.match(String(redirected.stdout), /pre-answered mode-unknown → default/, 'the redirected map never applies');
   expectStatus(idleStart({ FAKE_DEFAULT: 'trunk' }), 1, 'an unfetched default branch refuses the start, never falls back to HEAD');
   const empty = String(git(['hash-object', '-t', 'tree', '/dev/null']).stdout).trim();
   const bare = String(git(['commit-tree', empty, '-m', 'no declaration']).stdout).trim();

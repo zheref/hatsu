@@ -36,8 +36,19 @@ type Profile = Omit<Idle, 'decisions'>;
 // v0.1 and v0.2 runs still read for ownership (their manifest half is never written again); a new start
 // writes v0.3, which carries no prs, no parked rows and no answers: those are nen's manifest's.
 type RunRecord = { contract: 'hatsu.futon.run/v0.1' | 'hatsu.futon.run/v0.2' | 'hatsu.futon.run/v0.3'; id: string; repo: string;
-  invocation: string; selector: string; startedAt: string; dry?: boolean; idle?: Profile | Idle | null };
-type NenStart = { outcome: string; path: string; manifest: { id: string; repo: string; idleAnswers: { [row: string]: Resolution } | null } };
+  invocation: string; selector: string; startedAt: string; dry?: boolean; idle?: Profile | Idle | null;
+  predictions?: Prediction[] };
+// A dry run's predicted end states (zheref/hatsu#424): kept on this record, never written into nen's parked[],
+// which is HR-5's real park state and carries no dry flag at nen 0.26.0.
+type Prediction = { issue: string; row: string; at: string };
+type NenStart = { outcome: string; path: string;
+  manifest: { id: string; repo: string; startedAt: string; idleAnswers: { [row: string]: Resolution } | null } };
+// The answers nen stored must be exactly the map sent: the floor's only durable copy is nen's manifest.
+function sameAnswers(stored: { [row: string]: unknown } | null | undefined, sent: { [row: string]: Resolution } | null): boolean {
+  if (sent === null || stored === null || stored === undefined) return sent === null && (stored === null || stored === undefined);
+  const keys = Object.keys(sent);
+  return Object.keys(stored).length === keys.length && keys.every((key) => stored[key] === sent[key]);
+}
 type Pull = { baseRefName: string; headRefName: string; headRefOid: string; state: string; isCrossRepository: boolean; createdAt: string; body: string };
 type Issue = { labels: Array<{ name: string }>; state: string };
 type Parsed = { repo: string; label: string | null; band: string | null; idle?: boolean };
@@ -185,13 +196,14 @@ function committedWorkflow(root: string): { declared: unknown; ref: string; comm
   if (entry.startsWith('120000')) fail(`nen/workflow.json at ${ref} is a symlink`);
   return { declared: JSON.parse(run('git', ['show', `${commit}:nen/workflow.json`], root)), ref, commit };
 }
-// Rows an idle run may never pre-answer past a floor: publish-offer is always refuse (HR-5, never a release);
-// the maintainer's own host and harness acts, and the never-derived maintainer choice (2026-09-23), at most hold.
-const FLOOR: { [row: string]: Resolution } = { 'publish-offer': 'refuse', 'host-nen-link': 'hold',
-  'harness-attribution-switch': 'hold', 'missing-maintainer-choice': 'hold' };
+// The maintainer's ruling of 2026-10-23 (WORKFLOW § 2 idle): an idle run is unattended except for an act
+// that may not be reversed. So the floor holds only publish-offer at refuse (a published release is not
+// undone; HR-5) and the never-derived maintainer choice (2026-09-23, HR-4) at most hold.
+const FLOOR: { [row: string]: Resolution } = { 'publish-offer': 'refuse', 'missing-maintainer-choice': 'hold' };
 const LATITUDE: { [r in Resolution]: number } = { refuse: 0, hold: 1, default: 2 };
 // The idle profile: the committed idle block over the plugin's catalogue defaults; every ask-once-per-run
-// row of the plugin's nen/decisions.json gets one resolution, unnamed rows hold (publish-offer refuse).
+// row of the plugin's nen/decisions.json gets one resolution; an unnamed row takes its starred default,
+// holds where it stars none, and the floor applies (publish-offer refuse, missing-maintainer-choice hold).
 function idleProfile(root: string): Idle {
   const plugin = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const rows = (JSON.parse(readFileSync(join(plugin, 'nen', 'decisions.json'), 'utf8')) as
@@ -212,7 +224,7 @@ function idleProfile(root: string): Idle {
   const map = pick('decisions') ?? {};
   if (typeof map !== 'object' || map === null || Array.isArray(map)) fail('idle.decisions must be an object');
   const decisions = rows.map(({ id: row, starred }) => {
-    const resolution = (map as { [key: string]: unknown })[row] ?? FLOOR[row] ?? 'hold';
+    const resolution = (map as { [key: string]: unknown })[row] ?? FLOOR[row] ?? (starred ? 'default' : 'hold');
     if (resolution !== 'default' && resolution !== 'hold' && resolution !== 'refuse')
       fail(`idle.decisions.${row} must be default, hold or refuse`);
     const floor = FLOOR[row];
@@ -284,11 +296,11 @@ function main(argv: string[]): void {
   // append, park and status were the manifest half; nen run append|park|verify|budget own it (zheref/hatsu#423).
   const allowed: { [verb: string]: string[] } = {
     start: ['--repo', '--invocation'], bind: ['--repo', '--pr', '--run', '--issue', '--base', '--head', '--sha'],
-    verify: ['--repo', '--pr'], profile: ['--repo', '--run'] };
+    verify: ['--repo', '--pr'], profile: ['--repo', '--run'], predict: ['--repo', '--run', '--issue', '--row'] };
   if (!command || !Object.hasOwn(allowed, command))
     fail(['append', 'park', 'status'].includes(command ?? '')
       ? `${command} is retired: the run manifest is nen's (nen run ${command === 'status' ? 'verify' : command}; zheref/hatsu#423)`
-      : 'usage: futon_effort_record.mts start|bind|verify|profile --repo ROOT [flags]');
+      : 'usage: futon_effort_record.mts start|bind|verify|profile|predict --repo ROOT [flags]');
   const args = flags(argv);
   checkKeys(args, allowed[command]);
   const root = realpathSync(requireFlag(args, '--repo'));
@@ -297,6 +309,21 @@ function main(argv: string[]): void {
     const run = readRun(runPath(root, runId, false));
     // A v0.1/v0.2 run opened no nen manifest: nen run verify finds no run, and futon § 8 holds its gate.
     console.log(JSON.stringify({ ...run, manifest: run.contract === 'hatsu.futon.run/v0.3' ? 'nen' : 'absent' }, null, 2));
+    return;
+  }
+  if (command === 'predict') {
+    const runId = requireFlag(args, '--run');
+    const path = runPath(root, runId, false);
+    const run = readRun(path);
+    if (run.contract !== 'hatsu.futon.run/v0.3' || run.dry !== true)
+      fail(`run ${runId} is not a dry run: a real stop is parked with nen run park`);
+    const issue = requireFlag(args, '--issue');
+    const row = requireFlag(args, '--row');
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[A-Za-z0-9._-]+)?#[1-9][0-9]*$/.test(issue)) fail('--issue must be <CODE>#<N>');
+    if (!/^[a-z0-9][a-z0-9-]{0,80}$/.test(row)) fail('--row must be [a-z0-9-]+ (a decisions row, g5-<class>, residue-<skill>, dry-prompt, dry-waiting-slot)');
+    const predictions = (run.predictions ?? []).filter((entry) => entry.issue !== issue);
+    writeRecord(path, { ...run, predictions: [...predictions, { issue, row, at: new Date().toISOString() }] });
+    console.log(`futon-effort: dry ${issue} predicted:${row}`);
     return;
   }
   if (command === 'start') {
@@ -310,7 +337,6 @@ function main(argv: string[]): void {
     if (dry && !parsed.idle) fail('--dry-run rehearses an idle run, and nen did not read --idle');
     const id = randomBytes(16).toString('hex');
     const idle = parsed.idle ? idleProfile(root) : null;
-    const startedAt = new Date().toISOString();
     // The manifest is nen's: opened with this id, the pre-answered rows its idleAnswers. Written first, so
     // a refused nen start leaves no ownership record naming a run nen never opened.
     const answers = idle ? Object.fromEntries(idle.decisions.map((row) => [row.row, row.resolution])) : null;
@@ -324,11 +350,20 @@ function main(argv: string[]): void {
     }
     if (opened.outcome !== 'started' || opened.manifest?.id !== id || opened.manifest.repo !== parsed.repo)
       fail(`nen run start did not create run ${id} (outcome ${opened.outcome ?? 'unread'})`);
+    if (!sameAnswers(opened.manifest.idleAnswers, answers))
+      fail(`nen's manifest ${opened.path} stores other idle answers than the floor resolved; the run is refused (orphan manifest left for cleanup)`);
+    // One owner for the run's start time: nen's, which append, budget and the catalogue row count from.
+    const startedAt = opened.manifest.startedAt;
+    if (typeof startedAt !== 'string' || !Number.isFinite(Date.parse(startedAt)))
+      fail(`nen's manifest ${opened.path} carries no readable startedAt`);
     const profile: Profile | null = idle ? { localSlotFrees: idle.localSlotFrees, terminal: idle.terminal,
       budget: idle.budget, source: idle.source } : null;
     const run: RunRecord = { contract: 'hatsu.futon.run/v0.3', id, repo: parsed.repo,
-      invocation, selector, startedAt, dry, idle: profile };
-    writeRecord(runPath(root, id, true), run);
+      invocation, selector, startedAt, dry, idle: profile, ...(dry ? { predictions: [] } : {}) };
+    try { writeRecord(runPath(root, id, true), run); }
+    catch (cause) {
+      fail(`the ownership record could not be written (${cause instanceof Error ? cause.message : String(cause)}); nen's manifest ${opened.path} is an orphan, left for cleanup`);
+    }
     console.log(`futon-effort: run ${id} recorded for ${run.repo}@${selector}${idle ? ' (idle)' : ''}${dry ? ' (dry: nothing is authored)' : ''}`);
     console.log(`futon-effort: manifest ${opened.path} (nen.run/v0.1)`);
     if (profile) {
@@ -352,6 +387,7 @@ function main(argv: string[]): void {
   const runId = requireFlag(args, '--run');
   const runRecord = readRun(runPath(root, runId, false));
   if (runRecord.id !== runId) fail('Futon run id mismatch');
+  if (runRecord.dry === true) fail(`run ${runId} is a dry run: it authors nothing, so no PR is bound to it (zheref/hatsu#424)`);
   const invocation = runRecord.invocation;
   const issueNumber = positive(requireFlag(args, '--issue'), '--issue');
   const parsed = parseFuton(root, invocation);

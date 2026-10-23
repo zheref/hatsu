@@ -374,8 +374,8 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": {
-        "harness-attribution-switch": "hold",
-        "host-nen-link": "hold",
+        "harness-attribution-switch": "default",
+        "host-nen-link": "default",
         "missing-consumer-declaration": "default",
         "missing-argument": "default",
         "missing-configuration": "default",
@@ -386,20 +386,20 @@
         "intake-challenger": "hold",
         "port-siblings": "hold",
         "wrap-up": "default",
-        "cleanup-plan": "hold",
+        "cleanup-plan": "default",
         "publish-offer": "refuse",
-        "spec-capture-scope": "hold",
+        "spec-capture-scope": "default",
         "spec-slice": "hold",
         "spec-clarify": "hold",
         "spec-dispatch": "hold",
-        "spec-converge-filing": "hold"
+        "spec-converge-filing": "default"
       },
-      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold (publish-offer refuse). A floor fails start at exit 1: publish-offer is always refuse; host-nen-link, harness-attribution-switch and missing-maintainer-choice are at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
+      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. Under the maintainer's ruling of 2026-10-23 (unattended except an act that may not be reversed) a row resolves default where it stars an option and hold where it stars none; publish-offer is refuse. A row the map does not name takes the same resolution. A floor fails start at exit 1: publish-offer is always refuse; missing-maintainer-choice is at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
       "readers": [
         "futon",
         "kazaana"
       ],
-      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), the five spec-* rows held (dowsing-chain is not an idle-run skill; spec-capture-scope and spec-converge-filing star an option), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
+      "source": "docs/ROSTER.md HR-5; the maintainer's ruling of 2026-10-23 (recorded R-2026-10-23-01); nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan default is its deterministic rows for this session only"
     },
     {
       "id": "workflow.idle.terminal",

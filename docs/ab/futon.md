@@ -907,7 +907,7 @@ write of a real run (the stage label, classify on HA#247 and HA#381, the briefin
 
 The 2026-10-22 proof above was a hand-driven sequence over Hatsu's own manifest. This one is **the one typed
 line** `hatsu:futon hatsu@model/gpt --idle --dry-run`, run from the effort worktree of
-`opus/kurapika/sdd100-h-b-futon-batch` (this section's PR) at `origin/main` `1243b272` (plugin 0.138.1, nen
+`opus/kurapika/sdd100-h-b-futon-batch` (this section's PR) at `origin/main` `1243b272` (plugin 0.139.0, nen
 `v0.26.0` on `PATH`). Writes: the two local records under the git common directory (below) and the git-ignored
 `Reports/current.html`; no label, branch, worktree, pull request, comment, push or release.
 
@@ -996,6 +996,14 @@ row per issue with its park row, and `legendRows` with all 19 pre-answered rows 
 | G3 | `nen run budget` reads usage ledgers under one `--repo`; each effort keeps its own in its worktree, so a multi-worktree run reads `tokensUnread` and `--claim` would refuse every claim after the first PR | `--claim` not passed; minutes enforced, tokens advisory (WORKFLOW § 2 `idle`) |
 | G4 | `nen run start` reports a new run as `outcome: "started"`; the first draft expected `created` | fixed in this PR; one orphan manifest left (above) |
 | G5 | `nen run park --row` refuses the colon rows `g5:<class>` and `residue:<skill>` | rows renamed `g5-<class>`, `residue-<skill>` (WORKFLOW § *Idle batches* rule 2) |
+
+**Settlement of the review (HA-PR-#460, same day).** Three things moved after this run, so a re-run reads
+differently: (1) a dry run's end states are now recorded on the ownership record by `futon_effort_record.mts
+predict`, never by `nen run park` — the 25 parks above sit in nen's `parked[]` of run `e37e0073…` and are
+dry predictions, not real parks; (2) the maintainer's ruling of 2026-10-23 (`R-2026-10-23-01`, WORKFLOW § 2
+`idle`) resolves every starred row `default`, so the 19 rows read default 11 · hold 7 · refuse 1 once the
+committed `nen/workflow.json` carries the new map; (3) slots also count the claimed efforts without a PR
+(WORKFLOW § *Idle batches* rule 4), which a dry run has none of.
 
 **Not exercised live**: a real (non-dry) idle run; `nen run append` and `nen loop slots --from-run` over open
 PRs (none exist in a dry run); `nen wc overlap` (no effort branches exist).
