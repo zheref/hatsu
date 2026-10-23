@@ -712,7 +712,15 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 
 - **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
   TypeScript verdict, frozen to fixes: its port is owed to `nen canon lint` (zheref/nen#481) and its
-  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin.
+  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin. Its
+  pull-request check, `canon-lint` from `.github/workflows/prose-ambiguity-check.yml`, is **advisory**:
+  it sits in no ruleset and becomes required only after one tagged release of green runs with a
+  shrinking baseline (HR-13), by the maintainer's own ruleset edit
+  ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § *The new-workflow rule*). Advisory for the
+  merge, that is: a red run still reads the pull request not-ready, because `nen pr ready`'s `CON-32(a)`
+  row counts every reported check ([`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 2; the clause text
+  at the handbook pin says required checks, a gap for a G4 handbook question), so Hatsu's own readiness
+  loop stops on it.
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
@@ -740,7 +748,9 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
   **owed to nen**, zheref/nen#456; a ports pair file rides `nen canon resolve --always-load` and reaches no
   mirror until zheref/nen#457; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
-  carve-out).
+  carve-out); the `--dry-run` strip before that split is the same first-anchored clause (zheref/nen#458); the
+  product-term guard (`scripts/product_term_check.mts` behind its shim, BC-11) is a three-way verdict **owed to nen**
+  beside the private-name one (unfiled).
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
   --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none

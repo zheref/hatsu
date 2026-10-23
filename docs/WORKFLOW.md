@@ -1373,10 +1373,10 @@ text, not the exit alone, picks the row (zheref/hatsu#216):
 | any other | nen absent (`127`), killed or crashed | stop and quote it; never a recovery, an `init` or a fresh budget |
 
 **Switching writers.** nen's mutex (`<ledger>.lock`) does not exclude the retired script's OS lock
-(`.cycle.lock`). A Hatsu below 0.134.0 still runs `scripts/hanten_cycle_ledger.sh` from its own
+(`.cycle.lock`). A Hatsu below 0.136.0 still runs `scripts/hanten_cycle_ledger.sh` from its own
 `$hatsu_root`; an installed copy whose root still holds that file is stale. Finish or stop every hanten
 and breath session on such a copy, and refresh it (`hatsu:bakuryuha`, or ten § 4b's `hatsu_plugin_update.sh --auto`), before a
-0.134.0 session writes the same `.nen/hanten/` ledger.
+0.136.0 session writes the same `.nen/hanten/` ledger.
 
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
 [`PROCESS.md`](PROCESS.md) § *Exit codes and refusals* and `claude/rules/hatsu.md` cite this list:

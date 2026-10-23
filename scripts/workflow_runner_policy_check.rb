@@ -57,7 +57,10 @@ end
 # prose-size-check.yml (zheref/hatsu#135) was registered ahead of its file, the
 # #80 ordering: step one knew and judged it without requiring it, while it
 # shipped inert at templates/; step two installed it and listed it here.
-PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml].freeze
+# prose-ambiguity-check.yml (HR-13, the canon prose ratchet lint) landed the
+# same way: step one staged it at templates/ in PENDING_HOSTED_WORKFLOWS below
+# with its guard step frozen; step two installed it and listed it here.
+PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml prose-ambiguity-check.yml].freeze
 
 # REGISTERED AHEAD OF ITS FILE, A PERMANENT TIER (docs/GATE-CONFIGURATION.md,
 # the new-workflow rule; Chrollo, hanten on #135): a portable, hosted
@@ -65,10 +68,9 @@ PORTABLE_HOSTED_WORKFLOWS = %w[plugin-bump-check.yml surface-mirror-check.yml pr
 # at templates/<name>, but does not yet require -- `main`'s validator refuses
 # any workflow it does not know, so the registration lands first. The pull
 # request that installs it moves it to PORTABLE_HOSTED_WORKFLOWS. Empty when
-# nothing is pending.
-# prose-ambiguity-check.yml (HR-13, the canon prose ratchet lint) is staged at
-# templates/ by its step one; its step two installs it and moves it to the list above.
-PENDING_HOSTED_WORKFLOWS = %w[prose-ambiguity-check.yml].freeze
+# nothing is pending. Last used by prose-ambiguity-check.yml (HR-13), whose step
+# two moved it to the list above.
+PENDING_HOSTED_WORKFLOWS = %w[].freeze
 
 # The one non-PR-targeting workflow this policy admits: a push-to-main /
 # workflow_dispatch BUILDER that regenerates surfaces/ and opens a PR, never a
@@ -432,7 +434,11 @@ CANON_LINT_WORKFLOW = "prose-ambiguity-check.yml"
 CANON_LINT_STEP = "Canon prose lint"
 CANON_LINT_NODE_STEP = "Set up Node for the canon prose lint"
 # Pinned by full commit SHA (SEC-14), as READINESS_RENDERED_CHECKOUT is: the job holds a
-# checks: write token, so a floating tag is never admitted. v7.1.0.
+# checks: write token, so this setup action is admitted at this SHA only. The job's two
+# first-party actions/checkout@v7 steps stay on ADMITTED_USES' vetted tag, as every PR
+# workflow's do; pinning those by SHA is a landing of its own across the five
+# pull_request_target workflows (seven files carry actions/checkout@v7: unit-tests.yml
+# and surface-mirror-regenerate.yml too). v7.1.0.
 CANON_LINT_NODE_USES = "actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1"
 CANON_LINT_FROZEN_NODE = {
   "uses" => CANON_LINT_NODE_USES,
@@ -3748,26 +3754,6 @@ def self_test(root)
       ].each { |label, from, to, step| hostile.call(label, prose, prose_original, from, to, step: step) }
       File.write(prose, prose_original)
 
-      # --- prose-ambiguity-check.yml, staged (HR-13): judged as if installed ---
-      canon_source = File.join(root, "templates", CANON_LINT_WORKFLOW)
-      if File.file?(canon_source)
-        canon = File.join(tmp, ".github/workflows", CANON_LINT_WORKFLOW)
-        canon_original = File.read(canon_source)
-        canon_offender = %Q{the baseline never grows (HR-13)."\n              exit 1\n}
-        [
-          ["canon lint run from the PR checkout", "guard=.trusted/scripts/prose_ambiguity_check.mts", "guard=scripts/prose_ambiguity_check.mts", CANON_LINT_STEP],
-          ["canon lint reading the PR's own rules", "rules=.trusted/contracts/prose.lint.json", "rules=contracts/prose.lint.json", CANON_LINT_STEP],
-          ["canon lint without the base baseline", %Q{ --base-baseline "$PWD/$base"}, "", CANON_LINT_STEP],
-          ["canon lint growing against the PR's own baseline", "base=.trusted/contracts/prose.lint.baseline.json", "base=contracts/prose.lint.baseline.json", CANON_LINT_STEP],
-          ["canon lint on an unpinned node", "node-version: '24'", "node-version: 'latest'", CANON_LINT_NODE_STEP],
-          ["canon lint's setup-node on a floating tag", "uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0", "uses: actions/setup-node@v7", CANON_LINT_NODE_STEP],
-          ["canon lint that passes a finding", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
-          ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
-          ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]
-        ].each { |label, from, to, step| hostile.call(label, canon, canon_original, from, to, step: step) }
-        FileUtils.rm_f(canon)
-      end
-
       # The guard step RUNS as frozen: its own constant under bash as Actions
       # runs it, the trusted guard beside this validator measuring a scratch
       # Hatsu-shaped tree built from that guard's own diet list and ceiling,
@@ -3836,6 +3822,37 @@ def self_test(root)
       end
       prose_installed ? File.write(prose, prose_original) : FileUtils.rm(prose)
       validate_repo(tmp, announce: false)
+    end
+
+    # --- prose-ambiguity-check.yml (HR-13) -------------------------------------
+    # Installed by its step two, and required to be: its absence is refused, as
+    # prose-size-check.yml's is, so a checkout without it never reaches these cases
+    # (the first validate_repo(tmp) above refused it for the missing file already).
+    # Step one judged the staged copy at templates/ as if installed; that copy left
+    # with the landing, so the installed file is the one judged here. Guarded by its
+    # own File.file? only, beside the prose-size block, not inside it.
+    canon_source = File.join(root, ".github/workflows", CANON_LINT_WORKFLOW)
+    if File.file?(canon_source)
+      canon = File.join(tmp, ".github/workflows", CANON_LINT_WORKFLOW)
+      canon_original = File.read(canon_source)
+      File.write(canon, canon_original)
+      validate_repo(tmp, announce: false)
+      FileUtils.rm(canon)
+      expect_rejected("#{CANON_LINT_WORKFLOW} missing") { validate_repo(tmp) }
+      File.write(canon, canon_original)
+      canon_offender = %Q{the baseline never grows (HR-13)."\n              exit 1\n}
+      [
+        ["canon lint run from the PR checkout", "guard=.trusted/scripts/prose_ambiguity_check.mts", "guard=scripts/prose_ambiguity_check.mts", CANON_LINT_STEP],
+        ["canon lint reading the PR's own rules", "rules=.trusted/contracts/prose.lint.json", "rules=contracts/prose.lint.json", CANON_LINT_STEP],
+        ["canon lint without the base baseline", %Q{ --base-baseline "$PWD/$base"}, "", CANON_LINT_STEP],
+        ["canon lint growing against the PR's own baseline", "base=.trusted/contracts/prose.lint.baseline.json", "base=contracts/prose.lint.baseline.json", CANON_LINT_STEP],
+        ["canon lint on an unpinned node", "node-version: '24'", "node-version: 'latest'", CANON_LINT_NODE_STEP],
+        ["canon lint's setup-node on a floating tag", "uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0", "uses: actions/setup-node@v7", CANON_LINT_NODE_STEP],
+        ["canon lint that passes a finding", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
+        ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
+        ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]
+      ].each { |label, from, to, step| hostile.call(label, canon, canon_original, from, to, step: step) }
+      File.write(canon, canon_original)
     end
 
     # Remove the builder again: the ABSENT case must still validate after all

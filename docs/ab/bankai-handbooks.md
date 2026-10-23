@@ -348,3 +348,72 @@ fourteen of the sixteen through the real CLI for both a missing and a malformed 
 two it does not (`pr cascade-main`, which reaches the helper only after a `git fetch`, and
 `pr edit-body`, which reads `--body-file` first) with their reasons. This record verifies the one
 verb this skill actually calls.
+
+## Repin to v0.11.0 (2026-10-22)
+
+`nen/repos.json` → `maintained_tools` → `zheref/bankai-handbooks` → `pinned` moved from `v0.6.0` to
+`v0.11.0` through `nen canon pin --repo <hatsu> --write v0.11.0 --canon-checkout "$canon"` (nen
+`0.24.0`): `before: v0.6.0 · after: v0.11.0 · changed: true · written: true · recordedIn: nen/repos.json
+(maintained_tools[2].pinned)`, the tag resolved to commit `042110ba540a4ce4defa1c62105f56009e29b9a9` in the
+cache checkout (`tag.commit`), one line of the file changed. The verb's trailing note that "the canon
+mirror now names v0.6.0" names a mirror Hatsu does not carry (`nen schema check`: `.claude/rules/
+absent (optional)`), so nothing was regenerated. `$canon` sat on the tag before any read: `git -C "$canon"
+describe --tags --exact-match` → `v0.11.0`, `status --porcelain` empty.
+
+**`handbooks/INDEX.md` at `v0.11.0`.** The "Always load" table carries the same five rows as `v0.6.0`
+(`uzf-core`, `security-baseline`, `ux-baseline`, `release-policy`, `quality-baseline`). Two tables sit
+beside it that `v0.6.0` lacked: *Load when authoring or reviewing a family specification*
+(`spec/authoring.md`, `SP-{n}`) and *Port rulings* (`ports/INDEX.md` plus six directed pair files,
+`PT-{n}` from one global counter). The stack table is unchanged (four rows, `bankai-machinery` renamed at
+v0.6, `BC-` kept).
+
+**The resolve, live, against a scratch registry recording `acme/web-app` under `consumers[]` with
+`scenario: react-uzf-v1` (a `consumes: []` field is required by the loader at `0.24.0`):**
+
+```
+$ nen repo scenario --repo <scratch registry> --target acme/web-app
+react-uzf-v1                                                                              # exit 0
+$ nen canon resolve --repo <scratch registry> --target acme/web-app \
+    --always-load handbooks/uzf-core.md,handbooks/security-baseline.md,handbooks/ux-baseline.md,handbooks/release-policy.md,handbooks/quality-baseline.md,handbooks/spec/authoring.md,handbooks/ports/compose-uzf-v2--react-uzf-v1.md \
+    --stack-dir handbooks/stacks --json
+{ "scenario": "react-uzf-v1",
+  "alwaysLoad": [ "handbooks/uzf-core.md", "handbooks/security-baseline.md", "handbooks/ux-baseline.md",
+                  "handbooks/release-policy.md", "handbooks/quality-baseline.md",
+                  "handbooks/spec/authoring.md", "handbooks/ports/compose-uzf-v2--react-uzf-v1.md" ],
+  "stackHandbook": "handbooks/stacks/react-uzf-v1/architecture.md" }                      # exit 0
+```
+
+Every path above, `handbooks/spec/authoring.md`, and the four pair files that name `react-uzf-v1`
+(`react-uzf-v1--compose-uzf-v2`, `react-uzf-v1--swiftui-tca-uzf-v2`, `compose-uzf-v2--react-uzf-v1`,
+`swiftui-tca-uzf-v2--react-uzf-v1`) exist in `$canon` at the tag; each pair file carries its
+`prefix: PT · numbering: global` header and zero rows. The pair appended is the one whose **target** is
+`react-uzf-v1` (`compose-uzf-v2--react-uzf-v1`), read beside the target stack as `CON-13` says; the spec
+handbook rides the same flag. The verb echoes both paths without opening either (zheref/nen#457
+unchanged at `0.24.0`).
+
+**A reading the skill's § 1 did not expect.** `nen repo scenario --repo <hatsu checkout> --target
+zheref/hatsu` → `bankai-machinery`, exit `0`: at `0.24.0` the verb reads `scenario` off a
+`maintained_tools` row when the row declares one, as Hatsu's own does. A row without the field refuses
+with a sentence that is no longer the one the skills quoted:
+
+```
+$ nen repo scenario --repo <hatsu checkout> --target zheref/nen
+nen: 'zheref/nen' is recorded in <hatsu checkout>/nen/repos.json (under 'maintained_tools'), but its row
+there carries no 'scenario' field. Add one to its maintained_tools[] row to record which scenario governs
+it -- that row carries the field exactly as a consumers[] entry does, so the repository needs recording
+nowhere else.                                                                              # exit 1
+$ nen repo scenario --repo "$canon" --target zheref/hatsu                                   # the same sentence, exit 1
+```
+
+Both resolver skills now quote this sentence and keep the `0.15.1` wording as history.
+
+**What `v0.11.0` adds for a `react-uzf-v1` session.** `handbooks/stacks/react-uzf-v1/architecture.md`
+ends in *Appendix — capture reader* (informative, no `RC-` id): file suffix → UZF concept → the
+`spec/authoring.md` row kind a capture emits (`…Page.tsx` → `screen`, a route file → `navigation`,
+`…Feature.ts` → `state` + `event`, `…Shifters.ts` → `shifter`, `…Selectors.ts` → `selector`,
+`…Producer.ts` → `producer`, `…Service.ts` → `service`, mappers and wire types → `model`, the flag
+registry → `flag`, `.test.ts(x)` → `test`, `.stories.tsx` → `snapshot`; fragments, adapters, fixtures
+and store wiring emit none). `uzf-core.md` `UZF-21` carries clauses (a)–(f) with their severities,
+`ux-baseline.md` carries `UX-13` (section J), `security-baseline.md` `SEC-15` binds every lane that reads
+a body, comment, diff or fetched page it did not author, and `CONSTITUTION.md` `CON-13` carries the
+*Port rulings* clause with its bounded interim.

@@ -7,7 +7,7 @@ description: Resolve the right adversarial-test tooling, performance-measurement
 
 `handbooks/quality-baseline.md` (`QA-{n}`), read live from a checkout of the public canon repository
 **`zheref/bankai-handbooks`** at the tag Hatsu's `nen/repos.json` pins (`maintained_tools` → `pinned`,
-`v0.6.0` at this port; the canon home since 2026-09-28, `CON-13`) — Hatsu ships no handbooks of its own —
+`v0.11.0` since the repin of 2026-10-22; the canon home since 2026-09-28, `CON-13`) — Hatsu ships no handbooks of its own —
 is the **single canonical source** for adversarial-QA method, test tooling, and performance budgets. This
 skill is a **resolver**: it resolves *which* tooling, budget thresholds, and rules apply to the repo in
 front of you, and no more. The judgment layer — which `QA-{n}` class applies, a finding's severity, the
@@ -32,8 +32,8 @@ nen repo scenario --repo <path to a checkout carrying nen/repos.json — or sche
 ```
 
 `--repo` is a **path**, not a slug — the checkout whose `nen/repos.json` records the target under
-`consumers[]` with a `scenario`: `zheref/bankai-handbooks`' own registry first (at `v0.6.0` it records
-**no consumers** — the estate's products are private and a public registry names none), then the
+`consumers[]` with a `scenario`: `zheref/bankai-handbooks`' own registry first (at `v0.11.0`, as at
+`v0.6.0`, it records **no consumers** — the estate's products are private and a public registry names none), then the
 target's own checkout when it records itself; [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 1
 carries that order, the verified refusals and the open question it leaves the maintainer. `--target` is the
 product repo's `owner/name`. **`--repo` is required** — omitted, exit `2` by name (nen `v0.2.0`, #73;
@@ -49,20 +49,22 @@ configuration item is asked for and set up inline (`missing-argument`, `missing-
 the picker and written to the `nen/repos.json` entry in the registry's own checkout, on its own
 declaration PR at that repository's gate, then the resolution re-run.
 
-> **A machinery repository recorded only under `maintained_tools` is the one class this verb cannot resolve, and that is expected, not a defect.**
-> Only a `consumers[]` entry carries a `scenario`. `zheref/bankai-handbooks` (a repository cannot be its own
-> consumer), `zheref/hatsu` and `zheref/nen` sit under `maintained_tools` in both the public canon registry
-> and Hatsu's own, so `nen repo scenario --repo <either registry> --target <any of the three>` refuses at
-> exit `1` with the *recorded-but-not-a-consumer* reason (*"only a consumers[] entry carries a 'scenario'
-> field"*) — verified live for `zheref/hatsu` at nen `0.15.1`, and exactly how the frozen `<reference-repo>`
-> refused for itself at the port (`docs/ab/bankai-quality.md` § 2.1). That refusal is the expected answer
-> for a machinery repository, not a configuration defect to repair by writing a registry entry. Their
-> scenario is **`bankai-machinery`** — renamed at handbook set v0.6 from the frozen repository's own name
-> (`handbooks/INDEX.md`; `MIGRATION.md` § 3 there), the **`BC-` prefix kept** — the scenario `INDEX.md`
-> states for the CI plane, the CLI and the local plugin. Read that literal from `INDEX.md`, say so, and
-> never route it through this verb as though a registry had answered. This is the one scenario resolution
-> this skill still does by direct read, and only because there is structurally no registry entry to
-> resolve it against.
+> **A machinery repository is resolved from its own `maintained_tools` row from nen `0.24.0`; the canon registry's rows are the one class this verb still refuses, and that is expected.**
+> `zheref/bankai-handbooks` (a repository cannot be its own consumer), `zheref/hatsu` and `zheref/nen` sit
+> under `maintained_tools` in both the public canon registry and Hatsu's own. A row that declares a
+> `scenario` answers: `nen repo scenario --repo <hatsu checkout> --target zheref/hatsu` → `bankai-machinery`,
+> exit `0` (read 2026-10-22; Hatsu's row declares it). A row without one refuses at exit `1`: *"its row
+> there carries no 'scenario' field. Add one to its maintained_tools[] row to record which scenario
+> governs it"* — the verb's own remedy, landed on that repository's own declaration PR at its gate
+> ([`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 1). Through nen `0.15.1` the refusal read *"only a
+> consumers[] entry carries a 'scenario' field"* (`docs/ab/bankai-quality.md` § 2.1 records the frozen
+> `<reference-repo>` refusing for itself the same way at the port); that sentence is history. The canon
+> registry is the one a session never amends (**G4**), and its rows carry no `scenario`, so for a target it
+> refuses their scenario is **`bankai-machinery`** — renamed at handbook set v0.6 from the frozen
+> repository's own name (`handbooks/INDEX.md`; `MIGRATION.md` § 3 there), the **`BC-` prefix kept** — the
+> scenario `INDEX.md` states for the CI plane, the CLI and the local plugin. Read that literal from
+> `INDEX.md`, say so, and never route it through this verb as though a registry had answered. This is the
+> one scenario resolution this skill still does by direct read, and only for the registry it cannot amend.
 
 ## 2. Load the quality canon — always, live, never from memory
 
@@ -76,7 +78,7 @@ declaration PR at that repository's gate, then the resolution re-run.
 
 All three are read from the `zheref/bankai-handbooks` checkout that [`bankai-handbooks`](../bankai-handbooks/SKILL.md)
 § 0 locates or fetches (`$canon`), at the pinned **tag**, never at a branch
-(`git -C "$canon" describe --tags --exact-match` → `v0.6.0`, verified live), and never written to from
+(`git -C "$canon" describe --tags --exact-match` → `v0.11.0` at the repin of 2026-10-22), and never written to from
 this skill — a gap is a finding (§ *Rules*). The frozen `<reference-repo>`'s pre-migration `handbooks/` copy
 is not read at all.
 
@@ -99,13 +101,14 @@ pick a tool by improvisation.
 > trees was the unlucky one.
 
 **No repo in the reachable estate ships this JSON file today** — verified at the port against the frozen
-`<reference-repo>` and re-verified against `zheref/bankai-handbooks` at `v0.6.0`: the tooling matrix is
+`<reference-repo>`, again at `zheref/bankai-handbooks` `v0.6.0` and again at `v0.11.0` on 2026-10-22: the tooling matrix is
 markdown only (`handbooks/quality-baseline.md` § B *Tooling matrix*), and Hatsu carries no such file at all. This is genuine residue (`docs/ab/bankai-quality.md` § 3), not a defect in
 the verb — the manifest is deliberately the caller's, per its own `--help` text. Until a target repo
 authors one (conventionally at `docs/Quality/tooling.json`, keyed by scenario, in the shape `nen quality
 tooling` expects — see `docs/ab/bankai-quality.md` § 2.2 for a worked, clearly-labelled constructed
 example transcribed from the live handbook), the values below are the **reference content to seed it
-with**, transcribed from `zheref/bankai-handbooks`' `handbooks/quality-baseline.md` § B (current as of `v0.6.0`) — cite
+with**, transcribed from `zheref/bankai-handbooks`' `handbooks/quality-baseline.md` § B (current as of `v0.11.0`: between
+`v0.6.0` and `v0.11.0` the tag's diff of that file touches § A, reserving `QA-26`, and the `Quality-Gate:` note, never §§ B–C) — cite
 the handbook when reporting a tooling choice, never invent a value, and prefer running the verb the moment
 a manifest exists over reading this table by eye.
 
@@ -234,7 +237,8 @@ Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate 
 
 ## Rules this resolver still carries
 
-- **Cite findings by rule id, never invent one.** A gap no `QA-{n}` covers is a canon question — a
+- **Cite findings by rule id, never invent one.** `QA-26` is **reserved** at `v0.11.0` — withdrawn before it
+  merged, its rule is `SP-14` in `handbooks/spec/authoring.md` — so a report never cites it. A gap no `QA-{n}` covers is a canon question — a
   `bankai:handbook-question` against `zheref/bankai-handbooks`, landing as a canon-lane PR the human merges
   at **G4** (`CON-37`), never authored by this skill as a side effect of a run, and never against the frozen
   `<reference-repo>` (no issue, comment, label, branch, push or PR there, ever). **Record the gap and stop at
@@ -246,7 +250,7 @@ Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate 
 - **Measurement is tool-pinned per scenario** (`QA-12`) — a cross-tool number is a `diagnostic`, never a
   budget check, and stays labelled as one.
 - **The verdict marker is `Quality-Gate:`, never `Verdict:`** (`QA-21`) — that marker is reserved for the
-  CI review gates (Sasuke, Tenma, Bisky) that still run in the consuming product repos' own CI today, and
+  CI review gates (Sasuke, Tenma, the design reviewer — named by role since handbook set v0.7, read here at `v0.11.0`) that still run in the consuming product repos' own CI today, and
   a quality report must never collide with it. This resolver produces the tooling choice and the
   threshold/method-block computations that feed that line; Phinks emits it, per his own file.
 - **No LLM-improvised fallback for a Nen-owned operation, ever.** If `nen` is unavailable and the

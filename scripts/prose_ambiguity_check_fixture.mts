@@ -442,6 +442,19 @@ try {
     expectWiring(root, /PL-04 is never baselined/, 'baseline: a PL-04 row is refused (HR-13)', '--baseline', 'contracts/pl04.json');
   }
 
+  // --- invoked through a symlinked directory, the guard still runs ---
+  // The entry guard compares REAL paths: a caller handing the script a path through a symlink
+  // (a mktmpdir under /var on macOS) must get a verdict, never an empty exit 0.
+  {
+    const root = base();
+    const viaLink = join(scratch, 'via-link');
+    symlinkSync(scripts, viaLink);
+    const r = spawnSync(process.execPath, [join(viaLink, 'prose_ambiguity_check.mts'), '--root', root], { encoding: 'utf8' }) as Run;
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /^canon-lint: \d+ files · 0 new · 0 stale · 0 grown/m);
+    console.log('ok    entry: invoked through a symlinked directory, the lint runs and prints its verdict');
+  }
+
   // --- the committed tree reads clean ---
   expectClean(repo, 'the committed tree, against its frozen baseline');
   console.log(`prose_ambiguity_check_fixture: all cases passed`);
