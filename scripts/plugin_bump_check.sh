@@ -351,6 +351,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/nen_reach_probe.sh'
   'scripts/issue_body_check.mts'
   'scripts/pr_criteria_check.mts'
+  'scripts/dependency_audit_resolve.mts'
   '.mcp.json'
 )
 
