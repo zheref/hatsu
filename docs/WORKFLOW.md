@@ -1278,7 +1278,7 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   not answer is asked once more** — a question back (answered first), or a reply that fits neither an option
   nor the row's typed form — a new call, its answer a second record; a second reply of the same kind is
   acted on as the maintainer's typed words. The maintainer kept HR-173 over re-asking every unmatched
-  typed reply (2026-10-23, zheref/hatsu#443 AC-2).
+  typed reply (2026-10-23, record `R-2026-10-23-08` under effort `HA-IS-#450`; zheref/hatsu#443 AC-2).
 - **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
   `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
   candidates, none starred, go in the question file): record it with the one reference option
