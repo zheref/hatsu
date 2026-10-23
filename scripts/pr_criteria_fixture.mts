@@ -33,18 +33,22 @@ for (const [skill, count] of [["shibari", 1], ["en", 2], ["rikugan", 1]] as cons
 // docs/ROSTER.md's HR-11 row is the ruling itself, the rule's source, and is exempt by name.
 const banned = [/pr_criteria_check/, /refuses a missing row/i, /blocking words?/i, /evidence (is )?required/i,
   /missing`?\s*(or|and|,)\s*`?contradicts/i, /\bno criteria\b/i, /unrequested only/i, /whose criterion is none/i];
-const exempt = (path: string, line: string) => path === "docs/ROSTER.md" && line.startsWith('| <a id="hr-11"></a>**HR-11**');
+// The ROSTER row is cut out of the text by its own id, then the rest is scanned joined, so a
+// restatement hard-wrapped across lines is still caught.
+const hr11 = /^\| <a id="hr-11"><\/a>\*\*HR-11\*\*.*$/m;
+const scanned = (path: string, text: string) => (path === "docs/ROSTER.md" ? text.replace(hr11, "") : text).replace(/\s+/g, " ");
 const walk = (path: string): string[] => statSync(join(root, path)).isDirectory()
   ? readdirSync(join(root, path)).flatMap((name) => walk(join(path, name))) : [path];
 const own = relative(root, join(import.meta.dirname, "pr_criteria_fixture.mts"));
 for (const path of ["claude", "docs", "templates", "contracts", "scripts", "nen", "surfaces", "CONTRIBUTING.md"].flatMap(walk)) {
   if (path === own || !/\.(md|json|mts|ts|sh|yml)$/.test(path)) continue;
-  const lines = read(path).split("\n").filter((line) => !exempt(path, line));
-  for (const re of banned) assert.ok(!lines.some((line) => re.test(line)), `${path} restates the coverage rule (${re})`);
+  const text = scanned(path, read(path));
+  for (const re of banned) assert.ok(!re.test(text), `${path} restates the coverage rule (${re})`);
 }
 // The restatement this PR retired from en § 4 is caught, and the ROSTER exemption is that row alone.
-assert.ok(banned.some((re) => re.test("a `missing` or `contradicts` verify row, an acceptance criterion with no row")));
-assert.ok(read("docs/ROSTER.md").split("\n").filter((line) => exempt("docs/ROSTER.md", line)).length === 1);
+assert.ok(banned.some((re) => re.test(scanned("x.md", "a `missing` or `contradicts` verify row, an acceptance criterion with no row"))));
+assert.ok(banned.some((re) => re.test(scanned("x.md", "a `missing` or\n  `contradicts` verify row"))), "a wrapped restatement is caught");
+assert.ok(hr11.test(read("docs/ROSTER.md")) && banned.some((re) => re.test(read("docs/ROSTER.md").match(hr11)![0])), "the exemption cuts the HR-11 row, which does state the rule");
 assert.equal("coverage" in JSON.parse(readFileSync(catalogue, "utf8")), false, "Hatsu keeps nen's coverage defaults (AS-1)");
 
 // 3. The catalogue as the verb reads it: list rows in the acceptance section, comments and fences
@@ -88,7 +92,10 @@ assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Giv
 // which holds exactly when the Associated issues table has no closing row.
 {
   const en = read("claude/skills/en/SKILL.md");
-  assert.ok(en.includes("`none-on-non-default-base`") && en.includes("**not applicable**") && en.includes("Development guard's `--body` form exits `0`"));
+  const flat = en.replace(/\s+/g, " ");
+  assert.ok(flat.includes("`none-on-non-default-base`, while the Development guard's `--body` form exits `0`") && flat.includes("**not applicable**"));
+  assert.ok(flat.includes("never on a merge path (HR-3") && flat.includes("[NEEDS missing-maintainer-choice:"), "the reading stays off the merge path until ruled");
+  assert.ok(flat.includes("A `none-on-non-default-base` verdict is not merged here: hand the PR to § 5's merge prompt"), "en § 5 step 3 hands it over");
   const table = (verdict: string) => `## 🔗 Associated issues\n\n| Issue | Scope this PR implements | Merging this |\n|---|---|---|\n| https://github.com/example-owner/example-repo/issues/7 | x | **${verdict}** |\n`;
   const guard = (body: string) => {
     const file = join(dir, `issues-${Math.random().toString(36).slice(2)}.md`);
