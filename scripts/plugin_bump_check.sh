@@ -215,6 +215,12 @@ fi
 #                       shibari § 4, en §§ 4–5 and rikugan § 3 from
 #                       `$hatsu_root/scripts/`; a stale copy passes a PR a fixed
 #                       one refuses.
+#   scripts/pr_body_delivery_check.sh, scripts/pr_delivery.ts
+#                     — shibari § 3–4's Delivery block: the guard and the engine it
+#                       runs from beside itself, with templates/pr-delivery.md,
+#                       run from `$hatsu_root/scripts/` before every PR body write
+#                       and after every open and edit; a stale copy refuses every
+#                       consumer's body (it read the template from the target).
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -351,6 +357,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/nen_reach_probe.sh'
   'scripts/issue_body_check.mts'
   'scripts/pr_criteria_check.mts'
+  'scripts/pr_body_delivery_check.sh'
+  'scripts/pr_delivery.ts'
   'scripts/dependency_audit_resolve.mts'
   '.mcp.json'
 )

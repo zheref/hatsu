@@ -71,11 +71,11 @@ Economics embeds under its summary with level-3 internal headings. Screenshots s
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
 In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --json`
-under `<path>/.nen/reports/` (directory 0700, files 0600). Run `node scripts/pr_delivery.ts normalize --data <report-data.json>
+under `<path>/.nen/reports/` (directory 0700, files 0600). Run `node "$hatsu_root/scripts/pr_delivery.ts" normalize --data <report-data.json>
 --out <normalized.json> --repo <path> [--gate-forecast <G2|G4>]`; the optional gate token comes
 only from `nen gate derive`'s first line. Render with `nen report render --template
-templates/pr-delivery.md --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
-paste the block without typing cells. Keep all intermediate files in that private directory.
+"$hatsu_root/templates/pr-delivery.md" --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
+paste the block without typing cells. Keep intermediates there.
 WORKFLOW § *The effort's ledgers* governs model provenance: bare tokens and unreported reviewer
 aliases remain unread. Public Source cells contain only ledger locator, timestamp and optional phase;
 free-form ledger notes/sources stay local. Dial/session values never go in notes.

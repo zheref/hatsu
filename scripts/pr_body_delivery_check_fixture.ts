@@ -185,9 +185,9 @@ test("CLI writes mode 0600 and refuses output and input symlinks", () => {
   assert.equal(outsideBodyRead.status, 0, `${outsideBodyRead.stdout}${outsideBodyRead.stderr}`);
 });
 
-test("shell guard composes report data, normalization and Nen rendering, and propagates report failure", () => {
-  mkdirSync(join(repo, "templates"), { recursive: true });
-  writeFileSync(join(repo, "templates/pr-delivery.md"), readFileSync(TEMPLATE));
+test("shell guard composes report data, normalization and Nen rendering from the plugin's own template, and propagates report failure", () => {
+  // The target carries no templates/ (a consumer never does): the guard renders from the plugin root.
+  rmSync(join(repo, "templates"), { recursive: true, force: true });
   const realNen = ok("sh", ["-c", "command -v nen"], repo).trim();
   const currentHead = ok("git", ["rev-parse", "HEAD"]).trim();
   const postReport = { ...report, objects: [{ kind: "pr", number: 321, notation: "HA-PR-#321", url: "https://github.com/zheref/hatsu/pull/321", head: currentHead }] };
@@ -232,6 +232,28 @@ exec "$REAL_NEN" "$@"
   const passed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
   assert.equal(passed.status, 0, `${passed.stdout}${passed.stderr}`);
   assert.match(passed.stdout, /every current-effort ledger row/);
+  // A template the target plants is never read in place of the plugin's.
+  mkdirSync(join(repo, "templates"), { recursive: true });
+  writeFileSync(join(repo, "templates/pr-delivery.md"), "## 📬 Delivery\n\nplanted by the target\n");
+  const planted = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
+  assert.equal(planted.status, 0, `${planted.stdout}${planted.stderr}`);
+  // ...and never stands in when the plugin's own is missing: a plugin root without it refuses.
+  const bare = join(temp, "bare-plugin"); mkdirSync(join(bare, "scripts"), { recursive: true });
+  for (const file of ["pr_body_delivery_check.sh", "pr_delivery.ts"]) writeFileSync(join(bare, "scripts", file), readFileSync(join(ROOT, "scripts", file)));
+  const noTemplate = run("bash", [join(bare, "scripts/pr_body_delivery_check.sh"), "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
+  assert.equal(noTemplate.status, 2, `${noTemplate.stdout}${noTemplate.stderr}`);
+  assert.match(noTemplate.stderr, /bare-plugin\/scripts\/\.\.\/templates\/pr-delivery\.md/);
+  rmSync(join(repo, "templates"), { recursive: true, force: true });
+  // Through a symlinked plugin root (~/.claude/skills/hatsu is one), from a cwd outside the target.
+  const linked = join(temp, "linked plugin root"); symlinkSync(ROOT, linked);
+  const viaLink = run("bash", [join(linked, "scripts/pr_body_delivery_check.sh"), "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], temp, env);
+  assert.equal(viaLink.status, 0, `${viaLink.stdout}${viaLink.stderr}`);
+  assert.match(viaLink.stdout, /every current-effort ledger row/);
+  // shibari § 3 runs the engine itself through $hatsu_root: through the link it must still act, not exit 0 silently.
+  const linkedOut = join(repo, ".nen/reports/linked-normalized.json");
+  const direct = run(process.execPath, [join(linked, "scripts/pr_delivery.ts"), "normalize", "--data", reportPath, "--out", linkedOut, "--repo", repo, "--gate-forecast", "G4"], temp);
+  assert.equal(direct.status, 0, `${direct.stdout}${direct.stderr}`);
+  assert.match(direct.stdout, /pr-delivery normalized/);
   const postEnv = { ...env, FIXTURE_REPORT: postReportPath, EXPECT_NO_PR: "0", EXPECT_TARGET: "zheref/hatsu", EXPECT_PR: "321" };
   const postPassed = run("bash", [GUARD, "--body", postBody, "--repo", repo, "--base", "main", "--gate-forecast", "G4", "--target", "zheref/hatsu", "--pr", "321"], repo, postEnv);
   assert.equal(postPassed.status, 0, `${postPassed.stdout}${postPassed.stderr}`);
