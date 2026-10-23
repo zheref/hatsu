@@ -1,0 +1,3 @@
+### Changed
+
+- **`unit-tests.yml` runs the tenkai engine's self-test (zheref/hatsu#427, BC-9).** `scripts/unit_tests_ci.mts` selects lane `tenkai-guard` whenever `scripts/tenkai_adopt.sh` exists, so the only Hatsu-side test of `nen review ledger` (`init`, `record`, `show`) runs on every pull request instead of only by hand. The runner now spawns every lane with the verified trusted nen's directory first on `PATH` and its path as `NEN`, because the workflow installs nen with `--rc none` and the self-test's review cases call `nen` from `PATH`. The runner is trusted at the base revision, so this is step one of the two-step landing (`docs/GATE-CONFIGURATION.md`); the first pull request after it merges is the lane's first live CI run.

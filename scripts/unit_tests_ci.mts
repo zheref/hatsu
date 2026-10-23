@@ -3,7 +3,7 @@
 // copy with a PR checkout as data; that checkout's tests execute with a
 // read-only pull_request token and no checkout credentials.
 import { existsSync } from 'node:fs';
-import { isAbsolute, join, resolve } from 'node:path';
+import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 
@@ -31,6 +31,9 @@ const gated: Array<[string, string, string]> = [
   // Its last case runs --check-nen-pin on the PR checkout itself, so a repin that leaves
   // docs/NEN-CONTRACT.md's echoed pin line stale fails unit-tests.yml on every pull request.
   ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
+  // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
+  // ledger` from PATH (zheref/hatsu#427).
+  ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
@@ -41,12 +44,15 @@ for (const [script, fixture, lane] of gated) {
   lanes.push(lane);
 }
 const fence = `unit_tests_${randomBytes(16).toString('hex')}`;
+// A lane whose fixture calls nen itself resolves the verified binary this runner was handed, first
+// on PATH and as NEN, never one the pull request supplies (the workflow installs it with --rc none).
+const nenPath = [dirname(nenArg), process.env.PATH].filter(Boolean).join(delimiter);
 for (const lane of lanes) {
   console.log(`unit-tests-ci: ${lane}`);
   const result = spawnSync(nenArg, ['shu', 'test', '--repo', root, '--lane', lane], {
     cwd: root,
     encoding: 'utf8',
-    env: { ...process.env, GH_TOKEN: '', GITHUB_TOKEN: '' },
+    env: { ...process.env, PATH: nenPath, NEN: nenArg, GH_TOKEN: '', GITHUB_TOKEN: '' },
   });
   console.log(`::stop-commands::${fence}`);
   if (result.stdout) process.stdout.write(result.stdout);

@@ -581,3 +581,14 @@ case or the lane's argv passes it; a trusted frozen step is the later route for 
 its own. No workflow file changed, so this is a one-step landing; the
 runner is the base revision's copy, so the lane runs from the first pull request after the one that
 added it merged.
+
+**2026-10-22. The tenkai engine's self-test, checked on every pull request (HA#427, BC-9).**
+`scripts/unit_tests_ci.mts` selects the `tenkai-guard` lane whenever `scripts/tenkai_adopt.sh` exists:
+the engine is its own fixture (`--self-test`), so no separate fixture file gates it. Its review-ledger
+cases call `nen review ledger` from `PATH`, and `unit-tests.yml` installs the trusted nen with `--rc none`,
+so the runner now spawns every lane with the verified binary's directory first on `PATH` and its path
+as `NEN`: the lanes resolve the binary the trusted runner checked, never one the pull request supplies.
+This is the trusted-guard two-step landing's **step one**: the pull request that changes the runner is
+judged by the base revision's copy, so `tenkai-guard` does not run on its own check and is proven there by
+the runner's fixture and a local run. **Step two needs no edit**: the first pull request opened after step
+one merges is the lane's first live run, read in its `unit-tests` log as `unit-tests-ci: tenkai-guard`.

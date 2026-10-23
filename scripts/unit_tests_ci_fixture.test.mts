@@ -15,7 +15,7 @@ const runner = join(import.meta.dirname, 'unit_tests_ci.mts');
 mkdirSync(join(repo, 'nen'), { recursive: true });
 mkdirSync(join(repo, 'scripts'));
 writeFileSync(join(repo, 'nen', 'contract.json'), '{}\n');
-writeFileSync(nen, '#!/bin/sh\nprintf "%s|%s|%s\\n" "$6" "${GH_TOKEN:-}" "${GITHUB_TOKEN:-}" >> "$HATSU_LANE_LOG"\necho "::warning title=forged::from PR code"\n[ "$6" != "${HATSU_FAIL_LANE:-}" ]\n');
+writeFileSync(nen, '#!/bin/sh\nprintf "%s|%s|%s\\n" "$6" "${GH_TOKEN:-}" "${GITHUB_TOKEN:-}" >> "$HATSU_LANE_LOG"\n[ -z "${HATSU_PATH_LOG:-}" ] || printf "%s|%s|%s\\n" "$6" "${PATH%%:*}" "${NEN:-}" >> "$HATSU_PATH_LOG"\necho "::warning title=forged::from PR code"\n[ "$6" != "${HATSU_FAIL_LANE:-}" ]\n');
 chmodSync(nen, 0o755);
 
 function run(extraEnv: Record<string, string> = {}, nenPath = nen) {
@@ -85,6 +85,22 @@ try {
     calls = readFileSync(log, 'utf8').trim().split('\n');
     assert(calls.join(',') === expected, `${lane} lane not selected (BC-9)`);
   }
+
+  // The tenkai engine is its own fixture (--self-test), so its lane is selected by the script alone,
+  // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427).
+  writeFileSync(join(repo, 'scripts', 'tenkai_adopt.sh'), '');
+  writeFileSync(log, '');
+  const pathLog = join(dir, 'paths');
+  result = run({ HATSU_PATH_LOG: pathLog, PATH: `/usr/bin:/bin` });
+  assert(result.status === 0, `tenkai-guard path refused: ${result.stderr}`);
+  expected += ',tenkai-guard||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'tenkai-guard lane not selected (BC-9)');
+  const paths = readFileSync(pathLog, 'utf8').trim().split('\n');
+  assert(paths.length === calls.length && paths.every((line) => line.endsWith(`|${dir}|${nen}`)),
+    `a lane did not get the verified nen first on PATH and as NEN: ${paths.join(' ; ')}`);
+  result = run({ HATSU_FAIL_LANE: 'tenkai-guard' });
+  assert(result.status === 1 && result.stderr.includes('tenkai-guard failed'), 'failing tenkai-guard was not red');
 
   result = run({ HATSU_FAIL_LANE: 'permissions-pack-guard' });
   assert(result.status === 1 && result.stderr.includes('permissions-pack-guard failed'), 'failing lane was not red');
