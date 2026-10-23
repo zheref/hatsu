@@ -126,11 +126,6 @@ for (const gem of gems) {
 }
 const [simplecovPin, bashcovPin, lcovPin] = gems.map((gem) => gem.version);
 const launcher = ['-e', "gem 'simplecov', ARGV.shift; gem 'bashcov', ARGV.shift; load Gem.bin_path('bashcov', 'bashcov')", simplecovPin, bashcovPin];
-const bashcov = spawnSync('ruby', [...launcher, '--version'], { encoding: 'utf8' });
-const bash = findBash();
-const missing = bashcov.error || bashcov.status !== 0
-  ? `bashcov ${bashcovPin} with simplecov ${simplecovPin} is not installed (nen shu tools --repo . --install)`
-  : !bash ? 'no Bash 5+ is installed' : '';
 const scratch = ['.resultset.json', '.resultset.json.lock', '.last_run.json'].map((name) => join(dir, name));
 for (const stale of [report, provenance, ...scratch]) rmSync(stale, { force: true });
 
@@ -139,23 +134,29 @@ function plain(exe: string): number {
   if (run.error) fail(`${lane}: ${exe} could not start (${run.error.message})`);
   return run.status ?? 1;
 }
-
-if (setting === '0' || setting === 'off' || missing) {
-  if (missing && setting === 'require') fail(`${lane}: HATSU_SHELL_COVERAGE=require and ${missing}`);
+function uninstrumented(why: string): never {
+  if (setting === 'require') fail(`${lane}: HATSU_SHELL_COVERAGE=require and ${why}`);
   const status = plain(interp);
-  console.error(`shell-coverage: ${lane} ran uninstrumented (${missing || `HATSU_SHELL_COVERAGE=${setting}`}); no coverage captured`);
+  console.error(`shell-coverage: ${lane} ran uninstrumented (${why}); no coverage captured`);
   process.exit(status);
 }
-// Each gem's cached .gem must match its pinned digest before any code from it runs here.
+
+if (setting === '0' || setting === 'off') uninstrumented(`HATSU_SHELL_COVERAGE=${setting}`);
+// Each gem's cached .gem must match its pinned digest BEFORE any code from it runs: the lookup reads
+// only installed specifications, and no gem is activated until every digest has matched.
 const where = spawnSync('ruby', ['-e', 'ARGV.each_slice(2) { |n, v| puts Gem::Specification.find_by_name(n, v).cache_file }',
   ...gems.flatMap((gem) => [gem.name, gem.version])], { encoding: 'utf8' });
-const caches = where.status === 0 ? (where.stdout ?? '').split('\n').filter(Boolean) : [];
-if (caches.length !== gems.length) fail(`${lane}: cannot locate the installed .gem files to verify their checksums`);
+const caches = !where.error && where.status === 0 ? (where.stdout ?? '').split('\n').filter(Boolean) : [];
+if (caches.length !== gems.length) {
+  uninstrumented(`bashcov ${bashcovPin} with simplecov ${simplecovPin} and simplecov-lcov ${lcovPin} is not installed (nen shu tools --repo . --install)`);
+}
 gems.forEach((gem, i) => {
   if (!existsSync(caches[i]) || sha256(caches[i]) !== gem.digest) {
     fail(`${lane}: ${gem.name} ${gem.version} at ${caches[i]} does not match its pinned gemSha256; reinstall it (gem uninstall --user-install ${gem.name} -v ${gem.version}, then nen shu tools --repo . --install)`);
   }
 });
+const bash = findBash();
+if (!bash) uninstrumented('no Bash 5+ is installed');
 const bash5 = bash!;
 if (interp === 'sh') {
   const status = plain('sh');

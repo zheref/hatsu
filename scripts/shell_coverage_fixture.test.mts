@@ -109,6 +109,7 @@ it('refuses a gem whose checksum differs from its pin, and a pin that is not exa
   expect(tampered.stderr).toContain('does not match its pinned gemSha256');
   expect(existsSync(report)).toBe(false);
   expect(existsSync(join(root, 'invocations'))).toBe(false);
+  expect(existsSync(join(root, 'program'))).toBe(false); // no gem code ran before the digests matched
   const contract = JSON.parse(readFileSync(join(root, 'nen/contract.json'), 'utf8'));
   contract.project.toolchain.simplecov.version = '~> 1.1';
   writeFileSync(join(root, 'nen/contract.json'), JSON.stringify(contract));
@@ -155,7 +156,7 @@ it('runs uninstrumented without Bashcov, says so, removes a stale report, and ke
   expect(run(capture).status).toBe(0);
   const plain = run(capture, { FAKE_NO_BASHCOV: '1' });
   expect(plain.status).toBe(0);
-  expect(plain.stderr).toContain('ran uninstrumented (bashcov 4.0.0 with simplecov 1.3.2 is not installed');
+  expect(plain.stderr).toContain('ran uninstrumented (bashcov 4.0.0 with simplecov 1.3.2 and simplecov-lcov 0.9.0 is not installed');
   expect(existsSync(report)).toBe(false);
   expect(readFileSync(join(root, 'ran.log'), 'utf8')).toBe('ran\n');
   expect(run(capture, { HATSU_SHELL_COVERAGE: '0' }).stderr).toContain('HATSU_SHELL_COVERAGE=0');
