@@ -34,7 +34,8 @@ only the type is recorded, never the secret.
 
 Everything lands in the consumer's own tree, in one PR at that repository's gate (G2 for a consumer,
 G4 for a canon repository), read from the provider at one proved commit — the tag's SHA, checked
-against the provider checkout's local tag before any file is read:
+against the local tag of a reading clone under `${XDG_CACHE_HOME:-$HOME/.cache}/hatsu/checkouts/` before any
+file is read:
 
 - `.github/workflows/akatsuki.yml`, rendered by the provider's verb: one job per lane, every `uses:`
   pinned to the tag, Hidan's job only when on;
@@ -80,7 +81,7 @@ still binds.
 
 ## Checking the lanes
 
-`hatsu:kuchiyose verify [--repo <path>] [--pr <n>]` reads `nen pr ready --json` (through `scripts/gh_token_env.sh`) on the PR you name, the
+`hatsu:kuchiyose verify [--repo <path>] [--pr <n>]` reads `nen pr ready --json` (through `scripts/gh_token_env.sh`, against the install branch's own `nen/gates.json` while the install PR is open and the default branch's once it merged, since only those list the lanes) on the PR you name, the
 newest open one, or a draft probe PR you open, and reports each lane as `live` (a review posted under
 its App), `skipped-unprovisioned` or `withheld` (it ran and did not review), `no run`, or pending. The
 two middle states differ only in the job log's notice, which no nen verb reads yet, so until one does
