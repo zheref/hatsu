@@ -62,9 +62,9 @@ reads **truncated**. Then:
   label, triage **orders only, never selects**. Say which, every time.
 - **`bankai:handbook-question` items and design calls are briefed, never guessed**, and never hold
   the scope open.
-- **Shape** (HR-4): `build` § 2's check per selected issue: an open `OQ-{n}`
-  row skips it, **blocked, needs-clarification** (§ 10); a miss is listed, never skips; exit `2` or an
-  unread issue stops the queue statement, named, never an issue state.
+- **Shape** (HR-4): `build` § 2's check per selected issue. **Nothing blocks the batch** (`R-2026-10-23-02`):
+  an open or unread `OQ-{n}` row skips the issue, parked `needs-clarification` (`g5-shape-unread`), the
+  queue continuing; a miss is listed, never skips (WORKFLOW § *Idle batches* rule 9).
 - **Order within the scope** with `nen backlog order` (§ 3).
 
 **State the queue before advancing anything** — count, issues, exclusions and why.
@@ -81,10 +81,9 @@ limits are its. **A CI-lane label picks Kurapika's MODE**
 nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/name> --repo <target checkout> --reason "<why>" --run
 ```
 
-No stage family in the target's `nen/labels.json` (`nen stage check` exit `2`) → the label is
-skipped, said (WORKFLOW § *A target repository with no delivery-stage taxonomy*, this label only); an absent
-or unloadable `nen/labels.json` is a G5, gap named. **Then Kurapika builds it, this session, in the mode just confirmed**, through the verbs the target
-declares as `build` § 5 lays them out, in the effort's own worktree, exits read per kurapika.md § *The `shu` verbs*; work a local session cannot do is a **G5**, gap named.
+No stage family (`nen stage check` exit `2`) → the label is skipped, said (WORKFLOW § *A target
+repository with no delivery-stage taxonomy*); an unloadable `nen/labels.json` is a G5. **Then Kurapika builds it, in this session and the mode confirmed**, through the verbs the target
+declares as `build` § 5 lays them out, in the effort's own worktree; work a local session cannot do is a **G5**, gap named.
 
 ## 5. Done is merged into `branch.base`
 
@@ -152,8 +151,7 @@ triage in and out, and every label with its time. A local row's verdict is
 `nen pr ready`'s output verbatim; a `CI (legacy)` row is reported, never driven.
 
 **Every gate stop is [`jutaisho`](../jutaisho/SKILL.md) § 4's full four parts**, the register as its
-report: **G4/G2** at en § 5's merge prompt for every PR into `branch.base`,
-**G5** for a build Kurapika cannot do, a stall past the escalation ladder, or a briefed policy call.
+report: **G4/G2** at en § 5's prompt per PR into `branch.base`, **G5** for what Kurapika cannot do.
 **A needed maintainer never stops the whole run** — notify, record, keep advancing.
 
 ## 10. Ending the run
@@ -162,7 +160,8 @@ The run ends when **every issue in the selector's scope** is merged into `branch
 a decision, or blocked with its blocker named — **and the `then` clause, if typed, has run or is
 held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
 
-Say the run has ended; the delegation lapses. The final report is [`/rikugan`](../rikugan/SKILL.md)
+Say the run has ended; the delegation lapses. The closing report lists each skipped issue's open `OQ-{n}`
+rows and ends **offering**, never starting, the open-question flow (WORKFLOW § *Idle batches* rule 9). The final report is [`/rikugan`](../rikugan/SKILL.md)
 over this run's scope — its § 2 futon row, the `then` outcome included (§ 8's one render); `final` only if every PR merged, else `register` with the asks. Then the
 **wrap-up picker** ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`). **Futon never resumes itself**; re-invoke it.
 

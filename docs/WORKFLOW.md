@@ -1521,6 +1521,28 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
    `legendRows` (`backlog-board` § 3), one row per decision.
 
+9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — the
+   maintainer's ruling of 2026-10-23 (typed, recorded `R-2026-10-23-02`, who `maintainer`, gate G4), verbatim:
+
+   > "Nothing should block a batch. However, no issue with open question should be addressed either. In this case, skip any unaddressed use during the batch and bring it up at the final briefing/rikugan report. If an issue in the queue has open questions, the queue should just continue with the next one. The final briefing shouldn't just mention it, but also offer to start a surface-specific decision picker driven flow to resolve any open question from the unresolved issues on the original queue."
+
+   Applied, attended or `--idle`: futon § 2's shape check (`docs/config/plugin-registries.md`, *The check*)
+   **skips** an issue whose `nen issue questions` reads `counts.open` above `0` — parked in the run record by
+   `nen run park --id <run id> --issue <CODE>#<N> --row needs-clarification` (a dry run: `predict`, rule 7) —
+   and the queue continues with the next issue. An issue whose questions could not be read is skipped the same
+   way as `g5-shape-unread`, never addressed unread; a body-shape miss is reported and never skips; nothing else
+   in the shape check stops the queue. The **final briefing** (futon § 10's closing report) and the **Rikugan
+   register** (backlog-board § 3) list every skipped issue with its open `OQ-{n}` rows (id, gate, question), and
+   the briefing **ends by offering, never starting**, the **open-question flow**: one line, asked through the
+   surface's native picker in jutaisho § 4's shape (`AskUserQuestion` on Claude Code). Started on the
+   maintainer's answer, the flow raises **one picker per open `OQ-{n}` row** across the skipped issues of the
+   original queue, in queue order; records each answer with `nen stop answer --record <effort> --gate
+   <the row's gate> --who maintainer …` (its `R-` id; `--row` takes only a `nen/decisions.json` row); and strikes the row into the issue as
+   `- ~~OQ-{n}~~ → A: <answer> (<YYYY-MM-DD>, <R-id>)` through `nen issue edit-body --expect-body-sha256 <the
+   read body's sha> --current-body-out <path>`, then reads it back with `nen issue questions` (the row must
+   count resolved). No nen verb rewrites one row, so the struck body is composed for `edit-body` as named residue (a verb owed to nen).
+   An issue whose rows are all struck re-enters the next run's queue.
+
 ### `classify` — the two label axes, and the one place their vocabulary lives
 
 The maintainer's rulings of 2026-10-04 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — classify and

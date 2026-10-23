@@ -47,8 +47,7 @@ asked for and set up inline (`missing-argument`, `missing-configuration`).
 **If `#<N>` is a PR** (`node '<Hatsu root>/scripts/gh_api_read.mts' issue-pr <owner/repo> <N>`; substitute the absolute root),
 run [`/en on <CODE>#<N>`](../en/SKILL.md); do not re-author.
 
-**Say the run started**: it holds a bounded `CON-25` delegation (§ 5), and an unannounced delegation
-is one nobody can end.
+**Say the run started**: it holds a bounded `CON-25` delegation (§ 5).
 
 ## 2. Inspect the issue and confirm the mode
 
@@ -64,7 +63,7 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
   maintainer's decision (`CON-4`), never an agent's.
 - **Read requirements**: title, body, acceptance criteria, constraints, then the shape
   ([`plugin-registries`](../../../docs/config/plugin-registries.md#contractsissue-sectionsjson), *The check*; HR-4): an open `OQ-{n}`
-  row is a **G1** `DECIDE`, `next: clarify`, never answered here; a miss is listed, never a stop; exit `2` or an unread issue a G5.
+  row is a **G1** `DECIDE`, `next: clarify`, never answered here (in a batch, futon § 2 skips it); a miss is listed, never a stop; exit `2` or an unread issue a G5.
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
