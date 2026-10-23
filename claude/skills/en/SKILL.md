@@ -274,6 +274,13 @@ Two things en relies on and does not re-derive:
   states the rule once. `sharingan` § 4's rule, and
   [`hatsu:pr-state`](../pr-state/SKILL.md)'s before it: **a readiness claim is that verdict, quoted,
   or it is not made.**
+- **A parity PR** (its closing issue a port issue of a family with a spec repository) adds one more
+  conjunct: **the convergence table**, computed and read as
+  [`docs/config/spec-repo.md`](../../../docs/config/spec-repo.md) § *The convergence table at readiness*
+  says and quoted beside the verdict in the landing report, the register row and § 5's prompt. A
+  `missing` or `contradicts` row, or a target parity row that does not settle, is **not ready** with that
+  row quoted, whatever `nen pr ready` says; a table the verbs could not compute reads **could not read**
+  with the reason, never converged, and is not ready either (zheref/hatsu#447).
 - **A body this run rewrites** — new or re-recorded screenshots after a review — **re-renders the whole
   *Evidence* table** and passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` before it is written
   ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*, *The table, exactly*).

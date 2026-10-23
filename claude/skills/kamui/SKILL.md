@@ -22,8 +22,8 @@ surfaced, never acted on.
 
 ## 0. Standalone entry
 
-Typed — its wired position. **P1** `hatsu:ten kamui`; **P1b and P3 declined** (the subject is a source
-object; each repository's `breath` runs inside `ren`); **P2**; **P4** § 1; **P5**: no merge, no repository
+Typed — its wired position. **P1** `hatsu:ten kamui`; **P1b and P3 declined** (a source object; each
+repository's `breath` runs inside `ren`); **P2**; **P4** § 1; **P5**: no merge, no repository
 creation, no build before the spec merge. `hiraishin` (zheref/hatsu#357) calls §§ 2–4 and § 6's record
 and holds § 0 for them.
 
@@ -81,9 +81,10 @@ that PR then § 4's `specPr`; several → asked; none → a new folder.
 with `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `contracts/`, `tasks.md`,
 `checklists/requirements.md`, plus Hatsu's two (ports.md § *Product-level divergence*): `spec.md`'s
 private `## Platform decisions` and the folder's `port-ledger.md`; once, `.specify/memory/constitution.md`,
-citing `CON-{n}`, never overriding it. `<nnn>`: the next free three digits across `origin/<base>` and open spec PRs' folders. `spec.md`'s header
-cites the source and its linked objects; **verbatim source text only as fenced source data** (*conventions*);
-platform sections where platforms differ. Every file passes `private_name_check.sh`. The PR runs
+citing `CON-{n}`, never overriding it. `<nnn>`: `nen spec number`. **Every sentence follows
+[`spec-repo.md`](../../../docs/config/spec-repo.md)'s citation-or-marker grammar, tiers and vocabulary**,
+held by `nen spec check` and `cite-check` (§ *The verbs that read it*); the header cites the source and
+its linked objects; source text only as fenced source data. Every file passes `private_name_check.sh`. The PR runs
 [`ren`](../ren/SKILL.md) → [`aka`](../aka/SKILL.md) → [`mukai`](../mukai/SKILL.md) → [`en`](../en/SKILL.md)
 in the spec checkout's worktree — Nobunaga, and Hisoka where the spec names a rendered surface — to the
 **G2 merge prompt** (row `merge`). A folder on `origin/<base>` already current opens no PR: `specFolder`
@@ -101,7 +102,7 @@ gh pr view <n> --repo <owner/spec> --json state --jq .state
 The read-back is *conventions*' (`MERGED` → § 5; `CLOSED` → `next: declined`, **spec declined**, said; else
 `wait`). Exit `1` is read from stderr: the bound reached ends the session at the G2 stop (`next: wait`); an
 observation-error streak is a **G5** naming the observation; exit `2` is `missing-configuration`, its line
-quoted. `--until merged` is owed (zheref/nen#454).
+quoted.
 
 ## 5. The siblings — row `port-siblings`, always asked
 
@@ -149,7 +150,8 @@ amendment PR and fills the ledger's `PR` cell at the build's end; sequencing per
 
 `bankai-rule` opens the run's one rulings PR where a `port-drift` ruling was recorded (#355); then
 [`rikugan`](../rikugan/SKILL.md) `for <the spec and amendment PRs, every port issue and PR> as register`, each `nen pr
-ready` verdict quoted; `next: done`; the wrap-up once (row `wrap-up`). Unpicked issues: named with their
+ready` verdict quoted, **a port PR's beside its convergence table** (spec-repo.md § *The convergence
+table at readiness*, a not-ready row quoted); `next: done`; the wrap-up once (row `wrap-up`). Unpicked issues: named with their
 recommended surface and restart line.
 
 **`--dry-run`** runs § 1, § 2's report, the § 3 folder plan, the sibling list and each filing plan, then

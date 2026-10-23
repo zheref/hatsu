@@ -2,7 +2,7 @@
 
 <!-- Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, Fixtures): every citation and marker
 form once, an acceptance scenario's folder-global `AC-###` (SP-10), MUST only on a `declared` line (FR-002's `[ruled: CL-001]`), the Clarifications session shape, the prose-made line and a longer fence around a backtick run. Every path, sha and value is a placeholder;
-the owed nen spec check (zheref/nen#493) is tested against this file. -->
+lane spec-family-guard holds nen spec check's counts over this file. -->
 
 **Folder**: `specs/001-fixture-capability` · **Status**: clarifying
 **Captured at**: FI `0000000000000000000000000000000000000001` · FA `0000000000000000000000000000000000000002` · FW `0000000000000000000000000000000000000003`
