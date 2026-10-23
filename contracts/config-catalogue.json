@@ -428,7 +428,7 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": 480,
-      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget. One meaning, wall-clock run age, never summed effort minutes: this row owns it and nen#498's settling pass aligns nen run budget to it; tokens stay advisory until nen#490's verb lands.",
+      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget. One meaning, wall-clock run age, never summed effort minutes: this row owns it and nen run budget (nen 0.26.0) counts it the same way; tokens stay advisory on Hatsu's manifest (zheref/hatsu#423).",
       "readers": [
         "futon",
         "kazaana"
@@ -443,7 +443,7 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": 4000000,
-      "describe": "Tokens an idle run may spend. Advisory and unread until zheref/nen#490 lands: no skill sums nen usage itself, and minutes remain the enforced bound.",
+      "describe": "Tokens an idle run may spend. Advisory on Hatsu's manifest: nen run budget (nen 0.26.0) sums the usage ledgers against nen's own manifest, which no Hatsu skill opens yet (zheref/hatsu#423); no skill sums nen usage itself, and minutes remain the enforced bound.",
       "readers": [
         "futon",
         "kazaana"
@@ -569,7 +569,7 @@
       "domain": "review",
       "kind": "open",
       "default": "merged",
-      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by zheref/nen#498's nen loop slots (unreleased, not at the 0.24.0 pin), so until the repin futon section 6 keeps the effort's ready/prompted flags false in its efforts file until the local merge; an idle start fails on any other value.",
+      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by nen loop slots --repo from nen 0.26.0, which holds an open unmerged PR's slot (the stacked-slot reading is zheref/hatsu#425's); an idle start fails on any other value.",
       "readers": [
         "futon",
         "kazaana"

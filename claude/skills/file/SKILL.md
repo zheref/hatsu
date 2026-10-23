@@ -286,7 +286,7 @@ else a create that may have landed — `nen issue search` the title before any r
 read back before any retry. Their dry runs read the target's visibility, so they
 are not offline, and `--body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
 
-**Then the shape, on a create's body, before the plan** (HR-4; owed to nen as zheref/nen#476 and #477):
+**Then the shape, on a create's body, before the plan** (HR-4; nen's `issue body-check` and `issue questions` ship from `0.26.0`, the retirement zheref/hatsu#423):
 
 ```bash
 node "$hatsu_root/scripts/issue_body_check.mts" --kind <product|defect|machinery|canon-gap|epic> --body-file <absolute body.md>

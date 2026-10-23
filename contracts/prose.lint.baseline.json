@@ -727,12 +727,6 @@
     },
     {
       "path": "claude/skills/file/SKILL.md",
-      "rule": "PL-05",
-      "text": "n as zheref/nen#476 and #477):",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/file/SKILL.md",
       "rule": "PL-06",
       "text": "** attempting anything (verified live: an unknown label refus",
       "count": 1

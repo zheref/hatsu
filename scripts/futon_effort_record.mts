@@ -134,8 +134,8 @@ function writeRecord(path: string, value: Record | RunRecord): void {
   finally { closeSync(fd); }
   renameSync(temp, path);
 }
-// nen 0.24 reads `--idle` as part of an exact label (`model/claude --idle`), so the one standalone
-// token before the `then` clause is stripped before parsing; the grammar request is filed on zheref/nen.
+// nen reads `--idle` itself from 0.26.0 (zheref/nen#491); the one standalone token before the `then` clause
+// is still stripped here so an older binary parses the same label; zheref/hatsu#423 retires the strip.
 function splitIdle(line: string): { invocation: string; idle: boolean } {
   const invocation = line.replace(/^hatsu:futon\s+/, '');
   if (invocation === line || !invocation) fail('invocation must start with hatsu:futon');
@@ -370,7 +370,7 @@ function manifest(root: string, command: string, args: Map<string, string>): voi
       process.exitCode = 2;
       return;
     }
-    // overBudget reads minutes only; the token bound is advisory and unread until zheref/nen#490.
+    // overBudget reads minutes only; the token bound is advisory here (nen run budget sums it against nen's own manifest; zheref/hatsu#423).
     console.log(JSON.stringify({ ...run, manifest: 'present', idle: run.idle ?? null, prs: run.prs ?? [], parked: run.parked ?? [],
       elapsedMinutes, overBudget: run.idle ? elapsedMinutes >= run.idle.budget.minutes : false }, null, 2));
     return;

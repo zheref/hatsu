@@ -35,10 +35,8 @@ nen parse futon --repo <target checkout> "<invocation, minus the prefix>" [--sel
 **`futon` is a built-in `nen parse` grammar** — one call resolves the repo,
 reads the **selector**, classifies `then` (§ 8) and enforces a terminal's scope rule. A severity name
 (`critical`, `high`, `medium`, `low`) is a **band**, `+` that severity **and above**; **any other token
-is a label**, matched exactly as typed (case and spaces kept, quotes stripped) and **never expanded**. A trailing `+` on a non-severity token is part of the label (`c++`); `--json` sets
-`band` or `label`, never both. **Exit `2` asks, never ends**: the corrected line goes to the picker (an
-empty selector gets none), the answer is re-parsed, and a missing argument or
-configuration item is set up inline (`missing-argument`, `missing-configuration`). **A re-parsed picker answer never carries a `then`
+is a label**, matched exactly as typed (case and spaces kept, quotes stripped) and **never expanded**. A trailing `+` on a non-severity token is part of the label (`c++`). **Exit `2` asks, never ends**: the corrected line goes to the picker, the answer is re-parsed, a missing argument or
+configuration item set up inline (`missing-argument`, `missing-configuration`). **A re-parsed answer never carries a `then`
 step**; the maintainer retypes it. **The selector
 is the maintainer's word: never derived.**
 
@@ -81,7 +79,8 @@ limits are its. **A CI-lane label picks Kurapika's MODE**
 nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/name> --reason "<why>" --run
 ```
 
-**Then Kurapika builds it, this session, in the mode just confirmed**, through the verbs the target
+No stage family declared → skipped, said (WORKFLOW § *A target repository with no delivery-stage
+taxonomy*). **Then Kurapika builds it, this session, in the mode just confirmed**, through the verbs the target
 declares as [`build`](../build/SKILL.md) § 5 lays them out, in the effort's own worktree, exits read per kurapika.md § *The `shu` verbs*; work a local session cannot do is a **G5**, gap named.
 
 ## 5. Done is merged into `branch.base`
@@ -104,8 +103,8 @@ nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --json
 ```
 
 The **CI** plane caps at 2, frees at PR-open, and holds only legacy-CI PRs. The **local** plane caps
-at 7 and frees when the effort is **merged** — locally, with an integration branch (§ 5); `monitor.localSlotFrees`, HR-257 (held at the pin: WORKFLOW § 2). **`--local-cap 7` is futon's own policy,
-always passed**; omitting it is exit `2`. **The budgets are never traded**: a full local one is back-pressure.
+at 7 and frees when the effort is **merged** — locally, with an integration branch (§ 5); `monitor.localSlotFrees`, HR-257 (WORKFLOW § 2). **`--local-cap 7` is futon's own policy,
+always passed**; omitted, exit `2`. **The budgets are never traded**: a full local one is back-pressure.
 
 ## 7. Authority — the CON-25 delegation
 
@@ -189,5 +188,5 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 
 WORKFLOW § *Idle batches* is the protocol. Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
-*Residue: PROCESS § Residue; `docs/ab/futon.md`. Selector, `then` chain and `gate` need nen from v0.15.1;
-an older binary's exit `2` is relayed.*
+*Residue: PROCESS § Residue; `docs/ab/futon.md`. An older binary's exit `2` on the selector, `then`
+chain, `gate` or `--idle` is relayed.*

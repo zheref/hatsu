@@ -189,7 +189,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
 | `$defs.finding` (rule `CON-{n}` or `HR-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10: critical by shape, never pushed back | the same |
 
-**Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the 0.24 pin. **May a consumer override it?** No.
+**Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
 
 ## `contracts/reference.gates.json`
 

@@ -732,7 +732,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `merged` | `futon` § 6, every futon run, attended or `--idle`: **fixed** at `merged` by HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*) — an effort's local slot frees at its local merge. The one key that says so. Its reader is zheref/nen#498's `nen loop slots`, unreleased and not at the `0.24.0` pin, whose `nen loop slots` reads no such key and frees a local slot at `ready+prompted`, earlier than HR-257. **Until the repin, futon § 6 holds the slot itself**: it keeps the effort's `ready` and `prompted` flags `false` in its efforts file until the local merge; the gap in nen is owed until the repin. An `--idle` `start` (`futon_effort_record.mts`) fails on any other value |
+| `localSlotFrees` | `merged` | `futon` § 6, every futon run, attended or `--idle`: **fixed** at `merged` by HR-257 (ROSTER § *Rulings of 2026-09-30 — En never merges; every PR into `main` ends at the merge prompt*, *Slots and stops*) — an effort's local slot frees at its local merge. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it holds every open, unmerged PR's slot and prints the rule and its source (`docs/ab/futon.md`, 2026-10-22), so futon § 6 passes the live flags and withholds none. nen also knows `stacked-open` (a PR stacked on another effort's branch frees at PR-open), the reading § *Stacked pull requests* rule 4 states; which ruling binds a stacked effort's slot is zheref/hatsu#425's (G4). An `--idle` `start` (`futon_effort_record.mts`) fails on any other value |
 
 ### `idle`
 
@@ -750,7 +750,7 @@ default. § *Idle batches* is the protocol.
 |---|---|---|
 | `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` otherwise; `harness-attribution-switch` and `host-nen-link` `hold` (each stars an act on the maintainer's own harness or host), `cleanup-plan` `hold` (an unattended remote branch deletion can close a stacked child, § *Stacked pull requests*), the five `spec-*` rows `hold` — among them the starred `spec-capture-scope` and `spec-converge-filing` — because `dowsing-chain` is not an idle-run skill, `port-drift` `hold` (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354), `publish-offer` `refuse` (HR-5: never a release) | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name is `hold` (`publish-offer` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer` is always `refuse`; `host-nen-link`, `harness-attribution-switch` and `missing-maintainer-choice` are at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the manifest's `idle.source` |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: every PR Ready at the merge prompt or merged into a non-main integration branch (HR-5); `ready-at-prompt` stops short of the integration merge. Never `main`, never `getsuga` or `mugetsu` |
-| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim: minutes since the run manifest's `startedAt` (`futon_effort_record.mts status`, `overBudget`) are the **enforced** bound — **one meaning, wall-clock run age**, never summed effort minutes; nen#498's settling pass aligns `nen run budget` to it; past it no effort is claimed and the rest park as `parked:budget`. `tokens` is **advisory and unread** until `nen run budget` lands (zheref/nen#490): no skill sums `nen usage` itself |
+| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim: minutes since the run manifest's `startedAt` (`futon_effort_record.mts status`, `overBudget`) are the **enforced** bound — **one meaning, wall-clock run age**, never summed effort minutes; nen#498's settling pass aligns `nen run budget` to it; past it no effort is claimed and the rest park as `parked:budget`. `tokens` is read by `nen run budget` (nen `0.26.0`: the usage ledgers' sum against nen's own manifest, `unevaluated` where an effort has no ledger); futon's `then` gate still reads Hatsu's record, which that verb does not read, so on Hatsu's manifest `tokens` stays advisory (zheref/hatsu#423): no skill sums `nen usage` itself |
 
 ### `models`
 
@@ -1143,7 +1143,7 @@ or recorded under another kind or issue, is refused. `status` prints the manifes
 gate and kazaana § 5 read every PR this run authored from it, never from memory, and each PR's state
 live. `park` records an idle effort's `parked:<row>` (§ *Idle batches*). A v0.1 run reads, carries no
 manifest, and refuses `append` and `park`; its `status` prints `manifest: absent`, omits `prs` and exits `2`,
-and futon § 8 and kazaana § 5 read that as the gate **held**, never met by an empty set; the port to `nen run start|append|verify` is owed to nen (zheref/nen#486).
+and futon § 8 and kazaana § 5 read that as the gate **held**, never met by an empty set; the port to `nen run start|append|park|verify`, shipped from nen `0.26.0`, is zheref/hatsu#423's.
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
@@ -1426,9 +1426,11 @@ is not the file's own key.
 ### Idle batches
 
 **HR-5's idle profile, activated only by a typed `--idle`** on a `futon` line (and on `kazaana`, which
-composes it): `hatsu:futon <repo>@<selector> --idle [then …]`. nen 0.24's `nen parse futon` reads the
-token as part of an exact label, so it is stripped before parsing — the record does it in `start`, and
-futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/nen#491). The keys are § 2's `idle`.
+composes it): `hatsu:futon <repo>@<selector> --idle [then …]`. `nen parse futon` reads the token as
+`idle: true` from nen `0.26.0` (the first or last token before `then`); a second modifier beside it — a
+`--dry-run` no grammar declares — folds both into the label and reads `idle: false`, so the line carries
+`--idle` alone (zheref/hatsu#424). The record's `start` still strips it before its own parse, harmlessly,
+until zheref/hatsu#423 retires the strip. The keys are § 2's `idle`.
 
 1. **Pre-answers.** `start` resolves `idle.decisions` for every `ask-once-per-run` row of
    `nen/decisions.json` and records each as a pre-answered row in the run manifest, read from the
@@ -1443,18 +1445,26 @@ futon strips it before its own § 1 parse; the grammar is owed to nen (zheref/ne
    shell: the effort parks as `parked:residue:<skill>`.
 4. **Bounds.** Before each claim, `status` gives the elapsed minutes against `idle.budget.minutes`
    (`overBudget`); past it nothing new is claimed and the rest park as `parked:budget`. **Minutes are the
-   enforced bound; `idle.budget.tokens` is advisory and unread** until zheref/nen#490 lands — never an
-   improvised sum of nen's records. A local slot frees at its merge (`monitor.localSlotFrees`, fixed `merged`, HR-257; read only from
-   zheref/nen#498, so until the repin futon keeps `ready`/`prompted` false to the merge, § 2 `monitor`); `nen loop slots` reads no record yet (zheref/nen#487), overlap is still judged (zheref/nen#488) and stage
-   exclusivity unchecked (zheref/nen#489). En's cap is the git common dir's (en § 2).
+   enforced bound; `idle.budget.tokens` stays advisory on Hatsu's manifest** (`nen run budget` sums the
+   usage ledgers against nen's own manifest, which no Hatsu skill opens yet: zheref/hatsu#423) — never an
+   improvised sum of nen's records. A local slot frees at its merge (`monitor.localSlotFrees`, fixed `merged`,
+   HR-257), read by `nen loop slots --repo <checkout>` from nen `0.26.0`, which holds every open unmerged PR's
+   slot: a run of more than seven claimable efforts holds seven at their prompts and parks the rest as
+   `parked:budget` (`docs/ab/futon.md`, 2026-10-22; the stacked-slot reading is zheref/hatsu#425's). `nen loop
+   slots --from-run` reads nen's manifest, not Hatsu's record; `nen wc overlap` computes overlap once branches
+   exist (before that it is judged from the paths each effort would touch) and `nen stage check --exclusive`
+   holds an issue to one stage label where the target declares a stage family — the adoption is
+   zheref/hatsu#423. En's cap is the git common dir's (en § 2).
 5. **Terminal.** `idle.terminal`: every PR Ready at its merge prompt, or merged into a **non-main**
    integration branch (futon § 5, En's recorded delivery merge). **Never a merge into `main`, never
    `getsuga`, `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host
    scheduler may re-invoke the build, never a release.
-6. **One run manifest today, one gate.** Hatsu's run manifest (`hatsu.futon.run/v0.2`, `futon_effort_record.mts`)
-   is the only one: nen's `nen.run/v0.1` (`nen run start|append|verify|budget`) is owed to zheref/nen#486 and
-   unreleased on zheref/nen#498, **absent at the 0.24.0 pin** (`nen run --help` lists only `rerun-failed`).
-   Until it lands and is repinned, **the `then` gate reads Hatsu's record**, and nen's is never read in its place.
+6. **Two run manifests at the pin, one gate.** Hatsu's run manifest (`hatsu.futon.run/v0.2`, `futon_effort_record.mts`,
+   under `<git common dir>/hatsu/futon/`) is the one futon opens; nen's `nen.run/v0.1` (`nen run
+   start|append|park|verify|budget`, under `<git common dir>/.nen/runs/`) ships from nen `0.26.0` and no Hatsu
+   skill opens it, so `nen loop slots --from-run` finds no run (zheref/hatsu#423 ports futon §§ 1, 6 and 8 and
+   kazaana § 5 to it and retires the record's manifest half). Until that lands, **the `then` gate reads Hatsu's
+   record**, and nen's is never read in its place.
 
 ### `classify` — the two label axes, and the one place their vocabulary lives
 
