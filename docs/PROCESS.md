@@ -570,7 +570,7 @@ stricter-wins and absent-reads-`required` rule, and print it as `aiReviewers <ef
 default tip <sha>: <value>`. **For the expectation half nen's printed value governs** ([HR-333](ROSTER.md#hr-333)):
 the hanten prompt below is entered on it and the Hatsu line restates it. Hatsu's own reads remain for the
 **use** half, because no nen verb decides whether `request-reviews` is called, and for the reviewer criterion
-below. Where Hatsu's read and nen's disagree (one side's read failed and fell back to `required`), the
+below. Where Hatsu's read and nen's disagree (for example one side's read failed and fell back to `required`, or the default tip moved between the two reads), the
 stricter applies and the disagreement is said beside the verdict.
 
 | Value | Use | Expectation | Terminus |
@@ -778,7 +778,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
   ([`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*); a closed-unmerged PR is a `gh pr view` state.
   `nen pr merge --release-unit` reads `aiReviewers` from nen `0.26` (NN-PR-#463) and waives a declared bot's
-  round. A proposal whose only owed round is Copilot's therefore merges inside § 3a's bounds (kazaana § 5) once
+  round. A proposal whose only owed round is Copilot's therefore merges inside § 3a's bounds, under kazaana or not, once
   its base carries the declaration (zheref/hatsu#428) and [HR-333](ROSTER.md#hr-333) is ruled (HR-3). Under `required`, or for a round nen does not waive,
   the proposal still fails § 3's second condition and halts (getsuga § 3a). Nothing is owed to nen for it.
 - **`cleanup`.** `git worktree remove|prune`, `git branch -d`, `git push origin --delete <branch>`, `git remote
