@@ -1,5 +1,5 @@
 {
-  "contract": "hatsu.scans/v0.1",
+  "contract": "hatsu.scans/v0.2",
   "$comment": "The ONE source of the deterministic security-scan rows hanten runs before Feitan reads (hanten section 2a; claude/agents/feitan.md). They are DATA here for the same reason the Nen pin is data in nen/contract.json: a version, URL or asset name written into skill prose is a value nobody bumps and nobody can check. 'The pinned release' is not a pin -- this file is. Where a copy of any value below disagrees with this file, this file wins and the copy is the bug. A row that cannot run is reported as NOT SCANNED, never as clean.",
   "authority": "Hanten and Feitan read these values at run time. They never remember a version, never resolve 'latest', and never run a downloaded binary whose checksum has not verified against the published manifest named here.",
   "secretScan": {
@@ -23,18 +23,73 @@
     "hostWithNoAsset": "A host this table names no asset for is reported as not scanned, naming the host. It is never substituted with another platform's build."
   },
   "dependencyAudit": {
-    "$comment": "One row per declared stack, resolved from nen repo classify's `stack`. A STACK WITH NO ROW IS REPORTED AS NOT SCANNED, and named -- an absent row is an absent answer, never a clean one.",
+    "$comment": "One row per ecosystem, SELECTED by a stack: the row whose `stacks` lists it. The stack is nen repo classify's (the default lane's `stack`); hanten runs the row once per distinct stack across the repository's lanes, each at that lane's `cwd`. A STACK LISTED ON NO ROW, and a null stack (no project block), is reported as NOT SCANNED, named -- an absent row is an absent answer, never a clean one, and the resolver is never called without a stack it can name. `stackCatalogue` is the snapshot every stack is checked against. The node and swift rows both use OSV but differ in keys on purpose: node is executed by scripts/dependency_audit_resolve.mts, which needs its parse, limit and registry keys, while swift is still carried out by hand from its $comment.",
+    "stackCatalogue": {
+      "$comment": "A declared snapshot of nen's stack vocabulary: zheref/nen src/repo/classify.ts PRODUCT_STACKS together with src/shu/detect.ts MARKER_STACKS (a subset of it), read at nen main e2b92836cda0 on 2026-10-22. scripts/dependency_audit_resolve_fixture.mts fails unless every stack here is on exactly one row or in `unrouted`, and every row stack is here or in `aliases`. When nen adds a stack, this snapshot moves first.",
+      "stacks": ["xcode-ios", "xcode-macos", "gradle-android", "compose-desktop", "dotnet-winui", "nextjs", "expo", "gatsby", "react", "electron"],
+      "unrouted": ["dotnet-winui"],
+      "aliases": ["node", "swift", "jvm"],
+      "aliasesSemantics": "`node`, `swift` and `jvm` are hand-declared aliases no nen producer emits; they let a caller name an ecosystem directly. claude-code-plugin (Hatsu's own lane stack, not in nen's vocabulary) is on no row and so is not scanned, named."
+    },
     "node": {
-      "run": "npm audit --audit-level=high",
-      "failure": "Non-zero means at least one advisory at high or above; the output is handed to Feitan as evidence. A lockfile-less tree cannot be audited and is reported as not scanned."
+      "$comment": "zheref/hatsu#247 item 1. The audit is never a package-manager command: running pnpm, yarn or npm inside the tree under review runs that tree's .pnpmfile.cjs, yarnPath, plugins and .corepack.env, honours its .npmrc registry (a stub answering {} reads as zero vulnerabilities) and expands its auth tokens toward a host it chose (Feitan's round-2 findings on HA#247). So, like the swift row, the lockfile is PARSED and its registry packages are queried against OSV: scripts/dependency_audit_resolve.mts applies `resolution`, posts every package@version to `endpoint` at `ecosystem`, reads each returned id at `vulnEndpoint` for its GHSA severity, and executes nothing. Hosts come from this file only; nothing of the caller's environment is sent. hanten section 2a runs it with --query.",
+      "stacks": ["node", "nextjs", "gatsby", "expo", "react", "electron"],
+      "run": "node \"$hatsu_root/scripts/dependency_audit_resolve.mts\" <path> --stack <stack> --query",
+      "runSemantics": "<path> is the lane's cwd inside the checkout under review (the checkout root for a root lane) and <stack> that lane's stack; with no stack the row is not run and is reported not scanned, never called with an empty --stack. The command is a literal $hatsu_root path with no permissions-pack grant (docs/config/plugin-registries.md), so it PROMPTS; a grant is Feitan's and the maintainer's call, never added here. Its only network is the two OSV endpoints below. UNQUERIED IS NEVER CLEAN: an entry from git, file: or a host off `registryHosts` cannot be checked against OSV, so any non-zero unqueried count makes a queried run exit 1, the same as a finding, and a registry-shaped entry that does not parse is not scanned. Workspace, link and directory entries are the tree's own code, reviewed as the diff, and are counted as local, never as unqueried.",
+      "endpoint": "https://api.osv.dev/v1/querybatch",
+      "vulnEndpoint": "https://api.osv.dev/v1/vulns/",
+      "ecosystem": "npm",
+      "severityLevels": ["LOW", "MODERATE", "HIGH", "CRITICAL"],
+      "severityFloor": ["HIGH", "CRITICAL"],
+      "registryHosts": ["registry.npmjs.org", "registry.yarnpkg.com"],
+      "timeoutSeconds": 120,
+      "maxResponseBytes": 33554432,
+      "maxEntries": 500000,
+      "maxDepth": 1000,
+      "resolution": "1. The repository's own package.json `packageManager` field decides, the same source nen's nextjs pack reads: its name before the last `@` selects a `managers` row; its version is never used, since nothing is executed. A field naming a manager with no row, or carrying control characters, is not scanned, named. 2. ONLY where the field is absent, the lockfile decides: one manager's lockfile present selects it; two managers' lockfiles are ambiguous, not scanned, named; a lockfile in `unsupportedLockfiles` is named as having no parser. Where the field selects one lockfile and another lockfile is also present, each other is printed as `audit-config: <file> other-lockfile` evidence. 3. The selected lockfile must be a regular file directly in <path> (a symlink is never followed), end with a newline, and parse strictly: a line the parser does not read, a truncated entry, or more than `maxEntries` entries (npm v1 also deeper than `maxDepth`) is not scanned. yarn.lock is read by its `lockfileMarkers`, with entries split on column-0 headers; a yarn classic `<alias>@npm:<real>@<range>` header is the real package. 4. An entry is a registry package only when it carries no resolved URL or tarball, or one over https on a `registryHosts` host (declared here, never taken from the tree).",
+      "managers": {
+        "pnpm": {
+          "lockfiles": ["pnpm-lock.yaml"],
+          "format": "pnpm-lock",
+          "$comment": "The `packages:` keys, at lockfileVersion 5, 6 and 9; any other version is not scanned, named."
+        },
+        "yarn": {
+          "lockfiles": ["yarn.lock"],
+          "format": "yarn-lock",
+          "lockfileMarkers": {
+            "berry": "^__metadata:",
+            "classic": "^# yarn lockfile v1"
+          },
+          "$comment": "Berry entries by their `resolution: <name>@npm:<version>`; classic entries by their header and `version` line. A yarn.lock matching neither marker is not scanned, named."
+        },
+        "npm": {
+          "lockfiles": ["package-lock.json", "npm-shrinkwrap.json"],
+          "format": "npm-lock",
+          "$comment": "lockfileVersion 2 and 3 by `packages`, 1 by nested `dependencies`."
+        }
+      },
+      "unsupportedLockfiles": {
+        "bun.lockb": "bun",
+        "bun.lock": "bun"
+      },
+      "auditConfigKeys": {
+        "$comment": "Keys that would redirect or suppress a manager's own audit. None is honoured, since no manager runs; each one present is printed as `audit-config: <file> <key>` evidence for Feitan, never its value. A `*` prefix matches any key ending in the rest (a scoped registry).",
+        ".npmrc": ["registry", "*:registry", "omit", "audit", "audit-level"],
+        "package.json": ["pnpm.auditConfig"],
+        "pnpm-workspace.yaml": ["auditConfig", "registry"],
+        ".yarnrc.yml": ["npmRegistryServer", "npmAuditRegistry", "npmAuditIgnoreAdvisories", "npmAuditExcludePackages"]
+      },
+      "failure": "The exit code decides. 0: no finding at or above `severityFloor` and nothing unqueried. 1: a finding at or above it, an id whose severity is missing or outside `severityLevels` (UNRATED), or any unqueried entry; evidence for Feitan, never clean. 3: not scanned, with the resolver's named reason, including a malformed, oversized (`maxResponseBytes`) or failing OSV answer and `timeoutSeconds` expiring. 2: a wiring stop (arguments, this file, or an internal error), never a verdict about the tree."
     },
     "swift": {
+      "stacks": ["swift", "xcode-ios", "xcode-macos"],
       "endpoint": "https://api.osv.dev/v1/querybatch",
       "ecosystem": "SwiftURL",
       "$comment": "SwiftPM ships no advisory command of its own, so the resolved package graph is queried against OSV directly. Take the pins from Package.resolved, POST them as a querybatch against the endpoint above with ecosystem SwiftURL, and treat every returned vulnerability as evidence. An unreachable endpoint is NOT SCANNED, never clean.",
       "failure": "A returned vulnerability set is evidence for Feitan. A network failure, a non-2xx response or an unresolvable Package.resolved is reported as not scanned, with the reason."
     },
     "jvm": {
+      "stacks": ["jvm", "gradle-android", "compose-desktop"],
       "run": "./gradlew dependencyCheckAnalyze",
       "$comment": "The OWASP Dependency-Check Gradle task. A repository that does not apply the plugin has no row to run: that is reported as not scanned, naming the missing plugin, never waived.",
       "failure": "Non-zero, or a report carrying findings at or above the project's declared CVSS threshold, is evidence for Feitan."

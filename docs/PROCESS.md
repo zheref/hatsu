@@ -765,6 +765,14 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   ledger — the maintainer's ruling of 2026-10-03** ([`ROSTER.md`](ROSTER.md) HR-243, HR-244): its owned
   dependency, zheref/nen#346, shipped in nen v0.26.0, and the retirement step ran (zheref/hatsu#216):
   hanten and breath call `nen review ledger`, and the script and its fixture are gone.
+- **`hanten` § 2a, the Node dependency audit.** `scripts/dependency_audit_resolve.mts` is an interim
+  TypeScript verdict (zheref/hatsu#247, item 1): it selects the manager from the tree's `packageManager`
+  field, which duplicates nen's own `{pm}` substitution in its `nextjs` pack, then parses the lockfile and
+  queries OSV, executing nothing. The parts **owed to nen** (zheref/nen#508): the lockfile parse for pnpm, yarn
+  and npm, the OSV `querybatch` post and the per-id severity read, as a declared audit verb or with `{pm}`
+  and the lockfile read exposed; it retires at that repin. The `swift` row's OSV route
+  (`contracts/scans.json` → `dependencyAudit.swift`) has no owner at all: no nen verb carries out its
+  `$comment`, and it is owed to the same verb.
 - **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,

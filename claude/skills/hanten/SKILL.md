@@ -54,9 +54,9 @@ content-raised persona joins § 2b's `--applicable`; print the classification be
 
 ### 2a · The security scope's deterministic rows, before Feitan reads
 
-Hanten runs Feitan's table (`feitan.md`) — secret scan, dependency audit, secret shapes,
-builder-touching workflow, each with its failure rule — and hands him the output. **A
-row that cannot run is not scanned, never clean**; values are `$hatsu_root/contracts/scans.json`'s.
+Hanten runs Feitan's table (`feitan.md`: the row by `stacks`; Node's lockfile from `packageManager`, to
+OSV) and hands him the output. **A row that cannot run is not scanned, never clean**; values are
+`$hatsu_root/contracts/scans.json`'s.
 
 ## 2b · Budgets — one effort, one ledger
 
