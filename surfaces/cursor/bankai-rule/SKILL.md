@@ -87,7 +87,7 @@ numbering: global` is exit `3`, a `handbook-question`.
 
 ```bash
 "$hatsu_root/scripts/port_rule_reserve.sh" --worktree <the run's rulings worktree> --target <owner/name> \
-  --pair-file <rulingsDir>/<from>--<to>.md --prefix PT --json
+  --pair-file <rulingsDir>/<from>--<to>.md --prefix PT --handbooks-tag <pinned tag> --json
 ```
 
 Run against **the run's rulings worktree** (§ 2), never the clone root: it fetches and prunes, then
@@ -103,8 +103,8 @@ Lane `port-rule-guard`.
 
 ## 4. Write the ruling — the template, the row, the index
 
-A pair with no file is created from `templates/ports/pair.md` (the rows are the only counter) with its
-`<rulingsDir>/INDEX.md` row from `templates/ports/INDEX.md`, one per pair file, `0` rulings too: file, count, last date. **Each row:**
+From handbooks `v0.11.0` every directed pair ships its file and INDEX row (`CON-13`, zheref/bankai-handbooks#21): a
+row is **appended**, its INDEX count and date moved; a missing file is § 3's exit `2`, never created. **Each row:**
 
 | Column | What |
 |---|---|
@@ -119,7 +119,7 @@ A pair with no file is created from `templates/ports/pair.md` (the rows are the 
 
 `map`/`mirror` rows fill the equivalence table, the other two the drift table. **Before any write, two
 guards — on the drafted row (`<d>/row.md`, written with the surface's file tool), then on the rendered
-`<pair file> <INDEX.md>` in the worktree, after the template copy, before kokusen**:
+`<pair file> <INDEX.md>` in the worktree, before kokusen**:
 `bash "$hatsu_root/scripts/private_name_check.sh" --ignore-file <d>/redaction-ignore <files>`
 ([`file`](../file/SKILL.md) § 4's ignore file) and `bash "$hatsu_root/scripts/product_term_check.sh" <files>`
 (ports.md § *The product-term guard*; no list, `missing-configuration`). A drafted-row hit is § 1's product
@@ -154,7 +154,7 @@ mirror carries one until zheref/nen#457 ([`limbo`](../limbo/SKILL.md) step 4).
 ## 7. Report
 
 ```
-<from> → <to>  ruling <id>  <handling> · file (created | appended) · INDEX <row added | count moved> · reserved against: tip <sha> · branch · <n> siblings · open PRs <#a | none>
+<from> → <to>  ruling <id>  <handling> · file appended · INDEX count moved · reserved against: tip <sha> · branch · <n> siblings · open PRs <#a | none>
   branch: <ref> in <worktree> · PR: <none yet | <owner/name>#<N>> · cite as: <from>--<to> PT-<n> (branch <ref>, unmerged)
 ```
 
@@ -169,7 +169,7 @@ the clone's `git clone`; the product-term guard as a nen verb (unfiled).
 ## Authority
 
 - **Permitted:** reads at the pin and of open PRs and rulings branches; the authoring clone and its
-  worktree; a pair file and INDEX row from the maintainer's answers; the guards, lint and kokusen there;
+  worktree; a pair-file row and its INDEX count from the maintainer's answers; the guards, lint and kokusen there;
   **one** PR per port run through aka → mukai → en.
 - **Not permitted:** writing the canon checkout or a mirror; an invented ruling; an improvised `nen` verb.
 

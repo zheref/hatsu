@@ -20,3 +20,18 @@
   `0` rulings too. `port-rule-guard` holds the template wording (T16) and, in its own fixture, that a
   render over a `0`-rulings pair file indexes every pair file once (T15b, with a red case); the
   reserve guard itself still never compares INDEX rows to files. Addresses HA#406.
+
+### Changed
+
+- **Handbook canon repinned from `zheref/bankai-handbooks` `v0.11.0` to `v0.12.0`** (commit
+  `5f0b2f4b`, recorded as `pinnedSha` by hand until zheref/nen#506), so Akatsuki's pin can equal
+  Hatsu's (HR-8). The always-load set, the spec handbook and the pair files are unchanged; the
+  `react-uzf-v1` Electron desktop shell (`RC-64`–`RC-69`) and its `QA-7`/`QA-12` rows are new, and
+  `hatsu:bankai-quality`'s tooling table carries the desktop row. History in
+  `docs/ab/bankai-handbooks.md` § *Repin to v0.12.0*.
+- **Pair files are shipped, never created** (`CON-13` as amended, zheref/bankai-handbooks#21): the
+  INDEX template's lead matches that PR's `handbooks/ports/INDEX.md` byte for byte;
+  `port_rule_reserve.sh --handbooks-tag <pin>` refuses a pair file missing at the tip at a tag at or
+  above `v0.11.0` (exit `2`, naming the pair and the tag); `hatsu:bankai-rule` appends rows only and
+  its receipt drops `created`; `hatsu:bankai-handbooks` reads an absent pair file at such a pin as
+  that refusal, no longer `port rulings: none`. Fixture T17.

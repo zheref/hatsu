@@ -90,7 +90,7 @@
 # USAGE
 #   scripts/port_rule_reserve.sh --worktree <the run's rulings worktree> --target <owner/name>
 #                                --pair-file <rulingsDir>/<from>--<to>.md --prefix PT [--base <ref>]
-#                                [--no-fetch] [--check] [--json]
+#                                [--handbooks-tag <vX.Y.Z>] [--no-fetch] [--check] [--json]
 #
 # OUTPUT  `next: PT-<n>` ONLY on a complete read, and one line per id seen, `<id> <where> in <file>`
 #         (where: tip <ref> · branch HEAD · working tree · branch <ref> · PR #n (<ref>)); seen[]
@@ -105,7 +105,8 @@
 #         `/<name>.md` — no empty, `.` or `..` segment, no leading `./`, no trailing `/`), no scratch
 #         directory (mktemp failed), a worktree that is not a git checkout, a clone whose origin
 #         fetch refspec does not cover refs/heads/* (a --single-branch clone), a fetch that failed,
-#         a tip ref that does not resolve, a working-tree pair file (or the rulings directory) that
+#         a tip ref that does not resolve, a --handbooks-tag not vX.Y.Z, a --pair-file missing at the tip
+#         under a --handbooks-tag at or above v0.11.0 (every directed pair ships its file there), a working-tree pair file (or the rulings directory) that
 #         is a symlink, not a regular file or outside the worktree, or no gh on PATH · 3 an id, a
 #         row, a first cell, a pair-file name or a pair-file header outside the admitted shape is in
 #         a counted place, the next id would pass the ceiling, or (--check) this branch adds an id
@@ -113,11 +114,11 @@
 #         branch's rows.
 set -uo pipefail
 
-clone=""; target=""; pair=""; prefix=""; base="main"; json=0; fetch=1; check=0
-usage() { echo "usage: port_rule_reserve.sh --worktree <path> --target <owner/name> --pair-file <rulingsDir>/<file>.md --prefix PT [--base <ref>] [--no-fetch] [--check] [--json]" >&2; exit 2; }
+clone=""; target=""; pair=""; prefix=""; base="main"; json=0; fetch=1; check=0; htag=""
+usage() { echo "usage: port_rule_reserve.sh --worktree <path> --target <owner/name> --pair-file <rulingsDir>/<file>.md --prefix PT [--base <ref>] [--handbooks-tag <vX.Y.Z>] [--no-fetch] [--check] [--json]" >&2; exit 2; }
 while [ $# -gt 0 ]; do
   case "$1" in
-    --worktree|--target|--pair-file|--prefix|--base) [ -n "${2-}" ] || { echo "port_rule_reserve: $1 takes a value" >&2; usage; } ;;
+    --worktree|--target|--pair-file|--prefix|--base|--handbooks-tag) [ -n "${2-}" ] || { echo "port_rule_reserve: $1 takes a value" >&2; usage; } ;;
   esac
   case "$1" in
     --worktree) clone="$2"; shift 2 ;;
@@ -125,6 +126,7 @@ while [ $# -gt 0 ]; do
     --pair-file) pair="$2"; shift 2 ;;
     --prefix) prefix="$2"; shift 2 ;;
     --base) base="$2"; shift 2 ;;
+    --handbooks-tag) htag="$2"; shift 2 ;;
     --no-fetch) fetch=0; shift ;;
     --check) check=1; shift ;;
     --json) json=1; shift ;;
@@ -142,6 +144,15 @@ TARGETSHAPE="^[A-Za-z0-9-]+/${SEG}\$"
 [[ "$pair" =~ $PAIRSHAPE ]] || { echo "port_rule_reserve: --pair-file is <rulingsDir>/<name>.md: one or more segments of $SEG then /<name>.md -- no empty, '.' or '..' segment, no leading './' or '/', no trailing '/'; got $(printf '%q' "$pair")" >&2; exit 2; }
 dir="${pair%/*}"
 [[ "$target" =~ $TARGETSHAPE ]] || { echo "port_rule_reserve: --target is owner/name (owner [A-Za-z0-9-]+, name $SEG); got $(printf '%q' "$target")" >&2; exit 2; }
+# --handbooks-tag: the consumer's pinned handbooks tag. From v0.11.0 every directed pair of product stacks
+# ships its pair file (CON-13 as amended, zheref/bankai-handbooks#21), so a pair file missing at the tip is
+# refused at exit 2 rather than created.
+pairs_ship=0
+if [ -n "$htag" ]; then
+  [[ "$htag" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || { echo "port_rule_reserve: --handbooks-tag is vX.Y.Z; got $(printf '%q' "$htag")" >&2; exit 2; }
+  hmaj=$((10#${BASH_REMATCH[1]})); hmin=$((10#${BASH_REMATCH[2]}))
+  if [ "$hmaj" -gt 0 ] || [ "$hmin" -ge 11 ]; then pairs_ship=1; fi
+fi
 CEILING=999999999
 P='[Pp][Rr][Ee][Ff][Ii][Xx]'; N='[Nn][Uu][Mm][Bb][Ee][Rr][Ii][Nn][Gg]'
 HDRSHAPE="${P}: PT · ${N}: global([[:space:]]|\\)|·|-->)"
@@ -357,6 +368,11 @@ else
   tipref="$base"
   git -C "$clone" rev-parse --verify -q "$tipref" >/dev/null || { echo "port_rule_reserve: $clone has no origin and $base does not resolve -- the tip is unread, nothing is reserved" >&2; exit 2; }
   echo "port_rule_reserve: $clone has no origin; the local $base is the tip" >&2
+fi
+if [ "$pairs_ship" = 1 ] && [ "$(git -C "$clone" cat-file -t "$tipref:$pair" 2>/dev/null)" != blob ]; then
+  pname="${pair##*/}"; pname="${pname%.md}"
+  echo "port_rule_reserve: pair $(printable "$pname") has no pair file $(printable "$pair") at the tip $tipref; at handbooks $htag (>= v0.11.0) every directed pair of product stacks ships its file (CON-13, zheref/bankai-handbooks#21), so bankai-rule appends rows and never creates one -- refusing, nothing is reserved" >&2
+  exit 2
 fi
 plan_reset
 plan_ref "$tipref" "tip $tipref"

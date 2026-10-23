@@ -15,8 +15,8 @@ Bankai work: the five general handbooks, the four stack handbooks, `CONSTITUTION
 `CONVENTIONS.md`, exactly as `CON-13` names them. They moved there on 2026-09-28 out of the frozen
 `<reference-repo>` (that repository's `MIGRATION.md` records what came from where, what was renamed
 and what was left behind). Hatsu reads them from a **local checkout at the tag its own registry pins**
-— `nen/repos.json` → `maintained_tools` → `zheref/bankai-handbooks` → `pinned` (`v0.11.0` since the repin of
-2026-10-22; **read the file, never this line**). Load the *right* ones and no more — **a rule cited from
+— `nen/repos.json` → `maintained_tools` → `zheref/bankai-handbooks` → `pinned` (`v0.12.0` since the repin of
+2026-10-23; **read the file, never this line**). Load the *right* ones and no more — **a rule cited from
 memory is a rule that has already drifted**, and this is not a hypothetical: the retired skill's own
 "always load" list went stale **twice**, by its own repository's history, not by passive drift. In the
 frozen predecessor, `3a463b4` (2026-08-08) added `ux-baseline.md` to `handbooks/INDEX.md`'s table
@@ -25,14 +25,15 @@ without touching the retired skill's hardcoded list; `c711f4e` (2026-08-20) adde
 diff** — yet still left its "always load" prose at three files. Two chances to fix it, both missed:
 the set is five files today (§ 2 below; recorded live in `docs/ab/bankai-handbooks.md` § 1 against
 the frozen source, and the same five rows in `handbooks/INDEX.md` at `zheref/bankai-handbooks`
-`v0.11.0`, read 2026-10-22, which adds two families loaded *beside* the set, never in it: § 2).
+`v0.11.0`, read 2026-10-22, which adds two families loaded *beside* the set, never in it: § 2; unchanged at
+`v0.12.0`, read 2026-10-23).
 This is exactly the repeated maintenance failure the **read `handbooks/INDEX.md` fresh every time**
 rule exists to prevent — resolve fresh, every time; never carry a fixed list forward from a previous
 session or from this file's own prose.
 
 > **The pin is a tag, read from the registry — verify the checkout sits on it** with
 > `git -C "$canon" describe --tags --exact-match` (§ 0) before trusting it (a stale local clone
-> silently drifts off the pin; at the repin of 2026-10-22 the line printed `v0.11.0`). **`<reference-repo>` is
+> silently drifts off the pin; at the repin of 2026-10-23 the line printed `v0.12.0`). **`<reference-repo>` is
 > FROZEN and is not read any more**: its `handbooks/` are the pre-migration copy at `v0.11.3`, not
 > canon, and **nothing is ever written to it** — no PRs, no branches, no issues, nothing. A handbook
 > gap found while resolving is a finding to raise to the human (§ 4); its landing repository is now
@@ -62,7 +63,7 @@ location or a cache slot keyed on the repository, never the cwd; a public, anony
 and the tag re-verified on every run.
 
 ```bash
-pin='<nen/repos.json → maintained_tools → zheref/bankai-handbooks → pinned, read by you; e.g. v0.11.0>'
+pin='<nen/repos.json → maintained_tools → zheref/bankai-handbooks → pinned, read by you; e.g. v0.12.0>'
 canon="${HATSU_CANON_CHECKOUT:-${XDG_CACHE_HOME:-$HOME/.cache}/hatsu/canon/zheref/bankai-handbooks}"
 [ -d "$canon/.git" ] || git clone --quiet https://github.com/zheref/bankai-handbooks.git "$canon"
 git -C "$canon" fetch --quiet --tags origin
@@ -96,7 +97,7 @@ file). So `--repo` here names **the registry**, not the handbooks, and which che
 answers today — tried in this order, never guessed past:
 
 1. **`zheref/bankai-handbooks`' own `nen/repos.json`** — the consumer registry `CON-13` names. At
-   `v0.11.0`, as at `v0.6.0`, it records **no consumers**: the repository is public and the estate's product
+   `v0.12.0`, as at `v0.11.0` and `v0.6.0`, it records **no consumers**: the repository is public and the estate's product
    repositories are private, so they are not named there, and its `maintained_tools` rows carry no
    `scenario`. Every `--target` is therefore refused today with the verb's own sentence — at nen
    `0.24.0`, read 2026-10-22: `nen repo scenario --repo "$canon" --target zheref/hatsu` → *"'<slug>' is recorded in … nen/repos.json (under 'maintained_tools'), but its row there carries no 'scenario' field. Add one to its maintained_tools[] row to record which scenario governs it -- that row carries the field exactly as a consumers[] entry does"*, exit `1` (at `0.15.1` the sentence read *"only a
@@ -182,8 +183,8 @@ nen canon resolve --repo <registry checkout> --target <owner/name> \
 **`--always-load` is caller data — read fresh from `handbooks/INDEX.md`'s own "Always load" table, in
 `$canon` (§ 0) at the pin, every time.** It is not looked up by the verb; you
 supply it. It is also not stable: the table grew twice while the retired skill's own copy of it sat
-frozen (three files → four → five, § above). Read off `handbooks/INDEX.md` at `v0.11.0` on 2026-10-22, it
-resolves to the same five rows `v0.6.0` carried:
+frozen (three files → four → five, § above). Read off `handbooks/INDEX.md` at `v0.12.0` on 2026-10-23, it
+resolves to the same five rows `v0.6.0` and `v0.11.0` carried:
 
 ```
 handbooks/uzf-core.md, handbooks/security-baseline.md, handbooks/ux-baseline.md,
@@ -247,6 +248,12 @@ own stack table at resolve time, never memorized:
 > table gained `UZF-21` rows — the files a consumer mirror picks up at its own repin. Open the resolved
 > files; this note is a map of the tags' diff, not the text.
 >
+> **What changed between `v0.11.0` and `v0.12.0`.** The Electron desktop shell is a render target of
+> `react-uzf-v1`, not a scenario: `stacks/react-uzf-v1/rules/14-electron-desktop-shell.md` carries
+> `RC-64`–`RC-69`, `RC-49`'s member set is per scaffold scenario, the stack table's `react-uzf-v1` row
+> names the desktop target, and `quality-baseline.md` gains a desktop `QA-7` tooling row and a `QA-12`
+> measurement row. The always-load set, the spec handbook and the six pair files are unchanged.
+>
 > **The public registry names no consumer per row.** The retired skill's table carried a "recorded
 > consumer today" column read off the frozen registry; `zheref/bankai-handbooks`' registry records
 > none (§ 1), so which repository runs under which scenario is read from the registry that records it,
@@ -262,8 +269,10 @@ the target stack, never as a second stack: a source-stack id a pair row names is
 with zero rulings at that tag, rows appended through that skill; prefix `PT`, one global counter: ROSTER §
 *Rulings of 2026-10-21 — the port rule prefix (HA#355)*). `nen canon resolve` at `0.24.0` returns always-load
 plus exactly one stack and knows no pair; resolving one is zheref/nen#457. **Until it lands: test the
-pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; absent is
-`port rulings: none` — a port that has met no drift, not an error; **a present file whose two tables
+pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; **absent at a
+pin at or above `v0.11.0` is a refusal at exit `2` naming the pair and the tag** — every directed pair of
+product stacks ships its file from there (`CON-13` as amended, zheref/bankai-handbooks#21), so an absent one
+is a wrong pair or a damaged checkout, never `port rulings: none`; **a present file whose two tables
 hold no `PT-` row — every pair at `v0.11.0` — reads `port rulings: none (file present, 0 rows)`** and is
 still appended, so a row added at a later tag is read without a prose change), **then append its path to
 `--always-load`** after the manifest's own rows. The verb **accepts and echoes** the path (it checks

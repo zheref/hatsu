@@ -593,9 +593,19 @@ red="$root/tmpl-red"; mkdir -p "$red"; cp "$to/handbooks/ports/"*.md "$red/"
 grep -vF '](compose-uzf-v2--swiftui-tca-uzf-v2.md)' "$to/handbooks/ports/INDEX.md" > "$red/INDEX.md"
 index_parity "$red"; rcp_red=$?
 check "T15b: the rendered INDEX has one row per pair file, the 0-rulings file included; dropping that row fails the parity" '[ "$rcp_green" = 0 ] && [ "$rcp_red" = 1 ]'
-# T16 (zheref/hatsu#406): the INDEX template defines a row per pair FILE, the wording of the rendered
-# handbooks/ports/INDEX.md, so a fresh render puts no prose diff back over a 0-rulings pair file
-check "T16: templates/ports/INDEX.md opens with one row per directed pair file, never per pair that carries rulings" 'grep -qF "One row per **directed** pair file (stack scenarios from \`handbooks/stack-matrix.md\`); a pair with" "$repo_root/templates/ports/INDEX.md" && ! grep -q "that carries rulings" "$repo_root/templates/ports/INDEX.md"'
+# T16 (zheref/hatsu#406, CON-13 as amended by zheref/bankai-handbooks#21): the INDEX template's lead is the
+# rendered handbooks/ports/INDEX.md's -- a row per pair FILE, every directed pair shipping one from v0.11
+check "T16: templates/ports/INDEX.md opens with one row per directed pair file, every pair shipping one from v0.11, never per pair that carries rulings" 'grep -qF "directed pair of product stacks has a file from v0.11, and a file with no ruling row has no" "$repo_root/templates/ports/INDEX.md" && ! grep -q "that carries rulings\|a pair with no file" "$repo_root/templates/ports/INDEX.md"'
+# T17 (CON-13 as amended): under --handbooks-tag >= v0.11.0 a pair file missing at the tip is refused at
+# exit 2 naming the pair and the tag, never created; a present one reserves; below v0.11.0 a missing one
+# is still the create case; a tag out of shape is usage
+missing=handbooks/ports/react-uzf-v1--compose-uzf-v2.md
+outt17a="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT --handbooks-tag v0.12.0 2>&1)"; rct17a=$?
+bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag v0.12.0 >/dev/null 2>"$root/e17b.txt"; rct17b=$?
+bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag v0.11.0 >/dev/null 2>&1; rct17c=$?
+outt17d="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag v0.10.3 2>&1)"; rct17d=$?
+bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag 0.12 >/dev/null 2>&1; rct17e=$?
+check "T17: at handbooks >= v0.11.0 a missing pair file is exit 2 naming the pair and the tag (a present one reserves PT-4); below it the create case reserves; a malformed tag is usage" '[ "$rct17a" = 0 ] && printf "%s" "$outt17a" | grep -q "^next: PT-4$" && [ "$rct17b" = 2 ] && grep -q "pair react-uzf-v1--compose-uzf-v2 has no pair file .* at handbooks v0.12.0 (>= v0.11.0)" "$root/e17b.txt" && [ "$rct17c" = 2 ] && [ "$rct17d" = 0 ] && printf "%s" "$outt17d" | grep -q "^next: PT-4$" && [ "$rct17e" = 2 ]'
 
 # SCALING (the maintainer's perf ruling on HA-PR-#392): 3000 rows across 6 pair files plus two siblings must
 # reserve the right id within a generous bound, so a quadratic regression fails the lane rather than a user
