@@ -155,7 +155,7 @@ ready` verdict quoted; `next: done`; the wrap-up once (row `wrap-up`). Unpicked 
 recommended surface and restart line.
 
 **`--dry-run`** runs § 1, § 2's report, the § 3 folder plan, the sibling list and each filing plan, then
-ends, writing nothing.
+ends, writing nothing (recorded, dated: `docs/ab/kamui.md`).
 
 ## Residue
 

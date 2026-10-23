@@ -27,6 +27,7 @@ const gated: Array<[string, string, string]> = [
   ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
   ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
+  ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

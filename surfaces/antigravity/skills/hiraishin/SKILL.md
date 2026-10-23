@@ -147,6 +147,7 @@ follow-up; release is the target's `getsuga`/`mugetsu`.
 §§ 1–2 read, § 4 planned, § 5 printed, § 7's plan (`nen issue file --dry-run`, file § 4's ignore file
 joined under the scratch directory), the drift questions listed unasked; **nothing written outside the
 session's scratch directory**: no record, issue, spec PR or label. Missing setup reported, never set up.
+Recorded, dated: `docs/ab/hiraishin.md`.
 
 ## Residue
 
