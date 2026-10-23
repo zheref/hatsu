@@ -121,7 +121,7 @@ maintainer closes or retargets it; till then futon § 8 holds. Then [`getsuga`](
 configuration default cut point, and **its § 3a's kazaana paragraph is the one statement of the rule**
 the maintainer gave — *"NEVER prompted to the maintainer to merge himself"*: transient conditions held
 through en's observation hold, every declaration-gate fall-back a **G5 halt** handing the exact command,
-never a `MERGE` ask, the `aiReviewers` case owed to nen (§ Residue). The fan-out is getsuga § 7's.
+never a `MERGE` ask, the `aiReviewers` case getsuga § 3a's. The fan-out is getsuga § 7's.
 
 ## 6. After the tag — the publish offer
 
@@ -151,7 +151,7 @@ fan-out, the publish outcome — `final` only if every PR merged and the tag cut
 
 `nen direct registry --json` prints no `line`, so the surface → line read is the registry file (**owed to
 nen**, to file). Raising a delegate has no verb; § 3 names the effort-dial residue; the overlap read
-has none. **Owed to nen**: `nen pr merge --release-unit` reading `aiReviewers` (getsuga § 3a) — to file.
+has none.
 
 ## Authority
 
