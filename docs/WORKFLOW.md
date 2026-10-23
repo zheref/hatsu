@@ -496,11 +496,11 @@ Hatsu's own block (ROSTER HR-21, HR-24, HR-38), read from **Hatsu's checkout onl
         "rulings": { "hidan": "off", "claudeAuth": "claude_code_oauth_token" } }
 ```
 
-**Hatsu's own block, written by `kuchiyose` at install** (zheref/hatsu#331, the skill still to land) through
+**Hatsu's own block, written by [`kuchiyose`](../claude/skills/kuchiyose/SKILL.md) at install** (zheref/hatsu#331) through
 `scripts/config_values.sh set`, one key per answer — never a hand-typed guess. It records which CI tier a
 consumer installed and the answers it was installed with; **absent means no tier is installed**. It is read
-today by `kuchiyose`; `pinned` will also be read by nen's warmup pin sweep (zheref/nen#440) and
-`tenkai`'s drift row (zheref/hatsu#331) once they land. `nen schema check` tolerates the block (it does not validate it; checked
+today by `kuchiyose`; `pinned` is also read by nen's warmup pin sweep (`nen warmup --ci-registry`, from nen `0.26`, zheref/nen#440);
+`tenkai`'s caller drift row is owed with the provider's tier catalogue. `nen schema check` tolerates the block (it does not validate it; checked
 against nen `0.22.0` on 2026-10-19).
 
 | Key | Default | What it carries |
@@ -1963,6 +1963,12 @@ it never changes what this derivation selects.
 **Warm-up verifies adoption; it never performs it.** `ten` § 0a is the split: the `nen`
 dependency gate is per-session, adoption is once. An outstanding adoption item is reported and is
 never a halt — § 3's halt is for a failed bootstrap and nothing else.
+
+**A CI tier is the step after adoption.** [`kuchiyose`](../claude/skills/kuchiyose/SKILL.md) installs one
+tier of the Akatsuki roster (the reviewers today) on an adopted repository: `tenkai_adopt.sh diagnose`
+must read clean first, the tier catalogue is read at the provider's pinned tag, the caller, the lanes'
+`nen/gates.json` entries and the `ci` block (§ 2) land as one PR at the consumer's gate, and the App,
+secret and ruleset steps are printed for the maintainer, never performed ([`docs/using/kuchiyose.md`](using/kuchiyose.md)).
 
 
 ## Focused selection adoption and reviewer identities

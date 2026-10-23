@@ -439,7 +439,7 @@ of 2026-10-19 — the CI reviewers tier*; zheref/hatsu#330 — **stated once, he
 `shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`,
 [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3, [`WORKFLOW.md`](WORKFLOW.md) § 2 (`aiReviewers`, `ci`),
 `docs/config/{workflow,gates,decisions}.json.md` and that ROSTER section cite this paragraph). A **lane** is
-a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331, to land) — that
+a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331) — that
 runs on every push to the pull request and posts under its own GitHub App login. **Its round is its formal
 review posted under that login.** Under the `bounded` reading Hatsu runs, a review at any earlier head
 counts, because no request of the lane is ever pending; and a lane, outside `base_reviewers` with no

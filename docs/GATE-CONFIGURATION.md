@@ -71,7 +71,7 @@ a bot whose requests never register no longer holds every PR at `rounds-owed`. L
 never reviews means a round is owed at every head and the gate never closes. A pattern that is too
 broad means any drive-by comment satisfies a round.
 
-**A CI reviewer lane** (an Akatsuki tier lane, written by `kuchiyose` — zheref/hatsu#331, to land) is declared beside Copilot in one
+**A CI reviewer lane** (an Akatsuki tier lane, written by [`kuchiyose`](../claude/skills/kuchiyose/SKILL.md) — zheref/hatsu#331) is declared beside Copilot in one
 of two shapes, read from the tier catalogue's `roundShape` for that lane — the names and logins below
 show the shapes, not which lane has which:
 

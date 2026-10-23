@@ -12,7 +12,8 @@
     "publishing": "release units and production destinations",
     "intake": "product intake: which intake examiner challenges which part of a brief (Hatsu's own checkout only)",
     "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them",
-    "autonomy": "unattended batches: the typed --idle profile's pre-answered rows, slot release, terminal state and budget (HR-5)"
+    "autonomy": "unattended batches: the typed --idle profile's pre-answered rows, slot release, terminal state and budget (HR-5)",
+    "ci": "the CI tier a consumer installed from the Akatsuki roster and the per-consumer answers it was installed with (kuchiyose; absent means none installed)"
   },
   "values": [
     {
@@ -900,6 +901,86 @@
       ],
       "requiredBy": [],
       "source": "contracts/pr-sections.json; docs/PR-SECTIONS.md"
+    },
+    {
+      "id": "workflow.ci.provider",
+      "file": "nen/workflow.json",
+      "path": "ci.provider",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "open",
+      "describe": "The CI provider of the installed tier, by its product code (AK, the Akatsuki CI repository), resolved through Hatsu's nen/repos.json so the consumer's file carries no slug (HR-144 reading 4). Written by hatsu:kuchiyose at install; the row applies only where a ci block exists and is never filled into a consumer.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which CI provider, by product code, does this repository install its tier from?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier; HR-144"
+    },
+    {
+      "id": "workflow.ci.pinned",
+      "file": "nen/workflow.json",
+      "path": "ci.pinned",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "open",
+      "describe": "The provider's release tag the caller workflow's uses: lines reference and the tier catalogue is read at -- a tag that resolves, never a branch. Written by hatsu:kuchiyose at install; nen warmup --ci-registry checks it against the provider registry's latest (from nen 0.26).",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which provider release tag does the installed tier pin?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier"
+    },
+    {
+      "id": "workflow.ci.tiers",
+      "file": "nen/workflow.json",
+      "path": "ci.tiers",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "open",
+      "describe": "The installed tiers, by tier-catalogue key (reviewers today); a later tier appears in the provider's catalogue with no skill change. Written by hatsu:kuchiyose from the tier picked under decisions row ci-install-rulings.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which tiers of the provider's catalogue are installed here?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier"
+    },
+    {
+      "id": "workflow.ci.rulings.hidan",
+      "file": "nen/workflow.json",
+      "path": "ci.rulings.hidan",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "enum",
+      "options": [
+        "on",
+        "off"
+      ],
+      "describe": "Whether Hidan's review lane is active on this consumer, asked per consumer at install (HR-137) under decisions row ci-install-rulings: on renders Hidan's caller job and prints the AKATSUKI_HIDAN_ACTIVE variable step; off leaves both out. Never defaulted.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Does Hidan's review lane run on this repository?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier; HR-137"
+    },
+    {
+      "id": "workflow.ci.rulings.claudeAuth",
+      "file": "nen/workflow.json",
+      "path": "ci.rulings.claudeAuth",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "enum",
+      "default": "claude_code_oauth_token",
+      "options": [
+        "claude_code_oauth_token",
+        "anthropic_api_key"
+      ],
+      "sourceTable": false,
+      "describe": "Which Claude credential TYPE the lanes run under, asked at install with the subscription token starred (HR-139) under decisions row ci-install-rulings: claude_code_oauth_token (the CLAUDE_CODE_OAUTH_TOKEN secret) or anthropic_api_key (the metered ANTHROPIC_API_KEY secret). The type only; the value lives only in the consumer's Actions secret store.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which Claude credential type do the lanes run under?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier; HR-139"
     }
   ]
 }

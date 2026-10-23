@@ -219,12 +219,12 @@ A top-level block, Hatsu's own (the maintainer's rulings HR-21, HR-24 and HR-38,
 
 ### `ci`
 
-A top-level block, Hatsu's own, written by `hatsu:kuchiyose` at install (zheref/hatsu#331, to land; the maintainer's rulings of 2026-10-19). Absent means no CI tier is installed. `nen schema check` tolerates it. The full description is [`docs/WORKFLOW.md`](../WORKFLOW.md) § 2 → `ci`.
+A top-level block, Hatsu's own, written by `hatsu:kuchiyose` at install (zheref/hatsu#331; the maintainer's rulings of 2026-10-19; one catalogue row per key in `contracts/config-catalogue.json`, domain `ci`, applying only where the block exists; the guide is [`docs/using/kuchiyose.md`](../using/kuchiyose.md)). Absent means no CI tier is installed. `nen schema check` tolerates it. The full description is [`docs/WORKFLOW.md`](../WORKFLOW.md) § 2 → `ci`.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `provider` | string | a product code (`AK`) · none | the CI provider, by code, never by slug | `hatsu:kuchiyose` |
-| `pinned` | string | a release tag · none | the tag the caller workflows reference and the tier catalogue is read at | `hatsu:kuchiyose`; nen's warmup pin sweep (zheref/nen#440) and `tenkai`'s drift row (zheref/hatsu#331) once they land |
+| `pinned` | string | a release tag · none | the tag the caller workflows reference and the tier catalogue is read at | `hatsu:kuchiyose`; nen's warmup pin sweep (`nen warmup --ci-registry`, nen `0.26`); `tenkai`'s caller drift row once the provider's catalogue lands |
 | `tiers` | string[] | catalogue keys (`reviewers`) · `[]` | the installed tiers | `hatsu:kuchiyose` |
 | `rulings` | object | `hidan`: `on` · `off`; `claudeAuth`: `claude_code_oauth_token` (starred) · `anthropic_api_key` · `{}` | the per-consumer answers asked at install | `hatsu:kuchiyose` |
 
