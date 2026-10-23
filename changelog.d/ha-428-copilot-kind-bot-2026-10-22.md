@@ -1,0 +1,7 @@
+### Changed
+
+- **Copilot is declared a bot, so `aiReviewers: optional` waives its round (zheref/hatsu#428, closing zheref/hatsu#380).** `nen/gates.json` → `reviewers[]` `copilot` carries `kind: "bot"` and a `$comment` saying why. nen `0.25`+ waives under `optional` or `off` only a reviewer declared `bot` with an identical entry at the PR's base and the default branch's tip. Without the key, every Hatsu PR read `aiReviewers optional waives bot rounds: (none)` and stopped at `rounds-owed` on a Copilot request GitHub never records. Read at the base, it takes effect from the first PR whose base carries it, not on the PR that adds it. `docs/PROCESS.md` § *AI reviewers per consumer* states nen's waiver: a declared bot's round is waived and the verdict reads `ready`. The hanten prompt remains for a round nen did not waive, and its criterion also refuses a `kind: "human"` entry. `nen/decisions.json` row `ai-reviewers`, `docs/WORKFLOW.md` § `aiReviewers`, `docs/config/gates.json.md` (a `kind` row), `docs/config/decisions.json.md` and `docs/GATE-CONFIGURATION.md` § 3 follow.
+
+### Fixed
+
+- **"Owed to nen" retired for the release-unit merge's `aiReviewers` read.** It shipped in nen `0.25` (NN-PR-#463). `getsuga` § 3a, `kazaana` § 5 and § Residue, and `docs/PROCESS.md` § Residue now say that the verb waives a declared bot's round, and that a round it does not waive halts as under `required`. These were zheref/hatsu#380's remaining clauses; its repin criterion was met by HA-PR-#422 (nen `v0.26.0`).

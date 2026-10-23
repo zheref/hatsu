@@ -513,10 +513,11 @@ never a picker carrying the merge. Enumerated: § 3's three conditions failing (
 the guard's `not-applicable`; a base not read back as `branch.base`); the re-check's undecided row; a tag mismatch;
 the third route-back lap; an `edit-body` failure or a guard line other than `0` after it; `queued` never confirming
 `merged:`; exit `1` (a gate failed), exit `2` (usage); exits `5` and `6` are G5 already. **The `aiReviewers` case**:
-under an effective `aiReviewers: optional | off`, en hands back a `not-ready` verdict on `rounds-owed` alone
-([`PROCESS.md`](../../../docs/PROCESS.md) § *AI reviewers per consumer*), so § 3's second condition fails before the
-verb runs — the same halt, **until `nen pr merge --release-unit` reads `aiReviewers`** (owed to nen, named in
-kazaana § Residue). Outside kazaana, the paragraph below stands as written.
+under an effective `aiReviewers: optional | off`, `nen pr ready` and `nen pr merge --release-unit` (nen `0.25`) waive
+the round of a reviewer `nen/gates.json` declares `kind: "bot"` at the base and the tip, so a proposal owing only
+Copilot's round reads `ready` and merges here. A round nen does not waive leaves en a `not-ready` verdict on
+`rounds-owed` ([`PROCESS.md`](../../../docs/PROCESS.md) § *AI reviewers per consumer*), and § 3's second condition
+fails before the verb runs: the same halt, as under `required`. Outside kazaana, the paragraph below stands as written.
 
 A fall-back **stops at the declaration gate** (`nen/decisions.json` row `canon-merge` in a canon
 repository, `merge` in a consumer) with the banner, the board and `en` § 5's merge prompt for the

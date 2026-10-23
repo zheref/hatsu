@@ -3619,12 +3619,6 @@
     },
     {
       "path": "docs/PROCESS.md",
-      "rule": "PL-02",
-      "text": "dy terminus, no prompt, until nen exposes the owed list o",
-      "count": 1
-    },
-    {
-      "path": "docs/PROCESS.md",
       "rule": "PL-01",
       "text": "e warm-up's scripts and by hand: no nen verb owns a c",
       "count": 1

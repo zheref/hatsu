@@ -55,10 +55,17 @@ login, so a bot and a human are declared the same way.
 ```json
 "reviewers": [
   { "name": "copilot",
+    "kind": "bot",
     "login_pattern": { "pattern": "^(copilot|copilot-pull-request-reviewer(\\[bot\\])?)$",
                        "ignoreCase": true } }
 ]
 ```
+
+**`kind`** (`bot` or `human`, optional, from nen `0.24`) says what kind of reviewer an identity is. It
+changes the verdict only under `nen/workflow.json` → `aiReviewers` `optional` or `off`. There nen waives the
+round of a reviewer declared `bot` with an identical entry at the PR's base and the default branch's tip, so
+a bot whose requests never register no longer holds every PR at `rounds-owed`. Leave it absent, or set it to
+`human`, for a person. The rule is [`PROCESS.md`](PROCESS.md) § *AI reviewers per consumer*.
 
 **Declare the identities that actually review in YOUR repository.** A pattern naming a reviewer who
 never reviews means a round is owed at every head and the gate never closes. A pattern that is too
