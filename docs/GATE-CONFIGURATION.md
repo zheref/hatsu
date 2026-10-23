@@ -614,5 +614,5 @@ selection, the missing-fixture refusal and a red lane failing the run. No workfl
 runner is the base revision's trusted copy, so a pull request cannot prove its own edit to it: this
 landing is two steps. Step one is the runner edit. Step two is the first `unit-tests` run whose base
 includes step one: its log must read `unit-tests-ci: config-values-guard`, and a non-draft probe pull
-request that breaks `scripts/config_values_examiner_fixture.ts` must turn the check red. #397 closes on
+request that breaks `scripts/config_values_examiner_fixture.ts` must turn the check red. HA#397 closes on
 that evidence, not on step one's merge.
