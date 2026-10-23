@@ -30,14 +30,17 @@
 //      is the table's `Status` cell where the header names one, else the
 //      parenthesis right after `**HR-N**`. The words are ROSTER § *How HR ids are
 //      read*'s: `ruled`, `reading`, or `reversed by` / `superseded by` one or more
-//      `HR-m` (comma-separated), optionally followed by the displaced part in
-//      parentheses. Anything else, or no status at all, exits 1 naming the row
-//      and the word.
+//      `HR-m` (comma-separated), optionally followed by ONE balanced parenthesis
+//      naming the displaced part and ending the status. Anything else, or no
+//      status at all, exits 1 naming the row and the word; so does a table row
+//      whose `Status` cell and parenthesis both exist and differ.
 //   8. NO CITATION DANGLES: every `HR-N` and every `(#hr-N)` link target in the
-//      file names a defined row, else exit 1 naming the citing line and the id.
+//      file names a defined row, else exit 1 naming the citing line and the id,
+//      once per line and id (a `[HR-N](#hr-N)` link is one citation).
 //   9. THE READINGS INDEX MATCHES THE STATUSES: every `reading` row has an entry
 //      in § *Readings*' table (a `| [HR-N](#hr-N) |` first cell), and every entry
-//      names a `reading` row; either side missing exits 1 naming the row. A
+//      names a `reading` row; either side missing exits 1 naming the row, and so
+//      does an entry whose label `HR-N` and link `#hr-M` disagree. A
 //      roster with no `## Readings` heading is a tooling failure (exit 2): an
 //      index that could not be found is never an index that matched.
 //
@@ -48,7 +51,7 @@ const DEFINITION = /<a id="hr-(\d+)"><\/a>\*\*HR-(\d+)\*\*/g;
 const ANCHOR = /\bid\s*=\s*["']?hr-([^"'\s>]*)/gi;
 const CITATION = /\bHR-(\d+)\b|\]\(#hr-(\d+)\)/g;
 const INDEX_ENTRY = /^\|\s*\[HR-(\d+)\]\(#hr-(\d+)\)\s*\|/;
-const STATUS = /^(?:ruled|reading|(?:reversed|superseded) by HR-\d+(?:, HR-\d+)*(?: \(.+\))?)$/s;
+const STATUS_HEAD = /^(?:reversed|superseded) by HR-\d+(?:, HR-\d+)*/;
 const GAP_LISTING = 20;
 const ID_HEADROOM = 1000;
 
@@ -62,12 +65,14 @@ interface Verdict {
   readonly gaps: readonly number[];
   readonly gapCount: number;
   readonly badStatus: readonly { line: number; id: string; word: string }[];
+  readonly twoStatuses: readonly { line: number; id: string; cell: string; paren: string }[];
+  readonly labelMismatch: readonly { line: number; label: string; link: string }[];
   readonly dangling: readonly { line: number; id: string }[];
   readonly unindexed: readonly { line: number; id: string }[];
   readonly misindexed: readonly { line: number; id: string; status: string }[];
 }
 
-interface Definition { readonly id: string; readonly line: number; readonly status: string | null }
+interface Definition { readonly id: string; readonly line: number; readonly status: string | null; readonly paren: string | null }
 
 // The parenthesis opening at `open`, balanced, or null when it never closes on the line.
 function balanced(text: string, open: number): string | null {
@@ -77,6 +82,19 @@ function balanced(text: string, open: number): string | null {
     else if (text[i] === ')' && --depth === 0) return text.slice(open + 1, i);
   }
   return null;
+}
+
+// ROSTER § How HR ids are read: `ruled`, `reading`, or a reversal/supersession by one or more rows,
+// optionally followed by exactly one balanced parenthesis that ends the status.
+function admitted(status: string): boolean {
+  if (status === 'ruled' || status === 'reading') return true;
+  const head = STATUS_HEAD.exec(status);
+  if (!head) return false;
+  const rest = status.slice(head[0].length);
+  if (rest === '') return true;
+  if (!rest.startsWith(' (')) return false;
+  const part = balanced(rest, 1);
+  return part !== null && part.trim() !== '' && rest.length === part.length + 3;
 }
 
 function cells(row: string): string[] {
@@ -92,6 +110,7 @@ function scan(contents: string): Verdict {
   const defined: Definition[] = [];
   const citations: { line: number; id: string }[] = [];
   const indexed: { line: number; id: string }[] = [];
+  const labelMismatch: { line: number; label: string; link: string }[] = [];
   let statusColumn = -1;
   let inTable = false;
   let readings: boolean | null = null; // null: no `## Readings` heading seen
@@ -109,16 +128,20 @@ function scan(contents: string): Verdict {
       canonicalAt.add((match.index ?? 0) + '<a '.length);
       const after = (match.index ?? 0) + match[0].length;
       const open = /^\s*\(/.exec(text.slice(after));
-      let status: string | null = open ? balanced(text, after + open[0].length - 1) : null;
+      const paren = open ? balanced(text, after + open[0].length - 1) : null;
+      let status: string | null = paren;
       if (row && statusColumn >= 0) status = cells(text)[statusColumn] ?? null;
-      defined.push({ id: String(Number(anchor)), line, status: status === null ? null : status.trim() });
+      defined.push({ id: String(Number(anchor)), line, status: status === null ? null : status.trim(), paren: paren === null ? null : paren.trim() });
     }
     for (const match of text.matchAll(CITATION)) {
       const digits = match[1] ?? match[2] ?? '';
       if (/^\d{1,15}$/.test(digits)) citations.push({ line, id: String(Number(digits)) });
     }
     const entry = readings === true ? INDEX_ENTRY.exec(text) : null;
-    if (entry) indexed.push({ line, id: String(Number(entry[1])) });
+    if (entry) {
+      indexed.push({ line, id: String(Number(entry[1])) });
+      if (Number(entry[1]) !== Number(entry[2])) labelMismatch.push({ line, label: String(Number(entry[1])), link: String(Number(entry[2])) });
+    }
     for (const match of text.matchAll(ANCHOR)) {
       const column = match.index ?? 0;
       anchors.push({ line, column: column + 1, raw: match[1] ?? '', canonical: canonicalAt.has(column) });
@@ -156,10 +179,19 @@ function scan(contents: string): Verdict {
   }
   if (readings === null) throw new ToolingFailure('no `## Readings` heading, so the readings index cannot be read');
   const badStatus = defined
-    .filter((d) => d.status === null || !STATUS.test(d.status))
+    .filter((d) => d.status === null || !admitted(d.status))
     .map((d) => ({ line: d.line, id: d.id, word: d.status ?? '' }));
   const known = new Set(defined.map((d) => d.id));
-  const dangling = citations.filter((c) => !known.has(c.id));
+  const twoStatuses = defined
+    .filter((d) => d.paren !== null && d.status !== null && d.paren !== d.status)
+    .map((d) => ({ line: d.line, id: d.id, cell: d.status ?? '', paren: d.paren ?? '' }));
+  const seen = new Set<string>();
+  const dangling = citations.filter((c) => {
+    const key = `${c.line}:${c.id}`;
+    if (known.has(c.id) || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   const reading = new Map(defined.filter((d) => d.status === 'reading').map((d) => [d.id, d]));
   const listed = new Set(indexed.map((e) => e.id));
   const unindexed = [...reading.values()].filter((d) => !listed.has(d.id)).map(({ line, id }) => ({ line, id }));
@@ -167,7 +199,7 @@ function scan(contents: string): Verdict {
   const misindexed = indexed
     .filter((e) => !reading.has(e.id))
     .map(({ line, id }) => ({ line, id, status: statusOf.has(id) ? statusOf.get(id) || 'no status' : 'not defined' }));
-  return { ids, duplicates, mismatches, nonCanonical: anchors.filter((a) => !a.canonical), gaps, gapCount, badStatus, dangling, unindexed, misindexed };
+  return { ids, duplicates, mismatches, nonCanonical: anchors.filter((a) => !a.canonical), gaps, gapCount, badStatus, twoStatuses, labelMismatch, dangling, unindexed, misindexed };
 }
 
 function main(argv: string[]): number {
@@ -212,6 +244,13 @@ function main(argv: string[]): number {
     const shown = word ? `"${word.length > 80 ? `${word.slice(0, 80)}...` : word}"` : 'no status';
     console.log(`::error file=${path},line=${line}::HR-${id} has ${shown}, not an admitted status: ruled, reading, or reversed by / superseded by HR-m with an optional (part) (How HR ids are read)`);
   }
+  const clip = (t: string): string => (t.length > 80 ? `${t.slice(0, 80)}...` : t);
+  for (const { line, id, cell, paren } of verdict.twoStatuses) {
+    console.log(`::error file=${path},line=${line}::HR-${id} carries two statuses: its Status cell "${clip(cell)}" and its parenthesis "${clip(paren)}"; a row has one`);
+  }
+  for (const { line, label, link } of verdict.labelMismatch) {
+    console.log(`::error file=${path},line=${line}::§ Readings' index entry on line ${line} labels HR-${label} but links #hr-${link}; the two must agree`);
+  }
   for (const { line, id } of verdict.dangling) {
     console.log(`::error file=${path},line=${line}::line ${line} cites HR-${id}, which no row defines`);
   }
@@ -227,7 +266,7 @@ function main(argv: string[]): number {
     console.log(`::notice file=${path}::HR id gaps (reported, never failed): ${listed}${more ? `, and ${more} more` : ''}`);
   }
   const findings = verdict.duplicates.length + verdict.mismatches.length + verdict.nonCanonical.length
-    + verdict.badStatus.length + verdict.dangling.length + verdict.unindexed.length + verdict.misindexed.length;
+    + verdict.badStatus.length + verdict.twoStatuses.length + verdict.labelMismatch.length + verdict.dangling.length + verdict.unindexed.length + verdict.misindexed.length;
   if (findings) return 1;
   console.log(`clause-id-guard: ${verdict.ids.length} HR definitions, unique, each with an admitted status, no dangling citation, the readings index in parity, in ${path}`);
   return 0;
