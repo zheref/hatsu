@@ -1911,7 +1911,8 @@ def self_test() -> int:
           derive_runner("public", 0)["runs_on"] == HOSTED_RUNNER)
 
     def fixture(slug="acme/widget", with_guard=None, registered=False, role=ROLE_PROCESS, install_reader=True):
-        d = Path(tempfile.mkdtemp(prefix="tenkai-fixture-"))
+        # Resolved, so a symlinked macOS TMPDIR exercises the real-path spelling Linux runners use (#427).
+        d = Path(tempfile.mkdtemp(prefix="tenkai-fixture-")).resolve()
         if role is not None:
             (d / "nen").mkdir(parents=True, exist_ok=True)
             key = "maintained_tools" if role == ROLE_PROCESS else "consumers"
@@ -1995,7 +1996,21 @@ def self_test() -> int:
         "scopes": {"code": {"persona": "nobunaga", "tier": "deep", "budget": 2, "paths": ["**"]},
                    "security": {"persona": "feitan", "tier": "deep", "budget": 1, "paths": ["auth/**"]}}}}))
     subprocess.run(["git", "-C", str(review_repo), "switch", "-q", "-c", "topic/review"], check=True)
-    review_ctx = ctx_for(review_repo)
+    # The ledger cases hold the running nen to a minimum pinned at that nen's own major.minor, never the
+    # checkout's: CI runs the BASE revision's nen, so a repin raising this checkout's minimum would turn
+    # them red on a binary the pull request cannot change (zheref/hatsu#427).
+    def pinned_root(minimum):
+        r = Path(tempfile.mkdtemp(prefix="tenkai-pin-"))
+        _FIXTURES.append(r)
+        (r / "nen").mkdir()
+        (r / "nen" / "contract.json").write_text(json.dumps({"dependency": {"minimum": minimum}}))
+        return r
+    try:
+        running = subprocess.run(["nen", "--version"], capture_output=True, text=True, timeout=30).stdout.strip()
+        major, minor = (int(x) for x in running.split(".")[:2])
+    except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
+        sys.exit(f"tenkai_adopt --self-test: nen --version could not be read ({exc}) -- the review cases need the pinned nen on PATH")
+    review_ctx = Ctx(review_repo, pinned_root(f"{major}.{minor}"), "acme/widget", "private", 2, probe=False)
     check("declared review scopes are visible", ReviewScopes().detect(review_ctx)["state"] == SATISFIED)
     missing_ledger = ReviewLedger().detect(review_ctx)
     check("a missing effort ledger routes without minting a budget",
@@ -2080,6 +2095,11 @@ def self_test() -> int:
     check("a nen below the pinned minimum is blocked as a binding gap, never as damaged history",
           old_nen["state"] == BLOCKED and "below the pinned minimum" in old_nen["detail"]
           and "restore" not in old_nen["action"])
+    ahead = ReviewLedger().detect(Ctx(review_repo, pinned_root(f"{major}.{minor + 1}"), "acme/widget",
+                                      "private", 2, probe=False))
+    check("the running nen one minor below the contract's minimum is blocked as a binding gap",
+          ahead["state"] == BLOCKED and "below the pinned minimum" in ahead["detail"]
+          and "restore" not in ahead["action"])
     os.environ["PATH"], saved = str(git_only), os.environ["PATH"]
     try:
         no_nen = ReviewLedger().detect(review_ctx) if shutil.which("nen") is None else None

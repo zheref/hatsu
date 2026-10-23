@@ -179,7 +179,7 @@
       "tenkai-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/tenkai_adopt.sh, the hatsu:tenkai engine. The repository's pattern is ONE focused lane per executable guard -- the `test` seat on the `plugin` lane says so in its own words: 'Executable guards have their own focused lanes'. The engine shipped with a --self-test and no lane, so its assertions ran only when somebody typed the command: tsukuyomi had nothing to route to and no CI job covered it. An unrun check is exactly what that seat refuses to let read as a clean one."
+        "$comment": "The focused lane for scripts/tenkai_adopt.sh, the hatsu:tenkai engine. The repository's pattern is ONE focused lane per executable guard -- the `test` seat on the `plugin` lane says so in its own words: 'Executable guards have their own focused lanes'. The engine shipped with a --self-test and no lane, so its assertions ran only when somebody typed the command: tsukuyomi had nothing to route to and no CI job covered it. An unrun check is exactly what that seat refuses to let read as a clean one. From zheref/hatsu#427, scripts/unit_tests_ci.mts selects it, so unit-tests.yml runs it on same-repository, non-draft pull requests."
       },
       "pr-composition-guard": {
         "stack": "claude-code-plugin",
@@ -579,7 +579,7 @@
             "scripts/tenkai_adopt.sh",
             "--self-test"
           ],
-          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes."
+          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427)."
         }
       },
       "pr-composition-guard": {
