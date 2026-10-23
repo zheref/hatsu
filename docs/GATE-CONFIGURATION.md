@@ -582,13 +582,19 @@ its own. No workflow file changed, so this is a one-step landing; the
 runner is the base revision's copy, so the lane runs from the first pull request after the one that
 added it merged.
 
-**2026-10-22. The tenkai engine's self-test, checked on every pull request (HA#427, BC-9).**
+**2026-10-22. The tenkai engine's self-test, checked on pull requests (HA#427, BC-9).**
 `scripts/unit_tests_ci.mts` selects the `tenkai-guard` lane whenever `scripts/tenkai_adopt.sh` exists:
 the engine is its own fixture (`--self-test`), so no separate fixture file gates it. Its review-ledger
 cases call `nen review ledger` from `PATH`, and `unit-tests.yml` installs the trusted nen with `--rc none`,
-so the runner now spawns every lane with the verified binary's directory first on `PATH` and its path
-as `NEN`: the lanes resolve the binary the trusted runner checked, never one the pull request supplies.
-This is the trusted-guard two-step landing's **step one**: the pull request that changes the runner is
-judged by the base revision's copy, so `tenkai-guard` does not run on its own check and is proven there by
-the runner's fixture and a local run. **Step two needs no edit**: the first pull request opened after step
-one merges is the lane's first live run, read in its `unit-tests` log as `unit-tests-ci: tenkai-guard`.
+so the runner now spawns every lane with the workflow-installed binary's directory first on `PATH` and its
+path as `NEN`, ahead of any `nen` the pull request's checkout ships; PR code runs in the same job and user,
+so this is a correctness property, not an isolation boundary. The runner refuses at exit `2` a binary
+whose directory contains the `PATH` delimiter. Two latent defects the lane would have hit on a Linux
+runner are fixed with it: the self-test's ledger cases read the running nen against a fixture minimum at
+its own `major.minor`, not the checkout's (CI runs the base revision's nen, so a repin raising the minimum
+would otherwise be red on a binary the pull request cannot change), and `scripts/config_values.ts`
+resolves both sides of its containment check and keeps the engine's blocked row for an unparseable
+`nen/workflow.json` (under a real-path temp directory it exited `2`; macOS's symlinked `/var` hid it). No
+workflow file changed, so this is a one-step landing; the runner is the base revision's copy, so the lane
+first runs on the first `unit-tests` run whose base includes this merge (a same-repository, non-draft pull
+request into `main`), read in its log as `unit-tests-ci: tenkai-guard`.

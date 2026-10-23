@@ -12,6 +12,11 @@ if (!rootArg || !nenArg || !isAbsolute(rootArg) || !isAbsolute(nenArg)) {
   console.error('unit-tests-ci: expected absolute PR root and verified nen binary paths');
   process.exit(2);
 }
+if (dirname(nenArg).includes(delimiter)) {
+  // Its directory goes first on PATH below; a delimiter inside it would split off a relative entry.
+  console.error(`unit-tests-ci: the verified nen's directory may not contain '${delimiter}'`);
+  process.exit(2);
+}
 const root = resolve(rootArg);
 if (!existsSync(join(root, 'nen', 'contract.json'))) {
   console.error('unit-tests-ci: PR checkout has no nen/contract.json');
@@ -44,8 +49,9 @@ for (const [script, fixture, lane] of gated) {
   lanes.push(lane);
 }
 const fence = `unit_tests_${randomBytes(16).toString('hex')}`;
-// A lane whose fixture calls nen itself resolves the verified binary this runner was handed, first
-// on PATH and as NEN, never one the pull request supplies (the workflow installs it with --rc none).
+// A lane whose fixture calls nen itself resolves the workflow-installed binary this runner was handed,
+// first on PATH and as NEN, ahead of any nen the PR checkout ships (the workflow installs it with --rc
+// none). PR code runs in the same job and user, so this is correctness, not an isolation boundary.
 const nenPath = [dirname(nenArg), process.env.PATH].filter(Boolean).join(delimiter);
 for (const lane of lanes) {
   console.log(`unit-tests-ci: ${lane}`);

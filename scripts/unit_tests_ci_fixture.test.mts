@@ -102,6 +102,9 @@ try {
   result = run({ HATSU_FAIL_LANE: 'tenkai-guard' });
   assert(result.status === 1 && result.stderr.includes('tenkai-guard failed'), 'failing tenkai-guard was not red');
 
+  result = run({}, join(dir, 'nen bin:x', 'nen'));
+  assert(result.status === 2 && result.stderr.includes('may not contain'), 'a delimiter in the nen directory was not refused');
+
   result = run({ HATSU_FAIL_LANE: 'permissions-pack-guard' });
   assert(result.status === 1 && result.stderr.includes('permissions-pack-guard failed'), 'failing lane was not red');
   result = run({}, join(dir, 'missing-nen'));
