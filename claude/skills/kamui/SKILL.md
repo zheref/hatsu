@@ -84,7 +84,8 @@ private `## Platform decisions` and the folder's `port-ledger.md`; once, `.speci
 citing `CON-{n}`, never overriding it. `<nnn>`: `nen spec number`. **Every sentence follows
 [`spec-repo.md`](../../../docs/config/spec-repo.md)'s citation-or-marker grammar, tiers and vocabulary**,
 held by `nen spec check` and `cite-check` (§ *The verbs that read it*); the header cites the source and
-its linked objects; source text only as fenced source data. Every file passes `private_name_check.sh`. The PR runs
+its linked objects; verbatim source text only as fenced source data; platform sections where platforms
+differ. Every file passes `private_name_check.sh`. The PR runs
 [`ren`](../ren/SKILL.md) → [`aka`](../aka/SKILL.md) → [`mukai`](../mukai/SKILL.md) → [`en`](../en/SKILL.md)
 in the spec checkout's worktree — Nobunaga, and Hisoka where the spec names a rendered surface — to the
 **G2 merge prompt** (row `merge`). A folder on `origin/<base>` already current opens no PR: `specFolder`
@@ -123,7 +124,7 @@ issue for the source **amended** through § 3(a), never filed twice), the plan s
 gh issue view <N> --repo <owner/name> --json title,body,labels
 ```
 
-Each `'` in the title becomes `'\''`; a newline refuses (no `--title-file` at `0.22.0`, zheref/nen#444).
+Each `'` in the title becomes `'\''`; a newline refuses.
 The second line is the **explicit read-back**. Each body is
 *conventions*' port issue body, never a link alone; **the source issue stays its own**, never closed or superseded.
 
