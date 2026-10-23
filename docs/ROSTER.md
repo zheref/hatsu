@@ -974,11 +974,12 @@ change after it lands, [HR-2](#hr-2)).
    SDD assessment sitting*, cited, never restated. **A row whose answer was recorded is rendered from
    its record, never retyped** (zheref/hatsu#443; [`WORKFLOW.md`](WORKFLOW.md) § 4 *Every picker answer
    is recorded*): `node scripts/ruling_record.mts export --effort <branch> --id <R-id> --repo <checkout>`
-   copies the record, read through `nen stop answer show`, into `docs/ruling-records/<R-id>.json`; then
-   `node scripts/ruling_record.mts render --record docs/ruling-records/<R-id>.json --hr HR-<n> --status <status> --settles-file <file>`
+   copies the record, read through `nen stop answer show`, into `docs/ruling-records/<effort>--<R-id>.json`
+   after the private-name guard and a secret-shape pass; then
+   `node scripts/ruling_record.mts render --record docs/ruling-records/<effort>--<R-id>.json --hr HR-<n> --status <status> --settles-file <file>`
    prints the row — the HR id with its anchor and the record's link, the question, every option with its
-   consequence, and the answer with its capture class (`picked (K)`, `typed, word for word (K)`, or
-   `typed (verbatim)`). The status and what it settles stay the lead's words. The `ruling-record` lane
+   consequence, and the answer with its capture class (`picked (K)`, `typed, word for word (K)`,
+   `typed (verbatim)`, or `pre-answered (<source>)`, which settles no ruling). The status and what it settles stay the lead's words. The `ruling-record` lane
    (`nen shu test --lane ruling-record --repo <hatsu>`, run in `unit-tests.yml`) re-renders every row
    citing a record and reports a difference by HR id, and a committed record no row cites is a finding.
    The question file is written with private names already placeheld, the record's one departure from

@@ -30,11 +30,11 @@ asked inline (`missing-argument`).
 
 ## 2. When it runs — wrap-up, offered once per delivery
 
-**Session delivery is a PR standing at en § 5's merge prompt, merged, or composite ending.** **Who
+**Session delivery is a PR standing at en § 5's prompt, merged, or composite ending.** **Who
 asks**: composite terminus — `build`, `futon`, `kazaana`, `kamui`, `hiraishin`, `backlog-loop` — or
 **Kurapika as main session** after `en` § 8 returns; **a delegate never asks**.
 Question, once, via surface picker (row `wrap-up`): ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
-in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** offer returns at next delivery.
+in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns next delivery.
 **Once per sitting**: § 7's marker with `result` `cleaned`, `none-proposed` or `already-clean` is **completed** —
 cleanup not re-asked, **B offered as third-hand alone**; `partial` and `none-picked` offered again.
 Prior leftover found later is new scope.
@@ -52,7 +52,7 @@ in-session (PROCESS § *Surfaces and pickers*).
 2. **Picker.** Main session presents § 6's picker via the surface's native tool (PROCESS § *Surfaces
    and pickers*), recording `picked[]` and raw `pickerAnswer` in marker.
 3. **Pass 2 (sweep).** Main session executes picked rows from `plan[]` in § 5's order, reading back each.
-4. **Close.** Shizuku verifies read-backs against marker, updates freed bytes, closes marker.
+4. **Close.** Shizuku returns to verify read-backs against marker, update freed bytes, and close marker.
 
 ## 4. What she inventories — the sitting first, then every prior leftover
 

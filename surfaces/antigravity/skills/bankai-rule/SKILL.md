@@ -135,7 +135,7 @@ each question names the source concept and the target stack; options in the row'
 **A** `map to <equivalent>` with its source line · **B** `mirror` · **C** `drop with note` · **D**
 `target-only addition`; **A** ⭐ only when quoted from an existing pair row or an explicit handbook
 cross-reference, else **C** ⭐; three a call. A free-text answer is the row's `rationale` (§ 1's
-rows). Every answer binds the port **the moment it is given**,
+rows). Every answer is recorded (`nen stop answer`) and binds the port **the moment it is given**,
 before any PR exists, and becomes one row through §§ 3–4.
 
 ## 6. The PR — one per port run, opened once, at G4
@@ -147,8 +147,8 @@ PT-<n> (branch <ref>, unmerged)`**, and the landing report names the follow-ups:
 (`nen/repos.json` → `pinned`, tag first, `CON-13`; the review preamble's prefix list gains `PT-` there)
 and **each consumer's `nen canon pin` with a follow-up rewriting its citations** to `<from>--<to> PT-<n> @ <tag>`.
 
-**A pair file for review** is read live through [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 2: no
-mirror carries one until zheref/nen#457 ([`limbo`](../limbo/SKILL.md) step 4).
+**A pair file for review** is read live (bankai-handbooks § 2): no mirror carries one until
+zheref/nen#457 ([`limbo`](../limbo/SKILL.md) step 4).
 
 ## 7. Report
 

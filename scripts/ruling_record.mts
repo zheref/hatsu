@@ -4,8 +4,11 @@
 // this script is what Hatsu owns on top of it (HR-2: anchors live in docs/ROSTER.md):
 //
 //   export     copy one record out of the effort's ledger, read ONLY through `nen stop answer show
-//              <effort> --json`, into docs/ruling-records/<R-id>.json, so a reviewer holds the same
-//              bytes the row is rendered from. An existing copy with other content is refused.
+//              <effort> --json`, into docs/ruling-records/<effort-slug>--<R-id>.json (an R-id is unique
+//              per clone only, so the effort keys the file), re-serialized two-space with exactly the
+//              record's own keys. Before it writes, the record's text passes the private-name guard
+//              (scripts/private_name_check.sh) and a secret-shape pass; a hit is refused. An existing copy
+//              with other content is refused.
 //   render     print one ROSTER ruling row from a committed record: the HR id cell (anchor plus the
 //              record link), the question, every option with its consequence, and the answer with its
 //              capture class. Status and what it settles are the lead's words, passed in.
@@ -18,7 +21,12 @@
 //
 // Capture classes, rendered in the answer cell: `picked (K): `label`` for a pick; `typed, word for word
 // (K): `label`` for a typed reply nen matched to a label; `typed (verbatim): *"…"*` for any other typed
-// reply. "verbatim" is reserved for typed text.
+// reply; `pre-answered (<source>): `label`` for an idle pre-answer, never a maintainer's pick. "verbatim"
+// is reserved for typed text. A row typed by design carries one reference option, rendered `none: typed
+// by design` (WORKFLOW § 4 *Every picker answer is recorded*).
+//
+// The record shape below is a FROZEN copy of nen.stop.answer/v0.1 as nen 0.26.0 (the contract pin)
+// writes it; any other contract is wiring (exit 2), never rendered, and moves only with a repin.
 //
 // Exit codes: 0 ok · 1 a finding (a differing, unreadable, orphan or twice-cited record; an export id
 // not in the ledger or a conflicting copy) · 2 wiring (usage, an unreadable roster or records directory,
@@ -26,7 +34,7 @@
 // "Could not read" is never "found nothing": a roster with no record-citing line says so at exit 0.
 //
 // Usage:
-//   node scripts/ruling_record.mts export --effort <id> --id <R-id> [--repo <checkout>] [--out <dir>]
+//   node scripts/ruling_record.mts export --effort <id> --id <R-id> [--repo <checkout>] [--out <dir>] [--names-file <path>]
 //   node scripts/ruling_record.mts render --record <file.json> --hr <HR-n> --status <text> (--settles <text> | --settles-file <path>)
 //   node scripts/ruling_record.mts check [--roster <docs/ROSTER.md>] [--records <docs/ruling-records>]
 //   node scripts/ruling_record.mts preanswer --effort <id> --row <row-id> --source <text> [--repo <checkout>]
@@ -42,7 +50,13 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTRACT = 'nen.stop.answer/v0.1';
 const RECORD_ID = /^R-\d{4}-\d{2}-\d{2}-\d{2,}$/;
 const LINK_DIR = 'ruling-records';
-const ROW = /^\| <a id="hr-(\d+)"><\/a>\*\*HR-(\d+)\*\* · \[(R-[^\]]*)\]\(ruling-records\/([^)]*)\.json\) \|/;
+const ROW = /^\| <a id="hr-(\d+)"><\/a>\*\*HR-(\d+)\*\* · \[([^\]]*)\]\(ruling-records\/([^)]*)\.json\) \|/;
+const STEM = /^[A-Za-z0-9._-]+--R-\d{4}-\d{2}-\d{2}-\d{2,}$/;
+const KEYS = ['contract', 'id', 'effortId', 'n', 'gate', 'row', 'who', 'question', 'options', 'kind', 'pick', 'typed', 'answeredAt'] as const;
+const PREANSWER_HEAD = 'Pre-answered under the typed --idle profile (HR-5); no picker was shown.';
+const REFERENCE = { key: 'ref', label: 'typed by design (no option)', consequence: 'the typed words are the answer' };
+// The secret-shape pass: fixed shapes, refused before a public write. No nen verb scans content.
+const SECRET = [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, /\bgh[pousr]_[A-Za-z0-9]{30,}/, /\bgithub_pat_[A-Za-z0-9_]{30,}/, /\bAKIA[0-9A-Z]{16}\b/, /\bxox[abposr]-[A-Za-z0-9-]{10,}/, /\bsk-[A-Za-z0-9_-]{20,}/];
 
 interface Option { key: string; label: string; consequence: string }
 interface AnswerRecord {
@@ -52,6 +66,12 @@ interface AnswerRecord {
 }
 
 class Wiring extends Error {}
+class Unsupported extends Error {}
+
+// An annotation message never carries a line break or a `%` (it could forge a workflow command).
+const ann = (s: string): string => s.replace(/[\r\n%]/g, ' ');
+const slug = (effort: string): string => effort.replace(/[^A-Za-z0-9._-]/g, '-');
+const stemOf = (r: { effortId: string; id: string }): string => `${slug(r.effortId)}--${r.id}`;
 
 function nenBin(): string { return process.env.NEN || 'nen'; }
 
@@ -60,7 +80,8 @@ function validate(value: unknown): AnswerRecord {
   const r = value as Partial<AnswerRecord> | null;
   const str = (v: unknown): v is string => typeof v === 'string' && v.trim() !== '';
   if (!r || typeof r !== 'object' || Array.isArray(r)) throw new Error('not a JSON object');
-  if (r.contract !== CONTRACT) throw new Error(`contract is not ${CONTRACT}`);
+  if (r.contract !== CONTRACT) throw new Unsupported(`contract is not ${CONTRACT}, the shape frozen at the nen pin; a newer record moves with a repin`);
+  if (!str(r.effortId)) throw new Error('effortId is empty');
   if (!str(r.id) || !RECORD_ID.test(r.id)) throw new Error('id is not R-YYYY-MM-DD-nn');
   if (!str(r.question)) throw new Error('question is empty');
   if (!Array.isArray(r.options) || r.options.length === 0) throw new Error('no options');
@@ -79,26 +100,47 @@ function validate(value: unknown): AnswerRecord {
 }
 
 function readRecord(path: string): AnswerRecord {
-  return validate(JSON.parse(readFileSync(path, 'utf8')));
+  let value: unknown;
+  try { value = JSON.parse(readFileSync(path, 'utf8')); } catch { throw new Error('not readable as JSON'); }
+  return validate(value);
 }
 
-// Table-cell text: line breaks become <br>, a pipe is escaped, the ends trimmed.
-const flat = (s: string): string => s.replace(/\r\n?/g, '\n').trim().replace(/\n/g, '<br>').replace(/\|/g, '\\|');
+// Exactly the record's own keys, in nen's order: a key a later nen adds never rides into the public copy.
+function project(r: AnswerRecord): AnswerRecord {
+  return Object.fromEntries(KEYS.map((k) => [k, r[k]])) as unknown as AnswerRecord;
+}
+
+// Table-cell text: `<` `>` become entities and `[` `]` are escaped (a record's text never renders as
+// markup, an anchor or a link), line breaks become <br>, a pipe is escaped, the ends trimmed.
+const lines = (s: string): string => s.replace(/\r\n?/g, '\n').trim();
+const flat = (s: string): string => lines(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/\[/g, '\\[').replace(/\]/g, '\\]').replace(/\n/g, '<br>').replace(/\|/g, '\\|');
 const em = (s: string): string => flat(s).replace(/\*/g, '\\*');
+// A code span renders its text literally, so only the pipe and the line break are handled.
 const code = (s: string): string => {
-  const t = flat(s);
+  const t = lines(s).replace(/\n/g, ' ').replace(/\|/g, '\\|');
   return t.includes('`') ? `\`\` ${t} \`\`` : `\`${t}\``;
 };
+const isReference = (r: AnswerRecord): boolean => r.options.length === 1 && r.options[0]?.key === REFERENCE.key && r.options[0]?.label === REFERENCE.label;
+function preSource(r: AnswerRecord): string | null {
+  const [head, src] = lines(r.question).split('\n');
+  if (head !== PREANSWER_HEAD) return null;
+  return src?.startsWith('Source: ') ? src.slice('Source: '.length) : 'source unstated';
+}
 
 function cells(record: AnswerRecord, hr: number): string[] {
-  const options = record.options.map((o) => `(${o.key}) ${flat(o.label)} — *${em(o.consequence)}*`).join(' · ');
+  const options = isReference(record) ? 'none: typed by design'
+    : record.options.map((o) => `(${o.key}) ${flat(o.label)} — *${em(o.consequence)}*`).join(' · ');
+  const source = preSource(record);
   let answer: string;
   if (record.kind === 'typed') answer = `typed (verbatim): *"${em(record.typed ?? '')}"*`;
   else {
     const label = record.options.find((o) => o.key === record.pick)?.label ?? '';
-    answer = `${record.typed === null ? 'picked' : 'typed, word for word'} (${record.pick}): ${code(label)}`;
+    const how = source !== null ? `pre-answered (${flat(source)})` : record.typed === null ? 'picked' : 'typed, word for word';
+    answer = `${how} (${record.pick}): ${code(label)}`;
   }
-  return [`<a id="hr-${hr}"></a>**HR-${hr}** · [${record.id}](${LINK_DIR}/${record.id}.json)`, flat(record.question), options, answer];
+  const stem = stemOf(record);
+  return [`<a id="hr-${hr}"></a>**HR-${hr}** · [${stem}](${LINK_DIR}/${stem}.json)`, flat(record.question), options, answer];
 }
 
 // Split a table line on unescaped pipes; the leading and trailing empties dropped.
@@ -151,6 +193,7 @@ function render(argv: string[]): number {
   if (!settles.trim() || !status.trim()) throw new Wiring('--status and the settles text must be non-empty');
   let record: AnswerRecord;
   try { record = readRecord(need(args, '--record')); } catch (e) { if (e instanceof Wiring) throw e; throw new Wiring(`cannot read --record: ${(e as Error).message}`); }
+  if (!STEM.test(stemOf(record))) throw new Wiring('the record\'s effort and id do not make a file stem');
   console.log(`| ${[...cells(record, hr), flat(status), flat(settles)].join(' | ')} |`);
   return 0;
 }
@@ -173,7 +216,7 @@ function check(argv: string[]): number {
   }
   let findings = 0;
   const cited = new Map<string, number>();
-  const err = (line: number, msg: string): void => { findings += 1; console.log(`::error file=${roster},line=${line}::${msg}`); };
+  const err = (line: number, msg: string): void => { findings += 1; console.log(`::error file=${roster},line=${line}::${ann(msg)}`); };
   let rows = 0;
   text.split('\n').forEach((line, index) => {
     if (!line.includes(`](${LINK_DIR}/`)) return;
@@ -183,11 +226,14 @@ function check(argv: string[]): number {
     const [, anchor = '', bold = '', id = '', file = ''] = m;
     const hr = `HR-${bold}`;
     rows += 1;
-    if (anchor !== bold || id !== file || !RECORD_ID.test(id)) { err(n, `${hr}: the anchor, the record id and its file name must agree`); return; }
+    if (anchor !== bold || id !== file || !STEM.test(id)) { err(n, `${hr}: the anchor, the record link and its file name must agree, as <effort>--<R-id>`); return; }
     cited.set(id, (cited.get(id) ?? 0) + 1);
     let record: AnswerRecord;
-    try { record = readRecord(join(records, `${id}.json`)); } catch (e) { err(n, `${hr}: record ${id} is unreadable (${(e as Error).message}); the row cannot be checked`); return; }
-    if (record.id !== id) { err(n, `${hr}: ${id}.json holds record ${record.id}`); return; }
+    try { record = readRecord(join(records, `${id}.json`)); } catch (e) {
+      if (e instanceof Unsupported) throw new Wiring(`${hr}: ${e.message}`);
+      err(n, `${hr}: record ${id} is unreadable (${(e as Error).message}); the row cannot be checked`); return;
+    }
+    if (stemOf(record) !== id) { err(n, `${hr}: ${id}.json holds record ${stemOf(record)}; a collision of ids across clones is refused`); return; }
     const want = cells(record, Number(bold));
     const got = splitRow(line);
     if (got.length < 6) { err(n, `${hr}: the row has ${got.length} cells, a ruling row has 6`); return; }
@@ -196,10 +242,11 @@ function check(argv: string[]): number {
     }
     if (!got[4] || !got[5]) err(n, `${hr}: the status and what-it-settles cells must be filled`);
   });
-  for (const [id, count] of cited) if (count > 1) { findings += 1; console.log(`::error file=${roster}::record ${id} is cited by ${count} rows; one record renders one row`); }
+  for (const [id, count] of cited) if (count > 1) { findings += 1; console.log(`::error file=${roster}::${ann(`record ${id} is cited by ${count} rows; one record renders one row`)}`); }
   for (const f of files) {
     const id = f.slice(0, -'.json'.length);
-    if (!cited.has(id)) { findings += 1; console.log(`::error file=${join(records, f)}::record ${id} is cited by no ROSTER row: a row retyped by hand loses its link`); }
+    if (!STEM.test(id)) { findings += 1; console.log(`::error file=${records}::${ann(`a file in ${LINK_DIR}/ is not named <effort>--<R-id>.json`)}`); continue; }
+    if (!cited.has(id)) { findings += 1; console.log(`::error file=${join(records, f)}::${ann(`record ${id} is cited by no ROSTER row: a row retyped by hand loses its link`)}`); }
   }
   if (findings) return 1;
   console.log(rows ? `ruling-record: ${rows} ROSTER rows match their records in ${records}` : `ruling-record: no ROSTER row cites a record yet (${roster}); nothing to compare`);
@@ -207,7 +254,7 @@ function check(argv: string[]): number {
 }
 
 function exportRecord(argv: string[]): number {
-  const args = parseArgs(argv, new Set(['--effort', '--id', '--repo', '--out']));
+  const args = parseArgs(argv, new Set(['--effort', '--id', '--repo', '--out', '--names-file']));
   const effort = need(args, '--effort');
   const id = need(args, '--id');
   if (!RECORD_ID.test(id)) throw new Wiring(`--id must be R-YYYY-MM-DD-nn, got ${id}`);
@@ -222,9 +269,19 @@ function exportRecord(argv: string[]): number {
   const found = records.find((r) => (r as { id?: unknown })?.id === id);
   if (!found) { console.log(`ruling-record: ${id} is not in effort ${effort}'s ledger`); return 1; }
   let record: AnswerRecord;
-  try { record = validate(found); } catch (e) { throw new Wiring(`record ${id} from nen is not ${CONTRACT}: ${(e as Error).message}`); }
+  try { record = project(validate(found)); } catch (e) { throw new Wiring(`record ${id} from nen is not ${CONTRACT}: ${(e as Error).message}`); }
+  if (!STEM.test(stemOf(record))) throw new Wiring(`record ${id}'s effort makes no file stem`);
   const body = `${JSON.stringify(record, null, 2)}\n`;
-  const target = join(out, `${id}.json`);
+  // The record goes public: its text, decoded, passes the private-name guard and the secret-shape pass.
+  const text = [record.effortId, record.question, ...record.options.flatMap((o) => [o.label, o.consequence]), record.typed ?? ''].join('\n');
+  if (SECRET.some((re) => re.test(text))) { console.log(`ruling-record: record ${id} holds a secret-shaped string; it is never committed`); return 1; }
+  const guardArgs = [join(ROOT, 'scripts', 'private_name_check.sh'), ...(args.has('--names-file') ? ['--names-file', need(args, '--names-file')] : []), '--label', `${id}.json`, '-'];
+  const guard = spawnSync('bash', guardArgs, { input: text, encoding: 'utf8' });
+  if (guard.stdout) process.stdout.write(guard.stdout);
+  if (guard.stderr) process.stderr.write(guard.stderr);
+  if (guard.error || guard.status === 2 || guard.status === null) throw new Wiring('the private-name guard could not run; nothing is written');
+  if (guard.status !== 0) { console.log(`ruling-record: record ${id} names a private repository; placehold it in a re-recorded answer, nothing is written`); return 1; }
+  const target = join(out, `${stemOf(record)}.json`);
   if (existsSync(target)) {
     if (readFileSync(target, 'utf8') === body) { console.log(`ruling-record: ${target} already holds ${id}`); return 0; }
     console.log(`ruling-record: ${target} exists with other content; a record id is never reused, and a copy is never replaced`);
@@ -261,7 +318,7 @@ function preanswer(argv: string[]): number {
   const scratch = mkdtempSync(join(tmpdir(), 'hatsu-preanswer-'));
   try {
     const question = join(scratch, 'question.md');
-    writeFileSync(question, `Pre-answered under the typed --idle profile (HR-5); no picker was shown.\nSource: ${source}\nRow ${rowId}: ${row.default ?? ''}\n`);
+    writeFileSync(question, `${PREANSWER_HEAD}\nSource: ${source}\nRow ${rowId}: ${row.default ?? ''}\n`);
     const call = ['stop', 'answer', '--record', effort, '--row', rowId, '--who', args.get('--who') ?? 'kurapika',
       '--question-file', question, ...options.flatMap((o) => ['--option', o]), '--pick', starred[0].key, '--repo', repo];
     if (args.has('--dry-run')) call.push('--dry-run');

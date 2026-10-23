@@ -394,5 +394,29 @@ as clean by silence. SC-2 (one row rendered, none retyped) is the first rulings 
 | # | Finding | Disposition |
 |---|---|---|
 | F1 | `nen stop answer` has no source field; an idle pre-answer names its source in the question text | residue, named here; a `--source` flag is nen's to add |
-| F2 | an `R-YYYY-MM-DD-nn` id is unique per git common directory, not across machines; two machines' records could share an id in `docs/ruling-records/` | `export` refuses a second copy with other content (exit `1`); a global id is nen's |
-| F3 | the committed copy is public: a question naming a private repository would leak | the question file is written with names placeheld (ROSTER § *The ruling template*, step 3); the redaction tree check reads `docs/ruling-records/` |
+| F2 | an `R-YYYY-MM-DD-nn` id is unique per git common directory, not across machines; two machines' records could share an id in `docs/ruling-records/` | settled: files are keyed `<effort>--<R-id>.json` and `check` refuses a file whose effort and id disagree with its name; a global id is nen's question |
+| F3 | the committed copy is public: a question or a typed reply naming a private repository would leak, and JSON's `\n` escape glued the next word to an `n`, out of the tree check's reach | settled: `export` runs the private-name guard and a secret-shape pass over the decoded text and refuses a hit; the tree check decodes JSON string escapes in a `.json` file |
+
+### 5. Settle pass, same day — the hanten findings on HA-PR-#458
+
+Re-run after the settle (same host, same nen), the record ids continuing in the same throwaway repository:
+
+```
+$ nen stop answer --record <effort> --row missing-maintainer-choice --who kurapika --question-file q2.md \
+    --option "ref=typed by design (no option)::the typed words are the answer" --typed-file t3.txt --repo <proof>
+recorded R-2026-10-23-05 -> <proof>/.git/.nen/stops/…/5.json
+  row missing-maintainer-choice · kurapika · typed (verbatim): staging-eu
+$ node scripts/ruling_record.mts export … --id R-2026-10-23-0{3,4,5} … --names-file <list>
+private_name_check: ok -- no private repository named (…)
+ruling-record: exported R-2026-10-23-05 -> <proof>/docs/ruling-records/opus-kurapika-sdd100-h-a-ruling-capture--R-2026-10-23-05.json
+$ node scripts/ruling_record.mts render … (three rows; their answer cells)
+… | typed, word for word (B): `Cleanup and third-hand` | ruled | proof row 03 |
+… | pre-answered (idle.source 1243b27 (origin/HEAD:nen/workflow.json)) (A): `use the derived value` | ruled | proof row 04 |
+… | Which deploy target? Candidates for reference: staging, production. | none: typed by design | typed (verbatim): *"staging-eu"* | ruled | proof row 05 |
+$ node scripts/ruling_record.mts check --roster docs/ROSTER.md
+ruling-record: 3 ROSTER rows match their records in docs/ruling-records
+```
+
+The re-ask is narrowed to a reply that does not answer (WORKFLOW § 4), pending the maintainer's ruling on
+AC-2's wider reading; the rows typed by design are never re-asked; an idle pre-answer renders
+`pre-answered (<source>)` and settles no ruling.

@@ -1266,18 +1266,30 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
 
 - **`<effort>`** is the effort's branch, the key of § 2 *The effort's ledgers*; before a branch exists (an
   intake, a filing) it is `inline-<ISO date-time>`. The record lives under `<git common dir>/.nen/stops/`,
-  so a worktree removal keeps it, and nen prints its id `R-YYYY-MM-DD-nn`, never reused.
+  so a worktree removal keeps it, and nen prints its id `R-YYYY-MM-DD-nn`, never reused **within that
+  clone** (another clone counts its own; zheref/hatsu#443). An R-id is evidence, never a ruling id.
 - **What was shown, as shown**: the question file holds the question as asked; one `--option` per option
   in the picker, its label as shown and its description line as the consequence. A `human-gate` row adds
   `--gate <its gate>`; an `ask-once-per-run` row names `--row` alone.
 - **The answer**: `--pick <key>` for a picked option; `--typed-file <file>` holding the maintainer's own
   words byte for byte for a free-text answer. **"Verbatim" is reserved for typed text**; a typed text that
   is word for word one label, nen records as that pick.
-- **A typed answer that matches no option** is recorded as typed, and the picker is asked **once more**
-  (a new call, its answer a second record) before the run acts; the run acts on that second answer.
+- **A free-text answer is the maintainer's word** (HR-173) and the run acts on it. **Only a reply that does
+  not answer is asked once more** — a question back (answered first), or a reply that fits neither an option
+  nor the row's typed form — a new call, its answer a second record; a second reply of the same kind is
+  acted on as the maintainer's typed words. *Interim reading, pending the maintainer's ruling on whether
+  every unmatched typed reply is re-asked (zheref/hatsu#443 AC-2).*
+- **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
+  `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
+  candidates, none starred, go in the question file): record it with the one reference option
+  `--option "ref=typed by design (no option)::the typed words are the answer"` and `--typed-file`, so
+  nen never reads a typed value as a pick; the row renders `none: typed by design`, capture class typed.
+- **`direct-mismatch`'s record is `nen direct answer`** (direct § 6); `nen stop answer` records every
+  other row.
 - **An idle pre-answer** (§ *Idle batches*, step 1) is recorded the same way and shows no picker:
   `node "$hatsu_root/scripts/ruling_record.mts" preanswer --effort <branch> --row <row-id> --source "<idle.source>" --repo <checkout>`
   picks the row's starred option and names the source in the question; `hold` and `refuse` park, they answer nothing.
+  A pre-answer renders `pre-answered (<source>)`, never as a maintainer's pick, and settles no ruling.
 - **A record that could not be written** (exit `1` or `2`) is said on the turn page as *answer unrecorded*,
   the reason quoted; it is never retyped into a file by hand.
 - **A recorded answer that settles a ruling** becomes its ROSTER row by rendering, never by retyping:
