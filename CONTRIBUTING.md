@@ -42,7 +42,8 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/publish_gate.sh`, `scripts/private_name_check.sh`,
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`,
-`scripts/gh_token_env.sh`, `scripts/nen_reach_probe.sh`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
+`scripts/gh_token_env.sh`, `scripts/nen_reach_probe.sh`, `scripts/issue_body_check.mts`,
+`scripts/pr_criteria_check.mts`, `scripts/pr_body_delivery_check.sh`, `scripts/pr_delivery.ts`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts
