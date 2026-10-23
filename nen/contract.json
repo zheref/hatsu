@@ -316,6 +316,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor and any id=\"hr-N\" anchor not in the canonical form exit 1, a gap is a notice at exit 0 listing at most 20, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity, an empty id space, an id that is not a safe integer or exceeds the definition count plus 1000, and a path holding a comma, colon or line break exit 2; its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
       },
+      "ruling-record": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/ruling_record.mts (zheref/hatsu#443; SDD plan wave 1, ruling capture): the Hatsu half on top of nen 0.26.0's nen stop answer, which records every picker answer. The script exports a record through nen stop answer show --json into docs/ruling-records/, renders a ROSTER ruling row from it, checks every ROSTER line citing a record cell by cell by HR id (orphan, twice-cited and unreadable records are findings), and composes an idle pre-answer as one nen stop answer --record call. Its fixture is hermetic for its synthetic rosters, records and stub nen (render of a pick, a typed reply with a line break and a pipe, a typed reply nen matched to a label, a backticked label; refused records, --hr and settles forms; every check finding and wiring refusal; export copied, idempotent, conflicting, absent, unreadable and unparseable; pre-answer argv, human-gate and unstarred refusals, a nen refusal passed through), then runs the REAL nen (NEN, else PATH) through record, export, render and check in a throwaway git repository, and checks the live roster. Run it as `nen shu test --lane ruling-record --repo <hatsu>` when the script, its fixture, docs/ruling-records/ or a ROSTER row citing a record changes. It is not a general suite."
+      },
       "product-term-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -344,7 +349,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, ruling-record); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
@@ -891,6 +896,17 @@
             "scripts/clause_id_guard_fixture.mts"
           ],
           "$comment": "Hermetic HR id guard fixture plus one read of the live docs/ROSTER.md (HR-2)."
+        }
+      },
+      "ruling-record": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/ruling_record_fixture.mts"
+          ],
+          "$comment": "Hermetic ruling-record fixture, one live nen stop answer round trip (requires nen 0.26.0 or later as NEN or on PATH, and git), plus one check of the live docs/ROSTER.md against docs/ruling-records/."
         }
       },
       "product-term-guard": {

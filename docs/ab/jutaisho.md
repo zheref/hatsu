@@ -316,3 +316,83 @@ know it. § 1 keeps both spellings so a run already written the long way needs n
 replaces an existing marker, so `hooks/stop-bell.sh` would ring the generic line on every gate.
 `hatsu.stop-marker/v0.1` is kept **on purpose**, and the `rm -f` on Codex and Cursor is still by
 hand because `nen stop --mark` writes and never removes.
+
+## Dated verification, 2026-10-23 — every picker answer recorded, a ROSTER row rendered from the record (zheref/hatsu#443)
+
+Run: 2026-10-23, `nen 0.26.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), node `v24.16.0`.
+Every verb ran against a **throwaway git repository** in the session's scratch directory (`<proof>`),
+holding a copy of Hatsu's `nen/decisions.json` so nen checks each `--row`; nothing was recorded in a
+Hatsu checkout. The effort id is the piece's branch, `opus/kurapika/sdd100-h-a-ruling-capture`. The procedure is
+[`WORKFLOW.md`](../WORKFLOW.md) § 4 *Every picker answer is recorded*; the renderer and guard are
+`scripts/ruling_record.mts` and its lane `ruling-record`.
+
+### 1. A pick, a typed answer that matches no option, and the re-ask (AC-1, AC-2)
+
+```
+$ nen stop answer --record <effort> --row wrap-up --who kurapika --question-file q.md \
+    --option "A=⭐ Run cleanup::what the effort left is swept" --option "B=Cleanup and third-hand::the sweep and the harvest" \
+    --option "C=Continue::nothing is swept" --pick A --repo <proof>
+recorded R-2026-10-23-01 -> <proof>/.git/.nen/stops/opus%2Fkurapika%2Fsdd100-h-a-ruling-capture/1.json
+  row wrap-up · kurapika · picked: A
+$ … --typed-file t1.txt        # "Hold on, what does third-hand file?" -- no option's label
+recorded R-2026-10-23-02 -> <proof>/.git/.nen/stops/…/2.json
+  row wrap-up · kurapika · typed (verbatim): Hold on, what does third-hand file?
+$ … --typed-file t2.txt        # the one re-ask, answered "Cleanup and third-hand"
+recorded R-2026-10-23-03 -> <proof>/.git/.nen/stops/…/3.json
+  row wrap-up · kurapika · picked: B (typed text matched that option's label)
+```
+
+Each record holds the question, every option with its consequence, the pick or the verbatim text, the
+instant (`answeredAt`) and the decisions row; the second is `kind: "typed"`, so the run asked once more
+and acted on the third.
+
+### 2. An idle pre-answer, no picker shown (AC-5)
+
+```
+$ node scripts/ruling_record.mts preanswer --effort <effort> --row missing-argument \
+    --source "idle.source 1243b27 (origin/HEAD:nen/workflow.json)" --repo <proof>
+recorded R-2026-10-23-04 -> <proof>/.git/.nen/stops/…/4.json
+  row missing-argument · kurapika · picked: A
+$ nen stop answer show <effort> --repo <proof>
+R-2026-10-23-01  row:wrap-up  kurapika  picked: A  · Wrap up this session?
+R-2026-10-23-02  row:wrap-up  kurapika  typed: Hold on, what does third-hand file?  · Wrap up this session?
+R-2026-10-23-03  row:wrap-up  kurapika  picked: B  · Wrap up this session?
+R-2026-10-23-04  row:missing-argument  kurapika  picked: A  · Pre-answered under the typed --idle profile (HR-5); no picker was shown.
+```
+
+The question's second line names the source (`Source: idle.source …`); `merge` (human-gate) and
+`publish-offer` (no starred option) are refused at exit `2` (the lane's fixture holds both).
+
+### 3. Export, render, check — then two hand edits caught (AC-3, AC-4)
+
+```
+$ node scripts/ruling_record.mts export --effort <effort> --id R-2026-10-23-03 --repo <proof> --out <proof>/docs/ruling-records
+ruling-record: exported R-2026-10-23-03 -> <proof>/docs/ruling-records/R-2026-10-23-03.json
+$ node scripts/ruling_record.mts export …same id…
+ruling-record: <proof>/docs/ruling-records/R-2026-10-23-03.json already holds R-2026-10-23-03
+$ node scripts/ruling_record.mts render --record docs/ruling-records/R-2026-10-23-03.json --hr HR-902 --status ruled \
+    --settles "the wrap-up runs cleanup and third-hand"
+| <a id="hr-902"></a>**HR-902** · [R-2026-10-23-03](ruling-records/R-2026-10-23-03.json) | Wrap up this session? | (A) ⭐ Run cleanup — *what the effort left is swept* · (B) Cleanup and third-hand — *the sweep and the harvest* · (C) Continue — *nothing is swept* | typed, word for word (B): `Cleanup and third-hand` | ruled | the wrap-up runs cleanup and third-hand |
+$ node scripts/ruling_record.mts check --roster docs/ROSTER.md          # HR-901 (R-…-02) and HR-902 rendered
+ruling-record: 2 ROSTER rows match their records in docs/ruling-records
+exit=0
+$ # option B retyped "Cleanup and Third-Hand" in both rows
+::error file=docs/ROSTER.md,line=3::HR-901: the options cell differs from record R-2026-10-23-02; re-render it
+::error file=docs/ROSTER.md,line=4::HR-902: the options cell differs from record R-2026-10-23-03; re-render it
+exit=1
+$ # HR-901's row deleted
+::error file=docs/ROSTER.md,line=3::HR-902: the options cell differs from record R-2026-10-23-03; re-render it
+::error file=docs/ruling-records/R-2026-10-23-02.json::record R-2026-10-23-02 is cited by no ROSTER row: a row retyped by hand loses its link
+exit=1
+```
+
+The live `docs/ROSTER.md` cites no record yet: `check` says so at exit `0` (*nothing to compare*), never
+as clean by silence. SC-2 (one row rendered, none retyped) is the first rulings sitting's after this lands.
+
+### 4. Findings
+
+| # | Finding | Disposition |
+|---|---|---|
+| F1 | `nen stop answer` has no source field; an idle pre-answer names its source in the question text | residue, named here; a `--source` flag is nen's to add |
+| F2 | an `R-YYYY-MM-DD-nn` id is unique per git common directory, not across machines; two machines' records could share an id in `docs/ruling-records/` | `export` refuses a second copy with other content (exit `1`); a global id is nen's |
+| F3 | the committed copy is public: a question naming a private repository would leak | the question file is written with names placeheld (ROSTER § *The ruling template*, step 3); the redaction tree check reads `docs/ruling-records/` |
