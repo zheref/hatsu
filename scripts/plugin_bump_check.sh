@@ -173,12 +173,6 @@ fi
 #                       recreates the first-run failure this guard exists to
 #                       prevent, so this one runtime script is covered; the
 #                       fixture check beside it is test-only and is not.
-#   scripts/hanten_cycle_ledger.sh
-#                     — Hanten's per-effort reviewer-budget writer (Hatsu 0.26.0,
-#                       zheref/hatsu#63). An installed copy runs it from
-#                       `$hatsu_root/scripts/` on every hanten invocation; a
-#                       stale copy would reset or ignore cycle counts and
-#                       re-raise Chrollo after remediation.
 #   scripts/branch_authorship_check.sh
 #                     — the authorship gate (zheref/hatsu#170), run from
 #                       `$hatsu_root/scripts/` at hanten § 4's return and before
@@ -331,7 +325,6 @@ PLUGIN_SURFACE_GLOBS=(
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
   'scripts/nen_global.sh'
-  'scripts/hanten_cycle_ledger.sh'
   'scripts/branch_authorship_check.sh'
   'scripts/hatsu_plugin_update.sh'
   'scripts/hatsu_root.sh'

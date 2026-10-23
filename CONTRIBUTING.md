@@ -34,7 +34,7 @@ surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `cont
 `docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/using/README.md`, `docs/using/mirrors.md`,
 `docs/PUBLIC-REDACTION.md`) and every
 runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/nen_global.sh`,
-`scripts/hanten_cycle_ledger.sh`, `scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
+`scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
 `scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`, `scripts/cleanup_path_admit.sh`,
 `scripts/cleanup_path_admit.ts`, `scripts/hatsu_surface_link.sh`,

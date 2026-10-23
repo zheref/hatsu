@@ -279,7 +279,8 @@ cat "$hatsu_root/scripts/private_name_named.txt" > <d>/redaction-ignore         
 copies the maintainer's private list (the join retires with zheref/nen#441). Their exit `4`
 sent nothing: after the guard read `0` it is the two guards disagreeing — stop and report it; never redact
 a name the maintainer ignored, never `--skip-private-name-check`. Their exit `1` is read on `--json`, per verb: `privateNameCheck.result` `unavailable` is the
-guard's exit `2`; on `issue file`, a § 5 label, assignee or title refusal only where stderr names that check,
+guard's exit `2`; on `issue file`, a § 5 label, assignee or title refusal only where the `nen.refusal/v0.1` envelope's
+`refused[]` on stdout names that check (nen 0.26: no refusal prose on stderr under `--json`),
 else a create that may have landed — `nen issue search` the title before any re-file; on `issue comment`,
 `not posted, unverified` — read the comments back before any retry; on `edit-body`, `outcome`, the body
 read back before any retry. Their dry runs read the target's visibility, so they

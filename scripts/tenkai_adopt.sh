@@ -4,7 +4,7 @@
 # Hatsu owns this file. Nen does not. The skill
 # `claude/skills/tenkai/SKILL.md` is the policy; this script is the reader and
 # the writer, so adoption state cannot be counted in prose and mis-remembered on
-# the next re-run. It follows `scripts/hanten_cycle_ledger.sh`'s house shape: a
+# the next re-run. Its shape is a
 # thin bash wrapper over one embedded python3 program, with a `--self-test` that
 # builds real fixtures and proves both directions.
 #
@@ -114,10 +114,6 @@ READINESS_READER_PATH = "scripts/readiness_ci_verdict.mts"
 # a named limitation, not an oversight, and § 5c of the skill states it.
 REQUIRED_TRIGGERS = ("pull_request_target", "pull_request_review")
 GUARD_PATH = "scripts/workflow_runner_policy_check.rb"
-# The review ledger's persona sets, kept equal to scripts/hanten_cycle_ledger.sh's
-# DEFAULT_MAXIMA keys and LATE_PERSONAS -- the self-test reads that script and fails on drift.
-REVIEW_PERSONAS = ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin", "leorio")
-LATE_REVIEW_PERSONAS = ("leorio",)
 
 # States, most-satisfied first. `apply` turns missing/drift into repaired; it
 # never turns routed, staged or blocked into anything, because those are owned
@@ -236,7 +232,7 @@ def _atomic_write(path: Path, text: str):
 
     A direct `write_text` that dies mid-call leaves a TRUNCATED workflow or hook
     behind rather than the previous one -- and these are files a repository's CI
-    depends on. `scripts/hanten_cycle_ledger.sh` already writes this way.
+    depends on.
     """
     fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".tenkai-", suffix=".tmp")
     try:
@@ -1477,6 +1473,20 @@ class ReviewScopes(Item):
         return self.detect(ctx)  # consumer policy is chosen by its owner
 
 
+def nen_below_pin(nen, hatsu_root):
+    """None when `nen --version` meets the contract's dependency.minimum; else the reason, quoted."""
+    try:
+        minimum = json.loads((hatsu_root / "nen" / "contract.json").read_text())["dependency"]["minimum"]
+        want = tuple(int(x) for x in str(minimum).split(".")[:2])
+        out = subprocess.run([nen, "--version"], capture_output=True, text=True, timeout=30)
+        have = tuple(int(x) for x in out.stdout.strip().split(".")[:2])
+    except (OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired) as exc:
+        return f"the nen on PATH or the contract's minimum could not be read: {exc}"
+    if have < want:
+        return f"the nen on PATH is {out.stdout.strip()}, below the pinned minimum {minimum}: it has no review ledger verb"
+    return None
+
+
 class ReviewLedger(Item):
     """Diagnose the active effort's local review history without resetting it."""
 
@@ -1518,47 +1528,43 @@ class ReviewLedger(Item):
                             "Tenkai cannot establish whether an open PR needs its own key or whether review history was lost",
                             "Hanten identifies the active branch or PR effort key, checks prior review evidence, "
                             "then asks whether this is the first cycle under that exact key; "
-                            "only a confirmed first cycle may run hanten_cycle_ledger.sh recover-first "
+                            "only a confirmed first cycle may run nen review ledger recover-first "
                             "--confirmed-first-cycle. "
                             "If reviews already ran, restore their ledger without resetting used counts")
+        # The ledger's validity is nen's verdict, never re-derived here (zheref/nen#346):
+        # `show` loads it through the verb's own loader -- roster from review.scopes,
+        # history and counts checked -- and writes nothing.
+        if ReviewScopes().detect(ctx)["state"] != SATISFIED:
+            return self.row(ROUTED, "review.scopes is missing or malformed, so nen cannot read the ledger's roster",
+                            "configure review.scopes (the review-scopes row), then re-run; never restore history for it")
+        nen = shutil.which("nen")
+        if nen is None:
+            return self.row(BLOCKED, "nen is not on PATH, so the review ledger cannot be read",
+                            "bind the pinned nen (hatsu:ten), then re-run; never judge the ledger by hand")
+        below = nen_below_pin(nen, ctx.hatsu_root)
+        if below:
+            return self.row(BLOCKED, below, "bind the pinned nen (hatsu:ten), then re-run; never judge the ledger by hand")
+        argv = [nen, "review", "ledger", "show", "--repo", str(ctx.repo), "--branch", name, "--json"]
+        if expected_pr:
+            argv += ["--pr", str(expected_pr)]
         try:
-            doc = json.loads(path.read_text())
-        except (OSError, ValueError) as exc:
-            return self.row(BLOCKED, f"review ledger is unreadable: {exc}",
-                            "restore the ledger with its used counts; never initialize over it")
-        if (not isinstance(doc, dict) or doc.get("contract") != "hatsu.hanten.cycle/v0.1"
-                or doc.get("branch") != name or doc.get("pr") != expected_pr
-                or not isinstance(doc.get("reviewers"), dict)):
-            return self.row(BLOCKED, "review ledger does not match this branch or has no reviewer counts",
-                            "restore the matching ledger with its used counts; never reset the cycle")
-        # Match hanten_cycle_ledger.sh's fixed PERSONAS. Its loader refuses a
-        # missing row rather than silently minting a fresh reviewer budget.
-        # A persona ADDED after the ledger contract shipped (leorio) has no row in
-        # an older ledger and could not have run there: absent is tolerated (the
-        # loader hydrates it at used 0) ONLY when the ledger never knew him --
-        # neither personasAtOpen nor lateHydrated names him, the loader's _knew();
-        # a malformed stamp reads as knowing him. Present-but-malformed is BLOCKED.
-        late_personas = LATE_REVIEW_PERSONAS
-
-        def knew(persona):
-            for key in ("personasAtOpen", "lateHydrated"):
-                seen = doc.get(key)
-                if seen is not None and (not isinstance(seen, list) or persona in seen):
-                    return True
-            return False
-
-        for persona in REVIEW_PERSONAS:
-            if persona in late_personas and persona not in doc["reviewers"] and not knew(persona):
-                continue
-            row = doc["reviewers"].get(persona)
-            if (not isinstance(row, dict) or type(row.get("used")) is not int
-                    or row["used"] < 0 or not isinstance(row.get("invocations"), list)):
-                return self.row(BLOCKED, f"review ledger has no valid count for {persona}",
-                                "restore the original reviewer history; never mint missing counts")
-            outcomes = [entry.get("outcome") if isinstance(entry, dict) else None for entry in row["invocations"]]
-            if any(outcome not in ("ran", "skipped-exhausted") for outcome in outcomes) or outcomes.count("ran") != row["used"]:
-                return self.row(BLOCKED, f"review ledger has inconsistent count and history for {persona}",
-                                "restore the original reviewer history; never reset used counts")
+            shown = subprocess.run(argv, capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return self.row(BLOCKED, f"nen review ledger show could not run: {exc}",
+                            "re-run once nen runs; never judge the ledger by hand")
+        if shown.returncode != 0:
+            reason = next((line for line in shown.stderr.splitlines() if line.strip()), f"exit {shown.returncode}")
+            if shown.returncode == 1:
+                return self.row(BLOCKED, f"the review ledger is locked or unreadable: {reason}",
+                                "re-run once the lock clears; never recover or re-init for it")
+            if "nen/workflow.json" in reason or "review.scopes" in reason:
+                return self.row(ROUTED, f"nen cannot read review.scopes as a roster: {reason}",
+                                "configure review.scopes (the review-scopes row), then re-run; never restore history for it")
+            if "unknown option" in reason or "unknown subcommand" in reason:
+                return self.row(BLOCKED, f"nen review ledger show refused its own arguments: {reason}",
+                                "a wiring stop: quote it and re-run once the call or the binding is fixed")
+            return self.row(BLOCKED, f"nen review ledger show refused the ledger: {reason}",
+                            "restore the original reviewer history with its used counts; never reset the cycle")
         key = f"PR #{expected_pr}" if expected_pr else "branch"
         return self.row(SATISFIED, f"{key} ledger present for '{name}'; Hanten verifies the active effort key")
 
@@ -1986,7 +1992,8 @@ def self_test() -> int:
     review_repo = fixture()
     review_workflow = review_repo / "nen" / "workflow.json"
     review_workflow.write_text(json.dumps({"branch": {"base": "main"}, "review": {
-        "scopes": {"code": {"persona": "nobunaga", "budget": 2, "paths": ["**"]}}}}))
+        "scopes": {"code": {"persona": "nobunaga", "tier": "deep", "budget": 2, "paths": ["**"]},
+                   "security": {"persona": "feitan", "tier": "deep", "budget": 1, "paths": ["auth/**"]}}}}))
     subprocess.run(["git", "-C", str(review_repo), "switch", "-q", "-c", "topic/review"], check=True)
     review_ctx = ctx_for(review_repo)
     check("declared review scopes are visible", ReviewScopes().detect(review_ctx)["state"] == SATISFIED)
@@ -1997,76 +2004,106 @@ def self_test() -> int:
     check("Tenkai apply leaves missing review history untouched",
           ReviewLedger().repair(review_ctx)["state"] == ROUTED
           and not (review_repo / ".nen" / "hanten").exists())
+    # Ledgers are written by the verb itself, then mutated: nen's loader is the judge (zheref/nen#346).
+    def ledger_verb(*args):
+        try:
+            done = subprocess.run(["nen", "review", "ledger", *args, "--repo", str(review_repo), "--json"],
+                                  capture_output=True, text=True)
+        except OSError as exc:
+            sys.exit(f"tenkai_adopt --self-test: nen could not run ({exc}) -- the review cases need the pinned nen on PATH")
+        if done.returncode != 0:
+            sys.exit(f"tenkai_adopt --self-test: `nen review ledger {args[0]}` exited {done.returncode}: "
+                     f"{done.stderr.strip()} -- the review cases need the pinned nen (>= the contract's minimum) on PATH")
     ledger = review_repo / ".nen" / "hanten" / "topic-review.cycle.json"
-    ledger.parent.mkdir(parents=True)
-    full_reviewers = {p: {"used": 0, "invocations": []} for p in
-                      ("nobunaga", "feitan", "chrollo", "phinks", "hisoka", "uvogin", "leorio")}
-    full_reviewers["nobunaga"] = {"used": 1, "invocations": [{"outcome": "ran"}]}
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": full_reviewers}))
+    ledger_verb("init", "--branch", "topic/review")
+    ledger_verb("record", "--branch", "topic/review", "--persona", "nobunaga", "--outcome", "ran")
+    valid = json.loads(ledger.read_text())
     check("a matching ledger is reported without changing used counts",
           ReviewLedger().detect(review_ctx)["state"] == SATISFIED
           and json.loads(ledger.read_text())["reviewers"]["nobunaga"]["used"] == 1)
-    ledger_src = (root / "scripts" / "hanten_cycle_ledger.sh").read_text()
-    maxima_block = re.search(r"DEFAULT_MAXIMA = \{(.*?)\}", ledger_src, re.S)
-    late_block = re.search(r"LATE_PERSONAS = frozenset\(\{(.*?)\}\)", ledger_src, re.S)
-    check("REVIEW_PERSONAS equals hanten_cycle_ledger.sh's DEFAULT_MAXIMA keys, in order",
-          maxima_block is not None
-          and tuple(re.findall(r'"([a-z]+)":', maxima_block.group(1))) == REVIEW_PERSONAS)
-    check("LATE_REVIEW_PERSONAS equals hanten_cycle_ledger.sh's LATE_PERSONAS",
-          late_block is not None
-          and set(re.findall(r'"([a-z]+)"', late_block.group(1))) == set(LATE_REVIEW_PERSONAS))
-    pre_leorio = {k: v for k, v in full_reviewers.items() if k != "leorio"}
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": pre_leorio}))
-    check("a ledger opened before leorio existed is not blocked for his absent row",
-          ReviewLedger().detect(review_ctx)["state"] == SATISFIED)
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
-                                  "personasAtOpen": list(full_reviewers), "reviewers": pre_leorio}))
-    check("a ledger opened after leorio existed is blocked for his lost row",
-          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
-                                  "lateHydrated": ["leorio"], "reviewers": pre_leorio}))
-    check("a ledger that hydrated leorio once is blocked for his lost row",
-          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
-    bad_leorio = json.loads(json.dumps(full_reviewers))
-    bad_leorio["leorio"] = {"used": "one", "invocations": []}
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": bad_leorio}))
-    check("a present but malformed leorio row is blocked",
-          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
-    no_feitan = {k: v for k, v in full_reviewers.items() if k != "feitan"}
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": no_feitan}))
-    check("a missing row for a non-late persona is still blocked",
-          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": full_reviewers}))
-    inconsistent_reviewers = json.loads(json.dumps(full_reviewers))
-    inconsistent_reviewers["nobunaga"]["used"] = 0
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": inconsistent_reviewers}))
-    check("a used count that contradicts run history is blocked",
-          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review", "reviewers": {}}))
-    check("an empty count map is blocked, not treated as a fresh budget",
-          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
-    ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "another/review", "reviewers": {}}))
-    check("a wrong-branch ledger is blocked, never replaced",
-          ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+
+    def variant(**changes):
+        doc = json.loads(json.dumps(valid))
+        for key, value in changes.items():
+            if value is None:
+                doc.pop(key, None)
+            else:
+                doc[key] = value
+        ledger.write_text(json.dumps(doc))
+        return ReviewLedger().detect(review_ctx)["state"]
+    no_feitan = {k: v for k, v in valid["reviewers"].items() if k != "feitan"}
+    check("a declared reviewer's row missing from an unstamped ledger is blocked (nen has no late-persona exception)",
+          variant(personasAtOpen=None, reviewers=no_feitan) == BLOCKED)
+    check("a row missing where personasAtOpen names him is blocked",
+          variant(reviewers=no_feitan) == BLOCKED)
+    check("a row provably absent at open (personasAtOpen lacks him) is read at used 0, not blocked",
+          variant(personasAtOpen=["nobunaga"], reviewers=no_feitan) == SATISFIED)
+    inconsistent = json.loads(json.dumps(valid["reviewers"]))
+    inconsistent["nobunaga"]["used"] = 0
+    check("a used count that contradicts run history is blocked", variant(reviewers=inconsistent) == BLOCKED)
+    check("an empty count map is blocked, not treated as a fresh budget", variant(reviewers={}) == BLOCKED)
+    check("a wrong-branch ledger is blocked, never replaced", variant(branch="another/review") == BLOCKED)
+    ledger.write_text("not json")
+    check("an unreadable ledger is blocked", ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
     ledger.unlink()
+    ledger_verb("init", "--branch", "topic/review", "--pr", "7")
     pr_ledger = ledger.with_name("topic-review-pr7.cycle.json")
-    pr_ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
-                                     "pr": 7, "reviewers": full_reviewers}))
     check("a PR-keyed ledger satisfies the effort without its branch ledger",
           ReviewLedger().detect(review_ctx)["state"] == SATISFIED)
     another_pr = ledger.with_name("topic-review-pr8.cycle.json")
-    another_pr.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
-                                     "pr": 8, "reviewers": full_reviewers}))
+    another_pr.write_text(pr_ledger.read_text())
     check("multiple PR-keyed ledgers route active-key selection to Hanten",
           ReviewLedger().detect(review_ctx)["state"] == ROUTED)
     another_pr.unlink()
-    pr_ledger.write_text(json.dumps({"contract": "hatsu.hanten.cycle/v0.1", "branch": "topic/review",
-                                     "pr": 8, "reviewers": full_reviewers}))
+    wrong_pr = json.loads(pr_ledger.read_text())
+    wrong_pr["pr"] = 8
+    pr_ledger.write_text(json.dumps(wrong_pr))
     check("wrong PR number in ledger is blocked",
           ReviewLedger().detect(review_ctx)["state"] == BLOCKED)
+    pr_ledger.write_text(json.dumps(dict(wrong_pr, pr=7)))
+
+    def detect_with_nen(script):
+        """Detect with a stand-in `nen` first on PATH; the real PATH is restored after."""
+        fake_bin = Path(tempfile.mkdtemp(prefix="tenkai-nen-"))
+        (fake_bin / "nen").write_text(script)
+        (fake_bin / "nen").chmod(0o755)
+        saved_path = os.environ["PATH"]
+        os.environ["PATH"] = f"{fake_bin}{os.pathsep}{saved_path}"
+        try:
+            return ReviewLedger().detect(review_ctx)
+        finally:
+            os.environ["PATH"] = saved_path
+            shutil.rmtree(fake_bin, ignore_errors=True)
+    git_only = Path(tempfile.mkdtemp(prefix="tenkai-gitonly-"))
+    (git_only / "git").symlink_to(shutil.which("git"))
+    old_nen = detect_with_nen("#!/bin/sh\necho 0.24.0\n")
+    check("a nen below the pinned minimum is blocked as a binding gap, never as damaged history",
+          old_nen["state"] == BLOCKED and "below the pinned minimum" in old_nen["detail"]
+          and "restore" not in old_nen["action"])
+    os.environ["PATH"], saved = str(git_only), os.environ["PATH"]
+    try:
+        no_nen = ReviewLedger().detect(review_ctx) if shutil.which("nen") is None else None
+    finally:
+        os.environ["PATH"] = saved
+        shutil.rmtree(git_only, ignore_errors=True)
+    check("no nen on PATH is blocked as a binding gap, never as damaged history",
+          no_nen is not None and no_nen["state"] == BLOCKED and "not on PATH" in no_nen["detail"]
+          and "restore" not in no_nen["action"])
+    locked = detect_with_nen('#!/bin/sh\n[ "$1" = --version ] && { echo 9.99.0; exit 0; }\n'
+                             'echo "nen review: review ledger: lock timeout on the ledger" >&2\nexit 1\n')
+    check("a ledger lock or I/O failure (exit 1) asks for a re-run, never a history restore",
+          locked["state"] == BLOCKED and "locked or unreadable" in locked["detail"]
+          and "restore" not in locked["action"])
     review_workflow.write_text("{}")
     check("missing review scopes are routed as configuration",
           ReviewScopes().detect(review_ctx)["state"] == ROUTED)
+    check("the ledger row routes missing review scopes to configuration, never to a history restore",
+          ReviewLedger().detect(review_ctx)["state"] == ROUTED)
+    review_workflow.write_text(json.dumps({"branch": {"base": "main"}, "review": {
+        "scopes": {"code": {"persona": "nobunaga", "budget": 2, "paths": ["**"]}}}}))
+    malformed = ReviewLedger().detect(review_ctx)
+    check("a non-empty but malformed review.scopes (no tier) routes to configuration, never to a history restore",
+          malformed["state"] == ROUTED and "restore the original" not in malformed["action"])
 
     print("\ngreenfield — diagnose then apply then apply again")
     d = fixture()

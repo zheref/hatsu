@@ -739,10 +739,9 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   `surface mirror check --surface claude-code --plugin <name> --installed <dir>|auto`), so the script
   is **owed a retirement** (a Hatsu issue, filed by the run that reads this; BC-11's shell clause —
   TypeScript is the default for a verdict — is what binds it, unruled). **BC-11 binds the hanten
-  ledger — the maintainer's ruling of 2026-10-03** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-03 —
-  BC-11 binds the hanten ledger*): `scripts/hanten_cycle_ledger.sh` is frozen and its ledger is an owned
-  dependency, zheref/nen#346; the terms and the retirement step are that section's, cited here, not
-  restated.
+  ledger — the maintainer's ruling of 2026-10-03** ([`ROSTER.md`](ROSTER.md) HR-243, HR-244): its owned
+  dependency, zheref/nen#346, shipped in nen v0.26.0, and the retirement step ran (zheref/hatsu#216):
+  hanten and breath call `nen review ledger`, and the script and its fixture are gone.
 - **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,

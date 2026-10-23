@@ -280,8 +280,9 @@ the act directly, between condition checks — never through `watch until`.**
 > ```
 >
 > **Exit `1` at the cap is an ANSWER, not a failure** — the verb's own words, and § 4's rule stated
-> by the binary rather than only here. **The ledger is `.nen/loop/<id>.json` under `--repo`** — the
-> dot-prefixed generated tree `nen stop --mark` already writes to, never the committed `nen/`.
+> by the binary rather than only here. **The ledger is `<git-common-dir>/.nen/loop/<id>.json` of
+> `--repo`** from nen 0.26 — shared by every worktree of the clone, never the committed `nen/`;
+> `.nen/loop/<id>.json` under `--repo` only outside a git repository.
 >
 > **Three properties this buys that prose could not.** (a) **The line is restated on every claim,
 > and a claim whose line differs from the running one is refused, naming both** — verified live,

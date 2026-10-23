@@ -121,7 +121,8 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 ```
 
 - **HEAD must equal `origin/<branch>`**; else stop and name which is ahead. `pr open` exits `2` for
-  an unpushed head, `1` for an existing PR; open once, never as draft (ROSTER, 2026-10-04).
+  an unpushed head, `0` adopting this head's open PR, else `1`; open once, never as draft
+  (ROSTER, 2026-10-04).
 - **Inputs and gate sets are [`contracts/pr-composition.json`](../../../contracts/pr-composition.json)'s**
   (zheref/hatsu#171). Fix `body-check` exit `1`; `fragment-required` follows its `changelogFragment`.
 - **Derive the gate** per [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*;
