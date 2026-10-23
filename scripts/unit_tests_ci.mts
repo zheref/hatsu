@@ -40,6 +40,10 @@ const gated: Array<[string, string, string]> = [
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
+  // Self-contained proofs: the fixture is the script itself (zheref/hatsu#453, #444).
+  ['stop_bell_fixture.mts', 'stop_bell_fixture.mts', 'stop-bell-guard'],
+  ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],
+  ['idle_permissions_check.mts', 'idle_permissions_check_fixture.mts', 'idle-permissions-guard'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

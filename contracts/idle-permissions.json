@@ -1,0 +1,24 @@
+{
+  "contract": "hatsu.idle-permissions/v0.1",
+  "$comment": "The commands an idle batch (HR-5; futon or kazaana typed with --idle) runs unattended, one exemplar per shape, each with the skill that runs it (zheref/hatsu#453 AC-3). It grants NOTHING: contracts/permissions.json is the one source of the packs, and a permission setting is the maintainer's alone. scripts/idle_permissions_check.mts reads the session's own Claude Code settings and lists every exemplar no allow rule matches (and any a deny rule matches), so the maintainer sees before the first claim which steps would prompt — and under --idle a prompt nobody answers is a harness refusal, row harness-denied (WORKFLOW § Idle batches rule 2). An auto-mode classifier refusal is not predictable from the files and is not listed; it parks as g5-harness-denied when it happens. Placeholders in angle brackets stand for any value.",
+  "needs": [
+    { "command": "nen run start --id <run> --target <owner/name> --repo <checkout>", "by": "futon § 12, every nen verb" },
+    { "command": "git fetch origin <branch.base>", "by": "breath, ao, murasaki" },
+    { "command": "git -C <core> fetch origin", "by": "futon § 4 (worktrees from core)" },
+    { "command": "git -C <core> worktree add --detach <path> <ref>", "by": "futon § 4, WORKFLOW § Where worktrees live" },
+    { "command": "git switch -c <branch>", "by": "breath (through nen shu warmup when declared)" },
+    { "command": "git add <path>", "by": "kokusen" },
+    { "command": "git commit -F <file>", "by": "kokusen, aka" },
+    { "command": "git reset --soft <merge-base>", "by": "aka (squash the unpushed)" },
+    { "command": "git merge --no-ff <branch>", "by": "futon § 5 (integration branch)" },
+    { "command": "git push -u origin <branch>", "by": "aka" },
+    { "command": "git push origin <branch>", "by": "murasaki" },
+    { "command": "gh pr view <n> --repo <owner/name> --json state", "by": "en, futon" },
+    { "command": "gh issue view <n> --repo <owner/name>", "by": "build § 2b" },
+    { "command": "node <hatsu>/scripts/futon_effort_record.mts start --run <run>", "by": "futon § 12" },
+    { "command": "node <hatsu>/scripts/pr_criteria_check.mts --pr <owner/name#N>", "by": "en" },
+    { "command": "node <hatsu>/scripts/gh_api_read.mts actions-caches <owner/name>", "by": "cleanup" },
+    { "command": "sh <hatsu>/scripts/prose_size_check.sh", "by": "kokusen (on a Hatsu checkout)" },
+    { "command": "<hatsu>/scripts/bell_notify.sh --title <t> --message <m>", "by": "jutaisho § 5 (called directly, not through bash)" }
+  ]
+}

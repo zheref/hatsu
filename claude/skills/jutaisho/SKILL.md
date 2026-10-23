@@ -72,14 +72,14 @@ rendered, no step refused — and that turn rings *nothing at all*, not even run
   this skill already did** — passed only after rung 1 went out.
 - **`HATSU_ATTENTION=off` rings rungs 2 and 3 nowhere** and still consumes the marker.
 
-## 3. The marker — `.nen/last-stop.json`
+## 3. The marker — `nen stop --mark`
 
 The harness `Stop` hook fires rungs 2–3: **the skill writes the marker; the hook reads, fires and
 removes it.** **The marker is written only when rungs 2–3 are actually owed** — a gate,
 or `notifications.turn: "all"` — because a marker on disk is a request to interrupt.
 
 ```bash
-nen stop --who Kurapika --gate <gate> --notified --mark \
+nen stop --who Kurapika --gate <gate> --notified --mark --effort <branch> \
   --title "<what happened, one line>" --body "<the ask, one line>" \
   --report-url "<the spiritual-message report's link>" \
   --options <options.json> [--propose-issue <issue.json>] <efforts.md>
@@ -87,14 +87,14 @@ nen stop --who Kurapika --gate <gate> --notified --mark \
 
 **The marker is nen's file** (`nen.stop.mark/v0.2`, one `options[]` entry `recommended`), **never
 hand-written** ([`PROCESS.md`](../../../docs/PROCESS.md) § *History*). `sound` and `rungs` are not in it — the hook reads them from
-`nen/workflow.json` — and `nen stop show` validates a marker while `nen stop clear` consumes one where
+`nen/workflow.json` — `nen stop show` validates a marker, `nen stop clear` consumes one where
 there is no hook.
 
-- **`.nen/` is git-ignored**, and the marker is the only file this skill writes anywhere.
+- **`.nen/` is git-ignored**; the marker is the only file this skill writes.
 - **A marker older than 10 minutes is stale**, decided from **mtime** and removed without firing —
   never queued or replayed — so **it is written whole, in the turn it describes**, never amended.
 - **`who` is the persona**, never the name the surface introduced itself as.
-- **One marker, overwritten**: no queue.
+- **One marker per gate and effort** (nen > 0.26): none overwrites another.
 - **The hook is `hooks/hooks.json`'s** (and the `PreToolUse` trunk guard): read, never edited or
   installed.
 
@@ -152,7 +152,7 @@ file is placed), and **the stop still stands** whichever path rang, § 4's four 
 
 ## Authority
 
-**Permitted:** write `.nen/last-stop.json` through `nen stop --mark`; run `nen stop`; fire the
+**Permitted:** write the marker through `nen stop --mark`; run `nen stop`; fire the
 workflow's declared rungs; ask through the surface's option picker. **Not permitted:** any git or
 GitHub write, any label, merge or push — jutaisho ends a turn, it never advances one — and **no
 delegation** ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every phase shares*).

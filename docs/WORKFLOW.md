@@ -894,7 +894,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 ### The effort's ledgers — phases, usage and sessions
 
 **Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100, #321).
-Three ledgers per effort, generated under `.nen/` and keyed by the **branch** — `--effort <branch>`,
+Three ledgers per effort, generated under the **git common directory**'s `.nen/` (nen > 0.26.0, zheref/nen#509: one home every worktree of the checkout shares, untouched by `git worktree remove` and `git clean`; the older `<checkout>/.nen/` is read and moved once, through nen 0.28) and keyed by the **branch** — `--effort <branch>`,
 never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
 ```bash
@@ -908,7 +908,7 @@ nen session record --effort <branch> --surface <s> [--model <reported-model>] --
   [--title <reported-title>] [--id <reported-id>] --source "<harness readout>"          # first phase, when exposed
 ```
 
-`.nen/phases/<effort>.json` holds one timed entry per phase, a refused step included; `.nen/usage/<effort>.json`
+`<common>/.nen/phases/<effort>.json` holds one timed entry per phase, a refused step included; `.nen/usage/<effort>.json`
 one entry per reading, `source` naming the call site and the readout (Claude Code's `/cost`, the Agent
 tool's result totals for a subagent, Codex's session log; `--not-reported` on a surface exposing none).
 `--dial` is the actual surface effort level, recorded at each begin and usage write, not carried in
@@ -933,6 +933,40 @@ Public Source cells contain only `kind[index]`, ledger timestamp and phase where
 free-form `phase.note`, `usage.source` and `session.source` stay local as classification evidence.
 Keep report data, normalized data and rendered fragment under the private repo-local
 `.nen/reports/` directory (mode 0700, files 0600).
+
+**Many efforts, one home.** Since the home is shared, a reader that renders one
+effort passes `--effort <branch>` (`nen report data`, `spiritual-message` § 4); without it every effort
+of the repository is read.
+
+**The durable slice — the ledgers on the pull request** (zheref/hatsu#445; nen > 0.26.0, zheref/nen#516 and zheref/nen#518).
+The ledgers above live on one machine; the slice is the copy a morning review, a second machine or a fresh
+clone reads. **Post** at the landing, once the PR exists (`mukai` § 2 step 9, after `shibari`), and again
+whenever a later landing on the same PR refreshes it:
+
+```bash
+nen pr ledger post --target <owner/name> --pr <n> --effort <branch> --repo <checkout> \
+  [--findings <reports.dir>/hanten/<branch-slug>.json --findings-schema <hatsu>/contracts/hanten-findings.schema.json] [--proof <path>]...
+```
+
+One marker-keyed comment per effort and login: `posted` the first time, `updated` in place after, `unchanged`
+when the bytes agree — never a second comment. `findings-invalid`, `secret-shape` and `too-large` (exit 1)
+post nothing and are reported verbatim in the landing report; `refused` (exit 4) is the private-name guard.
+**Read back** before a resume (`ren` § 2a, which `build` § 2 runs on a resumed effort), and only then
+`nen phase begin --resume`:
+
+```bash
+nen pr ledger read --target <owner/name> --pr <n> --effort <branch> --repo <checkout> --restore --json
+```
+
+`ok` → the slice's completed phases (an entry with an `exit` of `0`) are skipped, each named with the line
+`skipped <phase>: recorded on <comment url> at head <sha>`; `stale` (the PR moved past the recorded head) →
+the phases are restored and the phase at the moved head runs again, said so; `could-not-read` (no comment,
+two, an edited digest, another contract) → nothing is skipped and the run starts at the first phase, the
+reason quoted, **never read as an empty ledger**. Only a comment the authenticated login wrote and nobody
+else edited is trusted (SEC-15, SEC-7): a foreign marked comment is counted, never parsed. A local ledger
+that disagrees with the slice is exit 1 naming both and overwrites nothing — a G5: two records of fact
+disagree, and the run neither picks one nor overwrites either. The register lists each
+PR's slice URL and verdict (§ *Idle batches*). No PR yet → no slice; the local ledger is the only one.
 
 ## 3 · `project.launch` and `project.evidence`
 
@@ -1470,6 +1504,25 @@ zheref/hatsu#423 retires the strip. The keys are § 2's `idle`.
    skill opens it, so `nen loop slots --from-run` finds no run (zheref/hatsu#423 ports futon §§ 1, 6 and 8 and
    kazaana § 5 to it and retires the record's manifest half). Until that lands, **the `then` gate reads Hatsu's
    record**, and nen's is never read in its place.
+
+**Three more rules of the idle run** (zheref/hatsu#453 and zheref/hatsu#445; nen > 0.26.0, zheref/nen#513, zheref/nen#516 and zheref/nen#518):
+
+- **Before the first claim, the permission list.** `node <hatsu>/scripts/idle_permissions_check.mts --repo
+  <checkout>` reads the session's Claude Code settings against [`contracts/idle-permissions.json`](../contracts/idle-permissions.json)
+  (the commands an idle batch runs, each with the skill that runs it) and lists every one no allow rule
+  matches, or a deny rule matches; the register carries the list before any effort is claimed. It grants
+  nothing and changes nothing — a permission setting is the maintainer's alone — and it cannot see an
+  auto-mode classifier, whose refusals are the next rule's. Exit `1` is the list, never a refusal to start;
+  exit `2` (a settings file unreadable) is reported as *not checked*, never as *all allowed*.
+- **A harness refusal is row `harness-denied`**, the G5 of the stops rule: the refused command quoted
+  verbatim, a G5 marker for the effort (`nen stop … --mark --effort <branch>`), the effort parked as
+  `g5-harness-denied`, and the run moves on — never retried, rephrased, split or routed through another tool.
+  The decisions list (the PR body's and the final brief's) names each one.
+- **One marker per gate, one bell per gate.** Every stop marks with `--effort <branch>`, so seven efforts at
+  seven prompts leave seven markers under `<git common dir>/.nen/marks/`; `hooks/stop-bell.sh` rings each
+  through `nen stop list` and clears each with `nen stop clear --gate <g> --effort <branch>`, and a cleared
+  gate removes only its own marker (`docs/ab/futon.md`, 2026-10-23). Every PR the run opened carries one
+  durable slice (§ *The effort's ledgers*), and the register lists its link and `nen pr ledger read` verdict.
 
 ### `classify` — the two label axes, and the one place their vocabulary lives
 

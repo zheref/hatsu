@@ -221,6 +221,10 @@ fi
 #                       run from `$hatsu_root/scripts/` before every PR body write
 #                       and after every open and edit; a stale copy refuses every
 #                       consumer's body (it read the template from the target).
+#   scripts/idle_permissions_check.mts
+#                     — the idle batch's permission list (zheref/hatsu#453), run from
+#                       `$hatsu_root/scripts/` before an idle run's first claim with
+#                       contracts/idle-permissions.json beside it.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -360,6 +364,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
   'scripts/dependency_audit_resolve.mts'
+  'scripts/idle_permissions_check.mts'
   '.mcp.json'
 )
 

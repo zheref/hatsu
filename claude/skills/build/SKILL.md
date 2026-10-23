@@ -115,7 +115,7 @@ Build runs § 2b's intake, then, for `job/parity`, **the spec read** in the work
 **Each linked skill owns its stops.** Build writes:
 `nen phase begin --effort <branch> --phase <author|publish|pr|readiness>
 --surface <s> [--model <reported-model>] --dial <level>`, with WORKFLOW's served-model `--note`
-only when attested; `nen phase end` closes each phase;
+only when attested; `nen phase end` closes each phase; a resume reads first (ren § 2a);
 the first phase records `nen session record` when the harness exposes an identity. `nen usage record`
 at every § 7 report carries `--dial <level>` — **owed on every target, a stage taxonomy or not**. On a target whose `nen/labels.json`
 declares no delivery stages, WORKFLOW § *A target repository with no delivery-stage taxonomy* holds as

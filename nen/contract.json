@@ -131,6 +131,21 @@
         "cwd": ".",
         "$comment": "Focused fixture for local Futon ownership metadata: a run starts before PR creation, then binds the typed selector, issue, PR, non-main base and pinned head outside the PR-controlled tree."
       },
+      "stop-bell-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for hooks/stop-bell.sh (zheref/hatsu#453): hermetic and offline under stub nen, osascript, afplay and uname, it proves one bell per per-gate marker that nen stop list names, each cleared by its own nen stop clear --gate/--effort and only that, stale and HATSU_ATTENTION=off markers consumed unrung, unreadable rows left alone, and the single-file fallbacks for a nen without stop list and for no nen at all."
+      },
+      "idle-permissions-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/idle_permissions_check.mts (zheref/hatsu#453 AC-3), which lists the idle-batch exemplars of contracts/idle-permissions.json that the session's Claude Code settings do not pre-allow. Hermetic and offline: rule matching, deny precedence, absent and unreadable settings, the 0/1/2 exits and the shipped list's shape."
+      },
+      "resume-proof": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The crash-and-resume proof's ledger half (zheref/hatsu#444): scripts/resume_proof.mts drives ren's and build's phase ledgers and the futon run manifest through an interruption after every phase begin and end, re-invokes under WORKFLOW's resume rule, and asserts convergence with the uninterrupted run (one entry per phase, one resumedAt on the interrupted one, a finished ledger byte-identical on re-invocation). It runs against the nen on PATH; it is a proof, not a general suite."
+      },
       "readiness-json-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -452,6 +467,39 @@
           "exe": "bash",
           "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/gh_api_read_fixture.test.mts"],
           "$comment": "Pinned Vitest fixture: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation. Install locked dependencies with npm ci --ignore-scripts first."
+        }
+      },
+      "stop-bell-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/stop_bell_fixture.mts"
+          ],
+          "$comment": "Hermetic hook fixture: stub nen/osascript/afplay/uname on PATH, a scratch git repository per case. Run when hooks/stop-bell.sh or its surface mirrors change."
+        }
+      },
+      "idle-permissions-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/idle_permissions_check_fixture.mts"
+          ],
+          "$comment": "Hermetic: scratch settings and exemplar files only. Run when the check, its fixture or contracts/idle-permissions.json changes."
+        }
+      },
+      "resume-proof": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/resume_proof.mts"
+          ],
+          "$comment": "Needs git and nen on PATH (nen phase begin --resume, nen run start|park); offline. Run when a composite's phase vocabulary, the resume rule in WORKFLOW § The effort's ledgers, or the nen pin changes."
         }
       },
       "futon-effort-guard": {
