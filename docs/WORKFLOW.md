@@ -250,6 +250,21 @@ decide whether a number is good enough. At nen `0.7.0`, `--touched --base <ref>`
 to the files the diff names and — with no `--threshold` — reads the ladder here itself, printing a `ladder:`
 line and a `band` per row (`under-minimum` / `minimum` / `recommended` / `ideal`). It still never gates.
 
+**Hatsu's own shell guards are measured on their focused lanes** (zheref/hatsu#148, UZF-19). A measured lane
+runs its `scripts/*.sh` fixture through `scripts/shell_coverage.mts`: with the pinned Bashcov, a Bash 5+
+and the three pinned gems (Bashcov, SimpleCov, simplecov-lcov) that `nen/contract.json` → `project.toolchain` declares (`nen shu tools --repo .
+--install` puts the gems in the user gem home), its `test` row writes `coverage/<lane>/lcov.info` and nen
+records the capture; `nen shu coverage --lane <lane> --repo . --touched --base origin/<base>
+--from-capture` then reads that capture and runs no fixture. The `coverage` row is extraction only. Without
+Bashcov the fixture still runs, once and uninstrumented, and says so, and `--from-capture` refuses for want
+of a capture: unmeasured, never a clean zero. A POSIX `sh` fixture runs under `sh` first, then
+instrumented. Only scripts the fixture executed in place are reported, so a script a fixture copies to a
+temporary root, or one another lane exercises, is `unmatched` here. A lane whose fixture Bashcov cannot
+measure yet (its trace leaks into the output the fixture asserts on, or cannot be parsed) seats its
+`coverage` row with that reason instead. `HATSU_SHELL_COVERAGE=0` skips the
+instrumentation and `require` refuses without it. The TypeScript guards have no line-coverage tool
+declared yet (the `plugin` lane's `coverage` seat). The ladder above is unchanged.
+
 ### `launch`
 
 ```json
