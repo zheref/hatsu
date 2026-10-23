@@ -579,8 +579,7 @@ stricter applies and the disagreement is said beside the verdict.
 | **`optional`** | requested within the caps | never waited for | Ready (a declared bot's round waived by nen, below), or the **hanten prompt** below |
 | **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero spend on requested reviewers (installed CI lanes still run: *Event-driven reviewer lanes*) | never waited for | Ready (a declared bot's round waived by nen, below), or the **hanten prompt** below |
 
-**nen's waiver — a declared bot's round** (zheref/hatsu#428; [HR-333](ROSTER.md#hr-333), a reading owed
-the maintainer's ruling). Under an effective `optional` or `off`, nen waives the owed round of every
+**nen's waiver — a declared bot's round** (zheref/hatsu#428; [HR-333](ROSTER.md#hr-333), ruled 2026-10-22). Under an effective `optional` or `off`, nen waives the owed round of every
 reviewer that `nen/gates.json` declares `kind: "bot"` with an **identical declaration at the base and at the
 default branch's tip**: the parsed identity is compared (`name`, `kind` and the patterns and options), never
 a `$comment`. It reports the waiver as `owedRounds[].waivedByAiPolicy` in `--json`, as a `waived bot round:
@@ -779,7 +778,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   ([`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*); a closed-unmerged PR is a `gh pr view` state.
   `nen pr merge --release-unit` reads `aiReviewers` from nen `0.26` (NN-PR-#463) and waives a declared bot's
   round. A proposal whose only owed round is Copilot's therefore merges inside § 3a's bounds, under kazaana or not, once
-  its base carries the declaration (zheref/hatsu#428) and [HR-333](ROSTER.md#hr-333) is ruled (HR-3). Under `required`, or for a round nen does not waive,
+  its base carries the declaration (zheref/hatsu#428; [HR-333](ROSTER.md#hr-333)). Under `required`, or for a round nen does not waive,
   the proposal still fails § 3's second condition and halts (getsuga § 3a). Nothing is owed to nen for it.
 - **`cleanup`.** `git worktree remove|prune`, `git branch -d`, `git push origin --delete <branch>`, `git remote
   prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
