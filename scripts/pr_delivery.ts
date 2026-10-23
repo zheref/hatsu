@@ -477,4 +477,11 @@ function main(): void {
   }
 }
 
-if (process.argv[1] !== undefined && resolvePath(process.argv[1]) === resolvePath(import.meta.filename)) main();
+// Compared by real path: through a symlinked plugin root (~/.claude/skills/hatsu is one) argv[1]
+// keeps the link while import.meta.filename is physical, and a lexical compare skipped main()
+// silently, exit 0 with nothing written (Phinks, hanten on the delivery-guard template path).
+function isEntry(argv1: string | undefined): boolean {
+  if (argv1 === undefined) return false;
+  try { return realpathSync(argv1) === realpathSync(import.meta.filename); } catch { return resolvePath(argv1) === resolvePath(import.meta.filename); }
+}
+if (isEntry(process.argv[1])) main();

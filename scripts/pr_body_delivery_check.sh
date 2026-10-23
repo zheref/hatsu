@@ -2,7 +2,7 @@
 # HA#321: compare the first Delivery block to exact-current-branch Nen ledgers.
 set -euo pipefail
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+here="$(CDPATH= cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 body=''
 repo=''
 base=''
