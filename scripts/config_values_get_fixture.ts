@@ -34,8 +34,8 @@ function reading(repo: string, ...args: string[]) {
   const result = get(repo, ...args, "--json");
   return { status: result.status, stderr: result.stderr, ...(result.stdout ? JSON.parse(result.stdout) : {}) };
 }
-/** getsuga § 3a merges only on exit 0 with the value "self"; every other reading falls back to the declaration gate. */
-const mergeAllowed = (r: { status: number | null; value?: unknown }) => r.status === 0 && r.value === "self";
+/** getsuga § 3a merges only on exit 0 with --json's value "self" in state declared or default; every other reading falls back. */
+const mergeAllowed = (r: { status: number | null; value?: unknown; state?: string }) => r.status === 0 && r.value === "self" && ["declared", "default"].includes(r.state ?? "");
 const declaring = (value: unknown) => `${JSON.stringify({ release: { unitPaths: ["CHANGELOG.md"], proposalMerge: value } })}\n`;
 
 test("a repository declaring human reads human at the ref: § 3a refuses the merge", () => {
@@ -89,6 +89,36 @@ test("an unreadable declaration, an unresolvable ref and a symlinked file are ex
   const refused = get(linked);
   assert.equal(refused.status, 2);
   assert.match(refused.stderr, /symlink is refused/);
+});
+
+test("a symlinked nen/ directory or nen/workflow.json committed at the ref is exit 2, never the default self", () => {
+  // git never follows a committed symlink, so without a per-component check this read as absent (HA-PR-#457 review)
+  for (const layout of ["dir", "file"]) {
+    const repo = mkdtempSync(join(tmpdir(), "hatsu-config-get-link-"));
+    temporary.push(repo);
+    git(repo, "init", "-q", "-b", "main");
+    mkdirSync(join(repo, "real"));
+    writeFileSync(join(repo, "real/workflow.json"), declaring("human"));
+    if (layout === "dir") symlinkSync("real", join(repo, "nen"));
+    else { mkdirSync(join(repo, "nen")); symlinkSync("../real/workflow.json", join(repo, "nen/workflow.json")); }
+    git(repo, "add", "-A");
+    git(repo, "commit", "-qm", `linked ${layout}`);
+    const result = get(repo, "--ref", "HEAD");
+    assert.equal(result.status, 2, `${layout}: ${result.stdout}${result.stderr}`);
+    assert.match(result.stderr, layout === "dir" ? /nen is a symlink; a symlink is refused \(SEC-7\)/ : /nen\/workflow\.json is a symlink; a symlink is refused \(SEC-7\)/);
+    assert.equal(result.stdout, "");
+  }
+});
+
+test("a parent key present but not an object is invalid at exit 1, never absent: § 3a refuses the merge", () => {
+  for (const release of ["human", ["human"], null, 7]) {
+    const r = reading(repoWith(`${JSON.stringify({ release })}\n`), "--ref", "HEAD");
+    assert.deepEqual([r.status, r.state, r.misshaped], [1, "invalid", "release"], JSON.stringify(release));
+    assert.equal(mergeAllowed(r), false);
+  }
+  assert.match(get(repoWith(`${JSON.stringify({ release: "human" })}\n`), "--ref", "HEAD").stdout, /invalid \(release is declared but not an object\)/);
+  const top = reading(repoWith("[]\n"), "--ref", "HEAD");
+  assert.deepEqual([top.status, top.state], [1, "invalid"]);
 });
 
 test("usage: an unknown flag, a missing --id and an unknown catalogue id are exit 2", () => {

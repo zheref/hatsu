@@ -36,7 +36,7 @@ function refuseExaminerReviewer(rows: any[], argv: string[]): void {
     if (examiners.has(persona)) throw new Error(`refusing review.scopes.${scope}.persona = ${JSON.stringify(entry.persona)}: an intake examiner (${[...examiners].join(' | ')}) challenges only at capture intake and is never a hanten reviewer (HR-23)`);
   }
 }
-/** HA#414: one catalogued value's effective reading, optionally at a git ref (getsuga § 3a reads release.proposalMerge at origin/<branch.base>). */
+/** HA#414: one catalogued value's effective reading, optionally at a git ref (getsuga § 3a reads release.proposalMerge at the re-check's <baseNow>). */
 function getValue(rows: any[], argv: string[]): number {
   const opts: Record<string, string> = {};
   let json = false;
@@ -53,53 +53,77 @@ function getValue(rows: any[], argv: string[]): number {
   const ref = opts['--ref'];
   let text: string | undefined;
   let sha: string | undefined;
+  const unreadable = (why: string) => new Error(`get: could not read ${plain(row.file)}${sha ? ' at '+sha : ''}: ${why}`);
+  // Every component of the declaration's path, outermost first: nen, then nen/workflow.json.
+  const parts = String(row.file).split('/');
+  const prefixes = parts.map((_, i) => parts.slice(0, i+1).join('/'));
   if (ref !== undefined) {
     if (ref.startsWith('-')) throw new Error(`get: --ref ${JSON.stringify(plain(ref))} is not a ref`);
     const rev = spawnSync('git',['-C',repo,'rev-parse','--verify','-q',`${ref}^{commit}`],{encoding:'utf8'});
     if (rev.status !== 0) throw new Error(`get: could not read ${plain(row.file)}: ${JSON.stringify(plain(ref))} does not resolve to a commit in ${plain(repo)}`);
     sha = rev.stdout.trim();
-    const listed = spawnSync('git',['-C',repo,'ls-tree','--full-tree','--name-only',sha,'--',row.file],{encoding:'utf8'});
-    if (listed.status !== 0) throw new Error(`get: could not read ${plain(row.file)} at ${sha}`);
-    if (listed.stdout.trim() !== '') {
+    // SEC-7: git never follows a committed symlink (mode 120000) or a submodule (160000), so a path
+    // through one would list nothing and read as absent; each component is checked by its own entry.
+    let found = true;
+    for (const [i, prefix] of prefixes.entries()) {
+      const listed = spawnSync('git',['-C',repo,'ls-tree','--full-tree',sha,'--',prefix],{encoding:'utf8'});
+      if (listed.status !== 0) throw unreadable('git ls-tree failed');
+      const entry = listed.stdout.split('\n').find(line => line.endsWith(`\t${prefix}`));
+      if (!entry) { found = false; break; }
+      const [mode, type] = entry.split(/\s+/);
+      if (mode === '120000') throw unreadable(`${plain(prefix)} is a symlink; a symlink is refused (SEC-7)`);
+      if (type !== (i === prefixes.length-1 ? 'blob' : 'tree')) throw unreadable(`${plain(prefix)} is a ${plain(type)} (mode ${plain(mode)}), not a ${i === prefixes.length-1 ? 'file' : 'directory'}`);
+    }
+    if (found) {
       const shown = spawnSync('git',['-C',repo,'show',`${sha}:${row.file}`],{encoding:'utf8',maxBuffer:16*1024*1024});
-      if (shown.status !== 0) throw new Error(`get: could not read ${plain(row.file)} at ${sha}`);
+      if (shown.status !== 0) throw unreadable('git show failed');
       text = shown.stdout;
     }
   } else {
+    const linked = prefixes.find(prefix => { try { return lstatSync(join(repo,prefix)).isSymbolicLink(); } catch { return false; } });
+    if (linked) throw unreadable(`${plain(linked)} is a symlink; a symlink is refused (SEC-7)`);
     const file = join(repo,row.file);
-    const safe = [dirname(file),file].every(path=>{try{return !lstatSync(path).isSymbolicLink();}catch{return true;}});
-    if (!safe) throw new Error(`get: could not read ${plain(row.file)}: a symlink is refused (SEC-1)`);
     if (existsSync(file)) {
       const rel = relative(realpathSync(repo),realpathSync(file));
-      if (isAbsolute(rel) || rel === '..' || rel.startsWith('../')) throw new Error(`get: could not read ${plain(row.file)}: it resolves outside --repo`);
+      if (isAbsolute(rel) || rel === '..' || rel.startsWith('../')) throw unreadable('it resolves outside --repo');
       text = readFileSync(file,'utf8');
     }
   }
   let present = false;
   let value: unknown;
+  let misshaped: string | undefined;
   if (text !== undefined) {
     let node: any;
-    try { node = JSON.parse(text); } catch { throw new Error(`get: could not read ${plain(row.file)}${sha ? ' at '+sha : ''}: not valid JSON`); }
+    try { node = JSON.parse(text); } catch { throw unreadable('not valid JSON'); }
     present = true;
-    for (const key of String(row.path).split('.')) {
-      if (node && typeof node === 'object' && !Array.isArray(node) && Object.prototype.hasOwnProperty.call(node,key)) node = node[key];
-      else { present = false; break; }
+    const keys = String(row.path).split('.');
+    for (const [i, key] of keys.entries()) {
+      if (!node || typeof node !== 'object' || Array.isArray(node)) {
+        // A component that is present but not an object is a mis-shaped declaration, never an absent one.
+        misshaped = i === 0 ? '(the document)' : keys.slice(0, i).join('.');
+        break;
+      }
+      if (!Object.prototype.hasOwnProperty.call(node,key)) { present = false; break; }
+      node = node[key];
     }
     if (present) value = node;
   }
   let state: string;
-  if (present) state = row.kind === 'enum' && !(row.options ?? []).some((option: unknown) => isDeepStrictEqual(option,value)) ? 'invalid' : 'declared';
+  if (misshaped) state = 'invalid';
+  else if (present) state = row.kind === 'enum' && !(row.options ?? []).some((option: unknown) => isDeepStrictEqual(option,value)) ? 'invalid' : 'declared';
   else if (row.default !== undefined) { state = 'default'; value = row.default; }
   else state = 'unset';
   const where = sha ? `at ${plain(ref!)} ${sha}` : 'in the working tree';
-  if (json) process.stdout.write(JSON.stringify({id:row.id,file:row.file,path:row.path,state,value:value ?? null,options:row.options ?? null,ref:ref ?? null,sha:sha ?? null},null,2)+'\n');
+  if (json) process.stdout.write(JSON.stringify({id:row.id,file:row.file,path:row.path,state,value:value ?? null,misshaped:misshaped ?? null,options:row.options ?? null,ref:ref ?? null,sha:sha ?? null},null,2)+'\n');
   else {
-      const told = state === 'unset' ? 'unset, no default' : `${JSON.stringify(value)} (${state === 'default' ? 'absent, catalogue default' : state === 'invalid' ? 'declared, outside '+(row.options ?? []).join(' | ') : 'declared'})`;
-      process.stdout.write(plain(`${row.id} = ${told} ${where}`)+'\n');
-    }
-    return state === 'declared' || state === 'default' ? 0 : 1;
+    const told = misshaped ? `invalid (${misshaped} is declared but not an object)`
+      : state === 'unset' ? 'unset, no default'
+      : `${JSON.stringify(value)} (${state === 'default' ? 'absent, catalogue default' : state === 'invalid' ? 'declared, outside '+(row.options ?? []).join(' | ') : 'declared'})`;
+    process.stdout.write(plain(`${row.id} = ${told} ${where}`)+'\n');
   }
-  const safeOutput=(value:string)=>value.replace(/\r\n?/g,'\n').split('\n').map(plain).join('\n');
+  return state === 'declared' || state === 'default' ? 0 : 1;
+}
+const safeOutput=(value:string)=>value.replace(/\r\n?/g,'\n').split('\n').map(plain).join('\n');
 try {
   let root = dirname(here);
   const forwarded: string[] = [];

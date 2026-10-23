@@ -578,7 +578,21 @@ sed 's/<from>/compose-uzf-v2/g; s/<to>/swiftui-tca-uzf-v2/g; s/<from-prefix>/KT/
 printf '| `swiftui-tca-uzf-v2` | `compose-uzf-v2` | [`swiftui-tca-uzf-v2--compose-uzf-v2.md`](swiftui-tca-uzf-v2--compose-uzf-v2.md) | 1 | 2026-10-21 |\n| `compose-uzf-v2` | `swiftui-tca-uzf-v2` | [`compose-uzf-v2--swiftui-tca-uzf-v2.md`](compose-uzf-v2--swiftui-tca-uzf-v2.md) | 0 | — |\n' >> "$to/handbooks/ports/INDEX.md"
 g -C "$to" add -A; g -C "$to" commit -qm tmpl; g clone -q "$to" "$tc"
 outt15="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT 2>&1)"; rct15=$?
-check "T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, a 0-rulings pair file and both INDEX rows included, the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
+check "T15: templates/ports/pair.md and INDEX.md rendered into the tip, with a second pair file at 0 rulings and both INDEX rows, read clean and the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
+# T15b (zheref/hatsu#406): the rendered INDEX carries exactly one row per pair file, the 0-rulings one
+# included. The guard itself never compares INDEX rows to files, so this parity is checked here, with a
+# red case: the same directory with the 0-rulings row dropped must fail it.
+index_parity() { # <ports dir>: 0 when every non-INDEX *.md has exactly one `](<file>)` row in INDEX.md
+  for pf in "$1"/*.md; do
+    b="${pf##*/}"; [ "$b" = INDEX.md ] && continue
+    [ "$(grep -cF "](${b})" "$1/INDEX.md")" = 1 ] || return 1
+  done
+}
+index_parity "$to/handbooks/ports"; rcp_green=$?
+red="$root/tmpl-red"; mkdir -p "$red"; cp "$to/handbooks/ports/"*.md "$red/"
+grep -vF '](compose-uzf-v2--swiftui-tca-uzf-v2.md)' "$to/handbooks/ports/INDEX.md" > "$red/INDEX.md"
+index_parity "$red"; rcp_red=$?
+check "T15b: the rendered INDEX has one row per pair file, the 0-rulings file included; dropping that row fails the parity" '[ "$rcp_green" = 0 ] && [ "$rcp_red" = 1 ]'
 # T16 (zheref/hatsu#406): the INDEX template defines a row per pair FILE, the wording of the rendered
 # handbooks/ports/INDEX.md, so a fresh render puts no prose diff back over a 0-rulings pair file
 check "T16: templates/ports/INDEX.md opens with one row per directed pair file, never per pair that carries rulings" 'grep -qF "One row per **directed** pair file (stack scenarios from \`handbooks/stack-matrix.md\`); a pair with" "$repo_root/templates/ports/INDEX.md" && ! grep -q "that carries rulings" "$repo_root/templates/ports/INDEX.md"'
