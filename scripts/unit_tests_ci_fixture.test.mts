@@ -74,7 +74,8 @@ try {
     ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
-    ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard']]) {
+    ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
+    ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer']]) {
     writeFileSync(join(repo, 'scripts', script), '');
     result = run();
     assert(result.status === 2 && result.stderr.includes(`${script} has no required fixture`), `missing ${lane} fixture did not refuse`);

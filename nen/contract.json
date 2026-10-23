@@ -325,6 +325,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/dependency_audit_resolve.mts (zheref/hatsu#247, item 1), the Node dependency audit hanten section 2a runs before Feitan reads, through contracts/scans.json -> dependencyAudit.node (hatsu.scans/v0.2): packageManager selects the lockfile, which is parsed strictly and its registry packages queried against OSV; no package manager and nothing in the tree is ever executed. Its fixture is hermetic and offline, against the live scans contract and a loopback stub OSV with one route per answer shape. It covers: a pnpm tree scanned and its finding reported; pnpm 5, 6 and 9, flow entries, key comments and a commented header read, explicit and unreadable keys, a cut file and a bodyless key refused; yarn Berry (with a patch) and classic (an npm alias, tight entries, a truncated block); npm 1 to 3 (an alias); registry-host, foreign-tarball, git, local and http entries; unqueried never clean; the stack routes and the stack catalogue; a decoy lockfile; a hostile tree that runs nothing and sends no token or canary; symlinked, directory, null, array and BOM manifests and lockfiles; maxDepth on a 20,000-deep npm nest and maxEntries; malformed, oversized, slow, failing and unreachable OSV answers and out-of-range severities; 2,500 findings reaching a pipe whole; and wiring stops, including each malformed optional contract key, at exit 2. scripts/unit_tests_ci.mts runs it in unit-tests.yml once this lands (BC-9). Run it as `nen shu test --lane dependency-audit-guard --repo <hatsu>` when the script, its fixture or the node row changes. It is not a general suite."
+      },
+      "schedule-printer": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/schedule_install.mts (zheref/hatsu#448), the printer of the steady-state scheduler rows in contracts/schedule.json (ruling R-2026-10-23-21: Claude Desktop local scheduled tasks on the maintainer's machine). Its fixture is hermetic and offline: the live contract printed whole with every placeholder filled (exit 0) or each unfilled one named (exit 1), nothing registered or written (HOME stays empty), each wiring refusal at exit 2, and the symlinked entry. scripts/unit_tests_ci.mts runs it in unit-tests.yml (BC-9). Run it as `nen shu test --lane schedule-printer --repo <hatsu>` when the script, its fixture or contracts/schedule.json changes."
       }
     },
     "defaultLane": "plugin",
@@ -913,6 +918,17 @@
             "scripts/dependency_audit_resolve_fixture.mts"
           ],
           "$comment": "Hermetic dependency-audit fixture over throwaway trees and a loopback stub OSV, read against the live contracts/scans.json (zheref/hatsu#247). Needs node only; no package manager, no gh and no network."
+        }
+      },
+      "schedule-printer": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/schedule_install_fixture.mts"
+          ],
+          "$comment": "Hermetic schedule-printer fixture against the live contracts/schedule.json and throwaway copies (zheref/hatsu#448). Needs node only; no gh, no network, no Claude Desktop."
         }
       }
     },

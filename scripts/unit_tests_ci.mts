@@ -37,6 +37,7 @@ const gated: Array<[string, string, string]> = [
   // docs/NEN-CONTRACT.md's echoed pin line stale fails unit-tests.yml on every pull request.
   ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
   ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
+  ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
