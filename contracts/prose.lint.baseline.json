@@ -3590,12 +3590,6 @@
     {
       "path": "docs/NEN-CONTRACT.md",
       "rule": "PL-01",
-      "text": "on the committed tree, by hand at each repin, and no C",
-      "count": 1
-    },
-    {
-      "path": "docs/NEN-CONTRACT.md",
-      "rule": "PL-01",
       "text": "needs the binary placed by hand before a sandboxed run",
       "count": 1
     },

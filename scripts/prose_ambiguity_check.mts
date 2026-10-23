@@ -601,7 +601,14 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Compared as REAL paths: invoked through a symlinked directory (/var -> /private/var on macOS, the
+// shape a mktmpdir hands a caller) the unresolved argv path never equals the resolved module URL, and a
+// guard that then runs nothing exits 0 -- a false pass, never a verdict (found by the trusted preflight's
+// fixture, 2026-10-22).
+function samePath(a: string, b: string): boolean {
+  try { return realpathSync(a) === realpathSync(b); } catch { return a === b; }
+}
+if (process.argv[1] && samePath(resolve(process.argv[1]), fileURLToPath(import.meta.url))) {
   const r = run(process.argv.slice(2));
   process.stdout.write(r.out);
   process.stderr.write(r.err);

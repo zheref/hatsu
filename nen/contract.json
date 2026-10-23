@@ -214,7 +214,7 @@
       "workflow-policy-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/workflow_runner_policy_check.rb, the structural, offline regression guard four PR-facing workflows (plugin-bump-check.yml, surface-mirror-check.yml, pr-readiness.yml, prose-size-check.yml) and the surface-mirror-regenerate.yml builder all invoke as a trusted-revision step; its self-test also runs the frozen nen-digest and prose-guard steps under bash against scratch inputs, offline. Same one-lane-per-executable-guard pattern as tenkai-guard and release-guard: the guard shipped with a --self-test and no lane, so its own negative fixtures ran only when a human typed the command by hand."
+        "$comment": "The focused lane for scripts/workflow_runner_policy_check.rb, the structural, offline regression guard five PR-facing workflows (plugin-bump-check.yml, surface-mirror-check.yml, pr-readiness.yml, prose-size-check.yml, prose-ambiguity-check.yml) and the surface-mirror-regenerate.yml builder all invoke as a trusted-revision step; its self-test also runs the frozen nen-digest and prose-guard steps under bash against scratch inputs, offline. Same one-lane-per-executable-guard pattern as tenkai-guard and release-guard: the guard shipped with a --self-test and no lane, so its own negative fixtures ran only when a human typed the command by hand."
       },
       "release-guard": {
         "stack": "claude-code-plugin",
@@ -744,7 +744,7 @@
             "bash",
             "scripts/plugin_version_refs_fixture.sh"
           ],
-          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts, its fixture, nen/contract.json or docs/NEN-CONTRACT.md changes (every repin). Its last case runs --check-nen-pin on the committed tree, so a repin that leaves the page's echoed pin stale fails this lane; no CI step runs it yet, because every pr-readiness.yml step and the canon-contracts step are FROZEN (scripts/workflow_runner_policy_check.rb)."
+          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts, its fixture, nen/contract.json or docs/NEN-CONTRACT.md changes (every repin). Its last case runs --check-nen-pin on the committed tree, so a repin that leaves the page's echoed pin stale fails this lane -- and unit-tests.yml, which runs this lane on every pull request through scripts/unit_tests_ci.mts (the trusted runner selects it whenever the guard exists beside its fixture). The lane argv and the fixture are the pull request's own, so that run catches a stale echo, not a pull request that also rewrites the fixture or the lane; a trusted frozen step (a two-step landing, docs/GATE-CONFIGURATION.md) stays the later route for that."
         }
       },
       "pr-body-guard": {
