@@ -479,11 +479,12 @@ every member is unavailable **by (c)'s observations**; a posted-review lane make
 requested, and declares no round check); nen `0.26` exposes its state as `eventRun.state` (zheref/nen#440), but
 reading those states as (c)'s observations is unruled, so until a ruling does, under `required` a PR
 whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
-Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **Until the
-nen pin carries zheref/nen#372's fix** (NN-PR-#432, merged, not yet released), nen reads `reviewers[]` and
-`round_quorum` from the checkout it is handed — the pull request's head under `en`'s call — so a PR that
-changes either key, `kuchiyose`'s install PR among them, is judged on its own declaration (SEC-6): `en`
-says so beside the quoted verdict, and the maintainer's merge is the check; the repin retires this sentence.
+Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **The gates file is
+the base's** (zheref/nen#372, in the pinned nen `0.26`): without `--gates`, nen reads `reviewers[]`,
+`round_quorum` and every other gate input at the pull request's base, so a PR that changes either key,
+`kuchiyose`'s install PR among them, is judged by the declaration it would replace, never its own (SEC-6).
+`kuchiyose verify`'s lane-state read passes a copy from outside the checkout instead, which nen uses as given
+(`meta.identities.read: gates-flag`) and which is never that PR's readiness.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on

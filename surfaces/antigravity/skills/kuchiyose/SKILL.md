@@ -54,12 +54,14 @@ The literal first token `verify` chooses the template; the rest goes to `nen par
 
 - **Provider** `ci.provider`, else `AK`, by `nen repo resolve AK --repo "$hatsu_root"` (HR-144(4)).
 - **Pin** `ci.pinned`, else the provider registry's `latest`, proved by `node
-  "$hatsu_root/scripts/gh_api_read.mts" tag-ref <provider> <tag>`, which returns its SHA. **No tag,
-  `latest` null or a branch: stop** (AK-IS-#50).
+  "$hatsu_root/scripts/provider_tag_commit.mts" https://github.com/<owner>/<repo>.git <tag>`: the
+  **commit**, peeled from an annotated tag's object (`tag-ref` answers the object, never compared to a
+  commit). Exit `1` (no such tag), `2` or `3` (unread), `latest` null or a branch: **stop** (AK-IS-#50).
+  The report prints that commit.
 - **Every provider file is read at that SHA** in the provider's reading clone `<pc>` =
   `${XDG_CACHE_HOME:-$HOME/.cache}/hatsu/checkouts/<owner>/<repo>` of the resolved slug (absent:
   `git clone https://github.com/<owner>/<repo>.git <pc>`; never written): `git -C <pc> fetch --tags`, `git -C <pc> rev-parse <tag>^{commit}` equal to the proved
-  SHA (else stop: a stale local tag), then `git -C <pc> show <sha>:<file>` for
+  commit (else stop: a stale local tag), then `git -C <pc> show <commit>:<file>` for
   `schemas/tiers.json` (AK-IS-#49's shape), `schemas/permission-tiers.yml` and
   `schemas/required-checks.json`. **No catalogue: stop, naming AK-IS-#49** — never one written from
   memory. A `not-installable` tier is listed, never offered.
@@ -122,9 +124,11 @@ The PR is `--pr`, else the newest open PR, else a draft probe PR **the maintaine
 "$hatsu_root/scripts/gh_token_env.sh" nen pr ready <n> --gh-repo <slug> --gates <g> --json > <scratch>/ready.json
 ```
 
-`<g>` is the declaration that lists the lanes: the run's worktree's `nen/gates.json` while the install PR
-is open (judged on its own declaration, PROCESS § *Event-driven reviewer lanes*, said beside the verdict),
-the core checkout's once it merged. Read the exit after the verb alone. Per lane, from `rounds-owed`'s `roundQuorum.members[].eventRun.state`
+Run it with the consumer's **core checkout** as the working directory. While the install PR is open, `<g>`
+is a copy of its head's `nen/gates.json` **outside the checkout** (`<scratch>/gates-<head>.json`), which nen
+uses as given (`meta.identities.read: gates-flag`, quoted beside the result): a lane-state read, never the
+PR's readiness, which stays `en`'s at the base. Once merged, drop `--gates` (read: `base`). Read the exit
+after the verb alone. Per lane, from `rounds-owed`'s `roundQuorum.members[].eventRun.state`
 (or `owedRounds[].state`):
 
 | State | Reported | Waiting on |
@@ -141,7 +145,7 @@ at the provider's **G4** (`CON-7`), on the maintainer's call.
 ## 7. Report
 
 ```
-<slug> (<gate>) · AK @ <tag> (<sha>) · tier <t> · hidan <on|off> · auth <type> · lanes <names>
+<slug> (<gate>) · AK @ <tag> (<commit>) · tier <t> · hidan <on|off> · auth <type> · lanes <names>
   install: <PR | stopped at § <n>: <reason>> · ceremony: <printed | done>
   registry: <owed after the install PR merges | owed: provider worktree <path>, G4 | PR>
   verify: <lane> <state> … · readiness: nen pr ready quoted
@@ -149,7 +153,7 @@ at the provider's **G4** (`CON-7`), on the maintainer's call.
 
 ## Residue
 
-[`PROCESS.md`](../../../../docs/PROCESS.md) § *Residue*: the reading clone's `git clone`; the provider reads by `git show` and `tag-ref` (a
+[`PROCESS.md`](../../../../docs/PROCESS.md) § *Residue*: the reading clone's `git clone`; the provider reads by `git show` and `git ls-remote` (`provider_tag_commit.mts`) (a
 nen read of a provider file at a ref, unfiled); the caller render (AK-IS-#49); a gates array member
 through `nen schema set` (unfiled); a lane's log notice (unfiled); `tenkai_adopt.sh diagnose`'s
 caller `drift` row, owed with the catalogue.

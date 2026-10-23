@@ -33,7 +33,7 @@ only the type is recorded, never the secret.
 ## What it writes, and where
 
 Everything lands in the consumer's own tree, in one PR at that repository's gate (G2 for a consumer,
-G4 for a canon repository), read from the provider at one proved commit — the tag's SHA, checked
+G4 for a canon repository), read from the provider at one proved commit — the commit the tag names (an annotated tag peeled), checked
 against the local tag of a reading clone under `${XDG_CACHE_HOME:-$HOME/.cache}/hatsu/checkouts/` before any
 file is read:
 
@@ -74,14 +74,14 @@ steps in your own terminal, never inside the agent session**, so no token reache
    running the printed `gh api --method POST repos/<owner/name>/rulesets --input <file>` line.
 
 Never paste a secret value into the session. One that was typed there is rotated. The plugin's
-permission pack denies the session `gh secret set`/`delete`, `gh variable set` and `gh api` writes to
-rulesets, secrets and variables, so these steps stay yours. A global flag placed before the
+permission pack denies the session `gh secret set`/`delete`, `gh variable set` and every `gh api` call on
+the rulesets, secrets and variables paths, so these steps stay yours. A global flag placed before the
 subcommand (`gh -R <owner/name> secret set`) is not matched by that deny, so the rule in the skill
 still binds.
 
 ## Checking the lanes
 
-`hatsu:kuchiyose verify [--repo <path>] [--pr <n>]` reads `nen pr ready --json` (through `scripts/gh_token_env.sh`, against the install branch's own `nen/gates.json` while the install PR is open and the default branch's once it merged, since only those list the lanes) on the PR you name, the
+`hatsu:kuchiyose verify [--repo <path>] [--pr <n>]` reads `nen pr ready --json` (through `scripts/gh_token_env.sh`, run from your core checkout: while the install PR is open it passes a copy of that PR's `nen/gates.json` from outside the checkout, which nen uses as given (`gates-flag`) because only that file lists the lanes; once the PR merges it reads the base as usual) on the PR you name, the
 newest open one, or a draft probe PR you open, and reports each lane as `live` (a review posted under
 its App), `skipped-unprovisioned` or `withheld` (it ran and did not review), `no run`, or pending. The
 two middle states differ only in the job log's notice, which no nen verb reads yet, so until one does

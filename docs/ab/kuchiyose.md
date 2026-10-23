@@ -61,6 +61,8 @@ hand-edited, because that would be the improvised fallback `D10` forbids.
 |---|---|---|---|
 | 18 | the provider's `nen/repos.json` → `latest` at `origin/main` | `null`; `git tag` lists no tag | — |
 | 19 | `node scripts/gh_api_read.mts tag-ref zheref/akatsuki-ai v0.1.0` | `Not Found (HTTP 404)` | `1` |
+| 19b | `gh api repos/zheref/hatsu/git/ref/tags/v0.94.0` beside `git rev-parse v0.94.0^{commit}` (a Hatsu annotated tag, the delta review's probe) | `object.type: tag`, `d6025f61…` · the commit `8952bef3…`: `tag-ref` answers the tag **object**, so comparing it with a commit refuses every annotated pin | — |
+| 19c | `node scripts/provider_tag_commit.mts https://github.com/zheref/hatsu.git v0.94.0` | `{"tag":"v0.94.0","kind":"annotated","object":"d6025f61…","commit":"8952bef3…"}`: § 2 compares and reads at `commit`; the fixture (`provider_tag_commit_fixture.mts`, lane `gh-api-read-guard`) holds both tag kinds and the 1/2/3 refusals | `0` |
 | 20 | `git show origin/main:schemas/tiers.json` in the provider's checkout | *"fatal: path 'schemas/tiers.json' does not exist in 'origin/main'"* (AK-IS-#49 open) | `128` |
 | 21 | the provider's `ninjutsu/src` searched for a tier render verb | none (AK-IS-#49's `ninjutsu tier render` unbuilt); the RUNBOOK's A5 records `nen scaffold caller` absent (finding F1) | — |
 
@@ -81,6 +83,8 @@ render verb. That is the correct outcome, reported, never routed around.
 | 24 | `bash scripts/gh_token_env.sh nen pr ready 67 --gh-repo zheref/akatsuki-ai --json` from outside a checkout | *"nen: no reviewer identities …"* — so § 6 passes `--gates <core>/nen/gates.json` | `2` |
 | 24b | the same with `--gates <the provider's checkout>/nen/gates.json` | `not-ready`, the JSON document as row 25 reads it | `1` |
 | 25 | the same, run once from the provider's checkout (AK-PR-#67) | `not-ready`; `rounds-owed.owedRounds[]` = `sasuke`, `kakuzu`, `bugbot`, each `no-round-at-head` with **no `state`**: the provider's lanes are declared request-shaped (no `wake: "event"`), so nen reports no event-run state for them | `1` |
+
+nen `0.26`'s `pr ready --help` settles which file a `--gates` path supplies: one naming the checkout's own `nen/gates.json` is read at the base like the default, any other file inside the checkout is `local-fallback`, and a file **outside** the checkout is used as given (`gates-flag`). So § 6 runs from the core checkout and passes a copy of the install PR's file from scratch.
 
 nen `0.26`'s USAGE (*Event lanes*) gives an event lane's `eventRun.state` / `owedRounds[].state` as
 `in-flight`, `no-run`, `completed-without-review` or `posted`; § 6's table maps those. The lanes' own
