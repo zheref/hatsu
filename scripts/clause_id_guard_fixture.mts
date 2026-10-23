@@ -99,7 +99,7 @@ try {
   expect('an index-shaped row outside § Readings is not an entry', [roster('index-outside', ['## Rulings', '', entry(1), '', def(1)])], 0, /1 HR definitions/, null);
   expect('a roster with no § Readings heading exits 2', [roster('no-readings', [def(1)], [], false)], 2, null, /no `## Readings` heading/);
   const live = fileURLToPath(new URL('../docs/ROSTER.md', import.meta.url));
-  expect('the live roster holds a unique id space', [live], 0, /HR definitions, unique/, null);
+  expect('the live roster holds a unique id space, admitted statuses, no dangling citation and a matching index', [live], 0, /HR definitions, unique, each with an admitted status, no dangling citation, the readings index in parity/, null);
   console.log(`clause-id-guard fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
