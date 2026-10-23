@@ -516,7 +516,8 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
   otherwise it is stale, and one fresh request at the new head is owed, inside `round_policy.maxRounds`.
 - **(e) No reviewer outside `any_of` is owed.** nen's `rounds-owed` row also carries configured reviewers
   that are not quorum members, and a met or unmet quorum never excuses them. nen `v0.21.0`'s `--json`
-  exposes **no structured list of the owed reviewers** — the row's `reason` is prose, never parsed;
+  exposed **no structured list of the owed reviewers** (nen 0.26 lists `owedRounds[]`; whether this
+  condition reads it, widening the stop, is zheref/hatsu#430's ruling) — the row's `reason` is prose, never parsed;
   `roundQuorum.members` names only `any_of`, and `meta.roundCounts` counts rounds, not who is owed at head.
   So the sixth stop is reachable **only where every `reviewers[]` name in the target's `nen/gates.json` is
   in `round_quorum.any_of`** (true of Hatsu's own file today: `copilot` in both). Where a reviewer lies
@@ -563,37 +564,58 @@ therefore judged by the value already merged; its own change applies after it me
 "settable by hand or by an agent" means here: `config_values.sh set`, `tenkai` § 6d or a hand edit writes
 the value, and it **takes effect through a merged change**, never on the PR that carries it. The same reads
 return that ref's `nen/gates.json` for the reviewer criterion below. The Hatsu line names the value and both
-sources, e.g. `aiReviewers: optional (base <sha>, default <sha>)`. Reading the value inside `nen pr ready`,
-as nen already does for `checks.excluded` and `round_policy.maxRounds`, is a nen follow-up; until then these
-reads are residue, named.
+sources, e.g. `aiReviewers: optional (base <sha>, default <sha>)`. **nen reads the value too**, from nen
+`0.26` (NN-PR-#463): `nen pr ready` and `nen pr merge --release-unit` read it at the same two refs, by the same
+stricter-wins and absent-reads-`required` rule, and print it as `aiReviewers <effective>; base <sha>: <value>;
+default tip <sha>: <value>`. **For the expectation half nen's printed value governs** ([HR-333](ROSTER.md#hr-333)):
+the hanten prompt below is entered on it and the Hatsu line restates it. Hatsu's own reads remain for the
+**use** half, because no nen verb decides whether `request-reviews` is called, and for the reviewer criterion
+below. Where Hatsu's read and nen's disagree (for example one side's read failed and fell back to `required`, or the default tip moved between the two reads), the
+stricter applies and the disagreement is said beside the verdict.
 
 | Value | Use | Expectation | Terminus |
 |---|---|---|---|
 | **`required`** (absent reads the same — every consumer keeps today's behaviour) | requested within `round_policy`'s caps (`sharingan` § 6) | expected | verified Ready, or *The sixth stop* (a)–(e) above |
-| **`optional`** | requested within the caps | never waited for | Ready, or the **hanten prompt** below |
-| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero spend on requested reviewers (installed CI lanes still run: *Event-driven reviewer lanes*) | never waited for | Ready, or the **hanten prompt** below |
+| **`optional`** | requested within the caps | never waited for | Ready (a declared bot's round waived by nen, below), or the **hanten prompt** below |
+| **`off`** | **never requested** — `sharingan` and `en` skip `request-reviews` for `reviewers[]`; zero spend on requested reviewers (installed CI lanes still run: *Event-driven reviewer lanes*) | never waited for | Ready (a declared bot's round waived by nen, below), or the **hanten prompt** below |
 
-**The hanten prompt** (under an effective `optional` or `off`): when `nen pr ready <ref> --json` at the
-judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,
+**nen's waiver — a declared bot's round** (zheref/hatsu#428; [HR-333](ROSTER.md#hr-333), a reading owed
+the maintainer's ruling). Under an effective `optional` or `off`, nen waives the owed round of every
+reviewer that `nen/gates.json` declares `kind: "bot"` with an **identical declaration at the base and at the
+default branch's tip**: the parsed identity is compared (`name`, `kind` and the patterns and options), never
+a `$comment`. It reports the waiver as `owedRounds[].waivedByAiPolicy` in `--json`, as a `waived bot round:
+<name>` line in the plain output, and as the `aiReviewers quorum waivers: <names>; binding <n>/<m>` line.
+The verdict reads **`ready`** when the only owed rounds are waived bots' rounds **and** the round quorum's
+unwaived members meet it (`binding <n>/<m>`; with every member a waived bot, `0/0` meets it). `en` § 5's
+merge prompt then runs on that verified Ready, with the verdict and its waiver lines quoted and no ruling
+cited by hand, **`hanten` having settled every finding for the change set**: a waived round never stands for a
+change nobody reviewed. Hatsu declares its one reviewer, Copilot, a bot. These still bind under the waiver:
+a reviewer declared `kind: "human"` or with no `kind`, a declaration that differs between the two refs, a
+stall, an approval, and every other row. **The declaration is read at the base**, so the PR that adds it, and
+any PR whose base predates it, is judged without it. Such a PR, and a declaration that differs between the
+refs, is judged by the hanten prompt below.
+
+**The hanten prompt** (under an effective `optional` or `off`, for a round nen did not waive): when `nen pr
+ready <ref> --json` at the judged head has `failing` exactly `["rounds-owed"]`, `hanten` has settled every finding for the change set,
 and **every reviewer that row can owe is automated** (below), the PR goes to `en` § 5's merge prompt on
 hanten's rounds. `nen pr ready`'s **not-ready verdict is quoted verbatim and
 never called `ready`**, with one Hatsu line beside it naming the value and its source refs —
 `aiReviewers: optional (base <sha>, default <sha>)` —
 written into the body's completion checklist through `nen pr edit-body`. **Every reviewer must be
 automated — the analogue of *The sixth stop*'s (e).** nen's `rounds-owed` row owes every configured
-reviewer, and `reviewers[]` may hold a human; nen `v0.21.0` exposes no structured owed list and no
-`bot`/`kind` field on a reviewer (`src/schema/gates.ts` → `ReviewerIdentity`: `name`, `login_pattern`,
-`review_check_pattern`, `round_check_pattern`, `enrolment_check_pattern`, `bounded_policy_exempt`,
-`delivery_holistic_pass`, `approves_when_posted_at_head`). So the criterion is checked against
+reviewer whose round it did not waive, and `reviewers[]` may hold a human. nen lists the owed rounds
+(`owedRounds[]`, each with its declared `kind`), but it waives only a bot declaration that is consistent at
+both refs. So, for a round nen did not waive, the criterion is checked against
 `nen/gates.json` at **both refs**, the base and the default branch's tip, and **must pass at both**: **every
-`reviewers[]` entry's `name` is listed in `round_quorum.any_of`, and its `login_pattern.pattern` is anchored
-(begins `^`, ends `$`)**. **It is a declaration, not a check that a reviewer is a bot**: `any_of` is the
+`reviewers[]` entry's `name` is listed in `round_quorum.any_of`, its `login_pattern.pattern` is anchored
+(begins `^`, ends `$`), and no entry declares `kind: "human"`**. **It is a declaration, not a check that a reviewer is a bot**: `any_of` is the
 repository saying a reviewer is one of its interchangeable bot reviewers, and nen does not bind a pattern
 to bot logins — an anchored `^(copilot|.+)$` passes `nen schema check` and matches every login. Declaring a
 human there is the repository's own misdeclaration, the same as a broad `any_of` pattern
 (`docs/GATE-CONFIGURATION.md` § 3, *round_quorum*). Hatsu's own file qualifies (`copilot`, `^(copilot|copilot-pull-request-reviewer(\[bot\])?)$`, in
-`any_of`). Where any entry misses it at either ref, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen
-exposes the owed list or a reviewer kind. **A bot that does post is settled
+`any_of`). Where any entry misses it at either ref, the PR ends at `cap-reached`'s not-ready terminus, no prompt.
+This rule is the fallback for the transition (the PR that adds a bot declaration, and a PR whose base predates
+it) and for a consumer that has not declared its bots. **A bot that does post is settled
 first**: its threads are answered and resolved, and an unresolved thread is `unresolved-threads`, its own
 failing row, so no prompt until then. **Nothing else is relaxed**: any other failing row — `mergeable`,
 `checks-green`, `round-stalled`, `approvals-at-head`, `unresolved-threads` — ends at `cap-reached`'s
@@ -754,9 +776,11 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
   --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none
-  ([`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*); a closed-unmerged PR is a `gh pr view` state. **Owed
-  to nen**: `nen pr merge --release-unit` reading `aiReviewers`, so a proposal failing only on `rounds-owed` under
-  `optional`/`off` can merge inside § 3a's bounds (kazaana § 5) — to file.
+  ([`WORKFLOW.md`](WORKFLOW.md) § *Stacked pull requests*); a closed-unmerged PR is a `gh pr view` state.
+  `nen pr merge --release-unit` reads `aiReviewers` from nen `0.26` (NN-PR-#463) and waives a declared bot's
+  round. A proposal whose only owed round is Copilot's therefore merges inside § 3a's bounds, under kazaana or not, once
+  its base carries the declaration (zheref/hatsu#428) and [HR-333](ROSTER.md#hr-333) is ruled (HR-3). Under `required`, or for a round nen does not waive,
+  the proposal still fails § 3's second condition and halts (getsuga § 3a). Nothing is owed to nen for it.
 - **`cleanup`.** `git worktree remove|prune`, `git branch -d`, `git push origin --delete <branch>`, `git remote
   prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
   **owed to nen** as `nen wc prune` (to file); the raise and the `.nen/cleanup/<slug>.json` marker are Hatsu's,
