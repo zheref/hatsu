@@ -404,7 +404,16 @@ the declaration gate, and that stop's line is the verdict, **quoted** — never 
 > that itself and then get to the actual tag completely autonomously."*
 
 So this skill merges **one PR and one only**: the release-proposal PR **it opened in this run**, and
-it merges it through **the one bounded merge nen performs**, never a raw `gh pr merge`:
+it merges it through **the one bounded merge nen performs**, never a raw `gh pr merge` — **unless the repository keeps that merge**:
+first read `release.proposalMerge` at the base (the read, its exits and the fall-back are
+[`workflow.json.md`](../../../docs/config/workflow.json.md) § `release`'s, stated once there):
+
+```bash
+"$hatsu_root/scripts/config_values.sh" get --repo <path> --id workflow.release.proposalMerge --ref origin/<branch.base>
+```
+
+Anything but exit `0` reading `"self"` is **no merge, no plan**: the declaration gate below, quoting
+that line (zheref/hatsu#414). Otherwise:
 
 ```bash
 "$hatsu_root/scripts/gh_token_env.sh" nen pr merge <n|owner/name#n> --release-unit --requirements-from <path> --repo <path>         # the plan
@@ -510,7 +519,7 @@ bounded as en § 6 and § 7 bound it (the acting cap on acts, the six stops, the
 spends no cycle), and § 3a merges on the verb's `merged:` line. **Every stop this section and § 3 otherwise send to
 the declaration gate is, under kazaana, a G5 halt**: the verb's own line (or the failing condition's) quoted and the
 exact `nen pr merge … --release-unit --run` command handed over — never `nen stop --gate G4|G2` with a `MERGE` ask,
-never a picker carrying the merge. Enumerated: § 3's three conditions failing (en's verdict not `ready` at its cap, or a waiver-backed `ready` with Hatsu's two-ref read stricter or its Hatsu line missing;
+never a picker carrying the merge. Enumerated: a `release.proposalMerge` read other than exit `0` `"self"`; § 3's three conditions failing (en's verdict not `ready` at its cap, or a waiver-backed `ready` with Hatsu's two-ref read stricter or its Hatsu line missing;
 the guard's `not-applicable`; a base not read back as `branch.base`); the re-check's undecided row; a tag mismatch;
 the third route-back lap; an `edit-body` failure or a guard line other than `0` after it; `queued` never confirming
 `merged:`; exit `1` (a gate failed), exit `2` (usage); exits `5` and `6` are G5 already. **The `aiReviewers` case**:
@@ -731,7 +740,7 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
   returned to this skill without en's bell (§ 3).
 - **Never merges past § 3a**: not a PR it did not open in this run (the recorded number and head SHA),
   never by a raw `gh pr merge`, never on a `nen pr merge` that read anything but `merged:`, never
-  around a protection rule, and never with a review or approval of its own.
+  where `release.proposalMerge` does not read `self`, never around a protection rule, and never with a review or approval of its own.
 - **Never rules on `CON-36` clause 4 itself** — that is `G5`.
 - **Never deletes a superseded CHANGELOG entry** to resolve a contradiction.
 - **Never publishes the release.** Preparing it is the job; G3 is not — publication is `mugetsu`'s

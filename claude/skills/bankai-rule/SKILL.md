@@ -97,12 +97,12 @@ stop, never write**; a `--check` duplicate is the exit `3` whose line reads `als
 An unpushed run is invisible elsewhere, so **`--check`** (exit `3` naming both files) runs at every
 [`ao`](../ao/SKILL.md) catch-up, before `mukai` opens the PR and before `en`'s prompt; a duplicate is renumbered **only in this run's branch**, never a merged
 row, **and the citing port PR's `(branch <ref>, unmerged)` citations are rewritten in the same step**.
-Residue: the `gh` reads (zheref/nen#456); lane `port-rule-guard`.
+Lane `port-rule-guard`.
 
 ## 4. Write the ruling — the template, the row, the index
 
-A pair with no file is created from `templates/ports/pair.md` (the rows are the only counter) and indexed
-in `<rulingsDir>/INDEX.md` from `templates/ports/INDEX.md`: file, count, last date. **Each row:**
+A pair with no file is created from `templates/ports/pair.md` (the rows are the only counter) with its
+`<rulingsDir>/INDEX.md` row from `templates/ports/INDEX.md`, one per pair file, `0` rulings too: file, count, last date. **Each row:**
 
 | Column | What |
 |---|---|

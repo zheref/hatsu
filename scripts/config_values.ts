@@ -36,7 +36,70 @@ function refuseExaminerReviewer(rows: any[], argv: string[]): void {
     if (examiners.has(persona)) throw new Error(`refusing review.scopes.${scope}.persona = ${JSON.stringify(entry.persona)}: an intake examiner (${[...examiners].join(' | ')}) challenges only at capture intake and is never a hanten reviewer (HR-23)`);
   }
 }
-const safeOutput=(value:string)=>value.replace(/\r\n?/g,'\n').split('\n').map(plain).join('\n');
+/** HA#414: one catalogued value's effective reading, optionally at a git ref (getsuga § 3a reads release.proposalMerge at origin/<branch.base>). */
+function getValue(rows: any[], argv: string[]): number {
+  const opts: Record<string, string> = {};
+  let json = false;
+  for (let i=0; i<argv.length; i++) {
+    if (argv[i] === '--json') { json = true; continue; }
+    if (['--repo','--id','--ref'].includes(argv[i]) && i+1 < argv.length) { opts[argv[i]] = argv[++i]; continue; }
+    throw new Error(`get: unknown or incomplete argument ${JSON.stringify(plain(argv[i]))} (usage: get --repo <path> --id <catalogue id> [--ref <git ref>] [--json])`);
+  }
+  if (!opts['--repo'] || !opts['--id']) throw new Error('get: --repo and --id are required');
+  const row = rows.find(r => r.id === opts['--id']);
+  if (!row) throw new Error(`get: no catalogue row ${JSON.stringify(plain(opts['--id']))}`);
+  const repo = resolve(opts['--repo']);
+  if (!existsSync(repo)) throw new Error(`get: no such repository ${plain(repo)}`);
+  const ref = opts['--ref'];
+  let text: string | undefined;
+  let sha: string | undefined;
+  if (ref !== undefined) {
+    if (ref.startsWith('-')) throw new Error(`get: --ref ${JSON.stringify(plain(ref))} is not a ref`);
+    const rev = spawnSync('git',['-C',repo,'rev-parse','--verify','-q',`${ref}^{commit}`],{encoding:'utf8'});
+    if (rev.status !== 0) throw new Error(`get: could not read ${plain(row.file)}: ${JSON.stringify(plain(ref))} does not resolve to a commit in ${plain(repo)}`);
+    sha = rev.stdout.trim();
+    const listed = spawnSync('git',['-C',repo,'ls-tree','--full-tree','--name-only',sha,'--',row.file],{encoding:'utf8'});
+    if (listed.status !== 0) throw new Error(`get: could not read ${plain(row.file)} at ${sha}`);
+    if (listed.stdout.trim() !== '') {
+      const shown = spawnSync('git',['-C',repo,'show',`${sha}:${row.file}`],{encoding:'utf8',maxBuffer:16*1024*1024});
+      if (shown.status !== 0) throw new Error(`get: could not read ${plain(row.file)} at ${sha}`);
+      text = shown.stdout;
+    }
+  } else {
+    const file = join(repo,row.file);
+    const safe = [dirname(file),file].every(path=>{try{return !lstatSync(path).isSymbolicLink();}catch{return true;}});
+    if (!safe) throw new Error(`get: could not read ${plain(row.file)}: a symlink is refused (SEC-1)`);
+    if (existsSync(file)) {
+      const rel = relative(realpathSync(repo),realpathSync(file));
+      if (isAbsolute(rel) || rel === '..' || rel.startsWith('../')) throw new Error(`get: could not read ${plain(row.file)}: it resolves outside --repo`);
+      text = readFileSync(file,'utf8');
+    }
+  }
+  let present = false;
+  let value: unknown;
+  if (text !== undefined) {
+    let node: any;
+    try { node = JSON.parse(text); } catch { throw new Error(`get: could not read ${plain(row.file)}${sha ? ' at '+sha : ''}: not valid JSON`); }
+    present = true;
+    for (const key of String(row.path).split('.')) {
+      if (node && typeof node === 'object' && !Array.isArray(node) && Object.prototype.hasOwnProperty.call(node,key)) node = node[key];
+      else { present = false; break; }
+    }
+    if (present) value = node;
+  }
+  let state: string;
+  if (present) state = row.kind === 'enum' && !(row.options ?? []).some((option: unknown) => isDeepStrictEqual(option,value)) ? 'invalid' : 'declared';
+  else if (row.default !== undefined) { state = 'default'; value = row.default; }
+  else state = 'unset';
+  const where = sha ? `at ${plain(ref!)} ${sha}` : 'in the working tree';
+  if (json) process.stdout.write(JSON.stringify({id:row.id,file:row.file,path:row.path,state,value:value ?? null,options:row.options ?? null,ref:ref ?? null,sha:sha ?? null},null,2)+'\n');
+  else {
+      const told = state === 'unset' ? 'unset, no default' : `${JSON.stringify(value)} (${state === 'default' ? 'absent, catalogue default' : state === 'invalid' ? 'declared, outside '+(row.options ?? []).join(' | ') : 'declared'})`;
+      process.stdout.write(plain(`${row.id} = ${told} ${where}`)+'\n');
+    }
+    return state === 'declared' || state === 'default' ? 0 : 1;
+  }
+  const safeOutput=(value:string)=>value.replace(/\r\n?/g,'\n').split('\n').map(plain).join('\n');
 try {
   let root = dirname(here);
   const forwarded: string[] = [];
@@ -65,44 +128,48 @@ try {
       readers:['shibari','tensho','jujisho'],requiredBy:[],describe:'Available PR section ids and purposes.'});
   }
   if (mode === 'set') refuseExaminerReviewer(declaration.values, forwarded.slice(1));
-  scratch = mkdtempSync(join(tmpdir(),'hatsu-config-catalogue-'));
-  mkdirSync(join(scratch,'contracts'));
-  writeFileSync(join(scratch,'contracts/config-catalogue.json'),JSON.stringify(declaration,null,2)+'\n');
-  // Only source documentation and skill existence are consulted by the frozen engine.
-  for (const entry of ['claude','docs']) if (existsSync(join(root,entry))) symlinkSync(join(root,entry),join(scratch,entry),'dir');
-  const run = spawnSync('bash',[join(here,'config_values_legacy.sh'),...forwarded,'--hatsu-root',scratch],{encoding:'utf8',maxBuffer:16*1024*1024});
-  if (run.error) throw run.error;
-  let output = run.stdout || '';
-  // Preserve machine-readable output; enrich only the relevant diagnostic row.
-  if (cat && mode === 'diagnose') {
-    const repoAt = args.indexOf('--repo');
-    if (repoAt >= 0 && args[repoAt+1]) {
-      const repo = resolve(args[repoAt+1]);
-      const workflow = join(repo,'nen/workflow.json');
-      const safe = [join(repo,'nen'),workflow].every(path=>{try{return !lstatSync(path).isSymbolicLink();}catch{return false;}});
-      // Both sides resolved: a symlinked temp root (/var -> /private/var) must not read as outside it.
-      const rel = safe ? relative(realpathSync(repo),realpathSync(workflow)) : '..';
-      const inside = safe && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../');
-      // An unparseable declaration keeps the engine's own row (blocked); this enrichment never throws on it.
-      let parsed: { pr?: { sections?: any } } | undefined;
-      if (inside) try { parsed = JSON.parse(readFileSync(workflow,'utf8')); } catch { parsed = undefined; }
-      if (parsed) {
-        const value = parsed.pr?.sections;
-        if (value && !isDeepStrictEqual(value, defaults(cat))) {
-          const changed = Object.entries(value.variants ?? {}).filter(([cell,ids])=>!isDeepStrictEqual(ids,cat.variants[cell])).map(([cell])=>cell);
-          const detail = `consumer value — pr.sections${changed.length ? ': '+changed.join(', ') : ''}; retained`;
-          if (args.includes('--json')) {
-            const document = JSON.parse(output);
-            for (const row of document.values ?? []) if (row.id === 'workflow.pr.sections') row.detail = detail;
-            output = JSON.stringify(document,null,2)+'\n';
-          } else output += plain(detail)+'\n';
+  // get reads; it never reaches the frozen engine and creates no scratch.
+  if (mode === 'get') process.exitCode = getValue(declaration.values, forwarded.slice(1));
+  else {
+    scratch = mkdtempSync(join(tmpdir(),'hatsu-config-catalogue-'));
+    mkdirSync(join(scratch,'contracts'));
+    writeFileSync(join(scratch,'contracts/config-catalogue.json'),JSON.stringify(declaration,null,2)+'\n');
+    // Only source documentation and skill existence are consulted by the frozen engine.
+    for (const entry of ['claude','docs']) if (existsSync(join(root,entry))) symlinkSync(join(root,entry),join(scratch,entry),'dir');
+    const run = spawnSync('bash',[join(here,'config_values_legacy.sh'),...forwarded,'--hatsu-root',scratch],{encoding:'utf8',maxBuffer:16*1024*1024});
+    if (run.error) throw run.error;
+    let output = run.stdout || '';
+    // Preserve machine-readable output; enrich only the relevant diagnostic row.
+    if (cat && mode === 'diagnose') {
+      const repoAt = args.indexOf('--repo');
+      if (repoAt >= 0 && args[repoAt+1]) {
+        const repo = resolve(args[repoAt+1]);
+        const workflow = join(repo,'nen/workflow.json');
+        const safe = [join(repo,'nen'),workflow].every(path=>{try{return !lstatSync(path).isSymbolicLink();}catch{return false;}});
+        // Both sides resolved: a symlinked temp root (/var -> /private/var) must not read as outside it.
+        const rel = safe ? relative(realpathSync(repo),realpathSync(workflow)) : '..';
+        const inside = safe && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../');
+        // An unparseable declaration keeps the engine's own row (blocked); this enrichment never throws on it.
+        let parsed: { pr?: { sections?: any } } | undefined;
+        if (inside) try { parsed = JSON.parse(readFileSync(workflow,'utf8')); } catch { parsed = undefined; }
+        if (parsed) {
+          const value = parsed.pr?.sections;
+          if (value && !isDeepStrictEqual(value, defaults(cat))) {
+            const changed = Object.entries(value.variants ?? {}).filter(([cell,ids])=>!isDeepStrictEqual(ids,cat.variants[cell])).map(([cell])=>cell);
+            const detail = `consumer value — pr.sections${changed.length ? ': '+changed.join(', ') : ''}; retained`;
+            if (args.includes('--json')) {
+              const document = JSON.parse(output);
+              for (const row of document.values ?? []) if (row.id === 'workflow.pr.sections') row.detail = detail;
+              output = JSON.stringify(document,null,2)+'\n';
+            } else output += plain(detail)+'\n';
+          }
         }
       }
     }
+    process.stdout.write(args.includes('--json') ? output : safeOutput(output));
+    process.stderr.write(safeOutput(run.stderr || ''));
+    process.exitCode = run.status ?? 2;
   }
-  process.stdout.write(args.includes('--json') ? output : safeOutput(output));
-  process.stderr.write(safeOutput(run.stderr || ''));
-  process.exitCode = run.status ?? 2;
 } catch (error) {
   process.stderr.write('config_values.sh: '+plain(error instanceof Error ? error.message : error)+'\n');
   process.exitCode = 2;

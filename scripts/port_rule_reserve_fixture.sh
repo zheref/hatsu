@@ -573,9 +573,15 @@ g init -q -b main "$to"; mkdir -p "$to/handbooks/ports"
 sed 's/<from>/swiftui-tca-uzf-v2/g; s/<to>/compose-uzf-v2/g; s/<from-prefix>/SW/g; s/<to-prefix>/KT/g' "$repo_root/templates/ports/pair.md" > "$to/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md"
 sed 's/<from>/swiftui-tca-uzf-v2/g; s/<to>/compose-uzf-v2/g' "$repo_root/templates/ports/INDEX.md" > "$to/handbooks/ports/INDEX.md"
 printf '| PT-3 | SW-1 | KT-1 | map | rendered | 2026-10-21 | |\n' >> "$to/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md"
+# zheref/hatsu#406: one INDEX row per pair file, a second pair file at 0 rulings indexed too
+sed 's/<from>/compose-uzf-v2/g; s/<to>/swiftui-tca-uzf-v2/g; s/<from-prefix>/KT/g; s/<to-prefix>/SW/g' "$repo_root/templates/ports/pair.md" > "$to/handbooks/ports/compose-uzf-v2--swiftui-tca-uzf-v2.md"
+printf '| `swiftui-tca-uzf-v2` | `compose-uzf-v2` | [`swiftui-tca-uzf-v2--compose-uzf-v2.md`](swiftui-tca-uzf-v2--compose-uzf-v2.md) | 1 | 2026-10-21 |\n| `compose-uzf-v2` | `swiftui-tca-uzf-v2` | [`compose-uzf-v2--swiftui-tca-uzf-v2.md`](compose-uzf-v2--swiftui-tca-uzf-v2.md) | 0 | — |\n' >> "$to/handbooks/ports/INDEX.md"
 g -C "$to" add -A; g -C "$to" commit -qm tmpl; g clone -q "$to" "$tc"
 outt15="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT 2>&1)"; rct15=$?
-check "T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
+check "T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, a 0-rulings pair file and both INDEX rows included, the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
+# T16 (zheref/hatsu#406): the INDEX template defines a row per pair FILE, the wording of the rendered
+# handbooks/ports/INDEX.md, so a fresh render puts no prose diff back over a 0-rulings pair file
+check "T16: templates/ports/INDEX.md opens with one row per directed pair file, never per pair that carries rulings" 'grep -qF "One row per **directed** pair file (stack scenarios from \`handbooks/stack-matrix.md\`); a pair with" "$repo_root/templates/ports/INDEX.md" && ! grep -q "that carries rulings" "$repo_root/templates/ports/INDEX.md"'
 
 # SCALING (the maintainer's perf ruling on HA-PR-#392): 3000 rows across 6 pair files plus two siblings must
 # reserve the right id within a generous bound, so a quadratic regression fails the lane rather than a user
