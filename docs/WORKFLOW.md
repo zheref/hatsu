@@ -1277,8 +1277,8 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
 - **A free-text answer is the maintainer's word** (HR-173) and the run acts on it. **Only a reply that does
   not answer is asked once more** — a question back (answered first), or a reply that fits neither an option
   nor the row's typed form — a new call, its answer a second record; a second reply of the same kind is
-  acted on as the maintainer's typed words. *Interim reading, pending the maintainer's ruling on whether
-  every unmatched typed reply is re-asked (zheref/hatsu#443 AC-2).*
+  acted on as the maintainer's typed words. The maintainer kept HR-173 over re-asking every unmatched
+  typed reply (2026-10-23, zheref/hatsu#443 AC-2).
 - **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
   `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
   candidates, none starred, go in the question file): record it with the one reference option

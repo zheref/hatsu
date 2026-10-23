@@ -417,6 +417,6 @@ $ node scripts/ruling_record.mts check --roster docs/ROSTER.md
 ruling-record: 3 ROSTER rows match their records in docs/ruling-records
 ```
 
-The re-ask is narrowed to a reply that does not answer (WORKFLOW § 4), pending the maintainer's ruling on
-AC-2's wider reading; the rows typed by design are never re-asked; an idle pre-answer renders
+The re-ask is narrowed to a reply that does not answer (WORKFLOW § 4), the form the maintainer kept with
+HR-173 on 2026-10-23; the rows typed by design are never re-asked; an idle pre-answer renders
 `pre-answered (<source>)` and settles no ruling.
