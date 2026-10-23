@@ -44,7 +44,7 @@ and not counted, under ROSTER § *Rulings of 2026-10-20*.
 **Why TypeScript.** BC-11 admits no new three-way verdict script in shell, and the ruling of
 2026-10-17 (#290 q3) freezes only the shell scripts that already existed. The admission is therefore
 `node` on the `.ts` file, the `scripts/plugin_version_refs.ts` pattern, with the `.sh` shim keeping the
-path § 4 and Shizuku cite.
+path § 4's call names (Shizuku cites that call).
 
 **Hermetic proof** — `nen shu test --repo <hatsu> --lane cleanup-path-guard` (the script's
 `--self-test`, a throwaway core under `$TMPDIR`, removed on every path; an interrupted run prints one
