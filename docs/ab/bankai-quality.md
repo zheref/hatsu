@@ -306,3 +306,36 @@ don't route around it" discipline).
 
 No other cell in § 4's table diverges from `handbooks/quality-baseline.md` § C at `v0.11.3`, verified by a
 full re-read of that section alongside the corrected table above.
+
+## Repin to v0.11.0 (2026-10-22)
+
+Read at `zheref/bankai-handbooks` `v0.11.0` (`$canon` on the tag, `describe --tags --exact-match` →
+`v0.11.0`), beside the repin recorded in `docs/ab/bankai-handbooks.md` § *Repin to v0.11.0*.
+`git -C "$canon" diff v0.6.0 v0.11.0 -- handbooks/quality-baseline.md` is five insertions and one
+deletion (`--numstat` → `5 1`): § A gains **`QA-26 — Reserved`** (withdrawn before it merged; its rule is `SP-14` in
+`spec/authoring.md`, scoped to spec folders), and the `Quality-Gate:` note names "the design reviewer"
+where `v0.6.0` named Bisky. §§ B–C — the tooling matrix and the measurement matrix the skill's §§ 3–4
+transcribe — are byte-identical between the two tags, so both tables stand as transcribed.
+
+**`nen quality tooling` against a manifest transcribed from § B at `v0.11.0`** (still constructed: no
+repository in the reachable estate ships one; the table keys a scenario to `e2e`, `adversarial`,
+`notUsed[]`, `perfHarness`, `perfDiagnosis`; `--repo` names the directory the relative `--table`
+resolves against, zheref/nen#100):
+
+```
+$ nen quality tooling --repo <scratch> --table tooling-table.CONSTRUCTED.json --scenario react-uzf-v1
+scenario: react-uzf-v1
+  e2e: Playwright (@playwright/test; page.route for network degradation; --repeat-each=3 for QA-4)
+  adversarial: Vitest for hostile-input and boundary suites
+  not used: Selenium (unless a legacy browser matrix is named), Cypress
+  perf harness: Lighthouse LCP/FCP; Lighthouse CLS + long-animation-frame entries; CDP heap sample via Playwright; next build output + @next/bundle-analyzer; Playwright page.on('request'|'response') totals; Lighthouse TBT + field INP
+  perf diagnosis: Lighthouse CI (@lhci/cli), pinned mobile preset
+exit: 0
+```
+
+`nen repo scenario --repo <hatsu checkout> --target zheref/hatsu` answers `bankai-machinery` at exit `0`
+at nen `0.24.0`, because Hatsu's own `maintained_tools` row declares the field. A row without one
+(`--target zheref/nen` against the same registry, or `--target zheref/hatsu` against `$canon`) exits `1`
+with *"its row there carries no 'scenario' field. Add one to its maintained_tools[] row …"* — the
+transcript is in `docs/ab/bankai-handbooks.md` § *Repin to v0.11.0*; the skill's § 1 note quotes it and
+keeps the `0.15.1` sentence as history.
