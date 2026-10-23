@@ -357,7 +357,7 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
    hanten's rounds were the review. **Under an effective `aiReviewers: optional | off`** the sixth stop
    is instead the **hanten prompt**, its conditions, the value's source refs and the Hatsu line
    (`aiReviewers: optional (base <sha>, default <sha>)`) all [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there;
-   a `ready` that rests on nen's waiver of a declared bot's round is Ready only with hanten settled and Hatsu's own read not stricter (HR-333; PROCESS, the disagreement sentence).
+   a `ready` that rests on nen's waiver of a declared bot's round is Ready only with hanten settled and Hatsu's own read not stricter (HR-333; PROCESS, the disagreement sentence). Under getsuga § 3 the release-unit bound stands in for hanten (getsuga § 3a).
    **A CI reviewer lane** — its round, why it is never requested, its place in the quorum and when it is
    unavailable — is [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*, stated once there.
 3. **The body** — `nen pr body-check` satisfied against the live body.

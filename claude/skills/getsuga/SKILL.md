@@ -418,7 +418,7 @@ number plus the `judged head:` en's `ready` verdict names, because en may have p
 thread (a fix on a release proposal stays inside `release.unitPaths`, or the proposal falls back to the
 maintainer). That pair, and no other object, is what § 3a may merge, and only once § 3's three conditions
 hold (the base reads `branch.base`; en's returned verdict is `ready`, a `ready` that rests on nen's waiver of a declared bot round (a `waived bot round:` line)
-included, [HR-333](../../../docs/ROSTER.md#hr-333), under kazaana or not; the Development guard's `0`, quoted
+included, [HR-333](../../../docs/ROSTER.md#hr-333), under kazaana or not, when Hatsu's own two-ref `aiReviewers` read is not stricter (HR-333; quoted in en's hand-back); the Development guard's `0`, quoted
 in en's hand-back) — stated in the report, never
 re-derived here. A hand-back carrying the guard's `not-applicable` (`branch.base` is not the default
 branch, § 3) fails the third: **no merge**, the declaration gate with that line quoted. The verb then runs **five gates** in order, every one regardless of an
@@ -516,7 +516,7 @@ the third route-back lap; an `edit-body` failure or a guard line other than `0` 
 `merged:`; exit `1` (a gate failed), exit `2` (usage); exits `5` and `6` are G5 already. **The `aiReviewers` case**:
 under an effective `aiReviewers: optional | off`, `nen pr ready` and `nen pr merge --release-unit` (nen `0.26`) waive
 the round of a reviewer `nen/gates.json` declares `kind: "bot"` at the base and the tip, so a proposal owing only
-Copilot's round reads `ready` and merges here (HR-333, ruled 2026-10-22). A round nen does not waive leaves en a `not-ready` verdict on
+Copilot's round reads `ready` and merges here (HR-333, ruled 2026-10-22), unless its request has stalled: `round-stalled` still binds under the waiver. On a release proposal the review the waived round stood for is the bound itself: `release.unitPaths` and the verb's five gates (HR-333's getsuga limb carries no hanten clause). A round nen does not waive leaves en a `not-ready` verdict on
 `rounds-owed` ([`PROCESS.md`](../../../docs/PROCESS.md) § *AI reviewers per consumer*), and § 3's second condition
 fails before the verb runs: the same halt, as under `required`. Outside kazaana, the paragraph below stands as written.
 

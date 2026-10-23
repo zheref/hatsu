@@ -4,4 +4,4 @@
 
 ### Fixed
 
-- **"Owed to nen" retired for the release-unit merge's `aiReviewers` read.** It shipped in nen `0.26` (NN-PR-#463). `getsuga` § 3a and `docs/PROCESS.md` § Residue now say that the verb waives a declared bot's round, that getsuga § 3a merges on it only once HR-333 is ruled (HR-3), and that a round it does not waive halts as under `required`; `kazaana` § 5 defers the case to getsuga § 3a, and its § Residue drops the owed-to-nen clause. These were zheref/hatsu#380's remaining clauses; its repin criterion was met by HA-PR-#422 (nen `v0.26.0`).
+- **"Owed to nen" retired for the release-unit merge's `aiReviewers` read.** It shipped in nen `0.26` (NN-PR-#463). `getsuga` § 3a and `docs/PROCESS.md` § Residue now say that the verb waives a declared bot's round, that getsuga § 3a merges on it under HR-333, and that a round it does not waive halts as under `required`; `kazaana` § 5 defers the case to getsuga § 3a, and its § Residue drops the owed-to-nen clause. These were zheref/hatsu#380's remaining clauses; its repin criterion was met by HA-PR-#422 (nen `v0.26.0`).
