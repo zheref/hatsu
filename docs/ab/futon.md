@@ -581,10 +581,12 @@ so the dry run is this session's conduct over the typed line `hatsu:futon hatsu@
 read-only verb of futon §§ 1–2 and § 6 runs for real, the run manifest is opened and parked for real
 under the git common directory, and nothing is authored — no label, branch, worktree, pull request,
 comment or push. Each claimable issue's end state is **the first stop its read predicts**, never a built
-result. Two local files were written: the manifest (`<git common dir>/hatsu/futon/run-<id>.json`) and
-the register page (`Reports/current.html`, git-ignored). Every command below is reproducible from a
-checkout of `zheref/hatsu` at or after `1555d54f` with nen `0.26.0` on `PATH` and `gh` authenticated;
-the issue numbers and label counts are those of the live backlog on 2026-10-22 and will differ later.
+result. The files written: the manifest (`<git common dir>/hatsu/futon/run-<id>.json`, mode 0600), the register page
+(`Reports/current.html`, git-ignored) and, under the session's scratch directory, the two `nen report data`
+documents (`data-plain.json`, `data.json`), the desk (`desk.json`), the reshaped order rows and the efforts
+files the sections below inline. Every command below is reproducible, given the inputs named beside it, from
+a checkout of `zheref/hatsu` at or after `1555d54f` with nen `0.26.0` on `PATH` and `gh` authenticated; the
+issue numbers and label counts are those of the live backlog on 2026-10-22 and will differ later.
 
 ### 1. The typed line at the pin
 
@@ -598,18 +600,30 @@ $ nen parse futon --repo . "hatsu@model/gpt --idle --dry-run" --json
 { "repo": "zheref/hatsu", …, "label": "model/gpt --idle --dry-run", "terminal": null, "then": null, "idle": false }
 exit=0
 
-$ nen backlog fetch --repo-slug zheref/hatsu --label 'model/gpt --dry-run'
+$ nen backlog fetch --repo-slug zheref/hatsu --label 'model/gpt --dry-run'   # the label the record hands on after its own --idle strip
 nen backlog: --label refused: 'model/gpt --dry-run' is not declared in <checkout>/nen/labels.json. A filter
 on a label nobody declared would match nothing and read as "no such work", so it is refused instead.
 exit=2
+$ nen backlog fetch --repo-slug zheref/hatsu --label 'model/gpt --idle --dry-run'   # the parse's own label: the same refusal, exit 2
 ```
 
 Read against the skill: at the pin `nen parse futon` reads `--idle` itself (`idle: true`; the grammar
 WORKFLOW § *Idle batches* called owed to zheref/nen#491 is shipped), and `scripts/futon_effort_record.mts
-start` still strips the token before its own parse, harmlessly. A second modifier beside it is not
+start` still strips the token before its own parse. Before this section's PR the strip and nen disagreed on a
+two-modifier line (the record read `idle` and the shorter label `model/gpt --dry-run`; nen read neither), a
+reviewer's finding; `start` now refuses any other `--` token before `then`:
+
+```
+$ node scripts/futon_effort_record.mts start --repo . --invocation 'hatsu:futon hatsu@model/gpt --idle --dry-run'
+futon-effort: --dry-run is not a futon modifier: only --idle is read before the then clause (zheref/hatsu#424)
+exit=1
+```
+
+A second modifier beside it is not
 grammar: `--dry-run` folds **both** tokens into the label and reads `idle: false`, so a typed
 `hatsu@model/gpt --idle --dry-run` is an attended run over a label no file declares, refused at the
-fetch. **Finding** — the acceptance proof's "dry run" has no typed form; filed as zheref/hatsu#424.
+fetch — whether the fetch takes the parse's label or the shorter one `futon_effort_record.mts start` hands on after
+stripping `--idle` (both shown above; a reviewer's reproduction, 3 of 3). **Finding** — the acceptance proof's "dry run" has no typed form; filed as zheref/hatsu#424.
 
 ### 2. The queue — the selector's scope, and only that (futon § 2)
 
@@ -633,8 +647,9 @@ $ nen backlog fetch --repo-slug zheref/hatsu --label model/gpt --json
 
 **Triage orders only** (a label selector). `zheref/hatsu`'s `nen/labels.json` declares no severity
 family, so every row's severity is null and `nen backlog order` sorts by creation time; the verb takes
-the reshaped array its own refusal describes (`id`/`number` from `issueNumber`, `severity` from the
-labels, `createdAt`), which is residue:
+the reshaped array its own refusal describes, which is residue — one object per fetched row,
+`{"id": "HA-IS-#<n>", "number": <n>, "severity": <the bankai:severity/* leaf, else null>, "createdAt": <the row's>}`,
+here 18 objects with `severity: null`:
 
 ```
 $ nen backlog order --rows-from <reshaped rows> --severity-order critical,high,medium,low
@@ -696,10 +711,12 @@ exit=0
 **The register of pre-answered rows** — all 19 `ask-once-per-run` rows of `nen/decisions.json`, one
 resolution each, read from the committed `nen/workflow.json` of `origin/main` at `1555d54f` (never the
 working tree), with the floor holding: `publish-offer` **refuse**; `host-nen-link`,
-`harness-attribution-switch` and `missing-maintainer-choice` **hold** (at most); `default` on the five
-rows that star an option (`missing-consumer-declaration`, `missing-argument`, `missing-configuration`,
-`mode-unknown`, `direct-mismatch`, `wrap-up` — six, `wrap-up` included) and `hold` on the thirteen
-others. Resolution counts: hold 13 · default 5 · refuse 1. The floor itself is enforced by `start`
+`harness-attribution-switch` and `missing-maintainer-choice` **hold** (at most); `default` on the six
+rows the committed map defaults, each starring an option (`missing-consumer-declaration`, `missing-argument`,
+`missing-configuration`, `mode-unknown`, `direct-mismatch`, `wrap-up`), and `hold` on the twelve others —
+five of them starred rows the map withholds on purpose (`harness-attribution-switch`, `host-nen-link`,
+`cleanup-plan`, `spec-capture-scope`, `spec-converge-filing`; WORKFLOW § 2 `idle`). Resolution counts: hold 12 ·
+default 6 · refuse 1 (two reviewers' count of the printed list; the first draft said 13 · 5). The floor itself is enforced by `start`
 (`FLOOR` in `scripts/futon_effort_record.mts`; the `futon-effort-guard` fixture's six refusal rows), so a
 `publish-offer: default` or a `host-nen-link: default` on the committed file would have ended this
 section at `start` with exit 1.
@@ -780,13 +797,16 @@ idle profile, else `monitor`'s; the two disagreeing is refused) when `--repo` is
 and its source, and knows a third value, `stacked-open`. Hatsu's `start` accepts `merged` alone (HR-257).
 
 ```
-$ nen loop slots --efforts <7 efforts: prOpen, ready, prompted true; merged false; six stacked> --ci-cap 2 --local-cap 7 --repo . --json
+$ nen loop slots --efforts <abs efforts.json> --ci-cap 2 --local-cap 7 --repo . --json
+  # efforts.json: one object per claimed effort, HA-IS-#131 #148 #154 #156 #246 #341 #346 —
+  # {"id": "HA-IS-#131", "plane": "local", "prOpen": true, "ready": true, "prompted": true, "merged": false, "stacked": false}
+  # ("stacked": true on the six above the bottom of the stack)
   local: cap 7 · occupied 7 · free 0 · binding true
   holding[*].why: "PR open, not merged -- this repository frees a local slot only on merge (monitor.localSlotFrees: merged)"
   localSlotFrees: { rule: "merged", source: "<checkout>/nen/workflow.json: monitor.localSlotFrees" }
 exit=1
 
-$ nen loop slots --efforts <the same seven, merged true> --ci-cap 2 --local-cap 7 --repo . --json
+$ nen loop slots --efforts <the same seven with "merged": true> --ci-cap 2 --local-cap 7 --repo . --json
   local: cap 7 · occupied 0 · free 7 · binding false · done: HA-IS-#131 #148 #154 #156 #246 #341 #346
 exit=0
 
@@ -795,10 +815,19 @@ $ nen loop slots --efforts <the first file> --ci-cap 2 --local-cap 7 --repo <a s
 exit=0
 ```
 
-Read against the canon: under `merged` an unattended run **holds seven efforts at their merge prompts
-until the maintainer merges** — nobody merges overnight — so a run of more than seven claimable efforts
-authors seven and parks the rest as `parked:budget` at 480 minutes; this is the proof's eighth-issue
-shape, and here it is the eighth to twelfth. WORKFLOW § *Stacked pull requests* rule 4 (ruling 4 of
+Read against the canon: under `merged` an unattended per-PR or stacked run **holds seven efforts at their
+merge prompts until the maintainer merges** — nobody merges overnight — so the rest wait (back-pressure,
+futon § 6) and park as `parked:budget` when `idle.budget.minutes` elapses; an integration-branch run
+(futon § 5) frees a slot at each local merge instead. This is the proof's eighth-issue shape, and here it is
+the eighth to twelfth.
+
+**A reviewer's reproduction, and the fix it forced.** futon § 6's own command passed no `--repo`, and nen
+reads `localSlotFrees` from `--repo`'s `nen/workflow.json`, else the cwd's: run from a directory with no
+`nen/workflow.json`, the same efforts file read `localSlotFrees: {rule: "ready+prompted", source: "default
+(neither idle.localSlotFrees nor monitor.localSlotFrees declared)"}` and freed every slot (`done: [...]`,
+exit 0) — the early free HR-257 forbids, reachable the moment this section's PR dropped the old interim hold.
+futon § 6 now passes `--repo <target checkout>` and keeps `ready`/`prompted` false whenever the printed rule is
+not `merged`; `start` refuses a declared `idle.localSlotFrees` other than `merged` (nen reads that key first). WORKFLOW § *Stacked pull requests* rule 4 (ruling 4 of
 2026-10-13) counts a stacked effort's slot freed at PR-open on its stacked base, which would author
 all twelve in one night and is what nen's `stacked-open` encodes. The two rulings disagree and the
 `start` floor sides with HR-257. **Finding** — filed as zheref/hatsu#425, a G4 reading; this section
@@ -860,6 +889,14 @@ as the surface's artifact: https://claude.ai/artifact/VxNANH2JL5CUyEzxRLst7j (pr
 | F4 | HR-257 `merged` (every run, the `start` floor) vs WORKFLOW § *Stacked pull requests* rule 4 (a stacked slot frees at PR-open); nen offers `stacked-open` | zheref/hatsu#425 (G4) |
 | F5 | no exact label selects eight open issues | not a defect; the scope is 18, stated in § 2 |
 | F6 | `nen backlog order` takes a reshaped array and a `--severity-order` on a repository with no severity family | residue (the verb names the reshape); not a defect |
+| F7 | futon § 6's slot command passed no `--repo`, so with the interim hold dropped a run from another cwd freed slots at `ready+prompted` (two reviewers, live) | fixed: `--repo <target checkout>` and the hold whenever the printed rule is not `merged`; `start` holds `idle.localSlotFrees` to the floor too |
+| F8 | the record's `--idle` strip read a two-modifier line as idle with a shorter label while nen read neither | fixed: `start` refuses any other `--` token before `then` (exit 1) |
+| F9 | clauses the first pass missed: WORKFLOW's `budget` row, § *Stacked pull requests* rule 4, the `v0.24.0` repin paragraph, `docs/config/plugin-registries.md`, `emperor-time` § 6 | fixed in the same PR |
+| F10 | futon § 4's new conditional named no detecting read and no fall-through; § 1's trim had dropped the empty-selector branch | fixed: `nen stage check` exit 2 detects, an absent or unloadable `nen/labels.json` is a G5; the branch restored |
+
+**Review.** hanten on the first commit (Opus, deep): Nobunaga 11 · Feitan 0 · Chrollo 4 (with the totality
+pass) · Phinks 1 — 16 findings, every one fixed in the settlement commit, none pushed back or deferred;
+Feitan's gitleaks and dependency-audit rows stayed not scanned (no host gitleaks; no `claude-code-plugin` row).
 
 **Not exercised live**: an actual overnight run (nothing was authored, so no `nen pr ready`
 verdict and no En loop exist); `parked:budget` written by the clock (the budget had not elapsed); the

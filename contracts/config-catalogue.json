@@ -569,7 +569,7 @@
       "domain": "review",
       "kind": "open",
       "default": "merged",
-      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by nen loop slots --repo from nen 0.26.0, which holds an open unmerged PR's slot (the stacked-slot reading is zheref/hatsu#425's); an idle start fails on any other value.",
+      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by nen loop slots --repo from nen 0.26.0, which holds an open unmerged PR's slot; futon section 6 keeps ready/prompted false whenever the printed rule is not merged (the stacked-slot reading is zheref/hatsu#425's); an idle start fails on any other value here or under idle.localSlotFrees.",
       "readers": [
         "futon",
         "kazaana"

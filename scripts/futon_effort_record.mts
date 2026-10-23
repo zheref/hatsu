@@ -146,7 +146,10 @@ function splitIdle(line: string): { invocation: string; idle: boolean } {
   const marks = head.match(/(?:^|\s)--idle(?=\s|$)/g) ?? [];
   if (marks.length > 1) fail('--idle is typed once');
   if (/(?:^|\s)--idle(?=\s|$)/.test(invocation.slice(cut))) fail('--idle belongs before the then clause');
-  const stripped = (head.replace(/(?:^|\s)--idle(?=\s|$)/, '') + invocation.slice(cut)).replace(/\s+/g, ' ').trim();
+  const rest = head.replace(/(?:^|\s)--idle(?=\s|$)/, '');
+  const other = /(?:^|\s)(--[A-Za-z][A-Za-z0-9-]*)(?=\s|$)/.exec(rest);
+  if (other) fail(`${other[1]} is not a futon modifier: only --idle is read before the then clause (zheref/hatsu#424)`);
+  const stripped = (rest + invocation.slice(cut)).replace(/\s+/g, ' ').trim();
   return { invocation: stripped, idle: marks.length === 1 };
 }
 function parseFuton(root: string, line: string): Parsed {
@@ -207,8 +210,12 @@ function idleProfile(root: string): Idle {
     if (resolution === 'default' && !starred) fail(`idle.decisions.${row} may not be default: the row stars no option`);
     return { row, resolution: resolution as Resolution };
   });
-  // HR-257 binds every futon run, so the key lives in monitor, the block nen loop slots reads.
+  // HR-257 binds every futon run, so the key lives in monitor, the block nen loop slots reads; nen reads an
+  // idle.localSlotFrees first where a consumer declares one, so a declared value there is held to the same floor.
   const monitor = source.declared && typeof source.declared === 'object' ? (source.declared as { monitor?: { localSlotFrees?: unknown } }).monitor : undefined;
+  const idleSlot = (declared as { localSlotFrees?: unknown }).localSlotFrees;
+  if (idleSlot !== undefined && idleSlot !== 'merged')
+    fail('idle.localSlotFrees must be merged where declared (HR-257, Slots and stops)');
   const localSlotFrees = monitor?.localSlotFrees ?? catalogue.values.find((row) => row.id === 'workflow.monitor.localSlotFrees')?.default;
   if (localSlotFrees !== 'merged')
     fail('monitor.localSlotFrees must be merged (HR-257, Slots and stops)');
