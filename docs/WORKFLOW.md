@@ -1484,7 +1484,10 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs only and refuses `--efforts` beside it:
    a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` (`R-2026-10-23-20`): the effort's PR Ready and
    its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
-   (back-pressure) and park as `parked:budget` only when the minutes elapse.
+   (back-pressure) and park as `parked:budget` only when the minutes elapse. **One night authors every claimable effort
+   the minutes allow, at most seven building at once**: each frees its slot at its own Ready prompt, so the
+   2026-10-23 dry run's 13 claimable efforts are all authorable inside `idle.budget.minutes` (under the old
+   `merged` rule the night stopped at seven).
    Overlap is `nen wc overlap --efforts <branches> --repo <checkout>` once branches exist (before that it is
    judged from the paths each effort would touch), its verdict cited in the stacking decision; `nen stage
    check --exclusive` holds an issue to one stage label where the target declares a stage family. En's cap is
