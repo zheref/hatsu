@@ -40,6 +40,8 @@ const gated: Array<[string, string, string]> = [
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
+  // The spec-family fixture reads (zheref/hatsu#405): the script is its own fixture, as tenkai's is.
+  ['spec_family_fixture_check.sh', 'spec_family_fixture_check.sh', 'spec-family-guard'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

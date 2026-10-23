@@ -15,17 +15,19 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    fills and diagnosis preserve it. `max` defaults to seven and cannot exceed the catalogue cap.
 3. Reuse Mukai's facts: `--evidence` only for a product declaring `project.evidence.globs`,
    `--economics` only when Leorio ran or took a delta pass, `--policy-hit` when `nen gate derive`
-   matched a policy or process path. These facts activate conditional ids; they do not create headings.
+   matched a policy or process path, `--spec` when a closing issue carries `Spec: specs/<nnn>-<slug>@<sha>`
+   (the footer's Spec block and nen's `spec-rows` requirement, [`config/spec-repo.md`](config/spec-repo.md)
+   § *The PR Spec section*). These facts activate conditional ids; they do not create headings.
 4. Resolve before drafting, and resolve again when kind, labels, configuration or run facts change:
 
 ```bash
 "$hatsu_root/scripts/pr_sections_resolve.sh" --repo <target> --kind <kind> --jobs <comma-joined-jobs> \
-  [--evidence] [--economics] [--policy-hit] --out <absolute-requirements.json>
+  [--evidence] [--economics] [--policy-hit] [--spec] --out <absolute-requirements.json>
 ```
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
 Place the always-on Delivery preamble first, then fill the reader fragments from
-`templates/pr-body/<id>.md` in resolved order, then checklist, issues and final attribution.
+`templates/pr-body/<id>.md` in resolved order, then Spec (only with `--spec`), checklist, issues and final attribution.
 Never append an undeclared level-2 heading. Delivery is outside the seven-reader cap and does
 not change any kind × family cell or consumer-owned override.
 The default requirements file is the process × canon fixture, never a substitute for resolving a run.

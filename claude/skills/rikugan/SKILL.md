@@ -40,8 +40,7 @@ nen parse rikugan --grammar "for [<scope>] as [<variant:final|register>]" --line
 ```
 
 Verified at nen `0.18.1` (2026-09-30): `for HA#171,HA#172 as final` → `scope: HA#171,HA#172 ·
-variant: final`; an empty line → both `(clause absent)`; `for zheref/hatsu` → the repo, variant
-absent; `as register` → scope absent; `for HA#171 as bogus` → exit `2`, *`<variant> is one of final |
+variant: final`; an empty line → both `(clause absent)`; `for HA#171 as bogus` → exit `2`, *`<variant> is one of final |
 register`*; a bare `HA#171` → exit `2`, *the line must open with 'for' to supply <scope>*. Exit `2`
 **asks, never ends**: the corrected line goes to the picker and the answer is re-parsed. A missing
 argument or configuration item is asked for and set up inline (`missing-argument`,
@@ -80,11 +79,12 @@ node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>  # quoted b
 composed from them;
 the `--register <desk>` call then emits the register document the render fills.
 
-**`--base` is required** (exit `2` without it; verified nen 0.21.0). The scope's PRs and issues go in **one call**; a
+**`--base` is required** (exit `2` without it). The scope's PRs and issues go in **one call**; a
 merged PR is a row that reads `merged` with its merge SHA, a closed issue one that reads `closed` with
 what closed it; nothing in scope is dropped. Every
 PR row's `verdict` is `nen pr ready`'s **verbatim** (`readiness{verdict,reason,source}`,
-`backlog-board` § 2): a PR the sweep marks Ready is still quoted. The gate per row is [`backlog-state`](../backlog-state/SKILL.md)'s classification,
+`backlog-board` § 2): a PR the sweep marks Ready is still quoted; a parity PR's carries its convergence
+table (spec-repo.md § *The convergence table at readiness*). The gate per row is [`backlog-state`](../backlog-state/SKILL.md)'s classification,
 unchanged; the labels and their times are the run's own record. **Nothing is recomputed by eye, and
 nothing comes from session memory.**
 
