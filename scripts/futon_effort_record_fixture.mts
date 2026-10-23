@@ -168,6 +168,14 @@ else process.exit(2);
   }
   commitWorkflow({ monitor: { localSlotFrees: 'ready+prompted' } }, 'slot widened');
   expectStatus(idleStart(), 1, 'monitor.localSlotFrees is the ruled merged only (HR-257)');
+  commitWorkflow({ idle: { localSlotFrees: 'stacked-open' } }, 'idle slot widened');
+  expectStatus(idleStart(), 1, 'a declared idle.localSlotFrees is held to the same floor (HR-257)');
+  commitWorkflow({ idle: { localSlotFrees: 'merged' } }, 'idle slot ruled');
+  expectStatus(idleStart(), 0, 'idle.localSlotFrees: merged starts');
+  expectStatus(manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle --dry-run']),
+    1, 'a second modifier beside --idle is refused, never folded into the label (zheref/hatsu#424)');
+  expectStatus(manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --dry-run --idle then rikugan']),
+    1, 'a second modifier before --idle is refused too');
   commitWorkflow({ branch: { base: 'main' }, idle: { decisions: { 'wrap-up': 'hold', 'mode-unknown': 'default' } } }, 'partial map');
   const partial = idleStart();
   expectStatus(partial, 0, 'a partial idle.decisions with valid values starts');

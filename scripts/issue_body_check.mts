@@ -33,8 +33,8 @@
 //      request rather than an issue (could not look is never found nothing)
 //   5  a missing tool: nen or gh absent, or gh unauthenticated
 //
-// Owed to nen as `nen issue body-check` (zheref/nen#476) and `nen issue
-// questions` (zheref/nen#477); retired for them once released and repinned.
+// nen ships `nen issue body-check --requirements-from` and `nen issue questions`
+// from 0.26.0 (zheref/nen#476, #477); the retirement is zheref/hatsu#423.
 // Fixture: scripts/issue_body_check_fixture.mts (lane issue-shape).
 import { readFileSync, realpathSync } from "node:fs";
 import { spawnSync } from "node:child_process";
