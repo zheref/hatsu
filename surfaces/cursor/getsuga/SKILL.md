@@ -515,9 +515,9 @@ never a picker carrying the merge. Enumerated: § 3's three conditions failing (
 the guard's `not-applicable`; a base not read back as `branch.base`); the re-check's undecided row; a tag mismatch;
 the third route-back lap; an `edit-body` failure or a guard line other than `0` after it; `queued` never confirming
 `merged:`; exit `1` (a gate failed), exit `2` (usage); exits `5` and `6` are G5 already. **The `aiReviewers` case**:
-under an effective `aiReviewers: optional | off`, `nen pr ready` and `nen pr merge --release-unit` (nen `0.25`) waive
+under an effective `aiReviewers: optional | off`, `nen pr ready` and `nen pr merge --release-unit` (nen `0.26`) waive
 the round of a reviewer `nen/gates.json` declares `kind: "bot"` at the base and the tip, so a proposal owing only
-Copilot's round reads `ready` and merges here. A round nen does not waive leaves en a `not-ready` verdict on
+Copilot's round reads `ready`. It merges here **once HR-333 is ruled**: until then that row is a reading, which HR-3 never lets a merge path cite, so the proposal halts as below. A round nen does not waive leaves en a `not-ready` verdict on
 `rounds-owed` ([`PROCESS.md`](../../../docs/PROCESS.md) § *AI reviewers per consumer*), and § 3's second condition
 fails before the verb runs: the same halt, as under `required`. Outside kazaana, the paragraph below stands as written.
 

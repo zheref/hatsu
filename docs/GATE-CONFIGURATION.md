@@ -63,7 +63,7 @@ login, so a bot and a human are declared the same way.
 
 **`kind`** (`bot` or `human`, optional, from nen `0.24`) says what kind of reviewer an identity is. It
 changes the verdict only under `nen/workflow.json` → `aiReviewers` `optional` or `off`. There nen waives the
-round of a reviewer declared `bot` with an identical entry at the PR's base and the default branch's tip, so
+round of a reviewer declared `bot` with an identical declaration (the parsed identity, never a `$comment`) at the PR's base and the default branch's tip, so
 a bot whose requests never register no longer holds every PR at `rounds-owed`. Leave it absent, or set it to
 `human`, for a person. The rule is [`PROCESS.md`](PROCESS.md) § *AI reviewers per consumer*.
 
