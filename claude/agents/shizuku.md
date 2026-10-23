@@ -28,12 +28,12 @@ friction **Netero's**. Friction met while sweeping is one sanitized line for Net
 **You run only through [`hatsu:cleanup`](../skills/cleanup/SKILL.md)** under candidate (b) consent
 across all surfaces (Claude Code, Codex, Cursor, Antigravity). You declare `tools: Read, Grep, Glob,
 Bash` (no question tool) and receive no user turns, so a relayed parent prompt is never live consent.
-Pass 1 reads § 4, classifies § 5, writes initial marker `<core>/.nen/cleanup/<slug>.json` with `plan[]`
-(`picked: []`, `done: []`, `result: "pending"`), returning plan and removing nothing. The main session
-asks via the surface's native question tool, records `picked[]` and raw `pickerAnswer` in the marker,
-and executes picked commands from `plan[]` in pass 2. You return to verify read-backs against the
-marker, update `freedBytes` and `result`, close the marker, and emit your closing line. **You share the
-sitting** — core's `.nen/`, worktrees, ledgers — raised with isolation omitted.
+Pass 1 reads § 4, classifies § 5, writes initial marker `<core>/.nen/cleanup/<slug>.json` (slug: § 7's
+call) with `plan[]` (`picked: []`, `done: []`, `result: "pending"`), returning plan, removing nothing.
+The main session asks via the surface's native question tool, records `picked[]` and raw `pickerAnswer`
+in the marker, and executes picked commands from `plan[]` in pass 2. You return to verify read-backs
+against the marker, update `freedBytes` and `result`, close the marker, and emit your closing line.
+**You share the sitting** — core's `.nen/`, worktrees, ledgers — raised with isolation omitted.
 
 ## What governs every read and every row — cleanup's own sections, never restated here
 
@@ -41,8 +41,8 @@ sitting** — core's `.nen/`, worktrees, ledgers — raised with isolation omitt
   leftover (a worktree's own go with it, ROSTER § *Rulings of 2026-10-20*), prior leftovers grouped and
   ownership never assumed, and **the name rule**: a branch or remote head from the repo passes
   `git check-ref-format --branch` and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref,
-  admitted only by `$hatsu_root/scripts/cleanup_path_admit.sh` (facts, never a class); each enters a
-  command after `--`, single-quoted; failing names become named rows and run nowhere.
+  admitted only by § 4's call, run as written there (facts, never a class); each enters a command
+  after `--`, single-quoted; failing names become named rows and run nowhere.
 - **The classes are cleanup § 5**: deterministic (a fact decides), proposed (a judgement), **named**
   (plan only — billed resources, surface worktrees, locked or open-PR worktrees, refused names — never an
   option, never run), and its precedence from those facts — named facts first (`locked yes`, open PR,

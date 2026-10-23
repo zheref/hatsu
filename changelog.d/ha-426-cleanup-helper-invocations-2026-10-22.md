@@ -1,0 +1,3 @@
+### Changed
+
+- **`cleanup` writes its two helper calls out in full (zheref/hatsu#426).** § 4 states the worktree-path admission as `cleanup_path_admit.sh --core '<core>' --base '<branch.base>' --path '<abs path>'`, with where each value comes from; § 7 states the marker slug's `nen ref format --code <CODE> --kind <IS|PR> --number <N> --no-glyphs` and the one rule that cuts its `<CODE>-<IS|PR>-#<N>` to `<CODE>-<N>`, so two passes on one scope name the same marker. `agents/shizuku.md` cites both sections instead of restating the script's name without its arguments. § 3, § 5 and § 6 lose restatements of Shizuku's own file and of § 3's close to stay under the 12288-byte ceiling.
