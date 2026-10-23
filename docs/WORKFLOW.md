@@ -1437,7 +1437,7 @@ is not the file's own key.
 composes it): `hatsu:futon <repo>@<selector> --idle [--dry-run] [then …]`. `nen parse futon` reads `--idle`
 itself (`idle: true`, nen `0.26.0`, the first or last token before `then`) and nothing in Hatsu strips it.
 `--dry-run` (zheref/hatsu#424) is no nen grammar at the pin: the record's `start` lifts that one token off
-before the parse, and refuses it without `--idle`, typed twice or after `then`; it refuses **any other `--`
+before the parse (and futon § 1's echo parses the line with it lifted, saying so), and refuses it without `--idle`, typed twice or after `then`; it refuses **any other `--`
 token before `then`** and a doubled `--idle` (exit 1, the token named), which nen would fold into the label.
 The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery ownership*).
 
