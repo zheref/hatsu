@@ -134,7 +134,7 @@
     "maxCycles": 20,
     "pollSeconds": 300,
     "localSlotFrees": "merged",
-    "$localSlotFrees": "fixed: merged (HR-257, Slots and stops): an effort's local slot frees at its local merge, for every futon run; read by zheref/nen#498's nen loop slots (unreleased, not at the 0.24.0 pin); until the repin futon section 6 keeps the effort's ready/prompted flags false in its efforts file until the local merge (WORKFLOW section 2)",
+    "$localSlotFrees": "fixed: merged (HR-257, Slots and stops): an effort's local slot frees at its local merge, for every futon run; read by nen loop slots --repo from nen 0.26.0, which holds an open unmerged PR's slot and prints the rule and its source (WORKFLOW section 2; docs/ab/futon.md, 2026-10-22); futon section 6 keeps ready/prompted false whenever the printed rule is not merged, and start refuses a declared idle.localSlotFrees other than merged; nen also knows stacked-open, and which ruling binds a stacked effort's slot is zheref/hatsu#425's",
     "$comment": "en's izanagi cap and its poll interval. The cap is grammar, not a default: a watch loop with no cap does not run."
   },
   "profile": {
