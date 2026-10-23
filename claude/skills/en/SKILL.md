@@ -291,9 +291,9 @@ because a long watch is where the temptation compounds.
 ## 5. The merge prompt and recorded Futon delivery exception
 
 **Not under [`getsuga`](../getsuga/SKILL.md) § 3.** For a release proposal getsuga started en on, this
-step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check`, criteria and Development-guard verdicts and its
-`judged head:` back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
-by the exception of 2026-10-01). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
+step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check`, criteria and Development-guard verdicts, its
+`judged head:` and, under an effective `aiReviewers: optional | off`, Hatsu's two-ref Hatsu line (PROCESS, *AI reviewers per consumer*; any disagreement with nen's printed value said) back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
+by the exception of 2026-10-01); a waiver-backed `ready` there carries no hanten condition (PROCESS, *AI reviewers per consumer*). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
 that stop** and presents this section's prompt for the proposal.
 
 **Narrow exception, only for a Futon-owned stacked delivery PR** (ruling 2026-10-19; issue #154).
