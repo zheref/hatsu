@@ -80,9 +80,14 @@ try {
       const repo = resolve(args[repoAt+1]);
       const workflow = join(repo,'nen/workflow.json');
       const safe = [join(repo,'nen'),workflow].every(path=>{try{return !lstatSync(path).isSymbolicLink();}catch{return false;}});
-      const rel = safe ? relative(repo,realpathSync(workflow)) : '..';
-      if (safe && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../')) {
-        const value = JSON.parse(readFileSync(workflow,'utf8')).pr?.sections;
+      // Both sides resolved: a symlinked temp root (/var -> /private/var) must not read as outside it.
+      const rel = safe ? relative(realpathSync(repo),realpathSync(workflow)) : '..';
+      const inside = safe && !isAbsolute(rel) && rel !== '..' && !rel.startsWith('../');
+      // An unparseable declaration keeps the engine's own row (blocked); this enrichment never throws on it.
+      let parsed: { pr?: { sections?: any } } | undefined;
+      if (inside) try { parsed = JSON.parse(readFileSync(workflow,'utf8')); } catch { parsed = undefined; }
+      if (parsed) {
+        const value = parsed.pr?.sections;
         if (value && !isDeepStrictEqual(value, defaults(cat))) {
           const changed = Object.entries(value.variants ?? {}).filter(([cell,ids])=>!isDeepStrictEqual(ids,cat.variants[cell])).map(([cell])=>cell);
           const detail = `consumer value — pr.sections${changed.length ? ': '+changed.join(', ') : ''}; retained`;
