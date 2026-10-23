@@ -26,7 +26,7 @@ composite calls skip their own `## 0.`** ([`STANDALONE-ENTRY.md`](../../../docs/
 **P1 — `hatsu:ten kazaana` opens this run** ([`ten`](../ten/SKILL.md) § 6).
 
 ```
-hatsu:kazaana <repo> [on <line>] [--idle]
+hatsu:kazaana <repo> [on <line>] [--idle [--dry-run]]
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
@@ -52,7 +52,8 @@ composes, and for nothing else** ([`mugetsu`](../mugetsu/SKILL.md) § 3 *Record*
 quoted at the echo, bound to the tag this run cuts, lapsing at a G5 or a halt; the step's `gate` line is
 relayed as parsed. **Say the run has started** (a bounded `CON-25` delegation, futon § 7).
 
-**`--idle`** is stripped before both parses and carried onto the futon line: futon § 12 whole. The
+**`--idle`** (and `--dry-run` beside it) is lifted off before the kazaana parse, whose grammar declares
+neither, and carried onto the futon line, where `nen parse futon` reads it: futon § 12 whole. The
 go then reaches no `then getsuga` — held at `idle.terminal` — and § 6 asks nothing (`publish-offer`
 refused).
 
@@ -113,7 +114,7 @@ presented nowhere as mergeable.
 ## 5. The `then getsuga` step — held, then cut; the proposal is never theirs to merge
 
 **Kazaana's own gate** (ruling 2026-10-13, 2; futon § 8 reads *merged* alone): nothing after `then`
-runs until every PR this run authored (the manifest's `status`; `manifest: absent` holds it) is **merged into `branch.base`, or closed by the maintainer** — a
+runs until every PR this run authored (`nen run verify`, futon § 8) is **merged into `branch.base`, or closed by the maintainer** — a
 PR closed unmerged is reported as not delivered, its issue left open, and holds nothing; **a child of a
 closed stacked PR is stranded** (WORKFLOW rule 5, en § 6), reported, and holds the gate until the
 maintainer closes or retargets it; till then futon § 8 holds. Then [`getsuga`](../getsuga/SKILL.md) runs under its own authority at the

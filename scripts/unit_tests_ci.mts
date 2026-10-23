@@ -29,7 +29,6 @@ const gated: Array<[string, string, string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
-  ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
   ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
   ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
@@ -40,6 +39,9 @@ const gated: Array<[string, string, string]> = [
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
+  // The issue-shape fixture runs the verified nen's body-check and questions over the catalogue and
+  // templates; the interim checker it once tested is retired (zheref/hatsu#423).
+  ['issue_sections_fixture.mts', 'issue_sections_fixture.mts', 'issue-shape'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
