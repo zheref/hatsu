@@ -271,10 +271,11 @@ the target stack, never as a second stack: a source-stack id a pair row names is
 with zero rulings at that tag, rows appended through that skill; prefix `PT`, one global counter: ROSTER §
 *Rulings of 2026-10-21 — the port rule prefix (HA#355)*). `nen canon resolve` at `0.24.0` returns always-load
 plus exactly one stack and knows no pair; resolving one is zheref/nen#457. **Until it lands: test the
-pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; **absent at a
-pin at or above `v0.11.0` is a refusal at exit `2` naming the pair and the tag** — every directed pair of
-product stacks ships its file from there (`CON-13` as amended, zheref/bankai-handbooks#21), so an absent one
-is a wrong pair or a damaged checkout, never `port rulings: none`; **a present file whose two tables
+pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; absent is
+`port rulings: none` — a port that has met no drift, not an error — at a pin below `v0.13.0`, where
+`CON-13` still has a pair file created on first use; **at `v0.13.0` or later, the tag that is to carry the
+amended `CON-13` (zheref/bankai-handbooks#21: every directed pair ships its file), absent is a refusal at
+exit `2` naming the pair and the tag**; **a present file whose two tables
 hold no `PT-` row — every pair at `v0.11.0` — reads `port rulings: none (file present, 0 rows)`** and is
 still appended, so a row added at a later tag is read without a prose change), **then append its path to
 `--always-load`** after the manifest's own rows. The verb **accepts and echoes** the path (it checks

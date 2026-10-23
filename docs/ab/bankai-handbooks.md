@@ -450,7 +450,10 @@ $ nen canon resolve --repo <scratch registry> --target acme/web-app \
   "stackHandbook": "handbooks/stacks/react-uzf-v1/architecture.md" }                      # exit 0
 ```
 
-**Pair files are shipped, never created, from `v0.11.0`** (`CON-13` as amended, zheref/bankai-handbooks#21):
-`scripts/port_rule_reserve.sh --handbooks-tag <pin>` refuses a pair file missing at the tip at exit `2`,
-naming the pair and the tag, and `hatsu:bankai-handbooks` reads an absent pair file at such a pin as the
-same refusal rather than `port rulings: none` (lane `port-rule-guard`, T17).
+**`CON-13` at `v0.12.0` still creates a pair file on first use.** zheref/bankai-handbooks#21 amends it so
+every directed pair ships its file, but it is unmerged and untagged, so the refusal is gated on the tag
+that is to carry it: `scripts/port_rule_reserve.sh --handbooks-tag <pin>` refuses a pair file missing at
+the tip at exit `2`, naming the pair and the tag, only at `v0.13.0` or later, and `hatsu:bankai-handbooks`
+reads an absent pair file the same way from that tag; below it the create-on-first-use path stands (lane
+`port-rule-guard`, T17). The INDEX template's lead stays `v0.12.0`'s rendered text (T16). **At the
+`v0.13.0` repin: adopt zheref/bankai-handbooks#21's INDEX lead, and the refusal becomes live.**

@@ -29,9 +29,10 @@
   `react-uzf-v1` Electron desktop shell (`RC-64`–`RC-69`) and its `QA-7`/`QA-12` rows are new, and
   `hatsu:bankai-quality`'s tooling table carries the desktop row. History in
   `docs/ab/bankai-handbooks.md` § *Repin to v0.12.0*.
-- **Pair files are shipped, never created** (`CON-13` as amended, zheref/bankai-handbooks#21): the
-  INDEX template's lead matches that PR's `handbooks/ports/INDEX.md` byte for byte;
-  `port_rule_reserve.sh --handbooks-tag <pin>` refuses a pair file missing at the tip at a tag at or
-  above `v0.11.0` (exit `2`, naming the pair and the tag); `hatsu:bankai-rule` appends rows only and
-  its receipt drops `created`; `hatsu:bankai-handbooks` reads an absent pair file at such a pin as
-  that refusal, no longer `port rulings: none`. Fixture T17.
+- **A missing pair file is refused from handbooks `v0.13.0`**, the tag that is to carry `CON-13` as
+  amended by zheref/bankai-handbooks#21 (every directed pair ships its file; unmerged today):
+  `port_rule_reserve.sh --handbooks-tag <pin>` exits `2` there, naming the pair and the tag, and
+  `hatsu:bankai-rule` and `hatsu:bankai-handbooks` read the absence as that refusal. At `v0.11.0` to
+  `v0.12.x`, which `CON-13` still says create a pair file on first use, the create path stands.
+  Fixture T17. The INDEX template's lead stays `v0.12.0`'s rendered text (T16); adopting
+  zheref/bankai-handbooks#21's lead at the `v0.13.0` repin is owed (named on HA#449).

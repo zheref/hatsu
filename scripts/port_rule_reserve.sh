@@ -106,7 +106,7 @@
 #         directory (mktemp failed), a worktree that is not a git checkout, a clone whose origin
 #         fetch refspec does not cover refs/heads/* (a --single-branch clone), a fetch that failed,
 #         a tip ref that does not resolve, a --handbooks-tag not vX.Y.Z, a --pair-file missing at the tip
-#         under a --handbooks-tag at or above v0.11.0 (every directed pair ships its file there), a working-tree pair file (or the rulings directory) that
+#         under a --handbooks-tag at or above v0.13.0 (every directed pair ships its file there), a working-tree pair file (or the rulings directory) that
 #         is a symlink, not a regular file or outside the worktree, or no gh on PATH · 3 an id, a
 #         row, a first cell, a pair-file name or a pair-file header outside the admitted shape is in
 #         a counted place, the next id would pass the ceiling, or (--check) this branch adds an id
@@ -144,14 +144,15 @@ TARGETSHAPE="^[A-Za-z0-9-]+/${SEG}\$"
 [[ "$pair" =~ $PAIRSHAPE ]] || { echo "port_rule_reserve: --pair-file is <rulingsDir>/<name>.md: one or more segments of $SEG then /<name>.md -- no empty, '.' or '..' segment, no leading './' or '/', no trailing '/'; got $(printf '%q' "$pair")" >&2; exit 2; }
 dir="${pair%/*}"
 [[ "$target" =~ $TARGETSHAPE ]] || { echo "port_rule_reserve: --target is owner/name (owner [A-Za-z0-9-]+, name $SEG); got $(printf '%q' "$target")" >&2; exit 2; }
-# --handbooks-tag: the consumer's pinned handbooks tag. From v0.11.0 every directed pair of product stacks
-# ships its pair file (CON-13 as amended, zheref/bankai-handbooks#21), so a pair file missing at the tip is
-# refused at exit 2 rather than created.
+# --handbooks-tag: the consumer's pinned handbooks tag. From v0.13.0, the tag that is to carry CON-13 as
+# amended by zheref/bankai-handbooks#21, every directed pair of product stacks ships its pair file, so a
+# pair file missing at the tip is refused at exit 2 rather than created. Below it (v0.11.0 to v0.12.x)
+# CON-13 still says a pair file is created on first use, and a missing one is the create case.
 pairs_ship=0
 if [ -n "$htag" ]; then
   [[ "$htag" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || { echo "port_rule_reserve: --handbooks-tag is vX.Y.Z; got $(printf '%q' "$htag")" >&2; exit 2; }
   hmaj=$((10#${BASH_REMATCH[1]})); hmin=$((10#${BASH_REMATCH[2]}))
-  if [ "$hmaj" -gt 0 ] || [ "$hmin" -ge 11 ]; then pairs_ship=1; fi
+  if [ "$hmaj" -gt 0 ] || [ "$hmin" -ge 13 ]; then pairs_ship=1; fi
 fi
 CEILING=999999999
 P='[Pp][Rr][Ee][Ff][Ii][Xx]'; N='[Nn][Uu][Mm][Bb][Ee][Rr][Ii][Nn][Gg]'
@@ -371,7 +372,7 @@ else
 fi
 if [ "$pairs_ship" = 1 ] && [ "$(git -C "$clone" cat-file -t "$tipref:$pair" 2>/dev/null)" != blob ]; then
   pname="${pair##*/}"; pname="${pname%.md}"
-  echo "port_rule_reserve: pair $(printable "$pname") has no pair file $(printable "$pair") at the tip $tipref; at handbooks $htag (>= v0.11.0) every directed pair of product stacks ships its file (CON-13, zheref/bankai-handbooks#21), so bankai-rule appends rows and never creates one -- refusing, nothing is reserved" >&2
+  echo "port_rule_reserve: pair $(printable "$pname") has no pair file $(printable "$pair") at the tip $tipref; at handbooks $htag (>= v0.13.0) every directed pair of product stacks ships its file (CON-13 as amended, zheref/bankai-handbooks#21), so bankai-rule appends rows and never creates one -- refusing, nothing is reserved" >&2
   exit 2
 fi
 plan_reset
