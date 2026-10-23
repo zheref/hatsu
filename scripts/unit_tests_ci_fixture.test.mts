@@ -70,7 +70,6 @@ try {
 
   let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||';
   for (const [script, fixture, lane] of [['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
-    ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
     ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
@@ -86,6 +85,15 @@ try {
     calls = readFileSync(log, 'utf8').trim().split('\n');
     assert(calls.join(',') === expected, `${lane} lane not selected (BC-9)`);
   }
+
+  // The criteria lane's fixture is its own gate (zheref/hatsu#413): selected by that file alone.
+  writeFileSync(join(repo, 'scripts', 'pr_criteria_fixture.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `criteria path refused: ${result.stderr}`);
+  expected += ',criteria||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'criteria lane not selected (BC-9)');
 
   // The tenkai engine is its own fixture (--self-test), so its lane is selected by the script alone,
   // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427).

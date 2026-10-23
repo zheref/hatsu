@@ -30,13 +30,15 @@ const gated: Array<[string, string, string]> = [
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
   ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
-  ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
   ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
   // Its last case runs --check-nen-pin on the PR checkout itself, so a repin that leaves
   // docs/NEN-CONTRACT.md's echoed pin line stale fails unit-tests.yml on every pull request.
   ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
   ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
+  // Criterion coverage is `nen pr converge`'s (zheref/hatsu#413); the criteria lane's fixture holds
+  // Hatsu's wiring around it and is its own gate, as the tenkai engine is.
+  ['pr_criteria_fixture.mts', 'pr_criteria_fixture.mts', 'criteria'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],

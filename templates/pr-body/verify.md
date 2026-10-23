@@ -16,8 +16,8 @@ Process title: What the guards prove; name each fixture in this table: -->
 <!-- Every kind (HR-11): one row per AC id of each closing issue in Associated issues, Criterion
 written <CODE>#<N>/AC-<k>; Coverage exactly one of satisfied · partial · missing · contradicts ·
 unrequested (unrequested only on a row whose Criterion is none: a change no criterion asked for);
-Evidence a test name, path:line or scenario. scripts/pr_criteria_check.mts refuses a missing row,
-missing or contradicts. No closing issue: drop this table. -->
+Evidence a test name, path:line or scenario. nen pr converge judges the table (HR-11). No closing
+issue: drop this table. -->
 
 | Criterion | Coverage | Evidence |
 |---|---|---|

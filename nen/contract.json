@@ -309,7 +309,7 @@
       "criteria": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/pr_criteria_check.mts, the acceptance-criterion coverage guard (HR-11; SDD plan piece P7), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: closing issues derived from the Associated issues table (closing verdicts only, canonical URLs only); AC ids from '- AC-{n}:' rows outside comments and fences; an issue with no AC row is not-verifiable, never a pass; a missing row, missing, contradicts, an unknown or twice-named criterion, a coverage outside the vocabulary, empty or placeholder evidence and unrequested off a none row are refused; no closing issue passes with zero criteria; the CLI's --body, --pr and --json through a stub nen and a stub gh read via scripts/gh_token_env.sh, exit codes 0, 1, 2, 3 and 5, hostile text sanitised; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants (HR-10). Run it only as `nen shu test --lane criteria --repo <hatsu>` when the script, its fixture, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
+        "$comment": "The criteria lane (HR-11, HR-10; zheref/hatsu#413): acceptance-criterion coverage is `nen pr converge --requirements-from contracts/issue-sections.json`'s verdict, read by shibari § 4, en §§ 4-5 and rikugan § 3, and no Hatsu script computes it (the interim Hatsu guard retired at the 0.26 pin). Its fixture, scripts/pr_criteria_fixture.mts, holds what Hatsu owns around the verb: every reader cites it with Hatsu's catalogue; no canon file restates its blocking rules or evidence rule and the catalogue declares no coverage block (nen's defaults); the catalogue read through `nen issue criteria --body-file` (list rows in the acceptance section, comments and fences ignored, a body with no AC row not verifiable, an Akatsuki AC-{epic}-{nnn} row unrecognised at this pin, zheref/hatsu#411); the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants. Needs the pinned nen (NEN=<path> overrides). Run it only as `nen shu test --lane criteria --repo <hatsu>` when the fixture, a reader, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
       },
       "clause-guard": {
         "stack": "claude-code-plugin",
@@ -350,7 +350,7 @@
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
         },
         "coverage": {
-          "unsupported": "The guard scripts under scripts/ execute under their focused fixture lanes, but no line-coverage tool is declared for shell yet (kcov or bashcov), nor for the TypeScript guards (scripts/*.mts, among them clause_id_guard, issue_body_check, pr_criteria_check, prose_ambiguity_check and futon_effort_record) until a node coverage lane over their fixture lanes lands: both are unmeasured gaps, tracked in zheref/hatsu#148, never a clean zero. Until then byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
+          "unsupported": "The guard scripts under scripts/ execute under their focused fixture lanes, but no line-coverage tool is declared for shell yet (kcov or bashcov), nor for the TypeScript guards (scripts/*.mts, among them clause_id_guard, issue_body_check, prose_ambiguity_check and futon_effort_record) until a node coverage lane over their fixture lanes lands: both are unmeasured gaps, tracked in zheref/hatsu#148, never a clean zero. Until then byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
@@ -877,9 +877,9 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
-            "scripts/pr_criteria_check_fixture.mts"
+            "scripts/pr_criteria_fixture.mts"
           ],
-          "$comment": "The criteria fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
+          "$comment": "The criteria fixture through the shared output guard. Requires node, bash and the pinned nen (offline: nen issue criteria --body-file); no gh and no network."
         }
       },
       "clause-guard": {
