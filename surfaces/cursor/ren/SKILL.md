@@ -164,11 +164,12 @@ step included. **The usage entry is recorded at step 5**: `nen usage record --ef
 <branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes]` from
 the surface's own cost readout, `--not-reported` on a surface that exposes none.
 
-**A resumed effort reads before it writes** (zheref/hatsu#444, #445; nen > 0.26.0). An effort whose
+**A resumed effort reads before it writes** (zheref/hatsu#444, zheref/hatsu#445; nen > 0.26.0). An effort whose
 branch already has a phase ledger, or a PR, is a resume: first, where a PR exists, `nen pr ledger read
---target <owner/name> --pr <n> --effort <branch> --repo <checkout> --restore --json` (WORKFLOW § *The
-effort's ledgers*, *The durable slice*: `ok` restores and skips, `stale` restores and re-runs the moved
-phase, `could-not-read` skips nothing); then `nen phase show --effort <branch> --json`. A phase ended at
+--target <owner/name> --pr <n> --effort <branch> --repo <checkout> --json`, adding `--restore` only where
+`nen phase show` finds no local ledger (WORKFLOW § *The effort's ledgers*, *The durable slice*: `ok`
+restores and skips, `stale` restores and re-runs the moved phase, `could-not-read` skips nothing); then
+`nen phase show --effort <branch> --json`. A phase ended at
 exit `0` is **skipped and named** (`skipped <phase>: recorded at <instant>`); a phase still **open** is
 continued with `nen phase begin --resume` (one entry, its `resumedAt` appended, never a second entry); the
 rest begin as § 2a says. A `begin --resume` refused at exit `2` (another phase open) is a finding to report,

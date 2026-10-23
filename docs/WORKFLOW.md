@@ -951,12 +951,17 @@ nen pr ledger post --target <owner/name> --pr <n> --effort <branch> --repo <chec
 One marker-keyed comment per effort and login: `posted` the first time, `updated` in place after, `unchanged`
 when the bytes agree — never a second comment. `findings-invalid`, `secret-shape` and `too-large` (exit 1)
 post nothing and are reported verbatim in the landing report; `refused` (exit 4) is the private-name guard.
-**Read back** before a resume (`ren` § 2a, which `build` § 2 runs on a resumed effort), and only then
+**Read back** before a resume (`ren` § 2a, which `build` § 4 cites), and only then
 `nen phase begin --resume`:
 
 ```bash
-nen pr ledger read --target <owner/name> --pr <n> --effort <branch> --repo <checkout> --restore --json
+nen pr ledger read --target <owner/name> --pr <n> --effort <branch> --repo <checkout> [--restore] --json
 ```
+
+`--restore` is passed **only where no local phase ledger exists** (a fresh clone, another machine): a local
+ledger this checkout has moved on since the post — an open phase resumed, a phase ended — is refused by
+`--restore` as a disagreement (exit 1, nothing overwritten; observed on HA-PR-#463, `docs/ab/ren.md`), so
+there the local ledger leads and the slice is read without the flag.
 
 `ok` → the slice's completed phases (an entry with an `exit` of `0`) are skipped, each named with the line
 `skipped <phase>: recorded on <comment url> at head <sha>`; `stale` (the PR moved past the recorded head) →
@@ -964,8 +969,9 @@ the phases are restored and the phase at the moved head runs again, said so; `co
 two, an edited digest, another contract) → nothing is skipped and the run starts at the first phase, the
 reason quoted, **never read as an empty ledger**. Only a comment the authenticated login wrote and nobody
 else edited is trusted (SEC-15, SEC-7): a foreign marked comment is counted, never parsed. A local ledger
-that disagrees with the slice is exit 1 naming both and overwrites nothing — a G5: two records of fact
-disagree, and the run neither picks one nor overwrites either. The register lists each
+that disagrees with the slice under `--restore` is exit 1 naming both and overwrites nothing; outside the
+case above (the local ledger merely ahead), that is a G5: two records of fact disagree, and the run neither
+picks one nor overwrites either. The register lists each
 PR's slice URL and verdict (§ *Idle batches*). No PR yet → no slice; the local ledger is the only one.
 
 ## 3 · `project.launch` and `project.evidence`

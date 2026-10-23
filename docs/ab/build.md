@@ -631,3 +631,36 @@ step run with `--effort <id>` (or `NEN_EFFORT`) appends itself to the open entry
 `release`, `build`, `hanten`, `remediate` and `open`, and records usage at every § 7 report from the
 surface's own readout, so `.nen/phases/<effort>.json` carries the authoring and remediation phases
 rather than the three a later `ren`, `hanten` or `en` happened to open (the shape #100 measured).
+
+## Dated verification, 2026-10-23 — crash-and-resume (build, its four phases) (zheref/hatsu#444)
+
+Run: 2026-10-23, host `darwin` (arm64), twice with identical verdicts: nen `0.26.0` at `/Users/zheref/.local/bin/nen`
+(the contract pin) and nen source `0.27.0` at zheref/nen `847f7dc4b8087591b3d68bb486d48855b7cb72b5` (`bun run src/index.ts`, the stack top of zheref/nen#518,
+unreleased). Command, reproducible: `node scripts/resume_proof.mts --nen <nen>` (lane `resume-proof`). Each case
+runs in a throwaway `git init` repository; nothing touched a primary checkout or GitHub.
+
+**Method.** The composite's phases are recorded once uninterrupted, then once per interruption point:
+killed after a phase's `nen phase end` and killed after its `nen phase begin`. The same line is invoked again
+under the resume rule (ren § 2a; WORKFLOW § *The effort's ledgers*): the ledger is read once, a phase ended at
+exit `0` is skipped and named, an open phase continues with `nen phase begin --resume`, the rest begin. The end
+state is compared with the uninterrupted run with only the instants elided (phase order, names, exits, steps),
+and the ledger must hold one entry per phase with exactly one `resumedAt` on the interrupted one. A finished
+ledger re-invoked must be **byte-identical** on disk.
+
+```text
+converged build                finished, re-invoked                 ledger bytes unchanged; 4 skipped
+converged build                killed after-end author              1 skipped, publish begun
+converged build                killed mid-phase author              0 skipped, author resumed
+converged build                killed after-end publish             2 skipped, pr begun
+converged build                killed mid-phase publish             1 skipped, publish resumed
+converged build                killed after-end pr                  3 skipped, readiness begun
+converged build                killed mid-phase pr                  2 skipped, pr resumed
+converged build                killed after-end readiness           4 skipped, nothing left to run
+converged build                killed mid-phase readiness           3 skipped, readiness resumed
+```
+
+Mukai runs inside build's `pr` phase and records none of its own; build § 4 cites ren § 2a's resume read.
+
+**Not proved here.** A live session killed mid-composite and re-invoked: the proof drives the ledger verbs
+the composite's resume rule reads, not a running model following the rule. The live publish half is in
+`docs/ab/mukai.md` and `docs/ab/ren.md` (2026-10-23, HA-PR-#463).

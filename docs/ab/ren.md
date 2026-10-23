@@ -223,3 +223,53 @@ and docs/LAUNCH-MIGRATION.md; historical command transcripts above retain their 
 | Turn/final report sees stale test or coverage artifact | Mark stale; do not execute tests/coverage merely to render the page |
 | Repeated discovery already captured | Unchanged result and no GitHub write; retain canonical link |
 | Filing unavailable | Durable sanitized pending record; original work continues where possible |
+
+## Dated verification, 2026-10-23 — crash-and-resume (ren, every step) (zheref/hatsu#444)
+
+Run: 2026-10-23, host `darwin` (arm64), twice with identical verdicts: nen `0.26.0` at `/Users/zheref/.local/bin/nen`
+(the contract pin) and nen source `0.27.0` at zheref/nen `847f7dc4b8087591b3d68bb486d48855b7cb72b5` (`bun run src/index.ts`, the stack top of zheref/nen#518,
+unreleased). Command, reproducible: `node scripts/resume_proof.mts --nen <nen>` (lane `resume-proof`). Each case
+runs in a throwaway `git init` repository; nothing touched a primary checkout or GitHub.
+
+**Method.** The composite's phases are recorded once uninterrupted, then once per interruption point:
+killed after a phase's `nen phase end` and killed after its `nen phase begin`. The same line is invoked again
+under the resume rule (ren § 2a; WORKFLOW § *The effort's ledgers*): the ledger is read once, a phase ended at
+exit `0` is skipped and named, an open phase continues with `nen phase begin --resume`, the rest begin. The end
+state is compared with the uninterrupted run with only the instants elided (phase order, names, exits, steps),
+and the ledger must hold one entry per phase with exactly one `resumedAt` on the interrupted one. A finished
+ledger re-invoked must be **byte-identical** on disk.
+
+```text
+converged ren                  finished, re-invoked                 ledger bytes unchanged; 6 skipped
+converged ren                  killed after-end breath              1 skipped, rasengan begun
+converged ren                  killed mid-phase breath              0 skipped, breath resumed
+converged ren                  killed after-end rasengan            2 skipped, kokusen begun
+converged ren                  killed mid-phase rasengan            1 skipped, rasengan resumed
+converged ren                  killed after-end kokusen             3 skipped, amaterasu begun
+converged ren                  killed mid-phase kokusen             2 skipped, kokusen resumed
+converged ren                  killed after-end amaterasu           4 skipped, spiritual-message begun
+converged ren                  killed mid-phase amaterasu           3 skipped, amaterasu resumed
+converged ren                  killed after-end spiritual-message   5 skipped, jutaisho begun
+converged ren                  killed mid-phase spiritual-message   4 skipped, spiritual-message resumed
+converged ren                  killed after-end jutaisho            6 skipped, nothing left to run
+converged ren                  killed mid-phase jutaisho            5 skipped, jutaisho resumed
+converged any                  resume a phase while another is open refused at exit 2, naming the open phase
+```
+
+**The durable half, live on HA-PR-#463** (nen source `847f7dc4b8087591b3d68bb486d48855b7cb72b5`; zheref/hatsu#445). `nen pr ledger post` posted the
+slice (`posted: https://github.com/zheref/hatsu/pull/463#issuecomment-6376486942 … head 3836e79b3f71, 2 phase entries,
+2 proof file(s)`); the same post again answered `unchanged`; `nen pr ledger read` answered `ok … foreign: 0`. In a
+**fresh clone** (`git clone --depth 1 --branch opus/kurapika/sdd100-h-k-resume-durable-idle`), `read --restore` wrote the
+slice's two phases (`restored: <clone>/.git/.nen/phases/…json`); `nen phase show` listed `author` ended at exit 0
+(skipped by the rule) and `shibari` open, and `nen phase begin --resume --phase shibari` continued it (`resumed shibari
+… (open since 2026-10-23T23:02:36.263Z)`): no finished phase re-ran.
+
+**Finding.** A second `read --restore` in that clone, after the resume had appended its `resumedAt`, is refused
+at exit `1` (*"the local phase ledger … disagrees with the slice … nothing was overwritten"*), while `read` without
+`--restore` answers `ok` at exit `0`. A local ledger that has only moved on since the post is read as a
+disagreement, so ren § 2a passes `--restore` only where no local ledger exists. Owed to nen: `--restore` reading a
+local ledger that extends the slice as ahead, not disagreeing.
+
+**Not proved here.** A live session killed mid-composite and re-invoked: the proof drives the ledger verbs
+the composite's resume rule reads, not a running model following the rule. The live publish half is in
+`docs/ab/mukai.md` and `docs/ab/ren.md` (2026-10-23, HA-PR-#463).
