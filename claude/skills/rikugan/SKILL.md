@@ -44,8 +44,8 @@ variant: final`; an empty line → both `(clause absent)`; `for zheref/hatsu` �
 absent; `as register` → scope absent; `for HA#171 as bogus` → exit `2`, *`<variant> is one of final |
 register`*; a bare `HA#171` → exit `2`, *the line must open with 'for' to supply <scope>*. Exit `2`
 **asks, never ends**: the corrected line goes to the picker and the answer is re-parsed. A missing
-argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*).
+argument or configuration item is set up inline (`missing-argument`, `missing-configuration`;
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
 
 ## 2. The scope — ordered, total, stated with its source
 
@@ -71,7 +71,7 @@ was touched; the session's impression of it does not.
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> --register <desk> --json  # an object scope
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --backlog --register <desk> --json                       # a repository scope
 nen pr ready --repo <path> --pr <N> [--explain]                                                                                          # per PR, quoted verbatim
-node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>  # quoted beside the verdict (HR-11)
+nen pr converge --target <owner/name> --pr <N> --requirements-from "$hatsu_root/contracts/issue-sections.json"  # quoted beside the verdict (HR-11)
 ```
 
 **Two passes** (zheref/hatsu#221): the plain call (no `--register`) reads the facts; the desk —

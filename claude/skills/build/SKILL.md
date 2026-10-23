@@ -60,9 +60,10 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
   `closedByPullRequestsReferences`).
 - **If an epic awaiting approval**: stop at **G1** (row `mode-label`) — the mode label is the
   maintainer's decision (`CON-4`), never an agent's.
-- **Read requirements**: title, body, acceptance criteria, constraints, then `node
-  "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N> --json`: an open `OQ-{n}`
-  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4); any other miss is listed, never a stop; exit `2`, `3` or `5` a G5.
+- **Read requirements**: title, body, acceptance criteria, constraints, then `nen issue questions --ref <CODE>#<N>
+  --target <owner/name>` and `nen issue body-check` beside it, both `--requirements-from
+  "$hatsu_root/contracts/issue-sections.json"` (plugin-registries § `contracts/issue-sections.json`): an `OPEN` `OQ-{n}`
+  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4); any other miss is listed, never a stop; exit `2`, or `1` with no verdict line, a G5.
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
@@ -101,10 +102,9 @@ All authoring, feature work, and verification for the issue **must run in an iso
 
 Git-ignored inside core, never a sibling; branch `{model}/{persona}/{descriptor}` (`nen/workflow.json`); core
 stays clean and parked on the trunk unless the maintainer's own prose says to work on core. **One checkout per
-concurrent effort** (step 2 there; hatsu#229): a second issue is never started
-in an occupied worktree — it gets its own `<name>` — and a tree a reviewer is reading is never switched
-under them: hanten § 4's detached checkout exists for that, and where the isolation hook refused it, the
-run waits for the review to return (a moved ref is hanten § 4's G5).
+concurrent effort** (step 2 there; hatsu#229): a second issue gets its own `<name>`, and a tree a
+reviewer is reading is never switched under them: hanten § 4's detached checkout exists for that; where
+the hook refused it, the run waits for the review (a moved ref is its G5).
 
 ## 4. Building protocol
 
@@ -153,8 +153,8 @@ or work on core.
 
 ## 6. When it will not move (G5)
 
-A stall is reported plainly — the blocker, and whether it needs the maintainer: a gap unresolvable locally
-is a **G5** naming it, in [`jutaisho`](../jutaisho/SKILL.md) § 4's shape; filing is a legitimate outcome
+A gap unresolvable locally is a **G5** naming the blocker, in [`jutaisho`](../jutaisho/SKILL.md) § 4's
+shape; filing is a legitimate outcome
 ([`file`](../file/SKILL.md), linked, the build held on it).
 
 ## 7. Reporting

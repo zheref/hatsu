@@ -129,7 +129,7 @@
       "futon-effort-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "Focused fixture for local Futon ownership metadata: a run starts before PR creation, then binds the typed selector, issue, PR, non-main base and pinned head outside the PR-controlled tree."
+        "$comment": "Focused fixture for local Futon ownership metadata: a run starts before PR creation, then binds the typed selector, issue, PR, non-main base and pinned head outside the PR-controlled tree; its last case runs the real nen (CI's NEN, else PATH's; absent exit 5) and asserts nen loop slots --repo reads monitor.localSlotFrees from the checkout's nen/workflow.json at the 0.26 pin -- merged holds a ready, prompted, unmerged PR's slot and frees it at the merge, no key is nen's own ready+prompted default (the early free futon section 6 holds against), and the two keys disagreeing is refused (HR-257; futon section 6, WORKFLOW section 2)."
       },
       "readiness-json-guard": {
         "stack": "claude-code-plugin",
@@ -304,17 +304,22 @@
       "issue-shape": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/issue_body_check.mts, the issue-shape guard over contracts/issue-sections.json and templates/issue-body/ (HR-4; SDD plan piece P6), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: every kind's template carries exactly its catalogue headings and fails unfilled; required, duplicate, empty and optional headings; AC, SC, AS and OQ row shapes and numbering; vague adjectives and technology terms in acceptance rows; open and resolved question counts; hostile text sanitised; exit codes 0, 1, 2, 3 and 5; and --ref resolved through a stub nen and read through scripts/gh_token_env.sh against a stub gh. Run it only as `nen shu test --lane issue-shape --repo <hatsu>` when the script, its fixture, the catalogue or a template changes. It is not a general suite."
+        "$comment": "The focused lane for the issue shape (HR-4; SDD plan piece P6) at the nen 0.26 pin: nen issue body-check --requirements-from contracts/issue-sections.json and nen issue questions are the verdict (zheref/nen#476, #477), and scripts/issue_shape_fixture.mts holds the verb to Hatsu's catalogue and templates -- every kind's template under templates/issue-body/ carries exactly its catalogue headings and is refused unfilled, a filled body passes with its AC/SC/AS/OQ rows numbered, the catalogue's misses (a missing section, a row out of shape or order, an unmeasured success row), a vague adjective as an advisory, no --kind reading the common list, an open question counted by issue questions and never a body-check miss, the dated resolved shape with the typographic arrow, and the exits the skills branch on (0; 1 with the verdict line; 1 with no verdict and could-not-read on stderr for an unreadable issue, never a pass; 2 for a pull-request number, an undeclared kind or a malformed catalogue). Offline for gh (a stub on PATH); nen is the real binary CI hands the runner as NEN, else PATH's, absent exit 5. The interim reader scripts/issue_body_check.mts retired here (zheref/hatsu#423, criterion 4). Run it on demand with nen shu test --lane issue-shape; unit-tests.yml runs it on every pull request through scripts/unit_tests_ci.mts."
       },
       "criteria": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/pr_criteria_check.mts, the acceptance-criterion coverage guard (HR-11; SDD plan piece P7), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: closing issues derived from the Associated issues table (closing verdicts only, canonical URLs only); AC ids from '- AC-{n}:' rows outside comments and fences; an issue with no AC row is not-verifiable, never a pass; a missing row, missing, contradicts, an unknown or twice-named criterion, a coverage outside the vocabulary, empty or placeholder evidence and unrequested off a none row are refused; no closing issue passes with zero criteria; the CLI's --body, --pr and --json through a stub nen and a stub gh read via scripts/gh_token_env.sh, exit codes 0, 1, 2, 3 and 5, hostile text sanitised; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants (HR-10). Run it only as `nen shu test --lane criteria --repo <hatsu>` when the script, its fixture, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
+        "$comment": "The focused lane for acceptance-criterion coverage (HR-11; SDD plan piece P7) at the nen 0.26 pin: nen pr converge --target <owner/name> --pr <n> --requirements-from contracts/issue-sections.json is the readiness conjunct en sections 4-5, rikugan section 3 and shibari section 4 read (zheref/nen#483, #498; the retirement of scripts/pr_criteria_check.mts is zheref/hatsu#413). scripts/criteria_fixture.mts holds the verb to the rows Hatsu's templates write, offline for gh (a stub answering pr view, repo view and api repos/<slug>/issues/<n> from files) and with the real nen (CI's NEN, else PATH's; absent exit 5): the covered body passes; every blocking row -- a missing, malformed or duplicated row, the words missing and contradicts, unrequested on a criterion, a none row with a problem, a row without evidence or with a template placeholder, an unmatched or ambiguous criterion, a closing issue stating no criterion (never a pass) or an unrecognised AC row, a non-default base whose body names no closing issue -- exits 1 naming it; GitHub's closing list on the default branch and the body's keywords off it; a closing number naming a pull request and an unreadable pull request exit 1 with no verdict; a table outside the verify section whose first cell mentions AC- reads as a malformed row (HA-PR-#433, live); contracts/pr-sections.json as the catalogue is exit 2. It also holds the verify template and requirements wiring and contracts/hanten-findings.schema.json's structural invariants (HR-10). Run it on demand with nen shu test --lane criteria; unit-tests.yml runs it on every pull request through scripts/unit_tests_ci.mts."
       },
       "clause-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor and any id=\"hr-N\" anchor not in the canonical form exit 1, a gap is a notice at exit 0 listing at most 20, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity, an empty id space, an id that is not a safe integer or exceeds the definition count plus 1000, and a path holding a comma, colon or line break exit 2; its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
+      },
+      "ruling-row-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/ruling_row.mts, the render of one ROSTER ruling row from a stop answer nen recorded (nen stop answer, nen 0.26.0; docs/ROSTER.md section The ruling template, step 3; PROCESS section Surfaces and pickers, Recording the answer), following the one-lane-per-executable-guard pattern. Its fixture is hermetic for the --record-file form (a picked answer renders the picked label in backticks and a typed one its words verbatim, cells on one line with pipes escaped and control and bidi characters dropped, the record id, effort and date appended to the settles cell; every malformed record and usage exit 2; an unreadable record or settles file exit 1) and runs the real nen for the --effort form (one answer recorded into a throwaway repository's git common dir and read back by id; an unknown id or unreadable ledger exit 1; nen absent exit 5). Run it on demand with nen shu test --lane ruling-row-guard; unit-tests.yml runs it on every pull request through scripts/unit_tests_ci.mts."
       },
       "product-term-guard": {
         "stack": "claude-code-plugin",
@@ -339,13 +344,13 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, ruling-row-guard, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
         },
         "coverage": {
-          "unsupported": "The guard scripts under scripts/ execute under their focused fixture lanes, but no line-coverage tool is declared for shell yet (kcov or bashcov), nor for the TypeScript guards (scripts/*.mts, among them clause_id_guard, issue_body_check, pr_criteria_check, prose_ambiguity_check and futon_effort_record) until a node coverage lane over their fixture lanes lands: both are unmeasured gaps, tracked in zheref/hatsu#148, never a clean zero. Until then byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
+          "unsupported": "The guard scripts under scripts/ execute under their focused fixture lanes, but no line-coverage tool is declared for shell yet (kcov or bashcov), nor for the TypeScript guards (scripts/*.mts, among them clause_id_guard, ruling_row, prose_ambiguity_check and futon_effort_record, and the issue_shape and criteria fixtures that hold nen's verbs) until a node coverage lane over their fixture lanes lands: both are unmeasured gaps, tracked in zheref/hatsu#148, never a clean zero. Until then byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
@@ -861,9 +866,9 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
-            "scripts/issue_body_check_fixture.mts"
+            "scripts/issue_shape_fixture.mts"
           ],
-          "$comment": "The issue-shape fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
+          "$comment": "The issue-shape fixture through the shared output guard. Requires node, bash and the real nen (NEN, else PATH; absent exit 5); gh is a stub the fixture writes; no network."
         }
       },
       "criteria": {
@@ -872,9 +877,20 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
-            "scripts/pr_criteria_check_fixture.mts"
+            "scripts/criteria_fixture.mts"
           ],
-          "$comment": "The criteria fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
+          "$comment": "The criteria fixture through the shared output guard. Requires node, bash and the real nen (NEN, else PATH; absent exit 5); gh is a stub the fixture writes; no network."
+        }
+      },
+      "ruling-row-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/ruling_row_fixture.mts"
+          ],
+          "$comment": "The ruling-row fixture through the shared output guard. Requires node, bash, git and the real nen (NEN, else PATH; absent exit 5); no gh and no network."
         }
       },
       "clause-guard": {

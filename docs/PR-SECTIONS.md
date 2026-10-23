@@ -71,8 +71,11 @@ missing evidence. The catalogue supplies the heading glyphs; guards tolerate tho
 The non-product forms satisfy `CON-17(b)`'s observable proxy; the handbook is not amended.
 Every kind's verify section also carries one Criterion / Coverage / Evidence row per AC id of each
 closing issue (HR-11): `<CODE>#<N>/AC-<k>`; satisfied · partial · missing · contradicts · unrequested;
-a test name, path:line or scenario. `scripts/pr_criteria_check.mts` refuses a missing row, `missing`
-or `contradicts`, and a closing issue with no criteria; an empty verify heading fails `body-check`.
+a test name, path:line or scenario. `nen pr converge --target <owner/name> --pr <n> --requirements-from
+contracts/issue-sections.json` (nen 0.26, HR-11) judges the coverage once the PR is open and names every
+row that blocks; it reads **every** table line whose first cell mentions `AC-` as a verify row, so no
+other table in the body opens a cell with a criterion id (seen live on HA-PR-#433); an empty verify
+heading fails `body-check`.
 Compatibility carries Symbol / Before / After / Consumer action and a semver verdict. Across
 repositories answers what another repository does differently after merge, recording rulings.
 Release unit carries Archive / Version / Size / Provenance / Verification and the `CON-22` fan-out. Rollout carries Target /

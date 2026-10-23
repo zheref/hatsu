@@ -61,13 +61,11 @@ in `## Completion checklist` as `injected attribution trailer: <sha> <key>, publ
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.
 
-That page owns effect and cost first, decision tables, authoring nature in Why, and How's diagram
-(`nen report mermaid --graph`), legend and rejected alternative. Add a flow diagram only when flow
-changed. Non-release rows carry all eleven improves aspects; release keeps its written matrix.
-`verify` varies by kind; library and process forms are `CON-17(b)` proxies. Seven reader sections
-exclude Delivery, checklist, issues and final attribution. The 150-word prose budget warns only.
-Economics embeds under its summary with level-3 internal headings. Screenshots stay in the
-[UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); replace all Evidence on rewrite.
+That page owns effect and cost first, decision tables, the authoring nature, How's diagram
+(`nen report mermaid --graph`) and rejected alternative, the eleven improves aspects, the kind-varied
+`verify` (`CON-17(b)` proxies), the seven-reader cap, the 150-word warning, economics under its summary
+and screenshots in the [UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape), all
+Evidence replaced on rewrite.
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
 In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --json`
@@ -109,7 +107,6 @@ nen ref format --code <CODE> --kind PR --number <n>
 "$hatsu_root/scripts/pr_body_delivery_check.sh" --body <abs path> --repo <path> \
   --pr <n> --target <owner/name> [--base <ref>] --gate-forecast <G2|G4>  # after open/edit
 "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <abs path>
-node "$hatsu_root/scripts/pr_criteria_check.mts" --body <abs path> --repo <path>  # HR-11
 nen pr body-check --body-from <abs path> --requirements-from <absolute-requirements.json>
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
 nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragment-dir <fragmentDir> \
@@ -117,6 +114,7 @@ nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragmen
 nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
   [--head <branch>] [--dry-run] [--json]   # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
+nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/contracts/issue-sections.json"  # after open and each edit (HR-11)
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
 ```
 
@@ -125,10 +123,9 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   (ROSTER, 2026-10-04).
 - **Inputs and gate sets are [`contracts/pr-composition.json`](../../../contracts/pr-composition.json)'s**
   (zheref/hatsu#171). Fix `body-check` exit `1`; `fragment-required` follows its `changelogFragment`.
-- **Derive the gate** per [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*;
-  report it as a forecast. Shibari neither labels a gate nor writes `readiness`;
-  [`en`](../en/SKILL.md) quotes `nen pr ready` after this run.
-- **The body is written only after sections, Delivery, Nen body-check, evidence, criteria, Development and changelog checks pass, before every create and edit.** The create is the first write and
+- **Derive the gate** per [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*, reported as a
+  forecast; shibari neither labels a gate nor writes `readiness` ([`en`](../en/SKILL.md) quotes `nen pr ready`).
+- **The body is written only after sections, Delivery, Nen body-check, evidence, Development and changelog checks pass, before every create and edit; `pr converge` runs after each open or edit, a blocking row fixed by an edit (HR-11).** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
   `--repo`'s root**, so the body is written to an **absolute** path.
@@ -145,7 +142,7 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--a
 **Reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one round after
 [`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request, of `base_reviewers`,
 never of a CI lane (PROCESS, *Event-driven reviewer lanes*).
-[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* owns token and bot mechanics. Read success from the mutation response, never the ids sent.
+[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* owns token and bot mechanics; success is read from the mutation response, never the ids sent.
 
 **Then one line, and stop:** notation, base, forecast gate, check results, quoted Development
 guard line, evidence mechanism, any § 1 permission stop, requested reviewers and Mukai's En offer
@@ -166,7 +163,7 @@ Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned 
   where one is owed** — decided by verb.
 - **Never writes a section with no fact behind it**, and **never ticks a completion box by assertion**.
 - **Never stages a capture that is not one of the branch's re-recorded test artifacts**, and never
-  treats an untracked evidence gap as a sanctioned incompleteness.
+  treats an untracked evidence gap as sanctioned.
 - **Never passes a body as an inline `--body` string**, reports a reviewer as requested when the call
   no-opped, or reports a missing Development link as present.
 - **Never fires the `nen stop` banner**, and **never presents by-hand `git`/`gh` as a verb's output.**

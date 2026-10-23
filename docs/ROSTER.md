@@ -970,7 +970,11 @@ change after it lands, [HR-2](#hr-2)).
 3. **The ruling table**, one row per ruling: the HR id with its anchor, in the form every HR row
    above carries, the question as asked, the options shown, the pick, the status and
    what it settles. The status grammar is **How HR ids are read**, in § *Rulings of 2026-10-20 — the
-   SDD assessment sitting*, cited, never restated.
+   SDD assessment sitting*, cited, never restated. **The row is rendered from the stop answer nen
+   recorded, never retyped** ([`PROCESS.md`](PROCESS.md) § *Surfaces and pickers*, *Recording the answer*):
+   `node scripts/ruling_row.mts --effort <effort id> --id <R-…> --hr <n> --settles-file <cell>` copies the
+   question, the options as shown and the pick from the record and appends the record id to the last cell;
+   *What it settles* is the one authored cell. A sitting older than the ledger keeps its retyped rows.
 4. **Trailing open rows**: a question the sitting left open is an `OPEN-n` row in § *Open items, in
    one place*, whose *What is open* cell carries the options shown, with no default; any prose marker
    that waits on it names it ([`PROCESS.md`](PROCESS.md) § *An unresolved question in prose*).

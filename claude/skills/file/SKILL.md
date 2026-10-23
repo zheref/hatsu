@@ -286,15 +286,17 @@ else a create that may have landed — `nen issue search` the title before any r
 read back before any retry. Their dry runs read the target's visibility, so they
 are not offline, and `--body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
 
-**Then the shape, on a create's body, before the plan** (HR-4; nen's `issue body-check` and `issue questions` ship from `0.26.0`, the retirement zheref/hatsu#423):
+**Then the shape, on a create's body, before the plan** (HR-4; the catalogue and the exits are
+[`docs/config/plugin-registries.md`](../../../docs/config/plugin-registries.md) § `contracts/issue-sections.json`):
 
 ```bash
-node "$hatsu_root/scripts/issue_body_check.mts" --kind <product|defect|machinery|canon-gap|epic> --body-file <absolute body.md>
+nen issue body-check --body-file <absolute body.md> --requirements-from "$hatsu_root/contracts/issue-sections.json" --kind <product|defect|machinery|canon-gap|epic> --repo <checkout>
+nen issue questions --body-file <absolute body.md> --requirements-from "$hatsu_root/contracts/issue-sections.json" --repo <checkout>
 ```
 
-Exit `0` → the body enters the plan. Exit `1` → each miss it lists is fixed in the draft and the check re-run, or
-shown in the plan's part 1 as an unfixed miss; an open `OQ-{n}` row is shown there too. Exit `2`, `3` or `5` is
-reported, never read as a pass.
+`body-check` exit `0` → the body enters the plan. Exit `1` with its verdict line → each miss it lists is fixed in the
+draft and the check re-run, or shown in the plan's part 1 as an unfixed miss; every `OPEN` row `questions` counts is
+shown there too. Exit `2`, or `1` with no verdict line (the body unread), is reported, never read as a pass.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
 all of it. **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the
@@ -326,7 +328,9 @@ nen stop --who Kurapika --gate G5 efforts.md
 
 (or `-` to pipe a one-row efforts table through stdin) and put the **`DECIDE`** ask to the
 maintainer with the options lettered — typically *file as planned* / *file, but skip the closes*
-/ *amend the duplicate only* / *do not file* — the ⭐ recommendation, and what would tip it.
+/ *amend the duplicate only* / *do not file* — the ⭐ recommendation, and what would tip it. **The answer is
+recorded the moment it returns** ([`jutaisho`](../jutaisho/SKILL.md) § 4, *Recording the answer*: `--gate G5` here,
+`--row <id>` on an ask-once row), before anything is written.
 
 **Nothing is written before that answer** for an explicit `hatsu:file` request. Not the issue,
 not a comment, not a label, not a close. Under §0's standing discovery authority, the completed

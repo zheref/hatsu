@@ -225,7 +225,38 @@ else process.exit(2);
   expectStatus(headBare, 1, 'origin/HEAD at a commit with no nen/workflow.json refuses the start');
   assert.match(String(headBare.stderr), /origin\/bare at [0-9a-f]{40} has no nen\/workflow\.json/, 'the refusal names the symbolic ref');
   expectStatus(git(['symbolic-ref', '--delete', 'refs/remotes/origin/HEAD']), 0, 'drop origin/HEAD');
-  console.log('futon-effort: start, bind, refresh, missing/stale/default/foreign-selector refusals, the run manifest and the idle floor passed');
+  // nen loop slots reads monitor.localSlotFrees from --repo's nen/workflow.json at the 0.26 pin (HR-257;
+  // futon § 6, WORKFLOW § 2): the REAL binary -- CI's verified NEN, else PATH's before the stub dir is
+  // prepended -- never the stub above; absent, exit 5 (a missing tool is never a pass).
+  const realNen = process.env.NEN ?? String(spawnSync('sh', ['-c', 'command -v nen'], { encoding: 'utf8' }).stdout).trim();
+  if (!realNen || (spawnSync(realNen, ['--version'], { encoding: 'utf8' }).status ?? 1) !== 0) {
+    console.error('futon-effort: the slot-read case needs a real nen (NEN or PATH); a missing tool is exit 5, never a pass');
+    process.exit(5);
+  }
+  const effortsFile = join(root, 'efforts.json');
+  const slots = (efforts: unknown, repo = root) => {
+    writeFileSync(effortsFile, JSON.stringify(efforts));
+    const result = spawnSync(realNen, ['loop', 'slots', '--efforts', effortsFile, '--ci-cap', '2', '--local-cap', '7', '--repo', repo, '--json'], { cwd: scratch, encoding: 'utf8' });
+    assert.ok(result.status === 0 || result.status === 1, `nen loop slots: exit ${result.status}: ${result.stderr}`);
+    return { status: result.status, report: JSON.parse(String(result.stdout)) as { local: { occupied: number; free: number }; done: string[]; localSlotFrees: { rule: string; source: string } } };
+  };
+  const held = [{ id: 'HA-IS-#1', plane: 'local', prOpen: true, ready: true, prompted: true, merged: false }];
+  writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify({ monitor: { localSlotFrees: 'merged' } }));
+  let read = slots(held);
+  assert.equal(read.report.localSlotFrees.rule, 'merged', 'the declared rule is read');
+  assert.equal(read.report.localSlotFrees.source, `${join(root, 'nen', 'workflow.json')}: monitor.localSlotFrees`, 'the source is the key under --repo');
+  assert.deepEqual([read.report.local.occupied, read.report.done], [1, []], 'a ready, prompted, unmerged PR holds its slot under merged');
+  read = slots([{ ...held[0], merged: true }]);
+  assert.deepEqual([read.report.local.occupied, read.report.done], [0, ['HA-IS-#1']], 'the slot frees at the merge');
+  writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify({}));
+  read = slots(held);
+  assert.equal(read.report.localSlotFrees.rule, 'ready+prompted', 'no key: nen\'s own default, the early free futon § 6 holds against');
+  assert.match(read.report.localSlotFrees.source, /^default /);
+  assert.deepEqual(read.report.done, ['HA-IS-#1'], 'under the default the same effort is freed at the prompt');
+  writeFileSync(join(root, 'nen', 'workflow.json'), JSON.stringify({ idle: { localSlotFrees: 'merged' }, monitor: { localSlotFrees: 'ready+prompted' } }));
+  const twoKeys = spawnSync(realNen, ['loop', 'slots', '--efforts', effortsFile, '--local-cap', '7', '--repo', root, '--json'], { cwd: scratch, encoding: 'utf8' });
+  assert.equal(twoKeys.status, 1, 'the two keys disagreeing is refused, never the default rule');
+  console.log('futon-effort: start, bind, refresh, missing/stale/default/foreign-selector refusals, the run manifest, the idle floor and nen loop slots\' read of monitor.localSlotFrees passed');
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }

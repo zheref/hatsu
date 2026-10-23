@@ -112,14 +112,14 @@ it owns bootstrap, adoption and the first commit. Never start it from intake.
 
 **Redaction first** (file § 4): `bash
 "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> title.txt brief.md [comment.md]` — exit
-`0` or `skipped` enters the plan; `1` is replaced by the legend's placeholder and re-run; `2` writes nothing. **Shape** (HR-4): `node "$hatsu_root/scripts/issue_body_check.mts" --kind product --body-file
-<absolute brief.md>` (nen's `issue body-check` ships from `0.26.0`; the retirement zheref/hatsu#423); each miss is amended in the brief or listed in the plan.
+`0` or `skipped` enters the plan; `1` is replaced by the legend's placeholder and re-run; `2` writes nothing. **Shape** (HR-4): file § 4's two verbs on the brief, `--kind product`; each miss, and each `OPEN` row
+`questions` counts, is amended in the brief or listed in the plan.
 **Labels** are file § 5's table, read from the target's `nen/labels.json`: lane, kind, severity with one
 line, [`classify`](../classify/SKILL.md) § 3's rows (owed, out of `--label`, where the families are not
 declared and synced), classify § 5b's comment, and its **routing row** — direct § 7's label and comment;
 each under its own publish key, after the read-back confirms the number. **Never a stage or G1 mode
 label** (row `mode-label`, `CON-4`). The plan is file § 4's six parts, a **G5 `DECIDE`** through `nen stop
---who Kurapika --gate G5 efforts.md` and the picker ([`jutaisho`](../jutaisho/SKILL.md) § 4), the options
+--who Kurapika --gate G5 efforts.md` and the picker ([`jutaisho`](../jutaisho/SKILL.md) § 4, the answer recorded), the options
 § 5 decided: no candidate → ⭐ **A** file as planned · **C** do not file; a duplicate → ⭐ **B** amend it ·
 **C**. A brief carrying open questions (§ 4) lists them in the plan; filing it is the maintainer's at G1
 (HR-32). **Nothing is written before it.**

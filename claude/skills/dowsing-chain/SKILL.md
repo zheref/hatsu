@@ -7,7 +7,7 @@ description: Capture a product family's sibling repositories into one private, l
 
 # Dowsing Chain — the family's code, read into one canon
 
-**Nature: Conjurer** for the spec, **Manipulator** for pickers and filings; each build names its own mode
+**Nature: Conjurer** for the spec, **Manipulator** for pickers (each answer recorded, jutaisho § 4) and filings; each build names its own mode
 ([`build`](../build/SKILL.md) § 2). Rulings: [`ROSTER.md`](../../../docs/ROSTER.md) HR-6, HR-12, HR-16, HR-23 … HR-41.
 ***Conventions*** = [`spec-repo.md`](../../../docs/config/spec-repo.md), stated once there; the checkouts file
 and the record's discipline are [`ports.md`](../../../docs/config/ports.md)'s.

@@ -316,3 +316,96 @@ know it. § 1 keeps both spellings so a run already written the long way needs n
 replaces an existing marker, so `hooks/stop-bell.sh` would ring the generic line on every gate.
 `hatsu.stop-marker/v0.1` is kept **on purpose**, and the `rm -f` on Codex and Cursor is still by
 hand because `nen stop --mark` writes and never removes.
+
+## Dated verification, 2026-10-23 — a stop answer recorded and rendered as a ROSTER row (nen 0.26.0)
+
+**Run: 2026-10-23 (UTC), nen `0.26.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), from the
+working tree of `fable/kurapika/nen-026-verbs` over base `758cfca32`.** What this section establishes is
+the SDD plan's ruling-capture half (`PROCESS.md` § *Surfaces and pickers*, *Recording the answer*): a
+picker's answer is a `nen stop answer` record under the git common dir, and the ROSTER row a sitting adds
+is **rendered from that record, never retyped** (`ROSTER.md` § *The ruling template*, step 3). The record
+below is a **dry run** — `--dry-run` validates, prints the record and the next free id, and writes nothing,
+so no ledger entry or id reservation was left in this repository; `scripts/ruling_row_fixture.mts` (lane
+`ruling-row-guard`) writes a real one into a throwaway repository and reads it back by id on every run.
+
+### 1. The answer, recorded against its row
+
+The row is `nen/decisions.json`'s `direct-mismatch` (`ask-once-per-run`); nen checked it (`rowChecked:
+true`). The question file carried the question as the picker asked it; each `--option` carried the label
+and the consequence the picker's description line showed.
+
+```
+$ nen stop answer --record "HA-IS-#413" --row direct-mismatch --who Kurapika --question-file q-direct.md \
+    --option "A=continue here, on this model and effort::the work runs where it was started; the verdict and the mismatch stay in the ledger and the report" \
+    --option "B=stop so I restart on the primary's surface::nothing is authored here; the maintainer opens the primary's surface" \
+    --pick A --dry-run --repo . --json
+{
+  "dryRun": true,
+  "path": "<git common dir>/.nen/stops/HA-IS-%23413/1.json",
+  "record": {
+    "contract": "nen.stop.answer/v0.1",
+    "id": "R-2026-10-23-01",
+    "effortId": "HA-IS-#413",
+    "n": 1,
+    "gate": null,
+    "row": "direct-mismatch",
+    "who": "Kurapika",
+    "question": "Which of hatsu:direct's picks does this session run on? Session: claude-code · fable · high. Primary: codex · sol · medium. Recommended: claude-code · opus · high. Fallback: antigravity · pro · high.\n",
+    "options": [
+      { "key": "A", "label": "continue here, on this model and effort", "consequence": "the work runs where it was started; the verdict and the mismatch stay in the ledger and the report" },
+      { "key": "B", "label": "stop so I restart on the primary's surface", "consequence": "nothing is authored here; the maintainer opens the primary's surface" }
+    ],
+    "kind": "picked",
+    "pick": "A",
+    "typed": null,
+    "answeredAt": "2026-10-23T04:08:18.045Z"
+  },
+  "rowChecked": true
+}
+exit=0
+```
+
+(The common dir's absolute path is elided; `n` and the id are nen's, counted from the records and the ids
+already reserved. A pick records the key, never the label's words; a typed reply is kept verbatim in `typed`.)
+
+### 2. The ROSTER row, rendered from the record
+
+The one authored cell is *What it settles* (`settles.md`); every other cell is the record's.
+
+```
+$ node scripts/ruling_row.mts --record-file record.json --hr 334 --settles-file settles.md
+| <a id="hr-334"></a>**HR-334** | Which of hatsu:direct's picks does this session run on? Session: claude-code · fable · high. Primary: codex · sol · medium. Recommended: claude-code · opus · high. Fallback: antigravity · pro · high. | (A) continue here, on this model and effort · (B) stop so I restart on the primary's surface | `continue here, on this model and effort` | ruled | Hatsu's own direct-mismatch answers are recorded against the row and rendered into ROSTER from the record; the pick itself changes no canon. — record `R-2026-10-23-01` (HA-IS-#413, 2026-10-23) |
+exit=0
+```
+
+Read against the template: the first cell is the HR id with its anchor; the second the question as asked,
+its newline folded to one space; the third the options **as shown**, keyed as the picker lettered them; the
+fourth the picked label in backticks (the capture class *a picked label exactly as the picker returned it*);
+the fifth the status; the sixth the authored cell with the record's id, effort and date appended, which is
+the citation the review preamble § 3 and `hanten` § 6 accept before the row lands. The HR number here is the
+render's input, not a minted id: the clause guard (lane `clause-guard`) owns uniqueness over `docs/ROSTER.md`,
+and this page is not that file.
+
+### 3. A typed reply, and the `reading` status
+
+The same question answered in the maintainer's own words (`--typed-file`), rendered with `--status reading`:
+
+```
+$ node scripts/ruling_row.mts --record-file record-typed.json --hr 335 --settles-file settles.md --status reading
+| <a id="hr-335"></a>**HR-335** | Which of hatsu:direct's picks does this session run on? Session: claude-code · fable · high. Primary: codex · sol · medium. Recommended: claude-code · opus · high. Fallback: antigravity · pro · high. | (A) continue here, on this model and effort · (B) stop so I restart on the primary's surface | stay here, Fable reads the whole plan | reading | Hatsu's own direct-mismatch answers are recorded against the row and rendered into ROSTER from the record; the pick itself changes no canon. — record `R-2026-10-23-01` (HA-IS-#413, 2026-10-23) |
+exit=0
+```
+
+The typed words render unquoted and verbatim (the capture class *typed words quoted verbatim*), one line;
+nen's one detection — a typed text that is word for word an option's label records as `picked` — did not
+fire, because the words match no label.
+
+### 4. What the fixture holds, beyond this page
+
+`scripts/ruling_row_fixture.mts`: a picked and a typed row byte for byte; a pipe in a label escaped and
+control and bidi characters dropped from a typed reply; every malformed record (contract, id shape, no
+options, a pick outside the keys, an unknown kind, an empty typed reply, a key twice, no question) exit `2`;
+an unreadable record or settles file exit `1`, an empty settles cell exit `2`; usage exit `2`; and the
+`--effort` form through the real nen — one answer recorded into a throwaway repository's git common dir
+with `nen stop answer --record … --gate G5`, read back by its id, an unknown id and an unreadable repository
+exit `1`, an absent nen exit `5`.

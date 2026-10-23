@@ -1438,7 +1438,8 @@ zheref/hatsu#423 retires the strip. The keys are § 2's `idle`.
    `nen/decisions.json` and records each as a pre-answered row in the run manifest, read from the
    **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed), its
    commit recorded as `idle.source`; § 2's floor fails `start` at exit 1. The register lists
-   them every cycle. Where a skill would ask a row: `default` takes its starred option and says so;
+   them every cycle. Where a skill would ask a row: `default` takes its starred option, says so and records
+   it as [`PROCESS.md`](PROCESS.md) § *Surfaces and pickers*, *Recording the answer* says (`--who "<skill> (idle profile)"`);
    `hold` or `refuse` asks nothing and **parks the effort** (`park … --row <row>`), and the run moves to
    the next one. **No picker is shown in an idle run.**
 2. **Stops park, they do not end the run.** A G5 parks the effort as `parked:g5:<class>`; a harness

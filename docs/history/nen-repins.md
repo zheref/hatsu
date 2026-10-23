@@ -79,13 +79,17 @@ crosses v0.25.0 (no breaking notes, floor 0.24) and v0.26.0 (floor 0.26). Absorb
 - **Ledger homes in the git common directory**: the loop ledger is `<git-common-dir>/.nen/loop/<id>.json`
   of `--repo` (izanagi § 3 and WORKFLOW § *`monitor`* updated; en already said so); stop answers and run
   manifests move to `<git-common-dir>/.nen/stops/` and `.nen/runs/`, under the common-dir `.nen/` cleanup § 4 now keeps as records;
-  no Hatsu skill reads them yet.
+  the stop-answer ledger is written and read from the PR that closed zheref/hatsu#413 on (jutaisho § 4, *Recording the
+  answer*; `scripts/ruling_row.mts` renders the ROSTER row from it); the run manifests are zheref/hatsu#423's.
 - **`parse --grammar` refuses an unintroduced later slot**: the 36 (skill, grammar) pairs this run extracted return the
   same exits on 0.24.0 and 0.26.0 (144 runs, none differing).
 - **`pr ready` and `pr merge --release-unit` read `aiReviewers`**: no Hatsu change here; getsuga § 3a's and
   kazaana § Residue's "owed to nen" clause is zheref/hatsu#380's to rewrite.
-- **`pr converge` exits** and **`repo classify`'s spec role**: no Hatsu caller yet (zheref/hatsu#413 adopts
-  `pr converge`; `nen/repos.json` declares no families).
+- **`pr converge` exits**: adopted by en §§ 4–5, rikugan § 3 and shibari § 4 in the PR that closed zheref/hatsu#413,
+  with `nen issue body-check|questions` (file § 4, emperor-time § 6, build § 2, futon § 2; zheref/hatsu#423 criterion 4),
+  `nen loop slots --repo`'s read of `monitor.localSlotFrees` asserted by the `futon-effort-guard` lane, and `nen stop
+  answer` (jutaisho § 4); the interim readers `scripts/issue_body_check.mts` and `scripts/pr_criteria_check.mts` retired.
+  **`repo classify`'s spec role**: no Hatsu caller (`nen/repos.json` declares no families).
 
 v0.25.0's `pr sections resolve` envelope fix (NN#464) makes the retirement of Hatsu's interim PR-section
 resolver possible; that retirement is separate and not adopted here.

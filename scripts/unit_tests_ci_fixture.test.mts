@@ -69,14 +69,19 @@ try {
   assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
 
   let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||';
-  for (const [script, fixture, lane] of [['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
-    ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
+  for (const [script, fixture, lane] of [['issue_shape_fixture.mts', 'issue_shape_fixture.mts', 'issue-shape'],
+    ['criteria_fixture.mts', 'criteria_fixture.mts', 'criteria'],
+    ['ruling_row.mts', 'ruling_row_fixture.mts', 'ruling-row-guard'],
     ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard']]) {
-    writeFileSync(join(repo, 'scripts', script), '');
-    result = run();
-    assert(result.status === 2 && result.stderr.includes(`${script} has no required fixture`), `missing ${lane} fixture did not refuse`);
+    if (script !== fixture) {
+      // A lane keyed on its own fixture (issue-shape, criteria: the verdict is nen's) has no separate
+      // script whose presence without the fixture could be refused; the others still refuse (BC-9).
+      writeFileSync(join(repo, 'scripts', script), '');
+      result = run();
+      assert(result.status === 2 && result.stderr.includes(`${script} has no required fixture`), `missing ${lane} fixture did not refuse`);
+    }
     writeFileSync(join(repo, 'scripts', fixture), '');
     writeFileSync(log, '');
     result = run();

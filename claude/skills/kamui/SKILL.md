@@ -106,8 +106,8 @@ quoted. `--until merged` is owed (zheref/nen#454).
 ## 5. The siblings — row `port-siblings`, always asked
 
 Every member but the source repository; each item `code · platform · scenario`, the scenario read by `nen
-repo scenario --repo <member checkout> --target <owner/name>`. Multi-select, **none starred**, paged as
-[`jutaisho`](../jutaisho/SKILL.md) § 4 says; an empty answer is none; **a lone sibling is still asked**;
+repo scenario --repo <member checkout> --target <owner/name>`. Multi-select, **none starred**, paged and
+recorded as [`jutaisho`](../jutaisho/SKILL.md) § 4 says; an empty answer is none; **a lone sibling is still asked**;
 none at all → said, § 8. An ungoverned scenario ([`bankai-handbooks`](../bankai-handbooks/SKILL.md)) is
 `handbook-question (CON-37)`, dropped if picked, said.
 
@@ -136,7 +136,7 @@ continues from any checkout.
 
 Every port issue filed or amended **and the source issue where open**, each `object · title · direct's
 primary (line · surface)`; **the item whose primary is this surface is starred** — none when no item's is,
-or when several are (an unruled reading, asked at G4); paged in fours; none at all → § 8. An off-surface pick
+or when several are (an unruled reading, asked at G4); paged in fours, recorded (jutaisho § 4); none at all → § 8. An off-surface pick
 is the decision to start here, said once (*conventions*: a build's end). Picks run as
 [`hatsu:build`](../build/SKILL.md) one after another, **visibility re-read** before each start; **kamui
 holds build's phase 6** (the wrap-up; en § 8's `rikugan` renders as usual): each build's merge prompt stays

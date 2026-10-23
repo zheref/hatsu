@@ -734,12 +734,6 @@
     {
       "path": "claude/skills/futon/SKILL.md",
       "rule": "PL-05",
-      "text": "tart`; keep its run ID (#154). After every PR this r",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/futon/SKILL.md",
-      "rule": "PL-05",
       "text": "on delivery ownership*, #154). Never record a main-b",
       "count": 1
     },
@@ -903,12 +897,6 @@
       "path": "claude/skills/hanten/SKILL.md",
       "rule": "PL-05",
       "text": "ises them by content** (#73): a diff touching a `##",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
-      "text": "t inherits no `PATH`** (#107) — prefixing every bloc",
       "count": 1
     },
     {

@@ -19,7 +19,7 @@ The `$schema` and `contract` are both `nen.decisions/v0.1`. The file is one `row
 | `$schema` | string | **`nen.decisions/v0.1`** | The shape nen validates against | `nen schema check` |
 | `contract` | string | **`nen.decisions/v0.1`** | The same, as nen's contract name | `nen schema check` |
 | `$comment` | string | prose | The maintainer's rationale and the index of citing skills | nothing in nen |
-| `rows[]` | object[] | one object per condition | The matrix | `nen schema check` (validates) and `nen schema set` (writes); every skill before it asks (zheref/hatsu#289 item 8: no `nen stop` flag reads it) |
+| `rows[]` | object[] | one object per condition | The matrix | `nen schema check` (validates) and `nen schema set` (writes); every skill before it asks (zheref/hatsu#289 item 8: no `nen stop` flag reads it); `nen stop answer --row <id>` (nen 0.26) refuses a row this file does not hold, so every ask-once answer is recorded against one ([`PROCESS.md`](../PROCESS.md) § *Surfaces and pickers*, *Recording the answer*) |
 
 ### The three row classes
 

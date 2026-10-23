@@ -206,14 +206,10 @@ fi
 #                     — the GH_TOKEN wrapper and ten § 2c's login-shell probe
 #                       (zheref/hatsu#218), run by skill blocks from
 #                       `$hatsu_root/scripts/`.
-#   scripts/issue_body_check.mts
-#                     — the issue-shape guard (HR-4), run by build § 2, file § 4,
-#                       emperor-time § 6 and futon § 2 from `$hatsu_root/scripts/`;
-#                       a stale copy passes a body a fixed one refuses.
-#   scripts/pr_criteria_check.mts
-#                     — the acceptance-criterion coverage guard (HR-11), run by
-#                       shibari § 4, en §§ 4–5 and rikugan § 3 from
-#                       `$hatsu_root/scripts/`; a stale copy passes a PR a fixed
+#   scripts/ruling_row.mts
+#                     — the ROSTER ruling-row render from a recorded stop answer
+#                       (jutaisho § 4, ROSTER § The ruling template), run from
+#                       `$hatsu_root/scripts/`; a stale copy renders a row a fixed
 #                       one refuses.
 #   scripts/pr_body_delivery_check.sh, scripts/pr_delivery.ts
 #                     — shibari § 3–4's Delivery block: the guard and the engine it
@@ -355,10 +351,9 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/pr_development_link_check.sh'
   'scripts/gh_token_env.sh'
   'scripts/nen_reach_probe.sh'
-  'scripts/issue_body_check.mts'
-  'scripts/pr_criteria_check.mts'
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
+  'scripts/ruling_row.mts'
   '.mcp.json'
 )
 

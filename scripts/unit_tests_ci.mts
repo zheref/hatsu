@@ -29,8 +29,11 @@ const gated: Array<[string, string, string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
-  ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
-  ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
+  // The verdicts are nen's (issue body-check, issue questions, pr converge); each fixture holds the
+  // verb to Hatsu's catalogue and templates and runs the real nen this runner hands it as NEN.
+  ['issue_shape_fixture.mts', 'issue_shape_fixture.mts', 'issue-shape'],
+  ['criteria_fixture.mts', 'criteria_fixture.mts', 'criteria'],
+  ['ruling_row.mts', 'ruling_row_fixture.mts', 'ruling-row-guard'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
   ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
   // Its last case runs --check-nen-pin on the PR checkout itself, so a repin that leaves

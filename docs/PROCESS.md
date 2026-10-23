@@ -675,6 +675,34 @@ and says so. **The picker carries the question alone**, the stop's other parts i
 **A command the maintainer must run is handed over as a runnable block** ([`WORKFLOW.md`](WORKFLOW.md) § 4
 states the rule; zheref/hatsu#295).
 
+**Recording the answer** (nen 0.26, `nen stop answer`; the SDD plan's ruling-capture half). Every answer a
+picker returns — an `ask-once-per-run` row's, or a gate stop's — is recorded the moment it returns and before
+the run acts on it:
+
+```bash
+nen stop answer --record <effort id> (--gate <G1|G1-M|G2|G3|G4|G5> | --row <row id>) --who <persona> \
+  --question-file <the question as asked> --option <key>=<label>::<consequence> [--option …] \
+  (--pick <key> | --typed-file <the reply, verbatim>) --repo <checkout>
+```
+
+One `--option` per option the picker showed, its consequence the description line's; `--row` the
+`nen/decisions.json` row (nen refuses one the file does not hold) and `--gate` the gate a stop asked at;
+the effort id is the one `nen direct resolve --record` and the phase ledger use (`<CODE>-IS-#<N>`,
+`inline-<ISO>`). nen stamps the instant and the id — `R-YYYY-MM-DD-nn`, never reused — and writes the record
+under the git common directory (`.nen/stops/<effort>/<n>.json`; `cleanup` § 4 keeps it as a record), so
+every worktree of a repository shares one ledger; `nen stop answer show <effort id> --repo <checkout>` reads it
+back. **The id is the answer's citation until a ROSTER row carries it**: the review preamble § 3 and `hanten`
+§ 6 cite a ruling by its HR row or, before the row lands, by its record id, never from memory. **The ROSTER
+row is rendered from the record, never retyped**: `node "$hatsu_root/scripts/ruling_row.mts" --effort <effort id>
+--id <R-…> --repo <checkout> --hr <n> --settles-file <the one authored cell>` copies the question, the options as
+shown and the pick (the picked label, or the typed words verbatim) into [`ROSTER.md`](ROSTER.md) § *The ruling
+template*'s row shape and appends the record id; the dated proof is [`docs/ab/jutaisho.md`](ab/jutaisho.md)
+§ *Dated verification, 2026-10-23*. **Under `--idle`** no picker is shown ([`WORKFLOW.md`](WORKFLOW.md) § *Idle
+batches*): a row the profile resolves `default` is recorded the same way with `--who "<skill> (idle profile)"`
+and the starred key as the pick, so the ledger says the profile answered, not the maintainer; `hold` and
+`refuse` record nothing — the effort parks. Residue: the render is owed to nen as a form of
+`nen stop answer show` (`unfiled`).
+
 **`ten` § 5's rules.** `scripts/surface_mirror_check.sh` exit `0` is `mirrors: current`; `1` is stale
 **in the plugin** — said, still placed, regenerated in a PR. **On Claude Code there is no mirror**, so
 `mirrors:` is whether the copy Claude Code serves IS the source (zheref/hatsu#122), the permission pack
@@ -733,6 +761,9 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 
 **Named residue, by skill** — the live list; each skill's `Residue` section points here.
 
+- **`jutaisho` § 4 — the ruling row.** `scripts/ruling_row.mts` renders a ROSTER row from a recorded stop
+  answer (§ *Surfaces and pickers*, *Recording the answer*); its port is owed to nen as a render form of
+  `nen stop answer show` (`unfiled`), and it retires at that repin.
 - **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
   TypeScript verdict, frozen to fixes: its port is owed to `nen canon lint` (zheref/nen#481) and its
   citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin. Its
