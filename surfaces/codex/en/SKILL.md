@@ -293,9 +293,9 @@ because a long watch is where the temptation compounds.
 ## 5. The merge prompt and recorded Futon delivery exception
 
 **Not under [`getsuga`](../getsuga/SKILL.md) § 3.** For a release proposal getsuga started en on, this
-step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check`, criteria and Development-guard verdicts and its
-`judged head:` back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
-by the exception of 2026-10-01). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
+step and § 8 do not run: en hands the quoted `nen pr ready`, `body-check`, criteria and Development-guard verdicts, its
+`judged head:` and, under an effective `aiReviewers: optional | off`, Hatsu's two-ref Hatsu line (PROCESS, *AI reviewers per consumer*; any disagreement with nen's printed value said) back to getsuga, because § 3a is that PR's merge (ROSTER ruling 4 of 2026-09-26, kept
+by the exception of 2026-10-01); a waiver-backed `ready` there carries no hanten condition (PROCESS, *AI reviewers per consumer*). **Where § 3a falls back to the declaration gate, getsuga § 3a owns
 that stop** and presents this section's prompt for the proposal.
 
 **Narrow exception, only for a Futon-owned stacked delivery PR** (ruling 2026-10-19; issue #154).
@@ -357,7 +357,7 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
    hanten's rounds were the review. **Under an effective `aiReviewers: optional | off`** the sixth stop
    is instead the **hanten prompt**, its conditions, the value's source refs and the Hatsu line
    (`aiReviewers: optional (base <sha>, default <sha>)`) all [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there;
-   a `ready` that rests on nen's waiver of a declared bot's round is Ready only with hanten settled and Hatsu's own read not stricter (HR-333; PROCESS, the disagreement sentence). Under getsuga § 3 the release-unit bound stands in for hanten (getsuga § 3a).
+   a `ready` that rests on nen's waiver of a declared bot's round is Ready only with hanten settled and Hatsu's own read not stricter (HR-333; PROCESS, the disagreement sentence).
    **A CI reviewer lane** — its round, why it is never requested, its place in the quorum and when it is
    unavailable — is [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*, stated once there.
 3. **The body** — `nen pr body-check` satisfied against the live body.

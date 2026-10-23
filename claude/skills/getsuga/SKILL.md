@@ -418,7 +418,7 @@ number plus the `judged head:` en's `ready` verdict names, because en may have p
 thread (a fix on a release proposal stays inside `release.unitPaths`, or the proposal falls back to the
 maintainer). That pair, and no other object, is what § 3a may merge, and only once § 3's three conditions
 hold (the base reads `branch.base`; en's returned verdict is `ready`, a `ready` that rests on nen's waiver of a declared bot round (a `waived bot round:` line)
-included, [HR-333](../../../docs/ROSTER.md#hr-333), under kazaana or not, when Hatsu's own two-ref `aiReviewers` read is not stricter (HR-333; quoted in en's hand-back); the Development guard's `0`, quoted
+included, [HR-333](../../../docs/ROSTER.md#hr-333), under kazaana or not, when Hatsu's own two-ref `aiReviewers` read is not stricter (HR-333; the Hatsu line quoted in en's hand-back, and a hand-back without it fails this condition); the Development guard's `0`, quoted
 in en's hand-back) — stated in the report, never
 re-derived here. A hand-back carrying the guard's `not-applicable` (`branch.base` is not the default
 branch, § 3) fails the third: **no merge**, the declaration gate with that line quoted. The verb then runs **five gates** in order, every one regardless of an
@@ -510,13 +510,13 @@ bounded as en § 6 and § 7 bound it (the acting cap on acts, the six stops, the
 spends no cycle), and § 3a merges on the verb's `merged:` line. **Every stop this section and § 3 otherwise send to
 the declaration gate is, under kazaana, a G5 halt**: the verb's own line (or the failing condition's) quoted and the
 exact `nen pr merge … --release-unit --run` command handed over — never `nen stop --gate G4|G2` with a `MERGE` ask,
-never a picker carrying the merge. Enumerated: § 3's three conditions failing (en's verdict not `ready` at its cap;
+never a picker carrying the merge. Enumerated: § 3's three conditions failing (en's verdict not `ready` at its cap, or a waiver-backed `ready` with Hatsu's two-ref read stricter or its Hatsu line missing;
 the guard's `not-applicable`; a base not read back as `branch.base`); the re-check's undecided row; a tag mismatch;
 the third route-back lap; an `edit-body` failure or a guard line other than `0` after it; `queued` never confirming
 `merged:`; exit `1` (a gate failed), exit `2` (usage); exits `5` and `6` are G5 already. **The `aiReviewers` case**:
 under an effective `aiReviewers: optional | off`, `nen pr ready` and `nen pr merge --release-unit` (nen `0.26`) waive
 the round of a reviewer `nen/gates.json` declares `kind: "bot"` at the base and the tip, so a proposal owing only
-Copilot's round reads `ready` and merges here (HR-333, ruled 2026-10-22), unless its request has stalled: `round-stalled` still binds under the waiver. On a release proposal the review the waived round stood for is the bound itself: `release.unitPaths` and the verb's five gates (HR-333's getsuga limb carries no hanten clause). A round nen does not waive leaves en a `not-ready` verdict on
+Copilot's round reads `ready` and merges here (HR-333, ruled 2026-10-22), unless its request has stalled: `round-stalled` still binds under the waiver. HR-333's getsuga limb carries no hanten condition; § 3a's bounds still bind ([`PROCESS.md`](../../../docs/PROCESS.md) § *AI reviewers per consumer*, stated once there). A round nen does not waive leaves en a `not-ready` verdict on
 `rounds-owed` ([`PROCESS.md`](../../../docs/PROCESS.md) § *AI reviewers per consumer*), and § 3's second condition
 fails before the verb runs: the same halt, as under `required`. Outside kazaana, the paragraph below stands as written.
 

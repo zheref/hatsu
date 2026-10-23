@@ -588,8 +588,9 @@ The verdict reads **`ready`** when the only owed rounds are waived bots' rounds 
 unwaived members meet it (`binding <n>/<m>`; with every member a waived bot, `0/0` meets it). `en` § 5's
 merge prompt then runs on that verified Ready, with the verdict and its waiver lines quoted and no ruling
 cited by hand, **`hanten` having settled every finding for the change set**: a waived round never stands for a
-change nobody reviewed. On a release proposal, which no hanten raises, `getsuga` § 3a's `release.unitPaths` bound
-and its verb's five gates are that review (HR-333's getsuga limb). Hatsu declares its one reviewer, Copilot, a bot. These still bind under the waiver:
+change nobody reviewed. **On a release proposal** HR-333's getsuga limb carries no hanten condition: `getsuga` § 3a
+merges a proposal whose only owed round is so waived, which no hanten raises, with its `release.unitPaths` bound and
+the verb's five gates still binding. Hatsu declares its one reviewer, Copilot, a bot. These still bind under the waiver:
 a reviewer declared `kind: "human"` or with no `kind`, a declaration that differs between the two refs, a
 stall, an approval, and every other row. **The declaration is read at the base**, so the PR that adds it, and
 any PR whose base predates it, is judged without it. Such a PR, and a declaration that differs between the
