@@ -65,6 +65,11 @@ try {
       readers:['shibari','tensho','jujisho'],requiredBy:[],describe:'Available PR section ids and purposes.'});
   }
   if (mode === 'set') refuseExaminerReviewer(declaration.values, forwarded.slice(1));
+  // HA#331: a row `ownedBy` a skill (the ci block, kuchiyose's) is written only through that skill's `set`,
+  // after its own human-gate ask; diagnose, fill and need never see it, so tenkai never asks or fills it.
+  const owned = declaration.values.filter((row: any) => row.ownedBy !== undefined);
+  for (const row of owned) if (typeof row.ownedBy !== 'string' || !existsSync(join(root,'claude/skills',row.ownedBy,'SKILL.md'))) throw new Error(`row ${row.id}: ownedBy must name a skill in claude/skills/`);
+  if (['diagnose','fill','need'].includes(mode)) declaration.values = declaration.values.filter((row: any) => row.ownedBy === undefined);
   scratch = mkdtempSync(join(tmpdir(),'hatsu-config-catalogue-'));
   mkdirSync(join(scratch,'contracts'));
   writeFileSync(join(scratch,'contracts/config-catalogue.json'),JSON.stringify(declaration,null,2)+'\n');

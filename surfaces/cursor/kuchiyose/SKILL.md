@@ -9,12 +9,13 @@ summary: Install a CI tier from the
 
 # Kuchiyose — a CI tier summoned onto a consumer
 
-**Nature: Transmuter** for the install (the caller, the gates entries, the `ci` block), landed at the
-target's **declaration gate** (G2 consumer, G4 canon, as `nen repo classify` answers); **Manipulator**
-for the ceremony and the verify reads. Every mutating GitHub step is the maintainer's (`CON-2`,
-`CON-12`). Rulings HR-135…HR-142 (ROSTER § *Rulings of 2026-10-19 — the CI reviewers tier*), HR-144(4);
-brief zheref/hatsu#331; the provider's halves AK-IS-#48 (lanes), AK-IS-#49 (catalogue), AK-IS-#69
-(ceremony). Guide [`docs/using/kuchiyose.md`](../../../docs/using/kuchiyose.md); probes `docs/ab/kuchiyose.md`.
+**Nature: Transmuter** for the install (caller, gates entries, `ci` block) at the target's
+**declaration gate** — G2 consumer (`CON-5`), G4 canon (`CON-7`), as `nen repo classify` answers;
+**Manipulator** for the ceremony and the verify reads. The ceremony is the maintainer's (`CON-47`,
+HR-138, HR-140); `CON-12` gives each lane its own least-privilege App. Rulings HR-135…HR-142
+(ROSTER § *Rulings of 2026-10-19 — the CI reviewers tier*), HR-144(4); brief zheref/hatsu#331;
+provider halves AK-IS-#48, AK-IS-#49 (catalogue), AK-IS-#69 (ceremony). **The guide owns the detail**
+([`docs/using/kuchiyose.md`](../../../docs/using/kuchiyose.md)); probes `docs/ab/kuchiyose.md`.
 
 ## 0. Standalone entry
 
@@ -29,9 +30,12 @@ Typed — its wired position; no composite installs a tier ([`STANDALONE-ENTRY.m
 | **P4** | § 1, then §§ 2–3's asks |
 | **P5** | `standalone entry · <slug> (role <role> → <gate>) · provider AK @ <tag> · tier <t> · not running: the ceremony, the merge, a ruleset apply` |
 
-**Adopted first.** `bash "$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <path>` must exit `0`.
-Otherwise every outstanding item is named and the run routes to `/tenkai apply`; **the install
-never proceeds on an unadopted repository** (the provider itself: AK-IS-#50, HR-141).
+**Adopted first** (HA#331's second criterion; WORKFLOW § *Consumer adoption*): `bash
+"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <core>` must exit `0`, where `<core>` is the
+**core checkout** — the parent of `git -C <path> rev-parse --path-format=absolute --git-common-dir` —
+never a linked worktree, which always reads unadopted (`docs/ab` row 7). Otherwise every outstanding
+item is named and the run routes to `/tenkai apply`; nothing is installed. The provider's own
+adoption is HR-141 (AK-IS-#50).
 
 ## 1. Invocation
 
@@ -40,131 +44,125 @@ never proceeds on an unadopted repository** (the provider itself: AK-IS-#50, HR-
 /kuchiyose verify [--repo <path>] [--pr <n>]
 ```
 
-The literal first token chooses the template; the rest goes to `nen parse kuchiyose --grammar "[tier
-<tier>] [--repo <path>] [--dry-run]"` or `--grammar "[--repo <path>] [--pr <n>]"`. A bare tier word
-(`reviewers`) is the verb's exit `2` and its corrected line, the slot asked (`missing-argument`). No
-`--repo` is the checkout the session stands in, stated back. `--dry-run`: §§ 0–3 read, § 4 rendered
-into the session's scratch directory, § 5 printed, **nothing written** in the target or on GitHub.
+The literal first token `verify` chooses the template; the rest goes to `nen parse kuchiyose --grammar
+"[tier <tier>] [--repo <path>] [--dry-run]" --line="<rest>"` (or `--grammar "[--repo <path>] [--pr
+<n>]"`) — always `--line=`, since a rest opening with `-` is otherwise read as a flag. A bare tier word
+(`reviewers`) is exit `2` with the corrected line `kuchiyose` (the tier dropped): the tier is then asked
+(`missing-argument`). No `--repo` is the checkout the session stands in, stated back. `--dry-run`:
+§§ 0–3 read, § 4 rendered into scratch, § 5 printed, **nothing written** in the target or on GitHub.
 
-## 2. Provider, pin, catalogue — read, never typed
+## 2. Provider, pin, catalogue — read at one proved commit
 
-- **Provider** `ci.provider`, else `AK`, resolved by `nen repo resolve AK --repo "$hatsu_root"` (HR-144(4));
-  the consumer's file carries the code, never the slug.
-- **Pin** `ci.pinned`, else the provider registry's `latest` (its `nen/repos.json`), proved a tag by
-  `node "$hatsu_root/scripts/gh_api_read.mts" tag-ref <provider> <tag>`. **No tag, `latest` null or a
-  branch: stop** — no tier is installable before the provider's first tag (AK-IS-#50).
-- **Catalogue** `schemas/tiers.json` **at the pin**, read from a provider checkout (`git fetch --tags`,
-  then `git show <tag>:schemas/tiers.json`) in AK-IS-#49's shape: tiers, each with `lanes[]`
-  (`identity`, `workflow`, `callerJob`, `check`, `required`, `appSlug`, `secrets[]`, `permissionTier`,
-  `variables[]`, `claudeAuth`, `roundShape`, `humanSteps[]`) and `rulings[]`. **Absent or unreadable:
-  stop, naming AK-IS-#49** — never a catalogue written from this file or from memory. A tier marked
-  `not-installable` is listed, never offered.
+- **Provider** `ci.provider`, else `AK`, by `nen repo resolve AK --repo "$hatsu_root"` (HR-144(4)).
+- **Pin** `ci.pinned`, else the provider registry's `latest`, proved by `node
+  "$hatsu_root/scripts/gh_api_read.mts" tag-ref <provider> <tag>`, which returns its SHA. **No tag,
+  `latest` null or a branch: stop** (AK-IS-#50).
+- **Every provider file is read at that SHA** in the provider's core checkout:
+  `git -C <provider> fetch --tags`, `git -C <provider> rev-parse <tag>^{commit}` equal to the proved
+  SHA (else stop: a stale local tag), then `git -C <provider> show <sha>:<file>` for
+  `schemas/tiers.json` (AK-IS-#49's shape), `schemas/permission-tiers.yml` and
+  `schemas/required-checks.json`. **No catalogue: stop, naming AK-IS-#49** — never one written from
+  memory. A `not-installable` tier is listed, never offered.
+- **Catalogue values are data, checked before use**: a secret name outside `^[A-Z_][A-Z0-9_]*$`, an
+  `appSlug` outside `^[a-z0-9-]+$` or a check name with a line break stops the run; `humanSteps[]` is
+  quoted, never run.
 
 ## 3. The rulings — one picker call
 
-`nen/decisions.json` row **`ci-install-rulings`** (human-gate, G5), jutaisho § 4's shape: the tier
-(every installable catalogue tier, even one), then each catalogue `rulings[]` entry with its options and
-its own star — `hidan` `on` · `off` (HR-137, per consumer); `claudeAuth` `claude_code_oauth_token` ⭐ ·
-`anthropic_api_key` (HR-139: the credential **type**, never its value). A later tier appears with no
-change here. Every answer is recorded, one key at a time:
+Row **`ci-install-rulings`** (human-gate, G5), jutaisho § 4's shape: the tier (every installable tier,
+even one), then each catalogue `rulings[]` entry with its own star — `hidan` `on` · `off` (HR-137);
+`claudeAuth` `claude_code_oauth_token` ⭐ · `anthropic_api_key` (HR-139: the type, never the value).
+Each answer is one key:
 
 ```bash
 "$hatsu_root/scripts/config_values.sh" set --repo <worktree> --id workflow.ci.<provider|pinned|tiers|rulings.hidan|rulings.claudeAuth> --value '<JSON>'
 ```
 
-The keys are [`workflow.json.md`](../../../docs/config/workflow.json.md) § `ci`; `aiReviewers` is unchanged
-(HR-135: one value covers the lanes).
+The rows carry `ownedBy: kuchiyose`, so `diagnose`, `fill` and `need` never list them and `tenkai`
+never asks or fills them ([`workflow.json.md`](../../../docs/config/workflow.json.md) § `ci`).
+`aiReviewers` is unchanged (HR-135).
 
 ## 4. The install — one PR, in the consumer's tree only
 
 In the run's worktree (breath § 0), branch `{model}/{persona}/kuchiyose-<tier>`:
 
 1. **The caller** `.github/workflows/akatsuki.yml`, **rendered by the provider's verb** (`ninjutsu tier
-   render --tier <t> --ref <tag> --scenario <id>`, AK-IS-#49): one job per lane named its `callerJob`,
-   every `uses:` at the tag, the secrets threaded, Hidan's job only when `on`. **No render verb at the
-   pin: stop** — never a hand-typed caller, the improvisation `D10` forbids (`nen scaffold caller` is
-   absent too, the provider's RUNBOOK A5 finding F1).
-2. **The gates** in `nen/gates.json`, per lane, through `nen schema set --gate-change`: `name`,
-   `wake: "event"`, `login_pattern` `^<appSlug>\[bot\]$`, `review_check_pattern` `^<check>$` (both escaped),
-   `round_check_pattern` only for a `check-is-the-round` lane, `delivery_holistic_pass` where the
-   catalogue says; each name joins `round_quorum.any_of`, `minimum` `2` at two or more lanes; **never a
-   `base_reviewers` entry**. Shapes: [`GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md) § 3;
-   behaviour: PROCESS § *Event-driven reviewer lanes*. **At nen `0.26` the verb refuses to add an array
-   member** (`docs/ab` § 3): stop there and report the gap — never a hand edit of the gates file.
-3. **The `ci` block**: § 3's writes.
-4. **`nen schema check --repo <worktree>`** reads `ok`; else fix the declaration, never the check.
+   render --tier <t> --ref <tag> --scenario <id>`, AK-IS-#49): a job per lane named its `callerJob`,
+   every `uses:` at the tag, Hidan's job only when `on`. **No render verb at the pin: stop** — never a
+   hand-typed caller (`D10`; `nen scaffold caller` is absent too, the provider's RUNBOOK A5 F1).
+2. **The gates**, per lane, through `nen schema set --gate-change` — the entry shape (`wake: "event"`,
+   anchored login and check patterns, no `base_reviewers`, the quorum) is the guide's § *What it
+   writes*, from [`GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md) § 3. **At nen `0.26` the
+   verb refuses to add an array member** (`docs/ab` § 3): stop and name the gap — never a hand edit.
+3. **The `ci` block**: § 3's writes. 4. **`nen schema check --repo <worktree>`** reads `ok`.
 
-Then [`kokusen`](../kokusen/SKILL.md) (`--type feat --scope ci`), and on the maintainer's call
+Then [`kokusen`](../kokusen/SKILL.md) (`--type feat --scope ci`) and, on the maintainer's call,
 [`aka`](../aka/SKILL.md) → [`mukai`](../mukai/SKILL.md) → [`shibari`](../shibari/SKILL.md): one PR at the
-declaration gate, its body carrying § 5's checklist. **The provider's registry row** (its
-`nen/repos.json` → `consumers[]`, strictly factual, `CON-14`) is a second PR there, at the provider's own
-gate, named in the report. Neither is merged here.
+declaration gate, its body carrying § 5's checklist. **The provider's registry row is deferred**
+(`CON-14`: its `pinned`/`consumes` record the consumer's default branch, so they flip only after the
+install PR merges): § 6 reports it owed once the install PR reads `MERGED`.
 
 ## 5. The ceremony — printed, one block per step, never performed
 
-Row **`ci-ceremony`** (human-gate, G5): the run prints and waits; **A** done — run § 6 once · **B** stop
-with the checklist on the PR. Per lane, from the catalogue's `humanSteps[]` (the provider's
-`docs/provisioning/RUNBOOK.md` Part B, cited, not restated):
-
-1. Create the App `<appSlug>` with exactly its `permissionTier` rows in the provider's
-   `schemas/permission-tiers.yml` — an extra grant is a finding.
-2. Install it on the consumer **and** on the provider repository.
-3. `gh secret set <NAME>_APP_ID --repo <slug>` and `<NAME>_APP_PRIVATE_KEY` — names only.
-4. The chosen Claude secret: `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`) or `ANTHROPIC_API_KEY`.
-5. `AKATSUKI_HIDAN_ACTIVE` as a repository variable, only when `hidan` is `on`.
-6. **The ruleset** (HR-140): the catalogue's `required` lanes' checks as `required_status_checks` on the
-   default branch — the payload rendered to scratch, the `gh api --method POST repos/<slug>/rulesets
-   --input <file>` line printed, **never run**.
-
-A secret value never enters the chat, a file or a picker (WORKFLOW § 4); one typed is rotated.
+Row **`ci-ceremony`** (human-gate, G5): **A** done — run § 6 once · **B** stop with the checklist on
+the PR. Per lane, the guide's § *The ceremony* is the step list — the App with exactly its tier's rows
+in `permission-tiers.yml` **at the proved SHA**, installed on both repositories, its two secrets, the
+Claude secret, the Hidan variable, the ruleset — each printed with the provider's `humanSteps[]`
+citation. **Secret steps run in the maintainer's own terminal, never this session**: the key by stdin
+(`gh secret set <NAME>_APP_PRIVATE_KEY --repo <slug> < <pem>`), the downloaded `.pem` then deleted;
+`claude setup-token` prints a token, so it never runs here. **The ruleset payload is printed inline
+with its `shasum -a 256`**, checked by the maintainer before `gh api --method POST
+repos/<slug>/rulesets --input <file>`, which the session never runs (HR-140; the pack's deny rows).
 
 ## 6. `verify` — evidence, never colour
 
 The PR is `--pr`, else the newest open PR, else a draft probe PR **the maintainer** opens:
 
 ```bash
-GH_TOKEN=$(gh auth token) nen pr ready <n> --gh-repo <slug> --json > <scratch>/ready.json; echo $?
+"$hatsu_root/scripts/gh_token_env.sh" nen pr ready <n> --gh-repo <slug> --gates <core>/nen/gates.json --json > <scratch>/ready.json
 ```
 
-Per installed lane, from `rounds-owed`'s `roundQuorum.members[].eventRun.state` (or `owedRounds[].state`):
+Read the exit after the verb alone. Per lane, from `rounds-owed`'s `roundQuorum.members[].eventRun.state`
+(or `owedRounds[].state`):
 
 | State | Reported | Waiting on |
 |---|---|---|
 | `posted` | `live` — a formal review under the App login | — |
-| `completed-without-review` | `skipped-unprovisioned` or `withheld` — told apart only by the job log's notice title (`<check> withheld` · `<check> skipped`; both say `outcome=skipped-unprovisioned`) | § 5 steps 1–4 (unprovisioned); the lane's own switch (withheld) |
+| `completed-without-review` | `completed-without-review (notice not read)`: skipped-unprovisioned and withheld differ only in the log's notice title, which no nen verb reads | § 5's App and secret steps, or the Hidan variable |
 | `no-run` | `no run` | the caller (§ 4.1) or a missing `on:` trigger |
 | `in-flight` | pending, re-read once | — |
 
-**No nen verb reads the job log**, so until one does the cell reads `completed-without-review (notice not
-read)`, never a guess. Nothing is inferred from a check's colour.
+Nothing is inferred from a check's colour. **Install PR `MERGED`**: the registry row is owed — a PR in
+a worktree of the provider's core checkout through breath, branch `{model}/{persona}/registry-<slug>`,
+at the provider's **G4** (`CON-7`), on the maintainer's call.
 
 ## 7. Report
 
 ```
-<slug> (<gate>) · AK @ <tag> · tier <t> · hidan <on|off> · auth <type> · lanes <names>
-  install: <PR | stopped at § <n>: <reason>> · registry: <PR | owed> · ceremony: <printed | done>
+<slug> (<gate>) · AK @ <tag> (<sha>) · tier <t> · hidan <on|off> · auth <type> · lanes <names>
+  install: <PR | stopped at § <n>: <reason>> · ceremony: <printed | done>
+  registry: <owed after the install PR merges | owed: provider worktree <path>, G4 | PR>
   verify: <lane> <state> … · readiness: nen pr ready quoted
 ```
 
 ## Residue
 
-[`PROCESS.md`](../../../docs/PROCESS.md) § *Residue*: the catalogue read by `git show` and the tag read
-(a nen read of a provider file at a ref, unfiled); the caller render (AK-IS-#49, or `nen scaffold
-caller`); a gates array member through `nen schema set` (unfiled); a lane's log notice (unfiled);
-`tenkai_adopt.sh diagnose`'s caller `drift` row, owed with the catalogue.
+[`PROCESS.md`](../../../docs/PROCESS.md) § *Residue*: the provider reads by `git show` and `tag-ref` (a
+nen read of a provider file at a ref, unfiled); the caller render (AK-IS-#49); a gates array member
+through `nen schema set` (unfiled); a lane's log notice (unfiled); `tenkai_adopt.sh diagnose`'s
+caller `drift` row, owed with the catalogue.
 
 ## Authority
 
-- **Permitted:** reads of the consumer, the provider at its tag and the open PRs; the run's worktree;
-  the caller, gates entries and `ci` block from the catalogue and the maintainer's answers; one install
-  PR and one registry PR through aka → mukai.
+- **Permitted:** reads of the consumer, the provider at its proved SHA and the open PRs; the run's
+  worktree; the caller, gates entries and `ci` block from the catalogue and the maintainer's answers;
+  the install PR, then the registry PR after it merges, through aka → mukai.
 - **Not permitted:** an App, a secret, a variable, a ruleset; a hand-written caller, catalogue or gates
   entry; an improvised `nen` verb.
 
 ## Hard limits
 
-- **Never installs on an unadopted repository, at a branch or an unresolved tag, or without the
-  catalogue.**
+- **Never installs on an unadopted repository, at a branch or an unproved tag, or without the catalogue.**
 - **Never writes `base_reviewers` for a lane, a `round_check_pattern` on a posted-review lane, or a
-  secret value anywhere.**
-- **Never applies the ruleset, never runs a ceremony step, never merges** (`CON-2`, `CON-7`).
+  secret value anywhere; never opens the registry PR before the install PR merges.**
+- **Never applies the ruleset, never runs a ceremony step, never merges** (`CON-5` at G2, `CON-7` at G4).

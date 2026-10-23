@@ -501,12 +501,12 @@ Hatsu's own block (ROSTER HR-21, HR-24, HR-38), read from **Hatsu's checkout onl
 consumer installed and the answers it was installed with; **absent means no tier is installed**. It is read
 today by `kuchiyose`; `pinned` is also read by nen's warmup pin sweep (`nen warmup --ci-registry`, from nen `0.26`, zheref/nen#440);
 `tenkai`'s caller drift row is owed with the provider's tier catalogue. `nen schema check` tolerates the block (it does not validate it; checked
-against nen `0.22.0` on 2026-10-19).
+against nen `0.26.0` on 2026-10-23).
 
 | Key | Default | What it carries |
 |---|---|---|
 | `provider` | — | the CI provider, by its **product code** (`AK`, the Akatsuki CI repository), resolved through `nen/repos.json` (zheref/hatsu#329's ruling of 2026-10-19), so a consumer's `nen/workflow.json` carries no slug |
-| `pinned` | — | the provider's **release tag** the consumer's caller workflows reference (`uses: …@<tag>`) and the tier catalogue is read at — never a branch; a sweep for a stale pin is zheref/nen#440 |
+| `pinned` | — | the provider's **release tag** the consumer's caller workflows reference (`uses: …@<tag>`) and the tier catalogue is read at — never a branch; `nen warmup --ci-registry` sweeps it against the provider registry's `latest` (nen `0.26`, zheref/nen#440) |
 | `tiers[]` | `[]` | the installed tiers, by catalogue key — `reviewers` today, the lanes Sasuke, Kakuzu, Konan and Hidan; a later tier appears in the catalogue with no skill change |
 | `rulings{}` | `{}` | the per-consumer answers the catalogue's `rulings[]` lists, each asked at install through the picker: `hidan` (`on` \| `off` — *"Per consumer at install"*) and `claudeAuth` (`claude_code_oauth_token`, starred, \| `anthropic_api_key` — *"Ask at install, OAuth starred"*; the credential **type**, never its value, which lives only in the consumer's Actions secret store); the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-19 — the CI reviewers tier* |
 

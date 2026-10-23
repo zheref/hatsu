@@ -4,3 +4,4 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 bash "$here/config_values.sh" --self-test
 node --test "$here/config_values_examiner_fixture.ts"
+node --test "$here/config_values_owned_fixture.ts"

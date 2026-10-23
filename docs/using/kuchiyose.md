@@ -17,7 +17,7 @@ that is adopted; `limbo` keeps its canon mirror current.
 
 | Needs | Why | If missing |
 |---|---|---|
-| The repository adopted | the install writes into declarations `tenkai` creates | `scripts/tenkai_adopt.sh diagnose` names each item; run `hatsu:tenkai apply` |
+| The repository adopted | the install writes into declarations `tenkai` creates | `scripts/tenkai_adopt.sh diagnose` on the core checkout (never a linked worktree, which always reads unadopted) names each item; run `hatsu:tenkai apply` |
 | nen `0.26` or later | the lanes are declared `wake: "event"` and `nen warmup --ci-registry` sweeps the pin | `hatsu:ten` re-pins |
 | A provider release tag | the caller and the catalogue are read at a tag, never a branch | stop: no tier is installable before the provider's first tag |
 | The tier catalogue at that tag | `schemas/tiers.json` names each lane's job, check, App, secrets and steps | stop, naming zheref/akatsuki-ai#49 |
@@ -33,36 +33,54 @@ only the type is recorded, never the secret.
 ## What it writes, and where
 
 Everything lands in the consumer's own tree, in one PR at that repository's gate (G2 for a consumer,
-G4 for a canon repository):
+G4 for a canon repository), read from the provider at one proved commit — the tag's SHA, checked
+against the provider checkout's local tag before any file is read:
 
-- `.github/workflows/akatsuki.yml`, one job per lane, every `uses:` pinned to the tag, Hidan's job only
-  when on;
-- one `nen/gates.json` → `reviewers[]` entry per lane (`wake: "event"`, the App login anchored), each
-  name added to `round_quorum.any_of`, `minimum` `2` once two or more lanes are installed, never a
-  `base_reviewers` entry — the shapes are [`GATE-CONFIGURATION.md`](../GATE-CONFIGURATION.md) § 3;
+- `.github/workflows/akatsuki.yml`, rendered by the provider's verb: one job per lane, every `uses:`
+  pinned to the tag, Hidan's job only when on;
+- one `nen/gates.json` → `reviewers[]` entry per lane: `name`, `wake: "event"`, `login_pattern`
+  `^<appSlug>\[bot\]$` and `review_check_pattern` `^<check>$` (both escaped, anchored),
+  `round_check_pattern` only for a lane whose catalogue `roundShape` is `check-is-the-round`, and
+  `delivery_holistic_pass` where the catalogue says so. Each name joins `round_quorum.any_of`;
+  `minimum` is `2` once two or more lanes are installed (HR-136). A lane is never a `base_reviewers`
+  entry. The shapes are [`GATE-CONFIGURATION.md`](../GATE-CONFIGURATION.md) § 3;
 - the `ci` block of `nen/workflow.json` ([`workflow.json.md`](../config/workflow.json.md) § `ci`),
-  one key at a time through `scripts/config_values.sh set`.
+  one key at a time through `scripts/config_values.sh set`. Its catalogue rows are owned by Kuchiyose,
+  so `tenkai` never asks or fills them.
 
-A second PR adds the consumer's factual row to the provider's own registry. Kuchiyose merges neither.
+**The provider's registry row comes after.** The provider's `nen/repos.json` → `consumers[]` records
+what your default branch's caller references (`CON-14`), so its factual fields can only change once
+the install PR has merged. `verify` reports the row owed at that point: a PR in a worktree of the
+provider's core checkout, at the provider's G4 gate. Kuchiyose merges neither PR.
 
 ## The ceremony — yours
 
-Decision row `ci-ceremony` (a G5). Kuchiyose prints one block per step and waits:
+Decision row `ci-ceremony` (a G5). Kuchiyose prints one block per step and waits. **Run the secret
+steps in your own terminal, never inside the agent session**, so no token reaches its transcript.
 
-1. create each lane's `-akatsuki` App with exactly its permission tier (the provider's
-   `schemas/permission-tiers.yml`; `docs/provisioning/RUNBOOK.md` Part B is the recipe);
-2. install it on this repository and on the provider's;
-3. set `<NAME>_APP_ID` and `<NAME>_APP_PRIVATE_KEY` as Actions secrets;
-4. set the Claude secret you chose, `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`;
-5. set the `AKATSUKI_HIDAN_ACTIVE` variable to `true`, only when Hidan is on;
-6. apply the ruleset that makes the lane checks required on the default branch — the payload and the
-   `gh api` line are printed; you run it.
+1. Create each lane's `-akatsuki` App with exactly the rows of its permission tier in the provider's
+   `schemas/permission-tiers.yml` **at the pinned tag's commit** (an extra grant is a finding);
+   `docs/provisioning/RUNBOOK.md` Part B is the recipe.
+2. Install it on this repository and on the provider's.
+3. Set `<NAME>_APP_ID`, and the private key from its file, never as a typed value:
+   `gh secret set <NAME>_APP_PRIVATE_KEY --repo <owner/name> < <path to .pem>`. Store the key in your
+   password manager and delete the downloaded `.pem` (RUNBOOK B3, A4).
+4. Set the Claude secret you chose: `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`, which prints
+   the token, so run it in your terminal) or `ANTHROPIC_API_KEY`.
+5. Set the `AKATSUKI_HIDAN_ACTIVE` variable to `true`, only when Hidan is on.
+6. Apply the ruleset that makes the catalogue's required lane checks required on the default branch.
+   The payload is printed inline with its `shasum -a 256`. Check the hash of the file you pass before
+   running the printed `gh api --method POST repos/<owner/name>/rulesets --input <file>` line.
 
-Never paste a secret value into the session. One that was typed there is rotated.
+Never paste a secret value into the session. One that was typed there is rotated. The plugin's
+permission pack denies the session `gh secret set`/`delete`, `gh variable set` and `gh api` writes to
+rulesets, secrets and variables, so these steps stay yours. A global flag placed before the
+subcommand (`gh -R <owner/name> secret set`) is not matched by that deny, so the rule in the skill
+still binds.
 
 ## Checking the lanes
 
-`hatsu:kuchiyose verify [--repo <path>] [--pr <n>]` reads `nen pr ready --json` on the PR you name, the
+`hatsu:kuchiyose verify [--repo <path>] [--pr <n>]` reads `nen pr ready --json` (through `scripts/gh_token_env.sh`) on the PR you name, the
 newest open one, or a draft probe PR you open, and reports each lane as `live` (a review posted under
 its App), `skipped-unprovisioned` or `withheld` (it ran and did not review), `no run`, or pending. The
 two middle states differ only in the job log's notice, which no nen verb reads yet, so until one does

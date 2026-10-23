@@ -28,7 +28,8 @@ refuses a non-number itself.
 | # | Command | Answer | Exit |
 |---|---|---|---|
 | 6 | `bash scripts/tenkai_adopt.sh diagnose --repo <the provider's checkout>` | `10 item(s) outstanding` — among them `BLOK .github/workflows/pr-readiness.yml` (*"repository role is unknown"*) and `ROUT workflow/review-scopes` (`nen/workflow.json` absent): the provider is not adopted (AK-IS-#50, HR-141), so § 0 routes it to `hatsu:tenkai apply` | `1` |
-| 7 | the same on this effort's Hatsu worktree | `7 item(s) outstanding` (`MISS dirs/nen-state`, `MISS dirs/claude-worktrees`, `ROUT hooks/commit-msg`, `DRIF .github/workflows/pr-readiness.yml`, …): a fresh linked worktree is not an adopted checkout either, so the install runs against the consumer's core checkout's diagnosis, never a worktree's | `1` |
+| 7 | the same on this effort's Hatsu worktree | `7 item(s) outstanding` (`MISS dirs/nen-state`, `MISS dirs/claude-worktrees`, `ROUT hooks/commit-msg`, `DRIF .github/workflows/pr-readiness.yml`, …): a linked worktree always reads unadopted, so § 0 diagnoses the core checkout (the parent of `git rev-parse --path-format=absolute --git-common-dir`), never a worktree | `1` |
+| 7b | the same on Hatsu's core checkout | `3 item(s) outstanding` (`ROUT hooks/commit-msg`, `DRIF .github/workflows/pr-readiness.yml`, `MISS config/defaults`): even the canon checkout would be routed to `tenkai apply` today | `1` |
 | 8 | `nen repo resolve AK --repo <hatsu>` | `zheref/akatsuki-ai  (AK)  via code` (HR-144 reading 4) | `0` |
 | 9 | `nen repo classify --repo <hatsu> --json` | `role: canon` — a kuchiyose PR on Hatsu would stand at G4 | `0` |
 
@@ -77,8 +78,9 @@ render verb. That is the correct outcome, reported, never routed around.
 
 | # | Command | Answer | Exit |
 |---|---|---|---|
-| 24 | `GH_TOKEN=$(gh auth token) nen pr ready 67 --gh-repo zheref/akatsuki-ai --json` from outside a checkout | *"nen: no reviewer identities …"* — run it from the consumer's checkout or pass `--gates` | `2` |
-| 25 | the same from the provider's checkout (AK-PR-#67) | `not-ready`; `rounds-owed.owedRounds[]` = `sasuke`, `kakuzu`, `bugbot`, each `no-round-at-head` with **no `state`**: the provider's lanes are declared request-shaped (no `wake: "event"`), so nen reports no event-run state for them | `1` |
+| 24 | `bash scripts/gh_token_env.sh nen pr ready 67 --gh-repo zheref/akatsuki-ai --json` from outside a checkout | *"nen: no reviewer identities …"* — so § 6 passes `--gates <core>/nen/gates.json` | `2` |
+| 24b | the same with `--gates <the provider's checkout>/nen/gates.json` | `not-ready`, the JSON document as row 25 reads it | `1` |
+| 25 | the same, run once from the provider's checkout (AK-PR-#67) | `not-ready`; `rounds-owed.owedRounds[]` = `sasuke`, `kakuzu`, `bugbot`, each `no-round-at-head` with **no `state`**: the provider's lanes are declared request-shaped (no `wake: "event"`), so nen reports no event-run state for them | `1` |
 
 nen `0.26`'s USAGE (*Event lanes*) gives an event lane's `eventRun.state` / `owedRounds[].state` as
 `in-flight`, `no-run`, `completed-without-review` or `posted`; § 6's table maps those. The lanes' own
@@ -94,12 +96,14 @@ are told apart only by the title, in a log no nen verb reads.
    (§ 6). Unfiled; `nen warmup` already resolves the provider registry internally.
 3. **Akatsuki** — AK-IS-#49: no `schemas/tiers.json` and no `ninjutsu tier render`; AK-IS-#50: no first tag. Until
    both land no tier is installable.
-4. **Hatsu canon** — `GATE-CONFIGURATION.md` § 3 and PROCESS § *Event-driven reviewer lanes* predate nen
-   `0.26`'s `wake: "event"` key (zheref/nen#440, closed): they still say a posted-review lane makes no
-   observation "until zheref/nen#440". The skill writes `wake: "event"`; the two canon pages are owed a
-   repin pass.
+4. **Hatsu canon** — `GATE-CONFIGURATION.md` § 3 and PROCESS § *Event-driven reviewer lanes* predated nen
+   `0.26`'s `wake: "event"` key (zheref/nen#440, closed). Repinned in this PR's settle: the posted-review
+   shape carries `wake: "event"` (both shapes pass `nen schema check` at `0.26.0`, on `<fx>`), and
+   reading `eventRun.state` as *The sixth stop*'s (c) observations is recorded as unruled.
 5. **Hatsu** — `tenkai_adopt.sh diagnose`'s caller `drift` row (zheref/hatsu#331's last criterion) waits on the
    catalogue, so it is not built here.
 6. **Permissions** — the skill needs no new allow row (its reads are `nen`, `git show` and
-   `bash scripts/*`). A deny row for `gh secret set *` would make § 5's never-performed rule
-   mechanical; it is proposed, not written, because a permission setting is the maintainer's.
+   `bash scripts/*`). The settle adds deny rows to `contracts/permissions.json` for `gh secret set *`,
+   `gh secret delete *`, `gh variable set *` and `gh api` calls on `*rulesets*`, `*actions/secrets*` and
+   `*actions/variables*`. They land only through this G4 PR, which the maintainer merges. A global flag before
+   the subcommand (`gh -R <slug> secret set`) escapes a prefix deny, so the skill's rule still binds.
