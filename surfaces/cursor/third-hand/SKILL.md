@@ -140,9 +140,9 @@ standalone "shall I run third-hand?" at the end of En, never a suggestion at the
 not over, or they are still En's. A G5 that the pipeline still owns is not wrap-up.
 
 **Once per sitting.** If `.nen/third-hand/<slug>.json` already carries a completed harvest for
-this PR (or this branch, when no PR was named), skip, say `already-harvested`, and still end the
-session. Do not re-ask. `<slug>` is `<CODE>-<N>` from `nen ref format` when a PR is in play,
-otherwise the branch slug.
+this sitting, skip, say `already-harvested`, and still end the
+session. Do not re-ask. `<slug>` is [`cleanup`](../cleanup/SKILL.md) § 7's, one rule for both
+markers, so a sitting's harvest and sweep share a name.
 
 ---
 

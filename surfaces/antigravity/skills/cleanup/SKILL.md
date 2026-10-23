@@ -31,11 +31,11 @@ asked inline (`missing-argument`).
 ## 2. When it runs — wrap-up, offered once per delivery
 
 **Session delivery is a PR standing at en § 5's merge prompt, merged, or composite ending.** **Who
-asks**: composite terminus — `build` 6, `futon` 10, `kazaana` 7, `kamui` 8, `hiraishin` 8,
-`backlog-loop` 10 — or **Kurapika as main session** after `en` § 8 returns; **a delegate never asks**.
+asks**: composite terminus — `build`, `futon`, `kazaana`, `kamui`, `hiraishin`, `backlog-loop` — or
+**Kurapika as main session** after `en` § 8 returns; **a delegate never asks**.
 Question, once, via surface picker (row `wrap-up`): ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
 in parallel · **C** continue iterating. **Never a merge prompt.** On **C** offer returns at next delivery.
-**Once per sitting**: `<core>/.nen/cleanup/<slug>.json` (§ 7) with `result` `cleaned`, `none-proposed` or `already-clean` is **completed** —
+**Once per sitting**: § 7's marker with `result` `cleaned`, `none-proposed` or `already-clean` is **completed** —
 cleanup not re-asked, **B offered as third-hand alone**; `partial` and `none-picked` offered again.
 Prior leftover found later is new scope.
 
@@ -43,15 +43,14 @@ Prior leftover found later is new scope.
 
 One delegate, **`cleanup · shizuku · <model alias>`**, on own pin (**do not pass `model`**, `hanten` § 4),
 never frontier tier, raised as third-hand § 3 raises Netero — **isolation omitted / `inherit`**: needs
-core's `.nen/` and worktree list. No delegation: both passes in-session (PROCESS § *Surfaces and pickers*).
+core's `.nen/` and worktree list; the prompt carries the absolute Hatsu root. No delegation: both passes
+in-session (PROCESS § *Surfaces and pickers*).
 
-**Consent channel (candidate b):** Shizuku has no question tool and, as a subagent, no user turns,
-so a relayed parent prompt is never live consent. Under candidate (b), on every surface:
+**Consent channel (candidate b)**, every surface — Shizuku asks nothing, a relayed prompt is no consent:
 1. **Pass 1 (inventory).** Shizuku reads § 4, classifies § 5, writes initial marker (§ 7) with `plan[]`,
    `picked: []`, `done: []`, `result: "pending"`, returning plan. **Removes nothing.**
-2. **Picker.** Main session presents § 6's picker via surface native tool (`AskUserQuestion` on Claude
-   Code, `request_user_input` on Codex, `AskQuestion` on Cursor, `ask_question` on Antigravity),
-   recording `picked[]` and raw `pickerAnswer` in marker.
+2. **Picker.** Main session presents § 6's picker via the surface's native tool (PROCESS § *Surfaces
+   and pickers*), recording `picked[]` and raw `pickerAnswer` in marker.
 3. **Pass 2 (sweep).** Main session executes picked rows from `plan[]` in § 5's order, reading back each.
 4. **Close.** Shizuku returns to verify read-backs against marker, update freed bytes, and close marker.
 
@@ -61,8 +60,9 @@ so a relayed parent prompt is never live consent. Under candidate (b), on every 
 `nen wc worktrees --repo <path> --json`'s `core`. **Every repo name is validated before entering any
 command**, always after `--`, single-quoted: branch or remote head passes `git check-ref-format --branch <name>`
 and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref: only one the worktrees row selects is
-admitted (facts, never a class; `.ts` header is the rule; `<branch.base>` from `nen/workflow.json`):
-`"$hatsu_root/scripts/cleanup_path_admit.sh" --core '<core>' --base '<branch.base>' --path '<abs path>'`
+admitted (facts, never a class; `.ts` header is the rule; `<branch.base>` from
+`nen/workflow.json`; the Hatsu root pasted absolute, § 3):
+`'<Hatsu root>/scripts/cleanup_path_admit.sh' --core '<core>' --base '<branch.base>' --path '<abs path>'`
 — never a prunable entry (§ 5's prune row) nor the surface's own. An exit but `0` admits nothing;
 failing names become **named** rows, escaped, and no command runs on them.
 
@@ -91,8 +91,8 @@ a worktree no row matches is **proposed**, owner unknown.
 with **merged** PR and clean tree, in order — `git -C <wt> push origin --delete -- <branch>` **only when
 `git ls-remote` returns PR's `headRefOid`**, then admission's printed `worktree remove`, word for word,
 then `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'`
-(ancestry against fetched `origin/<branch.base>` before non-force delete; one `git branch -d` refuses
-on stale local trunk is deterministic once core trunk is fast-forwarded, else proposed — **never
+(ancestry against fetched `origin/<branch.base>` before non-force delete; one that `git branch -d`
+refuses on stale local trunk is deterministic once core trunk is fast-forwarded, else proposed — **never
 `-D`**); `kind reviewer` checkout by ledger alone: `tree clean`, `locked no` **and**
 `.nen/hanten/<key>.cycle.json` records persona `ran` in sitting;
 `git remote prune origin`; `rm -- <reports.dir>/current.html`.
@@ -134,15 +134,16 @@ reported with stderr, **never retried with wider flag (`-D`)**; then § 3's clos
 
 ## 7. The marker, and the report
 
-Write `<core>/.nen/cleanup/<slug>.json` (`<core>` from `nen wc worktrees --repo <path> --json`'s `core`),
-contract `hatsu.cleanup.plan/v0.1`: `at`, `scope`, `plan[]`, `picked[]`, `pickerAnswer`, `done[]` with
-bytes, `freedBytes`, `result` — `cleaned` · `partial` · `none-proposed` · `none-picked` · `already-clean`
-(§ 2). `<slug>` per § 1 scope:
-- this sitting / `for <CODE>#<N>` → `<CODE>-<N>`, `<N>` the issue built, else its PR (no PR: branch slug):
-  `nen ref format --code <CODE> --kind <IS|PR> --number <N> --no-glyphs` exits `0` (code registered),
-  its printed `<CODE>-<IS|PR>-#<N>` cut to `<CODE>-<N>`
-- `for <branch>` → branch slug (`/` → `-`)
-- `for all` → `all`
+Write `<core>/.nen/cleanup/<slug>.json` (§ 4's `<core>`), contract `hatsu.cleanup.plan/v0.1`: `at`,
+`scope`, `plan[]`, `picked[]`, `pickerAnswer`, `done[]` with bytes, `freedBytes`, `result` — `cleaned` ·
+`partial` · `none-proposed` · `none-picked` · `already-clean` (§ 2). `<slug>` (third-hand's too), one per scope:
+- `for <CODE>#<N>` → `<CODE>-<N>` as typed; this sitting's one effort → `<CODE>-<issue>`, else `<CODE>-<PR>`
+- several efforts → `<composite>-<CODE>-<YYYY-MM-DD>`, the typed date; no number, or `for <branch>` → branch
+  slug (`/` → `-`); `for all` → `all`
+
+Each `<CODE>-<N>` is checked by (`PR` where `gh pr view` finds `<N>`; the output cut to `<CODE>-<N>`):
+`nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
+— an exit but `0` (no registry, code unregistered) keeps it, said.
 
 Gitignored with `.nen/`; `ten` never deletes it. Say result, total freed, kept rows and why, and sitting
 closed (under **B**, third-hand runs beside it).
@@ -164,4 +165,3 @@ Removals, `du -sk`, `readlink -f` and name validation have no nen verb — **owe
 - **Never discards uninspected tree**, never removes worktree whose dirt was not listed.
 - **Never deletes before pick**, never unpicked/named row, never retries wider, never runs unvalidated name.
 - **Never raises Shizuku on frontier tier**; never files, merges, votes or pushes code.
-- **Never treats a prior session's leftover as this sitting's.**
