@@ -964,13 +964,27 @@ change after it lands, [HR-2](#hr-2)).
 2. **A Source line and a Capture class line**, as § *Rulings of 2026-10-20 — the SDD assessment
    sitting* carries them: the Source names what was asked, where and when; the Capture class says
    how each answer was captured (a picked label exactly as the picker returned it, or typed words
-   quoted verbatim, each row saying which) and which picks depart from the recommendation. A
+   quoted verbatim, each row saying which; a rendered row says it in its answer cell, and the line names
+   the records) and which picks depart from the recommendation. A
    paraphrase is the lead's reading and says so; private names are placeheld per
    [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
 3. **The ruling table**, one row per ruling: the HR id with its anchor, in the form every HR row
    above carries, the question as asked, the options shown, the pick, the status and
    what it settles. The status grammar is **How HR ids are read**, in § *Rulings of 2026-10-20 — the
-   SDD assessment sitting*, cited, never restated.
+   SDD assessment sitting*, cited, never restated. **A row whose answer was recorded is rendered from
+   its record, never retyped** (zheref/hatsu#443; [`WORKFLOW.md`](WORKFLOW.md) § 4 *Every picker answer
+   is recorded*): `node scripts/ruling_record.mts export --effort <branch> --id <R-id> --repo <checkout>`
+   copies the record, read through `nen stop answer show`, into `docs/ruling-records/<effort>--<R-id>.json`
+   after the private-name guard and a secret-shape pass; then
+   `node scripts/ruling_record.mts render --record docs/ruling-records/<effort>--<R-id>.json --hr HR-<n> --status <status> --settles-file <file>`
+   prints the row — the HR id with its anchor and the record's link, the question, every option with its
+   consequence, and the answer with its capture class (`picked (K)`, `typed, word for word (K)`,
+   `typed (verbatim)`, or `pre-answered (<source>)`, which settles no ruling). The status and what it settles stay the lead's words. The `ruling-record` lane
+   (`nen shu test --lane ruling-record --repo <hatsu>`, run in `unit-tests.yml`) re-renders every row
+   citing a record and reports a difference by HR id, and a committed record no row cites is a finding.
+   The question file is written with private names already placeheld, the record's one departure from
+   as asked, because the committed copy is public; an answer asked in prose and recorded nowhere stays a
+   typed row and its Capture class line says so.
 4. **Trailing open rows**: a question the sitting left open is an `OPEN-n` row in § *Open items, in
    one place*, whose *What is open* cell carries the options shown, with no default; any prose marker
    that waits on it names it ([`PROCESS.md`](PROCESS.md) § *An unresolved question in prose*).

@@ -1,6 +1,6 @@
 {
   "$schema": "hatsu.config-catalogue/v1",
-  "$comment": "The values a consumer may set in its nen/workflow.json, nen/gates.json or nen/contract.json that a Hatsu skill reads and that either carry a canon default safe to write out or are needed by a skill, with the default its readers apply when it is absent. The maintainer's ruling of 2026-10-01 (docs/ROSTER.md § Rulings of 2026-10-01): the configuration files show every optionally settable value at its default, a fixed-set value carries a `$<key>` sibling listing its options, and a skill that needs a value nobody has set guides the maintainer through setting it instead of stopping. scripts/config_values.sh is the only reader: `diagnose` reports, `fill` writes the defaults and annotations (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set` writes one chosen value. Each `default` is the one canon already states, cited in `source`, and `check-catalogue` holds it against docs/WORKFLOW.md's key tables. Two kinds of value are not listed, because writing a snapshot would stop it following its source: one derived at run time (iteration.lane from project.defaultLane, reports.timeZone from the host), and one whose default a reader resolves from a Hatsu canon file only when the key is absent (gates.json round_policy, sharingan § 6 and contracts/round_policy.default.json; nen reads the same keys from v0.21.0 and enforces no ceiling it was not given). LISTED BUT HATSU-OWN: the workflow.intake.challenger.* rows (domain intake) are Hatsu's own policy, read from Hatsu's checkout only and gated by `when: nen/workflow.json#intake`, so fill never writes them into a consumer; a consumer's own intake block is tolerated and never read by emperor-time. NOT LISTED, each for a stated reason (a snapshot or a guess would change behaviour, or nen owns the key): values derived at run time (iteration.lane, reports.timeZone; profile.default, which nen derives from profile.allowed, is listed for its options and never given a default); values a reader resolves from a Hatsu canon file only when absent (gates round_policy.minRounds/.maxRounds, nen's keys from v0.21.0); values nen also reads whose built-in default may differ from the skills' (commits.allowedAttributionTrailers, commits.forbiddenTrailers, commits.runTrailer, futon.advanceGo, gates round_policy.stallMinutes, gates version); structural blocks whose shape is the repository's own (models, reports.sections, gates delivery, dependabot_carve_out, checks.excluded, round_quorum, default_approvers, base_reviewers -- Hatsu's check_exclusions and reviewer_fallback are retired, ruling 2026-10-04, and nen v0.21.0 refuses both); and nen/repos.json, nen/labels.json and the YAML files, which tenkai's other items own. Row fields: `kind` enum (a fixed set, `options` lists it) | subset (a list drawn from a fixed set, annotated `any of:`) | open (any value of its shape) | external (needs a step on an outside platform, `setup` names it) | secret-env (an environment-variable NAME, never the secret); `requiredBy` the skills that cannot run while it is unset; `ask` adoption (Tenkai asks for it) | on-use (only some repositories need it: Tenkai offers it, and the first skill in `requiredBy` to run asks then); `when` a <file>#<path> that must be non-empty for the row to apply; `candidatesFrom` a <file>#<path> whose keys are the picker's options; `nullIsAnswer` a null its readers treat as a deliberate answer (ask on each call), never outstanding; `choice: maintainer` a value WORKFLOW § 4 says is typed, never picked (row missing-maintainer-choice): candidates shown for reference, none starred; `sourceTable: false` a default documented in docs/WORKFLOW.md's prose rather than its key tables, which `check-catalogue` then holds to a line naming the key; `nonProductionTarget` `set` refuses a target whose `why` does not read non-production or that is not marked project.targets.<name>.nonProduction: true (nen 0.21+ FAILs schema check without it, zheref/nen#300); `landsByPR` a value that lands through its declaration PR before it runs, so the phase does not resume on it. `nen schema check` stays the authority on each file's validity; this catalogue is Hatsu's list of what Hatsu reads.",
+  "$comment": "The values a consumer may set in its nen/workflow.json, nen/gates.json or nen/contract.json that a Hatsu skill reads and that either carry a canon default safe to write out or are needed by a skill, with the default its readers apply when it is absent. The maintainer's ruling of 2026-10-01 (docs/ROSTER.md § Rulings of 2026-10-01): the configuration files show every optionally settable value at its default, a fixed-set value carries a `$<key>` sibling listing its options, and a skill that needs a value nobody has set guides the maintainer through setting it instead of stopping. scripts/config_values.sh is the only reader: `diagnose` reports, `fill` writes the defaults and annotations (behaviour-neutral by construction), `need --skill <s>` lists what a phase cannot run without, `set` writes one chosen value. Each `default` is the one canon already states, cited in `source`, and `check-catalogue` holds it against docs/WORKFLOW.md's key tables. Two kinds of value are not listed, because writing a snapshot would stop it following its source: one derived at run time (iteration.lane from project.defaultLane, reports.timeZone from the host), and one whose default a reader resolves from a Hatsu canon file only when the key is absent (gates.json round_policy, sharingan § 6 and contracts/round_policy.default.json; nen reads the same keys from v0.21.0 and enforces no ceiling it was not given). LISTED BUT HATSU-OWN: the workflow.intake.challenger.* rows (domain intake) are Hatsu's own policy, read from Hatsu's checkout only and gated by `when: nen/workflow.json#intake`, so fill never writes them into a consumer; a consumer's own intake block is tolerated and never read by emperor-time. NOT LISTED, each for a stated reason (a snapshot or a guess would change behaviour, or nen owns the key): values derived at run time (iteration.lane, reports.timeZone; profile.default, which nen derives from profile.allowed, is listed for its options and never given a default); values a reader resolves from a Hatsu canon file only when absent (gates round_policy.minRounds/.maxRounds, nen's keys from v0.21.0); values nen also reads whose built-in default may differ from the skills' (commits.allowedAttributionTrailers, commits.forbiddenTrailers, commits.runTrailer, futon.advanceGo, gates round_policy.stallMinutes, gates version); structural blocks whose shape is the repository's own (models, reports.sections, gates delivery, dependabot_carve_out, checks.excluded, round_quorum, default_approvers, base_reviewers -- Hatsu's check_exclusions and reviewer_fallback are retired, ruling 2026-10-04, and nen v0.21.0 refuses both); and nen/repos.json, nen/labels.json and the YAML files, which tenkai's other items own. Row fields: `kind` enum (a fixed set, `options` lists it) | subset (a list drawn from a fixed set, annotated `any of:`) | open (any value of its shape) | external (needs a step on an outside platform, `setup` names it) | secret-env (an environment-variable NAME, never the secret); `requiredBy` the skills that cannot run while it is unset; `ask` adoption (Tenkai asks for it) | on-use (only some repositories need it: Tenkai offers it, and the first skill in `requiredBy` to run asks then); `when` a <file>#<path> that must be non-empty for the row to apply; `candidatesFrom` a <file>#<path> whose keys are the picker's options; `nullIsAnswer` a null its readers treat as a deliberate answer (ask on each call), never outstanding; `choice: maintainer` a value WORKFLOW § 4 says is typed, never picked (row missing-maintainer-choice): candidates shown for reference, none starred; `sourceTable: false` a default documented in docs/WORKFLOW.md's prose rather than its key tables, which `check-catalogue` then holds to a line naming the key; `nonProductionTarget` `set` refuses a target whose `why` does not read non-production or that is not marked project.targets.<name>.nonProduction: true (nen 0.21+ FAILs schema check without it, zheref/nen#300); `landsByPR` a value that lands through its declaration PR before it runs, so the phase does not resume on it. `nen schema check` stays the authority on each file's validity; this catalogue is Hatsu's list of what Hatsu reads. The ci domain's rows (HA#331) carry ownedBy: kuchiyose: written only through kuchiyose's set after its human-gate ask (nen/decisions.json row ci-install-rulings), never listed by diagnose, fill or need, so tenkai never asks or fills them.",
   "domains": {
     "development": "the inner loop: which checks run while authoring, what launches",
     "versioning": "branches, commits and tags",
@@ -12,7 +12,8 @@
     "publishing": "release units and production destinations",
     "intake": "product intake: which intake examiner challenges which part of a brief (Hatsu's own checkout only)",
     "port": "carrying a delivered feature to a product family's sibling platforms: the spec repository's spec-kit set, and where port rulings live and which handbooks repository carries them",
-    "autonomy": "unattended batches: the typed --idle profile's pre-answered rows, slot release, terminal state and budget (HR-5)"
+    "autonomy": "unattended batches: the typed --idle profile's pre-answered rows, slot release, terminal state and budget (HR-5)",
+    "ci": "the CI tier a consumer installed from the Akatsuki roster and the per-consumer answers it was installed with (kuchiyose; absent means none installed)"
   },
   "values": [
     {
@@ -704,6 +705,24 @@
       "source": "getsuga § 3a"
     },
     {
+      "id": "workflow.release.proposalMerge",
+      "file": "nen/workflow.json",
+      "path": "release.proposalMerge",
+      "domain": "publishing",
+      "kind": "enum",
+      "default": "self",
+      "options": [
+        "self",
+        "human"
+      ],
+      "describe": "Who merges getsuga's own release-proposal PR. self: getsuga § 3a merges it through nen pr merge --release-unit when its five gates pass. human: the repository keeps that merge with the maintainer, so § 3a never runs the merge and stops at the declaration gate (G4 in a canon repository, G2 in a consumer one) quoting the value it read. Read at the base SHA (<baseNow>) of the merge-time re-check, never the PR head; an unreadable, mis-shaped or out-of-set value reads human.",
+      "readers": [
+        "getsuga"
+      ],
+      "source": "docs/config/workflow.json.md (release); getsuga § 3a; zheref/hatsu#414",
+      "question": "Should getsuga merge its own release-proposal PR when its gates pass (self), or should that merge stay with the maintainer (human)?"
+    },
+    {
       "id": "workflow.port.specKit.pin",
       "file": "nen/workflow.json",
       "path": "port.specKit.pin",
@@ -900,6 +919,89 @@
       ],
       "requiredBy": [],
       "source": "contracts/pr-sections.json; docs/PR-SECTIONS.md"
+    },
+    {
+      "id": "workflow.ci.provider",
+      "file": "nen/workflow.json",
+      "path": "ci.provider",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "open",
+      "describe": "The CI provider of the installed tier, by its product code (AK, the Akatsuki CI repository), resolved through Hatsu's nen/repos.json so the consumer's file carries no slug (HR-144 reading 4). Written by hatsu:kuchiyose at install; owned by kuchiyose (ownedBy): diagnose, fill and need never list it, so tenkai never asks or fills it.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which CI provider, by product code, does this repository install its tier from?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier; HR-144",
+      "ownedBy": "kuchiyose"
+    },
+    {
+      "id": "workflow.ci.pinned",
+      "file": "nen/workflow.json",
+      "path": "ci.pinned",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "open",
+      "describe": "The provider's release tag the caller workflow's uses: lines reference and the tier catalogue is read at -- a tag that resolves, never a branch. Written by hatsu:kuchiyose at install; nen warmup --ci-registry checks it against the provider registry's latest (from nen 0.26).",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which provider release tag does the installed tier pin?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier",
+      "ownedBy": "kuchiyose"
+    },
+    {
+      "id": "workflow.ci.tiers",
+      "file": "nen/workflow.json",
+      "path": "ci.tiers",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "open",
+      "describe": "The installed tiers, by tier-catalogue key (reviewers today); a later tier appears in the provider's catalogue with no skill change. Written by hatsu:kuchiyose from the tier picked under decisions row ci-install-rulings.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which tiers of the provider's catalogue are installed here?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier",
+      "ownedBy": "kuchiyose"
+    },
+    {
+      "id": "workflow.ci.rulings.hidan",
+      "file": "nen/workflow.json",
+      "path": "ci.rulings.hidan",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "enum",
+      "options": [
+        "on",
+        "off"
+      ],
+      "describe": "Whether Hidan's review lane is active on this consumer, asked per consumer at install (HR-137) under decisions row ci-install-rulings: on renders Hidan's caller job and prints the AKATSUKI_HIDAN_ACTIVE variable step; off leaves both out. Never defaulted.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Does Hidan's review lane run on this repository?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier; HR-137",
+      "ownedBy": "kuchiyose"
+    },
+    {
+      "id": "workflow.ci.rulings.claudeAuth",
+      "file": "nen/workflow.json",
+      "path": "ci.rulings.claudeAuth",
+      "domain": "ci",
+      "when": "nen/workflow.json#ci",
+      "kind": "enum",
+      "options": [
+        "claude_code_oauth_token",
+        "anthropic_api_key"
+      ],
+      "describe": "Which Claude credential TYPE the lanes run under, asked at install with the subscription token starred in the picker, never defaulted (HR-139) under decisions row ci-install-rulings: claude_code_oauth_token (the CLAUDE_CODE_OAUTH_TOKEN secret) or anthropic_api_key (the metered ANTHROPIC_API_KEY secret). The type only; the value lives only in the consumer's Actions secret store.",
+      "readers": [
+        "kuchiyose"
+      ],
+      "question": "Which Claude credential type do the lanes run under?",
+      "source": "docs/WORKFLOW.md section 2 (ci); docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier; HR-139",
+      "ownedBy": "kuchiyose"
     }
   ]
 }

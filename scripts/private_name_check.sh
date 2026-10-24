@@ -27,6 +27,8 @@
 # as the name -- and a hit is reported at its original line. Those transformations are what is
 # handled; nothing else is claimed. `_` is not removed inside a word: CommonMark never renders an
 # intraword `_` as emphasis, so `na_me` shows as written and removing it would only flag snake_case.
+# A .json file is also read with its string escapes decoded (\n, \t, \r, \b, \f as a space, \uXXXX, \" \\ \/),
+# so a name a serializer glued to an escape is still a word (zheref/hatsu#443).
 # Under --tree, paths and symlink targets are names too, and a UTF-16 file WITH a BOM (U+FEFF) is
 # decoded; one without, like any binary file (a NUL in its first 8 KiB) or anything that is not a
 # regular file, is skipped and COUNTED in the ok line, never silently.
@@ -362,6 +364,10 @@ PNC_MARKER="$marker_source" PNC_HATSU_ROOT="$hatsu_root" PNC_SKIPPED="$tmp/skipp
   # The second normalised reading: HTML comments, `*` and backticks removed (intraword emphasis and
   # code spans that render as one word). `_` stays: an intraword `_` never renders as emphasis.
   sub norm2 { my $s = shift; $s =~ s/<!--.*?-->//g; $s =~ s/[*`]//g; return $s }
+  # The string escapes of a .json file (\n, \t, \uXXXX, ...) are decoded too: JSON.stringify writes a line
+  # break as `\n`, which would otherwise glue the next word to an `n` (zheref/hatsu#443, Feitan F1).
+  our $json = 0;
+  sub jdec { my $s = shift; $s =~ s/\\(u[0-9A-Fa-f]{4}|[nrtbf"\\\/])/my $c = $1; $c =~ m{^u(.+)} ? cp(hex $1) : $c =~ m{[nrtbf]} ? " " : $c/ge; return $s }
   sub trig { return $_[0] =~ /[%&<\\*`]|[^\x00-\x7F]/ }
   # What a shown path or label may print: raw matches replaced by their index; one that names a
   # repository only once normalised is withheld whole.
@@ -388,7 +394,9 @@ PNC_MARKER="$marker_source" PNC_HATSU_ROOT="$hatsu_root" PNC_SKIPPED="$tmp/skipp
     }
     return unless trig($l);
     my $m = norm($l);
-    for my $v ($m, norm2($m)) {
+    my @readings = ($m, norm2($m));
+    if ($json) { my $j = jdec($m); push @readings, $j, norm2($j) }
+    for my $v (@readings) {
       # The normalised reading may pass over only as many token-shaped sightings of a name as the raw
       # line carried as keys: a name that reads only once normalised was split by a comment, a tag or
       # an entity, which no data-document key is -- it is a hit, as the policy says.
@@ -409,6 +417,7 @@ PNC_MARKER="$marker_source" PNC_HATSU_ROOT="$hatsu_root" PNC_SKIPPED="$tmp/skipp
     local $/ = "\n";
     unless (-f $path && open($fh, "<:raw", $path)) { print STDERR "private_name_check: cannot read $shown\n"; $bad = 1; return; }
     local $tmpl_ok = tmpl_file($path);
+    local $json = $path =~ /\.json\z/i ? 1 : 0;
     my $head = ""; read($fh, $head, 8192);
     if ($head =~ /\A(\xFF\xFE|\xFE\xFF)/) {
       local $/; seek($fh, 0, 0); my $all = <$fh>; close $fh;

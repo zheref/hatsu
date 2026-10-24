@@ -28,6 +28,8 @@ const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack
 const gated: Array<[string, string, string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
+  // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
+  ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
   ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
   ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
@@ -37,6 +39,8 @@ const gated: Array<[string, string, string]> = [
   // docs/NEN-CONTRACT.md's echoed pin line stale fails unit-tests.yml on every pull request.
   ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
   ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
+  // The settable-values engine's self-test plus the HR-23 examiner refusal (zheref/hatsu#397, BC-9).
+  ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
