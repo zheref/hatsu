@@ -1,0 +1,3 @@
+### Fixed
+
+- **`scripts/ruling_record.mts` renders a `<repository> #N` in a record's prose coded (PL-05).** Seven ROSTER rows rendered from ruling records (HR-348..HR-352, HR-355, HR-356) carried `bankai-handbooks #20`, `bankai-handbooks #11` and `akatsuki-ai #69` in their question cell, a bare `#N` the canon prose lint refuses and the baseline may not absorb (HR-13). The record keeps the question as the maintainer was shown it; `render` and `check` now code such a reference `<owner>/<name>#N` when `nen repo resolve` names exactly one repository for the word before it, in the question, option labels and consequences, never in the maintainer's typed words. An unknown word is left as written. Installed copies get the change by updating to `0.141.2`.

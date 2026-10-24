@@ -104,6 +104,15 @@ try {
   assert.equal(htmlRow.includes('<a id="hr-5">'), false, 'a record never renders an anchor');
   cases += 1; console.log(`ok ${cases} - markup and link brackets in a record are escaped, never rendered`);
 
+  // PL-05: a `<repository> #N` in the record's prose renders coded through the REAL nen's `repo resolve`
+  // against this checkout's registry; an unknown word and the maintainer's typed words are left as written.
+  const refs = recordFile(join(scratch, 'refs'), { ...base, id: 'R-2026-10-23-10', question: 'hatsu #5 Q1, issue #6?', options: [{ key: 'A', label: 'nen #7', consequence: 'akatsuki-ai #8 moves' }], kind: 'typed', pick: null, typed: 'hatsu #9 stands' });
+  const refsRow = renderRow(refs, 'HR-342');
+  assert.match(refsRow, /\| zheref\/hatsu#5 Q1, issue #6\? \| \(A\) zheref\/nen#7 — \*zheref\/akatsuki-ai#8 moves\* \| typed \(verbatim\): \*"hatsu #9 stands"\* \|/);
+  cases += 1; console.log(`ok ${cases} - a repository-named #N in the record's prose renders coded, an unknown word and typed words as written`);
+  const refsLog = join(scratch, 'refs-stub.log'); writeFileSync(refsLog, '');
+  expect('nen failing to resolve a repository word is wiring, never a guess', run(['render', '--record', refs, '--hr', 'HR-342', '--status', 'ruled', '--settles', 'x'], { NEN: stub, STUB_LOG: refsLog, STUB_EXIT: '2' }), 2, null, /nen repo resolve \S+ could not run \(exit 2\)/);
+
   const bad = recordFile(join(scratch, 'b'), { ...base, id: 'R-2026-10-23-05', contract: 'nen.stop.answer/v9' });
   {
     const lead = renderRow(picked, 'HR-7', 'superseded by HR-8 (a part; the rest stands)', 'Reverses [HR-3](#hr-3); `models.<surface>.frontier` a|b');
