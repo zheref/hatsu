@@ -41,6 +41,7 @@ const gated: Array<[string, string, string]> = [
   ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
   // The settable-values engine's self-test plus the HR-23 examiner refusal (zheref/hatsu#397, BC-9).
   ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
+  ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],

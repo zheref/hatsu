@@ -1634,7 +1634,8 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    integration PR Ready at the maintainer's merge prompt (or, under `ready-at-prompt`, every effort Ready before
    that merge). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
    `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host scheduler may
-   re-invoke the build, never a release. `cleanup` runs its deterministic rows for this session only
+   re-invoke the build, never a release. The steady-state schedule is [`config/schedule.md`](config/schedule.md)'s; its
+   tasks are registered only by the maintainer. `cleanup` runs its deterministic rows for this session only
    (`cleanup-plan` → `default`); a proposed row is never applied unattended.
 6. **One manifest, one gate.** Every run `start` opens has one nen manifest, and futon § 8's `then` gate,
    kazaana § 5 and the register read it through `nen run verify` — every opened PR and every parked effort.
