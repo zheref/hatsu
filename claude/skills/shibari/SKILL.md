@@ -55,8 +55,8 @@ in `## Completion checklist` as `injected attribution trailer: <sha> <key>, publ
 
 **Resolve before drafting** through [PR-SECTIONS.md](../../../docs/PR-SECTIONS.md):
 `nen repo classify` gives kind; associated issues give distinct `job/` labels. Read consumer-owned
-`pr.sections`, reuse Mukai's evidence/economics/policy-hit facts, then run the interim resolver with
-`--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, and
+`pr.sections`, reuse Mukai's run facts, then run the interim resolver with
+`--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, `--idle`, and
 `--out <absolute-requirements.json>`. Its printed ids give order; its array governs this write.
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.

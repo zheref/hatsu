@@ -102,7 +102,7 @@ nen report data --repo <path> --base origin/<branch.base> --target <owner/name> 
   [§ 1's filter flags] --register <desk.json> --json > <the data document>     # a repository scope; an object scope passes --prs/--issues
 ```
 
-`<desk>` is the judgement half you compose and nothing else; its shape is `nen report data --help`'s
+`<desk>` is the judgement half you compose and nothing else (for a futon run: `legendRows` list every decision taken for the maintainer, rows every skipped issue with its open `OQ-{n}` rows, and one ask offers the open-question flow — WORKFLOW § *Idle batches* rules 8–9); its shape is `nen report data --help`'s
 (`--register`), its rules and a minimal example in [`PROCESS.md`](../../../docs/PROCESS.md) § *The report data document*. **Every fact is nen's**: each row gains its `notation`, `verdict`,
 `labelsLine`, `checksLine`, `threadsLine`, `linkedLine` and `head`; the tallies, `footerCount`,
 `spendEfforts[]` and the empty graph keys are added after `objects[]`. **A verdict is quoted, never

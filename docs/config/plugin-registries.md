@@ -174,22 +174,31 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/issue-sections.json`
 
-**Purpose.** The shape of an issue Hatsu files (ROSTER HR-4; SDD plan piece P6): the sections each kind carries, which must be present and non-empty, the `AC-`, `SC-`, `AS-` and `OQ-` row shapes, and the vague-adjective and technology-term lists an acceptance row is read against. `templates/issue-body/<kind>.md` is the body each kind starts from. nen ships the verbs from `0.26.0` — `nen issue body-check --requirements-from <this file>` and `nen issue questions` (zheref/nen#476, zheref/nen#477) — and `scripts/issue_body_check.mts` reads this file until zheref/hatsu#423 retires it.
+**Purpose.** The shape of an issue Hatsu files (ROSTER HR-4; SDD plan piece P6): the sections each kind carries, which must be present and non-empty, the `AC-`, `SC-`, `AS-` and `OQ-` row shapes, and the vague-adjective and technology-term lists an acceptance row is read against. `templates/issue-body/<kind>.md` is the body each kind starts from. nen reads it from `0.26.0` — `nen issue body-check --requirements-from <this file>` and `nen issue questions --requirements-from <this file>` (zheref/nen#476, zheref/nen#477); the interim `scripts/issue_body_check.mts` is retired (zheref/hatsu#423).
 
 ### Keys
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `contract` | string | `hatsu.issue-sections/v1` | the shape | `scripts/issue_body_check.mts` |
+| `contract` | string | `hatsu.issue-sections/v1` | the shape | `nen issue body-check`, `nen issue questions` |
 | `sections.<id>` | object | `heading`, optional `rows`, optional `none` | one level-2 heading; `rows` names its row shape; `none` admits a lone `None.` | the same |
 | `common[]` | section ids | the eight every kind shares | what a body checked without `--kind` must carry | the same |
-| `kinds.<kind>` | object | `template`, `required[]`, `optional[]`; kinds `product`, `defect`, `machinery`, `canon-gap`, `epic` | the template path and the required and optional sections | the same, and the `issue-shape` lane's template check |
+| `kinds.<kind>` | object | `template`, `required[]`, `optional[]`; kinds `product`, `defect`, `machinery`, `canon-gap`, `epic` | the template path and the required and optional sections | the same, and the `issue-shape` lane's template check (`scripts/issue_sections_fixture.mts`) |
 | `rows.<shape>` | object | `pattern`, `prefix`, and for `success` `measure`, for `question` `resolvedPattern` | a row's shape, and what makes a list item claim to be one | the same |
 | `vagueAdjectives[]`, `technologyTerms` | word lists, patterns | as shipped | the words and patterns reported in an acceptance row | the same |
 
-**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the script; `scripts/pr_criteria_check.mts` reads `rows.acceptance` for the `- AC-{n}:` rows a closing issue carries (HR-11). **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; a consumer's own catalogue waits on the nen verbs.
+**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the two nen verbs; `scripts/pr_criteria_check.mts` reads `rows.acceptance` for the `- AC-{n}:` rows a closing issue carries (HR-11). **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; the verbs take any caller's catalogue through `--requirements-from`, but Hatsu's skills pass this file.
 
-**The nen verb reads this shape (route chosen: nen adapts).** zheref/nen#498 as reviewed at `48e9fc0` parses a different catalogue grammar (`sections` an array of `{id, title, level, content[], rows}`, `kinds` a map of kind to section ids) and has no optional sections, `noneText`, `technologyTerms` or dated `resolvedPattern`. Hatsu keeps its contract as is: nen `0.26.0`'s verb reads `hatsu.issue-sections/v1` through `--requirements-from` — object `sections`, `kinds.<kind>` with `required[]` and `optional[]`, the top-level `rows`, `noneText` and `technologyTerms` (the same misses as the script on HA#415 and HA#131, `docs/ab/futon.md` § 2026-10-22). `scripts/issue_body_check.mts` and the `issue-shape` lane retire under zheref/hatsu#423.
+**The check, as every caller runs it** (the skills cite this paragraph rather than restate it). A filed issue is read by `--ref`; a draft by `--body-file <absolute path>`, with `--kind <kind>` where the kind is known (a body checked with no `--kind` is read against `common`):
+
+```bash
+nen issue questions  --ref <CODE>#<N> --target <owner/name> --requirements-from "$hatsu_root/contracts/issue-sections.json" --json
+nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from "$hatsu_root/contracts/issue-sections.json" [--kind <kind>] --json
+```
+
+`questions` decides the stop: `counts.open` above `0` is the caller's open-question rule (build § 2's G1 `next: clarify`, futon § 2's skip, parked `needs-clarification` with the queue continuing (`R-2026-10-23-02`, WORKFLOW § *Idle batches* rule 9), file § 4's and emperor-time § 6's plan row); its exit `1` is an issue that could not be read, never "no questions" (in a batch, skipped as `g5-shape-unread`). `body-check` lists: exit `0` no miss, exit `1` the `misses[]` it names (each fixed in a draft or listed, never a skip on its own; an exit `1` with no `misses[]` is an unread issue), `advisories[]` reported. Exit `2` on either is wiring — a malformed catalogue or a usage error — and stops the caller's step, never read as a pass.
+
+**The nen verb reads this shape (route chosen: nen adapts).** zheref/nen#498 as reviewed at `48e9fc0` parses a different catalogue grammar (`sections` an array of `{id, title, level, content[], rows}`, `kinds` a map of kind to section ids) and has no optional sections, `noneText`, `technologyTerms` or dated `resolvedPattern`. Hatsu keeps its contract as is: nen `0.26.0`'s verb reads `hatsu.issue-sections/v1` through `--requirements-from` — object `sections`, `kinds.<kind>` with `required[]` and `optional[]`, the top-level `rows`, `noneText` and `technologyTerms` (the same misses as the script on HA#415 and HA#131, `docs/ab/futon.md` § 2026-10-22). `scripts/issue_body_check.mts` is retired under zheref/hatsu#423, and the `issue-shape` lane now runs nen's verbs over this file. Where they differ from the retired script: a vague adjective or a technology term on an acceptance row is an advisory (`advisories[]`), never a miss, and an open `OQ-{n}` row is counted by `nen issue questions`, never a body-check miss.
 
 ## `contracts/hanten-findings.schema.json`
 

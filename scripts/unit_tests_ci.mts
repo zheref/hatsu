@@ -31,7 +31,6 @@ const gated: Array<[string, string, string]> = [
   // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
   ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
-  ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
   ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
   ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
@@ -42,6 +41,9 @@ const gated: Array<[string, string, string]> = [
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
+  // The issue-shape fixture runs the verified nen's body-check and questions over the catalogue and
+  // templates; the interim checker it once tested is retired (zheref/hatsu#423).
+  ['issue_sections_fixture.mts', 'issue_sections_fixture.mts', 'issue-shape'],
   // Self-contained proofs: the fixture is the script itself (zheref/hatsu#453, #444).
   ['stop_bell_fixture.mts', 'stop_bell_fixture.mts', 'stop-bell-guard'],
   ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],

@@ -15,12 +15,13 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    fills and diagnosis preserve it. `max` defaults to seven and cannot exceed the catalogue cap.
 3. Reuse Mukai's facts: `--evidence` only for a product declaring `project.evidence.globs`,
    `--economics` only when Leorio ran or took a delta pass, `--policy-hit` when `nen gate derive`
-   matched a policy or process path. These facts activate conditional ids; they do not create headings.
+   matched a policy or process path, `--idle` on every PR an idle run opens (the footer row `decisions`, WORKFLOW
+   § *Idle batches* rule 8; mandatory there). These facts activate conditional ids; they do not create headings.
 4. Resolve before drafting, and resolve again when kind, labels, configuration or run facts change:
 
 ```bash
 "$hatsu_root/scripts/pr_sections_resolve.sh" --repo <target> --kind <kind> --jobs <comma-joined-jobs> \
-  [--evidence] [--economics] [--policy-hit] --out <absolute-requirements.json>
+  [--evidence] [--economics] [--policy-hit] [--idle] --out <absolute-requirements.json>
 ```
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
