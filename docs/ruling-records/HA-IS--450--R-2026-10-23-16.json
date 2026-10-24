@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-16",
+  "effortId": "HA-IS-#450",
+  "n": 14,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "bankai-handbooks #20 Q2 (UX-13): keep UX-13 the single owner of the adapt list, and widen it with gesture, theming and system controls?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Owner stays, widen (Recommended)",
+      "consequence": "UX-13 stays the one owner; gesture, theming and system controls join the adapt list"
+    },
+    {
+      "key": "B",
+      "label": "Owner stays, list as is",
+      "consequence": "UX-13 stays the one owner; the six categories stand, nothing added"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:56.426Z"
+}

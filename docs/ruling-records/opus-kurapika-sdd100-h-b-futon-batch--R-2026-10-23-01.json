@@ -1,0 +1,21 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-01",
+  "effortId": "opus/kurapika/sdd100-h-b-futon-batch",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "How should an idle-flagged run treat decisions, merges, cleanup and the record of decisions taken on the maintainer's behalf? (HA#423, HA#424, idle profile HR-5)",
+  "options": [
+    {
+      "key": "A",
+      "label": "The maintainer's own words, relayed by the orchestrating session",
+      "consequence": "applied in WORKFLOW § 2 idle and § Idle batches (HA-PR-#460)"
+    }
+  ],
+  "kind": "typed",
+  "pick": null,
+  "typed": "On any idle flagged operation, I expect all the session to run unattended, except for operations that may not be able to be reversed. Also, never merges to main. Only, always to integration branches to consolidate one or more batches of efforts together to be ultimately reviewed by me on big delivery PRs against main (only I as human maintainer merge to main). Shizuku's clean up plan always take the deterministic session-specific rows when running unattended. For any decision taken on my behalf, always list them in the shibari generated PR body and on the final delivery brief, as well as the final Rikugan report.",
+  "answeredAt": "2026-10-23T21:01:12.917Z"
+}

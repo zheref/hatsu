@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-04",
+  "effortId": "HA-IS-#450",
+  "n": 2,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "HR-328 (docs/ROSTER.md § Readings): HR-10 says a review finding that cites a ruling id cannot be argued away: the author must fix it or file an amendment. Does that also hold when the cited HR row is only a 'reading' or a reversed/superseded row?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Any HR row (Recommended)",
+      "consequence": "Confirm the reading: a finding citing any HR row, whatever its status, must be fixed or amended, never pushed back"
+    },
+    {
+      "key": "B",
+      "label": "Ruled rows only",
+      "consequence": "Amend: only a row whose status is 'ruled' forces fix-or-amend; a finding citing a reading can be pushed back with a reason"
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.560Z"
+}

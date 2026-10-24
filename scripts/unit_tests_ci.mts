@@ -22,24 +22,32 @@ if (!existsSync(join(root, 'nen', 'contract.json'))) {
   console.error('unit-tests-ci: PR checkout has no nen/contract.json');
   process.exit(2);
 }
-const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack-guard'];
+// The criteria lane holds Hatsu's wiring around `nen pr converge` (zheref/hatsu#413) and the HR-10
+// findings-schema invariants; it runs unconditionally, so deleting its fixture fails the lane, never drops it.
+const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack-guard', 'criteria'];
 // Each executable guard runs here once it exists, and refuses without its fixture (BC-9: a guard's
 // suite must actually execute in unit-tests.yml).
 const gated: Array<[string, string, string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
+  // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
+  ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
-  ['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
-  ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
   ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
   // Its last case runs --check-nen-pin on the PR checkout itself, so a repin that leaves
   // docs/NEN-CONTRACT.md's echoed pin line stale fails unit-tests.yml on every pull request.
   ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
   ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
+  // The settable-values engine's self-test plus the HR-23 examiner refusal (zheref/hatsu#397, BC-9).
+  ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
+  ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
+  // The issue-shape fixture runs the verified nen's body-check and questions over the catalogue and
+  // templates; the interim checker it once tested is retired (zheref/hatsu#423).
+  ['issue_sections_fixture.mts', 'issue_sections_fixture.mts', 'issue-shape'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

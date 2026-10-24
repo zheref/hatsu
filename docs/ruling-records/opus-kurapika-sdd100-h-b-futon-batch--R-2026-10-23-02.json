@@ -1,0 +1,21 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-02",
+  "effortId": "opus/kurapika/sdd100-h-b-futon-batch",
+  "n": 2,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "How should a batch treat an issue with open questions, and what does the final briefing do about them? (HA#423, HA#424, idle profile HR-5)",
+  "options": [
+    {
+      "key": "A",
+      "label": "The maintainer's own words, relayed by the orchestrating session",
+      "consequence": "applied in futon § 2/§ 10, WORKFLOW § Idle batches and the register (HA-PR-#460)"
+    }
+  ],
+  "kind": "typed",
+  "pick": null,
+  "typed": "Nothing should block a batch. However, no issue with open question should be addressed either. In this case, skip any unaddressed use during the batch and bring it up at the final briefing/rikugan report. If an issue in the queue has open questions, the queue should just continue with the next one. The final briefing shouldn't just mention it, but also offer to start a surface-specific decision picker driven flow to resolve any open question from the unresolved issues on the original queue.",
+  "answeredAt": "2026-10-23T22:35:05.007Z"
+}

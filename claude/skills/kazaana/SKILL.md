@@ -26,7 +26,7 @@ composite calls skip their own `## 0.`** ([`STANDALONE-ENTRY.md`](../../../docs/
 **P1 — `hatsu:ten kazaana` opens this run** ([`ten`](../ten/SKILL.md) § 6).
 
 ```
-hatsu:kazaana <repo> [on <line>] [--idle]
+hatsu:kazaana <repo> [on <line>] [--idle [--dry-run]]
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
@@ -52,7 +52,8 @@ composes, and for nothing else** ([`mugetsu`](../mugetsu/SKILL.md) § 3 *Record*
 quoted at the echo, bound to the tag this run cuts, lapsing at a G5 or a halt; the step's `gate` line is
 relayed as parsed. **Say the run has started** (a bounded `CON-25` delegation, futon § 7).
 
-**`--idle`** is stripped before both parses and carried onto the futon line: futon § 12 whole. The
+**`--idle`** (and `--dry-run` beside it) is lifted off before the kazaana parse, whose grammar declares
+neither, and carried onto the futon line (`--dry-run` stays lifted, futon § 1): futon § 12 whole. The
 go then reaches no `then getsuga` — held at `idle.terminal` — and § 6 asks nothing (`publish-offer`
 refused).
 
@@ -72,8 +73,8 @@ lands in exactly one set:
   the set stays **unrouted**, listed, the opt-in's path named.
 
 **Then refetch** — the same verb again — and re-partition: a `model/<line>` applied under this run joins
-the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4, build § 2's rule: only an open
-`OQ-{n}` row skips); an epic awaiting its mode label is **G1**
+the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4: only an open
+`OQ-{n}` row skips, the queue continuing, HR-335); an epic awaiting its mode label is **G1**
 (`mode-label`). **State the queue before advancing anything**: count, issues, exclusions, § 3's plan.
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
@@ -113,7 +114,7 @@ presented nowhere as mergeable.
 ## 5. The `then getsuga` step — held, then cut; the proposal is never theirs to merge
 
 **Kazaana's own gate** (ruling 2026-10-13, 2; futon § 8 reads *merged* alone): nothing after `then`
-runs until every PR this run authored (the manifest's `status`; `manifest: absent` holds it) is **merged into `branch.base`, or closed by the maintainer** — a
+runs until every PR this run authored (`nen run verify`, futon § 8) is **merged into `branch.base`, or closed by the maintainer** — a
 PR closed unmerged is reported as not delivered, its issue left open, and holds nothing; **a child of a
 closed stacked PR is stranded** (WORKFLOW rule 5, en § 6), reported, and holds the gate until the
 maintainer closes or retargets it; till then futon § 8 holds. Then [`getsuga`](../getsuga/SKILL.md) runs under its own authority at the
@@ -127,7 +128,7 @@ never a `MERGE` ask, the `aiReviewers` case getsuga § 3a's. The fan-out is gets
 **After futon's run has ended** (§ 5's gate passed, the tag cut), on kazaana's own authority under
 ruling 2026-10-13, 3 — futon § 11 governs a `then` step, not this question. Once the tag resolves on
 origin (`git ls-remote --tags`), ask **once** through the surface's own picker (row
-`publish-offer`), **only where** the target's kind (`nen repo classify`) is listed under
+`publish-offer`, recorded (`nen stop answer`, WORKFLOW § 4)), **only where** the target's kind (`nen repo classify`) is listed under
 `futon.advanceGo.mugetsu` as `nen parse futon` reads it — the target's declared key, or nen's default
 where absent (futon § 8) — else no offer, said. **Zero declared destinations: no offer, said.** One:
 *Publish `<tag>` through `hatsu:mugetsu` to `<destination>`?* — **A** publish: the answer is the go ·

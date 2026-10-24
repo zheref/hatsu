@@ -58,7 +58,7 @@ The brief owes kurapika.md § *Specialist*'s fields, in this order: **problem** 
 **platforms** · **constraints** · **observable success criteria** · **priority** · **scope boundaries** ·
 **Design Direction** for anything with UI · the **stack** where the product does not exist yet. One picker
 per round, **at most three questions a round** (WORKFLOW § 4, step 2), the derived rows stated, never
-asked; what only the maintainer knows is **typed, never picked** (`missing-maintainer-choice`).
+asked; what only the maintainer knows is **typed, never picked** (`missing-maintainer-choice`); every answer recorded (`nen stop answer`, WORKFLOW § 4).
 **Challenge the weak idea in the round**, with the evidence that would settle it. **Never
 invent a criterion**: an open one is written into the brief as an `OQ-{n}` row (HR-4), the brief on
 [`templates/issue-body/product.md`](../../../templates/issue-body/product.md). A second idea
@@ -112,8 +112,8 @@ it owns bootstrap, adoption and the first commit. Never start it from intake.
 
 **Redaction first** (file § 4): `bash
 "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> title.txt brief.md [comment.md]` — exit
-`0` or `skipped` enters the plan; `1` is replaced by the legend's placeholder and re-run; `2` writes nothing. **Shape** (HR-4): `node "$hatsu_root/scripts/issue_body_check.mts" --kind product --body-file
-<absolute brief.md>` (nen's `issue body-check` ships from `0.26.0`; the retirement zheref/hatsu#423); each miss is amended in the brief or listed in the plan.
+`0` or `skipped` enters the plan; `1` is replaced by the legend's placeholder and re-run; `2` writes nothing. **Shape** (HR-4): file § 4's two checks, `--kind product --body-file
+<absolute brief.md>`; each miss is amended in the brief or listed in the plan.
 **Labels** are file § 5's table, read from the target's `nen/labels.json`: lane, kind, severity with one
 line, [`classify`](../classify/SKILL.md) § 3's rows (owed, out of `--label`, where the families are not
 declared and synced), classify § 5b's comment, and its **routing row** — direct § 7's label and comment;

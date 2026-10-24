@@ -19,6 +19,8 @@
 //                 base that carries no baseline is said on stdout, and growth goes unchecked
 //   --base-baseline <file>  the baseline refused if it gained a row over <file>, the trusted
 //                 base revision's copy (the CI form: the whole tree, growth refused, no git)
+//   either base   also prints the rows this baseline removed from it: `<n> removed over <base>`
+//                 in the summary line, `removedBaseline` in --json (null with no base; zheref/hatsu#448)
 //   --self-test   runs scripts/prose_ambiguity_check_fixture.mts and relays its exit
 //
 // EXITS  0 no fail finding outside the baseline and no stale baseline row;
@@ -337,6 +339,20 @@ function resolveTarget(ctx: Ctx, from: string, target: string): { rel: string | 
   return { rel: relative(ctx.root, abs).split(sep).join('/') };
 }
 
+// A ROSTER row rendered from a ruling record (scripts/ruling_record.mts render) carries the question,
+// the options and the answer from the record, never retyped (ROSTER § The ruling template, step 3).
+// Render's reference coding is the primary PL-05 mechanism there: it codes a `<repository> #N` the
+// registry resolves in the question, the options and the picked label. This exemption covers only what
+// render cannot code, the maintainer's typed words and a #N with no resolvable repository before it, so
+// a bare #N left in those three cells is the record's. The HR id cell, the status and what it settles
+// are the lead's words and stay linted.
+const RENDERED_ROW = /^\| <a id="hr-\d+"><\/a>\*\*HR-\d+\*\* · \[[^\]]*\]\(ruling-records\/[^)]*\.json\) \|/;
+function inRenderedRecord(p: Para, off: number): boolean {
+  if (p.kind !== 'table' || !RENDERED_ROW.test(p.text)) return false;
+  const bars = [...p.text.matchAll(/(?<!\\)\|/g)].map((m) => m.index ?? 0);
+  return bars.length > 5 && off > bars[1] && off < bars[4];
+}
+
 function check(ctx: Ctx, d: Doc): Finding[] {
   const out: Finding[] = [];
   const isSkill = /^claude\/(skills\/[^/]+\/SKILL\.md|agents\/[^/]+\.md|rules\/[^/]+\.md)$/.test(d.path);
@@ -348,6 +364,7 @@ function check(ctx: Ctx, d: Doc): Finding[] {
     const line = lineAt(p, off);
     if (d.retired.has(line) && ctx.c.retired.rules.includes(rule)) return;
     if (isRecord && ctx.c.records.rules.includes(rule)) return;
+    if (rule === 'PL-05' && d.path === ctx.c.rulingsFile && inRenderedRecord(p, off)) return;
     const t = text.replace(/\s+/g, ' ').trim().slice(0, 160);
     out.push({ path: d.path, line, rule, severity: r.severity, text: t, key: `${d.path}\u0000${rule}\u0000${t.toLowerCase()}` });
   };
@@ -565,12 +582,17 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
     const scoped = new Set(files);
     const stale = rows.filter((r) => !read.has(r.path) || (scoped.has(r.path) && (budget.get(keyOf(r)) ?? 0) > 0));
     const grown: BaselineRow[] = [];
+    let removed: number | null = null;
     if (baseRows) {
       const was = new Map<string, number>();
       for (const r of baseRows) was.set(keyOf(r), (was.get(keyOf(r)) ?? 0) + r.count);
       const now = new Map<string, number>();
       for (const r of rows) now.set(keyOf(r), (now.get(keyOf(r)) ?? 0) + r.count);
       for (const r of rows) if ((now.get(keyOf(r)) ?? 0) > (was.get(keyOf(r)) ?? 0)) grown.push(r);
+      // The shrink this pull request paid (zheref/hatsu#448, AC-4): every count the base carried
+      // and this baseline no longer does, summed per key -- a removed row and a lowered count alike.
+      removed = 0;
+      for (const [k, n] of was) removed += Math.max(0, n - (now.get(k) ?? 0));
     }
     const against = baseBaseline ?? baseRef;
     const fresh = fails.filter((f) => !f.inBaseline);
@@ -583,7 +605,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
         contract: 'hatsu.prose-lint.result/v0.1', root, base: baseRef ?? null, files: files.length, exit: code, counts,
         findings: findings.filter((f) => f.severity === 'fail').map(({ key: _k, ...f }) => f),
         advisory: findings.filter((f) => f.severity === 'advisory').map(({ key: _k, inBaseline: _i, ...f }) => f),
-        staleBaseline: stale, grownBaseline: grown, notice: notice.trim() || null,
+        staleBaseline: stale, grownBaseline: grown, removedBaseline: removed, notice: notice.trim() || null,
       }, null, 2) + '\n';
     } else {
       out += notice;
@@ -592,7 +614,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
       for (const r of grown) out += `baseline · ${r.rule} · ${r.path} · ${r.text} — added over ${against}; the baseline only shrinks\n`;
       if (baseRef) for (const f of findings.filter((x) => x.severity === 'advisory')) out += `advisory ${f.path}:${f.line} · ${f.rule} · ${f.text}\n`;
       const sum = c.rules.map((r) => `${r.id} ${counts[r.id].total}${r.severity === 'advisory' ? 'a' : `/${counts[r.id].baselined}b`}`).join(' · ');
-      out += `canon-lint: ${files.length} files · ${fresh.length} new · ${stale.length} stale · ${grown.length} grown · ${sum}\n`;
+      out += `canon-lint: ${files.length} files · ${fresh.length} new · ${stale.length} stale · ${grown.length} grown${removed === null ? '' : ` · ${removed} removed over ${against}`} · ${sum}\n`;
     }
     return { code, out, err };
   } catch (e) {

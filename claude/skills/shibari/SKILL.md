@@ -6,8 +6,8 @@ description: Compose the PR body from the section catalogue and effort ledgers, 
 # Shibari — the work becomes a request for attention
 
 **Nature: Manipulator.** Open one reviewable PR and hand it to [`en`](../en/SKILL.md).
-Name the authoring nature in *Why*. Shibari is [`mukai`](../mukai/SKILL.md) step 8;
-it proves nothing itself. The landing report reads the opened PR.
+Shibari is [`mukai`](../mukai/SKILL.md) step 8; it proves nothing itself. The landing report
+reads the opened PR.
 
 ## 0. Standalone entry
 
@@ -55,8 +55,8 @@ in `## Completion checklist` as `injected attribution trailer: <sha> <key>, publ
 
 **Resolve before drafting** through [PR-SECTIONS.md](../../../docs/PR-SECTIONS.md):
 `nen repo classify` gives kind; associated issues give distinct `job/` labels. Read consumer-owned
-`pr.sections`, reuse Mukai's evidence/economics/policy-hit facts, then run the interim resolver with
-`--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, and
+`pr.sections`, reuse Mukai's run facts, then run the interim resolver with
+`--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, `--idle`, and
 `--out <absolute-requirements.json>`. Its printed ids give order; its array governs this write.
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.
@@ -76,9 +76,8 @@ under `<path>/.nen/reports/` (directory 0700, files 0600). Run `node "$hatsu_roo
 only from `nen gate derive`'s first line. Render with `nen report render --template
 "$hatsu_root/templates/pr-delivery.md" --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
 paste the block without typing cells. Keep intermediates there.
-WORKFLOW § *The effort's ledgers* governs model provenance: bare tokens and unreported reviewer
-aliases remain unread. Public Source cells contain only ledger locator, timestamp and optional phase;
-free-form ledger notes/sources stay local. Dial/session values never go in notes.
+WORKFLOW § *The effort's ledgers* owns model provenance, the public Source cell (locator,
+timestamp, optional phase) and what stays local.
 After opening, rerun report data with the actual PR (`--target <owner/name> --prs <n>`), normalize with the same derived
 gate, render, edit the PR body and read it back. Drive names `hatsu:en on <CODE>#<N>` and states
 readiness is `nen pr ready`'s verdict. The guard compares ledger rows and Drive to the rendered
@@ -100,8 +99,8 @@ specifies: actual participants only, never inferred from branch, reviewer reques
 
 ```bash
 git -C <path> fetch origin <branch>
-git -C <path> rev-parse HEAD refs/remotes/origin/<branch>     # the two MUST be equal
-nen repo resolve --repo <path> --from <path>                  # -> <owner>/<name> (<CODE>)
+git -C <path> rev-parse HEAD refs/remotes/origin/<branch>  # the two MUST be equal
+nen repo resolve --repo <path> --from <path>  # -> <owner>/<name> (<CODE>)
 nen ref format --code <CODE> --kind PR --number <n>
 "$hatsu_root/scripts/pr_body_sections_check.sh" --body <abs path> --requirements <absolute-requirements.json> --max <resolved-max>
 "$hatsu_root/scripts/pr_body_delivery_check.sh" --body <abs path> --repo <path> \
@@ -109,15 +108,15 @@ nen ref format --code <CODE> --kind PR --number <n>
 "$hatsu_root/scripts/pr_body_delivery_check.sh" --body <abs path> --repo <path> \
   --pr <n> --target <owner/name> [--base <ref>] --gate-forecast <G2|G4>  # after open/edit
 "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <abs path>
-node "$hatsu_root/scripts/pr_criteria_check.mts" --body <abs path> --repo <path>  # HR-11
 nen pr body-check --body-from <abs path> --requirements-from <absolute-requirements.json>
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
 nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragment-dir <fragmentDir> \
   --head-changelog <headChangelog> --files-from <abs list> [--body-from <abs path>]
 nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
-  [--head <branch>] [--dry-run] [--json]   # title-file: the one commit's subject
+  [--head <branch>] [--dry-run] [--json]  # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
+nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/contracts/issue-sections.json" --json  # HR-11
 ```
 
 - **HEAD must equal `origin/<branch>`**; else stop and name which is ahead. `pr open` exits `2` for
@@ -127,14 +126,17 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
   (zheref/hatsu#171). Fix `body-check` exit `1`; `fragment-required` follows its `changelogFragment`.
 - **Derive the gate** per [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*;
   report it as a forecast. Shibari neither labels a gate nor writes `readiness`;
-  [`en`](../en/SKILL.md) quotes `nen pr ready` after this run.
-- **The body is written only after sections, Delivery, Nen body-check, evidence, criteria, Development and changelog checks pass, before every create and edit.** The create is the first write and
+  `en` quotes `nen pr ready` after this run.
+- **The body is written only after sections, Delivery, Nen body-check, evidence, Development and changelog checks pass, before every create and edit.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
-  the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against
-  `--repo`'s root**, so the body is written to an **absolute** path.
+  the number before any write**, refusing a 404/410. The body file is **absolute**
+  (a relative one resolves against `--repo`).
 - **Development guard**: `--body` before each write, `--pr` after open/edit; fix refusals in body
   or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`. Re-runs:
   `en` §§ 4–5, `sharingan` § 4.
+- **`pr converge --json`** (HR-11) after open/edit. A `1` with `closingSource`
+  `none-on-non-default-base` and no other `blocking` line is not applicable as `en` § 4 reads it
+  (HR-357); hand over. Any other `1`: fix the verify table, `edit-body`, re-run. Re-runs: `en` §§ 4–5.
 
 ## 5. Reviewers, and the hand to `en`
 
@@ -145,7 +147,7 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--a
 **Reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one round after
 [`hanten`](../hanten/SKILL.md) settles, never before — and this skill makes only the first request, of `base_reviewers`,
 never of a CI lane (PROCESS, *Event-driven reviewer lanes*).
-[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* owns token and bot mechanics. Read success from the mutation response, never the ids sent.
+[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* owns token and bot mechanics.
 
 **Then one line, and stop:** notation, base, forecast gate, check results, quoted Development
 guard line, evidence mechanism, any § 1 permission stop, requested reviewers and Mukai's En offer
@@ -169,4 +171,4 @@ Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned 
   treats an untracked evidence gap as a sanctioned incompleteness.
 - **Never passes a body as an inline `--body` string**, reports a reviewer as requested when the call
   no-opped, or reports a missing Development link as present.
-- **Never fires the `nen stop` banner**, and **never presents by-hand `git`/`gh` as a verb's output.**
+- **Never presents by-hand `git`/`gh` as a verb's output.**

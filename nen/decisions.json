@@ -1,6 +1,6 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a G5 by the ruling of 2026-10-17; G5 is the open class of what only the human can do, these rows its recorded kinds), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10, kazaana section 7 and kamui section 8), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)), mode-label (emperor-time section 6, dowsing-chain section 8), intake-challenger and intake-stall (emperor-time section 4, dowsing-chain section 6), port-siblings (kamui section 5), port-drift (bankai-rule section 5, answered for the port composites hiraishin and kamui, zheref/hatsu#357 and #356), spec-capture-scope, spec-slice, spec-clarify, spec-claim-unverified, spec-dispatch, spec-coverage, spec-conflict and spec-converge-filing (dowsing-chain sections 2, 4, 5, 8, 9 and 10; docs/config/spec-repo.md; spec-coverage owed, zheref/hatsu#405). Data-only until a skill cites them: merge, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a G5 by the ruling of 2026-10-17; G5 is the open class of what only the human can do, these rows its recorded kinds), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10, kazaana section 7 and kamui section 8), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)), mode-label (emperor-time section 6, dowsing-chain section 8), intake-challenger and intake-stall (emperor-time section 4, dowsing-chain section 6), ci-install-rulings and ci-ceremony (kuchiyose sections 3 and 5), port-siblings (kamui section 5), port-drift (bankai-rule section 5, answered for the port composites hiraishin and kamui, zheref/hatsu#357 and #356), spec-capture-scope, spec-slice, spec-clarify, spec-claim-unverified, spec-dispatch, spec-coverage, spec-conflict and spec-converge-filing (dowsing-chain sections 2, 4, 5, 8, 9 and 10; docs/config/spec-repo.md; spec-coverage owed, zheref/hatsu#405). Data-only until a skill cites them: merge, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
@@ -859,6 +859,48 @@
       ],
       "proposeIssue": false,
       "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Keeps black-voice's never-file-without-a-pick rule for the gaps a run discovers."
+    },
+    {
+      "id": "ci-install-rulings",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "the tier and each ruling, as the catalogue lists them",
+          "command": "one picker call: the tier (every installable tier of schemas/tiers.json at the pinned provider tag), then each rulings[] entry with its options and the catalogue's own star -- hidan on | off (no star unless the catalogue stars one), claudeAuth claude_code_oauth_token (starred) | anthropic_api_key",
+          "consequence": "each answer is written through scripts/config_values.sh set as one workflow.ci.* key and the install renders from it (kuchiyose sections 3-4)"
+        },
+        {
+          "key": "B",
+          "label": "stop here",
+          "command": "end the run with the catalogue read and nothing written",
+          "consequence": "no tier is installed; the questions return on the next call"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:kuchiyose (zheref/hatsu#331). The maintainer's rulings of 2026-10-19 (docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier, HR-137, HR-139): Hidan's activation is asked per consumer at install, and the Claude billing is asked at install with the subscription token starred; the record is the credential TYPE, never its value. Which CI tier a consumer runs and under which rulings is the maintainer's word for that repository, so it is never defaulted, derived or carried from another consumer; a human-gate so no consumer file can reclassify it. The ci catalogue rows carry ownedBy: kuchiyose, so config_values diagnose, fill and need never list them and tenkai never asks or fills them; the class is human-gate so no consumer file can turn HR-137's per-consumer ask into a default."
+    },
+    {
+      "id": "ci-ceremony",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "done -- verify once",
+          "command": "the maintainer has performed the printed steps; hatsu:kuchiyose verify reads each lane once (kuchiyose section 6)",
+          "consequence": "each lane is reported live, skipped-unprovisioned, withheld, no run or pending, a lane not live naming the step it waits on"
+        },
+        {
+          "key": "B",
+          "label": "stop with the checklist on the PR",
+          "command": "end the run; the install PR body carries the ceremony checklist",
+          "consequence": "nothing is created or set; the lanes run and skip until the maintainer performs the steps"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "Added with hatsu:kuchiyose (zheref/hatsu#331). The day-one ceremony -- creating each -akatsuki GitHub App with its permission tier and installing it (HR-138), setting its App id and private-key secrets and the Claude auth secret (HR-139), the Hidan variable, and applying the ruleset that registers the lane checks as required status checks (HR-140: printed, never applied) -- is account-level identity creation, secret material and a repository security setting: a permission, secret or settings change only the human can make, a G5 under CON-47 (HR-138, HR-140; the provider's docs/provisioning/RUNBOOK.md, Human gates). CON-12 fixes only the shape -- one least-privilege App per lane at its tier. The install PR itself stands at the consumer's declaration gate, CON-5 (G2) or CON-7 (G4) as nen repo classify answers, and is never merged by the run. The run prints one block per step and waits; no option performs a step or takes a credential, and a secret value typed into the picker or chat is never used and is rotated. Secret steps run in the maintainer's own terminal, never the session (the private key by stdin, the downloaded .pem deleted); the ruleset payload is printed inline with its sha256 for the maintainer to check; the permission pack denies the session gh secret set/delete, gh variable set and gh api writes to rulesets, secrets and variables."
     }
   ]
 }
