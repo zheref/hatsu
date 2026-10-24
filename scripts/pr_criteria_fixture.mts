@@ -87,15 +87,15 @@ assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Giv
   assert.ok(json.stdout.includes("\u202e"), "nen now neutralises U+202E in --json: drop this pinned miss");
 }
 
-// 4. en's not-applicable reading (zheref/hatsu#413, G4): converge's closingSource
+// 4. en's not-applicable reading (R-2026-10-23-24 under zheref/hatsu#450): converge's closingSource
 // none-on-non-default-base is not applicable only while the Development guard's --body form exits 0,
 // which holds exactly when the Associated issues table has no closing row.
 {
   const en = read("claude/skills/en/SKILL.md");
   const flat = en.replace(/\s+/g, " ");
   assert.ok(flat.includes("`none-on-non-default-base`, while the Development guard's `--body` form exits `0`") && flat.includes("**not applicable**"));
-  assert.ok(flat.includes("never on a merge path (HR-3") && flat.includes("[NEEDS missing-maintainer-choice:"), "the reading stays off the merge path until ruled");
-  assert.ok(flat.includes("A `none-on-non-default-base` verdict is not merged here: hand the PR to § 5's merge prompt"), "en § 5 step 3 hands it over");
+  assert.ok(flat.includes("**Ruled (R-2026-10-23-24, zheref/hatsu#450):**") && !flat.includes("[NEEDS missing-maintainer-choice: does not-applicable"), "the reading cites its ruling");
+  assert.ok(flat.includes("or is not applicable as § 4 reads it (R-2026-10-23-24; quote converge's `closingSource` in the register row)"), "en § 5 step 3 merges on the ruled reading, closingSource quoted");
   const table = (verdict: string) => `## 🔗 Associated issues\n\n| Issue | Scope this PR implements | Merging this |\n|---|---|---|\n| https://github.com/example-owner/example-repo/issues/7 | x | **${verdict}** |\n`;
   const guard = (body: string) => {
     const file = join(dir, `issues-${Math.random().toString(36).slice(2)}.md`);
