@@ -259,10 +259,14 @@ one-directional confirmation pass that may only veto. Read it there.
 Two things en relies on and does not re-derive:
 
 - **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
-  satisfied AND the criteria guard
-  (`node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>`, HR-11) exits `0`**, all
-  deterministic, none re-derived by eye: a `missing` or `contradicts` verify row, an acceptance
-  criterion with no row or a closing issue with no criteria is not ready whatever the gate verdict —
+  satisfied AND `nen pr converge`
+  (`nen pr converge --target <owner/name> --pr <N> --requirements-from "$hatsu_root/contracts/issue-sections.json"`, HR-11) exits `0`**, all
+  deterministic, none re-derived by eye: converge's exit `1` is not ready, whatever it blocks on.
+  **Ruled (R-2026-10-23-24, zheref/hatsu#450):** its `--json` `closingSource`
+  `none-on-non-default-base`, while the Development guard's `--body` form exits `0` (so the
+  Associated issues table holds no closing row, as a stacked *delivers part* PR does), is
+  **not applicable** — reported as such with that `closingSource` quoted, never as a pass, and
+  readiness proceeds on the other conjuncts —
   and the Development guard
   (`"$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#N> --base <branch.base>`,
   zheref/hatsu#203) in exactly one of three cases, decided by the PR's own base first: **(1)** the PR's
@@ -311,8 +315,9 @@ hold at the **same current full head SHA**:
    **Ready**. The reviewer sixth stop and exhausted bot limits do **not** qualify.
 3. `nen pr body-check` succeeds against the live body and the current
    `contracts/pr-body.requirements.json` from this plugin root, and
-   `node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>` exits `0` beside it (HR-11:
-   a `missing` or `contradicts` row is not ready whatever the gate verdict). En still settles every
+   `nen pr converge --target <owner/name> --pr <N> --requirements-from "$hatsu_root/contracts/issue-sections.json"` exits `0` beside it, or is
+   not applicable as § 4 reads it (R-2026-10-23-24; quote converge's `closingSource` in the
+   register row). Otherwise converge's exit `1` is not ready, whatever it blocks on (HR-11). En still settles every
    finding and thread under § 4 before this gate.
 4. `nen pr merge <N> --delivery --requirements-from <absolute plugin-root contracts/pr-body.requirements.json> --repo <effort-worktree> --require-head <SHA>` returns a passing plan. Nen independently checks
    the non-main, unprotected base, Ready, body, current head and author. Run the same command

@@ -31,7 +31,7 @@ try {
   let result = run();
   assert(result.status === 0, `baseline refused: ${result.stderr}`);
   let calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||', 'wrong baseline lanes or leaked token');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||', 'wrong baseline lanes or leaked token');
   const fence = result.stdout.match(/::stop-commands::(unit_tests_[0-9a-f]{32})/);
   assert(!!fence && result.stdout.includes(`::${fence[1]}::`) &&
     result.stdout.indexOf(`::stop-commands::${fence[1]}`) < result.stdout.indexOf('::warning title=forged::') &&
@@ -46,7 +46,7 @@ try {
   result = run();
   assert(result.status === 0, `API fixture path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||', 'API lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||', 'API lane not selected');
 
   writeFileSync(join(repo, 'scripts', 'clause_id_guard.mts'), '');
   result = run();
@@ -56,7 +56,7 @@ try {
   result = run();
   assert(result.status === 0, `clause-guard path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||', 'clause-guard lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||', 'clause-guard lane not selected');
 
   writeFileSync(join(repo, 'scripts', 'prose_ambiguity_check.mts'), '');
   result = run();
@@ -66,11 +66,10 @@ try {
   result = run();
   assert(result.status === 0, `canon-lint path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
 
-  let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,gh-api-read-guard||,clause-guard||,canon-lint||';
+  let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||';
   for (const [script, fixture, lane] of [['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
-    ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
     ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],

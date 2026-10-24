@@ -71,8 +71,8 @@ was touched; the session's impression of it does not.
 ```bash
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> --register <desk> --json  # an object scope
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --backlog --register <desk> --json                       # a repository scope
-nen pr ready --repo <path> --pr <N> [--explain]                                                                                          # per PR, quoted verbatim
-node "$hatsu_root/scripts/pr_criteria_check.mts" --pr <owner/name#N>  # quoted beside the verdict (HR-11)
+nen pr ready --repo <path> --pr <N> [--explain]  # per PR, quoted verbatim
+nen pr converge --target <owner/name> --pr <N> --requirements-from "$hatsu_root/contracts/issue-sections.json"  # HR-11, quoted
 ```
 
 **Two passes** (zheref/hatsu#221): the plain call (no `--register`) reads the facts; the desk —
