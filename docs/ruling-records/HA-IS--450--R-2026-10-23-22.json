@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-22",
+  "effortId": "HA-IS-#450",
+  "n": 20,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "akatsuki-ai #69 OQ-1 (RUNBOOK § Human gates, OPEN-4): does Hidan's App get installed on day one, or is it created but staged until the Sasuke/Kakuzu pair has proven out?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Stage it (Recommended)",
+      "consequence": "Create the App, install nothing yet; file the wiring as post-ceremony work"
+    },
+    {
+      "key": "B",
+      "label": "Wire day one",
+      "consequence": "Install hidan-akatsuki in step 3 and set its two secrets with the others"
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-10-23T23:01:57.750Z"
+}

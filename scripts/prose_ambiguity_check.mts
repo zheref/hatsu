@@ -337,6 +337,17 @@ function resolveTarget(ctx: Ctx, from: string, target: string): { rel: string | 
   return { rel: relative(ctx.root, abs).split(sep).join('/') };
 }
 
+// A ROSTER row rendered from a ruling record (scripts/ruling_record.mts render) carries the question,
+// the options and the answer as the record holds them, never retyped (ROSTER § The ruling template,
+// step 3); those three cells are the record's text, so a bare #N there is the record's, exempt from
+// PL-05. The HR id cell, the status and what it settles are the lead's words and stay linted.
+const RENDERED_ROW = /^\| <a id="hr-\d+"><\/a>\*\*HR-\d+\*\* · \[[^\]]*\]\(ruling-records\/[^)]*\.json\) \|/;
+function inRenderedRecord(p: Para, off: number): boolean {
+  if (p.kind !== 'table' || !RENDERED_ROW.test(p.text)) return false;
+  const bars = [...p.text.matchAll(/(?<!\\)\|/g)].map((m) => m.index ?? 0);
+  return bars.length > 5 && off > bars[1] && off < bars[4];
+}
+
 function check(ctx: Ctx, d: Doc): Finding[] {
   const out: Finding[] = [];
   const isSkill = /^claude\/(skills\/[^/]+\/SKILL\.md|agents\/[^/]+\.md|rules\/[^/]+\.md)$/.test(d.path);
@@ -348,6 +359,7 @@ function check(ctx: Ctx, d: Doc): Finding[] {
     const line = lineAt(p, off);
     if (d.retired.has(line) && ctx.c.retired.rules.includes(rule)) return;
     if (isRecord && ctx.c.records.rules.includes(rule)) return;
+    if (rule === 'PL-05' && d.path === ctx.c.rulingsFile && inRenderedRecord(p, off)) return;
     const t = text.replace(/\s+/g, ' ').trim().slice(0, 160);
     out.push({ path: d.path, line, rule, severity: r.severity, text: t, key: `${d.path}\u0000${rule}\u0000${t.toLowerCase()}` });
   };

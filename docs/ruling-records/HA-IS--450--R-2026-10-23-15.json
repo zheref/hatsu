@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-15",
+  "effortId": "HA-IS-#450",
+  "n": 13,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "bankai-handbooks #20 Q1 (UZF-21 vs the SP family): UZF-21 owns existence, pointer, revise-first and the AC-/SC- id grammar; SP owns the authoring grammar, markers, parity and per-member differences. Is that the split?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "That split (Recommended)",
+      "consequence": "Confirm R1–R3 and R13 as read"
+    },
+    {
+      "key": "B",
+      "label": "UZF-21 owns parity too",
+      "consequence": "Amend: UZF-21 also owns the parity table and acceptance rows inside a family spec folder"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:56.362Z"
+}

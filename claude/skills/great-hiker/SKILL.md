@@ -37,7 +37,7 @@ the request is **the maintainer's word: never derived** or inferred from the ses
 
 | Kind | Paths | Mode | Runs as |
 |---|---|---|---|
-| **prose** | `claude/**/*.md`, `docs/**`, `templates/**/*.md`, `changelog.d/*`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` | Conjurer | **`models.<surface>.deep`** at the effort below |
+| **prose** | `claude/**/*.md`, `docs/**`, `templates/**/*.md`, `changelog.d/*`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` | Conjurer | a **`models.<surface>.frontier`** subsession at the effort below (HR-336) |
 | **machinery** | `scripts/**`, `hooks/**`, `contracts/**`, `nen/*`, `templates/**` (not `.md`), `.claude-plugin/*`, `.codex-plugin/*`, `.github/workflows/*`, `package*.json` | Transmuter | **`models.<surface>.fast`** at the effort the work needs |
 | none | `surfaces/**` | | generated (§ 4), never authored |
 | none | any other path | | asked (row `missing-maintainer-choice`) |
@@ -49,9 +49,8 @@ prose first so the machinery reads the wording it must carry.
 
 How a subsession is raised, per surface, is [`hanten`](../hanten/SKILL.md) § 4 and § 7 (a surface that
 is not Claude Code) and [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The matrix, per surface*, and
-none of it is restated here. What is this skill's: the tier per kind (`deep` is `opus`, `sol`, `pro`;
-`fast` is `sonnet`, `terra`, `flash`, `composer`) and the effort heuristic. Cursor's `deep` is
-`grok`, its `frontier` alias, so the Hard limit sends its prose to `fast`. The title is `great-hiker · kurapika · <alias>`. A missing tool or model id is
+none of it is restated here. What is this skill's: the tier per kind (`frontier` is `fable`, `astra`, `grok`, `ultra`;
+`fast` is `sonnet`, `terra`, `flash`, `composer`) and the effort heuristic. The title is `great-hiker · kurapika · <alias>`. A missing tool or model id is
 resolved by `nen shu tools --install` (row `missing-tool`), never with elevation.
 
 ## 3. Author in the canonical source
@@ -171,7 +170,7 @@ rule is waived is evidence to file, not a waiver.
 - **Never claims a capability without the fetched line quoted**, in the guide or in the issue.
 - **Never merges**, never labels a gate, never votes, never pushes (that is [`aka`](../aka/SKILL.md)'s,
   on the maintainer's call).
-- **Never runs a subsession on the frontier tier**, on any surface, whatever the alias collision.
+- **Never runs machinery on the frontier tier**; prose alone takes it ([HR-336](../../../docs/ROSTER.md#hr-336)).
 - **Never widens the effort past the request's `--effort` override**, and never raises machinery
   work above `models.<surface>.fast`.
 - **Never improvises a Nen-owned operation** (`nen/contract.json`); a missing verb is residue, named.

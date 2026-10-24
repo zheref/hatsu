@@ -188,7 +188,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
 | `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
 | `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
-| `$defs.finding` (rule `CON-{n}` or `HR-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10: critical by shape, never pushed back | the same |
+| `$defs.finding` (rule `CON-{n}` or `HR-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10: critical by shape, never pushed back; stricter than HR-337, which narrows it to ruled HR rows, because a schema cannot read a status | the same |
 
 **Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
 

@@ -138,6 +138,15 @@ try {
     put(root, 'claude/skills/plant/SKILL.md', '# P\n\nFixed in zheref/hatsu#154, HA#12 and HA-PR-#303; see [x](#p).\n');
     expectClean(root, 'PL-05 coded references and a same-file anchor are clean');
   }
+  {
+    const root = base();
+    put(root, 'docs/ruling-records/e--R-2026-10-23-01.json', '{}\n');
+    const row = (settles: string): string => `| <a id="hr-3"></a>**HR-3** · [e--R-2026-10-23-01](ruling-records/e--R-2026-10-23-01.json) | akatsuki-ai #69 OQ-1? | (A) Stage it — *see #70* | picked (A): \`Stage it\` | ruled | ${settles} |`;
+    put(root, 'docs/ROSTER.md', `# Roster\n\n| HR id | Q | O | P | Status | S |\n|---|---|---|---|---|---|\n${row('Carried by zheref/akatsuki-ai#70')}\n`);
+    expectClean(root, 'PL-05 a rendered record row: its question, options and answer are the record\'s text');
+    put(root, 'docs/ROSTER.md', `# Roster\n\n| HR id | Q | O | P | Status | S |\n|---|---|---|---|---|---|\n${row('Carried by #71')}\n`);
+    expectFinding(root, 'PL-05', /#71/, 'PL-05 a rendered record row still lints what it settles');
+  }
   planted('PL-06', '# P\n\nThe exit was verified live against the binary.\n', /verified live/, 'PL-06 an undated verified-live claim');
   {
     const root = base();

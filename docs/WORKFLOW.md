@@ -13,8 +13,8 @@ disagree, **the file wins and this document is the bug** — the same rule
 `skill.hardLimit` **>** `roster.ruling` **>** `nen/decisions.json` **>** `docs/WORKFLOW.md` **>**
 `docs/PROCESS.md` **>** `akatsuki.CON` **>** `handbooks`. The key's `$precedence` comment names each
 entry. The order ranks canon texts only: a configuration file's value still beats any prose copy of it,
-the rule above. A text outside the list yields to every listed entry and the conflict is filed (this
-run's reading, owed a ruling: [`ROSTER.md`](ROSTER.md) OPEN-6). This is the order's one restatement;
+the rule above. A text outside the list yields to every listed entry and the conflict is filed
+([HR-339](ROSTER.md#hr-339)). This is the order's one restatement;
 [`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. Nothing checks the
 key or this copy yet: that is owed to [zheref/nen#474](https://github.com/zheref/nen/issues/474).
 
@@ -800,7 +800,8 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
 
 **Two rules ride on this matrix, and neither is optional.**
 
-- **A subagent is never given the frontier tier** (`fable`, `astra`). The frontier tier is where the
+- **A subagent is never given the frontier tier** (`fable`, `astra`), save one exception: `great-hiker`'s
+  prose subsession ([HR-336](ROSTER.md#hr-336)). The frontier tier is where the
   maintainer's own conversation lives, and its cost lands on the maintainer's session rather than on the
   delegate's. **A subagent's tier is its scope's or role's, never its caller's** (ruling of 2026-10-13,
   zheref/hatsu#222, stated here once): `hanten` raises each reviewer at its scope's declared tier
@@ -851,7 +852,7 @@ tier rather than to a product.
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
-**The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
+**The frontier tier never runs a subagent, on any surface**, save `great-hiker`'s prose subsession ([HR-336](ROSTER.md#hr-336)). Not `fable`, not `astra`, not `grok`, not `ultra`. The
 frontier tier is where the maintainer's own conversation lives, and the cost lands on the maintainer's
 session rather than on the delegate's; below it, the first rule above holds (a subagent's tier is its
 scope's or role's, never its caller's).

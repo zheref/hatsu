@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-13",
+  "effortId": "HA-IS-#450",
+  "n": 11,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Akatsuki CON-17(b): the PR verify title depends on the repository kind. Reading: a repository whose kind is not declared reads as unknown and the check reports that instead of guessing. Confirm?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Unknown, reported (Recommended)",
+      "consequence": "Confirm: an undeclared kind is reported as unknown; the check neither passes nor guesses"
+    },
+    {
+      "key": "B",
+      "label": "Default to process",
+      "consequence": "Amend: an undeclared kind defaults to process and its verify title"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:56.232Z"
+}
