@@ -93,7 +93,7 @@ SKILL.md, as Desktop keeps it at ~/.claude/scheduled-tasks/hatsu-family-recaptur
 === morning-desk ===
 Name:            hatsu-morning-desk
 Description:     Weekday morning register: the Rikugan register page over one repository, every verdict quoted, the last idle run first.
-Trigger:         Weekdays -- Monday to Friday at 07:33 local; as Custom (Edit form): 33 7 * * 1-5
+Trigger:         Weekdays -- Weekdays at 07:33 local (Mon–Fri); as Custom (Edit form): 33 7 * * 1-5
 Local folder:    <hatsu>
 Worktree:        on (select Worktree in the Edit form after Create)
 Permission mode: Ask permissions (the default); never a bypass mode

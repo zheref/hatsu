@@ -33,8 +33,9 @@ The SDD plan's steady-state row names four recurring duties: a quarterly canon d
 |---|---|---|---|
 | `drift-pass` | Desktop, `Custom` `7 9 1 1,4,7,10 *` | 09:07 local on the first day of January, April, July and October | Quarterly canon drift pass: great-hiker evolve on every surface, dry first, one issue per drifted surface, nothing filed twice on the same day. |
 | `recapture` | Desktop, `Weekly` `7 8 * * 1` | Mondays at 08:07 local | Weekly dry recapture of one product family's living spec, reading every member's tip; the real recapture stays the maintainer's typed call. |
-| `morning-desk` | Desktop, `Weekdays` `33 7 * * 1-5` | Monday to Friday at 07:33 local | Weekday morning register: the Rikugan register page over one repository, every verdict quoted, the last idle run first. |
+| `morning-desk` | Desktop, `Weekdays` `33 7 * * 1-5` | Weekdays at 07:33 local (Mon–Fri) | Weekday morning register: the Rikugan register page over one repository, every verdict quoted, the last idle run first. |
 | `ratchet-shrink` | CI, job `canon-lint` | every pull request | The prose ratchet: every pull request's canon-lint counts the baseline rows it removed. |
+
 <!-- schedule-table:end -->
 
 ### Row 1 — the quarterly drift pass, dry first

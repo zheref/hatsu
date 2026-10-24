@@ -120,7 +120,7 @@
       "trigger": {
         "form": "Weekdays",
         "cron": "33 7 * * 1-5",
-        "reads": "Monday to Friday at 07:33 local"
+        "reads": "Weekdays at 07:33 local (Mon–Fri)"
       },
       "folder": "<hatsu>",
       "worktree": true,
