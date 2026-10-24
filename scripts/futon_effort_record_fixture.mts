@@ -208,7 +208,7 @@ else process.exit(2);
   expectStatus(stamped, 0, 'a start with nen\'s own startedAt');
   const stampedId = /run ([0-9a-f]{32}) recorded/.exec(String(stamped.stdout))?.[1] ?? '';
   assert.equal(record(stampedId).startedAt, '2026-02-03T04:05:06.000Z', 'the record copies nen\'s startedAt: one owner');
-  // zheref/hatsu#425 (R-2026-10-23-20): ready+prompted is the one value; merged and stacked-open are refused.
+  // zheref/hatsu#425 (HR-353, record R-2026-10-23-20): ready+prompted is the one value; merged and stacked-open are refused.
   for (const value of ['merged', 'stacked-open']) {
     commitWorkflow({ monitor: { localSlotFrees: value } }, `slot ${value}`);
     expectStatus(idleStart(), 1, `monitor.localSlotFrees ${value} refused: the ruled value is ready+prompted`);

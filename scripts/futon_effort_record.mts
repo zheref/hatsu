@@ -234,14 +234,14 @@ function idleProfile(root: string): Idle {
   });
   // The slot rule binds every futon run, so the key lives in monitor, the block nen loop slots reads; nen reads an
   // idle.localSlotFrees first where a consumer declares one, so a declared value there is held to the same rule.
-  // ready+prompted is the maintainer's pick on zheref/hatsu#425 (R-2026-10-23-20), amending HR-257's merged.
+  // ready+prompted is the maintainer's pick on zheref/hatsu#425 (HR-353, record R-2026-10-23-20), superseding HR-257's merged in part.
   const monitor = source.declared && typeof source.declared === 'object' ? (source.declared as { monitor?: { localSlotFrees?: unknown } }).monitor : undefined;
   const idleSlot = (declared as { localSlotFrees?: unknown }).localSlotFrees;
   if (idleSlot !== undefined && idleSlot !== 'ready+prompted')
-    fail('idle.localSlotFrees must be ready+prompted where declared (R-2026-10-23-20, zheref/hatsu#425)');
+    fail('idle.localSlotFrees must be ready+prompted where declared (HR-353, record R-2026-10-23-20, zheref/hatsu#425)');
   const localSlotFrees = monitor?.localSlotFrees ?? catalogue.values.find((row) => row.id === 'workflow.monitor.localSlotFrees')?.default;
   if (localSlotFrees !== 'ready+prompted')
-    fail('monitor.localSlotFrees must be ready+prompted (R-2026-10-23-20, zheref/hatsu#425)');
+    fail('monitor.localSlotFrees must be ready+prompted (HR-353, record R-2026-10-23-20, zheref/hatsu#425)');
   const terminal = pick('terminal');
   if (terminal !== 'ready-at-prompt-or-integration' && terminal !== 'ready-at-prompt')
     fail('idle.terminal must be ready-at-prompt-or-integration or ready-at-prompt');

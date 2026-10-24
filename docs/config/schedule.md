@@ -55,7 +55,7 @@ This row is not a task: it already runs on every pull request in `canon-lint`, t
 
 ## Sources
 
-- zheref/hatsu#448 (the rows, AC-1 to AC-4, SC-1, SC-2, AS-1, AS-2, OQ-1); epic zheref/hatsu#454; the ruling record R-2026-10-23-21 under effort HA-IS-#450
+- zheref/hatsu#448 (the rows, AC-1 to AC-4, SC-1, SC-2, AS-1, AS-2, OQ-1); epic zheref/hatsu#454; ruling HR-354 (record R-2026-10-23-21) under effort HA-IS-#450
 - [Schedule recurring tasks in Claude Code Desktop](https://code.claude.com/docs/en/desktop-scheduled-tasks) and [Run prompts on a schedule](https://code.claude.com/docs/en/scheduled-tasks), both fetched 2026-10-23
 - [`ROSTER.md`](../ROSTER.md) [HR-5](../ROSTER.md#hr-5) (the floor: a scheduler re-invokes a build, never a release), HR-13 (the ratchet)
 - [`../../claude/skills/great-hiker/SKILL.md`](../../claude/skills/great-hiker/SKILL.md) § 7, [`dowsing-chain/SKILL.md`](../../claude/skills/dowsing-chain/SKILL.md) §§ 10–11, [`rikugan/SKILL.md`](../../claude/skills/rikugan/SKILL.md); [`prose.lint.json.md`](prose.lint.json.md)

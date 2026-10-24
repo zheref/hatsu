@@ -63,7 +63,7 @@ reads **truncated**. Then:
   the scope open.
 - **Shape** (HR-4): `build` § 2's check per issue. **Nothing blocks the batch** (HR-335):
   an open `OQ-{n}` row parks the issue `needs-clarification`, unread questions (exit `1`)
-  `g5-shape-unread`, and the queue continues; exit `2` stops it; a miss never skips (WORKFLOW § *Idle batches* rule 9).
+  `g5-shape-unread`, and the queue continues; exit `2` stops it (HR-364, a reading); a miss never skips (WORKFLOW § *Idle batches* rule 9).
 - **Order within the scope** with `nen backlog order` (§ 3).
 
 **State the queue before advancing anything** — count, issues, exclusions and why.
