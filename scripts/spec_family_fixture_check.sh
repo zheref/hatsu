@@ -3,7 +3,8 @@
 #
 # scripts/fixtures/spec-family/ is the offline input docs/config/spec-repo.md § Fixtures names for
 # nen schema check, nen repo classify / resolve, config_values.sh diagnose --domain port and nen spec
-# check, plus nen run record where the nen on PATH carries it. Nothing ran them, so a fixture could
+# check, plus nen spec coverage's delivery form and nen run record where the nen on PATH carries them
+# (on a nen without the delivery form, the lane proves shibari's reading of that state is the stop). Nothing ran them, so a fixture could
 # drift from what those reads accept and nobody would notice. This lane runs every read over a copy
 # (the spec repository's copy made its own repository whose origin is fixture-owner/fixture-spec, as
 # the Fixtures section says the readings need), asserts each verdict, then proves each check RED on a
@@ -68,6 +69,17 @@ read_record() {
   grep -q '^would-write: hatsu.spec.run/v0.1 dowsing-chain-fixture-family-capture-20261022 -- ' "$work/out" &&
     [ ! -e "$work/state/hatsu/specs/dowsing-chain-fixture-family-capture-20261022.json" ]
 }
+# shibari § 4's reading of nen spec coverage's delivery form (docs/config/spec-repo.md, The PR Spec
+# section), printed as one word: accounted (opens) · spec-coverage (row spec-coverage, G5) · absent (the
+# verb is absent at this pin: a wiring stop, G5) · wiring (exit 2 without a document on a nen that has it).
+coverage_reading() {
+  "$nen" spec coverage --issue-body "$1" --pr-body "$2" --json >"$work/out" 2>&1
+  local code=$?
+  if grep -q '"contract": "nen.spec.coverage/v0.1"' "$work/out"; then
+    if [ "$code" -eq 0 ] && grep -q '"verdict": "accounted"' "$work/out"; then echo accounted; else echo spec-coverage; fi
+  elif [ "$code" -eq 2 ] && ! "$nen" spec coverage --help 2>&1 | grep -q -- '--issue-body'; then echo absent
+  else echo wiring; fi
+}
 show() { sed 's/^/      /' "$work/out" >&2; }
 
 copy "$work/green" || { echo "spec-family-guard: could not make the spec repository copy" >&2; exit 2; }
@@ -80,6 +92,12 @@ if read_resolve "$work/green"; then pass "nen repo resolve FI names fixture-owne
 if read_port "$work/green"; then pass "config_values.sh diagnose --domain port reads every value set"; else fail "config_values.sh diagnose --domain port"; show; fi
 if read_families "$work/green" "$fixtures/member"; then pass "the member's families[] equals the spec repository's"; else fail "families[] differ between the member and the spec repository"; show; fi
 if read_check "$fixtures"; then pass "nen spec check counts every citation and marker form"; else fail "nen spec check"; show; fi
+reading="$(coverage_reading "$fixtures/delivery/issue.md" "$fixtures/delivery/pr-accounted.md")"
+case "$reading" in
+  accounted) pass "nen spec coverage reads the delivery fixture accounted: shibari opens" ;;
+  absent) pass "nen spec coverage is absent at nen $("$nen" --version 2>/dev/null): shibari stops (wiring stop, G5), never opens" ;;
+  *) fail "nen spec coverage's delivery fixture read $reading"; show ;;
+esac
 if "$nen" run record --help >/dev/null 2>&1; then
   if read_record "$fixtures/run-record.json"; then pass "nen run record write --dry-run validates run-record.json and writes nothing"; else fail "nen run record write --dry-run"; show; fi
 else
@@ -87,47 +105,53 @@ else
 fi
 
 # Red: each check must fail on a drifted copy.
-red() { # <label> <command...>: the command must FAIL
-  local label="$1"; shift
+red() { # <setup exit> <label> <command...>: the setup must have succeeded and the command must FAIL
+  local setup="$1" label="$2"; shift 2
+  if [ "$setup" -ne 0 ]; then fail "setup failed, red path not run: $label"; return; fi
   if "$@"; then fail "red path not caught: $label"; else pass "red path caught: $label"; fi
 }
 copy "$work/red-schema" && printf '{ "families": [' >"$work/red-schema/nen/repos.json"
-red "an unparseable nen/repos.json fails nen schema check" read_schema "$work/red-schema"
+red $? "an unparseable nen/repos.json fails nen schema check" read_schema "$work/red-schema"
 copy "$work/red-classify" && node -e '
   const fs = require("fs"); const p = process.argv[1]; const d = JSON.parse(fs.readFileSync(p, "utf8"));
   delete d.families[0].spec; fs.writeFileSync(p, JSON.stringify(d, null, 2));
 ' "$work/red-classify/nen/repos.json"
-red "a family with no spec repository no longer reads role spec" read_classify "$work/red-classify"
+red $? "a family with no spec repository no longer reads role spec" read_classify "$work/red-classify"
 copy "$work/red-resolve" && node -e '
   const fs = require("fs"); const p = process.argv[1]; const d = JSON.parse(fs.readFileSync(p, "utf8"));
   delete d.product_codes.FI; d.families[0].members = d.families[0].members.filter((m) => m.code !== "FI");
   fs.writeFileSync(p, JSON.stringify(d, null, 2));
 ' "$work/red-resolve/nen/repos.json"
-red "an unregistered member code does not resolve" read_resolve "$work/red-resolve"
+red $? "an unregistered member code does not resolve" read_resolve "$work/red-resolve"
+# diagnose holds presence, not shape: an open-kind value such as port.specKit.layout is not validated
+# there (a `..` layout is refused by its readers, nen spec number among them), so the red path is an
+# unset value.
 copy "$work/red-port" && node -e '
   const fs = require("fs"); const p = process.argv[1]; const d = JSON.parse(fs.readFileSync(p, "utf8"));
   delete d.port.specKit.pin; fs.writeFileSync(p, JSON.stringify(d, null, 2));
 ' "$work/red-port/nen/workflow.json"
-# diagnose holds presence, not shape: an open-kind value such as port.specKit.layout is not validated
-# there (a `..` layout is refused by its readers, nen spec number among them), so the red path is an
-# unset value.
-red "an unset port.specKit.pin reads outstanding in diagnose --domain port" read_port "$work/red-port"
+red $? "an unset port.specKit.pin reads outstanding in diagnose --domain port" read_port "$work/red-port"
 mkdir -p "$work/red-member/nen" && node -e '
   const fs = require("fs"); const [from, to] = process.argv.slice(1); const d = JSON.parse(fs.readFileSync(from, "utf8"));
   d.families[0].members[0].platform = "watch"; fs.writeFileSync(to, JSON.stringify(d, null, 2));
 ' "$fixtures/member/nen/repos.json" "$work/red-member/nen/repos.json"
-red "a member copy whose families[] differs is caught" read_families "$work/green" "$work/red-member"
+red $? "a member copy whose families[] differs is caught" read_families "$work/green" "$work/red-member"
 mkdir -p "$work/red-check/specs" && cp -R "$fixtures/specs/." "$work/red-check/specs/" && node -e '
   const fs = require("fs"); const p = process.argv[1];
   fs.writeFileSync(p, fs.readFileSync(p, "utf8").replace(/\[NEEDS RULING\]/, ""));
 ' "$work/red-check/specs/001-fixture-capability/spec.md"
-red "a marker dropped from the spec folder changes nen spec check's counts" read_check "$work/red-check"
+red $? "a marker dropped from the spec folder changes nen spec check's counts" read_check "$work/red-check"
 if "$nen" run record --help >/dev/null 2>&1; then
   node -e '
     const fs = require("fs"); const [from, to] = process.argv.slice(1); const d = JSON.parse(fs.readFileSync(from, "utf8"));
     d.next = "finished"; fs.writeFileSync(to, JSON.stringify(d, null, 2));
   ' "$fixtures/run-record.json" "$work/red-record.json"
-  red "a record whose next is outside the closed set is refused" read_record "$work/red-record.json"
+  red $? "a record whose next is outside the closed set is refused" read_record "$work/red-record.json"
+fi
+if [ "$reading" = accounted ]; then
+  out_reading="$(coverage_reading "$fixtures/delivery/issue.md" "$fixtures/delivery/pr-outside.md")"
+  if [ "$out_reading" = spec-coverage ]; then pass "red path caught: an id the issue does not carry is row spec-coverage, not wiring"
+  else fail "red path not caught: the outside id read $out_reading"; show; fi
 fi
 
 if [ "$fails" -ne 0 ]; then

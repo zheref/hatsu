@@ -14,8 +14,8 @@ description: Render the FINAL STATE of a just-completed workflow — or any name
 
 [`spiritual-message`](../spiritual-message/SKILL.md) is the **turn** and the **landing** — what one
 request did; **this skill is the state a workflow leaves when it completes** — one effort or one
-scope, every object it touched, each with its verdict. The name returned as a skill at `v0.73.0` for
-the Rikugan page (`templates/rikugan.html`, the `final` and `register` variants), distinct from its
+scope, every object it touched, each with its verdict. The name returned at `v0.73.0` for
+the Rikugan page (`templates/rikugan.html`, both variants), distinct from its
 pre-`v0.42.0` meaning ([`ROSTER.md`](../../../../docs/ROSTER.md) § *Rulings of 2026-09-30 — rikugan*).
 
 ## 0. Standalone entry
@@ -40,8 +40,9 @@ successor.
 nen parse rikugan --grammar "for [<scope>] as [<variant:final|register>]" --line "<line>"
 ```
 
-Verified at nen `0.18.1` (2026-09-30): `for HA#171,HA#172 as final` → `scope: HA#171,HA#172 ·
-variant: final`; an empty line → both `(clause absent)`; `for HA#171 as bogus` → exit `2`, *`<variant> is one of final |
+Verified at nen `0.18.1`: `for HA#171,HA#172 as final` → `scope: HA#171,HA#172 ·
+variant: final`; an empty line → both `(clause absent)`; `for zheref/hatsu as register` → the repo scope;
+`for HA#171 as bogus` → exit `2`, *`<variant> is one of final |
 register`*; a bare `HA#171` → exit `2`, *the line must open with 'for' to supply <scope>*. Exit `2`
 **asks, never ends**: the corrected line goes to the picker and the answer is re-parsed. A missing
 argument or configuration item is asked for and set up inline (`missing-argument`,

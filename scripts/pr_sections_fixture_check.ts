@@ -181,9 +181,6 @@ test("HR-11: an empty verify heading fails through its derived content requireme
   assert.throws((): unknown => check(cat, valid, [...report.requirements, { name: "bad", pattern: "^x", content: "yes" }], 7), /content must be true/);
 });
 
-// nen's spec-rows requirement, quoted whole from zheref/nen src/spec/coverage.ts at b313c909 (#517's stack
-// top) and held there by src/spec/domain.test.ts: the catalogue carries it verbatim, never a paraphrase.
-const NEN_SPEC_ROWS = String.raw`^ {0,3}##[ \t]+(?:[^A-Za-z0-9#\r\n]+[ \t]*)?Spec[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*(?:[-*+][ \t]+)?F\d{3}-SC-\d{3}[ \t]+[—–-]`;
 
 test("HA#405: the spec run fact admits the Spec footer first, carrying nen's spec-rows whole", () => {
   assert.ok(!resolution("product", ["implementation"], []).footer.includes("spec"));
@@ -191,7 +188,11 @@ test("HA#405: the spec run fact admits the Spec footer first, carrying nen's spe
   assert.deepEqual(report.footer, ["spec", "checklist", "issues", "attribution"]);
   assert.ok(!report.ids.includes("spec"), "the Spec block is a footer, outside the seven-reader cap");
   const at = report.requirements.findIndex((row): boolean => row.name === "spec");
-  assert.deepEqual(report.requirements[at + 1], { name: "spec-rows", pattern: NEN_SPEC_ROWS, content: true, heading: "spec" });
+  // The catalogue's copy of nen's spec-rows is the one copy, frozen to the nen commit it names (nen exposes
+  // the pattern through no verb); the resolver must carry it unchanged.
+  const specRow = cat.footer.find((row): boolean => row.id === "spec") as SectionRow & { rows: { name: string; pattern: string; $frozenAt?: string } };
+  assert.match(specRow.rows.$frozenAt ?? "", /^zheref\/nen@[0-9a-f]{8,40} src\/spec\/coverage\.ts /);
+  assert.deepEqual(report.requirements[at + 1], { name: "spec-rows", pattern: specRow.rows.pattern, content: true, heading: "spec" });
   const filled = body(report, "product").replace("## 📐 Spec\n\nFilled.", "## 📐 Spec\n\n- F002-SC-001 — satisfied — test ListTest.sorted_F002_SC_001\n- F002-SC-002 — deferred — the threshold is the maintainer's · HA#405");
   assert.deepEqual(check(cat, filled, report.requirements, 7)[0], []);
   for (const empty of ["## 📐 Spec\n", "## 📐 Spec\n\nSee the issue.", "## 📐 Spec\n\n### F002-SC-001 — satisfied — test T"]) {

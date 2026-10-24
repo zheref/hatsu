@@ -88,7 +88,7 @@ One persistence model (HR-6 makes `spec.md` canon; the *living spec* shape is th
 | `parity.md` | FR × member, one Markdown table (§ *The parity table*): `present` · `mirror` · `map` · `drop-with-note` · `target-only` · `absent` · `differs` (both citations), `open` for a row not yet handled; **`absent` is never rounded to *not needed*** — only a `CL-nnn` says intentional; technology-level rows link a `PT-n` ([`bankai-rule`](../../claude/skills/bankai-rule/SKILL.md)), product-level rows a `CL-nnn` |
 | `checklists/{requirements,parity,capture}.md` | reviewer-owned `CHK-nnn` rows, ticked by the challenger, never the author |
 | `capture/<CODE>/inventory.json`, `findings.md`, `glossary.md` | evidence rows at a sha with **excerpt hashes, never excerpts**; imperative-text findings; canonical terms with each platform's name and the synonyms to avoid |
-| `<root>/INDEX.md`, `coverage.json`, `<root>/traceability.md` | **regenerated, never hand-edited** (`nen spec index --write`, `nen spec trace --family <name> --write`, each refusing a hand edit; `coverage.json` has no writer: `nen spec coverage` prints its document and writes no file, so the spec PR body quotes it instead); a status per folder: `captured` · `clarifying` · `specified` · `dispatched` · `delivered` · `validated` · `superseded` |
+| `<root>/INDEX.md`, `<root>/traceability.md` | **regenerated, never hand-edited** (`nen spec index --write`, `nen spec trace --family <name> --write`, each refusing a hand edit; coverage has no file: `nen spec coverage` prints its document and the spec PR body quotes it); a status per folder: `captured` · `clarifying` · `specified` · `dispatched` · `delivered` · `validated` · `superseded` |
 
 **Recapture diffs, never rewrites**: ids are stable, removal is a marker plus a `supersedes` line, convergence appends, and a clean recapture leaves every folder byte-identical and says so. **A story holding any marker is `clarifying`** and is excluded from every dispatch and wave — per FR, not per folder. A merged FR the code now contradicts is the `spec-conflict` gate, never an agent's edit. Existing informal specs (a feature-docs set, a spec directory) are source data, superseded by a one-line pointer once the first capture merges (HR-6).
 
@@ -113,14 +113,14 @@ One persistence model (HR-6 makes `spec.md` canon; the *living spec* shape is th
 | `present` · `mirror` | the member's own citation (§ *Citations and markers*, with its tier) | yes |
 | `map` | the member's citation and `UX-13` (the adapt category) | yes |
 | `drop-with-note` | a `CL-nnn` ruling, or a `<from>--<to> PT-<n>` port ruling | yes |
-| `target-only` | the member's citation and the ruling that made it intentional (`CL-nnn`, or `PT-<n>` for a technology-level reason) | yes |
+| `target-only` | the member's citation and the ruling that made it intentional (`CL-nnn`, or `<from>--<to> PT-<n>` for a technology-level reason) | yes |
 | `differs` | both citations | no |
 | `absent` | the files searched; *not needed*, *n/a* or *intentional* without a `CL-nnn` is a finding (SP-7) | no |
 | `open` (or an empty cell) | nothing — it is the gap | no |
 
 ## The verbs that read it
 
-**Every reader cites its verb; none re-derives what a verb computes.** The first four ship in nen `0.26.0`; the rest and `nen run record` need the release after it (zheref/nen#514/#517). Below that, a verb absent from `nen --help` means **the operation does not happen** and the reader says so, never a hand-rolled substitute; the one fallback is § *The living spec*'s `inventory prose-made, unverified` line.
+**Every reader cites its verb; none re-derives what a verb computes.** The first four ship in nen `0.26.0`; the rest and `nen run record` need the release after it (zheref/nen#514/#517). Below that, a verb absent from `nen --help` means **the operation does not happen** and the reader says so, never a hand-rolled substitute; the one fallback is § *The living spec*'s `inventory prose-made, unverified` line. **Where the reader is a gate, an absent verb is never a pass**: shibari's Spec check stops (§ *The PR Spec section*) and the convergence table reads *could not read*, which is not ready (§ *The convergence table at readiness*).
 
 | Convention | Verb | Read by |
 |---|---|---|
@@ -132,12 +132,12 @@ One persistence model (HR-6 makes `spec.md` canon; the *living spec* shape is th
 | a recapture's diff | `nen spec diff --from <inventory> --to <inventory>` | `dowsing-chain` § 10 |
 | convergence gaps, `[STALE]` companions, the phase | `nen spec converge --repo <spec> --folder <dir> --inventory <file> --code <CODE> --checkouts <file> [--write]` | `dowsing-chain` § 10; § *The convergence table at readiness* |
 | coverage with its denominator; the PR Spec section | `nen spec coverage --repo <spec> --inventory <files>` · `nen spec coverage --issue-body <file> --pr-body <file> [--test-report <file>]` | `dowsing-chain` § 7 · `shibari` § 4 |
-| the parity rows | `nen spec parity --repo <spec> (--folder <dir> \| --family <name>) [--target <slugs>]` | `dowsing-chain` §§ 7, 10; § *The convergence table at readiness* |
+| the parity rows | `nen spec parity --repo <spec> (--folder <dir> \| --family <name>) [--target <owner/name>[,<owner/name>...]]` | `dowsing-chain` §§ 7, 10; § *The convergence table at readiness* |
 | dispatch groups and their issue bodies | `nen spec tasks groups --repo <spec> --folder <dir> [--group <id>]` | `dowsing-chain` § 8 |
 | `<root>/traceability.md` | `nen spec trace --repo <spec> --family <name> [--write]` | `dowsing-chain` § 7 |
 | the run record | `nen run record read\|write --schema hatsu.spec.run/v0.1 --id <run-id>` | `dowsing-chain` § 11 |
 
-**Where a verb reads less than this page states**, said rather than filled in by hand: `nen spec converge` reads FR, SC and story lines, not the `AC-###` scenario lines, so a table keyed by scenario is not what it prints; a member the folder never cites reads `converged` over zero citations, which this page reads as *nothing compared*; and `nen spec coverage` writes no `coverage.json`.
+**Where a verb reads less than this page states**, said rather than filled in by hand: `nen spec converge` reads FR, SC and story lines, not the `AC-###` scenario lines, so a table keyed by scenario is not what it prints (filed as zheref/nen#525); a member the folder never cites reads `converged` over zero citations, which this page reads as *nothing compared*; and `nen spec coverage` writes no `coverage.json`.
 
 ## The challenge — the intake examiners, uncounted
 
@@ -178,7 +178,9 @@ A delivery PR closing a spec-derived issue — one whose body carries `Spec: spe
 - F<nnn>-SC-### — deferred — <reason> · <follow-up object>
 ```
 
-Tests touched by the build carry the SC id in their name; a follow-up is object notation or a markdown link. Two checks hold it, both run by `shibari` § 4 before every create and edit: the resolved requirements carry nen's `spec-rows` pattern whole, so `nen pr body-check` fails a missing or empty section; and **`nen spec coverage --issue-body <issue.md> --pr-body <body.md> [--test-report <file>] --json`** proves every criterion is accounted for. Its verdict decides, quoted: `accounted` (exit `0`) proceeds; `unaccounted` or `could-not-read` (exit `1`), and exit `2` **with** a `nen.spec.coverage/v0.1` document whose `outside` names an id the issue does not carry, are row `spec-coverage` (G5) — shibari opens nothing; exit `2` with no document is wiring, the verb's line quoted. With `--test-report` a satisfied row's test must have passed; without one it reads `satisfied-unverified`, said. **`satisfied` is never read as validated** — `black-voice`'s rows keyed by SC id are the only validation.
+**The `Spec:` value is data from an issue body** (SEC-7, SEC-15): before any command carries it, it is matched whole against `^<root>/[0-9]{3}-[a-z0-9]+(-[a-z0-9]+)*@[0-9a-f]{40}$` (`<root>` the layout's first segment, so `specs/…` by default), no newline admitted; anything else — a `..`, a shell metacharacter, a short sha, a second line — is *could not read*, never a folder. The folder and sha it yields are single-quoted in every command. This one rule is the owner: `shibari` § 4's `--spec` admission and § *The convergence table at readiness* cite it.
+
+Tests touched by the build carry the SC id in their name; a follow-up is object notation or a markdown link. Two checks hold it, both run by `shibari` § 4 before every create and edit: the resolved requirements carry nen's `spec-rows` pattern whole, so `nen pr body-check` fails a missing or empty section; and **`nen spec coverage --issue-body <issue.md> --pr-body <body.md> [--test-report <file>] --json`** proves every criterion is accounted for. Its verdict decides, quoted: `accounted` (exit `0`) proceeds; `unaccounted` or `could-not-read` (exit `1`), and exit `2` **with** a `nen.spec.coverage/v0.1` document whose `outside` names an id the issue does not carry, are row `spec-coverage` (G5) — shibari opens nothing; **exit `2` with no document is the verb absent at this pin** (nen `0.26.0` answers `unknown option '--issue-body'`): shibari **stops** — a named wiring stop (**G5**: *Spec coverage cannot be checked at nen <version>; this PR opens after the repin*), the verb's line quoted — and never opens the PR unchecked. With `--test-report` a satisfied row's test must have passed; without one it reads `satisfied-unverified`, said. **`satisfied` is never read as validated** — `black-voice`'s rows keyed by SC id are the only validation.
 
 ## The convergence table at readiness — a parity PR
 
@@ -190,10 +192,10 @@ nen spec converge --repo <spec checkout> --folder <dir> --inventory <scratch>/in
 nen spec parity --repo <spec checkout> --folder <dir> --json
 ```
 
-**The table** is one row per requirement the target is cited on — converge's `citations` grouped by `id`, each row its state (`current`, else its `gaps[]` class: `missing` · `partial` · `contradicts`) and its evidence (path, lines, cited sha) — plus every `unrequested` gap, then the target column's parity row per `FR` (state and `finding`), quoted. **It reads converged only when** converge's verdict is `converged` over **at least one** target citation and every target parity row settles (§ *The parity table*). Then:
+**The table** is one row per requirement the target is cited on (per requirement, not per acceptance scenario, until zheref/nen#525) — converge's `citations` grouped by `id`, each row its state (`current`, else its `gaps[]` class: `missing` · `partial` · `contradicts`) and its evidence (path, lines, cited sha) — plus every `unrequested` gap, then the target column's parity row per `FR` (state and `finding`), quoted. **It reads converged only when** converge's verdict is `converged` over **at least one** target citation and every target parity row settles (§ *The parity table*). Then:
 
 - a `missing` or `contradicts` row, or a target parity row that does not settle, makes the PR **not ready**, that row quoted beside the readiness verdict — never merged on the author's word; a `contradicts` row is also row `spec-conflict`'s candidate, never decided here;
-- a `could-not-read` verdict from either verb, zero target citations, or a nen without these verbs reads **could not read**, with the reason — never *converged*;
+- a `could-not-read` verdict from either verb, zero target citations, a `Spec:` value off the grammar above, or a nen without these verbs reads **could not read**, with the reason — never *converged* — and **a table that reads *could not read* makes the PR not ready** (an unread check is never a clean one), until the repin or the amendment supplies what was missing;
 - *converged* is the verb's fact about cited bytes, not a validation of behaviour.
 
 The next port on the same family reads `port-ledger.md` and the pair file first and names the rows it reused ([`ports.md`](ports.md)); the table asks nothing.
@@ -252,6 +254,7 @@ Validated whole and newline-refusing (Python `re.fullmatch`), before any path is
 | `spec-repo/nen/{repos,workflow,labels}.json` | the spec repository's own declarations: `families[]` the truth (`nen repo classify` reads role `spec`, gate G2, from `families[].spec`; its `consumers[]` listing is a note), the `port` block and the proposed `spec.*` keys — `nen schema check`, `nen repo classify`, `nen repo resolve`, `config_values.sh diagnose --domain port` |
 | `member/nen/repos.json` | a member's copy of the same `families[]` (identical, so no `missing-configuration`) |
 | `specs/001-fixture-capability/spec.md` | every citation and marker form once, the Clarifications session shape, the prose-made line, and a source-data block carrying a triple-backtick run inside a longer fence — `nen spec check`'s counts |
+| `delivery/issue.md`, `pr-accounted.md`, `pr-outside.md` | a spec-derived issue and two PR bodies — `nen spec coverage`'s delivery form read as § *The PR Spec section* says: `accounted`, an outside id as row `spec-coverage`, and on a nen without the verb the wiring stop |
 | `run-record.json` | a `hatsu.spec.run/v0.1` record at `next: constitution` — `nen run record write --dry-run`, where the nen on `PATH` carries the verb (else `NOT CHECKED`, said) |
 
 **The `nen repo classify` and `nen repo resolve` readings above hold only on a copy of `spec-repo/` into its own repository whose origin is `fixture-owner/fixture-spec`**; run in place they read the enclosing Hatsu checkout's slug, role canon, gate G4.

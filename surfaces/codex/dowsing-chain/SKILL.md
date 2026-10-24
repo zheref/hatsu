@@ -39,7 +39,7 @@ merged): the checkouts file (ports.md); the spec repository and its `product_cod
 own `origin/<base>` — the truth, a member's differing copy refused (HR-16) — read `PRIVATE` by `gh repo view
 --json visibility`, a declared repository absent a **G5 hand-over** line, `gh repo create <owner>/<spec> --private`; no `nen/workflow.json` → [`tenkai`](../tenkai/SKILL.md),
 kind `process`, itself under `consumers[]` (G2); `nen schema check`; `scripts/config_values.sh diagnose
---domain port`; the `spec.*` keys from the file, nen-validated (*conventions*). Members are typed
+--domain port`; the `spec.*` keys from the file, nen-validated past `0.26.0` (*conventions*). Members are typed
 (`missing-maintainer-choice`); a `PUBLIC` member is dropped, said.
 
 ## 2. Inventory — build-system membership, rows only

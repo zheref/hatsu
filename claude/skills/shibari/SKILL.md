@@ -64,8 +64,8 @@ and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.
 That page owns each section's content (§ *Write for the decision*), the seven-reader cap and the
 prose budget. Screenshots stay in the
 [UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); replace all Evidence on rewrite.
-**A closing issue's `Spec:` line** adds `--spec`, the Spec block
-([`spec-repo.md`](../../../docs/config/spec-repo.md) § *The PR Spec section*).
+**A closing issue's `Spec:` line**, matched whole as
+[`spec-repo.md`](../../../docs/config/spec-repo.md) § *The PR Spec section* says, adds `--spec`.
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
 In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --json`
@@ -127,8 +127,8 @@ nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-ru
 - **Derive the gate** per [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Gate derivation*;
   report it as a forecast. Shibari neither labels a gate nor writes `readiness`;
   [`en`](../en/SKILL.md) quotes `nen pr ready` after this run.
-- **Spec coverage** (`--spec` only): anything but `accounted` is row `spec-coverage` (**G5**), read as
-  spec-repo.md § *The PR Spec section* says; nothing opens.
+- **Spec coverage** (`--spec` only): anything but `accounted` stops at **G5** (row `spec-coverage`, or
+  an absent verb's wiring stop; spec-repo.md § *The PR Spec section*).
 - **The body is written only after sections, Delivery, Nen body-check, evidence, criteria, Spec, Development and changelog checks pass, before every create and edit.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
   the number before any write**, refusing a 404/410. **A relative `--body-file` resolves against

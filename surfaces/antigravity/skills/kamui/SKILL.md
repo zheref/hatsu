@@ -97,14 +97,13 @@ recorded, **the caller's next step** (§ 5 here; hiraishin's § 5 there).
 `<owner/spec>` must match `^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$` and `<n>` be digits, else refused:
 
 ```bash
-nen watch until --command "gh pr view <n> --repo <owner/spec> --json state --jq .state" --true-pattern 'MERGED|CLOSED' --max-iterations <the spec repository's monitor.maxCycles, else 20> --repo <spec checkout>
+nen watch until --pr <n> --gh-repo <owner/spec> --until merged --max-iterations <the spec repository's monitor.maxCycles, else 20> --repo <spec checkout> --json
 gh pr view <n> --repo <owner/spec> --json state --jq .state
 ```
 
-The read-back is *conventions*' (`MERGED` → § 5; `CLOSED` → `next: declined`, **spec declined**, said; else
-`wait`). Exit `1` is read from stderr: the bound reached ends the session at the G2 stop (`next: wait`); an
-observation-error streak is a **G5** naming the observation; exit `2` is `missing-configuration`, its line
-quoted.
+Exit `0` is `MERGED` → § 5. Exit `1` reads `--json`'s `state`, confirmed by the read-back: `CLOSED` →
+`next: declined`, **spec declined**, said; `OPEN` at the bound ends the session at the G2 stop (`next:
+wait`); an observation error is a **G5** naming it; exit `2` is `missing-configuration`, its line quoted.
 
 ## 5. The siblings — row `port-siblings`, always asked
 
@@ -121,12 +120,11 @@ issue for the source **amended** through § 3(a), never filed twice), the plan s
 *conventions*' port-issue title.** The write:
 
 ```bash
-"$hatsu_root/scripts/gh_token_env.sh" nen issue file --target <owner/name> --repo <sibling checkout> --title '<title>' --body-file <abs body.md> --label <a,b,c> --assignee <maintainer> --private-names-ignore-file <file § 4's ignore file> --json
+"$hatsu_root/scripts/gh_token_env.sh" nen issue file --target <owner/name> --repo <sibling checkout> --title-file <abs title.txt> --body-file <abs body.md> --label <a,b,c> --assignee <maintainer> --private-names-ignore-file <file § 4's ignore file> --json
 gh issue view <N> --repo <owner/name> --json title,body,labels
 ```
 
-Each `'` in the title becomes `'\''`; a newline refuses.
-The second line is the **explicit read-back**. Each body is
+The title is written to its file with the surface's file tool, never shell source. The second line is the **explicit read-back**. Each body is
 *conventions*' port issue body, never a link alone; **the source issue stays its own**, never closed or superseded.
 
 ## 6. The record, and `resume`
