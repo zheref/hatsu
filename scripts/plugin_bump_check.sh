@@ -206,16 +206,19 @@ fi
 #                     — the GH_TOKEN wrapper and ten § 2c's login-shell probe
 #                       (zheref/hatsu#218), run by skill blocks from
 #                       `$hatsu_root/scripts/`.
-#   scripts/issue_body_check.mts
-#                     — the issue-shape guard (HR-4), run by build § 2, file § 4,
-#                       emperor-time § 6 and futon § 2 from `$hatsu_root/scripts/`;
-#                       a stale copy passes a body a fixed one refuses.
 #   scripts/pr_body_delivery_check.sh, scripts/pr_delivery.ts
 #                     — shibari § 3–4's Delivery block: the guard and the engine it
 #                       runs from beside itself, with templates/pr-delivery.md,
 #                       run from `$hatsu_root/scripts/` before every PR body write
 #                       and after every open and edit; a stale copy refuses every
 #                       consumer's body (it read the template from the target).
+#   scripts/idle_permissions_check.mts
+#                     — the idle batch's permission list (zheref/hatsu#453), run from
+#                       `$hatsu_root/scripts/` before an idle run's first claim with
+#                       contracts/idle-permissions.json beside it.
+#   scripts/ledger_findings_prepare.mts
+#                     — mukai step 8a's findings copy for the public ledger slice:
+#                       the security hold and the relativised paths (HA-PR-#463).
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -350,11 +353,12 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/pr_development_link_check.sh'
   'scripts/gh_token_env.sh'
   'scripts/nen_reach_probe.sh'
-  'scripts/issue_body_check.mts'
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
   'scripts/dependency_audit_resolve.mts'
   'scripts/shell_coverage.mts'
+  'scripts/idle_permissions_check.mts'
+  'scripts/ledger_findings_prepare.mts'
   '.mcp.json'
 )
 

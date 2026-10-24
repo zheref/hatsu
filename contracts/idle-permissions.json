@@ -1,0 +1,186 @@
+{
+  "contract": "hatsu.idle-permissions/v0.1",
+  "$comment": "The commands an idle batch (HR-5; futon or kazaana typed with --idle) runs unattended: EXEMPLARS, one per command shape and one per nen verb family the batch calls (a rule like Bash(nen run:*) allows one family and not the next, so every family is listed by name), never every argv, each with the skill that runs it (zheref/hatsu#453 AC-3). It grants NOTHING: contracts/permissions.json is the one source of the packs, and a permission setting is the maintainer's alone. scripts/idle_permissions_check.mts reads the session's own Claude Code settings and lists every exemplar no allow rule matches (and any a deny rule matches), so the maintainer sees before the first claim which steps would prompt — and under --idle a prompt nobody answers is a harness refusal, row harness-denied (WORKFLOW § Idle batches rule 2). An auto-mode classifier refusal is not predictable from the files and is not listed; it parks as g5-harness-denied when it happens. Placeholders in angle brackets stand for any value.",
+  "needs": [
+    {
+      "command": "nen run start --id <run> --target <owner/name> --repo <checkout>",
+      "by": "futon § 12 (run start|append|park|verify|budget)"
+    },
+    {
+      "command": "nen parse futon --line <line>",
+      "by": "futon § 1"
+    },
+    {
+      "command": "nen backlog fetch --repo-slug <owner/name>",
+      "by": "futon § 2"
+    },
+    {
+      "command": "nen issue questions <ref> --target <owner/name>",
+      "by": "build § 2 (issue questions|body-check)"
+    },
+    {
+      "command": "nen loop slots --from-run <run> --target <owner/name> --repo <checkout>",
+      "by": "futon § 6"
+    },
+    {
+      "command": "nen wc overlap --efforts <branches> --repo <checkout>",
+      "by": "futon § 6 (wc worktrees|publish|squash)"
+    },
+    {
+      "command": "nen shu warmup --repo <checkout> --branch <branch>",
+      "by": "breath (shu build|test|lint|coverage)"
+    },
+    {
+      "command": "nen phase begin --effort <branch> --phase <name>",
+      "by": "ren § 2a, build § 4 (phase begin|end|show)"
+    },
+    {
+      "command": "nen usage record --effort <branch> --surface <s>",
+      "by": "ren § 2a, spiritual-message § 4"
+    },
+    {
+      "command": "nen session record --effort <branch> --surface <s>",
+      "by": "ren § 2a"
+    },
+    {
+      "command": "nen stage triage --repo <checkout>",
+      "by": "kokusen"
+    },
+    {
+      "command": "nen commit format --repo <checkout>",
+      "by": "kokusen, aka"
+    },
+    {
+      "command": "nen review scopes --base <ref> --repo <checkout>",
+      "by": "hanten § 2a (review ledger)"
+    },
+    {
+      "command": "nen gate derive --policy-paths <p> --process-paths <p> --files-from <f>",
+      "by": "shibari § 4"
+    },
+    {
+      "command": "nen changelog fragment-required --repo <checkout>",
+      "by": "shibari § 4"
+    },
+    {
+      "command": "nen report data --repo <checkout> --base <ref> --effort <branch>",
+      "by": "spiritual-message § 4, shibari § 3"
+    },
+    {
+      "command": "nen report render --template <t> --data <d> --out <o>",
+      "by": "spiritual-message § 4"
+    },
+    {
+      "command": "nen pr open --target <owner/name> --base <base> --title-file <f> --body-file <f>",
+      "by": "shibari § 4"
+    },
+    {
+      "command": "nen pr ledger post --target <owner/name> --pr <n> --effort <branch>",
+      "by": "mukai § 2 step 8a"
+    },
+    {
+      "command": "nen pr ready <n> --gh-repo <owner/name>",
+      "by": "en § 4"
+    },
+    {
+      "command": "nen pr converge <n> --target <owner/name>",
+      "by": "en §§ 4–5, shibari § 4 (criterion coverage)"
+    },
+    {
+      "command": "nen pr request-reviews --target <owner/name> --pr <n>",
+      "by": "en, sharingan"
+    },
+    {
+      "command": "nen pr merge <n> --delivery --requirements-from <f> --repo <checkout> --require-head <sha> --run",
+      "by": "en § 5 (into a non-main base only)"
+    },
+    {
+      "command": "nen stop --who <persona> --gate <g> --mark --effort <branch>",
+      "by": "jutaisho § 3"
+    },
+    {
+      "command": "nen stop answer --record <effort> --row <row>",
+      "by": "WORKFLOW § 4 (every picker answer)"
+    },
+    {
+      "command": "nen label apply <ref> --label <label> --repo-slug <owner/name>",
+      "by": "futon § 4"
+    },
+    {
+      "command": "nen ref format --code <CODE> --kind PR --number <n>",
+      "by": "shibari § 4"
+    },
+    {
+      "command": "nen repo resolve --repo <checkout> --from <checkout>",
+      "by": "shibari § 4"
+    },
+    {
+      "command": "nen watch until --target <owner/name> --pr <n>",
+      "by": "en § 5 observe"
+    },
+    {
+      "command": "git fetch origin <branch.base>",
+      "by": "breath, ao, murasaki"
+    },
+    {
+      "command": "git -C <core> fetch origin",
+      "by": "futon § 4 (worktrees from core)"
+    },
+    {
+      "command": "git -C <core> worktree add --detach <path> <ref>",
+      "by": "futon § 4, WORKFLOW § Where worktrees live"
+    },
+    {
+      "command": "git switch -c <branch>",
+      "by": "breath (through nen shu warmup when declared)"
+    },
+    {
+      "command": "git add <path>",
+      "by": "kokusen"
+    },
+    {
+      "command": "git commit -F <file>",
+      "by": "kokusen, aka"
+    },
+    {
+      "command": "git reset --soft <merge-base>",
+      "by": "aka (squash the unpushed)"
+    },
+    {
+      "command": "git merge --no-ff <branch>",
+      "by": "futon § 5 (integration branch)"
+    },
+    {
+      "command": "git push -u origin <branch>",
+      "by": "aka"
+    },
+    {
+      "command": "git push origin <branch>",
+      "by": "murasaki"
+    },
+    {
+      "command": "gh pr view <n> --repo <owner/name> --json state",
+      "by": "en, futon"
+    },
+    {
+      "command": "gh issue view <n> --repo <owner/name>",
+      "by": "build § 2b"
+    },
+    {
+      "command": "node <hatsu>/scripts/futon_effort_record.mts start --run <run>",
+      "by": "futon § 12"
+    },
+    {
+      "command": "node <hatsu>/scripts/gh_api_read.mts actions-caches <owner/name>",
+      "by": "cleanup"
+    },
+    {
+      "command": "sh <hatsu>/scripts/prose_size_check.sh",
+      "by": "kokusen (on a Hatsu checkout)"
+    },
+    {
+      "command": "<hatsu>/scripts/bell_notify.sh --title <t> --message <m>",
+      "by": "jutaisho § 5 (called directly, not through bash)"
+    }
+  ]
+}

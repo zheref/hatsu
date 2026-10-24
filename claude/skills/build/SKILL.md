@@ -12,11 +12,11 @@ code; the mode is named at § 2, and said aloud when it switches mid-run.
 > `aka` → `mukai` → `en` → `rikugan` → the wrap-up) and deliver a PR that is `CON-32`-Ready at its human
 > gate — or a G5 stop saying exactly why it could not get there.**
 
-**Hatsu holds no CI plane to route work to** (no CI agent routing, stage labels, wave coordinators or wake
+**Hatsu holds no CI plane to route work to** (no CI routing, stage labels, waves or wake
 ladders): building an issue runs the local-plane pipeline — [`ten`](../ten/SKILL.md) warms up,
 [`classify`](../classify/SKILL.md) labels the two axes where unlabelled, [`direct`](../direct/SKILL.md) picks
 model, surface and effort against this session's, [`ren`](../ren/SKILL.md) authors and verifies,
-[`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures coverage and opens the PR (its pickers in jutaisho § 4's shape),
+[`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures coverage and opens the PR,
 [`en`](../en/SKILL.md) drives it to readiness, [`rikugan`](../rikugan/SKILL.md) renders the delivered state,
 and [`cleanup`](../cleanup/SKILL.md) § 2 is offered.
 
@@ -45,8 +45,7 @@ asked for and set up inline (`missing-argument`, `missing-configuration`).
 **If `#<N>` is a PR** (`node '<Hatsu root>/scripts/gh_api_read.mts' issue-pr <owner/repo> <N>`; substitute the absolute root),
 run [`hatsu:en on <CODE>#<N>`](../en/SKILL.md); do not re-author.
 
-**Say the run started**: it holds a bounded `CON-25` delegation (§ 5), and an unannounced delegation
-is one nobody can end.
+**Say the run started**: it holds a bounded `CON-25` delegation (§ 5).
 
 ## 2. Inspect the issue and confirm the mode
 
@@ -60,9 +59,9 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
   `closedByPullRequestsReferences`).
 - **If an epic awaiting approval**: stop at **G1** (row `mode-label`) — the mode label is the
   maintainer's decision (`CON-4`), never an agent's.
-- **Read requirements**: title, body, acceptance criteria, constraints, then `node
-  "$hatsu_root/scripts/issue_body_check.mts" --ref <CODE>#<N> --json`: an open `OQ-{n}`
-  row is a **G1** `DECIDE`, `next: clarify`, never answered here (HR-4); any other miss is listed, never a stop; exit `2`, `3` or `5` a G5.
+- **Read requirements**: title, body, acceptance criteria, constraints, then the shape
+  ([`plugin-registries`](../../../docs/config/plugin-registries.md#contractsissue-sectionsjson), *The check*; HR-4): an open `OQ-{n}`
+  row is a **G1** `DECIDE`, `next: clarify`, never answered here (a batch skips it, futon § 2); a miss never stops; exit `2` or an unread issue a G5.
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
@@ -115,7 +114,7 @@ Build runs § 2b's intake, then, for `job/parity`, **the spec read** in the work
 **Each linked skill owns its stops.** Build writes:
 `nen phase begin --effort <branch> --phase <author|publish|pr|readiness>
 --surface <s> [--model <reported-model>] --dial <level>`, with WORKFLOW's served-model `--note`
-only when attested; `nen phase end` closes each phase;
+only when attested; `nen phase end` closes each phase; a resume reads first (ren § 2a);
 the first phase records `nen session record` when the harness exposes an identity. `nen usage record`
 at every § 7 report carries `--dial <level>` — **owed on every target, a stage taxonomy or not**. On a target whose `nen/labels.json`
 declares no delivery stages, WORKFLOW § *A target repository with no delivery-stage taxonomy* holds as

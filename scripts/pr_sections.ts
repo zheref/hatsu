@@ -24,7 +24,7 @@ export interface SectionRow {
   readonly level: 1 | 2;
   readonly template: string;
   readonly $comment: string;
-  readonly when?: "evidence" | "economics" | "policy-hit";
+  readonly when?: "evidence" | "economics" | "policy-hit" | "idle";
   readonly reserved?: boolean;
   /** HR-11: the heading must carry content; derives a second, whole-body requirement `<id>-content`. */
   readonly content?: boolean;
@@ -54,7 +54,7 @@ export interface Resolution {
 type JsonObject = Record<string, unknown>;
 const ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const KINDS: readonly RepositoryKind[] = ["product", "library", "process", "unknown"];
-const FACTS = new Set(["evidence", "economics", "policy-hit"]);
+const FACTS = new Set(["evidence", "economics", "policy-hit", "idle"]);
 const CONTROL = /[\u0000-\u001F\u007F-\u009F]/g;
 const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g;
 
@@ -530,10 +530,10 @@ function writeJson(path: string, value: unknown): void {
   }
 }
 function usage(): never {
-  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] --out <path> | check --body <path> --requirements <path> --max <n>");
+  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
 }
 function argumentsFor(action: string, argv: readonly string[]): Record<string, string | boolean> {
-  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit"] : []);
+  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "idle"] : []);
   const valued = new Set(action === "resolve" ? ["repo", "kind", "jobs", "out"] : action === "check" ? ["body", "requirements", "max"] : []);
   const result: Record<string, string | boolean> = {};
   for (let at = 0; at < argv.length; at++) {
@@ -567,7 +567,7 @@ function main(argv = process.argv.slice(2)): number {
       const kind = required(args, "kind") as RepositoryKind;
       const jobsValue = typeof args.jobs === "string" ? args.jobs : "";
       const jobs = jobsValue === "" ? [] : jobsValue.split(",");
-      const facts = new Set(["evidence", "economics", "policy-hit"].filter((fact): boolean => args[fact] === true));
+      const facts = new Set(["evidence", "economics", "policy-hit", "idle"].filter((fact): boolean => args[fact] === true));
       if (kind === "process" && !facts.has("policy-hit") && policyHit(repo)) facts.add("policy-hit");
       const report = resolve(cat, repo, kind, jobs, facts);
       writeJson(required(args, "out"), report.requirements);

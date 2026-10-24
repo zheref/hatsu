@@ -207,7 +207,7 @@ answer is the maintainer's own word on a question naming the tag and the destina
 | the **destination**, by the name the declaration gives it — **or the single declared one** (§ 1, ruling of 2026-09-28) | a go for one store is not a go for another; several declared and none named is the one ask |
 | the **version or tag** being published — **or the latest cut tag with no published release** (§ 1) | a go is for a build, not for a repository; the resolved tag is printed and quoted beside the go |
 
-Nothing in nen records this (§ Residue). `nen stop --notified` writes `.nen/last-stop.json` for the
+Nothing in nen records this (§ Residue). `nen stop --notified --mark` writes the stop marker for the
 bell and is not a record of an authorization. The quote is the record.
 
 ### The tag it means is getsuga's RELEASE tag, and no other species

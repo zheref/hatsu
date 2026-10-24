@@ -902,3 +902,178 @@ Feitan's gitleaks and dependency-audit rows stayed not scanned (no host gitleaks
 verdict and no En loop exist); `parked:budget` written by the clock (the budget had not elapsed); the
 `stacked-open` rule on Hatsu's own file (refused by the floor; shown on a scratch copy only); any GitHub
 write of a real run (the stage label, classify on HA#247 and HA#381, the briefing comments on HA#246).
+
+## Dated verification, 2026-10-23 — the dry run as one typed line, on nen's manifest (zheref/hatsu#423, zheref/hatsu#424)
+
+The 2026-10-22 proof above was a hand-driven sequence over Hatsu's own manifest. This one is **the one typed
+line** `hatsu:futon hatsu@model/gpt --idle --dry-run`, run from the effort worktree of
+`opus/kurapika/sdd100-h-b-futon-batch` (this section's PR) at `origin/main` `1243b272` (plugin 0.139.0, nen
+`v0.26.0` on `PATH`). Writes: the two local records under the git common directory (below) and the git-ignored
+`Reports/current.html`; no label, branch, worktree, pull request, comment, push or release.
+
+**Start — the record lifts `--dry-run`, nen reads `--idle`, the manifest is nen's.**
+
+```
+$ node scripts/futon_effort_record.mts start --repo <worktree> --invocation 'hatsu:futon hatsu@model/gpt --idle --dry-run'
+futon-effort: run e37e00733d3148f4c7e89e69d7c91d07 recorded for zheref/hatsu@model/gpt (idle) (dry: nothing is authored)
+futon-effort: manifest <git common dir>/.nen/runs/e37e00733d3148f4c7e89e69d7c91d07.json (nen.run/v0.1)
+futon-effort: idle profile read from origin/main at 1243b2720269cefb873acddd682406c08db6f4e3
+futon-effort: terminal ready-at-prompt-or-integration · budget --max-minutes 480 --max-tokens 4000000
+futon-effort: pre-answered harness-attribution-switch → hold
+…  (19 rows, echoed from the manifest nen wrote: hold 12 · default 6 · refuse 1, publish-offer → refuse)
+exit=0
+$ node scripts/futon_effort_record.mts profile --repo <worktree> --run e37e00733d3148f4c7e89e69d7c91d07
+{ "contract": "hatsu.futon.run/v0.3", …, "selector": "model/gpt", "startedAt": "2026-10-23T19:25:09.207Z",
+  "dry": true, "idle": { "localSlotFrees": "merged", "terminal": "ready-at-prompt-or-integration",
+  "budget": { "minutes": 480, "tokens": 4000000 }, "source": { "ref": "origin/main", "commit": "1243b272…" } }, "manifest": "nen" }
+```
+
+The first attempt, before the fix in this PR, refused at `start` (`nen run start did not create run a7855bdf…
+(outcome started)`: the script expected `created`, nen says `started`) — after nen had written its manifest, so
+`<git common dir>/.nen/runs/a7855bdfee334ba3e26187cdf5af1197.json` is an orphan with no ownership record (823
+bytes, left for `hatsu:cleanup`).
+
+**Queue, shape, order (futon § 2).** `nen backlog fetch --repo-slug zheref/hatsu --label model/gpt --json`:
+kept 25 of 50, `truncated: false`. Shape per issue through nen alone (`plugin-registries` § *The check*):
+`nen issue questions` read every issue (exit `0`), **0 open `OQ-{n}` rows on all 25**, so nothing skips;
+`nen issue body-check` misses — HA#131 10 · HA#148 7 · HA#154 6 · HA#156 10 · HA#246 5 · HA#247 8 · HA#265 8 · HA#331 5 ·
+HA#341 5 · HA#346 9 · HA#361 10 · HA#370 5 · HA#371 5 · HA#381 5 · HA#382 12, and 0 on HA#415 HA#416 HA#423 HA#424 HA#434 HA#439 HA#441 HA#449
+HA#452 HA#453 (the same counts the retired script gave on 2026-10-22). `nen backlog order` (the reshaped rows,
+residue as § 2 above): HA#131 HA#148 HA#154 HA#156 HA#246 HA#247 HA#265 HA#331 HA#341 HA#346 HA#361 HA#370 HA#371 HA#381 HA#382 HA#415 HA#416
+HA#423 HA#424 HA#434 HA#439 HA#441 HA#449 HA#452 HA#453.
+
+**Before the claims — budget and slots, from the manifest.**
+
+```
+$ nen run budget --id e37e0073… --max-minutes 480 --max-tokens 4000000 --repo <worktree>
+run e37e0073…: 1 min since start of 480 (--max-minutes), 0 tokens of 4000000 (--max-tokens)   budget: within   exit=0
+$ nen loop slots --from-run e37e0073… --target zheref/hatsu --ci-cap 2 --local-cap 7 --repo <worktree>
+local slot frees: merged (<worktree>/nen/workflow.json: monitor.localSlotFrees)
+from run e37e0073…: 0 effort(s)   ci: 0/2 occupied, 2 free   local: 0/7 occupied, 7 free   exit=0
+```
+
+**Every effort's dry end state, recorded by its row** (`nen run park --id e37e0073… --issue HA#<n> --row <row>`;
+the 2026-10-22 reads carried for the eighteen issues still open, the seven new ones read today):
+
+| End state (row) | Issues | Count |
+|---|---|---:|
+| `dry-prompt` — would stand at its merge prompt, slot n of 7 | HA#131 HA#148 HA#154 HA#156 HA#246 HA#341 HA#346 | 7 |
+| `dry-waiting-slot` — claimable, past the local cap | HA#370 HA#381 HA#415 HA#416 HA#439 HA#441 | 6 |
+| `g5-decide` | HA#247 HA#265 HA#361 HA#371 | 4 |
+| `g5-dependency` | HA#331 HA#382 HA#434 (nen records no pinned commit yet) HA#453 (zheref/nen#513) | 4 |
+| `g5-claimed` — already in delivery elsewhere | HA#423 HA#424 (this run's piece) HA#452 (HA-PR-#455 open) | 3 |
+| `release-go` — a human gate, never pre-answered | HA#449 | 1 |
+
+```
+$ nen run verify --id e37e0073… --target zheref/hatsu --repo <worktree>
+run e37e0073… on zheref/hatsu: 0 PR(s) recorded -- 0 open, 0 merged, 0 closed unmerged, 0 unread
+  parked HA#131 on row dry-prompt since 2026-10-23T19:26:58.289Z
+  …  (25 parked rows, one per issue in scope)
+unmerged: (none)
+exit=0
+$ nen run budget --id e37e0073… --max-minutes 480 --max-tokens 4000000 --repo <worktree>
+run e37e0073…: 3 min since start of 480 …   budget: within   exit=0
+```
+
+**One night authors 7** of the 13 claimable efforts: under `merged` (HR-257) nobody merges overnight, so the six
+past the cap wait and park as `budget` at `2026-10-24T03:25:09Z`. No `nen run append` ran: a dry run opens no
+PR, so `nen loop slots --from-run` counts no effort and the claims above are the cap applied in queue order.
+
+**The register.** `nen report data --repo . --base origin/integration/sdd-100-2026-10-23 --target zheref/hatsu
+--issues <the 25> --register <desk> --json` (generatedAt `2026-10-23T19:27:24.969Z`, `report_time.sh`: Fri 23 Oct
+2026 · 14:27 America/Bogota) → tallies scope 25 · needs-you 4 · blockers 0 · ready 0 · in-flight 0; `nen report
+render --variant register --template templates/rikugan.html` → `Reports/current.html`, 55,283 bytes. The desk
+titles the page *DRY: nothing authored*, carries the four `g5-decide` asks on G5, G2/G3/G1 cleared (*7 of 13
+claimable efforts would stand at their merge prompts tonight*; *publish-offer → refuse*; *no label written*), one
+row per issue with its park row, and `legendRows` with all 19 pre-answered rows and the `dry` flag.
+
+**Findings.**
+
+| # | Behaviour | Disposition |
+|---|---|---|
+| G1 | `nen parse futon` at 0.26.0 knows no `--dry-run`, and folds a doubled `--idle` into the label (`label: "model/gpt --idle"`, `idle: true`) | the record lifts `--dry-run` alone and refuses the rest; the grammar half is the sibling of zheref/nen#491 |
+| G2 | `nen.run/v0.1` carries no dry flag | the record's `dry: true` is the register's source; a nen-side flag is owed |
+| G3 | `nen run budget` reads usage ledgers under one `--repo`; each effort keeps its own in its worktree, so a multi-worktree run reads `tokensUnread` and `--claim` would refuse every claim after the first PR | `--claim` not passed; minutes enforced, tokens advisory (WORKFLOW § 2 `idle`) |
+| G4 | `nen run start` reports a new run as `outcome: "started"`; the first draft expected `created` | fixed in this PR; one orphan manifest left (above) |
+| G5 | `nen run park --row` refuses the colon rows `g5:<class>` and `residue:<skill>` | rows renamed `g5-<class>`, `residue-<skill>` (WORKFLOW § *Idle batches* rule 2) |
+
+**Settlement of the review (HA-PR-#460, same day).** Three things moved after this run, so a re-run reads
+differently: (1) a dry run's end states are now recorded on the ownership record by `futon_effort_record.mts
+predict`, never by `nen run park` — the 25 parks above sit in nen's `parked[]` of run `e37e0073…` and are
+dry predictions, not real parks; (2) the maintainer's ruling of 2026-10-23 (`R-2026-10-23-01`, WORKFLOW § 2
+`idle`) resolves every starred row `default`, so the 19 rows read default 11 · hold 7 · refuse 1 once the
+committed `nen/workflow.json` carries the new map; (3) slots also count the claimed efforts without a PR
+(WORKFLOW § *Idle batches* rule 4), which a dry run has none of. (4) zheref/hatsu#425 was ruled `ready+prompted`
+(`R-2026-10-23-20`): a slot frees once the PR is Ready and its prompt shown, so an unattended night is no
+longer held at seven efforts by the merge; the *one night authors 7* line above reads the old `merged` rule.
+
+**Not exercised live**: a real (non-dry) idle run; `nen run append` and `nen loop slots --from-run` over open
+PRs (none exist in a dry run); `nen wc overlap` (no effort branches exist).
+
+## Dated verification, 2026-10-23 — crash-and-resume (the run manifest) (zheref/hatsu#444)
+
+Run: 2026-10-23, host `darwin` (arm64), twice with identical verdicts: nen `0.26.0` at `/Users/zheref/.local/bin/nen`
+(the contract pin) and nen source `0.27.0` at zheref/nen `847f7dc4b8087591b3d68bb486d48855b7cb72b5` (`bun run src/index.ts`, the stack top of zheref/nen#518,
+unreleased). Command, reproducible: `node scripts/resume_proof.mts --nen <nen>` (lane `resume-proof`). Each case
+runs in a throwaway `git init` repository; nothing touched a primary checkout or GitHub.
+
+Futon writes no phase ledger; its resume state is nen's run manifest (`<git common dir>/.nen/runs/<id>.json`).
+Killed after a park and re-invoked with the same line:
+
+```text
+converged futon (and kazaana)  killed after a park, re-invoked      re-start existing, re-park unchanged, manifest bytes unchanged
+```
+
+A re-`start` with the same idle answers is `existing`, a re-`park` `unchanged`, and the manifest's bytes do not
+move. `nen run append` reads the PR live and was not exercised offline. **Not proved here:** a live futon run
+killed between efforts.
+
+## Dated verification, 2026-10-23 — one bell per gate, the harness-denied row and the idle permission list (zheref/hatsu#453)
+
+Run: 2026-10-23, host `darwin`, nen source `0.27.0` at zheref/nen `847f7dc4b8087591b3d68bb486d48855b7cb72b5` behind a `nen` shim, stub `osascript` and
+`afplay` first on PATH logging each call, throwaway repositories. Command shape:
+`nen stop --who kurapika --gate G2 --title "HA-PR-#<n> at its merge prompt" --mark --effort "HA-IS-#<n>" --repo <r>`
+for n = 1..7, then the Stop hook fed `{"cwd":"<r>"}`.
+
+```text
+markers: 7 unrung under <r>/.git/.nen/marks (git common dir)
+hook-exit=0
+notifications: 7 sounds: 7
+Hatsu — G2: HA-PR-#1 at its merge prompt
+… one line per effort, #1 to #7 …
+markers: 0 unrung under <r>/.git/.nen/marks (git common dir)
+single-cleared
+```
+
+7 of 7 gates rang their own bell (SC-2). **A per-gate marker never goes stale** (HA-PR-#463 review): the hook
+fires at the end of a turn that may span hours, so the fixture now marks seven gates, ages them an hour, and
+requires seven bells and seven clears, while a single file an hour old is still cleared unrung. Its case 8 runs
+the documented marking form against the real nen on PATH: at nen `0.26.0`, `nen stop --mark` (no `--effort`,
+which 0.26 refuses as an unknown option) and one bell off the single file; at nen source `0.27.0`,
+`--mark --effort opus/kurapika/x` and one bell off the per-gate marker, `nen stop list` empty after. Clearing one gate first (`nen stop clear --gate G2 --effort HA-IS-#3`)
+left 6 markers and the hook then rang exactly 6 (AC-4). Against nen `0.26.0` (no `stop list`) the hook fell back to
+the single file, rang once (`Hatsu — G5: legacy`) and consumed it with bare `nen stop clear`. Hermetic cases:
+lane `stop-bell-guard` (6/6).
+
+**The harness-denied row** is `nen/decisions.json` → `harness-denied` (a `human-gate` G5 since the HA-PR-#463 review; autonomous when first written): the refused command quoted, a
+G5 marker with `--effort`, parked `g5-harness-denied`; `nen run park … --row g5-harness-denied` records it
+(`parked: zheref/hatsu#1 parked on row g5-harness-denied …`, re-park `unchanged`). No live harness refusal occurred
+during this proof, so SC-1's count over a real run is not taken here.
+
+**The permission list**, live against the maintainer's own settings for this checkout (read only):
+
+```text
+$ node scripts/idle_permissions_check.mts --repo /Users/zheref/Code/Agents/hatsu   # re-run 2026-10-23 after the review: one exemplar per nen verb family
+not-pre-allowed: git -C <core> fetch origin  (futon § 4 (worktrees from core))
+not-pre-allowed: git -C <core> worktree add --detach <path> <ref>  (futon § 4, WORKFLOW § Where worktrees live)
+not-pre-allowed: git reset --soft <merge-base>  (aka (squash the unpushed))
+not-pre-allowed: git push -u origin <branch>  (aka)
+not-pre-allowed: node <hatsu>/scripts/futon_effort_record.mts start --run <run>  (futon § 12)
+not-pre-allowed: node <hatsu>/scripts/gh_api_read.mts actions-caches <owner/name>  (cleanup)
+not-pre-allowed: sh <hatsu>/scripts/prose_size_check.sh  (kokusen (on a Hatsu checkout))
+not-pre-allowed: <hatsu>/scripts/bell_notify.sh --title <t> --message <m>  (jutaisho § 5 (called directly, not through bash))
+idle-permissions: 37/45 pre-allowed; 8 would prompt — under --idle each is a harness refusal (row harness-denied)
+```
+
+The rendered Claude Code pack (`scripts/permissions_pack.sh --surface claude-code --render`) missed the same commands at the first run.
+Whether to grant any is the maintainer's (a permission setting); this list only says what an idle run would meet.
