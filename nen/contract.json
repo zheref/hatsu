@@ -355,7 +355,7 @@
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
         },
         "coverage": {
-          "unsupported": "The guard scripts under scripts/ execute under their focused fixture lanes, but no line-coverage tool is declared for shell yet (kcov or bashcov), nor for the TypeScript guards (scripts/*.mts, among them clause_id_guard, issue_body_check, pr_criteria_check, prose_ambiguity_check and futon_effort_record) until a node coverage lane over their fixture lanes lands: both are unmeasured gaps, tracked in zheref/hatsu#148, never a clean zero. Until then byakugan reports Hatsu's touched files as `not measurable here` against the ladder in nen/workflow.json rather than against a number, and the ladder still governs every repository Hatsu drives that declares none of its own. Gyo is linting."
+          "unsupported": "The plugin lane has no aggregate test run, so it has nothing to capture. The executable shell guards under scripts/ are measured on their focused fixture lanes: a measured lane's test row runs its fixture under the pinned Bashcov and writes coverage/<lane>/lcov.info, read with `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148); a lane Bashcov cannot measure yet seats its own coverage row with the reason. The TypeScript guards (scripts/*.ts and *.mts, among them config_values.ts, clause_id_guard, issue_body_check, pr_criteria_check, prose_ambiguity_check and futon_effort_record) have no node line-coverage tool declared yet: an unmeasured gap, never a clean zero, and byakugan reports those files as `not measurable here`. Neither gap moves the 80/85/90 ladder in nen/workflow.json. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
@@ -384,10 +384,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "plugin-bump-guard",
             "bash",
             "scripts/plugin_bump_check_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the guard's executable behavior. It creates synthetic changed-file lists and manifests in a temporary directory, invokes the checked-in guard, and removes that directory. Run it only as `nen shu test --lane plugin-bump-guard --repo <hatsu>` when the guard changes."
+          "$comment": "A permanent, deterministic fixture for the guard's executable behavior. It creates synthetic changed-file lists and manifests in a temporary directory, invokes the checked-in guard, and removes that directory. Run it only as `nen shu test --lane plugin-bump-guard --repo <hatsu>` when the guard changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/plugin-bump-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane plugin-bump-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/plugin-bump-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "plugin-bump-guard"
+          ],
+          "artifacts": [
+            "coverage/plugin-bump-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/plugin-bump-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "plugin-update": {
@@ -399,6 +418,9 @@
             "scripts/hatsu_plugin_update_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the plugin-source updater. Run it only as `nen shu test --lane plugin-update --repo <hatsu>` when scripts/hatsu_plugin_update.sh or its fixture changes."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): Bashcov 4.0.0 cannot parse this fixture's trace (XtraceError: interleaved child output on the trace descriptor; it aborts with an incomplete report, measured 2026-10-23), so an instrumented run would capture nothing. Until a tracer reads it, this lane is unmeasured, never a clean zero."
         }
       },
       "surface-link": {
@@ -410,6 +432,9 @@
             "scripts/hatsu_surface_link_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface-link installer. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): Bashcov 4.0.0 cannot parse this fixture's trace (XtraceError: interleaved child output on the trace descriptor; it aborts with an incomplete report, measured 2026-10-23), so an instrumented run would capture nothing. Until a tracer reads it, this lane is unmeasured, never a clean zero."
         }
       },
       "surface-bootstrap-guard": {
@@ -421,6 +446,9 @@
             "scripts/surface_bootstrap_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): Bashcov 4.0.0 cannot parse this fixture's trace (XtraceError: interleaved child output on the trace descriptor; it aborts with an incomplete report, measured 2026-10-23), so an instrumented run would capture nothing. Until a tracer reads it, this lane is unmeasured, never a clean zero."
         }
       },
       "nen-global-guard": {
@@ -432,6 +460,9 @@
             "scripts/nen_global_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the host nen linker AND for step 0 of hooks/session-start.sh: digest-before-link, never-downgrade, the cleaned bootstrap environment, the url pin, the atomic link, rc paths with spaces and hostile bin dirs, the opt-outs, the lock, the TERM and time-bound behaviour, and the hook's JSON, stderr and .nen/session-start.log paths on a source and a mirrored copy. Run it as `nen shu test --lane nen-global-guard --repo <hatsu>` when scripts/nen_global.sh, hooks/session-start.sh's step 0, dependency.bootstrap.sha256 or the fixture changes; it reads the real nen/contract.json pin (or a sed-edited copy of it) and runs every case under a throwaway HOME, XDG_CACHE_HOME and XDG_CONFIG_HOME, so it never touches the network or the real HOME."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
       "permissions-pack-guard": {
@@ -439,16 +470,35 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "permissions-pack-guard",
             "bash",
             "scripts/permissions_pack_fixture_check.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes."
+          "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/permissions-pack-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane permissions-pack-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/permissions-pack-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "permissions-pack-guard"
+          ],
+          "artifacts": [
+            "coverage/permissions-pack-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/permissions-pack-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "unit-tests-ci-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--testTimeout", "15000", "scripts/unit_tests_ci_fixture.test.mts", "scripts/release_changelog_fixture.test.mts", "scripts/tenkai_release_guard_fixture.test.mts"],
+          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--testTimeout", "15000", "scripts/unit_tests_ci_fixture.test.mts", "scripts/release_changelog_fixture.test.mts", "scripts/tenkai_release_guard_fixture.test.mts", "scripts/shell_coverage_fixture.test.mts"],
           "$comment": "Pinned Vitest fixtures for the trusted CI test runner, release-changelog parser, and Tenkai publisher adoption guard. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
@@ -490,6 +540,9 @@
             "scripts/trusted_guard_preflight_fixture.sh"
           ],
           "$comment": "Run this focused fixture when the trusted preflight or its workflow-derived dispatch changes."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): this lane was red uninstrumented on the measuring host on 2026-10-23, so its instrumented run could not be verified. Wire it through scripts/shell_coverage.mts once it passes there; until then it is unmeasured, never a clean zero."
         }
       },
       "surface-mirror-guard": {
@@ -497,10 +550,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "surface-mirror-guard",
             "bash",
             "scripts/surface_mirror_check_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the mirror drift guard. Run it as `nen shu test --lane surface-mirror-guard --repo <hatsu>` when scripts/surface_mirror_check.sh or its fixture changes."
+          "$comment": "A permanent, deterministic fixture for the mirror drift guard. Run it as `nen shu test --lane surface-mirror-guard --repo <hatsu>` when scripts/surface_mirror_check.sh or its fixture changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/surface-mirror-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane surface-mirror-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/surface-mirror-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "surface-mirror-guard"
+          ],
+          "artifacts": [
+            "coverage/surface-mirror-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/surface-mirror-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "root-guard": {
@@ -512,6 +584,9 @@
             "scripts/hatsu_root_fixture_check.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the plugin-root resolver. Run it as `nen shu test --lane root-guard --repo <hatsu>` when scripts/hatsu_root.sh or its fixture changes."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
       "surface-link-guard": {
@@ -519,10 +594,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "surface-link-guard",
             "bash",
             "scripts/surface_link_check_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors."
+          "$comment": "A permanent, deterministic fixture for the surface link guard. Run it as `nen shu test --lane surface-link-guard --repo <hatsu>` when scripts/surface_link_check.sh or its fixture changes; run the guard itself (`bash scripts/surface_link_check.sh --summary`) to read the live mirrors. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/surface-link-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane surface-link-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/surface-link-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "surface-link-guard"
+          ],
+          "artifacts": [
+            "coverage/surface-link-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/surface-link-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "redaction-guard": {
@@ -534,6 +628,9 @@
             "scripts/private_name_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the private-repository-name guard. Run it as `nen shu test --lane redaction-guard --repo <hatsu>` when scripts/private_name_check.sh or its fixture changes; run the guard itself against the tree with `bash scripts/private_name_check.sh --tree .` on the maintainer's own credentials."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
       "redaction-tree": {
@@ -545,6 +642,9 @@
             "."
           ],
           "$comment": "The tree check itself (zheref/hatsu#149 criterion 2(b)): run it as `nen shu test --lane redaction-tree --repo <hatsu>` on the maintainer's credentials, with the ignore file in place; never in CI."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): this lane was red uninstrumented on the measuring host on 2026-10-23, so its instrumented run could not be verified. Wire it through scripts/shell_coverage.mts once it passes there; until then it is unmeasured, never a clean zero."
         }
       },
       "bell-guard": {
@@ -552,10 +652,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "bell-guard",
             "bash",
             "scripts/bell_notify_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the bell script. Run it as `nen shu test --lane bell-guard --repo <hatsu>`; 20 checks."
+          "$comment": "A permanent, deterministic fixture for the bell script. Run it as `nen shu test --lane bell-guard --repo <hatsu>`; 20 checks. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/bell-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane bell-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/bell-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "bell-guard"
+          ],
+          "artifacts": [
+            "coverage/bell-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/bell-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "prose-guard": {
@@ -567,6 +686,9 @@
             "scripts/prose_size_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the prose-diet guard. Run it as `nen shu test --lane prose-guard --repo <hatsu>` when scripts/prose_size_check.sh or its fixture changes; run the guard itself (`sh scripts/prose_size_check.sh --headroom`) to read the live margins."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
       "canon-lint": {
@@ -585,11 +707,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "tenkai-guard",
             "bash",
             "scripts/tenkai_adopt.sh",
             "--self-test"
           ],
-          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427)."
+          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427). Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/tenkai-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane tenkai-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/tenkai-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "tenkai-guard"
+          ],
+          "artifacts": [
+            "coverage/tenkai-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/tenkai-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "pr-composition-guard": {
@@ -597,10 +738,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "pr-composition-guard",
             "bash",
             "scripts/pr_composition_check_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the PR-composition drift guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane pr-composition-guard --repo <hatsu>` when contracts/pr-composition.json, contracts/pr-body.requirements.json, templates/pr-body/, docs/WORKFLOW.md section Gate derivation, a reader the declaration lists, or the guard changes; run the guard itself as `bash scripts/pr_composition_check.sh`."
+          "$comment": "A permanent, deterministic fixture for the PR-composition drift guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane pr-composition-guard --repo <hatsu>` when contracts/pr-composition.json, contracts/pr-body.requirements.json, templates/pr-body/, docs/WORKFLOW.md section Gate derivation, a reader the declaration lists, or the guard changes; run the guard itself as `bash scripts/pr_composition_check.sh`. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/pr-composition-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane pr-composition-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/pr-composition-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "pr-composition-guard"
+          ],
+          "artifacts": [
+            "coverage/pr-composition-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/pr-composition-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "report-markdown-guard": {
@@ -608,10 +768,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "report-markdown-guard",
             "bash",
             "scripts/report_markdown_check_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the Markdown report guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane report-markdown-guard --repo <hatsu>` when a report template (either format), templates/report-examples/, templates/graph.example.json, reports.sections in nen/workflow.json, or the guard changes; run the guard itself as `bash scripts/report_markdown_check.sh`, and `--write-examples` after a deliberate template change."
+          "$comment": "A permanent, deterministic fixture for the Markdown report guard: hermetic temp trees, then the guard on this repository. Run it as `nen shu test --lane report-markdown-guard --repo <hatsu>` when a report template (either format), templates/report-examples/, templates/graph.example.json, reports.sections in nen/workflow.json, or the guard changes; run the guard itself as `bash scripts/report_markdown_check.sh`, and `--write-examples` after a deliberate template change. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/report-markdown-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane report-markdown-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/report-markdown-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "report-markdown-guard"
+          ],
+          "artifacts": [
+            "coverage/report-markdown-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/report-markdown-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "config-values-guard": {
@@ -619,10 +798,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "config-values-guard",
             "bash",
             "scripts/config_values_fixture.sh"
           ],
-          "$comment": "Hermetic and offline: fixture declarations under a temp dir prove fill writes only absent defaults and `$<key>` option annotations, keeps hand formatting, is idempotent, never creates a declaration or rewrites a set value, that set refuses a value outside its options and a secret-shaped value, that on-use and optional values never block adoption, and that every row of the shipped catalogue is well-formed against claude/skills/; then the TypeScript adapter's fixture proves set refuses each intake examiner as a review.scopes persona and still writes a code reviewer (HR-23), and its get fixture proves `get` reads release.proposalMerge at a ref (declared human, absent self, an uncommitted edit ignored), refuses an out-of-set value at exit 1 and an unreadable file, ref or symlink at exit 2 (zheref/hatsu#414). Run it as `nen shu test --lane config-values-guard --repo <hatsu>` when scripts/config_values.sh, scripts/config_values.ts or contracts/config-catalogue.json changes."
+          "$comment": "Hermetic and offline: fixture declarations under a temp dir prove fill writes only absent defaults and `$<key>` option annotations, keeps hand formatting, is idempotent, never creates a declaration or rewrites a set value, that set refuses a value outside its options and a secret-shaped value, that on-use and optional values never block adoption, and that every row of the shipped catalogue is well-formed against claude/skills/; then the TypeScript adapter's fixture proves set refuses each intake examiner as a review.scopes persona and still writes a code reviewer (HR-23), and its get fixture proves `get` reads release.proposalMerge at a ref (declared human, absent self, an uncommitted edit ignored), refuses an out-of-set value at exit 1 and an unreadable file, ref or symlink at exit 2 (zheref/hatsu#414). Run it as `nen shu test --lane config-values-guard --repo <hatsu>` when scripts/config_values.sh, scripts/config_values.ts or contracts/config-catalogue.json changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/config-values-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane config-values-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/config-values-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "config-values-guard"
+          ],
+          "artifacts": [
+            "coverage/config-values-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/config-values-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's. Bashcov measures scripts/config_values.sh and its fixture; scripts/config_values.ts, which the fixture runs through node --test, is TypeScript and stays in the plugin lane's unmeasured TypeScript gap (zheref/hatsu#397)."
         }
       },
       "publish-gate-guard": {
@@ -630,10 +828,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "publish-gate-guard",
             "bash",
             "scripts/publish_gate_fixture.sh"
           ],
-          "$comment": "Hermetic and offline: a nen shim on PATH answers wc catch-up, shu lint and wc publish from environment variables, so the fixture proves the SCRIPT's chain and never nen; real git for the repository, its remote and scripts/branch_authorship_check.sh. Run it as `nen shu test --lane publish-gate-guard --repo <hatsu>` when scripts/publish_gate.sh, its fixture or branch_authorship_check.sh changes."
+          "$comment": "Hermetic and offline: a nen shim on PATH answers wc catch-up, shu lint and wc publish from environment variables, so the fixture proves the SCRIPT's chain and never nen; real git for the repository, its remote and scripts/branch_authorship_check.sh. Run it as `nen shu test --lane publish-gate-guard --repo <hatsu>` when scripts/publish_gate.sh, its fixture or branch_authorship_check.sh changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/publish-gate-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane publish-gate-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/publish-gate-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "publish-gate-guard"
+          ],
+          "artifacts": [
+            "coverage/publish-gate-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/publish-gate-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "canon-contracts-guard": {
@@ -641,11 +858,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "canon-contracts-guard",
             "bash",
             "scripts/canon_contracts_check.sh",
             "--self-test"
           ],
-          "$comment": "scripts/canon_contracts_check_fixture.sh: copies the registry, the taxonomy and nen/labels.json into a temp root, breaks one invariant per case with a plain text edit (a cell surface off its alias, a duplicated job key, an absent label, a drifted colour, a missing file) and expects the guard's exit and the line naming the broken read; the last case runs the guard on the committed files, which must pass. Needs the pinned nen (NEN=<path> overrides `nen`); absent, exit 2, never a pass. Run it as `nen shu test --lane canon-contracts-guard --repo <hatsu>` when either contract, nen/labels.json or the guard changes; CI runs the guard itself through surface-mirror-check.yml's `Canon data contracts check` step once the two-step landing completes (step one taught the validator the step and froze its form; step two installed it)."
+          "$comment": "scripts/canon_contracts_check_fixture.sh: copies the registry, the taxonomy and nen/labels.json into a temp root, breaks one invariant per case with a plain text edit (a cell surface off its alias, a duplicated job key, an absent label, a drifted colour, a missing file) and expects the guard's exit and the line naming the broken read; the last case runs the guard on the committed files, which must pass. Needs the pinned nen (NEN=<path> overrides `nen`); absent, exit 2, never a pass. Run it as `nen shu test --lane canon-contracts-guard --repo <hatsu>` when either contract, nen/labels.json or the guard changes; CI runs the guard itself through surface-mirror-check.yml's `Canon data contracts check` step once the two-step landing completes (step one taught the validator the step and froze its form; step two installed it). Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/canon-contracts-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane canon-contracts-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/canon-contracts-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "canon-contracts-guard"
+          ],
+          "artifacts": [
+            "coverage/canon-contracts-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/canon-contracts-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "direct-matrix-guard": {
@@ -677,11 +913,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "release-guard",
             "bash",
             "scripts/release-publish.sh",
             "--self-test"
           ],
-          "$comment": "Run it as `nen shu test --lane release-guard --repo <hatsu>` when scripts/release-publish.sh, scripts/release_changelog.mts or their templates change. The companion Vitest fixture runs in unit-tests-ci-guard."
+          "$comment": "Run it as `nen shu test --lane release-guard --repo <hatsu>` when scripts/release-publish.sh, scripts/release_changelog.mts or their templates change. The companion Vitest fixture runs in unit-tests-ci-guard. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/release-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane release-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/release-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "release-guard"
+          ],
+          "artifacts": [
+            "coverage/release-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/release-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "dist-tag-guard": {
@@ -689,11 +944,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "dist-tag-guard",
             "sh",
             "scripts/dist_tag.sh",
             "--self-test"
           ],
-          "$comment": "The distribution-tag guard's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane dist-tag-guard --repo <hatsu>` when scripts/dist_tag.sh changes."
+          "$comment": "The distribution-tag guard's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane dist-tag-guard --repo <hatsu>` when scripts/dist_tag.sh changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/dist-tag-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane dist-tag-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/dist-tag-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "dist-tag-guard"
+          ],
+          "artifacts": [
+            "coverage/dist-tag-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/dist-tag-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "report-time-guard": {
@@ -706,6 +980,9 @@
             "--self-test"
           ],
           "$comment": "The report-time helper's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane report-time-guard --repo <hatsu>` when scripts/report_time.sh changes."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
       "gh-token-guard": {
@@ -713,10 +990,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "gh-token-guard",
             "bash",
             "scripts/gh_token_env_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the GH_TOKEN wrapper. Run it as `nen shu test --lane gh-token-guard --repo <hatsu>` when scripts/gh_token_env.sh or its fixture changes."
+          "$comment": "A permanent, deterministic fixture for the GH_TOKEN wrapper. Run it as `nen shu test --lane gh-token-guard --repo <hatsu>` when scripts/gh_token_env.sh or its fixture changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/gh-token-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane gh-token-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/gh-token-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "gh-token-guard"
+          ],
+          "artifacts": [
+            "coverage/gh-token-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/gh-token-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "reach-probe-guard": {
@@ -724,10 +1020,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "reach-probe-guard",
             "bash",
             "scripts/nen_reach_probe_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the reachability probe. Run it as `nen shu test --lane reach-probe-guard --repo <hatsu>` when scripts/nen_reach_probe.sh or its fixture changes."
+          "$comment": "A permanent, deterministic fixture for the reachability probe. Run it as `nen shu test --lane reach-probe-guard --repo <hatsu>` when scripts/nen_reach_probe.sh or its fixture changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/reach-probe-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane reach-probe-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/reach-probe-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "reach-probe-guard"
+          ],
+          "artifacts": [
+            "coverage/reach-probe-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/reach-probe-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "mirror-regenerate-guard": {
@@ -735,10 +1050,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "mirror-regenerate-guard",
             "bash",
             "scripts/surface_mirror_regenerate_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the mirror regenerator. Run it as `nen shu test --lane mirror-regenerate-guard --repo <hatsu>` when scripts/surface_mirror_regenerate.sh, scripts/surface_mirror_check.sh or the fixture changes."
+          "$comment": "A permanent, deterministic fixture for the mirror regenerator. Run it as `nen shu test --lane mirror-regenerate-guard --repo <hatsu>` when scripts/surface_mirror_regenerate.sh, scripts/surface_mirror_check.sh or the fixture changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/mirror-regenerate-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane mirror-regenerate-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/mirror-regenerate-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "mirror-regenerate-guard"
+          ],
+          "artifacts": [
+            "coverage/mirror-regenerate-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/mirror-regenerate-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "plugin-version-refs-guard": {
@@ -746,10 +1080,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "plugin-version-refs-guard",
             "bash",
             "scripts/plugin_version_refs_fixture.sh"
           ],
-          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts, its fixture, nen/contract.json or docs/NEN-CONTRACT.md changes (every repin). Its last case runs --check-nen-pin on the committed tree, so a repin that leaves the page's echoed pin stale fails this lane -- and unit-tests.yml, which runs this lane on every pull request through scripts/unit_tests_ci.mts (the trusted runner selects it whenever the guard exists beside its fixture). The lane argv and the fixture are the pull request's own, so that run catches a stale echo, not a pull request that also rewrites the fixture or the lane; a trusted frozen step (a two-step landing, docs/GATE-CONFIGURATION.md) stays the later route for that."
+          "$comment": "Run this focused fixture when scripts/plugin_version_refs.ts, its fixture, nen/contract.json or docs/NEN-CONTRACT.md changes (every repin). Its last case runs --check-nen-pin on the committed tree, so a repin that leaves the page's echoed pin stale fails this lane -- and unit-tests.yml, which runs this lane on every pull request through scripts/unit_tests_ci.mts (the trusted runner selects it whenever the guard exists beside its fixture). The lane argv and the fixture are the pull request's own, so that run catches a stale echo, not a pull request that also rewrites the fixture or the lane; a trusted frozen step (a two-step landing, docs/GATE-CONFIGURATION.md) stays the later route for that. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/plugin-version-refs-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane plugin-version-refs-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/plugin-version-refs-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "plugin-version-refs-guard"
+          ],
+          "artifacts": [
+            "coverage/plugin-version-refs-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/plugin-version-refs-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "pr-body-guard": {
@@ -757,11 +1110,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "pr-body-guard",
             "sh",
             "scripts/pr_body_evidence_check.sh",
             "--self-test"
           ],
-          "$comment": "The PR-body evidence check's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane pr-body-guard --repo <hatsu>` when scripts/pr_body_evidence_check.sh changes."
+          "$comment": "The PR-body evidence check's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane pr-body-guard --repo <hatsu>` when scripts/pr_body_evidence_check.sh changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/pr-body-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane pr-body-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/pr-body-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "pr-body-guard"
+          ],
+          "artifacts": [
+            "coverage/pr-body-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/pr-body-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "development-link-guard": {
@@ -769,11 +1141,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "development-link-guard",
             "bash",
             "scripts/pr_development_link_check.sh",
             "--self-test"
           ],
-          "$comment": "The Development-link guard's own fixtures -- hermetic and offline, run under bash (3.2-portable) with jq, awk (under LC_ALL=C) and iconv; live mode is exercised through a stub gh, and the parser's own failure modes (awk absent, exiting non-zero, writing no END record) are exit 2. Run it as `nen shu test --lane development-link-guard --repo <hatsu>` when scripts/pr_development_link_check.sh changes."
+          "$comment": "The Development-link guard's own fixtures -- hermetic and offline, run under bash (3.2-portable) with jq, awk (under LC_ALL=C) and iconv; live mode is exercised through a stub gh, and the parser's own failure modes (awk absent, exiting non-zero, writing no END record) are exit 2. Run it as `nen shu test --lane development-link-guard --repo <hatsu>` when scripts/pr_development_link_check.sh changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/development-link-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane development-link-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/development-link-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "development-link-guard"
+          ],
+          "artifacts": [
+            "coverage/development-link-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/development-link-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "freshness-guard": {
@@ -781,11 +1172,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "freshness-guard",
             "sh",
             "scripts/send_freshness_check.sh",
             "--self-test"
           ],
-          "$comment": "The freshness gate's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane freshness-guard --repo <hatsu>` when scripts/send_freshness_check.sh changes."
+          "$comment": "The freshness gate's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane freshness-guard --repo <hatsu>` when scripts/send_freshness_check.sh changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/freshness-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane freshness-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/freshness-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "freshness-guard"
+          ],
+          "artifacts": [
+            "coverage/freshness-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/freshness-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "publish-integrity-guard": {
@@ -797,6 +1207,9 @@
             "scripts/publish_integrity_fixture.sh"
           ],
           "$comment": "Hermetic and offline, 138 cases. branch_authorship_check.sh: a clean branch, an empty range and a present trailer pass; --require-agent stops a reviewer persona's commit and a trailer-less one on the maintainer's own identity; a foreign author or committer and a missing required trailer stop at exit 1 naming the SHA, author and file count; a clean trunk merge passes only with --trunk, an evil merge and a clean merge of a non-trunk branch stop even with it; trunk history a catch-up brought in is out of range; RED-1 the outgoing range passes past a published web-flow commit; hostile subjects are sanitised; a malformed --require-trailer, --require-agent or --allow-email, an unresolvable base or trunk, a non-repository, an unknown argument, no identity at all and --trunk on a git without merge-tree --write-tree are exit 2; zheref/hatsu#314: the capability is read off `git merge-tree -h`, so a range with no exemption to prove passes on a git that cannot write, a supported git whose proof write is denied is exit 2 naming its exit status and git's sanitised error and never the version floor, a missing-trailer finding or a printed finding, and a conflicted trunk merge is judged at exit 1; the proof writes only a throwaway object directory, so a clean merge passes and an evil one (whose tree the store lacks) is judged at exit 1 on a read-only store and neither adds an object to it; an unrelated-history merge and a shallow clone are exit 2 without a denied-write diagnosis or a grant advice (RED-314a/b); exit 0 with no tree id is exit 2, never a finding; git's quoted text is labelled untrusted, its control bytes print as ?, and it is bounded to three lines and 300 characters; round 2: every read judges the objects as stored, so an evil merge replaced by a clean one under refs/replace and a commit hidden from the range by info/grafts are judged at exit 1; a blob:none partial clone whose proof needs a fetch is exit 2 offline, never a pass; grant advice needs its trigger inside the quoted lines; the throwaway directory is made under TMPDIR, removed on exit, and an unusable TMPDIR is exit 2 naming the directory used, as the grant advice does. publish_gate_check.sh: the full gated && block passes (redirections are not separators, a quoted # hides nothing); a ;, a ||, a bare newline, a pipe (glued to the publish too), a lone &, a negated catch-up, authorship check or noOp read, a second ungated publish, an authorship check on its own line and a ~~~, nested or unterminated fence each fail, as does a publish spelled with doubled spaces or a tab; a murasaki with no full gated block fails; the owners carry a file-level policy -- in murasaki or mukai every publish needs its own catch-up and authorship check, in aka its own authorship check, so a bare publish block beside a gated one fails, and anywhere a publish ahead of the check its block names fails (Copilot on HA-PR-#192); a directory or unreadable file is exit 2; the live skills pass. Run it as `nen shu test --lane publish-integrity-guard --repo <hatsu>` when either script or the publish prose changes."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under a UTF-8 locale this lane passes uninstrumented, and under Bashcov 4.0.0 the trace of a child shell reaches the output it asserts on, so the instrumented run fails (measured 2026-10-23). Under an empty or C locale it is red uninstrumented as well, on the untouched base too: Ruby's JSON parse of a non-ASCII byte raises Encoding::InvalidByteSequenceError. Until the fixture keeps its assertions off the trace, this lane is unmeasured, never a clean zero."
         }
       },
       "cleanup-path-guard": {
@@ -809,6 +1222,9 @@
             "--self-test"
           ],
           "$comment": "The cleanup path guard's own fixtures -- hermetic and offline, run through the sh shim, which execs node on scripts/cleanup_path_admit.ts; the fixture root is removed on every path, an interrupted run included. Run it as `nen shu test --lane cleanup-path-guard --repo <hatsu>` when scripts/cleanup_path_admit.sh or scripts/cleanup_path_admit.ts changes."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
       "fresh-worktree-guard": {
@@ -816,11 +1232,30 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "fresh-worktree-guard",
             "sh",
             "scripts/kagutsuchi_worktree.sh",
             "--self-test"
           ],
-          "$comment": "The fresh-worktree guard's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane fresh-worktree-guard --repo <hatsu>` when scripts/kagutsuchi_worktree.sh changes."
+          "$comment": "The fresh-worktree guard's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane fresh-worktree-guard --repo <hatsu>` when scripts/kagutsuchi_worktree.sh changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/fresh-worktree-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane fresh-worktree-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/fresh-worktree-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "fresh-worktree-guard"
+          ],
+          "artifacts": [
+            "coverage/fresh-worktree-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/fresh-worktree-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "runner-preflight-guard": {
@@ -828,10 +1263,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "runner-preflight-guard",
             "bash",
             "scripts/runner_preflight_fixture_check.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the runner preflight template. Run it as `nen shu test --lane runner-preflight-guard --repo <hatsu>` when templates/runner-preflight.yml or its fixture changes."
+          "$comment": "A permanent, deterministic fixture for the runner preflight template. Run it as `nen shu test --lane runner-preflight-guard --repo <hatsu>` when templates/runner-preflight.yml or its fixture changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/runner-preflight-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane runner-preflight-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/runner-preflight-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "runner-preflight-guard"
+          ],
+          "artifacts": [
+            "coverage/runner-preflight-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/runner-preflight-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "pr-sections-guard": {
@@ -839,10 +1293,29 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "pr-sections-guard",
             "bash",
             "scripts/pr_sections_fixture_check.sh"
           ],
-          "$comment": "Hermetic PR-section fixtures and live catalogue validation."
+          "$comment": "Hermetic PR-section fixtures and live catalogue validation. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/pr-sections-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane pr-sections-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/pr-sections-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "pr-sections-guard"
+          ],
+          "artifacts": [
+            "coverage/pr-sections-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/pr-sections-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "port-rule-guard": {
@@ -850,19 +1323,57 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "port-rule-guard",
             "bash",
             "scripts/port_rule_reserve_fixture.sh"
           ],
-          "$comment": "The reservation fixture, through the shared output guard like every other focused lane. Requires bash, git, mktemp and jq (the --json cases parse the output); no gh (the fixture stubs it) and no network."
+          "$comment": "The reservation fixture, through the shared output guard like every other focused lane. Requires bash, git, mktemp and jq (the --json cases parse the output); no gh (the fixture stubs it) and no network. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/port-rule-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane port-rule-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/port-rule-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "port-rule-guard"
+          ],
+          "artifacts": [
+            "coverage/port-rule-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/port-rule-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "pr-delivery-guard": {
         "test": {
-          "exe": "bash",
+          "exe": "node",
           "argv": [
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "pr-delivery-guard",
+            "bash",
             "scripts/pr_body_delivery_check_fixture.sh"
           ],
-          "why": "Focused actual Nen report/render integration and hostile ledger/body fixtures for the mandatory metadata preamble."
+          "why": "Focused actual Nen report/render integration and hostile ledger/body fixtures for the mandatory metadata preamble. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/pr-delivery-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane pr-delivery-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/pr-delivery-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "pr-delivery-guard"
+          ],
+          "artifacts": [
+            "coverage/pr-delivery-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/pr-delivery-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "issue-shape": {
@@ -918,6 +1429,9 @@
             "scripts/product_term_check_fixture.sh"
           ],
           "$comment": "A permanent, deterministic fixture for the product-term guard, through the shared output guard like every other focused lane. Requires bash, perl with Encode and Unicode::Normalize, and mktemp; no gh and no network. Run it as `nen shu test --lane product-term-guard --repo <hatsu>` when scripts/product_term_check.sh or its fixture changes; run the guard itself on a drafted row as hatsu:bankai-rule section 4 does, against the maintainer's own list."
+        },
+        "coverage": {
+          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
       "dependency-audit-guard": {
@@ -979,6 +1493,63 @@
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
         "why": "Claude Code is both the host that loads this plugin and the program the `lint` verb spawns. It is verify-only on purpose: nen never installs the harness it is running inside, and the install path is the user's own (claude.com/claude-code)."
+      },
+      "ruby": {
+        "version": ">=3.2.0",
+        "probe": [
+          "ruby",
+          "--version"
+        ],
+        "versionFrom": "first-semver-on-stdout",
+        "installer": "verify-only",
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). Bashcov 4.0.0 requires Ruby 3.2 or newer (zheref/hatsu#148). Verify-only: select that Ruby yourself, then let nen install the pinned user-local gems below."
+      },
+      "bash": {
+        "version": ">=5.0.0",
+        "probe": [
+          "node",
+          "scripts/shell_coverage.mts",
+          "--bash-version"
+        ],
+        "versionFrom": "first-semver-on-stdout",
+        "installer": "verify-only",
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). Bashcov needs BASH_XTRACEFD, which macOS /bin/bash 3.2 lacks. The probe finds a Bash 5+ (Homebrew, the Linux system bash, or PATH) without changing PATH or the login shell. Verify-only."
+      },
+      "simplecov": {
+        "version": "1.3.2",
+        "gemSha256": "2a22ec1759f1b8db60881a2e038758956fc69ef93ed669be0bde0678de6d0e85",
+        "probe": [
+          "ruby",
+          "-e",
+          "puts Gem::Specification.find_by_name('simplecov', '1.3.2').version"
+        ],
+        "versionFrom": "first-semver-on-stdout",
+        "installer": "gem-user",
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). Bashcov 4.0.0's coverage engine, pinned so its own '~> 1.1' dependency resolves to one known version. User-local gem home only. Pinned by version through nen, whose gem-user installer carries no digest; gemSha256 is the rubygems.org SHA256 of the .gem (read 2026-10-23), which scripts/shell_coverage.mts checks against the installed cache before anything runs under it, and refuses on a mismatch. nen does not read gemSha256. These gems are on no dependency-audit row (contracts/scans.json selects rows by stack). Uninstall: gem uninstall --user-install <gem> -v <version>."
+      },
+      "bashcov": {
+        "version": "4.0.0",
+        "gemSha256": "de056ab2513fe960d2eba7f3963d36cafa0479b88f4d56ca238048176690e5ba",
+        "probe": [
+          "ruby",
+          "-e",
+          "puts Gem::Specification.find_by_name('bashcov', '4.0.0').version"
+        ],
+        "versionFrom": "first-semver-on-stdout",
+        "installer": "gem-user",
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). The pinned shell line-coverage tool the focused shell lanes run under scripts/shell_coverage.mts (zheref/hatsu#148, UZF-19). Without it those lanes still pass, uninstrumented, and capture nothing. User-local gem home only. Pinned by version through nen, whose gem-user installer carries no digest; gemSha256 is the rubygems.org SHA256 of the .gem (read 2026-10-23), which scripts/shell_coverage.mts checks against the installed cache before anything runs under it, and refuses on a mismatch. nen does not read gemSha256. These gems are on no dependency-audit row (contracts/scans.json selects rows by stack). Uninstall: gem uninstall --user-install <gem> -v <version>."
+      },
+      "simplecov-lcov": {
+        "version": "0.9.0",
+        "gemSha256": "7a77a31e200a595ed4b0249493056efd0c920601f53d2ef135ca34ee796346cd",
+        "probe": [
+          "ruby",
+          "-e",
+          "puts Gem::Specification.find_by_name('simplecov-lcov', '0.9.0').version"
+        ],
+        "versionFrom": "first-semver-on-stdout",
+        "installer": "gem-user",
+        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). The pinned LCOV formatter .simplecov loads, so nen reads each lane report as lcov. User-local gem home only. Pinned by version through nen, whose gem-user installer carries no digest; gemSha256 is the rubygems.org SHA256 of the .gem (read 2026-10-23), which scripts/shell_coverage.mts checks against the installed cache before anything runs under it, and refuses on a mismatch. nen does not read gemSha256. These gems are on no dependency-audit row (contracts/scans.json selects rows by stack). Uninstall: gem uninstall --user-install <gem> -v <version>."
       }
     }
   },

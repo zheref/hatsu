@@ -606,3 +606,14 @@ resolves both sides of its containment check and keeps the engine's blocked row 
 workflow file changed, so this is a one-step landing; the runner is the base revision's copy, so the lane
 first runs on the first `unit-tests` run whose base includes this merge (a same-repository, non-draft pull
 request into `main`), read in its log as `unit-tests-ci: tenkai-guard`.
+
+**2026-10-23. The settable-values engine, checked on pull requests, step one (HA#397, BC-9).**
+`scripts/unit_tests_ci.mts` selects the `config-values-guard` lane whenever `scripts/config_values.ts`
+exists beside `scripts/config_values_examiner_fixture.ts`; the lane runs the frozen engine's
+`--self-test` and then the TypeScript adapter's HR-23 examiner refusal. The runner's fixture proves the
+selection, the missing-fixture refusal and a red lane failing the run. No workflow file changed, but the
+runner is the base revision's trusted copy, so a pull request cannot prove its own edit to it: this
+landing is two steps. Step one is the runner edit. Step two is the first `unit-tests` run whose base
+includes step one: its log must read `unit-tests-ci: config-values-guard`, and a non-draft probe pull
+request that breaks `scripts/config_values_examiner_fixture.ts` must turn the check red. HA#397 closes on
+that evidence, not on step one's merge.

@@ -200,7 +200,8 @@ from a handbook. Phinks and Uvogin run these against the exact commit proposed f
 names them so a report can cite which form produced a number:
 
 ```
-nen shu tools --repo <path>                        # the host toolchain the declaration pins; exit 5 = a not-testable-here, tool named
+nen shu tools --repo <path>                        # the host toolchain the declaration pins; exit 5 = a not-testable-here, tool named, unless every
+                                                   # unsatisfied row's why begins 'Coverage only:' — then testable, unmeasured (PROCESS § Exit codes)
 nen shu build --repo <path> [--lane <lane>]        # the declared build
 nen shu test  --repo <path> [--lane <lane>]        # the declared suite
 nen shu lint  --repo <path> [--lane <lane>]        # the declared lint and format check

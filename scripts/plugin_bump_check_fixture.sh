@@ -33,6 +33,7 @@ printf '%s\n' 'docs/PROCESS.md' > "$fixture_root/changed-process.txt"
 printf '%s\n' 'scripts/report_time.sh' > "$fixture_root/changed-report-time.txt"
 printf '%s\n' 'scripts/pr_body_evidence_check.sh' > "$fixture_root/changed-evidence-check.txt"
 printf '%s\n' 'scripts/pr_body_delivery_check.sh' 'scripts/pr_delivery.ts' > "$fixture_root/changed-delivery-check.txt"
+printf '%s\n' 'scripts/shell_coverage.mts' > "$fixture_root/changed-shell-coverage.txt"
 printf '%s\n' 'scripts/send_freshness_check.sh' > "$fixture_root/changed-freshness.txt"
 printf '%s\n' 'scripts/kagutsuchi_worktree.sh' > "$fixture_root/changed-kagutsuchi-worktree.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.sh' > "$fixture_root/changed-cleanup-path-admit.txt"
@@ -75,6 +76,8 @@ run_case 'PROCESS unchanged version' 1 "$fixture_root/changed-process.txt" "$fix
 run_case 'report clock script unchanged version' 1 "$fixture_root/changed-report-time.txt" "$fixture_root/head-unchanged.json" 'scripts/report_time.sh'
 run_case 'evidence check script unchanged version' 1 "$fixture_root/changed-evidence-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_evidence_check.sh'
 run_case 'delivery guard and engine unchanged version' 1 "$fixture_root/changed-delivery-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_delivery_check.sh'
+# ten's `nen shu tools --repo <hatsu_root>` runs the bash row's probe out of the installed copy (#148).
+run_case 'shell coverage helper unchanged version' 1 "$fixture_root/changed-shell-coverage.txt" "$fixture_root/head-unchanged.json" 'scripts/shell_coverage.mts'
 run_case 'freshness gate script unchanged version' 1 "$fixture_root/changed-freshness.txt" "$fixture_root/head-unchanged.json" 'scripts/send_freshness_check.sh'
 run_case 'kagutsuchi worktree script unchanged version' 1 "$fixture_root/changed-kagutsuchi-worktree.txt" "$fixture_root/head-unchanged.json" 'scripts/kagutsuchi_worktree.sh'
 run_case 'cleanup path admission script unchanged version' 1 "$fixture_root/changed-cleanup-path-admit.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.sh'
