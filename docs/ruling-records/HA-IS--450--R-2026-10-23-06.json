@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-06",
+  "effortId": "HA-IS-#450",
+  "n": 4,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "HR-332 (nen/contract.json precedence, ROSTER OPEN-6): the contract lists which text wins when two disagree. Where does a text NOT on that list rank?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Loses to the list (Recommended)",
+      "consequence": "Confirm the reading: an unlisted text yields to every listed one, and the conflict is filed as an issue to fix the unlisted text"
+    },
+    {
+      "key": "B",
+      "label": "Give it a rank",
+      "consequence": "Amend: add the unlisted texts to the list at a named position"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.683Z"
+}

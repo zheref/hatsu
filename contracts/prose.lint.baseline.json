@@ -3656,12 +3656,6 @@
     {
       "path": "docs/ROSTER.md",
       "rule": "PL-11",
-      "text": "d (this run's reading). [NEEDS missing-maintainer-ch — not [NEEDS <row-id>: question]",
-      "count": 1
-    },
-    {
-      "path": "docs/ROSTER.md",
-      "rule": "PL-11",
       "text": "` | ruled | Prose uses `[NEEDS <row-id>: question]` on — not [NEEDS <row-id>: question]",
       "count": 1
     },

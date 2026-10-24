@@ -197,7 +197,7 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 | `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
 | `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
 | `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
-| `$defs.finding` (rule `CON-{n}` or `HR-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10: critical by shape, never pushed back | the same |
+| `$defs.finding` (rule `CON-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10 as amended by HR-337: critical by shape, never pushed back; an `HR-{n}` rule is critical only on a ruled row, which `hanten` § 6 holds until the status-aware check [zheref/hatsu#466](https://github.com/zheref/hatsu/issues/466) lands | the same |
 
 **Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
 

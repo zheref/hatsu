@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-20",
+  "effortId": "HA-IS-#450",
+  "n": 18,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "HA#425 (nen/workflow.json monitor.localSlotFrees; HR-257 vs the 2026-10-13 stacked-PR rule): futon runs at most 7 local efforts at once. When does an effort's slot free?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "merged (Recommended)",
+      "consequence": "HR-257 for every run: a slot frees only at the local merge; the stacked rule is reconciled to it"
+    },
+    {
+      "key": "B",
+      "label": "stacked-open",
+      "consequence": "A stacked effort frees its slot at PR-open; every other effort frees at ready+prompted"
+    },
+    {
+      "key": "C",
+      "label": "ready+prompted",
+      "consequence": "Every effort frees once its PR is Ready and the merge prompt was shown"
+    }
+  ],
+  "kind": "picked",
+  "pick": "C",
+  "typed": null,
+  "answeredAt": "2026-10-23T23:01:57.642Z"
+}

@@ -11,7 +11,8 @@
 //              with other content is refused.
 //   render     print one ROSTER ruling row from a committed record: the HR id cell (anchor plus the
 //              record link), the question, every option with its consequence, and the answer with its
-//              capture class. Status and what it settles are the lead's words, passed in.
+//              capture class. Status and what it settles are the lead's words, passed in and kept as
+//              markdown (only a pipe or a line break is handled); the record's cells are escaped.
 //   check      the guard lane (nen shu test --lane ruling-record): every ROSTER line citing a record is
 //              re-rendered and compared cell by cell, reported by HR id; an orphan, a twice-cited or an
 //              unreadable record is a finding too.
@@ -116,6 +117,9 @@ const lines = (s: string): string => s.replace(/\r\n?/g, '\n').trim();
 const flat = (s: string): string => lines(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/\[/g, '\\[').replace(/\]/g, '\\]').replace(/\n/g, '<br>').replace(/\|/g, '\\|');
 const em = (s: string): string => flat(s).replace(/\*/g, '\\*');
+// The status and what it settles are the lead's own markdown (links, code spans), never the record's
+// text: only a line break and an unescaped pipe, which would split the cell, are handled.
+const authored = (s: string): string => lines(s).replace(/\n/g, ' ').replace(/(?<!\\)\|/g, '\\|');
 // A code span renders its text literally, so only the pipe and the line break are handled.
 const code = (s: string): string => {
   const t = lines(s).replace(/\n/g, ' ').replace(/\|/g, '\\|');
@@ -194,7 +198,7 @@ function render(argv: string[]): number {
   let record: AnswerRecord;
   try { record = readRecord(need(args, '--record')); } catch (e) { if (e instanceof Wiring) throw e; throw new Wiring(`cannot read --record: ${(e as Error).message}`); }
   if (!STEM.test(stemOf(record))) throw new Wiring('the record\'s effort and id do not make a file stem');
-  console.log(`| ${[...cells(record, hr), flat(status), flat(settles)].join(' | ')} |`);
+  console.log(`| ${[...cells(record, hr), authored(status), authored(settles)].join(' | ')} |`);
   return 0;
 }
 

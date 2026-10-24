@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-03",
+  "effortId": "HA-IS-#450",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "HR-326 (docs/ROSTER.md): which half of the 2026-09-19 model rule stands for great-hiker's prose work?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Never-frontier (Recommended)",
+      "consequence": "Confirm the reading: great-hiker § 2 follows the never-frontier half; OPEN-7 closes"
+    },
+    {
+      "key": "B",
+      "label": "Frontier subsession",
+      "consequence": "Amend: the frontier subsession half stands; great-hiker § 2 is rewritten"
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.489Z"
+}

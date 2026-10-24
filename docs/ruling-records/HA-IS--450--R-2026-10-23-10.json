@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-10",
+  "effortId": "HA-IS-#450",
+  "n": 8,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "ROSTER governance version (docs/ROSTER.md § Governance footer): a new ruling or a partial reversal/supersession bumps MINOR; recording a reading bumps nothing; wording fixes bump PATCH. Confirm?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Confirm (Recommended)",
+      "consequence": "MINOR for rulings and reversals, PATCH for wording, nothing for readings"
+    },
+    {
+      "key": "B",
+      "label": "Readings bump PATCH",
+      "consequence": "Amend: recording a reading bumps PATCH so the footer moves on every delivery"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.967Z"
+}

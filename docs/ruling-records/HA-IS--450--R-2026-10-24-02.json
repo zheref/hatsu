@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-24-02",
+  "effortId": "HA-IS-#450",
+  "n": 23,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "akatsuki-ai CON-13 vs bankai-handbooks CON-13: Akatsuki puts a consumer's canon mirror under .claude/ only; upstream says the rules location of every surface it uses. Which text should Akatsuki carry?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Every surface (Recommended)",
+      "consequence": "Adopt the upstream wording; sync-canon refuses a canon-values file that declares no surfaces: key"
+    },
+    {
+      "key": "B",
+      "label": "Claude Code only",
+      "consequence": "Record that Akatsuki consumers are Claude-Code-only, and why, in CON-13"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-24T00:04:28.575Z"
+}

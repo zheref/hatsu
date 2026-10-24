@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // schedule_install.mts — PRINT the steady-state scheduler rows for the maintainer to register
-// (zheref/hatsu#448; ruling R-2026-10-23-21, effort HA-IS-#450: Claude Code Desktop's local
+// (zheref/hatsu#448; ruling HR-354, record R-2026-10-23-21, effort HA-IS-#450: Claude Code Desktop's local
 // scheduled tasks on the maintainer's own machine, firing while it is awake).
 //
 // Reads contracts/schedule.json and prints, per `desktop-task` row, the fields of Claude Desktop's

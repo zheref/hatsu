@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-17",
+  "effortId": "HA-IS-#450",
+  "n": 15,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "bankai-handbooks #20 Q3 (SP-6): present = this platform is the source of the spec text; differs = its evidence contradicts the spec or another platform, an open state blocking dispatch until a CL-nnn settles it. Are these the two meanings?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Yes, as read (Recommended)",
+      "consequence": "Confirm both meanings; SP-6 text stands"
+    },
+    {
+      "key": "B",
+      "label": "Amend SP-6",
+      "consequence": "One of the two is wrong"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:56.494Z"
+}
