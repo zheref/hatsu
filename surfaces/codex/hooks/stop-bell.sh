@@ -16,7 +16,7 @@
 #
 # ONE MARKER PER GATE (zheref/hatsu#453; nen > 0.26.0, zheref/nen#513). Every
 # `--mark` also writes `<git-common-dir>/.nen/marks/<effort>/<gate>.json`
-# (nen.stop.mark/v0.3), so seven efforts reaching seven gates leave seven
+# (marker contract v0.3), so seven efforts reaching seven gates leave seven
 # markers instead of one file overwritten six times. This hook reads them
 # through `nen stop list --json`, rings each one, and clears each with
 # `nen stop clear --gate <g> [--effort <id>]`, which removes that gate's

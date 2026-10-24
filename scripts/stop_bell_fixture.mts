@@ -5,7 +5,8 @@
 // Hermetic and offline: a throwaway git repository, and stub `nen`, `osascript`, `afplay` and `uname`
 // first on PATH (the stubs are fixture data; `uname` answers Darwin so rung 2 is osascript on every
 // host). The stub nen answers `stop list --json` from a canned file and logs every `stop clear` argv,
-// so the hook's own parsing and its clear calls are what is asserted, never nen's behaviour.
+// so the hook's own parsing and its clear calls are what is asserted, never nen's behaviour. The
+// stub markers carry a placeholder contract: the hook reads only their gate, title, body and effort.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
@@ -35,16 +36,16 @@ function repo(): string {
   assert.equal(spawnSync('git', ['init', '-q', dir]).status, 0);
   return dir;
 }
-function mark(dir: string, effort: string, gate: string, title: string | null): string {
+function writeMarker(dir: string, effort: string, gate: string, title: string | null): string {
   const folder = join(dir, '.git/.nen/marks', effort === '' ? '_' : encodeURIComponent(effort));
   mkdirSync(folder, { recursive: true });
   const path = join(folder, `${gate}.json`);
-  writeFileSync(path, `${JSON.stringify({ contract: 'nen.stop.mark/v0.3', who: 'kurapika', gate, notified: false, at: '2026-10-23T00:00:00.000Z', title, body: null, reportUrl: null, options: null, proposedIssue: null, effort: effort === '' ? null : effort }, null, 2)}\n`);
+  writeFileSync(path, `${JSON.stringify({ contract: 'fixture', who: 'kurapika', gate, notified: false, at: '2026-10-23T00:00:00.000Z', title, body: null, reportUrl: null, options: null, proposedIssue: null, effort: effort === '' ? null : effort }, null, 2)}\n`);
   return path;
 }
 function listing(dir: string, rows: Array<{ source: string; path: string; gate: string }>, unreadable: string[] = []): string {
   const path = join(dir, 'list.json');
-  writeFileSync(path, `${JSON.stringify({ contract: 'nen.stop.list/v0.1', dir: join(dir, '.git/.nen/marks'), marks: rows.map((r) => ({ source: r.source, path: r.path, contract: 'nen.stop.mark/v0.3', gate: r.gate, effort: null, who: 'kurapika', at: '2026-10-23T00:00:00.000Z', title: null })), unreadable: unreadable.map((p) => ({ path: p, reason: 'unparseable' })) }, null, 2)}\n`);
+  writeFileSync(path, `${JSON.stringify({ contract: 'nen.stop.list/v0.1', dir: join(dir, '.git/.nen/marks'), marks: rows.map((r) => ({ source: r.source, path: r.path, contract: 'fixture', gate: r.gate, effort: null, who: 'kurapika', at: '2026-10-23T00:00:00.000Z', title: null })), unreadable: unreadable.map((p) => ({ path: p, reason: 'unparseable' })) }, null, 2)}\n`);
   return path;
 }
 function hook(dir: string, env: Record<string, string> = {}, path = `${bin}:/usr/bin:/bin`): string[] {
@@ -60,11 +61,11 @@ try {
   // 1. Three gates, three bells, three clears: each its own gate and effort; a legacy row is bare clear.
   {
     const dir = repo();
-    const a = mark(dir, 'HA-IS-#1', 'G2', 'merge one');
-    const b = mark(dir, '', 'G4', null);
+    const a = writeMarker(dir, 'HA-IS-#1', 'G2', 'merge one');
+    const b = writeMarker(dir, '', 'G4', null);
     mkdirSync(join(dir, '.nen'));
     const single = join(dir, '.nen/last-stop.json');
-    writeFileSync(single, `${JSON.stringify({ contract: 'nen.stop.mark/v0.1', who: 'kurapika', gate: 'G5', notified: false, at: '2026-10-22T00:00:00.000Z' }, null, 2)}\n`);
+    writeFileSync(single, `${JSON.stringify({ contract: 'fixture', who: 'kurapika', gate: 'G5', notified: false, at: '2026-10-22T00:00:00.000Z' }, null, 2)}\n`);
     const calls = hook(dir, { NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G2' }, { source: 'gate', path: b, gate: 'G4' }, { source: 'legacy', path: single, gate: 'G5' }]) });
     assert.deepEqual(calls.filter((c) => c.startsWith('osascript')).map((c) => /Hatsu — (G\d): ([^ ]+ ?[^ ]*)/.exec(c)?.[1]), ['G2', 'G4', 'G5']);
     assert.ok(calls.some((c) => c.includes('Hatsu — G2: merge one')));
@@ -77,13 +78,13 @@ try {
     const dir = repo();
     const old = new Date(Date.now() - 3600_000);
     const rows = [1, 2, 3, 4, 5, 6, 7].map((n) => {
-      const path = mark(dir, `HA-IS-#${n}`, 'G2', `merge ${n}`);
+      const path = writeMarker(dir, `HA-IS-#${n}`, 'G2', `merge ${n}`);
       utimesSync(path, old, old);
       return { source: 'gate', path, gate: 'G2' };
     });
     mkdirSync(join(dir, '.nen'));
     const single = join(dir, '.nen/last-stop.json');
-    writeFileSync(single, `${JSON.stringify({ contract: 'nen.stop.mark/v0.1', who: 'kurapika', gate: 'G5', notified: false, at: '2026-10-23T00:00:00.000Z' }, null, 2)}\n`);
+    writeFileSync(single, `${JSON.stringify({ contract: 'fixture', who: 'kurapika', gate: 'G5', notified: false, at: '2026-10-23T00:00:00.000Z' }, null, 2)}\n`);
     utimesSync(single, old, old);
     const calls = hook(dir, { NEN_STUB_LIST: listing(dir, [...rows, { source: 'legacy', path: single, gate: 'G5' }], [join(dir, '.git/.nen/marks/x/G2.json')]), NEN_STUB_LIST_EXIT: '1' });
     assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 7, 'seven hour-old gates ring seven bells');
@@ -93,7 +94,7 @@ try {
   // 3. HATSU_ATTENTION=off rings nothing and still consumes.
   {
     const dir = repo();
-    const a = mark(dir, 'HA-IS-#3', 'G2', 'quiet');
+    const a = writeMarker(dir, 'HA-IS-#3', 'G2', 'quiet');
     const calls = hook(dir, { HATSU_ATTENTION: 'off', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G2' }]) });
     assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 0);
     assert.equal(calls.filter((c) => c.startsWith('clear')).length, 1);
@@ -102,7 +103,7 @@ try {
   {
     const dir = repo();
     mkdirSync(join(dir, '.nen'));
-    writeFileSync(join(dir, '.nen/last-stop.json'), `${JSON.stringify({ contract: 'nen.stop.mark/v0.2', who: 'kurapika', gate: 'G5', notified: true, at: '2026-10-23T00:00:00.000Z', title: 'one file', body: 'b', reportUrl: null, options: [], proposedIssue: null }, null, 2)}\n`);
+    writeFileSync(join(dir, '.nen/last-stop.json'), `${JSON.stringify({ contract: 'fixture', who: 'kurapika', gate: 'G5', notified: true, at: '2026-10-23T00:00:00.000Z', title: 'one file', body: 'b', reportUrl: null, options: [], proposedIssue: null }, null, 2)}\n`);
     const calls = hook(dir, { NEN_STUB_LIST_EXIT: '2' });
     assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 1);
     assert.ok(calls.some((c) => c.includes('Hatsu — G5: one file')));
@@ -113,7 +114,7 @@ try {
     const dir = repo();
     mkdirSync(join(dir, '.nen'));
     const single = join(dir, '.nen/last-stop.json');
-    writeFileSync(single, `${JSON.stringify({ contract: 'nen.stop.mark/v0.1', who: 'kurapika', gate: 'G2', notified: false, at: '2026-10-23T00:00:00.000Z' }, null, 2)}\n`);
+    writeFileSync(single, `${JSON.stringify({ contract: 'fixture', who: 'kurapika', gate: 'G2', notified: false, at: '2026-10-23T00:00:00.000Z' }, null, 2)}\n`);
     const nonen = join(temp, 'nonen');
     mkdirSync(nonen, { recursive: true });
     for (const name of ['osascript', 'afplay', 'uname']) writeFileSync(join(nonen, name), readFileSync(join(bin, name)), { mode: 0o755 });
@@ -133,7 +134,7 @@ try {
     const folder = join(dir, '.nen/marks/HA-IS-%239');
     mkdirSync(folder, { recursive: true });
     const path = join(folder, 'G4.json');
-    writeFileSync(path, `${JSON.stringify({ contract: 'nen.stop.mark/v0.3', who: 'kurapika', gate: 'G4', notified: false, at: '2026-10-23T00:00:00.000Z', title: 'plain', body: null, reportUrl: null, options: null, proposedIssue: null, effort: 'HA-IS-#9' }, null, 2)}\n`);
+    writeFileSync(path, `${JSON.stringify({ contract: 'fixture', who: 'kurapika', gate: 'G4', notified: false, at: '2026-10-23T00:00:00.000Z', title: 'plain', body: null, reportUrl: null, options: null, proposedIssue: null, effort: 'HA-IS-#9' }, null, 2)}\n`);
     const calls = hook(dir, { NEN_STUB_LIST: listing(dir, [{ source: 'gate', path, gate: 'G4' }]) });
     assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 1);
     assert.deepEqual(calls.filter((c) => c.startsWith('clear')), [`clear --gate G4 --effort HA-IS-#9 --repo ${dir}`]);

@@ -981,7 +981,7 @@ page that names a home, `idle.budget` included):
 | Record | nen 0.26 (the pin) | nen 0.27 on |
 |---|---|---|
 | phases, usage, sessions, the direct record | `<checkout>/.nen/{phases,usage,sessions,direct}/` — one per worktree | `<git common dir>/.nen/{phases,usage,sessions,direct}/` — one per repository, shared by every worktree, untouched by `git worktree remove` and `git clean`; an older checkout copy is read in place and moved by the next write, through 0.28 |
-| stop markers | `<checkout>/.nen/last-stop.json` (`nen.stop.mark/v0.1`/`v0.2`), one, overwritten | the same file **and**, with `--effort`, `<git common dir>/.nen/marks/<effort>/<gate>.json` (`v0.3`), one per gate and effort; outside git `<checkout>/.nen/marks/` |
+| stop markers | `<checkout>/.nen/last-stop.json` (marker contract `v0.1`/`v0.2`), one, overwritten | the same file **and**, with `--effort`, `<git common dir>/.nen/marks/<effort>/<gate>.json` (`v0.3`), one per gate and effort; outside git `<checkout>/.nen/marks/` |
 | run manifests, the loop and stop-answer records | `<git common dir>/.nen/` already | the same |
 
 A record named `<home>/…` below is that row's directory for the nen that runs. **Many efforts, one home**
