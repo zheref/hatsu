@@ -1063,18 +1063,17 @@ during this proof, so SC-1's count over a real run is not taken here.
 **The permission list**, live against the maintainer's own settings for this checkout (read only):
 
 ```text
-$ node scripts/idle_permissions_check.mts --repo /Users/zheref/Code/Agents/hatsu
+$ node scripts/idle_permissions_check.mts --repo /Users/zheref/Code/Agents/hatsu   # re-run 2026-10-23 after the review: one exemplar per nen verb family
 not-pre-allowed: git -C <core> fetch origin  (futon § 4 (worktrees from core))
 not-pre-allowed: git -C <core> worktree add --detach <path> <ref>  (futon § 4, WORKFLOW § Where worktrees live)
 not-pre-allowed: git reset --soft <merge-base>  (aka (squash the unpushed))
 not-pre-allowed: git push -u origin <branch>  (aka)
 not-pre-allowed: node <hatsu>/scripts/futon_effort_record.mts start --run <run>  (futon § 12)
-not-pre-allowed: node <hatsu>/scripts/pr_criteria_check.mts --pr <owner/name#N>  (en)
 not-pre-allowed: node <hatsu>/scripts/gh_api_read.mts actions-caches <owner/name>  (cleanup)
 not-pre-allowed: sh <hatsu>/scripts/prose_size_check.sh  (kokusen (on a Hatsu checkout))
 not-pre-allowed: <hatsu>/scripts/bell_notify.sh --title <t> --message <m>  (jutaisho § 5 (called directly, not through bash))
-idle-permissions: 9/18 pre-allowed; 9 would prompt — under --idle each is a harness refusal (row harness-denied)
+idle-permissions: 37/45 pre-allowed; 8 would prompt — under --idle each is a harness refusal (row harness-denied)
 ```
 
-The rendered Claude Code pack (`scripts/permissions_pack.sh --surface claude-code --render`) misses the same nine.
+The rendered Claude Code pack (`scripts/permissions_pack.sh --surface claude-code --render`) missed the same commands at the first run.
 Whether to grant any is the maintainer's (a permission setting); this list only says what an idle run would meet.

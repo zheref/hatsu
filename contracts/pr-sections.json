@@ -71,7 +71,7 @@
       "level": 2,
       "template": "templates/pr-body/verify.md",
       "content": true,
-      "$comment": "Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. Every kind adds one Criterion/Coverage/Evidence row per AC id of each closing issue (HR-11; scripts/pr_criteria_check.mts). content: an empty heading fails body-check through the derived verify-content requirement."
+      "$comment": "Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. Every kind adds one Criterion/Coverage/Evidence row per AC id of each closing issue (HR-11; judged by nen pr converge). content: an empty heading fails body-check through the derived verify-content requirement."
     },
     {
       "id": "evidence",

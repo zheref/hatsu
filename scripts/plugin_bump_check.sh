@@ -206,11 +206,6 @@ fi
 #                     — the GH_TOKEN wrapper and ten § 2c's login-shell probe
 #                       (zheref/hatsu#218), run by skill blocks from
 #                       `$hatsu_root/scripts/`.
-#   scripts/pr_criteria_check.mts
-#                     — the acceptance-criterion coverage guard (HR-11), run by
-#                       shibari § 4, en §§ 4–5 and rikugan § 3 from
-#                       `$hatsu_root/scripts/`; a stale copy passes a PR a fixed
-#                       one refuses.
 #   scripts/pr_body_delivery_check.sh, scripts/pr_delivery.ts
 #                     — shibari § 3–4's Delivery block: the guard and the engine it
 #                       runs from beside itself, with templates/pr-delivery.md,
@@ -358,10 +353,10 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/pr_development_link_check.sh'
   'scripts/gh_token_env.sh'
   'scripts/nen_reach_probe.sh'
-  'scripts/pr_criteria_check.mts'
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
   'scripts/dependency_audit_resolve.mts'
+  'scripts/shell_coverage.mts'
   'scripts/idle_permissions_check.mts'
   'scripts/ledger_findings_prepare.mts'
   '.mcp.json'

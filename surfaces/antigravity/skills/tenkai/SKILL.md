@@ -694,7 +694,7 @@ differ (the `commits` trailer lists, `futon.advanceGo`); or structural and the r
 tables in WORKFLOW § 2, so the two statements of one default cannot drift apart unnoticed.
 
 **2 · Asked, by domain.** Work the rows in the catalogue's domain order (`contracts/config-catalogue.json` → `domains`; today development, versioning,
-testing, review, reporting, notifications, deployment, publishing, intake, port, autonomy) — through § 6c's picker rules:
+testing, review, reporting, notifications, deployment, publishing, intake, port, autonomy, ci) — through § 6c's picker rules. **The `ci` rows are [`kuchiyose`](../kuchiyose/SKILL.md)'s, never asked or filled by Tenkai**: they carry `ownedBy`, so `diagnose`, `fill` and `need` never list them, and kuchiyose writes them only after its human-gate ask (row `ci-install-rulings`), the way the intake rows are Hatsu's own (the catalogue's *LISTED BUT HATSU-OWN* note):
 
 | State | What Tenkai does |
 |---|---|

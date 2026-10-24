@@ -83,6 +83,10 @@
       "by": "en § 4"
     },
     {
+      "command": "nen pr converge <n> --target <owner/name>",
+      "by": "en §§ 4–5, shibari § 4 (criterion coverage)"
+    },
+    {
       "command": "nen pr request-reviews --target <owner/name> --pr <n>",
       "by": "en, sharingan"
     },
@@ -165,10 +169,6 @@
     {
       "command": "node <hatsu>/scripts/futon_effort_record.mts start --run <run>",
       "by": "futon § 12"
-    },
-    {
-      "command": "node <hatsu>/scripts/pr_criteria_check.mts --pr <owner/name#N>",
-      "by": "en"
     },
     {
       "command": "node <hatsu>/scripts/gh_api_read.mts actions-caches <owner/name>",

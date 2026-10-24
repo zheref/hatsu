@@ -27,6 +27,13 @@ Use [`hatsu:okiro`](okiro.md) in an empty directory: a stack picker read from Ne
 one plan and confirmation, scaffolding and adoption, then one verified initial Hatsu commit.
 `--dry-run` writes nothing; existing trees use `hatsu:tenkai`.
 
+## Adding a CI tier
+
+Once a repository is adopted, [`hatsu:kuchiyose`](kuchiyose.md) installs the Akatsuki reviewers tier
+on it as one pull request and prints the App, secret and ruleset steps that are yours. The spelling
+follows the table above: `/hatsu:kuchiyose` on Claude Code, `$hatsu:kuchiyose` on Codex, `/kuchiyose`
+on Cursor and Antigravity.
+
 ## The four surfaces, compared
 
 | | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |

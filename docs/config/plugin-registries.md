@@ -187,7 +187,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `rows.<shape>` | object | `pattern`, `prefix`, and for `success` `measure`, for `question` `resolvedPattern` | a row's shape, and what makes a list item claim to be one | the same |
 | `vagueAdjectives[]`, `technologyTerms` | word lists, patterns | as shipped | the words and patterns reported in an acceptance row | the same |
 
-**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the two nen verbs; `scripts/pr_criteria_check.mts` reads `rows.acceptance` for the `- AC-{n}:` rows a closing issue carries (HR-11). **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; the verbs take any caller's catalogue through `--requirements-from`, but Hatsu's skills pass this file.
+**Read by.** `hatsu:file` § 4, `hatsu:emperor-time` § 6, `hatsu:build` § 2 and `hatsu:futon` § 2 (kazaana through futon), always through the two nen verbs; `nen pr converge` and `nen issue criteria` read its acceptance section and prefix for the `- AC-{n}:` rows a closing issue carries (HR-11; shibari § 4, en §§ 4–5, rikugan § 3); no `coverage` block is declared, so nen's defaults apply. **Validated by.** The `issue-shape` lane. **May a consumer override it?** No; a consumer's own catalogue waits on the nen verbs.
 
 **The check, as every caller runs it** (the skills cite this paragraph rather than restate it). A filed issue is read by `--ref`; a draft by `--body-file <absolute path>`, with `--kind <kind>` where the kind is known (a body checked with no `--kind` is read against `common`):
 
