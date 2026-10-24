@@ -355,6 +355,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
   'scripts/dependency_audit_resolve.mts'
+  'scripts/shell_coverage.mts'
   '.mcp.json'
 )
 

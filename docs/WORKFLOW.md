@@ -250,6 +250,33 @@ decide whether a number is good enough. At nen `0.7.0`, `--touched --base <ref>`
 to the files the diff names and — with no `--threshold` — reads the ladder here itself, printing a `ladder:`
 line and a `band` per row (`under-minimum` / `minimum` / `recommended` / `ideal`). It still never gates.
 
+**Hatsu's own shell guards are measured on their focused lanes** (zheref/hatsu#148, UZF-19). A measured lane
+runs its `scripts/*.sh` fixture through `scripts/shell_coverage.mts`: with the pinned Bashcov, a Bash 5+
+and the three pinned gems (Bashcov, SimpleCov, simplecov-lcov) that `nen/contract.json` → `project.toolchain` declares (`nen shu tools --repo .
+--install` puts the gems in the user gem home), its `test` row writes `coverage/<lane>/lcov.info` and nen
+records the capture; `nen shu coverage --lane <lane> --repo . --touched --base origin/<base>
+--from-capture` then reads that capture and runs no fixture, and byakugan passes `--from-capture` on these
+lanes. The `coverage` row is extraction only, and it refuses a report whose `provenance.json` (the
+sha256 of the report and of every file it names) no longer matches the tree. The gems are pinned by
+version, not by checksum, in nen: its `gem-user` installer carries no digest, so each row's `gemSha256`
+(the rubygems.org SHA256 of the `.gem`) is checked by the helper against the installed cache before
+anything runs under it: a mismatch refuses, and an absent cache runs the lane uninstrumented. SimpleCov is activated at its pin before Bashcov. The
+gems install into the shared user gem home, where a plain `require` in another project also finds them;
+remove one with `gem uninstall --user-install <gem> -v <version>`. No dependency-audit row covers them
+(`contracts/scans.json` selects rows by stack, and a host toolchain is none): they are **not scanned**.
+A `nen shu tools` exit `5` on these rows alone is *unmeasured, still testable* (PROCESS § *Exit codes
+and refusals*). Without
+Bashcov the fixture still runs, once and uninstrumented, and says so, and `--from-capture` refuses for want
+of a capture: unmeasured, never a clean zero. A POSIX `sh` fixture runs under `sh` first, then
+instrumented. Only scripts the fixture executed in place are reported, so a script a fixture copies to a
+temporary root, or one another lane exercises, is `unmatched` here. A trace Bashcov cannot parse
+captures nothing; a run that also exited non-zero is re-run plain, and that run's exit decides. A lane
+whose fixture Bashcov cannot measure yet (its trace leaks into the output the fixture asserts on, or
+cannot be parsed) seats its
+`coverage` row with that reason instead. `HATSU_SHELL_COVERAGE=0` skips the
+instrumentation and `require` refuses without it. The TypeScript guards have no line-coverage tool
+declared yet (the `plugin` lane's `coverage` seat). The ladder above is unchanged.
+
 ### `launch`
 
 ```json
@@ -496,17 +523,17 @@ Hatsu's own block (ROSTER HR-21, HR-24, HR-38), read from **Hatsu's checkout onl
         "rulings": { "hidan": "off", "claudeAuth": "claude_code_oauth_token" } }
 ```
 
-**Hatsu's own block, written by `kuchiyose` at install** (zheref/hatsu#331, the skill still to land) through
+**Hatsu's own block, written by [`kuchiyose`](../claude/skills/kuchiyose/SKILL.md) at install** (zheref/hatsu#331) through
 `scripts/config_values.sh set`, one key per answer — never a hand-typed guess. It records which CI tier a
 consumer installed and the answers it was installed with; **absent means no tier is installed**. It is read
-today by `kuchiyose`; `pinned` will also be read by nen's warmup pin sweep (zheref/nen#440) and
-`tenkai`'s drift row (zheref/hatsu#331) once they land. `nen schema check` tolerates the block (it does not validate it; checked
-against nen `0.22.0` on 2026-10-19).
+today by `kuchiyose`; `pinned` is also read by nen's warmup pin sweep (`nen warmup --ci-registry`, from nen `0.26`, zheref/nen#440);
+`tenkai`'s caller drift row is owed with the provider's tier catalogue. `nen schema check` tolerates the block (it does not validate it; checked
+against nen `0.26.0` on 2026-10-23).
 
 | Key | Default | What it carries |
 |---|---|---|
 | `provider` | — | the CI provider, by its **product code** (`AK`, the Akatsuki CI repository), resolved through `nen/repos.json` (zheref/hatsu#329's ruling of 2026-10-19), so a consumer's `nen/workflow.json` carries no slug |
-| `pinned` | — | the provider's **release tag** the consumer's caller workflows reference (`uses: …@<tag>`) and the tier catalogue is read at — never a branch; a sweep for a stale pin is zheref/nen#440 |
+| `pinned` | — | the provider's **release tag** the consumer's caller workflows reference (`uses: …@<tag>`) and the tier catalogue is read at — never a branch; `nen warmup --ci-registry` sweeps it against the provider registry's `latest` (nen `0.26`, zheref/nen#440) |
 | `tiers[]` | `[]` | the installed tiers, by catalogue key — `reviewers` today, the lanes Sasuke, Kakuzu, Konan and Hidan; a later tier appears in the catalogue with no skill change |
 | `rulings{}` | `{}` | the per-consumer answers the catalogue's `rulings[]` lists, each asked at install through the picker: `hidan` (`on` \| `off` — *"Per consumer at install"*) and `claudeAuth` (`claude_code_oauth_token`, starred, \| `anthropic_api_key` — *"Ask at install, OAuth starred"*; the credential **type**, never its value, which lives only in the consumer's Actions secret store); the maintainer's rulings of 2026-10-19, [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-19 — the CI reviewers tier* |
 
@@ -2082,6 +2109,12 @@ it never changes what this derivation selects.
 **Warm-up verifies adoption; it never performs it.** `ten` § 0a is the split: the `nen`
 dependency gate is per-session, adoption is once. An outstanding adoption item is reported and is
 never a halt — § 3's halt is for a failed bootstrap and nothing else.
+
+**A CI tier is the step after adoption.** [`kuchiyose`](../claude/skills/kuchiyose/SKILL.md) installs one
+tier of the Akatsuki roster (the reviewers today) on an adopted repository: `tenkai_adopt.sh diagnose`
+must read clean first, the tier catalogue is read at the provider's pinned tag, the caller, the lanes'
+`nen/gates.json` entries and the `ci` block (§ 2) land as one PR at the consumer's gate, and the App,
+secret and ruleset steps are printed for the maintainer, never performed ([`docs/using/kuchiyose.md`](using/kuchiyose.md)).
 
 
 ## Focused selection adoption and reviewer identities

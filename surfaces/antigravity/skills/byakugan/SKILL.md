@@ -163,7 +163,12 @@ there; this skill does not fill the gap by becoming the test runner.
 git -C <path> fetch origin <base>
 nen shu coverage --repo <path> [--lane <lane>] --touched --base origin/<base> --dry-run   # once per repo per session
 nen shu coverage --repo <path> [--lane <lane>] --touched --base origin/<base>
+nen shu coverage --repo <path> --lane <lane> --touched --base origin/<base> --from-capture   # the lane's test row records a capture
 ```
+
+**Where the lane's `test` row records a capture, add `--from-capture`** (Hatsu's focused shell lanes,
+`docs/WORKFLOW.md` § `coverage`): nen proves the report is this tree's and exits `8` when it is not.
+Without the flag a stale report is refused only by the row itself.
 
 The declared `coverage` row must only extract or parse the instrumented result § 3 produced; it
 must not invoke a test runner, delete the captured result, or create a new one. Match the result's
