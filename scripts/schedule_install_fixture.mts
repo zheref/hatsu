@@ -37,18 +37,37 @@ try {
     assert.match(r.stdout, /hatsu:rikugan for zheref\/hatsu as register/);
     assert.doesNotMatch(r.stdout, /<(hatsu|spec|family|repo)>/);
     assert.equal(r.stderr, '');
-    console.log('ok    live contract: four rows printed, every placeholder filled (exit 0)');
+    assert.match(r.stdout, /picked C "Your own machine"/);
+    assert.match(r.stdout, /reading \(not part of the record\)/);
+    assert.match(r.stdout, /ONE catch-up run for the latest time missed in the last 7 days/);
+    assert.match(r.stdout, /The first Run now of drift-pass is a LIVE run/);
+    assert.match(r.stdout, /~\/\.claude\/settings\.json apply to these sessions too/);
+    const never = live.permissions.neverAlwaysAllow.join(' · ');
+    assert.equal(r.stdout.split(`Never always:    ${never}`).length - 1, 3, 'the never list is printed under each of the three tasks');
+    assert.match(r.stdout, /=== drift-pass ===[\s\S]*?Worktree: {8}on/);
+    console.log('ok    live contract: four rows printed, every placeholder filled, ruling, catch-up window and permission lists said (exit 0)');
   }
   {
     const r = run(...filled, '--json');
     assert.equal(r.status, 0, r.stderr);
     const j = JSON.parse(r.stdout);
     assert.equal(j.registered, false);
-    assert.equal(j.ruling, 'R-2026-10-23-21');
+    assert.equal(j.ruling.id, 'R-2026-10-23-21');
+    assert.equal(j.ruling.pick, 'C');
     const drift = j.rows.find((x: { id: string }) => x.id === 'drift-pass');
     assert.match(drift.skillMd, /^---\nname: hatsu-drift-pass\ndescription: ".+"\n---\n\n/);
     assert.deepEqual(j.unfilled, []);
     console.log('ok    --json: one document, registered false, SKILL.md frontmatter name and description');
+  }
+  // --- the page's table is the contract's, byte for byte ---
+  {
+    const r = run('--table');
+    assert.equal(r.status, 0, r.stderr);
+    const page = readFileSync(join(repo, 'docs/config/schedule.md'), 'utf8');
+    const m = page.match(/<!-- schedule-table:begin[^>]*-->\n([\s\S]*?)<!-- schedule-table:end -->/);
+    assert.ok(m, 'docs/config/schedule.md carries the schedule-table markers');
+    assert.equal(m![1], r.stdout, 'docs/config/schedule.md\'s row table differs from contracts/schedule.json: paste `node scripts/schedule_install.mts --table`');
+    console.log('ok    --table: docs/config/schedule.md\'s row table equals the one rendered from the contract');
   }
   // --- unfilled placeholders are named, never silent ---
   {
@@ -93,6 +112,18 @@ try {
   expectWiring(/has no workflow/, 'a ci row with no workflow', '--root', fake('ci', mutate((c) => { delete c.rows[3].workflow; })));
   expectWiring(/not desktop-task or ci/, 'an unknown row kind', '--root', fake('kind', mutate((c) => { c.rows[0].kind = 'cron'; })));
   expectWiring(/prompt is not a non-empty list/, 'an empty prompt', '--root', fake('prompt', mutate((c) => { c.rows[0].prompt = []; })));
+  expectWiring(/uses <owner>, declared in neither/, 'an undeclared <token> in a prompt', '--root', fake('token', mutate((c) => { c.rows[0].prompt.push('Report to <owner>.'); })));
+  expectWiring(/alwaysAllow names git push/, 'an always-allow entry the never list refuses', '--root', fake('allow', mutate((c) => { c.rows[0].alwaysAllow.push('git push'); })));
+  expectWiring(/ruling\.pick D is none of its options/, 'a ruling pick that is no option', '--root', fake('pick', mutate((c) => { c.ruling.pick = 'D'; })));
+  expectWiring(/needs a flag/, 'a placeholder with no flag', '--root', fake('ph', mutate((c) => { c.placeholders['<extra>'] = { means: 'x' }; })));
+  {
+    // A placeholder the contract adds is filled from its flag or named, never printed silently.
+    const root = fake('ph5', mutate((c) => { c.placeholders['<team>'] = { flag: '--family', means: 'x' }; c.rows[0].prompt.push('Tell <team>.'); }));
+    const r = run('--root', root);
+    assert.equal(r.status, 1, r.stderr);
+    assert.match(r.stderr, /unfilled: <team> \(drift-pass\) -- pass --family/);
+    console.log('ok    placeholders: a fifth contract placeholder is read from the contract and named when unfilled');
+  }
   // --- invoked through a symlinked directory, the printer still runs ---
   {
     const via = join(scratch, 'via-link');
