@@ -340,9 +340,12 @@ function resolveTarget(ctx: Ctx, from: string, target: string): { rel: string | 
 }
 
 // A ROSTER row rendered from a ruling record (scripts/ruling_record.mts render) carries the question,
-// the options and the answer as the record holds them, never retyped (ROSTER § The ruling template,
-// step 3); those three cells are the record's text, so a bare #N there is the record's, exempt from
-// PL-05. The HR id cell, the status and what it settles are the lead's words and stay linted.
+// the options and the answer from the record, never retyped (ROSTER § The ruling template, step 3).
+// Render's reference coding is the primary PL-05 mechanism there: it codes a `<repository> #N` the
+// registry resolves in the question, the options and the picked label. This exemption covers only what
+// render cannot code, the maintainer's typed words and a #N with no resolvable repository before it, so
+// a bare #N left in those three cells is the record's. The HR id cell, the status and what it settles
+// are the lead's words and stay linted.
 const RENDERED_ROW = /^\| <a id="hr-\d+"><\/a>\*\*HR-\d+\*\* · \[[^\]]*\]\(ruling-records\/[^)]*\.json\) \|/;
 function inRenderedRecord(p: Para, off: number): boolean {
   if (p.kind !== 'table' || !RENDERED_ROW.test(p.text)) return false;
