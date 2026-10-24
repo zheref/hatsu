@@ -414,6 +414,17 @@ try {
     put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [...rows, ...rows] }));
     expectWiring(root, /repeats the row/, 'baseline: a split row is a repeated key, refused', '--base-baseline', trusted);
     console.log('ok    baseline: growth is summed per key');
+    // The shrink is counted (zheref/hatsu#448, AC-4): a row the trusted base carried and this baseline dropped.
+    writeFileSync(trusted, JSON.stringify({ findings: rows }));
+    put(root, 'claude/skills/plant/SKILL.md', '# P\n\nFixed in zheref/hatsu#154 last week.\n');
+    put(root, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n');
+    const shrunk = lint(root, '--base-baseline', trusted);
+    assert.equal(shrunk.status, 0, shrunk.stdout + shrunk.stderr);
+    assert.match(shrunk.stdout, / · 1 removed over .*trusted-\d+\.json · /);
+    assert.equal(JSON.parse(lint(root, '--base-baseline', trusted, '--json').stdout).removedBaseline, 1);
+    assert.equal(JSON.parse(lint(root, '--json').stdout).removedBaseline, null);
+    assert.doesNotMatch(lint(root).stdout, /removed over/);
+    console.log('ok    baseline: the rows a pull request removed are counted against the trusted base, and null with no base');
     // --base scopes findings to changed files: an unchanged file's finding is not reported.
     put(root, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n');
     put(root, 'claude/skills/plant/SKILL.md', '# P\n\nClean now.\n');
