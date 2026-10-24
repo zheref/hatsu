@@ -801,7 +801,7 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
 **Two rules ride on this matrix, and neither is optional.**
 
 - **A subagent is never given the frontier tier** (`fable`, `astra`), save one exception: `great-hiker`'s
-  prose subsession ([HR-336](ROSTER.md#hr-336)). The frontier tier is where the
+  prose subsession ([HR-336](ROSTER.md#hr-336), scoped by [HR-362](ROSTER.md#hr-362)), the only subagent ever on it. The frontier tier is where the
   maintainer's own conversation lives, and its cost lands on the maintainer's session rather than on the
   delegate's. **A subagent's tier is its scope's or role's, never its caller's** (ruling of 2026-10-13,
   zheref/hatsu#222, stated here once): `hanten` raises each reviewer at its scope's declared tier
@@ -852,7 +852,7 @@ tier rather than to a product.
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
-**The frontier tier never runs a subagent, on any surface**, save `great-hiker`'s prose subsession ([HR-336](ROSTER.md#hr-336)). Not `fable`, not `astra`, not `grok`, not `ultra`. The
+**The frontier tier never runs a subagent, on any surface**, save the one exception above. Not `fable`, not `astra`, not `grok`, not `ultra`. The
 frontier tier is where the maintainer's own conversation lives, and the cost lands on the maintainer's
 session rather than on the delegate's; below it, the first rule above holds (a subagent's tier is its
 scope's or role's, never its caller's).
