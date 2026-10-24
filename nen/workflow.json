@@ -133,8 +133,8 @@
   "monitor": {
     "maxCycles": 20,
     "pollSeconds": 300,
-    "localSlotFrees": "merged",
-    "$localSlotFrees": "fixed: merged (HR-257, Slots and stops): an effort's local slot frees at its local merge, for every futon run; read by nen loop slots --repo from nen 0.26.0, which holds an open unmerged PR's slot and prints the rule and its source (WORKFLOW section 2; docs/ab/futon.md, 2026-10-22); futon section 6 keeps ready/prompted false whenever the printed rule is not merged, and start refuses a declared idle.localSlotFrees other than merged; nen also knows stacked-open, and which ruling binds a stacked effort's slot is zheref/hatsu#425's",
+    "localSlotFrees": "ready+prompted",
+    "$localSlotFrees": "fixed: ready+prompted (the maintainer's pick on zheref/hatsu#425, R-2026-10-23-20, amending HR-257's merged and reconciling the 2026-10-13 stacked-slot rule): an effort's local slot frees once its PR is Ready and its merge prompt or Ready stop was shown, for every futon run, stacked or not; a claimed effort with no PR holds its slot until then, or until its local merge into the integration branch; read by nen loop slots --repo from nen 0.26.0 (WORKFLOW section 2 monitor); start refuses any other value here or under idle.localSlotFrees",
     "$comment": "en's izanagi cap and its poll interval. The cap is grammar, not a default: a watch loop with no cap does not run."
   },
   "profile": {
@@ -370,7 +370,7 @@
   "aiReviewers": "optional",
   "$aiReviewers": "one of: required | optional | off",
   "pr": {
-    "$sections": "available sections: delivery — Always-first ledger-rendered delivery metadata; outside the seven-reader cap. | changes — Before/After for a named consumer; Case for/Case against; what would flip the decision. | why — Source/What it showed/Why it matters now, followed by the authoring nature. | how — Mermaid structure diagram and Item/Kind/Change legend; flow diagram only when behavior flow changed; one rejected alternative. | improves — All eleven aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement. | verify — Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. | evidence — UZF-26 state/variant evidence table; only where project.evidence.globs is declared. | compat — Symbol/Before/After/Consumer action; semver verdict. | across — What another repository does differently after this merge; recorded rulings. | release-unit — Artifact/Size/Provenance; CON-22 fan-out. | rollout — Target/Flag/Rollback step. | economics — Leorio summary, then the full report in details; no new level-2 headings inside it. | checklist — Compact evidence-backed completion conditions. | issues — Canonical issue URL/scope/merging verdict table and closing lines; Development guard applies. | attribution — Final heading; exact participant ledger from docs/AGENT-ATTRIBUTION.md.",
+    "$sections": "available sections: delivery — Always-first ledger-rendered delivery metadata; outside the seven-reader cap. | changes — Before/After for a named consumer; Case for/Case against; what would flip the decision. | why — Source/What it showed/Why it matters now, followed by the authoring nature. | how — Mermaid structure diagram and Item/Kind/Change legend; flow diagram only when behavior flow changed; one rejected alternative. | improves — All eleven aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement. | verify — Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. | evidence — UZF-26 state/variant evidence table; only where project.evidence.globs is declared. | compat — Symbol/Before/After/Consumer action; semver verdict. | across — What another repository does differently after this merge; recorded rulings. | release-unit — Artifact/Size/Provenance; CON-22 fan-out. | rollout — Target/Flag/Rollback step. | economics — Leorio summary, then the full report in details; no new level-2 headings inside it. | decisions — Every pre-answered row and every default an idle run took for the maintainer (ruling of 2026-10-23); mandatory on every PR an --idle run opens. | checklist — Compact evidence-backed completion conditions. | issues — Canonical issue URL/scope/merging verdict table and closing lines; Development guard applies. | attribution — Final heading; exact participant ledger from docs/AGENT-ATTRIBUTION.md.",
     "sections": {
       "max": 7,
       "variants": {
@@ -571,8 +571,8 @@
   },
   "idle": {
     "decisions": {
-      "harness-attribution-switch": "hold",
-      "host-nen-link": "hold",
+      "harness-attribution-switch": "default",
+      "host-nen-link": "default",
       "missing-consumer-declaration": "default",
       "missing-argument": "default",
       "missing-configuration": "default",
@@ -583,13 +583,13 @@
       "intake-challenger": "hold",
       "port-siblings": "hold",
       "wrap-up": "default",
-      "cleanup-plan": "hold",
+      "cleanup-plan": "default",
       "publish-offer": "refuse",
-      "spec-capture-scope": "hold",
+      "spec-capture-scope": "default",
       "spec-slice": "hold",
       "spec-clarify": "hold",
       "spec-dispatch": "hold",
-      "spec-converge-filing": "hold"
+      "spec-converge-filing": "default"
     },
     "terminal": "ready-at-prompt-or-integration",
     "$terminal": "one of: ready-at-prompt-or-integration | ready-at-prompt",

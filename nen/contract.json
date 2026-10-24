@@ -129,7 +129,7 @@
       "futon-effort-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "Focused fixture for local Futon ownership metadata: a run starts before PR creation, then binds the typed selector, issue, PR, non-main base and pinned head outside the PR-controlled tree."
+        "$comment": "Focused fixture for local Futon ownership metadata: a run starts before PR creation, opening nen's run manifest through `nen run start` with the same id, then binds the typed selector, issue, PR, non-main base and pinned head outside the PR-controlled tree."
       },
       "readiness-json-guard": {
         "stack": "claude-code-plugin",
@@ -304,7 +304,7 @@
       "issue-shape": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/issue_body_check.mts, the issue-shape guard over contracts/issue-sections.json and templates/issue-body/ (HR-4; SDD plan piece P6), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: every kind's template carries exactly its catalogue headings and fails unfilled; required, duplicate, empty and optional headings; AC, SC, AS and OQ row shapes and numbering; vague adjectives and technology terms in acceptance rows; open and resolved question counts; hostile text sanitised; exit codes 0, 1, 2, 3 and 5; and --ref resolved through a stub nen and read through scripts/gh_token_env.sh against a stub gh. Run it only as `nen shu test --lane issue-shape --repo <hatsu>` when the script, its fixture, the catalogue or a template changes. It is not a general suite."
+        "$comment": "The focused lane for the issue section catalogue (HR-4; SDD plan piece P6): contracts/issue-sections.json and templates/issue-body/ agree, and nen's own readers read Hatsu's catalogue as the skills call them, following the one-lane-per-executable-guard pattern. scripts/issue_sections_fixture.mts runs the nen first on PATH (the verified binary in unit-tests.yml) offline over --body-file bodies only: every kind's template at its declared path carrying exactly its catalogue headings and failing `nen issue body-check --kind <kind>` with every section empty; a filled body passing for its kind and against common; a missing required section a miss; `nen issue questions` counting open and resolved rows with the gate read; a malformed catalogue exit 2. The interim scripts/issue_body_check.mts it once tested is retired (zheref/hatsu#423). Run it only as `nen shu test --lane issue-shape --repo <hatsu>` when the catalogue, a template or the fixture changes. It is not a general suite."
       },
       "criteria": {
         "stack": "claude-code-plugin",
@@ -360,7 +360,7 @@
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
         },
         "coverage": {
-          "unsupported": "The plugin lane has no aggregate test run, so it has nothing to capture. The executable shell guards under scripts/ are measured on their focused fixture lanes: a measured lane's test row runs its fixture under the pinned Bashcov and writes coverage/<lane>/lcov.info, read with `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148); a lane Bashcov cannot measure yet seats its own coverage row with the reason. The TypeScript guards (scripts/*.ts and *.mts, among them config_values.ts, clause_id_guard, issue_body_check, prose_ambiguity_check and futon_effort_record) have no node line-coverage tool declared yet: an unmeasured gap, never a clean zero, and byakugan reports those files as `not measurable here`. Neither gap moves the 80/85/90 ladder in nen/workflow.json. Gyo is linting."
+          "unsupported": "The plugin lane has no aggregate test run, so it has nothing to capture. The executable shell guards under scripts/ are measured on their focused fixture lanes: a measured lane's test row runs its fixture under the pinned Bashcov and writes coverage/<lane>/lcov.info, read with `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148); a lane Bashcov cannot measure yet seats its own coverage row with the reason. The TypeScript guards (scripts/*.ts and *.mts, among them config_values.ts, clause_id_guard, prose_ambiguity_check and futon_effort_record) have no node line-coverage tool declared yet: an unmeasured gap, never a clean zero, and byakugan reports those files as `not measurable here`. Neither gap moves the 80/85/90 ladder in nen/workflow.json. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
@@ -522,7 +522,7 @@
             "node",
             "scripts/futon_effort_record_fixture.mts"
           ],
-          "$comment": "Hermetic Futon ownership and run-manifest fixture: verifies bind, refresh and missing/stale/default-branch/selector refusals, and the manifest (idle start with --idle stripped, append whatever the base, park, status), in a scratch Git common directory. Run when the record script, Futon binding, or En's merge guard changes."
+          "$comment": "Hermetic Futon ownership fixture: verifies bind, refresh and missing/stale/default-branch/selector refusals; start opening nen's manifest (a stub nen) with the same id and the idle answers, --idle read by nen and never stripped, the --dry-run modifier beside --idle (zheref/hatsu#424), unknown and doubled modifiers refused, the retired append/park/status verbs, and the idle floor, in a scratch Git common directory. Run when the record script, Futon binding, or En's merge guard changes."
         }
       },
       "readiness-json-guard": {
@@ -1387,9 +1387,9 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
-            "scripts/issue_body_check_fixture.mts"
+            "scripts/issue_sections_fixture.mts"
           ],
-          "$comment": "The issue-shape fixture through the shared output guard. Requires node and bash; no gh or nen (the fixture stubs both) and no network."
+          "$comment": "The issue-shape fixture through the shared output guard. Requires node, bash and nen 0.26.0 or later on PATH (or NEN); no gh and no network."
         }
       },
       "criteria": {
