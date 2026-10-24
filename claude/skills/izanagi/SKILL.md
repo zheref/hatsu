@@ -89,7 +89,7 @@ Exit `2` is the trigger to **ask for the cap**, the rest of the line intact, and
 izanagi` on the answer; nothing iterates until it parses. This is the one case that makes the whole
 grammar mean something, and it is `nen`'s to enforce now, not the agent's to remember.
 
-**The cap is the maintainer's word, typed, never picked** (`missing-maintainer-choice`;
+**The cap is the maintainer's word, typed, never picked** (`missing-maintainer-choice`, recorded through `nen stop answer`;
 [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *The maintainer's word is never derived*): asked for as
 free text, never derived, defaulted or offered as a picker option — not `nen`'s placeholder, not a
 value "that worked last time". Any other missing argument or configuration item is asked for and set

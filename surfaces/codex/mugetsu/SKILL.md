@@ -325,7 +325,7 @@ live `CON-36` chore, an uncollated `changelog.d/`, an unreconciled `CON-33(c)`. 
 as printed — the verb reports every row and never stops at the first — and stop with
 [`$jutaisho`](../jutaisho/SKILL.md) § 4's rendering: `nen stop --who kurapika --gate G3
 <efforts.md>`, the report link, the options with ⭐ on the recommended decision — the report linked, never an option (Crazy Slots), the question through the surface's
-own picker. **A held release is honoured as printed**; `getsuga` § 2 carries the `RELEASE_HOLD`
+own picker, its answer recorded through `nen stop answer --gate G3` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4). **A held release is honoured as printed**; `getsuga` § 2 carries the `RELEASE_HOLD`
 truthiness rules and this skill does not restate them.
 
 ## 5. The publication — and the flag that is not there

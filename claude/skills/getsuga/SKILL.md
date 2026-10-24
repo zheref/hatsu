@@ -542,6 +542,9 @@ is that repository's own configuration:
 nen stop --who kurapika --gate <G4|G2> <efforts.md>
 ```
 
+The maintainer's answer is recorded through `nen stop answer --gate <G4|G2>` before the run acts on it
+([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Every picker answer is recorded*).
+
 **`--gate` is not a constant here.** A hard-coded `G4` prints a canon-repository banner over a
 consumer's release proposal, which is the misclassification the 2026-09-18 ruling exists to remove
 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-18 — G4 is the repository's role,

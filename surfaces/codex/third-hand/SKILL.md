@@ -251,6 +251,9 @@ in the reply** when that picker exists.
 Prompt: Netero folded this sitting's process findings into N proposal(s). Pick which to file.
 Unselected are not filed. File none ends the session with no new issue.
 
+The answer is recorded before anything is filed — `nen stop answer --record <effort> --who netero …`,
+every proposal one `--option` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Every picker answer is recorded*).
+
 Options: one per proposal, label `[Hatsu|Nen] <title> — <why>`, plus **`none`**: *File none —
 session over without new issues*.
 

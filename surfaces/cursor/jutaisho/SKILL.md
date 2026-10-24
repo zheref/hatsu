@@ -18,7 +18,7 @@ is a bell nobody hears.**
 ## 0. Standalone entry
 
 Already total ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4): cold entry adds
-only **P1**, and says **whether anything happened** — over a quiet checkout, nothing to announce.
+only **P1**, and says **whether anything happened**.
 **Terminal**: a gate's successor is the maintainer's decision, named in the options, never prompted.
 
 ## 1. Invocation
@@ -49,7 +49,7 @@ this `jutaisho at <gate>`**, with § 4's four parts. An ask from an `ask-once-pe
 **Rung 1 is a line in a transcript the maintainer is already reading; rungs 2–3 take over the
 machine**, so an ordinary turn rings 2–3 only where a repository says so by name. **"A turn
 that needs nothing" is narrow** — no `at <gate>` **and** nothing to say, no commit, no report
-rendered, no step refused — and that turn rings *nothing at all*, not even rung 1.
+rendered, no step refused — and that turn rings *nothing at all*.
 
 ## 2. The three rungs — `nen/workflow.json` → `notifications`
 
@@ -92,7 +92,7 @@ hand-written** ([`PROCESS.md`](../../../docs/PROCESS.md) § *History*). `sound` 
 `nen/workflow.json` — and `nen stop show` validates a marker while `nen stop clear` consumes one where
 there is no hook.
 
-- **`.nen/` is git-ignored**, and the marker is the only file this skill writes anywhere.
+- **`.nen/` is git-ignored**; the marker and § 4's answer record are all this skill writes.
 - **A marker older than 10 minutes is stale**, decided from **mtime** and removed without firing —
   never queued or replayed — so **it is written whole, in the turn it describes**, never amended.
 - **`who` is the persona**, never the name the surface introduced itself as.
@@ -136,8 +136,8 @@ into `main`, the run's own included: its link and the `gh pr merge` line as a `b
 **Where the parts go (ruling of 2026-10-17, zheref/hatsu#294).** Parts 1–3 are the **chat message**: banner and table, link, the lettered options with each command
 as its own `bash` block (CON-33(b)). The **picker** carries part 4 alone: a header of at most 12 characters (the
 gate id), one question of at most two sentences, three or four options (`port-siblings` and kamui's start picker page in fours, under three plus *none of them*), labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
-in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form. A free-text answer is the maintainer's word: an answer
-re-enters the run as that picker call; a question back is answered and re-asked once, a new call (WORKFLOW § 4 step 2). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
+in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form. A free-text answer is the maintainer's word (HR-173, R-2026-10-23-08); recording every answer and the one re-ask
+are WORKFLOW § 4 *Every picker answer is recorded* (`nen stop answer`). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
 
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
@@ -154,7 +154,7 @@ file is placed), and **the stop still stands** whichever path rang, § 4's four 
 
 ## Authority
 
-**Permitted:** write `.nen/last-stop.json` through `nen stop --mark`; run `nen stop`; fire the
+**Permitted:** write `.nen/last-stop.json` through `nen stop --mark`; run `nen stop` and `nen stop answer`; fire the
 workflow's declared rungs; ask through the surface's option picker. **Not permitted:** any git or
 GitHub write, any label, merge or push — jutaisho ends a turn, it never advances one — and **no
 delegation** ([`PROCESS.md`](../../../docs/PROCESS.md) § *Authority every phase shares*).

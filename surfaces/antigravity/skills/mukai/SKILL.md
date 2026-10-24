@@ -235,7 +235,8 @@ make; a repository that cannot honestly reach `minimum` is a G5, not a smaller n
 
 **A stop is all four of `jutaisho` § 4's parts or it is not a stop**: the `nen stop` banner, the
 report link, lettered options with a ⭐ on the recommended decision — the report linked, never an option (Crazy Slots), and the question through the surface's own
-native option picker (`AskUserQuestion` on Claude Code). A stop typed as prose in the middle of a
+native option picker (`AskUserQuestion` on Claude Code), its answer recorded through `nen stop answer`
+([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Every picker answer is recorded*). A stop typed as prose in the middle of a
 reply is one the maintainer can scroll past, and one they scroll past is one that did not happen.
 
 ## 5. The parameters — read by the steps, named here

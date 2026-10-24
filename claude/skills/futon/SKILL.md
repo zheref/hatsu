@@ -8,7 +8,7 @@ description: Work one severity band or exact backlog label into delivery PRs, th
 # Futon — one selector, from open issues to PRs with an actor behind them
 
 **No fixed mode**: the mode [`build`](../build/SKILL.md) § 3 confirms per issue while authoring,
-**Manipulator** while the PR is driven to its gate. Name it; never blend two.
+**Manipulator** while the PR is driven to its gate. Name it; never blend.
 
 Per issue, futon is [`build`](../build/SKILL.md) → [`tensho`](../tensho/SKILL.md) →
 [`en`](../en/SKILL.md), cut short by an integration branch (§ 5).
@@ -82,7 +82,7 @@ nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/
 No stage family in the target's `nen/labels.json` (`nen stage check` exit `2`) → the label is
 skipped, said (WORKFLOW § *A target repository with no delivery-stage taxonomy*, this label only); an absent
 or unloadable `nen/labels.json` is a G5, gap named. **Then Kurapika builds it, this session, in the mode just confirmed**, through the verbs the target
-declares as `build` § 5 lays them out, in the effort's own worktree, exits read per kurapika.md § *The `shu` verbs*; work a local session cannot do is a **G5**, gap named.
+declares as `build` § 5 lays them out, in the effort's own worktree, exits per kurapika.md § *The `shu` verbs*; work a local session cannot do is a **G5**, gap named.
 
 ## 5. Done is merged into `branch.base`
 
@@ -119,13 +119,13 @@ is the publish call** for each effort's branch (aka § 0, HR-20). **Futon may no
 
 **No `then` clause, nothing after the run** (§ 11). The clause starts at the first whole-word `then` after `@`; a bare `then` is exit `2`.
 
-**Futon's own job at the clause is exactly one gate**: nothing after `then` runs until every PR this
+**Futon's one job at the clause is a gate**: nothing after `then` runs until every PR this
 run authored — the manifest's `status`, never memory; `manifest: absent` holds it — is **merged into `branch.base`** (§ 5) — an integration-branch effort once the
 integration PR merges. Till then hold it, keep each merge prompt standing on the register desk (mugetsu § 3), every
 PR still short named with its verdict. A legacy-CI PR does not hold it. Then, as `nen parse futon`
 classified it:
 
-- **`then tag` / `then tag+fanout`** (`terminal`) go to [`getsuga`](../getsuga/SKILL.md). `then tag` hands off with **fan-out skipped, its issues left open** — say so: consumers stay on the previous tag;
+- **`then tag` / `then tag+fanout`** (`terminal`) go to [`getsuga`](../getsuga/SKILL.md). `then tag` hands off with **fan-out skipped, its issues left open** — said: consumers stay on the previous tag;
   `tag+fanout` adds it. **A refused tag capability HALTS, the exact command handed over**; never
   route around it; this run never writes `latest` (`CON-14`).
 - **`then <skill>[@<target>][+…]`** (`kind: skills`) run **in order**, each resolved against the
@@ -145,8 +145,7 @@ classified it:
 
 ## 9. Reporting — the register, every cycle
 
-**Progress turns carry no banner.** The board is the **Rikugan** register,
-rendered via [`backlog-board`](../backlog-board/SKILL.md) § 3: rows are the scope's issues and their
+**Progress turns carry no banner.** The board is the **Rikugan** register, via [`backlog-board`](../backlog-board/SKILL.md) § 3: rows are the scope's issues and their
 PRs, the desk this cycle's asks. State every cycle the briefed and blocked items,
 triage in and out, and every label with its time; notations per
 PROCESS § *Publishing a report*. A local row's verdict is
@@ -155,7 +154,7 @@ PROCESS § *Publishing a report*. A local row's verdict is
 **Every gate stop is [`jutaisho`](../jutaisho/SKILL.md) § 4's full four parts**, the register as its
 report: **G4/G2** at en § 5's merge prompt for every PR into `branch.base`,
 **G5** for a build Kurapika cannot do, a stall past the escalation ladder, or a briefed policy call.
-**A needed maintainer never stops the whole run** — notify, record, keep advancing.
+**A needed maintainer never stops the run** — notify, record, keep advancing.
 
 ## 10. Ending the run
 
@@ -164,7 +163,7 @@ stranded on the integration branch** (a closed integration PR ends the run, en �
 a decision, or blocked with its blocker named — **and the `then` clause, if typed, has run or is
 held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
 
-Say the run has ended; the delegation lapses. The final report is [`hatsu:rikugan`](../rikugan/SKILL.md)
+Say the run ended; the delegation lapses. The final report is [`hatsu:rikugan`](../rikugan/SKILL.md)
 over this run's scope — its § 2 futon row, the `then` outcome included (§ 8's one render); `final` only if every PR merged, else `register` with the asks. Then the
 **wrap-up picker** ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`). **Futon never resumes itself**; re-invoke it.
 
@@ -176,7 +175,7 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
   itself** — the cut is getsuga's, publication mugetsu's; **never cuts without a typed `then`**.
 - **Never claims a CI author for a PR it opened**, and never abandons its own at PR-open (§ 5).
 - **Never claims readiness `nen pr ready` + `nen pr body-check` did not give**, quoted.
-- **Never exceeds 2 CI-plane objects or 7 local worktrees**; never lets two efforts share a file concurrently.
+- **Never exceeds 2 CI-plane objects or 7 local worktrees**; never lets two efforts share a file at once.
 - **Never widens its selector**: a bare severity never carries an implied `+`, and **a label is never
   expanded**.
 - **Never applies a G1 mode label.**
@@ -188,6 +187,6 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 
 ## 12. `--idle` — the unattended profile (HR-5)
 
-WORKFLOW § *Idle batches* is the protocol. Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
+WORKFLOW § *Idle batches* is the protocol, pre-answers recorded (`nen stop answer`). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
 *Residue: PROCESS § Residue; `docs/ab/futon.md`.*

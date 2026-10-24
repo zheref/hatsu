@@ -707,7 +707,7 @@ testing, review, reporting, notifications, deployment, publishing, intake, port,
 | `set`, `default-unwritten`, `unannotated`, `not-applicable` | nothing to ask — `fill` settles the middle two |
 
 **A row marked `choice: maintainer` is never a picker choice** (`deploy.defaultTarget`; WORKFLOW § 4
-*The maintainer's word is never derived*, row `missing-maintainer-choice`): its candidates are listed
+*The maintainer's word is never derived*, row `missing-maintainer-choice`, recorded through `nen stop answer`): its candidates are listed
 for reference, none starred, and the answer is typed; `set` refuses a target whose `why` does not read
 non-production. **A row marked `landsByPR`** (`project.targets`) is set up and its declaration PR
 named, and the phase that asked does not resume on it — WORKFLOW § 4 step 3.

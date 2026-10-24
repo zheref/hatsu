@@ -297,7 +297,7 @@ shown in the plan's part 1 as an unfixed miss; an open `OQ-{n}` row is shown the
 reported, never read as a pass.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
-all of it. **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the
+all of it, recorded through `nen stop answer` before anything is written ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Every picker answer is recorded*). **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the
 plan is still shown** (the ruling of 2026-10-19/20, zheref/hatsu#354: `hiraishin`'s typed call is the G1 for
 its port issue, `kamui`'s sibling picker the G1 for its filings). A stand-in covers only what the plan
 shows: a close of an issue that has an open PR, or a severity change, is still asked under § 8, or left

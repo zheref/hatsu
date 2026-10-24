@@ -19,12 +19,12 @@ nen parse hanten \
   --line "<the invocation minus hatsu:hanten>"
 ```
 
-**`against <base>` names the base**; otherwise P3 supplies it (STANDALONE-ENTRY.md § 3). **`all` means every raised scope**; `for <scope>` narrows; unknown scopes (exit `2`) ask with the nine. Missing arguments or configuration are set up inline (WORKFLOW.md § 4).
+**`against <base>` names the base**; otherwise P3 supplies it (STANDALONE-ENTRY.md § 3). **`all` means every raised scope**; `for <scope>` narrows; unknown scopes (exit `2`) ask with the nine. Missing arguments or configuration: inline (WORKFLOW.md § 4).
 
 **Fail-closed cycle ledger:** `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show` refuse its absence.
 Every entry first runs `nen review ledger ensure --repo <path> --branch <branch> [--pr <n>] --json`:
-`opened` (say so) or `present`; other exits: [WORKFLOW](../../../docs/WORKFLOW.md) § *The review ledger's exits*. Exit `4` means a lost ledger: recover **in this turn**
-(WORKFLOW.md § 4). A first cycle needs the maintainer's picker confirmation for
+`opened` (say so) or `present`; other exits: [WORKFLOW](../../../docs/WORKFLOW.md) § *The review ledger's exits*. Exit `4` is a lost ledger, recovered **in this turn**
+(WORKFLOW.md § 4): a first cycle needs the picker's confirmation for
 `recover-first <same args> --confirmed-first-cycle`; prior reviews restore their counts. Unknown history is
 G5 naming the restore path; headless or refused stops. **Never fabricate review history or reset a budget.**
 
@@ -80,7 +80,7 @@ named, row `delta`, `used` never past the cap.
 ## 3. A scope whose persona has no definition is a **gap**
 
 Three checks per persona: `ls "$hatsu_root/claude/agents/<persona>.md"`, the same for
-`_review-preamble.md` (missing is a gap too), and the surface's own agent registry for `hatsu:<persona>`.
+`_review-preamble.md`, and the surface's own agent registry for `hatsu:<persona>`.
 Raisable → raise; present, not raisable → **§ 7's adapter, disclosed as weaker** (`"adapted": "…"`); **absent → a
 gap**: the persona, the raising paths, **this scope not reviewed** — never a pass, never improvised.
 **Never an examiner** (`satotz`, `lippo`, `buhara`, `bisky`; HR-23): a gap.
@@ -91,8 +91,8 @@ On Claude Code the reviewer is an Agent-tool subagent, one per scope, in paralle
 `subagent_type` `hatsu:<persona>`, `description` **`hanten · <persona> · <model alias>`**, `model`
 `models.<surface>.<tier>` for the scope's `tier` — the scope's, never the session's (WORKFLOW § `models`; absent where a persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, closing issue refs quoted, § 5's
 shape, the preamble's **absolute** path (ECONOMICS.md's too where `economics` is raised),
-*"do not request a worktree"*, and `nen: <path>` with its pin — the one `ten` § 2 bound, since **a
-subagent inherits no `PATH`** (#107) — prefixing every block. Unresolvable, the prompt names every
+*"do not request a worktree"*, and `nen: <path>` with its pin (ten § 2's; **a subagent inherits no `PATH`**, zheref/hatsu#107)
+prefixing every block. Unresolvable, the prompt names every
 Nen-owned check **unread** once; one failing at the reviewer's end is his to declare.
 
 ```bash
@@ -111,7 +111,7 @@ never piped: its exit is the gate. A moved ref or a commit in the range is a G5 
 **The guard-lane fixtures run once per head, by hanten, before the raise** (hatsu#208): for every lane
 the changed paths map to (WORKFLOW § *The local verification gate* step 3; prose-only reads `lanes: not applicable`),
 `nen shu test --repo <path> --lane <lane> --effort <branch>` inside a `nen phase` (WORKFLOW § *The
-effort's ledgers*). The brief carries per lane the head SHA, command and exit (kurapika.md's table: `0` handed over; `1` red, carried; `3`/`4` `not run`, nen's reason quoted; `2`/`5` a wiring stop). A reviewer re-runs a fixture only where its head differs from the record, naming it; a lane the brief left out that applies is run and named, or declared unread; a not-run row is never clean (§ 2a).
+effort's ledgers*). The brief carries per lane the head SHA, command and exit (kurapika.md's table: `0` handed over; `1` red, carried; `3`/`4` `not run`, nen's reason quoted; `2`/`5` a wiring stop). A reviewer re-runs a fixture only where its head differs from the record, naming it, and runs or declares unread a lane the brief left out; a not-run row is never clean (§ 2a).
 **Before reviews return**, name scopes, personas, gaps, `used`/`max` and lanes run.
 **On each return**, `nen usage record --effort <branch> --surface <s> --dial <level>
 [--model <reported-model>] --source "hanten § 4: <persona>, <readout>[; model-kind=served]"` with WORKFLOW's count
@@ -144,7 +144,7 @@ delta pass **appended** (ECONOMICS.md § 5).
 | `state` | When | `detail` carries |
 |---|---|---|
 | **`fixed`** | the change was made | what changed, where |
-| **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement; never "disagree" or "out of scope" alone; never on a `CON-`/`HR-` rule, critical by shape: fixed or deferred to a named amendment PR (HR-10) |
+| **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement, a ruling by its HR row or, before its row lands, its `R-…` record (WORKFLOW § 4); never "disagree" or "out of scope" alone; never on a `CON-`/`HR-` rule, critical by shape: fixed or deferred to a named amendment PR (HR-10) |
 | **`deferred`** | it outlives this branch | the tracked item, or its durable `pending` record. An untracked deferral is `unsettled` |
 
 **A push-back is an argument, not a veto**. Every disposition reaches the PR body through

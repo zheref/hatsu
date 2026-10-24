@@ -129,7 +129,7 @@ never a `MERGE` ask, the `aiReviewers` case getsuga § 3a's. The fan-out is gets
 **After futon's run has ended** (§ 5's gate passed, the tag cut), on kazaana's own authority under
 ruling 2026-10-13, 3 — futon § 11 governs a `then` step, not this question. Once the tag resolves on
 origin (`git ls-remote --tags`), ask **once** through the surface's own picker (row
-`publish-offer`), **only where** the target's kind (`nen repo classify`) is listed under
+`publish-offer`, recorded (`nen stop answer`, WORKFLOW § 4)), **only where** the target's kind (`nen repo classify`) is listed under
 `futon.advanceGo.mugetsu` as `nen parse futon` reads it — the target's declared key, or nen's default
 where absent (futon § 8) — else no offer, said. **Zero declared destinations: no offer, said.** One:
 *Publish `<tag>` through `$mugetsu` to `<destination>`?* — **A** publish: the answer is the go ·

@@ -105,7 +105,7 @@ nen resolves pairs); a concept no entry names is `unclassifiable`, asked in § 6
 
 Every `unmapped` or `unclassifiable` row goes in **one batch** per run through
 [`bankai-rule`](../bankai-rule/SKILL.md)'s `port-drift` (`ask-once-per-run`;
-its shape: three a picker call, further calls for more rows), each answer binding at once, recorded in
+its shape: three a picker call, further calls for more rows), each answer binding at once, recorded (`nen stop answer`, WORKFLOW § 4) and in
 the pair file and, in the same run, the spec's `## Platform decisions` and `port-ledger.md` on hiraishin's
 amendment PR, its `PR` cell filled at the build's end, sequencing per ports.md (HR-6); on the no-spec route
 the words stay in the brief (ports.md); brief re-rendered. Drift the build meets is further calls under the same row. Citations read `<pair> PT-<n>
