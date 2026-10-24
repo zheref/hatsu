@@ -985,7 +985,7 @@ PR, so `nen loop slots --from-run` counts no effort and the claims above are the
 render --variant register --template templates/rikugan.html` → `Reports/current.html`, 55,283 bytes. The desk
 titles the page *DRY: nothing authored*, carries the four `g5-decide` asks on G5, G2/G3/G1 cleared (*7 of 13
 claimable efforts would stand at their merge prompts tonight*; *publish-offer → refuse*; *no label written*), one
-row per issue with its park row, and `legendRows` with all 19 pre-answered rows and the `dry` mark.
+row per issue with its park row, and `legendRows` with all 19 pre-answered rows and the `dry` flag.
 
 **Findings.**
 
