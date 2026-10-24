@@ -19,6 +19,8 @@
 //                 base that carries no baseline is said on stdout, and growth goes unchecked
 //   --base-baseline <file>  the baseline refused if it gained a row over <file>, the trusted
 //                 base revision's copy (the CI form: the whole tree, growth refused, no git)
+//   either base   also prints the rows this baseline removed from it: `<n> removed over <base>`
+//                 in the summary line, `removedBaseline` in --json (null with no base; zheref/hatsu#448)
 //   --self-test   runs scripts/prose_ambiguity_check_fixture.mts and relays its exit
 //
 // EXITS  0 no fail finding outside the baseline and no stale baseline row;
@@ -565,12 +567,17 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
     const scoped = new Set(files);
     const stale = rows.filter((r) => !read.has(r.path) || (scoped.has(r.path) && (budget.get(keyOf(r)) ?? 0) > 0));
     const grown: BaselineRow[] = [];
+    let removed: number | null = null;
     if (baseRows) {
       const was = new Map<string, number>();
       for (const r of baseRows) was.set(keyOf(r), (was.get(keyOf(r)) ?? 0) + r.count);
       const now = new Map<string, number>();
       for (const r of rows) now.set(keyOf(r), (now.get(keyOf(r)) ?? 0) + r.count);
       for (const r of rows) if ((now.get(keyOf(r)) ?? 0) > (was.get(keyOf(r)) ?? 0)) grown.push(r);
+      // The shrink this pull request paid (zheref/hatsu#448, AC-4): every count the base carried
+      // and this baseline no longer does, summed per key -- a removed row and a lowered count alike.
+      removed = 0;
+      for (const [k, n] of was) removed += Math.max(0, n - (now.get(k) ?? 0));
     }
     const against = baseBaseline ?? baseRef;
     const fresh = fails.filter((f) => !f.inBaseline);
@@ -583,7 +590,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
         contract: 'hatsu.prose-lint.result/v0.1', root, base: baseRef ?? null, files: files.length, exit: code, counts,
         findings: findings.filter((f) => f.severity === 'fail').map(({ key: _k, ...f }) => f),
         advisory: findings.filter((f) => f.severity === 'advisory').map(({ key: _k, inBaseline: _i, ...f }) => f),
-        staleBaseline: stale, grownBaseline: grown, notice: notice.trim() || null,
+        staleBaseline: stale, grownBaseline: grown, removedBaseline: removed, notice: notice.trim() || null,
       }, null, 2) + '\n';
     } else {
       out += notice;
@@ -592,7 +599,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
       for (const r of grown) out += `baseline · ${r.rule} · ${r.path} · ${r.text} — added over ${against}; the baseline only shrinks\n`;
       if (baseRef) for (const f of findings.filter((x) => x.severity === 'advisory')) out += `advisory ${f.path}:${f.line} · ${f.rule} · ${f.text}\n`;
       const sum = c.rules.map((r) => `${r.id} ${counts[r.id].total}${r.severity === 'advisory' ? 'a' : `/${counts[r.id].baselined}b`}`).join(' · ');
-      out += `canon-lint: ${files.length} files · ${fresh.length} new · ${stale.length} stale · ${grown.length} grown · ${sum}\n`;
+      out += `canon-lint: ${files.length} files · ${fresh.length} new · ${stale.length} stale · ${grown.length} grown${removed === null ? '' : ` · ${removed} removed over ${against}`} · ${sum}\n`;
     }
     return { code, out, err };
   } catch (e) {

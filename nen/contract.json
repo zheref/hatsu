@@ -330,6 +330,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/dependency_audit_resolve.mts (zheref/hatsu#247, item 1), the Node dependency audit hanten section 2a runs before Feitan reads, through contracts/scans.json -> dependencyAudit.node (hatsu.scans/v0.2): packageManager selects the lockfile, which is parsed strictly and its registry packages queried against OSV; no package manager and nothing in the tree is ever executed. Its fixture is hermetic and offline, against the live scans contract and a loopback stub OSV with one route per answer shape. It covers: a pnpm tree scanned and its finding reported; pnpm 5, 6 and 9, flow entries, key comments and a commented header read, explicit and unreadable keys, a cut file and a bodyless key refused; yarn Berry (with a patch) and classic (an npm alias, tight entries, a truncated block); npm 1 to 3 (an alias); registry-host, foreign-tarball, git, local and http entries; unqueried never clean; the stack routes and the stack catalogue; a decoy lockfile; a hostile tree that runs nothing and sends no token or canary; symlinked, directory, null, array and BOM manifests and lockfiles; maxDepth on a 20,000-deep npm nest and maxEntries; malformed, oversized, slow, failing and unreachable OSV answers and out-of-range severities; 2,500 findings reaching a pipe whole; and wiring stops, including each malformed optional contract key, at exit 2. scripts/unit_tests_ci.mts runs it in unit-tests.yml once this lands (BC-9). Run it as `nen shu test --lane dependency-audit-guard --repo <hatsu>` when the script, its fixture or the node row changes. It is not a general suite."
+      },
+      "schedule-printer": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/schedule_install.mts (zheref/hatsu#448), the printer of the steady-state scheduler rows in contracts/schedule.json (ruling R-2026-10-23-21: Claude Desktop local scheduled tasks on the maintainer's machine). Its fixture is hermetic and offline: the live contract printed whole with every placeholder filled (exit 0) or each unfilled one named (exit 1), nothing registered or written (HOME stays empty), each wiring refusal at exit 2, and the symlinked entry. scripts/unit_tests_ci.mts runs it in unit-tests.yml (BC-9). Run it as `nen shu test --lane schedule-printer --repo <hatsu>` when the script, its fixture or contracts/schedule.json changes."
       }
     },
     "defaultLane": "plugin",
@@ -349,7 +354,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, ruling-record, product-term-guard, dependency-audit-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
@@ -1443,6 +1448,17 @@
             "scripts/dependency_audit_resolve_fixture.mts"
           ],
           "$comment": "Hermetic dependency-audit fixture over throwaway trees and a loopback stub OSV, read against the live contracts/scans.json (zheref/hatsu#247). Needs node only; no package manager, no gh and no network."
+        }
+      },
+      "schedule-printer": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/schedule_install_fixture.mts"
+          ],
+          "$comment": "Hermetic schedule-printer fixture against the live contracts/schedule.json and throwaway copies (zheref/hatsu#448). Needs node only; no gh, no network, no Claude Desktop."
         }
       }
     },

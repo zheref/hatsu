@@ -154,8 +154,8 @@ rule is waived is evidence to file, not a waiver.
 
 ## Residue
 
-1. **The schedule has no verb.** `evolve` runs when invoked; a timer belongs to the surface's own
-   scheduler or to a workflow, and this file names neither.
+1. **The schedule** is [`schedule.md`](../../../docs/config/schedule.md)'s `drift-pass`, a Desktop task
+   only the maintainer registers (R-2026-10-23-21); its dry step is the prompt's, no flag (unfiled).
 2. **The delta table is assembled by hand from `--json` output** until `nen surface mirror generate`
    emits it as one document. Named here so the by-hand step is visible, never silent.
 3. **`nen parse` carries no alternation**, so the two shapes are two parses (§ 1). One grammar for

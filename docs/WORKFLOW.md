@@ -1531,7 +1531,8 @@ zheref/hatsu#423 retires the strip. The keys are § 2's `idle`.
 5. **Terminal.** `idle.terminal`: every PR Ready at its merge prompt, or merged into a **non-main**
    integration branch (futon § 5, En's recorded delivery merge). **Never a merge into `main`, never
    `getsuga`, `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host
-   scheduler may re-invoke the build, never a release.
+   scheduler may re-invoke the build, never a release. The steady-state schedule is [`config/schedule.md`](config/schedule.md)'s; its
+   tasks are registered only by the maintainer.
 6. **Two run manifests at the pin, one gate.** Hatsu's run manifest (`hatsu.futon.run/v0.2`, `futon_effort_record.mts`,
    under `<git common dir>/hatsu/futon/`) is the one futon opens; nen's `nen.run/v0.1` (`nen run
    start|append|park|verify|budget`, under `<git common dir>/.nen/runs/`) ships from nen `0.26.0` and no Hatsu
