@@ -105,6 +105,12 @@ try {
   cases += 1; console.log(`ok ${cases} - markup and link brackets in a record are escaped, never rendered`);
 
   const bad = recordFile(join(scratch, 'b'), { ...base, id: 'R-2026-10-23-05', contract: 'nen.stop.answer/v9' });
+  {
+    const lead = renderRow(picked, 'HR-7', 'superseded by HR-8 (a part; the rest stands)', 'Reverses [HR-3](#hr-3); `models.<surface>.frontier` a|b');
+    assert.ok(lead.endsWith('| superseded by HR-8 (a part; the rest stands) | Reverses [HR-3](#hr-3); `models.<surface>.frontier` a\\|b |'), `the lead's cells stay markdown, a pipe escaped\n${lead}`);
+    assert.ok(!lead.includes('\\[HR-3') && !lead.includes('&lt;surface'), `the lead's link and code span are not escaped\n${lead}`);
+    console.log('ok - the status and settles cells are the lead\'s markdown, only a pipe escaped');
+  }
   expect('a record of another contract is refused, never rendered', run(['render', '--record', bad, '--hr', 'HR-1', '--status', 'ruled', '--settles', 'x']), 2, null, /contract is not nen\.stop\.answer\/v0\.1/);
   const badPick = recordFile(join(scratch, 'bp'), { ...base, id: 'R-2026-10-23-06', pick: 'Z' });
   expect('a pick that is no option key is refused', run(['render', '--record', badPick, '--hr', 'HR-1', '--status', 'ruled', '--settles', 'x']), 2, null, /pick is none of the option keys/);

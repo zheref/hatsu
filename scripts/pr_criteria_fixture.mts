@@ -96,15 +96,15 @@ assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Giv
   assert.ok(json.stdout.includes("\u202e"), "nen now neutralises U+202E in --json: drop this pinned miss");
 }
 
-// 4. en's not-applicable reading (R-2026-10-23-24 under zheref/hatsu#450): converge's closingSource
+// 4. en's not-applicable reading (HR-357, record R-2026-10-24-01 under zheref/hatsu#450): converge's closingSource
 // none-on-non-default-base is not applicable only while the Development guard's --body form exits 0,
 // which holds exactly when the Associated issues table has no closing row.
 {
   const en = read("claude/skills/en/SKILL.md");
   const flat = en.replace(/\s+/g, " ");
   assert.ok(flat.includes("`none-on-non-default-base`, while the Development guard's `--body` form exits `0`") && flat.includes("**not applicable**"));
-  assert.ok(flat.includes("**Ruled (R-2026-10-23-24, zheref/hatsu#450):**") && !flat.includes("[NEEDS missing-maintainer-choice: does not-applicable"), "the reading cites its ruling");
-  assert.ok(flat.includes("or is not applicable as § 4 reads it (R-2026-10-23-24; quote converge's `closingSource` in the register row)"), "en § 5 step 3 merges on the ruled reading, closingSource quoted");
+  assert.ok(flat.includes("**Ruled (HR-357, record R-2026-10-24-01, zheref/hatsu#450):**") && !flat.includes("[NEEDS missing-maintainer-choice: does not-applicable"), "the reading cites its ruling");
+  assert.ok(flat.includes("or is not applicable as § 4 reads it (HR-357, record R-2026-10-24-01; quote converge's `closingSource` in the register row)"), "en § 5 step 3 merges on the ruled reading, closingSource quoted");
   const table = (verdict: string) => `## 🔗 Associated issues\n\n| Issue | Scope this PR implements | Merging this |\n|---|---|---|\n| https://github.com/example-owner/example-repo/issues/7 | x | **${verdict}** |\n`;
   const guard = (body: string) => {
     const file = join(dir, `issues-${Math.random().toString(36).slice(2)}.md`);
@@ -142,8 +142,11 @@ for (const bad of ["HA#0", "pending", "#12", ""]) assert.ok(!tracked.test(bad), 
 const finding = schema.$defs.finding;
 assert.deepEqual(finding.required, ["id", "scope", "persona", "rule", "severity", "path", "line", "evidence", "proposedFix", "disposition"]);
 const constitutional = new RegExp(finding.if.properties.rule.pattern);
-for (const ok of ["CON-47", "HR-10"]) assert.ok(constitutional.test(ok), ok);
-for (const no of ["UX-3", "HA#7/AC-1", "HR-0", "CON-"]) assert.ok(!constitutional.test(no), no);
+// HR-10 as amended by HR-337: the schema forces the CON half; an HR id is critical only on a ruled row,
+// which a schema cannot read, so it is not forced here (zheref/hatsu#466 owes the status-aware check).
+for (const ok of ["CON-47", "CON-1"]) assert.ok(constitutional.test(ok), ok);
+for (const no of ["UX-3", "HA#7/AC-1", "HR-10", "HR-0", "CON-"]) assert.ok(!constitutional.test(no), no);
+assert.match(finding.then.$comment, /zheref\/hatsu#466/, "the HR half names its tracked check");
 assert.equal(finding.then.properties.severity.const, "critical");
 assert.deepEqual(finding.then.properties.disposition.properties.state.enum, ["fixed", "deferred"]);
 

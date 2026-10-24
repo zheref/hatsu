@@ -2011,7 +2011,7 @@ A non-zero exit is a fact about the host.
 Cite only from files that just resolved — `UZF-`, `SEC-`, `UX-`, `QA-`, `REL-`, the one stack prefix
 (`SW-`/`KT-`/`RC-`/`BC-`), `SP-` from a resolved spec handbook, `PT-` as `<from>--<to> PT-<n>` from a
 resolved pair file — or `ECON-`, from the `ECONOMICS.md` path hanten names
-— plus the repo's notes by path and heading, `<CODE>#<N>/AC-<k>`, `CON-{n}`, a ruled `HR-{n}` (critical, HR-337) or, before its
+— plus the repo's notes by path and heading, `<CODE>#<N>/AC-<k>`, `CON-{n}`, a ruled `HR-{n}` (critical, HR-10 as amended by HR-337) or, before its
 row lands, its `R-YYYY-MM-DD-nn` record; a wrong id discredits a right one. Unresolvable (that path absent too): **`{prefix}-{n} not resolved on this host`**, an observation, with evidence. No rule covers it: **`no rule id — handbook-question`**, returned to hanten.
 
 ## 4 · The fixed finding shape

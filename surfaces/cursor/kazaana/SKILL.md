@@ -76,7 +76,7 @@ lands in exactly one set:
 
 **Then refetch** — the same verb again — and re-partition: a `model/<line>` applied under this run joins
 the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4: only an open
-`OQ-{n}` row skips, the queue continuing, `R-2026-10-23-02`); an epic awaiting its mode label is **G1**
+`OQ-{n}` row skips, the queue continuing, HR-335); an epic awaiting its mode label is **G1**
 (`mode-label`). **State the queue before advancing anything**: count, issues, exclusions, § 3's plan.
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary

@@ -350,7 +350,7 @@ flowchart TD
 **A tier is named, never a model version.** [`nen/workflow.json`](nen/workflow.json) → `models` maps four
 tiers to one alias per surface, and a role to a tier; the live id is read from the surface when a skill
 runs, never remembered. A subagent never runs on the frontier tier, which is where your own conversation
-lives.
+lives, save the one exception [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § `models` names (`great-hiker`'s prose subsession).
 
 | Tier | Role | Claude Code | Codex | Cursor | Antigravity |
 |---|---|---|---|---|---|

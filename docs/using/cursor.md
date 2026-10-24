@@ -151,7 +151,7 @@ sound seat; the stop itself still stands.
 
 | tier | role | Cursor alias |
 |---|---|---|
-| `frontier` | `orchestrator` — never a subagent | `grok` |
+| `frontier` | `orchestrator` — never a subagent, save [`WORKFLOW.md`](../WORKFLOW.md) § `models`'s one exception | `grok` |
 | `deep` | `reviewer` | **`grok`** |
 | `fast` | `worker`, `measurer` | `composer` |
 | `economy` | | `composer` |
@@ -163,7 +163,7 @@ models: **the CLI accepts them and this policy does not.** Naming one here is ou
 optimisation.
 
 > **`frontier` and `deep` name the same alias on this surface, and the rule survives that.** "Never the
-> frontier tier for a subagent" cannot be checked by reading the alias here, so it is enforced on the
+> frontier tier for a subagent" (save [`WORKFLOW.md`](../WORKFLOW.md) § `models`'s one exception) cannot be checked by reading the alias here, so it is enforced on the
 > **role**: a reviewer is raised at `models.roles.reviewer`, never as an orchestrator. Say the tier *and*
 > the alias — *"tier `deep` → `grok`"* — so a transcript read afterwards is unambiguous.
 
