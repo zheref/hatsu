@@ -8,8 +8,8 @@ summary: Compose the PR body from the
 # Shibari — the work becomes a request for attention
 
 **Nature: Manipulator.** Open one reviewable PR and hand it to [`en`](../en/SKILL.md).
-Name the authoring nature in *Why*. Shibari is [`mukai`](../mukai/SKILL.md) step 8;
-it proves nothing itself. The landing report reads the opened PR.
+Shibari is [`mukai`](../mukai/SKILL.md) step 8; it proves nothing itself. The landing report
+reads the opened PR.
 
 ## 0. Standalone entry
 
@@ -78,9 +78,8 @@ under `<path>/.nen/reports/` (directory 0700, files 0600). Run `node "$hatsu_roo
 only from `nen gate derive`'s first line. Render with `nen report render --template
 "$hatsu_root/templates/pr-delivery.md" --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
 paste the block without typing cells. Keep intermediates there.
-WORKFLOW § *The effort's ledgers* governs model provenance: bare tokens and unreported reviewer
-aliases remain unread. Public Source cells contain only ledger locator, timestamp and optional phase;
-free-form ledger notes/sources stay local. Dial/session values never go in notes.
+WORKFLOW § *The effort's ledgers* owns model provenance, the public Source cell (locator,
+timestamp, optional phase) and what stays local.
 After opening, rerun report data with the actual PR (`--target <owner/name> --prs <n>`), normalize with the same derived
 gate, render, edit the PR body and read it back. Drive names `/en on <CODE>#<N>` and states
 readiness is `nen pr ready`'s verdict. The guard compares ledger rows and Drive to the rendered
@@ -119,7 +118,7 @@ nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body
   [--head <branch>] [--dry-run] [--json]  # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
-nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/contracts/issue-sections.json"  # HR-11
+nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/contracts/issue-sections.json" --json  # HR-11
 ```
 
 - **HEAD must equal `origin/<branch>`**; else stop and name which is ahead. `pr open` exits `2` for
@@ -135,10 +134,11 @@ nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/
   the number before any write**, refusing a 404/410. The body file is **absolute**
   (a relative one resolves against `--repo`).
 - **Development guard**: `--body` before each write, `--pr` after open/edit; fix refusals in body
-  or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`.
-- **`pr converge`** (HR-11) after open/edit: on `1` fix the verify table, `edit-body`, re-run;
-  `1` goes to `en` only as `none-on-non-default-base`: not applicable (HR-357). Both re-run:
+  or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`. Re-runs:
   `en` §§ 4–5, `sharingan` § 4.
+- **`pr converge --json`** (HR-11) after open/edit. A `1` with `closingSource`
+  `none-on-non-default-base` and no other `blocking` line is not applicable as `en` § 4 reads it
+  (HR-357); hand over. Any other `1`: fix the verify table, `edit-body`, re-run. Re-runs: `en` §§ 4–5.
 
 ## 5. Reviewers, and the hand to `en`
 
