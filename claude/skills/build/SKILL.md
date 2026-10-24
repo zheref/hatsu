@@ -61,7 +61,7 @@ gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPul
   maintainer's decision (`CON-4`), never an agent's.
 - **Read requirements**: title, body, acceptance criteria, constraints, then the shape
   ([`plugin-registries`](../../../docs/config/plugin-registries.md#contractsissue-sectionsjson), *The check*; HR-4): an open `OQ-{n}`
-  row is a **G1** `DECIDE`, `next: clarify`, never answered here (in a batch, futon § 2 skips it); a miss is listed, never a stop; exit `2` or an unread issue a G5.
+  row is a **G1** `DECIDE`, `next: clarify`, never answered here (a batch skips it, futon § 2); a miss never stops; exit `2` or an unread issue a G5.
 
 **Confirm Kurapika's work-mode** from the domain and nature of the issue:
 
@@ -137,7 +137,7 @@ never rendered a second time by build; read-only, it advances nothing.
 
 After En completes and rikugan has rendered, ask once through the picker ([`cleanup`](../cleanup/SKILL.md)
 § 2, row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
-continue; each runs only the maintainer's pick.
+continue, recorded (`nen stop answer`, WORKFLOW § 4); each runs only the pick.
 
 ## 5. Authority — what this run may and may not do
 

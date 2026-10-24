@@ -704,6 +704,24 @@
       "source": "getsuga § 3a"
     },
     {
+      "id": "workflow.release.proposalMerge",
+      "file": "nen/workflow.json",
+      "path": "release.proposalMerge",
+      "domain": "publishing",
+      "kind": "enum",
+      "default": "self",
+      "options": [
+        "self",
+        "human"
+      ],
+      "describe": "Who merges getsuga's own release-proposal PR. self: getsuga § 3a merges it through nen pr merge --release-unit when its five gates pass. human: the repository keeps that merge with the maintainer, so § 3a never runs the merge and stops at the declaration gate (G4 in a canon repository, G2 in a consumer one) quoting the value it read. Read at the base SHA (<baseNow>) of the merge-time re-check, never the PR head; an unreadable, mis-shaped or out-of-set value reads human.",
+      "readers": [
+        "getsuga"
+      ],
+      "source": "docs/config/workflow.json.md (release); getsuga § 3a; zheref/hatsu#414",
+      "question": "Should getsuga merge its own release-proposal PR when its gates pass (self), or should that merge stay with the maintainer (human)?"
+    },
+    {
       "id": "workflow.port.specKit.pin",
       "file": "nen/workflow.json",
       "path": "port.specKit.pin",

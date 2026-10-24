@@ -1175,7 +1175,7 @@ node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktre
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
 node "$hatsu_root/scripts/futon_effort_record.mts" predict --repo <checkout> --run <dry id> --issue <CODE>#<N> --row <row>
 nen run append --id <id> --pr <N> --kind delivery|integration|release [--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>
-nen run park   --id <id> --issue <CODE>#<N> --row <row | budget | residue-<skill> | g5-<class>> --repo <checkout>
+nen run park   --id <id> --issue <CODE>#<N> --row <row | budget | needs-clarification | residue-<skill> | g5-<class>> --repo <checkout>
 nen run verify --id <id> --target <owner/name> --repo <checkout> --json
 ```
 
@@ -1278,6 +1278,46 @@ issue, and the question asked through the surface's own native option picker** (
 and every command are the chat message's, and a free-text answer typed into the picker is the maintainer's
 word — [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 4 states the shape once (ruling of 2026-10-17,
 zheref/hatsu#294).
+
+**Every picker answer is recorded — `nen stop answer`, stated once here** (zheref/hatsu#443; nen
+`0.26.0`). When a picker for an `ask-once-per-run` or `human-gate` row of `nen/decisions.json` is answered,
+and before the run acts on the answer, the skill that asked writes one record; a skill cites this
+paragraph, never restates it:
+
+```bash
+nen stop answer --record <effort> --row <row-id> --who kurapika --question-file <question.md> --option "<key>=<label>::<consequence>" --pick <key>
+```
+
+- **`<effort>`** is the effort's branch, the key of § 2 *The effort's ledgers*; before a branch exists (an
+  intake, a filing) it is `inline-<ISO date-time>`. The record lives under `<git common dir>/.nen/stops/`,
+  so a worktree removal keeps it, and nen prints its id `R-YYYY-MM-DD-nn`, never reused **within that
+  clone** (another clone counts its own; zheref/hatsu#443). An R-id is evidence, never a ruling id.
+- **What was shown, as shown**: the question file holds the question as asked; one `--option` per option
+  in the picker, its label as shown and its description line as the consequence. A `human-gate` row adds
+  `--gate <its gate>`; an `ask-once-per-run` row names `--row` alone.
+- **The answer**: `--pick <key>` for a picked option; `--typed-file <file>` holding the maintainer's own
+  words byte for byte for a free-text answer. **"Verbatim" is reserved for typed text**; a typed text that
+  is word for word one label, nen records as that pick.
+- **A free-text answer is the maintainer's word** (HR-173) and the run acts on it. **Only a reply that does
+  not answer is asked once more** — a question back (answered first), or a reply that fits neither an option
+  nor the row's typed form — a new call, its answer a second record; a second reply of the same kind is
+  acted on as the maintainer's typed words. The maintainer kept HR-173 over re-asking every unmatched
+  typed reply (2026-10-23, record `R-2026-10-23-08` under effort `HA-IS-#450`; zheref/hatsu#443 AC-2).
+- **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
+  `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
+  candidates, none starred, go in the question file): record it with the one reference option
+  `--option "ref=typed by design (no option)::the typed words are the answer"` and `--typed-file`, so
+  nen never reads a typed value as a pick; the row renders `none: typed by design`, capture class typed.
+- **`direct-mismatch`'s record is `nen direct answer`** (direct § 6); `nen stop answer` records every
+  other row.
+- **An idle pre-answer** (§ *Idle batches*, step 1) is recorded the same way and shows no picker:
+  `node "$hatsu_root/scripts/ruling_record.mts" preanswer --effort <branch> --row <row-id> --source "<idle.source>" --repo <checkout>`
+  picks the row's starred option and names the source in the question; `hold` and `refuse` park, they answer nothing.
+  A pre-answer renders `pre-answered (<source>)`, never as a maintainer's pick, and settles no ruling.
+- **A record that could not be written** (exit `1` or `2`) is said on the turn page as *answer unrecorded*,
+  the reason quoted; it is never retyped into a file by hand.
+- **A recorded answer that settles a ruling** becomes its ROSTER row by rendering, never by retyping:
+  [`ROSTER.md`](ROSTER.md) § *The ruling template*, step 3.
 
 **A command the maintainer must run is handed over as a runnable block** (ruling of 2026-10-17,
 zheref/hatsu#295), on every surface and at every hand-over — a `DO` ask, en § 5's merge line, a host
@@ -1465,8 +1505,8 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    printed); § 2's floor fails `start` at exit 1. The resolutions are the manifest's `idleAnswers`, fixed at
    `nen run start` (a re-start with other answers is refused), and `start` prints them back from the manifest
    nen wrote with the commit read (`idle.source`). The register lists them every cycle. Where a skill would ask
-   a row: `default` takes its starred option and says so; `hold` or `refuse` asks nothing and **parks the
-   effort** (`nen run park … --row <row>`), and the run moves to the next one. **No picker is shown in an idle run.**
+   a row: `default` takes its starred option, says so and records it (§ 4 *Every picker
+   answer is recorded*); `hold` or `refuse` asks nothing and **parks the effort** (`nen run park … --row <row>`), and the run moves to the next one. **No picker is shown in an idle run.**
 2. **Stops park, they do not end the run.** A G5 parks the effort as `parked:g5-<class>`; a harness
    permission denial is a G5. A human-gate row is never pre-answered: the effort stands at that gate.
    (Park rows are `[a-z0-9-]+`, the spelling nen refuses otherwise; the colon forms of 0.136.0 are retired.)
@@ -1484,10 +1524,11 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs only and refuses `--efforts` beside it:
    a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` (`R-2026-10-23-20`): the effort's PR Ready and
    its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
-   (back-pressure) and park as `parked:budget` only when the minutes elapse. **One night authors every claimable effort
-   the minutes allow, at most seven building at once**: each frees its slot at its own Ready prompt, so the
-   2026-10-23 dry run's 13 claimable efforts are all authorable inside `idle.budget.minutes` (under the old
-   `merged` rule the night stopped at seven).
+   (back-pressure) and park as `parked:budget` only when the minutes elapse. **The merge no longer caps the night at seven**:
+   each effort frees its slot at its own Ready prompt, so at most seven build at once and the night authors
+   as many claimable efforts as `idle.budget.minutes` allows. How many that is was not measured: the
+   2026-10-23 dry run authored nothing and recorded no per-effort minutes, only 13 claimable efforts and the
+   cap applied in queue order (`docs/ab/futon.md` § 2026-10-23).
    Overlap is `nen wc overlap --efforts <branches> --repo <checkout>` once branches exist (before that it is
    judged from the paths each effort would touch), its verdict cited in the stacking decision; `nen stage
    check --exclusive` holds an issue to one stage label where the target declares a stage family. En's cap is
@@ -1532,9 +1573,12 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    Applied, attended or `--idle`: futon § 2's shape check (`docs/config/plugin-registries.md`, *The check*)
    **skips** an issue whose `nen issue questions` reads `counts.open` above `0` — parked in the run record by
    `nen run park --id <run id> --issue <CODE>#<N> --row needs-clarification` (a dry run: `predict`, rule 7) —
-   and the queue continues with the next issue. An issue whose questions could not be read is skipped the same
-   way as `g5-shape-unread`, never addressed unread; a body-shape miss is reported and never skips; nothing else
-   in the shape check stops the queue. The **final briefing** (futon § 10's closing report) and the **Rikugan
+   and the queue continues with the next issue. `needs-clarification` is a **named park class**, not a G5 and
+   not a `nen/decisions.json` row (the park grammar of § *Recorded Futon delivery ownership*). An issue whose
+   questions could not be read (`nen issue questions` exit `1`) is skipped as `g5-shape-unread`, never addressed
+   unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
+   named G5, never N skips; a body-shape miss is reported and never skips; nothing else in the shape check stops
+   the queue. The **final briefing** (futon § 10's closing report) and the **Rikugan
    register** (backlog-board § 3) list every skipped issue with its open `OQ-{n}` rows (id, gate, question), and
    the briefing **ends by offering, never starting**, the **open-question flow**: one line, asked through the
    surface's native picker in jutaisho § 4's shape (`AskUserQuestion` on Claude Code). Started on the

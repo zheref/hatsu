@@ -53,7 +53,7 @@ quoted at the echo, bound to the tag this run cuts, lapsing at a G5 or a halt; t
 relayed as parsed. **Say the run has started** (a bounded `CON-25` delegation, futon § 7).
 
 **`--idle`** (and `--dry-run` beside it) is lifted off before the kazaana parse, whose grammar declares
-neither, and carried onto the futon line: nen reads `--idle`; `--dry-run` stays lifted (futon § 1): futon § 12 whole. The
+neither, and carried onto the futon line (`--dry-run` stays lifted, futon § 1): futon § 12 whole. The
 go then reaches no `then getsuga` — held at `idle.terminal` — and § 6 asks nothing (`publish-offer`
 refused).
 
@@ -128,7 +128,7 @@ never a `MERGE` ask, the `aiReviewers` case getsuga § 3a's. The fan-out is gets
 **After futon's run has ended** (§ 5's gate passed, the tag cut), on kazaana's own authority under
 ruling 2026-10-13, 3 — futon § 11 governs a `then` step, not this question. Once the tag resolves on
 origin (`git ls-remote --tags`), ask **once** through the surface's own picker (row
-`publish-offer`), **only where** the target's kind (`nen repo classify`) is listed under
+`publish-offer`, recorded (`nen stop answer`, WORKFLOW § 4)), **only where** the target's kind (`nen repo classify`) is listed under
 `futon.advanceGo.mugetsu` as `nen parse futon` reads it — the target's declared key, or nen's default
 where absent (futon § 8) — else no offer, said. **Zero declared destinations: no offer, said.** One:
 *Publish `<tag>` through `hatsu:mugetsu` to `<destination>`?* — **A** publish: the answer is the go ·

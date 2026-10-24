@@ -28,6 +28,8 @@ const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack
 const gated: Array<[string, string, string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
+  // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
+  ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
   ['pr_criteria_check.mts', 'pr_criteria_check_fixture.mts', 'criteria'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
