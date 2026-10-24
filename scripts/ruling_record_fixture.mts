@@ -120,7 +120,7 @@ try {
   const one = (repo: string): { repo: string; code: null; kind: string; entry: null }[] => [{ repo, code: null, kind: 'name', entry: null }];
   const resolveMap = join(scratch, 'resolve.json');
   writeFileSync(resolveMap, JSON.stringify({ hatsu: one('zheref/hatsu'), nen: one('zheref/nen'), 'akatsuki-ai': one('zheref/akatsuki-ai'), zzp: one('zheref/zz-private-fixture'),
-    all: [...one('zheref/hatsu'), ...one('zheref/nen')], junk: 'not json', bare: '{"token":"bare"}' }));
+    all: [...one('zheref/hatsu'), ...one('zheref/nen')], junk: 'not json', bare: '{"token":"bare"}', slugless: one('noslash') }));
   const privList = join(scratch, 'private-list.txt');
   writeFileSync(privList, 'zheref/zz-private-fixture\nzheref/akatsuki-ai\n');
   const refsLog = join(scratch, 'refs-stub.log'); writeFileSync(refsLog, '');
@@ -143,6 +143,30 @@ try {
   expect('an unparseable exit-0 resolve reply is wiring', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'junk #3?' }), 2, null, /nen repo resolve junk --json did not parse/);
   expect('an exit-0 resolve reply with no repos[] is wiring', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'bare #3?' }), 2, null, /nen repo resolve bare --json carries no repos\[\]/);
   expect('nen failing to resolve a repository word is wiring, never a guess', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'hatsu #3?' }, { ...refEnv, STUB_RESOLVE_EXIT: '2' }), 2, null, /nen repo resolve hatsu could not run \(exit 2\)/);
+  expect('an exit-0 resolve reply naming no owner/name is wiring', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'slugless #3?' }), 2, null, /nen repo resolve slugless --json names no owner\/name/);
+  {
+    const r = renderRef({ ...base, id: 'R-2026-10-23-15', question: 'Which?', options: [{ key: 'A', label: 'nen #7', consequence: 'it lands' }], pick: 'A', typed: 'nen #7' });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /\| \(A\) zheref\/nen#7 — \*it lands\* \| typed, word for word \(A\): `nen #7` \|/);
+    cases += 1; console.log(`ok ${cases} - a typed reply matched to a label keeps the maintainer's words in the answer cell; the option is coded`);
+  }
+  {
+    // A guard exit other than 0 or 1 (127: the guard is missing) is wiring, never a private hit: the
+    // script runs from a scratch root whose scripts/private_name_check.sh exits as told.
+    const fake = join(scratch, 'fake-root');
+    mkdirSync(join(fake, 'scripts'), { recursive: true });
+    writeFileSync(join(fake, 'scripts', 'ruling_record.mts'), readFileSync(script, 'utf8'));
+    writeFileSync(join(fake, 'scripts', 'private_name_check.sh'), 'exit "${FAKE_GUARD_EXIT:-127}"\n');
+    const fakeRun = (args: string[], env: Record<string, string>): Run => {
+      const r = spawnSync(process.execPath, [join(fake, 'scripts', 'ruling_record.mts'), ...args], { cwd: scratch, encoding: 'utf8', env: { ...process.env, ...env } });
+      return { status: r.status, stdout: String(r.stdout), stderr: String(r.stderr) };
+    };
+    const rec = recordFile(join(scratch, 'refs'), { ...base, id: 'R-2026-10-23-16', question: 'hatsu #3?' });
+    expect('render: a guard exit of 127 is wiring, never a private hit', fakeRun(['render', '--record', rec, '--hr', 'HR-342', '--status', 'ruled', '--settles', 'x'], refEnv), 2, null, /private-name guard could not run \(exit 127\)/);
+    const fakeShow = join(scratch, 'fake-show.json');
+    writeFileSync(fakeShow, JSON.stringify({ effortId: base.effortId, directory: '/x', records: [base] }));
+    expect('export: a guard exit of 3 is wiring, never a private hit', fakeRun(['export', '--effort', base.effortId, '--id', base.id, '--repo', scratch, '--out', join(scratch, 'fake-out')], { NEN: stub, STUB_LOG: refsLog, STUB_SHOW: fakeShow, STUB_EXIT: '0', FAKE_GUARD_EXIT: '3' }), 2, null, /private-name guard could not run \(exit 3\)/);
+  }
 
   const bad = recordFile(join(scratch, 'b'), { ...base, id: 'R-2026-10-23-05', contract: 'nen.stop.answer/v9' });
   {

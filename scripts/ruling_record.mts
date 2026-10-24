@@ -121,7 +121,7 @@ const flat = (s: string): string => lines(s).replace(/&/g, '&amp;').replace(/</g
   .replace(/\[/g, '\\[').replace(/\]/g, '\\]').replace(/\n/g, '<br>').replace(/\|/g, '\\|');
 const em = (s: string): string => flat(s).replace(/\*/g, '\\*');
 // A `<repository> #N` in the orchestrator's prose (question, option labels and consequences, the picked
-// label included; never the maintainer's typed words, rendered verbatim) is rendered coded,
+// label included; never the maintainer's typed words, verbatim or matched to a label) is rendered coded,
 // `<owner>/<name>#N`, when `nen repo resolve` names exactly one repository for the token (PL-05). The
 // question is meant to be written coded at ask time (WORKFLOW § 4); this is the safety net for records
 // that were not, which stay as shown (HR-13 keeps the baseline from growing). Code spans are coded too:
@@ -177,7 +177,8 @@ function cells(record: AnswerRecord, hr: number): string[] {
   else {
     const label = record.options.find((o) => o.key === record.pick)?.label ?? '';
     const how = source !== null ? `pre-answered (${flat(source)})` : record.typed === null ? 'picked' : 'typed, word for word';
-    answer = `${how} (${record.pick}): ${code(coded(label))}`;
+    // A typed reply nen matched to a label is the maintainer's typed words: never coded.
+    answer = `${how} (${record.pick}): ${code(record.typed === null ? coded(label) : label)}`;
   }
   const stem = stemOf(record);
   return [`<a id="hr-${hr}"></a>**HR-${hr}** · [${stem}](${LINK_DIR}/${stem}.json)`, flat(coded(record.question)), options, answer];
@@ -242,7 +243,7 @@ function render(argv: string[]): number {
   if (introduced.size > 0) {
     const guardArgs = [join(ROOT, 'scripts', 'private_name_check.sh'), ...(args.has('--names-file') ? ['--names-file', need(args, '--names-file')] : []), '--label', `HR-${hr} coded references`, '-'];
     const guard = spawnSync('bash', guardArgs, { input: [...introduced].join('\n'), encoding: 'utf8' });
-    if (guard.error || guard.status === 2 || guard.status === null) throw new Wiring(`HR-${hr}: the private-name guard could not run over the coded references of record ${stemOf(record)}; nothing is printed`);
+    if (guard.error || (guard.status !== 0 && guard.status !== 1)) throw new Wiring(`HR-${hr}: the private-name guard could not run (exit ${guard.status}) over the coded references of record ${stemOf(record)}; nothing is printed`);
     if (guard.status !== 0) { console.log(`ruling-record: HR-${hr}: record ${stemOf(record)} would be rendered with a private repository coded from the registry; nothing is printed`); return 1; }
   }
   console.log(row);
@@ -330,7 +331,7 @@ function exportRecord(argv: string[]): number {
   const guard = spawnSync('bash', guardArgs, { input: text, encoding: 'utf8' });
   if (guard.stdout) process.stdout.write(guard.stdout);
   if (guard.stderr) process.stderr.write(guard.stderr);
-  if (guard.error || guard.status === 2 || guard.status === null) throw new Wiring('the private-name guard could not run; nothing is written');
+  if (guard.error || (guard.status !== 0 && guard.status !== 1)) throw new Wiring(`the private-name guard could not run (exit ${guard.status}); nothing is written`);
   if (guard.status !== 0) { console.log(`ruling-record: record ${id} names a private repository; placehold it in a re-recorded answer, nothing is written`); return 1; }
   const target = join(out, `${stemOf(record)}.json`);
   if (existsSync(target)) {

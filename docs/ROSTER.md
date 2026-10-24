@@ -960,7 +960,7 @@ change after it lands, [HR-2](#hr-2)).
    title; a second sitting on one day names its own subject.
 2. **A Source line and a Capture class line**, as § *Rulings of 2026-10-20 — the SDD assessment
    sitting* carries them: the Source names what was asked, where and when; the Capture class says
-   how each answer was captured (a picked label exactly as the picker returned it, or typed words
+   how each answer was captured (a picked label exactly as the picker returned it (references coded, step 3), or typed words
    quoted verbatim, each row saying which; a rendered row says it in its answer cell, and the line names
    the records) and which picks depart from the recommendation. A
    paraphrase is the lead's reading and says so; private names are placeheld per
