@@ -455,8 +455,8 @@
       "gh-api-read-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/gh_api_read_fixture.test.mts"],
-          "$comment": "Pinned Vitest fixture: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation. Install locked dependencies with npm ci --ignore-scripts first."
+          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/gh_api_read_fixture.test.mts", "scripts/provider_tag_commit_fixture.test.mts"],
+          "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "futon-effort-guard": {

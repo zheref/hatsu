@@ -79,10 +79,14 @@ node "$hatsu_root/scripts/permissions_pack_release_fixture.ts" "$claude_settings
 echo "ok    Claude Code pack renders only the declared plugin lane's release plan and publication forms"
 node - "$hatsu_root/surfaces/cursor/cli.json" <<'JS'
 const fs = require('node:fs');
-const text = fs.readFileSync(process.argv[2], 'utf8');
-if (text.includes('Shell(node:') || text.includes('Shell(gh:api')) {
+// A GRANT is what must never appear: deny rows naming gh api (HA#331's ceremony denies) are refusals, not grants.
+const { permissions } = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const allow = (permissions && permissions.allow) || [];
+if (!Array.isArray(allow) || allow.length === 0) throw new Error('Cursor cli.json carries no permissions.allow list to check');
+if (allow.some((entry) => entry.startsWith('Shell(node:') || entry.startsWith('Shell(gh:api'))) {
   throw new Error('Cursor inherited an unbounded API reader or raw gh api grant');
 }
+if (!((permissions.deny) || []).includes('Shell(gh:secret set *)')) throw new Error('Cursor lost the gh secret set deny row (HA#331)');
 JS
 node "$hatsu_root/scripts/gh_api_read_fixture.mts"
 node - "$claude_settings" <<'JS'

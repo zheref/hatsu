@@ -439,13 +439,13 @@ of 2026-10-19 — the CI reviewers tier*; zheref/hatsu#330 — **stated once, he
 `shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`,
 [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3, [`WORKFLOW.md`](WORKFLOW.md) § 2 (`aiReviewers`, `ci`),
 `docs/config/{workflow,gates,decisions}.json.md` and that ROSTER section cite this paragraph). A **lane** is
-a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331, to land) — that
+a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331) — that
 runs on every push to the pull request and posts under its own GitHub App login. **Its round is its formal
 review posted under that login.** Under the `bounded` reading Hatsu runs, a review at any earlier head
 counts, because no request of the lane is ever pending; and a lane, outside `base_reviewers` with no
 `enrolment_check_pattern`, is **never owed on its own** — nen counts it toward `round_quorum` only. **It is
 never requested**: never in `base_reviewers`, and `shibari` and `sharingan` never call `nen pr
-request-reviews` for a lane; a nen field declaring that is zheref/nen#440. **A push re-runs the lane**
+request-reviews` for a lane; from nen `0.26` the entry declares it, `wake: "event"` (zheref/nen#440, nen USAGE *Event lanes*). **A push re-runs the lane**
 (`cancel-in-progress`), and its check, pending at the new head, holds `checks-green` like any running check
 until it concludes: that is the current-head wait — never a request, and never a stall by itself. A lane
 check `nen pr ready <ref> --json` lists in `meta.runnerAvailability[]` (still waiting for a runner at the
@@ -454,9 +454,10 @@ returns that null, `en`'s own first observation of it waiting at this head — i
 condition for the watch, reported not-ready with the check's state quoted; a lane check `IN_PROGRESS` is
 bounded by the lane's own job timeout, and one that concludes `CANCELLED` or `FAILURE` at head is a fault
 in the lane, reported the same way, never a code fix to author. Both are a Hatsu reading: nen's runner
-diagnosis never moves the verdict. nen enforces no review
-**at** the new head: a lane that concludes green there without reviewing still reads as having its earlier
-round; a per-reviewer strict reading is owed to zheref/nen#440. **A lane whose check concluded green with no
+diagnosis never moves the verdict. For a `wake: "event"` entry (nen `0.26`), a live run at the judged head
+supersedes the lane's earlier review, under `bounded` too, and stays owed while in flight even across a met
+quorum; a terminal run without a formal review reads `completed-without-review` and is excused only by a met
+quorum (nen USAGE *Event lanes*). **A lane whose check concluded green with no
 review is unavailable** (unprovisioned: the lane exits green without running, `AK`'s reviewer-lane issue):
 nen counts no round for it, so a met quorum covers it and an unmet one is owed through the quorum clause.
 **`round_check_pattern` is declared only for a lane whose check is its round**, and that check's conclusion
@@ -475,13 +476,15 @@ with `minimum` `2`, a PR on which only one bot has a round while another member 
 in flight, or a bot with no round yet that can still be requested) is `rounds-owed` under `sharingan` § 6's bounds —
 not-ready at `cap-reached`'s terminus once a bound is reached — and *The sixth stop* is reached only when
 every member is unavailable **by (c)'s observations**; a posted-review lane makes none of them (it is never
-requested, and declares no round check) until zheref/nen#440 exposes its state, so under `required` a PR
+requested, and declares no round check); nen `0.26` exposes its state as `eventRun.state` (zheref/nen#440), but
+reading those states as (c)'s observations is unruled, so until a ruling does, under `required` a PR
 whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
-Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **Until the
-nen pin carries zheref/nen#372's fix** (NN-PR-#432, merged, not yet released), nen reads `reviewers[]` and
-`round_quorum` from the checkout it is handed — the pull request's head under `en`'s call — so a PR that
-changes either key, `kuchiyose`'s install PR among them, is judged on its own declaration (SEC-6): `en`
-says so beside the quoted verdict, and the maintainer's merge is the check; the repin retires this sentence.
+Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **The gates file is
+the base's** (zheref/nen#372, in the pinned nen `0.26`): without `--gates`, nen reads `reviewers[]`,
+`round_quorum` and every other gate input at the pull request's base, so a PR that changes either key,
+`kuchiyose`'s install PR among them, is judged by the declaration it would replace, never its own (SEC-6).
+`kuchiyose verify`'s lane-state read passes a copy from outside the checkout instead, which nen uses as given
+(`meta.identities.read: gates-flag`) and which is never that PR's readiness.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on

@@ -71,12 +71,12 @@ a bot whose requests never register no longer holds every PR at `rounds-owed`. L
 never reviews means a round is owed at every head and the gate never closes. A pattern that is too
 broad means any drive-by comment satisfies a round.
 
-**A CI reviewer lane** (an Akatsuki tier lane, written by `kuchiyose` — zheref/hatsu#331, to land) is declared beside Copilot in one
+**A CI reviewer lane** (an Akatsuki tier lane, written by [`kuchiyose`](../claude/skills/kuchiyose/SKILL.md) — zheref/hatsu#331) is declared beside Copilot in one
 of two shapes, read from the tier catalogue's `roundShape` for that lane — the names and logins below
 show the shapes, not which lane has which:
 
 ```json
-{ "name": "sasuke",
+{ "name": "sasuke", "wake": "event",
   "login_pattern":        { "pattern": "^sasuke-akatsuki\\[bot\\]$", "ignoreCase": true },
   "review_check_pattern": { "pattern": "^Sasuke review$",            "ignoreCase": true } },
 { "name": "kakuzu",
@@ -87,8 +87,9 @@ show the shapes, not which lane has which:
 - **Posted review** (`sasuke` above) — the round is the formal review the lane posts under its App login
   (under `bounded`, at any earlier head): `login_pattern`, anchored, and **never a `round_check_pattern`**
   — an unprovisioned lane exits green without reviewing, and a green round check would count a round
-  nobody ran. `review_check_pattern` may name the lane's check, anchored; nen reads it only for a
-  `delivery_holistic_pass` reviewer.
+  nobody ran. From nen `0.26` it carries `wake: "event"` (zheref/nen#440): never requested, its state read
+  as `eventRun.state` (nen USAGE *Event lanes*). `review_check_pattern` names the lane's check, anchored,
+  and is how nen sees the lane's run (for a `delivery_holistic_pass` reviewer, also the holistic pass).
 - **Check is the round** (`kakuzu` above) — only for a lane whose check concludes `NEUTRAL` or `SKIPPED`
   when it did not review: `round_check_pattern` names that check, anchored. Never one that concludes
   `SUCCESS` then (a round nobody ran) or `FAILURE` (it fails `checks-green` on every head it sits out).
@@ -98,8 +99,8 @@ show the shapes, not which lane has which:
 
 Neither shape is ever in `base_reviewers` — a lane is never requested — and every installed lane joins
 `round_quorum.any_of` (below). The behaviour is [`docs/PROCESS.md`](PROCESS.md) § *Reviewer rounds and
-review threads*, *Event-driven reviewer lanes*, stated once; both shapes pass `nen schema check` at nen
-`0.22.0` (checked 2026-10-19).
+review threads*, *Event-driven reviewer lanes*, stated once; both shapes, the first with `wake: "event"`,
+pass `nen schema check` at nen `0.26.0` (checked 2026-10-23).
 
 ### `approval_policy` — `"required"` or `"review-round-only"`
 

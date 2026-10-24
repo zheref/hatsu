@@ -367,6 +367,36 @@
       "exe": "git",
       "args": "push origin :main",
       "why": "a bare deletion refspec against main is a write to main"
+    },
+    {
+      "exe": "gh",
+      "args": "secret set *",
+      "why": "kuchiyose prints this ceremony step for the maintainer and never runs it (HR-138..HR-140, CON-47; kuchiyose section 5): a secret, a variable or a ruleset is a repository security setting only the human sets. Feitan, hanten on HA-PR-#459. Gap: a global flag before the subcommand (gh -R <slug> secret set) escapes a prefix deny, so the prose rule still binds"
+    },
+    {
+      "exe": "gh",
+      "args": "secret delete *",
+      "why": ""
+    },
+    {
+      "exe": "gh",
+      "args": "variable set *",
+      "why": ""
+    },
+    {
+      "exe": "gh",
+      "args": "api *rulesets*",
+      "why": ""
+    },
+    {
+      "exe": "gh",
+      "args": "api *actions/secrets*",
+      "why": ""
+    },
+    {
+      "exe": "gh",
+      "args": "api *actions/variables*",
+      "why": ""
     }
   ],
   "surfaces": {
