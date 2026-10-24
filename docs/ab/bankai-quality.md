@@ -339,3 +339,13 @@ at nen `0.24.0`, because Hatsu's own `maintained_tools` row declares the field. 
 with *"its row there carries no 'scenario' field. Add one to its maintained_tools[] row …"* — the
 transcript is in `docs/ab/bankai-handbooks.md` § *Repin to v0.11.0*; the skill's § 1 note quotes it and
 keeps the `0.15.1` sentence as history.
+
+## Repin to v0.12.0 (2026-10-23)
+
+Read at `zheref/bankai-handbooks` `v0.12.0` (a scratch clone on the tag, `describe --tags --exact-match` →
+`v0.12.0`), beside the repin recorded in `docs/ab/bankai-handbooks.md` § *Repin to v0.12.0*.
+`git diff v0.11.0 v0.12.0 -- handbooks/quality-baseline.md` is two insertions: the `react-uzf-v1`
+(Electron / desktop target, scenario 2A) row of § B's tooling matrix — Playwright's Electron driver,
+documented as experimental, against the packaged electron-builder artifact; Vitest for the main-process
+handlers; Spectron, WebdriverIO's Electron service and Cypress not used — and its § C measurement row.
+The skill's transcribed § B table gains the first; no rule id moves, and `QA-26` stays reserved.

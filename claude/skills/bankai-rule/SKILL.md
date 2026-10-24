@@ -85,7 +85,7 @@ numbering: global` is exit `3`, a `handbook-question`.
 
 ```bash
 "$hatsu_root/scripts/port_rule_reserve.sh" --worktree <the run's rulings worktree> --target <owner/name> \
-  --pair-file <rulingsDir>/<from>--<to>.md --prefix PT --json
+  --pair-file <rulingsDir>/<from>--<to>.md --prefix PT --handbooks-tag <pinned tag> --json
 ```
 
 Run against **the run's rulings worktree** (§ 2), never the clone root: it fetches and prunes, then
@@ -97,12 +97,12 @@ stop, never write**; a `--check` duplicate is the exit `3` whose line reads `als
 An unpushed run is invisible elsewhere, so **`--check`** (exit `3` naming both files) runs at every
 [`ao`](../ao/SKILL.md) catch-up, before `mukai` opens the PR and before `en`'s prompt; a duplicate is renumbered **only in this run's branch**, never a merged
 row, **and the citing port PR's `(branch <ref>, unmerged)` citations are rewritten in the same step**.
-Residue: the `gh` reads (zheref/nen#456); lane `port-rule-guard`.
+Lane `port-rule-guard`.
 
 ## 4. Write the ruling — the template, the row, the index
 
-A pair with no file is created from `templates/ports/pair.md` (the rows are the only counter) and indexed
-in `<rulingsDir>/INDEX.md` from `templates/ports/INDEX.md`: file, count, last date. **Each row:**
+Below handbooks `v0.13.0` a missing pair file is created from `templates/ports/pair.md`, indexed from
+`templates/ports/INDEX.md` (a row: file, count, last date); from it § 3 refuses one (`CON-13`, BH#21). **Each row:**
 
 | Column | What |
 |---|---|
