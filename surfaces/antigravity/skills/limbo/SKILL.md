@@ -31,9 +31,9 @@ yet, so no composite holds it. **Reached from one, skip this section.**
 |---|---|
 | **`P1`** | `/ten limbo`, unconditionally: `D10`, and `$hatsu_root` |
 | **`P1b`** | A **sync** proves the consumer's base through [`breath`](../breath/SKILL.md) (§ 2 step 8) before the mirror is written; declined for `as check`, which writes nothing |
-| **`P2`** | `nen repo classify --repo <path> --json` (slug, role, gate) and `nen wc classify`, read out loud before anything is written |
+| **`P2`** | `nen repo classify --repo <path> --json` (slug, role, gate) and `nen wc classify`, read aloud before any write |
 | **`P3`** | **Does not apply** — the subject is the current mirror against the canon at the pin, not a change set; no `against <base>` clause |
-| **`P4`** | Asks only what disk cannot answer: the surfaces (§ 3), and the pin, **typed** (row `missing-maintainer-choice`) |
+| **`P4`** | Asks only what disk cannot answer: the surfaces (§ 3), and the pin, **typed** (row `missing-maintainer-choice`, recorded: `nen stop answer`) |
 | **`P5`** | `standalone entry · <slug> · role <role> → <gate> · pin <source>@<ref> · latest <tag> · surfaces <list> · not running: nothing (not a loop phase)` |
 
 ## 1. Invocation

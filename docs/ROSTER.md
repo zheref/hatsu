@@ -964,13 +964,27 @@ change after it lands, [HR-2](#hr-2)).
 2. **A Source line and a Capture class line**, as § *Rulings of 2026-10-20 — the SDD assessment
    sitting* carries them: the Source names what was asked, where and when; the Capture class says
    how each answer was captured (a picked label exactly as the picker returned it, or typed words
-   quoted verbatim, each row saying which) and which picks depart from the recommendation. A
+   quoted verbatim, each row saying which; a rendered row says it in its answer cell, and the line names
+   the records) and which picks depart from the recommendation. A
    paraphrase is the lead's reading and says so; private names are placeheld per
    [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
 3. **The ruling table**, one row per ruling: the HR id with its anchor, in the form every HR row
    above carries, the question as asked, the options shown, the pick, the status and
    what it settles. The status grammar is **How HR ids are read**, in § *Rulings of 2026-10-20 — the
-   SDD assessment sitting*, cited, never restated.
+   SDD assessment sitting*, cited, never restated. **A row whose answer was recorded is rendered from
+   its record, never retyped** (zheref/hatsu#443; [`WORKFLOW.md`](WORKFLOW.md) § 4 *Every picker answer
+   is recorded*): `node scripts/ruling_record.mts export --effort <branch> --id <R-id> --repo <checkout>`
+   copies the record, read through `nen stop answer show`, into `docs/ruling-records/<effort>--<R-id>.json`
+   after the private-name guard and a secret-shape pass; then
+   `node scripts/ruling_record.mts render --record docs/ruling-records/<effort>--<R-id>.json --hr HR-<n> --status <status> --settles-file <file>`
+   prints the row — the HR id with its anchor and the record's link, the question, every option with its
+   consequence, and the answer with its capture class (`picked (K)`, `typed, word for word (K)`,
+   `typed (verbatim)`, or `pre-answered (<source>)`, which settles no ruling). The status and what it settles stay the lead's words. The `ruling-record` lane
+   (`nen shu test --lane ruling-record --repo <hatsu>`, run in `unit-tests.yml`) re-renders every row
+   citing a record and reports a difference by HR id, and a committed record no row cites is a finding.
+   The question file is written with private names already placeheld, the record's one departure from
+   as asked, because the committed copy is public; an answer asked in prose and recorded nowhere stays a
+   typed row and its Capture class line says so.
 4. **Trailing open rows**: a question the sitting left open is an `OPEN-n` row in § *Open items, in
    one place*, whose *What is open* cell carries the options shown, with no default; any prose marker
    that waits on it names it ([`PROCESS.md`](PROCESS.md) § *An unresolved question in prose*).
@@ -2422,4 +2436,4 @@ Every ruling row or paragraph in the sections above carries an HR id: HR-1 to HR
 
 ---
 
-**Governance.** Version 1.26.0 · Ratified 2026-10-20 ([HR-1](#hr-1)..[HR-16](#hr-16)) · Last amended 2026-10-22. A whole-row reversal bumps MAJOR; a new ruled clause, and a partial reversal or supersession (the `(<part>; the rest stands)` form), MINOR; a wording change PATCH; a `reading` row bumps nothing until it is ruled. The derivation, in order from the statuses: 1.0.0 at ratification (HR-1..HR-16; every older row, HR-42..HR-325 and HR-329/HR-330, predates it and is the baseline); HR-17..HR-41 are 25 ruled rows added after it, each one MINOR, including the partial reversals [HR-23](#hr-23) (part of [HR-14](#hr-14)) and [HR-29](#hr-29) (part of [HR-19](#hr-19) and of [HR-28](#hr-28)) and the partial supersessions HR-23/HR-24 (of [HR-21](#hr-21)) and [HR-38](#hr-38) (of HR-24, HR-25, HR-27, HR-31): 1.0.0 + 25 MINOR = 1.25.0; [HR-333](#hr-333), written as a reading and ruled on 2026-10-22, is a new ruled clause: one MINOR, 1.26.0; no whole-row reversal follows ratification, so MAJOR stays 1; the 2026-10-22 rows HR-326, HR-327, HR-328, HR-331 and HR-332 are readings and bump nothing yet. One id is given per ruling table row, Q/A pair, decision row and numbered ruling, per ruling paragraph where a section has none of those, and per inline reading clause; a row that only says what a ruling does not settle takes none. `scripts/clause_id_guard.mts` (lane `clause-guard`, which the unit-tests workflow runs on every pull request whose base carries `scripts/unit_tests_ci.mts`'s clause-guard entry) refuses a duplicated or non-canonical HR anchor and reports a gap.
+**Governance.** Version 1.26.1 · Ratified 2026-10-20 ([HR-1](#hr-1)..[HR-16](#hr-16)) · Last amended 2026-10-23. A whole-row reversal bumps MAJOR; a new ruled clause, and a partial reversal or supersession (the `(<part>; the rest stands)` form), MINOR; a wording change PATCH; a `reading` row bumps nothing until it is ruled. The derivation, in order from the statuses: 1.0.0 at ratification (HR-1..HR-16; every older row, HR-42..HR-325 and HR-329/HR-330, predates it and is the baseline); HR-17..HR-41 are 25 ruled rows added after it, each one MINOR, including the partial reversals [HR-23](#hr-23) (part of [HR-14](#hr-14)) and [HR-29](#hr-29) (part of [HR-19](#hr-19) and of [HR-28](#hr-28)) and the partial supersessions HR-23/HR-24 (of [HR-21](#hr-21)) and [HR-38](#hr-38) (of HR-24, HR-25, HR-27, HR-31): 1.0.0 + 25 MINOR = 1.25.0; [HR-333](#hr-333), written as a reading and ruled on 2026-10-22, is a new ruled clause: one MINOR, 1.26.0; no whole-row reversal follows ratification, so MAJOR stays 1; the 2026-10-22 rows HR-326, HR-327, HR-328, HR-331 and HR-332 are readings and bump nothing yet. One id is given per ruling table row, Q/A pair, decision row and numbered ruling, per ruling paragraph where a section has none of those, and per inline reading clause; a row that only says what a ruling does not settle takes none. `scripts/clause_id_guard.mts` (lane `clause-guard`, which the unit-tests workflow runs on every pull request whose base carries `scripts/unit_tests_ci.mts`'s clause-guard entry) refuses a duplicated or non-canonical HR anchor and reports a gap; it also refuses a status outside *How HR ids are read*'s words (or a row whose Status cell and parenthesis differ), a citation or `#hr-N` link of an id no row defines, and a § *Readings* index out of parity with the `reading` rows (an entry missing, an entry whose row is not a reading, or an entry whose label and link disagree), each at exit 1, and exits 2 on a roster with no `## Readings` heading (zheref/hatsu#452). Version 1.26.1 is that wording change, a PATCH.

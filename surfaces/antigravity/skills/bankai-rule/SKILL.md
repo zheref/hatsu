@@ -86,7 +86,7 @@ numbering: global` is exit `3`, a `handbook-question`.
 
 ```bash
 "$hatsu_root/scripts/port_rule_reserve.sh" --worktree <the run's rulings worktree> --target <owner/name> \
-  --pair-file <rulingsDir>/<from>--<to>.md --prefix PT --json
+  --pair-file <rulingsDir>/<from>--<to>.md --prefix PT --handbooks-tag <pinned tag> --json
 ```
 
 Run against **the run's rulings worktree** (§ 2), never the clone root: it fetches and prunes, then
@@ -98,12 +98,12 @@ stop, never write**; a `--check` duplicate is the exit `3` whose line reads `als
 An unpushed run is invisible elsewhere, so **`--check`** (exit `3` naming both files) runs at every
 [`ao`](../ao/SKILL.md) catch-up, before `mukai` opens the PR and before `en`'s prompt; a duplicate is renumbered **only in this run's branch**, never a merged
 row, **and the citing port PR's `(branch <ref>, unmerged)` citations are rewritten in the same step**.
-Residue: the `gh` reads (zheref/nen#456); lane `port-rule-guard`.
+Lane `port-rule-guard`.
 
 ## 4. Write the ruling — the template, the row, the index
 
-A pair with no file is created from `templates/ports/pair.md` (the rows are the only counter) and indexed
-in `<rulingsDir>/INDEX.md` from `templates/ports/INDEX.md`: file, count, last date. **Each row:**
+Below handbooks `v0.13.0` a missing pair file is created from `templates/ports/pair.md`, indexed from
+`templates/ports/INDEX.md` (a row: file, count, last date); from it § 3 refuses one (`CON-13`, BH#21). **Each row:**
 
 | Column | What |
 |---|---|
@@ -135,7 +135,7 @@ each question names the source concept and the target stack; options in the row'
 **A** `map to <equivalent>` with its source line · **B** `mirror` · **C** `drop with note` · **D**
 `target-only addition`; **A** ⭐ only when quoted from an existing pair row or an explicit handbook
 cross-reference, else **C** ⭐; three a call. A free-text answer is the row's `rationale` (§ 1's
-rows). Every answer binds the port **the moment it is given**,
+rows). Every answer is recorded (`nen stop answer`) and binds the port **the moment it is given**,
 before any PR exists, and becomes one row through §§ 3–4.
 
 ## 6. The PR — one per port run, opened once, at G4
@@ -147,8 +147,8 @@ PT-<n> (branch <ref>, unmerged)`**, and the landing report names the follow-ups:
 (`nen/repos.json` → `pinned`, tag first, `CON-13`; the review preamble's prefix list gains `PT-` there)
 and **each consumer's `nen canon pin` with a follow-up rewriting its citations** to `<from>--<to> PT-<n> @ <tag>`.
 
-**A pair file for review** is read live through [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 2: no
-mirror carries one until zheref/nen#457 ([`limbo`](../limbo/SKILL.md) step 4).
+**A pair file for review** is read live (bankai-handbooks § 2): no mirror carries one until
+zheref/nen#457 ([`limbo`](../limbo/SKILL.md) step 4).
 
 ## 7. Report
 

@@ -29,7 +29,7 @@ nen parse jujutsu --grammar "pair <device>" --line "<the invocation, minus the p
 ```
 
 **`<device>` is required and never defaulted** — registered under the wrong name, a target resolves to
-somebody else's phone. **It is the maintainer's word, typed, never picked** (`missing-maintainer-choice`;
+somebody else's phone. **It is the maintainer's word, typed, never picked** (`missing-maintainer-choice`, recorded through `nen stop answer`;
 [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4): a bare `pair` (`nen parse` exit `2`) asks for it as
 free text, the probe's rows listed for reference, none starred and none a picker option. Other gaps
 are `missing-configuration`. **The name typed is

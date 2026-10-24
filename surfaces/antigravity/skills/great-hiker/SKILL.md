@@ -29,7 +29,7 @@ nen parse great-hiker --grammar "<request> [--effort <effort:low|medium|high>]" 
 The first parse at exit `0` is the evolution duty, `surface: (clause absent)` meaning every surface.
 Exit `2` there is not a refusal but the request shape, parsed by the second line; a line both grammars
 refuse, or an empty one, is the trigger to ask as **free text**, nen's corrected line shown for
-reference, never a starred or pickable option (row `missing-maintainer-choice`). A missing
+reference, never a starred or pickable option (row `missing-maintainer-choice`, recorded through `nen stop answer`). A missing
 argument or configuration item is asked for and set up inline (`missing-argument`,
 `missing-configuration`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
 the request is **the maintainer's word: never derived** or inferred from the session.

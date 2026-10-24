@@ -59,7 +59,7 @@ The brief owes kurapika.md § *Specialist*'s fields, in this order: **problem** 
 **platforms** · **constraints** · **observable success criteria** · **priority** · **scope boundaries** ·
 **Design Direction** for anything with UI · the **stack** where the product does not exist yet. One picker
 per round, **at most three questions a round** (WORKFLOW § 4, step 2), the derived rows stated, never
-asked; what only the maintainer knows is **typed, never picked** (`missing-maintainer-choice`).
+asked; what only the maintainer knows is **typed, never picked** (`missing-maintainer-choice`); every answer recorded (`nen stop answer`, WORKFLOW § 4).
 **Challenge the weak idea in the round**, with the evidence that would settle it. **Never
 invent a criterion**: an open one is written into the brief as an `OQ-{n}` row (HR-4), the brief on
 [`templates/issue-body/product.md`](../../../../templates/issue-body/product.md). A second idea

@@ -140,7 +140,7 @@ never rendered a second time by build; read-only, it advances nothing.
 
 After En completes and rikugan has rendered, ask once through the picker ([`cleanup`](../cleanup/SKILL.md)
 § 2, row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
-continue; each runs only the maintainer's pick.
+continue, recorded (`nen stop answer`, WORKFLOW § 4); each runs only the pick.
 
 ## 5. Authority — what this run may and may not do
 

@@ -908,12 +908,6 @@
     {
       "path": "claude/skills/hanten/SKILL.md",
       "rule": "PL-05",
-      "text": "t inherits no `PATH`** (#107) — prefixing every bloc",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
       "text": "erved worktree refusal (#218; ratified exception, RO",
       "count": 1
     },

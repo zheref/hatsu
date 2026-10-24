@@ -191,7 +191,7 @@ the delegation lapses. **The final report is the `final` Rikugan** — [`$rikuga
 over this run's queue, through backlog-board § 3 — one effort, a cleared desk, written to
 `<reports.dir>/<YYYY-MM-DD>-<effort>.html` — carrying every
 issue with its state, every PR's verdict verbatim, every label with its time, and what is on the
-maintainer's plate. Then the **wrap-up picker**, once ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`).
+maintainer's plate. Then the **wrap-up picker**, once ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`), its answer recorded through `nen stop answer`.
 **This skill never resumes itself** — re-invoke it.
 
 ## 11. Hard limits

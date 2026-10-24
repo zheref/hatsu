@@ -68,7 +68,7 @@ state is what it settles; this call is the maintainer's word for it:
 It links, or registers and installs, then reads back; on Claude Code it disables and uninstalls the
 shadowing `hatsu@hatsu` and removes its marketplace **and the declarations settings keep of it**, or a
 reload reinstalls the copy. Exit `0` → § 4. Exit `3` (a destination not ours) is quoted and asked
-(`missing-maintainer-choice`), never overwritten; `2` (the checkout refused) is quoted and asked
+(`missing-maintainer-choice`, recorded through `nen stop answer`), never overwritten; `2` (the checkout refused) is quoted and asked
 (`missing-configuration`); `5` names the missing CLI; `1` (a step or read-back failed) is quoted and the
 install never claimed. `5` and `1` end in § 7's refusal. Cursor has no install yet.
 

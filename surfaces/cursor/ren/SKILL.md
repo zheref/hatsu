@@ -56,7 +56,7 @@ Verified live at `v0.3.0` (`docs/ab/ren.md` § 2.1): a request line parses to
 `request: <the whole line>` at exit `0`, and an empty line refuses at exit `2` — *"<request> is
 required and the line does not supply it"* — with the corrected line printed. **A turn with no
 request is never inferred from what the session was last doing — it is asked for as free text**:
-the request is the maintainer's word (row `missing-maintainer-choice`,
+the request is the maintainer's word (row `missing-maintainer-choice`, recorded through `nen stop answer`,
 [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *The maintainer's word is never derived*), so any
 readings the session suggests are listed for reference, none starred and none a picker option, and
 the turn runs on what the maintainer types.
