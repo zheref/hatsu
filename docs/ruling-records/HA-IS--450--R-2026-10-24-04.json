@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-24-04",
+  "effortId": "HA-IS-#450",
+  "n": 25,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "bankai-handbooks HQ-B (CON-13 Port rulings): what does an ABSENT pair file mean, at tags from v0.11.0 and before?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Error from v0.11.0, none before (Recommended)",
+      "consequence": "Absent at a tag >= v0.11.0 = a refusal naming the pair and tag; absent before v0.11.0 = no rulings"
+    },
+    {
+      "key": "B",
+      "label": "Always an error",
+      "consequence": "Absent is a refusal at every tag; readers of older tags must upgrade"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-24T00:04:28.688Z"
+}

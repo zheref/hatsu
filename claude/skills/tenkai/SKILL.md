@@ -693,7 +693,7 @@ differ (the `commits` trailer lists, `futon.advanceGo`); or structural and the r
 tables in WORKFLOW § 2, so the two statements of one default cannot drift apart unnoticed.
 
 **2 · Asked, by domain.** Work the rows in the catalogue's domain order (`contracts/config-catalogue.json` → `domains`; today development, versioning,
-testing, review, reporting, notifications, deployment, publishing, intake, port, autonomy) — through § 6c's picker rules:
+testing, review, reporting, notifications, deployment, publishing, intake, port, autonomy, ci) — through § 6c's picker rules. **The `ci` rows are [`kuchiyose`](../kuchiyose/SKILL.md)'s, never asked or filled by Tenkai**: they carry `ownedBy`, so `diagnose`, `fill` and `need` never list them, and kuchiyose writes them only after its human-gate ask (row `ci-install-rulings`), the way the intake rows are Hatsu's own (the catalogue's *LISTED BUT HATSU-OWN* note):
 
 | State | What Tenkai does |
 |---|---|
@@ -706,7 +706,7 @@ testing, review, reporting, notifications, deployment, publishing, intake, port,
 | `set`, `default-unwritten`, `unannotated`, `not-applicable` | nothing to ask — `fill` settles the middle two |
 
 **A row marked `choice: maintainer` is never a picker choice** (`deploy.defaultTarget`; WORKFLOW § 4
-*The maintainer's word is never derived*, row `missing-maintainer-choice`): its candidates are listed
+*The maintainer's word is never derived*, row `missing-maintainer-choice`, recorded through `nen stop answer`): its candidates are listed
 for reference, none starred, and the answer is typed; `set` refuses a target whose `why` does not read
 non-production. **A row marked `landsByPR`** (`project.targets`) is set up and its declaration PR
 named, and the phase that asked does not resume on it — WORKFLOW § 4 step 3.

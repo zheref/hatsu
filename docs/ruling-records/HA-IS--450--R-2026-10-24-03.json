@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-24-03",
+  "effortId": "HA-IS-#450",
+  "n": 24,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "bankai-handbooks HQ-A (CON-13 Port rulings): when a NEW product stack is added, who renders its new pair files?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Stack PR renders them (Recommended)",
+      "consequence": "The PR that adds the stack renders the empty pair files from Hatsu's template (a scaffold, not a ruling write); the marker names the template"
+    },
+    {
+      "key": "B",
+      "label": "bankai-rule scaffold mode",
+      "consequence": "Give bankai-rule a scaffold mode that creates empty pair files, kept distinct from a ruling write"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-24T00:04:28.631Z"
+}

@@ -573,9 +573,47 @@ g init -q -b main "$to"; mkdir -p "$to/handbooks/ports"
 sed 's/<from>/swiftui-tca-uzf-v2/g; s/<to>/compose-uzf-v2/g; s/<from-prefix>/SW/g; s/<to-prefix>/KT/g' "$repo_root/templates/ports/pair.md" > "$to/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md"
 sed 's/<from>/swiftui-tca-uzf-v2/g; s/<to>/compose-uzf-v2/g' "$repo_root/templates/ports/INDEX.md" > "$to/handbooks/ports/INDEX.md"
 printf '| PT-3 | SW-1 | KT-1 | map | rendered | 2026-10-21 | |\n' >> "$to/handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md"
+# zheref/hatsu#406: one INDEX row per pair file, a second pair file at 0 rulings indexed too
+sed 's/<from>/compose-uzf-v2/g; s/<to>/swiftui-tca-uzf-v2/g; s/<from-prefix>/KT/g; s/<to-prefix>/SW/g' "$repo_root/templates/ports/pair.md" > "$to/handbooks/ports/compose-uzf-v2--swiftui-tca-uzf-v2.md"
+printf '| `swiftui-tca-uzf-v2` | `compose-uzf-v2` | [`swiftui-tca-uzf-v2--compose-uzf-v2.md`](swiftui-tca-uzf-v2--compose-uzf-v2.md) | 1 | 2026-10-21 |\n| `compose-uzf-v2` | `swiftui-tca-uzf-v2` | [`compose-uzf-v2--swiftui-tca-uzf-v2.md`](compose-uzf-v2--swiftui-tca-uzf-v2.md) | 0 | — |\n' >> "$to/handbooks/ports/INDEX.md"
 g -C "$to" add -A; g -C "$to" commit -qm tmpl; g clone -q "$to" "$tc"
 outt15="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT 2>&1)"; rct15=$?
-check "T15: templates/ports/pair.md and INDEX.md rendered into the tip read clean, the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
+check "T15: templates/ports/pair.md and INDEX.md rendered into the tip, with a second pair file at 0 rulings and both INDEX rows, read clean and the row counted: exit 0, next PT-4" '[ "$rct15" = 0 ] && printf "%s" "$outt15" | grep -q "^next: PT-4$"'
+# T15b (zheref/hatsu#406): the rendered INDEX carries exactly one row per pair file, the 0-rulings one
+# included. The guard itself never compares INDEX rows to files, so this parity is checked here, with a
+# red case: the same directory with the 0-rulings row dropped must fail it.
+index_parity() { # <ports dir>: 0 when every non-INDEX *.md has exactly one `](<file>)` row in INDEX.md
+  for pf in "$1"/*.md; do
+    b="${pf##*/}"; [ "$b" = INDEX.md ] && continue
+    [ "$(grep -cF "](${b})" "$1/INDEX.md")" = 1 ] || return 1
+  done
+}
+index_parity "$to/handbooks/ports"; rcp_green=$?
+red="$root/tmpl-red"; mkdir -p "$red"; cp "$to/handbooks/ports/"*.md "$red/"
+grep -vF '](compose-uzf-v2--swiftui-tca-uzf-v2.md)' "$to/handbooks/ports/INDEX.md" > "$red/INDEX.md"
+index_parity "$red"; rcp_red=$?
+check "T15b: the rendered INDEX has one row per pair file, the 0-rulings file included; dropping that row fails the parity" '[ "$rcp_green" = 0 ] && [ "$rcp_red" = 1 ]'
+# T16 (zheref/hatsu#406): the INDEX template's lead equals the rendered handbooks/ports/INDEX.md's at the
+# pin (v0.12.0), so a fresh render puts no prose diff back; the old "that carries rulings" sentence is gone.
+# At the v0.13.0 repin the lead becomes zheref/bankai-handbooks#21's, and this literal moves with it.
+lead_v012='One row per **directed** pair file (stack scenarios from `handbooks/stack-matrix.md`); a pair with
+no file has no rulings yet. A ruling is cited as `<from>--<to> PT-<n>` with the tag it
+was read at; before its PR merges, `<from>--<to> PT-<n> (branch <ref>, unmerged)`. Ids are `PT-<n>`
+from one counter across every pair file (numbering: global), so no two pair files share one.'
+lead_tpl="$(sed -n '5,8p' "$repo_root/templates/ports/INDEX.md")"
+check "T16: templates/ports/INDEX.md's lead equals the rendered handbooks/ports/INDEX.md's at v0.12.0, never the per-pair-that-carries-rulings sentence" '[ "$lead_tpl" = "$lead_v012" ] && ! grep -q "that carries rulings" "$repo_root/templates/ports/INDEX.md"'
+# T17 (CON-13 as amended by zheref/bankai-handbooks#21, live from v0.13.0): under --handbooks-tag >= v0.13.0
+# a pair file missing at the tip is refused at exit 2 naming the pair and the tag, never created; a present
+# one reserves; at v0.11.0-v0.12.x a missing one is the create-on-first-use case the pinned CON-13 states;
+# a tag out of shape is usage
+missing=handbooks/ports/react-uzf-v1--compose-uzf-v2.md
+outt17a="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md --prefix PT --handbooks-tag v0.13.0 2>&1)"; rct17a=$?
+bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag v0.13.0 >/dev/null 2>"$root/e17b.txt"; rct17b=$?
+bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag v1.0.0 >/dev/null 2>&1; rct17c=$?
+outt17d="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag v0.12.0 2>&1)"; rct17d=$?
+outt17f="$(bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag v0.11.0 2>&1)"; rct17f=$?
+bash "$guard" --worktree "$tc" --target acme/widget --pair-file "$missing" --prefix PT --handbooks-tag 0.12 >/dev/null 2>&1; rct17e=$?
+check "T17: at handbooks >= v0.13.0 a missing pair file is exit 2 naming the pair and the tag (a present one reserves PT-4); at v0.12.0 and v0.11.0 the create case reserves; a malformed tag is usage" '[ "$rct17a" = 0 ] && printf "%s" "$outt17a" | grep -q "^next: PT-4$" && [ "$rct17b" = 2 ] && grep -q "pair react-uzf-v1--compose-uzf-v2 has no pair file .* at handbooks v0.13.0 (>= v0.13.0)" "$root/e17b.txt" && [ "$rct17c" = 2 ] && [ "$rct17d" = 0 ] && printf "%s" "$outt17d" | grep -q "^next: PT-4$" && [ "$rct17f" = 0 ] && printf "%s" "$outt17f" | grep -q "^next: PT-4$" && [ "$rct17e" = 2 ]'
 
 # SCALING (the maintainer's perf ruling on HA-PR-#392): 3000 rows across 6 pair files plus two siblings must
 # reserve the right id within a generous bound, so a quadratic regression fails the lane rather than a user

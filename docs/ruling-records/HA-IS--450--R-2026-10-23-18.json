@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-18",
+  "effortId": "HA-IS-#450",
+  "n": 16,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "bankai-handbooks #20 Q4 (SP-11): a round is one run's single batch of up to maxQuestions; maxRounds limits successive runs. Is that what a round means?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "One batch per run (Recommended)",
+      "consequence": "Confirm: a round is one run's single batch of up to 5; maxRounds bounds successive runs"
+    },
+    {
+      "key": "B",
+      "label": "Several per run",
+      "consequence": "Amend: one run may ask up to maxRounds batches before it stops"
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:56.569Z"
+}

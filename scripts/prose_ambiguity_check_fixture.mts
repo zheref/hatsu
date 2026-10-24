@@ -138,6 +138,15 @@ try {
     put(root, 'claude/skills/plant/SKILL.md', '# P\n\nFixed in zheref/hatsu#154, HA#12 and HA-PR-#303; see [x](#p).\n');
     expectClean(root, 'PL-05 coded references and a same-file anchor are clean');
   }
+  {
+    const root = base();
+    put(root, 'docs/ruling-records/e--R-2026-10-23-01.json', '{}\n');
+    const row = (settles: string): string => `| <a id="hr-3"></a>**HR-3** · [e--R-2026-10-23-01](ruling-records/e--R-2026-10-23-01.json) | akatsuki-ai #69 OQ-1? | (A) Stage it — *see #70* | picked (A): \`Stage it\` | ruled | ${settles} |`;
+    put(root, 'docs/ROSTER.md', `# Roster\n\n| HR id | Q | O | P | Status | S |\n|---|---|---|---|---|---|\n${row('Carried by zheref/akatsuki-ai#70')}\n`);
+    expectClean(root, 'PL-05 a rendered record row: its question, options and answer are the record\'s text');
+    put(root, 'docs/ROSTER.md', `# Roster\n\n| HR id | Q | O | P | Status | S |\n|---|---|---|---|---|---|\n${row('Carried by #71')}\n`);
+    expectFinding(root, 'PL-05', /#71/, 'PL-05 a rendered record row still lints what it settles');
+  }
   planted('PL-06', '# P\n\nThe exit was verified live against the binary.\n', /verified live/, 'PL-06 an undated verified-live claim');
   {
     const root = base();
@@ -405,6 +414,17 @@ try {
     put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [...rows, ...rows] }));
     expectWiring(root, /repeats the row/, 'baseline: a split row is a repeated key, refused', '--base-baseline', trusted);
     console.log('ok    baseline: growth is summed per key');
+    // The shrink is counted (zheref/hatsu#448, AC-4): a row the trusted base carried and this baseline dropped.
+    writeFileSync(trusted, JSON.stringify({ findings: rows }));
+    put(root, 'claude/skills/plant/SKILL.md', '# P\n\nFixed in zheref/hatsu#154 last week.\n');
+    put(root, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n');
+    const shrunk = lint(root, '--base-baseline', trusted);
+    assert.equal(shrunk.status, 0, shrunk.stdout + shrunk.stderr);
+    assert.match(shrunk.stdout, / · 1 removed over .*trusted-\d+\.json · /);
+    assert.equal(JSON.parse(lint(root, '--base-baseline', trusted, '--json').stdout).removedBaseline, 1);
+    assert.equal(JSON.parse(lint(root, '--json').stdout).removedBaseline, null);
+    assert.doesNotMatch(lint(root).stdout, /removed over/);
+    console.log('ok    baseline: the rows a pull request removed are counted against the trusted base, and null with no base');
     // --base scopes findings to changed files: an unchanged file's finding is not reported.
     put(root, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n');
     put(root, 'claude/skills/plant/SKILL.md', '# P\n\nClean now.\n');

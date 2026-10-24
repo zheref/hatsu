@@ -417,3 +417,43 @@ and store wiring emit none). `uzf-core.md` `UZF-21` carries clauses (a)–(f) wi
 `ux-baseline.md` carries `UX-13` (section J), `security-baseline.md` `SEC-15` binds every lane that reads
 a body, comment, diff or fetched page it did not author, and `CONSTITUTION.md` `CON-13` carries the
 *Port rulings* clause with its bounded interim.
+
+## Repin to v0.12.0 (2026-10-23)
+
+`nen/repos.json` → `maintained_tools` → `zheref/bankai-handbooks` → `pinned` moved from `v0.11.0` to
+`v0.12.0` through `nen canon pin --repo <hatsu> --write v0.12.0 --source zheref/bankai-handbooks
+--canon-checkout <scratch clone at the tag>` (nen `0.26.0`): `pin: v0.11.0 -> v0.12.0 · recorded in:
+nen/repos.json (maintained_tools[2].pinned, line 17)`. The annotated tag `9f27bce2` resolves to commit
+`5f0b2f4b2d481be3049018825f302416ea1ce93c`, recorded beside the pin as `pinnedSha`;
+`nen canon pin --write` does not write that field yet (zheref/nen#506). The reason is HR-8: Akatsuki's handbooks pin (zheref/akatsuki-ai#70,
+`v0.12.0`) must equal Hatsu's, and Hatsu lands first. The verb's "mirror would be STALE" note again names a
+mirror Hatsu does not carry, so nothing was regenerated. The resolver's cache slot
+(`~/.cache/hatsu/canon/zheref/bankai-handbooks`) was fetched with `--tags` and left where it sat: every
+`hatsu:bankai-handbooks` run checks out the pin it reads and gates on `describe --tags --exact-match`,
+so a session reading the old pin concurrently is not moved under it.
+
+**What `v0.12.0` changes for the resolvers.** `handbooks/INDEX.md`'s "Always load" table carries the same
+five rows; the spec table and the port-rulings table are unchanged; the six directed pair files still
+carry zero `PT-` rows. The stack table's `react-uzf-v1` row names the Electron desktop shell as a render
+target on scaffold scenario 2A (`RC-64`–`RC-69`, `stacks/react-uzf-v1/rules/14-electron-desktop-shell.md`),
+and `quality-baseline.md` gains a desktop `QA-7` tooling row and a `QA-12` measurement row, which
+`hatsu:bankai-quality`'s transcribed § B table now carries. Its own registry still records no consumers
+(`latest` moves to `v0.12.0`).
+
+**The resolve, live, against the same scratch registry (`acme/web-app`, `scenario: react-uzf-v1`):**
+
+```
+$ nen canon resolve --repo <scratch registry> --target acme/web-app \
+    --always-load handbooks/uzf-core.md,handbooks/security-baseline.md,handbooks/ux-baseline.md,handbooks/release-policy.md,handbooks/quality-baseline.md,handbooks/spec/authoring.md,handbooks/ports/compose-uzf-v2--react-uzf-v1.md \
+    --stack-dir handbooks/stacks --json
+{ "scenario": "react-uzf-v1", "alwaysLoad": [ …the seven paths, echoed… ],
+  "stackHandbook": "handbooks/stacks/react-uzf-v1/architecture.md" }                      # exit 0
+```
+
+**`CON-13` at `v0.12.0` still creates a pair file on first use.** zheref/bankai-handbooks#21 amends it so
+every directed pair ships its file, but it is unmerged and untagged, so the refusal is gated on the tag
+that is to carry it: `scripts/port_rule_reserve.sh --handbooks-tag <pin>` refuses a pair file missing at
+the tip at exit `2`, naming the pair and the tag, only at `v0.13.0` or later, and `hatsu:bankai-handbooks`
+reads an absent pair file the same way from that tag; below it the create-on-first-use path stands (lane
+`port-rule-guard`, T17). The INDEX template's lead stays `v0.12.0`'s rendered text (T16). **At the
+`v0.13.0` repin: adopt zheref/bankai-handbooks#21's INDEX lead, and the refusal becomes live.**

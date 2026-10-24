@@ -624,7 +624,8 @@ fires a wake of his own. A watch that acts is not a watch. The merge/vote stays 
 **`{model}/{persona}/{descriptor}`**, the model alias you actually run on, the persona you act as, a short
 kebab descriptor. Title every subagent **`<skill> · <persona> · <model alias>`**, so the transcript says what
 ran, as whom, on what. Pick the model by **tier** from `workflow.json → models`, never by version — and
-**never give a subagent the frontier tier** (`fable` on Claude, `astra` on Codex). The frontier tier is where
+**never give a subagent the frontier tier** (`fable` on Claude, `astra` on Codex), save one exception: `great-hiker`'s
+prose subsession ([HR-336](../../docs/ROSTER.md#hr-336), scoped by [HR-362](../../docs/ROSTER.md#hr-362)). The frontier tier is where
 the maintainer's own conversation lives, and its cost lands on the maintainer's session; below it a
 subagent's tier is its scope's or role's, never its caller's (`docs/WORKFLOW.md` § `models`, ruling of 2026-10-13).
 

@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-24-05",
+  "effortId": "HA-IS-#450",
+  "n": 26,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "akatsuki-ai CON-5 row 7 (HA#450 OQ-11): an agent run may merge its own sub-PRs into that run's integration branch (never main) under the maintainer's explicit grant. Ratify it as written?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Ratify (Recommended)",
+      "consequence": "An agent run merges its own sub-PRs into its integration branch under the maintainer's grant; main stays the maintainer's"
+    },
+    {
+      "key": "B",
+      "label": "Amend",
+      "consequence": "Sub-PR merges into an integration branch also need the maintainer's hand"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-24T01:49:12.743Z"
+}

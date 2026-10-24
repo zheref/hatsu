@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-19",
+  "effortId": "HA-IS-#450",
+  "n": 17,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "bankai-handbooks #11 (compose-uzf-v2): two KT-n numberings collide. Re-point architecture.md to rules/README.md's registry ids?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Registry wins (Recommended)",
+      "consequence": "Re-point architecture.md's ids to the registry; no id reused"
+    },
+    {
+      "key": "B",
+      "label": "Keep both",
+      "consequence": "Leave the two numberings; add a note explaining which file a citation refers to"
+    }
+  ],
+  "kind": "typed",
+  "pick": null,
+  "typed": "KT belongs to Kotlin. Re-point rules registry to a different family of rules or merge it with another of the handbooks that make the most sense.\n",
+  "answeredAt": "2026-10-23T22:41:56.640Z"
+}

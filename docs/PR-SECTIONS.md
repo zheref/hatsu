@@ -15,12 +15,13 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    fills and diagnosis preserve it. `max` defaults to seven and cannot exceed the catalogue cap.
 3. Reuse Mukai's facts: `--evidence` only for a product declaring `project.evidence.globs`,
    `--economics` only when Leorio ran or took a delta pass, `--policy-hit` when `nen gate derive`
-   matched a policy or process path. These facts activate conditional ids; they do not create headings.
+   matched a policy or process path, `--idle` on every PR an idle run opens (the footer row `decisions`, WORKFLOW
+   § *Idle batches* rule 8; mandatory there). These facts activate conditional ids; they do not create headings.
 4. Resolve before drafting, and resolve again when kind, labels, configuration or run facts change:
 
 ```bash
 "$hatsu_root/scripts/pr_sections_resolve.sh" --repo <target> --kind <kind> --jobs <comma-joined-jobs> \
-  [--evidence] [--economics] [--policy-hit] --out <absolute-requirements.json>
+  [--evidence] [--economics] [--policy-hit] [--idle] --out <absolute-requirements.json>
 ```
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
@@ -71,8 +72,8 @@ missing evidence. The catalogue supplies the heading glyphs; guards tolerate tho
 The non-product forms satisfy `CON-17(b)`'s observable proxy; the handbook is not amended.
 Every kind's verify section also carries one Criterion / Coverage / Evidence row per AC id of each
 closing issue (HR-11): `<CODE>#<N>/AC-<k>`; satisfied · partial · missing · contradicts · unrequested;
-a test name, path:line or scenario. `scripts/pr_criteria_check.mts` refuses a missing row, `missing`
-or `contradicts`, and a closing issue with no criteria; an empty verify heading fails `body-check`.
+a test name, path:line or scenario. `nen pr converge --requirements-from contracts/issue-sections.json`
+judges the table, its rules nen's (zheref/hatsu#413); an empty verify heading fails `body-check`.
 Compatibility carries Symbol / Before / After / Consumer action and a semver verdict. Across
 repositories answers what another repository does differently after merge, recording rulings.
 Release unit carries Archive / Version / Size / Provenance / Verification and the `CON-22` fan-out. Rollout carries Target /

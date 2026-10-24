@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-05",
+  "effortId": "HA-IS-#450",
+  "n": 3,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "HR-331 (nen/contract.json $precedence, ROSTER OPEN-5): how does a CON id resolve until Akatsuki is tagged and pinned?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Handbooks' CON at pin (Recommended)",
+      "consequence": "Confirm the reading: through bankai-handbooks' constitution at Hatsu's pin until Akatsuki's tag; OPEN-5"
+    },
+    {
+      "key": "B",
+      "label": "Akatsuki's tag only",
+      "consequence": "Amend: a CON id resolves only at Akatsuki's own tag; unresolvable until then"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.623Z"
+}

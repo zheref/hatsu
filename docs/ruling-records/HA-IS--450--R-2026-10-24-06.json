@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-24-06",
+  "effortId": "HA-IS-#450",
+  "n": 27,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "HR-336 (the pick Frontier subsession for great-hiker's prose work) runs great-hiker's prose on a frontier-tier subsession, which the 2026-10-20 rule (subagents on Opus medium) and kurapika.md's hard limit forbid. Which did you mean?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "One exception (Recommended)",
+      "consequence": "great-hiker's prose work is the one subsession allowed on the frontier tier; kurapika.md and the 2026-10-20 rule gain that single exception"
+    },
+    {
+      "key": "B",
+      "label": "Your own session only",
+      "consequence": "Frontier only when the maintainer runs great-hiker; a delegated great-hiker stays on Opus medium"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-24T01:49:12.801Z"
+}

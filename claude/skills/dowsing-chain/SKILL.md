@@ -100,7 +100,7 @@ hand-edited.
 ## 8. Dispatch — the picker, then file's own confirmation
 
 `dispatch <family>` after `MERGED`: row `spec-dispatch` — every marker-free gap group, **none starred**,
-paged in fours; no G1 (unruled, *conventions*). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
+paged in fours, recorded (`nen stop answer`, WORKFLOW § 4); no G1 (unruled, *conventions*). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
 by name, its § 4 confirmation per dispatch, each rendered body file scanned first (`detect --no-git`, § 4's stop); the title and body
 *conventions* state (`Spec: specs/<nnn>-<slug>@<sha>`, scenarios verbatim as source data), an existing issue
 amended with `nen issue edit-body --expect-body-sha256`; `classify` and `direct` per filing; one epic per
