@@ -375,8 +375,8 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": {
-        "harness-attribution-switch": "hold",
-        "host-nen-link": "hold",
+        "harness-attribution-switch": "default",
+        "host-nen-link": "default",
         "missing-consumer-declaration": "default",
         "missing-argument": "default",
         "missing-configuration": "default",
@@ -387,20 +387,20 @@
         "intake-challenger": "hold",
         "port-siblings": "hold",
         "wrap-up": "default",
-        "cleanup-plan": "hold",
+        "cleanup-plan": "default",
         "publish-offer": "refuse",
-        "spec-capture-scope": "hold",
+        "spec-capture-scope": "default",
         "spec-slice": "hold",
         "spec-clarify": "hold",
         "spec-dispatch": "hold",
-        "spec-converge-filing": "hold"
+        "spec-converge-filing": "default"
       },
-      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. A row the map does not name is hold (publish-offer refuse). A floor fails start at exit 1: publish-offer is always refuse; host-nen-link, harness-attribution-switch and missing-maintainer-choice are at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
+      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. Under the maintainer's ruling of 2026-10-23 (unattended except an act that may not be reversed) a row resolves default where it stars an option and hold where it stars none; publish-offer is refuse. A row the map does not name takes the same resolution. A floor fails start at exit 1: publish-offer is always refuse; missing-maintainer-choice is at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
       "readers": [
         "futon",
         "kazaana"
       ],
-      "source": "docs/ROSTER.md HR-5; nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan held (an unattended remote branch deletion can close a stacked child), the five spec-* rows held (dowsing-chain is not an idle-run skill; spec-capture-scope and spec-converge-filing star an option), port-drift held (its answer is a permanent canon record, the maintainer's under the porting ruling, zheref/hatsu#354)"
+      "source": "docs/ROSTER.md HR-5; the maintainer's ruling of 2026-10-23 (recorded R-2026-10-23-01); nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan default is its deterministic rows for this session only"
     },
     {
       "id": "workflow.idle.terminal",
@@ -429,7 +429,7 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": 480,
-      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from the run manifest's startedAt; past it no effort is claimed and the rest park as parked:budget. One meaning, wall-clock run age, never summed effort minutes: this row owns it and nen run budget (nen 0.26.0) counts it the same way; tokens stay advisory on Hatsu's manifest (zheref/hatsu#423).",
+      "describe": "Wall-clock minutes an idle run may claim new efforts for, counted from nen's run manifest's startedAt and read through nen run budget --max-minutes (the value start prints from the committed profile); at remaining.minutes 0 no effort is claimed and the rest park as parked:budget. One meaning, wall-clock run age, never summed effort minutes: this row owns it and nen run budget (nen 0.26.0) counts it the same way.",
       "readers": [
         "futon",
         "kazaana"
@@ -444,7 +444,7 @@
       "when": "nen/workflow.json#idle",
       "kind": "open",
       "default": 4000000,
-      "describe": "Tokens an idle run may spend. Advisory on Hatsu's manifest: nen run budget (nen 0.26.0) sums the usage ledgers against nen's own manifest, which no Hatsu skill opens yet (zheref/hatsu#423); no skill sums nen usage itself, and minutes remain the enforced bound.",
+      "describe": "Tokens an idle run may spend, passed to nen run budget --max-tokens. Advisory: nen sums the usage ledgers under the one --repo while each effort keeps its ledger in its own worktree, so a multi-worktree run reads tokensUnread (zheref/hatsu#423's finding); no skill sums nen usage itself, --claim is not passed, and minutes remain the enforced bound.",
       "readers": [
         "futon",
         "kazaana"
@@ -569,13 +569,13 @@
       "path": "monitor.localSlotFrees",
       "domain": "review",
       "kind": "open",
-      "default": "merged",
-      "describe": "When an effort's local slot frees (futon section 6): at its local or delivery merge, the one value HR-257 (Slots and stops) rules for every futon run; read by nen loop slots --repo from nen 0.26.0, which holds an open unmerged PR's slot; futon section 6 keeps ready/prompted false whenever the printed rule is not merged (the stacked-slot reading is zheref/hatsu#425's); an idle start fails on any other value here or under idle.localSlotFrees.",
+      "default": "ready+prompted",
+      "describe": "When an effort's local slot frees (futon section 6): once its PR is Ready and its merge prompt or Ready stop was shown, ready+prompted, the maintainer's pick on zheref/hatsu#425 (R-2026-10-23-20) amending HR-257's merged for every futon run, stacked or not; a claimed effort with no PR holds its slot until then, or until its local merge into the integration branch; read by nen loop slots --from-run --repo from nen 0.26.0; an idle start fails on any other value here or under idle.localSlotFrees.",
       "readers": [
         "futon",
         "kazaana"
       ],
-      "source": "docs/ROSTER.md HR-257 (Rulings of 2026-09-30, Slots and stops); docs/WORKFLOW.md § 2 (monitor)"
+      "source": "zheref/hatsu#425 (R-2026-10-23-20, amending docs/ROSTER.md HR-257, Rulings of 2026-09-30, Slots and stops); docs/WORKFLOW.md § 2 (monitor)"
     },
     {
       "id": "workflow.notifications.rungs",

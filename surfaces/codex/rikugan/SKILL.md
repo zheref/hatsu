@@ -130,15 +130,15 @@ no bell — a composite that owed a bell rang it before this step ([`jutaisho`](
 
 - **Typed**, in any checkout — § 0 runs.
 - **A `futon` `then` step**: `nen parse futon` classifies `then rikugan` and `then getsuga+rikugan` as
-  `kind: skills` steps (verified at nen `0.22.0`, 2026-10-19; `getsuga` carries its own allowed gate);
-  `then tag+rikugan` is refused at exit `2` — *'tag' and 'fanout' are reserved step names* — so the
+  `kind: skills` steps (nen `0.22.0`; `getsuga` carries its own allowed gate);
+  `then tag+rikugan` is refused at exit `2` (reserved names), so the
   cut and the page are `then getsuga+rikugan`. The step
   runs after futon § 8's gate, under this skill's own authority, its scope § 2 row 1; **it and futon
   § 10's final render are one render**, after the `then` outcome exists.
 - **The closing step of a composite that names `$rikugan` by name and hands over its scope** —
   today [`en`](../en/SKILL.md) § 8, [`futon`](../futon/SKILL.md) § 10 and
   [`backlog-loop`](../backlog-loop/SKILL.md) § 10 — this skill's § 0 is skipped. It is the dated
-  final report those skills owe; none renders it another way. `build` and `getsuga` do not name it;
+  final report those skills owe (futon's offers the open-question flow, WORKFLOW § *Idle batches* rule 9). `build` and `getsuga` do not name it;
   their objects reach this page typed or by § 2 row 4.
 
 ## 7. When the pipeline cannot run

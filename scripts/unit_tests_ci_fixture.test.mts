@@ -69,8 +69,7 @@ try {
   assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
 
   let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||';
-  for (const [script, fixture, lane] of [['issue_body_check.mts', 'issue_body_check_fixture.mts', 'issue-shape'],
-    ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
+  for (const [script, fixture, lane] of [['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
@@ -105,6 +104,15 @@ try {
   assert(result.status === 1 && result.stderr.includes('tenkai-guard failed'), 'failing tenkai-guard was not red');
   result = run({ HATSU_FAIL_LANE: 'config-values-guard' });
   assert(result.status === 1 && result.stderr.includes('config-values-guard failed'), 'failing config-values-guard was not red (#397)');
+
+  // The issue-shape fixture is selected by itself: it runs the verified nen over the catalogue (#423).
+  writeFileSync(join(repo, 'scripts', 'issue_sections_fixture.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `issue-shape path refused: ${result.stderr}`);
+  expected += ',issue-shape||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'issue-shape lane not selected (BC-9)');
 
   result = run({}, join(dir, 'nen bin:x', 'nen'));
   assert(result.status === 2 && result.stderr.includes('may not contain'), 'a delimiter in the nen directory was not refused');

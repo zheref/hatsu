@@ -105,6 +105,9 @@ test("run facts admit only conditional readers while Delivery stays an always-fi
   assert.ok(!without.ids.includes("across"));
   assert.deepEqual(without.preamble, ["delivery"]);
   assert.ok(!without.footer.includes("delivery"));
+  // The ruling of 2026-10-23: an idle run's PR carries the decisions footer, before the checklist; others never do.
+  assert.ok(!without.footer.includes("decisions"));
+  assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "checklist", "issues", "attribution"]);
   const withEconomics = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   assert.deepEqual(withEconomics.ids, ["changes", "why", "how", "improves", "across", "verify", "economics"]);
   assert.deepEqual(resolution("unknown").ids, ["changes", "why", "how", "improves", "verify"]);

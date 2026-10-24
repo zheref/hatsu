@@ -127,6 +127,16 @@
   ],
   "footer": [
     {
+      "id": "decisions",
+      "glyph": "🗳️",
+      "title": "Decisions taken on your behalf",
+      "level": 2,
+      "template": "templates/pr-body/decisions.md",
+      "reserved": false,
+      "when": "idle",
+      "$comment": "Every pre-answered row and every default an idle run took for the maintainer (ruling of 2026-10-23); mandatory on every PR an --idle run opens."
+    },
+    {
       "id": "checklist",
       "glyph": "📋",
       "title": "Completion checklist",

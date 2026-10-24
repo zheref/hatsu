@@ -40,7 +40,7 @@ try {
      const cat=catalogue(root);
      const ids=cat.variants[`${body.defaultKind}.${body.defaultFamily}`];
      if(!ids)throw new Error('unknown default kind/family');
-     const rows=[...cat.preamble,...ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)),...cat.footer.filter((r:any)=>!r.reserved)];
+     const rows=[...cat.preamble,...ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)),...cat.footer.filter((r:any)=>!r.reserved&&r.when===undefined)];
      const expected=requirementsFor(rows,body.defaultKind);
      if(!isDeepStrictEqual(load(body.file),expected))findings.push(`${body.file}: drifts from catalogue default ${body.defaultKind}.${body.defaultFamily}`);
      for(const row of [...cat.preamble,...cat.sections,...cat.footer]) {
