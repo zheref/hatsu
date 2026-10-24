@@ -5,9 +5,9 @@
 # WHAT THIS IS
 # A Claude Code `Stop` hook (see hooks/hooks.json) — and, mirrored, a Codex
 # `Stop`, a Cursor `stop` and an Antigravity `Stop` hook. It fires when the
-# model finishes a turn, reads every unrung stop marker, and — for each one
-# that is fresh — raises an OS notification carrying the ask and the report
-# link and plays a sound, ONCE PER GATE, then clears that marker alone.
+# model finishes a turn, reads every unrung stop marker, raises an OS
+# notification carrying the ask and the report link and plays a sound, ONCE
+# PER GATE, then clears that marker alone.
 #
 # It is NOT a nen-owned step and never will be. The whole point of a bell is
 # that it rings when the model has stopped talking, which is exactly when no
@@ -18,7 +18,7 @@
 # `--mark` also writes `<git-common-dir>/.nen/marks/<effort>/<gate>.json`
 # (nen.stop.mark/v0.3), so seven efforts reaching seven gates leave seven
 # markers instead of one file overwritten six times. This hook reads them
-# through `nen stop list --json`, rings each fresh one, and clears each with
+# through `nen stop list --json`, rings each one, and clears each with
 # `nen stop clear --gate <g> [--effort <id>]`, which removes that gate's
 # marker and, when it records the same stop, the single file — never another
 # gate's. A nen without `stop list` (0.26.0 and before) falls back to the
@@ -36,6 +36,14 @@
 # strings under the same names and still rings. Freshness is the FILE's mtime,
 # not `at`: comparing a timestamp in a string needs a date parser, and the
 # mtime is the same fact without one.
+#
+# STALENESS. A per-gate marker is never stale: it stands until it rings. An
+# idle batch's orchestrator turn can span hours, so the Stop hook may first
+# fire long after a gate was marked, and a ten-minute window would clear
+# every earlier gate unrung — the case one marker per gate exists for
+# (zheref/hatsu#453 AC-2; HA-PR-#463 review). Only the single-file fallback
+# keeps the ten-minute window, because that file is overwritten by the next
+# stop and a stale one describes a stop that has already been replaced.
 #
 # RUNGS
 # `notifications.rungs` in the repository's nen/workflow.json decides which of
@@ -195,8 +203,22 @@ ring() {
 fresh() { [ -n "$(find "$1" -mmin -10 2>/dev/null)" ]; }
 
 single="$cwd/.nen/last-stop.json"
+# The common dir: `--path-format=absolute` needs git 2.31; older git prints the
+# path relative to $cwd, resolved here. Outside git, nen writes the markers
+# under the checkout itself (`<repo>/.nen/marks`).
 common=$(git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || :)
-marks_dir="${common:+$common/.nen/marks}"
+if [ -z "$common" ]; then
+  common=$(git -C "$cwd" rev-parse --git-common-dir 2>/dev/null || :)
+  case "$common" in
+    ""|/*) ;;
+    *) common=$(cd "$cwd" && cd "$common" 2>/dev/null && pwd -P || :) ;;
+  esac
+fi
+if [ -n "$common" ]; then
+  marks_dir="$common/.nen/marks"
+else
+  marks_dir="$cwd/.nen/marks"
+fi
 has_marks=0
 if [ -n "$marks_dir" ] && [ -d "$marks_dir" ] && [ -n "$(find "$marks_dir" -mindepth 2 -name '*.json' -type f 2>/dev/null | head -n 1)" ]; then
   has_marks=1
@@ -239,10 +261,12 @@ case "$listing" in
           set -- stop clear --gate "${m_gate:-none}" --repo "$cwd"
         fi
       fi
-      if fresh "$path" && [ "${HATSU_ATTENTION:-on}" != "off" ]; then
+      # A per-gate marker rings whatever its age; the legacy single file keeps
+      # its ten-minute window (STALENESS above).
+      if [ "${HATSU_ATTENTION:-on}" != "off" ] && { [ "$source_kind" != "legacy" ] || fresh "$path"; }; then
         ring "$document"
       fi
-      # Consumed whatever rang — including when nothing could, or it was stale.
+      # Consumed whatever rang — including when nothing could.
       nen "$@" >/dev/null 2>&1 || :
     done < "$rows"
     rm -f "$rows"

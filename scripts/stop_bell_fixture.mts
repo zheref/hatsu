@@ -70,15 +70,25 @@ try {
     assert.ok(calls.some((c) => c.includes('Hatsu — G2: merge one')));
     assert.deepEqual(calls.filter((c) => c.startsWith('clear')), [`clear --gate G2 --effort HA-IS-#1 --repo ${dir}`, `clear --gate G4 --repo ${dir}`, `clear --repo ${dir}`]);
   }
-  // 2. A stale marker is cleared and never rung; an unreadable row is neither rung nor cleared.
+  // 2. Per-gate markers never go stale: seven gates marked an hour ago ring seven bells and are each
+  //    cleared (an idle orchestrator's turn spans hours); an unreadable row is neither rung nor cleared;
+  //    a legacy single file an hour old is cleared unrung.
   {
     const dir = repo();
-    const stale = mark(dir, 'HA-IS-#2', 'G5', 'old');
     const old = new Date(Date.now() - 3600_000);
-    utimesSync(stale, old, old);
-    const calls = hook(dir, { NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: stale, gate: 'G5' }], [join(dir, '.git/.nen/marks/x/G2.json')]), NEN_STUB_LIST_EXIT: '1' });
-    assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 0);
-    assert.deepEqual(calls.filter((c) => c.startsWith('clear')), [`clear --gate G5 --effort HA-IS-#2 --repo ${dir}`]);
+    const rows = [1, 2, 3, 4, 5, 6, 7].map((n) => {
+      const path = mark(dir, `HA-IS-#${n}`, 'G2', `merge ${n}`);
+      utimesSync(path, old, old);
+      return { source: 'gate', path, gate: 'G2' };
+    });
+    mkdirSync(join(dir, '.nen'));
+    const single = join(dir, '.nen/last-stop.json');
+    writeFileSync(single, `${JSON.stringify({ contract: 'nen.stop.mark/v0.1', who: 'kurapika', gate: 'G5', notified: false, at: '2026-10-23T00:00:00.000Z' }, null, 2)}\n`);
+    utimesSync(single, old, old);
+    const calls = hook(dir, { NEN_STUB_LIST: listing(dir, [...rows, { source: 'legacy', path: single, gate: 'G5' }], [join(dir, '.git/.nen/marks/x/G2.json')]), NEN_STUB_LIST_EXIT: '1' });
+    assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 7, 'seven hour-old gates ring seven bells');
+    assert.ok(!calls.some((c) => c.includes('Hatsu — G5')), 'the stale single file is not rung');
+    assert.deepEqual(calls.filter((c) => c.startsWith('clear')), [...[1, 2, 3, 4, 5, 6, 7].map((n) => `clear --gate G2 --effort HA-IS-#${n} --repo ${dir}`), `clear --repo ${dir}`]);
   }
   // 3. HATSU_ATTENTION=off rings nothing and still consumes.
   {
@@ -117,7 +127,44 @@ try {
     const calls = hook(dir, { NEN_STUB_LIST: listing(dir, []) });
     assert.deepEqual(calls, []);
   }
-  console.log(`stop-bell fixture: ${cases} cases passed (one bell per gate, per-gate clears, stale and off consumed, unreadable untouched, 0.26 and no-nen fallbacks, idle exit)`);
+  // 7. Outside git, nen writes the markers under the checkout: the hook still finds them.
+  {
+    const dir = mkdtempSync(join(temp, 'plain-'));
+    const folder = join(dir, '.nen/marks/HA-IS-%239');
+    mkdirSync(folder, { recursive: true });
+    const path = join(folder, 'G4.json');
+    writeFileSync(path, `${JSON.stringify({ contract: 'nen.stop.mark/v0.3', who: 'kurapika', gate: 'G4', notified: false, at: '2026-10-23T00:00:00.000Z', title: 'plain', body: null, reportUrl: null, options: null, proposedIssue: null, effort: 'HA-IS-#9' }, null, 2)}\n`);
+    const calls = hook(dir, { NEN_STUB_LIST: listing(dir, [{ source: 'gate', path, gate: 'G4' }]) });
+    assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 1);
+    assert.deepEqual(calls.filter((c) => c.startsWith('clear')), [`clear --gate G4 --effort HA-IS-#9 --repo ${dir}`]);
+  }
+  // 8. The documented marking form for the nen this host runs (jutaisho § 3): `--mark --effort <branch>`
+  //    where `nen stop --help` lists `--effort` (nen 0.27 on), the single-file `--mark` otherwise (0.26).
+  //    Real nen, stub bells. Skipped by name when no nen is on the inherited PATH.
+  {
+    const realNen = (process.env.PATH ?? '').split(':').map((d) => join(d, 'nen')).find((p) => existsSync(p));
+    if (realNen === undefined) console.log('stop-bell fixture: case 8 skipped -- no nen on PATH');
+    else {
+      const help = spawnSync(realNen, ['stop', '--help'], { encoding: 'utf8' });
+      const perGate = `${help.stdout}${help.stderr}`.includes('--effort');
+      const dir = repo();
+      const form = ['stop', '--who', 'kurapika', '--gate', 'G2', '--title', 'real form', '--mark', ...(perGate ? ['--effort', 'opus/kurapika/x'] : []), '--repo', dir];
+      const marked = spawnSync(realNen, form, { encoding: 'utf8' });
+      assert.equal(marked.status, 0, `${marked.stdout}${marked.stderr}`);
+      const real = join(temp, 'realbin');
+      mkdirSync(real, { recursive: true });
+      for (const name of ['osascript', 'afplay', 'uname']) writeFileSync(join(real, name), readFileSync(join(bin, name)), { mode: 0o755 });
+      const calls = hook(dir, {}, `${real}:${dirname(realNen)}:/usr/bin:/bin`);
+      assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 1, `one bell for the ${perGate ? 'per-gate' : 'single-file'} form`);
+      assert.equal(existsSync(join(dir, '.nen/last-stop.json')), false, 'the single file is consumed');
+      if (perGate) {
+        const left = spawnSync(realNen, ['stop', 'list', '--repo', dir, '--json'], { encoding: 'utf8' });
+        assert.equal((JSON.parse(left.stdout) as { marks: unknown[] }).marks.length, 0, 'the per-gate marker is cleared');
+      }
+      console.log(`stop-bell fixture: case 8 ran the ${perGate ? 'per-gate (--effort)' : 'single-file (0.26)'} form against ${realNen}`);
+    }
+  }
+  console.log(`stop-bell fixture: ${cases} cases passed (one bell per gate, hour-old gates still ring, per-gate clears, off consumed, unreadable untouched, 0.26 and no-nen fallbacks, outside git, the real marking form, idle exit)`);
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

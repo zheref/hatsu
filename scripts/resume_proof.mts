@@ -14,7 +14,8 @@
 //   * one entry per phase, never two (AC-3), the interrupted phase carrying exactly one `resumedAt`;
 //   * a re-invocation after the run finished writes nothing: the ledger file is byte-identical (AC-1);
 //   * `begin --resume` on a phase while ANOTHER is open is refused at exit 2 (the plan's "a refusal is
-//     a finding, not a skip": the proof asserts the refusal holds).
+//     a finding, not a skip": the proof asserts the refusal holds);
+//   * a phase that ended non-zero is refused by name on resume, never begun a second time (one entry).
 // The futon run manifest (futon and kazaana, which composes it) is proved the same way: a re-`start`
 // with the same idle answers is `existing`, a re-`park` is `unchanged`, and the manifest's bytes do not
 // move. Instants are the only thing two runs cannot share, so they are the only thing elided.
@@ -91,6 +92,10 @@ function resume(repo: string, phases: string[]): string[] {
     const entries = recorded.filter((e) => e.phase === phase);
     if (entries.some((e) => e.endedAt !== null && e.exitCode === 0)) { said.push(`skipped ${phase}`); continue; }
     const open = entries.some((e) => e.endedAt === null);
+    // A phase that ended non-zero was a refused step: the resume neither re-begins it (a second entry) nor
+    // passes it; it refuses by name and writes nothing, so the stop that step raised is answered first.
+    const failed = entries.find((e) => e.endedAt !== null && e.exitCode !== 0);
+    if (!open && failed !== undefined) { said.push(`refused ${phase}: ended at exit ${failed.exitCode}`); return said; }
     must(repo, begin(repo, phase, open));
     said.push(open ? `resumed ${phase}` : `began ${phase}`);
     must(repo, end(repo, phase));
@@ -133,6 +138,27 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
       results.push({ composite: name, case: `killed ${where} ${phases[k]}`, verdict: ok ? 'converged' : 'diverged', detail });
       rmSync(repo, { recursive: true, force: true });
     }
+  }
+}
+
+// A phase that ended non-zero: the resume refuses by name and the ledger does not move (one entry).
+for (const [name, { phases }] of Object.entries(COMPOSITES)) {
+  for (let k = 0; k < phases.length; k++) {
+    const repo = freshRepo();
+    let ok = true; let detail = '';
+    try {
+      for (let i = 0; i < k; i++) { must(repo, begin(repo, phases[i] as string)); must(repo, end(repo, phases[i] as string)); }
+      must(repo, begin(repo, phases[k] as string));
+      must(repo, ['phase', 'end', '--effort', EFFORT, '--phase', phases[k] as string, '--exit', '1', '--repo', repo]);
+      const before = ledgerBytes(repo);
+      // ← the session dies here; the same line is invoked again.
+      const said = resume(repo, phases);
+      const last = said[said.length - 1] ?? '';
+      ok = last === `refused ${phases[k]}: ended at exit 1` && ledgerBytes(repo) === before && show(repo).phases.length === k + 1;
+      detail = ok ? `${k} skipped, ${phases[k]} refused by name, ledger bytes unchanged` : `${said.join('; ')}`;
+    } catch (error) { ok = false; detail = (error as Error).message; }
+    results.push({ composite: name, case: `killed after failed ${phases[k]}`, verdict: ok ? 'converged' : 'diverged', detail });
+    rmSync(repo, { recursive: true, force: true });
   }
 }
 

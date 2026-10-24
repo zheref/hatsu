@@ -1045,12 +1045,17 @@ markers: 0 unrung under <r>/.git/.nen/marks (git common dir)
 single-cleared
 ```
 
-7 of 7 gates rang their own bell (SC-2). Clearing one gate first (`nen stop clear --gate G2 --effort HA-IS-#3`)
+7 of 7 gates rang their own bell (SC-2). **A per-gate marker never goes stale** (HA-PR-#463 review): the hook
+fires at the end of a turn that may span hours, so the fixture now marks seven gates, ages them an hour, and
+requires seven bells and seven clears, while a single file an hour old is still cleared unrung. Its case 8 runs
+the documented marking form against the real nen on PATH: at nen `0.26.0`, `nen stop --mark` (no `--effort`,
+which 0.26 refuses as an unknown option) and one bell off the single file; at nen source `0.27.0`,
+`--mark --effort opus/kurapika/x` and one bell off the per-gate marker, `nen stop list` empty after. Clearing one gate first (`nen stop clear --gate G2 --effort HA-IS-#3`)
 left 6 markers and the hook then rang exactly 6 (AC-4). Against nen `0.26.0` (no `stop list`) the hook fell back to
 the single file, rang once (`Hatsu — G5: legacy`) and consumed it with bare `nen stop clear`. Hermetic cases:
 lane `stop-bell-guard` (6/6).
 
-**The harness-denied row** is `nen/decisions.json` → `harness-denied` (autonomous): the refused command quoted, a
+**The harness-denied row** is `nen/decisions.json` → `harness-denied` (a `human-gate` G5 since the HA-PR-#463 review; autonomous when first written): the refused command quoted, a
 G5 marker with `--effort`, parked `g5-harness-denied`; `nen run park … --row g5-harness-denied` records it
 (`parked: zheref/hatsu#1 parked on row g5-harness-denied …`, re-park `unchanged`). No live harness refusal occurred
 during this proof, so SC-1's count over a real run is not taken here.

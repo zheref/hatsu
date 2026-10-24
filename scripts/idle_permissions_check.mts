@@ -7,7 +7,7 @@
 // Reads every exemplar in contracts/idle-permissions.json (or --needs) and the Claude Code settings the
 // session loads — <checkout>/.claude/settings.local.json, <checkout>/.claude/settings.json and
 // ~/.claude/settings.json, or exactly the --settings files named — and reports each exemplar that no
-// `Bash(...)` allow rule matches, or that a `Bash(...)` deny rule matches. It READS and never writes:
+// `Bash(...)` allow rule matches, or that a `Bash(...)` deny or ask rule matches (both prompt or refuse). It READS and never writes:
 // a permission setting is the maintainer's alone. A settings file that is absent is named and skipped;
 // one that cannot be read or parsed is a wiring error, never "nothing allowed".
 //
@@ -57,10 +57,11 @@ try {
 
 const allow: string[] = [];
 const deny: string[] = [];
+const ask: string[] = [];
 const read: Array<{ path: string; state: 'read' | 'absent' }> = [];
 for (const file of files) {
   if (!existsSync(file)) { read.push({ path: file, state: 'absent' }); continue; }
-  let document: { permissions?: { allow?: unknown; deny?: unknown } };
+  let document: { permissions?: { allow?: unknown; deny?: unknown; ask?: unknown } };
   try { document = JSON.parse(readFileSync(file, 'utf8')); } catch (error) { wiring(`${file}: could not read or parse (${(error as Error).message})`); }
   const take = (list: unknown, into: string[], key: string): void => {
     if (list === undefined) return;
@@ -69,6 +70,7 @@ for (const file of files) {
   };
   take(document.permissions?.allow, allow, 'allow');
   take(document.permissions?.deny, deny, 'deny');
+  take((document.permissions as { ask?: unknown } | undefined)?.ask, ask, 'ask');
   read.push({ path: file, state: 'read' });
 }
 
@@ -83,14 +85,17 @@ function bashPattern(rule: string): RegExp | null {
 }
 const allowRx = allow.map((rule) => ({ rule, rx: bashPattern(rule) })).filter((r) => r.rx !== null);
 const denyRx = deny.map((rule) => ({ rule, rx: bashPattern(rule) })).filter((r) => r.rx !== null);
+const askRx = ask.map((rule) => ({ rule, rx: bashPattern(rule) })).filter((r) => r.rx !== null);
 const sample = (command: string): string => command.replace(/<[^>]+>/g, 'X');
 
 const rows = needs.map((need) => {
   const command = sample(need.command);
   const denied = denyRx.find((r) => (r.rx as RegExp).test(command))?.rule ?? null;
+  const asked = askRx.find((r) => (r.rx as RegExp).test(command))?.rule ?? null;
   const allowed = allowRx.find((r) => (r.rx as RegExp).test(command))?.rule ?? null;
-  const verdict = denied !== null ? 'denied' : allowed !== null ? 'allowed' : 'not-pre-allowed';
-  return { command: need.command, by: need.by, verdict, rule: denied ?? allowed };
+  // Claude Code applies deny, then ask, then allow: an asked command prompts even where an allow matches.
+  const verdict = denied !== null ? 'denied' : asked !== null ? 'asks' : allowed !== null ? 'allowed' : 'not-pre-allowed';
+  return { command: need.command, by: need.by, verdict, rule: denied ?? asked ?? allowed };
 });
 const missing = rows.filter((row) => row.verdict !== 'allowed');
 

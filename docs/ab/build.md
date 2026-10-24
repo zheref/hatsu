@@ -645,7 +645,9 @@ under the resume rule (ren § 2a; WORKFLOW § *The effort's ledgers*): the ledge
 exit `0` is skipped and named, an open phase continues with `nen phase begin --resume`, the rest begin. The end
 state is compared with the uninterrupted run with only the instants elided (phase order, names, exits, steps),
 and the ledger must hold one entry per phase with exactly one `resumedAt` on the interrupted one. A finished
-ledger re-invoked must be **byte-identical** on disk.
+ledger re-invoked must be **byte-identical** on disk. A phase that **ended non-zero** (a refused step) is
+re-invoked too: the resume must refuse it by name and leave the ledger bytes unchanged, never begin it a
+second time (HA-PR-#463 review). Re-run after that case was added: 34/34 on both binaries.
 
 ```text
 converged build                finished, re-invoked                 ledger bytes unchanged; 4 skipped
@@ -657,6 +659,10 @@ converged build                killed after-end pr                  3 skipped, r
 converged build                killed mid-phase pr                  2 skipped, pr resumed
 converged build                killed after-end readiness           4 skipped, nothing left to run
 converged build                killed mid-phase readiness           3 skipped, readiness resumed
+converged build                killed after failed author           0 skipped, author refused by name, ledger bytes unchanged
+converged build                killed after failed publish          1 skipped, publish refused by name, ledger bytes unchanged
+converged build                killed after failed pr               2 skipped, pr refused by name, ledger bytes unchanged
+converged build                killed after failed readiness        3 skipped, readiness refused by name, ledger bytes unchanged
 ```
 
 Mukai runs inside build's `pr` phase and records none of its own; build § 4 cites ren § 2a's resume read.

@@ -29,6 +29,9 @@ try {
   assert.deepEqual(document.rows.map((row) => row.verdict), ['allowed', 'allowed', 'denied']);
   assert.equal(document.rows[2]?.rule, 'Bash(git push --force *)');
   assert.equal(document.missing, 1);
+  r = run('--needs', needs, '--settings', write('asked.json', { permissions: { allow: ['Bash'], ask: ['Bash(nen run *)'] } }), '--json');
+  assert.equal(r.status, 1, 'an ask rule prompts even where an allow matches');
+  assert.equal((JSON.parse(r.out) as { rows: Array<{ verdict: string }> }).rows[1]?.verdict, 'asks');
   r = run('--needs', needs, '--settings', write('all.json', { permissions: { allow: ['Bash'] } }));
   assert.equal(r.status, 0, r.out);
   assert.match(r.out, /3\/3 pre-allowed/);

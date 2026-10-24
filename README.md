@@ -242,7 +242,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `tsukuyomi` | the focused tests for the behaviour this turn changed; never the full suite, never a patched test | the declared scoped lane | `rasengan` (may), `kokusen` (must) |
 | `amaterasu` | build and launch the declared target from your core checkout, never a worktree; hands back the exact command | `nen shu build` → `project.launch` | `ren`; you, to relaunch |
 | `spiritual-message` | the rich turn or landing report: the desk above the fold, the last turn, landed / fought back / not delivered, the delta graph, evidence, spend | `nen report render --variant turn\|landing` | `ren`, `mukai`, `en`; you |
-| `jutaisho` | the bell: the declared rungs (push, OS, sound), the `.nen/last-stop.json` marker, and the gate question through the surface's picker | `nen stop` | `ren`; `en` at Ready; you |
+| `jutaisho` | the bell: the declared rungs (push, OS, sound), the stop marker (one per gate from nen 0.27, else `.nen/last-stop.json`), and the gate question through the surface's picker | `nen stop` | `ren`; `en` at Ready; you |
 | `ao` | pull from the base: rebase if unpushed, merge if published; mechanical conflicts resolved, a semantic one is G5. Never pushes | `nen wc catch-up` | `aka`, `murasaki`, `en`; you |
 
 ### The PR side

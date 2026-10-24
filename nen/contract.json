@@ -141,6 +141,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/idle_permissions_check.mts (zheref/hatsu#453 AC-3), which lists the idle-batch exemplars of contracts/idle-permissions.json that the session's Claude Code settings do not pre-allow. Hermetic and offline: rule matching, deny precedence, absent and unreadable settings, the 0/1/2 exits and the shipped list's shape."
       },
+      "ledger-findings-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/ledger_findings_prepare.mts (HA-PR-#463 review, SEC-3, SEC-8): the findings copy mukai step 8a posts in the public ledger slice. Hermetic: an unfixed security critical/high finding holds the post by id, the copy carries no /Users/ or /private/ path, the record is untouched, and the 0/1/2 exits."
+      },
       "resume-proof": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -494,6 +499,17 @@
             "scripts/idle_permissions_check_fixture.mts"
           ],
           "$comment": "Hermetic: scratch settings and exemplar files only. Run when the check, its fixture or contracts/idle-permissions.json changes."
+        }
+      },
+      "ledger-findings-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/ledger_findings_prepare_fixture.mts"
+          ],
+          "$comment": "Hermetic: scratch records only. Run when the prepare script, its fixture or mukai step 8a changes."
         }
       },
       "resume-proof": {

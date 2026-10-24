@@ -237,7 +237,9 @@ under the resume rule (ren § 2a; WORKFLOW § *The effort's ledgers*): the ledge
 exit `0` is skipped and named, an open phase continues with `nen phase begin --resume`, the rest begin. The end
 state is compared with the uninterrupted run with only the instants elided (phase order, names, exits, steps),
 and the ledger must hold one entry per phase with exactly one `resumedAt` on the interrupted one. A finished
-ledger re-invoked must be **byte-identical** on disk.
+ledger re-invoked must be **byte-identical** on disk. A phase that **ended non-zero** (a refused step) is
+re-invoked too: the resume must refuse it by name and leave the ledger bytes unchanged, never begin it a
+second time (HA-PR-#463 review). Re-run after that case was added: 34/34 on both binaries.
 
 ```text
 converged ren                  finished, re-invoked                 ledger bytes unchanged; 6 skipped
@@ -253,6 +255,12 @@ converged ren                  killed after-end spiritual-message   5 skipped, j
 converged ren                  killed mid-phase spiritual-message   4 skipped, spiritual-message resumed
 converged ren                  killed after-end jutaisho            6 skipped, nothing left to run
 converged ren                  killed mid-phase jutaisho            5 skipped, jutaisho resumed
+converged ren                  killed after failed breath           0 skipped, breath refused by name, ledger bytes unchanged
+converged ren                  killed after failed rasengan         1 skipped, rasengan refused by name, ledger bytes unchanged
+converged ren                  killed after failed kokusen          2 skipped, kokusen refused by name, ledger bytes unchanged
+converged ren                  killed after failed amaterasu        3 skipped, amaterasu refused by name, ledger bytes unchanged
+converged ren                  killed after failed spiritual-message 4 skipped, spiritual-message refused by name, ledger bytes unchanged
+converged ren                  killed after failed jutaisho         5 skipped, jutaisho refused by name, ledger bytes unchanged
 converged any                  resume a phase while another is open refused at exit 2, naming the open phase
 ```
 
@@ -261,7 +269,7 @@ slice (`posted: https://github.com/zheref/hatsu/pull/463#issuecomment-6376486942
 2 proof file(s)`); the same post again answered `unchanged`; `nen pr ledger read` answered `ok … foreign: 0`. In a
 **fresh clone** (`git clone --depth 1 --branch opus/kurapika/sdd100-h-k-resume-durable-idle`), `read --restore` wrote the
 slice's two phases (`restored: <clone>/.git/.nen/phases/…json`); `nen phase show` listed `author` ended at exit 0
-(skipped by the rule) and `shibari` open, and `nen phase begin --resume --phase shibari` continued it (`resumed shibari
+(skipped by the rule; in WORKFLOW's one skip-line form that reads `skipped author: exit 0 at 2026-10-23T23:02:36.216Z (slice … @ 3836e79b3f71)`) and `shibari` open, and `nen phase begin --resume --phase shibari` continued it (`resumed shibari
 … (open since 2026-10-23T23:02:36.263Z)`): no finished phase re-ran.
 
 **Finding.** A second `read --restore` in that clone, after the resume had appended its `resumedAt`, is refused
