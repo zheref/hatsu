@@ -1318,7 +1318,9 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   so a worktree removal keeps it, and nen prints its id `R-YYYY-MM-DD-nn`, never reused **within that
   clone** (another clone counts its own; zheref/hatsu#443). An R-id is evidence, never a ruling id.
 - **What was shown, as shown**: the question file holds the question as asked; one `--option` per option
-  in the picker, its label as shown and its description line as the consequence. A `human-gate` row adds
+  in the picker, its label as shown and its description line as the consequence. A reference in either is
+  written coded at ask time (`<owner>/<name>#N`, `HA#N`), as PL-05 reads it; the renderer's coding of a
+  `<repository> #N` ([`ROSTER.md`](ROSTER.md) § *The ruling template*, step 3) is the safety net for older records. A `human-gate` row adds
   `--gate <its gate>`; an `ask-once-per-run` row names `--row` alone.
 - **The answer**: `--pick <key>` for a picked option; `--typed-file <file>` holding the maintainer's own
   words byte for byte for a free-text answer. **"Verbatim" is reserved for typed text**; a typed text that
