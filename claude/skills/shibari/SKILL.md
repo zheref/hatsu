@@ -133,10 +133,10 @@ nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/
   the number before any write**, refusing a 404/410. The body file is **absolute**
   (a relative one resolves against `--repo`).
 - **Development guard**: `--body` before each write, `--pr` after open/edit; fix refusals in body
-  or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`. Re-runs:
+  or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`.
+- **`pr converge`** (HR-11) after open/edit: on `1` fix the verify table, `edit-body`, re-run;
+  `1` goes to `en` only as `none-on-non-default-base`: not applicable (HR-357). Both re-run:
   `en` §§ 4–5, `sharingan` § 4.
-- **`pr converge`** (HR-11) reads the live PR: after open and every edit; on `1` fix the verify
-  table, `edit-body`, re-run. Never hand to `en` on `1`.
 
 ## 5. Reviewers, and the hand to `en`
 
