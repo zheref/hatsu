@@ -69,8 +69,7 @@ try {
   assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
 
   let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||';
-  for (const [script, fixture, lane] of [
-    ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
+  for (const [script, fixture, lane] of [['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],

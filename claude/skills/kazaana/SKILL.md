@@ -53,7 +53,7 @@ quoted at the echo, bound to the tag this run cuts, lapsing at a G5 or a halt; t
 relayed as parsed. **Say the run has started** (a bounded `CON-25` delegation, futon § 7).
 
 **`--idle`** (and `--dry-run` beside it) is lifted off before the kazaana parse, whose grammar declares
-neither, and carried onto the futon line (futon § 1): futon § 12 whole. The
+neither, and carried onto the futon line (`--dry-run` stays lifted, futon § 1): futon § 12 whole. The
 go then reaches no `then getsuga` — held at `idle.terminal` — and § 6 asks nothing (`publish-offer`
 refused).
 

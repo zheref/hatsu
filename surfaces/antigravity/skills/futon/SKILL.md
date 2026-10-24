@@ -61,9 +61,9 @@ reads **truncated**. Then:
   label, triage **orders only, never selects**. Say which, every time.
 - **`bankai:handbook-question` items and design calls are briefed, never guessed**, and never hold
   the scope open.
-- **Shape** (HR-4): `build` § 2's check per selected issue. **Nothing blocks the batch** (`R-2026-10-23-02`):
-  an open or unread `OQ-{n}` row skips the issue, parked `needs-clarification` (`g5-shape-unread`), the
-  queue continuing; a miss is listed, never skips (WORKFLOW § *Idle batches* rule 9).
+- **Shape** (HR-4): `build` § 2's check per issue. **Nothing blocks the batch** (`R-2026-10-23-02`):
+  an open `OQ-{n}` row parks the issue `needs-clarification`, unread questions (exit `1`)
+  `g5-shape-unread`, and the queue continues; exit `2` stops it; a miss never skips (WORKFLOW § *Idle batches* rule 9).
 - **Order within the scope** with `nen backlog order` (§ 3).
 
 **State the queue before advancing anything** — count, issues, exclusions and why.
@@ -181,6 +181,6 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 
 ## 12. `--idle` — the unattended profile (HR-5)
 
-WORKFLOW § *Idle batches* is the protocol (ruling 2026-10-23; pre-answers via `nen stop answer`), `--dry-run` its rehearsal; every decision taken for you is listed (rule 8). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
+WORKFLOW § *Idle batches* is the protocol, `--dry-run` its rehearsal; every decision taken for the maintainer is recorded (`nen stop answer`) and listed (rule 8). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
 *Residue: PROCESS § Residue; `docs/ab/futon.md`.*
