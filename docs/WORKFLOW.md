@@ -2822,26 +2822,38 @@ not claim to.
    reviewer and a same-host CI job together. **Capacity is fixed at one at this version**: no
    configuration key raises it, and one is owed with zheref/nen#536.
 2. **The heavy turn is the orchestrator's, held or granted.** It grants the turn in a brief, to at
-   most one delegate or reviewer at a time, by a line of its own: `Heavy turn: granted, workers <n>`
-   or `Heavy turn: withheld` (the default; a reviewer hanten raises always starts withheld). The turn
-   returns at that delegate's hand-back, or, for a delegate that never hands back, only once a
-   listing shows its recorded process group gone (below). The orchestrator re-grants in the run's
-   queue order (futon § 2), heavy lanes a handed-back effort still owes before a new effort's.
+   most one delegate at a time, by a line of its own: `Heavy turn: granted, workers <n>` or
+   `Heavy turn: withheld` (the default). A reviewer hanten raises always starts withheld, and the
+   orchestrator runs its pending heavy lanes (rule 3). The turn returns at that delegate's hand-back,
+   which names every process group it recorded (the host block), or, for a delegate that never hands
+   back, only once a listing shows each recorded process group gone (below). A silent delegate whose
+   group is unknown never returns the turn: that is no recorded id (below), and the run parks. The
+   orchestrator re-grants in the run's queue order (futon § 2), heavy lanes a handed-back effort
+   still owes before a new effort's.
 3. **A pending heavy lane is pending evidence, never a green check**, and never a reason to skip it.
    The orchestrator settles it one of two ways: it re-raises a delegate on that worktree with the
-   turn granted, or it runs the named lanes itself in that worktree while it holds the turn. A
-   delegate without the turn still authors, runs light checks and commits; it publishes only where
-   the push starts no CI on this host, and otherwise hands back unpublished, the push named pending.
+   turn granted, or it runs the named lanes itself in that worktree while it holds the turn (a
+   reviewer's lanes always take this second way). A delegate without the turn still authors, runs
+   light checks and commits; it publishes only where the push starts no CI on this host, and
+   otherwise hands back unpublished, the push named pending.
 4. **Every runner is given a finite worker count**, `2` unless the maintainer or a brief names
    another, through the lane's declared form. A lane whose declaration cannot bound its workers runs
    only inside the turn, the gap named against zheref/nen#537, **never with an improvised flag**.
-5. **Same-host CI holds the turn while it runs.** A target with no `runners` pool in its
-   `nen/workflow.json` has no same-host CI. Otherwise, for every repository whose declared pool runs on
-   this host (matched by the machine code in its runner names, `<machine>-<consumer>R<slot>`),
-   `nen runner inventory --target <owner/name> --repo <checkout>` reads its runners busy or free —
-   other repositories' runners included. A refused or unread inventory is *unknown* and counts as
-   busy. A busy host is waited on: in an idle run till the minutes elapse, then `parked:budget`; an
-   unknown one parks the effort as `parked:g5-host-ci-unknown`, the inventory's refusal quoted.
+5. **Same-host CI holds the turn while it runs.** Two reads, neither standing in for the other.
+   **(a) A push is heavy** only where its target's `nen/workflow.json` declares a `runners` pool on
+   this host; a target with no such pool starts no CI here, and its push is light. **(b) Before any
+   heavy launch, whatever the target**, every pool registered on this host is read. The set is every
+   repository `nen/repos.json` lists (`maintained_tools`, and `consumers` where any are listed) whose
+   `nen/workflow.json` → `runners` names its runners with this host's machine code
+   (`<machine>-<consumer>R<slot>`); for each, `nen runner inventory --target <owner/name> --repo
+   <checkout>` reads its runners busy or free. The machine code is the maintainer's typed word, never
+   derived from a host name (HR-276): the value `jusshin` recorded for this host, or one the
+   maintainer types in the session. An unknown machine code, an unreadable set and a refused or
+   unread inventory are each *unknown*, and unknown counts as busy. A busy host is waited on: in an
+   idle run till the minutes elapse, then `parked:budget`; in an interactive run in bounded waits
+   under § *Delegate briefs*' ceiling, then a **G5** stop. Unknown parks an idle effort as
+   `parked:g5-host-ci-unknown`, the refusal quoted; in an interactive run it is a **G5** stop
+   (`nen stop`, the picker) quoting the refusal or naming what could not be read.
 
 **Stop on overload; retry only after recovery.** Overload is host-wide. Its symptoms are the desktop
 or an app unresponsive, the maintainer reporting it, a subprocess timeout repeated, a run cancelled,
@@ -2852,12 +2864,16 @@ the same way. In an interactive run it is a **G5** stop (`nen stop`, the picker)
 listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
 
 - **Confirmed quiescence.** Every heavy call records its process group at launch: the shell call that
-  runs the verb echoes `$$` before it, and with job control off its descendants carry that id as
-  their process group, orphans reparented to `1` included. A later call lists them with
-  `ps -A -o pid,ppid,pgid,command`, keeping the rows whose `PGID` column is the recorded id; the same
-  form runs on macOS (BSD `ps`) and Linux. Quiescence is that listing showing no row. A descendant
-  that started its own group escapes the listing, which is why nen's owned cancellation is owed
-  (zheref/nen#538). **No recorded id means quiescence is unprovable**: the effort parks.
+  runs the verb records `ps -o pgid= -p $$` before it. `$$` alone is the shell's process id, which is
+  its group only where the shell leads one; a nested `sh -c` has its own `$$` and its parent's group,
+  so a group that differs from `$$`, or cannot be read, is no recorded id. With job control off the
+  shell's descendants carry the recorded id as their process group, orphans reparented to `1`
+  included. A later call lists them with `ps -A -o pid,ppid,pgid,command`, keeping the rows whose
+  `PGID` column is the recorded id; the same form runs on macOS (BSD `ps`) and Linux. Quiescence is
+  that listing showing no row. A descendant that started its own group escapes the listing, which is
+  why nen's owned cancellation is owed (zheref/nen#538). **No recorded id means quiescence is
+  unprovable**: in an idle run the effort parks; in an interactive run it is a **G5** stop naming the
+  missing id.
 - **Observed recovery.** At this version the only read that counts is the maintainer's word in the
   session that the host is responsive again. No pressure verb exists yet (zheref/nen#539), so an
   unattended run cannot observe recovery and stays parked till the maintainer resumes it.
@@ -2865,28 +2881,33 @@ listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
 **No stopped claim without descendant evidence; no kill by name.** A report says a workload stopped
 only with that listing beside it. A process is never killed by name or pattern (`pkill`, `killall`,
 a `node` match): that reaches the maintainer's own apps and other sessions. This section grants no
-kill authority. Stopping a process the session did not launch, or one it cannot name by recorded
-process group, is the maintainer's: one `bash` block with where to run it (§ 4), a **G5**.
+kill authority: stopping any process, one the session launched and can name by recorded process
+group included, is the maintainer's, handed over as one `bash` block by recorded process group with
+where to run it (§ 4), a **G5**.
 
 ### The host block a delegate brief carries
 
-Every builder delegate's brief (§ *Delegate briefs*) and every reviewer prompt `hanten` § 4 writes
-carries these lines **word for word**, beside the wait block, plus exactly one `Heavy turn:` line in
-rule 2's form:
+Every builder delegate's brief (§ *Delegate briefs*) carries these lines **word for word**, beside the
+wait block, plus exactly one `Heavy turn:` line in rule 2's form. Every reviewer prompt `hanten` § 4
+writes carries the same lines and exactly one `Heavy turn:` line in that form, `Heavy turn: withheld`,
+and no wait block: a reviewer always starts withheld, and the orchestrator runs its pending heavy
+lanes (rule 3).
 
 <!-- delegate-host:begin -->
 - Heavy work is a test, build, coverage, UI/E2E, archive or dev/run launch, and a push that starts CI on this host; anything not named light (a read, other git, a `--dry-run`, a lint of the changed files, a prose check) is heavy.
 - Run heavy work only while this brief's `Heavy turn:` line grants it, one heavy workload at a time on this host, each runner at the worker count that line names.
 - A lane whose declaration cannot bound its workers runs only inside the turn, the gap named against zheref/nen#537, never with an improvised flag.
+- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`), and name every recorded group in your hand-back.
 - Without the turn, run light checks only, commit, publish only where the push starts no CI on this host, and hand back each heavy lane named as pending, never as green.
 - The turn ends at your hand-back; name in it every heavy lane you ran and every one you did not.
 - On an unresponsive host, a repeated subprocess timeout, a cancelled run or uncertain descendants: launch nothing heavy, retry nothing, hand back with what you saw.
 - Never claim a workload stopped without a process listing of its recorded process group, and never kill a process by name or pattern.
 <!-- delegate-host:end -->
 
-`node scripts/delegate_brief_check.mts <brief>` checks this block beside the wait block, and the one
-`Heavy turn:` line (`--print-host` prints the block). The four scenario walk-throughs that SC-1 names
-are [`docs/ab/host-workload-budget.md`](ab/host-workload-budget.md).
+`node scripts/delegate_brief_check.mts <brief>` checks this block beside the wait block, and that the
+brief carries exactly one line starting `Heavy turn:`, in rule 2's form (`--print-host` prints the
+block). It checks delegate briefs, not reviewer prompts. The four scenario walk-throughs that SC-1
+names are [`docs/ab/host-workload-budget.md`](ab/host-workload-budget.md).
 
 ## Building an issue with no CI plane
 

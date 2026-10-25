@@ -19,9 +19,12 @@
 //   4. THE HOST BLOCK (zheref/hatsu#478) is read the same way, between `<!-- delegate-host:begin -->`
 //      and `<!-- delegate-host:end -->` (§ *Host workload budget*). Where the canon carries it, every
 //      line must appear in the brief too ("host-block line n of m"), and the brief must carry exactly
-//      one `Heavy turn: granted, workers <n>` or `Heavy turn: withheld` line (a `- ` bullet allowed);
-//      none or several fail at exit 1. A canon with no host markers checks the wait block alone; a host
-//      marker missing, doubled or out of order, or an empty host block, is exit 2 as in rule 1.
+//      one line starting `Heavy turn:` (after whitespace and an optional `-`, `*` or `+` bullet), and
+//      that line must read `Heavy turn: granted, workers <n>` (n >= 1) or `Heavy turn: withheld` (a
+//      `- ` bullet allowed). None, several, or a malformed one fail at exit 1, each malformed line
+//      named. A canon with no host markers checks the wait block alone; a host marker missing, doubled
+//      or out of order, or an empty host block, is exit 2 as in rule 1. It checks delegate briefs, not
+//      hanten's reviewer prompts.
 //
 // Usage: node scripts/delegate_brief_check.mts [--canon <WORKFLOW.md>] <brief-file>
 //        node scripts/delegate_brief_check.mts [--canon <WORKFLOW.md>] --print | --print-host
@@ -33,6 +36,9 @@ const END = '<!-- delegate-wait:end -->';
 const HOST_BEGIN = '<!-- delegate-host:begin -->';
 const HOST_END = '<!-- delegate-host:end -->';
 const TURN = /^(?:- )?Heavy turn: (?:granted, workers [1-9]\d*|withheld)$/;
+// Every line that claims to be a turn line, well formed or not, is counted (P-1: a second, conflicting
+// line beside a valid one must not pass).
+const TURN_HEAD = /^(?:[-*+]\s*)?Heavy turn:/;
 const USAGE = 'usage: delegate_brief_check.mts [--canon <WORKFLOW.md>] (<brief-file> | --print | --print-host)';
 
 function refuse(message: string): never {
@@ -114,10 +120,18 @@ const hostMissing = host.flatMap((line, i) => (have.has(line) ? [] : [i + 1]));
 for (const n of hostMissing) {
   console.log(`::error file=${briefPath}::delegate brief lacks host-block line ${n} of ${host.length} word for word (${canonPath} § Host workload budget): ${host[n - 1]}`);
 }
-const turns = host.length > 0 ? briefLines.filter((line) => TURN.test(line)).length : 1;
-if (turns !== 1) {
-  console.log(`::error file=${briefPath}::delegate brief carries ${turns} Heavy turn lines; exactly one of 'Heavy turn: granted, workers <n>' or 'Heavy turn: withheld' (${canonPath} § Host workload budget)`);
+// Brief text is escaped as a workflow-command message, so a `%` in it cannot forge an escape.
+const escape = (text: string): string => text.replace(/%/g, '%25');
+const turnLines = host.length > 0 ? briefLines.filter((line) => TURN_HEAD.test(line)) : [];
+const malformed = turnLines.filter((line) => !TURN.test(line));
+const turnsOk = host.length === 0 || (turnLines.length === 1 && malformed.length === 0);
+const turnForm = `exactly one of 'Heavy turn: granted, workers <n>' (n >= 1) or 'Heavy turn: withheld' (${canonPath} § Host workload budget)`;
+if (host.length > 0 && turnLines.length !== 1) {
+  console.log(`::error file=${briefPath}::delegate brief carries ${turnLines.length} Heavy turn lines; ${turnForm}`);
 }
-if (missing.length > 0 || hostMissing.length > 0 || turns !== 1) process.exit(1);
+for (const line of malformed) {
+  console.log(`::error file=${briefPath}::delegate brief carries a malformed Heavy turn line: ${escape(line)}; ${turnForm}`);
+}
+if (missing.length > 0 || hostMissing.length > 0 || !turnsOk) process.exit(1);
 const hostNote = host.length > 0 ? `, all ${host.length} host-block lines and one Heavy turn line` : '';
 console.log(`delegate-brief-check: ${briefPath} carries all ${block.length} wait-block lines${hostNote}`);

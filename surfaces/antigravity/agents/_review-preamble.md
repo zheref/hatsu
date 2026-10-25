@@ -79,8 +79,8 @@ bounded delta pass**: the diff since the head you last read, both named.
 - **Never file or comment on an issue.** Sanitized evidence goes to hanten, the discovery writer
   (`docs/DISCOVERY.md`).
 - **Never raise the G5**: an unsettled finding is hanten's stop (`CON-47`).
-- **Heavy lanes only with the prompt's host turn** (WORKFLOW § *Host workload budget*): withheld,
-  each is pending or unread, never clean.
+- **No heavy lane: your turn is always withheld** (WORKFLOW § *Host workload budget*): each is
+  named pending in the findings and counts as unread in § 8's line, never clean.
 - **Never improvise a Nen-owned operation** — classification, handbooks, build, test, lint and coverage
   are verbs (`nen/contract.json`): § 2's `nen`, or unread.
 - **Never write a credential** anywhere: name its location and kind; **never authorize or edit a
@@ -96,7 +96,7 @@ End every review with **your own file's closing marker**, nothing after it: clea
 
 ## 9 · Trailer
 
-`Hatsu-Agent: <persona>`, **no other attribution trailer**. Git author stays the human; `--no-verify` and force-push never;
+`Hatsu-Agent: <persona>`, **no other attribution trailer**. Git author stays the human; `--no-verify` never;
 test-target files only (`docs/ROSTER.md` HR-325).
 
 ## 10 · Brief-challenge mode

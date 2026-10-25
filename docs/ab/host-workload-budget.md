@@ -7,8 +7,10 @@ SC-1). The issue requires no stress reproduction, and none was run.
 
 **Method.** Each scenario is a starting state taken through the section's rules in order, to the
 outcome the canon names. This is a desk walk-through of the prose, not an executed run, with one
-exception: scenario 2's listing form was exercised once on a small bounded process tree (one `sleep 4`
-orphaned from its shell) on the authoring host, macOS with BSD `ps`, nen 0.26.0. Process ids are
+exception: scenario 2's recording and listing forms were exercised on a small bounded process tree (one
+`sleep 4` orphaned from its shell) on the authoring host, macOS with BSD `ps`: first with nen 0.26.0,
+then again on 2026-10-25 with nen 0.28.0 after hanten round 2 replaced the echoed `$$` with
+`ps -o pgid= -p $$`. Process ids are
 replaced by placeholders. Admission, owned cancellation and pressure reads have no nen verb at this pin
 (zheref/nen#536, zheref/nen#538, zheref/nen#539), so no scenario measures the host. Each one checks
 that the prose has exactly one outcome for its state.
@@ -30,18 +32,21 @@ heavy lane reads green.
 
 ### 2. Orphan uncertainty after a cancelled parent
 
-**State.** An interactive session. The heavy call's shell recorded its process group by echoing
-`$$` before the verb. The harness then cancelled the call, and it is not known whether the runner's
-workers exited.
+**State.** An interactive session. The heavy call's shell recorded its process group with
+`ps -o pgid= -p $$` before the verb, and the value equalled `$$`, so the shell led its group. The
+harness then cancelled the call, and it is not known whether the runner's workers exited.
 
 **Walk.** A cancelled run with uncertain descendants is an overload symptom. The session raises a
 **G5** stop through `nen stop` and the picker. A later call lists the recorded group with
 `ps -A -o pid,ppid,pgid,command`, keeping the rows whose `PGID` is the recorded id. The bounded
-exercise showed the form working: right after the parent exited, the listing held one row,
-`<pid> 1 <pgid> sleep 4`, the orphan reparented to `1` and still carrying the recorded group. Five
-seconds later it held no row. A non-empty listing means quiescence is unconfirmed: nothing is killed
-by name, and stopping the rows is the maintainer's, handed over as one `bash` block. Had no id been
-recorded, quiescence would be unprovable and the effort would park.
+exercise showed the form working: the session's shell read its group as its own `$$`; right after the
+subshell exited, the listing held one row, `<pid> 1 <pgid> sleep 4`, the orphan reparented to `1` and
+still carrying the recorded group; a later listing held no row. The same exercise showed why `$$`
+alone is not the group: a nested `sh -c` printed its own `$$` beside its parent's group id. A
+non-empty listing means quiescence is unconfirmed: nothing is killed by name, and stopping the rows,
+this session's own launch included, is the maintainer's, handed over as one `bash` block by recorded
+process group, a **G5**. Had no id been recorded, or had the group differed from `$$`, quiescence
+would be unprovable: a **G5** stop naming the missing id here, a park in an idle run.
 
 **Outcome.** The report says "stopped" only beside an empty listing. Any kill is the maintainer's
 own act, by recorded group.
@@ -52,12 +57,17 @@ own act, by recorded group.
 pool on this host, matched by the machine code in its runner names. The orchestrator holds the heavy
 turn for `kotoamatsukami` in another effort.
 
-**Walk.** A push to that target starts CI on this host, so the push itself is heavy. The delegate
-holds `Heavy turn: withheld`: it authors, runs light checks and commits, and hands back unpublished,
-with the push named pending. When the orchestrator's turn ends, it reads `nen runner inventory
---target <owner/name> --repo <checkout>`. A busy runner holds the turn. A refused inventory is
-*unknown*, and the effort parks as `parked:g5-host-ci-unknown` with the refusal quoted. A target with
-no `runners` pool has no same-host CI, and its push is light.
+**Walk.** A push to that target starts CI on this host, so the push itself is heavy (rule 5 (a)). The
+delegate holds `Heavy turn: withheld`: it authors, runs light checks and commits, and hands back
+unpublished, with the push named pending. Before its next heavy launch, whatever that launch's
+target, the orchestrator reads every pool registered on this host (rule 5 (b)): each repository
+`nen/repos.json` lists whose `runners` carry this host's machine code, the code being the one
+`jusshin` recorded or the maintainer typed, each read with `nen runner inventory --target
+<owner/name> --repo <checkout>`. A busy runner holds the turn. An unknown machine code, an unreadable
+set or a refused inventory is *unknown*: the idle effort parks as `parked:g5-host-ci-unknown` with
+the refusal quoted, and an interactive run raises a **G5** stop quoting it. A target with no `runners`
+pool has no same-host CI, and its push is light, but the host-wide read still precedes any heavy
+launch.
 
 **Outcome.** No local heavy work runs beside a same-host CI job, and an unknown inventory never reads
 as free.

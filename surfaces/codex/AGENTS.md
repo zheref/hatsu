@@ -780,12 +780,13 @@ nothing about what the maintainer's desktop can run. Steps 1, 3 and 4 run heavy 
 whose CI runs on this host; anything not named light there is heavy. One heavy workload at a time
 across you, every delegate and reviewer you raise and any self-hosted CI job on this host, each runner
 at a finite worker count, 2 unless the maintainer or a brief names another. You hold the heavy turn and
-grant it by a brief's `Heavy turn:` line, withheld by default. nen holds no admission guard at this pin,
-so say `host admission: no guard (zheref/nen#536); serialized fallback` and run that fallback. On an
-unresponsive host, a repeated timeout, a cancelled run or uncertain descendants, launch nothing heavy
-and retry nothing until a listing of the recorded process group shows it gone and the maintainer says
-the host has recovered. Never say a workload stopped without that listing, and never kill a process by
-name or pattern.
+grant it by a brief's `Heavy turn:` line, withheld by default; a reviewer's is always withheld. Before
+any heavy launch, read every runner pool registered on this host (§ *Host workload budget* rule 5). nen
+holds no admission guard at this pin, so say `host admission: no guard (zheref/nen#536); serialized
+fallback` and run that fallback. On an unresponsive host, a repeated timeout, a cancelled run or
+uncertain descendants, launch nothing heavy and retry nothing until a listing of the recorded process
+group shows it gone and the maintainer says the host has recovered. Never say a workload stopped without that listing, and never kill a process by
+name or pattern: stopping any process, your own launch included, is the maintainer's (a **G5**).
 
 **The exit codes, and what you do on each.** The family extends nen's `0`/`1`/`2` with three more (four on `shu tools`), each a
 different fact, and a persona reacts to each differently:
@@ -2064,8 +2065,8 @@ bounded delta pass**: the diff since the head you last read, both named.
 - **Never file or comment on an issue.** Sanitized evidence goes to hanten, the discovery writer
   (`docs/DISCOVERY.md`).
 - **Never raise the G5**: an unsettled finding is hanten's stop (`CON-47`).
-- **Heavy lanes only with the prompt's host turn** (WORKFLOW § *Host workload budget*): withheld,
-  each is pending or unread, never clean.
+- **No heavy lane: your turn is always withheld** (WORKFLOW § *Host workload budget*): each is
+  named pending in the findings and counts as unread in § 8's line, never clean.
 - **Never improvise a Nen-owned operation** — classification, handbooks, build, test, lint and coverage
   are verbs (`nen/contract.json`): § 2's `nen`, or unread.
 - **Never write a credential** anywhere: name its location and kind; **never authorize or edit a
@@ -2081,7 +2082,7 @@ End every review with **your own file's closing marker**, nothing after it: clea
 
 ## 9 · Trailer
 
-`Hatsu-Agent: <persona>`, **no other attribution trailer**. Git author stays the human; `--no-verify` and force-push never;
+`Hatsu-Agent: <persona>`, **no other attribution trailer**. Git author stays the human; `--no-verify` never;
 test-target files only (`docs/ROSTER.md` HR-325).
 
 ## 10 · Brief-challenge mode

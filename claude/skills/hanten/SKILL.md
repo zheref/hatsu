@@ -91,7 +91,7 @@ On Claude Code the reviewer is an Agent-tool subagent, one per scope, in paralle
 `subagent_type` `hatsu:<persona>`, `description` **`hanten · <persona> · <model alias>`**, `model`
 `models.<surface>.<tier>` for the scope's `tier` — the scope's, never the session's (WORKFLOW § `models`; absent where a persona pins one), `isolation` **omitted**, the `prompt` carrying the checkout path, scope, base, raising paths, closing issue refs quoted, § 5's
 shape, the preamble's **absolute** path (ECONOMICS.md's too where `economics` is raised),
-*"do not request a worktree"*, WORKFLOW § *Host workload budget*'s host block with `Heavy turn: withheld` unless granted, and `nen: <path>` with its pin (ten § 2's; **a subagent inherits no `PATH`**, zheref/hatsu#107)
+*"do not request a worktree"*, WORKFLOW § *Host workload budget*'s host block, `Heavy turn: withheld` and no wait block (you run its pending heavy lanes), and `nen: <path>` with its pin (ten § 2's; **a subagent inherits no `PATH`**, zheref/hatsu#107)
 prefixing every block. Unresolvable, the prompt names every
 Nen-owned check **unread** once; one failing at the reviewer's end is his to declare.
 
