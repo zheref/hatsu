@@ -133,8 +133,8 @@
       "level": 2,
       "template": "templates/pr-body/decisions.md",
       "reserved": false,
-      "when": "idle",
-      "$comment": "Every pre-answered row and every default an idle run took for the maintainer (ruling of 2026-10-23); mandatory on every PR an --idle run opens."
+      "when": "decisions",
+      "$comment": "Every pre-answered row and every default the run took for the maintainer (HR-334, ruling of 2026-10-23); mandatory on every PR whose run took a decision, whatever the kind, family or --idle flag (HA#474). The fact comes from --decisions, a non-empty --decisions-from ledger, or --idle, which always pre-answers rows."
     },
     {
       "id": "checklist",

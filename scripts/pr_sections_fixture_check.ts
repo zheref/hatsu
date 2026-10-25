@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import {
   catalogue,
   check,
+  decisionsTaken,
   defaults,
   fold,
   options,
@@ -68,6 +69,9 @@ function body(report: Resolution, kind: RepositoryKind = "process", source = cat
 function config(value: unknown): void {
   writeFileSync(join(repo, "nen/workflow.json"), `${JSON.stringify({ pr: { sections: value } })}\n`);
 }
+function writeJsonRequirements(path: string, report: Resolution): void {
+  writeFileSync(path, `${JSON.stringify(report.requirements)}\n`);
+}
 function git(root: string, ...args: string[]): void {
   const result = run("git", args, root);
   assert.equal(result.status, 0, `${args.join(" ")}\n${result.stdout}${result.stderr}`);
@@ -105,14 +109,75 @@ test("run facts admit only conditional readers while Delivery stays an always-fi
   assert.ok(!without.ids.includes("across"));
   assert.deepEqual(without.preamble, ["delivery"]);
   assert.ok(!without.footer.includes("delivery"));
-  // The ruling of 2026-10-23: an idle run's PR carries the decisions footer, before the checklist; others never do.
+  // HR-334 (HA#474): a run that took a decision carries the decisions footer, before the checklist; --idle implies it.
   assert.ok(!without.footer.includes("decisions"));
   assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["decisions"]).footer, ["decisions", "checklist", "issues", "attribution"]);
   const withEconomics = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   assert.deepEqual(withEconomics.ids, ["changes", "why", "how", "improves", "across", "verify", "economics"]);
   assert.deepEqual(resolution("unknown").ids, ["changes", "why", "how", "improves", "verify"]);
   assert.ok(!resolution("product", ["implementation"], []).ids.includes("evidence"));
   assert.ok(resolution("product", ["implementation"], ["evidence"]).ids.includes("evidence"));
+});
+
+test("HA#474 AC-1/AC-2: decisions resolves on every cell when a decision was taken, and never otherwise", () => {
+  for (const cell of Object.keys(cat.variants)) {
+    const [kind, family] = cell.split(".") as [RepositoryKind, string];
+    for (const facts of [["decisions"], ["decisions", "policy-hit", "evidence"], ["idle"]]) {
+      const taken = resolution(kind, cat.families[family], facts);
+      assert.deepEqual(taken.footer, ["decisions", "checklist", "issues", "attribution"], `${cell} ${facts.join(",")}`);
+      assert.deepEqual(check(cat, body(taken, kind), taken.requirements, 7)[0], [], cell);
+    }
+    const none = resolution(kind, cat.families[family], ["policy-hit", "evidence"]);
+    assert.deepEqual(none.footer, ["checklist", "issues", "attribution"], cell);
+    assert.ok(!none.requirements.some((row): boolean => row.name === "decisions"), cell);
+    assert.deepEqual(check(cat, body(none, kind), none.requirements, 7)[0], [], cell);
+  }
+  assert.equal(cat.footer.find((row): boolean => row.id === "decisions")?.when, "decisions");
+  assert.throws((): Resolution => resolution("process", ["machinery"], ["imaginary"]), /unknown run fact/);
+});
+
+test("HA#474: the decisions ledger is decision rows or a nen.run manifest, and anything else refuses", () => {
+  assert.equal(decisionsTaken([{ row: "publish-offer", resolution: "refuse" }]), true);
+  assert.equal(decisionsTaken([]), false);
+  assert.equal(decisionsTaken({ id: "r", idleAnswers: { "cleanup-plan": "default" } }), true);
+  assert.equal(decisionsTaken({ id: "r", idleAnswers: null }), false);
+  assert.equal(decisionsTaken({ id: "r", idleAnswers: {} }), false);
+  for (const bad of [null, "decisions", 1, [{}], [{ row: "" }], ["row"], {}, { idleAnswers: [] }, { idleAnswers: "default" }]) {
+    assert.throws((): boolean => decisionsTaken(bad), /decisions ledger|idleAnswers/, JSON.stringify(bad));
+  }
+});
+
+test("HA#474 AC-3: on zheref/hatsu#467's headings the strict check and nen's body check agree", (context) => {
+  const fixture = join(HATSU_ROOT, "scripts/fixtures/pr-sections/ha-467-headings.md");
+  const text = readFileSync(fixture, "utf8");
+  const jobs = ["machinery", "prose-authoring", "upgrades"];
+  const before = resolution("process", jobs, ["policy-hit"]);
+  // The defect as filed: without the fact, the strict check names the heading the body check never sees.
+  assert.ok(check(cat, text, before.requirements, 7)[0].some((finding): boolean => finding.includes("undeclared heading ## Decisions taken on your behalf")));
+  const ledger = join(repo, "decisions.json");
+  writeFileSync(ledger, `${JSON.stringify([{ row: "cleanup-plan", resolution: "default", appliedTo: "run", when: "start" }])}\n`);
+  const requirements = join(repo, "requirements.json");
+  const resolved = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs.join(","), "--policy-hit", "--decisions-from", ledger, "--out", requirements]);
+  assert.equal(resolved.status, 0, resolved.stderr);
+  const after = resolution("process", jobs, ["policy-hit", "decisions"]);
+  assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), after.requirements);
+  const strict = run("bash", [CHECKER, "--body", fixture, "--requirements", requirements, "--max", "7"]);
+  assert.equal(strict.status, 0, `${strict.stdout}${strict.stderr}`);
+  const empty = join(repo, "empty.json");
+  writeFileSync(empty, "[]\n");
+  const absent = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs.join(","), "--policy-hit", "--decisions-from", empty, "--out", requirements]);
+  assert.equal(absent.status, 0, absent.stderr);
+  assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), before.requirements);
+  writeFileSync(empty, "{}\n");
+  const refused = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs.join(","), "--decisions-from", empty, "--out", requirements]);
+  assert.equal(refused.status, 1); assert.match(refused.stderr, /idleAnswers/);
+  writeJsonRequirements(requirements, after);
+  const nen = process.env.NEN || "nen";
+  const probe = spawnSync(nen, ["--version"], { encoding: "utf8" });
+  if (probe.error !== undefined || probe.status !== 0) { context.skip("nen is not installed: the body-check half is not run"); return; }
+  const bodyCheck = run(nen, ["pr", "body-check", "--body-from", fixture, "--requirements-from", requirements]);
+  assert.equal(bodyCheck.status, 0, `${bodyCheck.stdout}${bodyCheck.stderr}`);
 });
 
 test("consumer overrides validate every cell, booleans, mandatory readers and admitted count", () => {

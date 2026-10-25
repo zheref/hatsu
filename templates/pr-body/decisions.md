@@ -1,4 +1,4 @@
-<!-- block: decisions; Every pre-answered row and every default an idle run took for the maintainer (ruling of 2026-10-23, WORKFLOW § Idle batches rule 8). -->
+<!-- block: decisions; Every pre-answered row and every default the run took for the maintainer (HR-334, WORKFLOW § Idle batches rule 8); resolved by the decisions fact on any run that took one (HA#474). -->
 ## 🗳️ Decisions taken on your behalf
 
 <!-- One row per pre-answered row `futon_effort_record.mts start` printed, then one per default actually

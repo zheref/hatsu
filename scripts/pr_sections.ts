@@ -24,7 +24,7 @@ export interface SectionRow {
   readonly level: 1 | 2;
   readonly template: string;
   readonly $comment: string;
-  readonly when?: "evidence" | "economics" | "policy-hit" | "idle";
+  readonly when?: "evidence" | "economics" | "policy-hit" | "decisions";
   readonly reserved?: boolean;
   /** HR-11: the heading must carry content; derives a second, whole-body requirement `<id>-content`. */
   readonly content?: boolean;
@@ -54,7 +54,9 @@ export interface Resolution {
 type JsonObject = Record<string, unknown>;
 const ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const KINDS: readonly RepositoryKind[] = ["product", "library", "process", "unknown"];
-const FACTS = new Set(["evidence", "economics", "policy-hit", "idle"]);
+const FACTS = new Set(["evidence", "economics", "policy-hit", "decisions"]);
+/** Run facts a caller may pass: `idle` is an input only, and implies `decisions` (HA#474). */
+const INPUT_FACTS = new Set([...FACTS, "idle"]);
 const CONTROL = /[\u0000-\u001F\u007F-\u009F]/g;
 const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/g;
 
@@ -252,10 +254,30 @@ function optionalWorkflow(repo: string): JsonObject {
   if (path === null) return {};
   return object(load(path), "workflow must be an object");
 }
+/**
+ * HA#474: whether a run's decisions ledger records a decision taken for the maintainer. Accepts the
+ * run's decision rows (a JSON array, one `{row, ...}` per decision, the decisions template's rows) or
+ * a nen.run manifest (an object whose `idleAnswers` is null or a row → resolution map). Anything else refuses.
+ */
+export function decisionsTaken(ledger: unknown): boolean {
+  if (Array.isArray(ledger)) {
+    for (const entry of ledger) {
+      const row = object(entry, "decisions ledger rows must be objects").row;
+      if (typeof row !== "string" || row === "") throw new Error("decisions ledger rows must name their row");
+    }
+    return ledger.length > 0;
+  }
+  const manifest = object(ledger, "decisions ledger must be an array of decision rows or a nen.run manifest");
+  if (!Object.hasOwn(manifest, "idleAnswers")) throw new Error("decisions ledger object carries no idleAnswers");
+  if (manifest.idleAnswers === null) return false;
+  return Object.keys(object(manifest.idleAnswers, "idleAnswers must be null or an object")).length > 0;
+}
 export function resolve(cat: Catalogue, repo: string, kind: RepositoryKind, jobs: readonly string[], facts: ReadonlySet<string>): Resolution {
   const family = fold(cat, jobs);
   if (!KINDS.includes(kind)) throw new Error(`unknown repository kind ${JSON.stringify(kind)}`);
-  for (const fact of facts) if (!FACTS.has(fact)) throw new Error(`unknown run fact ${JSON.stringify(fact)}`);
+  for (const fact of facts) if (!INPUT_FACTS.has(fact)) throw new Error(`unknown run fact ${JSON.stringify(fact)}`);
+  // HA#474: an idle run always pre-answers its ask-once rows (WORKFLOW § Idle batches rule 8), so it took decisions.
+  if (facts.has("idle") && !facts.has("decisions")) facts = new Set([...facts, "decisions"]);
   const workflow = optionalWorkflow(resolvePath(repo));
   const pr = workflow.pr === undefined ? {} : object(workflow.pr, "workflow and pr must be objects");
   const config = pr.sections === undefined ? {} : object(pr.sections, "pr.sections must be an object");
@@ -530,11 +552,11 @@ function writeJson(path: string, value: unknown): void {
   }
 }
 function usage(): never {
-  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
+  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--decisions] [--decisions-from <ledger.json>] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
 }
 function argumentsFor(action: string, argv: readonly string[]): Record<string, string | boolean> {
-  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "idle"] : []);
-  const valued = new Set(action === "resolve" ? ["repo", "kind", "jobs", "out"] : action === "check" ? ["body", "requirements", "max"] : []);
+  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "decisions", "idle"] : []);
+  const valued = new Set(action === "resolve" ? ["repo", "kind", "jobs", "decisions-from", "out"] : action === "check" ? ["body", "requirements", "max"] : []);
   const result: Record<string, string | boolean> = {};
   for (let at = 0; at < argv.length; at++) {
     const token = argv[at] as string;
@@ -567,7 +589,8 @@ function main(argv = process.argv.slice(2)): number {
       const kind = required(args, "kind") as RepositoryKind;
       const jobsValue = typeof args.jobs === "string" ? args.jobs : "";
       const jobs = jobsValue === "" ? [] : jobsValue.split(",");
-      const facts = new Set(["evidence", "economics", "policy-hit", "idle"].filter((fact): boolean => args[fact] === true));
+      const facts = new Set(["evidence", "economics", "policy-hit", "decisions", "idle"].filter((fact): boolean => args[fact] === true));
+      if (typeof args["decisions-from"] === "string" && decisionsTaken(load(args["decisions-from"]))) facts.add("decisions");
       if (kind === "process" && !facts.has("policy-hit") && policyHit(repo)) facts.add("policy-hit");
       const report = resolve(cat, repo, kind, jobs, facts);
       writeJson(required(args, "out"), report.requirements);

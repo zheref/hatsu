@@ -59,7 +59,9 @@ in `## Completion checklist` as `injected attribution trailer: <sha> <key>, publ
 `nen repo classify` gives kind; associated issues give distinct `job/` labels. Read consumer-owned
 `pr.sections`, reuse Mukai's run facts, then run the interim resolver with
 `--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, `--idle`, and
-`--out <absolute-requirements.json>`. Its printed ids give order; its array governs this write.
+`--out <absolute-requirements.json>`. Pass `--decisions` (or `--decisions-from` the run's ledger) whenever
+the run took a decision for the maintainer, attended or idle (HR-334, zheref/hatsu#474). The
+resolver's printed ids give order; its array governs this write.
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.
 
