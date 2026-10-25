@@ -45,6 +45,8 @@ const gated: Array<[string, string, string]> = [
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
+  // The spec-family fixture reads (zheref/hatsu#405): the script is its own fixture, as tenkai's is.
+  ['spec_family_fixture_check.sh', 'spec_family_fixture_check.sh', 'spec-family-guard'],
   // The Development-link guard is its own fixture (--self-test): bash, jq, awk and perl's Encode,
   // all on the runner image (zheref/hatsu#440).
   ['pr_development_link_check.sh', 'pr_development_link_check.sh', 'development-link-guard'],

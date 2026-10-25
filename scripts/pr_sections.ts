@@ -24,8 +24,13 @@ export interface SectionRow {
   readonly level: 1 | 2;
   readonly template: string;
   readonly $comment: string;
-  readonly when?: "evidence" | "economics" | "policy-hit" | "decisions";
+  readonly when?: "evidence" | "economics" | "policy-hit" | "spec" | "decisions";
   readonly reserved?: boolean;
+  /**
+   * A whole-body requirement another plane owns, quoted whole (the spec row's `spec-rows`, nen's
+   * `src/spec/coverage.ts`): emitted after the heading's own row, linked to it by `heading`.
+   */
+  readonly rows?: { readonly name: string; readonly pattern: string };
   /** HR-11: the heading must carry content; derives a second, whole-body requirement `<id>-content`. */
   readonly content?: boolean;
 }
@@ -40,8 +45,11 @@ export interface Catalogue {
   readonly precedence: readonly string[];
   readonly variants: Readonly<Record<string, readonly string[]>>;
 }
-/** `content: true` marks a whole-body pattern (the heading followed by content); nen ignores the key. */
-export interface Requirement { readonly name: string; readonly pattern: string; readonly content?: true }
+/**
+ * `content: true` marks a whole-body pattern (the heading followed by content); `heading` names the
+ * heading row a content row belongs to when its name is not `<heading>-content`. nen ignores both keys.
+ */
+export interface Requirement { readonly name: string; readonly pattern: string; readonly content?: true; readonly heading?: string }
 export interface Resolution {
   readonly cell: string;
   readonly max: number;
@@ -54,7 +62,7 @@ export interface Resolution {
 type JsonObject = Record<string, unknown>;
 const ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const KINDS: readonly RepositoryKind[] = ["product", "library", "process", "unknown"];
-const FACTS = new Set(["evidence", "economics", "policy-hit", "decisions"]);
+const FACTS = new Set(["evidence", "economics", "policy-hit", "spec", "decisions"]);
 /** Run facts a caller may pass: `idle` is an input only, and implies `decisions` (HA#474). */
 const INPUT_FACTS = new Set([...FACTS, "idle"]);
 const CONTROL = /[\u0000-\u001F\u007F-\u009F]/g;
@@ -173,6 +181,13 @@ export function catalogue(root = ROOT): Catalogue {
       throw new Error(`${id}: reader sections cannot be reserved`);
     }
     if (row.content !== undefined && row.content !== true) throw new Error(`${id}: content must be true or absent`);
+    if (row.rows !== undefined) {
+      const rows = object(row.rows, `${id}: rows must be a name/pattern object`);
+      if (typeof rows.name !== "string" || rows.name.length === 0 || typeof rows.pattern !== "string" || rows.pattern.length === 0) throw new Error(`${id}: rows must be a name/pattern object`);
+      try { new RegExp(rows.pattern, "im"); }
+      catch (error) { throw new Error(`${id}: rows pattern is invalid: ${error instanceof Error ? error.message : String(error)}`); }
+      if (row.when === undefined) throw new Error(`${id}: a rows requirement belongs to a conditional section`);
+    }
     if (typeof row.template !== "string" || row.template.length === 0) throw new Error(`${id}: missing template`);
     declaredPath(absoluteRoot, row.template, "file");
     if (typeof row.$comment !== "string" || row.$comment.length === 0) throw new Error(`${id}: missing section description`);
@@ -258,7 +273,11 @@ export function contentPattern(row: SectionRow, kind: RepositoryKind): Requireme
 }
 /** The requirement rows for a resolved section list, in order: each heading, then its content row. */
 export function requirementsFor(rows: readonly SectionRow[], kind: RepositoryKind): Requirement[] {
-  return rows.flatMap((row): Requirement[] => row.content === true ? [pattern(row, kind), contentPattern(row, kind)] : [pattern(row, kind)]);
+  return rows.flatMap((row): Requirement[] => [
+    pattern(row, kind),
+    ...(row.content === true ? [contentPattern(row, kind)] : []),
+    ...(row.rows === undefined ? [] : [{ name: row.rows.name, pattern: row.rows.pattern, content: true as const, heading: row.id }]),
+  ]);
 }
 
 function optionalWorkflow(repo: string): JsonObject {
@@ -484,7 +503,9 @@ function validateRequirements(requirements: unknown): Requirement[] {
     try { new RegExp(row.pattern, "im"); }
     catch (error) { throw new Error(`requirement ${JSON.stringify(row.name)} has an invalid pattern: ${error instanceof Error ? error.message : String(error)}`); }
     if (row.content !== undefined && row.content !== true) throw new Error(`requirement ${JSON.stringify(row.name)}: content must be true or absent`);
-    return row.content === true ? { name: row.name, pattern: row.pattern, content: true } : { name: row.name, pattern: row.pattern };
+    if (row.heading !== undefined && (row.content !== true || typeof row.heading !== "string" || row.heading.length === 0)) throw new Error(`requirement ${JSON.stringify(row.name)}: heading names a heading row and needs content`);
+    if (row.content !== true) return { name: row.name, pattern: row.pattern };
+    return typeof row.heading === "string" ? { name: row.name, pattern: row.pattern, content: true, heading: row.heading } : { name: row.name, pattern: row.pattern, content: true };
   });
 }
 
@@ -529,9 +550,9 @@ export function check(cat: Catalogue, body: string, rawRequirements: unknown, ma
   requirements.forEach((row, index): void => {
     if (row.content !== true) { if (!seen.has(index)) findings.push(`missing heading ${row.name}`); return; }
     // HR-11: a content row reads the whole visible body; its heading's own absence is already named.
-    const heading = requirements.findIndex((other): boolean => other.content !== true && `${other.name}-content` === row.name);
+    const heading = requirements.findIndex((other): boolean => other.content !== true && (row.heading === undefined ? `${other.name}-content` === row.name : other.name === row.heading));
     if (heading === -1) findings.push(`content requirement ${row.name} names no heading requirement`);
-    else if (seen.has(heading) && !(compiled[index] as RegExp).test(visible)) findings.push(`empty section ${requirements[heading]?.name}: its heading carries no content`);
+    else if (seen.has(heading) && !(compiled[index] as RegExp).test(visible)) findings.push(row.heading === undefined ? `empty section ${requirements[heading]?.name}: its heading carries no content` : `section ${row.heading}: requirement ${row.name} is unmet`);
   });
   const warnings: string[] = [];
   let title = "preamble";
@@ -568,10 +589,10 @@ function writeJson(path: string, value: unknown): void {
   }
 }
 function usage(): never {
-  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--decisions] [--decisions-from <nen.run manifest>] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
+  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--spec] [--decisions] [--decisions-from <nen.run manifest>] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
 }
 function argumentsFor(action: string, argv: readonly string[]): Record<string, string | boolean> {
-  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "decisions", "idle"] : []);
+  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "spec", "decisions", "idle"] : []);
   const valued = new Set(action === "resolve" ? ["repo", "kind", "jobs", "decisions-from", "out"] : action === "check" ? ["body", "requirements", "max"] : []);
   const result: Record<string, string | boolean> = {};
   for (let at = 0; at < argv.length; at++) {
@@ -607,7 +628,7 @@ function main(argv = process.argv.slice(2)): number {
       const kind = required(args, "kind") as RepositoryKind;
       const jobsValue = typeof args.jobs === "string" ? args.jobs : "";
       const jobs = jobsValue === "" ? [] : jobsValue.split(",");
-      const facts = new Set(["evidence", "economics", "policy-hit", "decisions", "idle"].filter((fact): boolean => args[fact] === true));
+      const facts = new Set(["evidence", "economics", "policy-hit", "spec", "decisions", "idle"].filter((fact): boolean => args[fact] === true));
       if (typeof args["decisions-from"] === "string" && decisionsTaken(load(args["decisions-from"]), facts.has("decisions") || facts.has("idle"))) facts.add("decisions");
       if (kind === "process" && !facts.has("policy-hit") && policyHit(repo)) facts.add("policy-hit");
       const report = resolve(cat, repo, kind, jobs, facts);
