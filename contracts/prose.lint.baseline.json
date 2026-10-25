@@ -540,54 +540,6 @@
       "count": 1
     },
     {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-01",
-      "text": "the `spec.*` keys read by hand (*conventions*, the dom",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "en spec number**, owed, #493): every FR, SC, story l",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "*, **cite-check** owed (#493).",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "x**, **coverage**, owed #493), never hand-edited.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "owed (zheref/hatsu#405, #493). En drives each PR to",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "rge**, **parity** (owed #493). Ids never renumber; a",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "n; also zheref/nen#453, #454, #444.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "o zheref/nen#453, #454, #444.",
-      "count": 1
-    },
-    {
       "path": "claude/skills/en/SKILL.md",
       "rule": "PL-06",
       "text": "Verified live at `v0.3.0` (`docs/ab/e",
@@ -3589,12 +3541,6 @@
     },
     {
       "path": "docs/PROCESS.md",
-      "rule": "PL-02",
-      "text": "dy terminus, no prompt, until nen exposes the owed list",
-      "count": 1
-    },
-    {
-      "path": "docs/PROCESS.md",
       "rule": "PL-01",
       "text": "e warm-up's scripts and by hand: no nen verb owns a c",
       "count": 1
@@ -3651,12 +3597,6 @@
       "path": "docs/ROSTER.md",
       "rule": "PL-06",
       "text": "ling in its own words — verified live at nen `0.10.0`:",
-      "count": 1
-    },
-    {
-      "path": "docs/ROSTER.md",
-      "rule": "PL-11",
-      "text": "d (this run's reading). [NEEDS missing-maintainer-ch — not [NEEDS <row-id>: question]",
       "count": 1
     },
     {
@@ -6663,42 +6603,6 @@
       "path": "docs/config/spec-repo.md",
       "rule": "PL-11",
       "text": "stories with priority `[NEEDS RULING]` until typed; * — not [NEEDS <row-id>: question]",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-01",
-      "text": "lands the keys are read by hand, an absent key at wave",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-01",
-      "text": "hey are inputs, checked by hand:",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "(the spec verb family), #453, #454, #444, #486",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "pec verb family), #453, #454, #444, #486",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "rb family), #453, #454, #444, #486",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "ily), #453, #454, #444, #486",
       "count": 1
     },
     {

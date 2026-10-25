@@ -11,7 +11,10 @@
 //              with other content is refused.
 //   render     print one ROSTER ruling row from a committed record: the HR id cell (anchor plus the
 //              record link), the question, every option with its consequence, and the answer with its
-//              capture class. Status and what it settles are the lead's words, passed in.
+//              capture class. Status and what it settles are the lead's words, passed in and kept as
+//              markdown (only a pipe or a line break is handled); the record's cells are escaped, and a
+//              `<repository> #N` in its prose is coded `<owner>/<name>#N` through `nen repo resolve` (PL-05),
+//              so render and check need nen; a coded slug passes the private-name guard (a hit: exit 1).
 //   check      the guard lane (nen shu test --lane ruling-record): every ROSTER line citing a record is
 //              re-rendered and compared cell by cell, reported by HR id; an orphan, a twice-cited or an
 //              unreadable record is a finding too.
@@ -29,13 +32,14 @@
 // writes it; any other contract is wiring (exit 2), never rendered, and moves only with a repin.
 //
 // Exit codes: 0 ok · 1 a finding (a differing, unreadable, orphan or twice-cited record; an export id
-// not in the ledger or a conflicting copy) · 2 wiring (usage, an unreadable roster or records directory,
-// a ledger nen could not read, a path that would forge an annotation, a row that cannot be pre-answered).
+// not in the ledger or a conflicting copy; a render that would code a private repository) · 2 wiring (usage,
+// an unreadable roster or records directory, a ledger nen could not read, a `nen repo resolve` reply
+// that is not its documented shape, a path that would forge an annotation, a row that cannot be pre-answered).
 // "Could not read" is never "found nothing": a roster with no record-citing line says so at exit 0.
 //
 // Usage:
 //   node scripts/ruling_record.mts export --effort <id> --id <R-id> [--repo <checkout>] [--out <dir>] [--names-file <path>]
-//   node scripts/ruling_record.mts render --record <file.json> --hr <HR-n> --status <text> (--settles <text> | --settles-file <path>)
+//   node scripts/ruling_record.mts render --record <file.json> --hr <HR-n> --status <text> (--settles <text> | --settles-file <path>) [--names-file <path>]
 //   node scripts/ruling_record.mts check [--roster <docs/ROSTER.md>] [--records <docs/ruling-records>]
 //   node scripts/ruling_record.mts preanswer --effort <id> --row <row-id> --source <text> [--repo <checkout>]
 //                                  [--decisions <nen/decisions.json>] [--who <persona>] [--dry-run]
@@ -116,6 +120,42 @@ const lines = (s: string): string => s.replace(/\r\n?/g, '\n').trim();
 const flat = (s: string): string => lines(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/\[/g, '\\[').replace(/\]/g, '\\]').replace(/\n/g, '<br>').replace(/\|/g, '\\|');
 const em = (s: string): string => flat(s).replace(/\*/g, '\\*');
+// A `<repository> #N` in the orchestrator's prose (question, option labels and consequences, the picked
+// label included; never the maintainer's typed words, verbatim or matched to a label) is rendered coded,
+// `<owner>/<name>#N`, when `nen repo resolve` names exactly one repository for the token (PL-05). The
+// question is meant to be written coded at ask time (WORKFLOW § 4); this is the safety net for records
+// that were not, which stay as shown (HR-13 keeps the baseline from growing). Code spans are coded too:
+// PL-05 reads inside them. An unknown token (nen exit 1) and `all` (every repository) are left as
+// written; any other nen reply is wiring. So a row is a function of its record AND nen/repos.json.
+const REF = /(?<![\w/.&#`\]-])([A-Za-z0-9][A-Za-z0-9._-]*) #(\d+)\b/g;
+const resolved = new Map<string, string | null>();
+const introduced = new Set<string>();
+function repoOf(token: string): string | null {
+  if (resolved.has(token)) return resolved.get(token) ?? null;
+  const r = spawnSync(nenBin(), ['repo', 'resolve', token, '--repo', ROOT, '--json'], { encoding: 'utf8' });
+  let repo: string | null = null;
+  if (r.status === 0) {
+    let repos: unknown;
+    try { repos = (JSON.parse(r.stdout) as { repos?: unknown }).repos; } catch (e) { throw new Wiring(`nen repo resolve ${token} --json did not parse: ${(e as Error).message}`); }
+    if (!Array.isArray(repos)) throw new Wiring(`nen repo resolve ${token} --json carries no repos[]`);
+    if (repos.length === 1) {
+      const one = (repos[0] as { repo?: unknown }).repo;
+      if (typeof one !== 'string' || !/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(one)) throw new Wiring(`nen repo resolve ${token} --json names no owner/name`);
+      repo = one;
+    }
+  } else if (r.status !== 1) throw new Wiring(`nen repo resolve ${token} could not run (${r.error?.message ?? `exit ${r.status}`}): ${String(r.stderr ?? '').trim()}`);
+  resolved.set(token, repo);
+  return repo;
+}
+const coded = (s: string): string => s.replace(REF, (all, token: string, n: string) => {
+  const repo = repoOf(token);
+  if (!repo) return all;
+  introduced.add(repo);
+  return `${repo}#${n}`;
+});
+// The status and what it settles are the lead's own markdown (links, code spans), never the record's
+// text: only a line break and an unescaped pipe, which would split the cell, are handled.
+const authored = (s: string): string => lines(s).replace(/\n/g, ' ').replace(/(?<!\\)\|/g, '\\|');
 // A code span renders its text literally, so only the pipe and the line break are handled.
 const code = (s: string): string => {
   const t = lines(s).replace(/\n/g, ' ').replace(/\|/g, '\\|');
@@ -130,17 +170,18 @@ function preSource(r: AnswerRecord): string | null {
 
 function cells(record: AnswerRecord, hr: number): string[] {
   const options = isReference(record) ? 'none: typed by design'
-    : record.options.map((o) => `(${o.key}) ${flat(o.label)} — *${em(o.consequence)}*`).join(' · ');
+    : record.options.map((o) => `(${o.key}) ${flat(coded(o.label))} — *${em(coded(o.consequence))}*`).join(' · ');
   const source = preSource(record);
   let answer: string;
   if (record.kind === 'typed') answer = `typed (verbatim): *"${em(record.typed ?? '')}"*`;
   else {
     const label = record.options.find((o) => o.key === record.pick)?.label ?? '';
     const how = source !== null ? `pre-answered (${flat(source)})` : record.typed === null ? 'picked' : 'typed, word for word';
-    answer = `${how} (${record.pick}): ${code(label)}`;
+    // A typed reply nen matched to a label is the maintainer's typed words: never coded.
+    answer = `${how} (${record.pick}): ${code(record.typed === null ? coded(label) : label)}`;
   }
   const stem = stemOf(record);
-  return [`<a id="hr-${hr}"></a>**HR-${hr}** · [${stem}](${LINK_DIR}/${stem}.json)`, flat(record.question), options, answer];
+  return [`<a id="hr-${hr}"></a>**HR-${hr}** · [${stem}](${LINK_DIR}/${stem}.json)`, flat(coded(record.question)), options, answer];
 }
 
 // Split a table line on unescaped pipes; the leading and trailing empties dropped.
@@ -184,7 +225,7 @@ function hrNumber(text: string): number {
 }
 
 function render(argv: string[]): number {
-  const args = parseArgs(argv, new Set(['--record', '--hr', '--status', '--settles', '--settles-file']));
+  const args = parseArgs(argv, new Set(['--record', '--hr', '--status', '--settles', '--settles-file', '--names-file']));
   const hr = hrNumber(need(args, '--hr'));
   const status = need(args, '--status');
   if (args.has('--settles') === args.has('--settles-file')) throw new Wiring('give exactly one of --settles and --settles-file');
@@ -194,7 +235,18 @@ function render(argv: string[]): number {
   let record: AnswerRecord;
   try { record = readRecord(need(args, '--record')); } catch (e) { if (e instanceof Wiring) throw e; throw new Wiring(`cannot read --record: ${(e as Error).message}`); }
   if (!STEM.test(stemOf(record))) throw new Wiring('the record\'s effort and id do not make a file stem');
-  console.log(`| ${[...cells(record, hr), flat(status), flat(settles)].join(' | ')} |`);
+  introduced.clear();
+  const row = `| ${[...cells(record, hr), authored(status), authored(settles)].join(' | ')} |`;
+  // A coded slug is the registry's, not the record's (a product code names a repository the exported
+  // text never held), so it passes the private-name guard before the row is printed for a public roster.
+  // The guard prints an index, never the name; `check` writes nothing and does not run it.
+  if (introduced.size > 0) {
+    const guardArgs = [join(ROOT, 'scripts', 'private_name_check.sh'), ...(args.has('--names-file') ? ['--names-file', need(args, '--names-file')] : []), '--label', `HR-${hr} coded references`, '-'];
+    const guard = spawnSync('bash', guardArgs, { input: [...introduced].join('\n'), encoding: 'utf8' });
+    if (guard.error || (guard.status !== 0 && guard.status !== 1)) throw new Wiring(`HR-${hr}: the private-name guard could not run (exit ${guard.status}) over the coded references of record ${stemOf(record)}; nothing is printed`);
+    if (guard.status !== 0) { console.log(`ruling-record: HR-${hr}: record ${stemOf(record)} would be rendered with a private repository coded from the registry; nothing is printed`); return 1; }
+  }
+  console.log(row);
   return 0;
 }
 
@@ -279,7 +331,7 @@ function exportRecord(argv: string[]): number {
   const guard = spawnSync('bash', guardArgs, { input: text, encoding: 'utf8' });
   if (guard.stdout) process.stdout.write(guard.stdout);
   if (guard.stderr) process.stderr.write(guard.stderr);
-  if (guard.error || guard.status === 2 || guard.status === null) throw new Wiring('the private-name guard could not run; nothing is written');
+  if (guard.error || (guard.status !== 0 && guard.status !== 1)) throw new Wiring(`the private-name guard could not run (exit ${guard.status}); nothing is written`);
   if (guard.status !== 0) { console.log(`ruling-record: record ${id} names a private repository; placehold it in a re-recorded answer, nothing is written`); return 1; }
   const target = join(out, `${stemOf(record)}.json`);
   if (existsSync(target)) {

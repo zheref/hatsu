@@ -13,10 +13,11 @@ disagree, **the file wins and this document is the bug** — the same rule
 `skill.hardLimit` **>** `roster.ruling` **>** `nen/decisions.json` **>** `docs/WORKFLOW.md` **>**
 `docs/PROCESS.md` **>** `akatsuki.CON` **>** `handbooks`. The key's `$precedence` comment names each
 entry. The order ranks canon texts only: a configuration file's value still beats any prose copy of it,
-the rule above. A text outside the list yields to every listed entry and the conflict is filed (this
-run's reading, owed a ruling: [`ROSTER.md`](ROSTER.md) OPEN-6). This is the order's one restatement;
-[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. Nothing checks the
-key or this copy yet: that is owed to [zheref/nen#474](https://github.com/zheref/nen/issues/474).
+the rule above. A text outside the list yields to every listed entry and the conflict is filed
+([HR-339](ROSTER.md#hr-339)). This is the order's one restatement;
+[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. From nen `0.28`
+([zheref/nen#474](https://github.com/zheref/nen/issues/474), the HA#449 repin) `nen schema check` holds this copy to
+the key through `precedenceRestatedIn` in `nen/contract.json` and fails a drifted run by file and line.
 
 ---
 
@@ -103,7 +104,7 @@ There are two execution/policy configuration files, and the split is not stylist
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
 > independently.** At the v0.24.0 repin `dependency.minimum` read `0.24` and `dependency.pinned_ref` read
-> `v0.24.0` (both `0.26` / `v0.26.0` since HA-PR-#422): the first is the capability minimum, the second is the build its
+> `v0.24.0` (`0.26` / `v0.26.0` since HA-PR-#422, `0.28` / `v0.28.0` since the HA#449 repin): the first is the capability minimum, the second is the build its
 > bootstrap installs. That repin adopted NN#437's
 > phase/usage dials, session ledger and report data `sessions[]`; older Nen cannot supply them. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
@@ -736,7 +737,7 @@ wording — so the two verbs cannot disagree about what is admitted. On top of t
 "monitor": { "maxCycles": 20, "pollSeconds": 300, "localSlotFrees": "ready+prompted" }
 ```
 
-`en`'s `izanagi` cap and its poll interval. The block also holds futon's local-slot release (`localSlotFrees`, zheref/hatsu#425, `R-2026-10-23-20`). **The cap is grammar, not a default**: a watch loop invoked
+`en`'s `izanagi` cap and its poll interval. The block also holds futon's local-slot release (`localSlotFrees`, zheref/hatsu#425, [HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`). **The cap is grammar, not a default**: a watch loop invoked
 without one does not run, exactly as [`izanagi`](../claude/skills/izanagi/) refuses an invocation with no
 `up to <N>`. § 5 is where both of en's keys are actually spent, and where the long watch hands over to Illumi.
 
@@ -760,7 +761,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 (`R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees` |
+| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees` |
 
 ### `idle`
 
@@ -774,10 +775,7 @@ The **idle profile** (HR-5): read only by a `futon` or `kazaana` run whose typed
 (`contracts/config-catalogue.json`, `when: nen/workflow.json#idle`); an absent key is its catalogue
 default. § *Idle batches* is the protocol.
 
-**The maintainer's ruling of 2026-10-23** (typed, recorded as `R-2026-10-23-01` by `nen stop answer --record`,
-who `maintainer`, gate G4), verbatim:
-
-> "On any idle flagged operation, I expect all the session to run unattended, except for operations that may not be able to be reversed. Also, never merges to main. Only, always to integration branches to consolidate one or more batches of efforts together to be ultimately reviewed by me on big delivery PRs against main (only I as human maintainer merge to main). Shizuku's clean up plan always take the deterministic session-specific rows when running unattended. For any decision taken on my behalf, always list them in the shibari generated PR body and on the final delivery brief, as well as the final Rikugan report."
+**The maintainer's ruling of 2026-10-23** is [HR-334](ROSTER.md#hr-334) (typed, record `R-2026-10-23-01`; its words are the row's, not restated here).
 
 Applied: every ask-once row resolves `default` where it stars an option; `publish-offer` stays `refuse` (a
 published release cannot be taken back); a row that stars no option has no derived default and `hold`s
@@ -798,7 +796,7 @@ listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age a
 
 ```json
 "models": {
-  "rule": "latest alias only, never a version; subagents never on the frontier tier",
+  "rule": "latest alias only, never a version; subagents never on the frontier tier, save great-hiker's prose subsession (docs/ROSTER.md HR-336, HR-362)",
   "claude": { "frontier": "fable", "deep": "opus", "fast": "sonnet", "economy": "haiku" },
   "codex":  { "frontier": "astra", "deep": "sol",  "fast": "terra",  "economy": "luna" },
   "cursor": { "frontier": "grok",  "deep": "grok", "fast": "composer", "economy": "composer" },
@@ -814,7 +812,8 @@ six months. On Cursor the tiers are Cursor-native only — provider models there
 
 **Two rules ride on this matrix, and neither is optional.**
 
-- **A subagent is never given the frontier tier** (`fable`, `astra`). The frontier tier is where the
+- **A subagent is never given the frontier tier** (`fable`, `astra`), save one exception: `great-hiker`'s
+  prose subsession ([HR-336](ROSTER.md#hr-336), scoped by [HR-362](ROSTER.md#hr-362)), the only subagent ever on it. The frontier tier is where the
   maintainer's own conversation lives, and its cost lands on the maintainer's session rather than on the
   delegate's. **A subagent's tier is its scope's or role's, never its caller's** (ruling of 2026-10-13,
   zheref/hatsu#222, stated here once): `hanten` raises each reviewer at its scope's declared tier
@@ -865,7 +864,7 @@ tier rather than to a product.
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
-**The frontier tier never runs a subagent, on any surface.** Not `fable`, not `astra`, not `grok`, not `ultra`. The
+**The frontier tier never runs a subagent, on any surface**, save the one exception above. Not `fable`, not `astra`, not `grok`, not `ultra`. The
 frontier tier is where the maintainer's own conversation lives, and the cost lands on the maintainer's
 session rather than on the delegate's; below it, the first rule above holds (a subagent's tier is its
 scope's or role's, never its caller's).
@@ -876,8 +875,8 @@ scope's or role's, never its caller's).
 > making it the designated `deep` reviewer tier. For `worker` and `measurer` tasks, Gemini 2.5 Flash
 > provides exceptional cost efficiency (10-20x cheaper per token while retaining >80% resolution accuracy).
 > Under Google AI Pro and Ultra subscriptions, maintainers operate the lead Kurapika session interactively
-> on the frontier tier (`ultra` on Ultra, `pro` on Pro), while all spawned subagents stay strictly at
-> `pro` (`deep`) and `flash` (`fast`), ensuring rate limit stability and billing efficiency.
+> on the frontier tier (`ultra` on Ultra, `pro` on Pro), while every spawned subagent but `great-hiker`'s prose subsession (§ `models`'s one
+> exception) stays strictly at `pro` (`deep`) and `flash` (`fast`), ensuring rate limit stability and billing efficiency.
 
 > **On Cursor the `frontier` and `deep` tiers name the same alias, and the rule survives that.** `grok` is
 > both, so on Cursor "never the frontier tier" cannot be checked by reading the alias — it is enforced on
@@ -1390,7 +1389,9 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   so a worktree removal keeps it, and nen prints its id `R-YYYY-MM-DD-nn`, never reused **within that
   clone** (another clone counts its own; zheref/hatsu#443). An R-id is evidence, never a ruling id.
 - **What was shown, as shown**: the question file holds the question as asked; one `--option` per option
-  in the picker, its label as shown and its description line as the consequence. A `human-gate` row adds
+  in the picker, its label as shown and its description line as the consequence. A reference in either is
+  written coded at ask time (`<owner>/<name>#N`, `HA#N`), as PL-05 reads it; the renderer's coding of a
+  `<repository> #N` ([`ROSTER.md`](ROSTER.md) § *The ruling template*, step 3) is the safety net for older records. A `human-gate` row adds
   `--gate <its gate>`; an `ask-once-per-run` row names `--row` alone.
 - **The answer**: `--pick <key>` for a picked option; `--typed-file <file>` holding the maintainer's own
   words byte for byte for a free-text answer. **"Verbatim" is reserved for typed text**; a typed text that
@@ -1399,7 +1400,7 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   not answer is asked once more** — a question back (answered first), or a reply that fits neither an option
   nor the row's typed form — a new call, its answer a second record; a second reply of the same kind is
   acted on as the maintainer's typed words. The maintainer kept HR-173 over re-asking every unmatched
-  typed reply (2026-10-23, record `R-2026-10-23-08` under effort `HA-IS-#450`; zheref/hatsu#443 AC-2).
+  typed reply (2026-10-23, [HR-341](ROSTER.md#hr-341), record `R-2026-10-23-08` under effort `HA-IS-#450`; zheref/hatsu#443 AC-2).
 - **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
   `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
   candidates, none starred, go in the question file): record it with the one reference option
@@ -1543,8 +1544,10 @@ and breath session on such a copy, and refresh it (`hatsu:bakuryuha`, or ten § 
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
 [`PROCESS.md`](PROCESS.md) § *Exit codes and refusals* and `claude/rules/hatsu.md` cite this list:
 
-- **no tool or permission can supply it** — a sandbox or permission refusal the harness raises for a
-  command the session typed. Where the act needs the maintainer's own hands — an install that needs
+- **no tool or permission can supply it** — an actual rejection after the surface's supported
+  recovery route, or that route unavailable or forbidden. An unreviewed sandbox failure first follows
+  the surface adapter, including during an idle run; it is not yet this refusal. Where the act needs
+  the maintainer's own hands — an install that needs
   `sudo`, an elevated window — it is not this item but kind 6 above, a G5;
 - **a secret, credential or signing material** — never asked for and never typed into chat; the
   maintainer supplies it through their own tool, and one typed into chat or a picker is never used
@@ -1605,21 +1608,28 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    a row: `default` takes its starred option, says so and records it (§ 4 *Every picker
    answer is recorded*); `hold` or `refuse` asks nothing and **parks the effort** (`nen run park … --row <row>`), and the run moves to the next one. **No picker is shown in an idle run.**
 2. **Stops park, they do not end the run.** A G5 parks the effort as `parked:g5-<class>`; a harness
-   permission denial is a G5. A human-gate row is never pre-answered: the effort stands at that gate.
+   permission denial is a G5 **after the surface's supported recovery route has answered**. On Codex,
+   apply [authorized write recovery](surfaces/codex.md#authorized-worktree-write-recovery) to an
+   unreviewed sandbox failure first, including checkout creation and Git metadata writes before a
+   manifest exists. A supported review request is part of recovery, not retrying past a rejection;
+   `--idle` does not suppress it. A real rejection stops that action; an unavailable review route
+   reports its capability limitation. If the manifest cannot be created, report `startup blocked;
+   park not persisted`, never a recorded park or an empty successful run. A human-gate row is never
+   pre-answered: the effort stands at that gate.
    (Park rows are `[a-z0-9-]+`, the spelling nen refuses otherwise; the colon forms of 0.136.0 are retired.)
 3. **Residue parks.** In the batch, a step a skill marks *by hand* or *no verb* is never improvised as
    shell: the effort parks as `parked:residue-<skill>`.
 4. **Bounds.** Before each claim, `nen run budget` (§ 2 `idle` → `budget`, its four exit rows) gives the
    wall-clock minutes against the ceiling `start` printed; at `remaining.minutes` `0` nothing new is claimed
    and the rest park as `parked:budget`. The token bound is advisory where the ledgers are unread (§ 2).
-   **Slots are counted from two sources and summed** (futon § 6, § 2 `monitor`, `R-2026-10-23-20`: a slot is held from
+   **Slots are counted from two sources and summed** (futon § 6, § 2 `monitor`, [HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`: a slot is held from
    the claim until `ready+prompted`): `nen loop slots --from-run <run id>` counts the run's delivery PRs, and
    `nen loop slots --efforts <abs path>` counts the run's claimed efforts that have no delivery PR — every
    effort worktree of this run (`nen wc worktrees`) whose branch no `nen run verify` row names, one object
    `{"id": "<CODE>#<N>", "plane": "local", "prOpen": false, "ready": false, "prompted": false, "merged":
    <its branch is an ancestor of the integration branch>}`; the run claims only while the two `local.occupied`
    sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs only and refuses `--efforts` beside it:
-   a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` (`R-2026-10-23-20`): the effort's PR Ready and
+   a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
    its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
    (back-pressure) and park as `parked:budget` only when the minutes elapse. **The merge no longer caps the night at seven**:
    each effort frees its slot at its own Ready prompt, so at most seven build at once and the night authors
@@ -1663,18 +1673,17 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
    `legendRows` (`backlog-board` § 3), one row per decision.
 
-9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — the
-   maintainer's ruling of 2026-10-23 (typed, recorded `R-2026-10-23-02`, who `maintainer`, gate G4), verbatim:
-
-   > "Nothing should block a batch. However, no issue with open question should be addressed either. In this case, skip any unaddressed use during the batch and bring it up at the final briefing/rikugan report. If an issue in the queue has open questions, the queue should just continue with the next one. The final briefing shouldn't just mention it, but also offer to start a surface-specific decision picker driven flow to resolve any open question from the unresolved issues on the original queue."
+9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — [HR-335](ROSTER.md#hr-335)
+   (typed, record `R-2026-10-23-02`; its words are the row's, not restated here).
 
    Applied, attended or `--idle`: futon § 2's shape check (`docs/config/plugin-registries.md`, *The check*)
    **skips** an issue whose `nen issue questions` reads `counts.open` above `0` — parked in the run record by
    `nen run park --id <run id> --issue <CODE>#<N> --row needs-clarification` (a dry run: `predict`, rule 7) —
    and the queue continues with the next issue. `needs-clarification` is a **named park class**, not a G5 and
    not a `nen/decisions.json` row (the park grammar of § *Recorded Futon delivery ownership*). An issue whose
-   questions could not be read (`nen issue questions` exit `1`) is skipped as `g5-shape-unread`, never addressed
-   unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
+   questions could not be read (`nen issue questions` exit `1` with **no document on stdout**; from nen `0.28` an
+   exit `1` whose document is still printed is an open `OQ-{n}` row, read, and parks `needs-clarification` as above)
+   is skipped as `g5-shape-unread`, never addressed unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
    named G5, never N skips; a body-shape miss is reported and never skips; nothing else in the shape check stops
    the queue. The **final briefing** (futon § 10's closing report) and the **Rikugan
    register** (backlog-board § 3) list every skipped issue with its open `OQ-{n}` rows (id, gate, question), and
@@ -2111,7 +2120,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.133.0` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs owed, zheref/nen#493).
+**`v0.133.0` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs, zheref/nen#493, need a nen past `0.26.0`).
 **`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic #354).
 **`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
@@ -2967,7 +2976,7 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    presented nowhere as mergeable** (ruling 2 of 2026-09-29, kept by the 2026-09-30 amendment): the
    merge prompt exists only for the PR whose base reads `branch.base` at that moment. A stacked effort's
    local slot frees as every effort's does, at `ready+prompted`: its PR Ready and its Ready stop shown
-   (zheref/hatsu#425, `R-2026-10-23-20`, which reconciles small ruling 4 of 2026-10-13 — *freed at PR-open on its
+   (zheref/hatsu#425, [HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`, which reconciles small ruling 4 of 2026-10-13 — *freed at PR-open on its
    stacked base, hanten settled* — and HR-257 to that one value; nen's `stacked-open` is not used).
 5. **Merging, bottom-up, one at a time, with `--merge`, never a squash** (a squash would re-carry the
    lower PR's commits into the next diff). After each merge the run — or `hatsu:en <next>` — **retargets

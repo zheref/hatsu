@@ -1,7 +1,0 @@
-### Changed
-
-- **`unit-tests.yml` runs the tenkai engine's self-test (zheref/hatsu#427, BC-9).** `scripts/unit_tests_ci.mts` selects lane `tenkai-guard` whenever `scripts/tenkai_adopt.sh` exists, so the only Hatsu-side test of `nen review ledger` (`init`, `record`, `show`) runs on same-repository, non-draft pull requests instead of only by hand. The runner now spawns every lane with the workflow-installed nen's directory first on `PATH` and its path as `NEN`, because the workflow installs nen with `--rc none` and the self-test's review cases call `nen` from `PATH`; a binary whose directory contains the `PATH` delimiter is refused at exit `2`. No workflow file changed, so this is a one-step landing: the runner is trusted at the base revision, and the lane first runs on the first `unit-tests` run whose base includes this merge.
-
-### Fixed
-
-- **`tenkai_adopt.sh --self-test` no longer depends on the checkout's nen minimum or on a symlinked temp directory.** Its review-ledger cases hold the running nen to a fixture minimum at its own `major.minor`, with a case for a nen one minor below, so a repin PR that raises `dependency.minimum` stays green on the base revision's nen. Its fixtures resolve their real paths, and `scripts/config_values.ts` resolves both sides of its `nen/workflow.json` containment check and keeps the engine's blocked row for an unparseable declaration instead of exiting `2`, which a real-path temp directory (the Linux runner's) triggered.

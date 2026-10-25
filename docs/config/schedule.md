@@ -1,12 +1,12 @@
 # The schedule — the four steady-state rows
 
-> **Lives in** [`contracts/schedule.json`](../../contracts/schedule.json) (the rows, one source) and, once the maintainer registers them, in Claude Desktop's own store on the maintainer's machine (`~/.claude/scheduled-tasks/<name>/SKILL.md`, never a tree) · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; the tasks themselves are registered by the maintainer alone · **Printed by** [`scripts/schedule_install.mts`](../../scripts/schedule_install.mts), which registers nothing · **Validated by** the `schedule-printer` lane (`nen shu test --repo <hatsu> --lane schedule-printer`) · **Authority** the ruling record R-2026-10-23-21 (effort HA-IS-#450), answering OQ-1 of zheref/hatsu#448, quoted below and in the contract's `ruling`
+> **Lives in** [`contracts/schedule.json`](../../contracts/schedule.json) (the rows, one source) and, once the maintainer registers them, in Claude Desktop's own store on the maintainer's machine (`~/.claude/scheduled-tasks/<name>/SKILL.md`, never a tree) · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; the tasks themselves are registered by the maintainer alone · **Printed by** [`scripts/schedule_install.mts`](../../scripts/schedule_install.mts), which registers nothing · **Validated by** the `schedule-printer` lane (`nen shu test --repo <hatsu> --lane schedule-printer`) · **Authority** [HR-354](../ROSTER.md#hr-354), ruling record R-2026-10-23-21 (effort HA-IS-#450), answering OQ-1 of zheref/hatsu#448, quoted below and in the contract's `ruling`
 
 ## What it decides
 
 The SDD plan's steady-state row names four recurring duties: a quarterly canon drift pass, a recapture on each family member's release tag, the morning desk after every idle wave, and the prose ratchet baseline shrinking in every prose PR. This page states, for each, its trigger, its cadence and where it runs.
 
-**The scheduler is the maintainer's own machine.** The record, answered at G4 on 2026-10-23 (`nen.stop.answer/v0.1`, `R-2026-10-23-21`, effort HA-IS-#450), asked: *"HA#448 (steady state): four recurring rows need a scheduler: a quarterly drift pass, a recapture on each member's release tag, the morning desk after every wave, and the ratchet-baseline shrink report. Which host carries them?"*
+**The scheduler is the maintainer's own machine.** The record, answered at G4 on 2026-10-23 (`nen.stop.answer/v0.1`, [HR-354](../ROSTER.md#hr-354), record `R-2026-10-23-21`, effort HA-IS-#450), asked: *"HA#448 (steady state): four recurring rows need a scheduler: a quarterly drift pass, a recapture on each member's release tag, the morning desk after every wave, and the ratchet-baseline shrink report. Which host carries them?"*
 
 | Key | Option, as shown | Consequence, as shown |
 |---|---|---|
@@ -24,7 +24,7 @@ The SDD plan's steady-state row names four recurring duties: a quarterly canon d
 
 **Permissions are bounded per row.** Desktop saves an *always allow* answer for every later run of that task, and the allow rules of `~/.claude/settings.json` apply to these sessions too. So each row lists the reads it may pre-approve (`alwaysAllow`), and the contract lists what is answered *allow once* every time (`permissions.neverAlwaysAllow`: issue filing and edits, PR and comment writes, `git commit`/`push`, `Write`/`Edit`, and `update_scheduled_task`, a task rewriting its own prompt); the printer prints both under each task (SEC-9, SEC-15). Every public write therefore asks on every run, by design. **The first Run now of `drift-pass` is a live run**: it fetches every surface's pages and files on confirmation. `drift-pass` and `morning-desk` run in their own Desktop worktree and refuse unless it is clean at `origin/main`'s commit, so a half-edited or unmerged branch in the checkout is never read as canon.
 
-**The warrant is the ruling; HR-5 is the floor.** The rows exist because of R-2026-10-23-21. HR-5 adds the floor every row keeps: a scheduler may re-invoke a build and never a release. Every prompt ends on that line, and none names `getsuga`, `kagutsuchi` or `mugetsu`.
+**The warrant is the ruling; HR-5 is the floor.** The rows exist because of [HR-354](../ROSTER.md#hr-354) (record R-2026-10-23-21). HR-5 adds the floor every row keeps: a scheduler may re-invoke a build and never a release. Every prompt ends on that line, and none names `getsuga`, `kagutsuchi` or `mugetsu`.
 
 ## The rows
 
@@ -55,7 +55,7 @@ This row is not a task: it already runs on every pull request in `canon-lint`, t
 
 ## Sources
 
-- zheref/hatsu#448 (the rows, AC-1 to AC-4, SC-1, SC-2, AS-1, AS-2, OQ-1); epic zheref/hatsu#454; the ruling record R-2026-10-23-21 under effort HA-IS-#450
+- zheref/hatsu#448 (the rows, AC-1 to AC-4, SC-1, SC-2, AS-1, AS-2, OQ-1); epic zheref/hatsu#454; ruling HR-354 (record R-2026-10-23-21) under effort HA-IS-#450
 - [Schedule recurring tasks in Claude Code Desktop](https://code.claude.com/docs/en/desktop-scheduled-tasks) and [Run prompts on a schedule](https://code.claude.com/docs/en/scheduled-tasks), both fetched 2026-10-23
 - [`ROSTER.md`](../ROSTER.md) [HR-5](../ROSTER.md#hr-5) (the floor: a scheduler re-invokes a build, never a release), HR-13 (the ratchet)
 - [`../../claude/skills/great-hiker/SKILL.md`](../../claude/skills/great-hiker/SKILL.md) § 7, [`dowsing-chain/SKILL.md`](../../claude/skills/dowsing-chain/SKILL.md) §§ 10–11, [`rikugan/SKILL.md`](../../claude/skills/rikugan/SKILL.md); [`prose.lint.json.md`](prose.lint.json.md)

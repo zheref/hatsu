@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // zheref/hatsu#443: fixture for scripts/ruling_record.mts. Hermetic cases use synthetic rosters, records
-// and a stub nen; the last cases run the REAL nen (NEN, else `nen` on PATH; unit-tests.yml hands its
-// verified binary) through record -> export -> render -> check in a throwaway git repository, and the
-// check over the live roster.
+// and a stub nen (its `repo resolve` included, so reference coding is hermetic too); the last cases run
+// the REAL nen (NEN, else `nen` on PATH; unit-tests.yml hands its verified binary) through record ->
+// export -> render -> check in a throwaway git repository, one coded render against this checkout's
+// nen/repos.json, and the check over the live roster.
 import assert from 'node:assert/strict';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -58,10 +59,18 @@ function roster(dir: string, rows: string[]): string {
   return path;
 }
 
-// A stub nen: answers `stop answer show` from STUB_SHOW (a file) with STUB_EXIT, and logs every argv.
+// A stub nen: answers `stop answer show` from STUB_SHOW (a file) with STUB_EXIT, `repo resolve <token>` from
+// STUB_RESOLVE (token -> repos[] or a raw string; absent -> exit 1; STUB_RESOLVE_EXIT forces a code), and logs every argv.
 const stubJs = join(scratch, 'stub-nen.mjs');
 writeFileSync(stubJs, `import { appendFileSync, readFileSync } from 'node:fs';
 appendFileSync(process.env.STUB_LOG, JSON.stringify(process.argv.slice(2)) + '\\n');
+if (process.argv[2] === 'repo' && process.argv[3] === 'resolve') {
+  if (process.env.STUB_RESOLVE_EXIT) process.exit(Number(process.env.STUB_RESOLVE_EXIT));
+  const reply = JSON.parse(readFileSync(process.env.STUB_RESOLVE, 'utf8'))[process.argv[4]];
+  if (!reply) process.exit(1);
+  process.stdout.write(typeof reply === 'string' ? reply : JSON.stringify({ token: process.argv[4], origin: null, repos: reply }));
+  process.exit(0);
+}
 if (process.argv[4] === 'show') process.stdout.write(readFileSync(process.env.STUB_SHOW, 'utf8'));
 else process.stdout.write('recorded R-2026-10-23-09 -> /stub\\n');
 process.exit(Number(process.env.STUB_EXIT || 0));
@@ -104,7 +113,68 @@ try {
   assert.equal(htmlRow.includes('<a id="hr-5">'), false, 'a record never renders an anchor');
   cases += 1; console.log(`ok ${cases} - markup and link brackets in a record are escaped, never rendered`);
 
+  // PL-05, hermetic: `repo resolve` is the stub's. A `<repository> #N` in the record's prose and the picked
+  // label renders coded (code spans too: PL-05 reads inside them); an unknown word, `all` (every
+  // repository) and the maintainer's typed words are left as written; a coded slug passes the
+  // private-name guard (the named list exempts zheref/akatsuki-ai), and a private one is refused unnamed.
+  const one = (repo: string): { repo: string; code: null; kind: string; entry: null }[] => [{ repo, code: null, kind: 'name', entry: null }];
+  const resolveMap = join(scratch, 'resolve.json');
+  writeFileSync(resolveMap, JSON.stringify({ hatsu: one('zheref/hatsu'), nen: one('zheref/nen'), 'akatsuki-ai': one('zheref/akatsuki-ai'), zzp: one('zheref/zz-private-fixture'),
+    all: [...one('zheref/hatsu'), ...one('zheref/nen')], junk: 'not json', bare: '{"token":"bare"}', slugless: one('noslash') }));
+  const privList = join(scratch, 'private-list.txt');
+  writeFileSync(privList, 'zheref/zz-private-fixture\nzheref/akatsuki-ai\n');
+  const refsLog = join(scratch, 'refs-stub.log'); writeFileSync(refsLog, '');
+  const refEnv = { NEN: stub, STUB_LOG: refsLog, STUB_RESOLVE: resolveMap, STUB_EXIT: '0' };
+  const renderRef = (rec: Rec, env: Record<string, string> = refEnv): Run => run(['render', '--record', recordFile(join(scratch, 'refs'), rec), '--hr', 'HR-342', '--status', 'ruled', '--settles', 'x', '--names-file', privList], env);
+  {
+    const r = renderRef({ ...base, id: 'R-2026-10-23-10', question: 'hatsu #5 Q1, issue #6, all #3, `run hatsu #4`?', options: [{ key: 'A', label: 'nen #7', consequence: 'akatsuki-ai #8 moves' }], pick: 'A' });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /\| zheref\/hatsu#5 Q1, issue #6, all #3, `run zheref\/hatsu#4`\? \| \(A\) zheref\/nen#7 — \*zheref\/akatsuki-ai#8 moves\* \| picked \(A\): `zheref\/nen#7` \|/);
+    cases += 1; console.log(`ok ${cases} - a repository-named #N renders coded in the question, a code span, the options and the picked label; an unknown word and all as written`);
+    const t = renderRef({ ...base, id: 'R-2026-10-23-11', question: 'hatsu #5?', kind: 'typed', pick: null, typed: 'hatsu #9 stands' });
+    assert.match(t.stdout, /\| zheref\/hatsu#5\? \|.*\| typed \(verbatim\): \*"hatsu #9 stands"\* \|/);
+    cases += 1; console.log(`ok ${cases} - the maintainer's typed words are never coded`);
+  }
+  {
+    const r = renderRef({ ...base, id: 'R-2026-10-23-12', question: 'zzp #3?' });
+    expect('a coded slug naming a private repository is refused, the name never printed', r, 1, /HR-342: record opus-kurapika-demo--R-2026-10-23-12 would be rendered with a private repository/);
+    assert.equal((r.stdout + r.stderr).includes('zz-private'), false, `the private name is never printed\n${r.stdout}${r.stderr}`);
+  }
+  expect('an unparseable exit-0 resolve reply is wiring', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'junk #3?' }), 2, null, /nen repo resolve junk --json did not parse/);
+  expect('an exit-0 resolve reply with no repos[] is wiring', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'bare #3?' }), 2, null, /nen repo resolve bare --json carries no repos\[\]/);
+  expect('nen failing to resolve a repository word is wiring, never a guess', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'hatsu #3?' }, { ...refEnv, STUB_RESOLVE_EXIT: '2' }), 2, null, /nen repo resolve hatsu could not run \(exit 2\)/);
+  expect('an exit-0 resolve reply naming no owner/name is wiring', renderRef({ ...base, id: 'R-2026-10-23-13', question: 'slugless #3?' }), 2, null, /nen repo resolve slugless --json names no owner\/name/);
+  {
+    const r = renderRef({ ...base, id: 'R-2026-10-23-15', question: 'Which?', options: [{ key: 'A', label: 'nen #7', consequence: 'it lands' }], pick: 'A', typed: 'nen #7' });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /\| \(A\) zheref\/nen#7 — \*it lands\* \| typed, word for word \(A\): `nen #7` \|/);
+    cases += 1; console.log(`ok ${cases} - a typed reply matched to a label keeps the maintainer's words in the answer cell; the option is coded`);
+  }
+  {
+    // A guard exit other than 0 or 1 (127: the guard is missing) is wiring, never a private hit: the
+    // script runs from a scratch root whose scripts/private_name_check.sh exits as told.
+    const fake = join(scratch, 'fake-root');
+    mkdirSync(join(fake, 'scripts'), { recursive: true });
+    writeFileSync(join(fake, 'scripts', 'ruling_record.mts'), readFileSync(script, 'utf8'));
+    writeFileSync(join(fake, 'scripts', 'private_name_check.sh'), 'exit "${FAKE_GUARD_EXIT:-127}"\n');
+    const fakeRun = (args: string[], env: Record<string, string>): Run => {
+      const r = spawnSync(process.execPath, [join(fake, 'scripts', 'ruling_record.mts'), ...args], { cwd: scratch, encoding: 'utf8', env: { ...process.env, ...env } });
+      return { status: r.status, stdout: String(r.stdout), stderr: String(r.stderr) };
+    };
+    const rec = recordFile(join(scratch, 'refs'), { ...base, id: 'R-2026-10-23-16', question: 'hatsu #3?' });
+    expect('render: a guard exit of 127 is wiring, never a private hit', fakeRun(['render', '--record', rec, '--hr', 'HR-342', '--status', 'ruled', '--settles', 'x'], refEnv), 2, null, /private-name guard could not run \(exit 127\)/);
+    const fakeShow = join(scratch, 'fake-show.json');
+    writeFileSync(fakeShow, JSON.stringify({ effortId: base.effortId, directory: '/x', records: [base] }));
+    expect('export: a guard exit of 3 is wiring, never a private hit', fakeRun(['export', '--effort', base.effortId, '--id', base.id, '--repo', scratch, '--out', join(scratch, 'fake-out')], { NEN: stub, STUB_LOG: refsLog, STUB_SHOW: fakeShow, STUB_EXIT: '0', FAKE_GUARD_EXIT: '3' }), 2, null, /private-name guard could not run \(exit 3\)/);
+  }
+
   const bad = recordFile(join(scratch, 'b'), { ...base, id: 'R-2026-10-23-05', contract: 'nen.stop.answer/v9' });
+  {
+    const lead = renderRow(picked, 'HR-7', 'superseded by HR-8 (a part; the rest stands)', 'Reverses [HR-3](#hr-3); `models.<surface>.frontier` a|b');
+    assert.ok(lead.endsWith('| superseded by HR-8 (a part; the rest stands) | Reverses [HR-3](#hr-3); `models.<surface>.frontier` a\\|b |'), `the lead's cells stay markdown, a pipe escaped\n${lead}`);
+    assert.ok(!lead.includes('\\[HR-3') && !lead.includes('&lt;surface'), `the lead's link and code span are not escaped\n${lead}`);
+    console.log('ok - the status and settles cells are the lead\'s markdown, only a pipe escaped');
+  }
   expect('a record of another contract is refused, never rendered', run(['render', '--record', bad, '--hr', 'HR-1', '--status', 'ruled', '--settles', 'x']), 2, null, /contract is not nen\.stop\.answer\/v0\.1/);
   const badPick = recordFile(join(scratch, 'bp'), { ...base, id: 'R-2026-10-23-06', pick: 'Z' });
   expect('a pick that is no option key is refused', run(['render', '--record', badPick, '--hr', 'HR-1', '--status', 'ruled', '--settles', 'x']), 2, null, /pick is none of the option keys/);
@@ -221,6 +291,11 @@ try {
   assert.match(liveRows[2] ?? '', /\| none: typed by design \| typed \(verbatim\)/);
   expect('live: nen records (a typed-by-design row included), the rows render and check against their records', run(['check', '--roster', roster(liveDocs, liveRows)]), 0, /3 ROSTER rows match/);
 
+  {
+    // The REAL nen resolves against this checkout's nen/repos.json: the render path the live roster uses.
+    const r = run(['render', '--record', recordFile(join(scratch, 'live-refs'), { ...base, id: 'R-2026-10-23-14', question: 'hatsu #5, issue #6?' }), '--hr', 'HR-343', '--status', 'ruled', '--settles', 'x', '--names-file', privList]);
+    expect('live: nen repo resolve codes a registry repository and leaves an unknown word', r, 0, /\| zheref\/hatsu#5, issue #6\? \|/);
+  }
   const live = fileURLToPath(new URL('../docs/ROSTER.md', import.meta.url));
   expect('the live roster matches every record it cites', run(['check', '--roster', live]), 0, /ruling-record: /);
   console.log(`ruling-record fixture: ${cases} cases passed`);

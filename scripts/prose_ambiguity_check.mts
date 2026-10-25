@@ -38,8 +38,9 @@
 //
 // OWED TO NEN: the verdict to `nen canon lint` (zheref/nen#481), its acceptance criteria the
 // fixture's cases; the citation resolver to `nen ref resolve --citation` (zheref/nen#482).
-// Frozen to fixes the day the verb ships; retired at the repin (the canon_contracts_check
-// precedent). Byte headroom is scripts/prose_size_check.sh's, never re-measured here.
+// `nen canon lint` shipped in nen 0.28 (the HA#449 repin declared its home, `canon.lint`, and checked parity
+// with this guard: identical counts); this file stays frozen to fixes until the frozen CI step moves onto the
+// verb by a two-step landing (docs/GATE-CONFIGURATION.md, 2026-09-20), and retires at that flip. Byte headroom is scripts/prose_size_check.sh's, never re-measured here.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -339,6 +340,20 @@ function resolveTarget(ctx: Ctx, from: string, target: string): { rel: string | 
   return { rel: relative(ctx.root, abs).split(sep).join('/') };
 }
 
+// A ROSTER row rendered from a ruling record (scripts/ruling_record.mts render) carries the question,
+// the options and the answer from the record, never retyped (ROSTER § The ruling template, step 3).
+// Render's reference coding is the primary PL-05 mechanism there: it codes a `<repository> #N` the
+// registry resolves in the question, the options and the picked label. This exemption covers only what
+// render cannot code, the maintainer's typed words and a #N with no resolvable repository before it, so
+// a bare #N left in those three cells is the record's. The HR id cell, the status and what it settles
+// are the lead's words and stay linted.
+const RENDERED_ROW = /^\| <a id="hr-\d+"><\/a>\*\*HR-\d+\*\* · \[[^\]]*\]\(ruling-records\/[^)]*\.json\) \|/;
+function inRenderedRecord(p: Para, off: number): boolean {
+  if (p.kind !== 'table' || !RENDERED_ROW.test(p.text)) return false;
+  const bars = [...p.text.matchAll(/(?<!\\)\|/g)].map((m) => m.index ?? 0);
+  return bars.length > 5 && off > bars[1] && off < bars[4];
+}
+
 function check(ctx: Ctx, d: Doc): Finding[] {
   const out: Finding[] = [];
   const isSkill = /^claude\/(skills\/[^/]+\/SKILL\.md|agents\/[^/]+\.md|rules\/[^/]+\.md)$/.test(d.path);
@@ -350,6 +365,7 @@ function check(ctx: Ctx, d: Doc): Finding[] {
     const line = lineAt(p, off);
     if (d.retired.has(line) && ctx.c.retired.rules.includes(rule)) return;
     if (isRecord && ctx.c.records.rules.includes(rule)) return;
+    if (rule === 'PL-05' && d.path === ctx.c.rulingsFile && inRenderedRecord(p, off)) return;
     const t = text.replace(/\s+/g, ' ').trim().slice(0, 160);
     out.push({ path: d.path, line, rule, severity: r.severity, text: t, key: `${d.path}\u0000${rule}\u0000${t.toLowerCase()}` });
   };

@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-08",
+  "effortId": "HA-IS-#450",
+  "n": 6,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Typed picker answers (docs/ROSTER.md HR-173, ruled: a free-text answer is the maintainer's word). The SDD plan's ruling-capture row asked that a typed answer matching no option be re-asked once before the run acts. Which stands?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Keep HR-173 (Recommended)",
+      "consequence": "A typed answer is acted on as given; re-ask only when the reply does not answer (a question back, or fits neither an option nor the row's typed form)"
+    },
+    {
+      "key": "B",
+      "label": "Re-ask once",
+      "consequence": "Amend HR-173: any typed answer that matches no option is re-asked once; the run acts on the second answer"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.808Z"
+}

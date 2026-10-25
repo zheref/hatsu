@@ -165,8 +165,8 @@ when it runs; a later native checkout may be absent from the active roots.
 | Observed state | Next action | Outcome |
 |---|---|---|
 | Ordinary write succeeds in the bound checkout | Remove the probe; continue ledger/authoring work there | Ordinary writes verified; other operations still need their own checks |
-| Unreviewed sandbox failure, action already authorized, host exposes review | Submit the same narrowly scoped probe through that supported route, with the bound cwd and exact file scope | Await the returned decision; do not call the initial failure a terminal denial |
-| Review admits the probe | Verify cleanup, then use that supported route for authorized operations that need it, each within its actual reviewed scope | Continue the effort; the probe grants no blanket approval for later commands |
+| Unreviewed sandbox failure for an authorized operation (checkout creation, probe, Git or ledger write); host exposes review | Submit that exact operation through supported review, retaining the isolated destination and checkout or metadata scope | Await the returned decision; neither the initial failure nor a successful file probe decides metadata access |
+| Review admits the operation | Verify execution and any probe cleanup, then use supported review for other authorized operations only within each request's scope | Continue the effort; admission grants no blanket approval for later commands |
 | Review rejects the request | Stop the rejected action; report the exact action, path, decision and stated reason | Preserve work and isolation; continue only independent permitted work |
 | Review unavailable or forbidden by host policy | Report the capability limitation and exact failed operation; name the host owner and handoff needed | No fabricated review result; ask only for what the host requires |
 | Failure is unrelated to sandbox scope (for example disk full or missing path) | Diagnose that failure within existing authority | Do not relabel it as an approval rejection or escalate it as a sandbox repair |
@@ -177,6 +177,17 @@ Use it only when existing task authority covers the action and the host permits 
 the host may use a human or automatic reviewer. Read the exposed schema each time this adapter
 is applied; other hosts may expose a different route or none. A request still pending is not
 approval, and an admitted action is proved by its execution result, not merely its submission.
+
+**This recovery precedes an idle denial or park**, including a failure while creating the isolated
+checkout or run manifest. For checkout creation, retain the planned isolated destination and use the
+existing repository as cwd; once created, bind its returned absolute path. Git metadata may live
+outside that destination: name the failed path, resolved with `git rev-parse --git-common-dir` or
+`git rev-parse --git-path <name>`, in the review scope. Request only the operation already authorized
+by the owning phase. A reviewed fetch grants no branch, push, merge or release authority.
+If review admits the operation, resume at the failed step; if the result is a rejection, stop that
+action without changing routes. If review is unavailable, report that capability limit. A failure
+before manifest creation is `startup blocked; park not persisted`, not a durable park. The
+[recovery cases](evidence/codex-worktree-recovery.md) separate observations from constructed inputs.
 
 Never rewrite global/project permission settings, change filesystem permissions, disable the
 sandbox, switch silently to core, add a general elevation wildcard, or widen unrelated access

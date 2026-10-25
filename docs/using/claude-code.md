@@ -91,7 +91,8 @@ The permission pack for this surface is rendered from
 
 **Subagents and models.** Reviewers and workers are raised as subagents titled
 `<skill> · <persona> · <model alias>`, on the tier `nen/workflow.json` → `models.roles` names for the
-role, never on the frontier tier where your own conversation lives. Which model `hatsu:direct`
+role, never on the frontier tier where your own conversation lives, save the one exception
+[`WORKFLOW.md`](../WORKFLOW.md) § `models` names (`great-hiker`'s prose subsession). Which model `hatsu:direct`
 recommends for a piece of work, on which surface and at what effort, is
 [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md).
 

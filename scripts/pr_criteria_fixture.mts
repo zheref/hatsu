@@ -30,21 +30,30 @@ for (const [skill, count] of [["shibari", 1], ["en", 2], ["rikugan", 1]] as cons
 
 // 2. One owner (AC-2, SC-1): no Hatsu script computes coverage and no canon file restates the
 // verb's blocking words, none-word or evidence rule. CHANGELOG history is a record and is not read;
-// docs/ROSTER.md's HR-11 row is the ruling itself, the rule's source, and is exempt by name.
+// docs/ROSTER.md's HR-11 row is the ruling itself, the rule's source, and is exempt by name. A ruling
+// record (docs/ruling-records/*.json) and the question, options and answer cells of a ROSTER row
+// rendered from one are the maintainer's question as asked, never retyped (ROSTER § The ruling
+// template, step 3), so they are not read; the row's own status and settles cells still are.
 const banned = [/pr_criteria_check/, /refuses a missing row/i, /blocking words?/i, /evidence (is )?required/i,
   /missing`?\s*(or|and|,)\s*`?contradicts/i, /\bno criteria\b/i, /unrequested only/i, /whose criterion is none/i];
 // The ROSTER row is cut out of the text by its own id, then the rest is scanned joined, so a
 // restatement hard-wrapped across lines is still caught.
 const hr11 = /^\| <a id="hr-11"><\/a>\*\*HR-11\*\*.*$/m;
-const scanned = (path: string, text: string) => (path === "docs/ROSTER.md" ? text.replace(hr11, "") : text).replace(/\s+/g, " ");
+const rendered = /^(\| <a id="hr-\d+"><\/a>\*\*HR-\d+\*\* · \[[^\]]*\]\(ruling-records\/[^)]*\.json\) \|)(?:(?:\\\||[^|\n])*\|){3}(.*)$/gm;
+const roster = (text: string) => text.replace(hr11, "").replace(rendered, "$1$2");
+const scanned = (path: string, text: string) => (path === "docs/ROSTER.md" ? roster(text) : text).replace(/\s+/g, " ");
 const walk = (path: string): string[] => statSync(join(root, path)).isDirectory()
   ? readdirSync(join(root, path)).flatMap((name) => walk(join(path, name))) : [path];
 const own = relative(root, join(import.meta.dirname, "pr_criteria_fixture.mts"));
 for (const path of ["claude", "docs", "templates", "contracts", "scripts", "nen", "surfaces", "CONTRIBUTING.md"].flatMap(walk)) {
-  if (path === own || !/\.(md|json|mts|ts|sh|yml)$/.test(path)) continue;
+  if (path === own || path.startsWith("docs/ruling-records/") || !/\.(md|json|mts|ts|sh|yml)$/.test(path)) continue;
   const text = scanned(path, read(path));
   for (const re of banned) assert.ok(!re.test(text), `${path} restates the coverage rule (${re})`);
 }
+// A rendered row's record cells are cut, and its settles cell is still read.
+const renderedRow = (settles: string) => `| <a id="hr-9"></a>**HR-9** · [e--R-2026-10-23-01](ruling-records/e--R-2026-10-23-01.json) | missing or contradicts? | (A) Yes — *missing or contradicts blocks* | picked (A): \`Yes\` | ruled | ${settles} |`;
+assert.ok(!banned.some((re) => re.test(scanned("docs/ROSTER.md", renderedRow("one rule, one verb")))), "a rendered row's record cells are not read");
+assert.ok(banned.some((re) => re.test(scanned("docs/ROSTER.md", renderedRow("a missing or contradicts row blocks")))), "a rendered row's settles cell is read");
 // The restatement this PR retired from en § 4 is caught, and the ROSTER exemption is that row alone.
 assert.ok(banned.some((re) => re.test(scanned("x.md", "a `missing` or `contradicts` verify row, an acceptance criterion with no row"))));
 assert.ok(banned.some((re) => re.test(scanned("x.md", "a `missing` or\n  `contradicts` verify row"))), "a wrapped restatement is caught");
@@ -74,8 +83,9 @@ report = criteria(section("- AC-12-001 (P1): Given a When b Then c"));
 assert.equal(report.verifiable, false);
 assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Given a When b Then c"]);
 
-// Hostile text (SEC-15): the plain output neutralises ESC and U+202E. --json escapes ESC but carries
-// U+202E raw at nen 0.26.0 -- a documented miss owed to nen, pinned so the fix updates this case.
+// Hostile text (SEC-15): the plain output neutralises ESC and U+202E, and so does --json from nen 0.28.0 (the raw
+// U+202E --json carried at 0.26.0 was a documented miss owed to nen). CI (unit-tests.yml) installs the BASE contract's
+// pin until the HA#449 repin merges, so the expectation is read off the binary; drop the branch at the next repin.
 {
   const file = join(dir, "hostile.md");
   writeFileSync(file, "## Acceptance criteria\n\n- AC-1: Given a\u202e When \u001b[2J b Then c\n- AC-12-001 (P1): Given \u202e x \u001b[31m When b Then c\n");
@@ -84,18 +94,20 @@ assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Giv
   assert.ok(!/[\u001b\u202e]/.test(plain.stdout), "plain output carries a raw control or bidi character");
   const json = spawnSync(nen, ["issue", "criteria", "--body-file", file, "--json"], { encoding: "utf8" });
   assert.ok(!json.stdout.includes("\u001b"), "--json carries a raw ESC");
-  assert.ok(json.stdout.includes("\u202e"), "nen now neutralises U+202E in --json: drop this pinned miss");
+  const v = /^(\d+)\.(\d+)\./.exec(spawnSync(nen, ["--version"], { encoding: "utf8" }).stdout.trim());
+  const neutralisesBidi = v !== null && (Number(v[1]) > 0 || Number(v[2]) >= 28);
+  assert.equal(json.stdout.includes("\u202e"), !neutralisesBidi, neutralisesBidi ? "--json carries a raw U+202E" : "nen now neutralises U+202E in --json below 0.28: drop this pinned miss");
 }
 
-// 4. en's not-applicable reading (R-2026-10-23-24 under zheref/hatsu#450): converge's closingSource
+// 4. en's not-applicable reading (HR-357, record R-2026-10-24-01 under zheref/hatsu#450): converge's closingSource
 // none-on-non-default-base is not applicable only while the Development guard's --body form exits 0,
 // which holds exactly when the Associated issues table has no closing row.
 {
   const en = read("claude/skills/en/SKILL.md");
   const flat = en.replace(/\s+/g, " ");
   assert.ok(flat.includes("`none-on-non-default-base`, while the Development guard's `--body` form exits `0`") && flat.includes("**not applicable**"));
-  assert.ok(flat.includes("**Ruled (R-2026-10-23-24, zheref/hatsu#450):**") && !flat.includes("[NEEDS missing-maintainer-choice: does not-applicable"), "the reading cites its ruling");
-  assert.ok(flat.includes("or is not applicable as § 4 reads it (R-2026-10-23-24; quote converge's `closingSource` in the register row)"), "en § 5 step 3 merges on the ruled reading, closingSource quoted");
+  assert.ok(flat.includes("**Ruled (HR-357, record R-2026-10-24-01, zheref/hatsu#450):**") && !flat.includes("[NEEDS missing-maintainer-choice: does not-applicable"), "the reading cites its ruling");
+  assert.ok(flat.includes("or is not applicable as § 4 reads it (HR-357, record R-2026-10-24-01; quote converge's `closingSource` in the register row)"), "en § 5 step 3 merges on the ruled reading, closingSource quoted");
   const table = (verdict: string) => `## 🔗 Associated issues\n\n| Issue | Scope this PR implements | Merging this |\n|---|---|---|\n| https://github.com/example-owner/example-repo/issues/7 | x | **${verdict}** |\n`;
   const guard = (body: string) => {
     const file = join(dir, `issues-${Math.random().toString(36).slice(2)}.md`);
@@ -133,8 +145,11 @@ for (const bad of ["HA#0", "pending", "#12", ""]) assert.ok(!tracked.test(bad), 
 const finding = schema.$defs.finding;
 assert.deepEqual(finding.required, ["id", "scope", "persona", "rule", "severity", "path", "line", "evidence", "proposedFix", "disposition"]);
 const constitutional = new RegExp(finding.if.properties.rule.pattern);
-for (const ok of ["CON-47", "HR-10"]) assert.ok(constitutional.test(ok), ok);
-for (const no of ["UX-3", "HA#7/AC-1", "HR-0", "CON-"]) assert.ok(!constitutional.test(no), no);
+// HR-10 as amended by HR-337: the schema forces the CON half; an HR id is critical only on a ruled row,
+// which a schema cannot read, so it is not forced here (zheref/hatsu#466 owes the status-aware check).
+for (const ok of ["CON-47", "CON-1"]) assert.ok(constitutional.test(ok), ok);
+for (const no of ["UX-3", "HA#7/AC-1", "HR-10", "HR-0", "CON-"]) assert.ok(!constitutional.test(no), no);
+assert.match(finding.then.$comment, /zheref\/hatsu#466/, "the HR half names its tracked check");
 assert.equal(finding.then.properties.severity.const, "critical");
 assert.deepEqual(finding.then.properties.disposition.properties.state.enum, ["fixed", "deferred"]);
 

@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-12",
+  "effortId": "HA-IS-#450",
+  "n": 10,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Batch skips (build § 2, futon § 2; HR-4): an issue is skipped as blocked ONLY when it has an open OQ row; a malformed body is reported but still built. Confirm?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Open OQ only (Recommended)",
+      "consequence": "Confirm: only an open question blocks a batch; shape problems are reported, not a skip"
+    },
+    {
+      "key": "B",
+      "label": "Also on shape misses",
+      "consequence": "Amend: an issue whose body fails nen issue body-check is also skipped and listed as blocked"
+    }
+  ],
+  "kind": "typed",
+  "pick": null,
+  "typed": "Nothing should block a batch. However, no issue with open question should be addressed either. In this case, skip any unaddressed use during the batch and bring it up at the final briefing/rikugan report. If an issue in the queue has open questions, the queue should just continue with the next one. The final briefing shouldn't just mention it, but also offer to start a surface-specific decision picker driven flow to resolve any open question from the unresolved issues on the original queue.\n",
+  "answeredAt": "2026-10-23T22:41:56.170Z"
+}

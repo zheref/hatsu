@@ -144,7 +144,7 @@ delta pass **appended** (ECONOMICS.md § 5).
 | `state` | When | `detail` carries |
 |---|---|---|
 | **`fixed`** | the change was made | what changed, where |
-| **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement, a ruling by its HR row or, before its row lands, its `R-…` record (WORKFLOW § 4); never "disagree" or "out of scope" alone; never on a `CON-`/`HR-` rule, critical by shape: fixed or deferred to a named amendment PR (HR-10) |
+| **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement, a ruling by its HR row or, before its row lands, its `R-…` record (WORKFLOW § 4); never "disagree" or "out of scope" alone; never on a `CON-` or ruled `HR-` rule (HR-337), critical by shape: fixed or deferred to a named amendment PR (HR-10) |
 | **`deferred`** | it outlives this branch | the tracked item, or its durable `pending` record. An untracked deferral is `unsettled` |
 
 **A push-back is an argument, not a veto**. Every disposition reaches the PR body through
