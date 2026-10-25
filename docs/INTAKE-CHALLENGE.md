@@ -33,6 +33,8 @@ name, whatever the map says: **Bisky** drafts (HR-27, HR-38) and **Satotz** chal
 so no examiner ever challenges her own draft. **No code
 reviewer** (no `hanten` persona) takes part in intake (HR-23, HR-28).
 
+**Every examiner is also listed in `nen/workflow.json` → `review.excludedPersonas`** (nen 0.28, zheref/nen#472; the HA#449 repin): nen's policy loader refuses a `review.scopes` persona naming one, which is what makes HR-23's *never reviews code* a check rather than a convention. An examiner added to this map, or to ROSTER § *The intake examiners*, is added there in the same PR.
+
 ## 2 · The Design Direction — Bisky drafts, Satotz challenges
 
 Where the brief names a rendered surface, `emperor-time` § 3 raises **Bisky** once, as § 3 below raises

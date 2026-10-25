@@ -45,19 +45,67 @@ adoption narrative in the contract.
 | `v0.22.0` | 0.22 | 0.22 | 2026-10-18 | `f58d5a683` | #315 | [§ v0.22.0](#v0220) |
 | `v0.24.0` | 0.24 | 0.24 | 2026-10-20 | `d9645c8e3` | #374 | [§ v0.24.0](#v0240) |
 | `v0.26.0` | 0.26 | 0.26 | 2026-10-22 | `333117c7c` | HA-PR-#422 | [§ v0.26.0](#v0260) |
+| `v0.28.0` | 0.28 | 0.28 | 2026-10-25 | (the squashed commit, filled at open) | the HA#449 repin PR | [§ v0.28.0](#v0280) |
 
 One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
 `pinned_ref` unchanged at `v0.16.0`.
 
 The minimum's own path, as the contract recorded it: 0.13, then 0.14, 0.15, 0.16, 0.18, 0.19, 0.20,
-0.21, 0.22, 0.24 and 0.26. Nen raised its floor to 0.17 at v0.17.0, to 0.18 at v0.18.0 (the maintainer's
+0.21, 0.22, 0.24, 0.26 and 0.28. Nen raised its floor to 0.17 at v0.17.0, to 0.18 at v0.18.0 (the maintainer's
 ruling of 2026-09-30: nen commit format's new exit 2 on an unreadable commitlint config with prose lines
 over 100, zheref/nen#302, is breaking), to 0.19 at v0.19.0, to 0.20 at v0.20.0, to 0.21 at v0.21.0, to
 0.22 at v0.22.0, to 0.24 by v0.24.0 and to 0.26 at v0.26.0. So 0.18 was the minimum on both counts at that repin, the
 feature and the floor, as 0.19 was at the v0.19.0 repin, 0.20 at the v0.20.0 repin (the classify and
 direct families), 0.21 at the v0.21.0 repin (the floor and nen's gates keys), 0.22 at the v0.22.0 repin
 (v0.22.0 moved the floor to 0.22 and Hatsu adopted the list slots and backlog filters), 0.24 at the
-v0.24.0 repin and 0.26 at the v0.26.0 repin (the floor and `nen review ledger`).
+v0.24.0 repin, 0.26 at the v0.26.0 repin (the floor and `nen review ledger`) and 0.28 at the v0.28.0 repin (the floor, nen canon lint and the spec family).
+
+## v0.28.0
+
+zheref/hatsu#449 adopts released v0.28.0 (release unit NN#534, published 2026-10-25; v0.27.0 was never
+published and carried no breaking note). nen's floor moved to 0.28 because six changes alter what an exit or
+an output means. Absorbed, note by note, against Hatsu's callers at this repin:
+
+- **`issue questions` exits 1 on an open question** or an unread issue (0.26 exited 0 whatever the counts):
+  `file` § 4 calls the single `--body-file` form and now states the exit-1 reading (an open row, never a refusal);
+  `scripts/issue_sections_fixture.mts` (lane `issue-shape`) pinned exit 0 on an open question and now reads the
+  exit off `nen --version` (1 from 0.28.0), because `unit-tests.yml` installs the BASE contract's pin until this
+  PR merges; the version branch is dropped at the next repin, as `scripts/pr_criteria_fixture.mts`'s is.
+- **`wc overlap` retires `overlap(<paths>)`**: `futon` cites the verb's verdict and never matched the word;
+  a shared path with no chain reads `stack(...)` at the same exit 1.
+- **One effort-id grammar**: `direct` and `stop answer` refuse ids with a space, a leading `.`, a `-` start or
+  a character outside the alphabet; `phase` and `usage` admit `#` and `:`. Hatsu's effort ids are branch
+  names and `HA-IS-#<n>` forms, admitted on both sides.
+- **The phase, usage, session and direct ledgers live in `<git-common-dir>/.nen/`**: `scripts/pr_delivery.ts`
+  reads the direct record at `<root>/.nen/direct/` still (the 0.28 line reads an old location in place and
+  moves it on the next write; the fallback goes in 0.29.0) — the durable-home read is HA-PR-#463's, landing
+  after this repin. `nen report data` without `--effort` now reads every effort of the repository:
+  `spiritual-message` § 4 and `shibari` § 3 pass `--effort <branch>` (their spend is one effort's);
+  `scripts/pr_body_delivery_check.sh` passes `--base` alone and `scripts/pr_delivery.ts` filters the rows by effort;
+  `rikugan` and `backlog-board` keep the whole-repository read on purpose (their scope is many objects).
+- **`pr converge` and `issue criteria` blocking lines quote the row**; `pr converge` exits 0 on a non-default
+  base whose body names no closing issue, and `--composite` adds exit 3. `en` §§ 4–5, `shibari` § 4 and
+  `rikugan` § 3 quote the verdict line and match no string; the `criteria` lane holds Hatsu's wiring only.
+  `scripts/pr_criteria_fixture.mts` (lane `criteria`) pinned the 0.26.0 miss of a raw U+202E in `issue criteria
+  --json`; 0.28.0 neutralises it, and the fixture now asserts the fix (SEC-15).
+- **Changed reads**: `spec check` refuses a spec repository's unparseable `nen/workflow.json`; `issue
+  body-check`, `issue questions` and `issue criteria` refuse a non-UTF-8 `--body-file` at exit 2; **`surface
+  mirror generate` writes every Antigravity persona's `tools` as a list of Antigravity names** (and, from
+  v0.27.0, `readonly: true` on the Cursor mirror of a read-only persona), so the committed mirrors read
+  `stale` or `hand-edited` under 0.28 until regenerated: 24 files at this head, the 17 Antigravity agents and the
+  7 Cursor agents of read-only personas (bisky, buhara, illumi, leorio, lippo, satotz, shizuku). This PR's mirrors are
+  regenerated at stamp 0.143.0 with the 0.26.0 binary, because `surface-mirror-check.yml` bootstraps `main`'s pin
+  until the repin merges. The 0.28 shape lands in the first AUTHORED pull request after the merge, regenerated with
+  0.28 at its own version bump (HA-PR-#462's catch-up onto `main`), never through `surface-mirror-regenerate.yml`'s
+  automatic PR: that PR carries no bump (`scripts/plugin_bump_check.sh` refuses it, 0.143.0 -> 0.143.0), so its
+  mirrors would reach no installed copy; it is closed unmerged. Between the merge and that authored PR every PR's
+  `surface-mirror-check` reads those 24 files red.
+
+Adopted as declarations: `canon.lint` (`nen canon lint --repo <hatsu>` reads rules, baseline and skill
+paths from `nen/workflow.json`; parity with `scripts/prose_ambiguity_check.mts` checked on this tree, both
+0 new), `review.excludedPersonas` (the four intake examiners), and `precedenceRestatedIn` (WORKFLOW's
+restatement row on `nen schema check`). The unlocked verbs HA-PR-#462 and HA-PR-#463 adopt land after this
+repin, caught up onto `main`.
 
 ## v0.26.0
 
