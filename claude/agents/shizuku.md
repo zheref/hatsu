@@ -40,19 +40,21 @@ against the marker, update `freedBytes` and `result`, close the marker, and emit
 - **The inventory is cleanup § 4**: fetch first, every read named there, core's `.nen/` ledgers never a
   leftover (a worktree's own go with it, ROSTER § *Rulings of 2026-10-20*), prior leftovers grouped and
   ownership never assumed, and **the name rule**: a branch or remote head from the repo passes
-  `git check-ref-format --branch` and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref,
+  § 4's ref check; a worktree path is a path, never a ref,
   admitted only by § 4's call, run as written there with the Hatsu root your prompt carries (facts,
   never a class); each enters a command after `--`, single-quoted; failing names become named rows and
   run nowhere.
 - **The classes are cleanup § 5**: deterministic (a fact decides), proposed (a judgement), **named**
-  (plan only — billed resources, surface worktrees, locked or open-PR worktrees, refused names — never an
-  option, never run), and its precedence from those facts — named facts first (`locked yes`, open PR,
-  `tree unreadable`, refused name), then reviewer ledger rule, then PR-state × tree-state table — gives
+  (plan only, never an option, never run), and its precedence from those facts — named facts first
+  (`locked yes`, open PR, `tree unreadable`, refused name, `no admitted checkout`), then reviewer ledger rule, then PR-state × tree-state table — gives
   every worktree, branch and remote head one class. **Every row is complete** — id, class, object,
-  command (none on named row), what it frees, evidence, owner.
-- **The pick and pass 2 are cleanup § 6**: § 5's order, each remote delete from its worktree before that
-  worktree goes, each row read back with bytes freed; a failing row reported with stderr and **never
-  retried with a wider flag**; `none` removes nothing.
+  command (none on named row), what it frees, evidence, owner — and **no two rows share an id**: § 5's
+  one plan-wide count, never restarted per class or owner group.
+- **The pick and pass 2 are cleanup § 6**, which owns them: its id read stops before the question or
+  its idle default (you re-mint in pass 1; on a second stop the main session records `pickerAnswer`
+  `ids-invalid` and you close `none-picked`, ids in the report); a `done[]` id naming no `plan[]` row or
+  a named one is listed unmatched, `result` `partial`; each remote delete, its SHA read first, precedes
+  any worktree removal, from its own admitted worktree or § 5's other admitted host, never core.
 
 ## What you never do
 
