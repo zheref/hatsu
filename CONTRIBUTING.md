@@ -43,7 +43,13 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`,
 `scripts/gh_token_env.sh`, `scripts/nen_reach_probe.sh`,
-`scripts/pr_body_delivery_check.sh`, `scripts/pr_delivery.ts`, `scripts/dependency_audit_resolve.mts`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
+`scripts/pr_body_delivery_check.sh`, `scripts/pr_delivery.ts`, `scripts/pr_body_sections_check.sh`,
+`scripts/pr_sections_resolve.sh`, `scripts/pr_sections.ts`, `scripts/gh_api_read.mts`,
+`scripts/config_values.sh`, `scripts/config_values.ts`, `scripts/config_values_legacy.sh`,
+`scripts/futon_effort_record.mts`, `scripts/product_term_check.sh`, `scripts/product_term_check.mts`,
+`scripts/private_name_named.txt`, `scripts/provider_tag_commit.mts`, `scripts/port_rule_reserve.sh`,
+`scripts/dependency_audit_resolve.mts`,
+`scripts/shell_coverage.mts`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts

@@ -33,6 +33,20 @@ printf '%s\n' 'docs/PROCESS.md' > "$fixture_root/changed-process.txt"
 printf '%s\n' 'scripts/report_time.sh' > "$fixture_root/changed-report-time.txt"
 printf '%s\n' 'scripts/pr_body_evidence_check.sh' > "$fixture_root/changed-evidence-check.txt"
 printf '%s\n' 'scripts/pr_body_delivery_check.sh' 'scripts/pr_delivery.ts' > "$fixture_root/changed-delivery-check.txt"
+printf '%s\n' 'scripts/pr_body_sections_check.sh' > "$fixture_root/changed-sections-check.txt"
+printf '%s\n' 'scripts/pr_sections_resolve.sh' > "$fixture_root/changed-sections-resolver.txt"
+printf '%s\n' 'scripts/pr_sections.ts' > "$fixture_root/changed-sections-engine.txt"
+printf '%s\n' 'scripts/gh_api_read.mts' > "$fixture_root/changed-gh-api-read.txt"
+printf '%s\n' 'scripts/config_values.sh' > "$fixture_root/changed-config-values.txt"
+printf '%s\n' 'scripts/config_values.ts' > "$fixture_root/changed-config-values-adapter.txt"
+printf '%s\n' 'scripts/config_values_legacy.sh' > "$fixture_root/changed-config-values-engine.txt"
+printf '%s\n' 'scripts/futon_effort_record.mts' > "$fixture_root/changed-futon-effort-record.txt"
+printf '%s\n' 'scripts/product_term_check.sh' > "$fixture_root/changed-product-term-check.txt"
+printf '%s\n' 'scripts/product_term_check.mts' > "$fixture_root/changed-product-term-engine.txt"
+printf '%s\n' 'scripts/private_name_named.txt' > "$fixture_root/changed-private-name-named.txt"
+printf '%s\n' 'scripts/provider_tag_commit.mts' > "$fixture_root/changed-provider-tag-commit.txt"
+printf '%s\n' 'scripts/port_rule_reserve.sh' > "$fixture_root/changed-port-rule-reserve.txt"
+printf '%s\n' 'scripts/dependency_audit_resolve.mts' > "$fixture_root/changed-dependency-audit-resolve.txt"
 printf '%s\n' 'scripts/shell_coverage.mts' > "$fixture_root/changed-shell-coverage.txt"
 printf '%s\n' 'scripts/send_freshness_check.sh' > "$fixture_root/changed-freshness.txt"
 printf '%s\n' 'scripts/kagutsuchi_worktree.sh' > "$fixture_root/changed-kagutsuchi-worktree.txt"
@@ -76,6 +90,20 @@ run_case 'PROCESS unchanged version' 1 "$fixture_root/changed-process.txt" "$fix
 run_case 'report clock script unchanged version' 1 "$fixture_root/changed-report-time.txt" "$fixture_root/head-unchanged.json" 'scripts/report_time.sh'
 run_case 'evidence check script unchanged version' 1 "$fixture_root/changed-evidence-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_evidence_check.sh'
 run_case 'delivery guard and engine unchanged version' 1 "$fixture_root/changed-delivery-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_delivery_check.sh'
+run_case 'PR body sections guard unchanged version' 1 "$fixture_root/changed-sections-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_sections_check.sh'
+run_case 'PR sections resolver unchanged version' 1 "$fixture_root/changed-sections-resolver.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_sections_resolve.sh'
+run_case 'PR sections engine unchanged version' 1 "$fixture_root/changed-sections-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_sections.ts'
+run_case 'GitHub API reader unchanged version' 1 "$fixture_root/changed-gh-api-read.txt" "$fixture_root/head-unchanged.json" 'scripts/gh_api_read.mts'
+run_case 'configuration values helper unchanged version' 1 "$fixture_root/changed-config-values.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values.sh'
+run_case 'configuration values adapter unchanged version' 1 "$fixture_root/changed-config-values-adapter.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values.ts'
+run_case 'configuration values engine unchanged version' 1 "$fixture_root/changed-config-values-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values_legacy.sh'
+run_case 'Futon effort record helper unchanged version' 1 "$fixture_root/changed-futon-effort-record.txt" "$fixture_root/head-unchanged.json" 'scripts/futon_effort_record.mts'
+run_case 'product term guard unchanged version' 1 "$fixture_root/changed-product-term-check.txt" "$fixture_root/head-unchanged.json" 'scripts/product_term_check.sh'
+run_case 'product term engine unchanged version' 1 "$fixture_root/changed-product-term-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/product_term_check.mts'
+run_case 'private-name allowlist unchanged version' 1 "$fixture_root/changed-private-name-named.txt" "$fixture_root/head-unchanged.json" 'scripts/private_name_named.txt'
+run_case 'provider tag reader unchanged version' 1 "$fixture_root/changed-provider-tag-commit.txt" "$fixture_root/head-unchanged.json" 'scripts/provider_tag_commit.mts'
+run_case 'port ruling reservation helper unchanged version' 1 "$fixture_root/changed-port-rule-reserve.txt" "$fixture_root/head-unchanged.json" 'scripts/port_rule_reserve.sh'
+run_case 'dependency audit resolver unchanged version' 1 "$fixture_root/changed-dependency-audit-resolve.txt" "$fixture_root/head-unchanged.json" 'scripts/dependency_audit_resolve.mts'
 # ten's `nen shu tools --repo <hatsu_root>` runs the bash row's probe out of the installed copy (#148).
 run_case 'shell coverage helper unchanged version' 1 "$fixture_root/changed-shell-coverage.txt" "$fixture_root/head-unchanged.json" 'scripts/shell_coverage.mts'
 run_case 'freshness gate script unchanged version' 1 "$fixture_root/changed-freshness.txt" "$fixture_root/head-unchanged.json" 'scripts/send_freshness_check.sh'
