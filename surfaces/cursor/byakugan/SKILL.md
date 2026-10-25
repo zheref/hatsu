@@ -138,11 +138,12 @@ This is the grammar gyo-as-coverage used. Gyo's live grammar is now `on [<lane>]
 | **under the floor** | `percent < minimum` | **`under minimum` — § 8** |
 | **not measured** | the report has no row for this file | § 5's rules 2, 2b and 3 |
 | **not measurable here** | the lane seats `coverage` (exit `4`) | `not measurable here` — § 9 (a) |
-| **not measurable here, by declaration** | no declared lane or target measures this file, on any host; after § 8 option E | `not measurable here — <capability>` — § 9 (b) |
+| **not measurable here, by declaration** | a lane declares coverage, and no declared lane or target measures this file, on any host; after § 8 option E | `not measurable here — <capability>` — § 9 (b) |
 | **unread** | the declaration measures this file, this host lacks what it expects | `unread — <host, capability>` — § 9 (c) |
 
 These labels replace the percent and take precedence over every band: a file that carries one is
-never also banded. Without § 8 option E chosen, a § 9 (b) file is still `under minimum`.
+never also banded. A seat (§ 9 (a)) takes precedence over (b) for its own lane. Without § 8
+option E chosen, a § 9 (b) file is still `under minimum`.
 
 ## 3. Capture — collection, not a test run
 
@@ -240,6 +241,10 @@ configuration or threshold. Every test edit invalidates regression and coverage 
 runs the suites again, and only then may this skill capture and parse again. Byakugan does not
 run those suites itself.
 
+**A file shown to be § 9 (b) leaves this loop at once** and goes to § 8 option E. Writing tests
+for a file no declared lane measures is not a genuine attempt, and the loop never spends a round on
+it.
+
 ## 7. Report the bands
 
 One line, then the table. The base, the lane, the report format and path, the repository total,
@@ -249,7 +254,8 @@ the per-touched-file rows with their bands, the exclusions, and the lowest band 
 
 ## 8. Under the minimum is a **G5**, with the options laid out
 
-**A touched file below `coverage.minimum` after § 6 has been genuinely attempted is a stop.**
+**A touched file below `coverage.minimum` after § 6 has been genuinely attempted is a stop**, and
+so is a § 9 (b) file that § 6 sent here at once.
 The ladder is per file. The stop is [`/jutaisho`](../jutaisho/SKILL.md)'s shape, in full.
 
 - **A — keep going.** Tests are writable **and** runnable on a lane that measures the file. ⭐ where
@@ -274,10 +280,22 @@ The ladder is per file. The stop is [`/jutaisho`](../jutaisho/SKILL.md)'s shape,
 § 9 (c) and no option at all. Three causes folded into one option make a waiver the maintainer
 cannot read.
 
-**The picker carries at most four options** ([`/jutaisho`](../jutaisho/SKILL.md) § 4). It
-renders only the options that apply to the files at the stop: **B** always, plus whichever of
-**A**, **C**, **D** and **E** apply to at least one of them. The chat table names each file's
-applicable option beside its row, so a picked option binds only the files it names.
+**One picker per group** ([`/jutaisho`](../jutaisho/SKILL.md) § 4). The stop groups its
+files by their applicable option set and asks one picker per group. **A** and **E** exclude each
+other, so each picker holds **B** plus that group's options: two to four options, never padded with
+one that does not apply. A group where only **B** applies is reported, not asked: the run ends at
+the stop (below), and **B** is the maintainer's word if they give it. The chat table names each
+file's group and applicable options beside its row.
+
+**Exactly one ⭐ per picker, named.** **E** where the group holds it; otherwise **A** where the
+group holds it; otherwise **C**, then **D**. **B** never carries the ⭐; it is the maintainer's word
+alone. Where the group's files differ in what the evidence shows, the ⭐ stays by that order, and the
+line that would tip it is stated under the picker: in an **A** group, **C** takes the ⭐ when the
+repository's own configuration marks every file in the group generated, and **D** when a canon
+exemption is cited by id for every file in it.
+
+**An answer binds only the files its group names.** A file the answer did not bind (a group not yet
+asked, or a file the maintainer moved out of the group) returns to § 8 as a fresh stop.
 
 **Never an option that lowers `minimum`, `recommended` or `ideal`.** Changing the ladder is a
 separate decision at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one). The run ends at the stop.
