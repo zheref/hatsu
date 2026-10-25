@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Clean up what a finished effort left behind locally and remotely as Shizuku — worktrees, branches, remote heads, transient reports, caches, billed resources — and prior leftovers. She inventories first, returning a 3-class plan (deterministic, proposed, named), then one picker; only picked rows run, bytes freed read back. Use when invoking hatsu:cleanup [for <scope>], or at wrap-up once delivery lands (required after a completed session). Never destroys before the pick, never an uninspected tree, never core's .nen/ ledgers, the trunk, or an open-PR branch; files and merges nothing.
+description: Clean up what a finished effort left behind locally and remotely as Shizuku — worktrees, branches, remote heads, transient reports, caches, billed resources — and prior leftovers. She inventories first: a 3-class plan (deterministic, proposed, named), one picker, then only picked rows run, bytes freed read back. Use for hatsu:cleanup [for <scope>] or at wrap-up once delivery lands (required after a completed session). Never destroys before the pick, an uninspected tree, core's .nen/ ledgers, the trunk or an open-PR branch; files and merges nothing.
 ---
 
 **Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
@@ -41,17 +41,16 @@ Prior leftover found later is new scope.
 ## 3. Raise Shizuku — two passes and consent channel
 
 One delegate, **`cleanup · shizuku · <model alias>`**, on own pin (**do not pass `model`**, `hanten` § 4),
-never frontier tier, raised as third-hand § 3 raises Netero — **isolation omitted / `inherit`**: needs
-core's `.nen/` and worktree list; the prompt carries the absolute Hatsu root. No delegation: both passes
-in-session (PROCESS § *Surfaces and pickers*).
+raised as third-hand § 3 raises Netero — **isolation omitted / `inherit`**: needs core's `.nen/` and
+worktree list; the prompt carries the absolute Hatsu root. No delegation: both passes in-session (PROCESS § *Surfaces and pickers*).
 
 **Consent channel (candidate b)**, every surface — Shizuku asks nothing, a relayed prompt is no consent:
 1. **Pass 1 (inventory).** Shizuku reads § 4, classifies § 5, writes initial marker (§ 7) with `plan[]`,
    `picked: []`, `done: []`, `result: "pending"`, returning plan. **Removes nothing.**
-2. **Picker.** Main session presents § 6's picker via the surface's native tool (PROCESS § *Surfaces
-   and pickers*), recording `picked[]` and raw `pickerAnswer` in marker.
-3. **Pass 2 (sweep).** Main session executes picked rows from `plan[]` in § 5's order, reading back each.
-4. **Close.** Shizuku returns to verify read-backs against marker, update freed bytes, and close marker.
+2. **Picker.** Main session runs § 6 (ids, then picker), recording `picked[]`, raw `pickerAnswer` in marker.
+3. **Pass 2 (sweep).** Main session runs the picked `plan[]` rows as § 6 says.
+4. **Close.** Shizuku verifies read-backs against marker, one row per `done[]` id, updates freed bytes,
+   closes it.
 
 ## 4. What she inventories — the sitting first, then every prior leftover
 
@@ -90,9 +89,8 @@ a worktree no row matches is **proposed**, owner unknown.
 with **merged** PR and clean tree, in order — `git -C <wt> push origin --delete -- <branch>` **only when
 `git ls-remote` returns PR's `headRefOid`**, then admission's printed `worktree remove`, word for word,
 then `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'`
-(ancestry against fetched `origin/<branch.base>` before non-force delete; one that `git branch -d`
-refuses on stale local trunk is deterministic once core trunk is fast-forwarded, else proposed — **never
-`-D`**); `kind reviewer` checkout by ledger alone: `tree clean`, `locked no` **and**
+(one that `git branch -d` refuses on stale local trunk is deterministic once core trunk is
+fast-forwarded, else proposed — **never `-D`**); `kind reviewer` checkout by ledger alone: `tree clean`, `locked no` **and**
 `.nen/hanten/<key>.cycle.json` records persona `ran` in sitting;
 `git remote prune origin`; `rm -- <reports.dir>/current.html`.
 
@@ -102,8 +100,8 @@ whose SHA != PR `headRefOid`; merged local branch with no worktree, or one passi
 ancestry refused by `git branch -d` on stale local trunk (never retried with `-D`; remote head **named**
 on trunk: guard refuses push there); merged effort `captures/`; build cache in kept worktree; prior
 session reviewer checkout; cache binary below pin no host link resolves to — `rm -r -- "<literal-abs-path>"`,
-`<ref>` matching `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, realpath != host link `readlink -f` (literal
-absolute path per row in plan, never variable-built; proposed because another repo may pin it).
+`<ref>` matching `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, realpath != host link `readlink -f` (never
+variable-built; proposed because another repo may pin it).
 
 **Named** (plan only — never an option, never run): billed resources (maintainer's act); surface's own
 worktrees; stale served copy.
@@ -120,16 +118,19 @@ holds; then reviewer ledger rule; then table.
 
 Each row: `id` · class · object · exact command (none on named row) · what it frees (bytes or
 `billed: <what>`) · evidence (PR state, SHA, dirt, age, ledger) · owner (this sitting, or `prior: <branch>`).
+**Ids are plan-unique**: class letter (`D`/`P`/`N`) plus one plan-wide count, never restarted per class or
+owner group (`D1`, `P2`).
 
 ## 6. The picker — then only the pick runs
 
-One question via surface native picker (third-hand § 6; row `cleanup-plan`): ⭐ **A** every
-deterministic row · **B** deterministic **and** ticked proposed rows (batches <= 3; Codex CLI: 1 per
-row) · **C** `none` (keep all; wins over other ticks). **Nothing removed before answer.** Main
-session records the pick (§ 3; `nen stop answer`), then executes picked rows in § 5's order — remote delete from worktree
-before worktree goes — each read back (`git worktree list`,
-`git branch`, `git ls-remote --heads origin`, `du -sk`), bytes freed per row and total. Failing row
-reported with stderr, **never retried with wider flag (`-D`)**; then § 3's close.
+**Ids first**: a `plan[].id` two rows share stops before the question, each such id named, nothing
+removed; pass 1 re-mints, never the main session. Then one native picker question (third-hand § 6; row
+`cleanup-plan`): ⭐ **A** every deterministic row · **B** deterministic **and** ticked proposed rows
+(batches <= 3; Codex CLI: 1 per row) · **C** `none` (keep all; wins over other ticks). **Nothing removed
+before answer.** Main session records the pick (§ 3; `nen stop answer`), then executes picked rows in
+§ 5's order, each id naming one `plan[]` row, each read back (`git worktree list`, `git branch`,
+`git ls-remote --heads origin`, `du -sk`), bytes freed per row and total. Failing row reported with
+stderr, **never retried wider (`-D`)**; then § 3's close.
 
 ## 7. The marker, and the report
 
@@ -149,8 +150,8 @@ closed (under **B**, third-hand runs beside it).
 
 ## Residue
 
-Removals, `du -sk`, `readlink -f` and name validation have no nen verb — **owed to nen**
-(`nen wc prune`, zheref/nen#409); raise and marker are Hatsu's, as third-hand's.
+Removals, `du -sk`, `readlink -f`, name validation and the id check have no nen verb — **owed to nen**
+(`nen wc prune`, zheref/nen#409); raise and marker are Hatsu's.
 
 ## Authority
 
