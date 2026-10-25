@@ -68,6 +68,8 @@ an output means. Absorbed, note by note, against Hatsu's callers at this repin:
 
 - **`issue questions` exits 1 on an open question** or an unread issue (0.26 exited 0 whatever the counts):
   `file` § 4 calls the single `--body-file` form and now states the exit-1 reading (an open row, never a refusal);
+  `futon` § 2 and WORKFLOW § *Idle batches* rule 9 park an exit `1` whose document is printed as `needs-clarification`
+  and only a document-less exit `1` as `g5-shape-unread` (Bugbot on HA-PR-#485);
   `scripts/issue_sections_fixture.mts` (lane `issue-shape`) pinned exit 0 on an open question and now reads the
   exit off `nen --version` (1 from 0.28.0), because `unit-tests.yml` installs the BASE contract's pin until this
   PR merges; the version branch is dropped at the next repin, as `scripts/pr_criteria_fixture.mts`'s is.

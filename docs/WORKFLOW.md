@@ -1611,8 +1611,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    `nen run park --id <run id> --issue <CODE>#<N> --row needs-clarification` (a dry run: `predict`, rule 7) —
    and the queue continues with the next issue. `needs-clarification` is a **named park class**, not a G5 and
    not a `nen/decisions.json` row (the park grammar of § *Recorded Futon delivery ownership*). An issue whose
-   questions could not be read (`nen issue questions` exit `1`) is skipped as `g5-shape-unread`, never addressed
-   unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
+   questions could not be read (`nen issue questions` exit `1` with **no document on stdout**; from nen `0.28` an
+   exit `1` whose document is still printed is an open `OQ-{n}` row, read, and parks `needs-clarification` as above)
+   is skipped as `g5-shape-unread`, never addressed unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
    named G5, never N skips; a body-shape miss is reported and never skips; nothing else in the shape check stops
    the queue. The **final briefing** (futon § 10's closing report) and the **Rikugan
    register** (backlog-board § 3) list every skipped issue with its open `OQ-{n}` rows (id, gate, question), and
