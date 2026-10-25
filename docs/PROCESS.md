@@ -56,6 +56,10 @@ values) and the declared artifacts, and spawns nothing. **The command pasted int
 chat is that `would run:` argv, copied verbatim** — never re-typed from memory, never a plausible
 substitute for the declared one — and what then runs is what was shown.
 
+**A heavy declared verb takes the host's heavy turn before its bare run** ([`WORKFLOW.md`](WORKFLOW.md)
+§ *Host workload budget*): a free effort slot or provider quota is not that turn, and a resource stop
+is reported as pending evidence, never as a pass.
+
 ## Escaping the maintainer's words
 
 **The maintainer's words never enter shell source.** Where a script takes a value the maintainer typed
@@ -839,6 +843,12 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   up to date with its base; it is not a delivery merge). It is named residue, the verb **not yet filed**
   ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-09-30 — En never merges*, row *Futon merges into its own
   integration branch, locally*). The branch is published with `nen wc publish`, never through `aka`.
+- **Host workload admission** ([`WORKFLOW.md`](WORKFLOW.md) § *Host workload budget*, zheref/hatsu#478).
+  No nen verb holds a host budget at the pin: admission is owed to zheref/nen#536, bounded test workers
+  to zheref/nen#537, owned cancellation to zheref/nen#538, the pressure refusal to zheref/nen#539 and
+  the receipts to zheref/nen#540. Until adoption every heavy phase reports the missing guard and runs
+  the serialized fallback; the descendant listing a stop claim cites is read-only residue (`ps`), and
+  the check of a brief's host block is owed beside `scripts/delegate_brief_check.mts` (unfiled).
 - **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
   `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
   option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow

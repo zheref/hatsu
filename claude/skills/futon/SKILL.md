@@ -81,7 +81,7 @@ nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/
 
 No stage family (`nen stage check` exit `2`) → the label is skipped, said (WORKFLOW § *A target
 repository with no delivery-stage taxonomy*); an unloadable `nen/labels.json` is a G5. **Then Kurapika builds it, in this session and the mode confirmed**, through the verbs the target
-declares as `build` § 5 lays them out, in the effort's own worktree; a delegate's brief carries WORKFLOW § *Delegate briefs* verbatim; work a local session cannot do is a **G5**, gap named.
+declares as `build` § 5 lays them out, in the effort's own worktree; a delegate's brief carries WORKFLOW § *Delegate briefs*' blocks verbatim; work a local session cannot do is a **G5**, gap named.
 
 ## 5. Done is merged into `branch.base`
 
@@ -103,7 +103,7 @@ nen loop slots --from-run <run id> --target <owner/name> --ci-cap 2 --local-cap 
 nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target checkout> --json
 ```
 
-Both counted, summed: delivery PRs from the manifest, and the claimed efforts with none or merged only locally (WORKFLOW § *Idle batches* rule 4).
+Both counted, summed (WORKFLOW § *Idle batches* rule 4); neither is the host's (§ *Host workload budget*).
 
 The **CI** plane (legacy-CI PRs only) caps at 2, frees at PR-open. The **local** plane caps
 at 7 and frees at **`ready+prompted`** (PR Ready, prompt shown; `monitor.localSlotFrees`, HR-353, WORKFLOW § 2). **`--local-cap 7` is futon's own policy,

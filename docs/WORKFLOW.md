@@ -1561,7 +1561,7 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
    its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
    (back-pressure) and park as `parked:budget` only when the minutes elapse. **The merge no longer caps the night at seven**:
-   each effort frees its slot at its own Ready prompt, so at most seven build at once and the night authors
+   each effort frees its slot at its own Ready prompt, so at most seven are open at once — their heavy work one at a time (§ *Host workload budget*) — and the night authors
    as many claimable efforts as `idle.budget.minutes` allows. How many that is was not measured: the
    2026-10-23 dry run authored nothing and recorded no per-effort minutes, only 13 claimable efforts and the
    cap applied in queue order (`docs/ab/futon.md` § 2026-10-23).
@@ -2759,7 +2759,8 @@ Every brief that raises a delegate — [`kazaana`](../claude/skills/kazaana/SKIL
 between the two markers below **word for word**. The orchestrating session owns the clock; a wait the
 delegate owns is one it cannot see. Three hand-backs were lost that way in the 2026-10-23/24 delivery run
 (epic zheref/hatsu#454): a delegate left on a `gh pr checks --watch` or a `sleep` loop, the orchestrator
-reading the pull request itself hours later.
+reading the pull request itself hours later. The brief also carries § *Host workload budget*'s host
+block, word for word.
 
 <!-- delegate-wait:begin -->
 - Never wait on `gh pr checks --watch`, an open `sleep` or poll loop, or a background job left running.
@@ -2778,6 +2779,80 @@ copy) and refuses a brief that drops, rewords or paraphrases a line — exit `1`
 missing brief, an unreadable canon or a block whose markers are missing or doubled is exit `2`. Its lane
 is `delegate-brief-guard`, run in CI by `scripts/unit_tests_ci.mts`. Out of scope: a new nen wait verb,
 harness timeouts, and the orchestrator's own watches.
+
+## Host workload budget — heavy local work (zheref/hatsu#478)
+
+The maintainer's desktop is one host shared by their own interactive work, this session, every
+delegate it raises and any self-hosted CI runner registered on it. The 2026-10-20/21 nen Kazaana
+sitting froze it: an uncapped coverage run of about fifteen test workers, overlapping local
+verification and a same-host CI job, retries after repeated subprocess timeouts, and orphaned workers
+afterwards. Free effort slots were read as room for more verification. That reading is the defect
+this section closes. The record is observational, not a measured memory diagnosis.
+
+**Three budgets, never traded for one another.** *Worktree and effort capacity* is `nen loop slots
+--local-cap` (§ *The local build, and the concurrency cap*, futon § 6): how many efforts may be open.
+*Remote-provider quotas* are a model's usage window, CI minutes and API rate limits: what a provider
+will serve. *The host workload budget* is what this machine can run at once without taking the
+maintainer's desktop away. A free slot or an unspent quota admits nothing on the host.
+
+**Heavy** is every launch that runs a test runner, a build, a coverage pass, a UI/E2E suite, an
+archive, `nen shu dev` or `nen shu run`, and a self-hosted CI job on this host, which includes the one
+a push starts. Reads, git, `--dry-run` forms, lint of the changed files and prose checks are light.
+
+**Admission, and the guard nen does not have yet.** At the pin no nen verb reads or holds a host
+budget: that machinery is owed to nen (zheref/nen#536 admission, zheref/nen#537 bounded test
+workers, zheref/nen#538 owned cancellation, zheref/nen#539 the pressure refusal, zheref/nen#540
+receipts). So every phase that reaches heavy work
+— `kokusen`, `kotoamatsukami`, `byakugan`, `susanoo`, `breath`'s base proof and a delegate's checks —
+says in its report `host admission: no guard (zheref/nen#536); serialized fallback`, and runs the
+fallback. No script, lock file or load reading stands in for the verb: a guard that cannot measure
+the host does not claim to.
+
+**The serialized fallback** — the documented conservative mode until nen's admission verb
+(zheref/nen#536) is released and adopted:
+
+1. **One heavy workload at a time on the host**, counting the lead session, every delegate and a
+   same-host CI job together. Higher capacity is the maintainer's configuration, never inferred.
+2. **The orchestrator holds the heavy turn** and grants it to at most one delegate at a time, in the
+   brief. A delegate without it runs light checks only and hands back with each heavy lane named as
+   pending.
+3. **Same-host CI holds the turn while it runs.** Where a target registers self-hosted runners on
+   this host, `nen runner inventory --target <owner/name> --repo <checkout>` reads them busy or
+   free; a refused or unread inventory is *unknown*, reported, and treated as busy.
+4. **Every runner is given a finite worker count**, `2` unless the brief names another, through the
+   lane's declared form. A lane whose declaration cannot bound its workers runs only inside the
+   turn, with the gap named against zheref/nen#537.
+5. **A pending heavy lane is pending evidence, never a green check**, and never a reason to skip it:
+   required verification is preserved and runs when the turn is granted.
+
+**Stop on overload; retry only after recovery.** On any overload symptom — the desktop or an app
+unresponsive, the maintainer reporting it, a subprocess timeout repeated, a run cancelled, a parent
+ended with its descendants uncertain — **no new heavy launch**, smaller retries included. A retry
+needs both: **confirmed quiescence**, a process listing taken after the stop that shows none of the
+stopped run's descendants, by the process ids or group it recorded at launch; and **observed
+recovery**, the host responsive again, by the maintainer's word or a read the report quotes. Without
+both the effort parks as `parked:g5-host-overload`, the evidence stated.
+
+**No stopped claim without descendant evidence; no kill by name.** A report says a workload stopped
+only with that listing beside it. A process is never killed by name or pattern (`pkill`, `killall`,
+a `node` match): that reaches the maintainer's own apps and other sessions. This section grants no
+kill authority. Stopping a process the session did not launch, or one it cannot identify by recorded
+id, is the maintainer's: one `bash` block with where to run it (§ 4), a **G5**.
+
+### The host block a delegate brief carries
+
+Every brief that raises a delegate carries these lines **word for word**, beside the wait block, with
+the heavy-turn line filled for that delegate:
+
+<!-- delegate-host:begin -->
+- Heavy work (test, build, coverage, UI/E2E, archive, dev/run) runs only with this brief's heavy turn, one at a time on this host, each runner at the worker count this brief names: 2 unless it names another.
+- Without the heavy turn, run light checks only and hand back with each heavy lane named as pending, never as green.
+- On an unresponsive host, a repeated subprocess timeout, a cancelled run or uncertain descendants: launch nothing heavy, retry nothing, hand back with what you saw.
+- Never claim a workload stopped without a process listing of its descendants, and never kill a process by name or pattern.
+<!-- delegate-host:end -->
+
+`scripts/delegate_brief_check.mts` reads only the wait block at this version; checking the host block
+the same way is owed (unfiled), and until then the orchestrator reads it.
 
 ## Building an issue with no CI plane
 
@@ -2848,6 +2923,7 @@ effort is `"plane":"local"`**, so a slot never frees on "the PR opened": it free
 both `"ready":true` **and** `"prompted":true` — the maintainer has actually been shown the `MERGE`
 ask. **`--local-cap` is required** (the old default of `7` was removed) and `--efforts` resolves
 against the process cwd, so pass an absolute path; say which effort is waiting when the cap binds.
+**The cap counts efforts, not host load**: a free slot admits no heavy launch (§ *Host workload budget*).
 **Never let two children touch the same file at once** — sequence them, as a stack (§ *Stacked pull requests*) or futon § 5's integration branch, and say so; no verb governs it.
 
 **Verification runs through the phase owners** — [`rasengan`](../claude/skills/rasengan/SKILL.md) for
