@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import {
   catalogue,
   check,
+  decisionsTaken,
   defaults,
   fold,
   options,
@@ -68,6 +69,9 @@ function body(report: Resolution, kind: RepositoryKind = "process", source = cat
 function config(value: unknown): void {
   writeFileSync(join(repo, "nen/workflow.json"), `${JSON.stringify({ pr: { sections: value } })}\n`);
 }
+function writeJsonRequirements(path: string, report: Resolution): void {
+  writeFileSync(path, `${JSON.stringify(report.requirements)}\n`);
+}
 function git(root: string, ...args: string[]): void {
   const result = run("git", args, root);
   assert.equal(result.status, 0, `${args.join(" ")}\n${result.stdout}${result.stderr}`);
@@ -105,14 +109,112 @@ test("run facts admit only conditional readers while Delivery stays an always-fi
   assert.ok(!without.ids.includes("across"));
   assert.deepEqual(without.preamble, ["delivery"]);
   assert.ok(!without.footer.includes("delivery"));
-  // The ruling of 2026-10-23: an idle run's PR carries the decisions footer, before the checklist; others never do.
+  // HR-334 (idle) and HA#474/AC-1 (attended): a run that took a decision carries the decisions footer, before the checklist.
   assert.ok(!without.footer.includes("decisions"));
   assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["decisions"]).footer, ["decisions", "checklist", "issues", "attribution"]);
   const withEconomics = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   assert.deepEqual(withEconomics.ids, ["changes", "why", "how", "improves", "across", "verify", "economics"]);
   assert.deepEqual(resolution("unknown").ids, ["changes", "why", "how", "improves", "verify"]);
   assert.ok(!resolution("product", ["implementation"], []).ids.includes("evidence"));
   assert.ok(resolution("product", ["implementation"], ["evidence"]).ids.includes("evidence"));
+});
+
+test("HA#474 AC-1/AC-2: decisions resolves on every cell when a decision was taken, and never otherwise", () => {
+  for (const cell of Object.keys(cat.variants)) {
+    const [kind, family] = cell.split(".") as [RepositoryKind, string];
+    for (const facts of [["decisions"], ["decisions", "policy-hit", "evidence"], ["idle"]]) {
+      const taken = resolution(kind, cat.families[family], facts);
+      assert.deepEqual(taken.footer, ["decisions", "checklist", "issues", "attribution"], `${cell} ${facts.join(",")}`);
+      assert.deepEqual(check(cat, body(taken, kind), taken.requirements, 7)[0], [], cell);
+    }
+    const none = resolution(kind, cat.families[family], ["policy-hit", "evidence"]);
+    assert.deepEqual(none.footer, ["checklist", "issues", "attribution"], cell);
+    assert.ok(!none.requirements.some((row): boolean => row.name === "decisions"), cell);
+    assert.deepEqual(check(cat, body(none, kind), none.requirements, 7)[0], [], cell);
+  }
+  assert.equal(cat.footer.find((row): boolean => row.id === "decisions")?.when, "decisions");
+  assert.throws((): Resolution => resolution("process", ["machinery"], ["imaginary"]), /unknown run fact/);
+});
+
+test("HA#474: --decisions-from reads a nen.run manifest one way only, and anything else refuses", () => {
+  assert.equal(decisionsTaken({ id: "r", idleAnswers: { "cleanup-plan": "default", "publish-offer": "refuse" } }), true);
+  // A manifest cannot show that no decision was taken: null (an attended run) and {} refuse alone (Chrollo,
+  // AC-1), and add nothing beside a positive flag, which wins.
+  for (const empty of [{ id: "r", idleAnswers: null }, { id: "r", idleAnswers: {} }]) {
+    assert.throws((): boolean => decisionsTaken(empty), /omit --decisions-from; pass --decisions if a decision was taken/, JSON.stringify(empty));
+    assert.equal(decisionsTaken(empty, true), false, JSON.stringify(empty));
+  }
+  assert.equal(decisionsTaken({ idleAnswers: { "1-row": "hold" } }), true);
+  for (const bad of [null, "decisions", 1, [], [{ row: "cleanup-plan" }], {}, { idleAnswers: [] }, { idleAnswers: "default" },
+    { idleAnswers: { "cleanup-plan": 5 } }, { idleAnswers: { "cleanup-plan": "maybe" } }, { idleAnswers: { "   ": "default" } }, { idleAnswers: { "Bad_Row": "hold" } }]) {
+    assert.throws((): boolean => decisionsTaken(bad), /manifest|idleAnswers/, JSON.stringify(bad));
+    assert.throws((): boolean => decisionsTaken(bad, true), /manifest|idleAnswers/, `${JSON.stringify(bad)} beside a flag`);
+  }
+});
+
+test("HA#474 AC-3: on zheref/hatsu#467's headings the strict check and nen's body check agree", (context) => {
+  const fixture = join(HATSU_ROOT, "scripts/fixtures/pr-sections/ha-467-headings.md");
+  const text = readFileSync(fixture, "utf8");
+  const jobs = ["machinery", "prose-authoring", "upgrades"].join(",");
+  const before = resolution("process", jobs.split(","), ["policy-hit"]);
+  const after = resolution("process", jobs.split(","), ["policy-hit", "decisions"]);
+  // The defect as filed: without the fact, the strict check names the heading the body check never sees.
+  assert.ok(check(cat, text, before.requirements, 7)[0].some((finding): boolean => finding.includes("undeclared heading ## Decisions taken on your behalf")));
+  const requirements = join(repo, "requirements.json");
+  const resolveWith = (...extra: string[]): ReturnType<typeof spawnSync> =>
+    run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs, "--policy-hit", ...extra, "--out", requirements]);
+  const manifest = join(repo, "manifest.json");
+  writeFileSync(manifest, `${JSON.stringify({ contract: "nen.run/v0.1", id: "r1", repo: "zheref/hatsu", idleAnswers: { "cleanup-plan": "default" }, prs: [], parked: [] })}\n`);
+  // Every positive source, through the shim, includes the section and makes the strict check pass.
+  for (const extra of [["--decisions"], ["--idle"], ["--decisions-from", manifest], ["--decisions", "--idle", "--decisions-from", manifest]]) {
+    const resolved = resolveWith(...extra);
+    assert.equal(resolved.status, 0, `${extra.join(" ")}: ${resolved.stderr}`);
+    assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), after.requirements, extra.join(" "));
+    const strict = run("bash", [CHECKER, "--body", fixture, "--requirements", requirements, "--max", "7"]);
+    assert.equal(strict.status, 0, `${extra.join(" ")}: ${strict.stdout}${strict.stderr}`);
+  }
+  const plain = resolveWith();
+  assert.equal(plain.status, 0, plain.stderr);
+  assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), before.requirements);
+  // An attended (null) or empty manifest: alone it refuses; beside a positive flag the flag wins.
+  for (const answers of [null, {}]) {
+    const attended = join(repo, "attended.json");
+    writeFileSync(attended, `${JSON.stringify({ contract: "nen.run/v0.1", id: "r2", idleAnswers: answers })}\n`);
+    const alone = resolveWith("--decisions-from", attended);
+    assert.equal(alone.status, 1); assert.match(alone.stderr, /omit --decisions-from; pass --decisions if a decision was taken/);
+    for (const flag of ["--decisions", "--idle"]) {
+      const beside = resolveWith(flag, "--decisions-from", attended);
+      assert.equal(beside.status, 0, `${flag} ${JSON.stringify(answers)}: ${beside.stderr}`);
+      assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), after.requirements, `${flag} ${JSON.stringify(answers)}`);
+    }
+  }
+  // A malformed manifest refuses whatever else is passed.
+  const malformed = join(repo, "malformed.json");
+  writeFileSync(malformed, `${JSON.stringify({ idleAnswers: { "cleanup-plan": "maybe" } })}\n`);
+  const malformedBeside = resolveWith("--decisions", "--decisions-from", malformed);
+  assert.equal(malformedBeside.status, 1); assert.match(malformedBeside.stderr, /default, hold or refuse/);
+  // Filesystem errors keep their errno code, and say missing or unreadable rather than unreadable JSON.
+  const missing = resolveWith("--decisions-from", join(repo, "absent.json"));
+  assert.equal(missing.status, 1); assert.match(missing.stderr, /absent\.json: missing \(ENOENT\)/);
+  const directory = resolveWith("--decisions-from", repo);
+  assert.equal(directory.status, 1); assert.match(directory.stderr, /: unreadable \(EISDIR\)/);
+  assert.ok(!/unreadable JSON/.test(`${missing.stderr}${directory.stderr}`));
+  const twice = resolveWith("--decisions-from", manifest, "--decisions-from", manifest);
+  assert.equal(twice.status, 1); assert.match(twice.stderr, /--decisions-from given twice/);
+  const wrong = join(repo, "wrong.json");
+  // SECRET474X fits inside the ten bytes V8 quotes from the file, so the old message would carry it.
+  writeFileSync(wrong, "SECRET474X\n");
+  const unreadable = resolveWith("--decisions-from", wrong);
+  assert.equal(unreadable.status, 1); assert.match(unreadable.stderr, /unreadable JSON \(SyntaxError/);
+  assert.ok(!unreadable.stderr.includes("SECRET474X"), unreadable.stderr);
+  assert.ok(!/Unexpected token|is not valid JSON/.test(unreadable.stderr), unreadable.stderr);
+  writeJsonRequirements(requirements, after);
+  const nen = process.env.NEN || "nen";
+  const probe = spawnSync(nen, ["--version"], { encoding: "utf8" });
+  if (probe.error !== undefined || probe.status !== 0) { context.skip("nen is not installed: the body-check half is not run"); return; }
+  const bodyCheck = run(nen, ["pr", "body-check", "--body-from", fixture, "--requirements-from", requirements]);
+  assert.equal(bodyCheck.status, 0, `${bodyCheck.stdout}${bodyCheck.stderr}`);
 });
 
 test("consumer overrides validate every cell, booleans, mandatory readers and admitted count", () => {
