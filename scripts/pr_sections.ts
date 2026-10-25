@@ -78,7 +78,11 @@ function load(path: string): unknown {
   try {
     return JSON.parse(readFileSync(path, "utf8")) as unknown;
   } catch (error) {
-    throw new Error(`${path}: unreadable JSON: ${error instanceof Error ? error.message : String(error)}`);
+    // SEC-12 (HA#474): never echo the parser's excerpt of the file's bytes; keep the class and position only.
+    const message = error instanceof Error ? error.message : "";
+    const position = /position (\d+)/.exec(message)?.[1];
+    const kind = error instanceof Error ? error.name : "Error";
+    throw new Error(`${path}: unreadable JSON (${kind}${position === undefined ? "" : ` at position ${position}`})`);
   }
 }
 function stat(path: string): ReturnType<typeof lstatSync> | null {
@@ -254,23 +258,27 @@ function optionalWorkflow(repo: string): JsonObject {
   if (path === null) return {};
   return object(load(path), "workflow must be an object");
 }
+const DECISION_ROW = /^[a-z0-9][a-z0-9-]*$/;
+const RESOLUTIONS = new Set(["default", "hold", "refuse"]);
 /**
- * HA#474: whether a run's decisions ledger records a decision taken for the maintainer. Accepts the
- * run's decision rows (a JSON array, one `{row, ...}` per decision, the decisions template's rows) or
- * a nen.run manifest (an object whose `idleAnswers` is null or a row → resolution map). Anything else refuses.
+ * HA#474: whether a nen.run manifest shows decisions taken for the maintainer. One-directional: a
+ * non-empty `idleAnswers` (row id → default|hold|refuse, as nen validates it) means the run pre-answered
+ * rows, so it took decisions. A null or empty map refuses, because the manifest records only the
+ * pre-answers a run was launched with (nen 0.26 never updates it, and it is null on an attended run)
+ * and cannot show that no decision was taken. A default taken mid-run or attended is `--decisions`.
  */
 export function decisionsTaken(ledger: unknown): boolean {
-  if (Array.isArray(ledger)) {
-    for (const entry of ledger) {
-      const row = object(entry, "decisions ledger rows must be objects").row;
-      if (typeof row !== "string" || row === "") throw new Error("decisions ledger rows must name their row");
-    }
-    return ledger.length > 0;
+  const manifest = object(ledger, "--decisions-from must be a nen.run manifest object");
+  if (!Object.hasOwn(manifest, "idleAnswers")) throw new Error("--decisions-from manifest carries no idleAnswers");
+  const absent = "a nen.run manifest records only idle pre-answers and cannot show that no decision was taken; pass --decisions, or omit --decisions-from";
+  if (manifest.idleAnswers === null) throw new Error(absent);
+  const answers = object(manifest.idleAnswers, "idleAnswers must be null or an object");
+  if (Object.keys(answers).length === 0) throw new Error(absent);
+  for (const [row, resolution] of Object.entries(answers)) {
+    if (!DECISION_ROW.test(row)) throw new Error("idleAnswers row ids must be [a-z0-9-]+");
+    if (typeof resolution !== "string" || !RESOLUTIONS.has(resolution)) throw new Error("idleAnswers values must be default, hold or refuse");
   }
-  const manifest = object(ledger, "decisions ledger must be an array of decision rows or a nen.run manifest");
-  if (!Object.hasOwn(manifest, "idleAnswers")) throw new Error("decisions ledger object carries no idleAnswers");
-  if (manifest.idleAnswers === null) return false;
-  return Object.keys(object(manifest.idleAnswers, "idleAnswers must be null or an object")).length > 0;
+  return true;
 }
 export function resolve(cat: Catalogue, repo: string, kind: RepositoryKind, jobs: readonly string[], facts: ReadonlySet<string>): Resolution {
   const family = fold(cat, jobs);
@@ -552,7 +560,7 @@ function writeJson(path: string, value: unknown): void {
   }
 }
 function usage(): never {
-  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--decisions] [--decisions-from <ledger.json>] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
+  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--decisions] [--decisions-from <nen.run manifest>] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
 }
 function argumentsFor(action: string, argv: readonly string[]): Record<string, string | boolean> {
   const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "decisions", "idle"] : []);
@@ -564,6 +572,8 @@ function argumentsFor(action: string, argv: readonly string[]): Record<string, s
     const key = token.slice(2);
     if (boolean.has(key)) { result[key] = true; continue; }
     if (!valued.has(key) || at + 1 >= argv.length || (argv[at + 1] as string).startsWith("--")) usage();
+    // HA#474 PH-2: a second ledger would silently replace the first, dropping a recorded decision.
+    if (key === "decisions-from" && Object.hasOwn(result, key)) throw new Error("--decisions-from given twice: pass one ledger");
     result[key] = argv[++at] as string;
   }
   return result;

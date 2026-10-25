@@ -57,8 +57,9 @@ in `## Completion checklist` as `injected attribution trailer: <sha> <key>, publ
 `nen repo classify` gives kind; associated issues give distinct `job/` labels. Read consumer-owned
 `pr.sections`, reuse Mukai's run facts, then run the interim resolver with
 `--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, `--idle`, and
-`--out <absolute-requirements.json>`. Pass `--decisions` (or `--decisions-from` the run's ledger) whenever
-the run took a decision for the maintainer, attended or idle (HR-334, zheref/hatsu#474). The
+`--out <absolute-requirements.json>`. `--idle` includes the decisions section for an idle run's
+pre-answers (HR-334). Pass `--decisions` for any other decision taken for the maintainer, attended or
+mid-run (zheref/hatsu#474 AC-1), since no nen manifest records it (PR-SECTIONS step 3). The
 resolver's printed ids give order; its array governs this write.
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.

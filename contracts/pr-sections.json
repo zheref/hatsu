@@ -134,7 +134,7 @@
       "template": "templates/pr-body/decisions.md",
       "reserved": false,
       "when": "decisions",
-      "$comment": "Every pre-answered row and every default the run took for the maintainer (HR-334, ruling of 2026-10-23); mandatory on every PR whose run took a decision, whatever the kind, family or --idle flag (HA#474). The fact comes from --decisions, a non-empty --decisions-from ledger, or --idle, which always pre-answers rows."
+      "$comment": "Every pre-answered row and every default the run took for the maintainer; mandatory on every PR whose run took one, idle (HR-334) or attended (HA#474 AC-1), whatever the kind or family. Any positive source includes it: --decisions, --idle, or --decisions-from a nen.run manifest with a non-empty idleAnswers. A manifest proves only launch pre-answers; null or empty idleAnswers refuses, so a default taken mid-run or attended is --decisions."
     },
     {
       "id": "checklist",

@@ -109,7 +109,7 @@ test("run facts admit only conditional readers while Delivery stays an always-fi
   assert.ok(!without.ids.includes("across"));
   assert.deepEqual(without.preamble, ["delivery"]);
   assert.ok(!without.footer.includes("delivery"));
-  // HR-334 (HA#474): a run that took a decision carries the decisions footer, before the checklist; --idle implies it.
+  // HR-334 (idle) and HA#474/AC-1 (attended): a run that took a decision carries the decisions footer, before the checklist.
   assert.ok(!without.footer.includes("decisions"));
   assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "checklist", "issues", "attribution"]);
   assert.deepEqual(resolution("process", ["machinery"], ["decisions"]).footer, ["decisions", "checklist", "issues", "attribution"]);
@@ -137,41 +137,54 @@ test("HA#474 AC-1/AC-2: decisions resolves on every cell when a decision was tak
   assert.throws((): Resolution => resolution("process", ["machinery"], ["imaginary"]), /unknown run fact/);
 });
 
-test("HA#474: the decisions ledger is decision rows or a nen.run manifest, and anything else refuses", () => {
-  assert.equal(decisionsTaken([{ row: "publish-offer", resolution: "refuse" }]), true);
-  assert.equal(decisionsTaken([]), false);
-  assert.equal(decisionsTaken({ id: "r", idleAnswers: { "cleanup-plan": "default" } }), true);
-  assert.equal(decisionsTaken({ id: "r", idleAnswers: null }), false);
-  assert.equal(decisionsTaken({ id: "r", idleAnswers: {} }), false);
-  for (const bad of [null, "decisions", 1, [{}], [{ row: "" }], ["row"], {}, { idleAnswers: [] }, { idleAnswers: "default" }]) {
-    assert.throws((): boolean => decisionsTaken(bad), /decisions ledger|idleAnswers/, JSON.stringify(bad));
+test("HA#474: --decisions-from reads a nen.run manifest one way only, and anything else refuses", () => {
+  assert.equal(decisionsTaken({ id: "r", idleAnswers: { "cleanup-plan": "default", "publish-offer": "refuse" } }), true);
+  // A manifest cannot show that no decision was taken: null (an attended run) and {} refuse (Chrollo, AC-1).
+  for (const empty of [{ id: "r", idleAnswers: null }, { id: "r", idleAnswers: {} }]) {
+    assert.throws((): boolean => decisionsTaken(empty), /cannot show that no decision was taken; pass --decisions/, JSON.stringify(empty));
+  }
+  for (const bad of [null, "decisions", 1, [], [{ row: "cleanup-plan" }], {}, { idleAnswers: [] }, { idleAnswers: "default" },
+    { idleAnswers: { "cleanup-plan": 5 } }, { idleAnswers: { "cleanup-plan": "maybe" } }, { idleAnswers: { "   ": "default" } }, { idleAnswers: { "Bad_Row": "hold" } }]) {
+    assert.throws((): boolean => decisionsTaken(bad), /manifest|idleAnswers/, JSON.stringify(bad));
   }
 });
 
 test("HA#474 AC-3: on zheref/hatsu#467's headings the strict check and nen's body check agree", (context) => {
   const fixture = join(HATSU_ROOT, "scripts/fixtures/pr-sections/ha-467-headings.md");
   const text = readFileSync(fixture, "utf8");
-  const jobs = ["machinery", "prose-authoring", "upgrades"];
-  const before = resolution("process", jobs, ["policy-hit"]);
+  const jobs = ["machinery", "prose-authoring", "upgrades"].join(",");
+  const before = resolution("process", jobs.split(","), ["policy-hit"]);
+  const after = resolution("process", jobs.split(","), ["policy-hit", "decisions"]);
   // The defect as filed: without the fact, the strict check names the heading the body check never sees.
   assert.ok(check(cat, text, before.requirements, 7)[0].some((finding): boolean => finding.includes("undeclared heading ## Decisions taken on your behalf")));
-  const ledger = join(repo, "decisions.json");
-  writeFileSync(ledger, `${JSON.stringify([{ row: "cleanup-plan", resolution: "default", appliedTo: "run", when: "start" }])}\n`);
   const requirements = join(repo, "requirements.json");
-  const resolved = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs.join(","), "--policy-hit", "--decisions-from", ledger, "--out", requirements]);
-  assert.equal(resolved.status, 0, resolved.stderr);
-  const after = resolution("process", jobs, ["policy-hit", "decisions"]);
-  assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), after.requirements);
-  const strict = run("bash", [CHECKER, "--body", fixture, "--requirements", requirements, "--max", "7"]);
-  assert.equal(strict.status, 0, `${strict.stdout}${strict.stderr}`);
-  const empty = join(repo, "empty.json");
-  writeFileSync(empty, "[]\n");
-  const absent = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs.join(","), "--policy-hit", "--decisions-from", empty, "--out", requirements]);
-  assert.equal(absent.status, 0, absent.stderr);
+  const resolveWith = (...extra: string[]): ReturnType<typeof spawnSync> =>
+    run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs, "--policy-hit", ...extra, "--out", requirements]);
+  const manifest = join(repo, "manifest.json");
+  writeFileSync(manifest, `${JSON.stringify({ contract: "nen.run/v0.1", id: "r1", repo: "zheref/hatsu", idleAnswers: { "cleanup-plan": "default" }, prs: [], parked: [] })}\n`);
+  // Every positive source, through the shim, includes the section and makes the strict check pass.
+  for (const extra of [["--decisions"], ["--idle"], ["--decisions-from", manifest], ["--decisions", "--idle", "--decisions-from", manifest]]) {
+    const resolved = resolveWith(...extra);
+    assert.equal(resolved.status, 0, `${extra.join(" ")}: ${resolved.stderr}`);
+    assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), after.requirements, extra.join(" "));
+    const strict = run("bash", [CHECKER, "--body", fixture, "--requirements", requirements, "--max", "7"]);
+    assert.equal(strict.status, 0, `${extra.join(" ")}: ${strict.stdout}${strict.stderr}`);
+  }
+  const plain = resolveWith();
+  assert.equal(plain.status, 0, plain.stderr);
   assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), before.requirements);
-  writeFileSync(empty, "{}\n");
-  const refused = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", jobs.join(","), "--decisions-from", empty, "--out", requirements]);
-  assert.equal(refused.status, 1); assert.match(refused.stderr, /idleAnswers/);
+  // Refusals: an attended manifest, a repeated ledger, and a wrong file whose bytes never reach stderr (SEC-12).
+  const attended = join(repo, "attended.json");
+  writeFileSync(attended, `${JSON.stringify({ contract: "nen.run/v0.1", id: "r2", idleAnswers: null })}\n`);
+  const nullManifest = resolveWith("--decisions-from", attended);
+  assert.equal(nullManifest.status, 1); assert.match(nullManifest.stderr, /cannot show that no decision was taken/);
+  const twice = resolveWith("--decisions-from", manifest, "--decisions-from", manifest);
+  assert.equal(twice.status, 1); assert.match(twice.stderr, /--decisions-from given twice/);
+  const wrong = join(repo, "wrong.json");
+  writeFileSync(wrong, "PLACEHOLDER-SECRET-474 not json\n");
+  const unreadable = resolveWith("--decisions-from", wrong);
+  assert.equal(unreadable.status, 1); assert.match(unreadable.stderr, /unreadable JSON \(SyntaxError/);
+  assert.ok(!unreadable.stderr.includes("PLACEHOLDER-SECRET-474"), unreadable.stderr);
   writeJsonRequirements(requirements, after);
   const nen = process.env.NEN || "nen";
   const probe = spawnSync(nen, ["--version"], { encoding: "utf8" });

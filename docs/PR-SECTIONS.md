@@ -15,17 +15,20 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    fills and diagnosis preserve it. `max` defaults to seven and cannot exceed the catalogue cap.
 3. Reuse Mukai's facts: `--evidence` only for a product declaring `project.evidence.globs`,
    `--economics` only when Leorio ran or took a delta pass, `--policy-hit` when `nen gate derive`
-   matched a policy or process path, and `--decisions` on every PR whose run took a decision for the maintainer
-   (a pre-answered row or a default taken; [HR-334](ROSTER.md#hr-334)), whatever the kind or family: the footer
-   row `decisions`. `--decisions-from <ledger.json>` reads the same fact from the run's decision rows or nen's
-   run manifest (`idleAnswers`), an empty ledger meaning none; `--idle` implies it, because an idle run always
-   pre-answers its rows (WORKFLOW § *Idle batches* rule 8). A run that took no decision passes none of the
-   three, and the heading is then undeclared. These facts activate conditional ids; they do not create headings.
+   matched a policy or process path. The footer row `decisions` is mandatory on every PR whose run took a
+   decision for the maintainer (a pre-answered row or a default taken), whatever the kind or family: an idle
+   run by [HR-334](ROSTER.md#hr-334), an attended one by zheref/hatsu#474 AC-1. Any positive source includes it:
+   `--idle`, because an idle run always pre-answers its rows (WORKFLOW § *Idle batches* rule 8);
+   `--decisions-from <nen.run manifest>` whose `idleAnswers` is not empty; or `--decisions`. The manifest
+   proves only the pre-answers a run was launched with: nen never updates `idleAnswers` and it is null on an
+   attended run, so a null or empty map refuses at exit 1, and a default taken mid-run or attended is
+   `--decisions`, passed by the session that took it. A run that took no decision passes none of the three,
+   and the heading is then undeclared. These facts activate conditional ids; they do not create headings.
 4. Resolve before drafting, and resolve again when kind, labels, configuration or run facts change:
 
 ```bash
 "$hatsu_root/scripts/pr_sections_resolve.sh" --repo <target> --kind <kind> --jobs <comma-joined-jobs> \
-  [--evidence] [--economics] [--policy-hit] [--decisions | --decisions-from <ledger.json>] [--idle] \
+  [--evidence] [--economics] [--policy-hit] [--decisions] [--decisions-from <nen.run manifest>] [--idle] \
   --out <absolute-requirements.json>
 ```
 
