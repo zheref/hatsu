@@ -3,6 +3,7 @@
 // HR-5 / zheref/hatsu#423: start opens nen's run manifest (stubbed here) with the same id and the
 // pre-answered rows as its idleAnswers; the record keeps ownership and the profile, never prs or parks.
 // zheref/hatsu#424: --dry-run beside --idle is lifted off before nen's parse and recorded as dry.
+// zheref/hatsu#488: an idle run binds no stacked PR; resume re-opens a run under its own id, answers and terminal.
 import assert from 'node:assert/strict';
 import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -160,6 +161,30 @@ else process.exit(2);
   assert.equal(fresh.idle.terminal, 'ready-at-prompt-or-integration');
   assert.equal('decisions' in fresh.idle, false, 'the answers live in nen\'s manifest, not the record');
   assert.match(String(idleStarted.stdout), /budget --max-minutes 480 --max-tokens 4000000/);
+  // zheref/hatsu#488: an unattended run delivers through its integration PR; it never binds a stacked one.
+  const idleBind = call('bind', bind.map((part) => part === runId ? idleId : part));
+  expectStatus(idleBind, 1, 'an idle run binds no stacked delivery PR');
+  assert.match(String(idleBind.stderr), /unattended: it delivers through its integration PR/);
+  // zheref/hatsu#488: a resume re-opens the same id, answers and terminal; nen must already hold the manifest.
+  const resume = (id: string, line: string, env: Record<string, string> = {}) =>
+    manifestCall(['resume', '--repo', root, '--run', id, '--invocation', line],
+      { FAKE_NEN_START: 'existing', FAKE_STARTED: record(id).startedAt, ...env });
+  const idleLine = 'hatsu:futon hatsu@model/gpt --idle then rikugan';
+  const resumed = resume(idleId, idleLine);
+  expectStatus(resumed, 0, 'an interrupted idle run resumes under its own id');
+  assert.match(String(resumed.stdout), new RegExp(`run ${idleId} resumed for zheref/hatsu@model/gpt \\(idle\\)`));
+  assert.match(String(resumed.stdout), /terminal ready-at-prompt-or-integration · delivery: the run's one integration branch and PR/);
+  const reopened = runStarts().filter((argv) => argv.includes(idleId)).at(-1) ?? [];
+  assert.deepEqual(JSON.parse(reopened[reopened.indexOf('--idle-answers') + 1] ?? 'null'), answers, 'the resume sends the launch answers again');
+  expectStatus(resume(idleId, 'hatsu:futon hatsu@model/gpt then rikugan'), 1, 'a resume typed as another line is refused');
+  expectStatus(resume(idleId, idleLine, { FAKE_NEN_START: 'started' }), 1, 'a resume nen has no manifest for is refused, never a fresh start');
+  expectStatus(resume(idleId, idleLine, { FAKE_TAMPER: '1' }), 1, 'a resume whose answers nen stored differently is refused');
+  expectStatus(resume(idleId, idleLine, { FAKE_STARTED: '2000-01-01T00:00:00.000Z' }), 1, 'a manifest started at another time is another run');
+  commitWorkflow({ idle: { terminal: 'ready-at-prompt' } }, 'terminal changed');
+  expectStatus(resume(idleId, idleLine), 1, 'a changed committed idle.terminal refuses the resume: the shape is fixed at start');
+  commitWorkflow({}, 'terminal restored');
+  expectStatus(resume(runId, invocation), 0, 'an attended run resumes too, with no answers');
+  expectStatus(call('bind', bind), 0, 'the resumed attended run still binds its stacked PR');
   // zheref/hatsu#424: --dry-run beside --idle, before or after it; nen never sees the token.
   for (const line of ['hatsu:futon hatsu@model/gpt --idle --dry-run', 'hatsu:futon hatsu@model/gpt --dry-run --idle then rikugan']) {
     const dry = manifestCall(['start', '--repo', root, '--invocation', line]);
@@ -169,6 +194,7 @@ else process.exit(2);
     assert.equal(record(dryId).dry, true, 'the record says the run was dry');
     assert.equal(record(dryId).invocation, line, 'the typed line is kept whole');
     expectStatus(call('bind', bind.map((part) => part === runId ? dryId : part)), 1, 'a dry run binds no PR (zheref/hatsu#424/AC-2)');
+    expectStatus(resume(dryId, line), 1, 'a dry run is rehearsed again, never resumed');
     const predicted = manifestCall(['predict', '--repo', root, '--run', dryId, '--issue', 'HA#154', '--row', 'dry-prompt']);
     expectStatus(predicted, 0, 'a dry run records its prediction on the record');
     assert.deepEqual(record(dryId).predictions.map((p: { issue: string; row: string }) => [p.issue, p.row]), [['HA#154', 'dry-prompt']]);
@@ -268,7 +294,7 @@ else process.exit(2);
   expectStatus(headBare, 1, 'origin/HEAD at a commit with no nen/workflow.json refuses the start');
   assert.match(String(headBare.stderr), /origin\/bare at [0-9a-f]{40} has no nen\/workflow\.json/, 'the refusal names the symbolic ref');
   expectStatus(git(['symbolic-ref', '--delete', 'refs/remotes/origin/HEAD']), 0, 'drop origin/HEAD');
-  console.log('futon-effort: start (nen run start, same id), bind, refresh, missing/stale/default/foreign-selector refusals, the retired manifest verbs, the dry-run modifier and the idle floor passed');
+  console.log('futon-effort: start (nen run start, same id), bind, refresh, missing/stale/default/foreign-selector refusals, the retired manifest verbs, the dry-run modifier, the idle floor, the idle bind refusal and resume passed');
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }

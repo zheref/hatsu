@@ -1009,3 +1009,29 @@ longer held at seven efforts by the merge; the *one night authors 7* line above 
 
 **Not exercised live**: a real (non-dry) idle run; `nen run append` and `nen loop slots --from-run` over open
 PRs (none exist in a dry run); `nen wc overlap` (no effort branches exist).
+
+## Dated verification, 2026-10-25 — every delivery Ready, or held and named (zheref/hatsu#488)
+
+**The failure.** A kazaana batch on `zheref/akatsuki-ai` left AK-PR-#75 and its stacked AK-PR-#76 open and
+not Ready — their current-head `nen pr ready` still failing on review rounds and approvals — reported its
+checkpoint and offered the wrap-up. futon § 10 and kazaana § 7 then let a run end with an item "blocked with
+its blocker named", which a caller read as completion. The rule is now one section, WORKFLOW § *Batch
+delivery*; futon §§ 1, 5, 9, 10, 12, kazaana §§ 4, 7, en § 7 and dowsing-chain § 9 cite it.
+
+**The six cases (SC-3), read against the rule and the fixture.** Method: each case walked through the
+section's rules on the tree at this PR's head; the two machinery cases also run in
+`scripts/futon_effort_record_fixture.mts` (lane `futon-effort-guard`), which fails against the previous
+script (`AssertionError … /unattended: it delivers through its integration PR/`) and passes with the change.
+No live batch was run for this entry.
+
+| # | Case | What the rule requires | Proof |
+|---|---|---|---|
+| 1 | Ordinary attended batch | `en` started behind every delivery (rule 1); the run ends only once none is `driving` (futon § 10) | prose; futon § 10 no longer ends on "blocked" |
+| 2 | Composite caller (kazaana, dowsing-chain wave) | the same obligation through the composite (rule preamble); kazaana § 7 and dowsing-chain § 9 cite it | prose |
+| 3 | Pending review after green checks (AK-PR-#75/#76) | green checks are not delivery (preamble); an owed round is `sharingan`'s act, observed (rule 1); a human-only approval is `held` with its three facts (rule 2), never Ready | prose |
+| 4 | Human-only prerequisite | `held` — prerequisite, last verdict and judged head, resume line — the rest of the work continuing; the run ends **incomplete**, `register` not `final` (rules 2–3) | prose |
+| 5 | Unattended multi-issue integration | one integration branch and one integration-to-main PR, fixed at `start`; a second only on a recorded boundary; never a stack (rule 4) | fixture: `bind` refuses an idle run |
+| 6 | Resumed unattended delivery | the same run ID, manifest, answers and terminal; another line, a dry run, other answers, another start time or a changed terminal refused (rule 5) | fixture: `resume` accepted for an idle and an attended run, six refusals |
+
+**Not exercised live**: a real idle batch opening an integration PR, and a resumed run against nen's real
+manifest (the fixture stubs `nen run start`'s `existing` outcome, which nen's help documents as the resume).

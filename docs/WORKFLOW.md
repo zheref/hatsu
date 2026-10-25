@@ -1183,7 +1183,7 @@ No ownership record is made for an integration PR or a PR into `branch.base`.
 `dry`, the idle profile's `terminal`, `budget` and `source`, and a dry run's `predictions[]` — no PRs, no parks,
 no answers). A refused or non-`started` nen start, or a manifest storing other `idleAnswers` than the map sent,
 refuses `start` (exit 1), so no record names a run nen never opened; a record that cannot be written names
-nen's manifest path as the orphan. `bind` refuses a dry run. After **every** PR the run opens — delivery, integration or release,
+nen's manifest path as the orphan. `bind` refuses a dry run and an idle one (§ *Batch delivery* rule 4). After **every** PR the run opens — delivery, integration or release,
 **whatever its base**, `main` included — `nen run append --id <run id> --pr <N> --kind delivery|integration|release
 [--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>` records it from the live PR (a re-append refreshes base
 and head; a PR opened before the run, or under another kind or issue, is refused). `nen run park --id <run id>
@@ -1196,6 +1196,7 @@ retired and refuse by name.
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
+node "$hatsu_root/scripts/futon_effort_record.mts" resume --repo <checkout> --run <id> --invocation '<the same line, re-typed>'
 node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree> --pr <N> --run <id printed by start> --issue <issue-N> --base <live non-main base> --head <live head branch> --sha <full live head SHA>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
@@ -1518,6 +1519,61 @@ nothing restated:
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
 
+### Batch delivery — every delivery Ready, or held and named
+
+**The maintainer's instruction of 2026-10-25** (zheref/hatsu#488): every Futon-based work batch drives all
+of its work to Ready, and an unattended batch consolidates it into one integration-to-main delivery PR, or
+the fewest justified. It binds **every Futon-based batch** — [`futon`](../claude/skills/futon/SKILL.md) and
+each composite that runs it ([`kazaana`](../claude/skills/kazaana/SKILL.md), `dowsing-chain` `wave` and
+`--via futon`, a `then` chain) — attended or `--idle`, fresh or resumed. **A PR opened, green checks alone or a
+checkpoint report is not delivery.**
+
+1. **An actor behind every delivery until Ready.** Each delivery the batch opens — a PR into
+   `branch.base`, a stacked PR, the integration PR — has [`en`](../claude/skills/en/SKILL.md) started on it
+   in this session, never only offered. While any delivery is not Ready and the session is authorized and
+   able to act — checks pending (en § 6's observation hold), a review round owed (`sharingan`), findings or
+   threads unsettled (en § 4), a base to catch up (`murasaki`) — the batch does that work and observes its
+   outcome; it neither ends nor asks the wrap-up. **Ready** is `nen pr ready --require-head <current head>`
+   exiting `0`, quoted verbatim; a stacked PR is Ready on its stacked base and still presented nowhere as
+   mergeable (§ *Stacked pull requests* rule 4).
+2. **Three states per delivery, never a fourth.** `ready` — the verdict quoted at the current head and the
+   prompt shown, or the PR merged or closed by the maintainer. `driving` — `en` is acting or observing; the
+   batch is not over. `held` — **incomplete**: progress needs a genuine human-only prerequisite (an approval
+   or review only a person can give, a G1/G2/G4 decision, a credential or App, a harness denial after the
+   surface's recovery route answered) or met an explicit execution bound (en's acting-cycle cap,
+   `idle.budget.minutes`, the session actually interrupted, en § 7). A held delivery carries **three facts** —
+   the exact prerequisite, the last `nen pr ready` verdict with its judged head, and the resume action
+   (`hatsu:en on <CODE>#<N>`, or rule 5) — on its register row and in the closing report. It is never counted
+   Ready, and the rest of the authorized work continues around it. **A prerequisite is never fabricated,
+   waived or worked around** to make a batch green (`CON-32`; HR-5's human-gate rows).
+3. **Complete, or incomplete and said.** A batch is **complete** only when every selected issue's delivery is
+   `ready`, or the issue is skipped under the rules that already skip it (briefed, `needs-clarification`,
+   out of scope, a PR the maintainer closed). Otherwise the run ends **incomplete**: its closing report and
+   the Rikugan `register` list every held delivery with rule 2's three facts, and `final` is never rendered
+   over it. The wrap-up picker is asked only once no delivery is `driving`, and an incomplete end says so in
+   the question; cleanup keeps its own eligibility (zheref/hatsu#480). The human merge, the `then` gate
+   (futon § 8) and release authority are unchanged.
+4. **Unattended means integration.** Under `--idle` the shape is fixed at `start`, before any branch or PR:
+   the run's **one integration branch** (futon § 5, § *Idle batches* rule 5) and **one integration-to-main
+   PR** carrying every compatible selected effort. A second integration delivery is cut only on a **concrete,
+   recorded boundary** — an effort whose catch-up onto the integration branch stops at a semantic conflict
+   (`ao`'s G5), or whose change the integration PR cannot carry under the target's gates — named in the
+   closing report and in the PR body's *Decisions taken on your behalf* (§ *Idle batches* rule 8), the set the
+   smallest that boundary justifies. **Never one main-bound PR per issue and never a stack**:
+   `futon_effort_record.mts bind` refuses an idle run (§ *Recorded Futon delivery ownership*).
+5. **A resume keeps the shape.** Futon never resumes itself: the maintainer re-invokes the same typed line,
+   and the run continues under its own ID — `futon_effort_record.mts resume --repo <checkout> --run <id>
+   --invocation '<the line>'` reopens nen's manifest (`nen run start` reads it `existing`) with the same
+   launch answers, and refuses another line, a dry run, other answers, a manifest started at another time or
+   a changed `idle.terminal`. The resumed run keeps the same integration branch and PR and the same readiness
+   obligation for every included delivery, reading what was already opened through `nen run verify --id
+   <id>`. A fresh `start` for the same selector is a new run, and its echo says so.
+6. **A consolidated PR accounts for everything it carries.** The integration PR closes and links every
+   included issue (one `Closes #<N>` and Development link each) and its criteria section answers every
+   acceptance criterion of every included issue, by issue. An issue whose effort did not merge into the
+   integration branch is listed as **not included**, with its held or parked state — never covered by the
+   PR's Ready.
+
 ### Idle batches
 
 **HR-5's idle profile, activated only by a typed `--idle`** on a `futon` line (and on `kazaana`, which
@@ -1570,7 +1626,8 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    judged from the paths each effort would touch), its verdict cited in the stacking decision; `nen stage
    check --exclusive` holds an issue to one stage label where the target declares a stage family. En's cap is
    the git common dir's (en § 2).
-5. **Terminal — integration branches only** (the ruling of 2026-10-23, § 2 `idle`). An idle run always cuts
+5. **Terminal — integration branches only** (the ruling of 2026-10-23, § 2 `idle`; fixed at `start` and kept
+   by a resume, § *Batch delivery* rules 4–5). An idle run always cuts
    futon § 5's integration branch and merges each hanten-settled effort into it locally; `idle.terminal` is the
    integration PR Ready at the maintainer's merge prompt (or, under `ready-at-prompt`, every effort Ready before
    that merge). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
