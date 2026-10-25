@@ -346,7 +346,8 @@ each refused key: one a `prepare-commit-msg` or `commit-msg` hook added, or one 
 **The commit exists.** Exit 3 is never "nothing was squashed". The commit is unpublished, so row
 `injected-attribution-trailer`'s autonomous drop applies, as at § 7 step 0: the undo line the verb's
 stderr prints (`git -C <path> reset --soft ORIG_HEAD`) restores the folded commits. Then row
-`harness-attribution-switch` is asked once, and the squash runs again. Since nen `0.19` the verb also
+`harness-attribution-switch` is asked once, and the squash runs again — once: a second exit `3` is
+§ 7's re-injecting hook, a **G5** before any push. Since nen `0.19` the verb also
 loads `nen/workflow.json` on every run, so a malformed policy is exit `1` before anything moves.
 
 **Enforcement of the trailer rule is three-layered, and the third layer is now the binary's.** (a)
@@ -415,9 +416,9 @@ test run.
 ```bash
 git -C <path> merge-base origin/<base> HEAD   # first publish only, read NOW (after § 5): <range base>; else the SHA ls-remote printed
 git -C <path> log --format='%h%n%(trailers:only,unfold)' <range base>..HEAD   # 0. read EVERY outgoing commit (zheref/hatsu#66)
-"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <range base> --require-agent <responsible-persona> --trunk origin/<base> \
+"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <range base> --require-agent <responsible-persona> --trunk origin/<base> --forbid-trailers-from <path>/nen/workflow.json \
   && nen wc publish --repo <path> [--dry-run] [--json]                  # 0b, then the push: already published
-"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <range base> --require-agent <responsible-persona> --trunk origin/<base> \
+"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <range base> --require-agent <responsible-persona> --trunk origin/<base> --forbid-trailers-from <path>/nen/workflow.json \
   && nen wc publish --repo <path> --set-upstream [--dry-run] [--json]   # 0b, then the push: first publish
 ```
 
@@ -444,10 +445,18 @@ A harness can append a trailer at `git commit` time. **An attribution key** —
 `nen wc squash` compare them) is a stop with a default (`nen/decisions.json` row
 `injected-attribution-trailer`, [`kokusen`](../kokusen/SKILL.md) § 5): a tip above the squash point is
 unpublished by construction and is re-squashed once the maintainer answers row
-`harness-attribution-switch` (their own toggle; no file this skill writes). **A commit at or below the
-squash point that carries one is published and is never rewritten** (row `rewrite-published-history`):
-it is disclosed by [`shibari`](../shibari/SKILL.md) § 3 as its own checklist line, outside the
-attribution ledger, and the switch is fixed before the next commit. Step 0's read stays although `wc squash` reads its own
+`harness-attribution-switch` (their own toggle; no file this skill writes). **A re-squash that reads
+the key back again is a hook re-injecting on every commit** — a Cursor cloud agent's server-side
+`commit-msg` hook, which no documented switch reaches ([`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)
+§ *A hook that re-injects*): restore the folded commits with the undo line, **push nothing** — the
+first publish included — and stop at **G5** with `nen stop`, the branch unpublished and the change
+kept. Publishing and then disclosing is never the recovery for a commit this run wrote (zheref/hatsu#470).
+Step 0b's `--forbid-trailers-from <path>/nen/workflow.json` makes the `commits.forbiddenTrailers` half of
+that read mechanical, chained to the push; where that file lists no `forbiddenTrailers` the guard
+refuses at exit `2`, so drop the flag there and say so — step 0's read still covers the `-by`/`-with` rule.
+**A commit at or below the squash point that carries one was published before this run read it and is
+never rewritten** (row `rewrite-published-history`): it is disclosed by [`shibari`](../shibari/SKILL.md)
+§ 3 as its own checklist line, outside the attribution ledger, and the switch is fixed before the next commit. Step 0's read stays although `wc squash` reads its own
 commit back (nen `0.19`, § 4's exit `3`): a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back.
 
 **Published provenance failure:** stop. Do not amend or push over a published commit in this run.
