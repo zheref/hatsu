@@ -9,7 +9,7 @@ summary: Clean up what a finished effort left behind locally and remotely as Shi
 
 # Cleanup — Shizuku's sweep, after the work has landed
 
-**Nature: Transmuter** (host/remote used); **Manipulator** for remote write (§ 5). Shizuku:
+**Nature: Transmuter**; **Manipulator** for remote write (§ 5). Shizuku:
 [`claude/agents/shizuku.md`](../AGENTS.md#shizuku). Ruling 2026-10-13 ([`ROSTER.md`](../../../docs/ROSTER.md) 4–6).
 
 ## 0. Standalone entry
@@ -37,7 +37,7 @@ asks**: composite terminus — `build`, `futon`, `kazaana`, `kamui`, `hiraishin`
 Question via surface picker (row `wrap-up`): ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
 in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns next delivery.
 **Once per sitting**: § 7's marker with `result` `cleaned`, `none-proposed` or `already-clean` is **completed** —
-cleanup not re-asked, **B offered as third-hand alone**; `partial` and `none-picked` offered again.
+cleanup not re-asked, **B offered as third-hand alone**; `partial`, `none-picked` and `pending` offered again.
 Prior leftover found later is new scope.
 
 ## 3. Raise Shizuku — two passes and consent channel
@@ -48,10 +48,10 @@ worktree list; the prompt carries the absolute Hatsu root. No delegation: both p
 
 **Consent channel (candidate b)**, every surface — Shizuku asks nothing, a relayed prompt is no consent:
 1. **Pass 1 (inventory).** Shizuku reads § 4, classifies § 5, writes initial marker (§ 7) with `plan[]`,
-   `picked: []`, `done: []`, `result: "pending"`, returning plan. **Removes nothing.**
+   `picked: []`, `done: []`, `result: "pending"`, returning plan.
 2. **Picker and pass 2.** Main session runs § 6.
-3. **Close.** Shizuku verifies read-backs against marker, one row per `done[]` id (none: listed
-   unmatched, `result` `partial`), updates freed bytes, closes it.
+3. **Close.** Shizuku verifies read-backs against marker, one row per `done[]` id (none, or a named row:
+   listed unmatched, `result` `partial`), updates freed bytes, closes it.
 
 ## 4. What she inventories — the sitting first, then every prior leftover
 
@@ -62,8 +62,7 @@ and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref: only one the w
 admitted (`.ts` header is the rule; `<branch.base>` from
 `nen/workflow.json`; the Hatsu root pasted absolute, § 3):
 `'<Hatsu root>/scripts/cleanup_path_admit.sh' --core '<core>' --base '<branch.base>' --path '<abs path>'`.
-An exit but `0` admits nothing;
-failing names become **named** rows, escaped.
+Failing names become **named** rows, escaped.
 
 | Class | Read | Leftover when |
 |---|---|---|
@@ -73,7 +72,7 @@ failing names become **named** rows, escaped.
 | **transient reports** | `<reports.dir>/current.html`, `<reports.dir>/captures/` | `reports.retain: final-only` — `current.html` transient; merged effort's captures proposed |
 | **caches** | `~/.cache/nen/zheref_nen/<ref>/` against `pinned_ref` and `readlink -f` of host links (`~/.local/bin/nen`, `command -v nen`, surface links); `nen surface status` (#289); build caches in dead worktree | binary below pin no link resolves to; stale served copy (refreshed by `ten`); `DerivedData`, `.gradle`, `node_modules` |
 | **billed** | `nen runner inventory --json`; `gh release list`; `node '<Hatsu root>/scripts/gh_api_read.mts' actions-caches <o/r>` or `actions-artifacts <o/r>` | runners, releases, caches, artifacts — size and age, **plan only** |
-| **the surface's own** | surface worktree tool (`docs/surfaces/<surface>.md`) | its stale worktrees, named for surface's own cleanup |
+| **the surface's own** | surface worktree tool (`docs/surfaces/<surface>.md`) | its stale worktrees, named |
 
 Sizes are `du -sk <path>`, read before plan. **Core's `.nen/` ledgers — `phase`, `usage`, `direct`,
 `hanten`, `third-hand`, `cleanup`, `loop`, `last-stop.json` — and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
@@ -87,19 +86,19 @@ proposed, never deterministic. Sanitize: no credentials, no paths outside checko
 a worktree no row matches is **proposed**, owner unknown.
 
 **Deterministic** (mechanical fact decides): `git worktree prune`; for `kind effort` worktree
-with **merged** PR and clean tree, in order — `git -C '<wt>' push origin --delete -- '<branch>'` **only when
-`git ls-remote` returns PR's `headRefOid`**, then admission's printed `worktree remove`, word for word,
-then `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'`
+with **merged** PR and clean tree, in order — its remote-head row (host `<wt>`), then admission's
+printed `worktree remove`, word for word, then `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'`
 (refused on stale local trunk: deterministic once core trunk is
-fast-forwarded, else proposed — **never `-D`**); `kind reviewer` checkout by ledger alone: `tree clean`, `locked no` **and**
+fast-forwarded, else proposed — **never `-D`**); `kind reviewer` checkout by ledger alone: `tree clean` **and**
 `.nen/hanten/<key>.cycle.json` records persona `ran` in sitting;
 `git remote prune origin`; `rm -- <reports.dir>/current.html`.
 
-**Every other remote-head row**: `git ls-remote --heads origin -- '<branch>'` must print the SHA pass 1
-recorded, else nothing runs, reported; then `git -C '<host>' push origin --delete -- '<branch>'`, `<host>`
-literal: its own worktree if § 4 `admitted` it, else another admitted path (`.ts` condition 6: off
-the trunk, so the guard passes it; never core). None: **named**, `no admitted checkout`. Every push
-precedes any `worktree remove`.
+**Every remote-head row** (`<branch.base>` never one):
+`git -C '<host>' ls-remote --heads origin -- 'refs/heads/<branch>'` must print only
+`<sha>\trefs/heads/<branch>`, `<sha>` pass 1's, else nothing runs, reported; then
+`git -C '<host>' push origin --delete -- '<branch>'`, `<host>` literal: its own worktree if § 4 `admitted`
+it, else another admitted path (`.ts` condition 6; never core). None: **named**, `no admitted checkout`.
+Every push precedes any `worktree remove`.
 
 **Proposed** (judgement; names what it destroys and why uncertain): worktree with uncommitted work (paths
 listed); merged effort `captures/`; build
@@ -107,7 +106,7 @@ cache in kept worktree; prior session reviewer checkout; cache binary below pin 
 `<ref>` matching `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, realpath != host link `readlink -f` (never
 variable-built; proposed because another repo may pin it).
 
-**Named** (plan only — never an option, never run): billed resources (maintainer's act); surface's own
+**Named** (plan only — never an option; Hard limits): billed resources; surface's own
 worktrees; stale served copy.
 
 **Named facts win**: `locked yes`, open PR, `tree unreadable`, refused name or `no admitted checkout` is named whatever else
@@ -115,8 +114,8 @@ holds; then reviewer ledger rule; then table.
 
 | object · PR state | merged | closed unmerged | open | no PR |
 |---|---|---|---|---|
-| worktree, clean (unlocked) | deterministic | proposed | named | proposed |
-| worktree, not clean (unlocked) | proposed | proposed | named | proposed |
+| worktree, clean | deterministic | proposed | named | proposed |
+| worktree, not clean | proposed | proposed | named | proposed |
 | local branch, no worktree | proposed | proposed | named | proposed |
 | remote head | deterministic (SHA = `headRefOid`), else proposed | proposed | named | proposed |
 
@@ -130,7 +129,7 @@ owner group (`D1`, `P2`).
 **Ids first**, word for word:
 `jq -e -s 'length==1 and (.[0].plan|type=="array") and ([.[0].plan[].id] | all(type=="string" and test("\\S")) and length==(unique|length))' '<marker>'`
 — exit `1` or `5` (an id shared, missing or blank; not one plan array) stops before the question or its
-idle default, nothing removed, shared ids from
+idle default; on `5` the parse error named, on `1` shared ids from
 `jq -r -s '[.[0].plan[].id] | group_by(.)[] | select(length>1)[0]' '<marker>'`; main session re-raises
 pass 1 to re-mint (never renames) and reruns it. On a second stop main session records `pickerAnswer`
 `ids-invalid`, Shizuku closes `none-picked`, ids in the report. Any other exit (`2`, `127`) stops, host
@@ -140,14 +139,14 @@ picker question (third-hand § 6; row `cleanup-plan`): ⭐ **A** every determini
 (batches <= 3; Codex CLI: 1 per row) · **C** `none` (keep all; wins over other ticks). Main session
 records `picked[]` and raw `pickerAnswer` (`nen stop answer`), then executes picked rows in
 § 5's order, every push first, each read back (`git worktree list`, `git branch`, `git ls-remote --heads origin`,
-`du -sk`), bytes freed per row and total; a picked id naming no `plan[]` row or a named one runs nothing, listed
+`du -sk`), bytes freed per row and total; a picked id naming no `plan[]` row or a named one is listed
 unmatched, `result` `partial`. Failing row reported with stderr, **never retried wider**; then § 3's close.
 
 ## 7. The marker, and the report
 
 Write `<core>/.nen/cleanup/<slug>.json`, contract `hatsu.cleanup.plan/v0.1`: `at`,
 `scope`, `plan[]`, `picked[]`, `pickerAnswer`, `done[]` with bytes, `freedBytes`, `result` — `cleaned` ·
-`partial` · `none-proposed` · `none-picked` · `already-clean`. `<slug>` (third-hand's too), one per scope:
+`partial` · `none-proposed` · `none-picked` · `already-clean` · `pending`. `<slug>` (third-hand's too), one per scope:
 - `for <CODE>#<N>` → `<CODE>-<N>` as typed; this sitting's one effort → `<CODE>-<issue>`, else `<CODE>-<PR>`
 - several efforts → `<composite>-<CODE>-<YYYY-MM-DD>`, the typed date; no number, or `for <branch>` → branch
   slug (`/` → `-`); `for all` → `all`
@@ -162,7 +161,7 @@ closed.
 ## Residue
 
 Removals, `du -sk`, `readlink -f`, name validation and the id check have no nen verb — **owed to nen**
-(`nen wc prune`, zheref/nen#409); raise and marker are Hatsu's.
+(`nen wc prune`, zheref/nen#409); id-read exits assume jq >= 1.7. Raise and marker are Hatsu's.
 
 ## Authority
 
@@ -173,5 +172,6 @@ Removals, `du -sk`, `readlink -f`, name validation and the id check have no nen 
 ## Hard limits
 
 - **Never discards uninspected tree.**
-- **Never deletes before pick.**
+- **Never deletes before pick, nor the trunk or an open-PR branch**, local or remote; never runs an
+  unpicked, named or unvalidated row.
 - **Never raises Shizuku on frontier tier**; never files, merges, votes or pushes code.
