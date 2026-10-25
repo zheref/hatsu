@@ -66,7 +66,7 @@ source-tree identity is **stale**.
 ## 4. Assemble the data
 
 ```bash
-nen report data --repo <path> --base origin/<branch.base> [--tiers <json>] [--target <owner/name> --prs <n,...>] --json
+nen report data --repo <path> --base origin/<branch.base> --effort <branch> [--tiers <json>] [--target <owner/name> --prs <n,...>] --json
 ```
 
 One `nen.report.data/v0.1` document: `commits[]`, `files[]`, `evidence[]`, `coverage`, `proof`,

@@ -83,8 +83,9 @@ report = criteria(section("- AC-12-001 (P1): Given a When b Then c"));
 assert.equal(report.verifiable, false);
 assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Given a When b Then c"]);
 
-// Hostile text (SEC-15): the plain output neutralises ESC and U+202E. --json escapes ESC but carries
-// U+202E raw at nen 0.26.0 -- a documented miss owed to nen, pinned so the fix updates this case.
+// Hostile text (SEC-15): the plain output neutralises ESC and U+202E, and so does --json from nen 0.28.0 (the raw
+// U+202E --json carried at 0.26.0 was a documented miss owed to nen). CI (unit-tests.yml) installs the BASE contract's
+// pin until the HA#449 repin merges, so the expectation is read off the binary; drop the branch at the next repin.
 {
   const file = join(dir, "hostile.md");
   writeFileSync(file, "## Acceptance criteria\n\n- AC-1: Given a\u202e When \u001b[2J b Then c\n- AC-12-001 (P1): Given \u202e x \u001b[31m When b Then c\n");
@@ -93,7 +94,9 @@ assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Giv
   assert.ok(!/[\u001b\u202e]/.test(plain.stdout), "plain output carries a raw control or bidi character");
   const json = spawnSync(nen, ["issue", "criteria", "--body-file", file, "--json"], { encoding: "utf8" });
   assert.ok(!json.stdout.includes("\u001b"), "--json carries a raw ESC");
-  assert.ok(json.stdout.includes("\u202e"), "nen now neutralises U+202E in --json: drop this pinned miss");
+  const v = /^(\d+)\.(\d+)\./.exec(spawnSync(nen, ["--version"], { encoding: "utf8" }).stdout.trim());
+  const neutralisesBidi = v !== null && (Number(v[1]) > 0 || Number(v[2]) >= 28);
+  assert.equal(json.stdout.includes("\u202e"), !neutralisesBidi, neutralisesBidi ? "--json carries a raw U+202E" : "nen now neutralises U+202E in --json below 0.28: drop this pinned miss");
 }
 
 // 4. en's not-applicable reading (HR-357, record R-2026-10-24-01 under zheref/hatsu#450): converge's closingSource

@@ -38,8 +38,9 @@
 //
 // OWED TO NEN: the verdict to `nen canon lint` (zheref/nen#481), its acceptance criteria the
 // fixture's cases; the citation resolver to `nen ref resolve --citation` (zheref/nen#482).
-// Frozen to fixes the day the verb ships; retired at the repin (the canon_contracts_check
-// precedent). Byte headroom is scripts/prose_size_check.sh's, never re-measured here.
+// `nen canon lint` shipped in nen 0.28 (the HA#449 repin declared its home, `canon.lint`, and checked parity
+// with this guard: identical counts); this file stays frozen to fixes until the frozen CI step moves onto the
+// verb by a two-step landing (docs/GATE-CONFIGURATION.md, 2026-09-20), and retires at that flip. Byte headroom is scripts/prose_size_check.sh's, never re-measured here.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
