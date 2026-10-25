@@ -29,6 +29,7 @@ const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack
 // suite must actually execute in unit-tests.yml).
 const gated: Array<[string, string, string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
+  ['plugin_bump_api_retry.mts', 'plugin_bump_api_retry_fixture.test.mts', 'plugin-bump-api-retry-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
   // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
   ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],

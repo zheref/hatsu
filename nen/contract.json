@@ -127,6 +127,11 @@
         "cwd": ".",
         "$comment": "Hermetic fixture for the narrowly granted GitHub API reader, including fixed REST and GraphQL requests and hostile argument refusals."
       },
+      "plugin-bump-api-retry-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/plugin_bump_api_retry.mts (HA#381), the trusted plugin-bump workflow reader. Its hermetic Vitest fixture proves bounded retry for non-JSON and 5xx responses, persistent failure closed with sanitized diagnostics, 404 sentinel eligibility only after a confirmed base commit, rename coverage, and deterministic body-only reruns."
+      },
       "futon-effort-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -360,7 +365,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, spec-family-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, spec-family-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
@@ -518,6 +523,32 @@
           "exe": "bash",
           "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/gh_api_read_fixture.test.mts", "scripts/provider_tag_commit_fixture.test.mts"],
           "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first."
+        }
+      },
+      "plugin-bump-api-retry-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": ["--eval", "require('node:fs').mkdirSync('coverage/plugin-bump-api-retry-guard', { recursive: true })"]
+            },
+            {
+              "exe": "bash",
+              "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--maxWorkers=1", "--no-file-parallelism", "--testTimeout", "5000", "scripts/plugin_bump_api_retry_fixture.test.mts"]
+            },
+            {
+              "exe": "node",
+              "argv": ["--test", "--experimental-test-coverage", "--test-concurrency=1", "--test-coverage-include=scripts/plugin_bump_api_retry.mts", "--test-reporter=spec", "--test-reporter=lcov", "--test-reporter-destination=stdout", "--test-reporter-destination=coverage/plugin-bump-api-retry-guard/lcov.info", "scripts/plugin_bump_api_retry_coverage.test.mts"]
+            }
+          ],
+          "artifacts": ["coverage/plugin-bump-api-retry-guard/lcov.info"],
+          "$comment": "The authoritative worker-one Vitest suite runs first. A separate Node 24 test then replays the same exported behavior cases in-process solely for exact-source LCOV over scripts/plugin_bump_api_retry.mts; it does not replace Vitest. The built-in spec reporter keeps capture failures visible while the paired lcov reporter writes the ignored artifact. Hermetic HA#381 cases prove bounded attempts/backoff and fetch-plus-body timeout, transient recovery, persistent fail-closed diagnostics, confirmed-base-only 404 handling, the documented 3,000-file ceiling, rename paths, and body-only determinism. Install locked dependencies with npm ci --ignore-scripts first."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": ["--eval", "const fs=require('node:fs');const path='coverage/plugin-bump-api-retry-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing plugin-bump API retry LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty plugin-bump API retry LCOV capture')"],
+          "artifacts": ["coverage/plugin-bump-api-retry-guard/lcov.info"],
+          "$comment": "Extraction only: verifies the non-empty LCOV artifact written by this lane's test row and runs no fixture. Nen owns LCOV parsing and --from-capture provenance."
         }
       },
       "futon-effort-guard": {
@@ -1571,6 +1602,13 @@
         }
       ],
       "gh-api-read-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
+        }
+      ],
+      "plugin-bump-api-retry-guard": [
         {
           "kind": "path",
           "value": "node_modules/vitest/vitest.mjs",

@@ -226,6 +226,10 @@ fi
 #                       by build, sharingan, spiritual-message, cleanup and file; a
 #                       stale copy can read the wrong remote fact or admit a query
 #                       the current helper refuses.
+#   scripts/plugin_bump_api_retry.mts
+#                     — the trusted plugin-bump workflow's fixed-endpoint GitHub
+#                       reader. A stale copy loses its bounded retry and can turn a
+#                       body-only edit red on a transient API response.
 #   scripts/config_values.sh
 #                     — ten and the configuration-owning skills run it from
 #                       `$hatsu_root/scripts/` to diagnose, require, read and write
@@ -394,6 +398,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/pr_sections_resolve.sh'
   'scripts/pr_sections.ts'
   'scripts/gh_api_read.mts'
+  'scripts/plugin_bump_api_retry.mts'
   'scripts/config_values.sh'
   'scripts/config_values.ts'
   'scripts/config_values_legacy.sh'

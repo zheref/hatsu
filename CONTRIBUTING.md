@@ -45,6 +45,7 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/gh_token_env.sh`, `scripts/nen_reach_probe.sh`,
 `scripts/pr_body_delivery_check.sh`, `scripts/pr_delivery.ts`, `scripts/pr_body_sections_check.sh`,
 `scripts/pr_sections_resolve.sh`, `scripts/pr_sections.ts`, `scripts/gh_api_read.mts`,
+`scripts/plugin_bump_api_retry.mts`,
 `scripts/config_values.sh`, `scripts/config_values.ts`, `scripts/config_values_legacy.sh`,
 `scripts/futon_effort_record.mts`, `scripts/product_term_check.sh`, `scripts/product_term_check.mts`,
 `scripts/private_name_named.txt`, `scripts/provider_tag_commit.mts`, `scripts/port_rule_reserve.sh`,
@@ -69,8 +70,14 @@ wording there is a patch bump. Beside a bump the line is inert, and the pass lin
 `pull_request_target`: GitHub selects the workflow at the trusted workflow SHA, and the job-level
 same-repository guard skips fork PRs before assigning a runner. The PR head is checked out as data with no
 persisted credential; executable guards, the workflow policy, and dependency pins come from the trusted
-workflow checkout. The offline policy validator pins this workflow's trigger, job id, steps, permissions,
-and runner so an edit cannot silently remove the required context or execute a PR-controlled guard.
+workflow checkout. Its fixed-endpoint API helper makes three total attempts (at most two retries) for
+transient non-JSON and 5xx responses with bounded backoff and a per-request timeout, fails closed with
+the HTTP status and a sanitized body
+prefix, and writes the absent manifest sentinel only after confirming the base commit. GitHub documents a
+3,000-file maximum for the pull-files endpoint, so reaching that ceiling fails closed rather than silently
+accepting a truncated diff. The offline policy validator pins this workflow's
+trigger, job id, steps, permissions, and runner so an edit cannot silently remove the required context or
+execute a PR-controlled guard.
 
 ## Validate locally
 

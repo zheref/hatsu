@@ -37,6 +37,7 @@ printf '%s\n' 'scripts/pr_body_sections_check.sh' > "$fixture_root/changed-secti
 printf '%s\n' 'scripts/pr_sections_resolve.sh' > "$fixture_root/changed-sections-resolver.txt"
 printf '%s\n' 'scripts/pr_sections.ts' > "$fixture_root/changed-sections-engine.txt"
 printf '%s\n' 'scripts/gh_api_read.mts' > "$fixture_root/changed-gh-api-read.txt"
+printf '%s\n' 'scripts/plugin_bump_api_retry.mts' > "$fixture_root/changed-plugin-bump-api-retry.txt"
 printf '%s\n' 'scripts/config_values.sh' > "$fixture_root/changed-config-values.txt"
 printf '%s\n' 'scripts/config_values.ts' > "$fixture_root/changed-config-values-adapter.txt"
 printf '%s\n' 'scripts/config_values_legacy.sh' > "$fixture_root/changed-config-values-engine.txt"
@@ -96,6 +97,7 @@ run_case 'PR body sections guard unchanged version' 1 "$fixture_root/changed-sec
 run_case 'PR sections resolver unchanged version' 1 "$fixture_root/changed-sections-resolver.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_sections_resolve.sh'
 run_case 'PR sections engine unchanged version' 1 "$fixture_root/changed-sections-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_sections.ts'
 run_case 'GitHub API reader unchanged version' 1 "$fixture_root/changed-gh-api-read.txt" "$fixture_root/head-unchanged.json" 'scripts/gh_api_read.mts'
+run_case 'plugin-bump API retry helper unchanged version' 1 "$fixture_root/changed-plugin-bump-api-retry.txt" "$fixture_root/head-unchanged.json" 'scripts/plugin_bump_api_retry.mts'
 run_case 'configuration values helper unchanged version' 1 "$fixture_root/changed-config-values.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values.sh'
 run_case 'configuration values adapter unchanged version' 1 "$fixture_root/changed-config-values-adapter.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values.ts'
 run_case 'configuration values engine unchanged version' 1 "$fixture_root/changed-config-values-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values_legacy.sh'
