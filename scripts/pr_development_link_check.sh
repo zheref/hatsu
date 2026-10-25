@@ -1025,7 +1025,8 @@ Closes #3"
   verdict "perl absent is exit 2" 2 $? "$st_dir/noperl.err" "perl is required"
   PR_DEV_LINK_PERL=false bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2> "$st_dir/decfail.err"
   verdict "a decoder that fails is exit 2, never 'not valid UTF-8'" 2 $? "$st_dir/decfail.err" "the UTF-8 decoder failed"
-  printf '#!/bin/sh\necho "decoder broke" >&2; exit 3\n' > "$st_dir/fakeperl"; chmod +x "$st_dir/fakeperl"
+  # a perl script, not a shell one: Bashcov traces a child shell's commands into its stderr
+  printf '#!/usr/bin/env perl\nprint STDERR "decoder broke\\n"; exit 3;\n' > "$st_dir/fakeperl"; chmod +x "$st_dir/fakeperl"
   PR_DEV_LINK_PERL="$st_dir/fakeperl" bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2> "$st_dir/decwhy.err"
   verdict "a decoder failure quotes the decoder's first stderr line" 2 $? "$st_dir/decwhy.err" "exited 3: decoder broke"
   if grep -q "not valid UTF-8" "$st_dir/decfail.err"; then verdict "a decoder failure is not reported as invalid UTF-8" 0 1; fi
