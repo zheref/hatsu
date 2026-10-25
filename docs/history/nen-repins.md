@@ -45,7 +45,7 @@ adoption narrative in the contract.
 | `v0.22.0` | 0.22 | 0.22 | 2026-10-18 | `f58d5a683` | #315 | [§ v0.22.0](#v0220) |
 | `v0.24.0` | 0.24 | 0.24 | 2026-10-20 | `d9645c8e3` | #374 | [§ v0.24.0](#v0240) |
 | `v0.26.0` | 0.26 | 0.26 | 2026-10-22 | `333117c7c` | HA-PR-#422 | [§ v0.26.0](#v0260) |
-| `v0.28.0` | 0.28 | 0.28 | 2026-10-25 | (the squashed commit, filled at open) | the HA#449 repin PR | [§ v0.28.0](#v0280) |
+| `v0.28.0` | 0.28 | 0.28 | 2026-10-25 | `5141c8ee3` | HA-PR-#485 | [§ v0.28.0](#v0280) |
 
 One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
 `pinned_ref` unchanged at `v0.16.0`.
