@@ -2,7 +2,7 @@
 
 Evidence for [`docs/config/schedule.md`](../config/schedule.md): what the printer does on the live
 [`contracts/schedule.json`](../../contracts/schedule.json), recorded from runs on 2026-10-23 at
-integration-branch base `1243b2720` (the printout re-recorded after the settle passes on HA-PR-#464 and HA-PR-#465); § 3 and § 3a re-recorded on 2026-10-25 on branch `opus/kurapika/ha-448-steady-state-scheduler-rows` over `main` `00881fc1d`, for the morning desk's ten-PR line (zheref/hatsu#448) (node `v24.16.0`, macOS). The maintainer's Hatsu checkout is shown as
+integration-branch base `1243b2720` (the printout re-recorded after the settle passes on HA-PR-#464 and HA-PR-#465); § 3 and § 3a re-recorded on 2026-10-25 on branch `opus/kurapika/ha-448-steady-state-scheduler-rows` over `main` `00881fc1d` (§ 3a at the branch's committed head `ecdc044cb`), for the morning desk's ten-PR line (zheref/hatsu#448) (node `v24.16.0`, macOS). The maintainer's Hatsu checkout is shown as
 `<hatsu>`, the scratch spec checkout as `<spec>`; the family is the fixture slug `fixture-family`, never a
 product family's name.
 
@@ -123,7 +123,7 @@ when: every pull request (opened, synchronize, reopened, ready_for_review): scri
 
 ## 3a. The morning desk's ten-PR line, live
 
-Run on 2026-10-25 on this branch at `59aad8586`, one commit over `main` `00881fc1d` (node `v24.16.0`, macOS), exit `0`. The branch's own commit names no pull request, so it is the one skipped prose commit; on the desk, at `origin/main`, that count is `main`'s own.
+Run on 2026-10-25 at this branch's committed head `ecdc044cb` (commit `ecdc044cbba6cb308642b557361c03e3382aa3d6`), three commits over `main` `00881fc1d` (node `v24.16.0`, macOS), exit `0`. The two skipped prose commits are the branch's own `59aad8586` and `a62623973`, which edit canon prose and name no pull request; `ecdc044cb` edits none and is not read as prose. On the desk, at `origin/main`, the skipped count is `main`'s own.
 
 ```text
 $ node scripts/prose_ambiguity_check.mts --root <hatsu> --history 10
@@ -137,7 +137,7 @@ history · #429 · 679df5103 · merge · 4 prose files · 0 removed
 history · #431 · 7d11ab047 · merge · 1 prose file · 0 removed
 history · #433 · f39b87efe · merge · 10 prose files · 1 removed
 history · #432 · b8b8ffd23 · merge · 7 prose files · 2 removed
-canon-lint history: last 10 of 10 prose pull requests on 59aad8586 · 7 removed · skipped 1 prose commits naming no PR and 0 non-PR merges · baseline 1233 findings
+canon-lint history: last 10 of 10 prose pull requests on ecdc044cb · 7 removed · skipped 2 prose commits naming no PR and 0 non-PR merges · baseline 1233 findings
 ```
 
 ## 4. What it leaves undone
