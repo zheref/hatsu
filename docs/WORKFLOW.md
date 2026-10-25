@@ -1598,9 +1598,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
 8. **Every decision taken for the maintainer is listed** (the ruling of 2026-10-23). A decision is every
    pre-answered row `start` printed and every `default` actually taken during the run (row, option, object,
    time). The list goes in three places: the shibari PR body's **Decisions taken on your behalf** section
-   (`contracts/pr-sections.json` footer row `decisions`, resolved by the `decisions` run fact (`--idle`,
-   `--decisions`, or a non-empty nen manifest; a positive flag wins; zheref/hatsu#474), mandatory on every
-   PR an idle run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
+   (`contracts/pr-sections.json` footer row `decisions`, resolved by the `decisions` run fact as
+   `contracts/pr-sections.json` footer row `decisions` records it (zheref/hatsu#474), mandatory on every PR
+   an idle run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
    `legendRows` (`backlog-board` § 3), one row per decision.
 
 9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — [HR-335](ROSTER.md#hr-335)
@@ -2754,30 +2754,34 @@ never responsibility for the final claim. Before a handover:
 
 ## Delegate briefs — how a delegate waits (zheref/hatsu#473)
 
-Every brief that raises a delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's builder,
-[`futon`](../claude/skills/futon/SKILL.md)'s, and any `shibari` or `en` hands work to — carries the lines
-between the two markers below **word for word**. The orchestrating session owns the clock; a wait the
+Every brief that raises a builder delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's and
+[`futon`](../claude/skills/futon/SKILL.md) § 4's — carries the lines between the two markers below **word
+for word**. **Illumi's long watch is not one**: it is `en`'s observation hold, governed by
+[`en`](../claude/skills/en/SKILL.md) §§ 6–7 and [`illumi.md`](../claude/agents/illumi.md), and measured in
+hours. The orchestrating session owns the clock; a wait the
 delegate owns is one it cannot see. Three hand-backs were lost that way in the 2026-10-23/24 delivery run
 (epic zheref/hatsu#454): a delegate left on a `gh pr checks --watch` or a `sleep` loop, the orchestrator
 reading the pull request itself hours later.
 
 <!-- delegate-wait:begin -->
 - Never wait on `gh pr checks --watch`, an open `sleep` or poll loop, or a background job left running.
-- A wait is one `nen watch until … --max-iterations <n> --interval-ms <ms>`, both flags passed, the two multiplied within this brief's ceiling: 10 minutes unless this brief names another.
+- A wait is one `nen watch until … --max-iterations <n> --interval-ms <ms>`, both flags passed, the two multiplied within this brief's ceiling: 9 minutes unless this brief names another.
+- The host call that runs the wait sets its own timeout above the wait's (e.g. Bash timeout 600000 for a wait of 9 minutes or less).
 - At the bound, settled or not, hand back: the head SHA, each check and review round as read, and what is still pending.
 <!-- delegate-wait:end -->
 
 **Why both flags:** without `--max-iterations` the wait takes `monitor.maxCycles`, and without
 `--interval-ms` it paces at `monitor.pollSeconds` (§ 2 `monitor`) — 20 × 300 s on this repository, 100
-minutes, ten times the ceiling. A brief naming another ceiling says so on a line of its own; the canon
+minutes, over ten times the ceiling. The ceiling sits under Claude Code's 600000 ms Bash maximum (its
+default is 120000 ms), so a host call that times out first never cuts a wait off before its hand-back. A brief naming another ceiling says so on a line of its own; the canon
 line stays as written. The hand-back is the delegate's whole report on the wait; whether to wait again is
 the orchestrator's, and *Verified delivery*'s four claims stay its own.
 
 `node scripts/delegate_brief_check.mts <brief>` reads the block from this file (`--print` prints it to
 copy) and refuses a brief that drops, rewords or paraphrases a line — exit `1`, each line named; a
-missing brief, an unreadable canon or a block whose markers are missing or doubled is exit `2`. Its lane
+brief path holding a comma, colon or line break, a missing brief, an unreadable canon or a block whose markers are missing or doubled is exit `2`. Its lane
 is `delegate-brief-guard`, run in CI by `scripts/unit_tests_ci.mts`. Out of scope: a new nen wait verb,
-harness timeouts, and the orchestrator's own watches.
+changing a harness's own timeouts, and the orchestrator's own watches.
 
 ## Building an issue with no CI plane
 

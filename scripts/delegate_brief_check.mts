@@ -9,8 +9,9 @@
 //   2. EVERY CANON LINE MUST APPEAR AS A LINE OF THE BRIEF, compared after trimming surrounding
 //      whitespace and nothing else. A dropped line, a reworded ceiling and a paraphrase each fail:
 //      exit 1, one `::error::` line per missing canon line, numbered, on stdout.
-//   3. A TOOLING FAILURE IS NOT A FINDING: wrong usage, an unreadable brief or canon, or a path
-//      holding `,` `:` or a line break (it would forge annotation properties) exits 2 on stderr with
+//   3. A TOOLING FAILURE IS NOT A FINDING: wrong usage, an unreadable brief or canon, or a BRIEF path
+//      holding `,` `:` or a line break (it would forge annotation properties; the canon path is never
+//      annotated, so it is not refused) exits 2 on stderr with
 //      nothing on stdout, so "could not look" never reads as "looked and found".
 //
 // Usage: node scripts/delegate_brief_check.mts [--canon <WORKFLOW.md>] <brief-file>
@@ -27,7 +28,6 @@ function refuse(message: string): never {
   process.exit(2);
 }
 function read(path: string, what: string): string {
-  if (/[,:\r\n]/.test(path)) refuse(`the ${what} path holds a comma, colon or line break`);
   try {
     return readFileSync(path, 'utf8');
   } catch (error) {
@@ -70,10 +70,13 @@ if (print) {
   process.exit(0);
 }
 const briefPath = brief as string;
+// Only the brief's path is written into an annotation, so only it is refused for `,` `:` or a line break;
+// the canon path may be any real path (a checkout under `Code, work/`, a Windows `C:\\` path).
+if (/[,:\r\n]/.test(briefPath)) refuse('the brief path holds a comma, colon or line break');
 const have = new Set(read(briefPath, 'brief').split(/\r?\n/).map((line) => line.trim()));
 const missing = block.flatMap((line, i) => (have.has(line) ? [] : [i + 1]));
 for (const n of missing) {
-  console.log(`::error file=${briefPath}::delegate brief lacks wait-block line ${n} of ${block.length} word for word (docs/WORKFLOW.md § Delegate briefs): ${block[n - 1]}`);
+  console.log(`::error file=${briefPath}::delegate brief lacks wait-block line ${n} of ${block.length} word for word (${canonPath} § Delegate briefs): ${block[n - 1]}`);
 }
 if (missing.length > 0) process.exit(1);
 console.log(`delegate-brief-check: ${briefPath} carries all ${block.length} wait-block lines`);
