@@ -511,9 +511,11 @@ fetch.
 
 **Under a Futon-based batch** (`futon`, `kazaana`, `dowsing-chain`'s wave), this run's terminus is that
 delivery's state in [WORKFLOW.md](../../../docs/WORKFLOW.md) § *Batch delivery* rule 2: `ready`, the verdict
-quoted at the current head, or `held`, with its three facts — the exact human-only prerequisite or bound, the
-last `nen pr ready` verdict and its judged head, and the resume line. The batch counts nothing else as
-delivered, and asks no wrap-up while this run is still `driving` (zheref/hatsu#488).
+quoted at the current head; `merged`; or `held-<cause>`, parked in the run's manifest with its three facts — the
+exact human-only prerequisite or bound, the last `nen pr ready` verdict and its judged head, and the resume line.
+Each of this file's not-ready stops maps to one cause there: the sixth stop and hanten prompt to `held-gate`, the
+cap and round ceiling to `held-cap`, § 6's hand-backs and § 5's refusals to `held-handback`. The batch counts
+nothing else as delivered, and asks no wrap-up while this run is still `driving` (zheref/hatsu#488).
 
 **One thing does survive the session, deliberately: the cap.** `<common>/.nen/loop/en-<CODE>-<N>.json` is a
 file under the git common directory (§ 2), so a re-invocation on the same PR resumes the same count (§ 2) — the watch is per session, the

@@ -1183,7 +1183,7 @@ No ownership record is made for an integration PR or a PR into `branch.base`.
 `dry`, the idle profile's `terminal`, `budget` and `source`, and a dry run's `predictions[]` — no PRs, no parks,
 no answers). A refused or non-`started` nen start, or a manifest storing other `idleAnswers` than the map sent,
 refuses `start` (exit 1), so no record names a run nen never opened; a record that cannot be written names
-nen's manifest path as the orphan. `bind` refuses a dry run and an idle one (§ *Batch delivery* rule 4). After **every** PR the run opens — delivery, integration or release,
+nen's manifest path as the orphan. `bind` refuses a dry run and an idle one, and `verify` refuses a claim on either (§ *Batch delivery* rule 4). After **every** PR the run opens — delivery, integration or release,
 **whatever its base**, `main` included — `nen run append --id <run id> --pr <N> --kind delivery|integration|release
 [--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>` records it from the live PR (a re-append refreshes base
 and head; a PR opened before the run, or under another kind or issue, is refused). `nen run park --id <run id>
@@ -1196,7 +1196,8 @@ retired and refuse by name.
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
-node "$hatsu_root/scripts/futon_effort_record.mts" resume --repo <checkout> --run <id> --invocation '<the same line, re-typed>'
+node "$hatsu_root/scripts/futon_effort_record.mts" resume --repo <checkout> [--run <id>] --invocation '<the same line, re-typed>'
+node "$hatsu_root/scripts/futon_effort_record.mts" integrate --repo <checkout> --run <id> --branch <the run's integration branch>
 node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree> --pr <N> --run <id printed by start> --issue <issue-N> --base <live non-main base> --head <live head branch> --sha <full live head SHA>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
@@ -1210,7 +1211,7 @@ A missing, mismatched or stale record leaves En at the maintainer handoff; it ne
 ownership from the branch name, PR title or session memory. En verifies again against the
 same head immediately before its bounded merge ([`en`](../claude/skills/en/SKILL.md) § 5).
 The local record supplies **procedural provenance**, not cryptographic proof of who typed the
-invocation; only Futon may run `start`, and En only runs `verify`. A host running this `.mts`
+invocation; only Futon may run `start`, `resume` and `integrate`, and En only runs `verify`. A host running this `.mts`
 helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
 
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
@@ -1524,50 +1525,78 @@ is not the file's own key.
 **The maintainer's instruction of 2026-10-25** (zheref/hatsu#488): every Futon-based work batch drives all
 of its work to Ready, and an unattended batch consolidates it into one integration-to-main delivery PR, or
 the fewest justified. It binds **every Futon-based batch** — [`futon`](../claude/skills/futon/SKILL.md) and
-each composite that runs it ([`kazaana`](../claude/skills/kazaana/SKILL.md), `dowsing-chain` `wave` and
-`--via futon`, a `then` chain) — attended or `--idle`, fresh or resumed. **A PR opened, green checks alone or a
-checkpoint report is not delivery.**
+each composite that runs it ([`kazaana`](../claude/skills/kazaana/SKILL.md), `dowsing-chain`'s `wave`, a
+`then` chain) — attended or `--idle`, fresh or resumed; [`backlog-loop`](../claude/skills/backlog-loop/SKILL.md)
+§ 10 ends its own run on the same states (it opens no manifest, so its held rows live on the register). A `--dry-run` rehearsal has predictions, not deliveries (§ *Idle
+batches* rule 7), and stands outside rules 1–3. **A PR opened, green checks alone or a checkpoint report is not
+delivery.** *Complete* (rule 3) ends the readiness obligation; *done* stays the merge (futon § 5), and the human
+merge, the `then` gate (futon § 8), release authority and cleanup's own eligibility (zheref/hatsu#480) are unchanged.
 
 1. **An actor behind every delivery until Ready.** Each delivery the batch opens — a PR into
    `branch.base`, a stacked PR, the integration PR — has [`en`](../claude/skills/en/SKILL.md) started on it
    in this session, never only offered. While any delivery is not Ready and the session is authorized and
    able to act — checks pending (en § 6's observation hold), a review round owed (`sharingan`), findings or
    threads unsettled (en § 4), a base to catch up (`murasaki`) — the batch does that work and observes its
-   outcome; it neither ends nor asks the wrap-up. **Ready** is `nen pr ready --require-head <current head>`
-   exiting `0`, quoted verbatim; a stacked PR is Ready on its stacked base and still presented nowhere as
-   mergeable (§ *Stacked pull requests* rule 4).
-2. **Three states per delivery, never a fourth.** `ready` — the verdict quoted at the current head and the
-   prompt shown, or the PR merged or closed by the maintainer. `driving` — `en` is acting or observing; the
-   batch is not over. `held` — **incomplete**: progress needs a genuine human-only prerequisite (an approval
-   or review only a person can give, a G1/G2/G4 decision, a credential or App, a harness denial after the
-   surface's recovery route answered) or met an explicit execution bound (en's acting-cycle cap,
-   `idle.budget.minutes`, the session actually interrupted, en § 7). A held delivery carries **three facts** —
-   the exact prerequisite, the last `nen pr ready` verdict with its judged head, and the resume action
-   (`hatsu:en on <CODE>#<N>`, or rule 5) — on its register row and in the closing report. It is never counted
-   Ready, and the rest of the authorized work continues around it. **A prerequisite is never fabricated,
-   waived or worked around** to make a batch green (`CON-32`; HR-5's human-gate rows).
-3. **Complete, or incomplete and said.** A batch is **complete** only when every selected issue's delivery is
-   `ready`, or the issue is skipped under the rules that already skip it (briefed, `needs-clarification`,
-   out of scope, a PR the maintainer closed). Otherwise the run ends **incomplete**: its closing report and
-   the Rikugan `register` list every held delivery with rule 2's three facts, and `final` is never rendered
-   over it. The wrap-up picker is asked only once no delivery is `driving`, and an incomplete end says so in
-   the question; cleanup keeps its own eligibility (zheref/hatsu#480). The human merge, the `then` gate
-   (futon § 8) and release authority are unchanged.
-4. **Unattended means integration.** Under `--idle` the shape is fixed at `start`, before any branch or PR:
-   the run's **one integration branch** (futon § 5, § *Idle batches* rule 5) and **one integration-to-main
-   PR** carrying every compatible selected effort. A second integration delivery is cut only on a **concrete,
-   recorded boundary** — an effort whose catch-up onto the integration branch stops at a semantic conflict
-   (`ao`'s G5), or whose change the integration PR cannot carry under the target's gates — named in the
-   closing report and in the PR body's *Decisions taken on your behalf* (§ *Idle batches* rule 8), the set the
-   smallest that boundary justifies. **Never one main-bound PR per issue and never a stack**:
-   `futon_effort_record.mts bind` refuses an idle run (§ *Recorded Futon delivery ownership*).
-5. **A resume keeps the shape.** Futon never resumes itself: the maintainer re-invokes the same typed line,
-   and the run continues under its own ID — `futon_effort_record.mts resume --repo <checkout> --run <id>
-   --invocation '<the line>'` reopens nen's manifest (`nen run start` reads it `existing`) with the same
-   launch answers, and refuses another line, a dry run, other answers, a manifest started at another time or
-   a changed `idle.terminal`. The resumed run keeps the same integration branch and PR and the same readiness
-   obligation for every included delivery, reading what was already opened through `nen run verify --id
-   <id>`. A fresh `start` for the same selector is a new run, and its echo says so.
+   outcome. **Ready** is `nen pr ready --require-head <current head>` exiting `0`, quoted verbatim.
+2. **Every delivery stands in exactly one state.** A prerequisite is never fabricated, waived or worked
+   around to move a delivery out of `held` (`CON-32`; HR-5's human-gate rows).
+
+   | State | When | Recorded |
+   |---|---|---|
+   | `driving` | `en` is acting or observing: rule 1's work remains | nothing ends while one is `driving` |
+   | `ready` | rule 1's verdict at the current head, and the merge prompt shown — a stacked PR is Ready on its stacked base and shows none (§ *Stacked pull requests* rule 4) | the register row, the verdict quoted |
+   | `merged` | merged into its base — by the maintainer, or by en § 5's bounded delivery exception | nen's manifest (`nen run verify`) |
+   | `closed` | closed unmerged by the maintainer: not delivered, its issue left open | nen's manifest |
+   | `held-<cause>` | short of Ready, and the session cannot move it | `nen run park --id <run id> --issue <CODE>#<N> --row held-<cause>`, plus three facts on the register row and in the closing report |
+
+   The causes: `held-approval` (a review or approval only a person can give); `held-gate` (a G1, G2 or G4
+   decision, en § 5's prompt at the sixth stop or the hanten prompt included, its verdict not Ready);
+   `held-credential` (a credential, App or provisioning step); `held-cap` (en's acting-cycle cap, or the round
+   ceiling, en § 6); `held-handback` (en § 6's observation errors, a draft or a retarget, en § 5's ownership or
+   gate refusal); `held-stranded` (the child of a closed stacked PR, waiting on the maintainer to retarget or
+   close it, § *Stacked pull requests* rule 5); `held-interrupted` (the session actually ended, en § 7 — written
+   by the resume, rule 5, never at the interruption). Under `--idle`, an effort's park (§ *Idle batches* rules
+   1–4: a `hold` or `refuse` row, `g5-<class>` with `g5-harness-denied`, `residue-<skill>`, `budget`) **is** its
+   held record. The **three facts**: the exact prerequisite or bound; the last `nen pr ready` verdict with its
+   judged head (`no PR` for an effort parked before one); the resume action (`hatsu:en on <CODE>#<N>`, or rule
+   5). A held delivery is never counted Ready, and the rest of the authorized work continues around it.
+3. **Complete, or incomplete and said.** An issue with no delivery is **skipped**, said: out of scope,
+   briefed (a handbook question or design call, futon § 2), § *Idle batches* rule 9's skips
+   (`needs-clarification`, `g5-shape-unread`), or a legacy-CI PR owned by its own CI actor (futon § 9); the
+   shape check's exit `2` instead stops the queue as one G5, and the batch ends incomplete on it. A batch is
+   **complete** when every delivery is `ready` or `merged` and every other selected issue is skipped or
+   `closed`; with any `held-*`, it is **incomplete**: the closing report and the Rikugan `register` list each
+   held delivery with its three facts, and `final` is never rendered over it. **When the run ends is futon
+   § 10's**: an attended run stays open while a delivery stands `ready` at its prompt and ends once none is
+   `driving` and every delivery is `merged`, `closed` or held; an idle run ends at `idle.terminal`. The wrap-up
+   picker is asked only after the run ends, never while a delivery is `driving`, and an incomplete end says so
+   in the question.
+4. **Unattended means integration.** One Futon run reads one repository and one base, so it has exactly **one
+   integration branch** — recorded at its cut by `futon_effort_record.mts integrate --run <id> --branch
+   <branch>`, which refuses a second branch and the default branch — and **one integration-to-main PR**
+   carrying every effort merged into it. An effort that cannot join — its catch-up onto the integration branch
+   stops at a semantic conflict (`ao`'s G5, row `semantic-conflict`) — parks `g5-semantic-conflict` and is
+   listed as not included (rule 6); no second branch is cut for it. Separate integration deliveries come only
+   from separate runs, the boundary being the repository (a `dowsing-chain` wave runs one futon per member
+   repository), named in the closing report. Under `--idle` **no per-effort PR is opened and nothing is
+   stacked**: each delegate and `mukai` stop at hanten's settlement, the effort is merged locally (futon § 5),
+   and `en` runs on the integration PR alone; `futon_effort_record.mts bind` and `verify` refuse an idle run
+   (§ *Recorded Futon delivery ownership*), while nen `0.28`'s `nen run append` does not refuse a `delivery`
+   kind on an idle manifest (owed to nen, zheref/nen#544). Under the `ready-at-prompt` terminal no integration PR is opened, so
+   each effort ends `held-gate` on the maintainer's go to open it — a reading of the § 2 `idle` row, named as
+   one until it is ruled.
+5. **A resume keeps the shape.** Futon never resumes itself: the maintainer re-types the line. Before `start`,
+   futon runs `futon_effort_record.mts resume --repo <checkout> --invocation '<the line>'`: with no `--run` it
+   continues the newest real run typed as exactly that line, and with none it says *start a new run*. A run
+   `nen run verify --id <its id>` reads finished — every PR merged or closed, nothing parked — is not resumed;
+   `start` opens a new one, and names the earlier run typed as the same line. A resume proves the run's identity
+   and never re-derives its policy: nen's manifest must already be on disk (with none it refuses **before**
+   calling nen, which would write an empty one that `nen run verify` reads as an open gate), the answers resent
+   are the ones nen stored, and the recorded `idle.terminal` and integration branch hold; a committed profile
+   that moved since launch is reported, never obeyed. It refuses another line, a dry run, a v0.1/v0.2 record, a
+   manifest started at another time and a record whose id differs. `kazaana` passes the futon line it composed
+   (kazaana § 1). The resumed run keeps the same integration branch and PR and the same readiness obligation
+   for every included delivery, reading what was already opened through `nen run verify --id <id>`.
 6. **A consolidated PR accounts for everything it carries.** The integration PR closes and links every
    included issue (one `Closes #<N>` and Development link each) and its criteria section answers every
    acceptance criterion of every included issue, by issue. An issue whose effort did not merge into the
@@ -1623,7 +1652,7 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    2026-10-23 dry run authored nothing and recorded no per-effort minutes, only 13 claimable efforts and the
    cap applied in queue order (`docs/ab/futon.md` § 2026-10-23).
    Overlap is `nen wc overlap --efforts <branches> --repo <checkout>` once branches exist (before that it is
-   judged from the paths each effort would touch), its verdict cited in the stacking decision; `nen stage
+   judged from the paths each effort would touch), its verdict cited in the stacking decision (attended; an idle run never stacks, § *Batch delivery* rule 4); `nen stage
    check --exclusive` holds an issue to one stage label where the target declares a stage family. En's cap is
    the git common dir's (en § 2).
 5. **Terminal — integration branches only** (the ruling of 2026-10-23, § 2 `idle`; fixed at `start` and kept
@@ -2917,7 +2946,7 @@ previous effort's branch, merged **bottom-up** by the maintainer.
 1. **When to stack — the default on overlap.** Two efforts in one run whose diffs would touch a common
    path — read from the files each touches; the manifests' `version` and the regenerated mirrors count
    as touched by every plugin-shipped change, while `changelog.d/` fragments do not collide — go in one
-   stack. That is the default when the maintainer gives no word; futon § 5's integration branch is the
+   stack. That is the default when the maintainer gives no word in an attended run (an idle run never stacks, § *Batch delivery* rule 4); futon § 5's integration branch is the
    other shape, typed. Efforts with disjoint paths may run as independent PRs against `branch.base`; an
    effort found to overlap after it was cut is caught up onto the stack's tip (`nen wc catch-up --base
    <the previous effort's branch> --strategy rebase` while unpublished, `merge` once published) rather

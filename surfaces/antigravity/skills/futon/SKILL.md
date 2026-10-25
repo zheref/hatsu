@@ -45,8 +45,8 @@ is the maintainer's word: never derived.**
 *build-only*, the integration branch if one is cut — and **say the run has started** (a bounded `CON-25`
 delegation, § 7).
 
-Before PR-open, run WORKFLOW § *Recorded Futon delivery ownership* `start` (re-invoked: `resume`,
-same run ID; § *Batch delivery* 5), opening nen's run manifest (HA#154, HA#423). After every PR this run opens, whatever its base, `nen run append`.
+Before PR-open, run WORKFLOW § *Recorded Futon delivery ownership* `resume`, else `start` (§ *Batch
+delivery* 5), opening nen's run manifest (HA#154, HA#423). After every PR this run opens, whatever its base, `nen run append`.
 
 ## 2. The queue is the selector's scope — and only that
 
@@ -152,10 +152,10 @@ report: **G4/G2** at en § 5's prompt per PR into `branch.base`, **G5** for what
 
 ## 10. Ending the run
 
-**Every delivery is driven to Ready** (WORKFLOW § *Batch delivery*): the run ends once none is `driving` and
-every issue in scope is merged into `branch.base` — none stranded (en § 6) —, Ready at its prompt, briefed, skipped,
-or **held** with its three facts, incomplete, said (legacy-CI: open with its own actor) — **and the `then`
-clause, if typed, has run or is held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
+**Every delivery is driven to Ready** (WORKFLOW § *Batch delivery*): the run ends once none is `driving`, every
+issue in scope merged into `branch.base` (none stranded, en § 6), closed, skipped or **held** with its three facts —
+a `ready` one keeps it open at its prompt; any held, it ends incomplete — **and the `then` clause, if typed, has
+run or is held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
 
 Say the run has ended; the delegation lapses. The closing report lists each skipped issue's open `OQ-{n}`
 rows and ends **offering**, never starting, the open-question flow (WORKFLOW § *Idle batches* rule 9). The final report is [`/rikugan`](../rikugan/SKILL.md)

@@ -7,6 +7,7 @@
 import assert from 'node:assert/strict';
 import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +24,7 @@ function execute(exe: string, argv: string[], env: Record<string, string> = {}):
 function call(verb: 'bind' | 'verify', extra: string[] = [], env: Record<string, string> = {}): ReturnType<typeof spawnSync> {
   return execute(process.execPath, [script, verb, '--repo', root, '--pr', '21', ...extra], env);
 }
+function randomHex(): string { return randomBytes(16).toString('hex'); }
 function expectStatus(result: ReturnType<typeof spawnSync>, status: number, name: string): void {
   assert.equal(result.status, status, `${name}: ${result.stdout}${result.stderr}`);
 }
@@ -41,7 +43,7 @@ try {
   const gh = join(bin, 'gh');
   writeFileSync(gh, `#!/usr/bin/env node
 const a=process.argv.slice(2); const e=process.env;
-if(a[0]==='repo'&&a[1]==='view') console.log(JSON.stringify({nameWithOwner:'zheref/hatsu',defaultBranchRef:{name:e.FAKE_DEFAULT||'main'}}));
+if(a[0]==='repo'&&a[1]==='view') console.log(JSON.stringify({nameWithOwner:e.FAKE_REPO||'zheref/hatsu',defaultBranchRef:{name:e.FAKE_DEFAULT||'main'}}));
 else if(a[0]==='pr'&&a[1]==='view') console.log(JSON.stringify({baseRefName:e.FAKE_BASE||'stack',headRefName:'gpt/kurapika/feature',headRefOid:e.FAKE_SHA||'a'.repeat(40),state:e.FAKE_STATE||'OPEN',isCrossRepository:false,createdAt:e.FAKE_CREATED||'2099-01-01T00:00:00Z',body:e.FAKE_BODY||'Closes #154'}));
 else if(a[0]==='issue'&&a[1]==='view') console.log(JSON.stringify({state:'OPEN',labels:[{name:e.FAKE_LABEL||'model/gpt'}]}));
 else process.exit(2);
@@ -60,9 +62,17 @@ if(a[0]==='parse'&&a[1]==='futon'){ const line=a[4]||'';
 else if(a[0]==='run'&&a[1]==='start'){
   if(e.FAKE_NEN_START==='refuse'){ console.error('nen run: refused'); process.exit(1); }
   const at=(f)=>a[a.indexOf(f)+1]; const answers=a.includes('--idle-answers')?JSON.parse(at('--idle-answers')):null;
-  if(answers&&e.FAKE_TAMPER) answers['publish-offer']='default';
-  console.log(JSON.stringify({outcome:e.FAKE_NEN_START||'started',path:'<common>/.nen/runs/'+at('--id')+'.json',
-    manifest:{contract:'nen.run/v0.1',id:at('--id'),repo:at('--target'),startedAt:e.FAKE_STARTED||new Date().toISOString(),idleAnswers:answers,prs:[],parked:[]}})); }
+  // Stateful like nen 0.28: a new id writes its manifest; a known id with the same answers is 'existing',
+  // with other answers a 'conflict' at exit 1. FAKE_NEN_START forces an outcome and writes nothing.
+  const fs=require('fs'); const file='.git/.nen/runs/'+at('--id')+'.json';
+  let manifest={contract:'nen.run/v0.1',id:at('--id'),repo:at('--target'),startedAt:e.FAKE_STARTED||new Date().toISOString(),idleAnswers:answers,prs:[],parked:[]};
+  let outcome=e.FAKE_NEN_START||'started';
+  if(!e.FAKE_NEN_START){ if(fs.existsSync(file)){ manifest=JSON.parse(fs.readFileSync(file,'utf8'));
+      if(JSON.stringify(manifest.idleAnswers)!==JSON.stringify(answers)){ console.log(JSON.stringify({outcome:'conflict',reason:'launch answers are fixed at start (HR-5)'})); process.exit(1); }
+      outcome='existing'; }
+    else { fs.mkdirSync('.git/.nen/runs',{recursive:true}); fs.writeFileSync(file,JSON.stringify(manifest)); } }
+  const shown=JSON.parse(JSON.stringify(manifest)); if(shown.idleAnswers&&e.FAKE_TAMPER) shown.idleAnswers['publish-offer']='default';
+  console.log(JSON.stringify({outcome,path:'<common>/.nen/runs/'+at('--id')+'.json',manifest:shown})); }
 else process.exit(2);
 `);
   chmodSync(nen, 0o755);
@@ -162,27 +172,88 @@ else process.exit(2);
   assert.equal('decisions' in fresh.idle, false, 'the answers live in nen\'s manifest, not the record');
   assert.match(String(idleStarted.stdout), /budget --max-minutes 480 --max-tokens 4000000/);
   // zheref/hatsu#488: an unattended run delivers through its integration PR; it never binds a stacked one.
-  const idleBind = call('bind', bind.map((part) => part === runId ? idleId : part));
+  // A PR no other effort holds, so the exit status alone proves the refusal (red against the previous script).
+  const idleBind = execute(process.execPath, [script, 'bind', '--repo', root, '--pr', '41', ...bind.map((part) => part === runId ? idleId : part)]);
   expectStatus(idleBind, 1, 'an idle run binds no stacked delivery PR');
   assert.match(String(idleBind.stderr), /unattended: it delivers through its integration PR/);
-  // zheref/hatsu#488: a resume re-opens the same id, answers and terminal; nen must already hold the manifest.
-  const resume = (id: string, line: string, env: Record<string, string> = {}) =>
-    manifestCall(['resume', '--repo', root, '--run', id, '--invocation', line],
-      { FAKE_NEN_START: 'existing', FAKE_STARTED: record(id).startedAt, ...env });
+  // zheref/hatsu#488: a resume re-opens the same id with the answers nen stored, the recorded terminal and branch.
+  const resume = (id: string | null, line: string, env: Record<string, string> = {}) =>
+    manifestCall(['resume', '--repo', root, ...(id ? ['--run', id] : []), '--invocation', line], env);
   const idleLine = 'hatsu:futon hatsu@model/gpt --idle then rikugan';
+  const manifestFile = (id: string) => join(root, '.git', '.nen', 'runs', `${id}.json`);
+  assert.ok(existsSync(manifestFile(idleId)), 'the stub, like nen, wrote the manifest at start');
+  const integrated = manifestCall(['integrate', '--repo', root, '--run', idleId, '--branch', 'gpt/kurapika/futon-model-gpt-2026-10-25']);
+  expectStatus(integrated, 0, 'the run records its one integration branch at the cut');
+  assert.equal(record(idleId).integration, 'gpt/kurapika/futon-model-gpt-2026-10-25');
+  expectStatus(manifestCall(['integrate', '--repo', root, '--run', idleId, '--branch', 'gpt/kurapika/futon-model-gpt-2026-10-25']), 0, 'the same branch again is unchanged');
+  expectStatus(manifestCall(['integrate', '--repo', root, '--run', idleId, '--branch', 'gpt/kurapika/futon-other']), 1, 'a second integration branch is refused');
+  expectStatus(manifestCall(['integrate', '--repo', root, '--run', runId, '--branch', 'main']), 1, 'the default branch is never an integration branch');
   const resumed = resume(idleId, idleLine);
   expectStatus(resumed, 0, 'an interrupted idle run resumes under its own id');
   assert.match(String(resumed.stdout), new RegExp(`run ${idleId} resumed for zheref/hatsu@model/gpt \\(idle\\)`));
-  assert.match(String(resumed.stdout), /terminal ready-at-prompt-or-integration · delivery: the run's one integration branch and PR/);
+  assert.match(String(resumed.stdout), /terminal ready-at-prompt-or-integration · delivery: gpt\/kurapika\/futon-model-gpt-2026-10-25 and its one PR/);
+  assert.doesNotMatch(String(resumed.stdout), /now differs from launch/, 'an unmoved profile reports no drift');
   const reopened = runStarts().filter((argv) => argv.includes(idleId)).at(-1) ?? [];
-  assert.deepEqual(JSON.parse(reopened[reopened.indexOf('--idle-answers') + 1] ?? 'null'), answers, 'the resume sends the launch answers again');
+  assert.deepEqual(JSON.parse(reopened[reopened.indexOf('--idle-answers') + 1] ?? 'null'), answers, 'the resume sends the launch answers nen stored');
+  const found = resume(null, idleLine);
+  expectStatus(found, 0, 'with no --run, the newest run typed as the same line resumes');
+  assert.match(String(found.stdout), new RegExp(`run ${idleId} resumed`));
+  const none = resume(null, 'hatsu:futon hatsu@model/gpt --idle then getsuga');
+  expectStatus(none, 1, 'a line no run was typed as is a new run');
+  assert.match(String(none.stderr), /start a new run/);
   expectStatus(resume(idleId, 'hatsu:futon hatsu@model/gpt then rikugan'), 1, 'a resume typed as another line is refused');
-  expectStatus(resume(idleId, idleLine, { FAKE_NEN_START: 'started' }), 1, 'a resume nen has no manifest for is refused, never a fresh start');
-  expectStatus(resume(idleId, idleLine, { FAKE_TAMPER: '1' }), 1, 'a resume whose answers nen stored differently is refused');
-  expectStatus(resume(idleId, idleLine, { FAKE_STARTED: '2000-01-01T00:00:00.000Z' }), 1, 'a manifest started at another time is another run');
-  commitWorkflow({ idle: { terminal: 'ready-at-prompt' } }, 'terminal changed');
-  expectStatus(resume(idleId, idleLine), 1, 'a changed committed idle.terminal refuses the resume: the shape is fixed at start');
-  commitWorkflow({}, 'terminal restored');
+  expectStatus(resume(idleId, idleLine, { FAKE_NEN_START: 'started' }), 1, 'a resume nen reports as a new start is refused');
+  expectStatus(resume(idleId, idleLine, { FAKE_REPO: 'zheref/other' }), 1, 'a resume resolving to another repository is refused');
+  const kept = readFileSync(manifestFile(idleId), 'utf8');
+  rmSync(manifestFile(idleId));
+  const startsBefore = runStarts().length;
+  const orphan = resume(idleId, idleLine);
+  expectStatus(orphan, 1, 'a resume with no manifest on disk is refused');
+  assert.match(String(orphan.stderr), /nothing to resume, and none is created/);
+  assert.equal(runStarts().length, startsBefore, 'a refused resume never calls nen run start, so no empty manifest opens the then gate');
+  assert.equal(existsSync(manifestFile(idleId)), false, 'and no manifest is written');
+  writeFileSync(manifestFile(idleId), kept);
+  // A claim written before bind refused idle runs is never vouched for by verify (En § 5 reads it).
+  const legacyClaim = join(root, '.git', 'hatsu', 'futon', 'pr-31.json');
+  writeFileSync(legacyClaim, JSON.stringify({ ...JSON.parse(readFileSync(saved, 'utf8')), runId: idleId, pr: 31,
+    invocation: record(idleId).invocation, selector: 'model/gpt' }));
+  const legacyVerify = execute(process.execPath, [script, 'verify', '--repo', root, '--pr', '31'], { FAKE_SHA: 'b'.repeat(40) });
+  expectStatus(legacyVerify, 1, 'verify refuses a claim bound to an idle run');
+  assert.match(String(legacyVerify.stderr), /an unattended run: it owns no stacked delivery PR/);
+  rmSync(legacyClaim);
+  expectStatus(resume(idleId, idleLine, { FAKE_TAMPER: '1' }), 1, 'a resume whose answers nen reports differently is refused');
+  const moved = JSON.parse(kept);
+  writeFileSync(manifestFile(idleId), JSON.stringify({ ...moved, startedAt: '2000-01-01T00:00:00.000Z' }));
+  expectStatus(resume(idleId, idleLine), 1, 'a manifest started at another time is another run');
+  writeFileSync(manifestFile(idleId), JSON.stringify({ ...moved, idleAnswers: null }));
+  expectStatus(resume(idleId, idleLine), 1, 'a manifest that is not idle for an idle record is refused');
+  writeFileSync(manifestFile(idleId), kept);
+  const idRecord = join(root, '.git', 'hatsu', 'futon', `run-${idleId}.json`);
+  const idKept = readFileSync(idRecord, 'utf8');
+  writeFileSync(idRecord, JSON.stringify({ ...JSON.parse(idKept), id: 'b'.repeat(32) }));
+  expectStatus(resume(idleId, idleLine), 1, 'a record whose id is not the --run is refused');
+  writeFileSync(idRecord, idKept);
+  const again = manifestCall(['start', '--repo', root, '--invocation', idleLine]);
+  expectStatus(again, 0, 'the same line typed again starts a new run');
+  assert.match(String(again.stdout), new RegExp(`note: run ${idleId} was typed as this same line; this is a new run`), 'and names the earlier one');
+  const againId = /run ([0-9a-f]{32}) recorded/.exec(String(again.stdout))?.[1] ?? '';
+  const newest = resume(null, idleLine);
+  expectStatus(newest, 0, 'with no --run the newest run typed as the line resumes');
+  assert.match(String(newest.stdout), new RegExp(`run ${againId} resumed`));
+  // A policy edit on main after launch never strands the run: the stored answers and the recorded terminal hold.
+  commitWorkflow({ idle: { terminal: 'ready-at-prompt', decisions: { 'wrap-up': 'hold' } } }, 'profile moved');
+  const drifted = resume(idleId, idleLine);
+  expectStatus(drifted, 0, 'a moved committed profile does not refuse the resume');
+  assert.match(String(drifted.stdout), /terminal ready-at-prompt-or-integration/, 'the recorded terminal holds');
+  assert.match(String(drifted.stdout), /now differs from launch; this run keeps its launch answers and terminal/);
+  const resent = runStarts().filter((argv) => argv.includes(idleId)).at(-1) ?? [];
+  assert.equal(JSON.parse(resent[resent.indexOf('--idle-answers') + 1] ?? 'null')['wrap-up'], 'default', 'the launch answer is resent, never the moved one');
+  commitWorkflow({}, 'profile restored');
+  const legacyRun = randomHex();
+  writeFileSync(join(root, '.git', 'hatsu', 'futon', `run-${legacyRun}.json`), JSON.stringify({ ...record(idleId), contract: 'hatsu.futon.run/v0.2', id: legacyRun }));
+  const legacyResume = resume(legacyRun, idleLine);
+  expectStatus(legacyResume, 1, 'a v0.2 run, which opened no nen manifest, is never resumed');
+  assert.match(String(legacyResume.stderr), /opened no nen manifest/);
   expectStatus(resume(runId, invocation), 0, 'an attended run resumes too, with no answers');
   expectStatus(call('bind', bind), 0, 'the resumed attended run still binds its stacked PR');
   // zheref/hatsu#424: --dry-run beside --idle, before or after it; nen never sees the token.
@@ -195,6 +266,7 @@ else process.exit(2);
     assert.equal(record(dryId).invocation, line, 'the typed line is kept whole');
     expectStatus(call('bind', bind.map((part) => part === runId ? dryId : part)), 1, 'a dry run binds no PR (zheref/hatsu#424/AC-2)');
     expectStatus(resume(dryId, line), 1, 'a dry run is rehearsed again, never resumed');
+    expectStatus(manifestCall(['integrate', '--repo', root, '--run', dryId, '--branch', 'gpt/kurapika/x']), 1, 'a dry run cuts no integration branch');
     const predicted = manifestCall(['predict', '--repo', root, '--run', dryId, '--issue', 'HA#154', '--row', 'dry-prompt']);
     expectStatus(predicted, 0, 'a dry run records its prediction on the record');
     assert.deepEqual(record(dryId).predictions.map((p: { issue: string; row: string }) => [p.issue, p.row]), [['HA#154', 'dry-prompt']]);
@@ -294,7 +366,25 @@ else process.exit(2);
   expectStatus(headBare, 1, 'origin/HEAD at a commit with no nen/workflow.json refuses the start');
   assert.match(String(headBare.stderr), /origin\/bare at [0-9a-f]{40} has no nen\/workflow\.json/, 'the refusal names the symbolic ref');
   expectStatus(git(['symbolic-ref', '--delete', 'refs/remotes/origin/HEAD']), 0, 'drop origin/HEAD');
-  console.log('futon-effort: start (nen run start, same id), bind, refresh, missing/stale/default/foreign-selector refusals, the retired manifest verbs, the dry-run modifier, the idle floor, the idle bind refusal and resume passed');
+  // zheref/hatsu#488 (SC-4): the batch endings agree on WORKFLOW § Batch delivery and none ends on "blocked" again.
+  const canon = (rel: string) => readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
+  const section = (text: string, heading: string, next = '\n## ') => text.slice(text.indexOf(heading), text.indexOf(next, text.indexOf(heading) + heading.length));
+  const endings = { 'futon § 10': section(canon('claude/skills/futon/SKILL.md'), '## 10. Ending the run'),
+    'kazaana § 7': section(canon('claude/skills/kazaana/SKILL.md'), '## 7. Ending the run'),
+    'backlog-loop § 10': section(canon('claude/skills/backlog-loop/SKILL.md'), '## 10. Ending the run') };
+  for (const [where, text] of Object.entries(endings)) {
+    assert.ok(text.length > 100, `${where} was found`);
+    assert.match(text, /Batch delivery/, `${where} cites WORKFLOW § Batch delivery`);
+    assert.match(text, /\*\*held\*\* with its three facts/, `${where} ends on held with its three facts`);
+    assert.doesNotMatch(text, /blocked with its blocker named|or blocked\b/, `${where} no longer ends on "blocked"`);
+  }
+  const rules = section(canon('docs/WORKFLOW.md'), '### Batch delivery', '\n### ');
+  for (const state of ['driving', 'ready', 'merged', 'closed', 'held-approval', 'held-gate', 'held-credential', 'held-cap',
+      'held-handback', 'held-stranded', 'held-interrupted'])
+    assert.match(rules, new RegExp(`\`${state}\``), `WORKFLOW § Batch delivery names ${state}`);
+  for (const where of ['claude/skills/en/SKILL.md', 'claude/skills/dowsing-chain/SKILL.md'])
+    assert.match(canon(where), /Batch delivery/, `${where} cites WORKFLOW § Batch delivery`);
+  console.log('futon-effort: start (nen run start, same id), bind, refresh, missing/stale/default/foreign-selector refusals, the retired manifest verbs, the dry-run modifier, the idle floor, the idle bind refusal, resume, integrate and the batch-ending canon passed');
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }
