@@ -33,12 +33,16 @@ function object(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function own(value: Readonly<Record<string, unknown>>, key: string): boolean {
+  return Object.hasOwn(value, key);
+}
+
 function schemaAt(root: Schema, reference: string): Schema {
   if (!reference.startsWith('#/')) throw new Error(`unsupported findings-schema reference ${reference}`);
   let current: unknown = root;
   for (const encoded of reference.slice(2).split('/')) {
     const key = encoded.replace(/~1/g, '/').replace(/~0/g, '~');
-    if (!object(current) || !(key in current)) throw new Error(`unresolved findings-schema reference ${reference}`);
+    if (!object(current) || !own(current, key)) throw new Error(`unresolved findings-schema reference ${reference}`);
     current = current[key];
   }
   if (!object(current)) throw new Error(`findings-schema reference ${reference} is not an object`);
@@ -57,42 +61,42 @@ function assertSchemaNode(schema: Schema, root: Schema, path: string, visiting: 
       if (!SCHEMA_KEYS.has(key)) throw new Error(`${path}.${key} is not supported by the findings-schema evaluator`);
     }
     for (const key of ['$schema', '$id', '$comment'] as const) {
-      if (key in schema && typeof schema[key] !== 'string') throw new Error(`${path}.${key} must be a string`);
+      if (own(schema, key) && typeof schema[key] !== 'string') throw new Error(`${path}.${key} must be a string`);
     }
-    if ('type' in schema && (typeof schema.type !== 'string' || !SCHEMA_TYPES.has(schema.type))) {
+    if (own(schema, 'type') && (typeof schema.type !== 'string' || !SCHEMA_TYPES.has(schema.type))) {
       throw new Error(`${path}.type is not a supported schema type`);
     }
-    if ('required' in schema) {
+    if (own(schema, 'required')) {
       if (!Array.isArray(schema.required) || schema.required.some((key) => typeof key !== 'string')
         || new Set(schema.required).size !== schema.required.length) throw new Error(`${path}.required must be an array of unique strings`);
     }
     for (const key of ['$defs', 'properties'] as const) {
-      if (!(key in schema)) continue;
+      if (!own(schema, key)) continue;
       if (!object(schema[key])) throw new Error(`${path}.${key} must be an object of schema nodes`);
       for (const [name, child] of Object.entries(schema[key])) {
         if (!object(child)) throw new Error(`${path}.${key}.${name} must be a schema object`);
         assertSchemaNode(child, root, `${path}.${key}.${name}`, visiting);
       }
     }
-    if ('items' in schema) {
+    if (own(schema, 'items')) {
       if (!object(schema.items)) throw new Error(`${path}.items must be a schema object`);
       assertSchemaNode(schema.items, root, `${path}.items`, visiting);
     }
-    if ('enum' in schema && (!Array.isArray(schema.enum) || schema.enum.length === 0 || !schema.enum.every(scalar))) {
+    if (own(schema, 'enum') && (!Array.isArray(schema.enum) || schema.enum.length === 0 || !schema.enum.every(scalar))) {
       throw new Error(`${path}.enum must be a non-empty array of scalar values`);
     }
-    if ('const' in schema && !scalar(schema.const)) throw new Error(`${path}.const must be a scalar value`);
-    if ('pattern' in schema) {
+    if (own(schema, 'const') && !scalar(schema.const)) throw new Error(`${path}.const must be a scalar value`);
+    if (own(schema, 'pattern')) {
       if (typeof schema.pattern !== 'string') throw new Error(`${path}.pattern must be a string`);
       try { new RegExp(schema.pattern); } catch { throw new Error(`${path}.pattern is not a valid regular expression`); }
     }
-    if ('minimum' in schema && (typeof schema.minimum !== 'number' || !Number.isFinite(schema.minimum))) {
+    if (own(schema, 'minimum') && (typeof schema.minimum !== 'number' || !Number.isFinite(schema.minimum))) {
       throw new Error(`${path}.minimum must be a finite number`);
     }
-    if ('minLength' in schema && (typeof schema.minLength !== 'number' || !Number.isInteger(schema.minLength) || schema.minLength < 0)) {
+    if (own(schema, 'minLength') && (typeof schema.minLength !== 'number' || !Number.isInteger(schema.minLength) || schema.minLength < 0)) {
       throw new Error(`${path}.minLength must be a non-negative integer`);
     }
-    if ('allOf' in schema) {
+    if (own(schema, 'allOf')) {
       if (!Array.isArray(schema.allOf) || schema.allOf.length === 0) throw new Error(`${path}.allOf must be a non-empty array of schema nodes`);
       for (const [index, child] of schema.allOf.entries()) {
         if (!object(child)) throw new Error(`${path}.allOf[${index}] must be a schema object`);
@@ -100,12 +104,12 @@ function assertSchemaNode(schema: Schema, root: Schema, path: string, visiting: 
       }
     }
     for (const key of ['if', 'then'] as const) {
-      if (!(key in schema)) continue;
+      if (!own(schema, key)) continue;
       if (!object(schema[key])) throw new Error(`${path}.${key} must be a schema object`);
       assertSchemaNode(schema[key], root, `${path}.${key}`, visiting);
     }
-    if (('if' in schema) !== ('then' in schema)) throw new Error(`${path} must carry if and then together`);
-    if ('$ref' in schema) {
+    if (own(schema, 'if') !== own(schema, 'then')) throw new Error(`${path} must carry if and then together`);
+    if (own(schema, '$ref')) {
       if (typeof schema.$ref !== 'string') throw new Error(`${path}.$ref must be a string`);
       const siblings = Object.keys(schema).filter((key) => !['$ref', '$comment'].includes(key));
       if (siblings.length) throw new Error(`${path}.$ref has unsupported sibling keywords: ${siblings.join(', ')}`);
@@ -122,7 +126,7 @@ export function validateFindingsSchema(schema: unknown): asserts schema is Schem
 }
 
 function schemaErrors(value: unknown, schema: Schema, root: Schema, path: string): string[] {
-  if (typeof schema.$ref === 'string') return schemaErrors(value, schemaAt(root, schema.$ref), root, path);
+  if (own(schema, '$ref') && typeof schema.$ref === 'string') return schemaErrors(value, schemaAt(root, schema.$ref), root, path);
   const errors: string[] = [];
   const type = schema.type;
   const validType = type === undefined
@@ -134,7 +138,7 @@ function schemaErrors(value: unknown, schema: Schema, root: Schema, path: string
   if (Array.isArray(schema.enum) && !schema.enum.some((candidate) => Object.is(candidate, value))) {
     errors.push(`${path} is not an admitted value`);
   }
-  if ('const' in schema && !Object.is(schema.const, value)) errors.push(`${path} must equal its schema constant`);
+  if (own(schema, 'const') && !Object.is(schema.const, value)) errors.push(`${path} must equal its schema constant`);
   if (typeof value === 'string') {
     if (typeof schema.minLength === 'number' && value.length < schema.minLength) errors.push(`${path} is too short`);
     if (typeof schema.pattern === 'string' && !new RegExp(schema.pattern).test(value)) errors.push(`${path} has an invalid format`);
@@ -145,12 +149,12 @@ function schemaErrors(value: unknown, schema: Schema, root: Schema, path: string
   if (object(value)) {
     if (Array.isArray(schema.required)) {
       for (const key of schema.required) {
-        if (typeof key === 'string' && !(key in value)) errors.push(`${path}.${key} is required`);
+        if (typeof key === 'string' && !own(value, key)) errors.push(`${path}.${key} is required`);
       }
     }
     if (object(schema.properties)) {
       for (const [key, propertySchema] of Object.entries(schema.properties)) {
-        if (key in value && object(propertySchema)) errors.push(...schemaErrors(value[key], propertySchema, root, `${path}.${key}`));
+        if (own(value, key) && object(propertySchema)) errors.push(...schemaErrors(value[key], propertySchema, root, `${path}.${key}`));
       }
     }
   }

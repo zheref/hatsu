@@ -118,6 +118,32 @@ function schemaRefusal(name: string, change: (schema: any) => void, stderr: RegE
   console.log(`ok ${cases} - ${name}`);
 }
 
+function schemaRecord(name: string, finding: unknown, status: number, stdoutPattern: RegExp): void {
+  const schema = structuredClone(shippedSchema);
+  schema.$defs.finding.required.push('constructor');
+  const file = join(scratch, `${name}.json`);
+  writeFileSync(file, `${JSON.stringify({ scopes: [], findings: [finding] })}\n`);
+  const stdout: string[] = [];
+  const stderr: string[] = [];
+  const originalLog = console.log;
+  const originalError = console.error;
+  console.log = (...values: unknown[]) => stdout.push(values.map(String).join(' '));
+  console.error = (...values: unknown[]) => stderr.push(values.map(String).join(' '));
+  let actual: number;
+  try {
+    actual = checkMain([file, roster], schema);
+  } finally {
+    console.log = originalLog;
+    console.error = originalError;
+  }
+  const detail = `${name}: exit ${actual}\nstdout: ${stdout.join('\n')}\nstderr: ${stderr.join('\n')}`;
+  assert.equal(actual, status, detail);
+  assert.equal(stderr.length, 0, detail);
+  assert.match(stdout.join('\n'), stdoutPattern, detail);
+  cases += 1;
+  console.log(`ok ${cases} - ${name}`);
+}
+
 try {
   run('ruled rows require critical and fixed-or-deferred', [
     base('ruled-severity', 'HR-1', 'low'),
@@ -151,10 +177,15 @@ try {
   schemaRefusal('unsupported oneOf fails closed', (schema) => { schema.$defs.finding.oneOf = []; }, /cannot read findings schema .*\.oneOf is not supported/);
   schemaRefusal('unsupported additionalProperties fails closed', (schema) => { schema.$defs.finding.additionalProperties = false; }, /cannot read findings schema .*additionalProperties is not supported/);
   schemaRefusal('an unresolved local ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/$defs/absent'; }, /cannot read findings schema .*unresolved findings-schema reference/);
+  schemaRefusal('an inherited __proto__ ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/__proto__'; }, /cannot read findings schema .*unresolved findings-schema reference/);
+  schemaRefusal('an inherited constructor ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/constructor'; }, /cannot read findings schema .*unresolved findings-schema reference/);
+  schemaRefusal('an inherited toString ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/toString'; }, /cannot read findings schema .*unresolved findings-schema reference/);
   schemaRefusal('a malformed ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = 'other.json'; }, /cannot read findings schema .*unsupported findings-schema reference/);
   schemaRefusal('a malformed schema type is tooling exit 2', (schema) => { schema.$defs.finding.type = 7; }, /cannot read findings schema .*type is not a supported schema type/);
   schemaRefusal('a malformed schema regex is tooling exit 2', (schema) => { schema.$defs.trackedRef.pattern = '['; }, /cannot read findings schema .*pattern is not a valid regular expression/);
   schemaRefusal('a cyclic local ref is tooling exit 2', (schema) => { schema.$defs.loop = { $ref: '#/$defs/loop' }; }, /cannot read findings schema .*cyclic schema reference/);
+  schemaRecord('an inherited constructor does not satisfy required', base('required-own-missing', 'UX-1'), 1, /invalid findings record: \$\.findings\[0\]\.constructor is required/);
+  schemaRecord('an own constructor property satisfies required', { ...base('required-own-present', 'UX-1'), constructor: 'owned data' }, 0, /every HR-cited finding/);
   console.log(`hanten-findings-check fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
