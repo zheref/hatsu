@@ -525,15 +525,19 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
   `nen pr request-reviews` call and record it with that call's `--json` output (`unrecordedBots` and
   `message`) **verbatim**. An exit `9` counts only when that head equals the head `en` § 5 check 5 judged;
   otherwise it is stale, and one fresh request at the new head is owed, inside `round_policy.maxRounds`.
-- **(e) No reviewer outside `any_of` is owed.** nen's `rounds-owed` row also carries configured reviewers
-  that are not quorum members, and a met or unmet quorum never excuses them. nen `v0.21.0`'s `--json`
-  exposed **no structured list of the owed reviewers** (nen 0.26 lists `owedRounds[]`; whether this
-  condition reads it, widening the stop, is zheref/hatsu#430's ruling) — the row's `reason` is prose, never parsed;
-  `roundQuorum.members` names only `any_of`, and `meta.roundCounts` counts rounds, not who is owed at head.
-  So the sixth stop is reachable **only where every `reviewers[]` name in the target's `nen/gates.json` is
-  in `round_quorum.any_of`** (true of Hatsu's own file today: `copilot` in both). Where a reviewer lies
-  outside `any_of`, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen exposes the
-  owed list.
+- **(e) No reviewer outside `any_of` is owed, read from nen's owed list** ([HR-365](ROSTER.md#hr-365),
+  the maintainer's ruling of 2026-10-22; zheref/hatsu#430). nen's `rounds-owed` row also owes configured
+  reviewers that are not quorum members, and a met or unmet quorum never excuses them. The pinned nen
+  lists the owed rounds on that row as `owedRounds[]`, each entry carrying `reviewer`, `reason`,
+  `coveredByQuorum` and, where `nen/gates.json` declares one, `kind` (`nen pr ready --help`, nen `0.26`).
+  (e) holds when the row carries `owedRounds[]` and every entry's `reviewer` is a name in the row's
+  `roundQuorum.anyOf`. An entry outside `anyOf`, whatever its `kind`, ends the PR at `cap-reached`'s
+  not-ready terminus, no prompt. So does a row with no `owedRounds[]`: nen omits it when it did not
+  compute the list, and absent is never read as none owed. `coveredByQuorum` is not the test, since it
+  marks a member a met quorum excused and at this stop the quorum is unmet; the row's `reason` is prose,
+  never parsed. A target whose `reviewers[]` all sit in `any_of` (Hatsu's own file today: `copilot` in
+  both) can owe no one outside it. One that enrols a reviewer outside `any_of` reaches the stop when that
+  reviewer's round is not owed at the judged head.
 
 At the stop, `nen pr ready`'s **not-ready verdict is quoted verbatim and never called `ready`**, and the one
 Hatsu line `en` writes into the PR body through `nen pr edit-body` carries the recorded head and the
