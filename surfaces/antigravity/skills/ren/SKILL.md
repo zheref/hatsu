@@ -163,7 +163,7 @@ step included. **The usage entry is recorded at step 5**: `nen usage record --ef
 <branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes]` from
 the surface's own cost readout, `--not-reported` on a surface that exposes none.
 
-**A resumed effort reads before it writes** (zheref/hatsu#444, zheref/hatsu#445; nen 0.27). An effort whose
+**A resumed effort reads before it writes** (zheref/hatsu#444, zheref/hatsu#445; nen 0.28, the pin). An effort whose
 branch already has a phase ledger, or a PR, is a resume: first, where a PR exists, `nen pr ledger read
 --target <owner/name> --pr <n> --effort <branch> --repo <checkout> --json`, adding `--restore` only where
 `nen phase show` finds no local ledger; then `nen phase show --effort <branch> --json`. WORKFLOW § *The
