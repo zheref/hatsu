@@ -79,6 +79,46 @@ publication exited `0`. No force form, trunk update, merge, tag or release was r
 The first rejection remained a rejection; the evidence-backed resubmission established the
 missing scope evidence under the host's supported review rules, without changing permissions.
 
+## E · Idle startup regression and Git recovery — observed 2026-10-25
+
+Codex desktop on macOS, Nen 0.26.0, Hatsu 0.142.0 at `a49a7d4a4`. The earlier
+`hatsu:kazaana zheref/nen --idle` run encountered `EPERM` at fetch metadata, worktree
+registration and `<common>/.nen/runs`. It submitted no supported review request and stopped
+before creating a manifest or claiming any work. The issue's [regression comment](https://github.com/zheref/hatsu/issues/349#issuecomment-6399780239)
+records the sanitized commands. The idle rule was applied before the recovery adapter; neither
+a runtime defect nor an approval rejection was established.
+
+The resumed issue build bound its clean native worktree through `attach_worktree`, then observed:
+
+| Operation | Ordinary result | Reviewed result | What this establishes |
+|---|---|---|---|
+| Create, write and remove one unique temporary file in the effort checkout | exit 0 | Not requested | Ordinary writes work; probe removed |
+| `git fetch origin main` in that checkout | exit 255; cannot open `<common>/worktrees/hatsu1/FETCH_HEAD`: Operation not permitted | Same command and cwd through `exec_command`, `sandbox_permissions: require_escalated`: exit 0 | Supported review recovers this Git metadata operation |
+| `nen shu warmup` for the isolated issue branch | Dry run: exit 4, build declared unsupported; core's checked-out trunk left alone | Scoped review: Git steps exit 0, branch cut from fetched `origin/main`; final exit 4 for the same unsupported build | Branch operation admitted, no build pass claimed |
+| `nen shu lint --lane plugin` | exit 0; `claude plugin validate . --strict` | Not requested | Declared base iteration check passed before authoring |
+
+No rejection was elicited during this build. Observed admission covers only the scoped
+operation: no push, merge, release or permission-setting change follows from a fetch. No
+consumer delivery was resumed to collect this evidence. The adapter protocol changed;
+an executable runtime permission guard was not introduced.
+
+## F · Idle control-flow regression cases — constructed, not host executions
+
+These adversarial tabletop inputs extend case C. Review checks each against the adapter's
+single recovery table and WORKFLOW's idle caller; a pending request never means admitted.
+
+| Given / when | Required outcome | Forbidden outcome |
+|---|---|---|
+| Idle startup; first sandbox error; authorized operation; review exposed | Submit the narrowly scoped operation for review and await its result | Park or tell the maintainer to reopen before review |
+| Checkout write passes; Git metadata fails | Review that metadata operation independently | Treat the file probe as proof of Git access |
+| Review admits the operation and execution succeeds | Resume that phase step in the isolated checkout | Infer blanket permission or cross a human gate |
+| Review rejects the request | Preserve action, path, decision and reason; stop it; continue independent permitted work only | Retry via another tool, path or command spelling |
+| Host policy forbids review or no review route exists | Report the capability limit and precise handoff | Invent a rejection or silently change permissions |
+| Manifest creation remains blocked after recovery | Report startup blocked and park not persisted | Claim a durable park, verify absence as an empty run, or advance a terminal step |
+| Failure is unrelated to sandbox scope | Diagnose within existing authority | Treat it as a permission recovery case |
+
+Per-gate markers and the idle permission inventory remain HA-IS-#453's separate effort.
+
 ## Invariants checked by review
 
 All three cases keep the absolute effort checkout bound. Host review grants execution access
