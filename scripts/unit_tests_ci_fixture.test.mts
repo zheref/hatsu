@@ -48,6 +48,16 @@ try {
   calls = readFileSync(log, 'utf8').trim().split('\n');
   assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||', 'API lane not selected');
 
+  writeFileSync(join(repo, 'scripts', 'plugin_bump_api_retry.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('plugin_bump_api_retry.mts has no required fixture'), 'missing plugin-bump retry fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'plugin_bump_api_retry_fixture.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `plugin-bump retry fixture path refused: ${result.stderr}`);
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,plugin-bump-api-retry-guard||', 'plugin-bump retry lane not selected (BC-9)');
+
   writeFileSync(join(repo, 'scripts', 'clause_id_guard.mts'), '');
   result = run();
   assert(result.status === 2 && result.stderr.includes('clause_id_guard.mts has no required fixture'), 'missing clause-guard fixture did not refuse');
@@ -56,7 +66,7 @@ try {
   result = run();
   assert(result.status === 0, `clause-guard path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||', 'clause-guard lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,plugin-bump-api-retry-guard||,clause-guard||', 'clause-guard lane not selected');
 
   writeFileSync(join(repo, 'scripts', 'prose_ambiguity_check.mts'), '');
   result = run();
@@ -66,9 +76,9 @@ try {
   result = run();
   assert(result.status === 0, `canon-lint path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,plugin-bump-api-retry-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
 
-  let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||';
+  let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,plugin-bump-api-retry-guard||,clause-guard||,canon-lint||';
   for (const [script, fixture, lane] of [['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
