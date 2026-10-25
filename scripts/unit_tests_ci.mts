@@ -25,6 +25,18 @@ if (!existsSync(join(root, 'nen', 'contract.json'))) {
 // The criteria lane holds Hatsu's wiring around `nen pr converge` (zheref/hatsu#413) and the HR-10
 // findings-schema invariants; it runs unconditionally, so deleting its fixture fails the lane, never drops it.
 const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack-guard', 'criteria'];
+// The mechanical declaration is data rather than a runtime script, so its real-Nen fixture is
+// required directly. Deleting it is a wiring refusal, never a smaller green CI selection (#415).
+const requiredFixtures: Array<[string, string]> = [
+  ['mechanical_conflicts_fixture.test.mts', 'mechanical-conflicts-guard'],
+];
+for (const [fixture, lane] of requiredFixtures) {
+  if (!existsSync(join(root, 'scripts', fixture))) {
+    console.error(`unit-tests-ci: required fixture ${fixture} is missing`);
+    process.exit(2);
+  }
+  lanes.push(lane);
+}
 // Each executable guard runs here once it exists, and refuses without its fixture (BC-9: a guard's
 // suite must actually execute in unit-tests.yml).
 const gated: Array<[string, string, string]> = [
