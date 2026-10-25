@@ -9,9 +9,11 @@
 //   2. EVERY CANON LINE MUST APPEAR AS A LINE OF THE BRIEF, compared after trimming surrounding
 //      whitespace and nothing else. A dropped line, a reworded ceiling and a paraphrase each fail:
 //      exit 1, one `::error::` line per missing canon line, numbered, on stdout.
-//   3. A TOOLING FAILURE IS NOT A FINDING: wrong usage, an unreadable brief or canon, or a BRIEF path
-//      holding `,` `:` or a line break (it would forge annotation properties; the canon path is never
-//      annotated, so it is not refused) exits 2 on stderr with
+//   3. A TOOLING FAILURE IS NOT A FINDING: wrong usage, an unreadable brief or canon, a BRIEF path
+//      holding `,` `:` or a line break (it is the annotation's file= property, which those would forge),
+//      or a CANON path holding a line break (it is written into the annotation's message, where a line
+//      break would start a second workflow command; its commas and colons are harmless there and stay
+//      allowed, so a checkout under `Code, work/` or a Windows `C:\` path runs) exits 2 on stderr with
 //      nothing on stdout, so "could not look" never reads as "looked and found".
 //
 // Usage: node scripts/delegate_brief_check.mts [--canon <WORKFLOW.md>] <brief-file>
@@ -55,6 +57,7 @@ for (let i = 0; i < args.length; i += 1) {
   }
 }
 if (print === (brief !== null)) refuse(USAGE);
+if (/[\r\n]/.test(canonPath)) refuse('the canon path holds a line break');
 
 const canonLines = read(canonPath, 'canon').split(/\r?\n/);
 const begins = canonLines.flatMap((line, i) => (line.trim() === BEGIN ? [i] : []));
@@ -70,8 +73,7 @@ if (print) {
   process.exit(0);
 }
 const briefPath = brief as string;
-// Only the brief's path is written into an annotation, so only it is refused for `,` `:` or a line break;
-// the canon path may be any real path (a checkout under `Code, work/`, a Windows `C:\\` path).
+// The brief's path is the annotation's file= property, so `,` and `:` are refused there too (rule 3).
 if (/[,:\r\n]/.test(briefPath)) refuse('the brief path holds a comma, colon or line break');
 const have = new Set(read(briefPath, 'brief').split(/\r?\n/).map((line) => line.trim()));
 const missing = block.flatMap((line, i) => (have.has(line) ? [] : [i + 1]));

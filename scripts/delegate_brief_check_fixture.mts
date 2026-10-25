@@ -89,6 +89,9 @@ try {
   mkdirSync(dir);
   expect('a directory as the brief exits 2', [dir], 2, null, /cannot read the brief/);
   expect('a brief path with a colon exits 2', [join(scratch, 'x::y.md')], 2, null, /comma, colon or line break/);
+  expect('a brief path with a comma exits 2', [join(scratch, 'a,line=1.md')], 2, null, /comma, colon or line break/);
+  const forgedDir = join(scratch, 'x\n::warning file=forged.md::forged');
+  expect('a canon path with a line break exits 2 with nothing on stdout', ['--canon', join(forgedDir, 'WORKFLOW.md'), file('forge.md', '- one\n')], 2, null, /canon path holds a line break/);
   expect('a brief path with a newline exits 2', [join(scratch, 'x\n::error::forged.md')], 2, null, /comma, colon or line break/);
   expect('no argument exits 2', [], 2, null, /usage/);
   expect('two briefs exit 2', ['a.md', 'b.md'], 2, null, /usage/);
