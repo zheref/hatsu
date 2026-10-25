@@ -81,8 +81,8 @@ written in passing.
 
 **P4 · Nothing to ask.** The ladder is `nen/workflow.json → coverage`, the base has a default and an
 override, and the touched set is derived. § 9 (a)'s `not measurable here` — a lane that declares no
-coverage verb — is an answer, not a gap, cold as well as wired; § 9 (b), a target the lane cannot
-reach, is § 8's stop either way.
+coverage verb — is an answer, not a gap, cold as well as wired; § 9 (b), a file no declared lane
+measures, is § 8's stop either way, and § 9 (c), a host gap, is host repair.
 
 **What does not change, and this is the one that matters.** § 6 and § 8 are untouched: touched-file
 coverage under the ladder's `minimum` is a **G5** stop with the options laid out, and **the bar is
@@ -137,7 +137,12 @@ This is the grammar gyo-as-coverage used. Gyo's live grammar is now `on [<lane>]
 | **above the floor** | `minimum ≤ percent < recommended` | `over minimum` |
 | **under the floor** | `percent < minimum` | **`under minimum` — § 8** |
 | **not measured** | the report has no row for this file | § 5's rules 2, 2b and 3 |
-| **not measurable here** | a seat, or a target the lane cannot reach, its missing capability named | § 9; § 8 option E |
+| **not measurable here** | the lane seats `coverage` (exit `4`) | `not measurable here` — § 9 (a) |
+| **not measurable here, by declaration** | no declared lane or target measures this file, on any host; after § 8 option E | `not measurable here — <capability>` — § 9 (b) |
+| **unread** | the declaration measures this file, this host lacks what it expects | `unread — <host, capability>` — § 9 (c) |
+
+These labels replace the percent and take precedence over every band: a file that carries one is
+never also banded. Without § 8 option E chosen, a § 9 (b) file is still `under minimum`.
 
 ## 3. Capture — collection, not a test run
 
@@ -206,14 +211,19 @@ Nen's `touched.files` is the **changed set**. The **touched set** is that set mi
 and 2b remove:
 
 1. **Match on the path the report gives, resolved against the lane's `cwd`** — never on a basename.
-2. **A changed file the tool does not measure is excluded, and the exclusion is stated.**
+2. **A changed file the tool does not measure is excluded, and the exclusion is stated.** Rule 2
+   covers only file kinds or languages the lane's tool never measures. A file in a measured language
+   that no declared lane or target measures is not a rule 2 exclusion: it stays in the touched set, goes to
+   rule 3, then § 8 option E.
 2b. **A changed file the tool's own configuration excludes** leaves the same way. **Test files
     are always in this set** and **never themselves under the bar**.
 3. **A NON-TEST source file in a measured language, not excluded by rule 2 or 2b, with no row is a
    finding**, treated as **`under minimum` until proven otherwise.** Rule 3 is scoped to what
    survives 2 and 2b.
 
-**Print the filtered table, always**: `file · percent · band`, plus a row for each exclusion.
+**Print the filtered table, always**: `file · percent · band`, plus a row for each exclusion. For a
+file that carries a § 2 label (`not measurable here`, `not measurable here — <capability>`,
+`unread — <host, capability>`), the percent column reads that label and the band column is empty.
 The repository total is reported alongside and is never the verdict.
 
 ## 6. Add tests until every touched file clears the minimum
@@ -242,39 +252,54 @@ the per-touched-file rows with their bands, the exclusions, and the lowest band 
 **A touched file below `coverage.minimum` after § 6 has been genuinely attempted is a stop.**
 The ladder is per file. The stop is [`/jutaisho`](../jutaisho/SKILL.md)'s shape, in full.
 
-- **A — keep going.** The tests are writable. ⭐ where that is true.
+- **A — keep going.** Tests are writable **and** runnable on a lane that measures the file. ⭐ where
+  that is true.
 - **B — this is a spike branch.** The maintainer says so; the PR says it.
 - **C — the code is generated.** Exemption belongs in the repository's coverage configuration — a
   **declaration change**, at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one).
 - **D — a canon-sanctioned exemption applies**, and **the PR must state it**.
-- **E — the lane cannot measure this file.** The lane declares coverage, but not for this file's
-  target (§ 9 (b)). The option **names the missing capability** (the SDK, the lane or the target
-  that is absent) with the line that shows it absent: the declaration's lanes and targets, a
-  `nen shu tools` row, or the SDK's own listing. The file is reported **`not measurable here — <the
-  missing capability>`**, never a percent and never a `0%` nen printed for it, and the PR states
-  it beside the capability. E leads to a **proposal at the declaration gate** (**G4** in a canon
-  repository, **G2** in a consumer one): a lane or target that measures the file, or a seat for that
-  target with the reason. It never leads to a lowered ladder or an exclusion added to drop the file.
-  ⭐ goes to E only where A is not true for this file.
+- **E — no declared lane measures this file.** § 9 (b) holds: no lane or target in the declaration
+  measures this file's target, on any host. The option **names the missing capability** (the lane or
+  the target that is absent, or the SDK no declared lane provides) with the line that shows it
+  absent: the declaration's lanes and targets, or the SDK's own listing. The file is reported
+  **`not measurable here — <the missing capability>`**, never a percent and never a `0%` nen printed
+  for it, and the PR states it beside the capability. E leads to a **proposal at the declaration
+  gate** (**G4** in a canon repository, **G2** in a consumer one): a lane or target that can measure
+  the file, or a seat on such a lane with the reason. It never leads to a lowered ladder or an
+  exclusion added to drop the file. ⭐ goes to E wherever § 9 (b) holds: a test written for such a
+  file cannot run here, so A is not true for it.
 
 **One cause per option.** A file the lane runs but whose tests are UI snapshots is **A** or **D**, not
-**E**; a generated file is **C**; only a file whose target the lane cannot execute is **E**. Three
-causes folded into one option make a waiver the maintainer cannot read.
+**E**; a generated file is **C**; only a file no declared lane can measure is **E**; a host gap is
+§ 9 (c) and no option at all. Three causes folded into one option make a waiver the maintainer
+cannot read.
+
+**The picker carries at most four options** ([`/jutaisho`](../jutaisho/SKILL.md) § 4). It
+renders only the options that apply to the files at the stop: **B** always, plus whichever of
+**A**, **C**, **D** and **E** apply to at least one of them. The chat table names each file's
+applicable option beside its row, so a picked option binds only the files it names.
 
 **Never an option that lowers `minimum`, `recommended` or `ideal`.** Changing the ladder is a
 separate decision at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one). The run ends at the stop.
 
-## 9. `not measurable here` — two causes, told apart
+## 9. `not measurable here` and `unread` — three causes, told apart
 
 **(a) The lane declares no coverage.** A seat (exit `4`) is quoted and reported `not measurable
 here`. It is not `0%`, not green, and not a G5. Hatsu's `plugin` lane seats `coverage`; the ladder
 still ships for every repository Hatsu drives that declares none of its own.
 
-**(b) The lane declares coverage, but not this file's target.** The lane measures and the verb ran,
-but this file belongs to a target the lane cannot build or execute here (a platform whose SDK is
-absent, a target no lane declares). Nen prints no seat for it: the file is `unmatched` or reads as a
-number it can never raise, so § 5 rule 3 holds it `under minimum` and it reaches § 8. The way out is
-§ 8 option **E**, the missing capability named, never (a)'s seat claimed for a lane that has none.
+**(b) The lane declares coverage, but no declared lane or target measures this file.** The lane
+measures and the verb ran, but this file belongs to a target no lane or target in the declaration
+measures, on any host. Nen prints no seat for it. An `unmatched` file is held `under minimum` by
+§ 5 rule 3; a file nen prints a number for is under the floor by § 2's bands. Either way it reaches
+§ 8, and the way out is option **E**, the missing capability named, never (a)'s seat claimed for a
+lane that has none.
+
+**(c) A host gap is not (b).** Where the declaration does measure this file but this host lacks a
+capability it expects (an SDK, a simulator, a tool `nen shu tools` names), the file is
+`unread — <host, capability>`. The remedy is host repair (`nen shu tools`'s per-tool line, or the
+step handed to a machine that has the capability), then recapture and re-measure. It is not a
+declaration proposal, not option E, and not a pass.
 
 Exit `1` has two arms — the command ran and failed (repair the host and re-measure) versus no
 artifact nen reads (a declaration defect, to propose at the **declaration gate** (**G4** in a canon repository, **G2** in a consumer one)). Neither arm is a coverage verdict.
@@ -319,7 +344,7 @@ Historical coverage transcripts remain in `docs/ab/gyo.md` (gyo-as-coverage) and
 - **Never holds a test file to the bar.**
 - **Never reads `nen shu coverage`'s exit `0` as a pass.**
 - **Never treats a coverage seat as `0%` or as green** — it is `not measurable here`.
-- **Never reports a file whose target the lane cannot reach as a number** — it is `not measurable
-  here`, its missing capability named (§ 8 option E).
+- **Never reports a file no declared lane measures as a number** — it is `not measurable here`, its
+  missing capability named (§ 8 option E). **Never folds a host gap into E** — it is `unread` (§ 9 (c)).
 - **Never runs as part of aka.** Gyo (lint), squash, ao and push do not include this phase.
 - **Never presents by-hand filtering as a verb's output.**
