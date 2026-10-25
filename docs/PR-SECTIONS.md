@@ -37,7 +37,7 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
 Place the always-on Delivery preamble first, then fill the reader fragments from
-`templates/pr-body/<id>.md` in resolved order, then Spec (only with `--spec`), checklist, issues and final attribution.
+`templates/pr-body/<id>.md` in resolved order, then Spec (only with `--spec`), Decisions (when admitted), checklist, issues and final attribution.
 Never append an undeclared level-2 heading. Delivery is outside the seven-reader cap and does
 not change any kind × family cell or consumer-owned override.
 The default requirements file is the process × canon fixture, never a substitute for resolving a run.

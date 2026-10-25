@@ -194,7 +194,7 @@ nen spec parity --repo <spec checkout> --folder <dir> --json
 
 **The table** is one row per requirement the target is cited on (per requirement, not per acceptance scenario, until zheref/nen#525) — converge's `citations` grouped by `id`, each row its state (`current`, else its `gaps[]` class: `missing` · `partial` · `contradicts`) and its evidence (path, lines, cited sha) — plus every `unrequested` gap, then the target column's parity row per `FR` (state and `finding`), quoted. **It reads converged only when** converge's verdict is `converged` over **at least one** target citation and every target parity row settles (§ *The parity table*). Then:
 
-- a row that is not `converged` (`nen spec parity`'s own words), or a target parity row that does not settle, makes the PR **not ready**, that row quoted beside the readiness verdict — never merged on the author's word; a `contradicts` row is also row `spec-conflict`'s candidate, never decided here;
+- a row whose state is not `current` (`nen spec converge`'s gap classes), or a target parity row that does not settle, makes the PR **not ready**, that row quoted beside the readiness verdict — never merged on the author's word; a `contradicts` row is also row `spec-conflict`'s candidate, never decided here;
 - a `could-not-read` verdict from either verb, zero target citations, a `Spec:` value off the grammar above, or a nen without these verbs reads **could not read**, with the reason — never *converged* — and **a table that reads *could not read* makes the PR not ready** (an unread check is never a clean one), until the repin or the amendment supplies what was missing;
 - *converged* is the verb's fact about cited bytes, not a validation of behaviour.
 

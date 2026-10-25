@@ -75,7 +75,7 @@ under `<path>/.nen/reports/` (0700/0600). Run `node "$hatsu_root/scripts/pr_deli
 --out <normalized.json> --repo <path> [--gate-forecast <G2|G4>]`; the optional gate token comes
 only from `nen gate derive`'s first line. Render with `nen report render --template
 "$hatsu_root/templates/pr-delivery.md" --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
-paste the block, typing no cell; intermediates stay there.
+paste the block, typing no cell.
 WORKFLOW § *The effort's ledgers* owns model provenance, the public Source cell (locator,
 timestamp, optional phase) and what stays local.
 After opening, rerun report data with the actual PR (`--target <owner/name> --prs <n>`), normalize with the same derived
@@ -109,7 +109,7 @@ nen ref format --code <CODE> --kind PR --number <n>
   --pr <n> --target <owner/name> [--base <ref>] --gate-forecast <G2|G4>  # after open/edit
 "$hatsu_root/scripts/pr_body_evidence_check.sh" --body <abs path>
 nen pr body-check --body-from <abs path> --requirements-from <absolute-requirements.json>
-nen spec coverage --issue-body <abs issue.md> --pr-body <abs path> --json  # --spec
+nen spec coverage --issue-body <abs issue.md> --pr-body <abs path> [--test-report <file>] --json  # --spec
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
 nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragment-dir <fragmentDir> \
   --head-changelog <headChangelog> --files-from <abs list> [--body-from <abs path>]
