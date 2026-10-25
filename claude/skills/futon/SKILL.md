@@ -44,7 +44,7 @@ is the maintainer's word: never derived.**
 *build-only*, the integration branch if one is cut — and **say the run has started** (a bounded `CON-25`
 delegation, § 7).
 
-Before PR-open, run WORKFLOW § *Recorded Futon delivery ownership* `resume`, else `start` (§ *Batch
+Before PR-open, run WORKFLOW § *Recorded Futon delivery ownership* `resume`, `start` only on its exit `3` (§ *Batch
 delivery* 5), opening nen's run manifest (HA#154, HA#423). After every PR this run opens, whatever its base, `nen run append`.
 
 ## 2. The queue is the selector's scope — and only that
@@ -156,7 +156,7 @@ issue in scope merged into `branch.base` (none stranded, en § 6), closed, skipp
 a `ready` one keeps it open at its prompt; any held, it ends incomplete — **and the `then` clause, if typed, has
 run or is held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
 
-Say the run has ended; the delegation lapses. The closing report lists each skipped issue's open `OQ-{n}`
+Say the run has ended (`end`); the delegation lapses. The closing report lists each skipped issue's open `OQ-{n}`
 rows and ends **offering**, never starting, the open-question flow (WORKFLOW § *Idle batches* rule 9). The final report is [`hatsu:rikugan`](../rikugan/SKILL.md)
 over this run's scope — its § 2 futon row, the `then` outcome included (§ 8's one render); `final` only if every PR merged, else `register` with the asks. Then the
 **wrap-up picker** ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`). **Futon never resumes itself**; re-invoke it.

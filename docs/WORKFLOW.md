@@ -1198,6 +1198,7 @@ retired and refuse by name.
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
 node "$hatsu_root/scripts/futon_effort_record.mts" resume --repo <checkout> [--run <id>] --invocation '<the same line, re-typed>'
 node "$hatsu_root/scripts/futon_effort_record.mts" integrate --repo <checkout> --run <id> --branch <the run's integration branch>
+node "$hatsu_root/scripts/futon_effort_record.mts" end --repo <checkout> --run <id>   # futon § 10
 node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree> --pr <N> --run <id printed by start> --issue <issue-N> --base <live non-main base> --head <live head branch> --sha <full live head SHA>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
@@ -1211,7 +1212,7 @@ A missing, mismatched or stale record leaves En at the maintainer handoff; it ne
 ownership from the branch name, PR title or session memory. En verifies again against the
 same head immediately before its bounded merge ([`en`](../claude/skills/en/SKILL.md) § 5).
 The local record supplies **procedural provenance**, not cryptographic proof of who typed the
-invocation; only Futon may run `start`, `resume` and `integrate`, and En only runs `verify`. A host running this `.mts`
+invocation; only Futon may run `start`, `resume`, `integrate` and `end`, and En only runs `verify`. A host running this `.mts`
 helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
 
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
@@ -1554,8 +1555,11 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    `held-credential` (a credential, App or provisioning step); `held-cap` (en's acting-cycle cap, or the round
    ceiling, en § 6); `held-handback` (en § 6's observation errors, a draft or a retarget, en § 5's ownership or
    gate refusal); `held-stranded` (the child of a closed stacked PR, waiting on the maintainer to retarget or
-   close it, § *Stacked pull requests* rule 5); `held-interrupted` (the session actually ended, en § 7 — written
-   by the resume, rule 5, never at the interruption). Under `--idle`, an effort's park (§ *Idle batches* rules
+   close it, § *Stacked pull requests* rule 5 — and a child GitHub itself closed when its base branch was
+   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw, is `held-stranded`, never `closed`).
+   A session that actually ended mid-run (en § 7) holds nothing: the resume (rule 5) finds each delivery
+   `driving` again. nen `0.28`'s parks are append-only, so **a later state wins over a park**: a delivery
+   `nen run verify` reads `merged` or `closed` after its `held-*` park is that state, never held. Under `--idle`, an effort's park (§ *Idle batches* rules
    1–4: a `hold` or `refuse` row, `g5-<class>` with `g5-harness-denied`, `residue-<skill>`, `budget`) **is** its
    held record. The **three facts**: the exact prerequisite or bound; the last `nen pr ready` verdict with its
    judged head (`no PR` for an effort parked before one); the resume action (`hatsu:en on <CODE>#<N>`, or rule
@@ -1565,7 +1569,7 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    (`needs-clarification`, `g5-shape-unread`), or a legacy-CI PR owned by its own CI actor (futon § 9); the
    shape check's exit `2` instead stops the queue as one G5, and the batch ends incomplete on it. A batch is
    **complete** when every delivery is `ready` or `merged` and every other selected issue is skipped or
-   `closed`; with any `held-*`, it is **incomplete**: the closing report and the Rikugan `register` list each
+   `closed` — under `--idle` an included issue's delivery is the integration PR (rule 6); with any `held-*`, it is **incomplete**: the closing report and the Rikugan `register` list each
    held delivery with its three facts, and `final` is never rendered over it. **When the run ends is futon
    § 10's**: an attended run stays open while a delivery stands `ready` at its prompt and ends once none is
    `driving` and every delivery is `merged`, `closed` or held; an idle run ends at `idle.terminal`. The wrap-up
@@ -1577,8 +1581,8 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    carrying every effort merged into it. An effort that cannot join — its catch-up onto the integration branch
    stops at a semantic conflict (`ao`'s G5, row `semantic-conflict`) — parks `g5-semantic-conflict` and is
    listed as not included (rule 6); no second branch is cut for it. Separate integration deliveries come only
-   from separate runs, the boundary being the repository (a `dowsing-chain` wave runs one futon per member
-   repository), named in the closing report. Under `--idle` **no per-effort PR is opened and nothing is
+   from separate runs — one repository and selector each (a `dowsing-chain` wave runs one futon per member
+   repository) — named in the closing report. Under `--idle` **no per-effort PR is opened and nothing is
    stacked**: each delegate and `mukai` stop at hanten's settlement, the effort is merged locally (futon § 5),
    and `en` runs on the integration PR alone; `futon_effort_record.mts bind` and `verify` refuse an idle run
    (§ *Recorded Futon delivery ownership*), while nen `0.28`'s `nen run append` does not refuse a `delivery`
@@ -1587,16 +1591,22 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    one until it is ruled.
 5. **A resume keeps the shape.** Futon never resumes itself: the maintainer re-types the line. Before `start`,
    futon runs `futon_effort_record.mts resume --repo <checkout> --invocation '<the line>'`: with no `--run` it
-   continues the newest real run typed as exactly that line, and with none it says *start a new run*. A run
-   `nen run verify --id <its id>` reads finished — every PR merged or closed, nothing parked — is not resumed;
-   `start` opens a new one, and names the earlier run typed as the same line. A resume proves the run's identity
-   and never re-derives its policy: nen's manifest must already be on disk (with none it refuses **before**
-   calling nen, which would write an empty one that `nen run verify` reads as an open gate), the answers resent
-   are the ones nen stored, and the recorded `idle.terminal` and integration branch hold; a committed profile
-   that moved since launch is reported, never obeyed. It refuses another line, a dry run, a v0.1/v0.2 record, a
-   manifest started at another time and a record whose id differs. `kazaana` passes the futon line it composed
-   (kazaana § 1). The resumed run keeps the same integration branch and PR and the same readiness obligation
-   for every included delivery, reading what was already opened through `nen run verify --id <id>`.
+   continues the newest real run typed as exactly that line **that has not ended** — futon § 10 records the end
+   with `futon_effort_record.mts end --run <id>`, so the same line typed after a finished night is a new run.
+   **Exit `3`** means no open run: `start` opens one and names any earlier run typed as the same line. **Exit
+   `1`** is a refusal — stop and report it, **never `start`**, which would split the delivery. A resume proves
+   the run's identity and never re-derives its policy: nen's manifest must already be on disk (with none it
+   refuses **before** calling nen, which would write an empty one that `nen run verify` reads as an open gate),
+   the answers resent are the ones nen stored — re-checked against § 2 `idle`'s floor, which nen does not apply
+   — and the recorded `idle.terminal` and integration branch hold; a committed profile that moved since launch is
+   reported, never obeyed. It refuses another line, an ended run, a dry run, a v0.1/v0.2 record, a manifest
+   started at another time, a record whose id differs from `--run` or from its filename, and another
+   repository. The budget clock is the manifest's `startedAt` (§ 2 `idle`), so a resumed idle run whose minutes
+   are spent claims nothing new and drives what it already opened. Reading nen's manifest file directly, and
+   refusing one still at its legacy spelling, is named residue owed to nen (zheref/nen#545). `kazaana` passes the
+   futon line it composed (kazaana § 1). The resumed run keeps the same integration branch and PR and the same
+   readiness obligation for every included delivery, reading what was already opened through `nen run verify
+   --id <id>`.
 6. **A consolidated PR accounts for everything it carries.** The integration PR closes and links every
    included issue (one `Closes #<N>` and Development link each) and its criteria section answers every
    acceptance criterion of every included issue, by issue. An issue whose effort did not merge into the
@@ -1658,8 +1668,8 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
 5. **Terminal — integration branches only** (the ruling of 2026-10-23, § 2 `idle`; fixed at `start` and kept
    by a resume, § *Batch delivery* rules 4–5). An idle run always cuts
    futon § 5's integration branch and merges each hanten-settled effort into it locally; `idle.terminal` is the
-   integration PR Ready at the maintainer's merge prompt (or, under `ready-at-prompt`, every effort Ready before
-   that merge). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
+   integration PR Ready at the maintainer's merge prompt (or, under `ready-at-prompt`, short of opening it:
+   each effort `held-gate`, § *Batch delivery* rule 4's reading). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
    `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host scheduler may
    re-invoke the build, never a release. The steady-state schedule is [`config/schedule.md`](config/schedule.md)'s; its
    tasks are registered only by the maintainer. `cleanup` runs its deterministic rows for this session only

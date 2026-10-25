@@ -188,6 +188,9 @@ else process.exit(2);
   expectStatus(manifestCall(['integrate', '--repo', root, '--run', idleId, '--branch', 'gpt/kurapika/futon-model-gpt-2026-10-25']), 0, 'the same branch again is unchanged');
   expectStatus(manifestCall(['integrate', '--repo', root, '--run', idleId, '--branch', 'gpt/kurapika/futon-other']), 1, 'a second integration branch is refused');
   expectStatus(manifestCall(['integrate', '--repo', root, '--run', runId, '--branch', 'main']), 1, 'the default branch is never an integration branch');
+  for (const spelling of ['refs/heads/main', 'heads/main', 'origin/main', 'remotes/origin/main', 'HEAD', '-f', '-x', 'main.lock', 'x.', 'a..b'])
+    expectStatus(manifestCall(['integrate', '--repo', root, '--run', runId, '--branch', spelling]), 1, `integrate refuses the spelling ${spelling}`);
+  expectStatus(manifestCall(['integrate', '--repo', root, '--run', runId, '--branch', 'gpt/kurapika/x'], { FAKE_REPO: 'zheref/other' }), 1, 'integrate refuses a run of another repository');
   const resumed = resume(idleId, idleLine);
   expectStatus(resumed, 0, 'an interrupted idle run resumes under its own id');
   assert.match(String(resumed.stdout), new RegExp(`run ${idleId} resumed for zheref/hatsu@model/gpt \\(idle\\)`));
@@ -199,7 +202,7 @@ else process.exit(2);
   expectStatus(found, 0, 'with no --run, the newest run typed as the same line resumes');
   assert.match(String(found.stdout), new RegExp(`run ${idleId} resumed`));
   const none = resume(null, 'hatsu:futon hatsu@model/gpt --idle then getsuga');
-  expectStatus(none, 1, 'a line no run was typed as is a new run');
+  expectStatus(none, 3, 'a line no open run was typed as exits 3: start a new run');
   assert.match(String(none.stderr), /start a new run/);
   expectStatus(resume(idleId, 'hatsu:futon hatsu@model/gpt then rikugan'), 1, 'a resume typed as another line is refused');
   expectStatus(resume(idleId, idleLine, { FAKE_NEN_START: 'started' }), 1, 'a resume nen reports as a new start is refused');
@@ -227,6 +230,15 @@ else process.exit(2);
   expectStatus(resume(idleId, idleLine), 1, 'a manifest started at another time is another run');
   writeFileSync(manifestFile(idleId), JSON.stringify({ ...moved, idleAnswers: null }));
   expectStatus(resume(idleId, idleLine), 1, 'a manifest that is not idle for an idle record is refused');
+  writeFileSync(manifestFile(idleId), JSON.stringify({ ...JSON.parse(kept), idleAnswers: { ...JSON.parse(kept).idleAnswers, 'publish-offer': 'default' } }));
+  writeFileSync(manifestFile(idleId), 'null');
+  const nullManifest = resume(idleId, idleLine);
+  expectStatus(nullManifest, 1, 'a null manifest is refused');
+  assert.match(String(nullManifest.stderr), /is not a run manifest/);
+  writeFileSync(manifestFile(idleId), JSON.stringify({ ...JSON.parse(kept), idleAnswers: { ...JSON.parse(kept).idleAnswers, 'publish-offer': 'default' } }));
+  const floored = resume(idleId, idleLine);
+  expectStatus(floored, 1, 'a stored answer edited past the floor never resumes');
+  assert.match(String(floored.stderr), /publish-offer may not be default/);
   writeFileSync(manifestFile(idleId), kept);
   const idRecord = join(root, '.git', 'hatsu', 'futon', `run-${idleId}.json`);
   const idKept = readFileSync(idRecord, 'utf8');
@@ -240,6 +252,32 @@ else process.exit(2);
   const newest = resume(null, idleLine);
   expectStatus(newest, 0, 'with no --run the newest run typed as the line resumes');
   assert.match(String(newest.stdout), new RegExp(`run ${againId} resumed`));
+  // A record whose id is not its filename's is never picked: resume by line refuses naming it, start only notes it.
+  const forged = join(root, '.git', 'hatsu', 'futon', `run-${'c'.repeat(32)}.json`);
+  writeFileSync(forged, JSON.stringify({ ...record(idleId), id: againId, startedAt: '2099-01-01T00:00:00.000Z' }));
+  const forgedPick = resume(null, idleLine);
+  expectStatus(forgedPick, 1, 'a forged sibling record refuses a resume by line');
+  assert.match(String(forgedPick.stderr), new RegExp(`run-${'c'.repeat(32)}\\.json is unreadable \\(its id is not its filename's\\)`));
+  const noted = manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt']);
+  expectStatus(noted, 0, 'a bad sibling never refuses a start');
+  assert.match(String(noted.stdout), /note: run record .* is unreadable .*; skipped/);
+  rmSync(forged);
+  const foreign = join(root, '.git', 'hatsu', 'futon', `run-${'d'.repeat(32)}.json`);
+  writeFileSync(foreign, JSON.stringify({ contract: 'hatsu.futon.run/v0.4' }));
+  expectStatus(manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt']), 0, 'a foreign sibling never refuses a start');
+  rmSync(foreign);
+  // futon § 10's end is recorded once; an ended run is never picked, so the same line again is a new run.
+  expectStatus(manifestCall(['end', '--repo', root, '--run', againId]), 0, 'the run records its end');
+  assert.ok(record(againId).endedAt, 'endedAt written');
+  expectStatus(resume(againId, idleLine), 1, 'an ended run is never resumed by id');
+  const afterEnd = resume(null, idleLine);
+  expectStatus(afterEnd, 0, 'by line, the newest unended run is the one');
+  assert.match(String(afterEnd.stdout), new RegExp(`run ${idleId} resumed`), 'the ended newer run is skipped');
+  expectStatus(manifestCall(['end', '--repo', root, '--run', idleId]), 0, 'end the older one too');
+  expectStatus(resume(null, idleLine), 3, 'with every run of the line ended, exit 3: start a new run');
+  const idEnded = JSON.parse(readFileSync(idRecord, 'utf8'));
+  delete idEnded.endedAt;
+  writeFileSync(idRecord, JSON.stringify(idEnded));
   // A policy edit on main after launch never strands the run: the stored answers and the recorded terminal hold.
   commitWorkflow({ idle: { terminal: 'ready-at-prompt', decisions: { 'wrap-up': 'hold' } } }, 'profile moved');
   const drifted = resume(idleId, idleLine);
@@ -380,7 +418,7 @@ else process.exit(2);
   }
   const rules = section(canon('docs/WORKFLOW.md'), '### Batch delivery', '\n### ');
   for (const state of ['driving', 'ready', 'merged', 'closed', 'held-approval', 'held-gate', 'held-credential', 'held-cap',
-      'held-handback', 'held-stranded', 'held-interrupted'])
+      'held-handback', 'held-stranded'])
     assert.match(rules, new RegExp(`\`${state}\``), `WORKFLOW § Batch delivery names ${state}`);
   for (const where of ['claude/skills/en/SKILL.md', 'claude/skills/dowsing-chain/SKILL.md'])
     assert.match(canon(where), /Batch delivery/, `${where} cites WORKFLOW § Batch delivery`);
