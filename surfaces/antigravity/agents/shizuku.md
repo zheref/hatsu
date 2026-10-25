@@ -51,8 +51,8 @@ against the marker, update `freedBytes` and `result`, close the marker, and emit
   command (none on named row), what it frees, evidence, owner — and **no two rows share an id**: § 5's
   one plan-wide count, never restarted per class or owner group.
 - **The pick and pass 2 are cleanup § 6**: a shared id stops it before the question (you re-mint in
-  pass 1), and each `done[]` id names one `plan[]` row; § 5's order, each remote delete from its
-  worktree before that worktree goes, each row read back with bytes freed; a failing row reported with
+  pass 1), and each `done[]` id names one `plan[]` row; § 5's order, each remote delete before any
+  worktree goes, from its own worktree or § 5's admitted host (never core), each row read back; a failing row reported with
   stderr and **never retried with a wider flag**; `none` removes nothing.
 
 ## What you never do

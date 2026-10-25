@@ -62,8 +62,8 @@ command**, always after `--`, single-quoted: branch or remote head passes `git c
 and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref: only one the worktrees row selects is
 admitted (facts, never a class; `.ts` header is the rule; `<branch.base>` from
 `nen/workflow.json`; the Hatsu root pasted absolute, § 3):
-`'<Hatsu root>/scripts/cleanup_path_admit.sh' --core '<core>' --base '<branch.base>' --path '<abs path>'`
-— never a prunable entry (§ 5's prune row) nor the surface's own. An exit but `0` admits nothing;
+`'<Hatsu root>/scripts/cleanup_path_admit.sh' --core '<core>' --base '<branch.base>' --path '<abs path>'`.
+An exit but `0` admits nothing;
 failing names become **named** rows, escaped, and no command runs on them.
 
 | Class | Read | Leftover when |
@@ -91,17 +91,19 @@ a worktree no row matches is **proposed**, owner unknown.
 with **merged** PR and clean tree, in order — `git -C <wt> push origin --delete -- <branch>` **only when
 `git ls-remote` returns PR's `headRefOid`**, then admission's printed `worktree remove`, word for word,
 then `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'`
-(one that `git branch -d` refuses on stale local trunk is deterministic once core trunk is
+(refused by `git branch -d` on stale local trunk: deterministic once core trunk is
 fast-forwarded, else proposed — **never `-D`**); `kind reviewer` checkout by ledger alone: `tree clean`, `locked no` **and**
 `.nen/hanten/<key>.cycle.json` records persona `ran` in sitting;
 `git remote prune origin`; `rm -- <reports.dir>/current.html`.
 
+**Remote head, no worktree** (any class): `git -C '<host>' push origin --delete -- '<branch>'`, `<host>` a
+literal path § 4 `admitted` (off `<branch.base>`, `.ts` condition 6: the trunk guard passes it; never core);
+pushes precede any `worktree remove`. None: **named**, `no admitted checkout`.
+
 **Proposed** (judgement; names what it destroys and why uncertain): worktree with uncommitted work (paths
 listed); worktree, branch, remote head with PR **closed unmerged** or **no PR**; merged remote head
-whose SHA != PR `headRefOid`; merged local branch with no worktree, or one passing `origin/<branch.base>`
-ancestry refused by `git branch -d` on stale local trunk (never retried with `-D`; remote head **named**
-on trunk: guard refuses push there); merged effort `captures/`; build cache in kept worktree; prior
-session reviewer checkout; cache binary below pin no host link resolves to — `rm -r -- "<literal-abs-path>"`,
+whose SHA != PR `headRefOid`; merged local branch with no worktree; merged effort `captures/`; build
+cache in kept worktree; prior session reviewer checkout; cache binary below pin no host link resolves to — `rm -r -- "<literal-abs-path>"`,
 `<ref>` matching `^v[0-9]+\.[0-9]+\.[0-9]+$`, non-empty, realpath != host link `readlink -f` (never
 variable-built; proposed because another repo may pin it).
 
@@ -119,7 +121,7 @@ holds; then reviewer ledger rule; then table.
 | remote head | deterministic (SHA = `headRefOid`), else proposed | proposed | named | proposed |
 
 Each row: `id` · class · object · exact command (none on named row) · what it frees (bytes or
-`billed: <what>`) · evidence (PR state, SHA, dirt, age, ledger) · owner (this sitting, or `prior: <branch>`).
+`billed: <what>`) · evidence (PR state, SHA, host, dirt, age, ledger) · owner (this sitting, or `prior: <branch>`).
 **Ids are plan-unique**: class letter (`D`/`P`/`N`) plus one plan-wide count, never restarted per class or
 owner group (`D1`, `P2`).
 
@@ -132,7 +134,7 @@ removed; pass 1 re-mints, never the main session. Then one native picker questio
 before answer.** Main session records the pick (§ 3; `nen stop answer`), then executes picked rows in
 § 5's order, each id naming one `plan[]` row, each read back (`git worktree list`, `git branch`,
 `git ls-remote --heads origin`, `du -sk`), bytes freed per row and total. Failing row reported with
-stderr, **never retried wider (`-D`)**; then § 3's close.
+stderr, **never retried wider**; then § 3's close.
 
 ## 7. The marker, and the report
 
@@ -165,5 +167,5 @@ Removals, `du -sk`, `readlink -f`, name validation and the id check have no nen 
 ## Hard limits
 
 - **Never discards uninspected tree**, never removes worktree whose dirt was not listed.
-- **Never deletes before pick**, never unpicked/named row, never retries wider, never runs unvalidated name.
+- **Never deletes before pick**, never unpicked/named row, never retries wider.
 - **Never raises Shizuku on frontier tier**; never files, merges, votes or pushes code.
