@@ -117,6 +117,18 @@ Before step 8 opens the PR, a script tracked at the PR base but absent here is G
 It runs the base branch's trusted guards against this tree; a red guard is the two-step landing in
 `docs/GATE-CONFIGURATION.md`, stopped before PR creation.
 
+**A change that introduces gate configuration absent from the actual trusted workflow/validator
+revision selected by the readiness event is a bootstrap PR.** Record the event and exact checkout
+ref: Hatsu's readiness workflow explicitly uses `github.event.pull_request.base.sha` for both of
+its events, while another frozen validator may use the default branch's head. Its PR-local copy can
+forecast, but it is not a trusted verdict; a stacked PR base carrying the configuration is not, by
+itself, proof of which revision the validator checked out. Follow
+[`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md), *The two-step landing*: land the
+bootstrap step first, then let a follow-up run after its event resolves to that trusted copy. An
+`unevaluated` or failed trusted-revision verdict is not Ready. Before step 8, every deferred row under
+`## Adversarial review (hanten)` must cite a tracked issue; an untracked deferral remains unsettled,
+so step 2 stops the run rather than opening the PR.
+
 **A landing always runs the thorough profile**, whatever the turns before it named: step 4 is
 kotoamatsukami's impacted suites and step 5 byakugan's coverage, and no `profile` lowers either; and
 where a launch target is declared, the launch is [`amaterasu`](../amaterasu/SKILL.md)'s on the

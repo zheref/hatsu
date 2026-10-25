@@ -165,7 +165,8 @@ export function catalogue(root = ROOT): Catalogue {
     const row = object(value, "every section must be an object");
     const id = row.id;
     if (typeof id !== "string" || id.length === 0) throw new Error("section ids must be nonempty and unique");
-    if (!Number.isInteger(row.level) || (row.level !== 1 && row.level !== 2) || typeof row.glyph !== "string" || row.glyph.length === 0) throw new Error(`${id}: invalid level/glyph`);
+    if (!Number.isInteger(row.level) || (row.level !== 1 && row.level !== 2) || typeof row.glyph !== "string"
+      || (row.glyph.length === 0 && (place !== "footer" || id !== "hanten"))) throw new Error(`${id}: invalid level/glyph`);
     const title = row.title;
     if (typeof title === "string") {
       if (title.length === 0) throw new Error(`${id}: missing title`);
@@ -261,7 +262,8 @@ export function fold(cat: Catalogue, jobs: readonly string[]): string {
 function escapePythonRegex(value: string): string { return value.replace(/[^A-Za-z0-9_]/g, "\\$&"); }
 export function pattern(row: SectionRow, kind: RepositoryKind): Requirement {
   const title = typeof row.title === "string" ? row.title : row.title[kind];
-  return { name: row.id, pattern: `^ {0,3}${"#".repeat(row.level)}[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?${escapePythonRegex(title)}[ \\t]*$` };
+  const glyph = row.glyph.length === 0 ? "" : "(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?";
+  return { name: row.id, pattern: `^ {0,3}${"#".repeat(row.level)}[ \\t]+${glyph}${escapePythonRegex(title)}[ \\t]*$` };
 }
 /**
  * HR-11: a row declaring `content` also requires its heading to be followed, past blank lines and

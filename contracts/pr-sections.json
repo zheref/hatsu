@@ -1,6 +1,6 @@
 {
   "contract": "hatsu.pr-sections/v1",
-  "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect. The spec footer row is admitted by the run fact spec (a closing issue carrying a Spec: line) and carries nen's spec-rows requirement whole.",
+  "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, glyphs, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect. The spec footer row is admitted by the run fact spec (a closing issue carrying a Spec: line) and carries nen's spec-rows requirement whole; the always-on Hanten footer keeps its exact unglyphed compatibility heading and precedes checklist evidence.",
   "max": 7,
   "proseBudget": 150,
   "aspects": [
@@ -152,13 +152,22 @@
       "$comment": "Every pre-answered row and every default the run took for the maintainer; mandatory on every PR whose run took one, idle (HR-334) or attended (HA#474 AC-1), whatever the kind or family. Any positive source includes it: --decisions, --idle, or --decisions-from a nen.run manifest with a non-empty idleAnswers. A manifest proves only launch pre-answers: a null or empty idleAnswers adds nothing beside --decisions or --idle (the flag wins) and refuses alone; a malformed manifest refuses whatever else is passed. A default taken mid-run or attended is --decisions."
     },
     {
+      "id": "hanten",
+      "glyph": "",
+      "title": "Adversarial review (hanten)",
+      "level": 2,
+      "template": "templates/pr-body/hanten.md",
+      "reserved": false,
+      "$comment": "Exact adopted-gate heading and settled Hanten findings. Each deferred row cites a tracked issue."
+    },
+    {
       "id": "checklist",
       "glyph": "📋",
       "title": "Completion checklist",
       "level": 2,
       "template": "templates/pr-body/checklist.md",
       "reserved": false,
-      "$comment": "Compact evidence-backed completion conditions."
+      "$comment": "Compact evidence-backed completion conditions, including the checked Hanten-settled evidence line."
     },
     {
       "id": "issues",

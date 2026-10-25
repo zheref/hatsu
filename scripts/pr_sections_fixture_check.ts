@@ -63,8 +63,51 @@ function body(report: Resolution, kind: RepositoryKind = "process", source = cat
   return [...report.preamble, ...report.ids, ...report.footer].map((id): string => {
     const row = rows.get(id) as SectionRow;
     const title = typeof row.title === "string" ? row.title : row.title[kind];
-    return `${"#".repeat(row.level)} ${row.glyph} ${title}\n\nFilled.`;
+    const glyph = row.glyph.length > 0 ? `${row.glyph} ` : "";
+    return `${"#".repeat(row.level)} ${glyph}${title}\n\nFilled.`;
   }).join("\n\n") + "\n";
+}
+// A compatibility contract for the deployed gate shape recorded by HA#475. Hatsu and Nen do not
+// ship that consumer-owned validator, so this is deliberately not presented as its execution.
+function hantenCompatibilityFindings(text: string): string[] {
+  const findings: string[] = [];
+  const headings = text.match(/^## Adversarial review \(hanten\)[ \t]*$/gm) ?? [];
+  if (headings.length !== 1) findings.push("exact Hanten H2 required once");
+  if (!/^- \[x\] Adversarial review settled\.[ \t]*$/m.test(text)) findings.push("checked Hanten checklist line missing");
+  const section = text.match(/^## Adversarial review \(hanten\)[ \t]*$([\s\S]*?)(?=^##[ \t]|(?![\s\S]))/m)?.[1] ?? "";
+  let dispositionColumn = -1;
+  let idColumn = -1;
+  let rows = 0;
+  const closeTable = (): void => {
+    if (dispositionColumn >= 0 && rows === 0) findings.push("findings table has a header and no rows");
+    dispositionColumn = -1; idColumn = -1; rows = 0;
+  };
+  for (const raw of `${section}\n`.split("\n")) {
+    const line = raw.trimStart();
+    if (!line.startsWith("|")) {
+      closeTable();
+      if (/disposition/i.test(line) && line.includes("|")) findings.push("findings table row lacks leading pipe");
+      continue;
+    }
+    const cells = line.split("|").map((cell): string => cell.trim().replace(/^[*`]+|[*`]+$/g, ""));
+    if (dispositionColumn < 0) {
+      dispositionColumn = cells.findIndex((cell): boolean => cell.toLowerCase() === "disposition");
+      idColumn = cells.findIndex((cell): boolean => cell.toLowerCase() === "id");
+      continue;
+    }
+    if (/^\|[ \t:|-]+$/.test(line)) continue;
+    rows++;
+    const id = cells[idColumn]?.trim() || "(unnamed row)";
+    const disposition = (cells[dispositionColumn] ?? "").replaceAll("*", "").trimStart();
+    if (!/^(?:fixed|pushed-back|deferred)(?:[ \t]+[-—:–][ \t]*\S|[ \t]*$)/i.test(disposition)) {
+      findings.push(`unsettled finding ${id}: ${disposition}`);
+    } else if (/^(?:fixed|pushed-back|deferred)[ \t]*$/i.test(disposition)) {
+      findings.push(`finding ${id} lacks disposition reason`);
+    } else if (/^deferred/i.test(disposition) && !/(?:#[0-9]+|https?:\/\/\S+)/.test(disposition)) {
+      findings.push(`deferred finding ${id} lacks tracked issue: ${disposition}`);
+    }
+  }
+  return findings;
 }
 function config(value: unknown): void {
   writeFileSync(join(repo, "nen/workflow.json"), `${JSON.stringify({ pr: { sections: value } })}\n`);
@@ -111,8 +154,9 @@ test("run facts admit only conditional readers while Delivery stays an always-fi
   assert.ok(!without.footer.includes("delivery"));
   // HR-334 (idle) and HA#474/AC-1 (attended): a run that took a decision carries the decisions footer, before the checklist.
   assert.ok(!without.footer.includes("decisions"));
-  assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "checklist", "issues", "attribution"]);
-  assert.deepEqual(resolution("process", ["machinery"], ["decisions"]).footer, ["decisions", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "hanten", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["decisions"]).footer, ["decisions", "hanten", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["spec", "decisions"]).footer, ["spec", "decisions", "hanten", "checklist", "issues", "attribution"]);
   const withEconomics = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   assert.deepEqual(withEconomics.ids, ["changes", "why", "how", "improves", "across", "verify", "economics"]);
   assert.deepEqual(resolution("unknown").ids, ["changes", "why", "how", "improves", "verify"]);
@@ -125,11 +169,11 @@ test("HA#474 AC-1/AC-2: decisions resolves on every cell when a decision was tak
     const [kind, family] = cell.split(".") as [RepositoryKind, string];
     for (const facts of [["decisions"], ["decisions", "policy-hit", "evidence"], ["idle"]]) {
       const taken = resolution(kind, cat.families[family], facts);
-      assert.deepEqual(taken.footer, ["decisions", "checklist", "issues", "attribution"], `${cell} ${facts.join(",")}`);
+      assert.deepEqual(taken.footer, ["decisions", "hanten", "checklist", "issues", "attribution"], `${cell} ${facts.join(",")}`);
       assert.deepEqual(check(cat, body(taken, kind), taken.requirements, 7)[0], [], cell);
     }
     const none = resolution(kind, cat.families[family], ["policy-hit", "evidence"]);
-    assert.deepEqual(none.footer, ["checklist", "issues", "attribution"], cell);
+    assert.deepEqual(none.footer, ["hanten", "checklist", "issues", "attribution"], cell);
     assert.ok(!none.requirements.some((row): boolean => row.name === "decisions"), cell);
     assert.deepEqual(check(cat, body(none, kind), none.requirements, 7)[0], [], cell);
   }
@@ -217,6 +261,33 @@ test("HA#474 AC-3: on zheref/hatsu#467's headings the strict check and nen's bod
   assert.equal(bodyCheck.status, 0, `${bodyCheck.stdout}${bodyCheck.stderr}`);
 });
 
+test("HA#475: the derived body satisfies the section guard and recorded Hanten compatibility contract", () => {
+  const report = resolution();
+  const valid = body(report)
+    .replace("## Adversarial review (hanten)\n\nFilled.", "## Adversarial review (hanten)\n\n| id | persona | rule | severity | file | disposition |\n|---|---|---|---|---|---|\n| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |")
+    .replace("## 📋 Completion checklist\n\nFilled.", "## 📋 Completion checklist\n\n- [x] Adversarial review settled.");
+  assert.deepEqual(check(cat, valid, report.requirements, 7)[0], []);
+  assert.deepEqual(hantenCompatibilityFindings(valid), []);
+
+  const decorated = valid.replace("## Adversarial review (hanten)", "## 🔍 Adversarial review (hanten)");
+  assert.ok(check(cat, decorated, report.requirements, 7)[0].some((finding): boolean => finding.includes("missing heading hanten")));
+  assert.ok(hantenCompatibilityFindings(decorated).includes("exact Hanten H2 required once"));
+
+  const unchecked = valid.replace("- [x] Adversarial review settled.", "- [ ] Adversarial review settled.");
+  assert.ok(hantenCompatibilityFindings(unchecked).includes("checked Hanten checklist line missing"));
+  const untracked = valid.replace("**deferred** — #475", "**deferred** — later");
+  assert.ok(hantenCompatibilityFindings(untracked).some((finding): boolean => finding.includes("lacks tracked issue")));
+  const pipeless = valid.replace(
+    "| id | persona | rule | severity | file | disposition |\n|---|---|---|---|---|---|\n| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |",
+    "id | persona | rule | severity | file | disposition\n---|---|---|---|---|---\nHR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — later",
+  );
+  assert.ok(hantenCompatibilityFindings(pipeless).includes("findings table row lacks leading pipe"));
+  const indented = valid.replace("| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |", " | HR-2 | reviewer | HR-1 | high | `a.md` | **deferred** — later |");
+  assert.ok(hantenCompatibilityFindings(indented).some((finding): boolean => finding.includes("HR-2 lacks tracked issue")));
+  const hyphenId = valid.replace("| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |", "|-3 | reviewer | HR-1 | high | `a.md` | **deferred** — later |");
+  assert.ok(hantenCompatibilityFindings(hyphenId).some((finding): boolean => finding.includes("-3 lacks tracked issue")));
+});
+
 test("consumer overrides validate every cell, booleans, mandatory readers and admitted count", () => {
   const chosen = ["changes", "why", "improves", "verify"];
   config({ max: 7, variants: { "process.maintain": chosen } });
@@ -290,7 +361,7 @@ test("HR-11: an empty verify heading fails through its derived content requireme
 test("HA#405: the spec run fact admits the Spec footer first, carrying nen's spec-rows whole", () => {
   assert.ok(!resolution("product", ["implementation"], []).footer.includes("spec"));
   const report = resolution("product", ["implementation", "parity"], ["spec"]);
-  assert.deepEqual(report.footer, ["spec", "checklist", "issues", "attribution"]);
+  assert.deepEqual(report.footer, ["spec", "hanten", "checklist", "issues", "attribution"]);
   assert.ok(!report.ids.includes("spec"), "the Spec block is a footer, outside the seven-reader cap");
   const at = report.requirements.findIndex((row): boolean => row.name === "spec");
   // The catalogue's copy of nen's spec-rows is the one copy, frozen to the nen commit it names (nen exposes
@@ -374,6 +445,9 @@ test("catalogue validation rejects unknown cells, duplicate jobs, bad kind title
   const title = clone(cat) as Catalogue & { sections: Array<SectionRow & { title: unknown }> };
   title.sections[4]!.title = { product: "One" }; write(title);
   assert.throws((): Catalogue => catalogue(copy), /every repository kind/);
+  const emptyGlyph = clone(cat) as Catalogue & { sections: SectionRow[] };
+  emptyGlyph.sections[0] = { ...emptyGlyph.sections[0]!, glyph: "" }; write(emptyGlyph);
+  assert.throws((): Catalogue => catalogue(copy), /invalid level\/glyph/);
   const reserved = clone(cat) as Catalogue & { footer: Array<SectionRow & { reserved?: boolean }> };
   delete reserved.footer[0]!.reserved; write(reserved);
   assert.throws((): Catalogue => catalogue(copy), /reserved must be boolean/);

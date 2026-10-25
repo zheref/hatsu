@@ -1764,7 +1764,9 @@ the decision. Non-release rows carry the eleven-aspect improves ladder; release 
 written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
 library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
 `CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
-Delivery is outside the reader cap; checklist, associated issues and final attribution are compact footer blocks.
+Delivery is outside the reader cap; conditional Spec and Decisions plus always-on Hanten, checklist,
+associated issues and final attribution are compact footer blocks. HA#475 implements Hanten under that
+reader-only cap; the catalogue keeps its exact compatibility-contract heading ahead of the checklist.
 The sections and Delivery guards and Nen's per-run requirements check join evidence and Development checks before
 **every** create or edit. No undeclared heading may grow a second composition contract.
 
