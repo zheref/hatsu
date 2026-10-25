@@ -130,14 +130,12 @@ only with exposed title/id; mark served only when attested.
 | `evidence` | **what was observed or measured**, a number with its method; never the rule restated |
 | `proposedFix` | what would settle it, proposed, never applied |
 
-The record is one ignored
-`hatsu.hanten.findings/v0.1` document at `<reports.dir>/hanten/<branch-slug>.json`: `scopes[]` (persona,
-tier, model, `used`/`max`, `invocation` = `ran` | `delta` | `skipped-exhausted`, plus `adapted`, `gap` or
-the security `scans`) and `findings[]` (the six fields plus `id`, `scope`, `persona`, `disposition`), plus
-`reports[]` (`{scope, persona, invocation, head, path}` per report file). **Leorio's report returns in his reply**; hanten writes it per effort, a
-delta pass **appended** (ECONOMICS.md § 5).
-**Hanten is the sole discovery writer**; Kurapika alone applies
-`docs/DISCOVERY.md`.
+The ignored record is a `hatsu.hanten.findings/v0.1` document at
+`<reports.dir>/hanten/<branch-slug>.json`: `scopes[]` (persona, tier, model, `used`/`max`, invocation,
+`adapted`, `gap`, `scans`), `findings[]` (the six fields plus `id`, `scope`, `persona`,
+`disposition`) and `reports[]` (`{scope, persona, invocation, head, path}`). Leorio returns his report;
+hanten appends delta passes (ECONOMICS.md § 5). **Hanten writes discovery**;
+Kurapika applies `docs/DISCOVERY.md`.
 
 ## 6. Settle every finding — fixed, or pushed back with a reason
 
@@ -146,6 +144,9 @@ delta pass **appended** (ECONOMICS.md § 5).
 | **`fixed`** | the change was made | what changed, where |
 | **`pushed-back`** | the finding does not hold | **a cited reason** — the rule misread, a constraint they could not see, a contradicting measurement, a ruling by its HR row or, before its row lands, its `R-…` record (WORKFLOW § 4); never "disagree" or "out of scope" alone; never on a `CON-` or ruled `HR-` rule (HR-337), critical by shape: fixed or deferred to a named amendment PR (HR-10) |
 | **`deferred`** | it outlives this branch | the tracked item, or its durable `pending` record. An untracked deferral is `unsettled` |
+
+Before it advances, run `node "$hatsu_root/scripts/hanten_findings_check.mts" "<findings-record>"
+"$hatsu_root/docs/ROSTER.md"`; exit `1` returns, `2` stops unread.
 
 **A push-back is an argument, not a veto**. Every disposition reaches the PR body through
 `shibari`; a `fixed` one is proved by `iteration.checks`, one editing a dieted

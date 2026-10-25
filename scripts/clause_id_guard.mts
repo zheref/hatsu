@@ -46,6 +46,8 @@
 //
 // Usage: node scripts/clause_id_guard.mts [<roster.md>]   (default docs/ROSTER.md)
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const DEFINITION = /<a id="hr-(\d+)"><\/a>\*\*HR-(\d+)\*\*/g;
 const ANCHOR = /\bid\s*=\s*["']?hr-([^"'\s>]*)/gi;
@@ -70,9 +72,12 @@ interface Verdict {
   readonly dangling: readonly { line: number; id: string }[];
   readonly unindexed: readonly { line: number; id: string }[];
   readonly misindexed: readonly { line: number; id: string; status: string }[];
+  readonly definitions: readonly Definition[];
 }
 
 interface Definition { readonly id: string; readonly line: number; readonly status: string | null; readonly paren: string | null }
+
+export interface RosterStatus { readonly id: string; readonly line: number; readonly status: string }
 
 // The parenthesis opening at `open`, balanced, or null when it never closes on the line.
 function balanced(text: string, open: number): string | null {
@@ -101,7 +106,7 @@ function cells(row: string): string[] {
   return row.split(/(?<!\\)\|/).slice(1, -1).map((c) => c.trim());
 }
 
-class ToolingFailure extends Error {}
+export class RosterStatusFailure extends Error {}
 
 function scan(contents: string): Verdict {
   const definitions: string[] = [];
@@ -151,13 +156,13 @@ function scan(contents: string): Verdict {
   for (const digits of definitions) {
     const id = Number(digits);
     if (digits.length > 15 || !Number.isSafeInteger(id)) {
-      throw new ToolingFailure(`HR id ${digits.slice(0, 24)}${digits.length > 24 ? '...' : ''} is not a safe integer`);
+      throw new RosterStatusFailure(`HR id ${digits.slice(0, 24)}${digits.length > 24 ? '...' : ''} is not a safe integer`);
     }
     ids.push(id);
   }
   const ceiling = ids.length + ID_HEADROOM;
   for (const id of ids) {
-    if (id > ceiling) throw new ToolingFailure(`HR-${id} exceeds the definition count plus ${ID_HEADROOM} (${ceiling})`);
+    if (id > ceiling) throw new RosterStatusFailure(`HR-${id} exceeds the definition count plus ${ID_HEADROOM} (${ceiling})`);
   }
   const counts = new Map<string, number>();
   for (const { raw } of anchors) {
@@ -177,7 +182,7 @@ function scan(contents: string): Verdict {
     gapCount += 1;
     if (gaps.length < GAP_LISTING) gaps.push(id);
   }
-  if (readings === null) throw new ToolingFailure('no `## Readings` heading, so the readings index cannot be read');
+  if (readings === null) throw new RosterStatusFailure('no `## Readings` heading, so the readings index cannot be read');
   const badStatus = defined
     .filter((d) => d.status === null || !admitted(d.status))
     .map((d) => ({ line: d.line, id: d.id, word: d.status ?? '' }));
@@ -199,7 +204,19 @@ function scan(contents: string): Verdict {
   const misindexed = indexed
     .filter((e) => !reading.has(e.id))
     .map(({ line, id }) => ({ line, id, status: statusOf.has(id) ? statusOf.get(id) || 'no status' : 'not defined' }));
-  return { ids, duplicates, mismatches, nonCanonical: anchors.filter((a) => !a.canonical), gaps, gapCount, badStatus, twoStatuses, labelMismatch, dangling, unindexed, misindexed };
+  return { ids, duplicates, mismatches, nonCanonical: anchors.filter((a) => !a.canonical), gaps, gapCount, badStatus, twoStatuses, labelMismatch, dangling, unindexed, misindexed, definitions: defined };
+}
+
+// One parser owns the status vocabulary and row extraction. Consumers that need
+// status-aware policy receive only a complete, unambiguous status map; a roster
+// whose status rows cannot be trusted is unread, never a partly useful table.
+export function parseRosterStatuses(contents: string): readonly RosterStatus[] {
+  const verdict = scan(contents);
+  if (verdict.ids.length === 0) throw new RosterStatusFailure('no HR definitions');
+  const statusFindings = verdict.duplicates.length + verdict.mismatches.length + verdict.nonCanonical.length
+    + verdict.badStatus.length + verdict.twoStatuses.length;
+  if (statusFindings) throw new RosterStatusFailure(`the roster has ${statusFindings} HR definition or status finding(s)`);
+  return verdict.definitions.map(({ id, line, status }) => ({ id, line, status: status ?? '' }));
 }
 
 function main(argv: string[]): number {
@@ -223,7 +240,7 @@ function main(argv: string[]): number {
   try {
     verdict = scan(contents);
   } catch (error) {
-    if (!(error instanceof ToolingFailure)) throw error;
+    if (!(error instanceof RosterStatusFailure)) throw error;
     console.error(`clause-id-guard: ${error.message} in ${path}; refusing to read it as a gap`);
     return 2;
   }
@@ -272,4 +289,5 @@ function main(argv: string[]): number {
   return 0;
 }
 
-process.exit(main(process.argv.slice(2)));
+const invoked = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invoked) process.exit(main(process.argv.slice(2)));
