@@ -15,6 +15,12 @@ import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
+// A --self-test guard that regressed would start this fixture from inside itself, without bound; the
+// two cases that probe it set this marker, so such a start is refused red here, never recursed.
+if (process.env.HATSU_PROSE_SELFTEST_DEPTH) {
+  process.stderr.write('prose_ambiguity_check_fixture: refused: started from inside the fixture (HATSU_PROSE_SELFTEST_DEPTH is set); the --self-test flag guard regressed\n');
+  process.exit(2);
+}
 const scripts = dirname(fileURLToPath(import.meta.url));
 const repo = dirname(scripts);
 const script = join(scripts, 'prose_ambiguity_check.mts');
@@ -458,8 +464,9 @@ try {
   {
     const G = ['-c', 'user.name=f', '-c', 'user.email=f@f', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null'];
     const gitIn = (root: string, ...a: string[]): void => { const r = spawnSync('git', ['-C', root, ...G, ...a], { encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr); };
+    const clean = Object.fromEntries(Object.entries(process.env).filter(([k]) => k !== 'HATSU_PROSE_HISTORY_SCAN' && !k.startsWith('GIT_')));
     const hist = (root: string, env: Record<string, string>, ...a: string[]): Run =>
-      spawnSync(process.execPath, [script, '--root', root, ...a], { encoding: 'utf8', env: { ...process.env, ...env } }) as Run;
+      spawnSync(process.execPath, [script, '--root', root, ...a], { encoding: 'utf8', env: { ...clean, ...env } }) as Run;
     const merge = (root: string, n: string, branch: string, edit: () => void): void => {
       gitIn(root, 'checkout', '-qb', branch); edit(); gitIn(root, 'add', '-A'); gitIn(root, 'commit', '-qm', branch);
       gitIn(root, 'checkout', '-q', 'main'); gitIn(root, 'merge', '-q', '--no-ff', '-m', `Merge pull request #${n} from f/${branch}`, branch);
@@ -479,24 +486,28 @@ try {
     gitIn(root, 'checkout', '-qb', 'local'); put(root, 'docs/local.md', '# L\n'); gitIn(root, 'add', '-A'); gitIn(root, 'commit', '-qm', 'local');
     gitIn(root, 'checkout', '-q', 'main'); gitIn(root, 'merge', '-q', '--no-ff', '-m', 'Merge branch local', 'local');
     merge(root, '6', 'drops-baseline', () => { put(root, 'docs/plant.md', '# P\n\nDropped.\n'); rmSync(join(root, 'contracts/prose.lint.baseline.json')); });
+    merge(root, '8', 'after-the-drop', () => { put(root, 'docs/plant.md', '# P\n\nAfter.\n'); });
     direct(root, 'chore: restore the baseline', () => { put(root, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n'); });
     const all = hist(root, {}, '--history', '10');
     assert.equal(all.status, 0, all.stdout + all.stderr);
-    assert.match(all.stdout, /^history · #6 · [0-9a-f]{9} · merge · 1 prose file · baseline absent in its tree, not counted$/m);
+    assert.match(all.stdout, /^history · #8 · [0-9a-f]{9} · merge · 1 prose file · baseline absent in its tree or its parent's, not counted$/m, 'a parent with no baseline past the start is flagged, never the start');
+    assert.match(all.stdout, /^history · #6 · [0-9a-f]{9} · merge · 1 prose file · baseline absent in its tree or its parent's, not counted$/m);
     assert.match(all.stdout, /^history · #5 · [0-9a-f]{9} · squash · 1 prose file · 1 removed$/m);
     assert.match(all.stdout, /^history · #4 · [0-9a-f]{9} · merge · 1 prose file · 0 removed$/m, 'a non-ASCII prose path reads as itself');
     assert.match(all.stdout, /^history · #2 · [0-9a-f]{9} · merge · 1 prose file · 1 removed$/m);
     assert.doesNotMatch(all.stdout, /#3 |#1 |local/, 'a code-only merge, a non-PR merge and the ratchet\'s own landing are not counted as PRs');
-    assert.match(all.stdout, /^canon-lint history: last 4 of 10 prose pull requests on [0-9a-f]{9} \(the ratchet starts there: an earlier pull request's parent carries no baseline\) · 2 removed · skipped 1 prose commits naming no PR and 1 non-PR merges · baseline 0 findings$/m);
+    assert.match(all.stdout, /^canon-lint history: last 5 of 10 prose pull requests on [0-9a-f]{9} \(the ratchet starts there: [0-9a-f]{9} added the baseline\) · 2 removed · skipped 1 prose commits naming no PR and 1 non-PR merges · baseline 0 findings$/m);
     const one = JSON.parse(hist(root, {}, '--history', '1', '--json').stdout);
     assert.equal(one.contract, 'hatsu.prose-lint.history/v0.1');
     assert.equal(one.end, 'complete');
-    assert.deepEqual(one.pullRequests.map((p: { number: string; removed: number | null; baselineAbsent: boolean }) => [p.number, p.removed, p.baselineAbsent]), [['6', null, true]]);
+    assert.deepEqual(one.pullRequests.map((p: { number: string; removed: number | null; baselineAbsent: boolean }) => [p.number, p.removed, p.baselineAbsent]), [['8', null, true]]);
     assert.equal(one.removed, 0, 'a PR whose tree has no baseline is left out of the sum');
     assert.equal(one.baselineFindings, 0);
     const full = JSON.parse(hist(root, {}, '--history', '10', '--json').stdout);
     assert.equal(full.skippedNonMergeProse, 1);
     assert.equal(full.skippedNonPrMergeProse, 1);
+    assert.equal(full.end, 'ratchet-start');
+    assert.equal(full.ratchetStart, spawnSync('git', ['-C', root, 'rev-parse', ':/^Merge pull request #1 '], { encoding: 'utf8' }).stdout.trim(), 'the start is the oldest commit adding the baseline, not the restore');
     console.log('ok    --history: merge and squash PRs counted, a baseline-less tree flagged and left out, a non-ASCII path read, skipped commits counted, the ratchet start said');
     // history-start: a baseline from the first commit, fewer PRs than asked.
     const short = base();
@@ -512,7 +523,21 @@ try {
     const badCap = hist(short, { HATSU_PROSE_HISTORY_SCAN: '0' }, '--history', '5');
     assert.equal(badCap.status, 2, badCap.stdout + badCap.stderr);
     assert.match(badCap.stderr, /HATSU_PROSE_HISTORY_SCAN must be a whole number/);
-    console.log('ok    --history: history-start and scan-cap are each said, never read as the ratchet start');
+    const atCap = hist(short, { HATSU_PROSE_HISTORY_SCAN: '3' }, '--history', '5');
+    assert.match(atCap.stdout, /\(the first-parent history ends there\)/, 'a history of exactly the cap is not cut short');
+    console.log('ok    --history: history-start and scan-cap are each said, never read as the ratchet start; exactly the cap is not scan-cap');
+    // The baseline lands on a direct commit: that commit is the start, and an older prose commit is never read.
+    const direct1 = base();
+    rmSync(join(direct1, 'contracts/prose.lint.baseline.json'));
+    gitIn(direct1, 'init', '-q', '-b', 'main'); gitIn(direct1, 'add', '-A'); gitIn(direct1, 'commit', '-qm', 'root');
+    direct(direct1, 'docs: before the ratchet', () => { put(direct1, 'docs/before.md', '# B\n'); });
+    direct(direct1, 'chore: land the ratchet', () => { put(direct1, 'docs/landing.md', '# L\n'); put(direct1, 'contracts/prose.lint.baseline.json', '{"findings":[]}\n'); });
+    merge(direct1, '7', 'after', () => { put(direct1, 'docs/after.md', '# A\n'); });
+    const d = JSON.parse(hist(direct1, {}, '--history', '5', '--json').stdout);
+    assert.equal(d.end, 'ratchet-start');
+    assert.deepEqual(d.pullRequests.map((p: { number: string }) => p.number), ['7']);
+    assert.equal(d.skippedNonMergeProse, 0, 'pre-ratchet commits and the landing itself are never counted as skipped');
+    console.log('ok    --history: a baseline landing on a direct commit is the start, and nothing older is counted');
     // A shallow clone and a HEAD with no baseline are wiring, never a short history.
     const shallow = join(scratch, `shallow-${++n}`);
     const cl = spawnSync('git', ['clone', '-q', '--depth', '1', `file://${short}`, shallow], { encoding: 'utf8' });
@@ -525,8 +550,13 @@ try {
     expectWiring(root, /--history needs a whole number from 1 to 100/, 'wiring: --history 0', '--history', '0');
     expectWiring(root, /--history needs a whole number from 1 to 100/, 'wiring: --history 101', '--history', '101');
     expectWiring(root, /takes neither --base nor --base-baseline/, 'wiring: --history with --base-baseline', '--history', '3', '--base-baseline', join(scratch, 'x.json'));
-    expectWiring(root, /--self-test takes no other flag/, 'wiring: --history with --self-test', '--history', '3', '--self-test');
-    expectWiring(root, /--self-test takes no other flag/, 'wiring: --self-test with --root', '--self-test');
+    // Bounded and marked: a regressed guard meets the fixture's entry refusal, red, within 30 s.
+    for (const [name, extra] of [['--history with --self-test', ['--history', '3', '--self-test']], ['--self-test with --root', ['--self-test']]] as const) {
+      const r = spawnSync(process.execPath, [script, '--root', root, ...extra], { encoding: 'utf8', timeout: 30_000, env: { ...process.env, HATSU_PROSE_SELFTEST_DEPTH: '1' } }) as Run;
+      assert.equal(r.status, 2, `wiring: ${name}: expected exit 2, got ${r.status}\n${r.stdout}${r.stderr}`);
+      assert.match(r.stderr, /--self-test takes no other flag/, `wiring: ${name}: stderr does not name the cause\n${r.stderr}`);
+      console.log(`ok    wiring: ${name} (exit 2)`);
+    }
     const bare = base();
     expectWiring(bare, /git rev-parse --is-shallow-repository failed/, 'wiring: --history outside a git checkout', '--history', '3');
     // --base reads a non-ASCII changed path as itself (NUL-split, unquoted).
