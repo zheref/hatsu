@@ -2752,6 +2752,33 @@ never responsibility for the final claim. Before a handover:
    merge/release decision **as four distinct claims**, naming absent evidence as remaining work or the
    precise gate blocker — **never ending a run as delivered solely because a PR was opened**.
 
+## Delegate briefs — how a delegate waits (zheref/hatsu#473)
+
+Every brief that raises a delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's builder,
+[`futon`](../claude/skills/futon/SKILL.md)'s, and any `shibari` or `en` hands work to — carries the lines
+between the two markers below **word for word**. The orchestrating session owns the clock; a wait the
+delegate owns is one it cannot see. Three hand-backs were lost that way in the 2026-10-23/24 delivery run
+(epic zheref/hatsu#454): a delegate left on a `gh pr checks --watch` or a `sleep` loop, the orchestrator
+reading the pull request itself hours later.
+
+<!-- delegate-wait:begin -->
+- Never wait on `gh pr checks --watch`, an open `sleep` or poll loop, or a background job left running.
+- A wait is one `nen watch until … --max-iterations <n> --interval-ms <ms>`, both flags passed, the two multiplied within this brief's ceiling: 10 minutes unless this brief names another.
+- At the bound, settled or not, hand back: the head SHA, each check and review round as read, and what is still pending.
+<!-- delegate-wait:end -->
+
+**Why both flags:** without `--max-iterations` the wait takes `monitor.maxCycles`, and without
+`--interval-ms` it paces at `monitor.pollSeconds` (§ 2 `monitor`) — 20 × 300 s on this repository, 100
+minutes, ten times the ceiling. A brief naming another ceiling says so on a line of its own; the canon
+line stays as written. The hand-back is the delegate's whole report on the wait; whether to wait again is
+the orchestrator's, and *Verified delivery*'s four claims stay its own.
+
+`node scripts/delegate_brief_check.mts <brief>` reads the block from this file (`--print` prints it to
+copy) and refuses a brief that drops, rewords or paraphrases a line — exit `1`, each line named; a
+missing brief, an unreadable canon or a block whose markers are missing or doubled is exit `2`. Its lane
+is `delegate-brief-guard`, run in CI by `scripts/unit_tests_ci.mts`. Out of scope: a new nen wait verb,
+harness timeouts, and the orchestrator's own watches.
+
 ## Building an issue with no CI plane
 
 Moved here 2026-09-20 out of [`build`](../claude/skills/build/SKILL.md) §§ 4–4a; it is the plane's

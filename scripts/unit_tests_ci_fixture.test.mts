@@ -74,7 +74,8 @@ try {
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
     ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
-    ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer']]) {
+    ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
+    ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard']]) {
     writeFileSync(join(repo, 'scripts', script), '');
     result = run();
     assert(result.status === 2 && result.stderr.includes(`${script} has no required fixture`), `missing ${lane} fixture did not refuse`);
@@ -102,6 +103,8 @@ try {
     `a lane did not get the verified nen first on PATH and as NEN: ${paths.join(' ; ')}`);
   result = run({ HATSU_FAIL_LANE: 'tenkai-guard' });
   assert(result.status === 1 && result.stderr.includes('tenkai-guard failed'), 'failing tenkai-guard was not red');
+  result = run({ HATSU_FAIL_LANE: 'delegate-brief-guard' });
+  assert(result.status === 1 && result.stderr.includes('delegate-brief-guard failed'), 'failing delegate-brief-guard was not red (#473)');
   result = run({ HATSU_FAIL_LANE: 'config-values-guard' });
   assert(result.status === 1 && result.stderr.includes('config-values-guard failed'), 'failing config-values-guard was not red (#397)');
 
