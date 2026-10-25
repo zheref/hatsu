@@ -7,7 +7,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { main as guardMain } from './clause_id_guard.mts';
 
+export function runClauseIdGuardFixture(): void {
 const guard = fileURLToPath(new URL('./clause_id_guard.mts', import.meta.url));
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-clause-id-'));
 const def = (n: number | string, label: number | string = n, status = 'ruled'): string => `| <a id="hr-${n}"></a>**HR-${label}** (${status}) a ruling | settles |`;
@@ -19,7 +21,26 @@ const row = (n: number, status: string): string => `| <a id="hr-${n}"></a>**HR-$
 let cases = 0;
 
 function run(args: string[]): ReturnType<typeof spawnSync> {
-  return spawnSync(process.execPath, [guard, ...args], { cwd: scratch, encoding: 'utf8' });
+  const stdout: string[] = [];
+  const stderr: string[] = [];
+  const originalLog = console.log;
+  const originalError = console.error;
+  console.log = (...values: unknown[]) => stdout.push(values.map(String).join(' '));
+  console.error = (...values: unknown[]) => stderr.push(values.map(String).join(' '));
+  let status: number;
+  try {
+    status = guardMain(args);
+  } finally {
+    console.log = originalLog;
+    console.error = originalError;
+  }
+  // Retain every pre-existing CLI case as an executable-boundary assertion.
+  const spawned = spawnSync(process.execPath, [guard, ...args], { cwd: scratch, encoding: 'utf8' });
+  const detail = `direct/CLI mismatch for ${args.join(' ')}\ndirect stdout: ${stdout.join('\n')}\ndirect stderr: ${stderr.join('\n')}\nCLI stdout: ${spawned.stdout}\nCLI stderr: ${spawned.stderr}`;
+  assert.equal(spawned.status, status, detail);
+  assert.equal(String(spawned.stdout).trimEnd(), stdout.join('\n'), detail);
+  assert.equal(String(spawned.stderr).trimEnd(), stderr.join('\n'), detail);
+  return spawned;
 }
 function roster(name: string, lines: string[], index: (number | string)[] = [], readings = true): string {
   const path = join(scratch, `${name}.md`);
@@ -113,4 +134,5 @@ try {
   console.log(`clause-id-guard fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
+}
 }
