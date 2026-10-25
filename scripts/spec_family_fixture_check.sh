@@ -49,7 +49,7 @@ read_resolve() {
   "$nen" repo resolve FI --repo "$1" >"$work/out" 2>&1 || return 1
   grep -q '^fixture-owner/fixture-ios  (FI)  via code$' "$work/out"
 }
-read_port() { sh "$root/scripts/config_values.sh" diagnose --repo "$1" --domain port >"$work/out" 2>&1; }
+read_port() { bash "$root/scripts/config_values.sh" diagnose --repo "$1" --domain port >"$work/out" 2>&1; }
 read_families() {
   # HR-16: a member's families[] must equal the spec repository's copy (else missing-configuration).
   node -e '
