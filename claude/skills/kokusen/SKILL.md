@@ -133,7 +133,8 @@ default** ([WORKFLOW](../../../docs/WORKFLOW.md) § `commits`: a key ending `-by
 amend — ask once for the switch (row `harness-attribution-switch`), then re-run. **A re-run that
 reads the key back again is a hook re-injecting on every commit** (a Cursor cloud agent's,
 [AGENT-ATTRIBUTION](../../../docs/AGENT-ATTRIBUTION.md)): drop it, keep the change staged, stop at
-**G5** before any push — never publish and disclose. `aka` § 7 reads every outgoing commit before the push.
+**G5** before any push through the row's option C (`nen stop --who Kurapika --gate G5 …`) — never
+publish and disclose.
 
 ## 6. Residue
 

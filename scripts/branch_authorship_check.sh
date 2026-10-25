@@ -137,9 +137,11 @@ if [ "$forbidden_only" -eq 0 ]; then
   fi
 fi
 forbidden=''
+# Read as UTF-8 whatever the locale: under LC_ALL=C Ruby tags the file US-ASCII and JSON.parse raises on
+# the first non-ASCII byte, which made every combined-mode run exit 2 (zheref/hatsu#470).
 if [ -n "$forbidden_config" ]; then
   [ -f "$forbidden_config" ] || { echo 'branch_authorship_check: forbidden trailer config is missing' >&2; exit 2; }
-  forbidden="$(ruby -rjson -e 'v=JSON.parse(File.read(ARGV.fetch(0))).dig("commits", "forbiddenTrailers"); abort "forbiddenTrailers must be a non-empty key array" unless v.is_a?(Array) && !v.empty? && v.all? { |k| k.is_a?(String) && k.match?(/\A[A-Za-z0-9][A-Za-z0-9-]*\z/) }; puts v.map(&:downcase).uniq' "$forbidden_config")" || exit 2
+  forbidden="$(ruby -rjson -e 'v=JSON.parse(File.read(ARGV.fetch(0), encoding: "UTF-8")).dig("commits", "forbiddenTrailers"); abort "forbiddenTrailers must be a non-empty key array" unless v.is_a?(Array) && !v.empty? && v.all? { |k| k.is_a?(String) && k.match?(/\A[A-Za-z0-9][A-Za-z0-9-]*\z/) }; puts v.map(&:downcase).uniq' "$forbidden_config")" || exit 2
 fi
 
 in_set() { # <set> <value>

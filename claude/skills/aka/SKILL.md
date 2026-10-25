@@ -446,14 +446,21 @@ A harness can append a trailer at `git commit` time. **An attribution key** —
 `injected-attribution-trailer`, [`kokusen`](../kokusen/SKILL.md) § 5): a tip above the squash point is
 unpublished by construction and is re-squashed once the maintainer answers row
 `harness-attribution-switch` (their own toggle; no file this skill writes). **A re-squash that reads
-the key back again is a hook re-injecting on every commit** — a Cursor cloud agent's server-side
-`commit-msg` hook, which no documented switch reaches ([`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)
+the key back again is a hook re-injecting on every commit** — a Cursor cloud agent's, put there by the
+cloud environment's `commit-msg` hook ([`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)
 § *A hook that re-injects*): restore the folded commits with the undo line, **push nothing** — the
-first publish included — and stop at **G5** with `nen stop`, the branch unpublished and the change
-kept. Publishing and then disclosing is never the recovery for a commit this run wrote (zheref/hatsu#470).
-Step 0b's `--forbid-trailers-from <path>/nen/workflow.json` makes the `commits.forbiddenTrailers` half of
-that read mechanical, chained to the push; where that file lists no `forbiddenTrailers` the guard
-refuses at exit `2`, so drop the flag there and say so — step 0's read still covers the `-by`/`-with` rule.
+first publish included — and stop at **G5** through row `harness-attribution-switch` option C
+(`nen stop --who Kurapika --gate G5 <efforts.md>`), the branch unpublished and the change kept. That
+stop is unconditional; it does not wait on whether a switch exists. Publishing and then disclosing is
+never the recovery for a commit this run wrote (zheref/hatsu#470).
+**Whether step 0b carries `--forbid-trailers-from` is decided before the call, by reading
+`<path>/nen/workflow.json`**: pass `--forbid-trailers-from <path>/nen/workflow.json` where the file lists
+a non-empty `commits.forbiddenTrailers`; where the file is absent or lists none, omit the flag and say
+so. **Every exit `2` from the guard is then a stop before any push** — a missing file, a malformed key
+list or a locale fault is never answered by dropping the flag and running again. A host with no `ruby`
+cannot run the flag's read: that is a host gap, reported with the policy unread and nothing pushed.
+Where the flag runs it refuses an outgoing commit carrying a key `forbiddenTrailers` lists, chained to
+the push; the `-by`/`-with` suffix rule stays step 0's read, by the agent, and is not mechanical.
 **A commit at or below the squash point that carries one was published before this run read it and is
 never rewritten** (row `rewrite-published-history`): it is disclosed by [`shibari`](../shibari/SKILL.md)
 § 3 as its own checklist line, outside the attribution ledger, and the switch is fixed before the next commit. Step 0's read stays although `wc squash` reads its own

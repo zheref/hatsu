@@ -240,8 +240,9 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    commit, and document no switch for that trailer (the IDE/CLI *Attribution* toggle covers
    `Made with Cursor`). `Co-Authored-By` is forbidden, so a cloud-agent effort reads the trailer back
    after every commit and **stops at G5 before its first push** — it never publishes and discloses
-   ([`../AGENT-ATTRIBUTION.md`](../AGENT-ATTRIBUTION.md), zheref/hatsu#470). Run Hatsu in the IDE or
-   `cursor-agent` instead, with the toggle off.
+   ([`../AGENT-ATTRIBUTION.md`](../AGENT-ATTRIBUTION.md), zheref/hatsu#470). The IDE and `cursor-agent`
+   have a documented *Attribution* toggle, but it is documented for `Made with Cursor` only: turn it off,
+   and if a `Co-authored-by` still reads back, that path stops on the same read-back before any push.
 
 ---
 

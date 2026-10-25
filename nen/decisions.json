@@ -58,9 +58,9 @@
       "preferred": [
         {
           "key": "A",
-          "label": "toggle the harness switch off, then re-run the step",
-          "command": "the maintainer toggles it (Cursor: Settings → Git & Pull Requests → Commit Attribution off, or attribution.attributeCommitsToAgent=false in ~/.cursor/cli-config.json), then kokusen § 5 re-runs nen commit write / aka § 7 re-squashes",
-          "consequence": "the re-written commit reads back clean; nothing in the repository changes",
+          "label": "toggle the harness switch off, then re-run the step (IDE/CLI harnesses only; on a Cursor cloud agent take B or C)",
+          "command": "the maintainer toggles it (Cursor IDE/CLI only: Settings → Agent → Attribution off (Git & PRs → Attribution from Cursor 3.11), or attribution.attributeCommitsToAgent=false in ~/.cursor/cli-config.json; Cursor documents no switch for a cloud agent's Co-authored-by, docs/AGENT-ATTRIBUTION.md), then kokusen § 5 re-runs nen commit write / aka § 7 re-squashes",
+          "consequence": "the re-written commit reads back clean; nothing in the repository changes. A re-run that reads the key back again means no switch reached the hook: C, before any push (zheref/hatsu#470)",
           "recommended": true
         },
         {

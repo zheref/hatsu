@@ -54,9 +54,12 @@ The recovery is a **stop before the first push**, never publish and disclose (zh
 `nen commit write` and `nen wc squash` read each commit back and exit `3` on an injected key;
 [`kokusen`](../claude/skills/kokusen/SKILL.md) § 5 and [`aka`](../claude/skills/aka/SKILL.md) § 4 drop the
 unpublished tip once and ask for the switch. **If the re-run reads the key back again, no switch reached
-the hook**: drop the tip, keep the change, push nothing, and stop at **G5** with `nen stop`. Aka § 7's
-pre-push guard (`--forbid-trailers-from`) refuses an outgoing range carrying a forbidden key, so the
-first publish never sends one. `--no-verify` is never the way around the hook, and a commit already
+the hook**: drop the tip, keep the change, push nothing, and stop at **G5** through row
+`harness-attribution-switch` option C (`nen stop --who Kurapika --gate G5 <efforts.md>`). The stop is
+unconditional: it does not depend on whether a switch exists. Where aka § 7's pre-push guard runs with
+`--forbid-trailers-from` (passed when `nen/workflow.json` lists a non-empty `forbiddenTrailers`), it
+refuses an outgoing commit carrying a key that list names; the `-by`/`-with` suffix rule stays the
+agent's own read of every outgoing commit and is not mechanical. `--no-verify` is never the way around the hook, and a commit already
 published is never rewritten by a run (row `rewrite-published-history`; the maintainer's alone). The
 maintainer's options are to move the effort to a surface whose harness appends nothing (row
 `harness-attribution-switch`, option B) or to leave it stopped.

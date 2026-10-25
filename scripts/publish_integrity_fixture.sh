@@ -38,6 +38,18 @@ g() { git -C "$@"; }
 new_repo() { git init -q -b main "$1"; g "$1" config user.email me@example.invalid
   g "$1" config user.name me; g "$1" config commit.gpgsign false; }
 
+# --- branch_authorship_check.sh: aka § 7's combined mode under the C locale (zheref/hatsu#470) ------
+c="$tmp/combined"; new_repo "$c"
+echo base > "$c/f"; g "$c" add f; g "$c" commit -q -m base
+g "$c" checkout -q -b effort
+echo own > "$c/f"; g "$c" commit -q -am "own" -m "Hatsu-Agent: kurapika"
+expect 'combined mode passes a clean range under LC_ALL=C' 0 env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
+echo cloud > "$c/cloud"; g "$c" add cloud
+g "$c" commit -q -m 'cloud hook' -m 'Hatsu-Agent: kurapika
+Co-authored-by: Owner <owner@example.invalid>'
+expect 'combined mode refuses a Co-authored-by range under LC_ALL=C' 1 env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
+expect_out 'combined mode names the key under LC_ALL=C' 'forbidden trailer co-authored-by' env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
+
 # --- branch_authorship_check.sh: identity -------------------------------------------------
 r="$tmp/repo"; new_repo "$r"
 echo base > "$r/f"; g "$r" add f; g "$r" commit -q -m base
