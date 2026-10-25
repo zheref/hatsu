@@ -1598,8 +1598,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
 8. **Every decision taken for the maintainer is listed** (the ruling of 2026-10-23). A decision is every
    pre-answered row `start` printed and every `default` actually taken during the run (row, option, object,
    time). The list goes in three places: the shibari PR body's **Decisions taken on your behalf** section
-   (`contracts/pr-sections.json` footer row `decisions`, resolved with `--idle`, mandatory on every PR an idle
-   run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
+   (`contracts/pr-sections.json` footer row `decisions`, resolved by the `decisions` run fact (`--idle`,
+   `--decisions`, or a non-empty nen manifest; a positive flag wins; zheref/hatsu#474), mandatory on every
+   PR an idle run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
    `legendRows` (`backlog-board` § 3), one row per decision.
 
 9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — [HR-335](ROSTER.md#hr-335)
