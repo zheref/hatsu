@@ -15,7 +15,9 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    fills and diagnosis preserve it. `max` defaults to seven and cannot exceed the catalogue cap.
 3. Reuse Mukai's facts: `--evidence` only for a product declaring `project.evidence.globs`,
    `--economics` only when Leorio ran or took a delta pass, `--policy-hit` when `nen gate derive`
-   matched a policy or process path. The footer row `decisions` is mandatory on every PR whose run took a
+   matched a policy or process path, `--spec` when a closing issue carries `Spec: specs/<nnn>-<slug>@<sha>`
+   (the footer's Spec block and nen's `spec-rows` requirement, [`config/spec-repo.md`](config/spec-repo.md)
+   § *The PR Spec section*). The footer row `decisions` is mandatory on every PR whose run took a
    decision for the maintainer (a pre-answered row or a default taken), whatever the kind or family: an idle
    run by [HR-334](ROSTER.md#hr-334), an attended one by zheref/hatsu#474 AC-1. Any positive source includes it:
    `--idle`, because an idle run always pre-answers its rows (WORKFLOW § *Idle batches* rule 8);
@@ -29,13 +31,13 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 
 ```bash
 "$hatsu_root/scripts/pr_sections_resolve.sh" --repo <target> --kind <kind> --jobs <comma-joined-jobs> \
-  [--evidence] [--economics] [--policy-hit] [--decisions] [--decisions-from <nen.run manifest>] [--idle] \
+  [--evidence] [--economics] [--policy-hit] [--spec] [--decisions] [--decisions-from <nen.run manifest>] [--idle] \
   --out <absolute-requirements.json>
 ```
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
 Place the always-on Delivery preamble first, then fill the reader fragments from
-`templates/pr-body/<id>.md` in resolved order, then checklist, issues and final attribution.
+`templates/pr-body/<id>.md` in resolved order, then Spec (only with `--spec`), Decisions (when admitted), checklist, issues and final attribution.
 Never append an undeclared level-2 heading. Delivery is outside the seven-reader cap and does
 not change any kind × family cell or consumer-owned override.
 The default requirements file is the process × canon fixture, never a substitute for resolving a run.

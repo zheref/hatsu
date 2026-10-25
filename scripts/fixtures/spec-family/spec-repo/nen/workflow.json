@@ -1,6 +1,8 @@
 {
-  "$comment": "Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, The spec repository's keys): the port block at the catalogue's defaults (contracts/config-catalogue.json, workflow.port.specKit.*) and the PROPOSED spec block at the defaults the design names. The spec catalogue domain is owed (zheref/nen#493), so config_values.sh diagnose --domain spec refuses at exit 2 today and these keys are read by hand; nen schema check passes the unknown block. The autonomy keys the maintainer types are placeheld with fixture values.",
+  "$comment": "Redacted fixture for hatsu:dowsing-chain (docs/config/spec-repo.md, The spec repository's keys): the port block at the catalogue's defaults, every key stated (contracts/config-catalogue.json, workflow.port.*), so config_values.sh diagnose --domain port reads ok, and the PROPOSED spec block at the defaults the design names. A nen past 0.26.0 validates the spec block (each key's type and closed values, maxInFlight keyed by platformOrder, a near-miss key refused; zheref/nen#493); nen 0.26.0 preserves it unread. Hatsu's config_values.sh has no spec domain yet. The autonomy keys the maintainer types are placeheld with fixture values. Lane spec-family-guard reads this file.",
   "port": {
+    "handbooksRepo": "zheref/bankai-handbooks",
+    "rulingsDir": "handbooks/ports",
     "specKit": {
       "pin": "v1.2.2",
       "layout": "specs/{nnn}-{slug}"
