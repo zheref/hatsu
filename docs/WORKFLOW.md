@@ -1591,15 +1591,18 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    one until it is ruled.
 5. **A resume keeps the shape.** Futon never resumes itself: the maintainer re-types the line. Before `start`,
    futon runs `futon_effort_record.mts resume --repo <checkout> --invocation '<the line>'`: with no `--run` it
-   continues the newest real run typed as exactly that line **that has not ended** — futon § 10 records the end
-   with `futon_effort_record.mts end --run <id>`, so the same line typed after a finished night is a new run.
+   continues the newest real run **that has not ended** whose line nen parses alike — repository, selector,
+   terminal, `then` clause, `--idle`, `--dry-run`; never the spelling, so `--idle` may sit anywhere nen reads it.
+   futon § 10 records the end with `futon_effort_record.mts end --run <id>`, so the same line typed after a
+   finished night is a new run; a record written before end tracking carries no end mark and resumes by an
+   explicit `--run` alone.
    **Exit `3`** means no open run: `start` opens one and names any earlier run typed as the same line. **Exit
    `1`** is a refusal — stop and report it, **never `start`**, which would split the delivery. A resume proves
    the run's identity and never re-derives its policy: nen's manifest must already be on disk (with none it
    refuses **before** calling nen, which would write an empty one that `nen run verify` reads as an open gate),
    the answers resent are the ones nen stored — re-checked against § 2 `idle`'s floor, which nen does not apply
    — and the recorded `idle.terminal` and integration branch hold; a committed profile that moved since launch is
-   reported, never obeyed. It refuses another line, an ended run, a dry run, a v0.1/v0.2 record, a manifest
+   reported, never obeyed. It refuses a line nen parses otherwise, an ended run, a dry run, a v0.1/v0.2 record, a manifest
    started at another time, a record whose id differs from `--run` or from its filename, and another
    repository. The budget clock is the manifest's `startedAt` (§ 2 `idle`), so a resumed idle run whose minutes
    are spent claims nothing new and drives what it already opened. Reading nen's manifest file directly, and

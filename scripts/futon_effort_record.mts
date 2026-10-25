@@ -37,7 +37,7 @@ type Profile = Omit<Idle, 'decisions'>;
 // writes v0.3, which carries no prs, no parked rows and no answers: those are nen's manifest's.
 type RunRecord = { contract: 'hatsu.futon.run/v0.1' | 'hatsu.futon.run/v0.2' | 'hatsu.futon.run/v0.3'; id: string; repo: string;
   invocation: string; selector: string; startedAt: string; dry?: boolean; idle?: Profile | Idle | null;
-  predictions?: Prediction[]; integration?: string; endedAt?: string };
+  predictions?: Prediction[]; integration?: string; endedAt?: string; endTracked?: boolean };
 // A dry run's predicted end states (zheref/hatsu#424): kept on this record, never written into nen's parked[],
 // which is HR-5's real park state and carries no dry flag at nen 0.26.0.
 type Prediction = { issue: string; row: string; at: string };
@@ -144,7 +144,8 @@ function readRun(path: string): RunRecord {
       (run.idle !== null && (typeof run.idle !== 'object' || typeof run.idle?.terminal !== 'string'))))
     fail('malformed Futon run metadata');
   if ((run.integration !== undefined && typeof run.integration !== 'string') ||
-      (run.endedAt !== undefined && (typeof run.endedAt !== 'string' || !Number.isFinite(Date.parse(run.endedAt)))))
+      (run.endedAt !== undefined && (typeof run.endedAt !== 'string' || !Number.isFinite(Date.parse(run.endedAt)))) ||
+      (run.endTracked !== undefined && typeof run.endTracked !== 'boolean'))
     fail('malformed Futon run metadata');
   return run as RunRecord;
 }
@@ -152,6 +153,7 @@ function readRun(path: string): RunRecord {
 // A record that does not read, or whose id is not its filename's, is never picked: resume refuses naming it,
 // start only notes it.
 function priorRun(root: string, invocation: string, strict: boolean): string | null {
+  const wanted = identity(root, invocation);
   const parent = join(commonDirectory(root), 'hatsu', 'futon');
   if (!existsSync(parent)) return null;
   const dir = metadataDirectory(root, false);
@@ -167,7 +169,10 @@ function priorRun(root: string, invocation: string, strict: boolean): string | n
       console.log(`futon-effort: note: ${why}; skipped`);
     }
   }
-  const open = runs.filter((run) => run.contract === 'hatsu.futon.run/v0.3' && run.dry !== true && !run.endedAt && run.invocation === invocation)
+  // Only a record start wrote with end tracking is picked: one written before `end` existed carries no end
+  // mark and may long be finished, so it resumes by an explicit --run alone.
+  const candidates = runs.filter((run) => run.contract === 'hatsu.futon.run/v0.3' && run.dry !== true && !run.endedAt && run.endTracked === true);
+  const open = candidates.filter((run) => run.invocation === invocation || identity(root, run.invocation) === wanted)
     .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
   return open[0]?.id ?? null;
 }
@@ -203,6 +208,13 @@ function modifiers(line: string): { invocation: string; dry: boolean } {
 }
 function parseFuton(root: string, line: string): Parsed {
   return json<Parsed>('nen', ['parse', 'futon', '--repo', root, modifiers(line).invocation, '--json'], root);
+}
+// A run's identity is what nen reads from its line -- repository, selector, terminal, then clause, idle -- plus the
+// lifted --dry-run, never the spelling: two placements of --idle nen parses alike are one run (HA#488, Bugbot).
+function identity(root: string, line: string): string {
+  const parsed = parseFuton(root, line) as Parsed & { terminal?: unknown; then?: unknown };
+  return JSON.stringify([parsed.repo, parsed.band ?? null, parsed.label ?? null, parsed.terminal ?? null,
+    parsed.then ?? null, parsed.idle === true, modifiers(line).dry]);
 }
 // The committed nen/workflow.json the idle profile is read from: the REMOTE DEFAULT branch only
 // (origin/HEAD, else gh's defaultBranchRef), never a ref HEAD's own commit names, never HEAD, never the
@@ -420,7 +432,8 @@ function main(argv: string[]): void {
     if (run.contract !== 'hatsu.futon.run/v0.3') fail(`run ${runId} opened no nen manifest (${run.contract}): it is never resumed`);
     if (run.endedAt) fail(`run ${runId} ended at ${run.endedAt}: it is never resumed`);
     if (run.dry === true) fail(`run ${runId} is a dry run: a rehearsal is never resumed (zheref/hatsu#424)`);
-    if (invocation !== run.invocation) fail(`run ${runId} was typed as '${run.invocation}': a resume re-types that line whole`);
+    if (invocation !== run.invocation && identity(root, invocation) !== identity(root, run.invocation))
+      fail(`run ${runId} was typed as '${run.invocation}': a resume re-types that line (nen must parse it alike)`);
     const parsed = parseFuton(root, invocation);
     const repository = json<{ nameWithOwner: string }>('gh', ['repo', 'view', '--json', 'nameWithOwner'], root);
     if (parsed.repo !== repository.nameWithOwner || parsed.repo !== run.repo) fail('Futon invocation resolves to another repository');
@@ -495,7 +508,7 @@ function main(argv: string[]): void {
     const profile: Profile | null = idle ? { localSlotFrees: idle.localSlotFrees, terminal: idle.terminal,
       budget: idle.budget, source: idle.source } : null;
     const run: RunRecord = { contract: 'hatsu.futon.run/v0.3', id, repo: parsed.repo,
-      invocation, selector, startedAt, dry, idle: profile, ...(dry ? { predictions: [] } : {}) };
+      invocation, selector, startedAt, dry, idle: profile, ...(dry ? { predictions: [] } : { endTracked: true }) };
     try { writeRecord(runPath(root, id, true), run); }
     catch (cause) {
       fail(`the ownership record could not be written (${cause instanceof Error ? cause.message : String(cause)}); nen's manifest ${opened.path} is an orphan, left for cleanup`);

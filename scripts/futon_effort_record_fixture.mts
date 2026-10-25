@@ -57,8 +57,8 @@ const a=process.argv.slice(2); const e=process.env;
 require('fs').appendFileSync(${JSON.stringify(nenLog)}, JSON.stringify(a)+'\\n');
 if(a[0]==='parse'&&a[1]==='futon'){ const line=a[4]||'';
   if(/(^|\\s)--dry-run(\\s|$)/.test(line)) process.exit(3);
-  const idle=/(^|\\s)--idle(\\s|$)/.test(line);
-  console.log(JSON.stringify(e.FAKE_NO_IDLE?{repo:'zheref/hatsu',label:'model/gpt',band:null}:{repo:'zheref/hatsu',label:e.FAKE_BAND?null:'model/gpt',band:e.FAKE_BAND||null,idle})); }
+  const idle=/(^|\\s)--idle(\\s|$)/.test(line); const then=(line.match(/(?:^|\\s)then\\s+(.*)$/)||[])[1]||null;
+  console.log(JSON.stringify(e.FAKE_NO_IDLE?{repo:'zheref/hatsu',label:'model/gpt',band:null}:{repo:'zheref/hatsu',label:e.FAKE_BAND?null:'model/gpt',band:e.FAKE_BAND||null,idle,then})); }
 else if(a[0]==='run'&&a[1]==='start'){
   if(e.FAKE_NEN_START==='refuse'){ console.error('nen run: refused'); process.exit(1); }
   const at=(f)=>a[a.indexOf(f)+1]; const answers=a.includes('--idle-answers')?JSON.parse(at('--idle-answers')):null;
@@ -158,8 +158,7 @@ else process.exit(2);
   expectStatus(idleStarted, 0, 'idle run starts with --idle read by nen, never stripped');
   const idleId = /run ([0-9a-f]{32}) recorded/.exec(String(idleStarted.stdout))?.[1];
   assert.ok(idleId, 'idle start returns a run id');
-  const idleParse = nenCalls().filter((argv) => argv[0] === 'parse').at(-1);
-  assert.equal(idleParse?.[4], 'hatsu@model/gpt --idle then rikugan', 'nen parses the line with --idle in it');
+  assert.ok(nenCalls().some((argv) => argv[0] === 'parse' && argv[4] === 'hatsu@model/gpt --idle then rikugan'), 'nen parses the line with --idle in it');
   assert.match(String(idleStarted.stdout), /pre-answered publish-offer → refuse/, 'publish-offer is refused under idle');
   assert.match(String(idleStarted.stdout), /pre-answered wrap-up → default/, 'a starred row takes its default');
   const idleOpen = runStarts().find((argv) => argv.includes(idleId));
@@ -201,6 +200,18 @@ else process.exit(2);
   const found = resume(null, idleLine);
   expectStatus(found, 0, 'with no --run, the newest run typed as the same line resumes');
   assert.match(String(found.stdout), new RegExp(`run ${idleId} resumed`));
+  // Bugbot on HA-PR-#490: identity is nen's parse, not the spelling -- --idle placed elsewhere is the same run.
+  const placed = resume(null, 'hatsu:futon --idle hatsu@model/gpt then rikugan');
+  expectStatus(placed, 0, '--idle typed before @ finds the same run');
+  assert.match(String(placed.stdout), new RegExp(`run ${idleId} resumed`));
+  // Bugbot on HA-PR-#490: a v0.3 record written before end tracking is never auto-picked; --run still reaches it.
+  const untracked = join(root, '.git', 'hatsu', 'futon', `run-${idleId}.json`);
+  const trackedText = readFileSync(untracked, 'utf8');
+  const { endTracked: _drop, ...legacy } = JSON.parse(trackedText);
+  writeFileSync(untracked, JSON.stringify(legacy));
+  expectStatus(resume(null, idleLine), 3, 'a record without end tracking is never picked by line');
+  expectStatus(resume(idleId, idleLine), 0, 'but resumes by an explicit --run');
+  writeFileSync(untracked, trackedText);
   const none = resume(null, 'hatsu:futon hatsu@model/gpt --idle then getsuga');
   expectStatus(none, 3, 'a line no open run was typed as exits 3: start a new run');
   assert.match(String(none.stderr), /start a new run/);
