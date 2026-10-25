@@ -2,7 +2,7 @@
 
 Evidence for [`docs/config/schedule.md`](../config/schedule.md): what the printer does on the live
 [`contracts/schedule.json`](../../contracts/schedule.json), recorded from runs on 2026-10-23 at
-integration-branch base `1243b2720` (the printout re-recorded after the settle passes on HA-PR-#464 and HA-PR-#465) (node `v24.16.0`, macOS). The maintainer's Hatsu checkout is shown as
+integration-branch base `1243b2720` (the printout re-recorded after the settle passes on HA-PR-#464 and HA-PR-#465); § 3 re-recorded on 2026-10-25 at `main` `00881fc1d` for the morning desk's ten-PR line (zheref/hatsu#448) (node `v24.16.0`, macOS). The maintainer's Hatsu checkout is shown as
 `<hatsu>`, the scratch spec checkout as `<spec>`; the family is the fixture slug `fixture-family`, never a
 product family's name.
 
@@ -98,7 +98,7 @@ Local folder:    <hatsu>
 Worktree:        on (select Worktree in the Edit form after Create)
 Permission mode: Ask permissions (the default); never a bypass mode
 Model:           your Claude Code default
-Always allow:    nen report data · nen report render · nen pr ready · nen backlog · git fetch · git status · git rev-parse · gh pr view|list · gh issue view|list
+Always allow:    nen report data · nen report render · nen pr ready · nen backlog · node scripts/prose_ambiguity_check.mts --root . --history · git fetch · git status · git rev-parse · gh pr view|list · gh issue view|list
 Never always:    nen issue file · nen issue edit-body · nen issue comment · gh issue create|edit|comment · gh pr create|edit|comment|merge · git commit · git push · Write · Edit · update_scheduled_task
 SKILL.md, as Desktop keeps it at ~/.claude/scheduled-tasks/hatsu-morning-desk/SKILL.md (the instructions box):
   | ---
@@ -112,11 +112,32 @@ SKILL.md, as Desktop keeps it at ~/.claude/scheduled-tasks/hatsu-morning-desk/SK
   |
   | If a hatsu:futon --idle run on zheref/hatsu ended since the previous desk, put its terminal state and its parked efforts above the fold; that run's own last report already links its register (futon section 10).
   |
-  | End with the page's link. Never a release step (HR-5).
+  | Run node scripts/prose_ambiguity_check.mts --root . --history 10 and quote its last line, the baseline rows removed by the last ten merged prose pull requests and the baseline's row total, beside the page's link; a non-zero exit is reported as not run, never as none removed.
+  |
+  | End with the page's link and that line. Never a release step (HR-5).
 
 === ratchet-shrink ===
 not a task: runs in CI, .github/workflows/prose-ambiguity-check.yml job canon-lint
-when: every pull request (opened, synchronize, reopened, ready_for_review): scripts/prose_ambiguity_check.mts held against the trusted base revision's contracts/prose.lint.baseline.json prints `<n> removed over <base>` in its canon-lint summary line and `removedBaseline` in --json
+when: every pull request (opened, synchronize, reopened, ready_for_review): scripts/prose_ambiguity_check.mts held against the trusted base revision's contracts/prose.lint.baseline.json prints `<n> removed over <base>` in its canon-lint summary line and `removedBaseline` in --json; the sum over the last ten merged prose pull requests is `--history 10`, quoted by morning-desk
+```
+
+## 3a. The morning desk's ten-PR line, live
+
+Run on 2026-10-25 at `main` `00881fc1d` (node `v24.16.0`, macOS), exit `0`:
+
+```text
+$ node scripts/prose_ambiguity_check.mts --root <hatsu> --history 10
+history · #479 · 00881fc1d · 4 prose files · 0 removed
+history · #476 · a49a7d4a4 · 8 prose files · 1 removed
+history · #467 · 6b0a04ecf · 67 prose files · 3 removed
+history · #442 · 1243b2720 · 4 prose files · 0 removed
+history · #438 · bad92e3fd · 1 prose file · 0 removed
+history · #437 · 758cfca32 · 6 prose files · 0 removed
+history · #429 · 679df5103 · 4 prose files · 0 removed
+history · #431 · 7d11ab047 · 1 prose file · 0 removed
+history · #433 · f39b87efe · 10 prose files · 1 removed
+history · #432 · b8b8ffd23 · 7 prose files · 2 removed
+canon-lint history: last 10 of 10 prose pull requests on 00881fc1d · 7 removed · baseline 1233 rows
 ```
 
 ## 4. What it leaves undone
@@ -124,6 +145,4 @@ when: every pull request (opened, synchronize, reopened, ready_for_review): scri
 - The tag trigger of zheref/hatsu#448's AC-2, owed: an event trigger needs an event-driven host the record did
   not pick, and no nen verb reads a member's newest tag against the capture record (unfiled), so the
   recapture row polls weekly.
-- The ten-PR shrink trend of AC-4, owed: `canon-lint` prints each PR's `removed` count; no nen verb reads
-  it across PRs (unfiled).
 - Registration itself, which is the maintainer's: the schedule page's *What it decides* lists the Desktop steps.

@@ -6,7 +6,7 @@
 // marker naming a human-gate row, an unparseable or renumbered contract, an unreadable and a
 // non-UTF-8 file, a 200 KB bracket paragraph) each read as named; the baseline admits, goes
 // stale (a deleted file's row too) and refuses to grow, summed per key, under --base and under
-// the CI form's --base-baseline; and the committed tree reads clean. These cases are the acceptance criteria owed to `nen canon lint`
+// the CI form's --base-baseline; --history sums the last merged prose pull requests' shrink; and the committed tree reads clean. These cases are the acceptance criteria owed to `nen canon lint`
 // (zheref/nen#481). Run: nen shu test --lane canon-lint --repo <hatsu>.
 import assert from 'node:assert/strict';
 import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -453,6 +453,42 @@ try {
     assert.match(bare.stdout, /notice: fixture-bare carries no contracts\/prose\.lint\.baseline\.json; baseline growth is not checked/);
     console.log('ok    --base: a base with no baseline is said, never silently skipped');
     expectWiring(root, /--base-baseline .*missing/, 'wiring: a missing --base-baseline file', '--base-baseline', join(scratch, 'nope.json'));
+  }
+  // --- --history: the shrink of the last <n> merged prose pull requests (zheref/hatsu#448, AC-4) ---
+  {
+    const root = base();
+    const git = (...a: string[]): void => { const r = spawnSync('git', ['-C', root, '-c', 'user.name=f', '-c', 'user.email=f@f', ...a], { encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr); };
+    const row = { path: 'claude/skills/plant/SKILL.md', rule: 'PL-05', text: 'fixed in #154 last week.', count: 2 };
+    // The ratchet's start: a first commit with no baseline, then the baseline lands on a merge.
+    rmSync(join(root, 'contracts/prose.lint.baseline.json'));
+    git('init', '-q', '-b', 'main'); git('add', '-A'); git('commit', '-qm', 'before the ratchet');
+    const merge = (n: number, branch: string, edit: () => void): void => {
+      git('checkout', '-qb', branch); edit(); git('add', '-A'); git('commit', '-qm', branch);
+      git('checkout', '-q', 'main'); git('merge', '-q', '--no-ff', '-m', `Merge pull request #${n} from f/${branch}`, branch);
+    };
+    merge(1, 'ratchet', () => { put(root, 'docs/plant.md', '# P\n'); put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [row] })); });
+    merge(2, 'shrink', () => { put(root, 'claude/skills/plant/SKILL.md', '# P\n\nFixed.\n'); put(root, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [{ ...row, count: 1 }] })); });
+    merge(3, 'code-only', () => { put(root, 'scripts/x.mts', '// x\n'); });
+    merge(4, 'prose-no-shrink', () => { put(root, 'docs/plant.md', '# P\n\nMore.\n'); });
+    git('checkout', '-qb', 'local'); put(root, 'docs/local.md', '# L\n'); git('add', '-A'); git('commit', '-qm', 'local');
+    git('checkout', '-q', 'main'); git('merge', '-q', '--no-ff', '-m', 'Merge branch local', 'local');
+    const all = lint(root, '--history', '10');
+    assert.equal(all.status, 0, all.stdout + all.stderr);
+    assert.match(all.stdout, /^history · #4 · [0-9a-f]{9} · 1 prose file · 0 removed$/m);
+    assert.match(all.stdout, /^history · #2 · [0-9a-f]{9} · 1 prose file · 1 removed$/m);
+    assert.doesNotMatch(all.stdout, /#3 |#1 |local/, 'a code-only merge, a non-PR merge and the ratchet\'s own landing are not counted');
+    assert.match(all.stdout, /^canon-lint history: last 2 of 10 prose pull requests on [0-9a-f]{9} \(the ratchet starts there: an earlier merge carries no baseline\) · 1 removed · baseline 1 rows$/m);
+    const one = JSON.parse(lint(root, '--history', '1', '--json').stdout);
+    assert.equal(one.contract, 'hatsu.prose-lint.history/v0.1');
+    assert.equal(one.end, 'complete');
+    assert.deepEqual(one.pullRequests.map((p: { number: number; removed: number }) => [p.number, p.removed]), [[4, 0]]);
+    assert.equal(one.baselineRows, 1);
+    console.log('ok    --history: each merged prose pull request\'s removed rows, their sum and the baseline total; code-only and non-PR merges skipped; the ratchet start said');
+    expectWiring(root, /--history needs a whole number from 1 to 100/, 'wiring: --history 0', '--history', '0');
+    expectWiring(root, /--history needs a whole number from 1 to 100/, 'wiring: --history 101', '--history', '101');
+    expectWiring(root, /takes neither --base nor --base-baseline/, 'wiring: --history with --base-baseline', '--history', '3', '--base-baseline', join(scratch, 'x.json'));
+    const bare = base();
+    expectWiring(bare, /git rev-parse HEAD failed/, 'wiring: --history outside a git checkout', '--history', '3');
   }
   {
     const root = base();
