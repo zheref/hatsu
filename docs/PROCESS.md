@@ -529,10 +529,11 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
   the maintainer's ruling of 2026-10-22; zheref/hatsu#430). nen's `rounds-owed` row also owes configured
   reviewers that are not quorum members, and a met or unmet quorum never excuses them. The pinned nen
   lists the owed rounds on that row as `owedRounds[]`, each entry carrying `reviewer`, `reason`,
-  `coveredByQuorum` and, where `nen/gates.json` declares one, `kind` (`nen pr ready --help`, nen `0.26`).
-  (e) holds when the row carries `owedRounds[]` and every entry's `reviewer` is a name in the row's
-  `roundQuorum.anyOf`. An entry outside `anyOf`, whatever its `kind`, ends the PR at `cap-reached`'s
-  not-ready terminus, no prompt. So does a row with no `owedRounds[]`: nen omits it when it did not
+  `coveredByQuorum`, and optionally `kind` (where `nen/gates.json` declares one), `state` and
+  `waivedByAiPolicy` (`nen pr ready --help`, nen `0.26`); (e) reads only `reviewer`. It holds when the
+  row carries `owedRounds[]` and every entry's `reviewer` is a name in the row's `roundQuorum.anyOf`; an
+  empty `owedRounds[]` is computed with none owed, so (e) holds. An entry outside `anyOf`, whatever its
+  `kind`, ends the PR at `cap-reached`'s not-ready terminus, no prompt. So does a row with no `owedRounds[]`: nen omits it when it did not
   compute the list, and absent is never read as none owed. `coveredByQuorum` is not the test, since it
   marks a member a met quorum excused and at this stop the quorum is unmet; the row's `reason` is prose,
   never parsed. A target whose `reviewers[]` all sit in `any_of` (Hatsu's own file today: `copilot` in
