@@ -49,6 +49,9 @@ g "$c" commit -q -m 'cloud hook' -m 'Hatsu-Agent: kurapika
 Co-authored-by: Owner <owner@example.invalid>'
 expect 'combined mode refuses a Co-authored-by range under LC_ALL=C' 1 env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
 expect_out 'combined mode names the key under LC_ALL=C' 'forbidden trailer co-authored-by' env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
+# The same read on a policy that holds non-ASCII bytes by construction, so the case never leans on the live file's prose.
+printf '%s\n' '{"$comment": "attribution — non-ASCII on purpose: é ü §", "commits": {"forbiddenTrailers": ["Co-Authored-By"]}}' > "$tmp/policy-utf8.json"
+expect_out 'combined mode refuses Co-authored-by on a non-ASCII fixture policy under LC_ALL=C' 'forbidden trailer co-authored-by' env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$tmp/policy-utf8.json"
 
 # --- branch_authorship_check.sh: identity -------------------------------------------------
 r="$tmp/repo"; new_repo "$r"

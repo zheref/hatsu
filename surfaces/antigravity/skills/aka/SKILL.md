@@ -418,9 +418,9 @@ test run.
 git -C <path> merge-base origin/<base> HEAD   # first publish only, read NOW (after § 5): <range base>; else the SHA ls-remote printed
 git -C <path> log --format='%h%n%(trailers:only,unfold)' <range base>..HEAD   # 0. read EVERY outgoing commit (zheref/hatsu#66)
 "$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <range base> --require-agent <responsible-persona> --trunk origin/<base> --forbid-trailers-from <path>/nen/workflow.json \
-  && nen wc publish --repo <path> [--dry-run] [--json]                  # 0b, then the push: already published
+  && nen wc publish --repo <path> [--dry-run] [--json]                  # 0b, then the push: already published; --forbid-trailers-from only where § 7's flag rule passes it
 "$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <range base> --require-agent <responsible-persona> --trunk origin/<base> --forbid-trailers-from <path>/nen/workflow.json \
-  && nen wc publish --repo <path> --set-upstream [--dry-run] [--json]   # 0b, then the push: first publish
+  && nen wc publish --repo <path> --set-upstream [--dry-run] [--json]   # 0b, then the push: first publish; --forbid-trailers-from as above
 ```
 
 **Step 0 is the last read before the remote, and it reads the whole outgoing range, not `HEAD`** —
@@ -457,9 +457,10 @@ never the recovery for a commit this run wrote (zheref/hatsu#470).
 **Whether step 0b carries `--forbid-trailers-from` is decided before the call, by reading
 `<path>/nen/workflow.json`**: pass `--forbid-trailers-from <path>/nen/workflow.json` where the file lists
 a non-empty `commits.forbiddenTrailers`; where the file is absent or lists none, omit the flag and say
-so. **Every exit `2` from the guard is then a stop before any push** — a missing file, a malformed key
-list or a locale fault is never answered by dropping the flag and running again. A host with no `ruby`
-cannot run the flag's read: that is a host gap, reported with the policy unread and nothing pushed.
+so. A `workflow.json` that is present but cannot be read as a key list **passes the flag**, so the
+guard's own exit `2` stops the push. **Every exit `2` from the guard is then a stop before any push** — a missing file, a malformed key
+list or a locale fault is never answered by dropping the flag and running again. The guard's exit `2` on a
+host with no `ruby` is the same stop, labelled a host gap: the policy unread, nothing pushed.
 Where the flag runs it refuses an outgoing commit carrying a key `forbiddenTrailers` lists, chained to
 the push; the `-by`/`-with` suffix rule stays step 0's read, by the agent, and is not mechanical.
 **A commit at or below the squash point that carries one was published before this run read it and is

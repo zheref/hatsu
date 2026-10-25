@@ -47,6 +47,7 @@
 #   3. --require-trailer <Key>: the commit carries that trailer key with a non-empty value.
 #   4. --forbid-trailers-from: no commit carries a key named by commits.forbiddenTrailers.
 #      --forbidden-only selects this check without the local identity/provenance checks for CI.
+#      The policy is read by `ruby` (its json library), as UTF-8 whatever the locale (zheref/hatsu#470).
 #
 # exit 0  every commit in the range passes (an empty range is clean)
 # exit 1  a finding: one line per failing commit on stdout — sha, author, committer, files changed
@@ -56,7 +57,9 @@
 #         a --require-trailer or --require-agent value that is not a plain token, no allowed
 #         identity at all, --trunk on a git without `merge-tree --write-tree`, a merge-tree proof
 #         git could not complete (a partial clone that would need a fetch among them), no
-#         throwaway object directory under "${TMPDIR:-/tmp}", or an unknown argument. Nothing
+#         throwaway object directory under "${TMPDIR:-/tmp}", an unknown argument, or a
+#         --forbid-trailers-from fault: the file missing, not UTF-8 JSON, no non-empty array of
+#         valid keys at commits.forbiddenTrailers, or no `ruby` on PATH to read it. Nothing
 #         was judged: no finding line is printed.
 #
 # Hatsu runs it from `$hatsu_root/scripts/` before aka's squash, before every post-review push

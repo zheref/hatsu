@@ -73,7 +73,7 @@
           "key": "C",
           "label": "leave the tip dropped and stop here",
           "command": "nen stop --who Kurapika --gate G5 <efforts.md>",
-          "consequence": "the working copy keeps the change uncommitted; named in Not delivered"
+          "consequence": "the change is kept unpublished — staged after kokusen § 5's drop, as the restored pre-squash commits after aka § 7; named in Not delivered"
         }
       ],
       "proposeIssue": false,
