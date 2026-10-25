@@ -533,12 +533,12 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
   `waivedByAiPolicy` (`nen pr ready --help`, nen `0.26`); (e) reads only `reviewer`. It holds when the
   row carries `owedRounds[]` and every entry's `reviewer` is a name in the row's `roundQuorum.anyOf`; an
   empty `owedRounds[]` is computed with none owed, so (e) holds. An entry outside `anyOf`, whatever its
-  `kind`, ends the PR at `cap-reached`'s not-ready terminus, no prompt. So does a row with no `owedRounds[]`: nen omits it when it did not
-  compute the list, and absent is never read as none owed. `coveredByQuorum` is not the test, since it
-  marks a member a met quorum excused and at this stop the quorum is unmet; the row's `reason` is prose,
-  never parsed. A target whose `reviewers[]` all sit in `any_of` (Hatsu's own file today: `copilot` in
-  both) can owe no one outside it. One that enrols a reviewer outside `any_of` reaches the stop when that
-  reviewer's round is not owed at the judged head.
+  `kind`, ends the PR at `cap-reached`'s not-ready terminus, no prompt. So does a row with no
+  `owedRounds[]`: nen omits it when it did not compute the list, and absent is never read as none owed.
+  `coveredByQuorum` is not the test, since it marks a member a met quorum excused and at this stop the
+  quorum is unmet; the row's `reason` is prose, never parsed. A target whose `reviewers[]` all sit in
+  `any_of` (Hatsu's own file today: `copilot` in both) can owe no one outside it. One that enrols a
+  reviewer outside `any_of` reaches the stop when that reviewer's round is not owed at the judged head.
 
 At the stop, `nen pr ready`'s **not-ready verdict is quoted verbatim and never called `ready`**, and the one
 Hatsu line `en` writes into the PR body through `nen pr edit-body` carries the recorded head and the
