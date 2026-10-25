@@ -245,8 +245,9 @@ nen pr body-check --body-from <path to the drafted body> --requirements-from <pa
 
 `--requirements-from` is the resolver's per-run `{name, pattern}` array, never hand-written.
 Use [PR-SECTIONS.md](../../../docs/PR-SECTIONS.md): classify kind, fold issue jobs (no issue means
-build), preserve `pr.sections` overrides, and pass Mukai's evidence, economics and policy-hit facts
-through `scripts/pr_sections_resolve.sh`. Fill its ordered `templates/pr-body/<id>.md` fragments.
+build), preserve `pr.sections` overrides, and pass Mukai's evidence, economics and policy-hit facts,
+and the decisions fact where the run took a decision (PR-SECTIONS step 3), through
+`scripts/pr_sections_resolve.sh`. Fill its ordered `templates/pr-body/<id>.md` fragments.
 The inputs remain [`contracts/pr-composition.json`](../../../contracts/pr-composition.json) →
 `bodyRequirements`; the default process × canon array is a fixture, not every run's body.
 Before **every** create/edit, run `pr_body_sections_check.sh` with that array and resolved max,

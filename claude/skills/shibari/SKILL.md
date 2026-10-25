@@ -57,16 +57,16 @@ in `## Completion checklist` as `injected attribution trailer: <sha> <key>, publ
 `nen repo classify` gives kind; associated issues give distinct `job/` labels. Read consumer-owned
 `pr.sections`, reuse Mukai's run facts, then run the interim resolver with
 `--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, `--idle`, and
-`--out <absolute-requirements.json>`. Its printed ids give order; its array governs this write.
+`--out <absolute-requirements.json>`. `--idle` includes the decisions section for an idle run's
+pre-answers (HR-334). Pass `--decisions` for any other decision taken for the maintainer, attended or
+mid-run (zheref/hatsu#474 AC-1), since no nen manifest records it (PR-SECTIONS step 3). The
+resolver's printed ids give order; its array governs this write.
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.
 
-That page owns effect and cost first, decision tables, authoring nature in Why, and How's diagram
-(`nen report mermaid --graph`), legend and rejected alternative. Add a flow diagram only when flow
-changed. Non-release rows carry all eleven improves aspects; release keeps its written matrix.
-`verify` varies by kind; library and process forms are `CON-17(b)` proxies. Seven reader sections
-exclude Delivery, checklist, issues and final attribution. The 150-word prose budget warns only.
-Economics embeds under its summary with level-3 internal headings. Screenshots stay in the
+That page owns how each section is written (*Write for the decision*: How's
+`nen report mermaid --graph` diagram, improves aspects, verify by kind, Economics embedding) and the
+reader cap and prose budget (*Check every write*). Screenshots stay in the
 [UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); replace all Evidence on rewrite.
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
