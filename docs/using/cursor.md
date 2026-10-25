@@ -73,19 +73,64 @@ The warm-up refreshes the complete Cursor surface every session:
 namespacing behaviour does **not** reproduce on Cursor and the mirrors' `/<name>` spelling works as
 printed.
 
-**The first two refusals apply here too** — a destination the warm-up did not make is left alone and named,
-and your `.gitignore` is never written (`info/exclude`, again). There is no third, because there is no
-`AGENTS.md` on this surface; what takes its place is that **`.cursor/agents/` is a directory a Cursor user
-is *expected* to keep their own subagents in**, which makes it the likeliest collision of all. Before it
-installs anything the warm-up **lists every name already standing under `.cursor/skills/`** and reports
-what it found by name — and says plainly what that listing cannot see: **a same-named skill from another
-plugin elsewhere on the host may shadow the mirror, and is invisible from inside your repository.**
+**The first two refusals apply to the local generated Cursor adapter too** — a destination the warm-up
+did not make is left alone and named, and your `.gitignore` is never written (`info/exclude`, again).
+That adapter generates no `AGENTS.md`; instead, **`.cursor/agents/` is a directory a Cursor user is
+*expected* to keep their own subagents in**, which makes it the likeliest collision of all. Cursor Cloud
+is different: create a repository `AGENTS.md`, or merge the Cloud bullets below into the file already
+there, because Cloud agents read it. Before installing anything the local warm-up **lists every name
+already standing under `.cursor/skills/`** and reports what it found by name — and says plainly what
+that listing cannot see: **a same-named skill from another plugin elsewhere on the host may shadow the
+mirror, and is invisible from inside your repository.**
 
 **First-run check**, from the Hatsu checkout:
 
 ```sh
 scripts/surface_mirror_check.sh
 ```
+
+### Cursor Cloud agents
+
+Cursor Cloud agents run on isolated Ubuntu machines and start from a prepared Build. Put the current
+contract pin in the Build's disk state with this committed `.cursor/environment.json` (merge its
+`install` command with any existing one):
+
+```json
+{
+  "install": "set -eu; d=\"$(mktemp -d)\"; trap 'rm -rf \"$d\"' EXIT; curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o \"$d/nen-bootstrap.sh\"; nen_path=\"$(bash \"$d/nen-bootstrap.sh\" --ref v0.28.0 --source zheref/nen)\"; test -x \"$nen_path\"; mkdir -p \"$HOME/.local/bin\"; if [ -e \"$HOME/.local/bin/nen\" ] && [ ! -L \"$HOME/.local/bin/nen\" ]; then echo 'refusing to replace non-link $HOME/.local/bin/nen' >&2; exit 1; fi; ln -sfn \"$nen_path\" \"$HOME/.local/bin/nen\"; \"$HOME/.local/bin/nen\" --version"
+}
+```
+
+Those literals are the current `nen/contract.json` values: `zheref/nen@v0.28.0`. Keep them together
+when the contract repins. On Cursor's Linux host, the bootstrap caches the verified binary at
+`${XDG_CACHE_HOME:-$HOME/.cache}/nen/zheref_nen/v0.28.0/nen-linux-x64`; the stable link is
+`$HOME/.local/bin/nen`. The bootstrap fetches `SHA256SUMS` before the binary, verifies the manifest's
+digest, deletes rejected bytes, and prints a path only after verification. The command is idempotent:
+an already-valid cache entry is rechecked and reused, while a real file at the link path is refused.
+
+Builds preserve disk state, but Cursor explicitly says exported shell variables do not continue into
+an agent run. Create a repository `AGENTS.md` with this section, or merge the bullets into its existing
+instructions:
+
+```md
+### Cursor Cloud specific instructions
+
+- Run the Hatsu warm-up before any other Nen-owned operation.
+- Bind the Build-installed binary on every call: `PATH="$HOME/.local/bin:$PATH" nen ...`.
+- Quote the warm-up's one-line probe/bootstrap result in the pull request body, including `not run`.
+- If bootstrap fails, stop. Do not substitute raw git, `gh`, or a remembered shell equivalent for a Nen-owned operation.
+```
+
+For restricted network mode, allow the exact HTTPS path the bootstrap needs:
+`raw.githubusercontent.com` for the pinned script; `github.com`, `api.github.com` (the `gh` path), and
+`release-assets.githubusercontent.com` for the release's `SHA256SUMS` and `nen-linux-x64`. GitHub API
+and `gh` requests use Cursor's Cloud Agent egress, not its git egress proxy.
+
+Finally, point the saved environment's **Environment JSON location** at this committed file. Cursor's
+resolution order is personal saved environment, team saved environment, then the committed file; an
+already-saved environment whose location is **None** skips it. Self-Hosted Machines also skip it by
+design. A local fixture can prove the JSON and checksum flow, but only an actual Cursor Cloud Build can
+prove the saved-environment selection and its network policy.
 
 ## 3 · Usage
 
