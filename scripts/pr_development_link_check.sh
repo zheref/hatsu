@@ -378,7 +378,10 @@ check_body() {
   size="$(wc -c < "$body" | tr -d ' ')"
   [ "$size" -le "$BODY_CAP" ] || die2 "the body is $size bytes, over the $BODY_CAP-byte cap (GitHub's own PR-body ceiling); refused before parsing"
   if ! LC_ALL=C tr -d '\000' < "$body" | cmp -s - "$body"; then echo "body: a NUL byte, which the parser does not model" >&2; return 1; fi
-  if ! iconv -f UTF-8 -t UTF-8 < "$body" > /dev/null 2>&1; then echo "body: not valid UTF-8, which the parser does not model" >&2; return 1; fi
+  # Into a private file, never /dev/null: macOS's iconv fails writing a character device when a valid
+  # multibyte character straddles its 1024-byte buffer (zheref/hatsu#440); a regular file is read right.
+  if ! iconv -f UTF-8 -t UTF-8 < "$body" > "$w/utf8" 2>/dev/null; then rm -f "$w/utf8"; echo "body: not valid UTF-8, which the parser does not model" >&2; return 1; fi
+  rm -f "$w/utf8"
   parse_body "$repo" < "$body" > "$w/parsed" || die2 "the body parser failed ($AWK exited non-zero); nothing is passed"
   [ "$(tail -n 1 "$w/parsed" | cut -f1)" = END ] || die2 "the body parser wrote no END record; its output is not trusted"
   while IFS="$(printf '\t')" read -r kind a b; do
@@ -732,6 +735,14 @@ a \`stray backtick" "unbalanced code span"
   printf '%s\n' "$m_body" > "$st_dir/latin.md"; printf 'caf\351\n' >> "$st_dir/latin.md"
   bash "$st_self" --body "$st_dir/latin.md" --target octo/demo > /dev/null 2> "$st_dir/latin.err"
   verdict "invalid UTF-8 is refused" 1 $? "$st_dir/latin.err" "not valid UTF-8"
+  # valid UTF-8 whose ·, → and emoji start at every offset 1000-1100, so each straddles iconv's 1024-byte
+  # buffer once; the first refused offset is reported (zheref/hatsu#440)
+  st_straddle=0
+  for st_n in $(seq 1000 1100); do
+    { head -c "$st_n" /dev/zero | tr '\000' a; printf '\302\267 \342\206\222 \360\237\224\227\n\n%s\n' "$m_body"; } > "$st_dir/straddle.md"
+    bash "$st_self" --body "$st_dir/straddle.md" --target octo/demo > /dev/null 2> "$st_dir/straddle.err" || { st_straddle=$st_n; break; }
+  done
+  verdict "valid UTF-8 straddling a 1 KiB boundary is read" 0 "$st_straddle"
   body "a glyph-prefixed Associated issues heading is read" 0 "$(printf '%s\n' "$m_body" | sed 's/^## Associated issues$/## 🔗 Associated issues/')"
   body "a second glyph-prefixed issue section is refused" 1 "$m_body
 
