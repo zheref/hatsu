@@ -165,8 +165,7 @@ when it runs; a later native checkout may be absent from the active roots.
 | Observed state | Next action | Outcome |
 |---|---|---|
 | Ordinary write succeeds in the bound checkout | Remove the probe; continue ledger/authoring work there | Ordinary writes verified; other operations still need their own checks |
-| Unreviewed sandbox failure during checkout creation or the ordinary probe, action already authorized, host exposes review | Submit that operation through supported review, retaining the isolated destination and exact file scope | Await the returned decision; do not call the initial failure a terminal denial |
-| Checkout probe succeeds, but an authorized Git or ledger operation fails on sandbox scope | Submit that failed operation through supported review, naming its checkout and Git metadata scope | Await this operation's result; the ordinary probe did not establish metadata access |
+| Unreviewed sandbox failure for an authorized operation (checkout creation, probe, Git or ledger write); host exposes review | Submit that exact operation through supported review, retaining the isolated destination and checkout or metadata scope | Await the returned decision; neither the initial failure nor a successful file probe decides metadata access |
 | Review admits the operation | Verify execution and any probe cleanup, then use supported review for other authorized operations only within each request's scope | Continue the effort; admission grants no blanket approval for later commands |
 | Review rejects the request | Stop the rejected action; report the exact action, path, decision and stated reason | Preserve work and isolation; continue only independent permitted work |
 | Review unavailable or forbidden by host policy | Report the capability limitation and exact failed operation; name the host owner and handoff needed | No fabricated review result; ask only for what the host requires |

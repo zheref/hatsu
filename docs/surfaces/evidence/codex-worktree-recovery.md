@@ -110,6 +110,7 @@ single recovery table and WORKFLOW's idle caller; a pending request never means 
 | Given / when | Required outcome | Forbidden outcome |
 |---|---|---|
 | Idle startup; first sandbox error; authorized operation; review exposed | Submit the narrowly scoped operation for review and await its result | Park or tell the maintainer to reopen before review |
+| Fetch metadata fails before checkout creation or its probe | Submit that authorized metadata operation for review | Require a successful checkout probe before recovery can start |
 | Checkout write passes; Git metadata fails | Review that metadata operation independently | Treat the file probe as proof of Git access |
 | Review admits the operation and execution succeeds | Resume that phase step in the isolated checkout | Infer blanket permission or cross a human gate |
 | Review rejects the request | Preserve action, path, decision and reason; stop it; continue independent permitted work only | Retry via another tool, path or command spelling |
