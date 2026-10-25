@@ -105,6 +105,17 @@ try {
   result = run({ HATSU_FAIL_LANE: 'config-values-guard' });
   assert(result.status === 1 && result.stderr.includes('config-values-guard failed'), 'failing config-values-guard was not red (#397)');
 
+  // The Development-link guard is its own fixture (--self-test), selected by the script alone (#440).
+  writeFileSync(join(repo, 'scripts', 'pr_development_link_check.sh'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `development-link-guard path refused: ${result.stderr}`);
+  expected += ',development-link-guard||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'development-link-guard lane not selected (BC-9, #440)');
+  result = run({ HATSU_FAIL_LANE: 'development-link-guard' });
+  assert(result.status === 1 && result.stderr.includes('development-link-guard failed'), 'failing development-link-guard was not red (#440)');
+
   // The issue-shape fixture is selected by itself: it runs the verified nen over the catalogue (#423).
   writeFileSync(join(repo, 'scripts', 'issue_sections_fixture.mts'), '');
   writeFileSync(log, '');
