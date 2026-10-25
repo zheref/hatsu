@@ -47,10 +47,10 @@ against the marker, update `freedBytes` and `result`, close the marker, and emit
   every worktree, branch and remote head one class. **Every row is complete** — id, class, object,
   command (none on named row), what it frees, evidence, owner — and **no two rows share an id**: § 5's
   one plan-wide count, never restarted per class or owner group.
-- **The pick and pass 2 are cleanup § 6**: a shared id stops it before the question (you re-mint in
-  pass 1), and each `done[]` id names one `plan[]` row; § 5's order, each remote delete before any
-  worktree goes, from its own worktree or § 5's admitted host (never core), each row read back; a failing row reported with
-  stderr and **never retried with a wider flag**; `none` removes nothing.
+- **The pick and pass 2 are cleanup § 6**, which owns them: its id read stops before the question or
+  its idle default (you re-mint in pass 1; a second stop closes the marker `none-picked`, ids named);
+  a `done[]` id no `plan[]` row carries is listed unmatched, `result` `partial`; each remote delete
+  precedes any worktree removal, from its own worktree or § 5's admitted host, never core.
 
 ## What you never do
 
