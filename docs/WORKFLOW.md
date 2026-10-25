@@ -1473,8 +1473,10 @@ and breath session on such a copy, and refresh it (`hatsu:bakuryuha`, or ten § 
 **What is not a gap — refused, never asked, never softened into a default.** Authored here once;
 [`PROCESS.md`](PROCESS.md) § *Exit codes and refusals* and `claude/rules/hatsu.md` cite this list:
 
-- **no tool or permission can supply it** — a sandbox or permission refusal the harness raises for a
-  command the session typed. Where the act needs the maintainer's own hands — an install that needs
+- **no tool or permission can supply it** — an actual rejection after the surface's supported
+  recovery route, or that route unavailable or forbidden. An unreviewed sandbox failure first follows
+  the surface adapter, including during an idle run; it is not yet this refusal. Where the act needs
+  the maintainer's own hands — an install that needs
   `sudo`, an elevated window — it is not this item but kind 6 above, a G5;
 - **a secret, credential or signing material** — never asked for and never typed into chat; the
   maintainer supplies it through their own tool, and one typed into chat or a picker is never used
@@ -1535,7 +1537,14 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    a row: `default` takes its starred option, says so and records it (§ 4 *Every picker
    answer is recorded*); `hold` or `refuse` asks nothing and **parks the effort** (`nen run park … --row <row>`), and the run moves to the next one. **No picker is shown in an idle run.**
 2. **Stops park, they do not end the run.** A G5 parks the effort as `parked:g5-<class>`; a harness
-   permission denial is a G5. A human-gate row is never pre-answered: the effort stands at that gate.
+   permission denial is a G5 **after the surface's supported recovery route has answered**. On Codex,
+   apply [authorized write recovery](surfaces/codex.md#authorized-worktree-write-recovery) to an
+   unreviewed sandbox failure first, including checkout creation and Git metadata writes before a
+   manifest exists. A supported review request is part of recovery, not retrying past a rejection;
+   `--idle` does not suppress it. A real rejection stops that action; an unavailable review route
+   reports its capability limitation. If the manifest cannot be created, report `startup blocked;
+   park not persisted`, never a recorded park or an empty successful run. A human-gate row is never
+   pre-answered: the effort stands at that gate.
    (Park rows are `[a-z0-9-]+`, the spelling nen refuses otherwise; the colon forms of 0.136.0 are retired.)
 3. **Residue parks.** In the batch, a step a skill marks *by hand* or *no verb* is never improvised as
    shell: the effort parks as `parked:residue-<skill>`.
