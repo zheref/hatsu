@@ -286,6 +286,39 @@ test("HR-11: an empty verify heading fails through its derived content requireme
   assert.throws((): unknown => check(cat, valid, [...report.requirements, { name: "bad", pattern: "^x", content: "yes" }], 7), /content must be true/);
 });
 
+
+test("HA#405: the spec run fact admits the Spec footer first, carrying nen's spec-rows whole", () => {
+  assert.ok(!resolution("product", ["implementation"], []).footer.includes("spec"));
+  const report = resolution("product", ["implementation", "parity"], ["spec"]);
+  assert.deepEqual(report.footer, ["spec", "checklist", "issues", "attribution"]);
+  assert.ok(!report.ids.includes("spec"), "the Spec block is a footer, outside the seven-reader cap");
+  const at = report.requirements.findIndex((row): boolean => row.name === "spec");
+  // The catalogue's copy of nen's spec-rows is the one copy, frozen to the nen commit it names (nen exposes
+  // the pattern through no verb); the resolver must carry it unchanged.
+  const specRow = cat.footer.find((row): boolean => row.id === "spec") as SectionRow & { rows: { name: string; pattern: string; $frozenAt?: string } };
+  assert.match(specRow.rows.$frozenAt ?? "", /^zheref\/nen@[0-9a-f]{8,40} src\/spec\/coverage\.ts /);
+  assert.deepEqual(report.requirements[at + 1], { name: "spec-rows", pattern: specRow.rows.pattern, content: true, heading: "spec" });
+  const filled = body(report, "product").replace("## 📐 Spec\n\nFilled.", "## 📐 Spec\n\n- F002-SC-001 — satisfied — test ListTest.sorted_F002_SC_001\n- F002-SC-002 — deferred — the threshold is the maintainer's · HA#405");
+  assert.deepEqual(check(cat, filled, report.requirements, 7)[0], []);
+  for (const empty of ["## 📐 Spec\n", "## 📐 Spec\n\nSee the issue.", "## 📐 Spec\n\n### F002-SC-001 — satisfied — test T"]) {
+    const findings = check(cat, filled.replace(/## 📐 Spec\n\n- F002[^]*?HA#405/, empty), report.requirements, 7)[0];
+    assert.ok(findings.includes("section spec: requirement spec-rows is unmet"), findings.join("; "));
+  }
+  const missing = check(cat, filled.replace(/## 📐 Spec\n\n- F002[^]*?HA#405\n\n/, ""), report.requirements, 7)[0];
+  assert.ok(missing.includes("missing heading spec") && !missing.some((finding): boolean => finding.startsWith("section spec")), missing.join("; "));
+  assert.throws((): unknown => check(cat, filled, [...report.requirements, { name: "x-rows", pattern: "^x", heading: "spec" }], 7), /heading names a heading row and needs content/);
+  const copy = fresh("ha405-cat-");
+  cpSync(join(HATSU_ROOT, "contracts"), join(copy, "contracts"), { recursive: true });
+  cpSync(join(HATSU_ROOT, "templates"), join(copy, "templates"), { recursive: true });
+  const file = join(copy, "contracts/pr-sections.json");
+  const raw = JSON.parse(readFileSync(file, "utf8")) as { footer: Array<Record<string, unknown>> };
+  delete raw.footer[0]?.when;
+  writeFileSync(file, `${JSON.stringify(raw)}\n`);
+  assert.throws((): Catalogue => catalogue(copy), /a rows requirement belongs to a conditional section/);
+  assert.equal(successful("sh", [RESOLVER, "--repo", repo, "--kind", "product", "--jobs", "parity", "--spec", "--out", join(repo, "req.json")]).trim(), "changes · why · how · improves · verify");
+  assert.ok((JSON.parse(readFileSync(join(repo, "req.json"), "utf8")) as Array<{ name: string }>).some((row): boolean => row.name === "spec-rows"));
+});
+
 test("the eighth admitted reader is named at the exact line", () => {
   const report = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   const rollout = cat.sections.find((row): boolean => row.id === "rollout") as SectionRow;
