@@ -809,7 +809,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. A delivery PR on a spec-derived issue whose Spec section leaves an SC neither satisfied nor deferred, or cites an id the issue does not carry, is meant not to open: the gap is the maintainer's to resolve, never defaulted. OWED: shibari has no Spec section yet, so no skill raises this row; today the build's delegate writes the section and its reviewers check it, and the stop lands with zheref/nen#493's catalogue row plus a shibari change (zheref/hatsu#405)."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. A delivery PR on a spec-derived issue whose Spec section leaves an SC neither satisfied nor deferred, or cites an id the issue does not carry, does not open: the gap is the maintainer's to resolve, never defaulted. Raised by shibari section 4 when nen spec coverage's delivery form reads anything but accounted -- unaccounted or could-not-read at exit 1, or exit 2 with a document whose outside list names an id the issue does not carry (exit 2 with no document is wiring); the section is the catalogue's spec footer row under the run fact spec, carrying nen's spec-rows requirement (zheref/nen#493, zheref/hatsu#405)."
     },
     {
       "id": "spec-conflict",
