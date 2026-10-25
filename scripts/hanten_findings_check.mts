@@ -18,6 +18,11 @@ interface Finding {
 const HR = /^HR-([1-9][0-9]*)$/;
 const HR_LIKE = /^\s*HR-/i;
 type Schema = Readonly<Record<string, unknown>>;
+const SCHEMA_KEYS = new Set([
+  '$schema', '$id', '$comment', '$defs', '$ref', 'type', 'required', 'properties', 'items',
+  'enum', 'const', 'pattern', 'minimum', 'minLength', 'allOf', 'if', 'then',
+]);
+const SCHEMA_TYPES = new Set(['object', 'array', 'string', 'integer']);
 
 function safe(value: unknown, fallback: string): string {
   if (typeof value !== 'string' || value.trim() === '') return fallback;
@@ -38,6 +43,82 @@ function schemaAt(root: Schema, reference: string): Schema {
   }
   if (!object(current)) throw new Error(`findings-schema reference ${reference} is not an object`);
   return current;
+}
+
+function scalar(value: unknown): boolean {
+  return value === null || ['string', 'number', 'boolean'].includes(typeof value);
+}
+
+function assertSchemaNode(schema: Schema, root: Schema, path: string, visiting: Set<Schema>): void {
+  if (visiting.has(schema)) throw new Error(`${path} forms a cyclic schema reference`);
+  visiting.add(schema);
+  try {
+    for (const key of Object.keys(schema)) {
+      if (!SCHEMA_KEYS.has(key)) throw new Error(`${path}.${key} is not supported by the findings-schema evaluator`);
+    }
+    for (const key of ['$schema', '$id', '$comment'] as const) {
+      if (key in schema && typeof schema[key] !== 'string') throw new Error(`${path}.${key} must be a string`);
+    }
+    if ('type' in schema && (typeof schema.type !== 'string' || !SCHEMA_TYPES.has(schema.type))) {
+      throw new Error(`${path}.type is not a supported schema type`);
+    }
+    if ('required' in schema) {
+      if (!Array.isArray(schema.required) || schema.required.some((key) => typeof key !== 'string')
+        || new Set(schema.required).size !== schema.required.length) throw new Error(`${path}.required must be an array of unique strings`);
+    }
+    for (const key of ['$defs', 'properties'] as const) {
+      if (!(key in schema)) continue;
+      if (!object(schema[key])) throw new Error(`${path}.${key} must be an object of schema nodes`);
+      for (const [name, child] of Object.entries(schema[key])) {
+        if (!object(child)) throw new Error(`${path}.${key}.${name} must be a schema object`);
+        assertSchemaNode(child, root, `${path}.${key}.${name}`, visiting);
+      }
+    }
+    if ('items' in schema) {
+      if (!object(schema.items)) throw new Error(`${path}.items must be a schema object`);
+      assertSchemaNode(schema.items, root, `${path}.items`, visiting);
+    }
+    if ('enum' in schema && (!Array.isArray(schema.enum) || schema.enum.length === 0 || !schema.enum.every(scalar))) {
+      throw new Error(`${path}.enum must be a non-empty array of scalar values`);
+    }
+    if ('const' in schema && !scalar(schema.const)) throw new Error(`${path}.const must be a scalar value`);
+    if ('pattern' in schema) {
+      if (typeof schema.pattern !== 'string') throw new Error(`${path}.pattern must be a string`);
+      try { new RegExp(schema.pattern); } catch { throw new Error(`${path}.pattern is not a valid regular expression`); }
+    }
+    if ('minimum' in schema && (typeof schema.minimum !== 'number' || !Number.isFinite(schema.minimum))) {
+      throw new Error(`${path}.minimum must be a finite number`);
+    }
+    if ('minLength' in schema && (typeof schema.minLength !== 'number' || !Number.isInteger(schema.minLength) || schema.minLength < 0)) {
+      throw new Error(`${path}.minLength must be a non-negative integer`);
+    }
+    if ('allOf' in schema) {
+      if (!Array.isArray(schema.allOf) || schema.allOf.length === 0) throw new Error(`${path}.allOf must be a non-empty array of schema nodes`);
+      for (const [index, child] of schema.allOf.entries()) {
+        if (!object(child)) throw new Error(`${path}.allOf[${index}] must be a schema object`);
+        assertSchemaNode(child, root, `${path}.allOf[${index}]`, visiting);
+      }
+    }
+    for (const key of ['if', 'then'] as const) {
+      if (!(key in schema)) continue;
+      if (!object(schema[key])) throw new Error(`${path}.${key} must be a schema object`);
+      assertSchemaNode(schema[key], root, `${path}.${key}`, visiting);
+    }
+    if (('if' in schema) !== ('then' in schema)) throw new Error(`${path} must carry if and then together`);
+    if ('$ref' in schema) {
+      if (typeof schema.$ref !== 'string') throw new Error(`${path}.$ref must be a string`);
+      const siblings = Object.keys(schema).filter((key) => !['$ref', '$comment'].includes(key));
+      if (siblings.length) throw new Error(`${path}.$ref has unsupported sibling keywords: ${siblings.join(', ')}`);
+      assertSchemaNode(schemaAt(root, schema.$ref), root, `${path}.$ref`, visiting);
+    }
+  } finally {
+    visiting.delete(schema);
+  }
+}
+
+export function validateFindingsSchema(schema: unknown): asserts schema is Schema {
+  if (!object(schema)) throw new Error('the findings schema root must be an object');
+  assertSchemaNode(schema, schema, '$schema', new Set());
 }
 
 function schemaErrors(value: unknown, schema: Schema, root: Schema, path: string): string[] {
@@ -86,6 +167,7 @@ function schemaErrors(value: unknown, schema: Schema, root: Schema, path: string
 }
 
 export function validateFindingsDocument(document: unknown, schema: Schema): readonly string[] {
+  validateFindingsSchema(schema);
   const errors = schemaErrors(document, schema, schema, '$');
   if (!object(document) || !Array.isArray(document.findings)) return errors;
   for (const [index, raw] of document.findings.entries()) {
@@ -125,7 +207,7 @@ export function checkFindings(document: unknown, rosterContents: string, schema:
   return errors;
 }
 
-export function main(argv: string[]): number {
+export function main(argv: string[], schemaOverride?: unknown): number {
   if (argv.length < 1 || argv.length > 2) {
     console.error('hanten-findings-check: usage: hanten_findings_check.mts <findings.json> [<roster.md>]');
     return 2;
@@ -147,7 +229,9 @@ export function main(argv: string[]): number {
     return 2;
   }
   try {
-    schema = JSON.parse(readFileSync(schemaPath, 'utf8')) as Schema;
+    const candidate: unknown = schemaOverride === undefined ? JSON.parse(readFileSync(schemaPath, 'utf8')) : schemaOverride;
+    validateFindingsSchema(candidate);
+    schema = candidate;
   } catch (error) {
     console.error(`hanten-findings-check: cannot read findings schema ${schemaPath}: ${(error as Error).message}`);
     return 2;

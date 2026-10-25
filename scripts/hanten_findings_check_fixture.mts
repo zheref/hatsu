@@ -2,7 +2,7 @@
 // Hermetic focused fixture for the status-aware HR finding policy (HR-10,
 // HR-337). Each hostile criterion fails by finding id; unread input stays exit 2.
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -11,6 +11,8 @@ import { main as checkMain } from './hanten_findings_check.mts';
 
 export function runHantenFindingsFixture(): void {
 const checker = fileURLToPath(new URL('./hanten_findings_check.mts', import.meta.url));
+const schemaFile = fileURLToPath(new URL('../contracts/hanten-findings.schema.json', import.meta.url));
+const shippedSchema = JSON.parse(readFileSync(schemaFile, 'utf8'));
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-hanten-findings-'));
 const roster = join(scratch, 'ROSTER.md');
 const statusRows = [
@@ -87,6 +89,35 @@ function record(name: string, document: unknown, status: number, stdout: RegExp 
   exercise(name, [file, rosterPath], status, stdout, stderr);
 }
 
+function schemaRefusal(name: string, change: (schema: any) => void, stderr: RegExp): void {
+  const schema = structuredClone(shippedSchema);
+  change(schema);
+  const file = join(scratch, `${name}.json`);
+  writeFileSync(file, `${JSON.stringify({ scopes: [], findings: [base('schema-refusal', 'UX-1')] })}\n`);
+  const stdout: string[] = [];
+  const errors: string[] = [];
+  const originalLog = console.log;
+  const originalError = console.error;
+  console.log = (...values: unknown[]) => stdout.push(values.map(String).join(' '));
+  console.error = (...values: unknown[]) => errors.push(values.map(String).join(' '));
+  let status: number;
+  try {
+    // The executable reads the immutable shipped schema; this injection pins the
+    // exported main's tooling-exit boundary for a future malformed schema.
+    status = checkMain([file, join(scratch, 'absent.md')], schema);
+  } finally {
+    console.log = originalLog;
+    console.error = originalError;
+  }
+  const detail = `${name}: exit ${status}\nstdout: ${stdout.join('\n')}\nstderr: ${errors.join('\n')}`;
+  assert.equal(status, 2, detail);
+  assert.equal(stdout.length, 0, detail);
+  assert.match(errors.join('\n'), stderr, detail);
+  assert.doesNotMatch(errors.join('\n'), /cannot read roster/, detail);
+  cases += 1;
+  console.log(`ok ${cases} - ${name}`);
+}
+
 try {
   run('ruled rows require critical and fixed-or-deferred', [
     base('ruled-severity', 'HR-1', 'low'),
@@ -114,6 +145,16 @@ try {
   raw('invalid JSON is tooling exit 2', '{', /cannot read .* as JSON/);
   record('a missing findings array is a bad record', { scopes: [] }, 1, /invalid findings record: \$\.findings is required/, null);
   record('a non-object finding is a bad record', { scopes: [], findings: [null] }, 1, /invalid findings record: \$\.findings\[0\] must be object/, null);
+  schemaRefusal('unsupported maxLength fails closed', (schema) => { schema.$defs.finding.properties.id.maxLength = 12; }, /cannot read findings schema .*maxLength is not supported/);
+  schemaRefusal('unsupported minItems fails closed', (schema) => { schema.properties.findings.minItems = 1; }, /cannot read findings schema .*minItems is not supported/);
+  schemaRefusal('unsupported not fails closed', (schema) => { schema.$defs.finding.not = {}; }, /cannot read findings schema .*\.not is not supported/);
+  schemaRefusal('unsupported oneOf fails closed', (schema) => { schema.$defs.finding.oneOf = []; }, /cannot read findings schema .*\.oneOf is not supported/);
+  schemaRefusal('unsupported additionalProperties fails closed', (schema) => { schema.$defs.finding.additionalProperties = false; }, /cannot read findings schema .*additionalProperties is not supported/);
+  schemaRefusal('an unresolved local ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/$defs/absent'; }, /cannot read findings schema .*unresolved findings-schema reference/);
+  schemaRefusal('a malformed ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = 'other.json'; }, /cannot read findings schema .*unsupported findings-schema reference/);
+  schemaRefusal('a malformed schema type is tooling exit 2', (schema) => { schema.$defs.finding.type = 7; }, /cannot read findings schema .*type is not a supported schema type/);
+  schemaRefusal('a malformed schema regex is tooling exit 2', (schema) => { schema.$defs.trackedRef.pattern = '['; }, /cannot read findings schema .*pattern is not a valid regular expression/);
+  schemaRefusal('a cyclic local ref is tooling exit 2', (schema) => { schema.$defs.loop = { $ref: '#/$defs/loop' }; }, /cannot read findings schema .*cyclic schema reference/);
   console.log(`hanten-findings-check fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
