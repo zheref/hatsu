@@ -216,6 +216,11 @@ fi
 #                     — shibari § 4's section guard, run from
 #                       `$hatsu_root/scripts/` before every PR body write; a stale
 #                       copy accepts a body whose required sections have drifted.
+#   scripts/pr_sections_resolve.sh, scripts/pr_sections.ts
+#                     — the shared PR-SECTIONS procedure reached by tensho runs
+#                       the resolver from the installed root; both it and the
+#                       body-section guard execute the adjacent TypeScript engine.
+#                       A stale copy resolves or checks the wrong body contract.
 #   scripts/gh_api_read.mts
 #                     — the fixed-query GitHub reader used from the installed root
 #                       by build, sharingan, spiritual-message, cleanup and file; a
@@ -224,16 +229,26 @@ fi
 #   scripts/config_values.sh
 #                     — ten and the configuration-owning skills run it from
 #                       `$hatsu_root/scripts/` to diagnose, require, read and write
-#                       declared values; a stale copy applies obsolete catalogue
-#                       rules.
+#                       declared values. It executes scripts/config_values.ts,
+#                       which in turn executes scripts/config_values_legacy.sh;
+#                       a stale copy anywhere in that chain applies obsolete
+#                       catalogue rules.
 #   scripts/futon_effort_record.mts
 #                     — en verifies Futon's issue/PR/head ownership record through
 #                       this installed-root helper before readiness; a stale copy
 #                       can accept a mismatched or stale effort.
 #   scripts/product_term_check.sh, scripts/private_name_named.txt
 #                     — bankai-rule runs the product-term guard from the installed
-#                       root, while file reads the named public-repository list into
-#                       its redaction ignore file; stale copies enforce stale data.
+#                       root, whose shim executes product_term_check.mts; file reads
+#                       the named public-repository list into its redaction ignore
+#                       file. Stale copies enforce stale code or data.
+#   scripts/provider_tag_commit.mts
+#                     — kuchiyose resolves and peels a provider tag through this
+#                       installed-root reader; a stale copy can compare a tag object
+#                       instead of the commit it names.
+#   scripts/port_rule_reserve.sh
+#                     — bankai-rule reserves and re-checks ruling ids through this
+#                       installed-root helper; a stale copy can admit a duplicate.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -371,11 +386,18 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
   'scripts/pr_body_sections_check.sh'
+  'scripts/pr_sections_resolve.sh'
+  'scripts/pr_sections.ts'
   'scripts/gh_api_read.mts'
   'scripts/config_values.sh'
+  'scripts/config_values.ts'
+  'scripts/config_values_legacy.sh'
   'scripts/futon_effort_record.mts'
   'scripts/product_term_check.sh'
+  'scripts/product_term_check.mts'
   'scripts/private_name_named.txt'
+  'scripts/provider_tag_commit.mts'
+  'scripts/port_rule_reserve.sh'
   'scripts/dependency_audit_resolve.mts'
   'scripts/shell_coverage.mts'
   '.mcp.json'
