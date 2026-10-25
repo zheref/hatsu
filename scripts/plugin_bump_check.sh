@@ -319,6 +319,11 @@ fi
 #                       from `$hatsu_root/scripts/` in every review, consumers'
 #                       included; a stale copy judges a review by old rules.
 #
+#   scripts/hanten_findings_check.mts, scripts/clause_id_guard.mts
+#                     — hanten section 6 runs the findings checker from the installed
+#                       root; it imports the clause guard's live ROSTER status parser
+#                       (zheref/hatsu#466). Their fixtures are test-only.
+#
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), and every other scripts/** entry — the fixtures
@@ -400,6 +405,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/port_rule_reserve.sh'
   'scripts/dependency_audit_resolve.mts'
   'scripts/shell_coverage.mts'
+  'scripts/hanten_findings_check.mts'
+  'scripts/clause_id_guard.mts'
   '.mcp.json'
 )
 

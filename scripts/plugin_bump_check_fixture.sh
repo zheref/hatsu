@@ -48,6 +48,8 @@ printf '%s\n' 'scripts/provider_tag_commit.mts' > "$fixture_root/changed-provide
 printf '%s\n' 'scripts/port_rule_reserve.sh' > "$fixture_root/changed-port-rule-reserve.txt"
 printf '%s\n' 'scripts/dependency_audit_resolve.mts' > "$fixture_root/changed-dependency-audit-resolve.txt"
 printf '%s\n' 'scripts/shell_coverage.mts' > "$fixture_root/changed-shell-coverage.txt"
+printf '%s\n' 'scripts/hanten_findings_check.mts' > "$fixture_root/changed-hanten-findings.txt"
+printf '%s\n' 'scripts/clause_id_guard.mts' > "$fixture_root/changed-clause-parser.txt"
 printf '%s\n' 'scripts/send_freshness_check.sh' > "$fixture_root/changed-freshness.txt"
 printf '%s\n' 'scripts/kagutsuchi_worktree.sh' > "$fixture_root/changed-kagutsuchi-worktree.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.sh' > "$fixture_root/changed-cleanup-path-admit.txt"
@@ -106,6 +108,8 @@ run_case 'port ruling reservation helper unchanged version' 1 "$fixture_root/cha
 run_case 'dependency audit resolver unchanged version' 1 "$fixture_root/changed-dependency-audit-resolve.txt" "$fixture_root/head-unchanged.json" 'scripts/dependency_audit_resolve.mts'
 # ten's `nen shu tools --repo <hatsu_root>` runs the bash row's probe out of the installed copy (#148).
 run_case 'shell coverage helper unchanged version' 1 "$fixture_root/changed-shell-coverage.txt" "$fixture_root/head-unchanged.json" 'scripts/shell_coverage.mts'
+run_case 'Hanten findings checker unchanged version' 1 "$fixture_root/changed-hanten-findings.txt" "$fixture_root/head-unchanged.json" 'scripts/hanten_findings_check.mts'
+run_case 'Hanten roster parser unchanged version' 1 "$fixture_root/changed-clause-parser.txt" "$fixture_root/head-unchanged.json" 'scripts/clause_id_guard.mts'
 run_case 'freshness gate script unchanged version' 1 "$fixture_root/changed-freshness.txt" "$fixture_root/head-unchanged.json" 'scripts/send_freshness_check.sh'
 run_case 'kagutsuchi worktree script unchanged version' 1 "$fixture_root/changed-kagutsuchi-worktree.txt" "$fixture_root/head-unchanged.json" 'scripts/kagutsuchi_worktree.sh'
 run_case 'cleanup path admission script unchanged version' 1 "$fixture_root/changed-cleanup-path-admit.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.sh'

@@ -49,7 +49,8 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/futon_effort_record.mts`, `scripts/product_term_check.sh`, `scripts/product_term_check.mts`,
 `scripts/private_name_named.txt`, `scripts/provider_tag_commit.mts`, `scripts/port_rule_reserve.sh`,
 `scripts/dependency_audit_resolve.mts`,
-`scripts/shell_coverage.mts`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
+`scripts/shell_coverage.mts`, `scripts/hanten_findings_check.mts`, `scripts/clause_id_guard.mts`)
+— the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts
