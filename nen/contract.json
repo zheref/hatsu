@@ -1532,6 +1532,20 @@
           "value": ".claude-plugin/marketplace.json",
           "why": "The marketplace manifest is the second half of the shipped surface and carries its own description; --strict reads both, and a check that silently skipped one would be an unperformed check reported as a clean one."
         }
+      ],
+      "unit-tests-ci-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
+        }
+      ],
+      "gh-api-read-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
+        }
       ]
     },
     "hosts": {
