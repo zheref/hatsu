@@ -75,6 +75,14 @@
       "by": "shibari § 4"
     },
     {
+      "command": "node <hatsu>/scripts/ledger_findings_prepare.mts --findings <record.json> --repo <checkout> --out <copy.json>",
+      "by": "mukai § 2 step 8a (before nen pr ledger post; lane ledger-findings-guard)"
+    },
+    {
+      "command": "<gitleaks> detect --no-git --source <slice.json> --redact",
+      "by": "mukai § 2 step 8a (the pinned secret scan over the --dry-run --json slice, contracts/scans.json → secretScan; the verified binary's own path)"
+    },
+    {
       "command": "nen pr ledger post --target <owner/name> --pr <n> --effort <branch>",
       "by": "mukai § 2 step 8a"
     },
