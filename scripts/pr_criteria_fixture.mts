@@ -151,10 +151,8 @@ assert.equal(finding.then.properties.severity.const, "critical");
 assert.deepEqual(finding.then.properties.disposition.properties.state.enum, ["fixed", "deferred"]);
 
 // The schema cannot resolve an HR row's live status. The focused checker fixture
-// owns that half of HR-10/HR-337 and remains wired into this always-run lane.
-const findingFixture = spawnSync(process.execPath, [join(root, "scripts/hanten_findings_check_fixture.mts")], { encoding: "utf8" });
-assert.equal(findingFixture.status, 0, `hanten findings fixture:\n${findingFixture.stdout}\n${findingFixture.stderr}`);
-assert.match(findingFixture.stdout, /hanten-findings-check fixture: \d+ cases passed/);
+// owns that half of HR-10/HR-337; the criteria lane declares it as a separate,
+// serial test file so Node can capture the production module in-process.
 const hanten = read("claude/skills/hanten/SKILL.md");
 assert.ok(hanten.includes('node "$hatsu_root/scripts/hanten_findings_check.mts" "<findings-record>"')
   && hanten.includes('"$hatsu_root/docs/ROSTER.md"`; exit `1` returns, `2` stops unread.'),

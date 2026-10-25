@@ -52,7 +52,7 @@ export function checkFindings(document: unknown, rosterContents: string): readon
   return errors;
 }
 
-function main(argv: string[]): number {
+export function main(argv: string[]): number {
   if (argv.length < 1 || argv.length > 2) {
     console.error('hanten-findings-check: usage: hanten_findings_check.mts <findings.json> [<roster.md>]');
     return 2;

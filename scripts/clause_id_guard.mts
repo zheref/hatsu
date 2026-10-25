@@ -219,7 +219,7 @@ export function parseRosterStatuses(contents: string): readonly RosterStatus[] {
   return verdict.definitions.map(({ id, line, status }) => ({ id, line, status: status ?? '' }));
 }
 
-function main(argv: string[]): number {
+export function main(argv: string[]): number {
   if (argv.length > 1) {
     console.error('clause-id-guard: usage: clause_id_guard.mts [<roster.md>]');
     return 2;
