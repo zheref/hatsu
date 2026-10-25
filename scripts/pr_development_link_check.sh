@@ -62,17 +62,19 @@
 #   <dir>/issues/<owner>/<name>/<N>.json  gh issue view <N> --repo <o/n> --json number,closedByPullRequestsReferences
 #   (owner and name lowercased)
 # PR_DEV_LINK_AWK names the awk to run; set, the run is never a verdict and never exits 0 (the
-# self-test uses it to prove the parser's failure modes are exit 2).
+# self-test uses it to prove the parser's failure modes are exit 2). PR_DEV_LINK_PERL names the perl
+# that runs the UTF-8 decoder, under the same rule (the self-test proves a decoder failure is exit 2).
 #
 # exit 0  every closing row is keyworded, no other keyword acts, and both directions match exactly
 # exit 1  a refusal (every one listed on stderr, control characters replaced by `?`), retarget-pending,
 #         not-applicable, or a parser override
 # exit 2  a body over 65536 bytes (refused before parsing), GitHub (or the fixture) could not be read, malformed JSON, the parser failed or is absent,
-#         jq or iconv missing, or a usage error
+#         the UTF-8 decoder failed (not a verdict on the bytes), jq or perl missing, or a usage error
 #
 # Bash 3.2 portable: no associative arrays; sets are newline-delimited temp files; awk runs under LC_ALL=C.
 
 AWK="${PR_DEV_LINK_AWK:-awk}"
+PERL="${PR_DEV_LINK_PERL:-perl}"
 REF_CAP=50
 BODY_CAP=65536  # GitHub's own ceiling on a PR body; anything larger is not a body GitHub would hold
 
@@ -377,8 +379,20 @@ check_body() {
   : > "$w/expected"; : > "$w/other"; : > "$w/kw"; : > "$w/ikw"
   size="$(wc -c < "$body" | tr -d ' ')"
   [ "$size" -le "$BODY_CAP" ] || die2 "the body is $size bytes, over the $BODY_CAP-byte cap (GitHub's own PR-body ceiling); refused before parsing"
-  if ! LC_ALL=C tr -d '\000' < "$body" | cmp -s - "$body"; then echo "body: a NUL byte, which the parser does not model" >&2; return 1; fi
-  if ! iconv -f UTF-8 -t UTF-8 < "$body" > /dev/null 2>&1; then echo "body: not valid UTF-8, which the parser does not model" >&2; return 1; fi
+  if ! LC_ALL=C tr -d '\000' < "$body" | cmp -s -- - "$body"; then echo "body: a NUL byte, which the parser does not model" >&2; return 1; fi
+  # Encode's lax "utf8" decoder under FB_CROAK refuses a stray, truncated or overlong sequence; the
+  # pattern then refuses a surrogate and anything above U+10FFFF (an F4 90+ or F5-FF lead). Noncharacters
+  # such as U+FFFE and U+10FFFF are valid UTF-8 and pass; strict "UTF-8" would refuse them. Not iconv:
+  # macOS's fails writing /dev/null when a valid character straddles its 1024-byte buffer, and passes
+  # F4 90 80 80 and F5-F7 leads (zheref/hatsu#440). `--` keeps a body path starting with `-` from being
+  # read as a perl switch. Exit 10 is the only "invalid"; any other exit is the tool's own failure.
+  local rc=0 why
+  "$PERL" -e 'use Encode (); open(my $fh, "<:raw", $ARGV[0]) or exit 4; local $/; my $s = <$fh>; $s = "" unless defined $s; close($fh) or exit 4; my $d = eval { Encode::decode("utf8", $s, Encode::FB_CROAK) }; exit 10 unless defined $d; no warnings; exit($d =~ /[\x{D800}-\x{DFFF}]|[^\x{0}-\x{10FFFF}]/ ? 10 : 0)' -- "$body" 2> "$w/decode.err" || rc=$?
+  case "$rc" in
+    0) ;;
+    10) echo "body: not valid UTF-8, which the parser does not model" >&2; return 1 ;;
+    *) why="$(head -n 1 "$w/decode.err" 2>/dev/null)"; die2 "the UTF-8 decoder failed ($PERL exited $rc${why:+: $why}); nothing is passed" ;;
+  esac
   parse_body "$repo" < "$body" > "$w/parsed" || die2 "the body parser failed ($AWK exited non-zero); nothing is passed"
   [ "$(tail -n 1 "$w/parsed" | cut -f1)" = END ] || die2 "the body parser wrote no END record; its output is not trusted"
   while IFS="$(printf '\t')" read -r kind a b; do
@@ -732,6 +746,33 @@ a \`stray backtick" "unbalanced code span"
   printf '%s\n' "$m_body" > "$st_dir/latin.md"; printf 'caf\351\n' >> "$st_dir/latin.md"
   bash "$st_self" --body "$st_dir/latin.md" --target octo/demo > /dev/null 2> "$st_dir/latin.err"
   verdict "invalid UTF-8 is refused" 1 $? "$st_dir/latin.err" "not valid UTF-8"
+  # valid noncharacters, U+FFFE and U+10FFFF, are read (zheref/hatsu#440)
+  printf '%s\n' "$m_body" > "$st_dir/nonchar.md"; printf 'x\357\277\276 \364\217\277\277\n' >> "$st_dir/nonchar.md"
+  bash "$st_self" --body "$st_dir/nonchar.md" --target octo/demo > /dev/null 2> "$st_dir/nonchar.err"
+  verdict "valid noncharacters U+FFFE and U+10FFFF are read" 0 $? "$st_dir/nonchar.err"
+  # a relative body path named -v is a file, never a perl or cmp switch (zheref/hatsu#440)
+  printf '%s\n' "$m_body" > "$st_dir/-v"; printf 'caf\351\n' >> "$st_dir/-v"
+  (cd "$st_dir" && bash "$st_self" --body -v --target octo/demo) > /dev/null 2> "$st_dir/dashv.err"
+  verdict "invalid UTF-8 at a body path named -v is refused" 1 $? "$st_dir/dashv.err" "not valid UTF-8"
+  # macOS iconv passes both of these (zheref/hatsu#440): a code point above U+10FFFF, and an F5 lead byte
+  printf '%s\n' "$m_body" > "$st_dir/above.md"; printf 'x\364\220\200\200\n' >> "$st_dir/above.md"
+  bash "$st_self" --body "$st_dir/above.md" --target octo/demo > /dev/null 2> "$st_dir/above.err"
+  verdict "a code point above U+10FFFF is refused" 1 $? "$st_dir/above.err" "not valid UTF-8"
+  printf '%s\n' "$m_body" > "$st_dir/f5.md"; printf 'x\365\200\200\200\n' >> "$st_dir/f5.md"
+  bash "$st_self" --body "$st_dir/f5.md" --target octo/demo > /dev/null 2> "$st_dir/f5.err"
+  verdict "an F5 lead byte is refused" 1 $? "$st_dir/f5.err" "not valid UTF-8"
+  printf '%s\n' "$m_body" > "$st_dir/surr.md"; printf 'x\355\240\200\n' >> "$st_dir/surr.md"
+  bash "$st_self" --body "$st_dir/surr.md" --target octo/demo > /dev/null 2> "$st_dir/surr.err"
+  verdict "a surrogate (U+D800) is refused" 1 $? "$st_dir/surr.err" "not valid UTF-8"
+  # valid UTF-8 whose ·, → and emoji start at every offset 1000-1100, so each straddles a 1024-byte
+  # buffer once; the first refused offset is reported. Its red path shows only on macOS (/usr/bin/iconv into
+  # /dev/null refused offset 1014 on macOS 27.0); on the Linux runner it is a regression guard (zheref/hatsu#440)
+  st_straddle=0
+  for st_n in $(seq 1000 1100); do
+    { head -c "$st_n" /dev/zero | tr '\000' a; printf '\302\267 \342\206\222 \360\237\224\227\n\n%s\n' "$m_body"; } > "$st_dir/straddle.md"
+    bash "$st_self" --body "$st_dir/straddle.md" --target octo/demo > /dev/null 2> "$st_dir/straddle.err" || { st_straddle=$st_n; break; }
+  done
+  verdict "valid UTF-8 straddling a 1 KiB boundary is read" 0 "$st_straddle"
   body "a glyph-prefixed Associated issues heading is read" 0 "$(printf '%s\n' "$m_body" | sed 's/^## Associated issues$/## 🔗 Associated issues/')"
   body "a second glyph-prefixed issue section is refused" 1 "$m_body
 
@@ -980,6 +1021,17 @@ Closes #3"
   verdict "a parser override is never a verdict (Feitan F3)" 1 $? "$st_dir/fake.out" "(parser override, not a verdict)"
   PR_DEV_LINK_AWK="awk" bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2>&1
   verdict "even the real awk named by override is not a verdict" 1 $?
+  PR_DEV_LINK_PERL=/nonexistent/perl bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2> "$st_dir/noperl.err"
+  verdict "perl absent is exit 2" 2 $? "$st_dir/noperl.err" "perl is required"
+  PR_DEV_LINK_PERL=false bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2> "$st_dir/decfail.err"
+  verdict "a decoder that fails is exit 2, never 'not valid UTF-8'" 2 $? "$st_dir/decfail.err" "the UTF-8 decoder failed"
+  # a perl script, not a shell one: Bashcov traces a child shell's commands into its stderr
+  printf '#!/usr/bin/env perl\nprint STDERR "decoder broke\\n"; exit 3;\n' > "$st_dir/fakeperl"; chmod +x "$st_dir/fakeperl"
+  PR_DEV_LINK_PERL="$st_dir/fakeperl" bash "$st_self" --body "$st_dir/body.md" --target octo/demo > /dev/null 2> "$st_dir/decwhy.err"
+  verdict "a decoder failure quotes the decoder's first stderr line" 2 $? "$st_dir/decwhy.err" "exited 3: decoder broke"
+  if grep -q "not valid UTF-8" "$st_dir/decfail.err"; then verdict "a decoder failure is not reported as invalid UTF-8" 0 1; fi
+  PR_DEV_LINK_PERL=perl bash "$st_self" --body "$st_dir/body.md" --target octo/demo > "$st_dir/perlov.out" 2>&1
+  verdict "the real perl named by override is not a verdict" 1 $? "$st_dir/perlov.out" "(decoder override, not a verdict)"
 
   mkdir -p "$st_dir/bin"
   cat > "$st_dir/bin/gh" <<'STUB'
@@ -1036,10 +1088,11 @@ while [ $# -gt 0 ]; do
   esac
 done
 command -v jq >/dev/null 2>&1 || die2 "jq is required"
-command -v iconv >/dev/null 2>&1 || die2 "iconv is required"
+command -v "$PERL" >/dev/null 2>&1 || die2 "perl is required ('$PERL' not found)"
 command -v "$AWK" >/dev/null 2>&1 || die2 "awk is required ('$AWK' not found)"
 work="$(mktemp -d)" || die2 "mktemp failed"; trap 'rm -rf "$work"' EXIT
 override=""; [ -n "${PR_DEV_LINK_AWK:-}" ] && override=" (parser override, not a verdict)"
+[ -n "${PR_DEV_LINK_PERL:-}" ] && override="$override (decoder override, not a verdict)"
 
 if [ -n "$body" ]; then
   [ -z "$pr" ] && [ -z "$fixture" ] && [ "$seen_base" -eq 0 ] || { usage; exit 2; }
