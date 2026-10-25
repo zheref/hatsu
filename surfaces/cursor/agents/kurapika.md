@@ -243,13 +243,16 @@ build system and knows no tool's name. So the verbs exist for **any** stack that
 
 **The host is one budget, and a free slot is not room on it** ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § *Host workload budget*, zheref/hatsu#478). Effort slots (`nen loop slots`) and provider quotas say
-nothing about what the maintainer's desktop can run. Steps 1, 3 and 4 run heavy work: one heavy workload
-at a time across you, every delegate you raise and any self-hosted CI job on this host, each runner at
-a finite worker count your brief names. nen holds no admission guard at this pin (owed to zheref/nen#536),
-so say `host admission: no guard; serialized fallback` and run that fallback. On an unresponsive host,
-a repeated timeout, a cancelled run or uncertain descendants, launch nothing heavy and retry nothing
-until a process listing shows the stopped run's descendants gone and the host has recovered. Never say
-a workload stopped without that listing, and never kill a process by name or pattern.
+nothing about what the maintainer's desktop can run. Steps 1, 3 and 4 run heavy work, and so does a push
+whose CI runs on this host; anything not named light there is heavy. One heavy workload at a time
+across you, every delegate and reviewer you raise and any self-hosted CI job on this host, each runner
+at a finite worker count, 2 unless the maintainer or a brief names another. You hold the heavy turn and
+grant it by a brief's `Heavy turn:` line, withheld by default. nen holds no admission guard at this pin,
+so say `host admission: no guard (zheref/nen#536); serialized fallback` and run that fallback. On an
+unresponsive host, a repeated timeout, a cancelled run or uncertain descendants, launch nothing heavy
+and retry nothing until a listing of the recorded process group shows it gone and the maintainer says
+the host has recovered. Never say a workload stopped without that listing, and never kill a process by
+name or pattern.
 
 **The exit codes, and what you do on each.** The family extends nen's `0`/`1`/`2` with three more (four on `shu tools`), each a
 different fact, and a persona reacts to each differently:

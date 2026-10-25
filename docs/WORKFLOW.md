@@ -2788,8 +2788,8 @@ changing a harness's own timeouts, and the orchestrator's own watches.
 ## Host workload budget — heavy local work (zheref/hatsu#478)
 
 The maintainer's desktop is one host shared by their own interactive work, this session, every
-delegate it raises and any self-hosted CI runner registered on it. The 2026-10-20/21 nen Kazaana
-sitting froze it: an uncapped coverage run of about fifteen test workers, overlapping local
+delegate and reviewer it raises and any self-hosted CI runner registered on it. The 2026-10-20/21 nen
+Kazaana sitting froze it: an uncapped coverage run of about fifteen test workers, overlapping local
 verification and a same-host CI job, retries after repeated subprocess timeouts, and orphaned workers
 afterwards. Free effort slots were read as room for more verification. That reading is the defect
 this section closes. The record is observational, not a measured memory diagnosis.
@@ -2800,64 +2800,93 @@ this section closes. The record is observational, not a measured memory diagnosi
 will serve. *The host workload budget* is what this machine can run at once without taking the
 maintainer's desktop away. A free slot or an unspent quota admits nothing on the host.
 
-**Heavy** is every launch that runs a test runner, a build, a coverage pass, a UI/E2E suite, an
-archive, `nen shu dev` or `nen shu run`, and a self-hosted CI job on this host, which includes the one
-a push starts. Reads, git, `--dry-run` forms, lint of the changed files and prose checks are light.
+**Heavy and light.** Light is: a read, a git operation other than a push that starts CI on this host,
+a `--dry-run` form, a lint of the changed files, a prose check. **Anything not named light is heavy** —
+a test runner, a build, a coverage pass, a UI/E2E suite, an archive, `nen shu dev` or `nen shu run`,
+and a push to a target whose CI runs on this host (the job it starts is heavy work here).
 
 **Admission, and the guard nen does not have yet.** At the pin no nen verb reads or holds a host
 budget: that machinery is owed to nen (zheref/nen#536 admission, zheref/nen#537 bounded test
 workers, zheref/nen#538 owned cancellation, zheref/nen#539 the pressure refusal, zheref/nen#540
-receipts). So every phase that reaches heavy work
-— `kokusen`, `kotoamatsukami`, `byakugan`, `susanoo`, `breath`'s base proof and a delegate's checks —
-says in its report `host admission: no guard (zheref/nen#536); serialized fallback`, and runs the
-fallback. No script, lock file or load reading stands in for the verb: a guard that cannot measure
-the host does not claim to.
+receipts). So every phase that runs a heavy verb — including `rasengan`'s inner-loop checks,
+`breath`'s base proof, `kokusen`, `hanten`'s guard-lane fixtures and its reviewers, `murasaki`'s
+merged-tree checks, `kotoamatsukami`, `byakugan`, `susanoo` and a delegate's checks — says in its
+report `host admission: no guard (zheref/nen#536); serialized fallback`, and runs the fallback. No
+script, lock file or load reading stands in for the verb: a guard that cannot measure the host does
+not claim to.
 
 **The serialized fallback** — the documented conservative mode until nen's admission verb
 (zheref/nen#536) is released and adopted:
 
-1. **One heavy workload at a time on the host**, counting the lead session, every delegate and a
-   same-host CI job together. Higher capacity is the maintainer's configuration, never inferred.
-2. **The orchestrator holds the heavy turn** and grants it to at most one delegate at a time, in the
-   brief. A delegate without it runs light checks only and hands back with each heavy lane named as
-   pending.
-3. **Same-host CI holds the turn while it runs.** Where a target registers self-hosted runners on
-   this host, `nen runner inventory --target <owner/name> --repo <checkout>` reads them busy or
-   free; a refused or unread inventory is *unknown*, reported, and treated as busy.
-4. **Every runner is given a finite worker count**, `2` unless the brief names another, through the
-   lane's declared form. A lane whose declaration cannot bound its workers runs only inside the
-   turn, with the gap named against zheref/nen#537.
-5. **A pending heavy lane is pending evidence, never a green check**, and never a reason to skip it:
-   required verification is preserved and runs when the turn is granted.
+1. **One heavy workload at a time on the host**, counting the lead session, every delegate, every
+   reviewer and a same-host CI job together. **Capacity is fixed at one at this version**: no
+   configuration key raises it, and one is owed with zheref/nen#536.
+2. **The heavy turn is the orchestrator's, held or granted.** It grants the turn in a brief, to at
+   most one delegate or reviewer at a time, by a line of its own: `Heavy turn: granted, workers <n>`
+   or `Heavy turn: withheld` (the default; a reviewer hanten raises always starts withheld). The turn
+   returns at that delegate's hand-back, or, for a delegate that never hands back, only once a
+   listing shows its recorded process group gone (below). The orchestrator re-grants in the run's
+   queue order (futon § 2), heavy lanes a handed-back effort still owes before a new effort's.
+3. **A pending heavy lane is pending evidence, never a green check**, and never a reason to skip it.
+   The orchestrator settles it one of two ways: it re-raises a delegate on that worktree with the
+   turn granted, or it runs the named lanes itself in that worktree while it holds the turn. A
+   delegate without the turn still authors, runs light checks and commits; it publishes only where
+   the push starts no CI on this host, and otherwise hands back unpublished, the push named pending.
+4. **Every runner is given a finite worker count**, `2` unless the maintainer or a brief names
+   another, through the lane's declared form. A lane whose declaration cannot bound its workers runs
+   only inside the turn, the gap named against zheref/nen#537, **never with an improvised flag**.
+5. **Same-host CI holds the turn while it runs.** A target with no `runners` pool in its
+   `nen/workflow.json` has no same-host CI. Otherwise, for every repository whose declared pool runs on
+   this host (matched by the machine code in its runner names, `<machine>-<consumer>R<slot>`),
+   `nen runner inventory --target <owner/name> --repo <checkout>` reads its runners busy or free —
+   other repositories' runners included. A refused or unread inventory is *unknown* and counts as
+   busy. A busy host is waited on: in an idle run till the minutes elapse, then `parked:budget`; an
+   unknown one parks the effort as `parked:g5-host-ci-unknown`, the inventory's refusal quoted.
 
-**Stop on overload; retry only after recovery.** On any overload symptom — the desktop or an app
-unresponsive, the maintainer reporting it, a subprocess timeout repeated, a run cancelled, a parent
-ended with its descendants uncertain — **no new heavy launch**, smaller retries included. A retry
-needs both: **confirmed quiescence**, a process listing taken after the stop that shows none of the
-stopped run's descendants, by the process ids or group it recorded at launch; and **observed
-recovery**, the host responsive again, by the maintainer's word or a read the report quotes. Without
-both the effort parks as `parked:g5-host-overload`, the evidence stated.
+**Stop on overload; retry only after recovery.** Overload is host-wide. Its symptoms are the desktop
+or an app unresponsive, the maintainer reporting it, a subprocess timeout repeated, a run cancelled,
+and a parent ended with its descendants uncertain. On any of them **no new heavy launch anywhere in
+the run**, smaller retries included. In an idle run the effort that saw it parks as
+`parked:g5-host-overload`, and every later effort runs light-only and parks at its first heavy step
+the same way. In an interactive run it is a **G5** stop (`nen stop`, the picker): what was seen, the
+listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
+
+- **Confirmed quiescence.** Every heavy call records its process group at launch: the shell call that
+  runs the verb echoes `$$` before it, and with job control off its descendants carry that id as
+  their process group, orphans reparented to `1` included. A later call lists them with
+  `ps -A -o pid,ppid,pgid,command`, keeping the rows whose `PGID` column is the recorded id; the same
+  form runs on macOS (BSD `ps`) and Linux. Quiescence is that listing showing no row. A descendant
+  that started its own group escapes the listing, which is why nen's owned cancellation is owed
+  (zheref/nen#538). **No recorded id means quiescence is unprovable**: the effort parks.
+- **Observed recovery.** At this version the only read that counts is the maintainer's word in the
+  session that the host is responsive again. No pressure verb exists yet (zheref/nen#539), so an
+  unattended run cannot observe recovery and stays parked till the maintainer resumes it.
 
 **No stopped claim without descendant evidence; no kill by name.** A report says a workload stopped
 only with that listing beside it. A process is never killed by name or pattern (`pkill`, `killall`,
 a `node` match): that reaches the maintainer's own apps and other sessions. This section grants no
-kill authority. Stopping a process the session did not launch, or one it cannot identify by recorded
-id, is the maintainer's: one `bash` block with where to run it (§ 4), a **G5**.
+kill authority. Stopping a process the session did not launch, or one it cannot name by recorded
+process group, is the maintainer's: one `bash` block with where to run it (§ 4), a **G5**.
 
 ### The host block a delegate brief carries
 
-Every builder delegate's brief (§ *Delegate briefs*) carries these lines **word for word**, beside the wait block, and a line of its
-own that grants or withholds this delegate's heavy turn and names any other worker count:
+Every builder delegate's brief (§ *Delegate briefs*) and every reviewer prompt `hanten` § 4 writes
+carries these lines **word for word**, beside the wait block, plus exactly one `Heavy turn:` line in
+rule 2's form:
 
 <!-- delegate-host:begin -->
-- Heavy work (test, build, coverage, UI/E2E, archive, dev/run) runs only with this brief's heavy turn, one at a time on this host, each runner at the worker count this brief names: 2 unless it names another.
-- Without the heavy turn, run light checks only and hand back with each heavy lane named as pending, never as green.
+- Heavy work is a test, build, coverage, UI/E2E, archive or dev/run launch, and a push that starts CI on this host; anything not named light (a read, other git, a `--dry-run`, a lint of the changed files, a prose check) is heavy.
+- Run heavy work only while this brief's `Heavy turn:` line grants it, one heavy workload at a time on this host, each runner at the worker count that line names.
+- A lane whose declaration cannot bound its workers runs only inside the turn, the gap named against zheref/nen#537, never with an improvised flag.
+- Without the turn, run light checks only, commit, publish only where the push starts no CI on this host, and hand back each heavy lane named as pending, never as green.
+- The turn ends at your hand-back; name in it every heavy lane you ran and every one you did not.
 - On an unresponsive host, a repeated subprocess timeout, a cancelled run or uncertain descendants: launch nothing heavy, retry nothing, hand back with what you saw.
-- Never claim a workload stopped without a process listing of its descendants, and never kill a process by name or pattern.
+- Never claim a workload stopped without a process listing of its recorded process group, and never kill a process by name or pattern.
 <!-- delegate-host:end -->
 
-`scripts/delegate_brief_check.mts` reads only the wait block at this version; checking the host block
-the same way is owed (unfiled), and until then the orchestrator reads it.
+`node scripts/delegate_brief_check.mts <brief>` checks this block beside the wait block, and the one
+`Heavy turn:` line (`--print-host` prints the block). The four scenario walk-throughs that SC-1 names
+are [`docs/ab/host-workload-budget.md`](ab/host-workload-budget.md).
 
 ## Building an issue with no CI plane
 

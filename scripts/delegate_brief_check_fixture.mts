@@ -50,7 +50,25 @@ try {
   cases += 1;
   console.log(`ok ${cases} - --print gives the live block: no watch, both flags and a 9-minute ceiling, the host timeout above it, a hand-back`);
 
-  const brief = (lines: string[]): string => ['# A delegate brief', '', 'You are a builder delegate.', '', ...lines, '', '## Report back'].join('\n');
+  // zheref/hatsu#478: the live host block, printed the same way, rides in every live-canon brief below.
+  const printedHost = run(['--print-host']);
+  assert.equal(printedHost.status, 0, String(printedHost.stderr));
+  const host = String(printedHost.stdout).trimEnd().split('\n');
+  assert.ok(host.length >= 5, `the live host block has its lines: ${printedHost.stdout}`);
+  assert.match(host.join('\n'), /a push that starts CI on this host/);
+  assert.match(host.join('\n'), /anything not named light/);
+  assert.match(host.join('\n'), /zheref\/nen#537, never with an improvised flag/);
+  assert.match(host.join('\n'), /never kill a process by name or pattern/);
+  cases += 1;
+  console.log(`ok ${cases} - --print-host gives the live host block: push heavy, light named, the unbounded-lane line, no kill by name`);
+  const withheld = '- Heavy turn: withheld';
+  const brief = (lines: string[], hostLines: string[] = [...host, withheld]): string => ['# A delegate brief', '', 'You are a builder delegate.', '', ...lines, '', ...hostLines, '', '## Report back'].join('\n');
+  expect('a brief with every host line and a granted turn passes', [file('granted.md', brief(block, [...host, 'Heavy turn: granted, workers 2']))], 0, /all \d+ host-block lines and one Heavy turn line/, null);
+  expect('a brief without the host block fails on its lines', [file('nohost.md', brief(block, [withheld]))], 1, /host-block line 1 of/, null);
+  expect('a dropped host line fails naming only that line', [file('hostdrop.md', brief(block, [...host.slice(0, -1), withheld]))], 1, new RegExp(`host-block line ${host.length} of ${host.length}`), null);
+  expect('a brief with no Heavy turn line fails', [file('noturn.md', brief(block, host))], 1, /carries 0 Heavy turn lines/, null);
+  expect('a brief with two Heavy turn lines fails', [file('twoturn.md', brief(block, [...host, withheld, 'Heavy turn: granted, workers 2']))], 1, /carries 2 Heavy turn lines/, null);
+  expect('an unbounded grant fails', [file('zeroturn.md', brief(block, [...host, 'Heavy turn: granted, workers 0']))], 1, /carries 0 Heavy turn lines/, null);
   expect('a brief built from the canon passes', [file('built.md', `${brief(block)}\n`)], 0, /carries all 4 wait-block lines/, null);
   expect('an indented copy and CRLF still pass', [file('crlf.md', brief(block.map((l) => `   ${l}  `)).replace(/\n/g, '\r\n'))], 0, /carries all 4/, null);
   expect('a brief naming another ceiling on its own line passes', [file('other.md', brief([...block, '- This brief\'s ceiling: 5 minutes.']))], 0, /carries all 4/, null);
@@ -98,6 +116,13 @@ try {
   expect('--print beside a brief exits 2', ['--print', 'a.md'], 2, null, /usage/);
   expect('--canon with no path exits 2', ['--canon'], 2, null, /--canon needs a path/);
   expect('an unknown flag exits 2', ['--watch', 'a.md'], 2, null, /unknown flag --watch/);
+
+  const hostCanon = canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:begin -->\n- h1\n<!-- delegate-host:end -->\n');
+  expect('a synthetic host block is the one checked', ['--canon', hostCanon, file('h-ok.md', '- one\n- h1\nHeavy turn: withheld\n')], 0, /all 1 host-block lines/, null);
+  expect('a doubled host marker exits 2', ['--canon', canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:begin -->\n- h\n<!-- delegate-host:begin -->\n<!-- delegate-host:end -->\n'), file('h2.md', '- one\n')], 2, null, /at most one/);
+  expect('an empty host block exits 2', ['--canon', canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:begin -->\n<!-- delegate-host:end -->\n'), file('h3.md', '- one\n')], 2, null, /delegate-host block is empty/);
+  expect('--print-host on a canon with no host block exits 2', ['--canon', custom, '--print-host'], 2, null, /carries no/);
+  expect('--print beside --print-host exits 2', ['--print', '--print-host'], 2, null, /usage/);
 
   // AC-1: the skills that raise a delegate cite the section the block lives in.
   for (const skill of ['kazaana', 'futon']) {

@@ -847,8 +847,11 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   No nen verb holds a host budget at the pin: admission is owed to zheref/nen#536, bounded test workers
   to zheref/nen#537, owned cancellation to zheref/nen#538, the pressure refusal to zheref/nen#539 and
   the receipts to zheref/nen#540. Until adoption every heavy phase reports the missing guard and runs
-  the serialized fallback; the descendant listing a stop claim cites is read-only residue (`ps`), and
-  the check of a brief's host block is owed beside `scripts/delegate_brief_check.mts` (unfiled).
+  the serialized fallback; the process-group listing a stop claim cites is read-only residue (`ps -A
+  -o pid,ppid,pgid,command`). On Codex the rule reaches a session through `agents/kurapika.toml` and the
+  kazaana, futon and hanten skill mirrors, read whole; `AGENTS.md` sorts the personas by name, which
+  puts Kurapika's copy past `project_doc_max_bytes`' 32 KiB, and placing it under the cap is owed to the
+  mirror generator, `nen surface mirror` (unfiled).
 - **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
   `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
   option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow

@@ -776,13 +776,16 @@ build system and knows no tool's name. So the verbs exist for **any** stack that
 
 **The host is one budget, and a free slot is not room on it** ([`docs/WORKFLOW.md`](../../docs/WORKFLOW.md)
 § *Host workload budget*, zheref/hatsu#478). Effort slots (`nen loop slots`) and provider quotas say
-nothing about what the maintainer's desktop can run. Steps 1, 3 and 4 run heavy work: one heavy workload
-at a time across you, every delegate you raise and any self-hosted CI job on this host, each runner at
-a finite worker count your brief names. nen holds no admission guard at this pin (owed to zheref/nen#536),
-so say `host admission: no guard; serialized fallback` and run that fallback. On an unresponsive host,
-a repeated timeout, a cancelled run or uncertain descendants, launch nothing heavy and retry nothing
-until a process listing shows the stopped run's descendants gone and the host has recovered. Never say
-a workload stopped without that listing, and never kill a process by name or pattern.
+nothing about what the maintainer's desktop can run. Steps 1, 3 and 4 run heavy work, and so does a push
+whose CI runs on this host; anything not named light there is heavy. One heavy workload at a time
+across you, every delegate and reviewer you raise and any self-hosted CI job on this host, each runner
+at a finite worker count, 2 unless the maintainer or a brief names another. You hold the heavy turn and
+grant it by a brief's `Heavy turn:` line, withheld by default. nen holds no admission guard at this pin,
+so say `host admission: no guard (zheref/nen#536); serialized fallback` and run that fallback. On an
+unresponsive host, a repeated timeout, a cancelled run or uncertain descendants, launch nothing heavy
+and retry nothing until a listing of the recorded process group shows it gone and the maintainer says
+the host has recovered. Never say a workload stopped without that listing, and never kill a process by
+name or pattern.
 
 **The exit codes, and what you do on each.** The family extends nen's `0`/`1`/`2` with three more (four on `shu tools`), each a
 different fact, and a persona reacts to each differently:
@@ -1999,7 +2002,7 @@ closing line. You are a LOCAL-ONLY subagent on the maintainer's own credentials,
 ## 2 · Bind `nen`, then classify the repository
 
 Where the prompt names the pinned `nen` by path, **every block you run starts `PATH="<its
-dir>:$PATH"`** (a subagent inherits no session `PATH`); else your own `PATH`'s `nen`. Failing
+dir>:$PATH"`**; else your own `PATH`'s `nen`. Failing
 `nen --version`, or below the quoted pin, every Nen verb below is **unread** —
 *nen not bound in the subagent* — enumerated in § 8's line, never improvised (#107).
 
@@ -2061,6 +2064,8 @@ bounded delta pass**: the diff since the head you last read, both named.
 - **Never file or comment on an issue.** Sanitized evidence goes to hanten, the discovery writer
   (`docs/DISCOVERY.md`).
 - **Never raise the G5**: an unsettled finding is hanten's stop (`CON-47`).
+- **Heavy lanes only with the prompt's host turn** (WORKFLOW § *Host workload budget*): withheld,
+  each is pending or unread, never clean.
 - **Never improvise a Nen-owned operation** — classification, handbooks, build, test, lint and coverage
   are verbs (`nen/contract.json`): § 2's `nen`, or unread.
 - **Never write a credential** anywhere: name its location and kind; **never authorize or edit a
@@ -2076,8 +2081,7 @@ End every review with **your own file's closing marker**, nothing after it: clea
 
 ## 9 · Trailer
 
-`Hatsu-Agent: <persona>`, **no other attribution trailer** (`Akatsuki-*`, `Co-Authored-By:`,
-`Signed-off-by:`, "Generated with …"). Git author stays the human; `--no-verify` and force-push never;
+`Hatsu-Agent: <persona>`, **no other attribution trailer**. Git author stays the human; `--no-verify` and force-push never;
 test-target files only (`docs/ROSTER.md` HR-325).
 
 ## 10 · Brief-challenge mode
