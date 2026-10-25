@@ -2,7 +2,7 @@
 
 Evidence for [`docs/config/schedule.md`](../config/schedule.md): what the printer does on the live
 [`contracts/schedule.json`](../../contracts/schedule.json), recorded from runs on 2026-10-23 at
-integration-branch base `1243b2720` (the printout re-recorded after the settle passes on HA-PR-#464 and HA-PR-#465); § 3 re-recorded on 2026-10-25 at `main` `00881fc1d` for the morning desk's ten-PR line (zheref/hatsu#448) (node `v24.16.0`, macOS). The maintainer's Hatsu checkout is shown as
+integration-branch base `1243b2720` (the printout re-recorded after the settle passes on HA-PR-#464 and HA-PR-#465); § 3 and § 3a re-recorded on 2026-10-25 on branch `opus/kurapika/ha-448-steady-state-scheduler-rows` over `main` `00881fc1d`, for the morning desk's ten-PR line (zheref/hatsu#448) (node `v24.16.0`, macOS). The maintainer's Hatsu checkout is shown as
 `<hatsu>`, the scratch spec checkout as `<spec>`; the family is the fixture slug `fixture-family`, never a
 product family's name.
 
@@ -98,7 +98,7 @@ Local folder:    <hatsu>
 Worktree:        on (select Worktree in the Edit form after Create)
 Permission mode: Ask permissions (the default); never a bypass mode
 Model:           your Claude Code default
-Always allow:    nen report data · nen report render · nen pr ready · nen backlog · node scripts/prose_ambiguity_check.mts --root . --history · git fetch · git status · git rev-parse · gh pr view|list · gh issue view|list
+Always allow:    nen report data · nen report render · nen pr ready · nen backlog · node scripts/prose_ambiguity_check.mts --root . --history 10 · git fetch · git status · git rev-parse · gh pr view|list · gh issue view|list
 Never always:    nen issue file · nen issue edit-body · nen issue comment · gh issue create|edit|comment · gh pr create|edit|comment|merge · git commit · git push · Write · Edit · update_scheduled_task
 SKILL.md, as Desktop keeps it at ~/.claude/scheduled-tasks/hatsu-morning-desk/SKILL.md (the instructions box):
   | ---
@@ -112,7 +112,7 @@ SKILL.md, as Desktop keeps it at ~/.claude/scheduled-tasks/hatsu-morning-desk/SK
   |
   | If a hatsu:futon --idle run on zheref/hatsu ended since the previous desk, put its terminal state and its parked efforts above the fold; that run's own last report already links its register (futon section 10).
   |
-  | Run node scripts/prose_ambiguity_check.mts --root . --history 10 and quote its last line, the baseline rows removed by the last ten merged prose pull requests and the baseline's row total, beside the page's link; a non-zero exit is reported as not run, never as none removed.
+  | Run node scripts/prose_ambiguity_check.mts --root . --history 10 exactly and quote its last line beside the page's link: the baseline rows removed by the last ten merged prose pull requests (a pull request is a first-parent Merge pull request #N merge or a squash commit whose subject ends (#N), an integration branch's sub-PRs counting once through their delivery PR; prose commits naming no pull request are counted as skipped, never as pull requests), the walk's end when it is not complete, and the baseline's findings. A non-zero exit is reported as not run, never as none removed.
   |
   | End with the page's link and that line. Never a release step (HR-5).
 
@@ -123,21 +123,21 @@ when: every pull request (opened, synchronize, reopened, ready_for_review): scri
 
 ## 3a. The morning desk's ten-PR line, live
 
-Run on 2026-10-25 at `main` `00881fc1d` (node `v24.16.0`, macOS), exit `0`:
+Run on 2026-10-25 on this branch at `59aad8586`, one commit over `main` `00881fc1d` (node `v24.16.0`, macOS), exit `0`. The branch's own commit names no pull request, so it is the one skipped prose commit; on the desk, at `origin/main`, that count is `main`'s own.
 
 ```text
 $ node scripts/prose_ambiguity_check.mts --root <hatsu> --history 10
-history · #479 · 00881fc1d · 4 prose files · 0 removed
-history · #476 · a49a7d4a4 · 8 prose files · 1 removed
-history · #467 · 6b0a04ecf · 67 prose files · 3 removed
-history · #442 · 1243b2720 · 4 prose files · 0 removed
-history · #438 · bad92e3fd · 1 prose file · 0 removed
-history · #437 · 758cfca32 · 6 prose files · 0 removed
-history · #429 · 679df5103 · 4 prose files · 0 removed
-history · #431 · 7d11ab047 · 1 prose file · 0 removed
-history · #433 · f39b87efe · 10 prose files · 1 removed
-history · #432 · b8b8ffd23 · 7 prose files · 2 removed
-canon-lint history: last 10 of 10 prose pull requests on 00881fc1d · 7 removed · baseline 1233 rows
+history · #479 · 00881fc1d · merge · 4 prose files · 0 removed
+history · #476 · a49a7d4a4 · merge · 8 prose files · 1 removed
+history · #467 · 6b0a04ecf · merge · 67 prose files · 3 removed
+history · #442 · 1243b2720 · merge · 4 prose files · 0 removed
+history · #438 · bad92e3fd · merge · 1 prose file · 0 removed
+history · #437 · 758cfca32 · merge · 6 prose files · 0 removed
+history · #429 · 679df5103 · merge · 4 prose files · 0 removed
+history · #431 · 7d11ab047 · merge · 1 prose file · 0 removed
+history · #433 · f39b87efe · merge · 10 prose files · 1 removed
+history · #432 · b8b8ffd23 · merge · 7 prose files · 2 removed
+canon-lint history: last 10 of 10 prose pull requests on 59aad8586 · 7 removed · skipped 1 prose commits naming no PR and 0 non-PR merges · baseline 1233 findings
 ```
 
 ## 4. What it leaves undone

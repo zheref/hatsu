@@ -21,14 +21,20 @@
 //                 base revision's copy (the CI form: the whole tree, growth refused, no git)
 //   either base   also prints the rows this baseline removed from it: `<n> removed over <base>`
 //                 in the summary line, `removedBaseline` in --json (null with no base; zheref/hatsu#448)
-//   --history <n> lints nothing (git only): walks HEAD's first-parent `Merge pull request #N`
-//                 commits back to the last <n> (1..100) that changed a canon prose file, prints each
-//                 one's removed rows (its baseline against its first parent's, counted as above) and
-//                 their sum, then the baseline's row total at HEAD (zheref/hatsu#448, AC-4 and SC-2).
-//                 The walk ends early at a first parent with no baseline (the ratchet's start) and
-//                 says so; with --base or --base-baseline it is wiring. --json prints
-//                 `hatsu.prose-lint.history/v0.1`; exit 0 printed, 2 wiring
-//   --self-test   runs scripts/prose_ambiguity_check_fixture.mts and relays its exit
+//   --history <n> lints nothing (git only; zheref/hatsu#448, AC-4 and SC-2): walks HEAD's first-parent
+//                 line back to the last <n> (1..100) pull requests that changed a canon prose file --
+//                 a `Merge pull request #N` merge, or a squash commit whose subject ends `(#N)`; an
+//                 integration branch's sub-PRs count once, through their delivery PR -- and prints each
+//                 one's removed rows (its baseline against its first parent's, counted as above), their
+//                 sum and the baseline's findings at HEAD. A prose commit naming no PR (a rebase merge,
+//                 a direct commit) or a non-PR merge is counted as skipped, never as a PR; a PR whose
+//                 tree has no baseline is flagged `baselineAbsent` and left out of the sum. The walk
+//                 ends `complete`, `ratchet-start` (a first parent with no baseline), `history-start`
+//                 or `scan-cap` (HATSU_PROSE_HISTORY_SCAN commits, default 5000), each said. A shallow
+//                 repository, a baseline absent at HEAD, --base, --base-baseline or --self-test with it
+//                 is wiring. --json prints `hatsu.prose-lint.history/v0.1`; exit 0 printed, 2 wiring
+//   --self-test   runs scripts/prose_ambiguity_check_fixture.mts and relays its exit; with any other
+//                 flag it is wiring
 //
 // EXITS  0 no fail finding outside the baseline and no stale baseline row;
 //        1 at least one, each printed `path:line · PL-nn · text` (a stale row as
@@ -527,50 +533,72 @@ const sumKeys = (rows: BaselineRow[]): Map<string, number> => {
   return m;
 };
 
+// Paths changed between revisions, NUL-split and unquoted, so a non-ASCII or odd path reads as itself.
+function changedPaths(root: string, revs: string[]): string[] {
+  return git(root, ['-c', 'core.quotePath=false', 'diff', '--name-only', '-z', ...revs]).split('\u0000').filter(Boolean);
+}
+
 // --history <n> (zheref/hatsu#448, AC-4): the shrink of the last <n> merged prose pull requests, read
-// from git alone -- each `Merge pull request #N` on HEAD's first-parent line whose diff against its
-// first parent touches a canon prose path, its removed rows counted exactly as --base-baseline counts
-// them. A merge with no such path is not a prose pull request and is skipped; the walk ends at a first
-// parent carrying no baseline, before which nothing was ratcheted.
+// from git alone. A pull request is a first-parent `Merge pull request #N` merge or a squash commit
+// whose subject ends `(#N)`, whose diff against its first parent touches a canon prose path; its
+// removed rows are counted exactly as --base-baseline counts them. A prose commit that names no pull
+// request is skipped and counted, never guessed. A cut-short history is said, never read as the start.
 const HISTORY_MAX = 100;
-const HISTORY_SCAN = 2000;
+type HistoryPr = { number: string; commit: string; kind: 'merge' | 'squash'; files: number; removed: number | null; baselineAbsent: boolean };
 function history(root: string, c: Contract, baselineRel: string, nArg: string, json: boolean): string {
-  if (!/^[1-9][0-9]*$/.test(nArg) || Number(nArg) > HISTORY_MAX) wiring(`--history needs a whole number from 1 to ${HISTORY_MAX}, got ${nArg}`);
+  if (!/^[1-9][0-9]{0,2}$/.test(nArg) || Number(nArg) > HISTORY_MAX) wiring(`--history needs a whole number from 1 to ${HISTORY_MAX}, got ${nArg}`);
   const want = Number(nArg);
+  const capArg = process.env.HATSU_PROSE_HISTORY_SCAN ?? '5000';
+  if (!/^[1-9][0-9]{0,5}$/.test(capArg)) wiring(`HATSU_PROSE_HISTORY_SCAN must be a whole number from 1 to 999999, got ${capArg}`);
+  const cap = Number(capArg);
   const include = c.paths.include.map(globToRegex);
   const show = (rev: string): BaselineRow[] | null => {
     const r = spawnSync('git', ['-C', root, 'show', `${rev}:${baselineRel}`], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
     return r.status === 0 ? loadBaseline(r.stdout, `${rev.slice(0, 9)}:${baselineRel}`, c.emptyBaseline) : null;
   };
+  if (git(root, ['rev-parse', '--is-shallow-repository']).trim() === 'true') wiring('--history needs the full history; this repository is shallow (git fetch --unshallow)');
   const head = git(root, ['rev-parse', 'HEAD']).trim();
-  const log = git(root, ['log', '--first-parent', '--merges', `-n${HISTORY_SCAN}`, '--format=%H %P%x09%s', head]).split('\n').filter(Boolean);
-  const prs: Array<{ number: number; merge: string; files: number; removed: number }> = [];
-  let end: 'complete' | 'ratchet-start' | 'history-start' = 'history-start';
+  const atHead = show(head) ?? wiring(`--history: HEAD carries no ${baselineRel}; there is no ratchet to report`);
+  const log = git(root, ['log', '--first-parent', `-n${cap}`, '--format=%H %P%x09%s', head]).split('\n').filter(Boolean);
+  const prs: HistoryPr[] = [];
+  let skippedNonMergeProse = 0;
+  let skippedNonPrMergeProse = 0;
+  let end: 'complete' | 'ratchet-start' | 'history-start' | 'scan-cap' = log.length >= cap ? 'scan-cap' : 'history-start';
   for (const line of log) {
-    if (prs.length >= want) { end = 'complete'; break; }
-    const [ids, subject = ''] = line.split('\t');
-    const [merge, parent] = ids.split(' ');
-    const m = /^Merge pull request #([0-9]+) /.exec(subject);
-    if (!m || !parent) continue;
-    const changed = git(root, ['diff', '--name-only', parent, merge]).split('\n').filter(Boolean);
-    const prose = changed.filter((f) => !f.startsWith('surfaces/') && include.some((re) => re.test(f)));
+    if (prs.length >= want) break;
+    const tab = line.indexOf('\t');
+    const [commit, parent, second] = line.slice(0, tab).split(' ');
+    const subject = line.slice(tab + 1);
+    if (!parent) continue; // the root commit: nothing to diff against
+    const prose = changedPaths(root, [parent, commit]).filter((f) => !f.startsWith('surfaces/') && include.some((re) => re.test(f)));
     if (!prose.length) continue;
+    const m = second ? /^Merge pull request #([0-9]{1,9}) /.exec(subject) : / \(#([0-9]{1,9})\)$/.exec(subject);
+    if (!m) { if (second) skippedNonPrMergeProse++; else skippedNonMergeProse++; continue; }
     const was = show(parent);
     if (!was) { end = 'ratchet-start'; break; }
-    const now = sumKeys(show(merge) ?? []);
-    let removed = 0;
-    for (const [k, n] of sumKeys(was)) removed += Math.max(0, n - (now.get(k) ?? 0));
-    prs.push({ number: Number(m[1]), merge, files: prose.length, removed });
+    const nowRows = show(commit);
+    let removed: number | null = null;
+    if (nowRows) {
+      const now = sumKeys(nowRows);
+      removed = 0;
+      for (const [k, n] of sumKeys(was)) removed += Math.max(0, n - (now.get(k) ?? 0));
+    }
+    prs.push({ number: m[1], commit, kind: second ? 'merge' : 'squash', files: prose.length, removed, baselineAbsent: !nowRows });
   }
   if (prs.length >= want) end = 'complete';
-  const atHead = show(head);
-  const rows = atHead ? atHead.reduce((t, r) => t + r.count, 0) : null;
-  const sum = prs.reduce((t, p) => t + p.removed, 0);
-  if (json) return JSON.stringify({ contract: 'hatsu.prose-lint.history/v0.1', root, head, requested: want, end, pullRequests: prs, removed: sum, baselineRows: rows }, null, 2) + '\n';
+  const findings = atHead.reduce((t, r) => t + r.count, 0);
+  const sum = prs.reduce((t, p) => t + (p.removed ?? 0), 0);
+  if (json) return JSON.stringify({ contract: 'hatsu.prose-lint.history/v0.1', root, head, requested: want, end, scanned: log.length, pullRequests: prs, removed: sum, skippedNonMergeProse, skippedNonPrMergeProse, baselineFindings: findings }, null, 2) + '\n';
   let out = '';
-  for (const p of prs) out += `history · #${p.number} · ${p.merge.slice(0, 9)} · ${p.files} prose file${p.files === 1 ? '' : 's'} · ${p.removed} removed\n`;
-  const why = end === 'complete' ? '' : end === 'ratchet-start' ? ' (the ratchet starts there: an earlier merge carries no baseline)' : ' (the first-parent history ends there)';
-  out += `canon-lint history: last ${prs.length} of ${want} prose pull requests on ${head.slice(0, 9)}${why} · ${sum} removed · baseline ${rows === null ? 'absent at HEAD' : `${rows} rows`}\n`;
+  for (const p of prs) out += `history · #${p.number} · ${p.commit.slice(0, 9)} · ${p.kind} · ${p.files} prose file${p.files === 1 ? '' : 's'} · ${p.baselineAbsent ? 'baseline absent in its tree, not counted' : `${p.removed} removed`}\n`;
+  const why = {
+    complete: '',
+    'ratchet-start': ' (the ratchet starts there: an earlier pull request\'s parent carries no baseline)',
+    'history-start': ' (the first-parent history ends there)',
+    'scan-cap': ` (cut short: the scan stopped at ${cap} commits, so older pull requests were not read)`,
+  }[end];
+  const skipped = skippedNonMergeProse + skippedNonPrMergeProse ? ` · skipped ${skippedNonMergeProse} prose commits naming no PR and ${skippedNonPrMergeProse} non-PR merges` : '';
+  out += `canon-lint history: last ${prs.length} of ${want} prose pull requests on ${head.slice(0, 9)}${why} · ${sum} removed${skipped} · baseline ${findings} findings\n`;
   return out;
 }
 
@@ -579,6 +607,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
   try {
     const a = parseArgs(argv);
     if (a.has('--self-test')) {
+      if (a.size > 1) wiring('--self-test takes no other flag');
       const r = spawnSync(process.execPath, [join(here, 'prose_ambiguity_check_fixture.mts')], { stdio: 'inherit' });
       return { code: r.status ?? 2, out, err };
     }
@@ -622,7 +651,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
     const keyOf = (r: BaselineRow): string => `${r.path}\u0000${r.rule}\u0000${r.text.toLowerCase()}`;
     if (baseRef) {
       const mb = git(root, ['merge-base', baseRef, 'HEAD']).trim();
-      const changed = new Set(git(root, ['diff', '--name-only', mb]).split('\n').filter(Boolean));
+      const changed = new Set(changedPaths(root, [mb]));
       files = files.filter((f) => changed.has(f));
       const shown = spawnSync('git', ['-C', root, 'show', `${mb}:${baselineRel}`], { encoding: 'utf8' });
       if (shown.status === 0) baseRows = loadBaseline(shown.stdout, `${baseRef}:${baselineRel}`, c.emptyBaseline);
