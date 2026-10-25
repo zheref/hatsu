@@ -74,6 +74,29 @@
       "manifest_asset": "SHA256SUMS"
     }
   },
+  "mechanical": {
+    "manifests": [
+      ".claude-plugin/plugin.json",
+      ".codex-plugin/plugin.json"
+    ],
+    "changelog": [
+      "changelog.d/**"
+    ],
+    "mirrors": [
+      {
+        "paths": ["surfaces/codex/**"],
+        "regenerate": ["bash", "scripts/surface_mirror_regenerate.sh"]
+      },
+      {
+        "paths": ["surfaces/cursor/**"],
+        "regenerate": ["bash", "scripts/surface_mirror_regenerate.sh"]
+      },
+      {
+        "paths": ["surfaces/antigravity/**"],
+        "regenerate": ["bash", "scripts/surface_mirror_regenerate.sh"]
+      }
+    ]
+  },
   "project": {
     "$comment": "What nen EXECUTES for this repository — the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md § 'The shu verbs' requires. The repository lane declares its real lint argv and seats its absent verbs; the separate guard lane declares the one focused fixture. A seat is exit 4 — a fact, not a failure — and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
     "lanes": {
@@ -120,7 +143,7 @@
       "unit-tests-ci-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "Hermetic fixture for the trusted CI test runner: verifies selected lanes, required API fixture, failure propagation, token clearing, and workflow-command fencing."
+        "$comment": "Hermetic fixture for the trusted CI test runner: verifies selected lanes, required fixtures (including the real-Nen mechanical-conflicts proof), failure propagation, token clearing, and workflow-command fencing."
       },
       "gh-api-read-guard": {
         "stack": "claude-code-plugin",
@@ -201,6 +224,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/publish_gate.sh, murasaki section 6's gated push shipped as one command (zheref/hatsu#218 (i), the maintainer's ruling of 2026-10-13; the chain #188 required). Its argv is the fixture, scripts/publish_gate_fixture.sh: a stubbed nen and a real git remote prove each of the six gates refuses the push. scripts/publish_gate_check.sh still holds the prose's own chain shape where a skill spells one."
+      },
+      "mechanical-conflicts-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for Hatsu's top-level mechanical conflict declaration (zheref/hatsu#415). Its typed Vitest fixture uses the verified Nen binary with local bare origins and scratch repositories: three declared classes stop at exit 3, adding one undeclared path stops at exit 1, every path stays listed, and each mirror prints the exact declared regeneration argv. scripts/unit_tests_ci.mts requires and selects the fixture, so its removal is a wiring refusal rather than a silently skipped proof."
       },
       "canon-contracts-guard": {
         "stack": "claude-code-plugin",
@@ -360,7 +388,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, spec-family-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, spec-family-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
@@ -510,7 +538,7 @@
         "test": {
           "exe": "bash",
           "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--testTimeout", "15000", "scripts/unit_tests_ci_fixture.test.mts", "scripts/release_changelog_fixture.test.mts", "scripts/tenkai_release_guard_fixture.test.mts", "scripts/shell_coverage_fixture.test.mts"],
-          "$comment": "Pinned Vitest fixtures for the trusted CI test runner, release-changelog parser, and Tenkai publisher adoption guard. Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "Pinned Vitest fixtures for the trusted CI test runner (including its required mechanical-conflicts fixture selection), release-changelog parser, and Tenkai publisher adoption guard. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {
@@ -862,6 +890,13 @@
             "coverage/publish-gate-guard/lcov.info"
           ],
           "$comment": "Extraction only: reads coverage/publish-gate-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+        }
+      },
+      "mechanical-conflicts-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--testTimeout", "15000", "scripts/mechanical_conflicts_fixture.test.mts"],
+          "$comment": "Hermetic and offline: the typed Vitest fixture copies the live top-level mechanical declaration into scratch repositories backed by local bare origins, then invokes the verified Nen binary. It proves manifest, changelog and mirror conflicts are classed and stop at exit 3, one undeclared path changes the stop to exit 1 while every path remains listed, and the mirror group prints exactly ['bash', 'scripts/surface_mirror_regenerate.sh']. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "canon-contracts-guard": {
