@@ -400,6 +400,18 @@ could not see. There is no list to fall out of date now.
 
 ### 5d · What a consumer does **not** inherit, said out loud
 
+**A pull request that introduces gate configuration absent from the actual trusted workflow/validator
+revision selected by the readiness event is a bootstrap PR.** Record the event and exact checkout
+ref: Hatsu's readiness workflow explicitly uses `github.event.pull_request.base.sha` for both of
+its events, while another frozen validator may use the default branch's head. Its PR-local gate can
+forecast the eventual result, but it cannot be the trusted verdict; a stacked PR base carrying the
+configuration is not, by itself, proof of which revision the validator checked out. Follow
+[`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md), *The two-step landing*: land the
+bootstrap step, then prove a follow-up after its event resolves to that trusted copy. Until that
+second step, `unevaluated` or a failed trusted-revision run is not Ready and must not be described as
+Ready. Before adoption is complete, every deferred row in the Hanten body block
+also cites its tracked issue; an untracked deferral is unsettled and Mukai does not open the PR.
+
 **Tenkai installs a privileged, credentialed `pull_request_target` job and installs no policy
 guard.** `GuardRegistration` scoring a missing guard as *"no ordering constraint at all"* is true
 about the **ordering** and says nothing about **enforcement**: the byte-compared same-repository

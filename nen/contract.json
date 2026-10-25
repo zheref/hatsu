@@ -1301,32 +1301,46 @@
       },
       "pr-sections-guard": {
         "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "scripts/shell_coverage.mts",
-            "--capture",
-            "pr-sections-guard",
-            "bash",
-            "scripts/pr_sections_fixture_check.sh"
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/pr-sections-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/pr_sections.ts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/pr-sections-guard/lcov.info",
+                "scripts/pr_sections_fixture_check.ts"
+              ]
+            }
           ],
-          "$comment": "Hermetic PR-section fixtures and live catalogue validation. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/pr-sections-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane pr-sections-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
           "artifacts": [
             "coverage/pr-sections-guard/lcov.info"
-          ]
+          ],
+          "$comment": "Hermetic PR-section fixtures and live catalogue validation run under Node 24's built-in test coverage. The existing fixture imports scripts/pr_sections.ts in-process, so the paired spec and LCOV reporters keep failures visible and write exact-source coverage for that production module; spawned CLI cases remain behavioral evidence but do not inflate the parent process's coverage. The first step creates only the ignored artifact directory. Requires Node 24 and pinned nen for the body-check half; no gh or network."
         },
         "coverage": {
           "exe": "node",
           "argv": [
-            "scripts/shell_coverage.mts",
-            "--verify",
-            "pr-sections-guard"
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/pr-sections-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing pr-sections-guard LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty pr-sections-guard LCOV capture')"
           ],
           "artifacts": [
             "coverage/pr-sections-guard/lcov.info"
           ],
-          "$comment": "Extraction only: reads coverage/pr-sections-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+          "$comment": "Extraction only: verifies the non-empty LCOV artifact written by the pr-sections-guard test row and runs no fixture. Nen owns LCOV parsing and --from-capture provenance."
         }
       },
       "port-rule-guard": {

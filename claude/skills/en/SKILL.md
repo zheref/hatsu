@@ -249,6 +249,24 @@ stale tree to readiness. That is the same owner map [`hatsu:sharingan`](../shari
 
 ## 4. Readiness is never en's claim
 
+**A PR that introduces gate configuration absent from the actual trusted workflow/validator
+revision selected by its readiness event is a bootstrap PR.** Record the event and exact checkout
+ref before classifying it: Hatsu's readiness workflow explicitly checks out
+`github.event.pull_request.base.sha` on both of its events, while another frozen validator may use
+the default branch's head. A stacked PR base carrying the configuration is therefore not, by itself,
+proof that the validator trusts it; the checked-out revision is. Follow
+[`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md), *The two-step landing*: land the
+bootstrap step into the branch that supplies that trusted revision, then judge a follow-up after
+the event resolves to the landed copy. The bootstrap PR's self-supplied gate is a forecast, never
+its verdict; `unevaluated` or a failed trusted-revision run is not Ready. Only the follow-up's
+trusted-revision verdict may enter the ordinary readiness conjunction.
+
+That bootstrap result is an explicit **not-Ready terminal handoff**, not an observation hold and not
+§ 5's Ready merge prompt. Quote the actual `unevaluated` or failed trusted-revision verdict, point the
+maintainer to the first landing under the repository's existing G2/G4 ownership, and require the later
+trusted-revision follow-up before readiness can be claimed. En never merges or calls the bootstrap Ready;
+the human owns that first landing and the ordinary trusted-revision path resumes only on the follow-up.
+
 Steps 2 and 4 are [`hatsu:sharingan`](../sharingan/SKILL.md)'s whole engine, not a substitute for
 it, and **this file restates none of its protocol** — the first-blocking-condition order, the
 channel decided by who authored the PR, the escalation ladder, the `round_policy.maxRounds` request
