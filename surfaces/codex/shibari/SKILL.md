@@ -66,12 +66,9 @@ resolver's printed ids give order; its array governs this write.
 [`contracts/pr-sections.json`](../../../contracts/pr-sections.json) owns titles, glyphs, fragments
 and matrix. Fill `templates/pr-body/<id>.md`; no fixed body template remains.
 
-That page owns effect and cost first, decision tables, authoring nature in Why, and How's diagram
-(`nen report mermaid --graph`), legend and rejected alternative. Add a flow diagram only when flow
-changed. Non-release rows carry all eleven improves aspects; release keeps its written matrix.
-`verify` varies by kind; library and process forms are `CON-17(b)` proxies. Seven reader sections
-exclude Delivery, checklist, issues and final attribution. The 150-word prose budget warns only.
-Economics embeds under its summary with level-3 internal headings. Screenshots stay in the
+That page owns how each section is written (*Write for the decision*: How's
+`nen report mermaid --graph` diagram, improves aspects, verify by kind, Economics embedding) and the
+reader cap and prose budget (*Check every write*). Screenshots stay in the
 [UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); replace all Evidence on rewrite.
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
