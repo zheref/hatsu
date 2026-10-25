@@ -212,6 +212,28 @@ fi
 #                       run from `$hatsu_root/scripts/` before every PR body write
 #                       and after every open and edit; a stale copy refuses every
 #                       consumer's body (it read the template from the target).
+#   scripts/pr_body_sections_check.sh
+#                     — shibari § 4's section guard, run from
+#                       `$hatsu_root/scripts/` before every PR body write; a stale
+#                       copy accepts a body whose required sections have drifted.
+#   scripts/gh_api_read.mts
+#                     — the fixed-query GitHub reader used from the installed root
+#                       by build, sharingan, spiritual-message, cleanup and file; a
+#                       stale copy can read the wrong remote fact or admit a query
+#                       the current helper refuses.
+#   scripts/config_values.sh
+#                     — ten and the configuration-owning skills run it from
+#                       `$hatsu_root/scripts/` to diagnose, require, read and write
+#                       declared values; a stale copy applies obsolete catalogue
+#                       rules.
+#   scripts/futon_effort_record.mts
+#                     — en verifies Futon's issue/PR/head ownership record through
+#                       this installed-root helper before readiness; a stale copy
+#                       can accept a mismatched or stale effort.
+#   scripts/product_term_check.sh, scripts/private_name_named.txt
+#                     — bankai-rule runs the product-term guard from the installed
+#                       root, while file reads the named public-repository list into
+#                       its redaction ignore file; stale copies enforce stale data.
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -348,6 +370,12 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/nen_reach_probe.sh'
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
+  'scripts/pr_body_sections_check.sh'
+  'scripts/gh_api_read.mts'
+  'scripts/config_values.sh'
+  'scripts/futon_effort_record.mts'
+  'scripts/product_term_check.sh'
+  'scripts/private_name_named.txt'
   'scripts/dependency_audit_resolve.mts'
   'scripts/shell_coverage.mts'
   '.mcp.json'
