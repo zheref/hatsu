@@ -1598,9 +1598,8 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
 8. **Every decision taken for the maintainer is listed** (the ruling of 2026-10-23). A decision is every
    pre-answered row `start` printed and every `default` actually taken during the run (row, option, object,
    time). The list goes in three places: the shibari PR body's **Decisions taken on your behalf** section
-   (`contracts/pr-sections.json` footer row `decisions`, resolved by the `decisions` run fact as
-   `contracts/pr-sections.json` footer row `decisions` records it (zheref/hatsu#474), mandatory on every PR
-   an idle run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
+   (`contracts/pr-sections.json` footer row `decisions`, resolved by the `decisions` run fact as that row
+   records it (zheref/hatsu#474), mandatory on every PR an idle run opens), the run's final delivery brief (futon § 10's closing report), and the Rikugan register's
    `legendRows` (`backlog-board` § 3), one row per decision.
 
 9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — [HR-335](ROSTER.md#hr-335)
@@ -2773,13 +2772,15 @@ reading the pull request itself hours later.
 **Why both flags:** without `--max-iterations` the wait takes `monitor.maxCycles`, and without
 `--interval-ms` it paces at `monitor.pollSeconds` (§ 2 `monitor`) — 20 × 300 s on this repository, 100
 minutes, over ten times the ceiling. The ceiling sits under Claude Code's 600000 ms Bash maximum (its
-default is 120000 ms), so a host call that times out first never cuts a wait off before its hand-back. A brief naming another ceiling says so on a line of its own; the canon
-line stays as written. The hand-back is the delegate's whole report on the wait; whether to wait again is
+default is 120000 ms), so a host call that times out first never cuts a wait off before its hand-back. A brief naming another ceiling says so on a line of its own, the canon
+line staying as written, and **a named ceiling stays under the host call's maximum timeout** (600000 ms
+for Claude Code's Bash), since the host-timeout line cannot hold above it. A longer wait is several
+bounded waits, each with its own hand-back. The hand-back is the delegate's whole report on the wait; whether to wait again is
 the orchestrator's, and *Verified delivery*'s four claims stay its own.
 
 `node scripts/delegate_brief_check.mts <brief>` reads the block from this file (`--print` prints it to
 copy) and refuses a brief that drops, rewords or paraphrases a line — exit `1`, each line named; a
-brief path holding a comma, colon or line break, a missing brief, an unreadable canon or a block whose markers are missing or doubled is exit `2`. Its lane
+brief path holding a comma, colon or line break, a canon path holding a line break, a missing brief, an unreadable canon or a block whose markers are missing or doubled is exit `2`. Its lane
 is `delegate-brief-guard`, run in CI by `scripts/unit_tests_ci.mts`. Out of scope: a new nen wait verb,
 changing a harness's own timeouts, and the orchestrator's own watches.
 
