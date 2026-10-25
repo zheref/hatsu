@@ -139,13 +139,17 @@ test("HA#474 AC-1/AC-2: decisions resolves on every cell when a decision was tak
 
 test("HA#474: --decisions-from reads a nen.run manifest one way only, and anything else refuses", () => {
   assert.equal(decisionsTaken({ id: "r", idleAnswers: { "cleanup-plan": "default", "publish-offer": "refuse" } }), true);
-  // A manifest cannot show that no decision was taken: null (an attended run) and {} refuse (Chrollo, AC-1).
+  // A manifest cannot show that no decision was taken: null (an attended run) and {} refuse alone (Chrollo,
+  // AC-1), and add nothing beside a positive flag, which wins.
   for (const empty of [{ id: "r", idleAnswers: null }, { id: "r", idleAnswers: {} }]) {
-    assert.throws((): boolean => decisionsTaken(empty), /cannot show that no decision was taken; pass --decisions/, JSON.stringify(empty));
+    assert.throws((): boolean => decisionsTaken(empty), /omit --decisions-from; pass --decisions if a decision was taken/, JSON.stringify(empty));
+    assert.equal(decisionsTaken(empty, true), false, JSON.stringify(empty));
   }
+  assert.equal(decisionsTaken({ idleAnswers: { "1-row": "hold" } }), true);
   for (const bad of [null, "decisions", 1, [], [{ row: "cleanup-plan" }], {}, { idleAnswers: [] }, { idleAnswers: "default" },
     { idleAnswers: { "cleanup-plan": 5 } }, { idleAnswers: { "cleanup-plan": "maybe" } }, { idleAnswers: { "   ": "default" } }, { idleAnswers: { "Bad_Row": "hold" } }]) {
     assert.throws((): boolean => decisionsTaken(bad), /manifest|idleAnswers/, JSON.stringify(bad));
+    assert.throws((): boolean => decisionsTaken(bad, true), /manifest|idleAnswers/, `${JSON.stringify(bad)} beside a flag`);
   }
 });
 
@@ -173,18 +177,38 @@ test("HA#474 AC-3: on zheref/hatsu#467's headings the strict check and nen's bod
   const plain = resolveWith();
   assert.equal(plain.status, 0, plain.stderr);
   assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), before.requirements);
-  // Refusals: an attended manifest, a repeated ledger, and a wrong file whose bytes never reach stderr (SEC-12).
-  const attended = join(repo, "attended.json");
-  writeFileSync(attended, `${JSON.stringify({ contract: "nen.run/v0.1", id: "r2", idleAnswers: null })}\n`);
-  const nullManifest = resolveWith("--decisions-from", attended);
-  assert.equal(nullManifest.status, 1); assert.match(nullManifest.stderr, /cannot show that no decision was taken/);
+  // An attended (null) or empty manifest: alone it refuses; beside a positive flag the flag wins.
+  for (const answers of [null, {}]) {
+    const attended = join(repo, "attended.json");
+    writeFileSync(attended, `${JSON.stringify({ contract: "nen.run/v0.1", id: "r2", idleAnswers: answers })}\n`);
+    const alone = resolveWith("--decisions-from", attended);
+    assert.equal(alone.status, 1); assert.match(alone.stderr, /omit --decisions-from; pass --decisions if a decision was taken/);
+    for (const flag of ["--decisions", "--idle"]) {
+      const beside = resolveWith(flag, "--decisions-from", attended);
+      assert.equal(beside.status, 0, `${flag} ${JSON.stringify(answers)}: ${beside.stderr}`);
+      assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), after.requirements, `${flag} ${JSON.stringify(answers)}`);
+    }
+  }
+  // A malformed manifest refuses whatever else is passed.
+  const malformed = join(repo, "malformed.json");
+  writeFileSync(malformed, `${JSON.stringify({ idleAnswers: { "cleanup-plan": "maybe" } })}\n`);
+  const malformedBeside = resolveWith("--decisions", "--decisions-from", malformed);
+  assert.equal(malformedBeside.status, 1); assert.match(malformedBeside.stderr, /default, hold or refuse/);
+  // Filesystem errors keep their errno code, and say missing or unreadable rather than unreadable JSON.
+  const missing = resolveWith("--decisions-from", join(repo, "absent.json"));
+  assert.equal(missing.status, 1); assert.match(missing.stderr, /absent\.json: missing \(ENOENT\)/);
+  const directory = resolveWith("--decisions-from", repo);
+  assert.equal(directory.status, 1); assert.match(directory.stderr, /: unreadable \(EISDIR\)/);
+  assert.ok(!/unreadable JSON/.test(`${missing.stderr}${directory.stderr}`));
   const twice = resolveWith("--decisions-from", manifest, "--decisions-from", manifest);
   assert.equal(twice.status, 1); assert.match(twice.stderr, /--decisions-from given twice/);
   const wrong = join(repo, "wrong.json");
-  writeFileSync(wrong, "PLACEHOLDER-SECRET-474 not json\n");
+  // SECRET474X fits inside the ten bytes V8 quotes from the file, so the old message would carry it.
+  writeFileSync(wrong, "SECRET474X\n");
   const unreadable = resolveWith("--decisions-from", wrong);
   assert.equal(unreadable.status, 1); assert.match(unreadable.stderr, /unreadable JSON \(SyntaxError/);
-  assert.ok(!unreadable.stderr.includes("PLACEHOLDER-SECRET-474"), unreadable.stderr);
+  assert.ok(!unreadable.stderr.includes("SECRET474X"), unreadable.stderr);
+  assert.ok(!/Unexpected token|is not valid JSON/.test(unreadable.stderr), unreadable.stderr);
   writeJsonRequirements(requirements, after);
   const nen = process.env.NEN || "nen";
   const probe = spawnSync(nen, ["--version"], { encoding: "utf8" });

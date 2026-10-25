@@ -21,8 +21,9 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    `--idle`, because an idle run always pre-answers its rows (WORKFLOW § *Idle batches* rule 8);
    `--decisions-from <nen.run manifest>` whose `idleAnswers` is not empty; or `--decisions`. The manifest
    proves only the pre-answers a run was launched with: nen never updates `idleAnswers` and it is null on an
-   attended run, so a null or empty map refuses at exit 1, and a default taken mid-run or attended is
-   `--decisions`, passed by the session that took it. A run that took no decision passes none of the three,
+   attended run, so a null or empty map adds nothing: beside `--decisions` or `--idle` the flag wins, and
+   alone it refuses at exit 1. A malformed manifest refuses whatever else is passed. A default taken mid-run
+   or attended is `--decisions`, passed by the session that took it. A run that took no decision passes none of the three,
    and the heading is then undeclared. These facts activate conditional ids; they do not create headings.
 4. Resolve before drafting, and resolve again when kind, labels, configuration or run facts change:
 

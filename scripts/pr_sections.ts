@@ -75,8 +75,16 @@ function object(value: unknown, message: string): JsonObject {
   return value as JsonObject;
 }
 function load(path: string): unknown {
+  let text: string;
   try {
-    return JSON.parse(readFileSync(path, "utf8")) as unknown;
+    text = readFileSync(path, "utf8");
+  } catch (error) {
+    // HA#474: a filesystem error keeps its errno code; it carries no file bytes.
+    const code = (error as NodeJS.ErrnoException).code ?? "unknown";
+    throw new Error(`${path}: ${code === "ENOENT" ? "missing" : "unreadable"} (${code})`);
+  }
+  try {
+    return JSON.parse(text) as unknown;
   } catch (error) {
     // SEC-12 (HA#474): never echo the parser's excerpt of the file's bytes; keep the class and position only.
     const message = error instanceof Error ? error.message : "";
@@ -258,27 +266,27 @@ function optionalWorkflow(repo: string): JsonObject {
   if (path === null) return {};
   return object(load(path), "workflow must be an object");
 }
-const DECISION_ROW = /^[a-z0-9][a-z0-9-]*$/;
+const DECISION_ROW = /^[a-z0-9-]+$/;
 const RESOLUTIONS = new Set(["default", "hold", "refuse"]);
 /**
  * HA#474: whether a nen.run manifest shows decisions taken for the maintainer. One-directional: a
- * non-empty `idleAnswers` (row id → default|hold|refuse, as nen validates it) means the run pre-answered
- * rows, so it took decisions. A null or empty map refuses, because the manifest records only the
- * pre-answers a run was launched with (nen 0.26 never updates it, and it is null on an attended run)
- * and cannot show that no decision was taken. A default taken mid-run or attended is `--decisions`.
+ * non-empty `idleAnswers` (row id → default|hold|refuse, validated as nen 0.26 validates it) means the
+ * run pre-answered rows, so it took decisions. The manifest records only the pre-answers a run was
+ * launched with (nen never updates it, and it is null on an attended run), so a null or empty map
+ * cannot show that no decision was taken: beside a positive flag (`--decisions`, `--idle`) it adds
+ * nothing and the flag wins; alone it refuses. A malformed manifest refuses whatever else is passed.
  */
-export function decisionsTaken(ledger: unknown): boolean {
-  const manifest = object(ledger, "--decisions-from must be a nen.run manifest object");
-  if (!Object.hasOwn(manifest, "idleAnswers")) throw new Error("--decisions-from manifest carries no idleAnswers");
-  const absent = "a nen.run manifest records only idle pre-answers and cannot show that no decision was taken; pass --decisions, or omit --decisions-from";
-  if (manifest.idleAnswers === null) throw new Error(absent);
-  const answers = object(manifest.idleAnswers, "idleAnswers must be null or an object");
-  if (Object.keys(answers).length === 0) throw new Error(absent);
+export function decisionsTaken(manifest: unknown, positive = false): boolean {
+  const record = object(manifest, "--decisions-from must be a nen.run manifest object");
+  if (!Object.hasOwn(record, "idleAnswers")) throw new Error("--decisions-from manifest carries no idleAnswers");
+  const answers = record.idleAnswers === null ? {} : object(record.idleAnswers, "idleAnswers must be null or an object");
   for (const [row, resolution] of Object.entries(answers)) {
     if (!DECISION_ROW.test(row)) throw new Error("idleAnswers row ids must be [a-z0-9-]+");
     if (typeof resolution !== "string" || !RESOLUTIONS.has(resolution)) throw new Error("idleAnswers values must be default, hold or refuse");
   }
-  return true;
+  if (Object.keys(answers).length > 0) return true;
+  if (positive) return false;
+  throw new Error("a nen.run manifest records only idle pre-answers and cannot show that no decision was taken: omit --decisions-from; pass --decisions if a decision was taken");
 }
 export function resolve(cat: Catalogue, repo: string, kind: RepositoryKind, jobs: readonly string[], facts: ReadonlySet<string>): Resolution {
   const family = fold(cat, jobs);
@@ -572,8 +580,8 @@ function argumentsFor(action: string, argv: readonly string[]): Record<string, s
     const key = token.slice(2);
     if (boolean.has(key)) { result[key] = true; continue; }
     if (!valued.has(key) || at + 1 >= argv.length || (argv[at + 1] as string).startsWith("--")) usage();
-    // HA#474 PH-2: a second ledger would silently replace the first, dropping a recorded decision.
-    if (key === "decisions-from" && Object.hasOwn(result, key)) throw new Error("--decisions-from given twice: pass one ledger");
+    // HA#474 PH-2: a second manifest would silently replace the first, dropping a recorded decision.
+    if (key === "decisions-from" && Object.hasOwn(result, key)) throw new Error("--decisions-from given twice: pass one manifest");
     result[key] = argv[++at] as string;
   }
   return result;
@@ -600,7 +608,7 @@ function main(argv = process.argv.slice(2)): number {
       const jobsValue = typeof args.jobs === "string" ? args.jobs : "";
       const jobs = jobsValue === "" ? [] : jobsValue.split(",");
       const facts = new Set(["evidence", "economics", "policy-hit", "decisions", "idle"].filter((fact): boolean => args[fact] === true));
-      if (typeof args["decisions-from"] === "string" && decisionsTaken(load(args["decisions-from"]))) facts.add("decisions");
+      if (typeof args["decisions-from"] === "string" && decisionsTaken(load(args["decisions-from"]), facts.has("decisions") || facts.has("idle"))) facts.add("decisions");
       if (kind === "process" && !facts.has("policy-hit") && policyHit(repo)) facts.add("policy-hit");
       const report = resolve(cat, repo, kind, jobs, facts);
       writeJson(required(args, "out"), report.requirements);
