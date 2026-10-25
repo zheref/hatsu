@@ -133,8 +133,8 @@
   "monitor": {
     "maxCycles": 20,
     "pollSeconds": 300,
-    "localSlotFrees": "merged",
-    "$localSlotFrees": "fixed: merged (HR-257, Slots and stops): an effort's local slot frees at its local merge, for every futon run; read by nen loop slots --repo from nen 0.26.0, which holds an open unmerged PR's slot and prints the rule and its source (WORKFLOW section 2; docs/ab/futon.md, 2026-10-22); futon section 6 keeps ready/prompted false whenever the printed rule is not merged, and start refuses a declared idle.localSlotFrees other than merged; nen also knows stacked-open, and which ruling binds a stacked effort's slot is zheref/hatsu#425's",
+    "localSlotFrees": "ready+prompted",
+    "$localSlotFrees": "fixed: ready+prompted (the maintainer's pick on zheref/hatsu#425, HR-353, record R-2026-10-23-20, amending HR-257's merged and reconciling the 2026-10-13 stacked-slot rule): an effort's local slot frees once its PR is Ready and its merge prompt or Ready stop was shown, for every futon run, stacked or not; a claimed effort with no PR holds its slot until then, or until its local merge into the integration branch; read by nen loop slots --repo from nen 0.26.0 (WORKFLOW section 2 monitor); start refuses any other value here or under idle.localSlotFrees",
     "$comment": "en's izanagi cap and its poll interval. The cap is grammar, not a default: a watch loop with no cap does not run."
   },
   "profile": {
@@ -147,7 +147,7 @@
     "$comment": "The run profile hatsu:ren reads (zheref/hatsu#93). `default` applies to every turn that names none; a turn may name one with --profile or the words \"fast turn\" / \"thorough turn\", and only a value in `allowed` is accepted. fast: steps 1 to 3 per turn, a turn-fast page, the launch skipped for the turn (not moved: mukai has no launch step), the full page and coverage deferred to mukai; standard: today's turn; thorough: the impacted suites (kotoamatsukami) on every turn. A landing (mukai) always runs thorough. Validated by nen schema check from v0.13.0; an older pin preserves the key as raw data."
   },
   "models": {
-    "rule": "latest alias only, never a version; subagents never on the frontier tier",
+    "rule": "latest alias only, never a version; subagents never on the frontier tier, save great-hiker's prose subsession (docs/ROSTER.md HR-336, HR-362)",
     "claude": {
       "frontier": "fable",
       "deep": "opus",
@@ -183,10 +183,12 @@
       "formatter": "economy",
       "$comment": "watcher and formatter run on economy (zheref/hatsu#93): Illumi and hatsu:izanami polls run as watcher, formatting passes (gyo's auto-fix, prose reflow) as formatter. A role maps to a tier, never to a model. A subagent's tier is its scope's or role's, never its caller's (zheref/hatsu#222, ruling of 2026-10-13): a reviewer keeps its scope's declared tier (review.scopes.<scope>.tier, this reviewer tier by default) when hatsu:direct sends the maintainer's own session to fast or economy; docs/WORKFLOW.md section models states it."
     },
-    "$comment": "A tier is named, never a model version — a pinned version is a pin that rots. The orchestrator tier is the main session's; a SUBAGENT never runs on it, because the frontier tier is where the human's own conversation lives. Below it a subagent's tier is its role's, never its caller's (roles.$comment, zheref/hatsu#222)."
+    "$comment": "A tier is named, never a model version — a pinned version is a pin that rots. The orchestrator tier is the main session's; a SUBAGENT never runs on it, because the frontier tier is where the human's own conversation lives, save one exception: great-hiker's prose subsession (docs/ROSTER.md HR-336, scoped by HR-362 to that one subsession; docs/WORKFLOW.md § models names it). Below it a subagent's tier is its role's, never its caller's (roles.$comment, zheref/hatsu#222)."
   },
   "review": {
     "$comment": "Maintainer's rulings of 2026-09-09 (Feitan, Chrollo), 2026-09-19 (Nobunaga, Shalnark), 2026-09-30 (Leorio) -- zheref/hatsu#89. nen review scopes --base <ref> (v0.12.0) classifies the branch diff by these rows: a path may raise several scopes, and each raised scope is reviewed by its persona under hanten, within budget (reviews per EFFORT -- one branch, one PR -- never per session or repository; a new PR starts every scope full, maintainer's ruling of 2026-09-28). code is Nobunaga's and claims every path, so he is the default reviewer everywhere; tier is read against models.<surface>.<tier>, and Nobunaga's tier depends on nen repo classify's kind (deep on a process repository, fast on a product one). Paths are prefixes or globs in nen report data's tier-table grammar.",
+    "excludedPersonas": ["satotz", "lippo", "buhara", "bisky"],
+    "$excludedPersonas": "The intake examiners (HR-23): they challenge a brief at capture intake and are never a code reviewer, so a review.scopes.<scope>.persona naming one is refused by pointer by nen's policy loader (zheref/nen#472, nen 0.28). The list lives here, beside scopes, because every writer of review.scopes passes this one loader; intake.challenger below maps artifacts to the same four.",
     "scopes": {
       "code": {
         "persona": "nobunaga",
@@ -324,17 +326,27 @@
       }
     }
   },
+  "canon": {
+    "lint": {
+      "rules": "contracts/prose.lint.json",
+      "baseline": "contracts/prose.lint.baseline.json",
+      "skillPaths": ["claude/skills/*/SKILL.md", "claude/agents/*.md", "claude/rules/*.md"],
+      "$comment": "The canon prose lint's declared home (zheref/nen#481, nen 0.28; HR-13, HR-4): nen canon lint --repo <hatsu> reads the rules contract, the shrink-only baseline and the paths the marker limit and PL-12 apply to from here, so a CI step, a skill and nen schema check read the same files. The CI form passes them as flags because its tree is the pull request's head (SEC-7): --rules <trusted> --baseline contracts/prose.lint.baseline.json --base-baseline <trusted> --skill-paths 'claude/skills/*/SKILL.md,claude/agents/*.md,claude/rules/*.md'. .github/workflows/prose-ambiguity-check.yml still runs scripts/prose_ambiguity_check.mts in its frozen form; moving it onto this verb is a two-step landing of its own (docs/GATE-CONFIGURATION.md, 2026-09-20)."
+    }
+  },
   "mukai": {
     "autoEn": true,
     "$autoEn": "one of: true | false",
     "$comment": "Maintainer's ruling of 2026-09-28 (docs/ROSTER.md section Rulings of 2026-09-26/27/28, ruling 8): once shibari has opened the PR and the landing report is rendered, mukai OFFERS to start en on it in one line naming the PR and never starts it silently -- unless this key is true, in which case en starts immediately in the same user turn as it did before. Absent means false. Hatsu's own value is true, on the maintainer's request of 2026-10-01 (\"Let's configure this repository for autoEn (let's make it enabled)\"). Read by the mukai skill only; nen validates the file and hands no value out."
   },
   "release": {
-    "$comment": "The RELEASE UNIT -- the maintainer's rulings of 2026-09-26 and 2026-09-28 (docs/ROSTER.md § Rulings of 2026-09-26/27/28: getsuga merges its own release-proposal PR, bounded; in hatsu the plugin manifest is bumped in the DELIVERY PR, so the release PR touches the changelog only). Exactly the paths getsuga § 3 writes when it folds a release here: the collated CHANGELOG section and the fragments it deletes. Not .claude-plugin/plugin.json (the delivery PR carries the bump; getsuga § 3 step 5 is a no-op in this repository), and not nen/repos.json (this registry carries no `latest` key). `nen release unit-check --pr <n>` compares a pull request's changed files to this list (the same prefix/glob grammar review.scopes uses), and `nen pr merge --release-unit` refuses to merge a release-proposal PR that touches anything outside it. From nen v0.15.1 an entry may also be {\"path\": \"<exact json file>\", \"keys\": [...]} to bound a JSON file to named leaf keys -- unused here. Hatsu declares no tags.identity, so no archive-written identity file belongs here.",
+    "$comment": "The RELEASE UNIT -- the maintainer's rulings of 2026-09-26 and 2026-09-28 (docs/ROSTER.md § Rulings of 2026-09-26/27/28: getsuga merges its own release-proposal PR, bounded; in hatsu the plugin manifest is bumped in the DELIVERY PR, so the release PR touches the changelog only). Exactly the paths getsuga § 3 writes when it folds a release here: the collated CHANGELOG section and the fragments it deletes. Not .claude-plugin/plugin.json (the delivery PR carries the bump; getsuga § 3 step 5 is a no-op in this repository), and not nen/repos.json (this registry carries no `latest` key). `nen release unit-check --pr <n>` compares a pull request's changed files to this list (the same prefix/glob grammar review.scopes uses), and `nen pr merge --release-unit` refuses to merge a release-proposal PR that touches anything outside it. From nen v0.15.1 an entry may also be {\"path\": \"<exact json file>\", \"keys\": [...]} to bound a JSON file to named leaf keys -- unused here. Hatsu declares no tags.identity, so no archive-written identity file belongs here. proposalMerge (zheref/hatsu#414): self lets getsuga section 3a merge its own proposal; human keeps that merge with the maintainer, and section 3a stops at the declaration gate; read at the merge-time re-check's base SHA through scripts/config_values.sh get --json (docs/config/workflow.json.md, release).",
     "unitPaths": [
       "CHANGELOG.md",
       "changelog.d/**"
-    ]
+    ],
+    "proposalMerge": "self",
+    "$proposalMerge": "one of: self | human"
   },
   "futon": {
     "$comment": "The ADVANCE-GO GATE -- the maintainer's rulings of 2026-09-26 and 2026-09-28 (docs/ROSTER.md § Rulings of 2026-09-26/27/28: getsuga and kagutsuchi take an advance go on any repository kind; mugetsu only on a process or library repository, never a product that deploys or uploads to a store; the three kinds are docs/WORKFLOW.md § Repository kinds). `nen parse futon` annotates every skill-chain step whose skill is listed here with gate: {allowed, kind, reason}, the kind being `nen repo classify`'s own verdict for the resolved repo (unknown fails closed); a skill not listed here gets no gate, and futon § 8 refuses a listed skill's step that carries none. From nen v0.15.1 an ABSENT key falls back to nen's built-in default policy (gate.source \"default\"), and a declared one replaces it wholesale (gate.source \"declared\") -- hatsu declares its own so the policy is read from here. The policy lives here and nowhere in prose: mugetsu § 3 and futon § 8 read the gate line verbatim.",
@@ -368,7 +380,7 @@
   "aiReviewers": "optional",
   "$aiReviewers": "one of: required | optional | off",
   "pr": {
-    "$sections": "available sections: delivery — Always-first ledger-rendered delivery metadata; outside the seven-reader cap. | changes — Before/After for a named consumer; Case for/Case against; what would flip the decision. | why — Source/What it showed/Why it matters now, followed by the authoring nature. | how — Mermaid structure diagram and Item/Kind/Change legend; flow diagram only when behavior flow changed; one rejected alternative. | improves — All eleven aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement. | verify — Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. Every kind adds one Criterion/Coverage/Evidence row per AC id of each closing issue (HR-11; scripts/pr_criteria_check.mts). content: an empty heading fails body-check through the derived verify-content requirement. | evidence — UZF-26 state/variant evidence table; only where project.evidence.globs is declared. | compat — Symbol/Before/After/Consumer action; semver verdict. | across — What another repository does differently after this merge; recorded rulings. | release-unit — Artifact/Size/Provenance; CON-22 fan-out. | rollout — Target/Flag/Rollback step. | economics — Leorio summary, then the full report in details; no new level-2 headings inside it. | spec — One row per F<nnn>-SC-### the closing spec-derived issue carries, satisfied with a test id or deferred with a reason and a follow-up (docs/config/spec-repo.md, The PR Spec section). Admitted by the run fact spec; rows is nen's spec-rows requirement quoted whole (zheref/nen#493, src/spec/coverage.ts), and nen spec coverage's delivery form proves every criterion is accounted for. | checklist — Compact evidence-backed completion conditions. | issues — Canonical issue URL/scope/merging verdict table and closing lines; Development guard applies. | attribution — Final heading; exact participant ledger from docs/AGENT-ATTRIBUTION.md.",
+    "$sections": "available sections: delivery — Always-first ledger-rendered delivery metadata; outside the seven-reader cap. | changes — Before/After for a named consumer; Case for/Case against; what would flip the decision. | why — Source/What it showed/Why it matters now, followed by the authoring nature. | how — Mermaid structure diagram and Item/Kind/Change legend; flow diagram only when behavior flow changed; one rejected alternative. | improves — All eleven aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement. | verify — Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. Every kind adds one Criterion/Coverage/Evidence row per AC id of each closing issue (HR-11; judged by nen pr converge). content: an empty heading fails body-check through the derived verify-content requirement. | evidence — UZF-26 state/variant evidence table; only where project.evidence.globs is declared. | compat — Symbol/Before/After/Consumer action; semver verdict. | across — What another repository does differently after this merge; recorded rulings. | release-unit — Artifact/Size/Provenance; CON-22 fan-out. | rollout — Target/Flag/Rollback step. | economics — Leorio summary, then the full report in details; no new level-2 headings inside it. | spec — One row per F<nnn>-SC-### the closing spec-derived issue carries, satisfied with a test id or deferred with a reason and a follow-up (docs/config/spec-repo.md, The PR Spec section). Admitted by the run fact spec; rows is nen's spec-rows requirement quoted whole (zheref/nen#493, src/spec/coverage.ts), and nen spec coverage's delivery form proves every criterion is accounted for. | decisions — Every pre-answered row and every default the run took for the maintainer; mandatory on every PR whose run took one, idle (HR-334) or attended (HA#474 AC-1), whatever the kind or family. Any positive source includes it: --decisions, --idle, or --decisions-from a nen.run manifest with a non-empty idleAnswers. A manifest proves only launch pre-answers: a null or empty idleAnswers adds nothing beside --decisions or --idle (the flag wins) and refuses alone; a malformed manifest refuses whatever else is passed. A default taken mid-run or attended is --decisions. | checklist — Compact evidence-backed completion conditions. | issues — Canonical issue URL/scope/merging verdict table and closing lines; Development guard applies. | attribution — Final heading; exact participant ledger from docs/AGENT-ATTRIBUTION.md.",
     "sections": {
       "max": 7,
       "variants": {
@@ -569,8 +581,8 @@
   },
   "idle": {
     "decisions": {
-      "harness-attribution-switch": "hold",
-      "host-nen-link": "hold",
+      "harness-attribution-switch": "default",
+      "host-nen-link": "default",
       "missing-consumer-declaration": "default",
       "missing-argument": "default",
       "missing-configuration": "default",
@@ -581,13 +593,13 @@
       "intake-challenger": "hold",
       "port-siblings": "hold",
       "wrap-up": "default",
-      "cleanup-plan": "hold",
+      "cleanup-plan": "default",
       "publish-offer": "refuse",
-      "spec-capture-scope": "hold",
+      "spec-capture-scope": "default",
       "spec-slice": "hold",
       "spec-clarify": "hold",
       "spec-dispatch": "hold",
-      "spec-converge-filing": "hold"
+      "spec-converge-filing": "default"
     },
     "terminal": "ready-at-prompt-or-integration",
     "$terminal": "one of: ready-at-prompt-or-integration | ready-at-prompt",

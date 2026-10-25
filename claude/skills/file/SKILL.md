@@ -286,18 +286,20 @@ else a create that may have landed — `nen issue search` the title before any r
 read back before any retry. Their dry runs read the target's visibility, so they
 are not offline, and `--body-file` resolves a relative path against `--repo`'s root: pass an absolute path.
 
-**Then the shape, on a create's body, before the plan** (HR-4; nen's `issue body-check` and `issue questions` ship from `0.26.0`, the retirement zheref/hatsu#423):
+**Then the shape, on a create's body, before the plan** (HR-4; [`plugin-registries`](../../../docs/config/plugin-registries.md#contractsissue-sectionsjson), *The check*):
 
 ```bash
-node "$hatsu_root/scripts/issue_body_check.mts" --kind <product|defect|machinery|canon-gap|epic> --body-file <absolute body.md>
+nen issue body-check --body-file <absolute body.md> --kind <product|defect|machinery|canon-gap|epic> --requirements-from "$hatsu_root/contracts/issue-sections.json" --json
+nen issue questions  --body-file <absolute body.md> --requirements-from "$hatsu_root/contracts/issue-sections.json" --json
 ```
 
-Exit `0` → the body enters the plan. Exit `1` → each miss it lists is fixed in the draft and the check re-run, or
-shown in the plan's part 1 as an unfixed miss; an open `OQ-{n}` row is shown there too. Exit `2`, `3` or `5` is
-reported, never read as a pass.
+`body-check` exit `0` → the body enters the plan. Exit `1` → each miss it lists is fixed in the draft and the check re-run, or
+shown in the plan's part 1 as an unfixed miss; every open `OQ-{n}` row `questions` counts is shown there too — from nen `0.28`
+`questions` exits `1` with its document still on stdout when a row is open (`0` before), a count made legible, never a
+refusal. Exit `2` on either is reported, never read as a pass.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
-all of it. **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the
+all of it, recorded through `nen stop answer` before anything is written ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Every picker answer is recorded*). **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the
 plan is still shown** (the ruling of 2026-10-19/20, zheref/hatsu#354: `hiraishin`'s typed call is the G1 for
 its port issue, `kamui`'s sibling picker the G1 for its filings). A stand-in covers only what the plan
 shows: a close of an issue that has an open PR, or a severity change, is still asked under § 8, or left

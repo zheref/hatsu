@@ -686,12 +686,6 @@
     {
       "path": "claude/skills/futon/SKILL.md",
       "rule": "PL-05",
-      "text": "tart`; keep its run ID (#154). After every PR this r",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/futon/SKILL.md",
-      "rule": "PL-05",
       "text": "on delivery ownership*, #154). Never record a main-b",
       "count": 1
     },
@@ -855,12 +849,6 @@
       "path": "claude/skills/hanten/SKILL.md",
       "rule": "PL-05",
       "text": "ises them by content** (#73): a diff touching a `##",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
-      "text": "t inherits no `PATH`** (#107) — prefixing every bloc",
       "count": 1
     },
     {
@@ -3553,12 +3541,6 @@
     },
     {
       "path": "docs/PROCESS.md",
-      "rule": "PL-02",
-      "text": "dy terminus, no prompt, until nen exposes the owed list",
-      "count": 1
-    },
-    {
-      "path": "docs/PROCESS.md",
       "rule": "PL-01",
       "text": "e warm-up's scripts and by hand: no nen verb owns a c",
       "count": 1
@@ -3615,12 +3597,6 @@
       "path": "docs/ROSTER.md",
       "rule": "PL-06",
       "text": "ling in its own words — verified live at nen `0.10.0`:",
-      "count": 1
-    },
-    {
-      "path": "docs/ROSTER.md",
-      "rule": "PL-11",
-      "text": "d (this run's reading). [NEEDS missing-maintainer-ch — not [NEEDS <row-id>: question]",
       "count": 1
     },
     {

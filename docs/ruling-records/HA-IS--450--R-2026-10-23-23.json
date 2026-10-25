@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-23",
+  "effortId": "HA-IS-#450",
+  "n": 21,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "akatsuki-ai #69 OQ-2 (RUNBOOK § Human gates, OPEN-5): does every consumer install yata-mirror at its cutover, or is it optional per consumer?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Every consumer (Recommended)",
+      "consequence": "Each consumer's cutover installs yata-mirror beside its reviewer Apps"
+    },
+    {
+      "key": "B",
+      "label": "Optional",
+      "consequence": "A consumer installs it only when it asks to"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T23:01:57.804Z"
+}

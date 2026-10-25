@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-11",
+  "effortId": "HA-IS-#450",
+  "n": 9,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Spec dispatch (nen/decisions.json row spec-dispatch; dowsing-chain § 8): is each dispatch of a spec slice a G1 gate you approve, or does the typed wave suffice?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Typed wave suffices (Recommended)",
+      "consequence": "Confirm: no per-dispatch gate; the typed dowsing-chain dispatch wave is the go, and an idle run holds it"
+    },
+    {
+      "key": "B",
+      "label": "G1 per dispatch",
+      "consequence": "Amend: every dispatch waits for your approval (restore the G1 claim)"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:56.106Z"
+}

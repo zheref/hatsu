@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-07",
+  "effortId": "HA-IS-#450",
+  "n": 5,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Idle minutes (WORKFLOW § Idle batches rule 4): idle.budget.minutes is wall-clock age of the run since its manifest's start; the token budget is advisory only. Is that the meaning?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Wall-clock, tokens advisory (Recommended)",
+      "consequence": "Confirm the reading as recorded"
+    },
+    {
+      "key": "B",
+      "label": "Tokens binding too",
+      "consequence": "Amend: a run that exceeds its token budget parks every further effort, same as minutes"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.744Z"
+}

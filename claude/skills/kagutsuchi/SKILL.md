@@ -33,7 +33,7 @@ hatsu:kagutsuchi [<target>]
 authorization.** Two sources, **and the report says which** (§ 5). **Typed**: the maintainer's word,
 never a near-match; not a declared key → **refused**, naming the declaration PR and the keys. **Omitted**: `nen/workflow.json` → `deploy.defaultTarget` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § 2 → `deploy`; ruling 2026-09-29, HA#146), read in the checkout the send runs from (§ 3b), **one
-row per state** — `null`/absent → **asked as free text** (`missing-maintainer-choice`), the keys
+row per state** — `null`/absent → **asked as free text** (`missing-maintainer-choice`, recorded through `nen stop answer`), the keys
 listed, none starred; a declared key whose `why` reads non-production (§ 2) → the target; one whose
 `why` does not → **refused, never asked**; no declared key → **refused**, naming the declaration PR;
 not a string → `missing-configuration` by pointer. **`--target` is always passed to `nen shu deploy`

@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-09",
+  "effortId": "HA-IS-#450",
+  "n": 7,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Run manifests (WORKFLOW § Idle batches rule 6): HA-PR-#460 makes nen's manifest the one owner and keeps only a small Hatsu ownership record. Confirm that split?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "nen owns the run (Recommended)",
+      "consequence": "nen's manifest is the single run record; Hatsu keeps only the ownership stub; the then-gate reads nen's manifest"
+    },
+    {
+      "key": "B",
+      "label": "Hatsu keeps its own",
+      "consequence": "Hatsu keeps a full manifest beside nen's (two records, as before)"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:55.871Z"
+}

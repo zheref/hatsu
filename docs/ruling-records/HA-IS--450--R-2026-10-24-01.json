@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-24-01",
+  "effortId": "HA-IS-#450",
+  "n": 22,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "en § 5 and nen pr converge: a sub-PR into an integration branch that closes no issue makes converge exit 1 (cannot tell what it closes). HA-PR-#456 reads that case as not applicable so readiness can proceed, but a reading may not authorise a merge path (HR-3). Rule it?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Rule it (Recommended)",
+      "consequence": "A non-default-base PR with no closing row is not applicable for criterion coverage; readiness and the recorded delivery merge proceed on the other conjuncts"
+    },
+    {
+      "key": "B",
+      "label": "Hand to me",
+      "consequence": "Such a PR never merges by an agent; en hands it to the merge prompt and the maintainer decides each time"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-24T00:04:28.518Z"
+}

@@ -71,6 +71,14 @@ failed; a missing or wrong tool is not a failed build, and a caller that retries
 on a machine nobody set up. Every `nen shu tools` row that is not satisfied reports `5`, and a skill
 relaying it keeps the code — and installs the tool where it can (`missing-tool`).
 
+**A `5` whose every unsatisfied row is a coverage-only row reads *unmeasured, still testable*.**
+A toolchain row whose `why` begins `Coverage only:` (in Hatsu: `ruby`, `bash`, `simplecov`, `bashcov`,
+`simplecov-lcov`, zheref/hatsu#148) is needed only to *measure* line coverage: without it every lane
+still runs its fixture, uninstrumented, and says so. So breath § 2c, ten § 1, bankai-quality and any
+other reader of `nen shu tools` keep the `5`, relay the remedy, and never report the host as unable
+to build or test. nen cannot scope a toolchain row to the lanes that need it yet, so the
+distinction is read off the row's `why`.
+
 **A refusal that is a gap is a question; a refusal that is a safety rule stays a refusal.** The list
 of what is not a gap is authored once, in [`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*; each
 is named, never asked about and never softened into a default.
@@ -439,13 +447,13 @@ of 2026-10-19 — the CI reviewers tier*; zheref/hatsu#330 — **stated once, he
 `shibari` § 5, `pr-state` § 2, `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`,
 [`GATE-CONFIGURATION.md`](GATE-CONFIGURATION.md) § 3, [`WORKFLOW.md`](WORKFLOW.md) § 2 (`aiReviewers`, `ci`),
 `docs/config/{workflow,gates,decisions}.json.md` and that ROSTER section cite this paragraph). A **lane** is
-a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331, to land) — that
+a CI reviewer — an Akatsuki tier lane (`AK`), installed by `kuchiyose` (zheref/hatsu#331) — that
 runs on every push to the pull request and posts under its own GitHub App login. **Its round is its formal
 review posted under that login.** Under the `bounded` reading Hatsu runs, a review at any earlier head
 counts, because no request of the lane is ever pending; and a lane, outside `base_reviewers` with no
 `enrolment_check_pattern`, is **never owed on its own** — nen counts it toward `round_quorum` only. **It is
 never requested**: never in `base_reviewers`, and `shibari` and `sharingan` never call `nen pr
-request-reviews` for a lane; a nen field declaring that is zheref/nen#440. **A push re-runs the lane**
+request-reviews` for a lane; from nen `0.26` the entry declares it, `wake: "event"` (zheref/nen#440, nen USAGE *Event lanes*). **A push re-runs the lane**
 (`cancel-in-progress`), and its check, pending at the new head, holds `checks-green` like any running check
 until it concludes: that is the current-head wait — never a request, and never a stall by itself. A lane
 check `nen pr ready <ref> --json` lists in `meta.runnerAvailability[]` (still waiting for a runner at the
@@ -454,9 +462,10 @@ returns that null, `en`'s own first observation of it waiting at this head — i
 condition for the watch, reported not-ready with the check's state quoted; a lane check `IN_PROGRESS` is
 bounded by the lane's own job timeout, and one that concludes `CANCELLED` or `FAILURE` at head is a fault
 in the lane, reported the same way, never a code fix to author. Both are a Hatsu reading: nen's runner
-diagnosis never moves the verdict. nen enforces no review
-**at** the new head: a lane that concludes green there without reviewing still reads as having its earlier
-round; a per-reviewer strict reading is owed to zheref/nen#440. **A lane whose check concluded green with no
+diagnosis never moves the verdict. For a `wake: "event"` entry (nen `0.26`), a live run at the judged head
+supersedes the lane's earlier review, under `bounded` too, and stays owed while in flight even across a met
+quorum; a terminal run without a formal review reads `completed-without-review` and is excused only by a met
+quorum (nen USAGE *Event lanes*). **A lane whose check concluded green with no
 review is unavailable** (unprovisioned: the lane exits green without running, `AK`'s reviewer-lane issue):
 nen counts no round for it, so a met quorum covers it and an unmet one is owed through the quorum clause.
 **`round_check_pattern` is declared only for a lane whose check is its round**, and that check's conclusion
@@ -475,13 +484,15 @@ with `minimum` `2`, a PR on which only one bot has a round while another member 
 in flight, or a bot with no round yet that can still be requested) is `rounds-owed` under `sharingan` § 6's bounds —
 not-ready at `cap-reached`'s terminus once a bound is reached — and *The sixth stop* is reached only when
 every member is unavailable **by (c)'s observations**; a posted-review lane makes none of them (it is never
-requested, and declares no round check) until zheref/nen#440 exposes its state, so under `required` a PR
+requested, and declares no round check); nen `0.26` exposes its state as `eventRun.state` (zheref/nen#440), but
+reading those states as (c)'s observations is unruled, so until a ruling does, under `required` a PR
 whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
-Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **Until the
-nen pin carries zheref/nen#372's fix** (NN-PR-#432, merged, not yet released), nen reads `reviewers[]` and
-`round_quorum` from the checkout it is handed — the pull request's head under `en`'s call — so a PR that
-changes either key, `kuchiyose`'s install PR among them, is judged on its own declaration (SEC-6): `en`
-says so beside the quoted verdict, and the maintainer's merge is the check; the repin retires this sentence.
+Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **The gates file is
+the base's** (zheref/nen#372, nen 0.23, inside the pin): without `--gates`, nen reads `reviewers[]`,
+`round_quorum` and every other gate input at the pull request's base, so a PR that changes either key,
+`kuchiyose`'s install PR among them, is judged by the declaration it would replace, never its own (SEC-6).
+`kuchiyose verify`'s lane-state read passes a copy from outside the checkout instead, which nen uses as given
+(`meta.identities.read: gates-flag`) and which is never that PR's readiness.
 
 **The sixth stop — every quorum member unavailable (the canonical predicate).** The maintainer's ruling
 of 2026-10-11, *Prompt on hanten* ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-11 — prompt on
@@ -514,15 +525,20 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
   `nen pr request-reviews` call and record it with that call's `--json` output (`unrecordedBots` and
   `message`) **verbatim**. An exit `9` counts only when that head equals the head `en` § 5 check 5 judged;
   otherwise it is stale, and one fresh request at the new head is owed, inside `round_policy.maxRounds`.
-- **(e) No reviewer outside `any_of` is owed.** nen's `rounds-owed` row also carries configured reviewers
-  that are not quorum members, and a met or unmet quorum never excuses them. nen `v0.21.0`'s `--json`
-  exposed **no structured list of the owed reviewers** (nen 0.26 lists `owedRounds[]`; whether this
-  condition reads it, widening the stop, is zheref/hatsu#430's ruling) — the row's `reason` is prose, never parsed;
-  `roundQuorum.members` names only `any_of`, and `meta.roundCounts` counts rounds, not who is owed at head.
-  So the sixth stop is reachable **only where every `reviewers[]` name in the target's `nen/gates.json` is
-  in `round_quorum.any_of`** (true of Hatsu's own file today: `copilot` in both). Where a reviewer lies
-  outside `any_of`, the PR ends at `cap-reached`'s not-ready terminus, no prompt, until nen exposes the
-  owed list.
+- **(e) No reviewer outside `any_of` is owed, read from nen's owed list** ([HR-365](ROSTER.md#hr-365),
+  the maintainer's ruling of 2026-10-22; zheref/hatsu#430). nen's `rounds-owed` row also owes configured
+  reviewers that are not quorum members, and a met or unmet quorum never excuses them. The pinned nen
+  lists the owed rounds on that row as `owedRounds[]`, each entry carrying `reviewer`, `reason`,
+  `coveredByQuorum`, and optionally `kind` (where `nen/gates.json` declares one), `state` and
+  `waivedByAiPolicy` (`nen pr ready --help`, nen `0.26`); (e) reads only `reviewer`. It holds when the
+  row carries `owedRounds[]` and every entry's `reviewer` is a name in the row's `roundQuorum.anyOf`; an
+  empty `owedRounds[]` is computed with none owed, so (e) holds. An entry outside `anyOf`, whatever its
+  `kind`, ends the PR at `cap-reached`'s not-ready terminus, no prompt. So does a row with no
+  `owedRounds[]`: nen omits it when it did not compute the list, and absent is never read as none owed.
+  `coveredByQuorum` is not the test, since it marks a member a met quorum excused and at this stop the
+  quorum is unmet; the row's `reason` is prose, never parsed. A target whose `reviewers[]` all sit in
+  `any_of` (Hatsu's own file today: `copilot` in both) can owe no one outside it. One that enrols a
+  reviewer outside `any_of` reaches the stop when that reviewer's round is not owed at the judged head.
 
 At the stop, `nen pr ready`'s **not-ready verdict is quoted verbatim and never called `ready`**, and the one
 Hatsu line `en` writes into the PR body through `nen pr edit-body` carries the recorded head and the
@@ -734,8 +750,10 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 **Named residue, by skill** — the live list; each skill's `Residue` section points here.
 
 - **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
-  TypeScript verdict, frozen to fixes: its port is owed to `nen canon lint` (zheref/nen#481) and its
-  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin. Its
+  TypeScript verdict, frozen to fixes: `nen canon lint` (zheref/nen#481) shipped in nen `0.28` with its declared home
+  `canon.lint` (the HA#449 repin; parity with this guard checked there), and the frozen CI step moves onto it by a
+  two-step landing ([GATE-CONFIGURATION.md](GATE-CONFIGURATION.md), 2026-09-20); its citation resolver is still owed to
+  `nen ref resolve --citation` (zheref/nen#482); the guard retires at that flip. Its
   pull-request check, `canon-lint` from `.github/workflows/prose-ambiguity-check.yml`, is **advisory**:
   it sits in no ruleset and becomes required only after one tagged release of green runs with a
   shrinking baseline (HR-13), by the maintainer's own ruleset edit
@@ -973,10 +991,10 @@ fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/
 and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);
 until then the two scripts above are the mechanism and are named as such. The canon `precedence` key of
-[`../nen/contract.json`](../nen/contract.json) ([HR-1](ROSTER.md#hr-1)) is tolerated, not validated, by
-`nen schema check` at the pin: validating it and refusing a drifted restatement in `WORKFLOW.md` are owed to
-[zheref/nen#474](https://github.com/zheref/nen/issues/474) (BC-11 keeps the drift case out of
-`scripts/canon_contracts_check.sh`, frozen to fixes only); until that repin nothing checks the order.
+[`../nen/contract.json`](../nen/contract.json) ([HR-1](ROSTER.md#hr-1)) is validated by
+`nen schema check` from nen `0.28` ([zheref/nen#474](https://github.com/zheref/nen/issues/474), the HA#449 repin), which
+also refuses a drifted restatement in the files `precedenceRestatedIn` names (`WORKFLOW.md`), by file and line; BC-11
+keeps the drift case out of `scripts/canon_contracts_check.sh`, frozen to fixes only, since the verb holds it.
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 

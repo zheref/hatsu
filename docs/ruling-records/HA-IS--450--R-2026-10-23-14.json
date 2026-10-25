@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-14",
+  "effortId": "HA-IS-#450",
+  "n": 12,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Akatsuki CON-17(c): one verify row per acceptance criterion with a closed status vocabulary; missing or contradicts is not merge-ready. Reading: the same rule as Hatsu's HR-11, both read by nen pr converge. Confirm?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Aligned with HR-11 (Recommended)",
+      "consequence": "Confirm: one rule, one verb, both planes"
+    },
+    {
+      "key": "B",
+      "label": "Akatsuki differs",
+      "consequence": "Amend: Akatsuki keeps its own vocabulary or threshold"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-23T22:41:56.297Z"
+}

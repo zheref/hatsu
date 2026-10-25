@@ -64,7 +64,7 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **59**, the fifty-eight plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **60**, the fifty-nine plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
 | `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **18**: every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
@@ -151,7 +151,7 @@ sound seat; the stop itself still stands.
 
 | tier | role | Cursor alias |
 |---|---|---|
-| `frontier` | `orchestrator` — never a subagent | `grok` |
+| `frontier` | `orchestrator` — never a subagent, save [`WORKFLOW.md`](../WORKFLOW.md) § `models`'s one exception | `grok` |
 | `deep` | `reviewer` | **`grok`** |
 | `fast` | `worker`, `measurer` | `composer` |
 | `economy` | | `composer` |
@@ -163,7 +163,7 @@ models: **the CLI accepts them and this policy does not.** Naming one here is ou
 optimisation.
 
 > **`frontier` and `deep` name the same alias on this surface, and the rule survives that.** "Never the
-> frontier tier for a subagent" cannot be checked by reading the alias here, so it is enforced on the
+> frontier tier for a subagent" (save [`WORKFLOW.md`](../WORKFLOW.md) § `models`'s one exception) cannot be checked by reading the alias here, so it is enforced on the
 > **role**: a reviewer is raised at `models.roles.reviewer`, never as an orchestrator. Say the tier *and*
 > the alias — *"tier `deep` → `grok`"* — so a transcript read afterwards is unambiguous.
 
@@ -220,7 +220,7 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
    this host one listing carried the fifty-one mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims fifty-eight ordinary
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims fifty-nine ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a

@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-23-21",
+  "effortId": "HA-IS-#450",
+  "n": 19,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "HA#448 (steady state): four recurring rows need a scheduler: a quarterly drift pass, a recapture on each member's release tag, the morning desk after every wave, and the ratchet-baseline shrink report. Which host carries them?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Claude Code routines (Recommended)",
+      "consequence": "Scheduled cloud agents run the agent-driven rows; the ratchet report stays per-PR in CI"
+    },
+    {
+      "key": "B",
+      "label": "CI cron in hatsu",
+      "consequence": "GitHub Actions cron workflows in zheref/hatsu, with an API key secret for the agent rows"
+    },
+    {
+      "key": "C",
+      "label": "Your own machine",
+      "consequence": "Claude Code scheduled tasks on the maintainer's Mac, running while it is awake"
+    }
+  ],
+  "kind": "picked",
+  "pick": "C",
+  "typed": null,
+  "answeredAt": "2026-10-23T23:01:57.696Z"
+}
