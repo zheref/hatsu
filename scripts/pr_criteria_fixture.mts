@@ -142,8 +142,8 @@ for (const bad of ["HA#0", "pending", "#12", ""]) assert.ok(!tracked.test(bad), 
 const finding = schema.$defs.finding;
 assert.deepEqual(finding.required, ["id", "scope", "persona", "rule", "severity", "path", "line", "evidence", "proposedFix", "disposition"]);
 const constitutional = new RegExp(finding.if.properties.rule.pattern);
-// HR-10 as amended by HR-337: the schema forces the CON half; an HR id is critical only on a ruled row,
-// which a schema cannot read, so it is not forced here (zheref/hatsu#466 owes the status-aware check).
+// HR-10 as amended by HR-337: the schema forces the CON half; the delivered status-aware checker
+// resolves an HR id against its live ROSTER row (zheref/hatsu#466).
 for (const ok of ["CON-47", "CON-1"]) assert.ok(constitutional.test(ok), ok);
 for (const no of ["UX-3", "HA#7/AC-1", "HR-10", "HR-0", "CON-"]) assert.ok(!constitutional.test(no), no);
 assert.match(finding.then.$comment, /zheref\/hatsu#466/, "the HR half names its tracked check");
@@ -155,7 +155,7 @@ assert.deepEqual(finding.then.properties.disposition.properties.state.enum, ["fi
 // serial test file so Node can capture the production module in-process.
 const hanten = read("claude/skills/hanten/SKILL.md");
 assert.ok(hanten.includes('node "$hatsu_root/scripts/hanten_findings_check.mts" "<findings-record>"')
-  && hanten.includes('"$hatsu_root/docs/ROSTER.md"`; exit `1` returns, `2` stops unread.'),
+  && hanten.includes('"$hatsu_root/docs/ROSTER.md"`; `1`: record/finding; `2`: unread.'),
   "hanten settlement invokes the status-aware checker and preserves its distinct exits");
 
 console.log("criteria: readers cite nen pr converge with Hatsu's catalogue, no restated coverage rule, the catalogue read through nen issue criteria, hostile text, en's not-applicable reading, template and requirements wiring, and the findings schema and HR-status check passed");

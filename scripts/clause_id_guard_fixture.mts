@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { main as guardMain } from './clause_id_guard.mts';
 
+export function runClauseIdGuardFixture(): void {
 const guard = fileURLToPath(new URL('./clause_id_guard.mts', import.meta.url));
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-clause-id-'));
 const def = (n: number | string, label: number | string = n, status = 'ruled'): string => `| <a id="hr-${n}"></a>**HR-${label}** (${status}) a ruling | settles |`;
@@ -133,4 +134,5 @@ try {
   console.log(`clause-id-guard fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
+}
 }

@@ -146,7 +146,7 @@ Kurapika applies `docs/DISCOVERY.md`.
 | **`deferred`** | it outlives this branch | the tracked item, or its durable `pending` record. An untracked deferral is `unsettled` |
 
 Before it advances, run `node "$hatsu_root/scripts/hanten_findings_check.mts" "<findings-record>"
-"$hatsu_root/docs/ROSTER.md"`; exit `1` returns, `2` stops unread.
+"$hatsu_root/docs/ROSTER.md"`; `1`: record/finding; `2`: unread.
 
 **A push-back is an argument, not a veto**. Every disposition reaches the PR body through
 `shibari`; a `fixed` one is proved by `iteration.checks`, one editing a dieted

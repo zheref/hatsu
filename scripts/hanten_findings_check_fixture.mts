@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { main as checkMain } from './hanten_findings_check.mts';
 
+export function runHantenFindingsFixture(): void {
 const checker = fileURLToPath(new URL('./hanten_findings_check.mts', import.meta.url));
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-hanten-findings-'));
 const roster = join(scratch, 'ROSTER.md');
@@ -80,6 +81,12 @@ function raw(name: string, contents: string, stderr: RegExp): void {
   exercise(name, [file, roster], 2, null, stderr);
 }
 
+function record(name: string, document: unknown, status: number, stdout: RegExp | null, stderr: RegExp | null, rosterPath = roster): void {
+  const file = join(scratch, `${name}.json`);
+  writeFileSync(file, `${JSON.stringify(document)}\n`);
+  exercise(name, [file, rosterPath], status, stdout, stderr);
+}
+
 try {
   run('ruled rows require critical and fixed-or-deferred', [
     base('ruled-severity', 'HR-1', 'low'),
@@ -89,18 +96,26 @@ try {
     base('reading-ok', 'HR-2', 'low', 'pushed-back', 'the reading is not binding'),
     base('reversed-ok', 'HR-3', 'nit', 'pushed-back', 'HR-1 reversed it'),
     base('superseded-ok', 'HR-4', 'medium', 'pushed-back', 'HR-1 superseded this part'),
-    base('non-hr-ignored', 'UX-1', 'low', 'pushed-back'),
+    base('non-hr-ignored', 'UX-1', 'low', 'pushed-back', 'the non-HR rule does not hold'),
   ], 0, /every HR-cited finding/, null);
-  run('a pushed-back non-ruled row needs a reason', [base('reading-empty-reason', 'HR-2', 'low', 'pushed-back', '   ')], 1, /reading-empty-reason.*HR-2.*non-empty reason/, null);
+  run('a pushed-back non-ruled row needs a reason', [base('reading-empty-reason', 'HR-2', 'low', 'pushed-back', '   ')], 1, /invalid findings record: \$\.findings\[0\]\.disposition\.detail has an invalid format/, null);
   run('an undefined HR id is a finding', [base('undefined-row', 'HR-99')], 1, /undefined-row cites HR-99, which no ROSTER row defines/, null);
+  run('a padded HR citation is a bad record before roster lookup', [base('padded-row', 'HR-337 ', 'low', 'pushed-back', 'not binding')], 1, /invalid findings record: \$\.findings\[0\]\.rule must use canonical HR-N form/, null, join(scratch, 'absent.md'));
+  run('a leading-zero HR citation is a bad record', [base('zero-row', 'HR-0337')], 1, /invalid findings record: \$\.findings\[0\]\.rule must use canonical HR-N form/, null);
+  run('a non-string rule is a bad record', [{ ...base('number-rule', 'HR-1'), rule: 337 }], 1, /invalid findings record: \$\.findings\[0\]\.rule must be string/, null);
+  const { disposition: _readingDisposition, ...readingWithoutDisposition } = base('reading-no-disposition', 'HR-2', 'low');
+  run('a reading finding missing disposition is a bad record', [readingWithoutDisposition], 1, /invalid findings record: \$\.findings\[0\]\.disposition is required/, null);
+  run('malformed structural fields are bad records', [{ ...base('bad-fields', 'UX-1'), line: 'one', evidence: '' }], 1, /invalid findings record: \$\.findings\[0\]\.line must be integer[\s\S]*invalid findings record: \$\.findings\[0\]\.evidence is too short/, null);
+  run('the schema-owned CON branch remains enforced', [base('constitutional', 'CON-1', 'low', 'pushed-back', 'no')], 1, /invalid findings record: \$\.findings\[0\]\.severity must equal its schema constant[\s\S]*invalid findings record: \$\.findings\[0\]\.disposition\.state is not an admitted value/, null);
   run('an unread roster is tooling exit 2', [base('not-a-finding', 'HR-1')], 2, null, /cannot read roster/, join(scratch, 'absent.md'));
   exercise('wrong arity is tooling exit 2', [], 2, null, /usage/);
   exercise('an unsafe findings path is tooling exit 2', [join(scratch, 'forged,line.json'), roster], 2, null, /refusing a findings path/);
   exercise('an unread findings file is tooling exit 2', [join(scratch, 'absent.json'), roster], 2, null, /cannot read .* as JSON/);
   raw('invalid JSON is tooling exit 2', '{', /cannot read .* as JSON/);
-  raw('a missing findings array is tooling exit 2', JSON.stringify({ scopes: [] }), /no findings array/);
-  raw('a non-object finding is tooling exit 2', JSON.stringify({ findings: [null] }), /findings\[0\] is not an object/);
+  record('a missing findings array is a bad record', { scopes: [] }, 1, /invalid findings record: \$\.findings is required/, null);
+  record('a non-object finding is a bad record', { scopes: [], findings: [null] }, 1, /invalid findings record: \$\.findings\[0\] must be object/, null);
   console.log(`hanten-findings-check fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
+}
 }

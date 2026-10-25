@@ -309,7 +309,7 @@
       "criteria": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The criteria lane (HR-11, HR-10; zheref/hatsu#413): acceptance-criterion coverage is `nen pr converge --requirements-from contracts/issue-sections.json`'s verdict, read by shibari § 4, en §§ 4-5 and rikugan § 3, and no Hatsu script computes it (the interim Hatsu guard retired at the 0.26 pin). scripts/pr_criteria_fixture.mts holds what Hatsu owns around the verb: every reader cites it with Hatsu's catalogue; no canon file restates its blocking rules or evidence rule and the catalogue declares no coverage block (nen's defaults); the catalogue read through `nen issue criteria --body-file` (list rows in the acceptance section, comments and fences ignored, a body with no AC row not verifiable, an Akatsuki AC-{epic}-{nnn} row unrecognised at this pin, zheref/hatsu#411); hostile text (plain output neutralises ESC and U+202E; --json carries U+202E raw at 0.26.0, a pinned miss owed to nen); en's ruled not-applicable reading (HR-357, record R-2026-10-24-01) of closingSource none-on-non-default-base against the Development guard's --body form; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants. The same serial run executes the HR-status checker and clause-parser fixtures in-process for built-in Node LCOV while retaining their CLI cases -- a deliberate tenant, kept here because scripts/unit_tests_ci.mts runs this lane unconditionally, so neither half can be dropped by deleting a fixture. Needs the pinned nen (NEN=<path> overrides). Run it only as `nen shu test --lane criteria --repo <hatsu>` when a declared fixture, either measured guard, a reader, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
+        "$comment": "The criteria lane (HR-11, HR-10; zheref/hatsu#413): acceptance-criterion coverage is `nen pr converge --requirements-from contracts/issue-sections.json`'s verdict, read by shibari § 4, en §§ 4-5 and rikugan § 3, and no Hatsu script computes it (the interim Hatsu guard retired at the 0.26 pin). scripts/pr_criteria_fixture.mts holds what Hatsu owns around the verb: every reader cites it with Hatsu's catalogue; no canon file restates its blocking rules or evidence rule and the catalogue declares no coverage block (nen's defaults); the catalogue read through `nen issue criteria --body-file` (list rows in the acceptance section, comments and fences ignored, a body with no AC row not verifiable, an Akatsuki AC-{epic}-{nnn} row unrecognised at this pin, zheref/hatsu#411); hostile text (plain output neutralises ESC and U+202E; --json carries U+202E raw at 0.26.0, a pinned miss owed to nen); en's ruled not-applicable reading (HR-357, record R-2026-10-24-01) of closingSource none-on-non-default-base against the Development guard's --body form; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants. The same serial run executes authoritative Vitest suites for the HR-status checker and clause parser, then replays those exported fixtures only for supplemental exact-source Node LCOV; scripts/unit_tests_ci.mts runs this lane unconditionally, so neither half can be dropped by deleting a fixture. Needs the pinned nen (NEN=<path> overrides). Run it only as `nen shu test --lane criteria --repo <hatsu>` when a declared fixture, either measured guard, a reader, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
       },
       "clause-guard": {
         "stack": "claude-code-plugin",
@@ -1403,6 +1403,27 @@
               ]
             },
             {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "scripts/pr_criteria_fixture.mts"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "scripts/hanten_findings_check_fixture.test.mts",
+                "scripts/clause_id_guard_fixture.test.mts"
+              ]
+            },
+            {
               "exe": "node",
               "argv": [
                 "--test",
@@ -1414,16 +1435,14 @@
                 "--test-reporter=lcov",
                 "--test-reporter-destination=stdout",
                 "--test-reporter-destination=coverage/criteria/lcov.info",
-                "scripts/pr_criteria_fixture.mts",
-                "scripts/hanten_findings_check_fixture.mts",
-                "scripts/clause_id_guard_fixture.mts"
+                "scripts/hanten_findings_coverage.test.mts"
               ]
             }
           ],
           "artifacts": [
             "coverage/criteria/lcov.info"
           ],
-          "$comment": "The complete criteria fixture plus the HR-status checker and reused roster-parser fixtures, as three explicit Node test files in serial order. The latter two call their exported entry points in-process so Node 24's built-in coverage can measure the production modules, and retain every CLI spawn case to pin argv, exit and stream behavior. The first step creates only the ignored artifact directory; the built-in spec reporter keeps failures visible while the paired lcov reporter writes coverage/criteria/lcov.info. Requires Node 24 and the pinned nen (offline: nen issue criteria --body-file); no package, gh or network."
+          "$comment": "The complete criteria fixture runs first, then the HR-status checker and reused roster-parser fixtures run authoritatively under pinned Vitest with one worker. A separate Node 24 test replays the same exported functions in-process solely for built-in exact-source LCOV; it does not inherit or claim coverage from Vitest children, while each fixture retains its CLI cases for argv, exit and stream behavior. The first step creates only the ignored artifact directory; the built-in spec reporter keeps capture failures visible while the paired lcov reporter writes coverage/criteria/lcov.info. Requires Node 24, installed pinned Vitest and pinned nen (offline: nen issue criteria --body-file); no gh or network."
         },
         "coverage": {
           "exe": "node",
@@ -1443,9 +1462,13 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
-            "scripts/clause_id_guard_fixture.mts"
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--maxWorkers=1",
+            "--no-file-parallelism",
+            "scripts/clause_id_guard_fixture.test.mts"
           ],
-          "$comment": "Hermetic HR id guard fixture (ids, status words, dangling citations, the Readings index) plus one read of the live docs/ROSTER.md (HR-2)."
+          "$comment": "Authoritative pinned-Vitest run of the hermetic HR id guard fixture (ids, status words, dangling citations, the Readings index) plus one read of the live docs/ROSTER.md (HR-2), with one worker."
         }
       },
       "ruling-record": {
