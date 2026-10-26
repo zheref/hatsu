@@ -15,8 +15,9 @@ disagree, **the file wins and this document is the bug** — the same rule
 entry. The order ranks canon texts only: a configuration file's value still beats any prose copy of it,
 the rule above. A text outside the list yields to every listed entry and the conflict is filed
 ([HR-339](ROSTER.md#hr-339)). This is the order's one restatement;
-[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. Nothing checks the
-key or this copy yet: that is owed to [zheref/nen#474](https://github.com/zheref/nen/issues/474).
+[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. From nen `0.28`
+([zheref/nen#474](https://github.com/zheref/nen/issues/474), the HA#449 repin) `nen schema check` holds this copy to
+the key through `precedenceRestatedIn` in `nen/contract.json` and fails a drifted run by file and line.
 
 ---
 
@@ -103,7 +104,7 @@ There are two execution/policy configuration files, and the split is not stylist
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
 > independently.** At the v0.24.0 repin `dependency.minimum` read `0.24` and `dependency.pinned_ref` read
-> `v0.24.0` (both `0.26` / `v0.26.0` since HA-PR-#422): the first is the capability minimum, the second is the build its
+> `v0.24.0` (`0.26` / `v0.26.0` since HA-PR-#422, `0.28` / `v0.28.0` since the HA#449 repin): the first is the capability minimum, the second is the build its
 > bootstrap installs. That repin adopted NN#437's
 > phase/usage dials, session ledger and report data `sessions[]`; older Nen cannot supply them. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
@@ -1610,8 +1611,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    `nen run park --id <run id> --issue <CODE>#<N> --row needs-clarification` (a dry run: `predict`, rule 7) —
    and the queue continues with the next issue. `needs-clarification` is a **named park class**, not a G5 and
    not a `nen/decisions.json` row (the park grammar of § *Recorded Futon delivery ownership*). An issue whose
-   questions could not be read (`nen issue questions` exit `1`) is skipped as `g5-shape-unread`, never addressed
-   unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
+   questions could not be read (`nen issue questions` exit `1` with **no document on stdout**; from nen `0.28` an
+   exit `1` whose document is still printed is an open `OQ-{n}` row, read, and parks `needs-clarification` as above)
+   is skipped as `g5-shape-unread`, never addressed unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
    named G5, never N skips; a body-shape miss is reported and never skips; nothing else in the shape check stops
    the queue. The **final briefing** (futon § 10's closing report) and the **Rikugan
    register** (backlog-board § 3) list every skipped issue with its open `OQ-{n}` rows (id, gate, question), and
@@ -2026,7 +2028,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.133.0` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs owed, zheref/nen#493).
+**`v0.133.0` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs, zheref/nen#493, need a nen past `0.26.0`).
 **`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic #354).
 **`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with

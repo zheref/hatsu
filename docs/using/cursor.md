@@ -235,6 +235,14 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    lands in **through a symlink** was not re-tested here. The rule that carries it is the one the warm-up
    states — **read the file in the repository the session is standing in**, and where it has none, say so
    and use the defaults rather than falling back to this plugin's copy.
+7. **A Cursor cloud agent cannot commit cleanly here.** Cursor's own docs say a cloud agent commits as
+   `Cursor Agent <cursoragent@cursor.com>` and adds the person who started it as `Co-authored-by` on each
+   commit, and document no switch for that trailer (the IDE/CLI *Attribution* toggle covers
+   `Made with Cursor`). `Co-Authored-By` is forbidden, so a cloud-agent effort reads the trailer back
+   after every commit and **stops at G5 before its first push** — it never publishes and discloses
+   ([`../AGENT-ATTRIBUTION.md`](../AGENT-ATTRIBUTION.md), zheref/hatsu#470). The IDE and `cursor-agent`
+   have a documented *Attribution* toggle, but it is documented for `Made with Cursor` only: turn it off,
+   and if a `Co-authored-by` still reads back, that path stops on the same read-back before any push.
 
 ---
 

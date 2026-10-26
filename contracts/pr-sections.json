@@ -1,6 +1,6 @@
 {
   "contract": "hatsu.pr-sections/v1",
-  "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect.",
+  "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect. The spec footer row is admitted by the run fact spec (a closing issue carrying a Spec: line) and carries nen's spec-rows requirement whole.",
   "max": 7,
   "proseBudget": 150,
   "aspects": [
@@ -126,6 +126,21 @@
     }
   ],
   "footer": [
+    {
+      "id": "spec",
+      "glyph": "📐",
+      "title": "Spec",
+      "level": 2,
+      "template": "templates/pr-body/spec.md",
+      "reserved": false,
+      "when": "spec",
+      "rows": {
+        "$frozenAt": "zheref/nen@b313c909 src/spec/coverage.ts (zheref/nen#517): nen exposes the spec-rows pattern through no verb or flag, so this is the one Hatsu copy, compared by hand at each repin",
+        "name": "spec-rows",
+        "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Spec[ \\t]*\\r?\\n(?:[ \\t]*\\r?\\n)*[ \\t]*(?:[-*+][ \\t]+)?F\\d{3}-SC-\\d{3}[ \\t]+[—–-]"
+      },
+      "$comment": "One row per F<nnn>-SC-### the closing spec-derived issue carries, satisfied with a test id or deferred with a reason and a follow-up (docs/config/spec-repo.md, The PR Spec section). Admitted by the run fact spec; rows is nen's spec-rows requirement quoted whole (zheref/nen#493, src/spec/coverage.ts), and nen spec coverage's delivery form proves every criterion is accounted for."
+    },
     {
       "id": "decisions",
       "glyph": "🗳️",
