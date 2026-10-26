@@ -7,3 +7,9 @@
 
 - WORKFLOW § *Idle batches* rule 8: the `decisions` footer row is resolved by the `decisions` run fact as that `contracts/pr-sections.json` footer row records it (#474).
 - Prose-diet trims to fit the new citations: kazaana § 3 drops "never raw `gh pr create`" (Authority's not-permitted list still carries it); futon § 6 drops the claimed-effort slot clause it restated from the line above and WORKFLOW § 2 `monitor`. After HA-PR-#490 grew `kazaana`, its § 3 link to `WORKFLOW.md` § *Where worktrees live* is written in the file's plain `WORKFLOW §` form (35 bytes, the same reference) to stay under its 12288-byte ceiling.
+
+### Fixed
+
+- `scripts/mechanical_conflicts_fixture.test.mts` hands nen the same git identity it hands its own `git` calls and writes it into each fixture repository's config, so the `mechanical-conflicts-guard` lane passes on a GitHub-hosted runner, which has none (the lane landed on `main` through HA-PR-#489 and first ran on this branch's catch-up: `git merge` refused with "empty ident name").
+- `vitest.config.mts` excludes `**/.trusted/**` from test discovery: CI checks the trusted base out at `.trusted/` beside the head, and vitest's positional filters are substrings, so every `vitest run scripts/<fixture>.test.mts` lane also ran the base's copy of the fixture and judged this tree by it (the `mechanical-conflicts-guard` failures on this PR's unit-tests runs were the base's copy, which lacks the identity fix above).
+- `scripts/pr_sections_fixture_check.ts` invokes `scripts/pr_sections_resolve.sh` through `bash`, the wrapper's own shebang: the one call that used `sh` ran under dash on the GitHub-hosted runner and refused the wrapper's `set -o pipefail` (unit-tests run 40379417349, the first run of the `pr-sections-guard` lane on this stack once the mechanical lane passed).

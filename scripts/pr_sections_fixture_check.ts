@@ -386,7 +386,7 @@ test("HA#405: the spec run fact admits the Spec footer first, carrying nen's spe
   delete raw.footer[0]?.when;
   writeFileSync(file, `${JSON.stringify(raw)}\n`);
   assert.throws((): Catalogue => catalogue(copy), /a rows requirement belongs to a conditional section/);
-  assert.equal(successful("sh", [RESOLVER, "--repo", repo, "--kind", "product", "--jobs", "parity", "--spec", "--out", join(repo, "req.json")]).trim(), "changes · why · how · improves · verify");
+  assert.equal(successful("bash", [RESOLVER, "--repo", repo, "--kind", "product", "--jobs", "parity", "--spec", "--out", join(repo, "req.json")]).trim(), "changes · why · how · improves · verify");
   assert.ok((JSON.parse(readFileSync(join(repo, "req.json"), "utf8")) as Array<{ name: string }>).some((row): boolean => row.name === "spec-rows"));
 });
 
