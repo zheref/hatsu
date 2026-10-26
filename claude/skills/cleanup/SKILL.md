@@ -14,7 +14,7 @@ description: As Shizuku, clean up what a finished effort and prior sessions left
 
 Typed into a checkout ([STANDALONE-ENTRY](../../../docs/STANDALONE-ENTRY.md)): **P1**
 `hatsu:ten cleanup`; **P1b declined**; **P2** orient line; **P3** § 4 read; **P4** scope (§ 1);
-**P5**: no build, PR, filing. **Skipped under composite wrap-up** (§ 2).
+**P5**: no build, PR, filing. Skipped under composite wrap-up (§ 2).
 
 ## 1. Invocation
 
@@ -29,15 +29,15 @@ asked inline (`missing-argument`).
 
 ## 2. When it runs — wrap-up, both prerequisites
 
-**Only when (1) every PR in the sitting's scope reads `MERGED` live** (closed-unmerged or unread: not)
-**and (2) the maintainer explicitly declared the sitting satisfied**, in their own words this sitting, quoted in
-question and report (HR-366, zheref/hatsu#480): never solicited, nothing else supplies it, so `--idle`
-never offers or runs it. Else no picker, no run, the missing one named; a later declaration in the maintainer's
+**Only when (1) every PR in the sitting's scope reads `MERGED` live** (unread: not; one the maintainer closed
+unmerged leaves the scope, HR-367) **and (2) the maintainer explicitly declared the sitting satisfied**, in their
+own words this sitting, quoted in question and report (HR-366, zheref/hatsu#480): never solicited, nothing else
+supplies it, so `--idle` never offers or runs it. Else no picker, no run, the missing one named; a later declaration in the maintainer's
 own words has the main session re-read every scoped PR live and ask once (WORKFLOW § *Two offers*). A typed
 `hatsu:cleanup` is § 1's. Required after a completed session (HR-209).
 **Who asks**: a composite's terminus (row `wrap-up` names each) or **the main session** after `en` § 8; **a delegate never**.
 Asked via surface picker: ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
-in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns at the maintainer's next declaration, every scoped PR `MERGED`.
+in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns at the next declaration, every scoped PR `MERGED`.
 **Once per sitting**: § 7's marker `cleaned`, `none-proposed` or `already-clean` is **completed**:
 cleanup not re-asked, **B offered as third-hand alone**; `partial`, `none-picked` and `pending` offered again.
 A leftover found later is new scope.
@@ -120,8 +120,7 @@ holds; then reviewer ledger rule; then table.
 
 Each row: `id` · class · object · exact command (none on named row) · what it frees (bytes or
 `billed: <what>`) · evidence (PR state, SHA, host, dirt, age, ledger) · owner (this sitting, or `prior: <branch>`).
-**Ids are plan-unique**: class letter (`D`/`P`/`N`) plus one plan-wide count, never restarted per class or
-owner group (`D1`, `P2`).
+**Ids are plan-unique**: class letter (`D`/`P`/`N`) plus one plan-wide count (`D1`, `P2`).
 
 ## 6. The picker — only the pick runs
 

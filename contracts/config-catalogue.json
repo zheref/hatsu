@@ -386,8 +386,8 @@
         "port-drift": "hold",
         "intake-challenger": "hold",
         "port-siblings": "hold",
-        "wrap-up": "default",
-        "cleanup-plan": "default",
+        "wrap-up": "refuse",
+        "cleanup-plan": "refuse",
         "publish-offer": "refuse",
         "spec-capture-scope": "default",
         "spec-slice": "hold",
@@ -395,12 +395,12 @@
         "spec-dispatch": "hold",
         "spec-converge-filing": "default"
       },
-      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. Under the maintainer's ruling of 2026-10-23 (unattended except an act that may not be reversed) a row resolves default where it stars an option and hold where it stars none; publish-offer is refuse. A row the map does not name takes the same resolution. A floor fails start at exit 1: publish-offer is always refuse; missing-maintainer-choice is at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
+      "describe": "One batch resolution per ask-once-per-run row of nen/decisions.json, applied only under a typed --idle go: default takes the row's starred option, hold parks the effort as parked:<row>, refuse ends that row's step unrun. Under the maintainer's ruling of 2026-10-23 (unattended except an act that may not be reversed) a row resolves default where it stars an option and hold where it stars none; publish-offer, wrap-up and cleanup-plan are refuse (HR-366, ruled 2026-10-26: the maintainer's declared satisfaction is never met unattended). A row the map does not name takes the same resolution. A floor fails start at exit 1: publish-offer, wrap-up and cleanup-plan are always refuse; missing-maintainer-choice is at most hold; default is refused on a row that stars no option. Read from the committed nen/workflow.json of the remote default branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD's commit names, never the working tree; a default branch with no nen/workflow.json refuses start.",
       "readers": [
         "futon",
         "kazaana"
       ],
-      "source": "docs/ROSTER.md HR-5; the maintainer's ruling of 2026-10-23 (HR-334, record R-2026-10-23-01); nen/decisions.json ask-once-per-run rows (starred default, else hold); cleanup-plan default is its deterministic rows for this session only"
+      "source": "docs/ROSTER.md HR-5; the maintainer's ruling of 2026-10-23 (HR-334, record R-2026-10-23-01); nen/decisions.json ask-once-per-run rows (starred default, else hold); HR-366 (ruled 2026-10-26, answer record R-2026-10-26-09): wrap-up and cleanup-plan refuse"
     },
     {
       "id": "workflow.idle.terminal",
