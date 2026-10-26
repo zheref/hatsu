@@ -31,19 +31,22 @@ asked inline (`missing-argument`).
 ## 2. When it runs — wrap-up, both prerequisites
 
 **Only when (1) every PR in the sitting's scope reads `MERGED` live** (closed-unmerged or unread: not)
-**and (2) the maintainer explicitly declared the sitting satisfied** (HR-366, zheref/hatsu#480): nothing
-else supplies (2), so `--idle` never offers or runs it. Else no picker, no run, the gap named.
-**Who asks**: a composite's terminus (row `wrap-up` names each) or **Kurapika as main session** after `en` § 8 returns; **a delegate never asks**.
+**and (2) the maintainer explicitly declared the sitting satisfied**, in their own words this sitting, quoted in
+question and report (HR-366, zheref/hatsu#480): never solicited, nothing else supplies it, so `--idle`
+never offers or runs it. Else no picker, no run, the missing one named; a later declaration in the maintainer's
+own words has the main session re-read every scoped PR live and ask once (WORKFLOW § *Two offers*). A typed
+`/cleanup` is § 1's. Required after a completed session (HR-209).
+**Who asks**: a composite's terminus (row `wrap-up` names each) or **the main session** after `en` § 8; **a delegate never**.
 Asked via surface picker: ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
-in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns once both hold again.
-**Once per sitting**: § 7's marker with `result` `cleaned`, `none-proposed` or `already-clean` is **completed** —
+in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns at the maintainer's next declaration, every scoped PR `MERGED`.
+**Once per sitting**: § 7's marker `cleaned`, `none-proposed` or `already-clean` is **completed**:
 cleanup not re-asked, **B offered as third-hand alone**; `partial`, `none-picked` and `pending` offered again.
-Prior leftover found later is new scope.
+A leftover found later is new scope.
 
 ## 3. Raise Shizuku — two passes and consent channel
 
 One delegate, **`cleanup · shizuku · <model alias>`**, on own pin (**no `model`**, `hanten` § 4), raised as
-third-hand § 3 raises Netero — **isolation omitted / `inherit`** (core's `.nen/` and worktree list); the
+third-hand § 3 raises Netero — **isolation omitted / `inherit`**; the
 prompt carries the absolute Hatsu root. No delegation: both passes in-session (PROCESS § *Surfaces and pickers*).
 
 **Consent channel (candidate b)**, every surface: Shizuku asks nothing, a relayed prompt is no consent:
@@ -56,9 +59,7 @@ prompt carries the absolute Hatsu root. No delegation: both passes in-session (P
 
 **First read is `git fetch origin`**: merged is judged against the fetched base. Core is
 `nen wc worktrees --repo <path> --json`'s `core`. **Every repo name is validated before it enters a
-command**, always after `--`, single-quoted: branch or remote head passes `git check-ref-format --branch <name>`
-and `^[A-Za-z0-9._/-]+$`; a worktree path is a path, never a ref: only one the worktrees row selects is
-admitted (`.ts` header is the rule; `<branch.base>` from
+command**, always after `--`, single-quoted; the admission script's header is the rule (`<branch.base>` from
 `nen/workflow.json`; the Hatsu root pasted absolute, § 3):
 `'<Hatsu root>/scripts/cleanup_path_admit.sh' --core '<core>' --base '<branch.base>' --path '<abs path>'`.
 Failing names become **named** rows.
@@ -74,8 +75,7 @@ Failing names become **named** rows.
 | **run records** | spec-repo.md § *The run record* (`hatsu/specs/`, `hatsu/ports/`) | `done`/`declined`, `at` over 30 days |
 | **the surface's own** | surface worktree tool (`docs/surfaces/<surface>.md`) | its stale worktrees, named |
 
-Sizes are `du -sk <path>`, read before plan. **Core's `.nen/` ledgers — `phase`, `usage`, `direct`,
-`hanten`, `third-hand`, `cleanup`, `loop`, `last-stop.json` — and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
+Sizes are `du -sk <path>`, read before plan. **Core's `.nen/` ledgers (WORKFLOW § *The effort's ledgers*) and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
 `.nen/` goes with it (ROSTER § *Rulings of 2026-10-20*). Prior leftovers
 grouped under *prior sessions*, **ownership never assumed** — dirt, detached checkouts and caches
 proposed, never deterministic. Sanitize: no credentials, no paths outside checkout and caches.
@@ -152,7 +152,7 @@ Each `<CODE>-<N>` is checked (`PR` where `gh pr view` finds `<N>`; output cut to
 `nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
 — an exit but `0` (no registry, code unregistered) keeps it, said.
 
-Gitignored with `.nen/`; `ten` never deletes it. Say result, total freed, kept rows and why; sitting closed.
+Gitignored with `.nen/`; `ten` never deletes it. Report result, freed total, kept rows and why.
 
 ## Residue
 

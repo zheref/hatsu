@@ -137,7 +137,7 @@ never rendered a second time by build; read-only, it advances nothing.
 ### Phase 6: the wrap-up — `cleanup`, with `third-hand` optional
 
 After En completes and rikugan has rendered, ask once, only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites
-hold (every scoped PR `MERGED`, the sitting declared satisfied), never at a merge prompt (row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
+hold, never at a merge prompt (row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
 continue, recorded (`nen stop answer`, WORKFLOW § 4); each runs only the pick.
 
 ## 5. Authority — what this run may and may not do

@@ -555,8 +555,7 @@ pushes and never opens a PR.**
 **Five things are the maintainer's to call, and you never prompt for them** (`en` § 5's merge prompt
 presents a PR's link and merge line; its picker (jutaisho § 4's shape) never carries the merge act, and the maintainer merges
 outside the session — ROSTER § *Rulings of 2026-09-30 — En never merges*; the two offers of the ruling of
-2026-10-13 are not prompts for them: the **wrap-up picker**, once every PR in the sitting's scope is merged and the maintainer has explicitly
-declared the sitting satisfied ([`cleanup`](../skills/cleanup/SKILL.md) § 2, HR-366) — ⭐ `cleanup`,
+2026-10-13 are not prompts for them: the **wrap-up picker**, under [`cleanup`](../skills/cleanup/SKILL.md) § 2's two prerequisites (HR-366) — ⭐ `cleanup`,
 `cleanup` and `third-hand`, or continue, `cleanup` required after a completed session — and `kazaana` § 6's one
 question whether `mugetsu` should publish the tag it cut, whose affirmative answer is the maintainer's own go):
 [`aka`](../skills/aka/SKILL.md) ([`gyo`](../skills/gyo/SKILL.md) lint → squash → [`ao`](../skills/ao/SKILL.md) → push),
@@ -621,8 +620,7 @@ is behind → `sharingan`⁴ → observe⁵ while required CI or the owed curren
 reacting to every inline and summary finding and every conflict → [`jutaisho`](../skills/jutaisho/SKILL.md)⁶
 at Ready → the dated `final` report (`backlog-board` § 3), the only one written to `Reports/`, and **stops at the human gate**.
 When En has completed, **ask the wrap-up through the picker** (jutaisho § 4's shape; [`cleanup`](../skills/cleanup/SKILL.md) § 2,
-row `wrap-up`; the ruling of 2026-10-13), **only once every PR in the sitting's scope reads `MERGED` and the maintainer
-has explicitly declared the sitting satisfied** (HR-366) — never at a Ready PR's merge prompt, never on silence or a default: ⭐ `cleanup` · `cleanup` and [`third-hand`](../skills/third-hand/SKILL.md)
+row `wrap-up`; the ruling of 2026-10-13), **only under cleanup § 2's two prerequisites** (HR-366) — never at a Ready PR's merge prompt, never on silence or a default: ⭐ `cleanup` · `cleanup` and [`third-hand`](../skills/third-hand/SKILL.md)
 in parallel · continue — **you ask it as the main session when no composite holds the run**; a composite asks at
 its own terminus, and a delegate never does. `cleanup` is required after a completed session; third-hand is
 optional, and on **B** Netero harvests the sitting beside Shizuku's sweep. En does not own the wrap-up. En is

@@ -798,7 +798,8 @@ published release cannot be taken back); a row that stars no option has no deriv
 named things); `cleanup-plan` `default` is its starred *apply the deterministic rows*, read as this
 session's deterministic rows only — and neither it nor `wrap-up`'s `default` is ever taken, since an unattended run
 never meets `wrap-up`'s second prerequisite, the maintainer's declared satisfaction ([HR-366](ROSTER.md#hr-366)): an
-idle run neither offers nor runs cleanup; a merge into `main` is never a row — it is a hard limit — and an idle
+idle run neither offers nor runs cleanup (the declared `default` stays as [HR-334](ROSTER.md#hr-334), ruled, derives it
+for a starred row; reading it as `refuse`, `publish-offer`'s shape, is a ruling owed, asked on the run's register); a merge into `main` is never a row — it is a hard limit — and an idle
 run always takes futon § 5's integration-branch shape; every decision taken on the maintainer's behalf is
 listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age and tokens are advisory
 (confirmed the same day).
@@ -1308,7 +1309,10 @@ prerequisites hold ([HR-366](ROSTER.md#hr-366), zheref/hatsu#480): every PR in t
 (closed-unmerged or unread never counts) **and** the maintainer has explicitly declared the sitting satisfied —
 readiness, a merge prompt, a composite's run ending, a merge alone, silence or a default never supply that: ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
 [`third-hand`](../claude/skills/third-hand/) in parallel · continue iterating; `cleanup` is **required after a
-completed session**, `third-hand` optional, and neither is a phase of the five. And [`kazaana`](../claude/skills/kazaana/)
+completed session**, `third-hand` optional, and neither is a phase of the five. When a terminus finds a prerequisite
+missing it names it with the resume words; a later declaration of satisfaction in the maintainer's own message has
+Kurapika as main session re-read every scoped PR live and ask once when all read `MERGED`; no agent solicits that
+declaration; a maintainer-typed `hatsu:cleanup` is their own word and runs under cleanup § 1, not this offer. And [`kazaana`](../claude/skills/kazaana/)
 § 6 asks once, after the tag it cut resolves on origin, whether `mugetsu` should publish it (row `publish-offer`,
 no option starred): the affirmative answer is the maintainer's own go, form (4) of `mugetsu` § 0, quoted verbatim;
 neither offer ever names `aka`, `mukai`, the merge or `kagutsuchi`.
@@ -1661,9 +1665,9 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    `closed` — under `--idle` an included issue's delivery is the integration PR (rule 6); with any `held-*`, it is **incomplete**: the closing report and the Rikugan `register` list each
    held delivery with its three facts, and `final` is never rendered over it. **When the run ends is futon
    § 10's**: an attended run stays open while a delivery stands `ready` at its prompt and ends once none is
-   `driving` and every delivery is `merged`, `closed` or held; an idle run ends at `idle.terminal`. The wrap-up
-   picker is asked only after the run ends, never while a delivery is `driving`, and an incomplete end says so
-   in the question.
+   `driving` and every delivery is `merged`, `closed` or held; an idle run ends at `idle.terminal`. The wrap-up is
+   offered only once cleanup § 2's prerequisites hold (row `wrap-up`): an incomplete end offers none, and its
+   report names the held deliveries as the unmet prerequisite.
 4. **Unattended means integration.** One Futon run reads one repository and one base, so it has exactly **one
    integration branch** — recorded at its cut by `futon_effort_record.mts integrate --run <id> --branch
    <branch>`, which refuses a second branch and the default branch — and **one integration-to-main PR**
