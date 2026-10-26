@@ -183,10 +183,18 @@ first three.
 - a pure formatting or whitespace divergence with no behavioural difference;
 - an identical change made on both sides.
 
-For a Hatsu version collision, after the next version has been decided, run
+**A Hatsu version collision can survive a clean catch-up:** parallel branches may have chosen the
+same number. After every catch-up, compare both actual manifests (`.claude-plugin/plugin.json` and
+`.codex-plugin/plugin.json`) with the fresh base. If the branch's version is equal to or lower than
+the base's, re-bump both to the same version **strictly above that base** before readiness; update
+the version line in this effort's existing `changelog.d/` fragment too. This is Hatsu authoring,
+not an automatic `nen wc catch-up` re-bump. After the next version has been decided, run
 `bash scripts/plugin_version_refs.sh --from <old> --to <new>` to list every tracked reference.
-Its `--write` rewrites only the declared unambiguous lines; read the others, update the PR body by
-hand, then regenerate the mirrors with the command above. The helper never chooses the version.
+Its `--write` invokes the existing `scripts/plugin_version_refs.ts` helper for only the declared
+unambiguous lines; read the others, update the PR body by
+hand, then regenerate the mirrors with the command above. The helper never chooses the version or
+rewrites generated mirrors.
+Re-run the bump check against the fresh base; the original branch point cannot prove this comparison.
 
 **Semantic** — anything where a *person* has to prefer one intent to another. **`UD`/`DU` is always
 semantic**: "deleted" and "still being edited" are two beliefs about whether a thing exists, and no
