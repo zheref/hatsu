@@ -35,6 +35,8 @@
       "vendored": false,
       "vendoring_forbidden": "Hatsu never carries a copy of this script. A vendored copy is a second, unreviewed supply chain that drifts from the manifest it verifies against. Hatsu fetches nen's own published script at the pinned ref, every time.",
       "script_path_in_source": "bootstrap/nen.sh",
+      "scriptSha256": "abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70",
+      "scriptSha256Provenance": {"ref": "v0.28.0", "commit": "21b133a21498ac5bea88dd9c8634cc217549e1fc", "path": "bootstrap/nen.sh", "sha256": "abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70"},
       "sha256": {
         "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified. CI reads linux-x64: the three workflows that bootstrap nen refuse a binary whose sha256 differs from main's copy of this key (zheref/hatsu#230), so a repin that leaves it behind fails every pull request after it closed.",
         "darwin-arm64": "af6f6a9ab8bbc4aa5e61b20dcfaae5ddc4a81b1a1721b367a02b9ebbeec22b7e",
@@ -470,7 +472,7 @@
             "bash",
             "scripts/nen_global_fixture_check.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the host nen linker AND for step 0 of hooks/session-start.sh: digest-before-link, never-downgrade, the cleaned bootstrap environment, the url pin, the atomic link, rc paths with spaces and hostile bin dirs, the opt-outs, the lock, the TERM and time-bound behaviour, and the hook's JSON, stderr and .nen/session-start.log paths on a source and a mirrored copy. Run it as `nen shu test --lane nen-global-guard --repo <hatsu>` when scripts/nen_global.sh, hooks/session-start.sh's step 0, dependency.bootstrap.sha256 or the fixture changes; it reads the real nen/contract.json pin (or a sed-edited copy of it) and runs every case under a throwaway HOME, XDG_CACHE_HOME and XDG_CONFIG_HOME, so it never touches the network or the real HOME."
+          "$comment": "A permanent, deterministic fixture for the host nen linker AND for step 0 of hooks/session-start.sh: digest-before-link, never-downgrade, the cleaned bootstrap environment, the url pin, the atomic link, rc paths with spaces and hostile bin dirs, the opt-outs, the lock, the TERM and time-bound behaviour, and the hook's JSON, stderr and .nen/session-start.log paths on a source and a mirrored copy. Run it as `nen shu test --lane nen-global-guard --repo <hatsu>` when scripts/nen_global.sh, scripts/bootstrap_integrity_fixture.test.mts, templates/pr-readiness.yml, docs/using/cursor.md, hooks/session-start.sh's step 0, dependency.bootstrap.scriptSha256, dependency.bootstrap.sha256 or the fixtures change; the new TypeScript snippet cases run through the existing locked Vitest harness (npm ci --ignore-scripts first), while the host pin negatives remain shell cases. It reads the real nen/contract.json pin (or a sed-edited copy of it) and runs every case under a throwaway HOME, XDG_CACHE_HOME and XDG_CONFIG_HOME, so it never touches the network or the real HOME."
         },
         "coverage": {
           "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
@@ -1561,6 +1563,13 @@
           "kind": "path",
           "value": ".claude-plugin/marketplace.json",
           "why": "The marketplace manifest is the second half of the shipped surface and carries its own description; --strict reads both, and a check that silently skipped one would be an unperformed check reported as a clean one."
+        }
+      ],
+      "nen-global-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. The new TypeScript bootstrap snippet suite runs under the existing pinned Vitest harness; no direct-node fallback is admitted."
         }
       ],
       "unit-tests-ci-guard": [

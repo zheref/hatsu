@@ -836,6 +836,90 @@ READINESS_RENDERED_STEPS = READINESS_FROZEN_STEPS.reject { |name, _| name == NEN
 ).freeze
 READINESS_RENDERED_USES = [READINESS_RENDERED_CHECKOUT].freeze
 READINESS_RENDERED_ENV = %w[TENKAI_GUARD_REQUIRED TENKAI_PIN_FALLBACK_ALLOWED TENKAI_FALLBACK_REF].freeze
+TENKAI_SHA256 = /\A[0-9a-f]{64}\z/.freeze
+READINESS_INTEGRITY_PIN = {
+  "id" => "pin",
+  "env" => {
+    "TENKAI_PIN_FALLBACK_ALLOWED" => TENKAI_BOOLEAN,
+    "TENKAI_FALLBACK_REF" => TENKAI_PLAIN_REF,
+    "TENKAI_FALLBACK_SCRIPT_SHA256" => TENKAI_SHA256,
+    "TENKAI_FALLBACK_BINARY_SHA256" => TENKAI_SHA256
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    ref=""
+    script_sha=""
+    binary_sha=""
+    if [ -f .trusted/nen/contract.json ]; then
+      if ! ref="$(jq -r '
+        if type != "object" then error("root must be an object")
+        elif has("dependency") and (.dependency | type) != "object" then error("dependency must be an object")
+        elif (.dependency.pinned_ref | type) != "string" and (.dependency.pinned_ref | type) != "null" then error("dependency.pinned_ref must be a string")
+        elif .dependency.pinned_ref == "" then error("dependency.pinned_ref must not be empty")
+        else .dependency.pinned_ref // empty end
+      ' .trusted/nen/contract.json)"; then
+        echo "::error::Trusted nen/contract.json is malformed or unreadable."
+        exit 1
+      fi
+    fi
+    if [ -n "$ref" ]; then
+      script_sha="$(jq -er '.dependency.bootstrap.scriptSha256 | strings' .trusted/nen/contract.json)"
+      binary_sha="$(jq -er '.dependency.bootstrap.sha256["linux-x64"] | strings' .trusted/nen/contract.json)"
+    fi
+    if [ -z "$ref" ] && [ "$TENKAI_PIN_FALLBACK_ALLOWED" = true ]; then
+      ref="$TENKAI_FALLBACK_REF"
+      script_sha="$TENKAI_FALLBACK_SCRIPT_SHA256"
+      binary_sha="$TENKAI_FALLBACK_BINARY_SHA256"
+      echo "Using the Nen ref rendered from Hatsu's dependency contract: $ref"
+    fi
+    [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+    case "$ref" in
+      *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+    esac
+    if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+      echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+      exit 1
+    fi
+    [[ "$script_sha" =~ ^[0-9a-f]{64}$ && "$binary_sha" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::Trusted bootstrap script/binary digests must be 64 lowercase hex digits."; exit 1; }
+    echo "ref=$ref" >> "$GITHUB_OUTPUT"
+    echo "script_sha=$script_sha" >> "$GITHUB_OUTPUT"
+    echo "binary_sha=$binary_sha" >> "$GITHUB_OUTPUT"
+    echo "pinned nen ref: $ref"
+  RUN
+}.freeze
+READINESS_INTEGRITY_BOOTSTRAP = {
+  "id" => "nen",
+  "env" => {
+    "PINNED_REF" => "${{ steps.pin.outputs.ref }}",
+    "SCRIPT_SHA256" => "${{ steps.pin.outputs.script_sha }}",
+    "BINARY_SHA256" => "${{ steps.pin.outputs.binary_sha }}"
+  },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -euo pipefail
+    ref="$PINNED_REF"
+    url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
+    curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+    [[ "$SCRIPT_SHA256" =~ ^[0-9a-f]{64}$ && "$BINARY_SHA256" =~ ^[0-9a-f]{64}$ ]] || exit 1
+    printf '%s  %s\n' "$SCRIPT_SHA256" "${RUNNER_TEMP}/nen-bootstrap.sh" | sha256sum -c -
+    bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+    [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+    printf '%s  %s\n' "$BINARY_SHA256" "$bin" | sha256sum -c -
+    echo "bin=$bin" >> "$GITHUB_OUTPUT"
+    echo "nen: $("$bin" --version) at $bin"
+  RUN
+}.freeze
+READINESS_INTEGRITY_STEPS = READINESS_FROZEN_STEPS.reject { |name, _| name == NEN_DIGEST_STEP }.merge(
+  "Checkout PR head (data only — nothing from here is executed)" => READINESS_RENDERED_HEAD_CHECKOUT,
+  "Checkout guard code from the trusted workflow revision" => READINESS_RENDERED_TRUSTED_CHECKOUT,
+  "Enforce workflow runner policy from trusted workflow revision" => READINESS_RENDERED_POLICY,
+  "Read the pinned nen ref from trusted nen/contract.json" => READINESS_INTEGRITY_PIN,
+  # Tenkai checks both script and binary against trusted independent digests
+  # inside its bootstrap step, before executing either artifact.
+  "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => READINESS_INTEGRITY_BOOTSTRAP
+).freeze
+READINESS_INTEGRITY_ENV = %w[TENKAI_GUARD_REQUIRED TENKAI_PIN_FALLBACK_ALLOWED TENKAI_FALLBACK_REF TENKAI_FALLBACK_SCRIPT_SHA256 TENKAI_FALLBACK_BINARY_SHA256 SCRIPT_SHA256 BINARY_SHA256].freeze
 #
 # surface-mirror-regenerate.yml (zheref/hatsu#165): create-pull-request pushes
 # its branch BEFORE asking GitHub for the PR, so a repository whose "Allow
@@ -1934,6 +2018,7 @@ def validate_workflow(path, hatsu: false)
     extra_uses = []
     extra_env = []
     rendered = false
+    integrity_rendered = false
     # The nen digest step (zheref/hatsu#230) and the bootstrap beside it.
     digest_name, digest_frozen = NEN_DIGEST_STEPS[File.basename(path)]
     carries_digest = digest_name && step_names.include?(digest_name)
@@ -1960,7 +2045,12 @@ def validate_workflow(path, hatsu: false)
       fail_policy("#{path} step #{scalar(bootstrap_step["name"]).inspect} runs the bootstrapped nen (--version) before #{digest_name.inspect} has checked it")
     end
     if File.basename(path) == "pr-readiness.yml"
-      form = rendered ? READINESS_RENDERED_STEPS : READINESS_FROZEN_STEPS
+      if rendered
+        pin_step = step_maps.find { |step| scalar(step["name"]) == "Read the pinned nen ref from trusted nen/contract.json" }
+        pin_env = pin_step && pin_step["env"] ? mapping(pin_step["env"], "#{path} rendered pin env") : {}
+        integrity_rendered = pin_env.key?("TENKAI_FALLBACK_SCRIPT_SHA256")
+      end
+      form = rendered ? (integrity_rendered ? READINESS_INTEGRITY_STEPS : READINESS_RENDERED_STEPS) : READINESS_FROZEN_STEPS
       form = form.merge(scalar(bootstrap_step["name"]) => NEN_BOOTSTRAP_NEXT) if carries_digest && bootstrap_step
       kind = rendered ? "rendered" : "frozen"
       form.each do |name, frozen|
@@ -1974,7 +2064,7 @@ def validate_workflow(path, hatsu: false)
           fail_policy("#{path} rendered readiness pairs TENKAI_GUARD_REQUIRED=#{guard} with TENKAI_PIN_FALLBACK_ALLOWED=#{fallback}, which tenkai never renders")
         end
         extra_uses = READINESS_RENDERED_USES
-        extra_env = READINESS_RENDERED_ENV
+        extra_env = integrity_rendered ? READINESS_INTEGRITY_ENV : READINESS_RENDERED_ENV
       end
     end
     if File.basename(path) == "surface-mirror-check.yml"
@@ -2018,7 +2108,7 @@ def validate_workflow(path, hatsu: false)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == digest_name }, digest_frozen, "#{path} #{digest_name.inspect}")
     end
     if digest_name && bootstrap_step
-      require_frozen_step(bootstrap_step, carries_digest ? NEN_BOOTSTRAP_NEXT : READINESS_FROZEN_BOOTSTRAP,
+      require_frozen_step(bootstrap_step, carries_digest ? NEN_BOOTSTRAP_NEXT : (integrity_rendered ? READINESS_INTEGRITY_BOOTSTRAP : READINESS_FROZEN_BOOTSTRAP),
                           "#{path} #{scalar(bootstrap_step["name"]).inspect}")
     end
     refuse_unadmitted_step_shapes(path, job_name, job, step_maps, PR_JOB_KEYS, extra_uses: extra_uses, extra_env: extra_env)
@@ -3051,13 +3141,26 @@ def self_test(root)
     # each fixture breaks one arm of the second admitted form.
     rendered_old = READINESS_RENDERED_STEPS.merge(READINESS_VERDICT_STEP => READINESS_FROZEN_VERDICT)
     rendered_with = lambda do |guard: "true", fallback: "false", ref: "v0.18.2", steps: rendered_old|
-      fill = { "TENKAI_GUARD_REQUIRED" => guard, "TENKAI_PIN_FALLBACK_ALLOWED" => fallback, "TENKAI_FALLBACK_REF" => ref }
+      fill = { "TENKAI_GUARD_REQUIRED" => guard, "TENKAI_PIN_FALLBACK_ALLOWED" => fallback, "TENKAI_FALLBACK_REF" => ref, "TENKAI_FALLBACK_SCRIPT_SHA256" => "a" * 64, "TENKAI_FALLBACK_BINARY_SHA256" => "b" * 64 }
       readiness_prefix + steps.map do |name, frozen|
         concrete = (frozen.is_a?(Array) ? frozen.first : frozen).transform_values do |value|
           value.is_a?(Hash) ? value.to_h { |key, val| [key, val.is_a?(Regexp) ? fill.fetch(key) : val] } : value
         end
         render_step(name, concrete)
       end.join("\n")
+    end
+    TENKAI_RENDERED_PAIRS.each do |guard, fallback|
+      prepared = rendered_with.call(guard: guard, fallback: fallback, steps: READINESS_INTEGRITY_STEPS)
+      File.write(readiness, prepared)
+      validate_repo(tmp, announce: false)
+      mixed = READINESS_RENDERED_STEPS.merge(
+        "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => READINESS_INTEGRITY_BOOTSTRAP)
+      File.write(readiness, rendered_with.call(guard: guard, fallback: fallback, steps: mixed))
+      expect_rejected("old rendered pin cannot select the prepared bootstrap") { validate_repo(tmp) }
+      mixed = READINESS_INTEGRITY_STEPS.merge(
+        "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => READINESS_FROZEN_BOOTSTRAP)
+      File.write(readiness, rendered_with.call(guard: guard, fallback: fallback, steps: mixed))
+      expect_rejected("prepared pin cannot select the old unverified bootstrap") { validate_repo(tmp) }
     end
     rendered_process = rendered_with.call
     File.write(readiness, rendered_process)
@@ -3124,6 +3227,7 @@ def self_test(root)
                    .gsub("@@REPO_SLUG@@", "zheref/hatsu").gsub("@@RUNS_ON@@", HOSTED_RUNNER)
                    .gsub("@@RUNNER_REASON@@", "self-test").gsub("@@GUARD_REQUIRED@@", guard)
                    .gsub("@@PIN_FALLBACK_ALLOWED@@", fallback).gsub("@@NEN_REF@@", "v0.18.2")
+                   .gsub("@@NEN_SCRIPT_SHA256@@", "a" * 64).gsub("@@NEN_BINARY_SHA256@@", "b" * 64)
         fail_policy("self-test: templates/pr-readiness.yml carries a placeholder this self-test does not fill") if text.include?("@@")
         File.write(readiness, text)
         validate_repo(tmp, announce: false)

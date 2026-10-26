@@ -125,6 +125,23 @@ try {
   calls = readFileSync(log, 'utf8').trim().split('\n');
   assert(calls.join(',') === expected, 'issue-shape lane not selected (BC-9)');
 
+  // Both fixtures are required: the shell lane invokes the typed bootstrap snippet proof.
+  writeFileSync(join(repo, 'scripts', 'nen_global.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('nen_global_fixture_check.sh'), 'missing host bootstrap fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'nen_global_fixture_check.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('bootstrap_integrity_fixture.test.mts'), 'missing typed bootstrap fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'bootstrap_integrity_fixture.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `nen-global-guard path refused: ${result.stderr}`);
+  expected += ',nen-global-guard||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'nen-global-guard lane not selected (BC-9, #247)');
+  result = run({ HATSU_FAIL_LANE: 'nen-global-guard' });
+  assert(result.status === 1 && result.stderr.includes('nen-global-guard failed'), 'failing bootstrap integrity lane was not red');
+
   result = run({}, join(dir, 'nen bin:x', 'nen'));
   assert(result.status === 2 && result.stderr.includes('may not contain'), 'a delimiter in the nen directory was not refused');
 
