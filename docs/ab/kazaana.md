@@ -13,3 +13,17 @@ Its later steps (`getsuga`, `mugetsu`) are each their own composite; see their f
 records no phase of its own, so a crash between its futon run and its release step leaves only GitHub state and
 the manifest to resume from; whether that is enough is unproved. **Not proved here:** a live kazaana killed and
 re-invoked.
+
+## Dated verification, 2026-10-26 — the kazaana parse grammar (zheref/hatsu#481)
+
+Run at nen 0.28.0 (the pin) from a Hatsu checkout, `nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]"`:
+
+```text
+--line "zheref/hatsu"            repo: zheref/hatsu · line: (clause absent)      exit 0
+--line "zheref/hatsu on llama"   the usage line (an undeclared line value)        exit 2
+--line ""                        the usage line (no repository)                   exit 2
+```
+
+The bare repository parses with the line clause absent, which kazaana § 1 reads from the registry; the two refusals
+are the trigger to ask (row `missing-argument`). This record replaces the transcript kazaana § 1 carried until
+the ha-481 effort trimmed it for the prose ceiling.

@@ -745,6 +745,14 @@ NN#448 is merged but does not replace the authorized interim scripts until a rel
 **A step no nen verb owns is named as residue in the report, never presented as a verb's output**, and
 where a verb should own it, it is an **owned dependency** with an issue, never a silent workaround.
 
+**Residue names ownership, never availability** (zheref/hatsu#481). That no verb owns a step is a fact
+about the machinery, not proof that the step cannot run: a native capability the owning skill names (a
+host's delegation tool, a surface adapter), ordinary judgment and authoring proceed without a verb, and
+only an observed absence, an applicable prohibition, an unmet prerequisite, an observed rejection or an
+unresolved required human choice stops one. A native capability never supplies a missing human
+authorization, and improvised shell never stands in for a Nen-owned safeguard — that stays refused, the
+unmet dependency named. The resolution order and the park evidence are WORKFLOW § *Idle batches* rule 3.
+
 **Every Residue item cites its issue as `zheref/<repo>#N`, or the literal `unfiled`** — a bare `#N`, a
 deferral to nen with no issue, or a residue with neither is not one (`PL-02` and `PL-05` in
 `contracts/prose.lint.json` fail; the lint reports `PL-10` as advisory, and the contract's severity

@@ -1010,6 +1010,43 @@ longer held at seven efforts by the merge; the *one night authors 7* line above 
 **Not exercised live**: a real (non-dry) idle run; `nen run append` and `nen loop slots --from-run` over open
 PRs (none exist in a dry run); `nen wc overlap` (no effort branches exist).
 
+## Dated conformance, 2026-10-26 — residue is ownership, not a stop (zheref/hatsu#481)
+
+**The historical record, kept as it happened.** On 2026-10-25 a Codex desktop session (Hatsu 0.142.0,
+nen 0.26.0) ran `hatsu:kazaana zheref/hatsu --idle`, run `469c57416a765d2af7084e0801a59ded`, on the
+committed idle profile `a49a7d4a4ced9bde465f8c6187f107d02e5d418c`. It selected 27 issues, every one with
+zero open question rows; the toolchain, schema and base lint checks passed and the 480-minute budget was
+available. It recorded **27 `residue-kazaana` parks and zero PRs**: no builder was dispatched and nothing
+was authored. The agent read WORKFLOW § *Idle batches* rule 3 (then: a step a skill named as hand-run or
+verbless parked the effort) together with kazaana's *Raising a delegate has no verb* as though the missing
+verb meant a missing route, while `spawn_agent` was exposed and kazaana § 3 requires native delegates. The
+agent later acknowledged the reading error; a fresh run was opened for the original intent, and the
+original run's parks stand. A later rejection of a cleanup-choice record was unrelated to the dispatch
+decision and is not its cause.
+
+**The correction, reported separately.** Rule 3 now resolves each step in order — authority and gates,
+a Nen verb where Nen owns it, the owning skill's native capability or surface adapter, judgment and
+authoring — and parks only on an observed fact. kazaana § 3 and § Residue, futon § 12, PROCESS
+§ *Residue and owned dependencies* and the four surface guides carry the same distinction, and the
+generated mirrors carry it by regeneration. Each scenario below is evaluated against the corrected rule
+on paper; none launches a workload.
+
+| # | Scenario | Rule 3's reading | Outcome |
+|---|---|---|---|
+| 1 | **The original false stop**: `--idle` kazaana, 27 claimable issues, `spawn_agent` in the session's tools (AC-1, AC-8) | the delegate raise has no verb (ownership); the native tool is present and kazaana § 3 authorizes it | builders are raised within the slot and host budgets; no `residue-kazaana` park; the report says the original 27 parks were a **policy judgment**, not an observed failure |
+| 2 | **Delegation unavailable**: the same run on a surface whose session exposes no delegation tool (AC-4) | observed absence of the named capability | each effort that needs a delegate parks `g5-capability-unavailable`, the register naming the tool and the tool list read; this is an **observed execution failure** |
+| 3 | **An actual rejection**: the raise is attempted and the harness refuses it (AC-4) | observed rejection, after the surface's recovery route (rule 2) | that effort parks `g5-harness-denied`, the refusal quoted; never retried another way |
+| 4 | **A deterministic owner unavailable**: the step is Nen-owned (a readiness verdict, a park write) and nen is absent or out of range after the bootstrap failed (AC-3) | an improvised `gh`/shell equivalent would bypass the verb's safeguard | refused; a Nen-owned park cannot be persisted, so the run ends as rule 2's startup case, `park not persisted`, the dependency (`nen`, the bootstrap's exit) named in the report, never a hand-computed verdict |
+| 5 | **Ordinary judgment**: ordering two overlapping efforts, drafting a section, authoring the change (AC-5) | no verb owns judgment or authoring, by design | proceeds; the residue note is reported as ownership only |
+| 6 | **A human gate**: a step would merge into `main`, publish, or take a choice rule 1 holds (AC-6) | a native tool could perform the act; the authorization is the maintainer's | the effort stands at that gate or parks on its row; the capability supplies no authorization |
+| 7 | **An unrelated later rejection**: after an effort parked or ran, a cleanup-choice record is refused | the refusal is its own observed fact on its own step | reported on that step; never named as the cause of an earlier park or dispatch decision |
+| 8 | **One effort holds, the rest continue**: effort A parks on scenario 2 or 3; B and C are independent (AC-4) | a hold is one effort's | A's park carries its evidence; B and C are claimed and built under rule 4's slots |
+| 9 | **A true residue park**: a step's only route is a hand-run operation the batch may not improvise, with no native capability named for it | no verb, no authorized native route | `parked:residue-<skill>`, the step and its owning issue named |
+
+Every generated surface reads the same rule: the four surface guides name their own delegation tool
+(Agent tool, `spawn_agent`, a Cursor subagent, `invoke_subagent`) beside rule 3, and the mirrors under
+`surfaces/` are regenerated, never hand-edited (`scripts/surface_mirror_check.sh`).
+
 ## Dated verification, 2026-10-23 — crash-and-resume (the run manifest) (zheref/hatsu#444)
 
 Run: 2026-10-23, host `darwin` (arm64), twice with identical verdicts: nen `0.26.0` at `/Users/zheref/.local/bin/nen`

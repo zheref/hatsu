@@ -30,8 +30,7 @@ hatsu:kazaana <repo> [on <line>] [--idle [--dry-run]]
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
-At nen `0.21.0` a bare repository reads `line: (clause absent)`; `on llama` or an empty line is exit `2` — the trigger to ask (row `missing-argument`, the checkout's own
-repository the derived candidate).
+Verified at nen `0.21.0`: `on llama` and an empty line are exit `2` — the ask (row `missing-argument`).
 
 **The line is the surface's main model, read, never remembered**: the session's surface as the harness
 reports it ([`direct`](../direct/SKILL.md) § 2), then `aliases.<a>.line` **read from the registry file**
@@ -84,7 +83,7 @@ the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4
 Futon §§ 3–6 hold. This file adds:
 
 **One delegate authors and publishes each issue in its worktree**, raised as a **builder
-effort** — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter — titled `kazaana · kurapika · <alias>`, bound to
+effort** by the surface's native tool, `--idle` alike — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter — titled `kazaana · kurapika · <alias>`, bound to
 `<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope (HR-20), and WORKFLOW § *Delegate briefs*' wait block and § *The host block a delegate brief carries* verbatim, with one `Heavy turn:` line. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `--dial` on phase/usage calls
@@ -97,8 +96,7 @@ session runs `mukai` and `en` per PR, one at a time**: a subagent raises no suba
 reviewers, Illumi), and hanten § 4's reviewer checkouts are per persona. `en` is started per PR, never
 offered; **a delegate never asks the wrap-up**.
 
-**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6
-(the maintainer's word: *"Use stacked PRs ONLY when necessary, otherwise target `main` directly"*).
+**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6 (the maintainer's word: ROSTER § *Rulings of 2026-10-12*).
 Kazaana's own clause (attended; `--idle` opens no per-effort PR, WORKFLOW § *Batch delivery* 4): **disjoint efforts are never stacked** — each cut from `origin/<branch.base>` and
 opened against it; efforts sharing a path form one stack (rule 1), cut in order from the
 previous effort's published branch (rule 2), so a stacked delegate starts once that `aka` has run. The
@@ -151,9 +149,10 @@ prerequisites hold (row `wrap-up`; never `--idle`). **Kazaana never resumes itse
 
 ## Residue
 
-`nen direct registry --json` prints no `line`, so the surface → line read is the registry file (**owed to
-nen**, to file). Raising a delegate has no verb; § 3 names the effort-dial residue; the overlap read
-has none.
+`nen direct registry --json` prints no `line` (§ 1; owed to nen). A delegate's raise has no
+verb: it is § 3's native tool, never a park by itself; with no adapter route left it parks
+`g5-capability-unavailable` (WORKFLOW § *Idle batches* rule 3). § 3 names the
+effort-dial residue; the overlap read has none.
 
 ## Authority
 
