@@ -39,7 +39,7 @@ for (const [fixture, lane] of requiredFixtures) {
 }
 // Each executable guard runs here once it exists, and refuses without its fixture (BC-9: a guard's
 // suite must actually execute in unit-tests.yml).
-const gated: Array<[string, string | string[], string]> = [
+const gated: Array<[string, string | readonly string[], string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['plugin_bump_api_retry.mts', 'plugin_bump_api_retry_fixture.test.mts', 'plugin-bump-api-retry-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
@@ -72,14 +72,17 @@ const gated: Array<[string, string | string[], string]> = [
   // Host pin negatives plus shipped Cloud/prepared readiness bootstrap checks (#247, BC-9).
   // This selection becomes automatic only after this trusted runner is adopted on the base.
   ['nen_global.sh', ['nen_global_fixture_check.sh', 'bootstrap_integrity_fixture.test.mts'], 'nen-global-guard'],
+  // HA#441: the shell entry and imported typed cases are both required. The workflow selects
+  // this lane automatically only after this trusted runner is adopted by the PR base.
+  ['pr_delivery.ts', ['pr_body_delivery_check_fixture.sh', 'pr_body_delivery_check_fixture.ts'], 'pr-delivery-guard'],
 ];
-for (const [script, fixture, lane] of gated) {
+for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
-  const required = Array.isArray(fixture) ? fixture : [fixture];
-  const missing = required.find((name) => !existsSync(join(root, 'scripts', name)));
-  if (missing) {
-    console.error(`unit-tests-ci: ${script} has no required fixture: ${missing}`);
-    process.exit(2);
+  for (const fixture of typeof fixtures === 'string' ? [fixtures] : fixtures) {
+    if (!existsSync(join(root, 'scripts', fixture))) {
+      console.error(`unit-tests-ci: ${script} has no required fixture ${fixture}`);
+      process.exit(2);
+    }
   }
   lanes.push(lane);
 }

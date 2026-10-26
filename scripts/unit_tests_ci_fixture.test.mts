@@ -165,6 +165,32 @@ try {
   assert(calls.join(',') === expected, 'nen-global-guard lane not selected (BC-9, #247)');
   result = run({ HATSU_FAIL_LANE: 'nen-global-guard' });
   assert(result.status === 1 && result.stderr.includes('nen-global-guard failed'), 'failing bootstrap integrity lane was not red');
+  // Delivery needs both its shell lane entry and the typed parser cases; neither alone is a suite.
+  writeFileSync(join(repo, 'scripts', 'pr_delivery.ts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('pr_delivery.ts has no required fixture pr_body_delivery_check_fixture.sh'),
+    'missing Delivery shell entry did not refuse');
+  writeFileSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('pr_delivery.ts has no required fixture pr_body_delivery_check_fixture.ts'),
+    'missing Delivery typed fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.ts'), '');
+  rmSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.sh'));
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('pr_body_delivery_check_fixture.sh'),
+    'Delivery typed fixture alone bypassed the required shell entry');
+  writeFileSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.sh'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `Delivery lane path refused: ${result.stderr}`);
+  expected += ',pr-delivery-guard||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'Delivery lane not selected (BC-9, HA#441)');
+  assert(calls.filter((line) => line === 'pr-delivery-guard||').length === 1,
+    'Delivery lane selected more than once for its two fixtures');
+  result = run({ HATSU_FAIL_LANE: 'pr-delivery-guard' });
+  assert(result.status === 1 && result.stderr.includes('pr-delivery-guard failed'),
+    'failing Delivery lane was not red');
 
   result = run({}, join(dir, 'nen bin:x', 'nen'));
   assert(result.status === 2 && result.stderr.includes('may not contain'), 'a delimiter in the nen directory was not refused');
