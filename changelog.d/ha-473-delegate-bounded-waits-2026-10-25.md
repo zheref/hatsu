@@ -11,3 +11,4 @@
 ### Fixed
 
 - `scripts/mechanical_conflicts_fixture.test.mts` hands nen the same git identity it hands its own `git` calls and writes it into each fixture repository's config, so the `mechanical-conflicts-guard` lane passes on a GitHub-hosted runner, which has none (the lane landed on `main` through HA-PR-#489 and first ran on this branch's catch-up: `git merge` refused with "empty ident name").
+- `vitest.config.mts` excludes `**/.trusted/**` from test discovery: CI checks the trusted base out at `.trusted/` beside the head, and vitest's positional filters are substrings, so every `vitest run scripts/<fixture>.test.mts` lane also ran the base's copy of the fixture and judged this tree by it (the `mechanical-conflicts-guard` failures on this PR's unit-tests runs were the base's copy, which lacks the identity fix above).
