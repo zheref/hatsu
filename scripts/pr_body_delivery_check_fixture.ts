@@ -396,6 +396,19 @@ test("a body rendered by shibari § 3's exact commands (report data --effort <br
   const guarded = run("bash", [GUARD, "--body", shibariBody, "--repo", perEffort, "--base", "main", "--gate-forecast", "G4"], perEffort);
   assert.equal(guarded.status, 0, `${guarded.stdout}${guarded.stderr}`);
   assert.match(guarded.stdout, /every current-effort ledger row/);
+  // A tag named like the branch makes `symbolic-ref --short` print `heads/<branch>` (hanten P-1): the guard and
+  // pr_delivery.ts read the full ref and keep the branch, so the effort id is right; nen 0.28's own `report data`
+  // still reads `heads/<branch>` and normalize refuses the mismatch by name, exit 2, never a global read (owed to nen,
+  // <core>/.nen/proposed/nen-report-data-branch-ref.json). Either outcome is fail-closed-or-correct; a global read is not.
+  inPerEffort("git", "tag", branchName);
+  const tagged = run("bash", [GUARD, "--body", shibariBody, "--repo", perEffort, "--base", "main", "--gate-forecast", "G4"], perEffort);
+  const taggedOut = `${tagged.stdout}${tagged.stderr}`;
+  assert.ok(tagged.status === 0 || (tagged.status === 2 && /is not current branch/.test(taggedOut)), taggedOut);
+  assert.doesNotMatch(taggedOut, /missing ledger row|extra or duplicate/);
+  inPerEffort("git", "tag", "-d", branchName);
+  // A checkout on another branch than the named effort is refused by name, never read as the effort's (hanten C-3).
+  const mismatch = run("bash", [GUARD, "--body", shibariBody, "--repo", perEffort, "--base", "main", "--gate-forecast", "G4", "--effort", "claude/opus/kurapika/other"], perEffort);
+  assert.equal(mismatch.status, 2, `${mismatch.stdout}${mismatch.stderr}`); assert.match(mismatch.stderr, /not the effort/);
   // The pre-#492 shape (indices numbered across every effort) is the one the guard now refuses.
   const globalBody = renderFrom("global", []);
   const refused = run("bash", [GUARD, "--body", globalBody, "--repo", perEffort, "--base", "main", "--gate-forecast", "G4"], perEffort);

@@ -83,7 +83,7 @@ an output means. Absorbed, note by note, against Hatsu's callers at this repin:
   moves it on the next write; the fallback goes in 0.29.0) — the durable-home read is HA-PR-#463's, landing
   after this repin. `nen report data` without `--effort` now reads every effort of the repository:
   `spiritual-message` § 4 and `shibari` § 3 pass `--effort <branch>` (their spend is one effort's);
-  `scripts/pr_body_delivery_check.sh` passes `--base` alone and `scripts/pr_delivery.ts` filters the rows by effort;
+  `scripts/pr_body_delivery_check.sh` passes `--base` alone and `scripts/pr_delivery.ts` filters the rows by effort (since zheref/hatsu#492 the guard passes `--effort <current branch>` itself);
   `rikugan` and `backlog-board` keep the whole-repository read on purpose (their scope is many objects).
 - **`pr converge` and `issue criteria` blocking lines quote the row**; `pr converge` exits 0 on a non-default
   base whose body names no closing issue, and `--composite` adds exit 3. `en` §§ 4–5, `shibari` § 4 and

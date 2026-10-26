@@ -174,9 +174,11 @@ function writePrivate(path: string, value: unknown): void {
   }
 }
 function branch(root: string): string {
-  const result = spawnSync("git", ["-C", root, "symbolic-ref", "--quiet", "--short", "HEAD"], { encoding: "utf8" });
+  // The full ref, its refs/heads/ prefix stripped: `--short` prints `heads/<branch>` when a tag shares the name (hanten P-1).
+  const result = spawnSync("git", ["-C", root, "symbolic-ref", "--quiet", "HEAD"], { encoding: "utf8" });
   if (result.error !== undefined || result.status !== 0) fail("current branch is unread; Delivery never mixes ledgers by guessing an effort");
-  return requiredString(result.stdout, "current branch");
+  const ref = requiredString(result.stdout, "current branch");
+  return ref.startsWith("refs/heads/") ? ref.slice("refs/heads/".length) : ref;
 }
 function markdown(value: string): string {
   return clean(value)
