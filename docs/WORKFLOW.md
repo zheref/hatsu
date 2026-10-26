@@ -145,10 +145,25 @@ gets when it declares nothing.
 |---|---|---|
 | `max` | `7` | resolver and sections guard; reader count only, never the compact footer |
 | `variants` | every kind × family cell from `contracts/pr-sections.json` | `shibari`, `tensho`, `jujisho` before each body write |
+| `$canon` | catalogue `contract` and canonical `documentSha256` as `sha256` | configuration diagnosis and explicit refresh; metadata ignored by the section resolver |
 | `$sections` | every available id and purpose, beside `sections` under `pr` | author and consumer configuration review |
 
-`config_values.sh --fill` materializes the **full** default matrix and the `$sections` annotation;
-it never overwrites an edited cell. That cell becomes consumer-owned, not a canon-following default.
+`config_values.sh fill` materializes the **full** default matrix, `$canon` stamp and `$sections`
+annotation when the block is absent. Plain `fill` leaves a present block byte-identical.
+`diagnose` compares each cell with its stamped catalogue from the packaged
+`contracts/pr-sections.history.json`, without Git: **current default**, **stale default**, or
+**consumer-owned**; it also names **missing** and **retired** cells and retired ids. An **unstamped**
+copy is compared with the current catalogue in one line, with ownership unknown.
+
+`config_values.sh fill --refresh` advances unedited defaults, adds missing cells, updates `$sections`
+and re-stamps. It preserves `max`, edited cells and other metadata; `$canon.owned` remembers owned
+cells across later refreshes, including an edit that coincides with a newer default. An owned cell
+that names a retired id or cell refuses refresh at exit 1, naming it and writing nothing. An unknown
+or malformed stamp refuses at exit 2. An unstamped refresh reports provenance unknown, retains every
+present cell as explicitly owned, adds only missing cells, and stamps the current catalogue; later
+refreshes still retain those cells. All inputs and staged results are validated before any
+replacement. Tenkai's `apply` uses this explicit refresh; Ten's adoption inbox reports its stale
+counts and both catalogue sha7s without repairing them. `nen warmup` remains unchanged.
 [PR-SECTIONS.md](PR-SECTIONS.md) owns family folding, conditional run facts, the seven-section cap,
 the kind-specific verification aids and the warning-only 150-word prose budget. `max` is configurable
 up to seven; a smaller cap requires a fitting cell, never silent section truncation.
@@ -1181,20 +1196,20 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 ```
 
 **Hatsu's own block, beside `project.preconditions`, read by [`kagutsuchi`](../claude/skills/kagutsuchi/)
-§ 3b through `scripts/kagutsuchi_worktree.sh` and by nothing in nen** — nen's loader preserves it (verified at
-`0.16.0`: `nen schema check` and the `shu` executor both accept a contract carrying it), and **nen still
-asserts the precondition in the worktree exactly as before**; this block only says where the file
+§ 3b** — Hatsu repeats each declared path as `--copy-from-core` to `nen wc worktree`; the verb deliberately
+does not read this block implicitly. Nen's loader preserves it, and **nen still asserts the precondition
+in the worktree exactly as before**; this block only says where the file
 comes from. The maintainer's ruling of 2026-09-29 (zheref/hatsu#146): *"Let's have the composite ALWAYS
 copy own file from core checkout."* Each entry names a **repo-relative, gitignored, untracked** path
 that exists in the core checkout and nowhere in git — the base configuration carrying credentials, a
 local signing note — and kagutsuchi § 3b copies it **from core into its worktree, before the fresh
-archive it runs only when the freshness gate found the last one stale**, listing each copied path. The script refuses, before anything moves, an entry that is tracked (it
+archive it runs only when the freshness gate found the last one stale**, listing each copied path. The verb refuses an entry that is tracked (it
 is in every worktree already), not gitignored (the copy would dirty the worktree and refuse the next
 run), absent in core (the maintainer's own machine is where it comes from — **nothing is synthesised**,
 the same rule `project.preconditions` states), a symlink, or a path that leaves the tree — and, at the
 trunk's tip, a destination that is tracked, unignored or a symlink (a trunk commit never decides where a
-credential lands). **No block
-copies nothing and says so.** A precondition that FAILs in the worktree on a path that exists gitignored
+credential lands). **No block passes no copy flags and reports an empty `copies` array.** A precondition
+that FAILs in the worktree on a path that exists gitignored
 in core is the `missing-configuration` ask for a row here — proposed with its `why`, landed through
 that repository's declaration PR at its gate, never written unasked.
 
@@ -1955,7 +1970,9 @@ the decision. Non-release rows carry the eleven-aspect improves ladder; release 
 written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
 library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
 `CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
-Delivery is outside the reader cap; checklist, associated issues and final attribution are compact footer blocks.
+Delivery is outside the reader cap; conditional Spec and Decisions plus always-on Hanten, checklist,
+associated issues and final attribution are compact footer blocks. HA#475 implements Hanten under that
+reader-only cap; the catalogue keeps its exact compatibility-contract heading ahead of the checklist.
 The sections and Delivery guards and Nen's per-run requirements check join evidence and Development checks before
 **every** create or edit. No undeclared heading may grow a second composition contract.
 
@@ -2650,8 +2667,8 @@ checkout.** `.nen/` is already ignored — Hatsu's own `.gitignore`, and in a co
 ([`hanten`](../claude/skills/hanten/SKILL.md) § 4's reviewer), `prove-<n>` (the stash-and-restore
 shape's proof, below), the effort's branch slug for a lead-session effort (rule 6 of
 [`claude/rules/hatsu.md`](../claude/rules/hatsu.md)), and kagutsuchi's fixed `.nen/worktrees/kagutsuchi`
-(§ 3b, `scripts/kagutsuchi_worktree.sh`) — the one purpose-named path with no surface segment, kept
-because the script's idempotence is built on the path being fixed.
+(§ 3b, `nen wc worktree --name kagutsuchi`) — the one purpose-named path with no surface segment, kept
+because the native verb's idempotence is built on the path being fixed.
 
 ### Per surface — the harness's own worktrees, and what Hatsu does
 

@@ -25,10 +25,23 @@ if (!existsSync(join(root, 'nen', 'contract.json'))) {
 // The criteria lane holds Hatsu's wiring around `nen pr converge` (zheref/hatsu#413) and the HR-10
 // findings-schema invariants; it runs unconditionally, so deleting its fixture fails the lane, never drops it.
 const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack-guard', 'criteria'];
+// The mechanical declaration is data rather than a runtime script, so its real-Nen fixture is
+// required directly. Deleting it is a wiring refusal, never a smaller green CI selection (#415).
+const requiredFixtures: Array<[string, string]> = [
+  ['mechanical_conflicts_fixture.test.mts', 'mechanical-conflicts-guard'],
+];
+for (const [fixture, lane] of requiredFixtures) {
+  if (!existsSync(join(root, 'scripts', fixture))) {
+    console.error(`unit-tests-ci: required fixture ${fixture} is missing`);
+    process.exit(2);
+  }
+  lanes.push(lane);
+}
 // Each executable guard runs here once it exists, and refuses without its fixture (BC-9: a guard's
 // suite must actually execute in unit-tests.yml).
-const gated: Array<[string, string, string]> = [
+const gated: Array<[string, string | readonly string[], string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
+  ['plugin_bump_api_retry.mts', 'plugin_bump_api_retry_fixture.test.mts', 'plugin-bump-api-retry-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
   // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
   ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],
@@ -39,9 +52,12 @@ const gated: Array<[string, string, string]> = [
   // docs/NEN-CONTRACT.md's echoed pin line stale fails unit-tests.yml on every pull request.
   ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
   ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
-  // The settable-values engine's self-test plus the HR-23 examiner refusal (zheref/hatsu#397, BC-9).
-  ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
+  // The settable-values aggregate runs the frozen engine and every TypeScript overlay fixture (BC-9).
+  ['config_values.ts', 'config_values_fixture.sh', 'config-values-guard'],
   ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
+  // HA341: the compatibility renderer's malformed-data and trusted-boundary fixtures must run in CI.
+  ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
+  ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
@@ -53,17 +69,26 @@ const gated: Array<[string, string, string]> = [
   // The issue-shape fixture runs the verified nen's body-check and questions over the catalogue and
   // templates; the interim checker it once tested is retired (zheref/hatsu#423).
   ['issue_sections_fixture.mts', 'issue_sections_fixture.mts', 'issue-shape'],
+  // Host pin negatives plus shipped Cloud/prepared readiness bootstrap checks (#247, BC-9).
+  // This selection becomes automatic only after this trusted runner is adopted on the base.
+  ['nen_global.sh', ['nen_global_fixture_check.sh', 'bootstrap_integrity_fixture.test.mts'], 'nen-global-guard'],
+  // HA#441: the shell entry and imported typed cases are both required. The workflow selects
+  // this lane automatically only after this trusted runner is adopted by the PR base.
+  ['pr_delivery.ts', ['pr_body_delivery_check_fixture.sh', 'pr_body_delivery_check_fixture.ts'], 'pr-delivery-guard'],
+  ['tenkai_trailer_guard.mts', 'tenkai_trailer_guard_fixture.test.mts', 'consumer-trailer-guard'],
   // Self-contained proofs: the fixture is the script itself (zheref/hatsu#453, #444).
   ['stop_bell_fixture.mts', 'stop_bell_fixture.mts', 'stop-bell-guard'],
   ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],
   ['idle_permissions_check.mts', 'idle_permissions_check_fixture.mts', 'idle-permissions-guard'],
   ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
 ];
-for (const [script, fixture, lane] of gated) {
+for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
-  if (!existsSync(join(root, 'scripts', fixture))) {
-    console.error(`unit-tests-ci: ${script} has no required fixture`);
-    process.exit(2);
+  for (const fixture of typeof fixtures === 'string' ? [fixtures] : fixtures) {
+    if (!existsSync(join(root, 'scripts', fixture))) {
+      console.error(`unit-tests-ci: ${script} has no required fixture ${fixture}`);
+      process.exit(2);
+    }
   }
   lanes.push(lane);
 }

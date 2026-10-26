@@ -15,6 +15,7 @@ import {
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve as resolvePath, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkStamp } from './pr_sections_history.ts';
 
 export type RepositoryKind = "product" | "library" | "process" | "unknown";
 export interface SectionRow {
@@ -36,6 +37,7 @@ export interface SectionRow {
 }
 export interface Catalogue {
   readonly contract: "hatsu.pr-sections/v1";
+  readonly documentSha256: string;
   readonly max: number;
   readonly proseBudget: number;
   readonly preamble: readonly SectionRow[];
@@ -165,7 +167,8 @@ export function catalogue(root = ROOT): Catalogue {
     const row = object(value, "every section must be an object");
     const id = row.id;
     if (typeof id !== "string" || id.length === 0) throw new Error("section ids must be nonempty and unique");
-    if (!Number.isInteger(row.level) || (row.level !== 1 && row.level !== 2) || typeof row.glyph !== "string" || row.glyph.length === 0) throw new Error(`${id}: invalid level/glyph`);
+    if (!Number.isInteger(row.level) || (row.level !== 1 && row.level !== 2) || typeof row.glyph !== "string"
+      || (row.glyph.length === 0 && (place !== "footer" || id !== "hanten"))) throw new Error(`${id}: invalid level/glyph`);
     const title = row.title;
     if (typeof title === "string") {
       if (title.length === 0) throw new Error(`${id}: missing title`);
@@ -238,11 +241,12 @@ export function catalogue(root = ROOT): Catalogue {
   }
   if (preamble.length !== 1 || preamble[0]?.id !== "delivery") throw new Error("delivery must be the sole preamble block");
   if (footer.length === 0 || footer.at(-1)?.id !== "attribution") throw new Error("attribution must be the final footer");
-  return { contract: "hatsu.pr-sections/v1", max: raw.max, proseBudget: raw.proseBudget, preamble, sections, footer, families, precedence, variants };
+  const documentSha256 = checkStamp(raw);
+  return { contract: "hatsu.pr-sections/v1", documentSha256, max: raw.max, proseBudget: raw.proseBudget, preamble, sections, footer, families, precedence, variants };
 }
 
-export function defaults(cat: Catalogue): { max: number; variants: Catalogue["variants"] } {
-  return { max: cat.max, variants: cat.variants };
+export function defaults(cat: Catalogue): { max: number; variants: Catalogue["variants"]; $canon: { contract: string; sha256: string } } {
+  return { max: cat.max, variants: cat.variants, $canon: { contract: cat.contract, sha256: cat.documentSha256 } };
 }
 export function options(cat: Catalogue): Record<string, string> {
   return Object.fromEntries([...cat.preamble, ...cat.sections, ...cat.footer].map((row): [string, string] => [row.id, row.$comment]));
@@ -261,7 +265,8 @@ export function fold(cat: Catalogue, jobs: readonly string[]): string {
 function escapePythonRegex(value: string): string { return value.replace(/[^A-Za-z0-9_]/g, "\\$&"); }
 export function pattern(row: SectionRow, kind: RepositoryKind): Requirement {
   const title = typeof row.title === "string" ? row.title : row.title[kind];
-  return { name: row.id, pattern: `^ {0,3}${"#".repeat(row.level)}[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?${escapePythonRegex(title)}[ \\t]*$` };
+  const glyph = row.glyph.length === 0 ? "" : "(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?";
+  return { name: row.id, pattern: `^ {0,3}${"#".repeat(row.level)}[ \\t]+${glyph}${escapePythonRegex(title)}[ \\t]*$` };
 }
 /**
  * HR-11: a row declaring `content` also requires its heading to be followed, past blank lines and
@@ -651,4 +656,21 @@ function main(argv = process.argv.slice(2)): number {
   }
 }
 
-if (process.argv[1] !== undefined && resolvePath(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = main();
+// Node resolves an imported module's URL through symlinks, while argv retains the caller's
+// spelling. Compare filesystem identities so installed directory and file aliases execute too.
+// The toolchain probe requires import.meta.main: without it an unreadable CLI entry is
+// indistinguishable from an unrelated import. Unsupported hosts refuse instead of passing.
+const entry = process.argv[1];
+const modulePath = fileURLToPath(import.meta.url);
+if (typeof import.meta.main !== "boolean") {
+  err("pr sections: unsupported Node runtime: import.meta.main is required (Node 22.18+ or 24.2+ with this capability)");
+  process.exitCode = 1;
+} else try {
+  if (entry !== undefined && realpathSync(entry) === realpathSync(modulePath)) process.exitCode = main();
+  else if (import.meta.main === true) throw new Error("entry does not identify this module");
+} catch {
+  if (import.meta.main === true || (entry !== undefined && resolvePath(entry) === modulePath)) {
+    err("pr sections: cannot resolve CLI entry to this module");
+    process.exitCode = 1;
+  }
+}

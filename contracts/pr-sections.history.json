@@ -1,0 +1,439 @@
+{
+  "contract": "hatsu.pr-sections.history/v1",
+  "catalogues": {
+    "ddc28165475067b2bf5fe4e4ff1f7f4fafdc3602ac596679c0fda6f25c3eedc3": {
+      "contract": "hatsu.pr-sections/v1",
+      "documentSha256": "ddc28165475067b2bf5fe4e4ff1f7f4fafdc3602ac596679c0fda6f25c3eedc3",
+      "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, glyphs, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect. The spec footer row is admitted by the run fact spec (a closing issue carrying a Spec: line) and carries nen's spec-rows requirement whole; the always-on Hanten footer keeps its exact unglyphed compatibility heading and precedes checklist evidence.",
+      "max": 7,
+      "proseBudget": 150,
+      "aspects": [
+        "Observability",
+        "Security",
+        "Traceability",
+        "End-user experience",
+        "Autonomy",
+        "Stability",
+        "Performance",
+        "Maintainability",
+        "Cost",
+        "Portability",
+        "Accessibility"
+      ],
+      "preamble": [
+        {
+          "id": "delivery",
+          "glyph": "📬",
+          "title": "Delivery",
+          "level": 2,
+          "template": "templates/pr-body/delivery.md",
+          "$comment": "Always-first ledger-rendered delivery metadata; outside the seven-reader cap."
+        }
+      ],
+      "sections": [
+        {
+          "id": "changes",
+          "glyph": "✨",
+          "title": "What this changes for you",
+          "level": 1,
+          "template": "templates/pr-body/changes.md",
+          "$comment": "Before/After for a named consumer; Case for/Case against; what would flip the decision."
+        },
+        {
+          "id": "why",
+          "glyph": "🧭",
+          "title": "Why",
+          "level": 2,
+          "template": "templates/pr-body/why.md",
+          "$comment": "Source/What it showed/Why it matters now, followed by the authoring nature."
+        },
+        {
+          "id": "how",
+          "glyph": "🛠️",
+          "title": "How",
+          "level": 2,
+          "template": "templates/pr-body/how.md",
+          "$comment": "Mermaid structure diagram and Item/Kind/Change legend; flow diagram only when behavior flow changed; one rejected alternative."
+        },
+        {
+          "id": "improves",
+          "glyph": "📈",
+          "title": "What this improves",
+          "level": 2,
+          "template": "templates/pr-body/improves.md",
+          "$comment": "All eleven aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement."
+        },
+        {
+          "id": "verify",
+          "glyph": "✅",
+          "title": {
+            "product": "How to verify",
+            "library": "How a consumer verifies",
+            "process": "What the guards prove",
+            "unknown": "How a consumer verifies"
+          },
+          "level": 2,
+          "template": "templates/pr-body/verify.md",
+          "content": true,
+          "$comment": "Product: numbered steps. Library: Consumer scenario/Call or import/Expected, plus published artifact command. Process: Behavior changed/Lane or verb run/Refuses on/Passes on. Every kind adds one Criterion/Coverage/Evidence row per AC id of each closing issue (HR-11; judged by nen pr converge). content: an empty heading fails body-check through the derived verify-content requirement."
+        },
+        {
+          "id": "evidence",
+          "glyph": "📸",
+          "title": "Evidence",
+          "level": 2,
+          "template": "templates/pr-body/evidence.md",
+          "$comment": "UZF-26 state/variant evidence table; only where project.evidence.globs is declared.",
+          "when": "evidence"
+        },
+        {
+          "id": "compat",
+          "glyph": "🔄",
+          "title": "Compatibility & migration",
+          "level": 2,
+          "template": "templates/pr-body/compat.md",
+          "$comment": "Symbol/Before/After/Consumer action; semver verdict."
+        },
+        {
+          "id": "across",
+          "glyph": "🌐",
+          "title": "Across repositories",
+          "level": 2,
+          "template": "templates/pr-body/across.md",
+          "$comment": "What another repository does differently after this merge; recorded rulings.",
+          "when": "policy-hit"
+        },
+        {
+          "id": "release-unit",
+          "glyph": "📦",
+          "title": "The release unit",
+          "level": 2,
+          "template": "templates/pr-body/release-unit.md",
+          "$comment": "Artifact/Size/Provenance; CON-22 fan-out."
+        },
+        {
+          "id": "rollout",
+          "glyph": "🚀",
+          "title": "Rollout & rollback",
+          "level": 2,
+          "template": "templates/pr-body/rollout.md",
+          "$comment": "Target/Flag/Rollback step."
+        },
+        {
+          "id": "economics",
+          "glyph": "💰",
+          "title": "Economics",
+          "level": 2,
+          "template": "templates/pr-body/economics.md",
+          "$comment": "Leorio summary, then the full report in details; no new level-2 headings inside it.",
+          "when": "economics"
+        }
+      ],
+      "footer": [
+        {
+          "id": "spec",
+          "glyph": "📐",
+          "title": "Spec",
+          "level": 2,
+          "template": "templates/pr-body/spec.md",
+          "reserved": false,
+          "when": "spec",
+          "rows": {
+            "$frozenAt": "zheref/nen@b313c909 src/spec/coverage.ts (zheref/nen#517): nen exposes the spec-rows pattern through no verb or flag, so this is the one Hatsu copy, compared by hand at each repin",
+            "name": "spec-rows",
+            "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Spec[ \\t]*\\r?\\n(?:[ \\t]*\\r?\\n)*[ \\t]*(?:[-*+][ \\t]+)?F\\d{3}-SC-\\d{3}[ \\t]+[—–-]"
+          },
+          "$comment": "One row per F<nnn>-SC-### the closing spec-derived issue carries, satisfied with a test id or deferred with a reason and a follow-up (docs/config/spec-repo.md, The PR Spec section). Admitted by the run fact spec; rows is nen's spec-rows requirement quoted whole (zheref/nen#493, src/spec/coverage.ts), and nen spec coverage's delivery form proves every criterion is accounted for."
+        },
+        {
+          "id": "decisions",
+          "glyph": "🗳️",
+          "title": "Decisions taken on your behalf",
+          "level": 2,
+          "template": "templates/pr-body/decisions.md",
+          "reserved": false,
+          "when": "decisions",
+          "$comment": "Every pre-answered row and every default the run took for the maintainer; mandatory on every PR whose run took one, idle (HR-334) or attended (HA#474 AC-1), whatever the kind or family. Any positive source includes it: --decisions, --idle, or --decisions-from a nen.run manifest with a non-empty idleAnswers. A manifest proves only launch pre-answers: a null or empty idleAnswers adds nothing beside --decisions or --idle (the flag wins) and refuses alone; a malformed manifest refuses whatever else is passed. A default taken mid-run or attended is --decisions."
+        },
+        {
+          "id": "hanten",
+          "glyph": "",
+          "title": "Adversarial review (hanten)",
+          "level": 2,
+          "template": "templates/pr-body/hanten.md",
+          "reserved": false,
+          "$comment": "Exact adopted-gate heading and settled Hanten findings. Each deferred row cites a tracked issue."
+        },
+        {
+          "id": "checklist",
+          "glyph": "📋",
+          "title": "Completion checklist",
+          "level": 2,
+          "template": "templates/pr-body/checklist.md",
+          "reserved": false,
+          "$comment": "Compact evidence-backed completion conditions, including the checked Hanten-settled evidence line."
+        },
+        {
+          "id": "issues",
+          "glyph": "🔗",
+          "title": "Associated issues",
+          "level": 2,
+          "template": "templates/pr-body/issues.md",
+          "reserved": false,
+          "$comment": "Canonical issue URL/scope/merging verdict table and closing lines; Development guard applies."
+        },
+        {
+          "id": "attribution",
+          "glyph": "🤝",
+          "title": "Agent attribution",
+          "level": 2,
+          "template": "templates/pr-body/attribution.md",
+          "reserved": false,
+          "$comment": "Final heading; exact participant ledger from docs/AGENT-ATTRIBUTION.md."
+        }
+      ],
+      "families": {
+        "build": [
+          "implementation",
+          "ui",
+          "ux",
+          "integration",
+          "api-design",
+          "architecture",
+          "accessibility",
+          "parity"
+        ],
+        "fix": [
+          "bug-fix",
+          "triage",
+          "security"
+        ],
+        "maintain": [
+          "refactor",
+          "upgrades",
+          "mechanical-edit",
+          "migration",
+          "deprecation",
+          "machinery",
+          "ci-cd",
+          "provisioning",
+          "onboarding",
+          "adapters",
+          "schema"
+        ],
+        "verify": [
+          "unit-tests",
+          "integration-tests",
+          "ui-automation",
+          "performance",
+          "evals",
+          "review",
+          "drift-review"
+        ],
+        "canon": [
+          "prose-authoring",
+          "documentation",
+          "requirements",
+          "discovery",
+          "analysis",
+          "backlog",
+          "orchestration"
+        ],
+        "release": [
+          "release",
+          "delivery-ops",
+          "observability"
+        ]
+      },
+      "precedence": [
+        "release",
+        "fix",
+        "build",
+        "maintain",
+        "verify",
+        "canon"
+      ],
+      "variants": {
+        "product.build": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "evidence"
+        ],
+        "library.build": [
+          "changes",
+          "why",
+          "how",
+          "compat",
+          "improves",
+          "verify"
+        ],
+        "process.build": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.build": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.fix": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "evidence"
+        ],
+        "library.fix": [
+          "changes",
+          "why",
+          "how",
+          "compat",
+          "improves",
+          "verify"
+        ],
+        "process.fix": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.fix": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.maintain": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "rollout"
+        ],
+        "library.maintain": [
+          "changes",
+          "why",
+          "how",
+          "compat",
+          "improves",
+          "verify"
+        ],
+        "process.maintain": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.maintain": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify",
+          "evidence"
+        ],
+        "library.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "process.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "unknown.verify": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "library.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "process.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "across",
+          "verify"
+        ],
+        "unknown.canon": [
+          "changes",
+          "why",
+          "how",
+          "improves",
+          "verify"
+        ],
+        "product.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "rollout",
+          "verify",
+          "evidence"
+        ],
+        "library.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "compat",
+          "verify"
+        ],
+        "process.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "across",
+          "verify"
+        ],
+        "unknown.release": [
+          "changes",
+          "why",
+          "release-unit",
+          "verify"
+        ]
+      }
+    }
+  }
+}

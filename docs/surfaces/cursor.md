@@ -36,6 +36,37 @@ fetched, cut a branch, rebased and first-published inside a linked worktree with
 (evidence § 8). The working root is the shell's own `cd`; `--workspace` and `--add-dir` exist from
 `2026.09.08` and the `cd` form works on both.
 
+### Cursor Cloud agents
+
+Cursor-hosted Cloud Agents (formerly Background Agents) boot from a Build rather than from the local
+IDE host. Cursor runs `.cursor/environment.json`'s `install` while making that Build and preserves its
+disk state, but not an exported `PATH`; the setup guide says, *"Builds preserve disk state only"*.
+The Cursor adapter therefore installs the contract pin into
+`${XDG_CACHE_HOME:-$HOME/.cache}/nen/zheref_nen/<ref>/nen-linux-x64`, links the verified binary at
+`$HOME/.local/bin/nen`, and binds it per agent command with `PATH="$HOME/.local/bin:$PATH"`. The
+copyable current-pin form and the `AGENTS.md` instruction are in
+[`docs/using/cursor.md`](../using/cursor.md#cursor-cloud-agents). An export performed by `install` is
+not proof that the agent can resolve `nen`.
+
+The Build step uses exactly the two-step flow in `nen/contract.json`: fetch
+`bootstrap/nen.sh` from the pinned ref to a file, run that file, accept only its exit-0 executable
+path after it has fetched `SHA256SUMS` and the Linux release asset, then link that path. Restricted
+egress must admit `raw.githubusercontent.com` for the script and GitHub's release/API path for both
+`SHA256SUMS` and `nen-linux-x64`: `github.com`, `api.github.com` when `gh` is present, and the release
+asset redirect host `release-assets.githubusercontent.com`. Cursor documents network allowlists at
+the user, environment and team levels; this is ordinary HTTPS egress, not git-egress-proxy traffic.
+
+Cloud agents read repository `AGENTS.md`, so that file carries the per-command PATH binding and the
+instruction to run the warm-up first. The generated `hatsu.mdc` requires the warm-up's one-line
+probe/bootstrap result — including `not run` — to be quoted in every PR body. If either the Build
+bootstrap or the session warm-up bootstrap fails, no Nen-owned operation is replaced with raw git,
+`gh`, or a remembered shell equivalent. The run halts and reports the bootstrap failure.
+
+Configuration precedence is material: Cursor checks a personal saved environment, then a team saved
+environment, then the committed `.cursor/environment.json` for a single-repository run. A saved
+environment reads the file only when its Environment JSON location points at it; otherwise the
+committed bootstrap can be bypassed. Self-Hosted Machines do not read `.cursor/environment.json`.
+
 ## 2. Skills
 
 | | |
@@ -209,6 +240,10 @@ bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces
 | the documented reload | restart, or Reload Window | "Restart Cursor, or run **Developer: Reload Window**." (the local-plugin steps) | https://cursor.com/docs/plugins | 2026-09-29 |
 | hooks after an edit | reloaded on save | "Cursor watches hooks config files and reloads them automatically." | https://cursor.com/docs/agent/hooks | 2026-09-29 |
 | a chat's skill list | fixed per chat, forum-sourced (staff) | "So an existing chat will keep seeing the old set of skills, while a new chat will get the updated set." | https://forum.cursor.com/t/165124 | 2026-09-29 |
+| Cloud Build persistence | disk only; exported variables do not reach the agent | "Builds preserve disk state only." | https://cursor.com/docs/cloud-agent/setup | 2026-10-25 |
+| Cloud config precedence | personal, then team, then committed file | "Cursor resolves environment configuration by repository or repo group, using the first match" | https://cursor.com/docs/cloud-agent/setup | 2026-10-25 |
+| Cloud session instructions | repository `AGENTS.md` | "Cloud agents read AGENTS.md files." | https://cursor.com/docs/cloud-agent/setup | 2026-10-25 |
+| Cloud restricted egress | environment-scoped mode and allowlist | "Saved environments can have their own network access mode and allowlist." | https://cursor.com/docs/cloud-agent/security-network | 2026-10-25 |
 
 ## 10. Known gaps (not documented)
 

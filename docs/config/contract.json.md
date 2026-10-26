@@ -44,6 +44,8 @@ The pin and the build move independently: `minimum` is the `MAJOR.MINOR` capabil
 | `bootstrap.vendored` | boolean | **`false`** | Hatsu never carries a copy of the bootstrap script | `hatsu:ten` |
 | `bootstrap.vendoring_forbidden` | string | prose | A vendored copy would be a second, unreviewed supply chain | nothing in nen |
 | `bootstrap.script_path_in_source` | string | **`bootstrap/nen.sh`** | Where the script lives in nen's tree | `hatsu:ten` |
+| `bootstrap.scriptSha256` | string | 64 lowercase hex digits | Independently reviewed SHA256 of the exact pinned `bootstrap/nen.sh` bytes; checked before Bash executes them | Hatsu host binder and Cursor Cloud Build; prepared readiness form after a separate activation PR; Nen preserves this raw key but does not type, produce or enforce it |
+| `bootstrap.scriptSha256Provenance` | object | `ref`, `commit`, `path`, `sha256` | Review provenance for the script digest. A repin must update it with the script digest and binary platform digests; the fixture rejects mismatched metadata; typed renderer extraction is deferred | Hatsu offline integrity fixture; not a Nen schema guarantee or active renderer policy |
 | `bootstrap.sha256` | object | `darwin-arm64`, `linux-x64`, `windows-x64` → hex digest | The release digests of the pinned binary, by platform. A platform with no key is never linked unverified. A repin moves `linux-x64` together with `pinned_ref`, in the same PR, or every later PR fails closed in CI | `scripts/nen_global.sh` (refuses a binary whose digest differs), `hooks/session-start.sh` step 0, and the three workflows that bootstrap nen, through their digest step (`NEN_DIGEST_FROZEN` in `scripts/workflow_runner_policy_check.rb`: `linux-x64`, read from `main`'s copy) |
 | `bootstrap.url`, `bootstrap.fetch` | string | the raw URL at `pinned_ref`; the `curl -fsSL <url> -o <local-file>` line | Where the script is fetched from and how | `hatsu:ten` § 2, `hatsu:bakuryuha` |
 | `bootstrap.fetch_must_be_two_step` | object | `rule`, `why`, `wrong`, `right` | Always fetch to a file, then run that file; never pipe into `bash` | `hatsu:ten` |
@@ -102,7 +104,7 @@ Facts nen asserts before it spawns a lane's verb, so a missing file fails as *th
 |---|---|---|---|---|
 | `preconditions.<lane>[]` | object[] | one object per fact | The lane's preconditions, asserted in order | `nen shu <verb>` (the plan prints each row, `FAIL` on an unmet one) |
 | `preconditions.<lane>[].kind` | string | `path` (the one kind Hatsu's file and the sources show) | What is being asserted | `nen shu` |
-| `preconditions.<lane>[].value` | string | a repo-relative path | The thing that must exist. Resolved against the real root; a path that leaves the tree is exit `2` | `nen shu`, `scripts/kagutsuchi_worktree.sh` (re-asserted in the clean worktree) |
+| `preconditions.<lane>[].value` | string | a repo-relative path | The thing that must exist. Resolved against the real root; a path that leaves the tree is exit `2` | `nen shu` (re-asserted in kagutsuchi's clean worktree) |
 | `preconditions.<lane>[].why` | string | prose | Why the verb cannot run without it | the plan's output |
 
 ### `project.hosts`
@@ -167,11 +169,11 @@ The host tools nen verifies before it runs, so a missing tool is found at warm-u
 
 ### `project.fromCore`
 
-Hatsu's own block, beside `preconditions`, read by `hatsu:kagutsuchi` § 3b through `scripts/kagutsuchi_worktree.sh` and by nothing in nen; nen's loader preserves it. Each entry names a repo-relative, gitignored, untracked file that exists only in the maintainer's core checkout, and the clean worktree kagutsuchi rebuilds in gets it copied from core before the fresh archive. The script refuses an entry that is tracked, not gitignored, absent in core, a symlink, or a path that leaves the tree. **No block copies nothing and says so.**
+Hatsu's own block, beside `preconditions`, read by `hatsu:kagutsuchi` § 3b and expanded into one repeated `nen wc worktree --copy-from-core <path>` flag per entry; the verb does not read the block implicitly. Each entry names a repo-relative, gitignored, untracked file that exists only in the maintainer's core checkout, and the clean worktree kagutsuchi rebuilds in gets it copied from core before the fresh archive. Nen refuses an entry that is tracked, not gitignored, absent in core, a symlink, or a path that leaves the tree. **No block passes no copy flags and reports an empty `copies` array.**
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `fromCore[].path` | string | a repo-relative, gitignored, untracked path | The file copied from core into the rebuild worktree | `scripts/kagutsuchi_worktree.sh` |
+| `fromCore[].path` | string | a repo-relative, gitignored, untracked path | The file copied from core into the rebuild worktree | `hatsu:kagutsuchi` → `nen wc worktree --copy-from-core` |
 | `fromCore[].why` | string | prose | Why it lives only in the maintainer's checkout | the report |
 
 ### `project.kind`

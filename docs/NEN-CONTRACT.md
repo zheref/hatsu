@@ -50,6 +50,41 @@ omission is exit `2`, a broken declaration. Its policy half, [`nen/workflow.json
 **validated by nen at the pinned build** — the second `ok` row above, with a malformed key reported as a
 FAIL by pointer — and [`docs/WORKFLOW.md`](WORKFLOW.md) documents both.
 
+## Bootstrap integrity and ownership
+
+Hatsu owns the reviewed `dependency.bootstrap.scriptSha256` pin and its
+`scriptSha256Provenance` record beside the per-platform binary `sha256` map. Nen 0.28
+preserves these raw keys; its typed bootstrap schema validates the URL and source path only.
+A green `nen schema check` therefore does not establish digest policy. Hatsu's host binder
+rejects a missing or malformed script pin and checks downloaded bytes before Bash runs.
+The fixture checks reviewed provenance against
+the ref, source path and script digest. Typed metadata extraction and producer binding for readiness
+activation remain deferred.
+The Cursor Cloud Build verifies the script before Bash and the binary against the independent
+contract platform digest before linking or executing it. Readiness integrity is a two-step landing
+under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). This
+preparer accepts both the existing rendered workflow and the proposed integrity form as separate
+exact shapes. The tracked readiness template remains unchanged; activating its script and binary
+checks requires a separate PR after the preparer reaches `main`, with a typed metadata reader and
+validated producer/pin binding. This preparer adds no unused digest reader to Tenkai. The prepared
+form is exercised synthetically, so those tests do not claim readiness activation is delivered.
+
+For the current pin, the script digest was computed from the exact `bootstrap/nen.sh` blob at
+reviewed Nen tag `v0.28.0`, commit `21b133a21498ac5bea88dd9c8634cc217549e1fc`:
+`abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70`.
+Repins review the source commit and script bytes independently of the download being verified,
+then update the ref, script digest/provenance, binary digest map and Cloud example together.
+A digest fetched beside an artifact from the same release is not independent review evidence.
+
+Until Nen binds a required status to its producing workflow and App, a check name alone is
+insufficient producer evidence. The Hatsu consumer workaround is a `pull_request_target`
+workflow whose executable guard comes from its trusted base/workflow revision; the event's
+selected PR head is data only. Keep the trusted-base preflight and exact event-head checks.
+Producer workflow/App binding remains a Nen-owned gap tracked by
+[zheref/nen#546](https://github.com/zheref/nen/issues/546); bootstrap producer metadata remains
+[zheref/nen#407, item 8](https://github.com/zheref/nen/issues/407). This bootstrap change does not
+implement either policy, and `$`-prefixed metadata cannot enforce it.
+
 ## The range
 
 *Current pin, echoed for convenience:* **`nen >= 0.28`**, with the bootstrap installing **`v0.28.0`**.

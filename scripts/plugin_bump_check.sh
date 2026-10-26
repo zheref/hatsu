@@ -212,6 +212,47 @@ fi
 #                       run from `$hatsu_root/scripts/` before every PR body write
 #                       and after every open and edit; a stale copy refuses every
 #                       consumer's body (it read the template from the target).
+#   scripts/pr_body_sections_check.sh
+#                     — shibari § 4's section guard, run from
+#                       `$hatsu_root/scripts/` before every PR body write; a stale
+#                       copy accepts a body whose required sections have drifted.
+#   scripts/pr_sections_resolve.sh, scripts/pr_sections.ts
+#                     — the shared PR-SECTIONS procedure reached by tensho runs
+#                       the resolver from the installed root; both it and the
+#                       body-section guard execute the adjacent TypeScript engine.
+#                       A stale copy resolves or checks the wrong body contract.
+#   scripts/gh_api_read.mts
+#                     — the fixed-query GitHub reader used from the installed root
+#                       by build, sharingan, spiritual-message, cleanup and file; a
+#                       stale copy can read the wrong remote fact or admit a query
+#                       the current helper refuses.
+#   scripts/plugin_bump_api_retry.mts
+#                     — the trusted plugin-bump workflow's fixed-endpoint GitHub
+#                       reader. A stale copy loses its bounded retry and can turn a
+#                       body-only edit red on a transient API response.
+#   scripts/config_values.sh
+#                     — ten and the configuration-owning skills run it from
+#                       `$hatsu_root/scripts/` to diagnose, require, read and write
+#                       declared values. It executes scripts/config_values.ts,
+#                       which in turn executes scripts/config_values_legacy.sh;
+#                       a stale copy anywhere in that chain applies obsolete
+#                       catalogue rules.
+#   scripts/futon_effort_record.mts
+#                     — en verifies Futon's issue/PR/head ownership record through
+#                       this installed-root helper before readiness; a stale copy
+#                       can accept a mismatched or stale effort.
+#   scripts/product_term_check.sh, scripts/private_name_named.txt
+#                     — bankai-rule runs the product-term guard from the installed
+#                       root, whose shim executes product_term_check.mts; file reads
+#                       the named public-repository list into its redaction ignore
+#                       file. Stale copies enforce stale code or data.
+#   scripts/provider_tag_commit.mts
+#                     — kuchiyose resolves and peels a provider tag through this
+#                       installed-root reader; a stale copy can compare a tag object
+#                       instead of the commit it names.
+#   scripts/port_rule_reserve.sh
+#                     — bankai-rule reserves and re-checks ruling ids through this
+#                       installed-root helper; a stale copy can admit a duplicate.
 #   scripts/idle_permissions_check.mts
 #                     — the idle batch's permission list (zheref/hatsu#453), run from
 #                       `$hatsu_root/scripts/` before an idle run's first claim with
@@ -254,11 +295,11 @@ fi
 #                       `$hatsu_root/scripts/` on an upload; a stale copy cuts
 #                       the wrong ref or refuses the right one.
 #   scripts/send_freshness_check.sh
-#   scripts/kagutsuchi_worktree.sh
-#                     — kagutsuchi § 3a's freshness gate and § 3b's clean
-#                       worktree (v0.64.0), both run from `$hatsu_root/scripts/`
-#                       before every `--run`; a stale copy sends an archive
-#                       the gate should refuse, or rebuilds in the wrong tree.
+#                     — kagutsuchi § 3a's freshness gate, run from
+#                       `$hatsu_root/scripts/` before every `--run`; a stale
+#                       copy sends an archive the gate should refuse. Section
+#                       3b's clean worktree is now the pinned `nen wc worktree`
+#                       verb, not a plugin runtime script.
 #                       From v0.66.0 this matters twice over: Codex installs
 #                       Hatsu by COPYING the checkout into a slot keyed on this
 #                       version, so an unbumped script change never reaches it.
@@ -288,6 +329,15 @@ fi
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
 #                       included; a stale copy judges a review by old rules.
+#
+#   scripts/hanten_findings_check.mts, scripts/clause_id_guard.mts
+#                     — hanten section 6 runs the findings checker from the installed
+#                       root; it imports the clause guard's live ROSTER status parser
+#                       (zheref/hatsu#466). Their fixtures are test-only.
+#
+#   scripts/direct_matrix_doc.sh, scripts/direct_matrix_doc.mts
+#                     — the stable Direct matrix CLI forwards to the typed renderer
+#                       (HA341 compatibility preparer); keep both shipped halves current.
 #
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
@@ -336,7 +386,6 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/permissions_pack.sh'
   'scripts/dist_tag.sh'
   'scripts/send_freshness_check.sh'
-  'scripts/kagutsuchi_worktree.sh'
   'scripts/cleanup_path_admit.sh'
   'scripts/cleanup_path_admit.ts'
   'scripts/hatsu_surface_link.sh'
@@ -347,6 +396,12 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/private_name_check.sh'
   'scripts/bell_notify.sh'
   'scripts/tenkai_adopt.sh'
+  'scripts/tenkai_adopt.ts'
+  'scripts/tenkai_adopt_legacy.sh'
+  'scripts/tenkai_trailer_guard.mts'
+  'scripts/consumer_trailer_ci.mts'
+  'scripts/pr_sections_history.ts'
+  'scripts/config_values_refresh.ts'
   'scripts/release-publish.sh'
   'scripts/report_time.sh'
   'scripts/pr_body_evidence_check.sh'
@@ -355,8 +410,26 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/nen_reach_probe.sh'
   'scripts/pr_body_delivery_check.sh'
   'scripts/pr_delivery.ts'
+  'scripts/pr_body_sections_check.sh'
+  'scripts/pr_sections_resolve.sh'
+  'scripts/pr_sections.ts'
+  'scripts/gh_api_read.mts'
+  'scripts/plugin_bump_api_retry.mts'
+  'scripts/config_values.sh'
+  'scripts/config_values.ts'
+  'scripts/config_values_legacy.sh'
+  'scripts/futon_effort_record.mts'
+  'scripts/product_term_check.sh'
+  'scripts/product_term_check.mts'
+  'scripts/private_name_named.txt'
+  'scripts/provider_tag_commit.mts'
+  'scripts/port_rule_reserve.sh'
   'scripts/dependency_audit_resolve.mts'
   'scripts/shell_coverage.mts'
+  'scripts/hanten_findings_check.mts'
+  'scripts/clause_id_guard.mts'
+  'scripts/direct_matrix_doc.sh'
+  'scripts/direct_matrix_doc.mts'
   'scripts/idle_permissions_check.mts'
   'scripts/ledger_findings_prepare.mts'
   '.mcp.json'

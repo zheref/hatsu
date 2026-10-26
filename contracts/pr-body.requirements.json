@@ -33,6 +33,10 @@
     "content": true
   },
   {
+    "name": "hanten",
+    "pattern": "^ {0,3}##[ \\t]+Adversarial\\ review\\ \\(hanten\\)[ \\t]*$"
+  },
+  {
     "name": "checklist",
     "pattern": "^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Completion\\ checklist[ \\t]*$"
   },
