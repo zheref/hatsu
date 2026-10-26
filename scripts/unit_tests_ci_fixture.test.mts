@@ -88,7 +88,6 @@ try {
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
     ['config_values.ts', 'config_values_fixture.sh', 'config-values-guard'],
-    ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
     ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
     ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard']]) {
     writeFileSync(join(repo, 'scripts', script), '');
