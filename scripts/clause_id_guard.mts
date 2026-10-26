@@ -45,8 +45,7 @@
 //      index that could not be found is never an index that matched.
 //
 // Usage: node scripts/clause_id_guard.mts [<roster.md>]   (default docs/ROSTER.md)
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const DEFINITION = /<a id="hr-(\d+)"><\/a>\*\*HR-(\d+)\*\*/g;
@@ -289,5 +288,15 @@ export function main(argv: string[]): number {
   return 0;
 }
 
-const invoked = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (invoked) process.exit(main(process.argv.slice(2)));
+// argv keeps the installed alias spelling; module URLs resolve to the real file.
+let invoked = false;
+try {
+  invoked = process.argv[1] !== undefined && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  if (!invoked && import.meta.main === true) throw new Error('entry mismatch');
+} catch {
+  if (import.meta.main === true) {
+    console.error('clause-id-guard: cannot resolve CLI entry to this module');
+    process.exitCode = 2;
+  }
+}
+if (invoked) process.exitCode = main(process.argv.slice(2));

@@ -2,11 +2,11 @@
 // Hermetic focused fixture for the status-aware HR finding policy (HR-10,
 // HR-337). Each hostile criterion fails by finding id; unread input stays exit 2.
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { main as checkMain } from './hanten_findings_check.mts';
 
 export function runHantenFindingsFixture(): void {
@@ -186,6 +186,32 @@ try {
   schemaRefusal('a cyclic local ref is tooling exit 2', (schema) => { schema.$defs.loop = { $ref: '#/$defs/loop' }; }, /cannot read findings schema .*cyclic schema reference/);
   schemaRecord('an inherited constructor does not satisfy required', base('required-own-missing', 'UX-1'), 1, /invalid findings record: \$\.findings\[0\]\.constructor is required/);
   schemaRecord('an own constructor property satisfies required', { ...base('required-own-present', 'UX-1'), constructor: 'owned data' }, 0, /every HR-cited finding/);
+  // HA#417: installed directory/file aliases execute verdicts; library imports stay inert.
+  const validFile = join(scratch, 'alias-clean.json');
+  const invalidFile = join(scratch, 'alias-invalid.json');
+  writeFileSync(validFile, JSON.stringify({ scopes: [], findings: [base('alias-clean', 'HR-1')] }));
+  writeFileSync(invalidFile, JSON.stringify({ scopes: [], findings: [base('alias-invalid', 'HR-99')] }));
+  const validArgs = [validFile, roster];
+  const invalidArgs = [invalidFile, roster];
+  const directoryAlias = join(scratch, 'installed-scripts');
+  const fileAlias = join(scratch, 'guard-alias.mts');
+  symlinkSync(dirname(checker), directoryAlias, 'dir');
+  symlinkSync(checker, fileAlias);
+  for (const entry of [checker, join(directoryAlias, basename(checker)), fileAlias]) {
+    for (const [args, status] of [[validArgs, 0], [invalidArgs, 1]] as const) {
+      const result = spawnSync(process.execPath, [entry, ...args], { encoding: 'utf8' });
+      assert.equal(result.status, status, result.stdout + result.stderr);
+      assert.notEqual(result.stdout.trim(), '', 'a CLI verdict must execute through aliases');
+      assert.equal(result.stderr, '');
+    }
+    const imported = spawnSync(process.execPath, ['--input-type=module', '--eval',
+      'process.argv[1]="/missing/wrapper.mjs";await import(' + JSON.stringify(pathToFileURL(entry).href) + ');console.log("inert import")'], { encoding: 'utf8' });
+    assert.equal(imported.status, 0, imported.stderr);
+    assert.equal(imported.stdout, 'inert import\n');
+    assert.equal(imported.stderr, '');
+  }
+  cases += 1;
+  console.log('ok ' + cases + ' - real and aliased CLI verdicts execute and imports stay inert');
   console.log(`hanten-findings-check fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });

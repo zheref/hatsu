@@ -15,7 +15,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { after, beforeEach, test } from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   catalogue,
@@ -525,6 +525,80 @@ test("CLI keeps resolve/check flags, atomic requirements output, warning exit an
   writeFileSync(target, "[]\n"); symlinkSync(target, link);
   const linked = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", "machinery", "--policy-hit", "--out", link]);
   assert.equal(linked.status, 1); assert.match(linked.stderr, /symlink/);
+});
+
+test("CLI executes validate and body verdicts through directory and file symlink aliases", () => {
+  const aliases = fresh("ha417-entry-");
+  const rootAlias = join(aliases, "installed-hatsu");
+  const fileAlias = join(aliases, "catalogue-alias.ts");
+  symlinkSync(HATSU_ROOT, rootAlias, "dir");
+  symlinkSync(ENGINE, fileAlias);
+  const entries = [ENGINE, join(rootAlias, "scripts/pr_sections.ts"), fileAlias];
+  const expected = successful(process.execPath, [ENGINE, "validate"]);
+  assert.match(expected, /catalogue valid/);
+  const report = resolution();
+  const bodyFile = join(repo, "entry-body.md");
+  const requirements = join(repo, "entry-requirements.json");
+  writeFileSync(requirements, JSON.stringify(report.requirements));
+  for (const entry of entries) {
+    const validated = run(process.execPath, [entry, "validate"]);
+    assert.equal(validated.status, 0, validated.stderr);
+    assert.equal(validated.stdout, expected);
+    for (const [value, status, verdict] of [
+      [body(report), 0, /exact order and reader cap satisfied/],
+      [body(report) + "\n## Alias guard must reject this\n", 1, /Alias guard must reject this/],
+    ] as const) {
+      writeFileSync(bodyFile, value);
+      const checked = run(process.execPath, [entry, "check", "--body", bodyFile, "--requirements", requirements, "--max", "7"]);
+      assert.equal(checked.status, status, checked.stderr);
+      assert.match(checked.stdout, verdict);
+    }
+    const invalid = run(process.execPath, [entry, "--unknown"]);
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /usage: pr_sections/);
+  }
+});
+
+test("library imports remain inert for unrelated, missing and absent entry paths", () => {
+  const imported = pathToFileURL(ENGINE).href;
+  for (const argv1 of [undefined, join(repo, "missing-wrapper.mjs"), ENGINE + ".wrapper"]) {
+    const expression = argv1 === undefined ? "process.argv.splice(1)" : "process.argv[1] = " + JSON.stringify(argv1);
+    const result = run(process.execPath, ["--input-type=module", "--eval", expression + "; await import(" + JSON.stringify(imported) + "); console.log('library import completed')"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, "library import completed\n");
+    assert.equal(result.stderr, "");
+  }
+  const wrapper = join(repo, "wrapper.mjs");
+  writeFileSync(wrapper, "import " + JSON.stringify(imported) + "; console.log('wrapper completed');\n");
+  const result = run(process.execPath, [wrapper, "--unknown"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, "wrapper completed\n");
+  assert.equal(result.stderr, "");
+});
+
+test("hosts without import.meta.main refuse explicitly instead of silently passing", () => {
+  const loader = join(repo, "missing-entry-metadata-loader.mjs");
+  // Exercise the runtime capability hole independently of the installed Node version.
+  // The loader removes only this module's entry metadata, leaving its real CLI execution intact.
+  writeFileSync(loader, "export async function load(url, context, nextLoad) { const result = await nextLoad(url, context); if (url === " + JSON.stringify(pathToFileURL(ENGINE).href) + ") result.source = String(result.source).replace('typeof import.meta.main', 'typeof undefined'); return result; }\n");
+  const preload = join(repo, "missing-capability-entry.mjs");
+  writeFileSync(preload, "process.argv[1] = " + JSON.stringify(join(repo, "missing-entry.ts")) + ";\n");
+  for (const args of [[ENGINE, "validate"], ["--import", preload, ENGINE, "validate"]]) {
+    const result = run(process.execPath, ["--no-warnings", "--loader", loader, ...args]);
+    assert.equal(result.status, 1, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /^pr sections: unsupported Node runtime: import\.meta\.main is required[^\n]*\n$/);
+  }
+});
+
+test("an unresolved CLI entry fails closed with one diagnostic", () => {
+  const preload = join(repo, "unresolved-entry.mjs");
+  // Simulate an entry disappearing after Node loaded it but before the module guard runs.
+  writeFileSync(preload, "process.argv[1] = " + JSON.stringify(join(repo, "missing-entry.ts")) + ";\n");
+  const result = run(process.execPath, ["--import", preload, ENGINE, "validate"]);
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "pr sections: cannot resolve CLI entry to this module\n");
 });
 
 test("all human CLI diagnostics strip terminal controls and invisible formatting", () => {
