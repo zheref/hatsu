@@ -138,7 +138,7 @@ The read-back is **explicit**, quoted; an amend quotes its comment.
 PR at the target's **G2**, *Associated issues* naming the port issue (closing) and the source PR
 (reference); its readiness quotes **the convergence table** beside `nen pr ready` (spec-repo.md
 § *The convergence table at readiness*: a row whose state is not `current` is not ready, quoted; an
-uncomputed table reads *could not read*, never converged); **hiraishin holds build's phase 6** (the wrap-up, asked once; en § 8's `rikugan` renders as
+uncomputed table reads *could not read*, never converged); **hiraishin holds build's phase 6** (the wrap-up, asked once cleanup § 2's prerequisites hold; en § 8's `rikugan` renders as
 usual), a build's end read as *conventions* say. **The rulings PR opens once, at the run's end**, through
 `bankai-rule` and `mukai`, never draft — whenever a ruling was recorded, drops included; none recorded, none
 opened. The landing report names it, the citations it replaces, Hatsu's repin and the target's pin

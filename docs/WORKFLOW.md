@@ -795,15 +795,17 @@ default. § *Idle batches* is the protocol.
 Applied: every ask-once row resolves `default` where it stars an option; `publish-offer` stays `refuse` (a
 published release cannot be taken back); a row that stars no option has no derived default and `hold`s
 (`missing-maintainer-choice` by HR-4's never-derived rule, and the rows whose answer is a pick among
-named things); `cleanup-plan` `default` is its starred *apply the deterministic rows*, read as this
-session's deterministic rows only; a merge into `main` is never a row — it is a hard limit — and an idle
+named things); `wrap-up` and `cleanup-plan` are `refuse`, `publish-offer`'s shape ([HR-366](ROSTER.md#hr-366), ruled
+2026-10-26, answer record `R-2026-10-26-09`): an unattended run never meets `wrap-up`'s second prerequisite, the
+maintainer's declared satisfaction, so an idle run neither offers nor runs cleanup, and the two rows join the floor
+`start` enforces; a merge into `main` is never a row — it is a hard limit — and an idle
 run always takes futon § 5's integration-branch shape; every decision taken on the maintainer's behalf is
 listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age and tokens are advisory
 (confirmed the same day).
 
 | Key | Default | Read by |
 |---|---|---|
-| `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` where it stars none (`missing-maintainer-choice`, `port-drift`, `intake-challenger`, `port-siblings`, `spec-slice`, `spec-clarify`, `spec-dispatch`), `publish-offer` `refuse` — the ruling of 2026-10-23 above, which lifts the holds of 2026-10-22 on `harness-attribution-switch`, `host-nen-link`, `cleanup-plan` and the starred `spec-*` rows | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name takes the same resolution (starred → `default`, else `hold`; `publish-offer` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer` is always `refuse`; `missing-maintainer-choice` is at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. An act a `default` leads to that the harness refuses parks as `g5-harness-denied`, never retried another way. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the ownership record's `idle.source`, the resolutions as nen's manifest's `idleAnswers`, which `start` refuses unless nen stored exactly the map it sent |
+| `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` where it stars none (`missing-maintainer-choice`, `port-drift`, `intake-challenger`, `port-siblings`, `spec-slice`, `spec-clarify`, `spec-dispatch`), `publish-offer`, `wrap-up` and `cleanup-plan` `refuse` — the ruling of 2026-10-23 above, which lifts the holds of 2026-10-22 on `harness-attribution-switch`, `host-nen-link` and the starred `spec-*` rows, and [HR-366](ROSTER.md#hr-366) (2026-10-26) for the two cleanup rows | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name takes the same resolution (starred → `default`, else `hold`; `publish-offer`, `wrap-up` and `cleanup-plan` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer`, `wrap-up` and `cleanup-plan` are always `refuse` (HR-5; [HR-366](ROSTER.md#hr-366)); `missing-maintainer-choice` is at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. An act a `default` leads to that the harness refuses parks as `g5-harness-denied`, never retried another way. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the ownership record's `idle.source`, the resolutions as nen's manifest's `idleAnswers`, which `start` refuses unless nen stored exactly the map it sent |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: under the ruling of 2026-10-23 every effort is merged into the run's **non-main integration branch** (futon § 5's shape, always, never a picker) and the integration PR stands Ready at the maintainer's merge prompt; `ready-at-prompt` stops short of the integration merge. **Never `main`** (only the maintainer merges there), never `getsuga` or `mugetsu` |
 | `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum, read from the usage home § *The effort's ledgers* names by nen version: at nen 0.28 (the pin) every effort's ledger shares the git common directory, which `--repo` reaches from any checkout, so the sum is readable from one worktree; whether the token bound is then **enforced** or stays **advisory** (reported, never summed by hand, as it was while each worktree held its own ledger below the pin and `tokensUnread` was the answer) is a ruling owed, not read here — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
 
@@ -1301,10 +1303,15 @@ invocation; only Futon may run `start`, `resume`, `integrate` and `end`, and En 
 helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
 
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
-The **wrap-up picker** at every session delivery — a PR at `en` § 5's merge prompt or merged, a composite's run
-ending — asks once (row `wrap-up`): ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
+The **wrap-up picker** asks once (row `wrap-up`), and only when **both** of [`cleanup`](../claude/skills/cleanup/) § 2's
+prerequisites hold ([HR-366](ROSTER.md#hr-366), zheref/hatsu#480): every PR in the sitting's scope reads `MERGED` live
+(unread never counts; a PR the maintainer closed unmerged leaves the scope, [HR-367](ROSTER.md#hr-367)) **and** the maintainer has explicitly declared the sitting satisfied —
+readiness, a merge prompt, a composite's run ending, a merge alone, silence or a default never supply that: ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
 [`third-hand`](../claude/skills/third-hand/) in parallel · continue iterating; `cleanup` is **required after a
-completed session**, `third-hand` optional, and neither is a phase of the five. And [`kazaana`](../claude/skills/kazaana/)
+completed session**, `third-hand` optional, and neither is a phase of the five. When a terminus finds a prerequisite
+missing it names it with the resume words; a later declaration of satisfaction in the maintainer's own message has
+Kurapika as main session re-read every scoped PR live and ask once when all read `MERGED`; no agent solicits that
+declaration; a maintainer-typed `hatsu:cleanup` is their own word and runs under cleanup § 1, not this offer. And [`kazaana`](../claude/skills/kazaana/)
 § 6 asks once, after the tag it cut resolves on origin, whether `mugetsu` should publish it (row `publish-offer`,
 no option starred): the affirmative answer is the maintainer's own go, form (4) of `mugetsu` § 0, quoted verbatim;
 neither offer ever names `aka`, `mukai`, the merge or `kagutsuchi`.
@@ -1657,9 +1664,9 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    `closed` — under `--idle` an included issue's delivery is the integration PR (rule 6); with any `held-*`, it is **incomplete**: the closing report and the Rikugan `register` list each
    held delivery with its three facts, and `final` is never rendered over it. **When the run ends is futon
    § 10's**: an attended run stays open while a delivery stands `ready` at its prompt and ends once none is
-   `driving` and every delivery is `merged`, `closed` or held; an idle run ends at `idle.terminal`. The wrap-up
-   picker is asked only after the run ends, never while a delivery is `driving`, and an incomplete end says so
-   in the question.
+   `driving` and every delivery is `merged`, `closed` or held; an idle run ends at `idle.terminal`. The wrap-up is
+   offered only once cleanup § 2's prerequisites hold (row `wrap-up`): an incomplete end offers none, and its
+   report names the held deliveries as the unmet prerequisite.
 4. **Unattended means integration.** One Futon run reads one repository and one base, so it has exactly **one
    integration branch** — recorded at its cut by `futon_effort_record.mts integrate --run <id> --branch
    <branch>`, which refuses a second branch and the default branch — and **one integration-to-main PR**
@@ -1760,8 +1767,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    each effort `held-gate`, § *Batch delivery* rule 4's reading). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
    `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host scheduler may
    re-invoke the build, never a release. The steady-state schedule is [`config/schedule.md`](config/schedule.md)'s; its
-   tasks are registered only by the maintainer. `cleanup` runs its deterministic rows for this session only
-   (`cleanup-plan` → `default`); a proposed row is never applied unattended.
+   tasks are registered only by the maintainer. `cleanup` **never runs**: the maintainer's declared satisfaction,
+   `wrap-up`'s second prerequisite, cannot be met unattended ([HR-366](ROSTER.md#hr-366), ruled 2026-10-26), so `wrap-up`
+   and `cleanup-plan` are `refuse` on the floor and the row is never reached; the run's report names the wrap-up as not offered.
 6. **One manifest, one gate.** Every run `start` opens has one nen manifest, and futon § 8's `then` gate,
    kazaana § 5 and the register read it through `nen run verify` — every opened PR and every parked effort.
    Hatsu's ownership record beside it carries no PR set and no park (§ *Recorded Futon delivery ownership*).

@@ -1,6 +1,6 @@
 ---
 name: build
-description: Take one issue from wherever it sits to a delivery PR standing ready at its human gate. Use when the maintainer invokes hatsu:build <CODE>#<issue>, or asks to build, start, release or deliver an issue. Kurapika confirms the mode and executes the canonical Hatsu protocol — `ten` -> `classify` (when the issue is unclassified) -> `direct` (the recommended model, surface and effort; a mismatch with this session asks once and never blocks) -> `ren` (`breath` -> `rasengan` -> `kokusen` -> `amaterasu` -> `spiritual-message` -> `jutaisho`) -> `aka` -> `mukai` -> `en` -> `rikugan` -> the wrap-up (`cleanup`, `third-hand` optional) — delivering a CON-32-ready PR at its human gate, escalating any stuck effort to G5. Never merges, never applies a G1 mode label.
+description: Take one issue from wherever it sits to a delivery PR standing ready at its human gate. Use when the maintainer invokes hatsu:build <CODE>#<issue>, or asks to build, start, release or deliver an issue. Kurapika confirms the mode and executes the canonical Hatsu protocol — `ten` -> `classify` (when the issue is unclassified) -> `direct` (model, surface, effort; a mismatch asks once, never blocks) -> `ren` -> `aka` -> `mukai` -> `en` -> `rikugan` -> the wrap-up (`cleanup`, `third-hand` optional) — delivering a CON-32-ready PR at its human gate, escalating any stuck effort to G5. Never merges, never applies a G1 mode label.
 ---
 
 # Build — from an issue to a PR standing at the gate
@@ -17,7 +17,7 @@ ladders): building an issue runs the local-plane pipeline — [`ten`](../ten/SKI
 model, surface and effort against this session's, [`ren`](../ren/SKILL.md) authors and verifies,
 [`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures coverage and opens the PR (pickers: jutaisho § 4),
 [`en`](../en/SKILL.md) drives it to readiness, [`rikugan`](../rikugan/SKILL.md) renders the delivered state,
-and [`cleanup`](../cleanup/SKILL.md) § 2 is offered.
+and [`cleanup`](../cleanup/SKILL.md) § 2 is offered once its prerequisites hold.
 
 **The phases this composite calls skip their own `## 0.`**
 ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4); the plugin root is
@@ -135,8 +135,8 @@ never rendered a second time by build; read-only, it advances nothing.
 
 ### Phase 6: the wrap-up — `cleanup`, with `third-hand` optional
 
-After En completes and rikugan has rendered, ask once through the picker ([`cleanup`](../cleanup/SKILL.md)
-§ 2, row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
+After En completes and rikugan has rendered, ask once, only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites
+hold, never at a merge prompt (row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
 continue, recorded (`nen stop answer`, WORKFLOW § 4); each runs only the pick.
 
 ## 5. Authority — what this run may and may not do

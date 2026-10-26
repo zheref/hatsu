@@ -18,7 +18,7 @@ plus the **six differences** this file owns (the maintainer's ruling of 2026-10-
 [`ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-10-13*): the selector read from the surface
 (§ 1), the unlabelled directed first (§ 2), parallel delegates on `direct`'s primary pick (§ 3), a PR the
 maintainer closed holding nothing (§ 5), a release proposal never the maintainer's to merge (§ 5), the
-publish offer after the tag (§ 6). The rest is futon's, cited, never restated. **The phases this
+publish offer after the tag (§ 6). The rest is futon's, cited. **The phases this
 composite calls skip their own `## 0.`** ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4).
 
 ## 1. Invocation — the selector is read, the go is typed
@@ -97,7 +97,7 @@ session runs `mukai` and `en` per PR, one at a time**: a subagent raises no suba
 reviewers, Illumi), and hanten § 4's reviewer checkouts are per persona. `en` is started per PR, never
 offered; **a delegate never asks the wrap-up**.
 
-**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6, never restated
+**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6
 (the maintainer's word: *"Use stacked PRs ONLY when necessary, otherwise target `main` directly"*).
 Kazaana's own clause (attended; `--idle` opens no per-effort PR, WORKFLOW § *Batch delivery* 4): **disjoint efforts are never stacked** — each cut from `origin/<branch.base>` and
 opened against it; efforts sharing a path form one stack (rule 1), cut in order from the
@@ -146,8 +146,8 @@ the maintainer, briefed, skipped or **held** with its three facts, **and** the `
 its gate**. The final report is
 [`rikugan`](../rikugan/SKILL.md) over this run's scope — issues, every PR, the proposal, the tag, the
 fan-out, the publish outcome — `final` only if every PR merged and the tag cut, else `register` with
-§ 4's plan. Then **kazaana, once, asks the wrap-up picker** ([`cleanup`](../cleanup/SKILL.md) § 2, row
-`wrap-up`). **Kazaana never resumes itself**; re-invoke it.
+§ 4's plan. Then **kazaana, once, asks the wrap-up picker**, only when [`cleanup`](../cleanup/SKILL.md) § 2's
+prerequisites hold (row `wrap-up`; never `--idle`). **Kazaana never resumes itself**; re-invoke it.
 
 ## Residue
 

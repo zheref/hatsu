@@ -29,7 +29,8 @@ there the PR belongs to En — and the still-active user turn only on the `autoE
 from the offer being its own turn — until Sharingan proves it Ready, or a concrete
 blocker/cap/terminal state/cancellation ends En's run. The merge is the maintainer's later act
 except for § 5's recorded Futon delivery exception. **This run does not harvest and does not clean.** When En has completed, the caller offers the
-**wrap-up** through the picker ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`; ruling 2026-10-13):
+**wrap-up** through the picker ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`; ruling 2026-10-13) — only under
+cleanup § 2's two prerequisites ([HR-366](../../../docs/ROSTER.md#hr-366)); a Ready PR at § 5's prompt meets neither:
 [`hatsu:cleanup`](../cleanup/SKILL.md), required, with [`hatsu:third-hand`](../third-hand/SKILL.md) optional
 beside it — separate skills, started after this file's protocol has returned, never as a step of En.
 
@@ -608,7 +609,7 @@ observed Ready success.
 
 **Do not start [`hatsu:cleanup`](../cleanup/SKILL.md) or [`hatsu:third-hand`](../third-hand/SKILL.md)
 from this file.** When this run has completed, the caller offers the wrap-up picker (cleanup § 2) after En has
-returned — `cleanup` required, `third-hand` optional. Cleaning and harvesting are those phases', not En's.
+returned, and only once cleanup § 2's two prerequisites hold — `cleanup` required, `third-hand` optional. Cleaning and harvesting are those phases', not En's.
 
 ## Residue
 
@@ -693,7 +694,7 @@ returned — `cleanup` required, `third-hand` optional. Cleaning and harvesting 
   pending.
 - **Never renders the final report while required CI or the owed current-head review round is pending**,
   and never gives a turn render a kept file (§ 8).
-- **Never starts cleanup or Third-Hand from inside this run.** The caller offers the wrap-up after En has completed.
+- **Never starts cleanup or Third-Hand from inside this run.** The caller offers the wrap-up after En has completed, only once cleanup § 2's two prerequisites hold.
 - **Never retries past a human gate**, and never spends the rest of the cap re-driving past a
   `sharingan` escalation (§ 4).
 - **Never restates another skill's protocol.** If en and a composed skill disagree, the composed

@@ -150,7 +150,7 @@ amendment PR and fills the ledger's `PR` cell at the build's end; sequencing per
 `bankai-rule` opens the run's one rulings PR where a `port-drift` ruling was recorded (#355); then
 [`rikugan`](../rikugan/SKILL.md) `for <the spec and amendment PRs, every port issue and PR> as register`, each `nen pr
 ready` verdict quoted, **a port PR's beside its convergence table** (spec-repo.md § *The convergence
-table at readiness*, a not-ready row quoted); `next: done`; the wrap-up once (row `wrap-up`). Unpicked issues: named with their
+table at readiness*); `next: done`; the wrap-up once (cleanup § 2's prerequisites; row `wrap-up`). Unpicked issues: named with their
 recommended surface and restart line.
 
 **`--dry-run`** runs § 1, § 2's report, the § 3 folder plan, the sibling list and each filing plan, then
