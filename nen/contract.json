@@ -275,7 +275,7 @@
       "direct-matrix-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/direct_matrix_doc.sh, which renders docs/DIRECT-MATRIX.md -- the human-readable mirror of every decision hatsu:direct makes -- from contracts/direct.registry.json, contracts/classify.taxonomy.json and nen/workflow.json -> models. Same one-lane-per-executable-guard pattern as tenkai-guard: its argv is the guard's own --self-test. This lane guards that the RENDERING is fresh and, from 2026-10-05, that the registry's own stated invariants hold over every cell (picks.fallbackRule, every alias's line and escalation, no frontier primary, every companion job routed, every list price sourced); the data's own invariants are canon-contracts-guard's, nen's validators run as a lane (zheref/hatsu#223, ruled 2026-10-13)."
+        "$comment": "The focused lane for the typed Direct matrix renderer and stable shell CLI (HA341 compatibility preparer), preserving docs/DIRECT-MATRIX.md byte for byte. The original CI-boundary fixture remains; new typed-engine cases run authoritatively in pinned Vitest with one worker, then the same exported cases replay under native Node only for exact-source LCOV. Its rule invariants remain the fallback rule, model lines/escalations, no frontier primary, routed companions and sourced list prices. Canon data invariants still belong to canon-contracts-guard and Nen."
       },
       "workflow-policy-guard": {
         "stack": "claude-code-plugin",
@@ -426,7 +426,7 @@
           "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
         },
         "coverage": {
-          "unsupported": "The plugin lane has no aggregate test run, so it has nothing to capture. The executable shell guards under scripts/ are measured on their focused fixture lanes: a measured lane's test row runs its fixture under the pinned Bashcov and writes coverage/<lane>/lcov.info, read with `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148); a lane Bashcov cannot measure yet seats its own coverage row with the reason. Most TypeScript guards under scripts/ still have no line-coverage declaration: an unmeasured gap, never a clean zero, and byakugan reports those files as `not measurable here`. The criteria lane is the narrow exception: Node's built-in test coverage writes LCOV for hanten_findings_check.mts and the status parser it reuses from clause_id_guard.mts. Neither gap nor exception moves the 80/85/90 ladder in nen/workflow.json. Gyo is linting."
+          "unsupported": "The plugin lane has no aggregate test run, so it has nothing to capture. The executable shell guards under scripts/ are measured on their focused fixture lanes: a measured lane's test row runs its fixture under the pinned Bashcov and writes coverage/<lane>/lcov.info, read with `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148); a lane Bashcov cannot measure yet seats its own coverage row with the reason. Most TypeScript guards under scripts/ still have no line-coverage declaration: an unmeasured gap, never a clean zero, and byakugan reports those files as `not measurable here`. The criteria and direct-matrix-guard lanes are the measured TypeScript exceptions: native Node replay writes exact-source LCOV for hanten_findings_check.mts, its reused clause_id_guard.mts parser, and direct_matrix_doc.mts. Neither the remaining gaps nor these exceptions move the 80/85/90 ladder in nen/workflow.json. Gyo is linting."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
@@ -1046,13 +1046,64 @@
       },
       "direct-matrix-guard": {
         "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "scripts/direct_matrix_ci_fixture_check.mts"
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/direct-matrix-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "scripts/direct_matrix_ci_fixture_check.mts"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "scripts/direct_matrix_doc_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/direct_matrix_doc.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/direct-matrix-guard/lcov.info",
+                "scripts/direct_matrix_doc_coverage.test.mts"
+              ]
+            }
           ],
-          "$comment": "Hermetic and offline: the TypeScript fixture first runs the existing renderer --self-test, then verifies the trusted CI adapter on the current page and with hostile workflow-command output at exit 0, 1 and 2. Run it as `nen shu test --lane direct-matrix-guard --repo <hatsu>` when the registry, taxonomy, models, page, renderer, CI adapter or fixture changes; the trusted surface-mirror-check.yml PR job also runs --check on every PR, including data-only edits (zheref/hatsu#234). The stronger `bash scripts/direct_matrix_doc.sh --verify` asks pinned nen direct resolve about every printed claim, so every nen repin PR runs it with the new pin and quotes the agreement line."
+          "artifacts": [
+            "coverage/direct-matrix-guard/lcov.info"
+          ],
+          "$comment": "The legacy CLI/CI-boundary fixtures run first. Authoritative pinned Vitest then runs the typed engine shape/reference/JSON/UTF-8/prototype/CLI fixtures and legacy rule edges with one worker. The same exported cases replay in-process under native Node solely for exact-source LCOV; no coverage is inherited or claimed from Vitest children. Requires locked dependencies (npm ci --ignore-scripts), Node 24 and pinned Nen for the separate --verify agreement proof. scripts/unit_tests_ci.mts requires the Vitest fixture whenever the new engine exists (BC-9). Registry values, models and the generated page remain unchanged in this preparer, Part of HA341. The trusted surface-mirror-check.yml PR job continues to invoke the stable wrapper through its existing adapter."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/direct-matrix-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing direct-matrix-guard LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty direct-matrix-guard LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/direct-matrix-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the nonempty LCOV written by the focused test row and runs no fixture. Nen owns parsing and --from-capture provenance."
         }
       },
       "workflow-policy-guard": {
@@ -1715,6 +1766,13 @@
           "value": "node_modules/vitest/vitest.mjs",
           "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
         }
+      ],
+      "direct-matrix-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with npm ci --ignore-scripts first. The typed renderer fixture is authoritative in the existing pinned Vitest; native Node replay is supplemental coverage only."
+        }
       ]
     },
     "hosts": {
@@ -1739,7 +1797,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_doc.mts and scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",

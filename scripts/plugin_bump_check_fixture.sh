@@ -51,6 +51,8 @@ printf '%s\n' 'scripts/dependency_audit_resolve.mts' > "$fixture_root/changed-de
 printf '%s\n' 'scripts/shell_coverage.mts' > "$fixture_root/changed-shell-coverage.txt"
 printf '%s\n' 'scripts/hanten_findings_check.mts' > "$fixture_root/changed-hanten-findings.txt"
 printf '%s\n' 'scripts/clause_id_guard.mts' > "$fixture_root/changed-clause-parser.txt"
+printf '%s\n' 'scripts/direct_matrix_doc.sh' > "$fixture_root/changed-direct-matrix-shim.txt"
+printf '%s\n' 'scripts/direct_matrix_doc.mts' > "$fixture_root/changed-direct-matrix-engine.txt"
 printf '%s\n' 'scripts/send_freshness_check.sh' > "$fixture_root/changed-freshness.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.sh' > "$fixture_root/changed-cleanup-path-admit.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.ts' > "$fixture_root/changed-cleanup-path-admit-ts.txt"
@@ -110,6 +112,9 @@ run_case 'dependency audit resolver unchanged version' 1 "$fixture_root/changed-
 # ten's `nen shu tools --repo <hatsu_root>` runs the bash row's probe out of the installed copy (#148).
 run_case 'shell coverage helper unchanged version' 1 "$fixture_root/changed-shell-coverage.txt" "$fixture_root/head-unchanged.json" 'scripts/shell_coverage.mts'
 run_case 'Hanten findings checker unchanged version' 1 "$fixture_root/changed-hanten-findings.txt" "$fixture_root/head-unchanged.json" 'scripts/hanten_findings_check.mts'
+run_case 'Direct matrix shim unchanged version' 1 "$fixture_root/changed-direct-matrix-shim.txt" "$fixture_root/head-unchanged.json" 'scripts/direct_matrix_doc.sh'
+run_case 'Direct matrix engine unchanged version' 1 "$fixture_root/changed-direct-matrix-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/direct_matrix_doc.mts'
+run_case 'Direct matrix engine bumped version' 0 "$fixture_root/changed-direct-matrix-engine.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 run_case 'Hanten roster parser unchanged version' 1 "$fixture_root/changed-clause-parser.txt" "$fixture_root/head-unchanged.json" 'scripts/clause_id_guard.mts'
 run_case 'freshness gate script unchanged version' 1 "$fixture_root/changed-freshness.txt" "$fixture_root/head-unchanged.json" 'scripts/send_freshness_check.sh'
 run_case 'cleanup path admission script unchanged version' 1 "$fixture_root/changed-cleanup-path-admit.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.sh'

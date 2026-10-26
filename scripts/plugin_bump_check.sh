@@ -328,6 +328,10 @@ fi
 #                       root; it imports the clause guard's live ROSTER status parser
 #                       (zheref/hatsu#466). Their fixtures are test-only.
 #
+#   scripts/direct_matrix_doc.sh, scripts/direct_matrix_doc.mts
+#                     — the stable Direct matrix CLI forwards to the typed renderer
+#                       (HA341 compatibility preparer); keep both shipped halves current.
+#
 # Deliberately NOT covered — nothing installed reads them at run time:
 #   README.md, docs/ab/** (the evidence records; read by humans on GitHub, never
 #   by an installed copy), and every other scripts/** entry — the fixtures
@@ -411,6 +415,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/shell_coverage.mts'
   'scripts/hanten_findings_check.mts'
   'scripts/clause_id_guard.mts'
+  'scripts/direct_matrix_doc.sh'
+  'scripts/direct_matrix_doc.mts'
   '.mcp.json'
 )
 

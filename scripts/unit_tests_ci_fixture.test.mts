@@ -88,7 +88,9 @@ try {
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
     ['config_values.ts', 'config_values_fixture.sh', 'config-values-guard'],
-    ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer']]) {
+    ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
+    ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
+    ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard']]) {
     writeFileSync(join(repo, 'scripts', script), '');
     result = run();
     assert(result.status === 2 && result.stderr.includes(`${script} has no required fixture`), `missing ${lane} fixture did not refuse`);
@@ -100,6 +102,9 @@ try {
     calls = readFileSync(log, 'utf8').trim().split('\n');
     assert(calls.join(',') === expected, `${lane} lane not selected (BC-9)`);
   }
+
+  result = run({ HATSU_FAIL_LANE: 'direct-matrix-guard' });
+  assert(result.status === 1 && result.stderr.includes('direct-matrix-guard failed'), 'failing direct-matrix-guard was not red (HA341)');
 
   // The tenkai engine is its own fixture (--self-test), so its lane is selected by the script alone,
   // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427).
