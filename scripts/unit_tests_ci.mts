@@ -58,6 +58,8 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // HA341: the compatibility renderer's malformed-data and trusted-boundary fixtures must run in CI.
   ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
   ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
+  // A delegate's brief carries WORKFLOW § Delegate briefs' wait block word for word (zheref/hatsu#473).
+  ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
