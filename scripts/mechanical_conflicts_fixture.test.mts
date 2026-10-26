@@ -19,22 +19,26 @@ const root = resolve(import.meta.dirname, '..');
 const nen = process.env.NEN || 'nen';
 const liveContract = JSON.parse(readFileSync(join(root, 'nen', 'contract.json'), 'utf8')) as { mechanical?: unknown };
 
-function run(cwd: string, exe: string, args: string[], env: NodeJS.ProcessEnv = process.env): Run {
+// One identity for every git the fixture or nen spawns: a GitHub-hosted runner has none, and nen's own
+// 'git merge' refused with "empty ident name" there (HA-PR-#483's unit-tests run 40369572869).
+const fixtureEnv: NodeJS.ProcessEnv = {
+  ...process.env,
+  GIT_CONFIG_GLOBAL: '/dev/null',
+  GIT_CONFIG_SYSTEM: '/dev/null',
+  GIT_AUTHOR_NAME: 'Hatsu fixture',
+  GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
+  GIT_COMMITTER_NAME: 'Hatsu fixture',
+  GIT_COMMITTER_EMAIL: 'fixture@example.invalid',
+};
+
+function run(cwd: string, exe: string, args: string[], env: NodeJS.ProcessEnv = fixtureEnv): Run {
   const result = spawnSync(exe, args, { cwd, encoding: 'utf8', env });
   if (result.error) throw result.error;
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 }
 
 function git(cwd: string, ...args: string[]): string {
-  const result = run(cwd, 'git', args, {
-    ...process.env,
-    GIT_CONFIG_GLOBAL: '/dev/null',
-    GIT_CONFIG_SYSTEM: '/dev/null',
-    GIT_AUTHOR_NAME: 'Hatsu fixture',
-    GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
-    GIT_COMMITTER_NAME: 'Hatsu fixture',
-    GIT_COMMITTER_EMAIL: 'fixture@example.invalid',
-  });
+  const result = run(cwd, 'git', args);
   if (result.status !== 0) throw new Error(`git ${args.join(' ')} failed (${result.status}): ${result.stderr}`);
   return result.stdout.trim();
 }
@@ -49,6 +53,10 @@ function conflictRepo(parent: string, name: string, includeOther: boolean): stri
   const repo = join(parent, name);
   git(parent, 'init', '--bare', '--initial-branch=main', origin);
   git(parent, 'clone', origin, repo);
+  // nen's own git reads the repository config, so the identity lives there too: a GitHub-hosted runner has none
+  // in its environment, and 'git merge' under nen refused with "empty ident name" (HA-PR-#483, runs 40369572869 and 40371479933).
+  git(repo, 'config', 'user.name', 'Hatsu fixture');
+  git(repo, 'config', 'user.email', 'fixture@example.invalid');
   write(repo, 'nen/contract.json', `${JSON.stringify({ $schema: 'nen.contract/v0.1', mechanical: liveContract.mechanical }, null, 2)}\n`);
   write(repo, '.claude-plugin/plugin.json', '{"version":"0.0.1"}\n');
   write(repo, 'changelog.d/415.md', 'base changelog\n');
