@@ -2392,6 +2392,10 @@ The maintainer ruled seven points for the catalogue-backed body:
    `CON-17(b)`'s observable proxy; no handbook amendment.
 3. <a id="hr-314"></a>**HR-314** (ruled) Consumer `nen/workflow.json → pr.sections` carries every default matrix cell; `$sections` beside
    it lists every available id and purpose. An edited cell becomes consumer-owned.
+   **Reading recorded 2026-10-25 (HA#370):** an unedited copied cell follows canon through explicit
+   refresh; an edited one stays the consumer's. The catalogue stamp and packaged history distinguish
+   those readings. Plain `fill` remains behaviour-neutral under the 2026-10-01 ruling; a missing or
+   unknown stamp supplies no ownership evidence. This records ruling 3's reading, not a new ruling.
 4. <a id="hr-315"></a>**HR-315** (ruled) Six work families and the full default matrix are adopted, over classify's five derived domains.
    [The catalogue](../contracts/pr-sections.json) owns the 39 job assignments, count fold and tie order;
    [PR-SECTIONS.md](PR-SECTIONS.md) renders the matrix and procedure.

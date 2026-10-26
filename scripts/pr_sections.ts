@@ -15,6 +15,7 @@ import {
 } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve as resolvePath, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkStamp } from './pr_sections_history.ts';
 
 export type RepositoryKind = "product" | "library" | "process" | "unknown";
 export interface SectionRow {
@@ -36,6 +37,7 @@ export interface SectionRow {
 }
 export interface Catalogue {
   readonly contract: "hatsu.pr-sections/v1";
+  readonly documentSha256: string;
   readonly max: number;
   readonly proseBudget: number;
   readonly preamble: readonly SectionRow[];
@@ -239,11 +241,12 @@ export function catalogue(root = ROOT): Catalogue {
   }
   if (preamble.length !== 1 || preamble[0]?.id !== "delivery") throw new Error("delivery must be the sole preamble block");
   if (footer.length === 0 || footer.at(-1)?.id !== "attribution") throw new Error("attribution must be the final footer");
-  return { contract: "hatsu.pr-sections/v1", max: raw.max, proseBudget: raw.proseBudget, preamble, sections, footer, families, precedence, variants };
+  const documentSha256 = checkStamp(raw);
+  return { contract: "hatsu.pr-sections/v1", documentSha256, max: raw.max, proseBudget: raw.proseBudget, preamble, sections, footer, families, precedence, variants };
 }
 
-export function defaults(cat: Catalogue): { max: number; variants: Catalogue["variants"] } {
-  return { max: cat.max, variants: cat.variants };
+export function defaults(cat: Catalogue): { max: number; variants: Catalogue["variants"]; $canon: { contract: string; sha256: string } } {
+  return { max: cat.max, variants: cat.variants, $canon: { contract: cat.contract, sha256: cat.documentSha256 } };
 }
 export function options(cat: Catalogue): Record<string, string> {
   return Object.fromEntries([...cat.preamble, ...cat.sections, ...cat.footer].map((row): [string, string] => [row.id, row.$comment]));

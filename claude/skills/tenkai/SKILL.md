@@ -191,7 +191,7 @@ either operation.
 | `workflow/<join>` in a product | **consumer configuration** | Checks toolchain, test selection and results, coverage, and visual evidence links across the declarations — § 6c |
 | `gates/retired-keys` | **Hatsu** | **Observation only.** Reads `nen/gates.json` for the two keys Hatsu kept for itself and the maintainer's ruling of 2026-10-04 retired (*retire 2, adopt 2*; zheref/hatsu#227): neither present is `satisfied`; `check_exclusions` or `reviewer_fallback` present is `drift`, named with the move — each `check_exclusions` row into nen's `checks.excluded` (a `condition:` `until` as `{condition}`), `reviewer_fallback` deleted, `round_quorum` replacing it — because nen refuses the file at exit `2` until they go. What nen reads (`checks.excluded`, `round_quorum`, `round_policy`) is `nen schema check`'s row, never re-validated here; the engine never rewrites a gate |
 | `workflow/review-scopes` | **consumer configuration** | Guide the owner through `review.scopes` when absent; validate with `nen schema check` before Hanten resumes |
-| `config/defaults` | **Hatsu** writes the canon default; the value is the consumer's once set | Every value [`contracts/config-catalogue.json`](../../../contracts/config-catalogue.json) gives a default is written out at it, and every fixed-set value carries its `$<key>` options — `apply` runs `config_values.sh fill` (§ 6d) |
+| `config/defaults` | **Hatsu** writes the canon default; the value is the consumer's once set | Every value [`contracts/config-catalogue.json`](../../../contracts/config-catalogue.json) gives a default is written out at it, and every fixed-set value carries its `$<key>` options — `apply` runs `config_values.sh fill --refresh` (§ 6d) |
 | `config/needed` | **consumer configuration** | A value a skill cannot run without and no default covers is `routed` to the owner's answer, asked in § 6d and written by `config_values.sh set`; `apply` never answers one |
 | `effort/review-ledger` | **Hanten** | On an active effort branch, diagnose the branch ledger or its PR-keyed ledger when one exists; multiple PR candidates route exact-key selection to Hanten. Hanten checks history and uses `recover-first --confirmed-first-cycle` only after the maintainer confirms no review ran under this key; otherwise restore used counts. Tenkai `apply` does not mint a review budget |
 
@@ -683,7 +683,7 @@ it, and any outside-platform setup — and one engine reads it:
 
 ```bash
 "$hatsu_root/scripts/config_values.sh" diagnose --repo <path> [--domain <d>] [--json]
-"$hatsu_root/scripts/config_values.sh" fill     --repo <path>      # on apply
+"$hatsu_root/scripts/config_values.sh" fill --refresh --repo <path> # on apply
 "$hatsu_root/scripts/config_values.sh" set      --repo <path> --id <id> --value <JSON literal>
 ```
 
@@ -703,6 +703,17 @@ canon file only when absent (`round_policy`, sharingan § 6); also read by nen, 
 differ (the `commits` trailer lists, `futon.advanceGo`); or structural and the repository's own
 (`models`, `reports.sections`, the gates identity blocks). `check-catalogue` holds every default against the key
 tables in WORKFLOW § 2, so the two statements of one default cannot drift apart unnoticed.
+
+**PR-section refresh (HA#370; ruling 3's reading of 2026-10-25).** Plain `fill` leaves a present
+`pr.sections` block byte-identical. Adoption explicitly uses `--refresh`: the `$canon` stamp and
+packaged catalogue history distinguish current defaults, stale defaults and consumer-owned cells;
+missing cells and retired ids are named. Only unedited defaults and missing cells advance; the cap
+and edited cells stay, with `$canon.owned` retaining ownership across stamps. An owned retired id or
+cell refuses at exit 1, naming it, before any write; unknown/malformed stamps refuse at exit 2.
+Unstamped refresh reports unknown provenance and retains every existing cell as explicitly owned,
+adding missing cells and stamping current canon. Diagnosis reports counts and both sha7s
+through `tenkai_adopt.sh --json`, without repair; Ten prints the finding in its inbox. See
+[`docs/PR-SECTIONS.md`](../../../docs/PR-SECTIONS.md) for the consumer procedure.
 
 **2 · Asked, by domain.** Work the rows in the catalogue's domain order (`contracts/config-catalogue.json` → `domains`; today development, versioning,
 testing, review, reporting, notifications, deployment, publishing, intake, port, autonomy, ci) — through § 6c's picker rules. **The `ci` rows are [`kuchiyose`](../kuchiyose/SKILL.md)'s, never asked or filled by Tenkai**: they carry `ownedBy`, so `diagnose`, `fill` and `need` never list them, and kuchiyose writes them only after its human-gate ask (row `ci-install-rulings`), the way the intake rows are Hatsu's own (the catalogue's *LISTED BUT HATSU-OWN* note):
@@ -814,7 +825,7 @@ State, out loud, in this order:
 - **Never reports an item it did not actually check**, and never re-derives one by eye that the
   engine reports.
 - **The engine never writes a `nen`-owned declaration, save § 6d's two writes**: `fill` (an absent
-  key at the catalogue's default and its `$<key>` options, into a file that already exists) and
+  key and its options, plus explicit `--refresh` of stamped, unedited PR-section defaults, into a file that already exists) and
   `set` (one value the maintainer answered, by catalogue id, after the step-2 question). The agent uses an
   available Nen verb or makes a scoped consumer configuration edit after the owner decision and
   § 6c/§ 6d validation.

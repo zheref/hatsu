@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
 import { catalogue, defaults, options } from './pr_sections.ts';
+import { history, readSections, summary, RefreshRefusal } from './pr_sections_history.ts';
+import { strictJson, refreshFill } from './config_values_refresh.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -17,6 +19,7 @@ function legacyArgumentValues(argv: string[]): Record<string, string> | undefine
   const values: Record<string, string> = {};
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--json') continue;
+    if (argv[i] === '--refresh') { values['--refresh'] = 'true'; continue; }
     if (['--repo', '--skill', '--id', '--value', '--domain'].includes(argv[i]) && i + 1 < argv.length) {
       values[argv[i]] = argv[++i];
       continue;
@@ -37,7 +40,7 @@ function confinedJson(repo: string, rel: string): any | undefined {
     const file = realpathSync(join(repo, rel));
     const fromRoot = relative(root, file);
     if (isAbsolute(fromRoot) || fromRoot === '..' || fromRoot.startsWith('../')) return undefined;
-    return JSON.parse(readFileSync(file, 'utf8'));
+    return strictJson(readFileSync(file, 'utf8'));
   } catch { return undefined; }
 }
 /** HA#246/NN#300: diagnose must agree with set and nen schema check on a standing deploy default. */
@@ -200,6 +203,16 @@ try {
   }
   // The engine's mode is the first forwarded token: --hatsu-root may come before it.
   mode = forwarded[0];
+  const parsedArgs = legacyArgumentValues(forwarded.slice(1));
+  const refresh = parsedArgs?.['--refresh'] === 'true';
+  if (refresh && mode !== 'fill') throw new Error('--refresh is supported only with fill');
+  // Strip only a parsed flag; an option-looking argument value is still consumed by its option.
+  if (refresh) {
+    for (let i = 1; i < forwarded.length; i++) {
+      if (forwarded[i] === '--refresh') { forwarded.splice(i--, 1); continue; }
+      if (forwarded[i] !== '--json') i++;
+    }
+  }
   const wantsJson = forwarded.includes('--json');
   const declaration = JSON.parse(readFileSync(join(root,'contracts/config-catalogue.json'),'utf8'));
   if (!Array.isArray(declaration.values)) throw new Error('configuration catalogue values must be an array');
@@ -216,6 +229,11 @@ try {
     declaration.values.push({id:'_pr.section-options',file:'nen/workflow.json',path:'pr.$sections',domain:'publishing',kind:'open',
       default:'available sections: '+Object.entries(options(cat)).map(([id,purpose])=>`${id} — ${purpose}`).join(' | '),
       readers:['shibari','tensho','jujisho'],requiredBy:[],describe:'Available PR section ids and purposes.'});
+    // Plain fill treats a present sections block as one owned value, including a missing max.
+    const repoArg = parsedArgs?.['--repo'];
+    if (repoArg && Object.hasOwn(confinedJson(resolve(repoArg), 'nen/workflow.json')?.pr ?? {}, 'sections')) {
+      declaration.values = declaration.values.filter((row: any) => row.id !== 'workflow.pr.sections.max');
+    }
   }
   if (mode === 'set') refuseExaminerReviewer(declaration.values, forwarded.slice(1));
   // HA#331: a row `ownedBy` a skill (the ci block, kuchiyose's) is written only through that skill's `set`,
@@ -231,7 +249,9 @@ try {
     writeFileSync(join(scratch,'contracts/config-catalogue.json'),JSON.stringify(declaration,null,2)+'\n');
     // Only source documentation and skill existence are consulted by the frozen engine.
     for (const entry of ['claude','docs']) if (existsSync(join(root,entry))) symlinkSync(join(root,entry),join(scratch,entry),'dir');
-    const run = spawnSync('bash',[join(here,'config_values_legacy.sh'),...forwarded,'--hatsu-root',scratch],{encoding:'utf8',maxBuffer:16*1024*1024});
+    if (refresh && (!parsedArgs || !parsedArgs['--repo'])) throw new Error('fill --refresh needs --repo <path> and valid arguments');
+    const run = refresh ? refreshFill(resolve(parsedArgs!['--repo']), cat, root, join(here,'config_values_legacy.sh'), scratch, forwarded)
+      : spawnSync('bash',[join(here,'config_values_legacy.sh'),...forwarded,'--hatsu-root',scratch],{encoding:'utf8',maxBuffer:16*1024*1024});
     if (run.error) throw run.error;
     let output = run.stdout || '';
     let defaultTargetInvalid = false;
@@ -244,12 +264,13 @@ try {
         const parsed = confinedJson(repo, 'nen/workflow.json') as { pr?: { sections?: any } } | undefined;
         if (parsed) {
           const value = parsed.pr?.sections;
-          if (cat && value && !isDeepStrictEqual(value, defaults(cat))) {
-            const changed = Object.entries(value.variants ?? {}).filter(([cell,ids])=>!isDeepStrictEqual(ids,cat.variants[cell])).map(([cell])=>cell);
-            const detail = `consumer value — pr.sections${changed.length ? ': '+changed.join(', ') : ''}; retained`;
+          const sectionDomain = declaration.values.find((row: any) => row.id === 'workflow.pr.sections')?.domain;
+          if (cat && value !== undefined && (!parsedArgs?.['--domain'] || parsedArgs['--domain'] === sectionDomain)) {
+            const reading = readSections(value, cat, history(root, cat));
+            const detail = summary(reading) + (reading.status === 'unstamped' ? '' : '; ' + reading.cells.map(cell => `${cell.cell}: ${cell.state}${cell.retiredIds.length ? ' (retired ids: '+cell.retiredIds.join(', ')+')' : ''}`).join('; '));
             if (wantsJson) {
               const document = JSON.parse(output);
-              for (const row of document.values ?? []) if (row.id === 'workflow.pr.sections') row.detail = detail;
+              for (const row of document.values ?? []) if (row.id === 'workflow.pr.sections') { row.detail = detail; row.prSections = reading; }
               output = JSON.stringify(document,null,2)+'\n';
             } else output += plain(detail)+'\n';
           }
@@ -259,11 +280,16 @@ try {
         defaultTargetInvalid = applied.applied;
       }
     }
+    if (refresh && !wantsJson) {
+      const result = JSON.parse(output);
+      output = `pr.sections: refreshed to ${cat.documentSha256.slice(0,7)}; ${result.prSections.detail}; ${result.prSections.kept.length ? 'consumer-owned retained: '+result.prSections.kept.join(', ') : 'no consumer-owned cells'}\n`;
+      output += `${result.wrote.length} write(s); ${run.status === 0 ? 'configured' : 'other configuration remains outstanding'}.\n`;
+    }
     process.stdout.write(wantsJson ? output : safeOutput(output));
     process.stderr.write(safeOutput(run.stderr || ''));
     process.exitCode = defaultTargetInvalid && run.status === 0 ? 1 : run.status ?? 2;
   }
 } catch (error) {
   process.stderr.write('config_values.sh: '+plain(error instanceof Error ? error.message : error)+'\n');
-  process.exitCode = 2;
+  process.exitCode = error instanceof RefreshRefusal ? 1 : 2;
 } finally { if (scratch) rmSync(scratch,{recursive:true,force:true}); }
