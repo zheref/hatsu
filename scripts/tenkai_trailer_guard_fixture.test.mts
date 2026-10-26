@@ -3,14 +3,15 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 
 const source = resolve(import.meta.dirname, '..');
 const relative = '.github/workflows/forbidden-commit-trailers.yml';
 const template = readFileSync(join(source, 'templates/forbidden-commit-trailers.yml'), 'utf8');
 const pin = '16ff11b07b69305cf6a420972ca3d3926b44be67';
-// The source is byte-identical to the released pin; the rendered step verifies
-// that digest again. This keeps the offline fixture independent of Git depth.
-const helper = { stdout: readFileSync(join(source, 'scripts/branch_authorship_check.sh'), 'utf8') };
+// Download stubs use exact published bytes, independently of mutable local code
+// and the checkout's Git depth. The publisher still verifies this digest.
+const helper = { stdout: readFileSync(join(source, 'scripts/fixtures/consumer-trailers/published-reader-v0.142.0.sh'), 'utf8') };
 function temp() { return mkdtempSync(join(tmpdir(), 'hatsu-trailers-')); }
 function run(repo: string, mode = 'diagnose') {
   const result = spawnSync(process.execPath, [join(source, 'scripts/tenkai_trailer_guard.mts'), mode, repo, source], { encoding: 'utf8' });
@@ -40,6 +41,10 @@ const document = JSON.parse(yaml.stdout);
 const job = document.jobs['trailer-policy-runner'];
 const publisher = readFileSync(join(source, 'scripts/consumer_trailer_ci.mts'), 'utf8');
 const check = job.steps.at(-1).run as string;
+
+test('offline reader bytes match the immutable published artifact', () => {
+  expect(createHash('sha256').update(helper.stdout).digest('hex')).toBe('d7cbb1dd4c6d8d5ff472b96922c5f5d3eda7fdcd69ea8e485becbfe8629e0da8');
+});
 
 test('workflow has one read-only job, exact base/head data, immutable verified reader and no PR code execution', () => {
   expect(Object.keys(document.on ?? document.true)).toEqual(['pull_request_target']);
