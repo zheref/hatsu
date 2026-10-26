@@ -120,8 +120,10 @@ const hostMissing = host.flatMap((line, i) => (have.has(line) ? [] : [i + 1]));
 for (const n of hostMissing) {
   console.log(`::error file=${briefPath}::delegate brief lacks host-block line ${n} of ${host.length} word for word (${canonPath} § Host workload budget): ${host[n - 1]}`);
 }
-// Brief text is escaped as a workflow-command message, so a `%` in it cannot forge an escape.
-const escape = (text: string): string => text.replace(/%/g, '%25');
+// Brief text is escaped as a workflow-command message the way the Actions toolkit does -- `%`, then `\r`
+// and `\n` -- so neither a `%` nor a lone CR inside a line (the brief splits on CRLF or LF, so a bare CR
+// survives) can forge a second command on the runner, which reads a CR as a line end.
+const escape = (text: string): string => text.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
 const turnLines = host.length > 0 ? briefLines.filter((line) => TURN_HEAD.test(line)) : [];
 const malformed = turnLines.filter((line) => !TURN.test(line));
 const turnsOk = host.length === 0 || (turnLines.length === 1 && malformed.length === 0);

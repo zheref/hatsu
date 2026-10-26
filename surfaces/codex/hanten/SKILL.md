@@ -93,7 +93,7 @@ Claude Code: parallel Agent reviewers, one per scope; `subagent_type` `hatsu:<pe
 description **`hanten · <persona> · <model alias>`**, model `models.<surface>.<tier>` from scope
 (WORKFLOW § `models`; omit if persona-pinned), `isolation` **omitted**. Prompt: checkout, scope,
 base, raising paths, quoted closing issues, § 5's shape, **absolute** preamble path (ECONOMICS.md
-too for `economics`), *"do not request a worktree"*, the host block (WORKFLOW § *Host workload budget*), `Heavy turn: withheld`, no wait block, ten § 2's pinned `nen: <path>` before every
+too for `economics`), *"do not request a worktree"*, the host block (WORKFLOW § *The host block a delegate brief carries*), `Heavy turn: withheld`, no wait block, ten § 2's pinned `nen: <path>` before every
 block: **no inherited `PATH`** (HA#107). Unresolvable: Nen checks **unread**; reviewer declares failures.
 
 ```bash
@@ -127,7 +127,6 @@ Sources (`<readout>` includes `counters unavailable`, never empty):
 Attested only: `; model-kind=served`; sessions need exposed title/id. Delta keeps § 2b's cap.
 Delivery accepts historical `<persona> delta, <readout>`; new deltas name the prior head.
 Malformed Hanten usage refuses with row and forms. Repair from evidence; never invent counts.
-Only cycle ledgers use PR keys.
 
 ## 5. One fixed finding shape
 

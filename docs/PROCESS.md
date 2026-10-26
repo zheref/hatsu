@@ -853,7 +853,8 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   -o pid,ppid,pgid,command`). On Codex the rule reaches a session through `agents/kurapika.toml` and the
   kazaana, futon and hanten skill mirrors, read whole; `AGENTS.md` sorts the personas by name, which
   puts Kurapika's copy past `project_doc_max_bytes`' 32 KiB, and placing it under the cap is owed to the
-  mirror generator, `nen surface mirror` (unfiled).
+  mirror generator, `nen surface mirror` (proposed: `<core>/.nen/proposed/nen-surface-mirror-codex-agents-cap.json`,
+  filed at the owning run's third-hand harvest).
 - **`tenkai` § 6d and `ten` § 6 step 5b.** Writing a declaration value — `scripts/config_values.sh`
   `fill` and `set`, a JSON span scanner that inserts in place — has no nen verb, and the `$<key>`
   option notes rely on nen reading every `$`-prefixed key as metadata, a convention its loaders follow
