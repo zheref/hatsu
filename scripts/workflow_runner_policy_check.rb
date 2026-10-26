@@ -1266,8 +1266,16 @@ REDACTION_FIXTURE_FROZEN = {
     bash .trusted/scripts/private_name_check_fixture.sh
   RUN
 }.freeze
+# HA#381 preparer: admit the pinned runtime before a later PR activates the
+# typed API reader. The current trusted base rejects any added step, so the
+# live workflow keeps its existing API implementation in this preparer.
+PLUGIN_BUMP_NODE_STEP = "Set up Node for plugin bump API reads"
+PLUGIN_BUMP_NODE_FROZEN = CANON_LINT_FROZEN_NODE.freeze
+PLUGIN_BUMP_API_STEP = "Compute changed files + base .claude-plugin/plugin.json (API — no git credential)"
+PLUGIN_BUMP_STEPS = EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP).freeze
+PLUGIN_BUMP_NODE_STEPS = PLUGIN_BUMP_STEPS.dup.insert(PLUGIN_BUMP_STEPS.index(PLUGIN_BUMP_API_STEP), PLUGIN_BUMP_NODE_STEP).freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
-  "plugin-bump-check.yml" => [EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP)],
+  "plugin-bump-check.yml" => [PLUGIN_BUMP_STEPS, PLUGIN_BUMP_NODE_STEPS],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
   # surface-mirror-check.yml: one shape again (the default row). zheref/hatsu#337's
   # two-step landing is complete, so the redaction fixture step's absence is refused.
@@ -2080,6 +2088,15 @@ def validate_workflow(path, hatsu: false)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_NODE_STEP }, CANON_LINT_FROZEN_NODE,
                           "#{path} #{CANON_LINT_NODE_STEP.inspect}")
       extra_uses = [CANON_LINT_NODE_USES]
+    end
+    if File.basename(path) == "plugin-bump-check.yml"
+      node_step = step_maps.find { |step| scalar(step["name"]) == PLUGIN_BUMP_NODE_STEP }
+      typed_api = step_maps.any? { |step| code_of(scalar(step["run"])).include?(".trusted/scripts/plugin_bump_api_retry.mts") }
+      fail_policy("#{path} typed plugin bump API reader requires its pinned Node runtime step") if typed_api && !node_step
+      if node_step
+        require_frozen_step(node_step, PLUGIN_BUMP_NODE_FROZEN, "#{path} #{PLUGIN_BUMP_NODE_STEP.inspect}")
+        extra_uses = [CANON_LINT_NODE_USES]
+      end
     end
     if File.basename(path) == "plugin-bump-check.yml" && step_names.include?(TRAILER_GUARD_STEP)
       trailer_step = step_maps.find { |step| scalar(step["name"]) == TRAILER_GUARD_STEP }
@@ -3466,6 +3483,29 @@ def self_test(root)
                  step: "Surface-mirror drift check")
     File.write(surface, surface_original)
     validate_repo(tmp, announce: false)
+
+    # HA#381: old workflow is accepted during registration. The next shape
+    # needs an exact pinned Node 24 action before the typed API reader runs.
+    node_anchor = "      - name: #{PLUGIN_BUMP_API_STEP}\n"
+    fail_policy("self-test: plugin bump API step anchor missing or repeated") unless original.scan(node_anchor).length == 1
+    plugin_node = original.sub(node_anchor, render_step(PLUGIN_BUMP_NODE_STEP, PLUGIN_BUMP_NODE_FROZEN) + "\n" + node_anchor)
+    File.write(plugin, plugin_node)
+    validate_repo(tmp, announce: false)
+    [
+      ["plugin bump with latest Node", "node-version: 24", "node-version: latest"],
+      ["plugin bump with floating action", "uses: #{CANON_LINT_NODE_USES}", "uses: actions/setup-node@v7"],
+      ["plugin bump with cache enabled", "package-manager-cache: false", "package-manager-cache: true"]
+    ].each { |label, from, to| hostile.call(label, plugin, plugin_node, from, to, step: PLUGIN_BUMP_NODE_STEP) }
+    File.write(plugin, original)
+    validate_repo(tmp, announce: false)
+
+    plugin_unpinned = fixture_sub("typed plugin bump reader without its runtime", original,
+                                 "          set -euo pipefail\n",
+                                 "          set -euo pipefail\n          node .trusted/scripts/plugin_bump_api_retry.mts\n",
+                                 step: PLUGIN_BUMP_API_STEP)
+    File.write(plugin, plugin_unpinned)
+    expect_rejected("typed plugin bump reader without pinned Node") { validate_repo(tmp) }
+    File.write(plugin, original)
 
     # --- the nen digest step (zheref/hatsu#230) ------------------------------
     # Every workflow that bootstraps nen carries the digest step right after
