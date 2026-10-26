@@ -202,6 +202,19 @@ try {
   rmSync(join(repo, 'nen', 'contract.json'));
   result = run();
   assert(result.status === 2 && result.stderr.includes('no nen/contract.json'), 'missing declaration did not refuse');
+  writeFileSync(join(repo, 'nen', 'contract.json'), '{}\n');
+  // HA482: the new TypeScript adoption guard must execute its Vitest lane.
+  writeFileSync(join(repo, 'scripts', 'tenkai_trailer_guard.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('tenkai_trailer_guard.mts has no required fixture'), 'missing consumer trailer fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'tenkai_trailer_guard_fixture.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `consumer trailer lane refused: ${result.stderr}`);
+  assert(readFileSync(log, 'utf8').includes('consumer-trailer-guard||'), 'consumer trailer fixture lane not selected');
+  result = run({ HATSU_FAIL_LANE: 'consumer-trailer-guard' });
+  assert(result.status === 1 && result.stderr.includes('consumer-trailer-guard failed'), 'failing consumer trailer guard was not red');
+
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

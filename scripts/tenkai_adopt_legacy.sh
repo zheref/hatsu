@@ -884,6 +884,27 @@ def readiness_guard(ctx, mode):
     return json.loads(out.stdout)
 
 
+class TrailerWorkflow(Item):
+    """Transport only; the TypeScript helper owns every adoption decision."""
+
+    def __init__(self):
+        super().__init__(".github/workflows/forbidden-commit-trailers.yml", "consumer forbidden trailer check", "hatsu")
+
+    def _relay(self, ctx, mode):
+        script = ctx.hatsu_root / "scripts" / "tenkai_trailer_guard.mts"
+        out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root)],
+                             capture_output=True, text=True, timeout=60)
+        if out.returncode != 0:
+            raise RuntimeError(f"tenkai_trailer_guard.mts {mode} exited {out.returncode}: {out.stderr.strip()}")
+        return self.row(**json.loads(out.stdout))
+
+    def detect(self, ctx):
+        return self._relay(ctx, "diagnose")
+
+    def repair(self, ctx):
+        return self._relay(ctx, "apply")
+
+
 class ReadinessWorkflow(Item):
     """Half two. Rendered with this repository's own slug and derived runner."""
 
@@ -1823,6 +1844,7 @@ def items(ctx):
     out.append(GuardRegistration())
     out.append(ReadinessReader())
     out.append(ReadinessWorkflow())
+    out.append(TrailerWorkflow())
     out.append(ReleasePublisher())
     review_scopes = ReviewScopes()
     out.append(review_scopes)
@@ -2178,7 +2200,12 @@ def self_test() -> int:
 
     print("\nIDEMPOTENCE — the second apply must write nothing")
     again = run("apply", ctx_for(d))
-    hatsu_rows = [r for r in again["items"] if r["owner"] == "hatsu"]
+    # This no-declarations fixture intentionally has no trailer policy. The new
+    # workflow must remain blocked rather than install a job with invented keys.
+    trailer = next(r for r in again["items"] if r["id"] == ".github/workflows/forbidden-commit-trailers.yml")
+    check("missing consumer trailer policy blocks adoption without writing a workflow",
+          trailer["state"] == BLOCKED and not (d / trailer["id"]).exists())
+    hatsu_rows = [r for r in again["items"] if r["owner"] == "hatsu" and r["id"] != trailer["id"]]
     check("every Hatsu-owned item reports satisfied on the second run",
           all(r["state"] == SATISFIED for r in hatsu_rows),
           str([(r["id"], r["state"]) for r in hatsu_rows if r["state"] != SATISFIED]))

@@ -75,6 +75,7 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // HA#441: the shell entry and imported typed cases are both required. The workflow selects
   // this lane automatically only after this trusted runner is adopted by the PR base.
   ['pr_delivery.ts', ['pr_body_delivery_check_fixture.sh', 'pr_body_delivery_check_fixture.ts'], 'pr-delivery-guard'],
+  ['tenkai_trailer_guard.mts', 'tenkai_trailer_guard_fixture.test.mts', 'consumer-trailer-guard'],
 ];
 for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

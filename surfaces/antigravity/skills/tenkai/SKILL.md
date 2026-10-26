@@ -185,6 +185,7 @@ either operation.
 | the policy-guard registration | **Hatsu** | **Routed**, and it gates the item below — § 5a |
 | `scripts/readiness_ci_verdict.mts` | **Hatsu** | Copied into the consumer before the readiness workflow is rendered. `scripts/tenkai_readiness_guard.mts` owns the adoption decisions (BC-11); a symlink or hand-written reader is never overwritten |
 | `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner — § 5. **A file Tenkai did not render is never overwritten** |
+| `.github/workflows/forbidden-commit-trailers.yml` | **Hatsu** | Rendered with the trusted base check publisher, a published digest-verified reader, and exact-base policy; refuses forbidden keys over every PR commit. Existing workflow guards must admit the proposed rendering first. Required-check setup and consumer rollout: [AGENT-ATTRIBUTION.md](../../../../docs/AGENT-ATTRIBUTION.md) |
 | other privileged workflows | **Hatsu** | **Observation only.** Named, never written — § 5d |
 | `scripts/release-publish.sh`, `scripts/release_changelog.mts` | **Hatsu** | Rendered together — **only in a process/system repository** — § 6a; product publishers are chosen by their owners |
 | the default lane's `release` row | **nen** | In a process repository, a seat gets an exact row offered — § 6a |
