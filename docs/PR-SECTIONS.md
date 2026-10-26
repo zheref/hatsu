@@ -116,7 +116,7 @@ declares an empty glyph because its compatibility contract requires the exact `#
 The non-product forms satisfy `CON-17(b)`'s observable proxy; the handbook is not amended.
 Every kind's verify section also carries one Criterion / Coverage / Evidence row per AC id of each
 closing issue (HR-11): `<CODE>#<N>/AC-<k>`; satisfied · partial · missing · contradicts · unrequested;
-a test name, path:line or scenario. `nen pr converge --requirements-from contracts/issue-sections.json`
+a test name, path:line or scenario. `nen pr converge --catalogue contracts/issue-sections.json`
 judges the table, its rules nen's (zheref/hatsu#413); an empty verify heading fails `body-check`.
 Compatibility carries Symbol / Before / After / Consumer action and a semver verdict. Across
 repositories answers what another repository does differently after merge, recording rulings.
@@ -147,7 +147,8 @@ nen pr body-check --body-from <absolute-body.md> --requirements-from <absolute-r
 ```
 
 Run all five before every create or body edit; the two Delivery guard lines are alternatives by PR
-state. Its row check compares the actual effort ledgers; Drive is compared with the rendered
+state. Its row check compares the actual effort ledgers of `--repo`'s checked-out branch, so `--repo` is the
+effort's own worktree on its branch (an explicit `--effort <branch>` refuses a mismatch at exit 2); Drive is compared with the rendered
 expectation using the caller's gate forecast and actual PR reference. The public Source cell carries
 only ledger locator kind/index, timestamp and optional phase; free-form provenance stays in the private
 repo-local `.nen/reports/` data files (directory 0700, files 0600). After either write, read back and run the Development
