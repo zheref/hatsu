@@ -1,0 +1,9 @@
+### Fixed
+
+- **A `bun-cli` tree's dependency audit runs instead of reading NOT SCANNED (zheref/hatsu#507).** `contracts/scans.json` routes `bun-cli`, zheref/nen's own lane stack, to the node row as an alias (outside nen's `PRODUCT_STACKS`, like `claude-code-plugin`), and `scripts/dependency_audit_resolve.mts` gains a `bun` manager of format `bun-lock`: a text `bun.lock` is parsed strictly (JSON whose only extension is a trailing comma closing an array or object; `lockfileVersion` 0 to 2; each `packages` tuple read by its `<name>@<spec>`, nested and aliased keys included) and its registry packages are queried against OSV exactly as the npm, pnpm and yarn locks are, executing nothing. A workspace, link or root spec is local; a git, `github:`, URL, `file:` or off-host registry spec is unqueried and never clean; a comment, a stray comma, a cut file, a non-tuple or a short registry tuple is not scanned, named. The binary `bun.lockb` stays not scanned, named, also when `packageManager` selects bun. On zheref/nen at `769a4d21` the row now resolves 291 registry packages where it answered exit `3`.
+- **`bunfig.toml` keys that would redirect bun's registry are evidence, never honoured.** `auditConfigKeys` gains `bunfig.toml` → `install.registry`, `install.scopes`, `install.security.scanner`, read per TOML table, dotted, quoted and inline-table key, printed as `audit-config:` lines for Feitan.
+- **The resolver fixture's catalogue check covers aliases.** Every catalogue stack **and** every alias must sit on exactly one row or in `unrouted`; an alias on no row used to pass unread. The check is proved red on four drifted copies, each finding naming its stack (AC-4).
+
+### Changed
+
+- `claude/agents/feitan.md`'s dependency-audit row names `bun-cli` on the Node row; `docs/config/plugin-registries.md`, `docs/PROCESS.md`'s owed-to-nen note (zheref/nen#508) and the `dependency-audit-guard` lane comment say the same.
