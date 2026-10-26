@@ -422,6 +422,13 @@ git -C <path> log --format='%h%n%(trailers:only,unfold)' <range base>..HEAD   # 
   && nen wc publish --repo <path> --set-upstream [--dry-run] [--json]   # 0b, then the push: first publish; --forbid-trailers-from as above
 ```
 
+**The declared catch-up base is the trust boundary.** In this section, `origin/<base>` may name
+the run's integration branch, as well as the repository base. `--trunk` accepts either ref: it
+excludes that base's history and exempts a trailer-less merge only when every later parent is
+already on that declared ref and its tree equals Git's clean merge. A second parent merely
+being an ancestor of `HEAD` proves nothing; every merge has that property. An undeclared side
+branch, an edited merge tree or an incomplete proof still refuses (HA265).
+
 **Step 0 is the last read before the remote, and it reads the whole outgoing range, not `HEAD`** —
 after § 4's squash, § 5's catch-up (ao may add a merge commit above the squash, so `HEAD` alone would
 miss the squash parent the push also sends) and § 6's re-lint. The range is § 4's own table, with § 4's own

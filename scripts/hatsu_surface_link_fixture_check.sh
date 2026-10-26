@@ -24,6 +24,14 @@ export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
 hatsu_root="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
 linker="$hatsu_root/scripts/hatsu_surface_link.sh"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Bashcov's shared xtrace descriptor cannot safely carry this fixture's many child shells. The
+  # helper's short-lived wrapper turns tracing back on for the declared target only.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+fi
 fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-surface-link.XXXXXX")"
 trap 'rm -rf "$fixture_root"' EXIT
 
@@ -31,6 +39,14 @@ fail() {
   echo "hatsu-surface-link-fixture: $*" >&2
   exit 1
 }
+
+linker_exec="$linker"
+if [ -n "$coverage_exec" ]; then
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/hatsu_surface_link.sh" ] ||
+    fail "coverage wrapper target is not scripts/hatsu_surface_link.sh"
+  [ -x "$coverage_exec" ] || fail "coverage wrapper is not executable"
+  linker_exec="$coverage_exec"
+fi
 
 assert_contains() {
   local haystack="$1" needle="$2" message="$3"
@@ -270,7 +286,7 @@ run() {
   local expected="$1"
   shift
   set +e
-  out="$(CLAUDE_CONFIG_DIR="$claude_home" GEMINI_CONFIG_DIR="$gemini_home" CODEX_HOME="$codex_home" HOME="$home_unused" PATH="$bin_dir:$PATH" "$linker" "$@" 2>&1)"
+  out="$(CLAUDE_CONFIG_DIR="$claude_home" GEMINI_CONFIG_DIR="$gemini_home" CODEX_HOME="$codex_home" HOME="$home_unused" PATH="$bin_dir:$PATH" "$linker_exec" "$@" 2>&1)"
   code=$?
   set -e
   [ "$code" -eq "$expected" ] || fail "'$*' exited $code, expected $expected: $out"
@@ -283,7 +299,7 @@ run_restricted() {
   local expected="$1"
   shift
   set +e
-  out="$(CLAUDE_CONFIG_DIR="$claude_home" GEMINI_CONFIG_DIR="$gemini_home" CODEX_HOME="$codex_home" HOME="$home_unused" PATH="$restricted_path" "$linker" "$@" 2>&1)"
+  out="$(CLAUDE_CONFIG_DIR="$claude_home" GEMINI_CONFIG_DIR="$gemini_home" CODEX_HOME="$codex_home" HOME="$home_unused" PATH="$restricted_path" "$linker_exec" "$@" 2>&1)"
   code=$?
   set -e
   [ "$code" -eq "$expected" ] || fail "restricted '$*' exited $code, expected $expected: $out"

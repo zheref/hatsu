@@ -2026,8 +2026,8 @@ sibling folder was the easiest answer to a rule with no path in it.
 | <a id="hr-269"></a>**HR-269** (ruled) **C · One path, every surface** | **every worktree Hatsu creates lives at `<core>/.nen/worktrees/<surface>/<name>`** — `claude-code`, `codex`, `cursor`, `antigravity` — git-ignored, inside the core checkout; **never a sibling (`../<name>`), never `/tmp`, never outside the checkout**. The full rule, with each surface's native location quoted from its page, is [`docs/WORKFLOW.md`](WORKFLOW.md) § *Where worktrees live*; rule 6 carries it in one clause; `hanten` § 4's reviewer is `hanten-<persona>` there, the proof `prove-<n>`, a lead-session effort its branch slug |
 | <a id="hr-270"></a>**HR-270** (ruled) **C · The harness-native exceptions, named** | Claude Code's own isolation (`--worktree`, Agent `isolation: "worktree"`, a background session) stays at `.claude/worktrees/` — "By default, the worktree is created under `.claude/worktrees/<name>/` at your repository root" — git-ignored, the one documented exception; Codex's app worktrees under `$CODEX_HOME/worktrees` (its *Worktree root* setting), Cursor's under its machine worktree root, Antigravity's `Workspace: "branch"` where the IDE puts it: each contained in the tool's own home, accepted as it comes, never relocated to a sibling. A Hatsu-made worktree on Claude Code is entered by `EnterWorktree` `path`, its one approval prompt answered |
 | <a id="hr-271"></a>**HR-271** (ruled) **C · Containment is both ways** | a nested worktree survives `git clean -fdx` (verified 2026-09-30: *Skipping repository*), but **`git clean -ffdx` deletes `.nen/` wholesale**, so **`git clean -ff…` is never run in a core checkout that holds worktrees**; deleting the core checkout deletes its worktrees. **A worktree is removed when its effort lands** (`git worktree remove`, then `prune`) — on Hatsu's own checkout without exception, because Codex's plugin install copies ignored worktrees too |
-| <a id="hr-272"></a>**HR-272** (ruled) **C · kagutsuchi keeps its fixed path** | `.nen/worktrees/kagutsuchi` (`scripts/kagutsuchi_worktree.sh`) is the one purpose-named path without a surface segment: the script's idempotence is built on it, and it is already under `.nen/worktrees/` |
-| **C · What this does not rule** | the native modes' own locations are the tool's and are not reconfigured by Hatsu; `.nen/` needs no new ignore rule (Hatsu's `.gitignore`, tenkai's `dirs/nen-state` row); nen has no verb that creates or removes a worktree, so `git worktree add` stays hand-spelt residue (`docs/PROCESS.md` § *Residue*) |
+| <a id="hr-272"></a>**HR-272** (ruled) **C · kagutsuchi keeps its fixed path** | `.nen/worktrees/kagutsuchi` (`nen wc worktree --name kagutsuchi`) is the one purpose-named path without a surface segment: the verb's idempotence is built on it, and it is already under `.nen/worktrees/` |
+| **C · What this does not rule** | the native modes' own locations are the tool's and are not reconfigured by Hatsu; `.nen/` needs no new ignore rule (Hatsu's `.gitignore`, tenkai's `dirs/nen-state` row); `nen wc worktree` owns kagutsuchi's fixed detached shape, not general branch worktrees or removal, so those `git worktree` calls stay hand-spelt residue (`docs/PROCESS.md` § *Residue*) |
 
 ---
 
@@ -2130,7 +2130,7 @@ later on."* So: **a non-production send is gated on freshness** —
 every `--run`; a dirty tree, a missing archive, or an archive whose recorded build SHA is not the
 checkout's `HEAD` at `origin/<branch.base>`'s tip is **never sent as it stands and never a question**
 (row `stale-send`, autonomous); **only then**, § 3b runs `susanoo` for a fresh build, in **one idempotent
-detached worktree** under core's `.nen/` (`scripts/kagutsuchi_worktree.sh`), copying the maintainer's own
+detached worktree** under core's `.nen/` (`nen wc worktree --name kagutsuchi`), copying the maintainer's own
 gitignored files **from core only** (`nen/contract.json` → `project.fromCore`, never synthesised, each
 proven in core and at the tip), then sends from there; a `fresh` gate sends from where it stands. **The
 target may come from configuration** — `nen/workflow.json` → `deploy.defaultTarget`, honoured only where
@@ -2392,6 +2392,10 @@ The maintainer ruled seven points for the catalogue-backed body:
    `CON-17(b)`'s observable proxy; no handbook amendment.
 3. <a id="hr-314"></a>**HR-314** (ruled) Consumer `nen/workflow.json → pr.sections` carries every default matrix cell; `$sections` beside
    it lists every available id and purpose. An edited cell becomes consumer-owned.
+   **Reading recorded 2026-10-25 (HA#370):** an unedited copied cell follows canon through explicit
+   refresh; an edited one stays the consumer's. The catalogue stamp and packaged history distinguish
+   those readings. Plain `fill` remains behaviour-neutral under the 2026-10-01 ruling; a missing or
+   unknown stamp supplies no ownership evidence. This records ruling 3's reading, not a new ruling.
 4. <a id="hr-315"></a>**HR-315** (ruled) Six work families and the full default matrix are adopted, over classify's five derived domains.
    [The catalogue](../contracts/pr-sections.json) owns the 39 job assignments, count fold and tie order;
    [PR-SECTIONS.md](PR-SECTIONS.md) renders the matrix and procedure.

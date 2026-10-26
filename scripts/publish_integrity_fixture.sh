@@ -108,6 +108,22 @@ expect 'a commit with no Hatsu-Agent stops under --require-agent' 1 "$auth" --re
 expect 'missing --require-trailer key stops' 1 "$auth" --repo "$r" --base main --require-trailer Hatsu-Agent
 g "$r" reset -q --hard HEAD~1
 
+# HA265: --trunk names the declared catch-up base, including a run integration branch.
+# HEAD ancestry alone is insufficient: every merged second parent is necessarily in HEAD.
+ir="$tmp/integration-base"; new_repo "$ir"
+echo b > "$ir/base"; g "$ir" add base; g "$ir" commit -q -m base
+g "$ir" checkout -q -b integration
+echo i > "$ir/integrated"; g "$ir" add integrated
+env GIT_AUTHOR_NAME=other GIT_AUTHOR_EMAIL=other@x GIT_COMMITTER_NAME=other GIT_COMMITTER_EMAIL=other@x git -C "$ir" commit -q -m 'reviewed integration history'
+g "$ir" checkout -q -b effort main
+echo e > "$ir/effort"; g "$ir" add effort; g "$ir" commit -q -m own -m 'Hatsu-Agent: kurapika'
+g "$ir" merge -q --no-ff --no-edit integration
+expect 'HA265 declared integration-base clean catch-up passes' 0 "$auth" --repo "$ir" --base main --require-agent kurapika --trunk integration
+expect 'HA265 integration catch-up without its declared base refuses' 1 "$auth" --repo "$ir" --base main --require-agent kurapika
+expect 'HA265 HEAD ancestry does not admit an undeclared integration branch' 1 "$auth" --repo "$ir" --base main --require-agent kurapika --trunk main
+echo extra > "$ir/extra"; g "$ir" add extra; g "$ir" commit -q --amend --no-edit
+expect 'HA265 extra authored merge content refuses under declared integration base' 1 "$auth" --repo "$ir" --base main --require-agent kurapika --trunk integration
+
 # --- the clean trunk-merge exemption, and an evil merge ------------------------------------
 g "$r" checkout -q main; echo m > "$r/m"; g "$r" add m; g "$r" commit -q -m main2 -m "Hatsu-Agent: kurapika"
 g "$r" checkout -q effort; g "$r" merge -q --no-edit main

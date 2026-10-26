@@ -12,7 +12,8 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
 2. Read the target's `nen/workflow.json → pr.sections`. Its full matrix is filled from the catalogue,
    with `$sections` beside it listing all ids and purposes. An edited cell belongs to that consumer;
-   fills and diagnosis preserve it. `max` defaults to seven and cannot exceed the catalogue cap.
+   fills and diagnosis preserve it. `$canon` records the originating catalogue contract and sha256.
+   `max` defaults to seven and cannot exceed the catalogue cap.
 3. Reuse Mukai's facts: `--evidence` only for a product declaring `project.evidence.globs`,
    `--economics` only when Leorio ran or took a delta pass, `--policy-hit` when `nen gate derive`
    matched a policy or process path, `--spec` when a closing issue carries `Spec: specs/<nnn>-<slug>@<sha>`
@@ -27,6 +28,9 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    alone it refuses at exit 1. A malformed manifest refuses whatever else is passed. A default taken mid-run
    or attended is `--decisions`, passed by the session that took it. A run that took no decision passes none of the three,
    and the heading is then undeclared. These facts activate conditional ids; they do not create headings.
+   The always-on footer then renders the exact `## Adversarial review (hanten)` heading. Every finding
+   carries a settled disposition; `deferred` also carries a tracked issue reference. The completion
+   checklist records `- [x] Adversarial review settled.` only after those rows are settled.
 4. Resolve before drafting, and resolve again when kind, labels, configuration or run facts change:
 
 ```bash
@@ -37,10 +41,38 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
 Place the always-on Delivery preamble first, then fill the reader fragments from
-`templates/pr-body/<id>.md` in resolved order, then Spec (only with `--spec`), Decisions (when admitted), checklist, issues and final attribution.
+`templates/pr-body/<id>.md` in resolved order, then Spec (only with `--spec`), Decisions (when admitted),
+Hanten, checklist, issues and final attribution.
 Never append an undeclared level-2 heading. Delivery is outside the seven-reader cap and does
 not change any kind × family cell or consumer-owned override.
 The default requirements file is the process × canon fixture, never a substitute for resolving a run.
+
+## Refresh a copied matrix
+
+Run `config_values.sh diagnose --repo <target> --domain publishing --json` to read each cell against
+its stamped catalogue: current default, stale default, consumer-owned, missing or retired. A copy
+without `$canon` reads unstamped in one line. The packaged `contracts/pr-sections.history.json`
+keeps complete prior catalogues keyed by their canonical `documentSha256`, so this works offline in
+an installed plugin with no `.git`. Canonical bytes are compact UTF-8 JSON with object keys sorted
+recursively and the top-level `documentSha256` excluded; arrays retain their order. The composition
+guard checks the digest and requires the current catalogue in history; retain prior entries on
+every later catalogue edit.
+
+```bash
+"$hatsu_root/scripts/config_values.sh" fill --refresh --repo <target> --json
+```
+
+This explicit operation, also used by Tenkai adoption, updates unedited defaults and missing cells,
+the option list and stamp. It keeps the chosen cap and every owned cell, naming each retained cell;
+`$canon.owned` preserves that ownership through later stamps. Retired ids or cells in an owned cell
+refuse at exit 1 with names, before any write. Resolve those cells explicitly before retrying.
+Unknown or malformed stamps refuse at exit 2. An unstamped refresh says provenance is unknown,
+retains every existing cell as explicitly owned, adds missing cells and stamps the current catalogue.
+Those retained cells stay owned on later refreshes. Plain `fill` preserves the bytes of a present matrix.
+
+Tenkai diagnosis adds `pr.sections: stale (<n> stale default cell(s), <m> missing; stamped <sha7>,
+catalogue <sha7>)`, with structured cell counts and both full hashes in JSON; a current copy has no
+freshness finding. Ten reads that finding in its policy inbox and performs no repair.
 
 ## Default matrix
 
@@ -72,7 +104,8 @@ diagram appears only when the flow changed, inside `How`; add one rejected-alter
 Stability, Performance, Maintainability, Cost, Portability and Accessibility. Mark each ⬆ improves,
 ➖ unchanged or ⬇ regresses; explain movement in one line, leave unchanged rows unexplained.
 Other table glyphs use ✅ proved, ⚠️ a named gap and — not applicable; never use a glyph to hide
-missing evidence. The catalogue supplies the heading glyphs; guards tolerate those prefixes.
+missing evidence. The catalogue supplies the heading glyphs; guards tolerate those prefixes. Hanten
+declares an empty glyph because its compatibility contract requires the exact `## Adversarial review (hanten)` heading.
 
 | Kind | `verify` title | Reading aid |
 |---|---|---|
@@ -94,9 +127,10 @@ internal headings to level 3 or deeper when embedding, preserving all report con
 
 ## Check every write
 
-Reader sections are capped at seven; first-heading Delivery, Completion checklist, Associated issues
-and final Agent attribution are outside that count. The footer's substance is unchanged:
-checklist claims cite evidence, issue closing lines belong under the Associated issues table, and
+Reader sections are capped at seven; first-heading Delivery, conditional Spec and Decisions, Hanten,
+Completion checklist, Associated issues and final Agent attribution are outside that count. The footer's
+substance is fixed: Hanten dispositions are settled and deferred rows cite tracked issues, checklist
+claims cite evidence, issue closing lines belong under the Associated issues table, and
 attribution records only actual participants under [the ledger contract](AGENT-ATTRIBUTION.md).
 The prose budget is 150 words per section, excluding tables, fences and diagrams: warn, never refuse.
 

@@ -273,55 +273,51 @@ not a verb — named as residue in [`docs/PROCESS.md`](../PROCESS.md) § *Residu
 dependencies*. § 2.3's *"nen never chooses where a build goes"* is still nen's own sentence, and
 still true: the choice moved into configuration the maintainer wrote, not into the binary.
 
-### § 3b, live — the clean worktree the rebuild runs in (`scripts/kagutsuchi_worktree.sh`)
+### § 3b, 2026-10-25 — the pinned Nen verb owns the clean worktree
 
-**Hermetic half**: `nen shu test --repo <hatsu> --lane fresh-worktree-guard` → `all assertions held;
-nothing left this machine.`, 58 `ok` lines: the dry run creates nothing; a first run creates one detached
-worktree at `origin/main`'s tip and copies the declared gitignored file from core; a second run reuses it;
-a moved trunk moves a clean worktree; a dirty one is refused and never discarded; a tracked, unignored,
-absent, escaping, symlinked, glob-shaped or whitespace-bearing `fromCore` path is refused; **at the tip**,
-a tracked parent symlink, a tracked leaf symlink, a tracked regular file and an untracked symlink at the
-destination are each refused with the outside file untouched (Feitan's round, 2026-09-30); a stray
-directory beside a sibling `kagutsuchi2` registration is refused with core's `HEAD` and branch unmoved;
-a symlinked `.nen/worktrees` is refused; a vanished registration is dropped and re-created.
+This is one **hermetic run of the real pinned Nen 0.28.0 binary**, not a Hatsu imitation: a temporary
+bare `origin`, a temporary core on `main`, and two ignored core-only files. No product repository, core
+checkout, build, deploy or network endpoint was touched. The two `--copy-from-core` occurrences prove
+the repeatable API; the preview and real call used the same arguments.
 
-**Live half, zheref/<product-repo-A>** (core at `/Users/zheref/Code/Apple/<product-repo-A>`, dirty on 22 paths on
-`opus/do-ui-revisit`, exactly as the maintainer left it; nothing touched but the gitignored
-`.nen/worktrees/` the script owns; every `nen shu` line a `--dry-run`, nothing built, nothing sent):
+```text
+$ nen wc worktrees --repo <tmp>/core --base main --json
+core: <tmp>/core · swap: null · core dirty: 0
 
+$ nen wc worktree --repo <tmp>/core --name kagutsuchi --base main \
+    --copy-from-core local/one.xcconfig --copy-from-core local/two.xcconfig --dry-run --json
+state: created · dryRun: true · fetched: false · coreIgnored: true
+path: <tmp>/core/.nen/worktrees/kagutsuchi
+copies: local/one.xcconfig would-copy · local/two.xcconfig would-copy
+
+$ nen wc worktree --repo <tmp>/core --name kagutsuchi --base main \
+    --copy-from-core local/one.xcconfig --copy-from-core local/two.xcconfig --json
+state: created · reached: created · fetched: true · coreIgnored: true
+copies: local/one.xcconfig copied · local/two.xcconfig copied
+
+$ <same real command again>
+state: reused · reached: reused · headBefore = head = origin/main tip
+
+$ <edit the worktree's tracked README, then the same real command>
+exit=2 · state: refused · refusal.kind: dirty · paths: [" M README.md"]
+reason: dirty — refused, and never reset, cleaned or discarded
+
+$ git -C <tmp>/core status --short --branch
+## main
 ```
-$ nen wc worktrees --repo /Users/zheref/Code/Apple/<product-repo-A> --json   → core: /Users/zheref/Code/Apple/<product-repo-A>, swap: null
-$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/<product-repo-A> --dry-run
-origin/main:   dfce334ea31296b803b4c2fbcb5c501237840b5f (as last fetched; --dry-run fetches nothing)
-worktree:        …/<product-repo-A>/.nen/worktrees/<name> (would create)
-copied:          none declared (nen/contract.json -> project.fromCore)
-$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/<product-repo-A>          → (created), head dfce334e
-$ scripts/kagutsuchi_worktree.sh --repo /Users/zheref/Code/Apple/<product-repo-A>          → (reused)
-$ nen shu archive --repo <worktree> --dry-run
-preconditions:
-  FAIL  path <product-repo-C>/Config.xcconfig -- not present
-artifacts:     .nen/export/<product-repo-C>.ipa (absent)
-```
 
-(The run predates the rename: the worktree was created as `.nen/worktrees/kamui`; the script now names
-`.nen/worktrees/kagutsuchi`, and the earlier directory is the maintainer's to remove with `git -C
-<core> worktree remove --force .nen/worktrees/kamui`.) **Steps 1 and 2 collapsed and idempotent, live**;
-core's dirty tree was never an obstacle, since the worktree is cut from `origin/main`. **The archive
-precondition FAILs in the worktree on a path that exists gitignored in core** — <product-repo-A> declares no
-`project.fromCore` yet, and the composite copies only what a declaration names. That is the
-`missing-configuration` ask kagutsuchi § 2 describes, and the row <product-repo-A> owes, through its own
-declaration PR at **G2**:
+The run quotes the API fields kagutsuchi reads, shows the preview wrote nothing, proves idempotent reuse,
+and proves a refusal leaves core untouched. Nen's own worktree tests own the broader hostile matrix; Hatsu
+no longer ships a 470-line duplicate fixture or a lane that could drift from the binary.
+
+The consumer-side declaration remains this shape, landed through that repository's own gate:
 
 ```json
 "fromCore": [ { "path": "<product-repo-C>/Config.xcconfig",
   "why": "The gitignored base configuration carrying SUPABASE_URL and SUPABASE_ANON_KEY -- the file project.preconditions asserts on every Apple lane. It exists only in the maintainer's core checkout (CI recreates it from secrets); kagutsuchi § 3b copies it from there into its worktree so the fresh archive's precondition holds, and synthesises nothing." } ]
 ```
 
-Not written by this run: a write to another repository's tracked declaration needs the maintainer's
-answer (`WORKFLOW.md` § 4 *Ask, set up, continue*, step 3). With that row landed, the self-test's copy
-case is the live shape, and the three App Store Connect `requiresEnv` rows are the maintainer's shell.
-
-**Residue for § 3b**: nen has no worktree verb — `git worktree add|remove --force`, `git checkout
---detach`, `git check-ignore`, `mktemp`, `cp -p`, `mv -f` are the script's raw calls; `project.fromCore`
-is Hatsu's block, preserved by nen's loader and read by nothing in nen; the per-stack
-`deploy.defaultTarget` in `nen shu detect`'s reference pack is nen's to add.
+No consumer repository was changed by this run. The remaining § 3b residue is only the mapping from
+Hatsu's `project.fromCore[]` rows to repeated `--copy-from-core` arguments; the native verb deliberately
+does not read that Hatsu block implicitly. The per-stack `deploy.defaultTarget` in `nen shu detect`'s
+reference pack remains nen's to add.

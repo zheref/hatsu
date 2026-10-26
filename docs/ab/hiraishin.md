@@ -288,3 +288,13 @@ exit=1
   `SC-001` only; it reads FR, SC and story lines. zheref/hatsu#447's AC-1 asks one row per acceptance
   scenario; the verb gives one per requirement, so the table is keyed by requirement until it does.
 - **AC-4** is not exercised here: the port ledger is read before the brief (ports.md), unchanged.
+
+## Dated verification, 2026-10-23 — crash-and-resume (zheref/hatsu#444)
+
+**Finding, not a pass.** `hiraishin` writes no phase ledger (`git grep 'phase begin' claude/skills/hiraishin` prints nothing at
+0.141.0) and opens no run manifest, so a crash leaves a resume nothing of its own to read: only the objects it
+already published. The one publishing step it shares with every composite is idempotent, proved live on
+HA-PR-#463 (`nen pr open` → `existing`, `docs/ab/mukai.md`, 2026-10-23). The ledger-level proof
+(`node scripts/resume_proof.mts`) covers ren, build and the futon manifest only. Owed: either `hiraishin` wraps its
+steps in `nen phase begin|end --effort <branch>` and joins the proof, or a ruling that its GitHub state is its
+resume record.

@@ -57,6 +57,8 @@ run "every gate yes: a dry run would publish, pushing nothing" 0 "would publish 
 grep -q "wc publish --repo .* --dry-run" "$log" && grep -q "wc catch-up .* --dry-run" "$log" && { passed=$((passed+1)); echo "ok    a dry run probes with --dry-run on both nen writes"; } || { failed=$((failed+1)); echo "FAIL  a dry run must pass --dry-run to catch-up and publish"; cat "$log"; }
 run "gate 1: catch-up exit 1 refuses" 1 "gate 1" real NEN_STUB_CATCHUP_EXIT=1
 pushed && { failed=$((failed+1)); echo "FAIL  gate 1 refusal still pushed"; } || { passed=$((passed+1)); echo "ok    gate 1 refusal pushed nothing"; }
+run "gate 1: all-mechanical catch-up exit 3 refuses" 1 "said no (exit 3)" real NEN_STUB_CATCHUP_EXIT=3
+pushed && { failed=$((failed+1)); echo "FAIL  gate 1 all-mechanical refusal still pushed"; } || { passed=$((passed+1)); echo "ok    gate 1 all-mechanical refusal pushed nothing"; }
 run "gate 1: noOp false refuses (the string decoy does not count)" 1 "noOp is not true" real NEN_STUB_NOOP=false
 run "gate 4: a red iteration check refuses" 1 "gate 4" real NEN_STUB_RED=lint
 # gate 4 runs EVERY declared check, in order, and a red second check still refuses

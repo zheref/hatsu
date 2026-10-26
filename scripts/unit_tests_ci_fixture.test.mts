@@ -29,9 +29,13 @@ function assert(ok: boolean, message: string): void {
 }
 try {
   let result = run();
+  assert(result.status === 2 && result.stderr.includes('required fixture mechanical_conflicts_fixture.test.mts is missing'),
+    'missing mechanical-conflicts fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'mechanical_conflicts_fixture.test.mts'), '');
+  result = run();
   assert(result.status === 0, `baseline refused: ${result.stderr}`);
   let calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||', 'wrong baseline lanes or leaked token');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,mechanical-conflicts-guard||', 'wrong baseline lanes or leaked token');
   const fence = result.stdout.match(/::stop-commands::(unit_tests_[0-9a-f]{32})/);
   assert(!!fence && result.stdout.includes(`::${fence[1]}::`) &&
     result.stdout.indexOf(`::stop-commands::${fence[1]}`) < result.stdout.indexOf('::warning title=forged::') &&
@@ -46,7 +50,17 @@ try {
   result = run();
   assert(result.status === 0, `API fixture path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||', 'API lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,mechanical-conflicts-guard||,gh-api-read-guard||', 'API lane not selected');
+
+  writeFileSync(join(repo, 'scripts', 'plugin_bump_api_retry.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('plugin_bump_api_retry.mts has no required fixture'), 'missing plugin-bump retry fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'plugin_bump_api_retry_fixture.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `plugin-bump retry fixture path refused: ${result.stderr}`);
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,mechanical-conflicts-guard||,gh-api-read-guard||,plugin-bump-api-retry-guard||', 'plugin-bump retry lane not selected (BC-9)');
 
   writeFileSync(join(repo, 'scripts', 'clause_id_guard.mts'), '');
   result = run();
@@ -56,7 +70,7 @@ try {
   result = run();
   assert(result.status === 0, `clause-guard path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||', 'clause-guard lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,mechanical-conflicts-guard||,gh-api-read-guard||,plugin-bump-api-retry-guard||,clause-guard||', 'clause-guard lane not selected');
 
   writeFileSync(join(repo, 'scripts', 'prose_ambiguity_check.mts'), '');
   result = run();
@@ -66,15 +80,17 @@ try {
   result = run();
   assert(result.status === 0, `canon-lint path refused: ${result.stderr}`);
   calls = readFileSync(log, 'utf8').trim().split('\n');
-  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
+  assert(calls.join(',') === 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,mechanical-conflicts-guard||,gh-api-read-guard||,plugin-bump-api-retry-guard||,clause-guard||,canon-lint||', 'canon-lint lane not selected');
 
-  let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,gh-api-read-guard||,clause-guard||,canon-lint||';
+  let expected = 'unit-tests-ci-guard||,workflow-policy-guard||,permissions-pack-guard||,criteria||,mechanical-conflicts-guard||,gh-api-read-guard||,plugin-bump-api-retry-guard||,clause-guard||,canon-lint||';
   for (const [script, fixture, lane] of [['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
     ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
-    ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
+    ['config_values.ts', 'config_values_fixture.sh', 'config-values-guard'],
     ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
+    ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
+    ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
     ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard']]) {
     writeFileSync(join(repo, 'scripts', script), '');
     result = run();
@@ -87,6 +103,14 @@ try {
     calls = readFileSync(log, 'utf8').trim().split('\n');
     assert(calls.join(',') === expected, `${lane} lane not selected (BC-9)`);
   }
+
+  result = run({ HATSU_FAIL_LANE: 'direct-matrix-guard' });
+  assert(result.status === 1 && result.stderr.includes('direct-matrix-guard failed'), 'failing direct-matrix-guard was not red (HA341)');
+  assert(calls.filter((line) => line.startsWith('pr-sections-guard|')).length === 1,
+    'PR sections lane must execute exactly once');
+  result = run({ HATSU_FAIL_LANE: 'pr-sections-guard' });
+  assert(result.status === 1 && result.stderr.includes('pr-sections-guard failed'),
+    'PR sections fixture failure did not fail CI');
 
   // The tenkai engine is its own fixture (--self-test), so its lane is selected by the script alone,
   // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427).
@@ -128,6 +152,49 @@ try {
   calls = readFileSync(log, 'utf8').trim().split('\n');
   assert(calls.join(',') === expected, 'issue-shape lane not selected (BC-9)');
 
+  // Both fixtures are required: the shell lane invokes the typed bootstrap snippet proof.
+  writeFileSync(join(repo, 'scripts', 'nen_global.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('nen_global_fixture_check.sh'), 'missing host bootstrap fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'nen_global_fixture_check.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('bootstrap_integrity_fixture.test.mts'), 'missing typed bootstrap fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'bootstrap_integrity_fixture.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `nen-global-guard path refused: ${result.stderr}`);
+  expected += ',nen-global-guard||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'nen-global-guard lane not selected (BC-9, #247)');
+  result = run({ HATSU_FAIL_LANE: 'nen-global-guard' });
+  assert(result.status === 1 && result.stderr.includes('nen-global-guard failed'), 'failing bootstrap integrity lane was not red');
+  // Delivery needs both its shell lane entry and the typed parser cases; neither alone is a suite.
+  writeFileSync(join(repo, 'scripts', 'pr_delivery.ts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('pr_delivery.ts has no required fixture pr_body_delivery_check_fixture.sh'),
+    'missing Delivery shell entry did not refuse');
+  writeFileSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('pr_delivery.ts has no required fixture pr_body_delivery_check_fixture.ts'),
+    'missing Delivery typed fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.ts'), '');
+  rmSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.sh'));
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('pr_body_delivery_check_fixture.sh'),
+    'Delivery typed fixture alone bypassed the required shell entry');
+  writeFileSync(join(repo, 'scripts', 'pr_body_delivery_check_fixture.sh'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `Delivery lane path refused: ${result.stderr}`);
+  expected += ',pr-delivery-guard||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'Delivery lane not selected (BC-9, HA#441)');
+  assert(calls.filter((line) => line === 'pr-delivery-guard||').length === 1,
+    'Delivery lane selected more than once for its two fixtures');
+  result = run({ HATSU_FAIL_LANE: 'pr-delivery-guard' });
+  assert(result.status === 1 && result.stderr.includes('pr-delivery-guard failed'),
+    'failing Delivery lane was not red');
+
   result = run({}, join(dir, 'nen bin:x', 'nen'));
   assert(result.status === 2 && result.stderr.includes('may not contain'), 'a delimiter in the nen directory was not refused');
 
@@ -138,6 +205,19 @@ try {
   rmSync(join(repo, 'nen', 'contract.json'));
   result = run();
   assert(result.status === 2 && result.stderr.includes('no nen/contract.json'), 'missing declaration did not refuse');
+  writeFileSync(join(repo, 'nen', 'contract.json'), '{}\n');
+  // HA482: the new TypeScript adoption guard must execute its Vitest lane.
+  writeFileSync(join(repo, 'scripts', 'tenkai_trailer_guard.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('tenkai_trailer_guard.mts has no required fixture'), 'missing consumer trailer fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'tenkai_trailer_guard_fixture.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `consumer trailer lane refused: ${result.stderr}`);
+  assert(readFileSync(log, 'utf8').includes('consumer-trailer-guard||'), 'consumer trailer fixture lane not selected');
+  result = run({ HATSU_FAIL_LANE: 'consumer-trailer-guard' });
+  assert(result.status === 1 && result.stderr.includes('consumer-trailer-guard failed'), 'failing consumer trailer guard was not red');
+
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

@@ -7,6 +7,14 @@ LC_ALL=C
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
 hatsu_root="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
 bootstrap="$hatsu_root/scripts/surface_bootstrap.sh"
+bootstrap_source="$bootstrap"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Only the bootstrap target may write Bashcov's trace; its hook and shell descendants stay plain.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+fi
 fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-surface-bootstrap.XXXXXX")"
 trap 'rm -rf "$fixture_root"' EXIT
 
@@ -27,6 +35,13 @@ fail() {
   echo "surface-bootstrap-fixture: $*" >&2
   exit 1
 }
+
+if [ -n "$coverage_exec" ]; then
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/surface_bootstrap.sh" ] ||
+    fail "coverage wrapper target is not scripts/surface_bootstrap.sh"
+  [ -x "$coverage_exec" ] || fail "coverage wrapper is not executable"
+  bootstrap="$coverage_exec"
+fi
 
 # --- skills_source_dir SURFACE -----------------------------------------------
 # Same probe as scripts/surface_bootstrap.sh's own skills_source_dir():
@@ -610,7 +625,7 @@ mkdir -p "$partial_surface_root/.claude-plugin" "$partial_surface_root/scripts" 
   "$partial_surface_root/claude/skills/ten" "$partial_surface_root/claude/skills/breath" \
   "$partial_surface_root/surfaces/codex/ten"
 cp "$hatsu_root/.claude-plugin/plugin.json" "$partial_surface_root/.claude-plugin/plugin.json"
-cp "$bootstrap" "$partial_surface_root/scripts/surface_bootstrap.sh"
+cp "$bootstrap_source" "$partial_surface_root/scripts/surface_bootstrap.sh"
 printf '%s\n' 'name: ten' > "$partial_surface_root/claude/skills/ten/SKILL.md"
 printf '%s\n' 'name: breath' > "$partial_surface_root/claude/skills/breath/SKILL.md"
 printf '%s\n' 'name: ten' > "$partial_surface_root/surfaces/codex/ten/SKILL.md"
@@ -637,7 +652,7 @@ cmp -s "$fixture_root/transaction-exclude-before" "$transaction_fixture/.git/inf
 
 malformed_root="$fixture_root/malformed-root"
 mkdir -p "$malformed_root/.claude-plugin" "$malformed_root/scripts" "$malformed_root/claude/skills" "$malformed_root/surfaces/codex/ten"
-cp "$bootstrap" "$malformed_root/scripts/surface_bootstrap.sh"
+cp "$bootstrap_source" "$malformed_root/scripts/surface_bootstrap.sh"
 printf '{"name":"hatsu"}\n' > "$malformed_root/.claude-plugin/plugin.json"
 malformed_target="$fixture_root/malformed-target"
 new_fixture "$malformed_target"
@@ -646,7 +661,7 @@ assert_fails "malformed Hatsu manifest was accepted" "$malformed_root/scripts/su
 missing_sources_root="$fixture_root/missing-sources-root"
 mkdir -p "$missing_sources_root/.claude-plugin" "$missing_sources_root/scripts" "$missing_sources_root/claude/skills" "$missing_sources_root/surfaces/codex/ten" "$missing_sources_root/surfaces/cursor/ten"
 cp "$hatsu_root/.claude-plugin/plugin.json" "$missing_sources_root/.claude-plugin/plugin.json"
-cp "$bootstrap" "$missing_sources_root/scripts/surface_bootstrap.sh"
+cp "$bootstrap_source" "$missing_sources_root/scripts/surface_bootstrap.sh"
 printf '%s\n' 'name: ten' > "$missing_sources_root/surfaces/codex/ten/SKILL.md"
 printf '%s\n' 'name: ten' > "$missing_sources_root/surfaces/cursor/ten/SKILL.md"
 missing_sources_target="$fixture_root/missing-sources-target"
@@ -664,7 +679,7 @@ assert_fails "newline target path was accepted" "$bootstrap" --surface codex --t
 
 newline_root="$fixture_root/newline-hatsu"$'\n'
 mkdir -p "$newline_root/scripts"
-cp "$bootstrap" "$newline_root/scripts/surface_bootstrap.sh"
+cp "$bootstrap_source" "$newline_root/scripts/surface_bootstrap.sh"
 newline_root_target="$fixture_root/newline-root-target"
 new_fixture "$newline_root_target"
 assert_fails "newline Hatsu checkout path was accepted" "$newline_root/scripts/surface_bootstrap.sh" --surface codex --target "$newline_root_target" --bootstrap

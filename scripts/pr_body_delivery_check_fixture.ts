@@ -39,7 +39,6 @@ function git(...args: string[]): void { ok("git", args); }
 
 mkdirSync(repo, { recursive: true });
 mkdirSync(join(repo, "nen"));
-mkdirSync(join(repo, ".nen/direct"), { recursive: true });
 mkdirSync(join(repo, ".nen/reports"), { recursive: true, mode: 0o700 });
 writeFileSync(join(repo, "nen/workflow.json"), JSON.stringify({
   branch: { base: "main" },
@@ -50,15 +49,20 @@ writeFileSync(join(repo, "nen/workflow.json"), JSON.stringify({
     roles: { reviewer: "deep", worker: "fast", orchestrator: "frontier" },
   },
 }));
-writeFileSync(join(repo, ".nen/direct", `${encodeURIComponent(effort)}.json`), JSON.stringify({
+git("init", "-q", "-b", "main"); git("config", "user.name", "Fixture"); git("config", "user.email", "fixture@example.invalid");
+git("add", "."); git("commit", "-qm", "base"); git("switch", "-qc", effort);
+// The direct record lives in nen's durable home, the git common directory (zheref/nen#509), never the
+// checkout's own .nen/: the fixture writes it there so the engine is held to the path nen writes.
+const directRecord = JSON.stringify({
   contract: "nen.direct.resolve/v0.1", mismatch: { match: true, compares: [
     { field: "surface", session: "codex", recommended: "codex", verdict: "match" },
     { field: "model", session: "sol", recommended: "sol", verdict: "match" },
     { field: "effort", session: "unread", recommended: "max", verdict: "unread" },
   ] },
-}));
-git("init", "-q", "-b", "main"); git("config", "user.name", "Fixture"); git("config", "user.email", "fixture@example.invalid");
-git("add", "."); git("commit", "-qm", "base"); git("switch", "-qc", effort);
+});
+const durableDirect = join(repo, ".git/.nen/direct");
+mkdirSync(durableDirect, { recursive: true });
+writeFileSync(join(durableDirect, `${encodeURIComponent(effort)}.json`), directRecord);
 
 const report = {
   contract: "nen.report.data/v0.1",
@@ -136,6 +140,91 @@ test("normalization filters the exact branch and keeps served IDs separate from 
   assert.equal(duplicateIdentity.deliveryRows.filter((row): boolean => row.session.includes("thread-321")).length, 2);
 });
 
+test("reviewer spend attributes initial, numbered and bounded delta passes including HA-PR-#433 history", () => {
+  const sources = [
+    ["hanten § 4: phinks, subagent tokens 46513", "phinks"],
+    ["hanten § 4: nobunaga round 2, subagent tokens 85843", "nobunaga"],
+    ["hanten § 4: phinks round 2, counters unavailable", "phinks"],
+    ["hanten § 4: chrollo round 10, counters unavailable", "chrollo"],
+    ["hanten § 4: feitan delta since 3830f0e, counters unavailable", "feitan"],
+    ["hanten § 4: phinks delta since 3830f0eb3d46363b8e61051d68f57799a2328734, counters unavailable; registry alias sol", "phinks"],
+    ["hanten § 4: feitan delta, subagent tokens 29348", "feitan"],
+    ["hanten § 4: phinks delta, subagent tokens 29348", "phinks"],
+    ["hanten § 4: chrollo delta, subagent tokens 29348", "chrollo"],
+  ];
+  const data = { ...report, phases: [], sessions: [], usage: sources.map(([source]) => ({
+    effort, recordedAt: "2026-10-20T10:01:00.000Z", surface: "codex", model: "sol", dial: "high", source,
+  })) };
+  const before = JSON.stringify(data);
+  const result = normalize(repo, data);
+  assert.deepEqual(result.deliveryRows.map((row) => row.role), sources.map(([, persona]) => `reviewer · ${persona}`));
+  assert.equal(result.deliveryRows.length, sources.length);
+  assert.ok(result.deliveryRows.every((row) => row.model === "exact: unread · alias: sol"));
+  assert.equal(JSON.stringify(data), before, "normalization must not rewrite ledger fields or review history");
+  const normalized = join(repo, ".nen/reports/reviewer-passes.json");
+  const renderedPasses = join(repo, ".nen/reports/reviewer-passes.md");
+  writeFileSync(normalized, JSON.stringify(result), { mode: 0o600 });
+  ok("nen", ["report", "render", "--template", TEMPLATE, "--data", normalized, "--out", renderedPasses, "--repo", repo]);
+  const body = readFileSync(renderedPasses, "utf8");
+  assert.equal((body.match(/\| reviewer · /g) ?? []).length, sources.length);
+  assert.ok(!body.includes("unread — usage records no supported role"));
+  assert.ok(!body.includes("subagent tokens"), "private source readouts stay local");
+  assert.deepEqual(compareBody(`${body}\n# Changes\n`, body), []);
+});
+
+test("malformed Hanten usage refuses with the indexed record and expected source forms", () => {
+  for (const source of [
+    "hanten § 4: chrollo", "hanten § 4: chrollo,", "hanten § 4: chrollo,   ",
+    "hanten § 4: chrollo round 0, counters unavailable", "hanten § 4: chrollo round -1, counters unavailable",
+    "hanten § 4: chrollo round 02, counters unavailable", "hanten § 4: chrollo round two, counters unavailable",
+    "hanten § 4: chrollo delta since potato, counters unavailable", "hanten § 4: chrollo delta since abc123, counters unavailable",
+    "hanten § 4: chrollo delta since ABC1234, counters unavailable", "hanten § 4: chrollo round 2 delta, counters unavailable",
+    "hanten § 4 chrollo, counters unavailable", "hanten § 5: chrollo, counters unavailable",
+    "Hanten § 4: chrollo, counters unavailable", "hanten: chrollo, counters unavailable",
+  ]) {
+    assert.throws(() => normalize(repo, { ...report, usage: [{ ...report.usage[0], source }] }), (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.match(error.message, /^usage\[0\]\.source: malformed Hanten reviewer source; expected /);
+      assert.ok(error.message.includes("<persona> round <positive integer>"));
+      assert.ok(error.message.includes("<persona> delta since <7–40 lowercase hex SHA>"));
+      return true;
+    }, source);
+  }
+});
+
+test("unrelated usage and phase records retain their roles and foreign malformed usage stays excluded", () => {
+  const data = { ...report, sessions: [], phases: [{ ...report.phases[0], note: "hanten § 4: historical phase note" }], usage: [
+    { ...report.usage[0], source: "ren: author counters unavailable", futureField: { preserve: true } },
+    { ...report.usage[0], source: "mukai: landing counters unavailable" },
+    { ...report.usage[0], source: "opaque source mentioning hanten § 4: chrollo" },
+    { ...report.usage[0], source: "hantenish: counters unavailable" },
+    { ...report.usage[0], effort: "another/branch", source: "hanten § 4: chrollo" },
+  ] };
+  const before = JSON.stringify(data);
+  assert.deepEqual(normalize(repo, data).deliveryRows.map((row) => row.role), [
+    "author", "author", "landing", "unread — usage records no supported role", "unread — usage records no supported role",
+  ]);
+  assert.equal(JSON.stringify(data), before);
+});
+
+test("the direct record is read from the common directory, the older checkout home in place, and both homes refused", () => {
+  const name = `${encodeURIComponent(effort)}.json`;
+  const authorAlias = (): string | undefined => normalize(repo, report).deliveryRows.find((row): boolean => row.role === "author")?.model;
+  assert.equal(authorAlias(), "exact: unread · alias: sol");
+  const legacyDir = join(repo, ".nen/direct");
+  mkdirSync(legacyDir, { recursive: true });
+  writeFileSync(join(legacyDir, name), directRecord);
+  assert.throws((): unknown => normalize(repo, report), /in both homes/);
+  rmSync(join(durableDirect, name));
+  writeFileSync(join(legacyDir, name), JSON.stringify({ session: 5 }));
+  assert.throws((): unknown => normalize(repo, report), (error: Error): boolean => error.message.startsWith(join(repo, ".nen/direct")) && /session must be an object/.test(error.message));
+  rmSync(join(legacyDir, name));
+  writeFileSync(join(durableDirect, name), JSON.stringify({ session: 5 }));
+  assert.throws((): unknown => normalize(repo, report), (error: Error): boolean => error.message.includes(".git/.nen/direct") && /session must be an object/.test(error.message));
+  writeFileSync(join(durableDirect, name), directRecord);
+  assert.equal(authorAlias(), "exact: unread · alias: sol");
+});
+
 test("Nen alone renders Markdown and the semantic guard names missing, duplicate and extra rows", () => {
   const data = join(repo, ".nen/reports/normalized.json");
   const out = join(repo, ".nen/reports/rendered.md");
@@ -171,6 +260,13 @@ test("CLI writes mode 0600 and refuses output and input symlinks", () => {
   const result = run(process.execPath, [ENGINE, "normalize", "--data", data, "--out", out, "--repo", repo]);
   assert.equal(result.status, 0, `${result.stdout}${result.stderr}`);
   assert.equal(lstatSync(out).mode & 0o777, 0o600);
+  const malformedData = join(repo, ".nen/reports/malformed-review.json");
+  const refusedOut = join(repo, ".nen/reports/refused-review.json");
+  writeFileSync(malformedData, JSON.stringify({ ...report, usage: [{ ...report.usage[0], source: "hanten § 4: chrollo" }] }));
+  const malformed = run(process.execPath, [ENGINE, "normalize", "--data", malformedData, "--out", refusedOut, "--repo", repo]);
+  assert.equal(malformed.status, 2);
+  assert.match(malformed.stderr, /usage\[0\]\.source: malformed Hanten reviewer source; expected/);
+  assert.throws(() => lstatSync(refusedOut), { code: "ENOENT" });
   const link = join(repo, ".nen/reports/link.json");
   symlinkSync(out, link);
   const linkedOut = run(process.execPath, [ENGINE, "normalize", "--data", data, "--out", link, "--repo", repo]);
