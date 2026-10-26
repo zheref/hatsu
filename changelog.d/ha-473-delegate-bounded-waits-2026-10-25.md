@@ -10,4 +10,4 @@
 
 ### Fixed
 
-- `scripts/mechanical_conflicts_fixture.test.mts` hands nen the same git identity it hands its own `git` calls, so the `mechanical-conflicts-guard` lane passes on a GitHub-hosted runner, which has none (the lane landed on `main` through HA-PR-#489 and first ran on this branch's catch-up: `git merge` refused with "empty ident name").
+- `scripts/mechanical_conflicts_fixture.test.mts` hands nen the same git identity it hands its own `git` calls and writes it into each fixture repository's config, so the `mechanical-conflicts-guard` lane passes on a GitHub-hosted runner, which has none (the lane landed on `main` through HA-PR-#489 and first ran on this branch's catch-up: `git merge` refused with "empty ident name").

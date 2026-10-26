@@ -53,6 +53,10 @@ function conflictRepo(parent: string, name: string, includeOther: boolean): stri
   const repo = join(parent, name);
   git(parent, 'init', '--bare', '--initial-branch=main', origin);
   git(parent, 'clone', origin, repo);
+  // nen's own git reads the repository config, so the identity lives there too: a GitHub-hosted runner has none
+  // in its environment, and 'git merge' under nen refused with "empty ident name" (HA-PR-#483, runs 40369572869 and 40371479933).
+  git(repo, 'config', 'user.name', 'Hatsu fixture');
+  git(repo, 'config', 'user.email', 'fixture@example.invalid');
   write(repo, 'nen/contract.json', `${JSON.stringify({ $schema: 'nen.contract/v0.1', mechanical: liveContract.mechanical }, null, 2)}\n`);
   write(repo, '.claude-plugin/plugin.json', '{"version":"0.0.1"}\n');
   write(repo, 'changelog.d/415.md', 'base changelog\n');
