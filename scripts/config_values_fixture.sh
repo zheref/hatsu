@@ -4,6 +4,6 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 bash "$here/config_values.sh" --self-test
 node --test "$here/config_values_examiner_fixture.ts"
-node "$here/../node_modules/vitest/vitest.mjs" run --root "$here/.." --testTimeout 15000 scripts/config_values_deploy_fixture.test.ts
+node "$here/../node_modules/vitest/vitest.mjs" run --root "$here/.." --maxWorkers 1 --no-file-parallelism --testTimeout 15000 scripts/config_values_deploy_fixture.test.ts scripts/pr_sections_history_fixture.test.ts
 node --test "$here/config_values_get_fixture.ts"
 node --test "$here/config_values_owned_fixture.ts"

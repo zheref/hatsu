@@ -145,10 +145,25 @@ gets when it declares nothing.
 |---|---|---|
 | `max` | `7` | resolver and sections guard; reader count only, never the compact footer |
 | `variants` | every kind × family cell from `contracts/pr-sections.json` | `shibari`, `tensho`, `jujisho` before each body write |
+| `$canon` | catalogue `contract` and canonical `documentSha256` as `sha256` | configuration diagnosis and explicit refresh; metadata ignored by the section resolver |
 | `$sections` | every available id and purpose, beside `sections` under `pr` | author and consumer configuration review |
 
-`config_values.sh --fill` materializes the **full** default matrix and the `$sections` annotation;
-it never overwrites an edited cell. That cell becomes consumer-owned, not a canon-following default.
+`config_values.sh fill` materializes the **full** default matrix, `$canon` stamp and `$sections`
+annotation when the block is absent. Plain `fill` leaves a present block byte-identical.
+`diagnose` compares each cell with its stamped catalogue from the packaged
+`contracts/pr-sections.history.json`, without Git: **current default**, **stale default**, or
+**consumer-owned**; it also names **missing** and **retired** cells and retired ids. An **unstamped**
+copy is compared with the current catalogue in one line, with ownership unknown.
+
+`config_values.sh fill --refresh` advances unedited defaults, adds missing cells, updates `$sections`
+and re-stamps. It preserves `max`, edited cells and other metadata; `$canon.owned` remembers owned
+cells across later refreshes, including an edit that coincides with a newer default. An owned cell
+that names a retired id or cell refuses refresh at exit 1, naming it and writing nothing. An unknown
+or malformed stamp refuses at exit 2. An unstamped refresh reports provenance unknown, retains every
+present cell as explicitly owned, adds only missing cells, and stamps the current catalogue; later
+refreshes still retain those cells. All inputs and staged results are validated before any
+replacement. Tenkai's `apply` uses this explicit refresh; Ten's adoption inbox reports its stale
+counts and both catalogue sha7s without repairing them. `nen warmup` remains unchanged.
 [PR-SECTIONS.md](PR-SECTIONS.md) owns family folding, conditional run facts, the seven-section cap,
 the kind-specific verification aids and the warning-only 150-word prose budget. `max` is configurable
 up to seven; a smaller cap requires a fitting cell, never silent section truncation.

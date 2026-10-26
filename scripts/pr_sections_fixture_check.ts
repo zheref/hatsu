@@ -135,7 +135,7 @@ test("every one of 24 cells resolves and every one of 39 taxonomy jobs is owned 
   const jobs = Object.values(cat.families).flat();
   assert.equal(jobs.length, 39);
   assert.equal(new Set(jobs).size, 39);
-  assert.deepEqual(defaults(cat), { max: 7, variants: cat.variants });
+  assert.deepEqual(defaults(cat), { max: 7, variants: cat.variants, $canon: { contract: cat.contract, sha256: cat.documentSha256 } });
   assert.equal(Object.keys(options(cat)).length, cat.preamble.length + cat.sections.length + cat.footer.length);
 });
 

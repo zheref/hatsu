@@ -1,5 +1,6 @@
 {
   "contract": "hatsu.pr-sections/v1",
+  "documentSha256": "ddc28165475067b2bf5fe4e4ff1f7f4fafdc3602ac596679c0fda6f25c3eedc3",
   "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, glyphs, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect. The spec footer row is admitted by the run fact spec (a closing issue carrying a Spec: line) and carries nen's spec-rows requirement whole; the always-on Hanten footer keeps its exact unglyphed compatibility heading and precedes checklist evidence.",
   "max": 7,
   "proseBudget": 150,
