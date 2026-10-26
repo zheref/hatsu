@@ -151,7 +151,7 @@ prerequisites hold (row `wrap-up`; never `--idle`). **Kazaana never resumes itse
 ## Residue
 
 `nen direct registry --json` prints no `line` (§ 1; owed to nen). A delegate's raise has no
-verb: it is § 3's native tool, never a park by itself; absent from the session's tools it parks
+verb: it is § 3's native tool, never a park by itself; with no adapter route left it parks
 `g5-capability-unavailable` (WORKFLOW § *Idle batches* rule 3). § 3 names the
 effort-dial residue; the overlap read has none.
 

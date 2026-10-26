@@ -1743,14 +1743,14 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    **authority and gates** first — a human gate stays the maintainer's (rule 2), and no capability
    supplies a missing authorization or weakens a gate; then **a Nen verb** where Nen owns the operation;
    else **the owning skill's native capability or named surface adapter** — kazaana § 3's delegate is
-   raised by the host's delegation tool (Claude Code's Agent tool, Codex `spawn_agent`, Cursor's
-   subagent, Antigravity `invoke_subagent`) into its provisioned worktree (§ *Where worktrees live*),
-   under `--idle` exactly as attended; **judgment, drafting and authoring** proceed, since no verb owns
+   raised by the host's delegation route (Claude Code's Agent tool, Codex `spawn_agent` then `codex exec -C
+   <effort-path>`, Cursor's subagent, Antigravity `invoke_subagent`), every route the surface guide names
+   tried in its order, into its provisioned worktree (§ *Where worktrees live*), under `--idle` exactly as attended; **judgment, drafting and authoring** proceed, since no verb owns
    them. A step whose route is a hand-run shell operation is never improvised in the batch, Nen-owned or
    not; only a native capability the owning skill names, or judgment and authoring, proceed without a
    verb. The effort parks only on an **observed** fact, each with its one row: the named native
-   capability absent from this session's tools (a session tool, never a lane's CLI tool, which is row
-   `missing-tool`) → `parked:g5-capability-unavailable` (row `capability-unavailable`); an applicable
+   capability absent from this session's tools with no adapter route left (a session tool, never a lane's
+   CLI tool, which is row `missing-tool`) → `parked:g5-capability-unavailable` (row `capability-unavailable`); an applicable
    prohibition → `parked:g5-<its decisions row>`; an unavailable prerequisite (a worktree that cannot be
    provisioned, a declared dependency absent) → `parked:g5-capability-unavailable`, the prerequisite
    named; an observed rejection (rule 2) → `parked:g5-harness-denied`; an unresolved required human
