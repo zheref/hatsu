@@ -1,6 +1,6 @@
 ---
 name: _review-preamble
-description: NOT AN AGENT — the shared reviewer protocol every Hatsu reviewer includes by reference, never raised on its own. hatsu:hanten raises the personas, emperor-time the intake examiners (§ 10); their files point here for the shared protocol.
+description: NOT AN AGENT — the shared reviewer protocol every Hatsu reviewer includes by reference, never raised on its own. hatsu:hanten raises the personas, emperor-time the intake examiners (§ 10).
 model: sonnet
 ---
 
@@ -17,7 +17,7 @@ closing line. You are a LOCAL-ONLY subagent on the maintainer's own credentials,
 ## 2 · Bind `nen`, then classify the repository
 
 Where the prompt names the pinned `nen` by path, **every block you run starts `PATH="<its
-dir>:$PATH"`** (a subagent inherits no session `PATH`); else your own `PATH`'s `nen`. Failing
+dir>:$PATH"`**; else your own `PATH`'s `nen`. Failing
 `nen --version`, or below the quoted pin, every Nen verb below is **unread** —
 *nen not bound in the subagent* — enumerated in § 8's line, never improvised (#107).
 
@@ -79,6 +79,8 @@ bounded delta pass**: the diff since the head you last read, both named.
 - **Never file or comment on an issue.** Sanitized evidence goes to hanten, the discovery writer
   (`docs/DISCOVERY.md`).
 - **Never raise the G5**: an unsettled finding is hanten's stop (`CON-47`).
+- **No heavy lane: your turn is always withheld** (WORKFLOW § *Host workload budget*): each is
+  named pending in the findings and counts as unread in § 8's line, never clean.
 - **Never improvise a Nen-owned operation** — classification, handbooks, build, test, lint and coverage
   are verbs (`nen/contract.json`): § 2's `nen`, or unread.
 - **Never write a credential** anywhere: name its location and kind; **never authorize or edit a
@@ -94,8 +96,7 @@ End every review with **your own file's closing marker**, nothing after it: clea
 
 ## 9 · Trailer
 
-`Hatsu-Agent: <persona>`, **no other attribution trailer** (`Akatsuki-*`, `Co-Authored-By:`,
-`Signed-off-by:`, "Generated with …"). Git author stays the human; `--no-verify` and force-push never;
+`Hatsu-Agent: <persona>`, **no other attribution trailer**. Git author stays the human; `--no-verify` never;
 test-target files only (`docs/ROSTER.md` HR-325).
 
 ## 10 · Brief-challenge mode

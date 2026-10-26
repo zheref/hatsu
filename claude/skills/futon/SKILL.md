@@ -80,7 +80,7 @@ nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/
 
 No stage family (`nen stage check` exit `2`) → the label is skipped, said (WORKFLOW § *A target
 repository with no delivery-stage taxonomy*); an unloadable `nen/labels.json` is a G5. **Then Kurapika builds it, in this session and the mode confirmed**, through the verbs the target
-declares as `build` § 5 lays them out, in the effort's own worktree; a delegate's brief carries WORKFLOW § *Delegate briefs*' wait block verbatim; work a local session cannot do is a **G5**, gap named.
+declares as `build` § 5 lays them out, in the effort's own worktree; a delegate's brief carries WORKFLOW § *Delegate briefs*' wait block and § *The host block a delegate brief carries* verbatim, one `Heavy turn:` line; work a local session cannot do is a **G5**, gap named.
 
 ## 5. Done is merged into `branch.base`
 
@@ -101,11 +101,11 @@ nen loop slots --from-run <run id> --target <owner/name> --ci-cap 2 --local-cap 
 nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target checkout> --json
 ```
 
-Summed: the manifest's delivery PRs and the claimed efforts without one (WORKFLOW § *Idle batches* rule 4).
+Summed: the manifest's delivery PRs and claimed efforts without one (WORKFLOW § *Idle batches* rule 4; the host's budget is § *Host workload budget*, apart).
 
-The **CI** plane (legacy-CI PRs only) caps at 2, frees at PR-open. The **local** plane caps
-at 7 and frees at **`ready+prompted`** (PR Ready, prompt shown; `monitor.localSlotFrees`, HR-353, WORKFLOW § 2). **`--local-cap 7` is futon's own policy,
-always passed**; omitted, exit `2`. **The budgets are never traded**: a full local one is back-pressure.
+**CI** (legacy-CI PRs only) frees at PR-open; **local** frees at **`ready+prompted`**
+(HR-353). **`--local-cap 7` is futon's policy, always passed**; omitted, exit `2`.
+**Never traded**: a full local budget is back-pressure.
 
 ## 7. Authority — the CON-25 delegation
 

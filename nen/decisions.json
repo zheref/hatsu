@@ -929,6 +929,60 @@
       ],
       "proposeIssue": false,
       "why": "Added with hatsu:kuchiyose (zheref/hatsu#331). The day-one ceremony -- creating each -akatsuki GitHub App with its permission tier and installing it (HR-138), setting its App id and private-key secrets and the Claude auth secret (HR-139), the Hidan variable, and applying the ruleset that registers the lane checks as required status checks (HR-140: printed, never applied) -- is account-level identity creation, secret material and a repository security setting: a permission, secret or settings change only the human can make, a G5 under CON-47 (HR-138, HR-140; the provider's docs/provisioning/RUNBOOK.md, Human gates). CON-12 fixes only the shape -- one least-privilege App per lane at its tier. The install PR itself stands at the consumer's declaration gate, CON-5 (G2) or CON-7 (G4) as nen repo classify answers, and is never merged by the run. The run prints one block per step and waits; no option performs a step or takes a credential, and a secret value typed into the picker or chat is never used and is rotated. Secret steps run in the maintainer's own terminal, never the session (the private key by stdin, the downloaded .pem deleted); the ruleset payload is printed inline with its sha256 for the maintainer to check; the permission pack denies the session gh secret set/delete, gh variable set and gh api writes to rulesets, secrets and variables."
+    },
+    {
+      "id": "host-overload",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "host recovered -- resume heavy work",
+          "command": "the maintainer lists the recorded process groups empty (ps -A -o pid,ppid,pgid,command) and says the host is responsive; the run resumes at the parked heavy step",
+          "consequence": "the parked effort and every light-only effort after it take their heavy turn again, one at a time"
+        },
+        {
+          "key": "B",
+          "label": "stop the recorded process groups yourself",
+          "command": "the maintainer runs the handed-over bash block, one kill per recorded process group whose id equals its recorded $$, then A",
+          "consequence": "the session kills nothing; the listing after the block is the recovery evidence"
+        },
+        {
+          "key": "C",
+          "label": "end the run light-only",
+          "command": "every remaining effort runs light checks, commits and publishes where no same-host CI starts; heavy lanes stay pending on the register",
+          "consequence": "nothing heavy runs again this run; the register names every pending lane"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "docs/WORKFLOW.md section Host workload budget, Stop on overload: overload is host-wide; a retry needs an empty listing of the recorded process group and the maintainer's word on recovery, and no session stops a process (zheref/hatsu#478)."
+    },
+    {
+      "id": "host-ci-unknown",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "type the machine code and re-read",
+          "command": "the maintainer types this host's machine code (HR-276); nen runner inventory is read again",
+          "consequence": "the pool read resolves to busy or free and the heavy launch waits or proceeds"
+        },
+        {
+          "key": "B",
+          "label": "no CI pool on this host -- proceed",
+          "command": "the maintainer states no runner pool is registered on this host; the heavy launch proceeds under the host budget",
+          "consequence": "the statement is recorded on the register; same-host CI is read as absent for this run"
+        },
+        {
+          "key": "C",
+          "label": "hold the heavy step",
+          "command": "the effort parks at its heavy step; light work continues",
+          "consequence": "the heavy lanes stay pending on the register until A or B"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "docs/WORKFLOW.md section Host workload budget, Same-host CI: an unknown machine code, an unreadable pool set or an unread inventory counts as busy, and the machine code is the maintainer's typed word, never derived (HR-276; zheref/hatsu#478)."
     }
   ]
 }

@@ -50,7 +50,45 @@ try {
   cases += 1;
   console.log(`ok ${cases} - --print gives the live block: no watch, both flags and a 9-minute ceiling, the host timeout above it, a hand-back`);
 
-  const brief = (lines: string[]): string => ['# A delegate brief', '', 'You are a builder delegate.', '', ...lines, '', '## Report back'].join('\n');
+  // zheref/hatsu#478: the live host block, printed the same way, rides in every live-canon brief below.
+  const printedHost = run(['--print-host']);
+  assert.equal(printedHost.status, 0, String(printedHost.stderr));
+  const host = String(printedHost.stdout).trimEnd().split('\n');
+  assert.equal(host.length, 8, `the live host block has eight lines: ${printedHost.stdout}`);
+  assert.match(host.join('\n'), /record your shell's process group \(`ps -o pgid= -p \$\$`\) beside its `\$\$`, and name both in your hand-back; a group that differs from `\$\$` is no recorded id/);
+  assert.match(host.join('\n'), /a push that starts CI on this host/);
+  assert.match(host.join('\n'), /anything not named light/);
+  assert.match(host.join('\n'), /zheref\/nen#537, never with an improvised flag/);
+  assert.match(host.join('\n'), /never kill a process by name or pattern/);
+  cases += 1;
+  console.log(`ok ${cases} - --print-host gives the live host block's eight lines: push heavy, light named, the unbounded-lane line, the recorded process group, no kill by name`);
+  const withheld = '- Heavy turn: withheld';
+  const brief = (lines: string[], hostLines: string[] = [...host, withheld]): string => ['# A delegate brief', '', 'You are a builder delegate.', '', ...lines, '', ...hostLines, '', '## Report back'].join('\n');
+  expect('a brief with every host line and a granted turn passes', [file('granted.md', brief(block, [...host, 'Heavy turn: granted, workers 2']))], 0, /all \d+ host-block lines and one Heavy turn line/, null);
+  expect('a brief without the host block fails on its lines', [file('nohost.md', brief(block, [withheld]))], 1, /host-block line 1 of/, null);
+  expect('a dropped host line fails naming only that line', [file('hostdrop.md', brief(block, [...host.slice(0, -1), withheld]))], 1, new RegExp(`host-block line ${host.length} of ${host.length}`), null);
+  expect('a brief with no Heavy turn line fails', [file('noturn.md', brief(block, host))], 1, /carries 0 Heavy turn lines/, null);
+  expect('a brief with two Heavy turn lines fails', [file('twoturn.md', brief(block, [...host, withheld, 'Heavy turn: granted, workers 2']))], 1, /carries 2 Heavy turn lines/, null);
+  expect('a lone unbounded grant fails naming the malformed line', [file('zeroturn.md', brief(block, [...host, 'Heavy turn: granted, workers 0']))], 1, /malformed Heavy turn line: Heavy turn: granted, workers 0;/, null);
+  const lone = run([file('lonestar.md', brief(block, [...host, '* Heavy turn: withheld']))]);
+  assert.equal(lone.status, 1, String(lone.stdout));
+  assert.match(String(lone.stdout), /malformed Heavy turn line: \* Heavy turn: withheld;/);
+  assert.doesNotMatch(String(lone.stdout), /carries \d+ Heavy turn lines/);
+  cases += 1;
+  console.log(`ok ${cases} - a lone malformed line is named, not counted as none`);
+  // P-1: a second, malformed or conflicting turn line beside a valid one never passes.
+  for (const [name, extra] of [
+    ['a starred grant', '* Heavy turn: granted, workers 8'],
+    ['a zero-worker grant', 'Heavy turn: granted, workers 0'],
+    ['a non-numeric grant', 'Heavy turn: granted, workers abc'],
+    ['an all-workers grant', 'Heavy turn: granted, all workers'],
+  ] as const) {
+    const escaped = extra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    expect(`a valid turn line beside ${name} fails`, [file(`beside-${cases}.md`, brief(block, [...host, withheld, extra]))], 1, new RegExp(`carries 2 Heavy turn lines[\\s\\S]*malformed Heavy turn line: ${escaped};`), null);
+  }
+  expect('a lone CR in a malformed line is escaped, never a second workflow command', [file('cr.md', brief(block, [...host, 'Heavy turn: granted, workers 2\r::warning::forged']))], 1, /malformed Heavy turn line: Heavy turn: granted, workers 2%0D::warning::forged;/, null);
+  expect('a plus bullet makes a turn line malformed', [file('plus.md', brief(block, [...host, '+ Heavy turn: withheld']))], 1, /malformed Heavy turn line: \+ Heavy turn: withheld;/, null);
+  expect('a percent in a malformed line is escaped', [file('percent.md', brief(block, [...host, 'Heavy turn: granted, workers 100%0A']))], 1, /malformed Heavy turn line: Heavy turn: granted, workers 100%250A;/, null);
   expect('a brief built from the canon passes', [file('built.md', `${brief(block)}\n`)], 0, /carries all 4 wait-block lines/, null);
   expect('an indented copy and CRLF still pass', [file('crlf.md', brief(block.map((l) => `   ${l}  `)).replace(/\n/g, '\r\n'))], 0, /carries all 4/, null);
   expect('a brief naming another ceiling on its own line passes', [file('other.md', brief([...block, '- This brief\'s ceiling: 5 minutes.']))], 0, /carries all 4/, null);
@@ -98,6 +136,15 @@ try {
   expect('--print beside a brief exits 2', ['--print', 'a.md'], 2, null, /usage/);
   expect('--canon with no path exits 2', ['--canon'], 2, null, /--canon needs a path/);
   expect('an unknown flag exits 2', ['--watch', 'a.md'], 2, null, /unknown flag --watch/);
+
+  const hostCanon = canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:begin -->\n- h1\n<!-- delegate-host:end -->\n');
+  expect('a synthetic host block is the one checked', ['--canon', hostCanon, file('h-ok.md', '- one\n- h1\nHeavy turn: withheld\n')], 0, /all 1 host-block lines/, null);
+  expect('a doubled host marker exits 2', ['--canon', canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:begin -->\n- h\n<!-- delegate-host:begin -->\n<!-- delegate-host:end -->\n'), file('h2.md', '- one\n')], 2, null, /at most one/);
+  expect('a host begin with no end exits 2', ['--canon', canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:begin -->\n- h\n'), file('h4.md', '- one\n')], 2, null, /delegate-host/);
+  expect('a host end before its begin exits 2', ['--canon', canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:end -->\n- h\n<!-- delegate-host:begin -->\n'), file('h5.md', '- one\n')], 2, null, /delegate-host/);
+  expect('an empty host block exits 2', ['--canon', canon('<!-- delegate-wait:begin -->\n- one\n<!-- delegate-wait:end -->\n<!-- delegate-host:begin -->\n<!-- delegate-host:end -->\n'), file('h3.md', '- one\n')], 2, null, /delegate-host block is empty/);
+  expect('--print-host on a canon with no host block exits 2', ['--canon', custom, '--print-host'], 2, null, /carries no/);
+  expect('--print beside --print-host exits 2', ['--print', '--print-host'], 2, null, /usage/);
 
   // AC-1: the skills that raise a delegate cite the section the block lives in.
   for (const skill of ['kazaana', 'futon']) {
