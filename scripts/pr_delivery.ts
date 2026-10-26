@@ -207,10 +207,33 @@ function sourceAlias(source: string | null, knownAliases: ReadonlySet<string>): 
   const alias = match[1] as string;
   return knownAliases.has(alias) ? alias : null;
 }
+// Plain `--git-common-dir` (git 2.5), never `--path-format=absolute` (git 2.31): a relative answer is
+// resolved against the root, as scripts/futon_effort_record.mts and hooks/stop-bell.sh resolve it.
+function gitCommonDir(root: string): string {
+  const result = spawnSync("git", ["-C", root, "rev-parse", "--git-common-dir"], { encoding: "utf8" });
+  if (result.error !== undefined || result.status !== 0 || result.stdout.trim() === "") fail(`${root}: git could not name the common directory`);
+  const raw = result.stdout.trim();
+  return realpathSync(isAbsolute(raw) ? raw : resolvePath(root, raw));
+}
+// The direct record's home is nen's durable one, <git-common-dir>/.nen/direct/ (zheref/nen#509); the older
+// <checkout>/.nen/direct/ is read in place only while nen reads it (through 0.28), and a record in both
+// homes is refused by name, as nen refuses it.
+function directRecordPath(root: string, effort: string): string | null {
+  const name = `${encodeURIComponent(effort)}.json`;
+  const common = gitCommonDir(root);
+  const durable = join(common, ".nen/direct", name);
+  const legacy = join(root, ".nen/direct", name);
+  const hasDurable = stat(durable) !== null;
+  const hasLegacy = stat(legacy) !== null;
+  if (hasDurable && hasLegacy) fail(`${durable} and ${legacy}: the direct record is in both homes; nen refuses it too`);
+  if (hasDurable) { noSymlinkPath(common, durable, false); return durable; }
+  if (hasLegacy) { noSymlinkPath(root, legacy, false); return legacy; }
+  return null;
+}
 function directSessionAlias(root: string, effort: string, surface: string): string | null {
-  const path = join(root, ".nen/direct", `${encodeURIComponent(effort)}.json`);
-  if (!existsSync(path)) return null;
-  noSymlinkPath(root, path, false);
+  const path = directRecordPath(root, effort);
+  if (path === null) return null;
+  if (!stat(path)?.isFile()) fail(`${path}: the direct record must be a regular file`);
   const direct = object(loadJson(path), `${path}: direct record must be an object`);
   if (direct.session !== null && direct.session !== undefined) {
     const session = object(direct.session, `${path}: session must be an object or null`);
@@ -226,7 +249,18 @@ function directSessionAlias(root: string, effort: string, surface: string): stri
   return stringOrNull(modelRow?.session, `${path}: model compare session`);
 }
 
-function roleFor(kind: DeliveryKind, phase: string | null, source: string | null): string {
+function reviewerPersona(kind: DeliveryKind, source: string | null, where: string): string | null {
+  if (source === null) return null;
+  // Initial round, numbered round, bounded delta; bare delta is HA-PR-#433's legacy form.
+  const reviewer = /^hanten § 4: ([a-z][a-z0-9-]{0,63})(?: round [1-9][0-9]*| delta(?: since [0-9a-f]{7,40})?)?, .+$/.exec(source);
+  if (reviewer !== null) return reviewer[1] as string;
+  if (kind === "usage" && /^hanten\b/i.test(source)) {
+    fail(`${where}: malformed Hanten reviewer source; expected "hanten § 4: <persona>, <readout>", "hanten § 4: <persona> round <positive integer>, <readout>" or "hanten § 4: <persona> delta since <7–40 lowercase hex SHA>, <readout>" (legacy "<persona> delta, <readout>" is accepted)`);
+  }
+  return null;
+}
+function roleFor(kind: DeliveryKind, phase: string | null, source: string | null, where: string): string {
+  const reviewer = reviewerPersona(kind, source, where);
   if (phase !== null) {
     if (AUTHOR_PHASES.has(phase)) return "author";
     if (LANDING_PHASES.has(phase)) return "landing";
@@ -235,8 +269,7 @@ function roleFor(kind: DeliveryKind, phase: string | null, source: string | null
     if (delegate !== null) return `delegate author · ${delegate[1]}`;
   }
   if (source !== null) {
-    const reviewer = /^hanten § 4: ([a-z][a-z0-9-]{0,63}),/.exec(source);
-    if (reviewer !== null && PERSONA.test(reviewer[1] as string)) return `reviewer · ${reviewer[1]}`;
+    if (reviewer !== null) return `reviewer · ${reviewer}`;
     const delegate = /^delegate author(?:: | )([a-z][a-z0-9-]{0,63})(?:[,;]|$)/.exec(source);
     if (delegate !== null && PERSONA.test(delegate[1] as string)) return `delegate author · ${delegate[1]}`;
     if (/^(?:ren|build|spiritual-message)(?: §|:|$)/.test(source)) return "author";
@@ -279,7 +312,7 @@ function rowSource(row: Evidence): string {
   return row.kind === "phase" && row.phase !== null ? `${base} · ${row.phase}` : base;
 }
 function deliveryRow(root: string, config: JsonObject, evidence: Evidence): DeliveryRow {
-  const role = roleFor(evidence.kind, evidence.phase, evidence.source);
+  const role = roleFor(evidence.kind, evidence.phase, evidence.source, `${evidence.kind}[${evidence.index}].source`);
   const surface = evidence.surface ?? "unread — ledger records no surface";
   const knownAliases = evidence.surface === null ? new Set<string>() : surfaceAliases(config, evidence.surface);
   const directAlias = evidence.surface === null || role !== "author" ? null : directSessionAlias(root, evidence.effort, evidence.surface);

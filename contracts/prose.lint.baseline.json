@@ -540,54 +540,6 @@
       "count": 1
     },
     {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-01",
-      "text": "the `spec.*` keys read by hand (*conventions*, the dom",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "en spec number**, owed, #493): every FR, SC, story l",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "*, **cite-check** owed (#493).",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "x**, **coverage**, owed #493), never hand-edited.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "owed (zheref/hatsu#405, #493). En drives each PR to",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "rge**, **parity** (owed #493). Ids never renumber; a",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "n; also zheref/nen#453, #454, #444.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/dowsing-chain/SKILL.md",
-      "rule": "PL-05",
-      "text": "o zheref/nen#453, #454, #444.",
-      "count": 1
-    },
-    {
       "path": "claude/skills/en/SKILL.md",
       "rule": "PL-06",
       "text": "Verified live at `v0.3.0` (`docs/ab/e",
@@ -729,12 +681,6 @@
       "path": "claude/skills/file/SKILL.md",
       "rule": "PL-06",
       "text": "declares that family** (verified live: a label in a forbidden",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/futon/SKILL.md",
-      "rule": "PL-05",
-      "text": "on delivery ownership*, #154). Never record a main-b",
       "count": 1
     },
     {
@@ -897,24 +843,6 @@
       "path": "claude/skills/hanten/SKILL.md",
       "rule": "PL-05",
       "text": "ises them by content** (#73): a diff touching a `##",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
-      "text": "erved worktree refusal (#218; ratified exception, RO",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
-      "text": "ing it, never built on (#170); `2` is a quoted wirin",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
-      "text": "`--not-reported` flags (#100). Only the cycle ledger",
       "count": 1
     },
     {
@@ -6654,42 +6582,6 @@
       "count": 1
     },
     {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-01",
-      "text": "lands the keys are read by hand, an absent key at wave",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-01",
-      "text": "hey are inputs, checked by hand:",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "(the spec verb family), #453, #454, #444, #486",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "pec verb family), #453, #454, #444, #486",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "rb family), #453, #454, #444, #486",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-05",
-      "text": "ily), #453, #454, #444, #486",
-      "count": 1
-    },
-    {
       "path": "docs/config/workflow.json.md",
       "rule": "PL-05",
       "text": "`, zheref/hatsu#357 and #356, shipped, reach them th",
@@ -7269,12 +7161,6 @@
       "path": "docs/surfaces/codex.md",
       "rule": "PL-05",
       "text": "7, zheref/hatsu#294 and #295):** the picker carries",
-      "count": 1
-    },
-    {
-      "path": "docs/surfaces/cursor.md",
-      "rule": "PL-06",
-      "text": "§ 9, forum-sourced, not verified live; [`docs/WORKFLOW.md`](.",
       "count": 1
     },
     {

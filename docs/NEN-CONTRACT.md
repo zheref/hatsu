@@ -50,15 +50,50 @@ omission is exit `2`, a broken declaration. Its policy half, [`nen/workflow.json
 **validated by nen at the pinned build** — the second `ok` row above, with a malformed key reported as a
 FAIL by pointer — and [`docs/WORKFLOW.md`](WORKFLOW.md) documents both.
 
+## Bootstrap integrity and ownership
+
+Hatsu owns the reviewed `dependency.bootstrap.scriptSha256` pin and its
+`scriptSha256Provenance` record beside the per-platform binary `sha256` map. Nen 0.28
+preserves these raw keys; its typed bootstrap schema validates the URL and source path only.
+A green `nen schema check` therefore does not establish digest policy. Hatsu's host binder
+rejects a missing or malformed script pin and checks downloaded bytes before Bash runs.
+The fixture checks reviewed provenance against
+the ref, source path and script digest. Typed metadata extraction and producer binding for readiness
+activation remain deferred.
+The Cursor Cloud Build verifies the script before Bash and the binary against the independent
+contract platform digest before linking or executing it. Readiness integrity is a two-step landing
+under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). This
+preparer accepts both the existing rendered workflow and the proposed integrity form as separate
+exact shapes. The tracked readiness template remains unchanged; activating its script and binary
+checks requires a separate PR after the preparer reaches `main`, with a typed metadata reader and
+validated producer/pin binding. This preparer adds no unused digest reader to Tenkai. The prepared
+form is exercised synthetically, so those tests do not claim readiness activation is delivered.
+
+For the current pin, the script digest was computed from the exact `bootstrap/nen.sh` blob at
+reviewed Nen tag `v0.28.0`, commit `21b133a21498ac5bea88dd9c8634cc217549e1fc`:
+`abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70`.
+Repins review the source commit and script bytes independently of the download being verified,
+then update the ref, script digest/provenance, binary digest map and Cloud example together.
+A digest fetched beside an artifact from the same release is not independent review evidence.
+
+Until Nen binds a required status to its producing workflow and App, a check name alone is
+insufficient producer evidence. The Hatsu consumer workaround is a `pull_request_target`
+workflow whose executable guard comes from its trusted base/workflow revision; the event's
+selected PR head is data only. Keep the trusted-base preflight and exact event-head checks.
+Producer workflow/App binding remains a Nen-owned gap tracked by
+[zheref/nen#546](https://github.com/zheref/nen/issues/546); bootstrap producer metadata remains
+[zheref/nen#407, item 8](https://github.com/zheref/nen/issues/407). This bootstrap change does not
+implement either policy, and `$`-prefixed metadata cannot enforce it.
+
 ## The range
 
-*Current pin, echoed for convenience:* **`nen >= 0.26`**, with the bootstrap installing **`v0.26.0`**.
-Those are two values and they move independently (`scripts/plugin_version_refs.sh --check-nen-pin` exits `1` when this line disagrees with the contract; the `plugin-version-refs-guard` lane runs it on the committed tree, and `unit-tests.yml` runs that lane on every pull request through `scripts/unit_tests_ci.mts`, so a repin that leaves this line stale fails the check; the lane is the pull request's own, so it catches a careless repin, not a hostile one, and the trusted workflows read their pin from `.trusted`). Hatsu adopts `nen pr converge` and `nen issue criteria`, the criterion-coverage verdict en §§ 4–5, shibari § 4 and rikugan § 3 read (v0.26.0, zheref/hatsu#413), `nen review ledger`, the review-cycle ledger hanten and breath call (v0.26.0, zheref/hatsu#216), the phase and usage `--dial`, `nen session record`/`show` and report data `sessions[]` (v0.24.0, zheref/hatsu#321), the `nen parse` list slots and alternations and the `--label`/`--severity` filters on `nen backlog fetch` and `nen report data`, executed by `hatsu:backlog-state` and `hatsu:backlog-board` (v0.22.0, zheref/hatsu#297), nen's own reading of `nen/gates.json` — `checks.excluded` in place of Hatsu's retired `check_exclusions`, and `round_policy.minRounds`/`.maxRounds` as nen keys, with the request ceiling in `nen pr request-reviews` (v0.21.0, zheref/hatsu#227) — the `nen classify` and `nen direct` families, executed by `hatsu:classify` and `hatsu:direct`, and the round quorum that fulfils its members' rounds (v0.20.0), the `nen runner` family, introduced in
+*Current pin, echoed for convenience:* **`nen >= 0.28`**, with the bootstrap installing **`v0.28.0`**.
+Those are two values and they move independently (`scripts/plugin_version_refs.sh --check-nen-pin` exits `1` when this line disagrees with the contract; the `plugin-version-refs-guard` lane runs it on the committed tree, and `unit-tests.yml` runs that lane on every pull request through `scripts/unit_tests_ci.mts`, so a repin that leaves this line stale fails the check; the lane is the pull request's own, so it catches a careless repin, not a hostile one, and the trusted workflows read their pin from `.trusted`). Hatsu adopts `nen canon lint` and its declared home `canon.lint`, the `review.excludedPersonas` and `precedenceRestatedIn` schema rows, the spec verb family, the durable effort ledgers in the git common dir, `pr converge --composite`, `pr ledger`, `run record` and the per-gate `stop` markers (v0.28.0, zheref/hatsu#449; the exits that moved are absorbed in [`docs/history/nen-repins.md`](history/nen-repins.md) § v0.28.0), `nen pr converge` and `nen issue criteria`, the criterion-coverage verdict en §§ 4–5, shibari § 4 and rikugan § 3 read (v0.26.0, zheref/hatsu#413), `nen review ledger`, the review-cycle ledger hanten and breath call (v0.26.0, zheref/hatsu#216), the phase and usage `--dial`, `nen session record`/`show` and report data `sessions[]` (v0.24.0, zheref/hatsu#321), the `nen parse` list slots and alternations and the `--label`/`--severity` filters on `nen backlog fetch` and `nen report data`, executed by `hatsu:backlog-state` and `hatsu:backlog-board` (v0.22.0, zheref/hatsu#297), nen's own reading of `nen/gates.json` — `checks.excluded` in place of Hatsu's retired `check_exclusions`, and `round_policy.minRounds`/`.maxRounds` as nen keys, with the request ceiling in `nen pr request-reviews` (v0.21.0, zheref/hatsu#227) — the `nen classify` and `nen direct` families, executed by `hatsu:classify` and `hatsu:direct`, and the round quorum that fulfils its members' rounds (v0.20.0), the `nen runner` family, introduced in
 v0.18.0 and executed by `hatsu:jusshin`, with its interactive desktop mode and `@@MODE@@` (v0.19.0), on top of `nen canon pin` and `nen canon mirror generate|check
 --surfaces` (v0.16.0, `hatsu:limbo`), the futon label selector, `then` skill chains and advance-go gate, the
 `library` kind, `nen release unit-check` and `nen pr merge --release-unit` (v0.15.0, fail-closed in
 v0.15.1); each feature requirement raised the minimum. Nen's compatibility floor stayed 0.7 until v0.17.0
-raised it to 0.17, v0.18.0 to 0.18, v0.19.0 to 0.19, v0.20.0 to 0.20, v0.21.0 to 0.21, v0.22.0 to 0.22, by v0.24.0 to 0.24 and at v0.26.0 to 0.26, each for breaking consumer notes, which this pin absorbs. **0.26 is also the floor that carries `pr converge` and `issue criteria`**: a 0.25 binary answers `unknown command` to each, the fail-closed reading a minimum exists to give. Every repin's adoptions and absorbed notes are in
+raised it to 0.17, v0.18.0 to 0.18, v0.19.0 to 0.19, v0.20.0 to 0.20, v0.21.0 to 0.21, v0.22.0 to 0.22, by v0.24.0 to 0.24, at v0.26.0 to 0.26 and at v0.28.0 to 0.28, each for breaking consumer notes, which this pin absorbs. **0.26 is also the floor that carries `pr converge` and `issue criteria`**: a 0.25 binary answers `unknown command` to each, the fail-closed reading a minimum exists to give. Every repin's adoptions and absorbed notes are in
 [`docs/history/nen-repins.md`](history/nen-repins.md).
 
 **The range is nen's answer, not this README's arithmetic — and not the warm-up's either.** The binary

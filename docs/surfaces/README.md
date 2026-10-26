@@ -113,7 +113,7 @@ drop a value that cannot be sanitised rather than ring with it. Read stderr, not
 `osascript` exits 0 with nothing delivered where the session has no Notification Center seat, and
 `afplay` exits 1 with `AudioQueueStart failed`; either is reported `not applicable, no seat`, by rung.
 Never retry, never substitute another noise-maker, and an unfired rung is never rendered as fired. Where no
-hook file is placed the skill also removes `.nen/last-stop.json` once the stop is answered; where the
+hook file is placed the skill also clears the marker (`nen stop clear`) once the stop is answered; where the
 hook fired, the hook consumed the marker and the skill does not.
 
 **The session-start refresh.** `hooks/session-start.sh`, mirrored as each surface's session-start row,

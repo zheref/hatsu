@@ -220,3 +220,13 @@ The run id a live run would take: `kamui-fi-is-7-20261022`, matching
 The spec text, the search reading and the record are judgement (kamui § *Residue*). Owed to nen, unchanged
 at `0.24.0`: `families[]` and the `spec` role (zheref/nen#453), `watch until --until merged` (zheref/nen#454),
 a file-fed title (zheref/nen#444), the prose lint lane for a new spec repository (zheref/nen#450).
+
+## Dated verification, 2026-10-23 — crash-and-resume (zheref/hatsu#444)
+
+**Finding, not a pass.** `kamui` writes no phase ledger (`git grep 'phase begin' claude/skills/kamui` prints nothing at
+0.141.0) and opens no run manifest, so a crash leaves a resume nothing of its own to read: only the objects it
+already published. The one publishing step it shares with every composite is idempotent, proved live on
+HA-PR-#463 (`nen pr open` → `existing`, `docs/ab/mukai.md`, 2026-10-23). The ledger-level proof
+(`node scripts/resume_proof.mts`) covers ren, build and the futon manifest only. Owed: either `kamui` wraps its
+steps in `nen phase begin|end --effort <branch>` and joins the proof, or a ruling that its GitHub state is its
+resume record.

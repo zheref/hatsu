@@ -44,9 +44,13 @@ Filled.
 
 Filled.
 
+## Adversarial review (hanten)
+
+No applicable scope found a finding.
+
 ## 📋 Completion checklist
 
-Filled.
+- [x] Adversarial review settled.
 
 ## Associated issues
 

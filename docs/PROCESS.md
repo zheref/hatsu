@@ -492,7 +492,7 @@ requested, and declares no round check); nen `0.26` exposes its state as `eventR
 reading those states as (c)'s observations is unruled, so until a ruling does, under `required` a PR
 whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
 Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **The gates file is
-the base's** (zheref/nen#372, in the pinned nen `0.26`): without `--gates`, nen reads `reviewers[]`,
+the base's** (zheref/nen#372, nen 0.23, inside the pin): without `--gates`, nen reads `reviewers[]`,
 `round_quorum` and every other gate input at the pull request's base, so a PR that changes either key,
 `kuchiyose`'s install PR among them, is judged by the declaration it would replace, never its own (SEC-6).
 `kuchiyose verify`'s lane-state read passes a copy from outside the checkout instead, which nen uses as given
@@ -754,8 +754,10 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 **Named residue, by skill** — the live list; each skill's `Residue` section points here.
 
 - **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
-  TypeScript verdict, frozen to fixes: its port is owed to `nen canon lint` (zheref/nen#481) and its
-  citation resolver to `nen ref resolve --citation` (zheref/nen#482); both retire at that repin. Its
+  TypeScript verdict, frozen to fixes: `nen canon lint` (zheref/nen#481) shipped in nen `0.28` with its declared home
+  `canon.lint` (the HA#449 repin; parity with this guard checked there), and the frozen CI step moves onto it by a
+  two-step landing ([GATE-CONFIGURATION.md](GATE-CONFIGURATION.md), 2026-09-20); its citation resolver is still owed to
+  `nen ref resolve --citation` (zheref/nen#482); the guard retires at that flip. Its
   pull-request check, `canon-lint` from `.github/workflows/prose-ambiguity-check.yml`, is **advisory**:
   it sits in no ruleset and becomes required only after one tagged release of green runs with a
   shrinking baseline (HR-13), by the maintainer's own ruleset edit
@@ -956,15 +958,16 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   default target is a `nen/workflow.json` key nen validates from `v0.21.0` and never acts on (`deploy.defaultTarget`,
   whose target must carry `project.targets.<name>.nonProduction: true`, zheref/nen#300);
   nen's own `shu deploy` still takes `--target` explicitly, and the skill still passes it.
-- **`kagutsuchi` § 3b.** `git fetch`, `git worktree list|add --detach|remove --force`, `git checkout
-  --detach`, `git ls-files`, `git check-ignore`, `git status --porcelain`, `mktemp`, `cp -p` and `mv -f`
-  inside `scripts/kagutsuchi_worktree.sh`, because **nen has no worktree verb** (`nen wc worktrees` reads,
-  never writes); core is resolved the way that verb resolves it (`git rev-parse --git-common-dir`) and
-  the report quotes the script's own `core:` line beside the verb's.
+- **`kagutsuchi` § 3b.** `nen wc worktrees --json` reports core and swap; kagutsuchi stops on a
+  non-null swap before it expands core's `project.fromCore[]` into repeated `--copy-from-core` flags,
+  previews or runs `nen wc worktree --name kagutsuchi`. Nen owns the fetch, fixed detached worktree, containment,
+  copy retention and refusal boundary. The path-to-flag expansion is Hatsu's small prose residue;
+  there is no raw-Git worktree engine here from the contract-pinned Nen onward (zheref/nen#299).
 - **Every worktree Hatsu makes** (rule 6 of `claude/rules/hatsu.md`, `hanten` § 4, the stash-and-restore
   proof, `docs/surfaces/antigravity.md` § 11.1). `git worktree add <core>/.nen/worktrees/<surface>/<name>`,
-  `git worktree remove` and `git worktree prune` are hand-spelt wherever Hatsu creates a worktree, for the
-  same reason: nen has no worktree verb that writes. The canonical path is `docs/WORKFLOW.md` § *Where
+  `git worktree remove` and `git worktree prune` are hand-spelt wherever Hatsu creates a worktree for
+  shapes outside kagutsuchi's fixed detached `wc worktree` — branches, reviewer checkouts and removals —
+  because the verb deliberately does not own those shapes. The canonical path is `docs/WORKFLOW.md` § *Where
   worktrees live* (the ruling of 2026-09-30), and the lapse would be a `nen wc worktree add|remove
   --surface <s> <name>` that resolves core and the canonical path itself — the same family as the
   owned dependency below.
@@ -1002,10 +1005,10 @@ fixed path, with the core-to-worktree copy ([zheref/nen#299](https://github.com/
 and `deploy.defaultTarget` validated by pointer with a per-stack default in `nen shu detect`'s reference
 pack ([zheref/nen#300](https://github.com/zheref/nen/issues/300)) are nen's to add (zheref/hatsu#146);
 until then the two scripts above are the mechanism and are named as such. The canon `precedence` key of
-[`../nen/contract.json`](../nen/contract.json) ([HR-1](ROSTER.md#hr-1)) is tolerated, not validated, by
-`nen schema check` at the pin: validating it and refusing a drifted restatement in `WORKFLOW.md` are owed to
-[zheref/nen#474](https://github.com/zheref/nen/issues/474) (BC-11 keeps the drift case out of
-`scripts/canon_contracts_check.sh`, frozen to fixes only); until that repin nothing checks the order.
+[`../nen/contract.json`](../nen/contract.json) ([HR-1](ROSTER.md#hr-1)) is validated by
+`nen schema check` from nen `0.28` ([zheref/nen#474](https://github.com/zheref/nen/issues/474), the HA#449 repin), which
+also refuses a drifted restatement in the files `precedenceRestatedIn` names (`WORKFLOW.md`), by file and line; BC-11
+keeps the drift case out of `scripts/canon_contracts_check.sh`, frozen to fixes only, since the verb holds it.
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 

@@ -28,7 +28,8 @@
 #      contract: bootstrap.fetch_must_be_two_step, never a pipe) at the contract
 #      url — accepted only when it equals
 #      https://raw.githubusercontent.com/<dependency.source>/<pinned_ref>/<script_path_in_source>
-#      — and run it with the NEN_SOURCE/NEN_REF/NEN_CACHE_DIR environment removed
+#      — verify its bytes against bootstrap.scriptSha256 BEFORE bash, and run
+#      it with the NEN_SOURCE/NEN_REF/NEN_CACHE_DIR environment removed
 #      and `--ref <pinned_ref> --source <dependency.source>`. The LAST stdout
 #      line must be an absolute regular, executable, non-symlink file under
 #      ${XDG_CACHE_HOME:-$HOME/.cache}/nen/, must hash to the recorded digest
@@ -65,6 +66,8 @@
 #                       digest the stub's binary must have, in place of the
 #                       contract's per-platform one. With it the cache-path
 #                       equality of step 1 is relaxed to "under the cache".
+#   --expect-script-sha256  FIXTURE SEAM, only with --bootstrap-script; overrides
+#                       the script digest for a local stub, never from env.
 #   --dry-run           say what would happen; change nothing, touch no network
 #   --quiet             print only the summary line and errors
 #
@@ -100,6 +103,7 @@ bindir=""
 rcmode="auto"
 bscript=""
 expect_override=""
+script_override=""
 dry=0
 quiet=0
 
@@ -112,6 +116,7 @@ while [ $# -gt 0 ]; do
     --bin-dir) [ $# -ge 2 ] || die 2 "--bin-dir needs a value"; bindir="$2"; shift 2 ;;
     --rc) [ $# -ge 2 ] || die 2 "--rc needs a value"; rcmode="$2"; shift 2 ;;
     --bootstrap-script) [ $# -ge 2 ] || die 2 "--bootstrap-script needs a value"; bscript="$2"; shift 2 ;;
+    --expect-script-sha256) [ $# -ge 2 ] || die 2 "--expect-script-sha256 needs a value"; script_override="$2"; shift 2 ;;
     --expect-sha256) [ $# -ge 2 ] || die 2 "--expect-sha256 needs a value"; expect_override="$2"; shift 2 ;;
     --dry-run) dry=1; shift ;;
     --quiet) quiet=1; shift ;;
@@ -131,6 +136,12 @@ if [ -n "$expect_override" ]; then
   [ -n "$bscript" ] || die 2 "--expect-sha256 is the fixture seam and is accepted only with --bootstrap-script"
   case "$expect_override" in *[!0-9a-f]*) die 2 "--expect-sha256 takes 64 lowercase hex digits" ;; esac
   [ "${#expect_override}" -eq 64 ] || die 2 "--expect-sha256 takes 64 lowercase hex digits"
+fi
+
+if [ -n "$script_override" ]; then
+  [ -n "$bscript" ] || die 2 "--expect-script-sha256 is the fixture seam and requires --bootstrap-script"
+  case "$script_override" in *[!0-9a-f]*) die 2 "--expect-script-sha256 takes 64 lowercase hex digits" ;; esac
+  [ "${#script_override}" -eq 64 ] || die 2 "--expect-script-sha256 takes 64 lowercase hex digits"
 fi
 
 cfgdir="${XDG_CONFIG_HOME:-$HOME/.config}/hatsu"
@@ -161,6 +172,10 @@ case "$source" in */*/*|*[!A-Za-z0-9._/-]*|/*|*/) die 2 "contract: dependency.so
 case "$pinned_ref" in *[!A-Za-z0-9._-]*) die 2 "contract: dependency.pinned_ref has unexpected characters" ;; esac
 [ "$url" = "https://raw.githubusercontent.com/$source/$pinned_ref/$script_path" ] \
   || die 2 "contract: bootstrap.url is not https://raw.githubusercontent.com/<source>/<pinned_ref>/<script_path_in_source>"
+script_sha="$(jstr scriptSha256)"
+case "$script_sha" in ''|*[!0-9a-f]*) die 5 "contract: bootstrap.scriptSha256 must be 64 lowercase hex digits" ;; esac
+[ "${#script_sha}" -eq 64 ] || die 5 "contract: bootstrap.scriptSha256 must be 64 lowercase hex digits"
+[ -z "$script_override" ] || script_sha="$script_override"
 pin="${pinned_ref#v}"
 [ -z "$bscript" ] || [ -f "$bscript" ] || die 2 "--bootstrap-script '$bscript' is not a file"
 
@@ -433,6 +448,7 @@ if [ "$state" = need ]; then
       die 5 "bootstrap fetch failed (curl rc $crc: $meaning; $(lastline "$d/curl.err")); existing link left as it was"
     fi
   fi
+  [ "$(sha_of "$script")" = "$script_sha" ] || die 5 "bootstrap script sha256 does not match the reviewed contract digest; never executed or retried; existing link left as it was"
   attempt=1
   while :; do
     bg_run "$d/bootstrap.out" "$d/bootstrap.err" \

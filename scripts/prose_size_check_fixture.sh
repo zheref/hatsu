@@ -16,6 +16,13 @@ export LC_ALL=C
 
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
 guard="$script_dir/prose_size_check.sh"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # The guard alone writes Bashcov's trace; commands it starts keep their asserted output unchanged.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+fi
 fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-prose-size.XXXXXX")"
 trap 'rm -rf "$fixture_root"' EXIT
 
@@ -23,6 +30,14 @@ fail() {
   echo "prose-size-fixture: $*" >&2
   exit 1
 }
+
+guard_command=(sh "$guard")
+if [ -n "$coverage_exec" ]; then
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/prose_size_check.sh" ] ||
+    fail "coverage wrapper target is not scripts/prose_size_check.sh"
+  [ -x "$coverage_exec" ] || fail "coverage wrapper is not executable"
+  guard_command=("$coverage_exec")
+fi
 
 assert_contains() {
   local haystack="$1" needle="$2" message="$3"
@@ -43,7 +58,7 @@ assert_lacks() {
 run() {
   local expected="$1"; shift
   set +e
-  out="$(sh "$guard" "$@" 2>&1)"
+  out="$("${guard_command[@]}" "$@" 2>&1)"
   code=$?
   set -e
   [ "$code" -eq "$expected" ] || fail "'$*' exited $code, expected $expected: $out"
