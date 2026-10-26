@@ -37,7 +37,7 @@ merged): the checkouts file (ports.md); the spec repository and its `product_cod
 own `origin/<base>` — the truth, a member's differing copy refused (HR-16) — read `PRIVATE` by `gh repo view
 --json visibility`, a declared repository absent a **G5 hand-over** line, `gh repo create <owner>/<spec> --private`; no `nen/workflow.json` → [`tenkai`](../tenkai/SKILL.md),
 kind `process`, itself under `consumers[]` (G2); `nen schema check`; `scripts/config_values.sh diagnose
---domain port`; the `spec.*` keys from the file, nen-validated past `0.26.0` (*conventions*). Members are typed
+--domain port`; the `spec.*` keys from the file, nen-validated (*conventions*). Members are typed
 (`missing-maintainer-choice`); a `PUBLIC` member is dropped, said.
 
 ## 2. Inventory — build-system membership, rows only
@@ -68,10 +68,10 @@ unbacked sentence gets a marker (row `spec-claim-unverified`); a screen two capa
 `spec-slice`. Every file passes `private_name_check.sh` and `secretScan`'s pinned gitleaks over the staged diff
 (`protect --staged`) before each commit, a hit refused; **not scanned is a STOP**, no commit, never a pass (*conventions*); `nen spec check` and `cite-check` hold each folder.
 
-## 5. Clarification — one sitting per run
+## 5. Clarification — bounded rounds in one run
 
-The wave's markers, ranked, asked under row `spec-clarify`: one round of at most `spec.clarify.maxQuestions`,
-three a call, `maxRounds` counting successive runs; no star on a priority, audience, threshold or *intentional*. Each answer lands
+The wave's markers, ranked, asked under row `spec-clarify`: up to `spec.clarify.maxRounds` rounds in this run,
+each of at most `spec.clarify.maxQuestions`, three a call (HR-351); no star on a priority, audience, threshold or *intentional*. Each answer lands
 **verbatim** as a `CL-nnn` session entry, written with the file tool; a declined or over-cap question stays a
 marker and its story `clarifying`. No mid-run G5 here.
 
@@ -99,7 +99,7 @@ never hand-edited; `nen spec coverage` is quoted in the body.
 ## 8. Dispatch — the picker, then file's own confirmation
 
 `dispatch <family>` after `MERGED`: row `spec-dispatch` — every marker-free gap group, **none starred**,
-paged in fours, recorded (`nen stop answer`, WORKFLOW § 4); no G1 (unruled, *conventions*). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
+paged in fours, recorded (`nen stop answer`, WORKFLOW § 4); no per-dispatch G1, the typed dispatch the go (HR-344). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
 by name, its § 4 confirmation per dispatch, each rendered body file scanned first (`detect --no-git`, § 4's stop); the title and body
 `nen spec tasks groups --group <id>` renders (`Spec: specs/<nnn>-<slug>@<sha>`, scenarios as source data), an existing issue
 amended with `nen issue edit-body --expect-body-sha256`; `classify` and `direct` per filing; one epic per
@@ -137,7 +137,7 @@ planned folder, PR, filing and build — written only to scratch, no record.
 ## Residue
 
 Judgement and prose: the capability map, the spec text, the settlements. The verbs are *conventions*'
-§ *The verbs that read it* (zheref/nen#493; all but four need nen past `0.26.0`).
+§ *The verbs that read it* (zheref/nen#493), all shipped at the pin.
 
 ## Authority
 
@@ -151,4 +151,4 @@ Judgement and prose: the capability map, the spec text, the settlements. The ver
 - **Never writes a sentence it cannot point at**: a citation or exactly one marker.
 - **Never derives** a priority, audience, threshold or *intentional*; the answer is quoted verbatim.
 - **Never builds from the spec's tip**, never merges, never renumbers an id after a merge.
-- **Never improvises a Nen-owned write**: owed verbs are named, never shelled.
+- **Never improvises a Nen-owned write**: an absent verb is named, never shelled.
