@@ -78,11 +78,47 @@ assert.equal(report.verifiable, true);
 assert.deepEqual(report.criteria.map((c) => c.id), ["AC-1", "AC-2"]);
 report = criteria("## Problem\n\nNo criteria here.\n");
 assert.equal(report.verifiable, false);
-// Akatsuki's AC-{epic}-{nnn} rows (zheref/hatsu#411) are unrecognised at this pin: a documented
-// miss owed to nen, pinned so the repin that admits them updates this case.
-report = criteria(section("- AC-12-001 (P1): Given a When b Then c"));
+// Akatsuki's rows (zheref/hatsu#411). The catalogue's grammar is Hatsu's and is held here directly:
+// the acceptance pattern reads AC-{n} and AC-{epic}-{nnn} (P{n}) whole, and its resolved form is a
+// struck withdrawn row, which the live pattern never reads.
+{
+  const rows = (JSON.parse(readFileSync(catalogue, "utf8")) as { rows: { acceptance: { pattern: string; resolvedPattern: string; prefix: string } } }).rows.acceptance;
+  const live = new RegExp(rows.pattern);
+  const withdrawn = new RegExp(rows.resolvedPattern);
+  const id = (re: RegExp, row: string) => re.exec(row)?.[1] ?? null;
+  assert.equal(id(live, "- AC-12-001 (P1): Given a When b Then c"), "12-001", "AC-1: the epic row's id is read whole");
+  assert.equal(id(live, "- AC-12-001: Given a When b Then c"), "12-001");
+  assert.equal(id(live, "- AC-3: Given a When b Then c"), "3", "AC-2: the AC-{n} row reads as before");
+  for (const bad of ["- AC-12-01 (P1): Given a When b Then c", "- AC-12-001 (P1) Given a When b Then c", "- AC-12-001 (high): Given a When b Then c", "- AC-: Given a When b Then c", "- AC-3: Given a Then c"]) {
+    assert.equal(id(live, bad), null, `not an acceptance row: ${bad}`);
+  }
+  assert.equal(id(withdrawn, "- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"), "12-002", "AC-3: the struck row is the resolved form");
+  assert.equal(id(withdrawn, "- ~~AC-12-003 (P2): Given a When b Then c~~ withdrawn: folded (2026-10-22)"), "12-003", "the struck part may keep the row's text");
+  assert.equal(id(withdrawn, "- ~~AC-4~~ withdrawn: dropped (2026-10-26)"), "4");
+  for (const bad of ["- ~~AC-12-002~~ withdrawn: folded", "- ~~AC-12-002~~ folded (2026-10-22)", "- AC-12-002 withdrawn: folded (2026-10-22)"]) {
+    assert.equal(id(withdrawn, bad), null, `not a withdrawn row: ${bad}`);
+  }
+  for (const row of ["- ~~AC-12-002~~ withdrawn: folded (2026-10-22)", "- ~~AC-4~~ withdrawn: dropped (2026-10-26)"]) assert.equal(id(live, row), null, `a withdrawn row is never live: ${row}`);
+  assert.ok(new RegExp(rows.prefix).test("- ~~AC-4~~ withdrawn: x") && new RegExp(rows.prefix).test("- AC-4: x"));
+}
+// Through nen at this pin: Akatsuki's Requirements heading is a criteria section, and its AC-{n} row
+// is read there. Both Akatsuki forms are still unrecognised by `nen issue criteria` (and so block
+// converge): misses owed to nen (zheref/nen#519 reads the id from the catalogue's pattern;
+// zheref/nen#553 reads the annotation and skips the resolved row), pinned so the repin that admits
+// them updates this case.
+report = criteria("## Problem\n\nx\n\n## Requirements\n\n- AC-1: Given a When b Then c\n");
+assert.deepEqual(report.criteria.map((c) => c.id), ["AC-1"], "the Requirements section is read for criteria");
+report = criteria(section("- AC-12-001 (P1): Given a When b Then c\n- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"));
 assert.equal(report.verifiable, false);
-assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Given a When b Then c"]);
+assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Given a When b Then c", "- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"]);
+// `nen issue body-check` reads the resolved form at this pin: a withdrawn row keeps its number in order.
+{
+  const file = join(dir, "withdrawn.md");
+  writeFileSync(file, section("- AC-1: Given a When b Then c\n- ~~AC-2~~ withdrawn: folded (2026-10-22)\n- AC-3: Given a When b Then c"));
+  const r = spawnSync(nen, ["issue", "body-check", "--body-file", file, "--requirements-from", catalogue, "--json"], { encoding: "utf8" });
+  const misses = (JSON.parse(r.stdout) as { misses: { section: string; kind: string }[] }).misses;
+  assert.deepEqual(misses.filter((m) => m.section === "acceptance"), [], `a withdrawn row is an admitted acceptance row: ${JSON.stringify(misses)}`);
+}
 
 // Hostile text (SEC-15): the plain output neutralises ESC and U+202E, and so does --json from nen 0.28.0 (the raw
 // U+202E --json carried at 0.26.0 was a documented miss owed to nen). CI (unit-tests.yml) installs the BASE contract's
@@ -162,4 +198,4 @@ assert.ok(hanten.includes('node "$hatsu_root/scripts/hanten_findings_check.mts" 
   && hanten.includes('"$hatsu_root/docs/ROSTER.md"`; `1`: record/finding; `2`: unread.'),
   "hanten settlement invokes the status-aware checker and preserves its distinct exits");
 
-console.log("criteria: readers cite nen pr converge with Hatsu's catalogue, no restated coverage rule, the catalogue read through nen issue criteria, hostile text, en's not-applicable reading, template and requirements wiring, and the findings schema and HR-status check passed");
+console.log("criteria: readers cite nen pr converge with Hatsu's catalogue, no restated coverage rule, the acceptance grammar's two id shapes and withdrawn row, the catalogue read through nen issue criteria and body-check, hostile text, en's not-applicable reading, template and requirements wiring, and the findings schema and HR-status check passed");

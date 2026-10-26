@@ -14,7 +14,8 @@ Process title: What the guards prove; name each fixture in this table: -->
 | <behaviour> | <actual command and fixture> | <bad input> | <good input> |
 
 <!-- Every kind (HR-11): one row per AC id of each issue this PR closes (its Closes lines, or the
-Development sidebar on the default branch), Criterion written <CODE>#<N>/AC-<k>; Coverage one of
+Development sidebar on the default branch), Criterion written <CODE>#<N>/AC-<k>, <k> the id as the
+issue writes it ({n}, or Akatsuki's {epic}-{nnn}; zheref/hatsu#411); Coverage one of
 satisfied · partial · missing · contradicts · unrequested; Evidence a test name, path:line or
 scenario. nen pr converge judges the table. No closing issue: drop this table. -->
 

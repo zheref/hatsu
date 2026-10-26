@@ -1,6 +1,6 @@
 {
   "contract": "hatsu.issue-sections/v1",
-  "$comment": "The issue section catalogue (HR-4; SDD plan piece P6). One catalogue owns the headings an issue Hatsu files carries per kind, which of them must be present and non-empty, the row shapes inside them, and the two word lists the acceptance rows are read against. Every heading is a level-2 heading matched case-insensitively. `nen issue body-check --requirements-from` and `nen issue questions --requirements-from` (nen 0.26.0) read this file and nothing else for the shape; templates/issue-body/<kind>.md is the body each kind starts from. A body checked with no --kind is read against `common` only. Acceptance criteria state intent, never technology: a flag, a verb or a path belongs in Plan notes alone.",
+  "$comment": "The issue section catalogue (HR-4; SDD plan piece P6). One catalogue owns the headings an issue Hatsu files carries per kind, which of them must be present and non-empty, the row shapes inside them, and the two word lists the acceptance rows are read against. Every heading is a level-2 heading matched case-insensitively. `nen issue body-check --requirements-from` and `nen issue questions --requirements-from` (nen 0.26.0) read this file and nothing else for the shape; templates/issue-body/<kind>.md is the body each kind starts from. A body checked with no --kind is read against `common` only. Acceptance criteria state intent, never technology: a flag, a verb or a path belongs in Plan notes alone. The acceptance row reads two id shapes (zheref/hatsu#411): Hatsu files `AC-{n}`, and Akatsuki's epic and child templates write `AC-{epic}-{nnn} (P{n})` under `## Requirements`; the whole id is the criterion, and a struck `withdrawn` row is the resolved form, never a live criterion. nen 0.28 reads the Requirements section and the withdrawn row's shape in body-check, while `nen issue criteria` and `nen pr converge` still list both Akatsuki forms as unrecognised until nen reads the id from this pattern (zheref/nen#519) and the annotation and withdrawn rows from this catalogue (zheref/nen#553).",
   "sections": {
     "problem": { "heading": "Problem" },
     "audience": { "heading": "Audience and why" },
@@ -12,6 +12,7 @@
     "missing-rule": { "heading": "Missing rule", "$comment": "A canon gap's missing or wrong rule and what a reader did instead because of it (hatsu:file section 2)." },
     "children": { "heading": "Children", "$comment": "An epic's child issues or planned slices, one per line." },
     "acceptance": { "heading": "Acceptance criteria", "rows": "acceptance" },
+    "requirements": { "heading": "Requirements", "rows": "acceptance", "$comment": "Akatsuki's acceptance section in its epic and child templates (zheref/akatsuki-ai schemas/templates/epic.md, child.md), read for criteria beside Acceptance criteria; no Hatsu kind requires it." },
     "success": { "heading": "Success criteria", "rows": "success" },
     "entities": { "heading": "Key entities", "$comment": "Required only when the issue captures data; never required by a kind." },
     "assumptions": { "heading": "Assumptions", "rows": "assumption", "none": true },
@@ -50,7 +51,14 @@
     }
   },
   "rows": {
-    "acceptance": { "shape": "- AC-{n}: Given … When … Then …", "pattern": "^- AC-([0-9]+): Given .+ When .+ Then .+$", "prefix": "^- AC-" },
+    "acceptance": {
+      "shape": "- AC-{n}: Given … When … Then …",
+      "epicShape": "- AC-{epic}-{nnn} (P{n}): Given … When … Then …",
+      "pattern": "^- AC-([0-9]+(?:-[0-9]{3})?)(?: \\(P[0-9]+\\))?: Given .+ When .+ Then .+$",
+      "resolvedShape": "- ~~AC-{id}~~ withdrawn: <reason> (<YYYY-MM-DD>)",
+      "resolvedPattern": "^- ~~AC-([0-9]+(?:-[0-9]{3})?)(?: \\(P[0-9]+\\): Given .+ When .+ Then .+)?~~ withdrawn: .+ \\([0-9]{4}-[0-9]{2}-[0-9]{2}\\)$",
+      "prefix": "^- (~~)?AC-"
+    },
     "success": { "shape": "- SC-{n}: <a measurable outcome carrying a number or a percentage>", "pattern": "^- SC-([0-9]+): (.+)$", "prefix": "^- SC-", "measure": "[0-9]|%" },
     "assumption": { "shape": "- AS-{n}: <value> — derived from <source>", "pattern": "^- AS-([0-9]+): .+ — derived from .+$", "prefix": "^- AS-" },
     "question": {
