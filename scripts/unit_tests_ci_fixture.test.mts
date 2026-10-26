@@ -78,7 +78,8 @@ try {
     ['plugin_version_refs.ts', 'plugin_version_refs_fixture.sh', 'plugin-version-refs-guard'],
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
     ['config_values.ts', 'config_values_examiner_fixture.ts', 'config-values-guard'],
-    ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer']]) {
+    ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
+    ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard']]) {
     writeFileSync(join(repo, 'scripts', script), '');
     result = run();
     assert(result.status === 2 && result.stderr.includes(`${script} has no required fixture`), `missing ${lane} fixture did not refuse`);
@@ -90,6 +91,12 @@ try {
     calls = readFileSync(log, 'utf8').trim().split('\n');
     assert(calls.join(',') === expected, `${lane} lane not selected (BC-9)`);
   }
+
+  assert(calls.filter((line) => line.startsWith('pr-sections-guard|')).length === 1,
+    'PR sections lane must execute exactly once');
+  result = run({ HATSU_FAIL_LANE: 'pr-sections-guard' });
+  assert(result.status === 1 && result.stderr.includes('pr-sections-guard failed'),
+    'PR sections fixture failure did not fail CI');
 
   // The tenkai engine is its own fixture (--self-test), so its lane is selected by the script alone,
   // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427).

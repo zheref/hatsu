@@ -653,4 +653,21 @@ function main(argv = process.argv.slice(2)): number {
   }
 }
 
-if (process.argv[1] !== undefined && resolvePath(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = main();
+// Node resolves an imported module's URL through symlinks, while argv retains the caller's
+// spelling. Compare filesystem identities so installed directory and file aliases execute too.
+// The toolchain probe requires import.meta.main: without it an unreadable CLI entry is
+// indistinguishable from an unrelated import. Unsupported hosts refuse instead of passing.
+const entry = process.argv[1];
+const modulePath = fileURLToPath(import.meta.url);
+if (typeof import.meta.main !== "boolean") {
+  err("pr sections: unsupported Node runtime: import.meta.main is required (Node 22.18+ or 24.2+ with this capability)");
+  process.exitCode = 1;
+} else try {
+  if (entry !== undefined && realpathSync(entry) === realpathSync(modulePath)) process.exitCode = main();
+  else if (import.meta.main === true) throw new Error("entry does not identify this module");
+} catch {
+  if (import.meta.main === true || (entry !== undefined && resolvePath(entry) === modulePath)) {
+    err("pr sections: cannot resolve CLI entry to this module");
+    process.exitCode = 1;
+  }
+}

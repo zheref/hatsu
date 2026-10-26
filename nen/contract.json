@@ -1631,11 +1631,13 @@
         "version": ">=22.18.0",
         "probe": [
           "node",
-          "--version"
+          "--input-type=module",
+          "--eval",
+          "if (typeof import.meta.main !== 'boolean') { console.error('unsupported Node runtime: import.meta.main is required; use Node 22.18+ or 24.2+ with this capability'); process.exit(1); } console.log(process.version)"
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, with the probe also requiring import.meta.main for fail-closed CLI entry detection (HA#417). Node 22.18 supports that metadata; Node 23 and 24.0–24.1 do not and are refused by the capability probe even though they exceed the numeric floor. Use a release exposing the capability, such as Node 22.18+ or 24.2+. The type-stripping floor remains the one which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",

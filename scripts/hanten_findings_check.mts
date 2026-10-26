@@ -3,8 +3,7 @@
 // fixed or deferred; findings on reading, reversed or superseded rows may be
 // pushed back only with a reason. The status vocabulary and row parser belong
 // to clause_id_guard.mts and are imported rather than repeated here.
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseRosterStatuses, RosterStatusFailure } from './clause_id_guard.mts';
 
@@ -264,5 +263,15 @@ export function main(argv: string[], schemaOverride?: unknown): number {
   return 0;
 }
 
-const invoked = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
-if (invoked) process.exit(main(process.argv.slice(2)));
+// argv keeps the installed alias spelling; module URLs resolve to the real file.
+let invoked = false;
+try {
+  invoked = process.argv[1] !== undefined && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  if (!invoked && import.meta.main === true) throw new Error('entry mismatch');
+} catch {
+  if (import.meta.main === true) {
+    console.error('hanten-findings-check: cannot resolve CLI entry to this module');
+    process.exitCode = 2;
+  }
+}
+if (invoked) process.exitCode = main(process.argv.slice(2));

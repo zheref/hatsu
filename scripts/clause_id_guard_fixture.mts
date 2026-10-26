@@ -2,11 +2,11 @@
 // HR-2: hermetic fixture for scripts/clause_id_guard.mts. Each case writes a
 // throwaway roster and asserts the guard's exit code and stream split.
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { main as guardMain } from './clause_id_guard.mts';
 
 export function runClauseIdGuardFixture(): void {
@@ -131,6 +131,28 @@ try {
   expect('a roster with no § Readings heading exits 2', [roster('no-readings', [def(1)], [], false)], 2, null, /no `## Readings` heading/);
   const live = fileURLToPath(new URL('../docs/ROSTER.md', import.meta.url));
   expect('the live roster holds a unique id space, admitted statuses, no dangling citation and a matching index', [live], 0, /HR definitions, unique, each with an admitted status, no dangling citation, the readings index in parity/, null);
+  // HA#417: installed directory/file aliases execute verdicts; library imports stay inert.
+  const validArgs = [roster('alias-clean', [def(1)])];
+  const invalidArgs = [roster('alias-invalid', [def(1), def(1)])];
+  const directoryAlias = join(scratch, 'installed-scripts');
+  const fileAlias = join(scratch, 'guard-alias.mts');
+  symlinkSync(dirname(guard), directoryAlias, 'dir');
+  symlinkSync(guard, fileAlias);
+  for (const entry of [guard, join(directoryAlias, basename(guard)), fileAlias]) {
+    for (const [args, status] of [[validArgs, 0], [invalidArgs, 1]] as const) {
+      const result = spawnSync(process.execPath, [entry, ...args], { encoding: 'utf8' });
+      assert.equal(result.status, status, result.stdout + result.stderr);
+      assert.notEqual(result.stdout.trim(), '', 'a CLI verdict must execute through aliases');
+      assert.equal(result.stderr, '');
+    }
+    const imported = spawnSync(process.execPath, ['--input-type=module', '--eval',
+      'process.argv[1]="/missing/wrapper.mjs";await import(' + JSON.stringify(pathToFileURL(entry).href) + ');console.log("inert import")'], { encoding: 'utf8' });
+    assert.equal(imported.status, 0, imported.stderr);
+    assert.equal(imported.stdout, 'inert import\n');
+    assert.equal(imported.stderr, '');
+  }
+  cases += 1;
+  console.log('ok ' + cases + ' - real and aliased CLI verdicts execute and imports stay inert');
   console.log(`clause-id-guard fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
