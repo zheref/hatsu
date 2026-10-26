@@ -38,6 +38,21 @@ g() { git -C "$@"; }
 new_repo() { git init -q -b main "$1"; g "$1" config user.email me@example.invalid
   g "$1" config user.name me; g "$1" config commit.gpgsign false; }
 
+# --- branch_authorship_check.sh: aka § 7's combined mode under the C locale (zheref/hatsu#470) ------
+c="$tmp/combined"; new_repo "$c"
+echo base > "$c/f"; g "$c" add f; g "$c" commit -q -m base
+g "$c" checkout -q -b effort
+echo own > "$c/f"; g "$c" commit -q -am "own" -m "Hatsu-Agent: kurapika"
+expect 'combined mode passes a clean range under LC_ALL=C' 0 env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
+echo cloud > "$c/cloud"; g "$c" add cloud
+g "$c" commit -q -m 'cloud hook' -m 'Hatsu-Agent: kurapika
+Co-authored-by: Owner <owner@example.invalid>'
+expect 'combined mode refuses a Co-authored-by range under LC_ALL=C' 1 env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
+expect_out 'combined mode names the key under LC_ALL=C' 'forbidden trailer co-authored-by' env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$here/../nen/workflow.json"
+# The same read on a policy that holds non-ASCII bytes by construction, so the case never leans on the live file's prose.
+printf '%s\n' '{"$comment": "attribution — non-ASCII on purpose: é ü §", "commits": {"forbiddenTrailers": ["Co-Authored-By"]}}' > "$tmp/policy-utf8.json"
+expect_out 'combined mode refuses Co-authored-by on a non-ASCII fixture policy under LC_ALL=C' 'forbidden trailer co-authored-by' env LC_ALL=C LANG=C "$auth" --repo "$c" --base main --require-agent kurapika --trunk main --forbid-trailers-from "$tmp/policy-utf8.json"
+
 # --- branch_authorship_check.sh: identity -------------------------------------------------
 r="$tmp/repo"; new_repo "$r"
 echo base > "$r/f"; g "$r" add f; g "$r" commit -q -m base
@@ -92,6 +107,22 @@ echo bare > "$r/bare"; g "$r" add bare; g "$r" commit -q -m "no trailer"
 expect 'a commit with no Hatsu-Agent stops under --require-agent' 1 "$auth" --repo "$r" --base main --require-agent kurapika
 expect 'missing --require-trailer key stops' 1 "$auth" --repo "$r" --base main --require-trailer Hatsu-Agent
 g "$r" reset -q --hard HEAD~1
+
+# HA265: --trunk names the declared catch-up base, including a run integration branch.
+# HEAD ancestry alone is insufficient: every merged second parent is necessarily in HEAD.
+ir="$tmp/integration-base"; new_repo "$ir"
+echo b > "$ir/base"; g "$ir" add base; g "$ir" commit -q -m base
+g "$ir" checkout -q -b integration
+echo i > "$ir/integrated"; g "$ir" add integrated
+env GIT_AUTHOR_NAME=other GIT_AUTHOR_EMAIL=other@x GIT_COMMITTER_NAME=other GIT_COMMITTER_EMAIL=other@x git -C "$ir" commit -q -m 'reviewed integration history'
+g "$ir" checkout -q -b effort main
+echo e > "$ir/effort"; g "$ir" add effort; g "$ir" commit -q -m own -m 'Hatsu-Agent: kurapika'
+g "$ir" merge -q --no-ff --no-edit integration
+expect 'HA265 declared integration-base clean catch-up passes' 0 "$auth" --repo "$ir" --base main --require-agent kurapika --trunk integration
+expect 'HA265 integration catch-up without its declared base refuses' 1 "$auth" --repo "$ir" --base main --require-agent kurapika
+expect 'HA265 HEAD ancestry does not admit an undeclared integration branch' 1 "$auth" --repo "$ir" --base main --require-agent kurapika --trunk main
+echo extra > "$ir/extra"; g "$ir" add extra; g "$ir" commit -q --amend --no-edit
+expect 'HA265 extra authored merge content refuses under declared integration base' 1 "$auth" --repo "$ir" --base main --require-agent kurapika --trunk integration
 
 # --- the clean trunk-merge exemption, and an evil merge ------------------------------------
 g "$r" checkout -q main; echo m > "$r/m"; g "$r" add m; g "$r" commit -q -m main2 -m "Hatsu-Agent: kurapika"

@@ -294,8 +294,9 @@ nen issue questions  --body-file <absolute body.md> --requirements-from "$hatsu_
 ```
 
 `body-check` exit `0` → the body enters the plan. Exit `1` → each miss it lists is fixed in the draft and the check re-run, or
-shown in the plan's part 1 as an unfixed miss; every open `OQ-{n}` row `questions` counts is shown there too. Exit `2` on either is
-reported, never read as a pass.
+shown in the plan's part 1 as an unfixed miss; every open `OQ-{n}` row `questions` counts is shown there too — from nen `0.28`
+`questions` exits `1` with its document still on stdout when a row is open (`0` before), a count made legible, never a
+refusal. Exit `2` on either is reported, never read as a pass.
 
 Present **one plan** covering everything that will be written, and take **one** confirmation for
 all of it, recorded through `nen stop answer` before anything is written ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Every picker answer is recorded*). **A composite's typed call, or a picker answer ruled as its G1, stands as the confirmation; the

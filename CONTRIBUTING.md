@@ -36,20 +36,44 @@ surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `cont
 runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/nen_global.sh`,
 `scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
-`scripts/send_freshness_check.sh`, `scripts/kagutsuchi_worktree.sh`, `scripts/cleanup_path_admit.sh`,
+`scripts/send_freshness_check.sh`, `scripts/cleanup_path_admit.sh`,
 `scripts/cleanup_path_admit.ts`, `scripts/hatsu_surface_link.sh`,
 `scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/canon_contracts_check.sh`,
 `scripts/publish_gate.sh`, `scripts/private_name_check.sh`,
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`,
 `scripts/gh_token_env.sh`, `scripts/nen_reach_probe.sh`,
-`scripts/pr_body_delivery_check.sh`, `scripts/pr_delivery.ts`, `scripts/dependency_audit_resolve.mts`) — the one list is `PLUGIN_SURFACE_GLOBS` in the
+`scripts/pr_body_delivery_check.sh`, `scripts/pr_delivery.ts`, `scripts/pr_body_sections_check.sh`,
+`scripts/pr_sections_resolve.sh`, `scripts/pr_sections.ts`, `scripts/gh_api_read.mts`,
+`scripts/plugin_bump_api_retry.mts`,
+`scripts/config_values.sh`, `scripts/config_values.ts`, `scripts/config_values_legacy.sh`,
+`scripts/futon_effort_record.mts`, `scripts/product_term_check.sh`, `scripts/product_term_check.mts`,
+`scripts/private_name_named.txt`, `scripts/provider_tag_commit.mts`, `scripts/port_rule_reserve.sh`,
+`scripts/dependency_audit_resolve.mts`,
+`scripts/shell_coverage.mts`, `scripts/hanten_findings_check.mts`, `scripts/clause_id_guard.mts`,
+`scripts/direct_matrix_doc.sh`, `scripts/direct_matrix_doc.mts`, `scripts/tenkai_adopt.ts`,
+`scripts/tenkai_adopt_legacy.sh`, `scripts/tenkai_trailer_guard.mts`, `scripts/consumer_trailer_ci.mts`,
+`scripts/pr_sections_history.ts`, `scripts/config_values_refresh.ts`,
+`scripts/idle_permissions_check.mts`, `scripts/ledger_findings_prepare.mts`)
+— the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources
 from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source updater read their scripts
 from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line).
+
+**Parallel bumps can collide even when catch-up has no conflicts** (zheref/hatsu#346). After each
+catch-up, compare the branch's actual `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`
+versions with the fresh base's manifests. Both must agree and be **strictly above the fresh base**:
+an equal or lower version owes a new bump before readiness, even if it increased from the branch's
+original starting point. Re-bump both manifests and update the version line in the same effort's
+existing `changelog.d/` fragment. This remains Hatsu authoring; `nen wc catch-up` does not choose or
+apply a fresh release number. Use [`scripts/plugin_version_refs.sh`](scripts/plugin_version_refs.sh)
+(`scripts/plugin_version_refs.ts`, zheref/hatsu#158) with `--from <old> --to <new>` to inspect tracked
+references, then `--write` for its conservative repairs. Review the remaining lines and PR body by
+hand, regenerate mirrors, and rerun the guard against the fresh base before calling the PR ready.
+
 **There is no opt-out for a shipped path** (zheref/hatsu#171): a `no plugin bump: <reason>` line in the PR
 body is honoured only where no path in `PLUGIN_SURFACE_GLOBS` changed — where the guard does not apply
 anyway — and, when the version is not bumped, over a shipped path it is refused by name, the refusal
@@ -62,8 +86,14 @@ wording there is a patch bump. Beside a bump the line is inert, and the pass lin
 `pull_request_target`: GitHub selects the workflow at the trusted workflow SHA, and the job-level
 same-repository guard skips fork PRs before assigning a runner. The PR head is checked out as data with no
 persisted credential; executable guards, the workflow policy, and dependency pins come from the trusted
-workflow checkout. The offline policy validator pins this workflow's trigger, job id, steps, permissions,
-and runner so an edit cannot silently remove the required context or execute a PR-controlled guard.
+workflow checkout. Its fixed-endpoint API helper makes three total attempts (at most two retries) for
+transient non-JSON and 5xx responses with bounded backoff and a per-request timeout, fails closed with
+the HTTP status and a sanitized body
+prefix, and writes the absent manifest sentinel only after confirming the base commit. GitHub documents a
+3,000-file maximum for the pull-files endpoint, so reaching that ceiling fails closed rather than silently
+accepting a truncated diff. The offline policy validator pins this workflow's
+trigger, job id, steps, permissions, and runner so an edit cannot silently remove the required context or
+execute a PR-controlled guard.
 
 ## Validate locally
 

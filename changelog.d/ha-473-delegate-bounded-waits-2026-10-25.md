@@ -6,4 +6,4 @@
 ### Changed
 
 - WORKFLOW § *Idle batches* rule 8: the `decisions` footer row is resolved by the `decisions` run fact as that `contracts/pr-sections.json` footer row records it (#474).
-- Prose-diet trims to fit the new citations: kazaana § 3 drops "never raw `gh pr create`" (Authority's not-permitted list still carries it); futon § 6 drops the claimed-effort slot clause it restated from the line above and WORKFLOW § 2 `monitor`.
+- Prose-diet trims to fit the new citations: kazaana § 3 drops "never raw `gh pr create`" (Authority's not-permitted list still carries it); futon § 6 drops the claimed-effort slot clause it restated from the line above and WORKFLOW § 2 `monitor`. After HA-PR-#490 grew `kazaana`, its § 3 link to `WORKFLOW.md` § *Where worktrees live* is written in the file's plain `WORKFLOW §` form (35 bytes, the same reference) to stay under its 12288-byte ceiling.

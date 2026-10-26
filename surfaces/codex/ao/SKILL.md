@@ -118,7 +118,7 @@ still reported with both SHAs**, never as "nothing to do". Every other exit, rea
 | Exit | What it is | ao |
 |---|---|---|
 | `1`, **with** a report whose `conflicted[]` is non-empty | a conflict; the abort line is printed | § 4 takes over |
-| `3`, a report whose `conflicted[]` paths are **all** in `nen/contract.json`'s `mechanical` block (v0.20.0) | a conflict nen classed manifest, changelog or mirror; the abort line and each class's commands are printed, **none run** | § 4 takes over, nen's classes and commands quoted as evidence; § 4 still classifies every path itself. Hatsu declares no `mechanical` block, so its own catch-ups stop at `1` |
+| `3`, a report whose `conflicted[]` paths are **all** in `nen/contract.json`'s top-level `mechanical` block (v0.20.0) | a conflict nen classed manifest, changelog or mirror; the abort line and each class's commands are printed, **none run** | § 4 takes over, nen's classes and commands quoted as evidence; § 4 still classifies every path itself |
 | `1`, **no** report | a fetch, status or HEAD read failed, a rebase or merge failed without a conflict, or a `--continue` failed | stop: quote nen's stderr sentence verbatim, say the tree is as git left it; never § 4 |
 | `2`, a rebase paused at a `break` or a failed `exec` (v0.18.2) | not ao's rebase | quote nen's sentence, which names `git rebase --continue` / `--abort`; never continue or abort it |
 | `2`, a rebase probe git did not answer (v0.18.2) | there may be no rebase at all | quote nen's sentence and stop, naming no git command |
@@ -185,10 +185,18 @@ first three.
 - a pure formatting or whitespace divergence with no behavioural difference;
 - an identical change made on both sides.
 
-For a Hatsu version collision, after the next version has been decided, run
+**A Hatsu version collision can survive a clean catch-up:** parallel branches may have chosen the
+same number. After every catch-up, compare both actual manifests (`.claude-plugin/plugin.json` and
+`.codex-plugin/plugin.json`) with the fresh base. If the branch's version is equal to or lower than
+the base's, re-bump both to the same version **strictly above that base** before readiness; update
+the version line in this effort's existing `changelog.d/` fragment too. This is Hatsu authoring,
+not an automatic `nen wc catch-up` re-bump. After the next version has been decided, run
 `bash scripts/plugin_version_refs.sh --from <old> --to <new>` to list every tracked reference.
-Its `--write` rewrites only the declared unambiguous lines; read the others, update the PR body by
-hand, then regenerate the mirrors with the command above. The helper never chooses the version.
+Its `--write` invokes the existing `scripts/plugin_version_refs.ts` helper for only the declared
+unambiguous lines; read the others, update the PR body by
+hand, then regenerate the mirrors with the command above. The helper never chooses the version or
+rewrites generated mirrors.
+Re-run the bump check against the fresh base; the original branch point cannot prove this comparison.
 
 **Semantic** — anything where a *person* has to prefer one intent to another. **`UD`/`DU` is always
 semantic**: "deleted" and "still being edited" are two beliefs about whether a thing exists, and no

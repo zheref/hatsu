@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "hatsu.hanten.findings/v0.1",
-  "$comment": "The hanten findings record (claude/skills/hanten/SKILL.md §§ 5-6), one ignored document per effort at <reports.dir>/hanten/<branch-slug>.json. HR-10 as amended by HR-337: a finding whose rule is a CON id, or an HR id whose ROSTER row is ruled, is critical by shape (the schema forces the CON half; the HR half is hanten section 6's until zheref/hatsu#466) and settles only fixed or deferred to a named amendment PR, never pushed-back. Every pushed-back and deferred disposition carries a non-empty detail; every deferred one a tracked ref. Its structural invariants are held by the criteria lane's fixture (scripts/pr_criteria_fixture.mts); registration with nen schema check is owed to nen, which validates only nen/ declarations at the 0.24 pin.",
+  "$comment": "The hanten findings record (claude/skills/hanten/SKILL.md §§ 5-6), one ignored document per effort at <reports.dir>/hanten/<branch-slug>.json. HR-10 as amended by HR-337: a finding whose rule is a CON id, or an HR id whose ROSTER row is ruled, is critical by shape (this schema forces the CON half; the status-aware checker delivered by zheref/hatsu#466 resolves the HR half) and settles only fixed or deferred to a named amendment PR, never pushed-back. Every pushed-back and deferred disposition carries a non-empty detail; every deferred one a tracked ref. Its structural invariants are held by the criteria lane's fixture (scripts/pr_criteria_fixture.mts); registration with nen schema check is owed to nen, which validates only nen/ declarations at the 0.24 pin.",
   "type": "object",
   "required": ["scopes", "findings"],
   "properties": {
@@ -84,7 +84,7 @@
       },
       "if": { "properties": { "rule": { "pattern": "^CON-[1-9][0-9]*$" } } },
       "then": {
-        "$comment": "HR-10 as amended by HR-337: a CON id is critical by shape, only fixed or deferred to a named amendment PR. An HR id is critical only when its ROSTER row is ruled, which a schema cannot read, so HR ids are governed by hanten section 6 until the status-aware check zheref/hatsu#466 lands.",
+        "$comment": "HR-10 as amended by HR-337: a CON id is critical by shape, only fixed or deferred to a named amendment PR. An HR id is critical only when its ROSTER row is ruled, which a schema cannot read; the status-aware check delivered by zheref/hatsu#466 resolves that row.",
         "properties": {
           "severity": { "const": "critical" },
           "disposition": { "properties": { "state": { "enum": ["fixed", "deferred"] } } }

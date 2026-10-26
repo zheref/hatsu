@@ -83,7 +83,8 @@ takes no `--dry-run` and continues at the recomputed step; a `kamui` record is r
 `families[]`, role `spec` ([`repos.json.md`](../../../../docs/config/repos.json.md); zheref/nen#453), the
 spec repository's copy the truth. **A family not listing both source and target** is refused.
 **Declared**: [`kamui`](../kamui/SKILL.md) § 2 first, by name, each item its outcome there; then
-kamui § 3 on the shipped PR — its search amends a spec folder, **attaches to an open spec PR** for the
+kamui § 3 on the shipped PR, in [`spec-repo.md`](../../../../docs/config/spec-repo.md)'s
+citation-or-marker grammar — its search amends a spec folder, **attaches to an open spec PR** for the
 feature, never a second — and kamui § 4's **G2** wait; `MERGED` → § 5, `next` `start`; **a folder already
 current, no PR opened** → `specFolder` recorded, § 5, `next` `start`; `CLOSED` → *spec declined*. Two records
 may share one spec PR. **None**: *spec step: none configured*, not a gap; `next` `start`.
@@ -136,7 +137,9 @@ The read-back is **explicit**, quoted; an amend quotes its comment.
 
 **The build go is the same typed call, said separately**: `/build <CODE>#<n>` here, to a `CON-32`-ready
 PR at the target's **G2**, *Associated issues* naming the port issue (closing) and the source PR
-(reference); **hiraishin holds build's phase 6** (the wrap-up, asked once cleanup § 2's prerequisites hold; en § 8's `rikugan` renders as
+(reference); its readiness quotes **the convergence table** beside `nen pr ready` (spec-repo.md
+§ *The convergence table at readiness*: a row whose state is not `current` is not ready, quoted; an
+uncomputed table reads *could not read*, never converged); **hiraishin holds build's phase 6** (the wrap-up, asked once cleanup § 2's prerequisites hold; en § 8's `rikugan` renders as
 usual), a build's end read as *conventions* say. **The rulings PR opens once, at the run's end**, through
 `bankai-rule` and `mukai`, never draft — whenever a ruling was recorded, drops included; none recorded, none
 opened. The landing report names it, the citations it replaces, Hatsu's repin and the target's pin

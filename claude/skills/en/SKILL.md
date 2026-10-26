@@ -251,6 +251,24 @@ stale tree to readiness. That is the same owner map [`hatsu:sharingan`](../shari
 
 ## 4. Readiness is never en's claim
 
+**A PR that introduces gate configuration absent from the actual trusted workflow/validator
+revision selected by its readiness event is a bootstrap PR.** Record the event and exact checkout
+ref before classifying it: Hatsu's readiness workflow explicitly checks out
+`github.event.pull_request.base.sha` on both of its events, while another frozen validator may use
+the default branch's head. A stacked PR base carrying the configuration is therefore not, by itself,
+proof that the validator trusts it; the checked-out revision is. Follow
+[`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md), *The two-step landing*: land the
+bootstrap step into the branch that supplies that trusted revision, then judge a follow-up after
+the event resolves to the landed copy. The bootstrap PR's self-supplied gate is a forecast, never
+its verdict; `unevaluated` or a failed trusted-revision run is not Ready. Only the follow-up's
+trusted-revision verdict may enter the ordinary readiness conjunction.
+
+That bootstrap result is an explicit **not-Ready terminal handoff**, not an observation hold and not
+§ 5's Ready merge prompt. Quote the actual `unevaluated` or failed trusted-revision verdict, point the
+maintainer to the first landing under the repository's existing G2/G4 ownership, and require the later
+trusted-revision follow-up before readiness can be claimed. En never merges or calls the bootstrap Ready;
+the human owns that first landing and the ordinary trusted-revision path resumes only on the follow-up.
+
 Steps 2 and 4 are [`hatsu:sharingan`](../sharingan/SKILL.md)'s whole engine, not a substitute for
 it, and **this file restates none of its protocol** — the first-blocking-condition order, the
 channel decided by who authored the PR, the escalation ladder, the `round_policy.maxRounds` request
@@ -280,6 +298,12 @@ Two things en relies on and does not re-derive:
   states the rule once. `sharingan` § 4's rule, and
   [`hatsu:pr-state`](../pr-state/SKILL.md)'s before it: **a readiness claim is that verdict, quoted,
   or it is not made.**
+- **A parity PR** (its closing issue a port issue of a family with a spec repository) adds one more
+  conjunct: **the convergence table**, computed and read as
+  [`docs/config/spec-repo.md`](../../../docs/config/spec-repo.md) § *The convergence table at readiness*
+  says and quoted beside the verdict in the landing report, the register row and § 5's prompt; which rows
+  — and which *could not read* table — make the PR **not ready** whatever `nen pr ready` says is that
+  section's, stated once there (zheref/hatsu#447).
 - **A body this run rewrites** — new or re-recorded screenshots after a review — **re-renders the whole
   *Evidence* table** and passes `"$hatsu_root/scripts/pr_body_evidence_check.sh" --body <file>` before it is written
   ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*, *The table, exactly*).
@@ -505,6 +529,14 @@ re-invocation** — `hatsu:en on <CODE>#<N>` re-fetches everything and re-decide
 (`sharingan` § 9's rule). Notes worth keeping go in the run's transcript, never trusted over a
 fetch.
 
+**Under a Futon-based batch** (`futon`, `kazaana`, `dowsing-chain`'s wave), this run's terminus is that
+delivery's state in [WORKFLOW.md](../../../docs/WORKFLOW.md) § *Batch delivery* rule 2: `ready`, the verdict
+quoted at the current head; `merged`; or `held-<cause>`, parked in the run's manifest with its three facts — the
+exact human-only prerequisite or bound, the last `nen pr ready` verdict and its judged head, and the resume line.
+Each of this file's not-ready stops maps to one cause there: the sixth stop and hanten prompt to `held-gate`, the
+cap and round ceiling to `held-cap`, § 6's hand-backs and § 5's refusals to `held-handback`. The batch counts
+nothing else as delivered, and asks no wrap-up while this run is still `driving` (zheref/hatsu#488).
+
 **One thing does survive the session, deliberately: the cap.** `<common>/.nen/loop/en-<CODE>-<N>.json` is a
 file under the git common directory (§ 2), so a re-invocation on the same PR resumes the same count (§ 2) — the watch is per session, the
 cap is per readiness drive. Say the resumed `<n>/<cap>` out loud on the first claim of a resumed run, so the
@@ -590,7 +622,7 @@ satisfied by the maintainer) — `cleanup` required, `third-hand` optional. Clea
    [`spiritual-message`](../spiritual-message/SKILL.md)), `nen pr ready` / `nen pr body-check` / `nen pr staleness` and
    the two verbs `sharingan` refuses to call for a verdict (steps 2 and 4), `nen pr cascade-main`
    and its missing `--no-push` (step 3, named in [`ao`](../ao/SKILL.md)), `nen stop` plus the
-   `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 6, named in
+   `osascript`/`afplay` fallback and the stop marker (step 6, named in
    [`jutaisho`](../jutaisho/SKILL.md)).
 2. **RETIRED at nen `0.7`: counting cycles against the cap.** `nen loop iterate` claims each acting
    cycle and refuses past the cap (§ 2). `nen parse izanagi` still refuses a missing `N`

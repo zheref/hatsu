@@ -41,6 +41,20 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 `release-publish.sh` reads a tag ref through `gh api` internally, under the release command's separate authority; `tag-ref` is available for direct audit reads. `tenkai_adopt.sh`'s repository lookup is also internal to its script. `direct`'s marker lookup, `illumi`'s arbitrary GraphQL read, generic `izanami` observations and any undocumented endpoint still require an explicit surface permission prompt. CI's check-run POST/PATCH and cleanup DELETE run under workflow credentials, outside this pack. The helper does not accept raw GraphQL text, so a `mergePullRequest` mutation cannot be smuggled into its query.
 
+## `contracts/idle-permissions.json`
+
+**Purpose.** The commands an idle batch (HR-5, `--idle`) runs unattended, one exemplar per shape with the skill that runs it (`hatsu.idle-permissions/v0.1`; zheref/hatsu#453). It **grants nothing**: `contracts/permissions.json` above stays the one source of the packs, and a permission setting is the maintainer's alone. `scripts/idle_permissions_check.mts --repo <checkout>` reads the session's Claude Code settings (`.claude/settings.local.json`, `.claude/settings.json`, `~/.claude/settings.json`) against it and lists every exemplar (one per command shape and per nen verb family, never every argv) that no `Bash(...)` allow rule matches, or that a deny or ask rule matches, before an idle run's first claim ([WORKFLOW § *Idle batches*](../WORKFLOW.md#idle-batches)).
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `contract` | string | `hatsu.idle-permissions/v0.1` | the shape | the check (exit 2 otherwise) |
+| `needs[].command` | string | a command line; `<...>` stands for one word | what the batch runs | the check |
+| `needs[].by` | string | the skill and section | who runs it | the check's report |
+
+**Validated by.** Lane `idle-permissions-guard`. **May a consumer override it?** No; `--needs <file>` reads another list for one run.
+
 ## `contracts/classify.taxonomy.json`
 
 **Purpose.** The two classification axes `hatsu:classify` applies: `lang/<key>` (five keys) and `job/<key>` (thirty-nine keys), each key carrying the source document's phases per domain, and the rule that derives the five domains at run time. nen hard-codes none of the names: the file is `--taxonomy` to the whole `nen classify` family. Full key lists are in [`labels.json.md`](labels.json.md).
@@ -229,7 +243,7 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 |---|---|---|---|---|
 | `description` | string | the rationale, the guard's parsing rules, the session-start purposes | the authority on the file | a reader |
 | `hooks.SessionStart[]` | `{hooks: [{type: command, command, args, timeout: 60, statusMessage}]}` | `${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh` | step 0 binds the contract-pinned nen on the host (`scripts/nen_global.sh`, opt-out `HATSU_NEN_GLOBAL=0`); on the source copy, the warm-up reminder; on a mirrored copy in an adopted consumer, the mirror refresh through `scripts/surface_bootstrap.sh`, logged to `.nen/session-start.log` | the harness |
-| `hooks.Stop[]` | the same shape, `timeout: 15` | `${CLAUDE_PLUGIN_ROOT}/hooks/stop-bell.sh` | rings the bell (an OS notification and a sound) when `.nen/last-stop.json`, the marker `hatsu:jutaisho` drops, says a gate is waiting | the harness; `jutaisho` § 3 |
+| `hooks.Stop[]` | the same shape, `timeout: 15` | `${CLAUDE_PLUGIN_ROOT}/hooks/stop-bell.sh` | rings the bell (an OS notification and a sound) once per stop marker `hatsu:jutaisho` drops — every per-gate marker `nen stop list` names (nen 0.27 on), else `.nen/last-stop.json` — and clears each it rang ([WORKFLOW § *The effort's ledgers*](../WORKFLOW.md#the-efforts-ledgers--phases-usage-and-sessions), the homes) | the harness; `jutaisho` § 3 |
 | `hooks.PreToolUse[]` | `{matcher: Bash, hooks: [...]}`, `timeout: 10` | `${CLAUDE_PLUGIN_ROOT}/hooks/guard-base-branch.sh` | refuses a `git commit` or `git push` while the directory git targets stands on `branch.base`; parses the command (wrappers, quoting, heredocs, `-C`, `--git-dir`) rather than matching a substring, and fails closed on the five forms it cannot read | the harness; `aka`, `murasaki` cite it as the first line |
 
 **Rendered where.** Per surface by `nen surface mirror generate --hooks hooks/hooks.json --hooks-root <root>`: Claude Code reads this file in place; Codex `surfaces/codex/hooks.json` (`SessionStart`, `Stop`, `PreToolUse` with `permissionDecision: deny`), named by `.codex-plugin/plugin.json` → `hooks`; Cursor `surfaces/cursor/.cursor/hooks.json` (`sessionStart`, `stop`, `beforeShellExecution` with `permission: deny`); Antigravity `surfaces/antigravity/hooks.json` (`PreInvocation`, `Stop`, `PreToolUse` on `run_command` with `decision: deny`). The roots are the ones `scripts/surface_mirror_check.sh` expects; any other reads `hand-edited: hooks.json` ([`docs/using/mirrors.md`](../using/mirrors.md) § 3).

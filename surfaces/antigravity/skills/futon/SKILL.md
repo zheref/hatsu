@@ -17,8 +17,8 @@ Per issue, futon is [`build`](../build/SKILL.md) → [`tensho`](../tensho/SKILL.
 Futon is a **scoped, terminated [`backlog-loop`](../backlog-loop/SKILL.md)**: a **selector**, an
 **explicit `then`**, and **who is behind every PR**.
 
-> **Hatsu carries no CI plane** ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Building an issue
-> with no CI plane*): **Kurapika builds every issue.**
+> **No CI plane** ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Building an issue with no CI plane*):
+> **Kurapika builds every issue.**
 
 ## 1. Invocation
 
@@ -36,8 +36,8 @@ nen parse futon --repo <target checkout> "<invocation, minus the prefix and a --
 **`futon` is a built-in `nen parse` grammar** — one call resolves the repo,
 reads the **selector**, classifies `then` (§ 8) and enforces a terminal's scope rule. A severity name
 (`critical`, `high`, `medium`, `low`) is a **band**, `+` that severity **and above**; **any other token
-is a label**, matched as `nen parse futon --help` says and **never expanded**, a lifted `--dry-run` said at the echo. **Exit `2` asks, never ends**: the corrected line, if any, goes to the picker, the answer is re-parsed, a missing argument or
-configuration item set up inline (`missing-argument`, `missing-configuration`). **A re-parsed answer never carries a `then`
+is a label**, matched as `nen parse futon --help` says and **never expanded**, a lifted `--dry-run` said at the echo. **Exit `2` asks, never ends**: any corrected line to the picker, the answer re-parsed; a missing argument or
+configuration set up inline (`missing-argument`, `missing-configuration`). **A re-parsed answer never carries a `then`
 step**; the maintainer retypes it. **The selector
 is the maintainer's word: never derived.**
 
@@ -45,25 +45,24 @@ is the maintainer's word: never derived.**
 *build-only*, the integration branch if one is cut — and **say the run has started** (a bounded `CON-25`
 delegation, § 7).
 
-Before PR-open, run WORKFLOW § *Recorded Futon delivery ownership* `start`: it opens nen's run
-manifest under its run ID (HA#154, HA#423). After every PR this run opens, whatever its base, `nen run append`.
+Before PR-open, run WORKFLOW § *Recorded Futon delivery ownership* `resume`, `start` only on its exit `3` (§ *Batch
+delivery* 5), opening nen's run manifest (HA#154, HA#423). After every PR this run opens, whatever its base, `nen run append`.
 
 ## 2. The queue is the selector's scope — and only that
 
 `nen backlog fetch --repo-slug <owner/name> --json` — never cached or `--limit`ed; a capped fetch
 reads **truncated**. Then:
 
-- **Select** — by band: every issue whose `bankai:severity/*` label is in the band; with `+`, that
-  severity **and every severity above it**. By label: **every open issue carrying that exact label**,
+- **Select** — by band: every issue whose `bankai:severity/*` label is in the band (`+`: and above). By label: **every open issue carrying that exact label**,
   whatever its severity.
 - **Triage the untriaged** as `backlog-loop` § 4 does. Under a band, **a triaged severity inside it
-  joins the queue; outside, it is recorded out of scope.** Under a
-  label, triage **orders only, never selects**. Say which, every time.
-- **`bankai:handbook-question` items and design calls are briefed, never guessed**, and never hold
-  the scope open.
-- **Shape** (HR-4): `build` § 2's check per issue. **Nothing blocks the batch** (HR-335):
-  an open `OQ-{n}` row parks the issue `needs-clarification`, unread questions (exit `1`)
-  `g5-shape-unread`, and the queue continues; exit `2` stops it (HR-364, a reading); a miss never skips (WORKFLOW § *Idle batches* rule 9).
+  joins the queue; outside, it is out of scope.** Under a label, triage **orders only, never selects**.
+  Said every time.
+- **`bankai:handbook-question` items and design calls are briefed, never guessed**, never holding the
+  scope open.
+- **Shape** (HR-4): `build` § 2's check. **Nothing blocks the batch** (HR-335): an open `OQ-{n}` row
+  (exit `1`, document printed) parks the issue `needs-clarification`; unread (exit `1`, no document)
+  `g5-shape-unread`; exit `2` stops it (HR-364, a reading); a miss never skips (WORKFLOW § *Idle batches* 9).
 - **Order within the scope** with `nen backlog order` (§ 3).
 
 **State the queue before advancing anything** — count, issues, exclusions and why.
@@ -93,9 +92,8 @@ declares as `build` § 5 lays them out, in the effort's own worktree; a delegate
 `gh pr merge` (ROSTER § *Rulings of 2026-09-30*). The other shape is stacked per-issue
 PRs, default on overlap — `nen wc overlap`'s verdict, cited, once branches exist (WORKFLOW § *Stacked pull requests*); the maintainer picks.
 
-Before En, bind and verify each stacked delivery PR, refreshing after head changes
-(WORKFLOW § *Recorded Futon delivery ownership*, #154).
-Never record a main-bound or integration PR.
+Before En, bind and verify each stacked delivery PR, refreshed on head changes
+(WORKFLOW § *Recorded Futon delivery ownership*, HA#154) — never a main-bound, integration or `--idle` one.
 
 ## 6. Two concurrency budgets, counted separately
 
@@ -104,18 +102,18 @@ nen loop slots --from-run <run id> --target <owner/name> --ci-cap 2 --local-cap 
 nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target checkout> --json
 ```
 
-Both summed (WORKFLOW § *Idle batches* rule 4); neither is the host's (WORKFLOW § *Host workload budget*).
+Summed: the manifest's delivery PRs and claimed efforts without one (WORKFLOW § *Idle batches* rule 4; the host's budget is § *Host workload budget*, apart).
 
-The **CI** plane (legacy-CI PRs only) caps at 2, frees at PR-open. The **local** plane caps
-at 7 and frees at **`ready+prompted`** (`monitor.localSlotFrees`, HR-353). **`--local-cap 7` is futon's own policy,
-always passed**; omitted, exit `2`. **The budgets are never traded**: a full local one is back-pressure.
+**CI** (legacy-CI PRs only) frees at PR-open; **local** frees at **`ready+prompted`**
+(HR-353). **`--local-cap 7` is futon's policy, always passed**; omitted, exit `2`.
+**Never traded**: a full local budget is back-pressure.
 
 ## 7. Authority — the CON-25 delegation
 
 **Futon may** apply `bankai:stage/building` on issues in scope, and `bankai:severity/*` on an
 untriaged one with its reasoning, logged: object, label, time. **No Route or Wake row**; a stalled
 review round is `sharingan`'s channel, never a label fire. **The typed line
-is the publish call** for each effort's branch (aka § 0, HR-20). **Futon may not** do what § 11 forbids; out-of-scope work is reported, never worked. **Under `--dry-run` none of §§ 4–7's acts run** (WORKFLOW § *Idle batches* rule 7).
+is the publish call** for each effort's branch (aka § 0, HR-20). **Futon may not** do what § 11 forbids; out-of-scope work is reported, not worked. **Under `--dry-run` none of §§ 4–7's acts run** (WORKFLOW § *Idle batches* rule 7).
 
 ## 8. The `then` clause — futon gates it, never performs it
 
@@ -123,8 +121,8 @@ is the publish call** for each effort's branch (aka § 0, HR-20). **Futon may no
 
 **Futon's own job at the clause is exactly one gate**: nothing after `then` runs until every PR this
 run authored — `nen run verify --id <run id> --target <owner/name>`, never memory; an exit other than `0` holds it — is **merged into `branch.base`** (§ 5) — an integration-branch effort once the
-integration PR merges. Till then hold it, keep each merge prompt standing on the register desk (mugetsu § 3), every
-PR still short named with its verdict. A legacy-CI PR does not hold it. Then, as `nen parse futon`
+integration PR merges. Till then hold it, each merge prompt standing on the register desk (mugetsu § 3), every
+PR short of it named with its verdict. A legacy-CI PR does not hold it. Then, as `nen parse futon`
 classified it:
 
 - **`then tag` / `then tag+fanout`** (`terminal`) go to [`getsuga`](../getsuga/SKILL.md) under its rules:
@@ -144,7 +142,7 @@ classified it:
 ## 9. Reporting — the register, every cycle
 
 **Progress turns carry no banner.** The board is the **Rikugan** register, via [`backlog-board`](../backlog-board/SKILL.md) § 3: rows are the scope's issues and their
-PRs, the desk this cycle's asks. State every cycle the briefed and blocked items,
+PRs, the desk this cycle's asks. State every cycle the briefed and held items,
 triage in and out, and every label with its time. A local row's verdict is
 `nen pr ready`'s output verbatim; a `CI (legacy)` row is reported, never driven.
 
@@ -154,11 +152,12 @@ report: **G4/G2** at en § 5's prompt per PR into `branch.base`, **G5** for what
 
 ## 10. Ending the run
 
-The run ends when **every issue in the selector's scope** is merged into `branch.base` — none stranded (en § 6) — (or, legacy-CI, open with its own actor), or briefed awaiting
-a decision, or blocked with its blocker named — **and the `then` clause, if typed, has run or is
-held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
+**Every delivery is driven to Ready** (WORKFLOW § *Batch delivery*): the run ends once none is `driving`, every
+issue in scope merged into `branch.base` (none stranded, en § 6), closed, skipped or **held** with its three facts —
+a `ready` one keeps it open at its prompt; any held, it ends incomplete — **and the `then` clause, if typed, has
+run or is held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`, efforts `parked:<row>`, render `register`.
 
-Say the run has ended; the delegation lapses. The closing report lists each skipped issue's open `OQ-{n}`
+Say the run has ended (`end`); the delegation lapses. The closing report lists each skipped issue's open `OQ-{n}`
 rows and ends **offering**, never starting, the open-question flow (WORKFLOW § *Idle batches* rule 9). The final report is [`/rikugan`](../rikugan/SKILL.md)
 over this run's scope — its § 2 futon row, the `then` outcome included (§ 8's one render); `final` only if every PR merged, else `register` with the asks. Then the
 **wrap-up picker**, only once [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites hold (row `wrap-up`). **Futon never resumes itself**; re-invoke it.
@@ -169,18 +168,17 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
   delivery exception is `en` § 5 and never reaches `main`;
   never self-reviews, impersonates a reviewer or casts `request_changes`; **never publishes a release
   itself** — the cut is getsuga's, publication mugetsu's; **never cuts without a typed `then`**.
-- **Never claims a CI author for a PR it opened**, never abandons its own at PR-open (§ 5), never claims readiness `nen pr ready` + `nen pr body-check` did not give.
+- **Never claims a CI author for a PR it opened**, never abandons its own short of Ready (§ 10), never claims readiness `nen pr ready` + `nen pr body-check` did not give.
 - **Never exceeds 2 CI-plane objects or 7 local slots**; never lets two efforts share a file concurrently.
 - **Never widens its selector** (§ 1).
 - **Never applies a G1 mode label.**
 - **Never batches the merges** — one merge and report per effort.
 - **Never runs `nen release preflight`, `nen fanout compute/record` or `nen shu deploy --run`
-  itself**, and reaches `kagutsuchi` or `mugetsu` **only as a typed `then` step** whose parse `gate`
-  reads `allowed: true`, never from prose (§ 8).
+  itself**; `kagutsuchi` or `mugetsu` only as § 8's gated `then` step, never from prose.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open.**
 
 ## 12. `--idle` — the unattended profile (HR-5)
 
-WORKFLOW § *Idle batches* is the protocol, `--dry-run` its rehearsal; every decision taken for the maintainer is recorded (`nen stop answer`) and listed (rule 8). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
+WORKFLOW § *Idle batches* is the protocol, `--dry-run` its rehearsal; one integration delivery, kept on resume (*Batch delivery* 4–5); every decision taken for the maintainer is recorded (`nen stop answer`) and listed (rule 8). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
 *Residue: PROCESS § Residue; `docs/ab/futon.md`.*

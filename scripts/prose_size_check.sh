@@ -9,7 +9,8 @@
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
 #   the thirty dieted skills                      <= 12288 bytes
-#   every claude/rules/*.md                       <= 12000 characters (Antigravity's own documented
+#   every claude/rules/*.md, and the generated      <= 12000 characters (Antigravity's own documented
+#   surfaces/antigravity/rules/*.md mirror
 #                                                     rules-file limit, docs/surfaces/antigravity.md --
 #                                                     the smallest limit any surface documents for a
 #                                                     rules/instructions file, so it is the one this
@@ -179,6 +180,20 @@ if [ -d "$root/claude/rules" ] && listable "$root/claude/rules"; then
     bytes="$(size_of "$f" 2>/dev/null || true)"
     chars="$(chars_of "$f" 2>/dev/null || true)"
     # a file that is not valid UTF-8 has no true code-point count: refused, never undercounted
+    if ! valid_utf8 <"$f"; then
+      offend "UNMEASURABLE  ${f#"$root"/} -- not valid UTF-8 ($bytes bytes), not measured"; continue
+    fi
+    measure "${f#"$root"/}" "$chars" "$RULES_MAX" chars
+  done
+fi
+
+# the generated Antigravity mirror adds frontmatter and a stamp to the source, so the limit is measured on
+# it too where it exists (a consumer checkout may carry no surfaces/): a source under 12000 is not proof
+if [ -d "$root/surfaces/antigravity/rules" ] && listable "$root/surfaces/antigravity/rules"; then
+  for f in "$root"/surfaces/antigravity/rules/*.md; do
+    admit "$f" || continue
+    bytes="$(size_of "$f" 2>/dev/null || true)"
+    chars="$(chars_of "$f" 2>/dev/null || true)"
     if ! valid_utf8 <"$f"; then
       offend "UNMEASURABLE  ${f#"$root"/} -- not valid UTF-8 ($bytes bytes), not measured"; continue
     fi

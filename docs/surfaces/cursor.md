@@ -21,7 +21,7 @@ since v0.41.0.
 | worktrees | the IDE's own live in a machine worktree root — "Cursor 3.5 keeps a modified time checkpoint for the machine worktree root" (https://cursor.com/docs/configuration/worktrees, 2026-09-30); the location is not documented as configurable, and `.cursor/worktrees.json` configures setup, not location; accepted as it comes. **Hatsu-made** (hanten's `.cursor/agents/` reviewer, a lead-session effort): `<core>/.nen/worktrees/cursor/<name>`, removed when the effort lands — `docs/WORKFLOW.md` § *Where worktrees live* |
 | headless command | `cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"`, with `grok` resolved live from `cursor-agent models` (the newest Grok id at `-high`, never `-fast`: `grok-4.7-high` on 2026-10-05, beside the older `cursor-grok-4.6-high` — the 4.7 ids carry no `cursor-` prefix, so the resolve matches both spellings); a G5 is answered with the same line plus `--resume <chatId>`. The full record is [`evidence/surfaces.md`](evidence/surfaces.md) § 8 and Appendix A |
 | pointing at a local checkout | `surface_bootstrap.sh --surface cursor --target "$HATSU_PLUGIN_ROOT" --install-all` when authoring Hatsu on Cursor, so `.cursor/skills/` links into this `surfaces/cursor/`; otherwise Cursor discovers Claude's versioned cache and serves last-tag prose. **The tree is named, never trusted by itself** (zheref/hatsu#67): inside a Hatsu checkout whose manifest is newer than the bound pin's, `scripts/hatsu_root.sh` keeps the pin and prints the deferral on stderr — the bodies Cursor inlined this session are the pin's; read `<checkout>/claude/skills/<name>/SKILL.md`; the quoted `export HATSU_PLUGIN_ROOT='<checkout>'` binds the tree from the next session. That line exists from the first installed pin that carries it (0.53.0 or later); below it the export is the only form. Whether `.cursor/skills/` then outranks the Claude cache Cursor also discovers is § 10's open gap |
-| commit attribution | Cursor appends `Co-authored-by: Cursor <cursoragent@cursor.com>` at `git commit` time; turn it off before the first commit — Cursor Settings → Git & Pull Requests → *Commit Attribution*, or `attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json` (§ 9, forum-sourced, not verified live; [`docs/WORKFLOW.md`](../WORKFLOW.md) § `commits`, zheref/hatsu#66); `kokusen` § 5 reads the written tip back and `aka` § 7 every outgoing commit before the push and stop on an attribution key (a key ending `-by`/`-with`, or listed in `forbiddenTrailers`; `Closes` is ordinary) outside `allowedAttributionTrailers` |
+| commit attribution | Cursor appends `Co-authored-by: Cursor <cursoragent@cursor.com>` at `git commit` time; turn it off before the first commit — Cursor Settings → Agent → *Attribution* (Git & PRs → *Attribution* from Cursor 3.11, per Cursor's help page, § 9; the forum answer names Git & Pull Requests → *Commit Attribution*), or `attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json` (§ 9, forum-sourced, not verified live; [`docs/WORKFLOW.md`](../WORKFLOW.md) § `commits`, zheref/hatsu#66). **Cloud agents are different**: Cursor's own docs say they commit as `Cursor Agent <cursoragent@cursor.com>` and add the person who started them as `Co-authored-by` on each commit, and document no switch for it (§ 9, fetched 2026-10-25; [`docs/AGENT-ATTRIBUTION.md`](../AGENT-ATTRIBUTION.md)), so a cloud-agent effort stops at G5 before its first push (zheref/hatsu#470); `kokusen` § 5 reads the written tip back and `aka` § 7 every outgoing commit before the push and stop on an attribution key (a key ending `-by`/`-with`, or listed in `forbiddenTrailers`; `Closes` is ordinary) outside `allowedAttributionTrailers` |
 | update and activation | `hatsu:bakuryuha`: the updater fast-forwards `$HATSU_PLUGIN_ROOT`, the `.cursor/skills/` links already follow it, and the new `ten` repairs links and places any new name; the running chat keeps the skill list it started with, a new chat gets the updated set (forum-sourced), and a restart or **Developer: Reload Window** is the documented form; hooks reload on save (§ 9) |
 | minimum build | `cursor-agent 2026.01.*`: the CLI changelog dates skills, rules and commands in the CLI to January 2026, and `2025.09.18-39624ef` saw no skills at all (evidence § 8 F2). The changelog groups by month, so the floor is a month; compare the date part of `cursor-agent -v` |
 
@@ -35,6 +35,37 @@ the surface below the minimum.
 fetched, cut a branch, rebased and first-published inside a linked worktree with no permission failure
 (evidence § 8). The working root is the shell's own `cd`; `--workspace` and `--add-dir` exist from
 `2026.09.08` and the `cd` form works on both.
+
+### Cursor Cloud agents
+
+Cursor-hosted Cloud Agents (formerly Background Agents) boot from a Build rather than from the local
+IDE host. Cursor runs `.cursor/environment.json`'s `install` while making that Build and preserves its
+disk state, but not an exported `PATH`; the setup guide says, *"Builds preserve disk state only"*.
+The Cursor adapter therefore installs the contract pin into
+`${XDG_CACHE_HOME:-$HOME/.cache}/nen/zheref_nen/<ref>/nen-linux-x64`, links the verified binary at
+`$HOME/.local/bin/nen`, and binds it per agent command with `PATH="$HOME/.local/bin:$PATH"`. The
+copyable current-pin form and the `AGENTS.md` instruction are in
+[`docs/using/cursor.md`](../using/cursor.md#cursor-cloud-agents). An export performed by `install` is
+not proof that the agent can resolve `nen`.
+
+The Build step uses exactly the two-step flow in `nen/contract.json`: fetch
+`bootstrap/nen.sh` from the pinned ref to a file, run that file, accept only its exit-0 executable
+path after it has fetched `SHA256SUMS` and the Linux release asset, then link that path. Restricted
+egress must admit `raw.githubusercontent.com` for the script and GitHub's release/API path for both
+`SHA256SUMS` and `nen-linux-x64`: `github.com`, `api.github.com` when `gh` is present, and the release
+asset redirect host `release-assets.githubusercontent.com`. Cursor documents network allowlists at
+the user, environment and team levels; this is ordinary HTTPS egress, not git-egress-proxy traffic.
+
+Cloud agents read repository `AGENTS.md`, so that file carries the per-command PATH binding and the
+instruction to run the warm-up first. The generated `hatsu.mdc` requires the warm-up's one-line
+probe/bootstrap result — including `not run` — to be quoted in every PR body. If either the Build
+bootstrap or the session warm-up bootstrap fails, no Nen-owned operation is replaced with raw git,
+`gh`, or a remembered shell equivalent. The run halts and reports the bootstrap failure.
+
+Configuration precedence is material: Cursor checks a personal saved environment, then a team saved
+environment, then the committed `.cursor/environment.json` for a single-repository run. A saved
+environment reads the file only when its Environment JSON location points at it; otherwise the
+committed bootstrap can be bypassed. Self-Hosted Machines do not read `.cursor/environment.json`.
 
 ## 2. Skills
 
@@ -186,6 +217,11 @@ bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces
 | hooks shape | `version: 1`, `hooks: { event: [ { command } ] }` | "`{ \"version\": 1, \"hooks\": { \"afterFileEdit\": [{ \"command\": \"./hooks/format.sh\" }] }}`" | https://cursor.com/docs/agent/hooks | 2026-09-20 |
 | shell events | before and after | "beforeShellExecution / afterShellExecution - Control shell commands" | https://cursor.com/docs/agent/hooks | 2026-09-20 |
 | commit attribution off-switch (forum answer, not official docs) | Settings → Git & Pull Requests; `attribution.attributeCommitsToAgent` | "In Cursor Settings > Git & Pull Requests > turn off Commit Attribution and PR Attribution if needed. If you're working via CLI, set attribution.attributeCommitsToAgent to false in ~/.cursor/cli-config.json" | https://forum.cursor.com/t/disable-auto-co-authored-by-cursor-on-agent-commits-or-make-it-opt-in/168258/8 (2026-08-21) | 2026-09-28 |
+| cloud agent commit author | `Cursor Agent <cursoragent@cursor.com>` | "On GitHub, Cloud Agents author and commit as `Cursor Agent <cursoragent@cursor.com>`, not as the person who started the agent." | https://cursor.com/docs/cloud-agent/security-network | 2026-10-25 |
+| cloud agent co-author trailer | every commit; none for service accounts; no switch documented | "When Cursor can look up the person who started the agent, it adds them to each commit as a `Co-authored-by` trailer. Agents started by service accounts, such as automations, don't get that trailer." | https://cursor.com/docs/cloud-agent/security-network | 2026-10-25 |
+| documented attribution switch | the `Made with Cursor` trailer, IDE and CLI | "When Agent creates commits or pull requests, Cursor can add a `Made with Cursor` trailer automatically." · "Toggle it in **Cursor Settings** > **Agent** > **Attribution**." | https://cursor.com/help/integrations/git | 2026-10-25 |
+| attribution setting from 3.11 | Git & PRs > Attribution | "Starting in Cursor 3.11, this setting moves to **Cursor Settings** > **Git & PRs** > **Attribution**." | https://cursor.com/help/integrations/git | 2026-10-25 |
+| CLI attribution key | `attribution.attributeCommitsToAgent` | "Add "Made with Cursor" trailer to Agent commits (default: `true`)" | https://cursor.com/docs/cli/reference/configuration | 2026-10-25 |
 | decision precedence | deny > ask > allow | "any deny wins over ask, and ask wins over allow, regardless of source" | https://cursor.com/docs/agent/hooks | 2026-09-20 |
 | permissions file | `.cursor/cli.json` | "Permissions are set in ~/.cursor/cli-config.json (global) or <project>/.cursor/cli.json" | https://cursor.com/docs/cli/reference/permissions | 2026-09-20 |
 | permissions syntax | `Shell(...)`, `Read(...)` | "`{ \"permissions\": { \"allow\": [ \"Shell(ls)\", \"Shell(git)\", \"Read(src/**/*.ts)\", …`" | https://cursor.com/docs/cli/reference/permissions | 2026-09-20 |
@@ -204,6 +240,10 @@ bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces
 | the documented reload | restart, or Reload Window | "Restart Cursor, or run **Developer: Reload Window**." (the local-plugin steps) | https://cursor.com/docs/plugins | 2026-09-29 |
 | hooks after an edit | reloaded on save | "Cursor watches hooks config files and reloads them automatically." | https://cursor.com/docs/agent/hooks | 2026-09-29 |
 | a chat's skill list | fixed per chat, forum-sourced (staff) | "So an existing chat will keep seeing the old set of skills, while a new chat will get the updated set." | https://forum.cursor.com/t/165124 | 2026-09-29 |
+| Cloud Build persistence | disk only; exported variables do not reach the agent | "Builds preserve disk state only." | https://cursor.com/docs/cloud-agent/setup | 2026-10-25 |
+| Cloud config precedence | personal, then team, then committed file | "Cursor resolves environment configuration by repository or repo group, using the first match" | https://cursor.com/docs/cloud-agent/setup | 2026-10-25 |
+| Cloud session instructions | repository `AGENTS.md` | "Cloud agents read AGENTS.md files." | https://cursor.com/docs/cloud-agent/setup | 2026-10-25 |
+| Cloud restricted egress | environment-scoped mode and allowlist | "Saved environments can have their own network access mode and allowlist." | https://cursor.com/docs/cloud-agent/security-network | 2026-10-25 |
 
 ## 10. Known gaps (not documented)
 
@@ -214,13 +254,14 @@ bash scripts/surface_mirror_check.sh "$HATSU_PLUGIN_ROOT"   # source vs surfaces
 - Whether `stop` fires at the end of a `-p` run; a `-p` process was once observed staying alive after
   its answer (evidence § 8), so give a headless run a timeout.
 - The `--resume` path in anger: no G5 fired in the recorded run.
-- The commit-attribution off-switch: forum-sourced only; a forum report (https://forum.cursor.com/t/local-executor-ignores-cli-config-attribution-opt-out-forcing-co-authored-by-trailer/167722) says the SDK local executor ignores `attributeCommitsToAgent: false`, and a second trailer `Made-with: Cursor` is reported (https://forum.cursor.com/t/allow-disabling-made-with-cursor-commit-trailer/154494) — the `kokusen`/`aka` read-back stops on any key outside `allowedAttributionTrailers` for that reason; whether the injection reaches a nen verb's child `git commit` is unobserved (zheref/hatsu#66).
+- The cloud-agent `Co-authored-by` off-switch: none in Cursor's docs on 2026-10-25 (§ 9); the Enterprise admin toggle names neither cloud agents nor that trailer, so it is not claimed to reach them.
+- The IDE/CLI commit-attribution off-switch for `Co-authored-by`: forum-sourced only; a forum report (https://forum.cursor.com/t/local-executor-ignores-cli-config-attribution-opt-out-forcing-co-authored-by-trailer/167722) says the SDK local executor ignores `attributeCommitsToAgent: false`, and a second trailer `Made-with: Cursor` is reported (https://forum.cursor.com/t/allow-disabling-made-with-cursor-commit-trailer/154494) — the `kokusen`/`aka` read-back stops on any key outside `allowedAttributionTrailers` for that reason; whether the injection reaches a nen verb's child `git commit` is unobserved (zheref/hatsu#66).
 - Whether a running chat reads a linked skill's changed body when it is invoked again; the pages document discovery at start only, and `hatsu:bakuryuha` § 5 reads the body from disk rather than assume it.
 - Whether `.cursor/skills/` linked into a checkout outranks the Claude plugin cache Cursor also discovers (zheref/hatsu#67's first criterion): unverified — no Cursor on the authoring host.
 
 ## 11. How this guide evolves
 
-`hatsu:great-hiker` re-fetches the eleven URLs above, diffs every quoted line, and files one Netero-shaped
+`hatsu:great-hiker` re-fetches the fourteen URLs above, diffs every quoted line, and files one Netero-shaped
 issue for this surface when one moved, naming the row, the generator rule (`src/surface/rules.ts` in
 nen), the pack renderer and the warm-up section. The description-budget gap is the one to close first:
 a measurement against a varying skill count on a host with no other plugins.

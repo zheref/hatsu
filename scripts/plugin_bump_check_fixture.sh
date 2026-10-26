@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Focused, declared verification for scripts/plugin_bump_check.sh.
-# Requires Bash, mktemp and jq (invoked by the guard to read plugin versions).
+# Requires Bash, git, node, mktemp and jq (the guard reads plugin versions).
 # Invoked only through `nen shu test --lane plugin-bump-guard --repo <hatsu>`.
 set -euo pipefail
 
@@ -33,9 +33,27 @@ printf '%s\n' 'docs/PROCESS.md' > "$fixture_root/changed-process.txt"
 printf '%s\n' 'scripts/report_time.sh' > "$fixture_root/changed-report-time.txt"
 printf '%s\n' 'scripts/pr_body_evidence_check.sh' > "$fixture_root/changed-evidence-check.txt"
 printf '%s\n' 'scripts/pr_body_delivery_check.sh' 'scripts/pr_delivery.ts' > "$fixture_root/changed-delivery-check.txt"
+printf '%s\n' 'scripts/pr_body_sections_check.sh' > "$fixture_root/changed-sections-check.txt"
+printf '%s\n' 'scripts/pr_sections_resolve.sh' > "$fixture_root/changed-sections-resolver.txt"
+printf '%s\n' 'scripts/pr_sections.ts' > "$fixture_root/changed-sections-engine.txt"
+printf '%s\n' 'scripts/gh_api_read.mts' > "$fixture_root/changed-gh-api-read.txt"
+printf '%s\n' 'scripts/plugin_bump_api_retry.mts' > "$fixture_root/changed-plugin-bump-api-retry.txt"
+printf '%s\n' 'scripts/config_values.sh' > "$fixture_root/changed-config-values.txt"
+printf '%s\n' 'scripts/config_values.ts' > "$fixture_root/changed-config-values-adapter.txt"
+printf '%s\n' 'scripts/config_values_legacy.sh' > "$fixture_root/changed-config-values-engine.txt"
+printf '%s\n' 'scripts/futon_effort_record.mts' > "$fixture_root/changed-futon-effort-record.txt"
+printf '%s\n' 'scripts/product_term_check.sh' > "$fixture_root/changed-product-term-check.txt"
+printf '%s\n' 'scripts/product_term_check.mts' > "$fixture_root/changed-product-term-engine.txt"
+printf '%s\n' 'scripts/private_name_named.txt' > "$fixture_root/changed-private-name-named.txt"
+printf '%s\n' 'scripts/provider_tag_commit.mts' > "$fixture_root/changed-provider-tag-commit.txt"
+printf '%s\n' 'scripts/port_rule_reserve.sh' > "$fixture_root/changed-port-rule-reserve.txt"
+printf '%s\n' 'scripts/dependency_audit_resolve.mts' > "$fixture_root/changed-dependency-audit-resolve.txt"
 printf '%s\n' 'scripts/shell_coverage.mts' > "$fixture_root/changed-shell-coverage.txt"
+printf '%s\n' 'scripts/hanten_findings_check.mts' > "$fixture_root/changed-hanten-findings.txt"
+printf '%s\n' 'scripts/clause_id_guard.mts' > "$fixture_root/changed-clause-parser.txt"
+printf '%s\n' 'scripts/direct_matrix_doc.sh' > "$fixture_root/changed-direct-matrix-shim.txt"
+printf '%s\n' 'scripts/direct_matrix_doc.mts' > "$fixture_root/changed-direct-matrix-engine.txt"
 printf '%s\n' 'scripts/send_freshness_check.sh' > "$fixture_root/changed-freshness.txt"
-printf '%s\n' 'scripts/kagutsuchi_worktree.sh' > "$fixture_root/changed-kagutsuchi-worktree.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.sh' > "$fixture_root/changed-cleanup-path-admit.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.ts' > "$fixture_root/changed-cleanup-path-admit-ts.txt"
 printf '%s\n' 'scripts/hatsu_surface_link.sh' > "$fixture_root/changed-surface-link.txt"
@@ -44,9 +62,9 @@ printf '%s\n' 'scripts/prose_size_check.sh' > "$fixture_root/changed-prose-guard
 
 run_case() {
   local name="$1" expected_status="$2" changed="$3" head="$4" expected_text="$5" body="${6:-$fixture_root/body.md}"
-  local actual_status output
+  local base="${7:-$fixture_root/base.json}" actual_status output
 
-  if output="$(bash "$guard" "$changed" "$fixture_root/base.json" "$head" "$body" 2>&1)"; then
+  if output="$(bash "$guard" "$changed" "$base" "$head" "$body" 2>&1)"; then
     actual_status=0
   else
     actual_status=$?
@@ -65,6 +83,19 @@ run_case() {
   printf '%s: exit %s\n' "$name" "$actual_status"
 }
 
+for runtime_path in scripts/tenkai_adopt.ts scripts/tenkai_adopt_legacy.sh \
+  scripts/pr_sections_history.ts scripts/config_values_refresh.ts \
+  scripts/tenkai_trailer_guard.mts scripts/consumer_trailer_ci.mts \
+  scripts/direct_matrix_doc.sh scripts/direct_matrix_doc.mts; do
+  printf '%s\n' "$runtime_path" > "$fixture_root/changed-composed-runtime.txt"
+  run_case "$runtime_path unchanged version refuses" 1 "$fixture_root/changed-composed-runtime.txt" "$fixture_root/head-unchanged.json" "$runtime_path"
+  run_case "$runtime_path bumped version passes" 0 "$fixture_root/changed-composed-runtime.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
+  grep -Fq -- "\`$runtime_path\`" "$repo_root/CONTRIBUTING.md" || {
+    printf 'contributor runtime list omits %s\n' "$runtime_path" >&2
+    exit 1
+  }
+done
+
 run_case 'DISCOVERY unchanged version' 1 "$fixture_root/changed-discovery.txt" "$fixture_root/head-unchanged.json" 'docs/DISCOVERY.md'
 run_case 'LAUNCH-MIGRATION unchanged version' 1 "$fixture_root/changed-launch-migration.txt" "$fixture_root/head-unchanged.json" 'docs/LAUNCH-MIGRATION.md'
 run_case 'WORKFLOW unchanged version' 1 "$fixture_root/changed-workflow.txt" "$fixture_root/head-unchanged.json" 'docs/WORKFLOW.md'
@@ -76,10 +107,29 @@ run_case 'PROCESS unchanged version' 1 "$fixture_root/changed-process.txt" "$fix
 run_case 'report clock script unchanged version' 1 "$fixture_root/changed-report-time.txt" "$fixture_root/head-unchanged.json" 'scripts/report_time.sh'
 run_case 'evidence check script unchanged version' 1 "$fixture_root/changed-evidence-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_evidence_check.sh'
 run_case 'delivery guard and engine unchanged version' 1 "$fixture_root/changed-delivery-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_delivery_check.sh'
+run_case 'PR body sections guard unchanged version' 1 "$fixture_root/changed-sections-check.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_body_sections_check.sh'
+run_case 'PR sections resolver unchanged version' 1 "$fixture_root/changed-sections-resolver.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_sections_resolve.sh'
+run_case 'PR sections engine unchanged version' 1 "$fixture_root/changed-sections-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/pr_sections.ts'
+run_case 'GitHub API reader unchanged version' 1 "$fixture_root/changed-gh-api-read.txt" "$fixture_root/head-unchanged.json" 'scripts/gh_api_read.mts'
+run_case 'plugin-bump API retry helper unchanged version' 1 "$fixture_root/changed-plugin-bump-api-retry.txt" "$fixture_root/head-unchanged.json" 'scripts/plugin_bump_api_retry.mts'
+run_case 'configuration values helper unchanged version' 1 "$fixture_root/changed-config-values.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values.sh'
+run_case 'configuration values adapter unchanged version' 1 "$fixture_root/changed-config-values-adapter.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values.ts'
+run_case 'configuration values engine unchanged version' 1 "$fixture_root/changed-config-values-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/config_values_legacy.sh'
+run_case 'Futon effort record helper unchanged version' 1 "$fixture_root/changed-futon-effort-record.txt" "$fixture_root/head-unchanged.json" 'scripts/futon_effort_record.mts'
+run_case 'product term guard unchanged version' 1 "$fixture_root/changed-product-term-check.txt" "$fixture_root/head-unchanged.json" 'scripts/product_term_check.sh'
+run_case 'product term engine unchanged version' 1 "$fixture_root/changed-product-term-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/product_term_check.mts'
+run_case 'private-name allowlist unchanged version' 1 "$fixture_root/changed-private-name-named.txt" "$fixture_root/head-unchanged.json" 'scripts/private_name_named.txt'
+run_case 'provider tag reader unchanged version' 1 "$fixture_root/changed-provider-tag-commit.txt" "$fixture_root/head-unchanged.json" 'scripts/provider_tag_commit.mts'
+run_case 'port ruling reservation helper unchanged version' 1 "$fixture_root/changed-port-rule-reserve.txt" "$fixture_root/head-unchanged.json" 'scripts/port_rule_reserve.sh'
+run_case 'dependency audit resolver unchanged version' 1 "$fixture_root/changed-dependency-audit-resolve.txt" "$fixture_root/head-unchanged.json" 'scripts/dependency_audit_resolve.mts'
 # ten's `nen shu tools --repo <hatsu_root>` runs the bash row's probe out of the installed copy (#148).
 run_case 'shell coverage helper unchanged version' 1 "$fixture_root/changed-shell-coverage.txt" "$fixture_root/head-unchanged.json" 'scripts/shell_coverage.mts'
+run_case 'Hanten findings checker unchanged version' 1 "$fixture_root/changed-hanten-findings.txt" "$fixture_root/head-unchanged.json" 'scripts/hanten_findings_check.mts'
+run_case 'Direct matrix shim unchanged version' 1 "$fixture_root/changed-direct-matrix-shim.txt" "$fixture_root/head-unchanged.json" 'scripts/direct_matrix_doc.sh'
+run_case 'Direct matrix engine unchanged version' 1 "$fixture_root/changed-direct-matrix-engine.txt" "$fixture_root/head-unchanged.json" 'scripts/direct_matrix_doc.mts'
+run_case 'Direct matrix engine bumped version' 0 "$fixture_root/changed-direct-matrix-engine.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
+run_case 'Hanten roster parser unchanged version' 1 "$fixture_root/changed-clause-parser.txt" "$fixture_root/head-unchanged.json" 'scripts/clause_id_guard.mts'
 run_case 'freshness gate script unchanged version' 1 "$fixture_root/changed-freshness.txt" "$fixture_root/head-unchanged.json" 'scripts/send_freshness_check.sh'
-run_case 'kagutsuchi worktree script unchanged version' 1 "$fixture_root/changed-kagutsuchi-worktree.txt" "$fixture_root/head-unchanged.json" 'scripts/kagutsuchi_worktree.sh'
 run_case 'cleanup path admission script unchanged version' 1 "$fixture_root/changed-cleanup-path-admit.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.sh'
 run_case 'cleanup path admission implementation unchanged version' 1 "$fixture_root/changed-cleanup-path-admit-ts.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.ts'
 run_case 'surface link script unchanged version' 1 "$fixture_root/changed-surface-link.txt" "$fixture_root/head-unchanged.json" 'scripts/hatsu_surface_link.sh'
@@ -294,3 +344,100 @@ printf '%s\n' 'the refused opt-out lists only the shipped paths: ok'
 run_case 'opt-out beside a real bump passes on the bump' 0 "$fixture_root/changed-workflow.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped' "$fixture_root/body-optout.md"
 run_case 'beside a bump the opt-out line is named as ignored' 0 "$fixture_root/changed-workflow.txt" "$fixture_root/head-bumped.json" 'the `no plugin bump:` line was ignored (inert beside a bump' "$fixture_root/body-optout.md"
 run_case 'the refusal no longer offers an opt-out for a shipped path' 1 "$fixture_root/changed-workflow.txt" "$fixture_root/head-unchanged.json" 'There is no opt-out for a shipped path'
+
+# #346: replay the #338/#339/#344 shape with REAL branches, Git catch-up and
+# manifests read from the current base ref. Only this temporary repository's
+# main moves; no remote, live checkout or published history is involved.
+(
+  unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR
+  collision_repo="$fixture_root/version-collision"
+  git init -q --initial-branch=main "$collision_repo"
+  collision_git() { git -C "$collision_repo" "$@"; }
+  collision_git config user.name 'Hatsu fixture'
+  collision_git config user.email 'hatsu-fixture@example.invalid'
+  collision_git config core.hooksPath /dev/null
+  collision_git config commit.gpgSign false
+  collision_git config merge.gpgSign false
+  mkdir -p "$collision_repo/.claude-plugin" "$collision_repo/.codex-plugin" "$collision_repo/changelog.d"
+  printf '%s\n' '{' '  "name": "hatsu",' '  "version": "0.115.0"' '}' > "$collision_repo/.claude-plugin/plugin.json"
+  cp "$collision_repo/.claude-plugin/plugin.json" "$collision_repo/.codex-plugin/plugin.json"
+  collision_git add .claude-plugin/plugin.json .codex-plugin/plugin.json
+  collision_git commit -qm 'chore(fixture): seed shared base' -m 'Hatsu-Agent: kurapika'
+  collision_start="$(collision_git rev-parse HEAD)"
+
+  # Read Git's current base, not the original branch point after main moves.
+  collision_inputs() {
+    collision_git show main:.claude-plugin/plugin.json > "$fixture_root/collision-base.json"
+    collision_git diff --name-only main..HEAD > "$fixture_root/collision-changed.txt"
+  }
+  collision_catch_up() {
+    collision_git merge --no-ff --no-commit main > "$fixture_root/collision-merge.log" 2>&1
+    if collision_git rev-parse --verify --quiet MERGE_HEAD >/dev/null; then
+      collision_git commit -qm 'chore(fixture): catch up with shared base' -m 'Hatsu-Agent: kurapika'
+    fi
+  }
+
+  for issue in 338 339 344; do
+    collision_git checkout -qb "pr-$issue" "$collision_start"
+    printf '%s\n' '{' '  "name": "hatsu",' '  "version": "0.116.0"' '}' > "$collision_repo/.claude-plugin/plugin.json"
+    cp "$collision_repo/.claude-plugin/plugin.json" "$collision_repo/.codex-plugin/plugin.json"
+    mkdir -p "$collision_repo/claude/skills/feature-$issue" "$collision_repo/changelog.d"
+    printf '# Feature %s\n' "$issue" > "$collision_repo/claude/skills/feature-$issue/SKILL.md"
+    printf -- '- v0.116.0: Feature %s.\n' "$issue" > "$collision_repo/changelog.d/$issue.md"
+    collision_git add .claude-plugin/plugin.json .codex-plugin/plugin.json "claude/skills/feature-$issue/SKILL.md" "changelog.d/$issue.md"
+    collision_git commit -qm "feat(fixture): prepare branch $issue" -m 'Hatsu-Agent: kurapika'
+    collision_inputs
+    run_case "collision pr-$issue initially increases 0.115.0 to 0.116.0" 0 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      'plugin.json version bumped' "$fixture_root/body.md" "$fixture_root/collision-base.json"
+  done
+
+  # One winner consumes 0.116.0. Both losing branches catch up without a text
+  # conflict; both still carry that same version, and neither can pass.
+  collision_git checkout -q main
+  collision_git merge --ff-only -q pr-338
+  for issue in 339 344; do
+    collision_git checkout -q "pr-$issue"
+    collision_catch_up
+    collision_inputs
+    run_case "collision pr-$issue after winner lands" 1 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      'not a strict increase: base 0.116.0 -> head 0.116.0' \
+      "$fixture_root/body.md" "$fixture_root/collision-base.json"
+  done
+  printf '%s\n' 'three-branch collision: exactly 1 winner at 0.116.0; 2 caught-up losers refused'
+
+  # Repair in sequence with #158's actual conservative helper. The second
+  # loser must compare with the newly advanced base AGAIN, even though its
+  # catch-up can adopt the first loser's manifests cleanly.
+  for issue in 339 344; do
+    collision_git checkout -q "pr-$issue"
+    collision_catch_up
+    collision_inputs
+    old="$(jq -r .version "$fixture_root/collision-base.json")"
+    if [ "$issue" = 339 ]; then next=0.116.1; else next=0.116.2; fi
+    run_case "collision pr-$issue before fresh re-bump" 1 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      "not a strict increase: base $old -> head $old" \
+      "$fixture_root/body.md" "$fixture_root/collision-base.json"
+    bash "$repo_root/scripts/plugin_version_refs.sh" --root "$collision_repo" \
+      --from "$old" --to "$next" --write > "$fixture_root/collision-references.log"
+    # The helper reports the fragment for review; update only this effort's
+    # original fragment, retaining the prior winner's version and fragment.
+    printf -- '- v%s: Feature %s.\n' "$next" "$issue" > "$collision_repo/changelog.d/$issue.md"
+    test "$(jq -r .version "$collision_repo/.claude-plugin/plugin.json")" = "$next"
+    test "$(jq -r .version "$collision_repo/.codex-plugin/plugin.json")" = "$next"
+    collision_git add .claude-plugin/plugin.json .codex-plugin/plugin.json "changelog.d/$issue.md"
+    collision_git commit -qm "fix(fixture): re-bump branch $issue above fresh base" -m 'Hatsu-Agent: kurapika'
+    collision_inputs
+    run_case "collision pr-$issue fresh re-bump $old to $next" 0 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      'plugin.json version bumped' "$fixture_root/body.md" "$fixture_root/collision-base.json"
+    collision_git checkout -q main
+    collision_git merge --ff-only -q "pr-$issue"
+  done
+  test "$(collision_git show main:changelog.d/338.md)" = '- v0.116.0: Feature 338.'
+  test "$(collision_git show main:changelog.d/339.md)" = '- v0.116.1: Feature 339.'
+  test "$(collision_git show main:changelog.d/344.md)" = '- v0.116.2: Feature 344.'
+  printf '%s\n' 'three-branch recovery: losers land at 0.116.1 and 0.116.2; each original fragment follows its own bump'
+)

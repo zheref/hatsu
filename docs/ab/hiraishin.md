@@ -203,3 +203,98 @@ The concept cut, the mapping and the prerequisite read are judgement; the file l
 (hiraishin § *Residue*). Owed to nen, unchanged at `0.24.0`: a file-fed title (zheref/nen#444), the dangling
 clause refused (zheref/nen#366), `families[]` and the `spec` role (zheref/nen#453), `watch until --until
 merged` (zheref/nen#454), pair resolution beside the stack handbook (zheref/nen#457).
+
+## 4. Readiness — the convergence table over a two-commit member (zheref/hatsu#447)
+
+**Run: 2026-10-23 (UTC), nen built from source at `b313c909` (zheref/nen#517's stack top, version `0.27.0`,
+unreleased; the contract pins `0.26.0`, which has none of these verbs), host `darwin` (arm64).** The table is
+[`spec-repo.md`](../config/spec-repo.md) § *The convergence table at readiness*: hiraishin § 8, kamui § 8 and
+en § 4 quote it beside `nen pr ready` for a parity PR. Inputs, built in the session's scratch directory
+(`<scratch>`) and never pushed: a member `fixture-owner/fixture-web` (code `FW`, scenario `react-uzf-v1`, a
+`tsconfig.json` over `src/`) with two commits — `12ab2772` *one* (`src/List.ts` sorts; `src/List.test.ts`
+asserts it) and `effa98c6` *two* (the sort removed) — and a spec repository carrying
+`scripts/fixtures/spec-family/spec-repo/nen/repos.json` and two folders: `specs/002-fixture-list` (an
+`AC-001` scenario line, `FR-001` citing `FW:src/List.ts:1-3 @ 12ab2772`, `SC-001` citing the test line, and a
+`parity.md` table `| FR | FI | FA | FW |` with `FW` `present` and its citation) and `specs/003-fixture-sort`
+(one FR citing `FI` only). The checkouts file maps `fixture-owner/fixture-web` to the member. **No GitHub call
+was made**; no `--write` ran, so nothing was appended.
+
+```
+$ nen --version
+0.27.0
+exit=0
+
+$ nen spec inventory --repo <scratch>/member --scenario react-uzf-v1 --at 12ab2772937ef9dd0ac4e0e5f568f6002ca6efe8 --out <scratch>/inv-A.json
+read: react-uzf-v1 fixture-owner/fixture-web @ 12ab2772937e -- 1 row(s) from 2 owned file(s) (tsconfig: tsconfig.json)
+  totals: screen 0 · state 0 · event unknown · shifter 0 · selector 0 · producer 0 · service 0 · model 0 · flag unknown · strings unknown · analytics unknown · navigation unknown · test 1 (per case) · snapshot 0
+  1 classified · 0 joined to another row · 1 unclassified · 0 excluded by --exclude
+  wrote <scratch>/inv-A.json
+exit=0
+
+$ nen spec converge --repo <scratch>/spec --folder specs/002-fixture-list --inventory <scratch>/inv-A.json --code FW --checkouts <scratch>/checkouts
+converged: specs/002-fixture-list against FW fixture-owner/fixture-web @ 12ab2772937e -- 0 missing · 0 partial · 0 contradicts · 0 unrequested · action none
+  unrequested: not computed -- capture/FW/inventory.json does not exist, so there is no earlier capture to tell new rows from old ones
+exit=0
+
+$ nen spec inventory --repo <scratch>/member --scenario react-uzf-v1 --at effa98c65a0bef1ea6b3f1c5678c6d7e0e876499 --out <scratch>/inv-B.json
+read: react-uzf-v1 fixture-owner/fixture-web @ effa98c65a0b -- 1 row(s) from 2 owned file(s) (tsconfig: tsconfig.json)
+  totals: screen 0 · state 0 · event unknown · shifter 0 · selector 0 · producer 0 · service 0 · model 0 · flag unknown · strings unknown · analytics unknown · navigation unknown · test 1 (per case) · snapshot 0
+  1 classified · 0 joined to another row · 1 unclassified · 0 excluded by --exclude
+  wrote <scratch>/inv-B.json
+exit=0
+
+$ nen spec converge --repo <scratch>/spec --folder specs/002-fixture-list --inventory <scratch>/inv-B.json --code FW --checkouts <scratch>/checkouts
+gaps: specs/002-fixture-list against FW fixture-owner/fixture-web @ effa98c65a0b -- 0 missing · 0 partial · 1 contradicts · 0 unrequested · action none
+  contradicts FR-001 (spec.md:11) -- 1 changed at effa98c65a0b; the cited bytes read differently and are found nowhere else in the file -- a candidate for the spec-conflict ruling, never decided here
+  unrequested: not computed -- capture/FW/inventory.json does not exist, so there is no earlier capture to tell new rows from old ones
+  owed specs/002-fixture-list/spec.md:11 [STALE @ 12ab2772937ef9dd0ac4e0e5f568f6002ca6efe8]
+  owed specs/002-fixture-list/tasks.md ## Phase 1: Convergence 2026-10-23
+exit=1
+
+$ nen spec converge --repo <scratch>/spec --folder specs/003-fixture-sort --inventory <scratch>/inv-B.json --code FW --checkouts <scratch>/checkouts
+converged: specs/003-fixture-sort against FW fixture-owner/fixture-web @ effa98c65a0b -- 0 missing · 0 partial · 0 contradicts · 0 unrequested · action none
+  unrequested: not computed -- capture/FW/inventory.json does not exist, so there is no earlier capture to tell new rows from old ones
+exit=0
+
+$ nen spec converge --repo <scratch>/spec --folder specs/009-fixture-none --inventory <scratch>/inv-B.json --code FW --checkouts <scratch>/checkouts
+could-not-read: specs/009-fixture-none -- specs/009-fixture-none/spec.md does not exist; a folder with no spec.md has nothing to converge, which is not the same as converged
+exit=1
+
+$ nen spec parity --repo <scratch>/spec --folder specs/002-fixture-list
+gaps: 1/3 requirement x member row(s) handled across 1 folder(s), members FA, FI, FW
+  1 present · 0 mirror · 0 map · 0 drop-with-note · 0 target-only · 0 differs · 1 absent · 1 open · 0 malformed
+  F002-FR-001 FA absent -- not a handling
+  F002-FR-001 FI open -- no state recorded yet
+  F002-FR-001 FW present
+exit=1
+```
+
+**The table those outputs give** (converge's `--json` `citations` and `gaps`, then the parity row, quoted):
+
+| Requirement | At `12ab2772` | At `effa98c6` | Evidence |
+|---|---|---|---|
+| FR-001 | `current` | `contradicts` | `src/List.ts:1-3 @ 12ab2772`, the bytes changed and found nowhere else |
+| SC-001 | `current` | `current` | `src/List.test.ts:2-2 @ 12ab2772` |
+| parity `F002-FR-001 FW` | `present` | `present` | its own `FW` citation |
+
+- **AC-1, AC-2**: at `12ab2772` the table reads converged (two citations, both current; the `FW` parity row
+  settles); at `effa98c6` the `contradicts` row makes the PR **not ready**, quoted, whatever `nen pr ready`
+  says — and it is `spec-conflict`'s candidate, never decided here.
+- **AC-3**: `specs/009-fixture-none` reads `could-not-read` (exit `1`), never converged; and
+  `specs/003-fixture-sort`, which never cites `FW`, reads **`converged` over zero citations** (exit `0`,
+  `citations: []`) — the verb's fact about no bytes, which the table reads as *could not read: no target
+  citation*, not converged.
+- **Not keyed by scenario**: the `AC-001` line carries a citation, yet converge's rows are `FR-001` and
+  `SC-001` only; it reads FR, SC and story lines. zheref/hatsu#447's AC-1 asks one row per acceptance
+  scenario; the verb gives one per requirement, so the table is keyed by requirement until it does.
+- **AC-4** is not exercised here: the port ledger is read before the brief (ports.md), unchanged.
+
+## Dated verification, 2026-10-23 — crash-and-resume (zheref/hatsu#444)
+
+**Finding, not a pass.** `hiraishin` writes no phase ledger (`git grep 'phase begin' claude/skills/hiraishin` prints nothing at
+0.141.0) and opens no run manifest, so a crash leaves a resume nothing of its own to read: only the objects it
+already published. The one publishing step it shares with every composite is idempotent, proved live on
+HA-PR-#463 (`nen pr open` → `existing`, `docs/ab/mukai.md`, 2026-10-23). The ledger-level proof
+(`node scripts/resume_proof.mts`) covers ren, build and the futon manifest only. Owed: either `hiraishin` wraps its
+steps in `nen phase begin|end --effort <branch>` and joins the proof, or a ruling that its GitHub state is its
+resume record.
