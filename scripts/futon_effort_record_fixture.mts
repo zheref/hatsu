@@ -160,7 +160,8 @@ else process.exit(2);
   assert.ok(idleId, 'idle start returns a run id');
   assert.ok(nenCalls().some((argv) => argv[0] === 'parse' && argv[4] === 'hatsu@model/gpt --idle then rikugan'), 'nen parses the line with --idle in it');
   assert.match(String(idleStarted.stdout), /pre-answered publish-offer → refuse/, 'publish-offer is refused under idle');
-  assert.match(String(idleStarted.stdout), /pre-answered wrap-up → default/, 'a starred row takes its default');
+  assert.match(String(idleStarted.stdout), /pre-answered wrap-up → refuse/, 'the wrap-up is refused under idle (HR-366), whatever its star');
+  assert.match(String(idleStarted.stdout), /pre-answered direct-mismatch → default/, 'a starred row takes its default');
   const idleOpen = runStarts().find((argv) => argv.includes(idleId));
   const answers = JSON.parse(idleOpen?.[idleOpen.indexOf('--idle-answers') + 1] ?? 'null');
   assert.equal(answers['publish-offer'], 'refuse', 'the answers travel to nen as idleAnswers');
@@ -290,13 +291,13 @@ else process.exit(2);
   delete idEnded.endedAt;
   writeFileSync(idRecord, JSON.stringify(idEnded));
   // A policy edit on main after launch never strands the run: the stored answers and the recorded terminal hold.
-  commitWorkflow({ idle: { terminal: 'ready-at-prompt', decisions: { 'wrap-up': 'hold' } } }, 'profile moved');
+  commitWorkflow({ idle: { terminal: 'ready-at-prompt', decisions: { 'direct-mismatch': 'hold' } } }, 'profile moved');
   const drifted = resume(idleId, idleLine);
   expectStatus(drifted, 0, 'a moved committed profile does not refuse the resume');
   assert.match(String(drifted.stdout), /terminal ready-at-prompt-or-integration/, 'the recorded terminal holds');
   assert.match(String(drifted.stdout), /now differs from launch; this run keeps its launch answers and terminal/);
   const resent = runStarts().filter((argv) => argv.includes(idleId)).at(-1) ?? [];
-  assert.equal(JSON.parse(resent[resent.indexOf('--idle-answers') + 1] ?? 'null')['wrap-up'], 'default', 'the launch answer is resent, never the moved one');
+  assert.equal(JSON.parse(resent[resent.indexOf('--idle-answers') + 1] ?? 'null')['direct-mismatch'], 'default', 'the launch answer is resent, never the moved one');
   commitWorkflow({}, 'profile restored');
   const legacyRun = randomHex();
   writeFileSync(join(root, '.git', 'hatsu', 'futon', `run-${legacyRun}.json`), JSON.stringify({ ...record(idleId), contract: 'hatsu.futon.run/v0.2', id: legacyRun }));
@@ -336,14 +337,17 @@ else process.exit(2);
   const idleStart = (env: Record<string, string> = {}) => manifestCall(['start', '--repo', root, '--invocation', 'hatsu:futon hatsu@model/gpt --idle'], env);
   commitWorkflow({ idle: { decisions: { 'wrap-up': 'always' } } }, 'out of vocabulary');
   expectStatus(idleStart(), 1, 'a resolution outside default|hold|refuse refused');
-  // The ruling of 2026-10-23: unattended except an irreversible act. The floor is publish-offer refuse and
-  // missing-maintainer-choice at most hold; a row that stars nothing can never be default.
+  // The ruling of 2026-10-23: unattended except an irreversible act. The floor is publish-offer refuse,
+  // wrap-up and cleanup-plan refuse (HR-366, ruled 2026-10-26) and missing-maintainer-choice at most hold;
+  // a row that stars nothing can never be default.
   for (const [row, resolution] of [['publish-offer', 'default'], ['publish-offer', 'hold'],
+      ['wrap-up', 'default'], ['wrap-up', 'hold'], ['cleanup-plan', 'default'], ['cleanup-plan', 'hold'],
       ['missing-maintainer-choice', 'default'], ['port-siblings', 'default']]) {
     commitWorkflow({ idle: { decisions: { [row]: resolution } } }, `${row} ${resolution}`);
     expectStatus(idleStart(), 1, `the floor refuses ${row}: ${resolution}`);
   }
-  for (const row of ['host-nen-link', 'harness-attribution-switch', 'cleanup-plan']) {
+  // cleanup-plan left this list on 2026-10-26: HR-366 ruled puts it on the floor with wrap-up (both refuse).
+  for (const row of ['host-nen-link', 'harness-attribution-switch', 'direct-mismatch']) {
     commitWorkflow({ idle: { decisions: { [row]: 'default' } } }, `${row} default`);
     const lifted = idleStart();
     expectStatus(lifted, 0, `${row}: default is admitted, a reversible act (ruling of 2026-10-23)`);
@@ -364,13 +368,15 @@ else process.exit(2);
   }
   commitWorkflow({ monitor: { localSlotFrees: 'ready+prompted' }, idle: { localSlotFrees: 'ready+prompted' } }, 'slot ruled');
   expectStatus(idleStart(), 0, 'localSlotFrees: ready+prompted starts');
-  commitWorkflow({ branch: { base: 'main' }, idle: { decisions: { 'wrap-up': 'hold', 'mode-unknown': 'default' } } }, 'partial map');
+  commitWorkflow({ branch: { base: 'main' }, idle: { decisions: { 'direct-mismatch': 'hold', 'mode-unknown': 'default' } } }, 'partial map');
   const partial = idleStart();
   expectStatus(partial, 0, 'a partial idle.decisions with valid values starts');
   const partialOut = String(partial.stdout);
-  assert.match(partialOut, /pre-answered wrap-up → hold/);
+  assert.match(partialOut, /pre-answered direct-mismatch → hold/);
   assert.match(partialOut, /pre-answered mode-unknown → default/);
-  assert.match(partialOut, /pre-answered cleanup-plan → default/, 'an unnamed starred row takes its default (ruling of 2026-10-23)');
+  assert.match(partialOut, /pre-answered spec-capture-scope → default/, 'an unnamed starred row takes its default (ruling of 2026-10-23)');
+  assert.match(partialOut, /pre-answered cleanup-plan → refuse/, 'an unnamed cleanup-plan refuses (HR-366, ruled 2026-10-26)');
+  assert.match(partialOut, /pre-answered wrap-up → refuse/, 'an unnamed wrap-up refuses (HR-366)');
   assert.match(partialOut, /pre-answered port-drift → hold/, 'an unnamed row that stars nothing holds');
   assert.match(partialOut, /pre-answered missing-maintainer-choice → hold/, 'the never-derived choice holds');
   assert.match(partialOut, /pre-answered publish-offer → refuse/, 'an unnamed publish-offer refuses');

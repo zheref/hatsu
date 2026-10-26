@@ -237,13 +237,16 @@ function committedWorkflow(root: string): { declared: unknown; ref: string; comm
   return { declared: JSON.parse(run('git', ['show', `${commit}:nen/workflow.json`], root)), ref, commit };
 }
 // The maintainer's ruling of 2026-10-23 (WORKFLOW § 2 idle): an idle run is unattended except for an act
-// that may not be reversed. So the floor holds only publish-offer at refuse (a published release is not
-// undone; HR-5) and the never-derived maintainer choice (2026-09-23, HR-4) at most hold.
-const FLOOR: { [row: string]: Resolution } = { 'publish-offer': 'refuse', 'missing-maintainer-choice': 'hold' };
+// that may not be reversed. So the floor holds publish-offer at refuse (a published release is not
+// undone; HR-5), wrap-up and cleanup-plan at refuse (HR-366, ruled 2026-10-26: the maintainer's declared
+// satisfaction is never met unattended, so neither is offered nor run) and the never-derived maintainer
+// choice (2026-09-23, HR-4) at most hold.
+const FLOOR: { [row: string]: Resolution } = { 'publish-offer': 'refuse', 'wrap-up': 'refuse', 'cleanup-plan': 'refuse', 'missing-maintainer-choice': 'hold' };
 const LATITUDE: { [r in Resolution]: number } = { refuse: 0, hold: 1, default: 2 };
 // The idle profile: the committed idle block over the plugin's catalogue defaults; every ask-once-per-run
 // row of the plugin's nen/decisions.json gets one resolution; an unnamed row takes its starred default,
-// holds where it stars none, and the floor applies (publish-offer refuse, missing-maintainer-choice hold).
+// holds where it stars none, and the floor applies (publish-offer, wrap-up and cleanup-plan refuse;
+// missing-maintainer-choice hold).
 function askRows(): Array<{ id: string; starred: boolean }> {
   const plugin = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   return (JSON.parse(readFileSync(join(plugin, 'nen', 'decisions.json'), 'utf8')) as

@@ -97,9 +97,9 @@ Negative cases, each expected to offer and run nothing (SC-2):
 |---|---|---|
 | a Ready PR at `en` § 5's merge prompt | (1) false | Ready is not merged |
 | every PR merged, nothing said | (2) false | silence never supplies the declaration |
-| a PR closed unmerged | (1) false | closed-unmerged never counts as merged; `hatsu:cleanup for <scope>` typed by the maintainer is their own word (§ 1) |
+| a PR the maintainer closed unmerged, the rest merged | (1) read over the rest | the closed PR leaves the scope (HR-367, picker record `R-2026-10-26-10`), so it neither counts as merged nor holds (1); `hatsu:cleanup for <scope>` typed by the maintainer is their own word (§ 1) |
 | a merge state that could not be read | (1) false | unread never counts |
-| an unattended (`--idle`) run | (2) false | the declaration cannot be given unattended; the row is never reached and its pre-answer never taken |
+| an unattended (`--idle`) run | (2) false | the declaration cannot be given unattended; `wrap-up` and `cleanup-plan` are `refuse` on the start floor (HR-366, ruled 2026-10-26, record `R-2026-10-26-09`) |
 
 The one positive path after a negative terminus: the maintainer's later message declares satisfaction; the main
 session re-reads every scoped PR live and asks once when all read `MERGED` (WORKFLOW § *Two offers*).
