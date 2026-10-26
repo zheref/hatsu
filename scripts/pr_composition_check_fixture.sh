@@ -135,7 +135,7 @@ run_case 'an optional heading the template no longer has fails' 1 "$t" "optional
 
 # The catalogue mode composes its always-on preamble before the unchanged reader cell and footer.
 t="$(make_tree catalogue-preamble)"
-cp "$repo_root/contracts/pr-sections.json" "$repo_root/contracts/classify.taxonomy.json" "$repo_root/contracts/pr-body.requirements.json" "$t/contracts/"
+cp "$repo_root/contracts/pr-sections.json" "$repo_root/contracts/pr-sections.history.json" "$repo_root/contracts/classify.taxonomy.json" "$repo_root/contracts/pr-body.requirements.json" "$t/contracts/"
 rm "$t/templates/pr-body.md"
 cp -R "$repo_root/templates/pr-body" "$t/templates/pr-body"
 node -e 'const fs=require("node:fs");const p=process.argv[1];const d=JSON.parse(fs.readFileSync(p,"utf8"));d.bodyRequirements={file:"contracts/pr-body.requirements.json",catalogue:"contracts/pr-sections.json",defaultKind:"process",defaultFamily:"canon"};fs.writeFileSync(p,JSON.stringify(d)+"\n")' "$t/contracts/pr-composition.json"

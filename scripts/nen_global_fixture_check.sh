@@ -27,6 +27,8 @@ cleanup() { chmod -R u+rwx "$work" 2>/dev/null; rm -rf "$work"; }
 trap cleanup EXIT
 mkdir -p "$work/cwd" "$work/tmp"
 fails=0
+# Shipped Cloud and prepared readiness snippets are exercised by the same focused lane.
+node "$root/node_modules/vitest/vitest.mjs" run --root "$root" --testTimeout 15000 "$root/scripts/bootstrap_integrity_fixture.test.mts" || fails=$((fails + 1))
 
 pass() { echo "PASS $1"; }
 fail() { echo "FAIL $1 — $2"; fails=$((fails + 1)); }
@@ -76,6 +78,15 @@ newhome() { h="$work/home-$1"; mkdir -p "$h"; printf '%s' "$h"; }
 # RUNPATH an optional PATH, ROOT an optional contract root.
 run() {
   _h="$1"; _s="$2"; shift 2
+  local_script=""
+  prev=""
+  for arg in "$@"; do
+    [ "$prev" != --bootstrap-script ] || local_script="$arg"
+    prev="$arg"
+  done
+  if [ -n "$local_script" ]; then
+    set -- "$@" --expect-script-sha256 "${SCRIPT_SHA_OVERRIDE:-$(sha <"$local_script")}"
+  fi
   out="$(cd "$work/cwd" && HOME="$_h" XDG_CACHE_HOME="$_h/.cache" XDG_CONFIG_HOME="$_h/.config" TMPDIR="$work/tmp" \
     PATH="${RUNPATH:-$PATH}" SHELL="$_s" HATSU_NEN_GLOBAL="${NG:-1}" sh "$script" --root "${ROOT:-$root}" "$@" 2>&1)"
   rc=$?
@@ -87,6 +98,34 @@ count_blocks() { grep -c '>>> hatsu nen-global >>>' "$1" 2>/dev/null || true; }
 has() { printf '%s' "$out" | grep -q -- "$1"; }
 oldnen() { mkdir -p "$work/old"; printf '#!/bin/sh\necho 0.14.0\n' >"$work/old/nen"; chmod +x "$work/old/nen"; }
 oldnen
+
+# A fetched/local script with changed bytes is refused before it can run.
+h="$(newhome script-tamper)"; mkstub script-tamper "$pin" 0
+SCRIPT_SHA_OVERRIDE="$(printf reviewed-script | sha)"
+runstub "$h" /bin/zsh
+SCRIPT_SHA_OVERRIDE=""
+if [ "$rc" -eq 5 ] && has 'bootstrap script sha256' && [ ! -e "$work/calls-script-tamper" ] && [ ! -L "$h/.local/bin/nen" ]; then
+  pass "tampered bootstrap is never executed or linked"
+else fail "script digest" "rc=$rc out=$out"; fi
+
+# Missing/malformed production script pins fail even with a local fixture override.
+for bad in missing malformed; do
+  broken="$work/script-pin-$bad"; mkdir -p "$broken/nen"
+  if [ "$bad" = missing ]; then
+    sed '/"scriptSha256"[[:space:]]*:/d' "$root/nen/contract.json" >"$broken/nen/contract.json"
+  else
+    sed 's/"scriptSha256": "[^"]*"/"scriptSha256": "bad"/' "$root/nen/contract.json" >"$broken/nen/contract.json"
+  fi
+  ROOT="$broken"; h="$(newhome "script-$bad")"; mkstub "script-$bad" "$pin" 0
+  runstub "$h" /bin/zsh; ROOT=""
+  if [ "$rc" -eq 5 ] && has 'bootstrap.scriptSha256' && [ ! -e "$work/calls-script-$bad" ]; then pass "$bad script pin fails closed"
+  else fail "$bad script pin" "rc=$rc out=$out"; fi
+done
+
+h="$(newhome script-seam)"
+run "$h" /bin/zsh --expect-script-sha256 "$(printf stub | sha)"
+if [ "$rc" -eq 2 ] && has 'fixture seam'; then pass "script digest override requires a local bootstrap fixture"
+else fail "script override seam" "rc=$rc out=$out"; fi
 
 # 1. fresh install links and adds the zsh rc block
 h="$(newhome fresh)"; mkstub ok "$pin" 0
@@ -455,7 +494,7 @@ if [ "$rc" -eq 2 ] && has 'fixture seam'; then pass "--expect-sha256 without --b
 # 26. TERM: the whole child tree dies, the temp dir is removed, exit 5, quickly
 h="$(newhome term)"; mkstub hang "$pin" 0 hang; rm -f "$work/childpid"; rm -rf "$work/tmp"; mkdir -p "$work/tmp"
 (cd "$work/cwd" && HOME="$h" XDG_CACHE_HOME="$h/.cache" XDG_CONFIG_HOME="$h/.config" TMPDIR="$work/tmp" SHELL=/bin/zsh HATSU_NEN_GLOBAL=1 \
-  sh "$script" --root "$root" --bootstrap-script "$stub" --expect-sha256 "$stubsha" >"$work/term.out" 2>&1) &
+  sh "$script" --root "$root" --bootstrap-script "$stub" --expect-sha256 "$stubsha" --expect-script-sha256 "$(sha <"$stub")" >"$work/term.out" 2>&1) &
 tpid=$!
 i=0; while [ ! -s "$work/childpid" ] && [ "$i" -lt 50 ]; do sleep 0.2; i=$((i + 1)); done
 child="$(cat "$work/childpid" 2>/dev/null)"

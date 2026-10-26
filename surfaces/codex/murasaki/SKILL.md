@@ -262,8 +262,10 @@ line), `2` wiring; each gate's command and exit are printed, quoted, for the rep
 - **The authorship check asks provenance** (zheref/hatsu#170): every outgoing commit carries
   `Hatsu-Agent: <responsible-persona>`, the run's own. A commit that forges the run's own persona
   passes this test; hanten § 4's printed-SHA comparison and the `<proved>` pin above are what catch
-  a commit made during a review. `--trunk` exempts only the base's own history and a clean merge of the base exactly as git
-  would write it. Exit `1` is reported with every SHA it names and the maintainer decides — never pushed past;
+  a commit made during a review. `--trunk` names the declared catch-up base, including a run
+  integration branch supplied by `from <base>`. It excludes that ref's history and exempts only
+  a merge whose later parents are on that ref and whose tree is Git's clean merge. Mere `HEAD`
+  ancestry, an undeclared side branch or extra authored merge content earns no exemption (HA265). Exit `1` is reported with every SHA it names and the maintainer decides — never pushed past;
   a foreign commit the maintainer accepts is re-run with `--allow-email <addr>` on their word only for
   the identity half, and a missing or foreign `Hatsu-Agent` is never waved through. Exit `2` is a
   wiring stop: the script's sentence quoted, nothing judged, nothing pushed.

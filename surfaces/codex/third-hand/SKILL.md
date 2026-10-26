@@ -169,8 +169,8 @@ frontier tier.**
    [`$file`](../file/SKILL.md) under Netero's completeness. Reconciliation still runs; a
    duplicate is `updated` / `folded` / `unchanged`, never double-created.
 
-Pass 1's prompt names: the PR or branch, the retained report path if it exists, `.nen/last-stop.json`
-if present, `.nen/hanten/<branch-slug>.cycle.json` if present, the En loop ledger if present, this
+Pass 1's prompt names: the PR or branch, the retained report path if it exists, the stop markers `nen stop list` names
+(`.nen/last-stop.json` on nen 0.26) if any, `.nen/hanten/<branch-slug>.cycle.json` if present, the En loop ledger if present, this
 skill's § 4 inputs and § 5 output shape, and *"file nothing until the maintainer picks"*.
 
 **A second-process `codex exec` is not this harvest.** Hanten's isolated reviewer run exists because

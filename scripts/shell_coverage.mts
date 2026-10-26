@@ -2,15 +2,19 @@
 // shell_coverage.mts — the focused shell lanes' line coverage (zheref/hatsu#148, UZF-19).
 //
 // USAGE
-//   node scripts/shell_coverage.mts --capture <lane> <bash|sh> <fixture> [args...]
+//   node scripts/shell_coverage.mts --capture <lane> <bash|sh> <fixture> [--target <script>] [args...]
 //   node scripts/shell_coverage.mts --verify <lane>
 //   node scripts/shell_coverage.mts --bash-version
 //
 // --capture is a lane's declared `test` row: it runs the fixture and, where the pinned Bashcov
 // and a Bash 5+ are on this host, runs it under Bashcov and writes coverage/<lane>/lcov.info with
 // repository-relative SF: paths, naming only the scripts the run executed (a script another lane
-// covers is unmatched here, never a false 0%). A `sh` fixture runs under sh first, so its POSIX check is kept,
-// then once more instrumented. Without Bashcov (or with HATSU_SHELL_COVERAGE=0) the fixture runs
+// covers is unmatched here, never a false 0%). `--target` keeps the fixture and its descendants off the
+// shared trace descriptor, then traces only that script through a short-lived wrapper. Root-shell records
+// retain Bashcov's fields; nested command/process substitutions emit no Bashcov prefix or field delimiter,
+// so the parser ignores them instead of interleaving them. The report is filtered to that exact source. A
+// `sh` fixture runs under sh first, so its POSIX check is kept, then once more
+// instrumented. Without Bashcov (or with HATSU_SHELL_COVERAGE=0) the fixture runs
 // once, uninstrumented, the stale report is removed, and stderr says so: nen then records no
 // capture, and `nen shu coverage --from-capture` refuses rather than reading an old number.
 // HATSU_SHELL_COVERAGE=require turns a missing tool into exit 2; HATSU_COVERAGE_BASH names the Bash 5+
@@ -27,11 +31,12 @@
 //   1  the fixture failed (a trace Bashcov could not parse is re-run plain, and that run decides)
 //   2  usage, an undeclared invocation, a missing or stale report, a required tool absent, a pin
 //      that is not exact, or a gem whose checksum differs from its pin
-import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { delimiter, dirname, join, relative, resolve, sep } from 'node:path';
 import { platform } from 'node:process';
+import { tmpdir } from 'node:os';
 
 function fail(message: string, code = 2): never {
   console.error(`shell-coverage: ${message}`);
@@ -62,7 +67,7 @@ if (mode === '--bash-version') {
 }
 if (!['--capture', '--verify'].includes(mode ?? '') || !lane || !/^[a-z][a-z0-9-]*$/.test(lane) ||
     (mode === '--verify' && interp !== undefined)) {
-  fail('expected --capture <lane> <bash|sh> <fixture> [args...] or --verify <lane>');
+  fail('expected --capture <lane> <bash|sh> <fixture> [--target <script>] [args...] or --verify <lane>');
 }
 const root = process.cwd();
 const dir = join(root, 'coverage', lane);
@@ -97,6 +102,18 @@ if (!fixture || !/^scripts\/[A-Za-z0-9_./-]+\.sh$/.test(fixture) || fixture.incl
 const fixturePath = resolve(root, fixture);
 if (!existsSync(fixturePath) || !lstatSync(fixturePath).isFile()) fail(`${lane}: ${fixture} must be a regular file`);
 
+let fixtureArgs = extra;
+let target: string | undefined;
+if (extra[0] === '--target') {
+  target = extra[1];
+  fixtureArgs = extra.slice(2);
+  if (!target || !/^scripts\/[A-Za-z0-9_./-]+\.sh$/.test(target) || target.includes('..')) {
+    fail(`${lane}: ${target ?? 'no target'} is not a repository shell script under scripts/`);
+  }
+  const targetPath = resolve(root, target);
+  if (!existsSync(targetPath) || !lstatSync(targetPath).isFile()) fail(`${lane}: ${target} must be a regular file`);
+}
+
 // The helper runs only as the lane declares it: the argv after the script name must match exactly.
 let contract: any;
 try { contract = JSON.parse(readFileSync(join(root, 'nen', 'contract.json'), 'utf8')); }
@@ -130,7 +147,7 @@ const scratch = ['.resultset.json', '.resultset.json.lock', '.last_run.json'].ma
 for (const stale of [report, provenance, ...scratch]) rmSync(stale, { force: true });
 
 function plain(exe: string): number {
-  const run = spawnSync(exe, [fixture, ...extra], { cwd: root, stdio: 'inherit' });
+  const run = spawnSync(exe, [fixture, ...fixtureArgs], { cwd: root, stdio: 'inherit' });
   if (run.error) fail(`${lane}: ${exe} could not start (${run.error.message})`);
   return run.status ?? 1;
 }
@@ -170,18 +187,65 @@ if (interp === 'sh') {
   if (status !== 0) process.exit(status);
 }
 mkdirSync(dir, { recursive: true });
-const run = spawnSync('ruby', [...launcher, '--skip-uncovered', '--bash-path', bash5.path, '--root', root, '--', fixture, ...extra], {
-  cwd: root, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024,
-  env: {
-    ...process.env,
-    // A child `bash` resolves to the same Bash 5: an older one has no BASH_XTRACEFD and would print
-    // the trace on stderr, where fixtures read their own output.
-    PATH: [dirname(bash5.path), process.env.PATH].filter(Boolean).join(delimiter),
-    HATSU_COVERAGE_PATH: join('coverage', lane, 'lcov.info'),
-    HATSU_COVERAGE_DIR: join('coverage', lane),
-    HATSU_SIMPLECOV_LCOV_VERSION: lcovPin,
-  },
-});
+let wrapperDir: string | undefined;
+let wrapper: string | undefined;
+if (target) {
+  wrapperDir = mkdtempSync(join(tmpdir(), 'hatsu-shell-coverage-target-'));
+  wrapper = join(wrapperDir, 'run');
+  // The fixture moves Bashcov's exported PS4 and BASH_XTRACEFD into these dedicated transfer
+  // variables before unexporting the originals. Consume and unexport the transfers here, then pass
+  // their values as arguments to Bash 5: neither fixture nor target descendants inherit trace state.
+  writeFileSync(wrapper, `#!/usr/bin/env bash
+set -euo pipefail
+set +x
+trace_ps4=\${HATSU_SHELL_COVERAGE_PS4}
+trace_fd=\${HATSU_SHELL_COVERAGE_TRACE_FD}
+export -n HATSU_SHELL_COVERAGE_PS4 HATSU_SHELL_COVERAGE_TRACE_FD PS4 BASH_XTRACEFD SHELLOPTS
+exec "$HATSU_SHELL_COVERAGE_BASH" -c '
+  original_ps4=$1
+  BASH_XTRACEFD=$2
+  shift 2
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+  delimiter=\${original_ps4#*BASHCOV>}
+  delimiter=\${delimiter%%\\$\\{LINENO-\\}*}
+  prefix=("+BASHCOV>\${delimiter}" "")
+  field=("\${delimiter}" "")
+  empty=
+  lineno_name=(LINENO empty)
+  source_name=(BASH_SOURCE empty)
+  pwd_name=(PWD empty)
+  oldpwd_name=(OLDPWD empty)
+  PS4="\\\${prefix[BASH_SUBSHELL>0]}\\\${!lineno_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}\\\${!source_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}\\\${!pwd_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}\\\${!oldpwd_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}"
+  set -x
+  source "$0"
+  target_status=$?
+  exit "$target_status"
+' "$HATSU_SHELL_COVERAGE_TARGET_PATH" "$trace_ps4" "$trace_fd" "$@"
+`, { mode: 0o700 });
+}
+let run: ReturnType<typeof spawnSync>;
+try {
+  run = spawnSync('ruby', [...launcher, '--skip-uncovered', '--bash-path', bash5.path, '--root', root, '--', fixture, ...fixtureArgs], {
+    cwd: root, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024,
+    env: {
+      ...process.env,
+      // A child `bash` resolves to the same Bash 5: an older one has no BASH_XTRACEFD and would print
+      // the trace on stderr, where fixtures read their own output.
+      PATH: [dirname(bash5.path), process.env.PATH].filter(Boolean).join(delimiter),
+      HATSU_COVERAGE_PATH: join('coverage', lane, 'lcov.info'),
+      HATSU_COVERAGE_DIR: join('coverage', lane),
+      HATSU_SIMPLECOV_LCOV_VERSION: lcovPin,
+      ...(target && wrapper ? {
+        HATSU_SHELL_COVERAGE_EXEC: wrapper,
+        HATSU_SHELL_COVERAGE_TARGET: target,
+        HATSU_SHELL_COVERAGE_TARGET_PATH: resolve(root, target),
+        HATSU_SHELL_COVERAGE_BASH: bash5.path,
+      } : {}),
+    },
+  });
+} finally {
+  if (wrapperDir) rmSync(wrapperDir, { recursive: true, force: true });
+}
 if (run.stdout) process.stdout.write(run.stdout);
 // Bashcov can leak its trace prefix through children that re-enter a shell; drop only those lines.
 const stderr = (run.stderr ?? '').replace(/^\+BASHCOV>[^\n]*\n/gm, '');
@@ -206,19 +270,26 @@ if (run.error || run.status !== 0) {
   fail(`${lane} fixture failed under Bashcov (${run.error?.message ?? `exit ${run.status}`})`, 1);
 }
 if (!existsSync(report)) fail(`${lane}: Bashcov wrote no ${shown}`);
-let files = 0;
-const normalized = readFileSync(report, 'utf8').replace(/^SF:(.+)$/gm, (_line, raw: string) => {
+const normalizedAll = readFileSync(report, 'utf8').replace(/^SF:(.+)$/gm, (_line, raw: string) => {
   const path = relative(root, resolve(root, raw));
   if (!path || path === '..' || path.startsWith(`..${sep}`) || path.startsWith(sep)) {
     rmSync(report, { force: true });
     fail(`${lane}: Bashcov reported ${raw}, outside the repository`);
   }
-  if (path.startsWith('scripts/')) files++;
   return `SF:${path}`;
 });
+const normalized = target
+  ? normalizedAll.split(/(?<=end_of_record\n)/).filter((record) => sources(record).includes(target!)).join('')
+  : normalizedAll;
+const namedSources = sources(normalized);
+const files = namedSources.filter((path) => path.startsWith('scripts/')).length;
 if (!files) {
   rmSync(report, { force: true });
-  fail(`${lane}: Bashcov reported no repository script`);
+  fail(`${lane}: Bashcov reported no ${target ?? 'repository script'}`);
+}
+if (target && namedSources.some((path) => path !== target)) {
+  rmSync(report, { force: true });
+  fail(`${lane}: target capture retained an unexpected source`);
 }
 writeFileSync(report, normalized);
 const recorded: Record<string, string> = {};

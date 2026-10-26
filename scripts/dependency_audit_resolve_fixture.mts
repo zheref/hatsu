@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 const resolver = fileURLToPath(new URL('./dependency_audit_resolve.mts', import.meta.url));
 const liveScans = fileURLToPath(new URL('../contracts/scans.json', import.meta.url));
+const hatsuRoot = realpathSync(fileURLToPath(new URL('../', import.meta.url)));
 const scratch = realpathSync(mkdtempSync(join(tmpdir(), 'hatsu-dependency-audit-')));
 const CANARY = `feitan-canary-${process.pid}-${Date.now()}`;
 const marker = join(scratch, 'HOOK-RAN');
@@ -159,7 +160,16 @@ try {
     /1 packages\)\nlocal: 1 pnpm-lock\.yaml entries are workspace, link or directory packages, not queried\nunqueried: 1 /);
 
   // N1/C1, 11: the stack reaches the node row; the row union covers nen's stack catalogue.
-  for (const stack of ['nextjs', 'gatsby', 'expo', 'react', 'electron', 'node']) await expect(`stack ${stack} reaches the node row`, [pnpmTree, '--stack', stack], 0, /^resolved: osv npm for pnpm/);
+  for (const stack of ['nextjs', 'gatsby', 'expo', 'react', 'electron', 'node', 'claude-code-plugin']) await expect(`stack ${stack} reaches the node row`, [pnpmTree, '--stack', stack], 0, /^resolved: osv npm for pnpm/);
+  const hatsuPackage = JSON.parse(readFileSync(join(hatsuRoot, 'package.json'), 'utf8'));
+  const hatsuLock = JSON.parse(readFileSync(join(hatsuRoot, 'package-lock.json'), 'utf8'));
+  const locked = Object.keys(hatsuLock.packages ?? {}).filter(Boolean);
+  assert.deepEqual(Object.keys(hatsuPackage.devDependencies ?? {}), ['vitest'], 'Hatsu must keep a real declared npm development root');
+  assert.equal(locked.length, 60, 'Hatsu package-lock non-root entry count changed; keep the scan evidence factual');
+  assert.ok(locked.every(path => hatsuLock.packages[path]?.dev === true), 'every current non-root lock entry is a development dependency');
+  await expect('Hatsu claude-code-plugin queries its real npm lock, never a scanned-empty declaration',
+    [hatsuRoot, '--stack', 'claude-code-plugin', '--query', '--scans', stub], 0,
+    /^resolved: osv npm for npm \(no packageManager field, package-lock\.json, 60 packages\)\naudit: 0 finding\(s\) at or above HIGH\/CRITICAL or unrated, 0 unqueried, across 60 packages\n$/);
   await expect('a stack on no node row is not scanned', [pnpmTree, '--stack', 'dotnet-winui'], 3, /stack "dotnet-winui" is not on dependencyAudit\.node\.stacks/);
   const audit = JSON.parse(readFileSync(liveScans, 'utf8')).dependencyAudit;
   const catalogue = audit.stackCatalogue as { stacks: string[]; unrouted: string[]; aliases: string[] };
@@ -174,7 +184,7 @@ try {
     }
   }
   for (const s of catalogue.stacks) assert.ok(owners.has(s) !== catalogue.unrouted.includes(s), `catalogue stack ${s} must be on exactly one row or unrouted, not both or neither`);
-  for (const s of ['nextjs', 'gatsby', 'expo', 'react', 'electron']) assert.equal(owners.get(s), 'node', `${s} must route to the node row`);
+  for (const s of ['nextjs', 'gatsby', 'expo', 'react', 'electron', 'claude-code-plugin']) assert.equal(owners.get(s), 'node', `${s} must route to the node row`);
   pass('every catalogue stack is on exactly one row or named unrouted; every row stack is catalogued or an alias');
 
   // AC-b: yarn (Berry and classic) and npm each audit their own lockfile.

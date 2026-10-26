@@ -157,6 +157,7 @@ The path-to-reviewer map `hatsu:hanten` classifies a change set with, read by `n
 | `scopes.<scope>.tier` | string | a tier of `models` (`deep`, `fast`), **never `frontier`** | The tier the reviewer runs at, resolved through `models.<surface>.<tier>` at use | `hatsu:hanten` § 4 and § 7 |
 | `scopes.<scope>.budget` | integer | reviews per effort | How many times this scope may be reviewed on one branch plus its PR; remediation does not reset it | `nen review ledger`, `hatsu:hanten` |
 | `scopes.<scope>.paths` | string[] | prefixes or globs in `nen report data`'s tier-table grammar | What raises the scope. Matching is case-sensitive and a bare `*name*` matches the last path segment only, so Hatsu's `economics` row lists both cases and the directory forms. The `economics` scope is also raised **by content**, with [docs/ECONOMICS.md § 1](../ECONOMICS.md) the one home of those predicates | `nen review scopes` |
+| `excludedPersonas` | string[] | persona names; default none. Hatsu's own: `satotz`, `lippo`, `buhara`, `bisky` (the intake examiners, HR-23) | The personas that are never a code reviewer: a `scopes.<scope>.persona` naming one is refused by pointer when the policy loads, so `nen schema check` FAILs the file and `nen review scopes` exits 2 (zheref/nen#472, nen 0.28). Compared trimmed and case-insensitively; an empty or repeated entry is refused | `nen review scopes`, `nen schema check`, `hatsu:hanten` § 1 |
 
 ### `mukai`
 
@@ -260,6 +261,16 @@ The **idle profile** (HR-5), read only by a `hatsu:futon` or `hatsu:kazaana` run
 | `terminal` | `workflow.idle.terminal` | enum | **`ready-at-prompt-or-integration`** · `ready-at-prompt` | The furthest an idle run goes: every effort merged into the run's non-main integration branch and the integration PR Ready at the maintainer's prompt (the ruling of 2026-10-23: always the integration shape); never `main`, `getsuga`, `mugetsu` or `kagutsuchi` | `hatsu:futon` § 12, `hatsu:kazaana` |
 | `budget.minutes` | `workflow.idle.budget.minutes` | open (integer) | **`480`** | The enforced bound: minutes since nen's manifest's `startedAt` (one meaning, wall-clock run age), read through `nen run budget --max-minutes`; at `remaining.minutes` `0` the rest park as `parked:budget` | `hatsu:futon` § 12, `nen run budget` |
 | `budget.tokens` | `workflow.idle.budget.tokens` | open (integer) | **`4000000`** | Advisory: passed as `nen run budget --max-tokens`, whose sum reads the usage ledgers under one `--repo` while each effort keeps its own in its worktree, so a multi-worktree run reads `tokensUnread`; `--claim` is not passed and no skill sums `nen usage` itself (WORKFLOW § 2 `idle`) | `hatsu:futon` § 12, `nen run budget` |
+
+### `canon.lint`
+
+The canon prose lint's declared home (zheref/nen#481, nen 0.28; HR-13, HR-4). With the block declared, `nen canon lint --repo <path>` needs no flag: the rules contract, the shrink-only baseline and the paths the marker limit and PL-12 apply to are read from here, and `nen schema check` adds the row `nen/workflow.json#canon.lint`, validating the contract as `nen.prose-lint/v0.1` and the baseline's shape. The block is read only when `--rules` is absent: the CI form passes every value as a flag because its tree is the pull request's head (SEC-7). Hatsu's `.github/workflows/prose-ambiguity-check.yml` still runs `scripts/prose_ambiguity_check.mts`, whose findings agree with the verb's on this tree (docs/history/nen-repins.md § v0.28.0); moving the frozen step onto the verb is a two-step landing of its own (docs/GATE-CONFIGURATION.md, 2026-09-20).
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `lint.rules` | string | a repository-relative path; **required** once `lint` is declared. Hatsu's own: `contracts/prose.lint.json` | The rules contract each rule's class dispatches on | `nen canon lint`, `nen schema check` |
+| `lint.baseline` | string | a repository-relative path; default none (every `fail` finding is then new). Hatsu's own: `contracts/prose.lint.baseline.json` | The shrink-only baseline: a row no finding uses is stale, and a row the base lacked is grown | `nen canon lint`, `nen schema check` |
+| `lint.skillPaths` | string[] | non-empty globs; default none (every linted path). Hatsu's own: `claude/skills/*/SKILL.md`, `claude/agents/*.md`, `claude/rules/*.md` | The files the marker limit and the reading rule (PL-12) apply to when the contract declares no `skillPaths`; without it the verb applies PL-12 to `docs/ROSTER.md` too | `nen canon lint` |
 
 ### Keys a consuming repository may add
 

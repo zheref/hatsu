@@ -15,8 +15,9 @@ disagree, **the file wins and this document is the bug** — the same rule
 entry. The order ranks canon texts only: a configuration file's value still beats any prose copy of it,
 the rule above. A text outside the list yields to every listed entry and the conflict is filed
 ([HR-339](ROSTER.md#hr-339)). This is the order's one restatement;
-[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. Nothing checks the
-key or this copy yet: that is owed to [zheref/nen#474](https://github.com/zheref/nen/issues/474).
+[`PROCESS.md`](PROCESS.md) points here, and is binding wherever the skill is silent. From nen `0.28`
+([zheref/nen#474](https://github.com/zheref/nen/issues/474), the HA#449 repin) `nen schema check` holds this copy to
+the key through `precedenceRestatedIn` in `nen/contract.json` and fails a drifted run by file and line.
 
 ---
 
@@ -103,7 +104,7 @@ There are two execution/policy configuration files, and the split is not stylist
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
 > independently.** At the v0.24.0 repin `dependency.minimum` read `0.24` and `dependency.pinned_ref` read
-> `v0.24.0` (both `0.26` / `v0.26.0` since HA-PR-#422): the first is the capability minimum, the second is the build its
+> `v0.24.0` (`0.26` / `v0.26.0` since HA-PR-#422, `0.28` / `v0.28.0` since the HA#449 repin): the first is the capability minimum, the second is the build its
 > bootstrap installs. That repin adopted NN#437's
 > phase/usage dials, session ledger and report data `sessions[]`; older Nen cannot supply them. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
@@ -144,10 +145,25 @@ gets when it declares nothing.
 |---|---|---|
 | `max` | `7` | resolver and sections guard; reader count only, never the compact footer |
 | `variants` | every kind × family cell from `contracts/pr-sections.json` | `shibari`, `tensho`, `jujisho` before each body write |
+| `$canon` | catalogue `contract` and canonical `documentSha256` as `sha256` | configuration diagnosis and explicit refresh; metadata ignored by the section resolver |
 | `$sections` | every available id and purpose, beside `sections` under `pr` | author and consumer configuration review |
 
-`config_values.sh --fill` materializes the **full** default matrix and the `$sections` annotation;
-it never overwrites an edited cell. That cell becomes consumer-owned, not a canon-following default.
+`config_values.sh fill` materializes the **full** default matrix, `$canon` stamp and `$sections`
+annotation when the block is absent. Plain `fill` leaves a present block byte-identical.
+`diagnose` compares each cell with its stamped catalogue from the packaged
+`contracts/pr-sections.history.json`, without Git: **current default**, **stale default**, or
+**consumer-owned**; it also names **missing** and **retired** cells and retired ids. An **unstamped**
+copy is compared with the current catalogue in one line, with ownership unknown.
+
+`config_values.sh fill --refresh` advances unedited defaults, adds missing cells, updates `$sections`
+and re-stamps. It preserves `max`, edited cells and other metadata; `$canon.owned` remembers owned
+cells across later refreshes, including an edit that coincides with a newer default. An owned cell
+that names a retired id or cell refuses refresh at exit 1, naming it and writing nothing. An unknown
+or malformed stamp refuses at exit 2. An unstamped refresh reports provenance unknown, retains every
+present cell as explicitly owned, adds only missing cells, and stamps the current catalogue; later
+refreshes still retain those cells. All inputs and staged results are validated before any
+replacement. Tenkai's `apply` uses this explicit refresh; Ten's adoption inbox reports its stale
+counts and both catalogue sha7s without repairing them. `nen warmup` remains unchanged.
 [PR-SECTIONS.md](PR-SECTIONS.md) owns family folding, conditional run facts, the seven-section cap,
 the kind-specific verification aids and the warning-only 150-word prose budget. `max` is configurable
 up to seven; a smaller cap requires a fitting cell, never silent section truncation.
@@ -791,7 +807,7 @@ listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age a
 |---|---|---|
 | `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` where it stars none (`missing-maintainer-choice`, `port-drift`, `intake-challenger`, `port-siblings`, `spec-slice`, `spec-clarify`, `spec-dispatch`), `publish-offer` `refuse` — the ruling of 2026-10-23 above, which lifts the holds of 2026-10-22 on `harness-attribution-switch`, `host-nen-link`, `cleanup-plan` and the starred `spec-*` rows | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name takes the same resolution (starred → `default`, else `hold`; `publish-offer` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer` is always `refuse`; `missing-maintainer-choice` is at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. An act a `default` leads to that the harness refuses parks as `g5-harness-denied`, never retried another way. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the ownership record's `idle.source`, the resolutions as nen's manifest's `idleAnswers`, which `start` refuses unless nen stored exactly the map it sent |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: under the ruling of 2026-10-23 every effort is merged into the run's **non-main integration branch** (futon § 5's shape, always, never a picker) and the integration PR stands Ready at the maintainer's merge prompt; `ready-at-prompt` stops short of the integration merge. **Never `main`** (only the maintainer merges there), never `getsuga` or `mugetsu` |
-| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum; nen reads `.nen/usage/<effort>.json` under the one `--repo`, while each effort's ledger lives in its own worktree (§ *The effort's ledgers*), so a multi-worktree run reads `tokensUnread` and the token bound stays **advisory**, reported, never summed by hand — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
+| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum, read from the usage home § *The effort's ledgers* names by nen version: at nen 0.28 (the pin) every effort's ledger shares the git common directory, which `--repo` reaches from any checkout, so the sum is readable from one worktree; whether the token bound is then **enforced** or stays **advisory** (reported, never summed by hand, as it was while each worktree held its own ledger below the pin and `tokensUnread` was the answer) is a ruling owed, not read here — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
 
 ### `models`
 
@@ -935,7 +951,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 ### The effort's ledgers — phases, usage and sessions
 
 **Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100, #321).
-Three ledgers per effort, generated under `.nen/` and keyed by the **branch** — `--effort <branch>`,
+Three ledgers per effort, keyed by the **branch** — `--effort <branch>`,
 never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
 ```bash
@@ -949,7 +965,7 @@ nen session record --effort <branch> --surface <s> [--model <reported-model>] --
   [--title <reported-title>] [--id <reported-id>] --source "<harness readout>"          # first phase, when exposed
 ```
 
-`.nen/phases/<effort>.json` holds one timed entry per phase, a refused step included; `.nen/usage/<effort>.json`
+`<home>/phases/<effort>.json` holds one timed entry per phase, a refused step included; `<home>/usage/<effort>.json`
 one entry per reading, `source` naming the call site and the readout (Claude Code's `/cost`, the Agent
 tool's result totals for a subagent, Codex's session log; `--not-reported` on a surface exposing none).
 `--dial` is the actual surface effort level, recorded at each begin and usage write, not carried in
@@ -974,6 +990,76 @@ Public Source cells contain only `kind[index]`, ledger timestamp and phase where
 free-form `phase.note`, `usage.source` and `session.source` stay local as classification evidence.
 Keep report data, normalized data and rendered fragment under the private repo-local
 `.nen/reports/` directory (mode 0700, files 0600).
+
+**Where each record lives, by nen version — stated once, here** (zheref/nen#509, zheref/nen#513; read by every
+page that names a home, `idle.budget` included):
+
+| Record | nen 0.26, older than the pin | nen 0.28, the pin |
+|---|---|---|
+| phases, usage, sessions, the direct record | `<checkout>/.nen/{phases,usage,sessions,direct}/` — one per worktree | `<git common dir>/.nen/{phases,usage,sessions,direct}/` — one per repository, shared by every worktree, untouched by `git worktree remove` and `git clean`; an older checkout copy is read in place and moved by the next write, through 0.28 |
+| stop markers | `<checkout>/.nen/last-stop.json` (marker contract `v0.1`/`v0.2`), one, overwritten | the same file **and**, with `--effort`, `<git common dir>/.nen/marks/<effort>/<gate>.json` (`v0.3`), one per gate and effort; outside git `<checkout>/.nen/marks/` |
+| run manifests, the loop and stop-answer records | `<git common dir>/.nen/` already | the same |
+
+A record named `<home>/…` below is that row's directory for the nen that runs. **Many efforts, one home**
+(the pin): a reader that renders one effort passes `--effort <branch>` (`nen report data`,
+`spiritual-message` § 4); without it every effort of the repository is read. `stop --mark --effort` is
+refused by 0.26, a binary older than the pin (`unknown option`), so a stop passes `--effort` only where `nen stop --help` lists it
+(jutaisho § 3); `hooks/stop-bell.sh` rings either form.
+
+**The durable slice — the ledgers on the pull request** (zheref/hatsu#445; nen > 0.26.0, zheref/nen#516 and zheref/nen#518).
+The ledgers above live on one machine; the slice is the copy a morning review, a second machine or a fresh
+clone reads. **Post** at the landing, once the PR exists (`mukai` § 2 step 8a, after `shibari`), and again
+whenever a later landing on the same PR refreshes it. The comment is public wherever the PR is (SEC-8), so
+three steps come first, in order, and any of them failing posts nothing:
+
+1. **Unsettled security findings hold the post** (SEC-3): `node <hatsu>/scripts/ledger_findings_prepare.mts
+   --findings <reports.dir>/hanten/<branch-slug>.json --repo <checkout> --out <scratch>/findings.json`
+   exits `1` (`security-unsettled`, each finding id named) while any `scope: security` finding of severity
+   `critical` or `high` is not `fixed`: a pointer to an unrotated credential is not published before the
+   rotation. The landing report names the hold.
+2. **No machine path leaves the machine** (SEC-8): the same call writes a copy whose every absolute path is
+   relative — the checkout's root as `.`, `$HOME` as `~`, any other absolute path as `<path>` — and that
+   copy, never the record, is what `--findings` posts (nen relativises phases and proof paths itself, not
+   the findings document).
+3. **The rendered slice passes the secret scan** (SEC-1): `nen pr ledger post … --dry-run --json` to a
+   scratch file, then `contracts/scans.json` → `secretScan`'s pinned, checksum-verified `gitleaks detect
+   --no-git --source <that file> --no-banner --redact --exit-code 1`; a hit refuses the post, and a
+   not-scanned row is a **stop**, never a pass (as `docs/config/spec-repo.md` holds for an issue body).
+
+```bash
+nen pr ledger post --target <owner/name> --pr <n> --effort <branch> --repo <checkout> \
+  [--findings <scratch>/findings.json --findings-schema <hatsu>/contracts/hanten-findings.schema.json] [--proof <path>]...
+```
+
+One marker-keyed comment per effort and login: `posted` the first time, `updated` in place after, `unchanged`
+when the bytes agree — never a second comment. `findings-invalid`, `secret-shape` and `too-large` (exit 1)
+post nothing and are reported verbatim in the landing report; `refused` (exit 4) is the private-name guard.
+**Read back** before a resume (`ren` § 2a, which `build` § 4 cites), and only then
+`nen phase begin --resume`:
+
+```bash
+nen pr ledger read --target <owner/name> --pr <n> --effort <branch> --repo <checkout> [--restore] --json
+```
+
+`--restore` is passed **only where no local phase ledger exists** (a fresh clone, another machine): a local
+ledger this checkout has moved on since the post — an open phase resumed, a phase ended — is refused by
+`--restore` as a disagreement (exit 1, nothing overwritten; observed on HA-PR-#463, `docs/ab/ren.md`), so
+there the local ledger leads and the slice is read without the flag.
+
+`ok` → the slice's completed phases (an entry with an `exit` of `0`) are skipped. **The skip line has one
+form**, printed for every skipped phase whatever the source: `skipped <phase>: exit 0 at <endedAt>`, with
+` (slice <comment url> @ <head>)` appended when the slice supplied it. **A phase whose entry ended
+non-zero is never begun again**: the resume stops there, `refused <phase>: ended at exit <n>`, and writes
+nothing — that step's own stop is answered first (the phase ledger keeps one entry per phase;
+`docs/ab/ren.md`). An **open** phase is continued with `nen phase begin --resume`, never begun twice. `stale` (the PR moved past the recorded head) →
+the phases are restored and the phase at the moved head runs again, said so; `could-not-read` (no comment,
+two, an edited digest, another contract) → nothing is skipped and the run starts at the first phase, the
+reason quoted, **never read as an empty ledger**. Only a comment the authenticated login wrote and nobody
+else edited is trusted (SEC-15, SEC-7): a foreign marked comment is counted, never parsed. A local ledger
+that disagrees with the slice under `--restore` is exit 1 naming both and overwrites nothing; outside the
+case above (the local ledger merely ahead), that is a G5: two records of fact disagree, and the run neither
+picks one nor overwrites either. The register lists each
+PR's slice URL and verdict (§ *Idle batches*). No PR yet → no slice; the local ledger is the only one.
 
 ## 3 · `project.launch` and `project.evidence`
 
@@ -1112,20 +1198,20 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 ```
 
 **Hatsu's own block, beside `project.preconditions`, read by [`kagutsuchi`](../claude/skills/kagutsuchi/)
-§ 3b through `scripts/kagutsuchi_worktree.sh` and by nothing in nen** — nen's loader preserves it (verified at
-`0.16.0`: `nen schema check` and the `shu` executor both accept a contract carrying it), and **nen still
-asserts the precondition in the worktree exactly as before**; this block only says where the file
+§ 3b** — Hatsu repeats each declared path as `--copy-from-core` to `nen wc worktree`; the verb deliberately
+does not read this block implicitly. Nen's loader preserves it, and **nen still asserts the precondition
+in the worktree exactly as before**; this block only says where the file
 comes from. The maintainer's ruling of 2026-09-29 (zheref/hatsu#146): *"Let's have the composite ALWAYS
 copy own file from core checkout."* Each entry names a **repo-relative, gitignored, untracked** path
 that exists in the core checkout and nowhere in git — the base configuration carrying credentials, a
 local signing note — and kagutsuchi § 3b copies it **from core into its worktree, before the fresh
-archive it runs only when the freshness gate found the last one stale**, listing each copied path. The script refuses, before anything moves, an entry that is tracked (it
+archive it runs only when the freshness gate found the last one stale**, listing each copied path. The verb refuses an entry that is tracked (it
 is in every worktree already), not gitignored (the copy would dirty the worktree and refuse the next
 run), absent in core (the maintainer's own machine is where it comes from — **nothing is synthesised**,
 the same rule `project.preconditions` states), a symlink, or a path that leaves the tree — and, at the
 trunk's tip, a destination that is tracked, unignored or a symlink (a trunk commit never decides where a
-credential lands). **No block
-copies nothing and says so.** A precondition that FAILs in the worktree on a path that exists gitignored
+credential lands). **No block passes no copy flags and reports an empty `copies` array.** A precondition
+that FAILs in the worktree on a path that exists gitignored
 in core is the `missing-configuration` ask for a row here — proposed with its `why`, landed through
 that repository's declaration PR at its gate, never written unasked.
 
@@ -1184,7 +1270,7 @@ No ownership record is made for an integration PR or a PR into `branch.base`.
 `dry`, the idle profile's `terminal`, `budget` and `source`, and a dry run's `predictions[]` — no PRs, no parks,
 no answers). A refused or non-`started` nen start, or a manifest storing other `idleAnswers` than the map sent,
 refuses `start` (exit 1), so no record names a run nen never opened; a record that cannot be written names
-nen's manifest path as the orphan. `bind` refuses a dry run. After **every** PR the run opens — delivery, integration or release,
+nen's manifest path as the orphan. `bind` refuses a dry run and an idle one, and `verify` refuses a claim on either (§ *Batch delivery* rule 4). After **every** PR the run opens — delivery, integration or release,
 **whatever its base**, `main` included — `nen run append --id <run id> --pr <N> --kind delivery|integration|release
 [--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>` records it from the live PR (a re-append refreshes base
 and head; a PR opened before the run, or under another kind or issue, is refused). `nen run park --id <run id>
@@ -1197,6 +1283,9 @@ retired and refuse by name.
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
+node "$hatsu_root/scripts/futon_effort_record.mts" resume --repo <checkout> [--run <id>] --invocation '<the same line, re-typed>'
+node "$hatsu_root/scripts/futon_effort_record.mts" integrate --repo <checkout> --run <id> --branch <the run's integration branch>
+node "$hatsu_root/scripts/futon_effort_record.mts" end --repo <checkout> --run <id>   # futon § 10
 node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree> --pr <N> --run <id printed by start> --issue <issue-N> --base <live non-main base> --head <live head branch> --sha <full live head SHA>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
@@ -1210,7 +1299,7 @@ A missing, mismatched or stale record leaves En at the maintainer handoff; it ne
 ownership from the branch name, PR title or session memory. En verifies again against the
 same head immediately before its bounded merge ([`en`](../claude/skills/en/SKILL.md) § 5).
 The local record supplies **procedural provenance**, not cryptographic proof of who typed the
-invocation; only Futon may run `start`, and En only runs `verify`. A host running this `.mts`
+invocation; only Futon may run `start`, `resume`, `integrate` and `end`, and En only runs `verify`. A host running this `.mts`
 helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
 
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
@@ -1521,6 +1610,101 @@ nothing restated:
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
 
+### Batch delivery — every delivery Ready, or held and named
+
+**The maintainer's instruction of 2026-10-25** (zheref/hatsu#488): every Futon-based work batch drives all
+of its work to Ready, and an unattended batch consolidates it into one integration-to-main delivery PR, or
+the fewest justified. It binds **every Futon-based batch** — [`futon`](../claude/skills/futon/SKILL.md) and
+each composite that runs it ([`kazaana`](../claude/skills/kazaana/SKILL.md), `dowsing-chain`'s `wave`, a
+`then` chain) — attended or `--idle`, fresh or resumed; [`backlog-loop`](../claude/skills/backlog-loop/SKILL.md)
+§ 10 ends its own run on the same states (it opens no manifest, so its held rows live on the register). A `--dry-run` rehearsal has predictions, not deliveries (§ *Idle
+batches* rule 7), and stands outside rules 1–3. **A PR opened, green checks alone or a checkpoint report is not
+delivery.** *Complete* (rule 3) ends the readiness obligation; *done* stays the merge (futon § 5), and the human
+merge, the `then` gate (futon § 8), release authority and cleanup's own eligibility (zheref/hatsu#480) are unchanged.
+
+1. **An actor behind every delivery until Ready.** Each delivery the batch opens — a PR into
+   `branch.base`, a stacked PR, the integration PR — has [`en`](../claude/skills/en/SKILL.md) started on it
+   in this session, never only offered. While any delivery is not Ready and the session is authorized and
+   able to act — checks pending (en § 6's observation hold), a review round owed (`sharingan`), findings or
+   threads unsettled (en § 4), a base to catch up (`murasaki`) — the batch does that work and observes its
+   outcome. **Ready** is `nen pr ready --require-head <current head>` exiting `0`, quoted verbatim.
+2. **Every delivery stands in exactly one state.** A prerequisite is never fabricated, waived or worked
+   around to move a delivery out of `held` (`CON-32`; HR-5's human-gate rows).
+
+   | State | When | Recorded |
+   |---|---|---|
+   | `driving` | `en` is acting or observing: rule 1's work remains | nothing ends while one is `driving` |
+   | `ready` | rule 1's verdict at the current head, and the merge prompt shown — a stacked PR is Ready on its stacked base and shows none (§ *Stacked pull requests* rule 4) | the register row, the verdict quoted |
+   | `merged` | merged into its base — by the maintainer, or by en § 5's bounded delivery exception | nen's manifest (`nen run verify`) |
+   | `closed` | closed unmerged by the maintainer: not delivered, its issue left open | nen's manifest |
+   | `held-<cause>` | short of Ready, and the session cannot move it | `nen run park --id <run id> --issue <CODE>#<N> --row held-<cause>`, plus three facts on the register row and in the closing report |
+
+   The causes: `held-approval` (a review or approval only a person can give); `held-gate` (a G1, G2 or G4
+   decision, en § 5's prompt at the sixth stop or the hanten prompt included, its verdict not Ready);
+   `held-credential` (a credential, App or provisioning step); `held-cap` (en's acting-cycle cap, or the round
+   ceiling, en § 6); `held-handback` (en § 6's observation errors, a draft or a retarget, en § 5's ownership or
+   gate refusal); `held-stranded` (the child of a closed stacked PR, waiting on the maintainer to retarget or
+   close it, § *Stacked pull requests* rule 5 — and a child GitHub itself closed when its base branch was
+   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw, is `held-stranded`, never `closed`).
+   A session that actually ended mid-run (en § 7) holds nothing: the resume (rule 5) finds each delivery
+   `driving` again. nen `0.28`'s parks are append-only, so **a later state wins over a park**: a delivery
+   `nen run verify` reads `merged` or `closed` after its `held-*` park is that state, never held. Under `--idle`, an effort's park (§ *Idle batches* rules
+   1–4: a `hold` or `refuse` row, `g5-<class>` with `g5-harness-denied`, `residue-<skill>`, `budget`) **is** its
+   held record. The **three facts**: the exact prerequisite or bound; the last `nen pr ready` verdict with its
+   judged head (`no PR` for an effort parked before one); the resume action (`hatsu:en on <CODE>#<N>`, or rule
+   5). A held delivery is never counted Ready, and the rest of the authorized work continues around it.
+3. **Complete, or incomplete and said.** An issue with no delivery is **skipped**, said: out of scope,
+   briefed (a handbook question or design call, futon § 2), § *Idle batches* rule 9's skips
+   (`needs-clarification`, `g5-shape-unread`), or a legacy-CI PR owned by its own CI actor (futon § 9); the
+   shape check's exit `2` instead stops the queue as one G5, and the batch ends incomplete on it. A batch is
+   **complete** when every delivery is `ready` or `merged` and every other selected issue is skipped or
+   `closed` — under `--idle` an included issue's delivery is the integration PR (rule 6); with any `held-*`, it is **incomplete**: the closing report and the Rikugan `register` list each
+   held delivery with its three facts, and `final` is never rendered over it. **When the run ends is futon
+   § 10's**: an attended run stays open while a delivery stands `ready` at its prompt and ends once none is
+   `driving` and every delivery is `merged`, `closed` or held; an idle run ends at `idle.terminal`. The wrap-up
+   picker is asked only after the run ends, never while a delivery is `driving`, and an incomplete end says so
+   in the question.
+4. **Unattended means integration.** One Futon run reads one repository and one base, so it has exactly **one
+   integration branch** — recorded at its cut by `futon_effort_record.mts integrate --run <id> --branch
+   <branch>`, which refuses a second branch and the default branch — and **one integration-to-main PR**
+   carrying every effort merged into it. An effort that cannot join — its catch-up onto the integration branch
+   stops at a semantic conflict (`ao`'s G5, row `semantic-conflict`) — parks `g5-semantic-conflict` and is
+   listed as not included (rule 6); no second branch is cut for it. Separate integration deliveries come only
+   from separate runs — one repository and selector each (a `dowsing-chain` wave runs one futon per member
+   repository) — named in the closing report. Under `--idle` **no per-effort PR is opened and nothing is
+   stacked**: each delegate and `mukai` stop at hanten's settlement, the effort is merged locally (futon § 5),
+   and `en` runs on the integration PR alone; `futon_effort_record.mts bind` and `verify` refuse an idle run
+   (§ *Recorded Futon delivery ownership*), while nen `0.28`'s `nen run append` does not refuse a `delivery`
+   kind on an idle manifest (owed to nen, zheref/nen#544). Under the `ready-at-prompt` terminal no integration PR is opened, so
+   each effort ends `held-gate` on the maintainer's go to open it — a reading of the § 2 `idle` row, named as
+   one until it is ruled.
+5. **A resume keeps the shape.** Futon never resumes itself: the maintainer re-types the line. Before `start`,
+   futon runs `futon_effort_record.mts resume --repo <checkout> --invocation '<the line>'`: with no `--run` it
+   continues the newest real run **that has not ended** whose line nen parses alike — repository, selector,
+   terminal, `then` clause, `--idle`, `--dry-run`; never the spelling, so `--idle` may sit anywhere nen reads it.
+   futon § 10 records the end with `futon_effort_record.mts end --run <id>`, so the same line typed after a
+   finished night is a new run; a record written before end tracking carries no end mark and resumes by an
+   explicit `--run` alone.
+   **Exit `3`** means no open run: `start` opens one and names any earlier run typed as the same line. **Exit
+   `1`** is a refusal — stop and report it, **never `start`**, which would split the delivery. A resume proves
+   the run's identity and never re-derives its policy: nen's manifest must already be on disk (with none it
+   refuses **before** calling nen, which would write an empty one that `nen run verify` reads as an open gate),
+   the answers resent are the ones nen stored — re-checked against § 2 `idle`'s floor, which nen does not apply
+   — and the recorded `idle.terminal` and integration branch hold; a committed profile that moved since launch is
+   reported, never obeyed. It refuses a line nen parses otherwise, an ended run, a dry run, a v0.1/v0.2 record, a manifest
+   started at another time, a record whose id differs from `--run` or from its filename, and another
+   repository. The budget clock is the manifest's `startedAt` (§ 2 `idle`), so a resumed idle run whose minutes
+   are spent claims nothing new and drives what it already opened. Reading nen's manifest file directly, and
+   refusing one still at its legacy spelling, is named residue owed to nen (zheref/nen#545). `kazaana` passes the
+   futon line it composed (kazaana § 1). The resumed run keeps the same integration branch and PR and the same
+   readiness obligation for every included delivery, reading what was already opened through `nen run verify
+   --id <id>`.
+6. **A consolidated PR accounts for everything it carries.** The integration PR closes and links every
+   included issue (one `Closes #<N>` and Development link each) and its criteria section answers every
+   acceptance criterion of every included issue, by issue. An issue whose effort did not merge into the
+   integration branch is listed as **not included**, with its held or parked state — never covered by the
+   PR's Ready.
+
 ### Idle batches
 
 **HR-5's idle profile, activated only by a typed `--idle`** on a `futon` line (and on `kazaana`, which
@@ -1587,13 +1771,14 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    2026-10-23 dry run authored nothing and recorded no per-effort minutes, only 13 claimable efforts and the
    cap applied in queue order (`docs/ab/futon.md` § 2026-10-23).
    Overlap is `nen wc overlap --efforts <branches> --repo <checkout>` once branches exist (before that it is
-   judged from the paths each effort would touch), its verdict cited in the stacking decision; `nen stage
+   judged from the paths each effort would touch), its verdict cited in the stacking decision (attended; an idle run never stacks, § *Batch delivery* rule 4); `nen stage
    check --exclusive` holds an issue to one stage label where the target declares a stage family. En's cap is
    the git common dir's (en § 2).
-5. **Terminal — integration branches only** (the ruling of 2026-10-23, § 2 `idle`). An idle run always cuts
+5. **Terminal — integration branches only** (the ruling of 2026-10-23, § 2 `idle`; fixed at `start` and kept
+   by a resume, § *Batch delivery* rules 4–5). An idle run always cuts
    futon § 5's integration branch and merges each hanten-settled effort into it locally; `idle.terminal` is the
-   integration PR Ready at the maintainer's merge prompt (or, under `ready-at-prompt`, every effort Ready before
-   that merge). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
+   integration PR Ready at the maintainer's merge prompt (or, under `ready-at-prompt`, short of opening it:
+   each effort `held-gate`, § *Batch delivery* rule 4's reading). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
    `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host scheduler may
    re-invoke the build, never a release. The steady-state schedule is [`config/schedule.md`](config/schedule.md)'s; its
    tasks are registered only by the maintainer. `cleanup` **never runs**: the maintainer's declared satisfaction,
@@ -1632,8 +1817,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    `nen run park --id <run id> --issue <CODE>#<N> --row needs-clarification` (a dry run: `predict`, rule 7) —
    and the queue continues with the next issue. `needs-clarification` is a **named park class**, not a G5 and
    not a `nen/decisions.json` row (the park grammar of § *Recorded Futon delivery ownership*). An issue whose
-   questions could not be read (`nen issue questions` exit `1`) is skipped as `g5-shape-unread`, never addressed
-   unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
+   questions could not be read (`nen issue questions` exit `1` with **no document on stdout**; from nen `0.28` an
+   exit `1` whose document is still printed is an open `OQ-{n}` row, read, and parks `needs-clarification` as above)
+   is skipped as `g5-shape-unread`, never addressed unread; exit `2` is **wiring** (a malformed catalogue or a usage error) and stops the queue statement as one
    named G5, never N skips; a body-shape miss is reported and never skips; nothing else in the shape check stops
    the queue. The **final briefing** (futon § 10's closing report) and the **Rikugan
    register** (backlog-board § 3) list every skipped issue with its open `OQ-{n}` rows (id, gate, question), and
@@ -1646,6 +1832,28 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    read body's sha> --current-body-out <path>`, then reads it back with `nen issue questions` (the row must
    count resolved). No nen verb rewrites one row, so the struck body is composed for `edit-body` as named residue (a verb owed to nen).
    An issue whose rows are all struck re-enters the next run's queue.
+
+**Three more rules of the idle run** (zheref/hatsu#453 and zheref/hatsu#445; they follow HA-PR-#460's rules above and need the nen release carrying zheref/nen#513, zheref/nen#516 and zheref/nen#518):
+
+- **Before the first claim, the permission list.** `node <hatsu>/scripts/idle_permissions_check.mts --repo
+  <checkout>` reads the session's Claude Code settings against [`contracts/idle-permissions.json`](../contracts/idle-permissions.json)
+  (one exemplar per command shape an idle batch runs, every nen verb family by name, each with the skill that
+  runs it — exemplars, not every argv) and lists every one no allow rule
+  matches, or a deny rule matches; the register carries the list before any effort is claimed. It grants
+  nothing and changes nothing — a permission setting is the maintainer's alone — and it cannot see an
+  auto-mode classifier, whose refusals are the next rule's. Exit `1` is the list, never a refusal to start;
+  exit `2` (a settings file unreadable) is reported as *not checked*, never as *all allowed*.
+- **A harness refusal is row `harness-denied`**, a `human-gate` G5 (rule 2's harness denial): the refused
+  command quoted verbatim, the stop marked for the effort (`nen stop … --mark`, with `--effort <branch>`,
+  nen 0.28 the pin), the effort parked as `g5-harness-denied`, and the run moves on — never retried, rephrased, split or
+  routed through another tool.
+  The decisions list (the PR body's and the final brief's) names each one.
+- **One marker per gate, one bell per gate** (nen 0.28, the pin). Every stop marks with `--effort <branch>`, so seven
+  efforts at seven prompts leave seven markers under `<git common dir>/.nen/marks/`; `hooks/stop-bell.sh`
+  rings each through `nen stop list` **whatever its age** (an orchestrator's turn spans hours, and the hook
+  fires at its end) and clears each with `nen stop clear --gate <g> --effort <branch>`, and a cleared gate
+  removes only its own marker (`docs/ab/futon.md`, 2026-10-23). On 0.26, older than the pin, the one single file rings, as before. Every PR the run opened carries one
+  durable slice (§ *The effort's ledgers*), and the register lists its link and `nen pr ledger read` verdict.
 
 ### `classify` — the two label axes, and the one place their vocabulary lives
 
@@ -1784,7 +1992,9 @@ the decision. Non-release rows carry the eleven-aspect improves ladder; release 
 written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
 library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
 `CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
-Delivery is outside the reader cap; checklist, associated issues and final attribution are compact footer blocks.
+Delivery is outside the reader cap; conditional Spec and Decisions plus always-on Hanten, checklist,
+associated issues and final attribution are compact footer blocks. HA#475 implements Hanten under that
+reader-only cap; the catalogue keeps its exact compatibility-contract heading ahead of the checklist.
 The sections and Delivery guards and Nen's per-run requirements check join evidence and Development checks before
 **every** create or edit. No undeclared heading may grow a second composition contract.
 
@@ -1875,7 +2085,7 @@ is verified; a watchdog bounds it at about 50 s even where no `timeout` exists.
 
 | Hook | Event | What it does |
 |---|---|---|
-| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** off the marker at `.nen/last-stop.json`, then consumes it |
+| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** once per unrung stop marker — every per-gate marker `nen stop list` names (nen 0.28, the pin; whatever its age), else the single `.nen/last-stop.json` within ten minutes (a binary below the pin) — and clears each it rang with `nen stop clear` (§ *The effort's ledgers*, the homes) |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a raw `git` commit or push while the branch equals `branch.base`; the skills commit and push through `nen commit write` and `nen wc publish`, and the latter refuses the trunk itself at exit `2` |
 
 **Every surface has all three hooks once its hook file was placed.** `hooks/hooks.json` is Claude Code's
@@ -1885,7 +2095,7 @@ Cursor `.cursor/hooks.json` with `stop`, Antigravity `.agents/hooks.json` or the
 `hooks.json` with `Stop`; [`docs/using/README.md`](using/README.md) § *The four surfaces, compared*), and the warm-up places that file. So
 the bell's in-session fallback in [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 5 keys on one fact,
 **was a hook file placed here**, never on a surface list: where none was placed the skill rings rungs 2
-and 3 itself, says so, and removes `.nen/last-stop.json` once the stop is answered; where one was placed
+and 3 itself, says so, and clears the marker with `nen stop clear` once the stop is answered; where one was placed
 the hook fires and consumes the marker, and the skill leaves it alone. The trunk guard keys on the same
 fact: with no hook file placed, the refusal to commit on `branch.base` is the skills' own rule, not a
 reflex the harness enforces. **Say which of the two you are relying on.**
@@ -2048,7 +2258,7 @@ merge**, and it stays a rule with no file: **G2** is an action no agent performs
 procedure to write down. The rule that held while the other four had no file still holds and always did:
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
-**`v0.133.0` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs owed, zheref/nen#493).
+**`v0.133.0` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs, zheref/nen#493, need a nen past `0.26.0`).
 **`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic #354).
 **`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
@@ -2479,8 +2689,8 @@ checkout.** `.nen/` is already ignored — Hatsu's own `.gitignore`, and in a co
 ([`hanten`](../claude/skills/hanten/SKILL.md) § 4's reviewer), `prove-<n>` (the stash-and-restore
 shape's proof, below), the effort's branch slug for a lead-session effort (rule 6 of
 [`claude/rules/hatsu.md`](../claude/rules/hatsu.md)), and kagutsuchi's fixed `.nen/worktrees/kagutsuchi`
-(§ 3b, `scripts/kagutsuchi_worktree.sh`) — the one purpose-named path with no surface segment, kept
-because the script's idempotence is built on the path being fixed.
+(§ 3b, `nen wc worktree --name kagutsuchi`) — the one purpose-named path with no surface segment, kept
+because the native verb's idempotence is built on the path being fixed.
 
 ### Per surface — the harness's own worktrees, and what Hatsu does
 
@@ -2831,11 +3041,12 @@ and a push to a target whose CI runs on this host (the job it starts is heavy wo
 budget: that machinery is owed to nen (zheref/nen#536 admission, zheref/nen#537 bounded test
 workers, zheref/nen#538 owned cancellation, zheref/nen#539 the pressure refusal, zheref/nen#540
 receipts). So every phase that runs a heavy verb — including `rasengan`'s inner-loop checks,
-`breath`'s base proof, `kokusen`, `hanten`'s guard-lane fixtures and its reviewers, `murasaki`'s
+`breath`'s base proof, `tsukuyomi`'s focused lanes, `kokusen`, `hanten`'s guard-lane fixtures and its reviewers, `murasaki`'s
 merged-tree checks, `kotoamatsukami`, `byakugan`, `susanoo` and a delegate's checks — says in its
 report `host admission: no guard (zheref/nen#536); serialized fallback`, and runs the fallback. No
 script, lock file or load reading stands in for the verb: a guard that cannot measure the host does
-not claim to.
+not claim to. The phase skills carry no pointer of their own: the rules file's rule 11 and
+`kurapika.md` § *The `shu` verbs*, read before any phase runs, are the carriers (N2-F4, 2026-10-26).
 
 **The serialized fallback** — the documented conservative mode until nen's admission verb
 (zheref/nen#536) is released and adopted:
@@ -2874,14 +3085,14 @@ not claim to.
    unread inventory are each *unknown*, and unknown counts as busy. A busy host is waited on: in an
    idle run till the minutes elapse, then `parked:budget`; in an interactive run in bounded waits
    under § *Delegate briefs*' ceiling, then a **G5** stop. Unknown parks an idle effort as
-   `parked:g5-host-ci-unknown`, the refusal quoted; in an interactive run it is a **G5** stop
+   `parked:g5-host-ci-unknown` (`nen/decisions.json` row `host-ci-unknown`), the refusal quoted; in an interactive run it is a **G5** stop
    (`nen stop`, the picker) quoting the refusal or naming what could not be read.
 
 **Stop on overload; retry only after recovery.** Overload is host-wide. Its symptoms are the desktop
 or an app unresponsive, the maintainer reporting it, a subprocess timeout repeated, a run cancelled,
 and a parent ended with its descendants uncertain. On any of them **no new heavy launch anywhere in
 the run**, smaller retries included. In an idle run the effort that saw it parks as
-`parked:g5-host-overload`, and every later effort runs light-only and parks at its first heavy step
+`parked:g5-host-overload` (`nen/decisions.json` row `host-overload`), and every later effort runs light-only and parks at its first heavy step
 the same way. In an interactive run it is a **G5** stop (`nen stop`, the picker): what was seen, the
 listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
 
@@ -2905,7 +3116,8 @@ only with that listing beside it. A process is never killed by name or pattern (
 a `node` match): that reaches the maintainer's own apps and other sessions. This section grants no
 kill authority: stopping any process, one the session launched and can name by recorded process
 group included, is the maintainer's, handed over as one `bash` block by recorded process group with
-where to run it (§ 4), a **G5**.
+where to run it (§ 4), a **G5** — and only for a group whose id equals the `$$` recorded beside it; a
+bare group id names no target.
 
 ### The host block a delegate brief carries
 
@@ -2919,7 +3131,7 @@ lanes (rule 3).
 - Heavy work is a test, build, coverage, UI/E2E, archive or dev/run launch, and a push that starts CI on this host; anything not named light (a read, other git, a `--dry-run`, a lint of the changed files, a prose check) is heavy.
 - Run heavy work only while this brief's `Heavy turn:` line grants it, one heavy workload at a time on this host, each runner at the worker count that line names.
 - A lane whose declaration cannot bound its workers runs only inside the turn, the gap named against zheref/nen#537, never with an improvised flag.
-- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`), and name every recorded group in your hand-back.
+- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`) beside its `$$`, and name both in your hand-back; a group that differs from `$$` is no recorded id.
 - Without the turn, run light checks only, commit, publish only where the push starts no CI on this host, and hand back each heavy lane named as pending, never as green.
 - The turn ends at your hand-back; name in it every heavy lane you ran and every one you did not.
 - On an unresponsive host, a repeated subprocess timeout, a cancelled run or uncertain descendants: launch nothing heavy, retry nothing, hand back with what you saw.
@@ -3039,7 +3251,7 @@ previous effort's branch, merged **bottom-up** by the maintainer.
 1. **When to stack — the default on overlap.** Two efforts in one run whose diffs would touch a common
    path — read from the files each touches; the manifests' `version` and the regenerated mirrors count
    as touched by every plugin-shipped change, while `changelog.d/` fragments do not collide — go in one
-   stack. That is the default when the maintainer gives no word; futon § 5's integration branch is the
+   stack. That is the default when the maintainer gives no word in an attended run (an idle run never stacks, § *Batch delivery* rule 4); futon § 5's integration branch is the
    other shape, typed. Efforts with disjoint paths may run as independent PRs against `branch.base`; an
    effort found to overlap after it was cut is caught up onto the stack's tip (`nen wc catch-up --base
    <the previous effort's branch> --strategy rebase` while unpublished, `merge` once published) rather
