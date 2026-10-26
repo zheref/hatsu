@@ -490,13 +490,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "plugin-update",
             "bash",
-            "scripts/hatsu_plugin_update_fixture_check.sh"
+            "scripts/hatsu_plugin_update_fixture_check.sh",
+            "--target",
+            "scripts/hatsu_plugin_update.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the plugin-source updater. Run it only as `nen shu test --lane plugin-update --repo <hatsu>` when scripts/hatsu_plugin_update.sh or its fixture changes."
+          "$comment": "A permanent, deterministic fixture for the plugin-source updater. Run it only as `nen shu test --lane plugin-update --repo <hatsu>` when scripts/hatsu_plugin_update.sh or its fixture changes. Through scripts/shell_coverage.mts, the fixture keeps its descendants off Bashcov's shared trace descriptor and invokes only scripts/hatsu_plugin_update.sh through a short-lived traced wrapper; the helper retains only that exact source in coverage/plugin-update/lcov.info. Without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/plugin-update/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): Bashcov 4.0.0 cannot parse this fixture's trace (XtraceError: interleaved child output on the trace descriptor; it aborts with an incomplete report, measured 2026-10-23), so an instrumented run would capture nothing. Until a tracer reads it, this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "plugin-update"
+          ],
+          "artifacts": [
+            "coverage/plugin-update/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/plugin-update/lcov.info, which this lane's test row wrote, verifies its exact-source provenance, and runs no fixture. Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "surface-link": {
@@ -504,13 +522,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "surface-link",
             "bash",
-            "scripts/hatsu_surface_link_fixture_check.sh"
+            "scripts/hatsu_surface_link_fixture_check.sh",
+            "--target",
+            "scripts/hatsu_surface_link.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the surface-link installer. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes."
+          "$comment": "A permanent, deterministic fixture for the surface-link installer. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes. Through scripts/shell_coverage.mts, the fixture keeps its descendants off Bashcov's shared trace descriptor and invokes only scripts/hatsu_surface_link.sh through a short-lived traced wrapper; the helper retains only that exact source in coverage/surface-link/lcov.info. Without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/surface-link/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): Bashcov 4.0.0 cannot parse this fixture's trace (XtraceError: interleaved child output on the trace descriptor; it aborts with an incomplete report, measured 2026-10-23), so an instrumented run would capture nothing. Until a tracer reads it, this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "surface-link"
+          ],
+          "artifacts": [
+            "coverage/surface-link/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/surface-link/lcov.info, which this lane's test row wrote, verifies its exact-source provenance, and runs no fixture. Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "surface-bootstrap-guard": {
@@ -518,13 +554,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "surface-bootstrap-guard",
             "bash",
-            "scripts/surface_bootstrap_fixture_check.sh"
+            "scripts/surface_bootstrap_fixture_check.sh",
+            "--target",
+            "scripts/surface_bootstrap.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated."
+          "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated. Through scripts/shell_coverage.mts, the fixture keeps its hook and shell descendants off Bashcov's shared trace descriptor and invokes only scripts/surface_bootstrap.sh through a short-lived traced wrapper; the helper retains only that exact source in coverage/surface-bootstrap-guard/lcov.info. Without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/surface-bootstrap-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): Bashcov 4.0.0 cannot parse this fixture's trace (XtraceError: interleaved child output on the trace descriptor; it aborts with an incomplete report, measured 2026-10-23), so an instrumented run would capture nothing. Until a tracer reads it, this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "surface-bootstrap-guard"
+          ],
+          "artifacts": [
+            "coverage/surface-bootstrap-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/surface-bootstrap-guard/lcov.info, which this lane's test row wrote, verifies its exact-source provenance, and runs no fixture. Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "nen-global-guard": {
@@ -839,13 +893,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "prose-guard",
             "bash",
-            "scripts/prose_size_check_fixture.sh"
+            "scripts/prose_size_check_fixture.sh",
+            "--target",
+            "scripts/prose_size_check.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the prose-diet guard. Run it as `nen shu test --lane prose-guard --repo <hatsu>` when scripts/prose_size_check.sh or its fixture changes; run the guard itself (`sh scripts/prose_size_check.sh --headroom`) to read the live margins."
+          "$comment": "A permanent, deterministic fixture for the prose-diet guard. Run it as `nen shu test --lane prose-guard --repo <hatsu>` when scripts/prose_size_check.sh or its fixture changes; run the guard itself (`sh scripts/prose_size_check.sh --headroom`) to read the live margins. Through scripts/shell_coverage.mts, the fixture keeps child-shell traces out of captured assertion output and invokes only scripts/prose_size_check.sh through a short-lived traced wrapper; the helper retains only that exact source in coverage/prose-guard/lcov.info. Without Bashcov it runs once, uninstrumented, and says so.",
+          "artifacts": [
+            "coverage/prose-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "prose-guard"
+          ],
+          "artifacts": [
+            "coverage/prose-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: reads coverage/prose-guard/lcov.info, which this lane's test row wrote, verifies its exact-source provenance, and runs no fixture. Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
       "canon-lint": {
