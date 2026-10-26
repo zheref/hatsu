@@ -1077,3 +1077,31 @@ idle-permissions: 37/45 pre-allowed; 8 would prompt — under --idle each is a h
 
 The rendered Claude Code pack (`scripts/permissions_pack.sh --surface claude-code --render`) missed the same commands at the first run.
 Whether to grant any is the maintainer's (a permission setting); this list only says what an idle run would meet.
+
+## Dated verification, 2026-10-25 — every delivery Ready, or held and named (zheref/hatsu#488)
+
+**The failure.** A kazaana batch on `zheref/akatsuki-ai` left AK-PR-#75 and its stacked AK-PR-#76 open and
+not Ready — their current-head `nen pr ready` still failing on review rounds and approvals — reported its
+checkpoint and offered the wrap-up. futon § 10 and kazaana § 7 then let a run end with an item "blocked with
+its blocker named", which a caller read as completion. The rule is now one section, WORKFLOW § *Batch
+delivery*; futon §§ 1, 10, 12, kazaana §§ 1, 3, 7, en § 7, dowsing-chain § 9 and backlog-loop § 10 cite it.
+
+**The six cases (SC-3).** Method: `scripts/futon_effort_record_fixture.mts` (lane `futon-effort-guard`) at
+this PR's head, whose stub nen keeps manifests as nen 0.28 does (`started` writes one; a known id with the same
+answers is `existing`, other answers a `conflict` at exit 1). It fails against the previous script (the idle
+bind exits 0) and against the previous futon prose (`futon § 10 cites WORKFLOW § Batch delivery`). Cases 1–4
+are canon assertions in that fixture plus the section's own rules; no live batch was run for this entry.
+
+| # | Case | What the rule requires | Proof |
+|---|---|---|---|
+| 1 | Ordinary attended batch | `en` behind every delivery (rule 1); the run ends once none is `driving`, a `ready` one keeping it open (rule 3, futon § 10) | fixture: futon § 10 cites the section, ends on held, never "blocked" |
+| 2 | Composite caller (kazaana, dowsing-chain wave, backlog-loop) | the same states through the composite | fixture: kazaana § 7 and backlog-loop § 10 likewise; en and dowsing-chain cite it |
+| 3 | Pending review after green checks (AK-PR-#75/#76) | green checks are not delivery; an owed round is `sharingan`'s act (rule 1); an approval only a person gives is `held-approval` with its three facts (rule 2) | fixture: WORKFLOW names every state and cause |
+| 4 | Human-only prerequisite | `held-<cause>`, parked with `nen run park` (nen 0.28 accepts `held-*` rows, read on a scratch repo 2026-10-25); the run ends **incomplete**, `register` not `final` (rules 2–3) | prose + the park read |
+| 5 | Unattended multi-issue integration | one integration branch (`integrate`) and one integration-to-main PR, no per-effort PR, no stack (rule 4) | fixture: `bind` refuses an idle run (exit status), `verify` refuses an idle claim, `integrate` refuses a second branch and `main` |
+| 6 | Resumed unattended delivery | the newest **unended** run typed as the line (`end` records futon § 10), its stored answers re-checked against the floor, terminal and branch; exit `3` only for *no open run*; refused with no manifest **without** calling nen, and on another line, an ended run, a dry run, a v0.2 record, another start time, a non-idle or `null` manifest, an answer past the floor, a mismatched or forged id or another repository; a moved committed profile reported, not obeyed (rule 5) | fixture: resume by id and by line, the end marker and exit `3`, the refusals, the drift case |
+
+**Not exercised live**: a real idle batch opening an integration PR, and a resume against nen's real manifest
+(reviewers drove real nen 0.28.0 on scratch repositories during hanten: a start for an unknown id writes a
+manifest, which is why resume refuses first). nen 0.28's `nen run append` does not refuse a `delivery` kind on an
+idle manifest (owed to nen, zheref/nen#544).

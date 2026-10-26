@@ -684,12 +684,6 @@
       "count": 1
     },
     {
-      "path": "claude/skills/futon/SKILL.md",
-      "rule": "PL-05",
-      "text": "on delivery ownership*, #154). Never record a main-b",
-      "count": 1
-    },
-    {
       "path": "claude/skills/getsuga/SKILL.md",
       "rule": "PL-06",
       "text": "or such a repository; verified live at `0.3.0` against this",
@@ -7185,12 +7179,6 @@
       "path": "docs/surfaces/codex.md",
       "rule": "PL-05",
       "text": "7, zheref/hatsu#294 and #295):** the picker carries",
-      "count": 1
-    },
-    {
-      "path": "docs/surfaces/cursor.md",
-      "rule": "PL-06",
-      "text": "§ 9, forum-sourced, not verified live; [`docs/WORKFLOW.md`](.",
       "count": 1
     },
     {
