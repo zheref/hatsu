@@ -113,7 +113,7 @@ covers App and CLI availability by plan. The October 16 [CLI id refusal](https:/
 is historical served lag; it does not override the successful 1.4.2 probe.
 
 In-session delegation is
-`invoke_subagent` with `Workspace` `branch` (isolated worktree — mandatory for all autonomous feature authoring, parity implementations, and Hanten reviewers), `inherit` (read-only long watch e.g. `en · illumi`, or in-context reporting e.g. Third-Hand's Netero), or `share`. All Hatsu-specific development efforts on Antigravity run in separate worktrees (`Workspace: "branch"`) unless explicitly instructed otherwise by the maintainer; the core checkout is reserved for the primary IDE and `/amaterasu`.
+`invoke_subagent` — the native capability kazaana § 3 raises a builder with, attended or `--idle`: that no Nen verb raises a delegate never makes it unavailable; only its absence from this session's tools, or an observed refusal, holds the one effort, evidence named ([WORKFLOW](../WORKFLOW.md) § *Idle batches* rule 3). It is called with `Workspace` `branch` (isolated worktree — mandatory for all autonomous feature authoring, parity implementations, and Hanten reviewers), `inherit` (read-only long watch e.g. `en · illumi`, or in-context reporting e.g. Third-Hand's Netero), or `share`. All Hatsu-specific development efforts on Antigravity run in separate worktrees (`Workspace: "branch"`) unless explicitly instructed otherwise by the maintainer; the core checkout is reserved for the primary IDE and `/amaterasu`.
 
 
 ## 4. Hooks

@@ -52,8 +52,7 @@ manifest under its run ID (HA#154, HA#423). After every PR this run opens, whate
 `nen backlog fetch --repo-slug <owner/name> --json` — never cached or `--limit`ed; a capped fetch
 reads **truncated**. Then:
 
-- **Select** — by band: every issue whose `bankai:severity/*` label is in the band; with `+`, that
-  severity **and every severity above it**. By label: **every open issue carrying that exact label**,
+- **Select** — by band: every issue whose `bankai:severity/*` label is in the band (§ 1). By label: **every open issue carrying that exact label**,
   whatever its severity.
 - **Triage the untriaged** as `backlog-loop` § 4 does. Under a band, **a triaged severity inside it
   joins the queue; outside, it is recorded out of scope.** Under a
@@ -180,6 +179,6 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 
 ## 12. `--idle` — the unattended profile (HR-5)
 
-WORKFLOW § *Idle batches* is the protocol, `--dry-run` its rehearsal; every decision taken for the maintainer is recorded (`nen stop answer`) and listed (rule 8). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
+WORKFLOW § *Idle batches* is the protocol, `--dry-run` its rehearsal; every decision taken for the maintainer is recorded (`nen stop answer`) and listed (rule 8); residue is ownership, never a park alone (rule 3). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
 *Residue: PROCESS § Residue; `docs/ab/futon.md`.*

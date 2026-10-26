@@ -50,6 +50,7 @@ Bind the actual checkout before Breath or Ten catch-up, not the plugin root.
 Delegated authors need their own checkout: Agent `isolation: "worktree"` is used only when it
 isolates the intended target repository; otherwise provision the target worktree explicitly and
 hand its absolute path to the agent. Hanten's target-specific procedure remains separate.
+The Agent tool is the native capability kazaana § 3 raises a builder with, attended or `--idle`: that no Nen verb raises a delegate never makes it unavailable; only its absence from this session's tools, or an observed refusal, holds the one effort, evidence named ([WORKFLOW](../WORKFLOW.md) § *Idle batches* rule 3).
 An entry/trust/permission refusal is named and reported; never disable it, change settings or
 fall back to core. The original core-authoring waiver grants no automatic core launch or swap.
 

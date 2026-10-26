@@ -1550,8 +1550,25 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    park not persisted`, never a recorded park or an empty successful run. A human-gate row is never
    pre-answered: the effort stands at that gate.
    (Park rows are `[a-z0-9-]+`, the spelling nen refuses otherwise; the colon forms of 0.136.0 are retired.)
-3. **Residue parks.** In the batch, a step a skill marks *by hand* or *no verb* is never improvised as
-   shell: the effort parks as `parked:residue-<skill>`.
+3. **Residue is ownership, never a stop by itself** (zheref/hatsu#481). A step a skill names as residue
+   (hand-run, *no verb*) says no Nen verb owns it, not that it cannot run. Resolve each step in this order:
+   **authority and gates** first — a human gate stays the maintainer's (rule 2), and no capability
+   supplies a missing authorization or weakens a gate; then **a Nen verb** where Nen owns the operation;
+   else **the owning skill's native capability or named surface adapter** — kazaana § 3's delegate is
+   raised by the host's delegation tool (Claude Code's Agent tool, Codex `spawn_agent`, Cursor's
+   subagent, Antigravity `invoke_subagent`), under `--idle` exactly as attended; **judgment, drafting
+   and authoring** proceed, since no verb owns them. The effort parks only on an **observed** fact: the
+   named capability absent from this session's tools, an applicable prohibition, an unavailable
+   prerequisite, an observed rejection (rule 2) or an unresolved required human choice (rule 1). Shell
+   improvised in place of a Nen-owned safeguard stays refused, and the park names the unmet dependency
+   instead. `parked:residue-<skill>` is for a step whose only route is a hand-run operation the batch may
+   not improvise; an absent tool parks as `g5-capability-unavailable`, a refused act as
+   `g5-harness-denied`. **A hold is one effort's**: the register names, beside the park, the exact
+   capability or refused act and its evidence (the tool list read, the refusal quoted) — nen's
+   `parked[]` carries the row only, a reason field owed to nen (unfiled) — and the independent efforts
+   continue. The report keeps a **policy judgment** (a park chosen from canon) apart from an **observed
+   execution failure** (a tool absent, an act refused), and never names a later, unrelated rejection as
+   an earlier park's cause. Conformance: `docs/ab/futon.md` § 2026-10-26.
 4. **Bounds.** Before each claim, `nen run budget` (§ 2 `idle` → `budget`, its four exit rows) gives the
    wall-clock minutes against the ceiling `start` printed; at `remaining.minutes` `0` nothing new is claimed
    and the rest park as `parked:budget`. The token bound is advisory where the ledgers are unread (§ 2).
