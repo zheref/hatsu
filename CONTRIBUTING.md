@@ -58,6 +58,18 @@ from `$CLAUDE_PLUGIN_ROOT`, while first-run bootstrap and the plugin-source upda
 from the canonical `$HATSU_PLUGIN_ROOT` checkout. Bump
 `version` (patch for wording, minor for behaviour or a new skill, major for a breaking interface change —
 which the minor carries while Hatsu is on `0.x`, SemVer clause 4, the reading applied to nen's own line).
+
+**Parallel bumps can collide even when catch-up has no conflicts** (zheref/hatsu#346). After each
+catch-up, compare the branch's actual `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`
+versions with the fresh base's manifests. Both must agree and be **strictly above the fresh base**:
+an equal or lower version owes a new bump before readiness, even if it increased from the branch's
+original starting point. Re-bump both manifests and update the version line in the same effort's
+existing `changelog.d/` fragment. This remains Hatsu authoring; `nen wc catch-up` does not choose or
+apply a fresh release number. Use [`scripts/plugin_version_refs.sh`](scripts/plugin_version_refs.sh)
+(`scripts/plugin_version_refs.ts`, zheref/hatsu#158) with `--from <old> --to <new>` to inspect tracked
+references, then `--write` for its conservative repairs. Review the remaining lines and PR body by
+hand, regenerate mirrors, and rerun the guard against the fresh base before calling the PR ready.
+
 **There is no opt-out for a shipped path** (zheref/hatsu#171): a `no plugin bump: <reason>` line in the PR
 body is honoured only where no path in `PLUGIN_SURFACE_GLOBS` changed — where the guard does not apply
 anyway — and, when the version is not bumped, over a shipped path it is refused by name, the refusal

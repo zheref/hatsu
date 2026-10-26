@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Focused, declared verification for scripts/plugin_bump_check.sh.
-# Requires Bash, mktemp and jq (invoked by the guard to read plugin versions).
+# Requires Bash, git, node, mktemp and jq (the guard reads plugin versions).
 # Invoked only through `nen shu test --lane plugin-bump-guard --repo <hatsu>`.
 set -euo pipefail
 
@@ -61,9 +61,9 @@ printf '%s\n' 'scripts/prose_size_check.sh' > "$fixture_root/changed-prose-guard
 
 run_case() {
   local name="$1" expected_status="$2" changed="$3" head="$4" expected_text="$5" body="${6:-$fixture_root/body.md}"
-  local actual_status output
+  local base="${7:-$fixture_root/base.json}" actual_status output
 
-  if output="$(bash "$guard" "$changed" "$fixture_root/base.json" "$head" "$body" 2>&1)"; then
+  if output="$(bash "$guard" "$changed" "$base" "$head" "$body" 2>&1)"; then
     actual_status=0
   else
     actual_status=$?
@@ -328,3 +328,100 @@ printf '%s\n' 'the refused opt-out lists only the shipped paths: ok'
 run_case 'opt-out beside a real bump passes on the bump' 0 "$fixture_root/changed-workflow.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped' "$fixture_root/body-optout.md"
 run_case 'beside a bump the opt-out line is named as ignored' 0 "$fixture_root/changed-workflow.txt" "$fixture_root/head-bumped.json" 'the `no plugin bump:` line was ignored (inert beside a bump' "$fixture_root/body-optout.md"
 run_case 'the refusal no longer offers an opt-out for a shipped path' 1 "$fixture_root/changed-workflow.txt" "$fixture_root/head-unchanged.json" 'There is no opt-out for a shipped path'
+
+# #346: replay the #338/#339/#344 shape with REAL branches, Git catch-up and
+# manifests read from the current base ref. Only this temporary repository's
+# main moves; no remote, live checkout or published history is involved.
+(
+  unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR
+  collision_repo="$fixture_root/version-collision"
+  git init -q --initial-branch=main "$collision_repo"
+  collision_git() { git -C "$collision_repo" "$@"; }
+  collision_git config user.name 'Hatsu fixture'
+  collision_git config user.email 'hatsu-fixture@example.invalid'
+  collision_git config core.hooksPath /dev/null
+  collision_git config commit.gpgSign false
+  collision_git config merge.gpgSign false
+  mkdir -p "$collision_repo/.claude-plugin" "$collision_repo/.codex-plugin" "$collision_repo/changelog.d"
+  printf '%s\n' '{' '  "name": "hatsu",' '  "version": "0.115.0"' '}' > "$collision_repo/.claude-plugin/plugin.json"
+  cp "$collision_repo/.claude-plugin/plugin.json" "$collision_repo/.codex-plugin/plugin.json"
+  collision_git add .claude-plugin/plugin.json .codex-plugin/plugin.json
+  collision_git commit -qm 'chore(fixture): seed shared base' -m 'Hatsu-Agent: kurapika'
+  collision_start="$(collision_git rev-parse HEAD)"
+
+  # Read Git's current base, not the original branch point after main moves.
+  collision_inputs() {
+    collision_git show main:.claude-plugin/plugin.json > "$fixture_root/collision-base.json"
+    collision_git diff --name-only main..HEAD > "$fixture_root/collision-changed.txt"
+  }
+  collision_catch_up() {
+    collision_git merge --no-ff --no-commit main > "$fixture_root/collision-merge.log" 2>&1
+    if collision_git rev-parse --verify --quiet MERGE_HEAD >/dev/null; then
+      collision_git commit -qm 'chore(fixture): catch up with shared base' -m 'Hatsu-Agent: kurapika'
+    fi
+  }
+
+  for issue in 338 339 344; do
+    collision_git checkout -qb "pr-$issue" "$collision_start"
+    printf '%s\n' '{' '  "name": "hatsu",' '  "version": "0.116.0"' '}' > "$collision_repo/.claude-plugin/plugin.json"
+    cp "$collision_repo/.claude-plugin/plugin.json" "$collision_repo/.codex-plugin/plugin.json"
+    mkdir -p "$collision_repo/claude/skills/feature-$issue" "$collision_repo/changelog.d"
+    printf '# Feature %s\n' "$issue" > "$collision_repo/claude/skills/feature-$issue/SKILL.md"
+    printf -- '- v0.116.0: Feature %s.\n' "$issue" > "$collision_repo/changelog.d/$issue.md"
+    collision_git add .claude-plugin/plugin.json .codex-plugin/plugin.json "claude/skills/feature-$issue/SKILL.md" "changelog.d/$issue.md"
+    collision_git commit -qm "feat(fixture): prepare branch $issue" -m 'Hatsu-Agent: kurapika'
+    collision_inputs
+    run_case "collision pr-$issue initially increases 0.115.0 to 0.116.0" 0 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      'plugin.json version bumped' "$fixture_root/body.md" "$fixture_root/collision-base.json"
+  done
+
+  # One winner consumes 0.116.0. Both losing branches catch up without a text
+  # conflict; both still carry that same version, and neither can pass.
+  collision_git checkout -q main
+  collision_git merge --ff-only -q pr-338
+  for issue in 339 344; do
+    collision_git checkout -q "pr-$issue"
+    collision_catch_up
+    collision_inputs
+    run_case "collision pr-$issue after winner lands" 1 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      'not a strict increase: base 0.116.0 -> head 0.116.0' \
+      "$fixture_root/body.md" "$fixture_root/collision-base.json"
+  done
+  printf '%s\n' 'three-branch collision: exactly 1 winner at 0.116.0; 2 caught-up losers refused'
+
+  # Repair in sequence with #158's actual conservative helper. The second
+  # loser must compare with the newly advanced base AGAIN, even though its
+  # catch-up can adopt the first loser's manifests cleanly.
+  for issue in 339 344; do
+    collision_git checkout -q "pr-$issue"
+    collision_catch_up
+    collision_inputs
+    old="$(jq -r .version "$fixture_root/collision-base.json")"
+    if [ "$issue" = 339 ]; then next=0.116.1; else next=0.116.2; fi
+    run_case "collision pr-$issue before fresh re-bump" 1 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      "not a strict increase: base $old -> head $old" \
+      "$fixture_root/body.md" "$fixture_root/collision-base.json"
+    bash "$repo_root/scripts/plugin_version_refs.sh" --root "$collision_repo" \
+      --from "$old" --to "$next" --write > "$fixture_root/collision-references.log"
+    # The helper reports the fragment for review; update only this effort's
+    # original fragment, retaining the prior winner's version and fragment.
+    printf -- '- v%s: Feature %s.\n' "$next" "$issue" > "$collision_repo/changelog.d/$issue.md"
+    test "$(jq -r .version "$collision_repo/.claude-plugin/plugin.json")" = "$next"
+    test "$(jq -r .version "$collision_repo/.codex-plugin/plugin.json")" = "$next"
+    collision_git add .claude-plugin/plugin.json .codex-plugin/plugin.json "changelog.d/$issue.md"
+    collision_git commit -qm "fix(fixture): re-bump branch $issue above fresh base" -m 'Hatsu-Agent: kurapika'
+    collision_inputs
+    run_case "collision pr-$issue fresh re-bump $old to $next" 0 \
+      "$fixture_root/collision-changed.txt" "$collision_repo/.claude-plugin/plugin.json" \
+      'plugin.json version bumped' "$fixture_root/body.md" "$fixture_root/collision-base.json"
+    collision_git checkout -q main
+    collision_git merge --ff-only -q "pr-$issue"
+  done
+  test "$(collision_git show main:changelog.d/338.md)" = '- v0.116.0: Feature 338.'
+  test "$(collision_git show main:changelog.d/339.md)" = '- v0.116.1: Feature 339.'
+  test "$(collision_git show main:changelog.d/344.md)" = '- v0.116.2: Feature 344.'
+  printf '%s\n' 'three-branch recovery: losers land at 0.116.1 and 0.116.2; each original fragment follows its own bump'
+)
