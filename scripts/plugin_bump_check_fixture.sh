@@ -52,7 +52,6 @@ printf '%s\n' 'scripts/shell_coverage.mts' > "$fixture_root/changed-shell-covera
 printf '%s\n' 'scripts/hanten_findings_check.mts' > "$fixture_root/changed-hanten-findings.txt"
 printf '%s\n' 'scripts/clause_id_guard.mts' > "$fixture_root/changed-clause-parser.txt"
 printf '%s\n' 'scripts/send_freshness_check.sh' > "$fixture_root/changed-freshness.txt"
-printf '%s\n' 'scripts/kagutsuchi_worktree.sh' > "$fixture_root/changed-kagutsuchi-worktree.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.sh' > "$fixture_root/changed-cleanup-path-admit.txt"
 printf '%s\n' 'scripts/cleanup_path_admit.ts' > "$fixture_root/changed-cleanup-path-admit-ts.txt"
 printf '%s\n' 'scripts/hatsu_surface_link.sh' > "$fixture_root/changed-surface-link.txt"
@@ -113,7 +112,6 @@ run_case 'shell coverage helper unchanged version' 1 "$fixture_root/changed-shel
 run_case 'Hanten findings checker unchanged version' 1 "$fixture_root/changed-hanten-findings.txt" "$fixture_root/head-unchanged.json" 'scripts/hanten_findings_check.mts'
 run_case 'Hanten roster parser unchanged version' 1 "$fixture_root/changed-clause-parser.txt" "$fixture_root/head-unchanged.json" 'scripts/clause_id_guard.mts'
 run_case 'freshness gate script unchanged version' 1 "$fixture_root/changed-freshness.txt" "$fixture_root/head-unchanged.json" 'scripts/send_freshness_check.sh'
-run_case 'kagutsuchi worktree script unchanged version' 1 "$fixture_root/changed-kagutsuchi-worktree.txt" "$fixture_root/head-unchanged.json" 'scripts/kagutsuchi_worktree.sh'
 run_case 'cleanup path admission script unchanged version' 1 "$fixture_root/changed-cleanup-path-admit.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.sh'
 run_case 'cleanup path admission implementation unchanged version' 1 "$fixture_root/changed-cleanup-path-admit-ts.txt" "$fixture_root/head-unchanged.json" 'scripts/cleanup_path_admit.ts'
 run_case 'surface link script unchanged version' 1 "$fixture_root/changed-surface-link.txt" "$fixture_root/head-unchanged.json" 'scripts/hatsu_surface_link.sh'

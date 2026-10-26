@@ -7,8 +7,18 @@
   "authority": "THIS FILE IS THE SINGLE SOURCE OF TRUTH for the Nen dependency. Any version, ref, URL or command echoed in README.md, docs/, an agent definition or a SKILL.md is a convenience copy of a value that lives here. Where a copy disagrees with this file, this file wins and the copy is the bug. Read the values from here at run time; never act on a remembered version. There is exactly one copy of this contract, at nen/contract.json. A second file carrying the same pin would be a second source of truth, which is the thing this clause forbids.",
   "summary": "Hatsu depends hard on the Nen CLI. Every deterministic step is a Nen verb. The dependency fails closed with auto-install: out of the declared range or absent, the checksum-verified bootstrap runs itself; only if the bootstrap fails does the session halt with the exact command. A Nen-owned operation is NEVER improvised in prose.",
   "$precedence": "Which canon text wins when two disagree, the first entry highest (docs/ROSTER.md HR-1, ruled 2026-10-20; finding C1 of the SDD assessment). Scope: canon prose and rulings; a configuration file's value (nen/*.json) still beats any prose copy of it, as each file's own authority clause and docs/WORKFLOW.md say. skill.hardLimit: a skill's own Hard limits section. roster.ruling: a ruled row of docs/ROSTER.md, an HR id or a dated ruling (this run's reading of HR-1's 'HR ruling', the maintainer's to correct at G4). nen/decisions.json: a canon row of the decision matrix; a consumer's own file never widens a human-gate row. docs/WORKFLOW.md: the way-of-working page, which holds this order's one prose restatement. docs/PROCESS.md: the shared phase conventions, which point at that restatement. akatsuki.CON: a CON-{n} clause. Ruled 2026-10-23 (docs/ROSTER.md HR-338): until zheref/akatsuki-ai is tagged and pinned in nen/repos.json (zheref/akatsuki-ai#50), a CON-{n} resolves through zheref/bankai-handbooks' CONSTITUTION.md at the tag nen/repos.json pins, never at main. handbooks: zheref/bankai-handbooks at the tag nen/repos.json pins. Fall-through, ruled 2026-10-23 (docs/ROSTER.md HR-339): a text outside the list yields to every listed entry and the conflict is filed. From nen 0.28 (zheref/nen#474, the HA449 repin) nen schema check validates this key and, through precedenceRestatedIn beside it, FAILS a restatement whose run drifts from it, by file and line; docs/WORKFLOW.md is the one listed restatement.",
-  "precedence": ["skill.hardLimit", "roster.ruling", "nen/decisions.json", "docs/WORKFLOW.md", "docs/PROCESS.md", "akatsuki.CON", "handbooks"],
-  "precedenceRestatedIn": ["docs/WORKFLOW.md"],
+  "precedence": [
+    "skill.hardLimit",
+    "roster.ruling",
+    "nen/decisions.json",
+    "docs/WORKFLOW.md",
+    "docs/PROCESS.md",
+    "akatsuki.CON",
+    "handbooks"
+  ],
+  "precedenceRestatedIn": [
+    "docs/WORKFLOW.md"
+  ],
   "dependency": {
     "name": "nen",
     "source": "zheref/nen",
@@ -36,7 +46,12 @@
       "vendoring_forbidden": "Hatsu never carries a copy of this script. A vendored copy is a second, unreviewed supply chain that drifts from the manifest it verifies against. Hatsu fetches nen's own published script at the pinned ref, every time.",
       "script_path_in_source": "bootstrap/nen.sh",
       "scriptSha256": "abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70",
-      "scriptSha256Provenance": {"ref": "v0.28.0", "commit": "21b133a21498ac5bea88dd9c8634cc217549e1fc", "path": "bootstrap/nen.sh", "sha256": "abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70"},
+      "scriptSha256Provenance": {
+        "ref": "v0.28.0",
+        "commit": "21b133a21498ac5bea88dd9c8634cc217549e1fc",
+        "path": "bootstrap/nen.sh",
+        "sha256": "abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70"
+      },
       "sha256": {
         "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified. CI reads linux-x64: the three workflows that bootstrap nen refuse a binary whose sha256 differs from main's copy of this key (zheref/hatsu#230), so a repin that leaves it behind fails every pull request after it closed.",
         "darwin-arm64": "af6f6a9ab8bbc4aa5e61b20dcfaae5ddc4a81b1a1721b367a02b9ebbeec22b7e",
@@ -86,16 +101,31 @@
     ],
     "mirrors": [
       {
-        "paths": ["surfaces/codex/**"],
-        "regenerate": ["bash", "scripts/surface_mirror_regenerate.sh"]
+        "paths": [
+          "surfaces/codex/**"
+        ],
+        "regenerate": [
+          "bash",
+          "scripts/surface_mirror_regenerate.sh"
+        ]
       },
       {
-        "paths": ["surfaces/cursor/**"],
-        "regenerate": ["bash", "scripts/surface_mirror_regenerate.sh"]
+        "paths": [
+          "surfaces/cursor/**"
+        ],
+        "regenerate": [
+          "bash",
+          "scripts/surface_mirror_regenerate.sh"
+        ]
       },
       {
-        "paths": ["surfaces/antigravity/**"],
-        "regenerate": ["bash", "scripts/surface_mirror_regenerate.sh"]
+        "paths": [
+          "surfaces/antigravity/**"
+        ],
+        "regenerate": [
+          "bash",
+          "scripts/surface_mirror_regenerate.sh"
+        ]
       }
     ]
   },
@@ -312,11 +342,6 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/cleanup_path_admit.ts behind its forwarding shim scripts/cleanup_path_admit.sh, hatsu:cleanup section 4's admission of a worktree PATH (zheref/hatsu#333). The .ts header is the rule and the self-test is its proof: hermetic and offline, a throwaway core, every refusal and every exit-2 case asserting its reason; docs/ab/cleanup.md carries the case table. Needs node >= 22.18 (23.x: 23.6), native type stripping; the shim exits 2 below it, never 1."
       },
-      "fresh-worktree-guard": {
-        "stack": "claude-code-plugin",
-        "cwd": ".",
-        "$comment": "The focused lane for scripts/kagutsuchi_worktree.sh, the clean worktree hatsu:kagutsuchi section 3b rebuilds in when the archive is not at the trunk's tip (zheref/hatsu#146), following the one-lane-per-executable-guard pattern. Its fixtures are hermetic and offline: a bare origin and a core clone declaring one project.fromCore path, proving the dry run creates nothing, a first run creates one detached worktree at origin/<base>'s tip and copies the declared gitignored file from core, a second run at the same tip reuses it (idempotent), a moved trunk moves a clean worktree, a dirty worktree is refused and never discarded, a tracked, unignored, absent, escaping or symlinked fromCore path is refused, a missing fromCore block copies nothing, a stray directory at the fixed path is refused, and a pruned registration is re-created. Nothing leaves the machine."
-      },
       "runner-preflight-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -365,7 +390,7 @@
       "dependency-audit-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/dependency_audit_resolve.mts (zheref/hatsu#247, item 1), the Node dependency audit hanten section 2a runs before Feitan reads, through contracts/scans.json -> dependencyAudit.node (hatsu.scans/v0.2): packageManager selects the lockfile, which is parsed strictly and its registry packages queried against OSV; no package manager and nothing in the tree is ever executed. Its fixture is hermetic and offline, against the live scans contract and a loopback stub OSV with one route per answer shape. It covers: a pnpm tree scanned and its finding reported; pnpm 5, 6 and 9, flow entries, key comments and a commented header read, explicit and unreadable keys, a cut file and a bodyless key refused; yarn Berry (with a patch) and classic (an npm alias, tight entries, a truncated block); npm 1 to 3 (an alias); registry-host, foreign-tarball, git, local and http entries; unqueried never clean; the stack routes and the stack catalogue; a decoy lockfile; a hostile tree that runs nothing and sends no token or canary; symlinked, directory, null, array and BOM manifests and lockfiles; maxDepth on a 20,000-deep npm nest and maxEntries; malformed, oversized, slow, failing and unreachable OSV answers and out-of-range severities; 2,500 findings reaching a pipe whole; and wiring stops, including each malformed optional contract key, at exit 2. scripts/unit_tests_ci.mts runs it in unit-tests.yml once this lands (BC-9). Run it as `nen shu test --lane dependency-audit-guard --repo <hatsu>` when the script, its fixture or the node row changes. It is not a general suite."
+        "$comment": "The focused lane for scripts/dependency_audit_resolve.mts (zheref/hatsu#247, item 1), the Node dependency audit hanten section 2a runs before Feitan reads, through contracts/scans.json -> dependencyAudit.node (hatsu.scans/v0.2): packageManager selects the lockfile, which is parsed strictly and its registry packages queried against OSV; no package manager and nothing in the tree is ever executed. Its fixture is hermetic and offline, against the live scans contract and a loopback stub OSV with one route per answer shape. It covers: the real Hatsu package.json/package-lock.json, whose 60 non-root lock entries are all dev-only and whose direct dev tool includes vitest, routed through the `claude-code-plugin` alias to the Node row and queried as all 60 packages against the stub; a pnpm tree scanned and its finding reported; pnpm 5, 6 and 9, flow entries, key comments and a commented header read, explicit and unreadable keys, a cut file and a bodyless key refused; yarn Berry (with a patch) and classic (an npm alias, tight entries, a truncated block); npm 1 to 3 (an alias); registry-host, foreign-tarball, git, local and http entries; unqueried never clean; the stack routes and the stack catalogue; a decoy lockfile; a hostile tree that runs nothing and sends no token or canary; symlinked, directory, null, array and BOM manifests and lockfiles; maxDepth on a 20,000-deep npm nest and maxEntries; malformed, oversized, slow, failing and unreachable OSV answers and out-of-range severities; 2,500 findings reaching a pipe whole; and wiring stops, including each malformed optional contract key, at exit 2. The row audits npm registry dependencies only: pinned Ruby gem SHA-256 integrity remains distinct from advisory scanning, so this is never a claim that the whole toolchain is clean. scripts/unit_tests_ci.mts runs it in unit-tests.yml once this lands (BC-9). Run it as `nen shu test --lane dependency-audit-guard --repo <hatsu>` when the script, its fixture, Hatsu's npm manifest/lock or the node row changes. It is not a general suite."
       },
       "spec-family-guard": {
         "stack": "claude-code-plugin",
@@ -544,14 +569,32 @@
       "unit-tests-ci-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--testTimeout", "15000", "scripts/unit_tests_ci_fixture.test.mts", "scripts/release_changelog_fixture.test.mts", "scripts/tenkai_release_guard_fixture.test.mts", "scripts/shell_coverage_fixture.test.mts"],
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--testTimeout",
+            "15000",
+            "scripts/unit_tests_ci_fixture.test.mts",
+            "scripts/release_changelog_fixture.test.mts",
+            "scripts/tenkai_release_guard_fixture.test.mts",
+            "scripts/shell_coverage_fixture.test.mts"
+          ],
           "$comment": "Pinned Vitest fixtures for the trusted CI test runner (including its required mechanical-conflicts fixture selection), release-changelog parser, and Tenkai publisher adoption guard. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "scripts/gh_api_read_fixture.test.mts", "scripts/provider_tag_commit_fixture.test.mts"],
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "scripts/gh_api_read_fixture.test.mts",
+            "scripts/provider_tag_commit_fixture.test.mts"
+          ],
           "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
@@ -560,24 +603,54 @@
           "steps": [
             {
               "exe": "node",
-              "argv": ["--eval", "require('node:fs').mkdirSync('coverage/plugin-bump-api-retry-guard', { recursive: true })"]
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/plugin-bump-api-retry-guard', { recursive: true })"
+              ]
             },
             {
               "exe": "bash",
-              "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--maxWorkers=1", "--no-file-parallelism", "--testTimeout", "5000", "scripts/plugin_bump_api_retry_fixture.test.mts"]
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "--testTimeout",
+                "5000",
+                "scripts/plugin_bump_api_retry_fixture.test.mts"
+              ]
             },
             {
               "exe": "node",
-              "argv": ["--test", "--experimental-test-coverage", "--test-concurrency=1", "--test-coverage-include=scripts/plugin_bump_api_retry.mts", "--test-reporter=spec", "--test-reporter=lcov", "--test-reporter-destination=stdout", "--test-reporter-destination=coverage/plugin-bump-api-retry-guard/lcov.info", "scripts/plugin_bump_api_retry_coverage.test.mts"]
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/plugin_bump_api_retry.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/plugin-bump-api-retry-guard/lcov.info",
+                "scripts/plugin_bump_api_retry_coverage.test.mts"
+              ]
             }
           ],
-          "artifacts": ["coverage/plugin-bump-api-retry-guard/lcov.info"],
+          "artifacts": [
+            "coverage/plugin-bump-api-retry-guard/lcov.info"
+          ],
           "$comment": "The authoritative worker-one Vitest suite runs first. A separate Node 24 test then replays the same exported behavior cases in-process solely for exact-source LCOV over scripts/plugin_bump_api_retry.mts; it does not replace Vitest. The built-in spec reporter keeps capture failures visible while the paired lcov reporter writes the ignored artifact. Hermetic HA#381 cases prove bounded attempts/backoff and fetch-plus-body timeout, transient recovery, persistent fail-closed diagnostics, confirmed-base-only 404 handling, the documented 3,000-file ceiling, rename paths, and body-only determinism. Install locked dependencies with npm ci --ignore-scripts first."
         },
         "coverage": {
           "exe": "node",
-          "argv": ["--eval", "const fs=require('node:fs');const path='coverage/plugin-bump-api-retry-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing plugin-bump API retry LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty plugin-bump API retry LCOV capture')"],
-          "artifacts": ["coverage/plugin-bump-api-retry-guard/lcov.info"],
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/plugin-bump-api-retry-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing plugin-bump API retry LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty plugin-bump API retry LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/plugin-bump-api-retry-guard/lcov.info"
+          ],
           "$comment": "Extraction only: verifies the non-empty LCOV artifact written by this lane's test row and runs no fixture. Nen owns LCOV parsing and --from-capture provenance."
         }
       },
@@ -877,7 +950,7 @@
             "bash",
             "scripts/config_values_fixture.sh"
           ],
-          "$comment": "Hermetic and offline: fixture declarations under a temp dir prove fill writes only absent defaults and `$<key>` option annotations, keeps hand formatting, is idempotent, never creates a declaration or rewrites a set value, that set refuses a value outside its options and a secret-shaped value, that on-use and optional values never block adoption, and that every row of the shipped catalogue is well-formed against claude/skills/; then the TypeScript adapter's fixture proves set refuses each intake examiner as a review.scopes persona and still writes a code reviewer (HR-23), and its get fixture proves `get` reads release.proposalMerge at a ref (declared human, absent self, an uncommitted edit ignored), refuses an out-of-set value at exit 1 and an unreadable file, ref or symlink at exit 2 (zheref/hatsu#414). Run it as `nen shu test --lane config-values-guard --repo <hatsu>` when scripts/config_values.sh, scripts/config_values.ts or contracts/config-catalogue.json changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/config-values-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane config-values-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "Hermetic and offline: fixture declarations under a temp dir prove fill writes only absent defaults and `$<key>` option annotations, keeps hand formatting, is idempotent, never creates a declaration or rewrites a set value, that set refuses a value outside its options and a secret-shaped value, that on-use and optional values never block adoption, and that every row of the shipped catalogue is well-formed against claude/skills/; then the TypeScript adapter's fixture proves set refuses each intake examiner as a review.scopes persona and still writes a code reviewer (HR-23), and its get fixture proves `get` reads release.proposalMerge at a ref (declared human, absent self, an uncommitted edit ignored), refuses an out-of-set value at exit 1 and an unreadable file, ref or symlink at exit 2 (zheref/hatsu#414). The pinned Vitest suite scripts/config_values_deploy_fixture.test.ts proves diagnose rejects a deploy.defaultTarget whose declared project target does not carry `nonProduction: true` or a clearly non-production why, while preserving blocked or unreadable declarations and null/absent defaults; both plain and JSON output keep their row and outstanding counts exact, duplicate --repo options use the last token-consumed value, and option-looking values are never re-read as flags. Run it as `nen shu test --lane config-values-guard --repo <hatsu>` when scripts/config_values.sh, scripts/config_values.ts, scripts/config_values_deploy_fixture.test.ts, contracts/config-catalogue.json or the relevant contract declarations change. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/config-values-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane config-values-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
           "artifacts": [
             "coverage/config-values-guard/lcov.info"
           ]
@@ -928,7 +1001,15 @@
       "mechanical-conflicts-guard": {
         "test": {
           "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--testTimeout", "15000", "scripts/mechanical_conflicts_fixture.test.mts"],
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--testTimeout",
+            "15000",
+            "scripts/mechanical_conflicts_fixture.test.mts"
+          ],
           "$comment": "Hermetic and offline: the typed Vitest fixture copies the live top-level mechanical declaration into scratch repositories backed by local bare origins, then invokes the verified Nen binary. It proves manifest, changelog and mirror conflicts are classed and stop at exit 3, one undeclared path changes the stop to exit 1 while every path remains listed, and the mirror group prints exactly ['bash', 'scripts/surface_mirror_regenerate.sh']. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
@@ -1306,37 +1387,6 @@
           "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
         }
       },
-      "fresh-worktree-guard": {
-        "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "scripts/shell_coverage.mts",
-            "--capture",
-            "fresh-worktree-guard",
-            "sh",
-            "scripts/kagutsuchi_worktree.sh",
-            "--self-test"
-          ],
-          "$comment": "The fresh-worktree guard's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Every fixture is removed on every path. Run it as `nen shu test --lane fresh-worktree-guard --repo <hatsu>` when scripts/kagutsuchi_worktree.sh changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/fresh-worktree-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane fresh-worktree-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
-          "artifacts": [
-            "coverage/fresh-worktree-guard/lcov.info"
-          ]
-        },
-        "coverage": {
-          "exe": "node",
-          "argv": [
-            "scripts/shell_coverage.mts",
-            "--verify",
-            "fresh-worktree-guard"
-          ],
-          "artifacts": [
-            "coverage/fresh-worktree-guard/lcov.info"
-          ],
-          "$comment": "Extraction only: reads coverage/fresh-worktree-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
-        }
-      },
       "runner-preflight-guard": {
         "test": {
           "exe": "bash",
@@ -1645,6 +1695,13 @@
           "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
         }
       ],
+      "config-values-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
+        }
+      ],
       "gh-api-read-guard": [
         {
           "kind": "path",
@@ -1670,7 +1727,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/prose_ambiguity_check_fixture.mts, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/kagutsuchi_worktree.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; cleanup_path_admit and prose_ambiguity_check_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/prose_ambiguity_check_fixture.mts, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; cleanup_path_admit and prose_ambiguity_check_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {
