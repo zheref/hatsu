@@ -828,3 +828,13 @@ Run `hatsu:futon hatsu@bug then getsuga+mugetsu` (the advance go, quoted). No to
 the phase at the tag and mugetsu never runs from inside it, so a step here that waited on the attached
 assets could only ever take its deferral branch. § 7 says one line — the target's `origin` equals
 `dependency.source`, the re-pin is mugetsu's once the assets attach — and touches no pin.
+
+## Dated verification, 2026-10-23 — crash-and-resume (zheref/hatsu#444)
+
+**Finding, not a pass.** `getsuga` writes no phase ledger (`git grep 'phase begin' claude/skills/getsuga` prints nothing at
+0.141.0) and opens no run manifest, so a crash leaves a resume nothing of its own to read: only the objects it
+already published. The one publishing step it shares with every composite is idempotent, proved live on
+HA-PR-#463 (`nen pr open` → `existing`, `docs/ab/mukai.md`, 2026-10-23). The ledger-level proof
+(`node scripts/resume_proof.mts`) covers ren, build and the futon manifest only. Owed: either `getsuga` wraps its
+steps in `nen phase begin|end --effort <branch>` and joins the proof, or a ruling that its GitHub state is its
+resume record.

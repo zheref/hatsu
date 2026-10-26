@@ -2,6 +2,7 @@
 ## 📋 Completion checklist
 
 - [x] Resolved reader order and cap checked; Agent attribution is final.
+- [x] Adversarial review settled.
 - [x] Changelog fragment check: <observed verdict>.
 - [x] Evidence and Development-link guards: <observed verdicts>.
 - [ ] <unmet condition and reason, when any>

@@ -15,7 +15,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, resolve as resolvePath } from "node:path";
 import { after, beforeEach, test } from "node:test";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   catalogue,
@@ -63,8 +63,51 @@ function body(report: Resolution, kind: RepositoryKind = "process", source = cat
   return [...report.preamble, ...report.ids, ...report.footer].map((id): string => {
     const row = rows.get(id) as SectionRow;
     const title = typeof row.title === "string" ? row.title : row.title[kind];
-    return `${"#".repeat(row.level)} ${row.glyph} ${title}\n\nFilled.`;
+    const glyph = row.glyph.length > 0 ? `${row.glyph} ` : "";
+    return `${"#".repeat(row.level)} ${glyph}${title}\n\nFilled.`;
   }).join("\n\n") + "\n";
+}
+// A compatibility contract for the deployed gate shape recorded by HA#475. Hatsu and Nen do not
+// ship that consumer-owned validator, so this is deliberately not presented as its execution.
+function hantenCompatibilityFindings(text: string): string[] {
+  const findings: string[] = [];
+  const headings = text.match(/^## Adversarial review \(hanten\)[ \t]*$/gm) ?? [];
+  if (headings.length !== 1) findings.push("exact Hanten H2 required once");
+  if (!/^- \[x\] Adversarial review settled\.[ \t]*$/m.test(text)) findings.push("checked Hanten checklist line missing");
+  const section = text.match(/^## Adversarial review \(hanten\)[ \t]*$([\s\S]*?)(?=^##[ \t]|(?![\s\S]))/m)?.[1] ?? "";
+  let dispositionColumn = -1;
+  let idColumn = -1;
+  let rows = 0;
+  const closeTable = (): void => {
+    if (dispositionColumn >= 0 && rows === 0) findings.push("findings table has a header and no rows");
+    dispositionColumn = -1; idColumn = -1; rows = 0;
+  };
+  for (const raw of `${section}\n`.split("\n")) {
+    const line = raw.trimStart();
+    if (!line.startsWith("|")) {
+      closeTable();
+      if (/disposition/i.test(line) && line.includes("|")) findings.push("findings table row lacks leading pipe");
+      continue;
+    }
+    const cells = line.split("|").map((cell): string => cell.trim().replace(/^[*`]+|[*`]+$/g, ""));
+    if (dispositionColumn < 0) {
+      dispositionColumn = cells.findIndex((cell): boolean => cell.toLowerCase() === "disposition");
+      idColumn = cells.findIndex((cell): boolean => cell.toLowerCase() === "id");
+      continue;
+    }
+    if (/^\|[ \t:|-]+$/.test(line)) continue;
+    rows++;
+    const id = cells[idColumn]?.trim() || "(unnamed row)";
+    const disposition = (cells[dispositionColumn] ?? "").replaceAll("*", "").trimStart();
+    if (!/^(?:fixed|pushed-back|deferred)(?:[ \t]+[-—:–][ \t]*\S|[ \t]*$)/i.test(disposition)) {
+      findings.push(`unsettled finding ${id}: ${disposition}`);
+    } else if (/^(?:fixed|pushed-back|deferred)[ \t]*$/i.test(disposition)) {
+      findings.push(`finding ${id} lacks disposition reason`);
+    } else if (/^deferred/i.test(disposition) && !/(?:#[0-9]+|https?:\/\/\S+)/.test(disposition)) {
+      findings.push(`deferred finding ${id} lacks tracked issue: ${disposition}`);
+    }
+  }
+  return findings;
 }
 function config(value: unknown): void {
   writeFileSync(join(repo, "nen/workflow.json"), `${JSON.stringify({ pr: { sections: value } })}\n`);
@@ -92,7 +135,7 @@ test("every one of 24 cells resolves and every one of 39 taxonomy jobs is owned 
   const jobs = Object.values(cat.families).flat();
   assert.equal(jobs.length, 39);
   assert.equal(new Set(jobs).size, 39);
-  assert.deepEqual(defaults(cat), { max: 7, variants: cat.variants });
+  assert.deepEqual(defaults(cat), { max: 7, variants: cat.variants, $canon: { contract: cat.contract, sha256: cat.documentSha256 } });
   assert.equal(Object.keys(options(cat)).length, cat.preamble.length + cat.sections.length + cat.footer.length);
 });
 
@@ -111,8 +154,9 @@ test("run facts admit only conditional readers while Delivery stays an always-fi
   assert.ok(!without.footer.includes("delivery"));
   // HR-334 (idle) and HA#474/AC-1 (attended): a run that took a decision carries the decisions footer, before the checklist.
   assert.ok(!without.footer.includes("decisions"));
-  assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "checklist", "issues", "attribution"]);
-  assert.deepEqual(resolution("process", ["machinery"], ["decisions"]).footer, ["decisions", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["idle"]).footer, ["decisions", "hanten", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["decisions"]).footer, ["decisions", "hanten", "checklist", "issues", "attribution"]);
+  assert.deepEqual(resolution("process", ["machinery"], ["spec", "decisions"]).footer, ["spec", "decisions", "hanten", "checklist", "issues", "attribution"]);
   const withEconomics = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   assert.deepEqual(withEconomics.ids, ["changes", "why", "how", "improves", "across", "verify", "economics"]);
   assert.deepEqual(resolution("unknown").ids, ["changes", "why", "how", "improves", "verify"]);
@@ -125,11 +169,11 @@ test("HA#474 AC-1/AC-2: decisions resolves on every cell when a decision was tak
     const [kind, family] = cell.split(".") as [RepositoryKind, string];
     for (const facts of [["decisions"], ["decisions", "policy-hit", "evidence"], ["idle"]]) {
       const taken = resolution(kind, cat.families[family], facts);
-      assert.deepEqual(taken.footer, ["decisions", "checklist", "issues", "attribution"], `${cell} ${facts.join(",")}`);
+      assert.deepEqual(taken.footer, ["decisions", "hanten", "checklist", "issues", "attribution"], `${cell} ${facts.join(",")}`);
       assert.deepEqual(check(cat, body(taken, kind), taken.requirements, 7)[0], [], cell);
     }
     const none = resolution(kind, cat.families[family], ["policy-hit", "evidence"]);
-    assert.deepEqual(none.footer, ["checklist", "issues", "attribution"], cell);
+    assert.deepEqual(none.footer, ["hanten", "checklist", "issues", "attribution"], cell);
     assert.ok(!none.requirements.some((row): boolean => row.name === "decisions"), cell);
     assert.deepEqual(check(cat, body(none, kind), none.requirements, 7)[0], [], cell);
   }
@@ -217,6 +261,33 @@ test("HA#474 AC-3: on zheref/hatsu#467's headings the strict check and nen's bod
   assert.equal(bodyCheck.status, 0, `${bodyCheck.stdout}${bodyCheck.stderr}`);
 });
 
+test("HA#475: the derived body satisfies the section guard and recorded Hanten compatibility contract", () => {
+  const report = resolution();
+  const valid = body(report)
+    .replace("## Adversarial review (hanten)\n\nFilled.", "## Adversarial review (hanten)\n\n| id | persona | rule | severity | file | disposition |\n|---|---|---|---|---|---|\n| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |")
+    .replace("## 📋 Completion checklist\n\nFilled.", "## 📋 Completion checklist\n\n- [x] Adversarial review settled.");
+  assert.deepEqual(check(cat, valid, report.requirements, 7)[0], []);
+  assert.deepEqual(hantenCompatibilityFindings(valid), []);
+
+  const decorated = valid.replace("## Adversarial review (hanten)", "## 🔍 Adversarial review (hanten)");
+  assert.ok(check(cat, decorated, report.requirements, 7)[0].some((finding): boolean => finding.includes("missing heading hanten")));
+  assert.ok(hantenCompatibilityFindings(decorated).includes("exact Hanten H2 required once"));
+
+  const unchecked = valid.replace("- [x] Adversarial review settled.", "- [ ] Adversarial review settled.");
+  assert.ok(hantenCompatibilityFindings(unchecked).includes("checked Hanten checklist line missing"));
+  const untracked = valid.replace("**deferred** — #475", "**deferred** — later");
+  assert.ok(hantenCompatibilityFindings(untracked).some((finding): boolean => finding.includes("lacks tracked issue")));
+  const pipeless = valid.replace(
+    "| id | persona | rule | severity | file | disposition |\n|---|---|---|---|---|---|\n| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |",
+    "id | persona | rule | severity | file | disposition\n---|---|---|---|---|---\nHR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — later",
+  );
+  assert.ok(hantenCompatibilityFindings(pipeless).includes("findings table row lacks leading pipe"));
+  const indented = valid.replace("| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |", " | HR-2 | reviewer | HR-1 | high | `a.md` | **deferred** — later |");
+  assert.ok(hantenCompatibilityFindings(indented).some((finding): boolean => finding.includes("HR-2 lacks tracked issue")));
+  const hyphenId = valid.replace("| HR-1 | reviewer | HR-1 | high | `a.md` | **deferred** — #475 |", "|-3 | reviewer | HR-1 | high | `a.md` | **deferred** — later |");
+  assert.ok(hantenCompatibilityFindings(hyphenId).some((finding): boolean => finding.includes("-3 lacks tracked issue")));
+});
+
 test("consumer overrides validate every cell, booleans, mandatory readers and admitted count", () => {
   const chosen = ["changes", "why", "improves", "verify"];
   config({ max: 7, variants: { "process.maintain": chosen } });
@@ -286,6 +357,39 @@ test("HR-11: an empty verify heading fails through its derived content requireme
   assert.throws((): unknown => check(cat, valid, [...report.requirements, { name: "bad", pattern: "^x", content: "yes" }], 7), /content must be true/);
 });
 
+
+test("HA#405: the spec run fact admits the Spec footer first, carrying nen's spec-rows whole", () => {
+  assert.ok(!resolution("product", ["implementation"], []).footer.includes("spec"));
+  const report = resolution("product", ["implementation", "parity"], ["spec"]);
+  assert.deepEqual(report.footer, ["spec", "hanten", "checklist", "issues", "attribution"]);
+  assert.ok(!report.ids.includes("spec"), "the Spec block is a footer, outside the seven-reader cap");
+  const at = report.requirements.findIndex((row): boolean => row.name === "spec");
+  // The catalogue's copy of nen's spec-rows is the one copy, frozen to the nen commit it names (nen exposes
+  // the pattern through no verb); the resolver must carry it unchanged.
+  const specRow = cat.footer.find((row): boolean => row.id === "spec") as SectionRow & { rows: { name: string; pattern: string; $frozenAt?: string } };
+  assert.match(specRow.rows.$frozenAt ?? "", /^zheref\/nen@[0-9a-f]{8,40} src\/spec\/coverage\.ts /);
+  assert.deepEqual(report.requirements[at + 1], { name: "spec-rows", pattern: specRow.rows.pattern, content: true, heading: "spec" });
+  const filled = body(report, "product").replace("## 📐 Spec\n\nFilled.", "## 📐 Spec\n\n- F002-SC-001 — satisfied — test ListTest.sorted_F002_SC_001\n- F002-SC-002 — deferred — the threshold is the maintainer's · HA#405");
+  assert.deepEqual(check(cat, filled, report.requirements, 7)[0], []);
+  for (const empty of ["## 📐 Spec\n", "## 📐 Spec\n\nSee the issue.", "## 📐 Spec\n\n### F002-SC-001 — satisfied — test T"]) {
+    const findings = check(cat, filled.replace(/## 📐 Spec\n\n- F002[^]*?HA#405/, empty), report.requirements, 7)[0];
+    assert.ok(findings.includes("section spec: requirement spec-rows is unmet"), findings.join("; "));
+  }
+  const missing = check(cat, filled.replace(/## 📐 Spec\n\n- F002[^]*?HA#405\n\n/, ""), report.requirements, 7)[0];
+  assert.ok(missing.includes("missing heading spec") && !missing.some((finding): boolean => finding.startsWith("section spec")), missing.join("; "));
+  assert.throws((): unknown => check(cat, filled, [...report.requirements, { name: "x-rows", pattern: "^x", heading: "spec" }], 7), /heading names a heading row and needs content/);
+  const copy = fresh("ha405-cat-");
+  cpSync(join(HATSU_ROOT, "contracts"), join(copy, "contracts"), { recursive: true });
+  cpSync(join(HATSU_ROOT, "templates"), join(copy, "templates"), { recursive: true });
+  const file = join(copy, "contracts/pr-sections.json");
+  const raw = JSON.parse(readFileSync(file, "utf8")) as { footer: Array<Record<string, unknown>> };
+  delete raw.footer[0]?.when;
+  writeFileSync(file, `${JSON.stringify(raw)}\n`);
+  assert.throws((): Catalogue => catalogue(copy), /a rows requirement belongs to a conditional section/);
+  assert.equal(successful("sh", [RESOLVER, "--repo", repo, "--kind", "product", "--jobs", "parity", "--spec", "--out", join(repo, "req.json")]).trim(), "changes · why · how · improves · verify");
+  assert.ok((JSON.parse(readFileSync(join(repo, "req.json"), "utf8")) as Array<{ name: string }>).some((row): boolean => row.name === "spec-rows"));
+});
+
 test("the eighth admitted reader is named at the exact line", () => {
   const report = resolution("process", ["machinery"], ["policy-hit", "economics"]);
   const rollout = cat.sections.find((row): boolean => row.id === "rollout") as SectionRow;
@@ -341,6 +445,9 @@ test("catalogue validation rejects unknown cells, duplicate jobs, bad kind title
   const title = clone(cat) as Catalogue & { sections: Array<SectionRow & { title: unknown }> };
   title.sections[4]!.title = { product: "One" }; write(title);
   assert.throws((): Catalogue => catalogue(copy), /every repository kind/);
+  const emptyGlyph = clone(cat) as Catalogue & { sections: SectionRow[] };
+  emptyGlyph.sections[0] = { ...emptyGlyph.sections[0]!, glyph: "" }; write(emptyGlyph);
+  assert.throws((): Catalogue => catalogue(copy), /invalid level\/glyph/);
   const reserved = clone(cat) as Catalogue & { footer: Array<SectionRow & { reserved?: boolean }> };
   delete reserved.footer[0]!.reserved; write(reserved);
   assert.throws((): Catalogue => catalogue(copy), /reserved must be boolean/);
@@ -418,6 +525,80 @@ test("CLI keeps resolve/check flags, atomic requirements output, warning exit an
   writeFileSync(target, "[]\n"); symlinkSync(target, link);
   const linked = run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", "machinery", "--policy-hit", "--out", link]);
   assert.equal(linked.status, 1); assert.match(linked.stderr, /symlink/);
+});
+
+test("CLI executes validate and body verdicts through directory and file symlink aliases", () => {
+  const aliases = fresh("ha417-entry-");
+  const rootAlias = join(aliases, "installed-hatsu");
+  const fileAlias = join(aliases, "catalogue-alias.ts");
+  symlinkSync(HATSU_ROOT, rootAlias, "dir");
+  symlinkSync(ENGINE, fileAlias);
+  const entries = [ENGINE, join(rootAlias, "scripts/pr_sections.ts"), fileAlias];
+  const expected = successful(process.execPath, [ENGINE, "validate"]);
+  assert.match(expected, /catalogue valid/);
+  const report = resolution();
+  const bodyFile = join(repo, "entry-body.md");
+  const requirements = join(repo, "entry-requirements.json");
+  writeFileSync(requirements, JSON.stringify(report.requirements));
+  for (const entry of entries) {
+    const validated = run(process.execPath, [entry, "validate"]);
+    assert.equal(validated.status, 0, validated.stderr);
+    assert.equal(validated.stdout, expected);
+    for (const [value, status, verdict] of [
+      [body(report), 0, /exact order and reader cap satisfied/],
+      [body(report) + "\n## Alias guard must reject this\n", 1, /Alias guard must reject this/],
+    ] as const) {
+      writeFileSync(bodyFile, value);
+      const checked = run(process.execPath, [entry, "check", "--body", bodyFile, "--requirements", requirements, "--max", "7"]);
+      assert.equal(checked.status, status, checked.stderr);
+      assert.match(checked.stdout, verdict);
+    }
+    const invalid = run(process.execPath, [entry, "--unknown"]);
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /usage: pr_sections/);
+  }
+});
+
+test("library imports remain inert for unrelated, missing and absent entry paths", () => {
+  const imported = pathToFileURL(ENGINE).href;
+  for (const argv1 of [undefined, join(repo, "missing-wrapper.mjs"), ENGINE + ".wrapper"]) {
+    const expression = argv1 === undefined ? "process.argv.splice(1)" : "process.argv[1] = " + JSON.stringify(argv1);
+    const result = run(process.execPath, ["--input-type=module", "--eval", expression + "; await import(" + JSON.stringify(imported) + "); console.log('library import completed')"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, "library import completed\n");
+    assert.equal(result.stderr, "");
+  }
+  const wrapper = join(repo, "wrapper.mjs");
+  writeFileSync(wrapper, "import " + JSON.stringify(imported) + "; console.log('wrapper completed');\n");
+  const result = run(process.execPath, [wrapper, "--unknown"]);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, "wrapper completed\n");
+  assert.equal(result.stderr, "");
+});
+
+test("hosts without import.meta.main refuse explicitly instead of silently passing", () => {
+  const loader = join(repo, "missing-entry-metadata-loader.mjs");
+  // Exercise the runtime capability hole independently of the installed Node version.
+  // The loader removes only this module's entry metadata, leaving its real CLI execution intact.
+  writeFileSync(loader, "export async function load(url, context, nextLoad) { const result = await nextLoad(url, context); if (url === " + JSON.stringify(pathToFileURL(ENGINE).href) + ") result.source = String(result.source).replace('typeof import.meta.main', 'typeof undefined'); return result; }\n");
+  const preload = join(repo, "missing-capability-entry.mjs");
+  writeFileSync(preload, "process.argv[1] = " + JSON.stringify(join(repo, "missing-entry.ts")) + ";\n");
+  for (const args of [[ENGINE, "validate"], ["--import", preload, ENGINE, "validate"]]) {
+    const result = run(process.execPath, ["--no-warnings", "--loader", loader, ...args]);
+    assert.equal(result.status, 1, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /^pr sections: unsupported Node runtime: import\.meta\.main is required[^\n]*\n$/);
+  }
+});
+
+test("an unresolved CLI entry fails closed with one diagnostic", () => {
+  const preload = join(repo, "unresolved-entry.mjs");
+  // Simulate an entry disappearing after Node loaded it but before the module guard runs.
+  writeFileSync(preload, "process.argv[1] = " + JSON.stringify(join(repo, "missing-entry.ts")) + ";\n");
+  const result = run(process.execPath, ["--import", preload, ENGINE, "validate"]);
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "pr sections: cannot resolve CLI entry to this module\n");
 });
 
 test("all human CLI diagnostics strip terminal controls and invisible formatting", () => {

@@ -1009,3 +1009,99 @@ longer held at seven efforts by the merge; the *one night authors 7* line above 
 
 **Not exercised live**: a real (non-dry) idle run; `nen run append` and `nen loop slots --from-run` over open
 PRs (none exist in a dry run); `nen wc overlap` (no effort branches exist).
+
+## Dated verification, 2026-10-23 — crash-and-resume (the run manifest) (zheref/hatsu#444)
+
+Run: 2026-10-23, host `darwin` (arm64), twice with identical verdicts: nen `0.26.0` at `/Users/zheref/.local/bin/nen`
+(the contract pin) and nen source `0.27.0` at zheref/nen `847f7dc4b8087591b3d68bb486d48855b7cb72b5` (`bun run src/index.ts`, the stack top of zheref/nen#518,
+unreleased). Command, reproducible: `node scripts/resume_proof.mts --nen <nen>` (lane `resume-proof`). Each case
+runs in a throwaway `git init` repository; nothing touched a primary checkout or GitHub.
+
+Futon writes no phase ledger; its resume state is nen's run manifest (`<git common dir>/.nen/runs/<id>.json`).
+Killed after a park and re-invoked with the same line:
+
+```text
+converged futon (and kazaana)  killed after a park, re-invoked      re-start existing, re-park unchanged, manifest bytes unchanged
+```
+
+A re-`start` with the same idle answers is `existing`, a re-`park` `unchanged`, and the manifest's bytes do not
+move. `nen run append` reads the PR live and was not exercised offline. **Not proved here:** a live futon run
+killed between efforts.
+
+## Dated verification, 2026-10-23 — one bell per gate, the harness-denied row and the idle permission list (zheref/hatsu#453)
+
+Run: 2026-10-23, host `darwin`, nen source `0.27.0` at zheref/nen `847f7dc4b8087591b3d68bb486d48855b7cb72b5` behind a `nen` shim, stub `osascript` and
+`afplay` first on PATH logging each call, throwaway repositories. Command shape:
+`nen stop --who kurapika --gate G2 --title "HA-PR-#<n> at its merge prompt" --mark --effort "HA-IS-#<n>" --repo <r>`
+for n = 1..7, then the Stop hook fed `{"cwd":"<r>"}`.
+
+```text
+markers: 7 unrung under <r>/.git/.nen/marks (git common dir)
+hook-exit=0
+notifications: 7 sounds: 7
+Hatsu — G2: HA-PR-#1 at its merge prompt
+… one line per effort, #1 to #7 …
+markers: 0 unrung under <r>/.git/.nen/marks (git common dir)
+single-cleared
+```
+
+7 of 7 gates rang their own bell (SC-2). **A per-gate marker never goes stale** (HA-PR-#463 review): the hook
+fires at the end of a turn that may span hours, so the fixture now marks seven gates, ages them an hour, and
+requires seven bells and seven clears, while a single file an hour old is still cleared unrung. Its case 8 runs
+the documented marking form against the real nen on PATH: at nen `0.26.0`, `nen stop --mark` (no `--effort`,
+which 0.26 refuses as an unknown option) and one bell off the single file; at nen source `0.27.0`,
+`--mark --effort opus/kurapika/x` and one bell off the per-gate marker, `nen stop list` empty after. Clearing one gate first (`nen stop clear --gate G2 --effort HA-IS-#3`)
+left 6 markers and the hook then rang exactly 6 (AC-4). Against nen `0.26.0` (no `stop list`) the hook fell back to
+the single file, rang once (`Hatsu — G5: legacy`) and consumed it with bare `nen stop clear`. Hermetic cases:
+lane `stop-bell-guard` (6/6).
+
+**The harness-denied row** is `nen/decisions.json` → `harness-denied` (a `human-gate` G5 since the HA-PR-#463 review; autonomous when first written): the refused command quoted, a
+G5 marker with `--effort`, parked `g5-harness-denied`; `nen run park … --row g5-harness-denied` records it
+(`parked: zheref/hatsu#1 parked on row g5-harness-denied …`, re-park `unchanged`). No live harness refusal occurred
+during this proof, so SC-1's count over a real run is not taken here.
+
+**The permission list**, live against the maintainer's own settings for this checkout (read only):
+
+```text
+$ node scripts/idle_permissions_check.mts --repo /Users/zheref/Code/Agents/hatsu   # re-run 2026-10-23 after the review: one exemplar per nen verb family
+not-pre-allowed: git -C <core> fetch origin  (futon § 4 (worktrees from core))
+not-pre-allowed: git -C <core> worktree add --detach <path> <ref>  (futon § 4, WORKFLOW § Where worktrees live)
+not-pre-allowed: git reset --soft <merge-base>  (aka (squash the unpushed))
+not-pre-allowed: git push -u origin <branch>  (aka)
+not-pre-allowed: node <hatsu>/scripts/futon_effort_record.mts start --run <run>  (futon § 12)
+not-pre-allowed: node <hatsu>/scripts/gh_api_read.mts actions-caches <owner/name>  (cleanup)
+not-pre-allowed: sh <hatsu>/scripts/prose_size_check.sh  (kokusen (on a Hatsu checkout))
+not-pre-allowed: <hatsu>/scripts/bell_notify.sh --title <t> --message <m>  (jutaisho § 5 (called directly, not through bash))
+idle-permissions: 37/45 pre-allowed; 8 would prompt — under --idle each is a harness refusal (row harness-denied)
+```
+
+The rendered Claude Code pack (`scripts/permissions_pack.sh --surface claude-code --render`) missed the same commands at the first run.
+Whether to grant any is the maintainer's (a permission setting); this list only says what an idle run would meet.
+
+## Dated verification, 2026-10-25 — every delivery Ready, or held and named (zheref/hatsu#488)
+
+**The failure.** A kazaana batch on `zheref/akatsuki-ai` left AK-PR-#75 and its stacked AK-PR-#76 open and
+not Ready — their current-head `nen pr ready` still failing on review rounds and approvals — reported its
+checkpoint and offered the wrap-up. futon § 10 and kazaana § 7 then let a run end with an item "blocked with
+its blocker named", which a caller read as completion. The rule is now one section, WORKFLOW § *Batch
+delivery*; futon §§ 1, 10, 12, kazaana §§ 1, 3, 7, en § 7, dowsing-chain § 9 and backlog-loop § 10 cite it.
+
+**The six cases (SC-3).** Method: `scripts/futon_effort_record_fixture.mts` (lane `futon-effort-guard`) at
+this PR's head, whose stub nen keeps manifests as nen 0.28 does (`started` writes one; a known id with the same
+answers is `existing`, other answers a `conflict` at exit 1). It fails against the previous script (the idle
+bind exits 0) and against the previous futon prose (`futon § 10 cites WORKFLOW § Batch delivery`). Cases 1–4
+are canon assertions in that fixture plus the section's own rules; no live batch was run for this entry.
+
+| # | Case | What the rule requires | Proof |
+|---|---|---|---|
+| 1 | Ordinary attended batch | `en` behind every delivery (rule 1); the run ends once none is `driving`, a `ready` one keeping it open (rule 3, futon § 10) | fixture: futon § 10 cites the section, ends on held, never "blocked" |
+| 2 | Composite caller (kazaana, dowsing-chain wave, backlog-loop) | the same states through the composite | fixture: kazaana § 7 and backlog-loop § 10 likewise; en and dowsing-chain cite it |
+| 3 | Pending review after green checks (AK-PR-#75/#76) | green checks are not delivery; an owed round is `sharingan`'s act (rule 1); an approval only a person gives is `held-approval` with its three facts (rule 2) | fixture: WORKFLOW names every state and cause |
+| 4 | Human-only prerequisite | `held-<cause>`, parked with `nen run park` (nen 0.28 accepts `held-*` rows, read on a scratch repo 2026-10-25); the run ends **incomplete**, `register` not `final` (rules 2–3) | prose + the park read |
+| 5 | Unattended multi-issue integration | one integration branch (`integrate`) and one integration-to-main PR, no per-effort PR, no stack (rule 4) | fixture: `bind` refuses an idle run (exit status), `verify` refuses an idle claim, `integrate` refuses a second branch and `main` |
+| 6 | Resumed unattended delivery | the newest **unended** run typed as the line (`end` records futon § 10), its stored answers re-checked against the floor, terminal and branch; exit `3` only for *no open run*; refused with no manifest **without** calling nen, and on another line, an ended run, a dry run, a v0.2 record, another start time, a non-idle or `null` manifest, an answer past the floor, a mismatched or forged id or another repository; a moved committed profile reported, not obeyed (rule 5) | fixture: resume by id and by line, the end marker and exit `3`, the refusals, the drift case |
+
+**Not exercised live**: a real idle batch opening an integration PR, and a resume against nen's real manifest
+(reviewers drove real nen 0.28.0 on scratch repositories during hanten: a start for an unknown id writes a
+manifest, which is why resume refuses first). nen 0.28's `nen run append` does not refuse a `delivery` kind on an
+idle manifest (owed to nen, zheref/nen#544).

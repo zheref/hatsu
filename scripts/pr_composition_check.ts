@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
 import { catalogue, requirementsFor } from './pr_sections.ts';
+import { history } from './pr_sections_history.ts';
 const here=dirname(fileURLToPath(import.meta.url));
 const DECL='contracts/pr-composition.json';
 const findings:string[]=[];
@@ -38,6 +39,7 @@ try {
    if(confined(body.catalogue,'bodyRequirements.catalogue')&&confined(body.file,'bodyRequirements.file')) {
     try {
      const cat=catalogue(root);
+     history(root,cat);
      const ids=cat.variants[`${body.defaultKind}.${body.defaultFamily}`];
      if(!ids)throw new Error('unknown default kind/family');
      const rows=[...cat.preamble,...ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)),...cat.footer.filter((r:any)=>!r.reserved&&r.when===undefined)];

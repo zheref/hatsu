@@ -8,6 +8,14 @@ LC_ALL=C
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
 hatsu_root="$(CDPATH='' cd -- "$script_dir/.." >/dev/null 2>&1 && pwd -P)"
 updater="$hatsu_root/scripts/hatsu_plugin_update.sh"
+updater_source="$updater"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Only the updater may write Bashcov's trace; its git and shell descendants inherit no xtrace.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+fi
 fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-plugin-update.XXXXXX")"
 trap 'rm -rf "$fixture_root"' EXIT
 
@@ -15,6 +23,13 @@ fail() {
   echo "hatsu-plugin-update-fixture: $*" >&2
   exit 1
 }
+
+if [ -n "$coverage_exec" ]; then
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/hatsu_plugin_update.sh" ] ||
+    fail "coverage wrapper target is not scripts/hatsu_plugin_update.sh"
+  [ -x "$coverage_exec" ] || fail "coverage wrapper is not executable"
+  updater="$coverage_exec"
+fi
 
 assert_fails() {
   local message="$1"
@@ -458,8 +473,8 @@ rm -f "$link_home/settings.json"
 settings_readers() {
   awk '/^settings_file_shape_ok\(\) \{$/ { on = 1 } on { print } on && /^settings_declares_enabled_plugin\(\) \{$/ { last = 1 } last && /^\}$/ { exit }' "$1"
 }
-[ -n "$(settings_readers "$updater")" ] || fail "(b4) the updater carries no settings readers"
-[ "$(settings_readers "$updater")" = "$(settings_readers "$(dirname "$updater")/hatsu_surface_link.sh")" ] ||
+[ -n "$(settings_readers "$updater_source")" ] || fail "(b4) the updater carries no settings readers"
+[ "$(settings_readers "$updater_source")" = "$(settings_readers "$(dirname "$updater_source")/hatsu_surface_link.sh")" ] ||
   fail "(b4) the settings readers differ between scripts/hatsu_plugin_update.sh and scripts/hatsu_surface_link.sh"
 
 # (b2) the OLD flat top-level-object shape ({"hatsu@hatsu": {...}}) is not a shape Claude Code ever

@@ -99,11 +99,12 @@ The regeneration lands in the **same commit** as the change that caused it.
 
 ## 5. Verify
 
-`claude plugin validate . --strict`, `sh scripts/prose_size_check.sh`, and the plugin bump in
-`.claude-plugin/plugin.json`, the Codex overlay `.codex-plugin/plugin.json` at the same version (an edit
-reaches no installed copy without it; `scripts/plugin_bump_check.sh` refuses an equal, lower or
-lagging one), and `agy plugin validate surfaces/antigravity` where `agy` is on PATH. A red check is handed back to the
-authoring subsession with the failing line quoted (row `red-lint`); it is never a G5.
+Run `claude plugin validate . --strict` and `sh scripts/prose_size_check.sh`. Bump
+`.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` to the same version strictly above the
+fresh base; a collision owes [`hatsu:ao`](../ao/SKILL.md) § 5's re-bump and same-effort fragment update.
+`scripts/plugin_bump_check.sh` refuses equal, lower or lagging versions. Run
+`agy plugin validate surfaces/antigravity` where `agy` is on PATH. Return a red check to the authoring
+subsession with its failing line (row `red-lint`, never a G5).
 
 ## 6. The PR
 

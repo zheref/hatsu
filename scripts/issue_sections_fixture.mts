@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Fixture for the issue section catalogue (lane issue-shape; HR-4): contracts/issue-sections.json and
 // templates/issue-body/ agree, and nen's own readers -- `nen issue body-check --requirements-from` and
-// `nen issue questions` (nen 0.26.0) -- read Hatsu's catalogue as the skills call them. The interim
+// `nen issue questions` (nen 0.28.0: an open question exits 1, the counts still read) -- read Hatsu's catalogue as the skills call them. The interim
 // scripts/issue_body_check.mts is retired (zheref/hatsu#423); the shape is nen's to compute. Offline:
 // every body is a --body-file, so no gh call is made. Runs the nen first on PATH, or NEN.
 import assert from "node:assert/strict";
@@ -17,6 +17,15 @@ const catalogue = JSON.parse(readFileSync(cataloguePath, "utf8")) as {
   kinds: { [kind: string]: { template: string; required: string[]; optional: string[] } };
 };
 const nen = process.env.NEN || "nen";
+// The pin crossed 0.28 in one PR while CI (unit-tests.yml) installs the BASE contract's pin until it merges, so the
+// open-question exit is read off the binary: 1 from 0.28.0, 0 before (the HA#449 repin; drop the branch at the next repin).
+const nenVersion = (() => {
+  const r = spawnSync(nen, ["--version"], { encoding: "utf8" });
+  const m = /^(\d+)\.(\d+)\./.exec((r.stdout || "").trim());
+  return m ? [Number(m[1]), Number(m[2])] : null;
+})();
+if (!nenVersion) throw new Error(`issue-shape: could not read ${nen} --version`);
+const openQuestionExit = nenVersion[0] > 0 || nenVersion[1] >= 28 ? 1 : 0;
 const dir = mkdtempSync(join(tmpdir(), "hatsu-issue-shape-"));
 type Check = { status: number | null; json: { ok?: boolean; sections?: Array<{ id: string; status: string }>;
   misses?: Array<{ section: string; kind: string }>; counts?: { open: number; resolved: number };
@@ -95,12 +104,15 @@ try {
   assert.equal(missing.status, 1);
   assert.ok(missing.json?.misses?.some((m) => m.section === "scope"), JSON.stringify(missing.json?.misses));
   assert.equal(call("body-check", good, ["--kind", "product"]).status, 1, "product requires its own sections");
-  // 4. Questions: the catalogue's row patterns count open and resolved rows, the gate read.
+  // 4. Questions: the catalogue's row patterns count open and resolved rows, the gate read. From nen 0.28.0 an
+  // open question exits 1 with the document on stdout ("read, and a question is open"; 0.26.0 exited 0 whatever
+  // the counts): the verb counts and never decides, and the exit is the count made legible to a caller.
   const resolved = call("questions", good);
   assert.equal(resolved.status, 0, resolved.stderr);
   assert.deepEqual([resolved.json?.counts?.open, resolved.json?.counts?.resolved], [0, 1]);
   const open = call("questions", good.replace("- ~~OQ-1~~ → A: the build stops (2026-10-21, HR-4)", "- OQ-1 (G1): does the build stop?\n- ~~OQ-2~~ → A: yes (2026-10-21, HR-4)"));
-  assert.equal(open.status, 0, "questions counts and never decides");
+  assert.equal(open.status, openQuestionExit, `an open question exits ${openQuestionExit} at nen ${nenVersion.join(".")} (1 from 0.28.0); the counts below are the decision's, never the verb's`);
+  assert.ok(open.json, "exit 1 still carries the document on stdout");
   assert.deepEqual([open.json?.counts?.open, open.json?.counts?.resolved], [1, 1]);
   assert.deepEqual(open.json?.open?.map((r) => [r.number, r.gate]), [[1, "G1"]]);
   // 5. A malformed catalogue is wiring (exit 2), never a clean body.

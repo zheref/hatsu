@@ -542,8 +542,9 @@ $ git log -1 --format='%(trailers:only,unfold)' 8a822c99
 Hatsu-Agent: kurapika
 ```
 
-The off-switch is Cursor's own (Cursor Settings → Git & Pull Requests → *Commit Attribution*, or
+The IDE/CLI off-switch is Cursor's own (Cursor Settings → Git & Pull Requests → *Commit Attribution*, or
 `attribution.attributeCommitsToAgent: false` in `~/.cursor/cli-config.json`), per Cursor's forum answer
-of 2026-08-21 — **forum-sourced, not verified live: this host runs no Cursor**, and a forum report says
+of 2026-08-21 — it does not reach a Cursor cloud agent, for which Cursor documents no switch
+(`docs/AGENT-ATTRIBUTION.md`, zheref/hatsu#470) — **forum-sourced, not verified live: this host runs no Cursor**, and a forum report says
 the SDK local executor ignores it (`docs/surfaces/cursor.md` § 10); the read-back is the guard whatever
 the switch does. The verb-side read-back is an owned dependency: zheref/nen#273.
