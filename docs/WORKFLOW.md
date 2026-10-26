@@ -1251,6 +1251,63 @@ non-main path is [`en`](../claude/skills/en/SKILL.md) § 5 and
 [`ROSTER.md`](ROSTER.md) § *Ruling of 2026-10-19 — recorded Futon delivery merges*;
 the table's main-bound merge gate is unchanged.
 
+### The constitution check — before authoring (HR-10)
+
+[HR-10](ROSTER.md#hr-10) gives [`breath`](../claude/skills/breath/SKILL.md) a recorded constitution
+check before authoring, and [HR-337](ROSTER.md#hr-337) narrows what binds to rows whose status is
+`ruled` (zheref/hatsu#505). It runs once per new effort, at breath § 4a, after the base tip is proved
+and before `rasengan` writes a line. It sits **inside step 1** of `ren`: it is not a seventh step
+([HR-58](ROSTER.md#hr-58)), and it is recorded on the `breath` entry rather than on an entry of its
+own. It reads **the request**: the issue body (`gh issue view <N> --repo <owner/name> --json body
+--jq .body`), the delegate's brief, or the maintainer's words, saved to a file under the effort
+checkout's `.nen/`, which is never committed.
+
+1. **The read set is a script's output, never a judgement.** `node '<Hatsu root>/scripts/constitution_check.mts'
+   --request <file> --root '<Hatsu root>' [--constitution <file>] --json` (lane `constitution-check`)
+   lists, as `clauses[]`:
+   - **cited**: every `HR-N` and `CON-N` the request names;
+   - **touched**: every HR row whose definition line names a skill the request names (`hatsu:<name>`,
+     `` `<name>` `` or `claude/skills/<name>/`) and that still binds;
+   - **followed**: every row a `reversed by` / `superseded by` status points to, transitively.
+
+   Each entry carries its status and its `binding`: `whole` (`ruled`, or a CON clause), `part` (a
+   displacement with a part, the rest standing) or `none` (a `reading`, or a displacement with no
+   part). The status words and the row parser are `scripts/clause_id_guard.mts`'s, imported. The
+   script is interim: the verb is owed to nen (zheref/nen#554), and the script retires when the verb
+   ships and Hatsu repins to it.
+2. **A CON id is read at the pin, never from memory** ([HR-338](ROSTER.md#hr-338)). `nen canon pin
+   --repo '<Hatsu root>' --source zheref/bankai-handbooks` prints the tag, and `git -C <bankai-handbooks
+   checkout> show <tag>:CONSTITUTION.md > <file>` writes the `--constitution` file; with no checkout
+   on the host, `git clone --depth 1 --branch <tag> https://github.com/zheref/bankai-handbooks.git
+   <dir under .nen/>` makes one (a public repository). A request that
+   cites a CON id with no `--constitution` exits `2`: the check is reported **not run** for that
+   effort, and the effort does not reach authoring on it.
+3. **The exits.** `0`: every cited id resolves. `1`: a cited id no clause defines, named by the
+   `dangling` line; the request is restated (row `ambiguous-intent`) before authoring, never
+   authored over. `2`: wiring (an unreadable request, roster or constitution, or a roster the clause
+   guard refuses); the check did not run, and that is never reported as a pass.
+4. **The judgement is bounded to the read set.** Breath reads each `whole` and `part` clause's words
+   against the plan. A conflict is a plan step that a clause forbids, or a gate act that a clause
+   reserves to the maintainer. A `none` row is never treated as binding. Whether a plan contradicts a
+   listed clause is judgement; which clauses are listed is not.
+5. **Pass: one record, no stop.** The script's `record:` line with `; pass` appended is the `breath`
+   entry's note: `nen phase end --effort <branch> --phase breath --exit 0 --note "<record>; pass"`.
+   [`ren`](../claude/skills/ren/SKILL.md) § 2a writes the entry; breath called by name writes its own
+   `begin` and `end`.
+6. **Conflict: a G5, and nothing authored before the answer.** Row `constitution-conflict`
+   (`nen/decisions.json`): the `nen stop` banner names the clause id and the plan step it forbids, and
+   the picker offers the two exits HR-10 allows. **A** (starred) *change the plan*: restate the
+   plan so that it no longer conflicts, re-run steps 1 to 5 on it, and append the answer's `R-` id to
+   the note. **B** *file the amendment*: `hatsu:file` the amendment (a separate PR at G4), end the
+   `breath` entry at exit `1` with the note `<record>; conflict <id>; amendment <ref>`, and hold the
+   effort on it. The answer is recorded through `nen stop answer --record <branch> --row
+   constitution-conflict`.
+7. **Later phases and a resume read it.** `nen phase show --effort <branch> --json` returns the
+   `breath` entry and its note. Ren's resume rule skips an entry that ended at exit `0` and refuses
+   one that ended at `1` by name. A `breath` entry with no `constitution-check:` note belongs to an
+   effort cut before this check existed: the resume names it, runs the check before it authors more,
+   and carries the record in the turn's report, because an ended entry is never rewritten.
+
 ### Recorded Futon delivery ownership
 
 At the start of a typed Futon run, before any PR opens, Futon records the original invocation

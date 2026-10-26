@@ -31,6 +31,18 @@
       "by": "breath (shu build|test|lint|coverage)"
     },
     {
+      "command": "node <hatsu>/scripts/constitution_check.mts --request <file> --root <hatsu> --json",
+      "by": "breath § 4a (the constitution check; lane constitution-check)"
+    },
+    {
+      "command": "nen canon pin --repo <hatsu> --source zheref/bankai-handbooks",
+      "by": "breath § 4a (a CON id cited: the tag CONSTITUTION.md is read at)"
+    },
+    {
+      "command": "git -C <checkout> show <tag>:CONSTITUTION.md",
+      "by": "breath § 4a (a CON id cited)"
+    },
+    {
       "command": "nen phase begin --effort <branch> --phase <name>",
       "by": "ren § 2a, build § 4 (phase begin|end|show)"
     },

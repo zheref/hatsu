@@ -1,12 +1,13 @@
 ---
 name: breath
-description: Bind the isolated effort checkout on every entry; warm it once per new effort, check the host, cut a branch from the fresh base and prove iteration checks before authoring. A red base is G5. First phase of `ren`; invoke by name to re-warm a drifted effort. Never discards unseen work, commits or pushes.
+description: Bind the isolated effort checkout on every entry; warm it once per new effort, check the host, cut a branch from the fresh base, prove iteration checks and record a constitution check before authoring. A red base or a conflicting clause is G5. First phase of `ren`; invoke by name to re-warm a drifted effort. Never discards unseen work, commits or pushes.
 ---
 
 # Breath — the first breath of an effort
 
-**Nature: Transmuter.** A fresh trunk, a branch cut from it, a host that builds, a green start. Phase one of `ren`, **once per effort**; re-invoked on a branch it already cut, it reports
-and returns after re-verifying isolation. Plugin root and the declaration gate by role: [PROCESS.md](../../../docs/PROCESS.md)
+**Nature: Transmuter.** A fresh trunk, a branch cut from it, a host that builds, a green start, a
+checked plan. Phase one of `ren`, **once per effort** (ROSTER ruling 9 R3); re-invoked on a branch it already
+cut and proved, by any session, it reports and returns after re-verifying isolation. Plugin root and the declaration gate by role: [PROCESS.md](../../../docs/PROCESS.md)
 § *Authority every phase shares*.
 
 ## 0. Standalone entry — preserve → prove → place → restore
@@ -20,9 +21,7 @@ original effort prompt's explicit waiver. Reuse the verified effort-owned worktr
 **its rules and guaranteed outcome are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The
 standalone stash-and-restore shape***. Cold: **P1**, **P2**, then §§ 2–4 with the tree carried by
 `--carry`; from a composite — or from [`ten`](../ten/SKILL.md) § 6, which holds it — skip this.
-**Once per effort** (ruling 2026-09-28, ROSTER ruling 9 R3): a branch this effort already cut and
-proved reports and returns, whatever session asks. After
-the restore, § 3b's `init` runs once.
+After the restore, § 3b's `init` runs once.
 
 ## 1. Invocation, and the parameters
 
@@ -40,12 +39,9 @@ call as `--repo <path>` and command cwd, never the session's starting cwd.
 | The lanes, and the build | `nen/contract.json` → `project.lanes`, `.defaultLane`, `.verbs.<lane>.build` |
 | Host tools | `nen/contract.json` → `project.toolchain` |
 
-**No `nen/workflow.json`** ([PROCESS.md](../../../docs/PROCESS.md) § *Invocation and parsing*): the
-defaults are `{model}/{persona}/{descriptor}`, `main`, `["build"]`, `project.defaultLane`. A missing
-argument or configuration item is asked for and set up inline (`missing-argument`,
-`missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *Ask, set up, continue*) —
-**never invented**, and **never written unasked to silence a message**; `nen schema check --repo
-<path>` validates the write (a malformed key FAILs by pointer).
+**No `nen/workflow.json`**, or a missing item: [PROCESS.md](../../../docs/PROCESS.md) § *Invocation
+and parsing* owns the ask and the check; breath's defaults are `{model}/{persona}/{descriptor}`, `main`,
+`["build"]`, `project.defaultLane` (§ 6).
 
 ## 2. Where the checkout sits
 
@@ -61,7 +57,7 @@ worktree whose branch a `--take` holds, naming `hatsu:amenotejikara return`.
 |---|---|
 | `on-branch-clean` on the **trunk** | New effort → § 3 |
 | `on-branch-clean` on a **branch** | Not proof this is that effort — § 2a first |
-| `must-move` (trunk, dirty) | **Never asked** (row `dirty-tree`): carried through the cut by `nen shu warmup --carry` (§ 0's shape), **by stash SHA**, every path listed; a conflicting restore keeps the stash and is the one outcome that stops — `semantic-conflict`, not a question |
+| `must-move` (trunk, dirty) | **Never asked** (row `dirty-tree`): carried by `nen shu warmup --carry` (§ 0's shape), **by stash SHA**, every path listed; a conflicting restore keeps the stash and stops at `semantic-conflict` |
 | `on-branch-dirty` | § 2a first: a continuation of *this* effort reports subjects and paths and hands the turn to [`kokusen`](../kokusen/SKILL.md) or the maintainer; a **new** effort shows the paths and **asks** — never discard, never cut a second branch over it |
 | detached `HEAD` | A row above with `branch: null`, never `must-move`; read `detachedAt`, report it, go on |
 
@@ -72,7 +68,6 @@ valid **only** on the caller's explicit identification, or on turn 2+ of a `ren`
 *this* branch this session; a clean non-trunk checkout is not that, and **silence is a new effort**.
 A new effort fetches and cuts a **new** name from the fresh base in the bound worktree;
 a continuation returns only AFTER § 0's isolation check. Core's branch and changes stay alone.
-A dirty effort tree plus a new request **asks**, showing every uncommitted path.
 
 **§ 2b · The third door — untracked paths** (`.idea/`, `.claude/worktrees/`, `.nen/`,
 the surface mirror): **append them to `info/exclude`** (`rev-parse --git-path`, **never `--git-dir`**;
@@ -82,20 +77,18 @@ then **re-run `nen wc classify`** (`uncommittedPaths: []`). Name the shared file
 Codex sandbox failures: `docs/surfaces/codex.md` § 5's recovery; actual rejection stops the action.
 
 **§ 2c · The host.** `nen shu tools --repo <path> [--dry-run | --install]` on a host this repository
-was never built on, and after a toolchain pin moves; `--install` uses nen's installers only,
-never sudo or an unpinned version. **Exit `5` or `7` is a host not set up, not a red build** (coverage-only: PROCESS) — relay the
-per-tool `remedy` lines, resolve a missing tool through the surface's catalogue probe (row
-`missing-tool`), and leave a `verify-only` row to a human, named with its pin. **Exit `2` here is the
+was never built on, and after a toolchain pin moves. **Exit `5` or `7` is a host not set up, not a red
+build** (`kurapika.md` § *The `shu` verbs*: `--install`, never sudo; row `missing-tool`; a
+`verify-only` row is a human's, named with its pin). **Exit `2` here is the
 stale tree, not the host**: record it *deferred* and **re-probe after the cut**, reporting that
 answer; § 3's dry run shares the blind spot.
 
 ## 3. Cutting the branch — dry run, then bare
 
-Render `branch.template`: `{model}` the model alias, `{persona}` the persona (`kurapika` unless the
-run says otherwise), `{descriptor}` a short kebab slug from the request, never the date. **Rendering
-is this skill's**; `--branch` is required, no default.
+**Render `branch.template`** ([WORKFLOW](../../../docs/WORKFLOW.md) § 2 *`branch`* owns the
+placeholders; `kurapika` unless the run names a persona; never the date); `--branch` has no default.
 
-**§ 3a · A live worktree on the same topic, before the dry run** (#113). `nen wc worktrees --repo
+**§ 3a · A live worktree on the same topic, before the dry run** (zheref/hatsu#113). `nen wc worktrees --repo
 <path> --json`: a row whose `branch` or `lastSubject` shares a kebab segment of four letters or more
 with the `{descriptor}` just rendered — the `{model}`/`{persona}` segments and `fix`, `feat`, `docs`,
 `the`, `and`, `settle`, `round`, `merge` never count — is an **overlap**, reported as *weak* for one
@@ -103,21 +96,19 @@ segment, asked for two or more: show `path`, `branch`, `ahead`, `dirty`, `lastSu
 explicit continuation in that effort-owned path or *cut anyway, by name*. Never take another
 effort's checkout. **A row whose `lastSubject` is `null` is
 unread, never no-overlap**: named with its path and branch, matched on the branch alone. Nothing here
-merges, closes or reassigns the work found; this is a name-level read — diff-level overlap is a Nen
-ask, filed apart.
+merges, closes or reassigns the work found (a name-level read; diff-level overlap is a Nen ask).
 
 ```bash
 nen shu warmup --repo <path> --branch <rendered name> --from <branch.base | the stack tip> [--dry-run]  # WORKFLOW § Stacked pull requests
 ```
 
-- Inspect the dry run before acting: another worktree holding the trunk skips its update and the
-  branch is cut from `origin/<trunk>`. A plan that moves core is refused by the shared policy.
-- **`--from` is passed every time from `branch.base`; `origin/main` is never a literal** — the flag
-  defaults to `main`, warming a `develop` repository from the wrong trunk. A `branch.base`
+- Inspect the dry run first (a worktree holding the trunk cuts from `origin/<trunk>`); a plan that
+  moves core is refused.
+- **`--from` is passed every time from `branch.base`; `origin/main` is never a literal** (the flag
+  defaults to `main`). A `branch.base`
   with no local branch refuses at `2` naming itself: ask and set it up (§ 1) — **never fall back to
   `main`**.
-- **`--discard` is never breath's flag**: a dirty tree goes only on the maintainer's word, after the
-  refusal's list. **A repository with no declaration still warms** (the git half, exit `0`); a
+- **`--discard` is never breath's flag** (§ 6). **A repository with no declaration still warms** (the git half, exit `0`); a
   `project` block is proposed at the declaration gate.
 
 **Exit codes are `claude/agents/kurapika.md` § *The `shu` verbs*'**; only what differs here:
@@ -155,32 +146,45 @@ forward as this effort's red.
 coverage (both are `mukai`'s); a full suite hidden in an iteration verb is a
 [`DISCOVERY.md`](../../../docs/DISCOVERY.md) gap.
 
+## 4a. The constitution check — before authoring (HR-10)
+
+Once per new effort, after § 4, over the request saved under `<path>/.nen/`, **inside step 1**
+(HR-58); [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The constitution check* owns the rest:
+
+```bash
+node '<Hatsu root>/scripts/constitution_check.mts' --request <file> --root '<Hatsu root>' --json
+```
+
+It lists the clauses (the verb is owed, zheref/nen#554); breath reads each binding one against the plan
+(HR-337). **Pass**: `record:` plus `; pass` as the `breath` entry's `--note`, no stop. **Conflict**: row
+`constitution-conflict` (G5), the clause named — **A** change the plan · **B** file the amendment —
+nothing authored before the answer. Exit `1` or `2` is never a pass.
+
 ## 5. What the turn reports, and the residue
 
 One line, not a gate event: any active swap, the `wc classify` case, **new effort or explicit
 continuation**, the branch cut and its tip (or the branch reused), the toolchain verdict, the build's
-exit code, any `info/exclude` lines, and the *no workflow.json* sentence where it applies. **A warm-up that
-did not run is reported as not run, never as clear.**
+exit code, the constitution check's `record:` line, any `info/exclude` lines, and the *no workflow.json*
+sentence where it applies.
 
-By hand: rendering `branch.template`, appending `info/exclude` and proving it (`nen wc classify`, `git
-check-ignore -v`), opening the cycle ledger (zheref/hatsu#63). **Whether an existing dirty branch is
-this effort stays judgment**; on a *clean* feature branch § 2a is a closed table.
+Residue, unfiled: rendering `branch.template`, appending `info/exclude` (proved by `nen wc classify`).
+**Whether an existing dirty branch is this effort, and whether a plan contradicts
+a listed clause (§ 4a), stay judgment**; on a *clean* feature branch § 2a is a closed table.
 
 ## 6. Authority and hard limits
 
 **Permitted:** classify the working copy; probe and (`corepack` only) install a declared host tool;
 fetch; fast-forward the trunk; cut a **non-trunk** branch; run the lane's declared `build`/`test`;
-open the cycle ledger. **Not permitted:** any push, commit, PR, label, `--discard` or deploy. **Not a
-gate event**; three G5s it raises, not owns: an unsupported host (`3`), an unreadable checkout, a base
-tip that does not build (§ 4).
+open the cycle ledger; record the constitution check. **Not permitted:** any push, commit, PR, label,
+`--discard` or deploy. **Not a gate event**; four G5s it raises, not owns: an unsupported host (`3`), an
+unreadable checkout, a base tip that does not build (§ 4), a conflicting clause (§ 4a).
 
-- **Never `--discard`s a tree unshown to the maintainer**, nor on its own account; **never commits,
-  pushes, or touches `origin` but to `fetch`** and test a name.
+- **Never `--discard`s a tree unshown to the maintainer**, nor on its own account; **never touches
+  `origin` but to `fetch`** and test a name.
 - **Never edits a tracked file to clear a dirty tree** — `info/exclude`, never `.gitignore` (§ 2b).
 - **Never treats a pre-fast-forward `nen shu tools` `2` as the host's verdict**, **reuses a feature
-  branch for a new effort** (§ 2a), or **cuts from a stale trunk or a literal `origin/main`** — always
-  `--from <branch.base>`.
+  branch for a new effort** (§ 2a), or **cuts from a stale trunk or a literal `origin/main`**.
 - **Never lets authoring begin on a base tip that did not build** — the trunk's red, a **G5**, never
-  repaired inside this effort.
+  repaired inside this effort — **nor before § 4a recorded a pass or its stop was answered A**.
 - **Never reports an unrun warm-up as clear** or an undeclared repository as verified; **never invents
-  a `workflow.json` value**, runs twice on one effort, or resets a Hanten cycle ledger (§ 3b).
+  or writes unasked a `workflow.json` value**, runs twice on one effort, or resets a Hanten cycle ledger (§ 3b).

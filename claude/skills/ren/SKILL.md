@@ -67,7 +67,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
-| 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **bind/re-verify isolation on every entry** under WORKFLOW § *Where worktrees live* before Ten catch-up or mutation; warm and prove a fresh branch once per new effort in that checkout. Explicit continuations reuse only the verified effort-owned worktree. A red base is a **G5** before authoring |
+| 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **bind/re-verify isolation on every entry** under WORKFLOW § *Where worktrees live* before Ten catch-up or mutation; warm and prove a fresh branch once per new effort in that checkout. Explicit continuations reuse only the verified effort-owned worktree. A red base is a **G5** before authoring; so is a conflicting clause in its constitution check (breath § 4a), recorded on this step's ledger entry |
 | 2 | **author the change** | [`hatsu:rasengan`](../rasengan/SKILL.md) | write what the maintainer asked for, on the stack this repository declares: the edits, the tests beside them, the docs and changelog its conventions owe — with the declared `iteration.checks` run as the author's own feedback while the work is in front of them |
 | 3 | **verify and commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | every inexpensive `iteration.checks` verb and the declared focused tests over the **finished** tree, red refused; then triage, an ask on what is flagged, one shaped commit — local only |
 | 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | an isolated effort reports the dry-run command and records `core launch deferred; explicit maintainer call required`, then continues **without asking**, even when serial. No target → `no launch target declared; skipped`. A core launch never moves authoring or delivery out of its bound worktree |
@@ -87,7 +87,9 @@ say so on the first one, so nobody is surprised by the report and the bell at th
   `origin/<branch.base>`'s freshly fetched tip and proves the declared checks on it, so the first line
   of the change lands on a tree already known to build and the first red anybody sees is one this
   effort caused. A red base tip is a **G5** stop there, before a line is written; it is never repaired
-  inside this effort.
+  inside this effort. Breath also checks the request against the ruled clauses it lists (§ 4a there;
+  [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The constitution check*), and step 2 does not begin
+  until that check has recorded a pass or its `constitution-conflict` stop has been answered **A**.
 - **2 before 3 — nothing is committed that was not authored in this turn and verified in it.**
   Rasengan writes the change and keeps its own inner loop honest; kokusen then runs the declared
   checks over the **finished** tree and refuses to commit on red. The two runs are not a duplication:
@@ -158,7 +160,9 @@ mechanism; what is ren's is which steps and when). Before a step, `nen phase beg
 served ID, add `--note "model-kind=served; registry alias <alias>"` (WORKFLOW § *The effort's ledgers*); at the first phase record
 `nen session record` with the harness's title/id when exposed, once per session; after a step, `nen phase end --effort <branch> --phase
 <step-name> --exit <code>`, so `.nen/phases/<effort>.json` carries one timed entry per phase, a refused
-step included. **The usage entry is recorded at step 5**: `nen usage record --effort
+step included. **Step 1's `end` carries breath § 4a's record as its `--note`** (`<record>; pass`, or
+`<record>; conflict <id>; amendment <ref>` at exit `1`); the check is not an entry of its own, so the
+six steps stay six entries ([HR-58](../../../docs/ROSTER.md#hr-58)). **The usage entry is recorded at step 5**: `nen usage record --effort
 <branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes]` from
 the surface's own cost readout, `--not-reported` on a surface that exposes none.
 
@@ -166,7 +170,10 @@ the surface's own cost readout, `--not-reported` on a surface that exposes none.
 branch already has a phase ledger, or a PR, is a resume: first, where a PR exists, `nen pr ledger read
 --target <owner/name> --pr <n> --effort <branch> --repo <checkout> --json`, adding `--restore` only where
 `nen phase show` finds no local ledger; then `nen phase show --effort <branch> --json`. WORKFLOW § *The
-effort's ledgers*, *The durable slice*, owns the verdicts and the one skip-line form. Per phase, in order:
+effort's ledgers*, *The durable slice*, owns the verdicts and the one skip-line form. A skipped `breath`
+entry's note is read before step 2: one with no `constitution-check:` record is named, and the check
+runs before authoring resumes, its record carried by the turn's report (WORKFLOW § *The constitution
+check*, step 7). Per phase, in order:
 ended at exit `0` → **skipped and named**; **open** → continued with `nen phase begin --resume` (one entry,
 `resumedAt` appended); **ended non-zero** → the resume **stops there and refuses by name** (`refused
 <phase>: ended at exit <n>`), writing nothing, because that step's own stop is answered first — never begun

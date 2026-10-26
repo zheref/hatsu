@@ -123,7 +123,7 @@ release into building is the typed invocation, and § 1's handoff of a PR to `en
 
 | Phase | Skill | What build takes from it |
 |---|---|---|
-| **1 · author** | [`hatsu:ren`](../ren/SKILL.md), turn after turn: `breath` → `rasengan` → `kokusen` (the commit with `Hatsu-Agent: Kurapika`) → `amaterasu` → `spiritual-message` → `jutaisho` | every acceptance criterion met and committed locally; never a push |
+| **1 · author** | [`hatsu:ren`](../ren/SKILL.md), turn after turn: `breath` (its § 4a constitution check recorded) → `rasengan` → `kokusen` → `amaterasu` → `spiritual-message` → `jutaisho` | every acceptance criterion met and committed locally; never a push |
 | **2 · publish** | [`hatsu:aka`](../aka/SKILL.md): `gyo` → squash the unpushed → `ao` → `gyo` again if the tree moved → push | the branch on origin; no PR |
 | **3 · PR** | [`hatsu:mukai`](../mukai/SKILL.md): `murasaki` → `hanten` → `kokusen` → `kotoamatsukami` → `byakugan` → evidence → `shibari` → landing report → `en` offered, or started under `mukai.autoEn` | one open PR, the four pre-PR G5 stops honoured |
 | **4 · readiness** | [`hatsu:en on <CODE>#<PR>`](../en/SKILL.md): the capped acting cycle, `nen pr ready` quoted verbatim, the bell at Ready | the PR at its merge prompt (**G2**, **G4** in a canon repository); En never merges |
@@ -148,7 +148,7 @@ worktree; the push through `aka` and the PR through `mukai`'s
 `shibari`, linking the issue; `en` until `nen pr ready` exits `0`. Never a merge, a G1 mode label, a review vote,
 or work on core.
 
-**The delegation expires when the run ends. Say when it ends.**
+**The delegation expires when the run ends.**
 
 ## 6. When it will not move (G5)
 
