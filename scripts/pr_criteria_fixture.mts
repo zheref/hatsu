@@ -18,9 +18,10 @@ const catalogue = join(root, "contracts/issue-sections.json");
 const dir = mkdtempSync(join(tmpdir(), "hatsu-criteria-"));
 process.on("exit", () => rmSync(dir, { recursive: true, force: true }));
 
-// 1. Every reader runs the verb with Hatsu's catalogue (shibari § 4, en §§ 4-5, rikugan § 3).
+// 1. Every reader runs the verb with Hatsu's catalogue (shibari § 4, en §§ 4-5, rikugan § 3), through
+// --catalogue: nen 0.28 names --requirements-from a deprecated alias on converge (zheref/hatsu#492).
 const verb = 'nen pr converge --target <owner/name> --pr <';
-const from = '--requirements-from "$hatsu_root/contracts/issue-sections.json"';
+const from = '--catalogue "$hatsu_root/contracts/issue-sections.json"';
 for (const [skill, count] of [["shibari", 1], ["en", 2], ["rikugan", 1]] as const) {
   const text = read(`claude/skills/${skill}/SKILL.md`);
   const lines = text.split("\n").filter((line) => line.includes(verb));

@@ -11,7 +11,7 @@ pr=''
 target=''
 
 usage() {
-  printf '%s\n' 'usage: pr_body_delivery_check.sh --body <abs> --repo <path> [--base <ref>] --gate-forecast G2|G4 [--target owner/name --pr <positive-integer>]' >&2
+  printf '%s\n' 'usage: pr_body_delivery_check.sh --body <abs> --repo <path> [--base <ref>] --gate-forecast G2|G4 [--effort <branch>] [--target owner/name --pr <positive-integer>]' >&2
   exit 2
 }
 
@@ -23,6 +23,7 @@ while [ "$#" -gt 0 ]; do
     --gate-forecast) [ "$#" -ge 2 ] || usage; gate_forecast="$2"; shift 2 ;;
     --pr) [ "$#" -ge 2 ] || usage; pr="$2"; shift 2 ;;
     --target) [ "$#" -ge 2 ] || usage; target="$2"; shift 2 ;;
+    --effort) [ "$#" -ge 2 ] || usage; given_effort="$2"; shift 2 ;;
     -h|--help) usage ;;
     *) usage ;;
   esac
@@ -61,11 +62,28 @@ if [ -z "$base" ]; then
   }
 fi
 
+# The effort is the current branch, exactly as shibari § 3 passes it (zheref/hatsu#492): the ledgers
+# are the repository's, shared by every worktree, and a row's index is its position in what nen
+# returns, so an expectation read without --effort numbers rows globally and refuses a body
+# rendered per effort. A detached HEAD names no effort and is refused, never guessed. The full ref is
+# read and its refs/heads/ prefix stripped: `--short` prints `heads/<branch>` when a tag shares the
+# name, and that effort id matches no ledger row (hanten P-1). An explicit --effort names the effort
+# the caller means; a --repo checked out on another branch is refused by name, never read as it (C-3).
+head_ref="$(git -C "$repo" symbolic-ref --quiet HEAD 2>/dev/null)" || {
+  printf '%s\n' 'pr-delivery guard: current branch is unread; Delivery never mixes ledgers by guessing an effort' >&2
+  exit 2
+}
+effort="${head_ref#refs/heads/}"
+if [ -n "${given_effort:-}" ] && [ "$given_effort" != "$effort" ]; then
+  printf '%s\n' "pr-delivery guard: --repo is on branch '$effort', not the effort '$given_effort'; run the guard from the effort's own worktree" >&2
+  exit 2
+fi
+
 data="$work/report-data.json"
 normalized="$work/delivery-data.json"
 expected="$work/delivery.md"
 set +e
-report_args=(report data --repo "$repo" --base "$base" --json)
+report_args=(report data --repo "$repo" --base "$base" --effort "$effort" --json)
 if [ -n "$pr" ]; then report_args+=(--target "$target" --prs "$pr"); fi
 nen "${report_args[@]}" > "$data"
 status=$?
