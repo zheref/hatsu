@@ -69,6 +69,7 @@ const gated: Array<[string, string | string[], string]> = [
   // Host pin negatives plus shipped Cloud/prepared readiness bootstrap checks (#247, BC-9).
   // This selection becomes automatic only after this trusted runner is adopted on the base.
   ['nen_global.sh', ['nen_global_fixture_check.sh', 'bootstrap_integrity_fixture.test.mts'], 'nen-global-guard'],
+  ['tenkai_trailer_guard.mts', 'tenkai_trailer_guard_fixture.test.mts', 'consumer-trailer-guard'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
