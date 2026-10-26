@@ -805,7 +805,7 @@ listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age a
 |---|---|---|
 | `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` where it stars none (`missing-maintainer-choice`, `port-drift`, `intake-challenger`, `port-siblings`, `spec-slice`, `spec-clarify`, `spec-dispatch`), `publish-offer` `refuse` — the ruling of 2026-10-23 above, which lifts the holds of 2026-10-22 on `harness-attribution-switch`, `host-nen-link`, `cleanup-plan` and the starred `spec-*` rows | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name takes the same resolution (starred → `default`, else `hold`; `publish-offer` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer` is always `refuse`; `missing-maintainer-choice` is at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. An act a `default` leads to that the harness refuses parks as `g5-harness-denied`, never retried another way. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the ownership record's `idle.source`, the resolutions as nen's manifest's `idleAnswers`, which `start` refuses unless nen stored exactly the map it sent |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: under the ruling of 2026-10-23 every effort is merged into the run's **non-main integration branch** (futon § 5's shape, always, never a picker) and the integration PR stands Ready at the maintainer's merge prompt; `ready-at-prompt` stops short of the integration merge. **Never `main`** (only the maintainer merges there), never `getsuga` or `mugetsu` |
-| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum; nen reads `.nen/usage/<effort>.json` under the one `--repo`, while each effort's ledger lives in its own worktree (§ *The effort's ledgers*), so a multi-worktree run reads `tokensUnread` and the token bound stays **advisory**, reported, never summed by hand — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
+| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum, read from the usage home § *The effort's ledgers* names by nen version: at nen 0.28 (the pin) every effort's ledger shares the git common directory, which `--repo` reaches from any checkout, so the sum is readable from one worktree; whether the token bound is then **enforced** or stays **advisory** (reported, never summed by hand, as it was while each worktree held its own ledger below the pin and `tokensUnread` was the answer) is a ruling owed, not read here — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
 
 ### `models`
 
@@ -949,7 +949,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 ### The effort's ledgers — phases, usage and sessions
 
 **Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100, #321).
-Three ledgers per effort, generated under `.nen/` and keyed by the **branch** — `--effort <branch>`,
+Three ledgers per effort, keyed by the **branch** — `--effort <branch>`,
 never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
 ```bash
@@ -963,7 +963,7 @@ nen session record --effort <branch> --surface <s> [--model <reported-model>] --
   [--title <reported-title>] [--id <reported-id>] --source "<harness readout>"          # first phase, when exposed
 ```
 
-`.nen/phases/<effort>.json` holds one timed entry per phase, a refused step included; `.nen/usage/<effort>.json`
+`<home>/phases/<effort>.json` holds one timed entry per phase, a refused step included; `<home>/usage/<effort>.json`
 one entry per reading, `source` naming the call site and the readout (Claude Code's `/cost`, the Agent
 tool's result totals for a subagent, Codex's session log; `--not-reported` on a surface exposing none).
 `--dial` is the actual surface effort level, recorded at each begin and usage write, not carried in
@@ -988,6 +988,76 @@ Public Source cells contain only `kind[index]`, ledger timestamp and phase where
 free-form `phase.note`, `usage.source` and `session.source` stay local as classification evidence.
 Keep report data, normalized data and rendered fragment under the private repo-local
 `.nen/reports/` directory (mode 0700, files 0600).
+
+**Where each record lives, by nen version — stated once, here** (zheref/nen#509, zheref/nen#513; read by every
+page that names a home, `idle.budget` included):
+
+| Record | nen 0.26, older than the pin | nen 0.28, the pin |
+|---|---|---|
+| phases, usage, sessions, the direct record | `<checkout>/.nen/{phases,usage,sessions,direct}/` — one per worktree | `<git common dir>/.nen/{phases,usage,sessions,direct}/` — one per repository, shared by every worktree, untouched by `git worktree remove` and `git clean`; an older checkout copy is read in place and moved by the next write, through 0.28 |
+| stop markers | `<checkout>/.nen/last-stop.json` (marker contract `v0.1`/`v0.2`), one, overwritten | the same file **and**, with `--effort`, `<git common dir>/.nen/marks/<effort>/<gate>.json` (`v0.3`), one per gate and effort; outside git `<checkout>/.nen/marks/` |
+| run manifests, the loop and stop-answer records | `<git common dir>/.nen/` already | the same |
+
+A record named `<home>/…` below is that row's directory for the nen that runs. **Many efforts, one home**
+(the pin): a reader that renders one effort passes `--effort <branch>` (`nen report data`,
+`spiritual-message` § 4); without it every effort of the repository is read. `stop --mark --effort` is
+refused by 0.26, a binary older than the pin (`unknown option`), so a stop passes `--effort` only where `nen stop --help` lists it
+(jutaisho § 3); `hooks/stop-bell.sh` rings either form.
+
+**The durable slice — the ledgers on the pull request** (zheref/hatsu#445; nen > 0.26.0, zheref/nen#516 and zheref/nen#518).
+The ledgers above live on one machine; the slice is the copy a morning review, a second machine or a fresh
+clone reads. **Post** at the landing, once the PR exists (`mukai` § 2 step 8a, after `shibari`), and again
+whenever a later landing on the same PR refreshes it. The comment is public wherever the PR is (SEC-8), so
+three steps come first, in order, and any of them failing posts nothing:
+
+1. **Unsettled security findings hold the post** (SEC-3): `node <hatsu>/scripts/ledger_findings_prepare.mts
+   --findings <reports.dir>/hanten/<branch-slug>.json --repo <checkout> --out <scratch>/findings.json`
+   exits `1` (`security-unsettled`, each finding id named) while any `scope: security` finding of severity
+   `critical` or `high` is not `fixed`: a pointer to an unrotated credential is not published before the
+   rotation. The landing report names the hold.
+2. **No machine path leaves the machine** (SEC-8): the same call writes a copy whose every absolute path is
+   relative — the checkout's root as `.`, `$HOME` as `~`, any other absolute path as `<path>` — and that
+   copy, never the record, is what `--findings` posts (nen relativises phases and proof paths itself, not
+   the findings document).
+3. **The rendered slice passes the secret scan** (SEC-1): `nen pr ledger post … --dry-run --json` to a
+   scratch file, then `contracts/scans.json` → `secretScan`'s pinned, checksum-verified `gitleaks detect
+   --no-git --source <that file> --no-banner --redact --exit-code 1`; a hit refuses the post, and a
+   not-scanned row is a **stop**, never a pass (as `docs/config/spec-repo.md` holds for an issue body).
+
+```bash
+nen pr ledger post --target <owner/name> --pr <n> --effort <branch> --repo <checkout> \
+  [--findings <scratch>/findings.json --findings-schema <hatsu>/contracts/hanten-findings.schema.json] [--proof <path>]...
+```
+
+One marker-keyed comment per effort and login: `posted` the first time, `updated` in place after, `unchanged`
+when the bytes agree — never a second comment. `findings-invalid`, `secret-shape` and `too-large` (exit 1)
+post nothing and are reported verbatim in the landing report; `refused` (exit 4) is the private-name guard.
+**Read back** before a resume (`ren` § 2a, which `build` § 4 cites), and only then
+`nen phase begin --resume`:
+
+```bash
+nen pr ledger read --target <owner/name> --pr <n> --effort <branch> --repo <checkout> [--restore] --json
+```
+
+`--restore` is passed **only where no local phase ledger exists** (a fresh clone, another machine): a local
+ledger this checkout has moved on since the post — an open phase resumed, a phase ended — is refused by
+`--restore` as a disagreement (exit 1, nothing overwritten; observed on HA-PR-#463, `docs/ab/ren.md`), so
+there the local ledger leads and the slice is read without the flag.
+
+`ok` → the slice's completed phases (an entry with an `exit` of `0`) are skipped. **The skip line has one
+form**, printed for every skipped phase whatever the source: `skipped <phase>: exit 0 at <endedAt>`, with
+` (slice <comment url> @ <head>)` appended when the slice supplied it. **A phase whose entry ended
+non-zero is never begun again**: the resume stops there, `refused <phase>: ended at exit <n>`, and writes
+nothing — that step's own stop is answered first (the phase ledger keeps one entry per phase;
+`docs/ab/ren.md`). An **open** phase is continued with `nen phase begin --resume`, never begun twice. `stale` (the PR moved past the recorded head) →
+the phases are restored and the phase at the moved head runs again, said so; `could-not-read` (no comment,
+two, an edited digest, another contract) → nothing is skipped and the run starts at the first phase, the
+reason quoted, **never read as an empty ledger**. Only a comment the authenticated login wrote and nobody
+else edited is trusted (SEC-15, SEC-7): a foreign marked comment is counted, never parsed. A local ledger
+that disagrees with the slice under `--restore` is exit 1 naming both and overwrites nothing; outside the
+case above (the local ledger merely ahead), that is a G5: two records of fact disagree, and the run neither
+picks one nor overwrites either. The register lists each
+PR's slice URL and verdict (§ *Idle batches*). No PR yet → no slice; the local ledger is the only one.
 
 ## 3 · `project.launch` and `project.evidence`
 
@@ -1741,6 +1811,28 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    count resolved). No nen verb rewrites one row, so the struck body is composed for `edit-body` as named residue (a verb owed to nen).
    An issue whose rows are all struck re-enters the next run's queue.
 
+**Three more rules of the idle run** (zheref/hatsu#453 and zheref/hatsu#445; they follow HA-PR-#460's rules above and need the nen release carrying zheref/nen#513, zheref/nen#516 and zheref/nen#518):
+
+- **Before the first claim, the permission list.** `node <hatsu>/scripts/idle_permissions_check.mts --repo
+  <checkout>` reads the session's Claude Code settings against [`contracts/idle-permissions.json`](../contracts/idle-permissions.json)
+  (one exemplar per command shape an idle batch runs, every nen verb family by name, each with the skill that
+  runs it — exemplars, not every argv) and lists every one no allow rule
+  matches, or a deny rule matches; the register carries the list before any effort is claimed. It grants
+  nothing and changes nothing — a permission setting is the maintainer's alone — and it cannot see an
+  auto-mode classifier, whose refusals are the next rule's. Exit `1` is the list, never a refusal to start;
+  exit `2` (a settings file unreadable) is reported as *not checked*, never as *all allowed*.
+- **A harness refusal is row `harness-denied`**, a `human-gate` G5 (rule 2's harness denial): the refused
+  command quoted verbatim, the stop marked for the effort (`nen stop … --mark`, with `--effort <branch>`,
+  nen 0.28 the pin), the effort parked as `g5-harness-denied`, and the run moves on — never retried, rephrased, split or
+  routed through another tool.
+  The decisions list (the PR body's and the final brief's) names each one.
+- **One marker per gate, one bell per gate** (nen 0.28, the pin). Every stop marks with `--effort <branch>`, so seven
+  efforts at seven prompts leave seven markers under `<git common dir>/.nen/marks/`; `hooks/stop-bell.sh`
+  rings each through `nen stop list` **whatever its age** (an orchestrator's turn spans hours, and the hook
+  fires at its end) and clears each with `nen stop clear --gate <g> --effort <branch>`, and a cleared gate
+  removes only its own marker (`docs/ab/futon.md`, 2026-10-23). On 0.26, older than the pin, the one single file rings, as before. Every PR the run opened carries one
+  durable slice (§ *The effort's ledgers*), and the register lists its link and `nen pr ledger read` verdict.
+
 ### `classify` — the two label axes, and the one place their vocabulary lives
 
 The maintainer's rulings of 2026-10-04 ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-04 — classify and
@@ -1971,7 +2063,7 @@ is verified; a watchdog bounds it at about 50 s even where no `timeout` exists.
 
 | Hook | Event | What it does |
 |---|---|---|
-| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** off the marker at `.nen/last-stop.json`, then consumes it |
+| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** once per unrung stop marker — every per-gate marker `nen stop list` names (nen 0.28, the pin; whatever its age), else the single `.nen/last-stop.json` within ten minutes (a binary below the pin) — and clears each it rang with `nen stop clear` (§ *The effort's ledgers*, the homes) |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a raw `git` commit or push while the branch equals `branch.base`; the skills commit and push through `nen commit write` and `nen wc publish`, and the latter refuses the trunk itself at exit `2` |
 
 **Every surface has all three hooks once its hook file was placed.** `hooks/hooks.json` is Claude Code's
@@ -1981,7 +2073,7 @@ Cursor `.cursor/hooks.json` with `stop`, Antigravity `.agents/hooks.json` or the
 `hooks.json` with `Stop`; [`docs/using/README.md`](using/README.md) § *The four surfaces, compared*), and the warm-up places that file. So
 the bell's in-session fallback in [`jutaisho`](../claude/skills/jutaisho/SKILL.md) § 5 keys on one fact,
 **was a hook file placed here**, never on a surface list: where none was placed the skill rings rungs 2
-and 3 itself, says so, and removes `.nen/last-stop.json` once the stop is answered; where one was placed
+and 3 itself, says so, and clears the marker with `nen stop clear` once the stop is answered; where one was placed
 the hook fires and consumes the marker, and the skill leaves it alone. The trunk guard keys on the same
 fact: with no hook file placed, the refusal to commit on `branch.base` is the skills' own rule, not a
 reflex the harness enforces. **Say which of the two you are relying on.**

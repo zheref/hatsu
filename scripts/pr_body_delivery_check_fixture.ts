@@ -39,7 +39,6 @@ function git(...args: string[]): void { ok("git", args); }
 
 mkdirSync(repo, { recursive: true });
 mkdirSync(join(repo, "nen"));
-mkdirSync(join(repo, ".nen/direct"), { recursive: true });
 mkdirSync(join(repo, ".nen/reports"), { recursive: true, mode: 0o700 });
 writeFileSync(join(repo, "nen/workflow.json"), JSON.stringify({
   branch: { base: "main" },
@@ -50,15 +49,20 @@ writeFileSync(join(repo, "nen/workflow.json"), JSON.stringify({
     roles: { reviewer: "deep", worker: "fast", orchestrator: "frontier" },
   },
 }));
-writeFileSync(join(repo, ".nen/direct", `${encodeURIComponent(effort)}.json`), JSON.stringify({
+git("init", "-q", "-b", "main"); git("config", "user.name", "Fixture"); git("config", "user.email", "fixture@example.invalid");
+git("add", "."); git("commit", "-qm", "base"); git("switch", "-qc", effort);
+// The direct record lives in nen's durable home, the git common directory (zheref/nen#509), never the
+// checkout's own .nen/: the fixture writes it there so the engine is held to the path nen writes.
+const directRecord = JSON.stringify({
   contract: "nen.direct.resolve/v0.1", mismatch: { match: true, compares: [
     { field: "surface", session: "codex", recommended: "codex", verdict: "match" },
     { field: "model", session: "sol", recommended: "sol", verdict: "match" },
     { field: "effort", session: "unread", recommended: "max", verdict: "unread" },
   ] },
-}));
-git("init", "-q", "-b", "main"); git("config", "user.name", "Fixture"); git("config", "user.email", "fixture@example.invalid");
-git("add", "."); git("commit", "-qm", "base"); git("switch", "-qc", effort);
+});
+const durableDirect = join(repo, ".git/.nen/direct");
+mkdirSync(durableDirect, { recursive: true });
+writeFileSync(join(durableDirect, `${encodeURIComponent(effort)}.json`), directRecord);
 
 const report = {
   contract: "nen.report.data/v0.1",
@@ -201,6 +205,24 @@ test("unrelated usage and phase records retain their roles and foreign malformed
     "author", "author", "landing", "unread — usage records no supported role", "unread — usage records no supported role",
   ]);
   assert.equal(JSON.stringify(data), before);
+});
+
+test("the direct record is read from the common directory, the older checkout home in place, and both homes refused", () => {
+  const name = `${encodeURIComponent(effort)}.json`;
+  const authorAlias = (): string | undefined => normalize(repo, report).deliveryRows.find((row): boolean => row.role === "author")?.model;
+  assert.equal(authorAlias(), "exact: unread · alias: sol");
+  const legacyDir = join(repo, ".nen/direct");
+  mkdirSync(legacyDir, { recursive: true });
+  writeFileSync(join(legacyDir, name), directRecord);
+  assert.throws((): unknown => normalize(repo, report), /in both homes/);
+  rmSync(join(durableDirect, name));
+  writeFileSync(join(legacyDir, name), JSON.stringify({ session: 5 }));
+  assert.throws((): unknown => normalize(repo, report), (error: Error): boolean => error.message.startsWith(join(repo, ".nen/direct")) && /session must be an object/.test(error.message));
+  rmSync(join(legacyDir, name));
+  writeFileSync(join(durableDirect, name), JSON.stringify({ session: 5 }));
+  assert.throws((): unknown => normalize(repo, report), (error: Error): boolean => error.message.includes(".git/.nen/direct") && /session must be an object/.test(error.message));
+  writeFileSync(join(durableDirect, name), directRecord);
+  assert.equal(authorAlias(), "exact: unread · alias: sol");
 });
 
 test("Nen alone renders Markdown and the semantic guard names missing, duplicate and extra rows", () => {

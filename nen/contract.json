@@ -28,19 +28,19 @@
     "zero_major_caveat": {
       "applies_while": "the installed and pinned majors are both 0",
       "rule": "For major-zero pins, the binary accepts a declared minor at or above its compatible-minor floor and no newer than its own minor. Hatsu minimum0.28 and Nen0.28.0/floor0.28 satisfy; lower pins are refused by this release. Read the exact verdict through nen shu tools; an unparseable version is unknown and unsatisfied.",
-      "why": "SemVer 2.0.0 clause 4: at major version zero the public API is unstable and anything MAY change at any time, so at 0.x the MINOR is the breaking-change vehicle. Read at its strictest that made '0.7' mean '>=0.7.0 <0.8.0' EXACTLY, and every minor — breaking or not — owed a repin PR in every consuming repository; a repin owed unconditionally is a repin nobody reads. The maintainer's ruling of 2026-09-10 narrows it to 'exact minor is fine, unless there is a breaking change', and the fact that makes the distinction decidable is one the binary SHIPS rather than one a consumer infers: nen's release step sets COMPATIBLE_MINOR_FLOOR to a release's own minor when that release's CHANGELOG '### Breaking / consumer notes' section carries a real bullet, and leaves it where it stands when it carries none (zheref/nen#200; docs/USAGE.md 'the compatibility floor' and 'the release-time floor step', guarded by src/version.test.ts, which reads the topmost released section and fails the build when the two disagree). So the floor is what says which releases broke something, carried as data into a checkout that no longer exists rather than derived from prose at run time. It is a floor and never a ceiling, and it only ever WIDENS what is accepted — which is why nen's own notes for it record that it is not itself a breaking change. The floor is seeded at 0.7 because v0.7.0's notes ARE breaking, and those four changes are the reason this contract originally adopted minimum 0.7 (since raised to 0.14 for adopted features) at all: `nen stage triage` gained the `local-config` and `large` detectors, so a working copy that answered exit 0 answers exit 1 on the same bytes; every relative own-path flag resolves against `--repo`'s root instead of the PROCESS's directory, so one unchanged command line run from a worktree reads a different file; a missing or malformed `--target` exits 2 rather than 1 across sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` READS `nen/gates.json`'s `dependabot_carve_out`, so a pull request that answered `not-ready` can answer `ready` against an unchanged file. Each is a silent change of meaning rather than a new flag, which is exactly what a floor exists to record.",
+      "why": "SemVer 2.0.0 clause 4: at major version zero the public API is unstable and anything MAY change at any time, so at 0.x the MINOR is the breaking-change vehicle. Read at its strictest that made '0.7' mean '>=0.7.0 <0.8.0' EXACTLY, and every minor \u2014 breaking or not \u2014 owed a repin PR in every consuming repository; a repin owed unconditionally is a repin nobody reads. The maintainer's ruling of 2026-09-10 narrows it to 'exact minor is fine, unless there is a breaking change', and the fact that makes the distinction decidable is one the binary SHIPS rather than one a consumer infers: nen's release step sets COMPATIBLE_MINOR_FLOOR to a release's own minor when that release's CHANGELOG '### Breaking / consumer notes' section carries a real bullet, and leaves it where it stands when it carries none (zheref/nen#200; docs/USAGE.md 'the compatibility floor' and 'the release-time floor step', guarded by src/version.test.ts, which reads the topmost released section and fails the build when the two disagree). So the floor is what says which releases broke something, carried as data into a checkout that no longer exists rather than derived from prose at run time. It is a floor and never a ceiling, and it only ever WIDENS what is accepted \u2014 which is why nen's own notes for it record that it is not itself a breaking change. The floor is seeded at 0.7 because v0.7.0's notes ARE breaking, and those four changes are the reason this contract originally adopted minimum 0.7 (since raised to 0.14 for adopted features) at all: `nen stage triage` gained the `local-config` and `large` detectors, so a working copy that answered exit 0 answers exit 1 on the same bytes; every relative own-path flag resolves against `--repo`'s root instead of the PROCESS's directory, so one unchanged command line run from a worktree reads a different file; a missing or malformed `--target` exits 2 rather than 1 across sixteen verbs, and so does an unreadable caller-named input on `split verify`, `changelog` and `canon mirror check`; and `nen pr ready` READS `nen/gates.json`'s `dependabot_carve_out`, so a pull request that answered `not-ready` can answer `ready` against an unchanged file. Each is a silent change of meaning rather than a new flag, which is exactly what a floor exists to record.",
       "on_a_higher_minor": "A newer release that keeps a compatibility floor admitting this feature minimum may satisfy the pin without a change. A raised floor above minimum requires an explicit compatibility repin. An installed binary older than minimum needs the published pinned_ref. Read the Nen verdict rather than downgrade a matching newer binary.",
-      "from_1_0_onward": "Once nen reaches 1.0, minimum 'X.Y' means >=X.Y.0 <(X+1).0.0 — backward-compatible WITHIN the major, so a higher minor or patch satisfies it and the compatibility floor is not consulted at all. nen already answers that way for a 1.x pin today; this contract is bumped to say so when nen's own line gets there."
+      "from_1_0_onward": "Once nen reaches 1.0, minimum 'X.Y' means >=X.Y.0 <(X+1).0.0 \u2014 backward-compatible WITHIN the major, so a higher minor or patch satisfies it and the compatibility floor is not consulted at all. nen already answers that way for a 1.x pin today; this contract is bumped to say so when nen's own line gets there."
     },
     "pinned_ref": "v0.28.0",
     "pinned_ref_semantics": "Bootstrap release ref v0.28.0 darwin-arm64 af6f6a9ab8bbc4aa5e61b20dcfaae5ddc4a81b1a1721b367a02b9ebbeec22b7e; linux-x64 b8004b27620a6ffceacde1703d4844029f675431b27c9681a632092e1a5d5f35; windows-x64 a11c4fc7e5c1439d05fa8ec343e343c88b9a16cdf4a96fc82b830eb2a4e20add. Published v0.28.0, release unit zheref/nen#534 merged by getsuga section 3a, tag at 21b133a2. All three assets and SHA256SUMS published 2026-10-25. Session bootstrap checksum verified and executes 0.28.0; the darwin-arm64 digest read from the release SHA256SUMS equals the bootstrapped binary's. Compatibility floor0.28, minimum0.28. HA449 adopts the v0.28.0 verbs the top-level comment names. Historical pins are recorded in git and docs/history/nen-repins.md.",
-    "pinned_ref_bootstrap_caveat": "A TAG IS NOT A RELEASE, and this is the durable rule for EVERY value `pinned_ref` ever takes, not a note about one of them. `bootstrap/nen.sh` resolves the binary and its SHA256SUMS from the GitHub RELEASE at --ref; the tag's own tree carries the script but no assets. TWO CASES, AND THEY FAIL AT DIFFERENT STEPS. A `pinned_ref` whose TAG EXISTS but whose RELEASE is not published exits 6 (EXIT_MANIFEST — SHA256SUMS unfetchable) on both install_paths. A `pinned_ref` whose TAG DOES NOT EXIST YET NEVER REACHES EXIT 6 AT ALL: `raw.githubusercontent.com` 404s on the script itself, so `curl -f` exits 22 (or 56 mid-transfer), no file is created, and the second step never runs. Saying `exit 6` for both was wrong in a way that costs debugging time — an operator looking for a manifest failure when what is missing is the tag. Either way the warm-up halts per `halt`. That is the fail-closed guard working rather than a defect in this file, and exit 6 is one of the two codes that is NEVER retried. THE RULE THIS IMPLIES: never move `pinned_ref` to a ref whose release is unpublished without knowing that the halt is the cost. CI DOES SEE IT, and that sentence used to say the opposite: `.github/workflows/surface-mirror-check.yml` reads `dependency.pinned_ref` out of this file and bootstraps it, so a pull request that moves the pin ahead of the release goes RED at that step — `curl` 404s on the raw script, or the script exits 6 on an unfetchable SHA256SUMS — on every pull request, not only the one that moved it. That is the guard working where it can be seen rather than only on a developer's machine, and it is a reason to sequence the repin behind the release rather than a reason to weaken either. Publishing the release is the nen maintainer's act and the only thing that clears it.",
+    "pinned_ref_bootstrap_caveat": "A TAG IS NOT A RELEASE, and this is the durable rule for EVERY value `pinned_ref` ever takes, not a note about one of them. `bootstrap/nen.sh` resolves the binary and its SHA256SUMS from the GitHub RELEASE at --ref; the tag's own tree carries the script but no assets. TWO CASES, AND THEY FAIL AT DIFFERENT STEPS. A `pinned_ref` whose TAG EXISTS but whose RELEASE is not published exits 6 (EXIT_MANIFEST \u2014 SHA256SUMS unfetchable) on both install_paths. A `pinned_ref` whose TAG DOES NOT EXIST YET NEVER REACHES EXIT 6 AT ALL: `raw.githubusercontent.com` 404s on the script itself, so `curl -f` exits 22 (or 56 mid-transfer), no file is created, and the second step never runs. Saying `exit 6` for both was wrong in a way that costs debugging time \u2014 an operator looking for a manifest failure when what is missing is the tag. Either way the warm-up halts per `halt`. That is the fail-closed guard working rather than a defect in this file, and exit 6 is one of the two codes that is NEVER retried. THE RULE THIS IMPLIES: never move `pinned_ref` to a ref whose release is unpublished without knowing that the halt is the cost. CI DOES SEE IT, and that sentence used to say the opposite: `.github/workflows/surface-mirror-check.yml` reads `dependency.pinned_ref` out of this file and bootstraps it, so a pull request that moves the pin ahead of the release goes RED at that step \u2014 `curl` 404s on the raw script, or the script exits 6 on an unfetchable SHA256SUMS \u2014 on every pull request, not only the one that moved it. That is the guard working where it can be seen rather than only on a developer's machine, and it is a reason to sequence the repin behind the release rather than a reason to weaken either. Publishing the release is the nen maintainer's act and the only thing that clears it.",
     "version_probe": [
       "nen",
       "--version"
     ],
     "version_probe_semantics": "An argv ARRAY, never a string: nen's loader refuses the string form (verified: `at dependency.version_probe, expected an argv ARRAY, got the string \"nen --version\"`), because a string is one 'sh -c' away from a shell. The warm-up runs exactly these elements, with no shell in between.",
-    "version_probe_output": "A bare semver on stdout, e.g. '0.10.0' — no 'v' prefix, no other text. The probe answers WHAT IS INSTALLED; whether that satisfies `minimum` is `nen shu tools`'s verdict and not this string's.",
+    "version_probe_output": "A bare semver on stdout, e.g. '0.10.0' \u2014 no 'v' prefix, no other text. The probe answers WHAT IS INSTALLED; whether that satisfies `minimum` is `nen shu tools`'s verdict and not this string's.",
     "bootstrap": {
       "vendored": false,
       "vendoring_forbidden": "Hatsu never carries a copy of this script. A vendored copy is a second, unreviewed supply chain that drifts from the manifest it verifies against. Hatsu fetches nen's own published script at the pinned ref, every time.",
@@ -62,7 +62,7 @@
       "fetch": "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o <local-file>",
       "fetch_must_be_two_step": {
         "rule": "ALWAYS fetch to a file, then run that file. NEVER pipe the script into bash.",
-        "why": "The script runs under `set -u` and reads ${BASH_SOURCE[0]}. Piped into `bash -s --` there is no BASH_SOURCE, so it dies with `BASH_SOURCE[0]: unbound variable` and exits 1 — a code that appears in NO table here, from a script that never reached its own argument parsing. It looks like an ordinary failure and is not one; it means the invocation form was wrong. Reproduced against this contract's pinned ref.",
+        "why": "The script runs under `set -u` and reads ${BASH_SOURCE[0]}. Piped into `bash -s --` there is no BASH_SOURCE, so it dies with `BASH_SOURCE[0]: unbound variable` and exits 1 \u2014 a code that appears in NO table here, from a script that never reached its own argument parsing. It looks like an ordinary failure and is not one; it means the invocation form was wrong. Reproduced against this contract's pinned ref.",
         "wrong": "curl -fsSL <url> | bash -s -- --ref v0.28.0",
         "right": "curl -fsSL <url> -o /tmp/nen-bootstrap.sh && bash /tmp/nen-bootstrap.sh --ref v0.28.0 --source zheref/nen"
       },
@@ -71,18 +71,18 @@
         "--source": "owner/name to fetch release assets from. Defaults to zheref/nen.",
         "--cache-dir": "Cache root. Defaults to ${XDG_CACHE_HOME:-$HOME/.cache}/nen."
       },
-      "stdout": "On success, the resolved and checksum-verified binary path — and nothing else. Execute exactly that path.",
+      "stdout": "On success, the resolved and checksum-verified binary path \u2014 and nothing else. Execute exactly that path.",
       "exit_codes": {
-        "0": "verified — the path on stdout is safe to execute",
-        "2": "EXIT_USAGE — the invocation is wrong; nothing was attempted",
-        "3": "EXIT_UNSUPPORTED_HOST — this platform/arch ships no nen binary",
-        "4": "EXIT_DOWNLOAD — the binary asset could not be retrieved (the retryable one)",
-        "5": "EXIT_CHECKSUM — SECURITY: bytes did not verify, or could not be verified",
-        "6": "EXIT_MANIFEST — SHA256SUMS unfetchable, missing, malformed, or silent about the artifact",
-        "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure — a wiring failure. Supply --script.",
+        "0": "verified \u2014 the path on stdout is safe to execute",
+        "2": "EXIT_USAGE \u2014 the invocation is wrong; nothing was attempted",
+        "3": "EXIT_UNSUPPORTED_HOST \u2014 this platform/arch ships no nen binary",
+        "4": "EXIT_DOWNLOAD \u2014 the binary asset could not be retrieved (the retryable one)",
+        "5": "EXIT_CHECKSUM \u2014 SECURITY: bytes did not verify, or could not be verified",
+        "6": "EXIT_MANIFEST \u2014 SHA256SUMS unfetchable, missing, malformed, or silent about the artifact",
+        "7": "raised by `nen bootstrap` only, never by the script: no bootstrap/nen.sh found on disk. Not a supply-chain failure \u2014 a wiring failure. Supply --script.",
         "curl 22 / 56 (before the script runs)": "THE SCRIPT ITSELF could not be fetched at the pinned ref and NO FILE WAS CREATED, so no exit code above was ever raised: `curl -f` exits 22 on the 404 and 56 on a mid-transfer failure. It means the tag or the release does not exist yet -- most often a pin moved ahead of the nen release. NEVER RETRIED: a tag that is absent now is absent on the next attempt. The fix is the nen release being published, which is the nen maintainer's act; nothing on this side clears it."
       },
-      "retry_policy": "A curl 22/56 before the script runs is NEVER retried -- the tag or release is absent and will be until it is published. Exit 4 may be retried once. Exits 5 and 6 are NEVER retried — retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exit 3 will not change on this host. Exits 2 and 7 are invocation errors: never retry the same command, but the FIXED invocation (correct usage; for 7, supply --script) is expected to succeed — fix and re-run rather than halting on them.",
+      "retry_policy": "A curl 22/56 before the script runs is NEVER retried -- the tag or release is absent and will be until it is published. Exit 4 may be retried once. Exits 5 and 6 are NEVER retried \u2014 retrying a checksum failure is how a fail-closed guard becomes a fail-open one by attrition. Exit 3 will not change on this host. Exits 2 and 7 are invocation errors: never retry the same command, but the FIXED invocation (correct usage; for 7, supply --script) is expected to succeed \u2014 fix and re-run rather than halting on them.",
       "published_binaries": [
         "nen-linux-x64",
         "nen-darwin-arm64",
@@ -91,51 +91,13 @@
       "manifest_asset": "SHA256SUMS"
     }
   },
-  "mechanical": {
-    "manifests": [
-      ".claude-plugin/plugin.json",
-      ".codex-plugin/plugin.json"
-    ],
-    "changelog": [
-      "changelog.d/**"
-    ],
-    "mirrors": [
-      {
-        "paths": [
-          "surfaces/codex/**"
-        ],
-        "regenerate": [
-          "bash",
-          "scripts/surface_mirror_regenerate.sh"
-        ]
-      },
-      {
-        "paths": [
-          "surfaces/cursor/**"
-        ],
-        "regenerate": [
-          "bash",
-          "scripts/surface_mirror_regenerate.sh"
-        ]
-      },
-      {
-        "paths": [
-          "surfaces/antigravity/**"
-        ],
-        "regenerate": [
-          "bash",
-          "scripts/surface_mirror_regenerate.sh"
-        ]
-      }
-    ]
-  },
   "project": {
-    "$comment": "What nen EXECUTES for this repository — the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md § 'The shu verbs' requires. The repository lane declares its real lint argv and seats its absent verbs; the separate guard lane declares the one focused fixture. A seat is exit 4 — a fact, not a failure — and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
+    "$comment": "What nen EXECUTES for this repository \u2014 the other half of the two-file model documented in docs/WORKFLOW.md, whose policy half is nen/workflow.json. `nen shu detect --repo .` answers exit 1, 'no lane detected': Hatsu is bash-and-markdown and matches none of nen's seven reference stacks, so this block is written BY HAND, as kurapika.md \u00a7 'The shu verbs' requires. The repository lane declares its real lint argv and seats its absent verbs; the separate guard lane declares the one focused fixture. A seat is exit 4 \u2014 a fact, not a failure \u2014 and an omitted verb would be exit 2, which reads as a broken declaration rather than as a deliberate absence.",
     "lanes": {
       "plugin": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The repository lane: a Claude Code plugin whose shipped surface is .claude-plugin/, claude/, nen/, contracts/, docs/ROSTER.md, docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md, docs/LAUNCH-MIGRATION.md, docs/STANDALONE-ENTRY.md, docs/PROCESS.md, docs/SURFACES.md, docs/using/README.md, docs/using/mirrors.md and hooks/. The stack id is Hatsu's own name for it, not one of nen's seven — nen carries no build system and validates the id against nothing."
+        "$comment": "The repository lane: a Claude Code plugin whose shipped surface is .claude-plugin/, claude/, nen/, contracts/, docs/ROSTER.md, docs/delegation-grammar-DRAFT.md, docs/WORKFLOW.md, docs/DISCOVERY.md, docs/LAUNCH-MIGRATION.md, docs/STANDALONE-ENTRY.md, docs/PROCESS.md, docs/SURFACES.md, docs/using/README.md, docs/using/mirrors.md and hooks/. The stack id is Hatsu's own name for it, not one of nen's seven \u2014 nen carries no build system and validates the id against nothing."
       },
       "plugin-bump-guard": {
         "stack": "claude-code-plugin",
@@ -150,17 +112,17 @@
       "surface-link": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/hatsu_surface_link.sh, which points a surface's own first-party install at this checkout -- a Claude Code skills-dir symlink with marketplace handover, a Codex marketplace registration plus plugin add, or an Antigravity symlink into surfaces/antigravity -- never a Claude-shaped mirror and never a versioned plugin cache. Its declared fixture builds throwaway Hatsu-shaped checkouts and PATH-shimmed claude/codex/agy binaries and asserts fresh links, re-pointing an owned link, refusing a foreign destination intact, the Claude Code handover firing only when a prior install is recorded, Codex's foreign-marketplace and version-mismatch refusals, a missing required CLI at exit 5 (PROCESS § Exit codes), a /plugins/cache/ root refused at exit 2, and --dry-run/--status changing nothing. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes. It is not a general suite."
+        "$comment": "The focused lane for scripts/hatsu_surface_link.sh, which points a surface's own first-party install at this checkout -- a Claude Code skills-dir symlink with marketplace handover, a Codex marketplace registration plus plugin add, or an Antigravity symlink into surfaces/antigravity -- never a Claude-shaped mirror and never a versioned plugin cache. Its declared fixture builds throwaway Hatsu-shaped checkouts and PATH-shimmed claude/codex/agy binaries and asserts fresh links, re-pointing an owned link, refusing a foreign destination intact, the Claude Code handover firing only when a prior install is recorded, Codex's foreign-marketplace and version-mismatch refusals, a missing required CLI at exit 5 (PROCESS \u00a7 Exit codes), a /plugins/cache/ root refused at exit 2, and --dry-run/--status changing nothing. Run it only as `nen shu test --lane surface-link --repo <hatsu>` when scripts/hatsu_surface_link.sh or its fixture changes. It is not a general suite."
       },
       "surface-bootstrap-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/surface_bootstrap.sh, the placement script ten § 5 and the session-start hook run on Codex, Cursor and Antigravity, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway targets prove the adoption gate, the ownership rule (a tracked or foreign destination is kept and named, never replaced), the excludes, and the Codex plugin mode (--install-all --plugin places personas only and removes the skill copies and hooks a placement left)."
+        "$comment": "The focused lane for scripts/surface_bootstrap.sh, the placement script ten \u00a7 5 and the session-start hook run on Codex, Cursor and Antigravity, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway targets prove the adoption gate, the ownership rule (a tracked or foreign destination is kept and named, never replaced), the excludes, and the Codex plugin mode (--install-all --plugin places personas only and removes the skill copies and hooks a placement left)."
       },
       "nen-global-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/nen_global.sh, the host nen linker the SessionStart hook runs first (step 0, on the source copy, and on a mirrored copy once its plugin root is verified; ten § 2 (the host default), the maintainer's ruling of 2026-09-30), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline under a throwaway HOME with a stub bootstrap: a fresh install links and adds the zsh rc block, a second run is idempotent, a stale link is relinked, a real file at bin/nen is refused at exit 3 and left untouched, a failing bootstrap exits 5 and keeps the old link, HATSU_NEN_GLOBAL=0 skips, --dry-run changes nothing, and bash and other shells pick their own profile files; cases 21a-21f pin the post-link rollback with and without a previous link, the never-re-add record (unwritable, rolled back, unreadable), the digests tied to the current pin, and an in-range link kept on a failed fetch, an unwritable removal record, the record rollback on a failed rc write (and its read-error guard), and that every published platform's digest in the contract matches the current pin's own record in pinned_ref_semantics."
+        "$comment": "The focused lane for scripts/nen_global.sh, the host nen linker the SessionStart hook runs first (step 0, on the source copy, and on a mirrored copy once its plugin root is verified; ten \u00a7 2 (the host default), the maintainer's ruling of 2026-09-30), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline under a throwaway HOME with a stub bootstrap: a fresh install links and adds the zsh rc block, a second run is idempotent, a stale link is relinked, a real file at bin/nen is refused at exit 3 and left untouched, a failing bootstrap exits 5 and keeps the old link, HATSU_NEN_GLOBAL=0 skips, --dry-run changes nothing, and bash and other shells pick their own profile files; cases 21a-21f pin the post-link rollback with and without a previous link, the never-re-add record (unwritable, rolled back, unreadable), the digests tied to the current pin, and an in-range link kept on a failed fetch, an unwritable removal record, the record rollback on a failed rc write (and its read-error guard), and that every published platform's digest in the contract matches the current pin's own record in pinned_ref_semantics."
       },
       "root-guard": {
         "stack": "claude-code-plugin",
@@ -170,12 +132,7 @@
       "permissions-pack-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/permissions_pack.sh, which ten § 5 and tenkai run on every surface, following the one-lane-per-executable-guard pattern (its fixture existed and no lane ran it until 0.66.0). Hermetic and offline: throwaway consumer repositories prove Codex writable_roots are filled, the placed .codex/hooks.json drops PLUGIN_ROOT with nen's marker kept and the same rewrite as scripts/surface_bootstrap.sh (CWE-426), --plugin leaves .codex/hooks.json to the Codex plugin and is refused off codex, a re-install is idempotent, and a tracked file is left alone."
-      },
-      "consumer-trailer-guard": {
-        "stack": "claude-code-plugin",
-        "cwd": ".",
-        "$comment": "Focused Vitest fixtures for consumer trailer workflow adoption, trusted check publication on the exact PR head, base policy and the published range reader."
+        "$comment": "The focused lane for scripts/permissions_pack.sh, which ten \u00a7 5 and tenkai run on every surface, following the one-lane-per-executable-guard pattern (its fixture existed and no lane ran it until 0.66.0). Hermetic and offline: throwaway consumer repositories prove Codex writable_roots are filled, the placed .codex/hooks.json drops PLUGIN_ROOT with nen's marker kept and the same rewrite as scripts/surface_bootstrap.sh (CWE-426), --plugin leaves .codex/hooks.json to the Codex plugin and is refused off codex, a re-install is idempotent, and a tracked file is left alone."
       },
       "unit-tests-ci-guard": {
         "stack": "claude-code-plugin",
@@ -186,11 +143,6 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "Hermetic fixture for the narrowly granted GitHub API reader, including fixed REST and GraphQL requests and hostile argument refusals."
-      },
-      "plugin-bump-api-retry-guard": {
-        "stack": "claude-code-plugin",
-        "cwd": ".",
-        "$comment": "The focused lane for scripts/plugin_bump_api_retry.mts (HA#381), the trusted plugin-bump workflow reader. Its hermetic Vitest fixture proves bounded retry for non-JSON and 5xx responses, persistent failure closed with sanitized diagnostics, 404 sentinel eligibility only after a confirmed base commit, rename coverage, and deterministic body-only reruns."
       },
       "futon-effort-guard": {
         "stack": "claude-code-plugin",
@@ -210,7 +162,7 @@
       "surface-mirror-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/surface_mirror_check.sh, the generated-surface DRIFT guard surface-mirror-check runs from main under pull_request_target, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a stub nen answers each check by surface, and it proves a clean tree passes with one check per surface, each handed its own --hooks-root, a drift fails at exit 1 and is never re-checked at another root, a refusal keeps its own exit code and is never read as drift, and a Cursor drift is checked once; and each surface's hooks root is written the same in the check, surface-mirror-regenerate.yml, docs/using/mirrors.md § 3 and surface_bootstrap.sh's placed-hooks sed (the workflow's copy drifted once). The next-root re-check zheref/hatsu#153 added for the Codex root's two-step landing was removed with its cases when zheref/hatsu#151 made that root current (docs/GATE-CONFIGURATION.md, 2026-09-30)."
+        "$comment": "The focused lane for scripts/surface_mirror_check.sh, the generated-surface DRIFT guard surface-mirror-check runs from main under pull_request_target, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a stub nen answers each check by surface, and it proves a clean tree passes with one check per surface, each handed its own --hooks-root, a drift fails at exit 1 and is never re-checked at another root, a refusal keeps its own exit code and is never read as drift, and a Cursor drift is checked once; and each surface's hooks root is written the same in the check, surface-mirror-regenerate.yml, docs/using/mirrors.md \u00a7 3 and surface_bootstrap.sh's placed-hooks sed (the workflow's copy drifted once). The next-root re-check zheref/hatsu#153 added for the Codex root's two-step landing was removed with its cases when zheref/hatsu#151 made that root current (docs/GATE-CONFIGURATION.md, 2026-09-30)."
       },
       "surface-link-guard": {
         "stack": "claude-code-plugin",
@@ -266,11 +218,6 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/publish_gate.sh, murasaki section 6's gated push shipped as one command (zheref/hatsu#218 (i), the maintainer's ruling of 2026-10-13; the chain #188 required). Its argv is the fixture, scripts/publish_gate_fixture.sh: a stubbed nen and a real git remote prove each of the six gates refuses the push. scripts/publish_gate_check.sh still holds the prose's own chain shape where a skill spells one."
-      },
-      "mechanical-conflicts-guard": {
-        "stack": "claude-code-plugin",
-        "cwd": ".",
-        "$comment": "The focused lane for Hatsu's top-level mechanical conflict declaration (zheref/hatsu#415). Its typed Vitest fixture uses the verified Nen binary with local bare origins and scratch repositories: three declared classes stop at exit 3, adding one undeclared path stops at exit 1, every path stays listed, and each mirror prints the exact declared regeneration argv. scripts/unit_tests_ci.mts requires and selects the fixture, so its removal is a wiring refusal rather than a silently skipped proof."
       },
       "canon-contracts-guard": {
         "stack": "claude-code-plugin",
@@ -340,7 +287,7 @@
       "publish-integrity-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/branch_authorship_check.sh (zheref/hatsu#170: every commit in the OUTGOING range -- @{upstream} or the ls-remote SHA, never origin/<base> -- carries the run's Hatsu-Agent provenance under --require-agent, with identity as the weak second signal; --trunk drops the base's own history and exempts only a merge of the trunk whose tree is git's own clean merge; hanten § 4's return, aka § 4 before the squash and aka § 7 / murasaki § 6 before the push run it) and scripts/publish_gate_check.sh (zheref/hatsu#188: every documented catch-up-and-publish block is one && chain with nothing negated on it, and murasaki shows the full gated form once, or calls scripts/publish_gate.sh, the same chain shipped as one command, #218). Hermetic and offline: throwaway repositories and files under a temp dir; nothing is pushed but a local bare repository."
+        "$comment": "The focused lane for scripts/branch_authorship_check.sh (zheref/hatsu#170: every commit in the OUTGOING range -- @{upstream} or the ls-remote SHA, never origin/<base> -- carries the run's Hatsu-Agent provenance under --require-agent, with identity as the weak second signal; --trunk drops the base's own history and exempts only a merge of the trunk whose tree is git's own clean merge; hanten \u00a7 4's return, aka \u00a7 4 before the squash and aka \u00a7 7 / murasaki \u00a7 6 before the push run it) and scripts/publish_gate_check.sh (zheref/hatsu#188: every documented catch-up-and-publish block is one && chain with nothing negated on it, and murasaki shows the full gated form once, or calls scripts/publish_gate.sh, the same chain shipped as one command, #218). Hermetic and offline: throwaway repositories and files under a temp dir; nothing is pushed but a local bare repository."
       },
       "cleanup-path-guard": {
         "stack": "claude-code-plugin",
@@ -375,12 +322,12 @@
       "criteria": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The criteria lane (HR-11, HR-10; zheref/hatsu#413): acceptance-criterion coverage is `nen pr converge --requirements-from contracts/issue-sections.json`'s verdict, read by shibari § 4, en §§ 4-5 and rikugan § 3, and no Hatsu script computes it (the interim Hatsu guard retired at the 0.26 pin). scripts/pr_criteria_fixture.mts holds what Hatsu owns around the verb: every reader cites it with Hatsu's catalogue; no canon file restates its blocking rules or evidence rule and the catalogue declares no coverage block (nen's defaults); the catalogue read through `nen issue criteria --body-file` (list rows in the acceptance section, comments and fences ignored, a body with no AC row not verifiable, an Akatsuki AC-{epic}-{nnn} row unrecognised at this pin, zheref/hatsu#411); hostile text (plain output neutralises ESC and U+202E; --json carries U+202E raw at 0.26.0, a pinned miss owed to nen); en's ruled not-applicable reading (HR-357, record R-2026-10-24-01) of closingSource none-on-non-default-base against the Development guard's --body form; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants. The same serial run executes authoritative Vitest suites for the HR-status checker and clause parser, then replays those exported fixtures only for supplemental exact-source Node LCOV; scripts/unit_tests_ci.mts runs this lane unconditionally, so neither half can be dropped by deleting a fixture. Needs the pinned nen (NEN=<path> overrides). Run it only as `nen shu test --lane criteria --repo <hatsu>` when a declared fixture, either measured guard, a reader, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
+        "$comment": "The criteria lane (HR-11, HR-10; zheref/hatsu#413): acceptance-criterion coverage is `nen pr converge --requirements-from contracts/issue-sections.json`'s verdict, read by shibari \u00a7 4, en \u00a7\u00a7 4-5 and rikugan \u00a7 3, and no Hatsu script computes it (the interim Hatsu guard retired at the 0.26 pin). scripts/pr_criteria_fixture.mts holds what Hatsu owns around the verb: every reader cites it with Hatsu's catalogue; no canon file restates its blocking rules or evidence rule and the catalogue declares no coverage block (nen's defaults); the catalogue read through `nen issue criteria --body-file` (list rows in the acceptance section, comments and fences ignored, a body with no AC row not verifiable, an Akatsuki AC-{epic}-{nnn} row unrecognised at this pin, zheref/hatsu#411); hostile text (plain output neutralises ESC and U+202E; --json carries U+202E raw at 0.26.0, a pinned miss owed to nen); en's ruled not-applicable reading (HR-357, record R-2026-10-24-01) of closingSource none-on-non-default-base against the Development guard's --body form; the verify template's criteria table and the verify-content requirement; and contracts/hanten-findings.schema.json's disposition invariants. The same serial run executes authoritative Vitest suites for the HR-status checker and clause parser, then replays those exported fixtures only for supplemental exact-source Node LCOV; scripts/unit_tests_ci.mts runs this lane unconditionally, so neither half can be dropped by deleting a fixture. Needs the pinned nen (NEN=<path> overrides). Run it only as `nen shu test --lane criteria --repo <hatsu>` when a declared fixture, either measured guard, a reader, templates/pr-body/verify.md, contracts/pr-body.requirements.json, contracts/issue-sections.json or the findings schema changes. It is not a general suite."
       },
       "clause-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor and any id=\"hr-N\" anchor not in the canonical form exit 1, a gap is a notice at exit 0 listing at most 20, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity, an empty id space, an id that is not a safe integer or exceeds the definition count plus 1000, and a path holding a comma, colon or line break exit 2; a status outside ROSTER § *How HR ids are read*'s words (ruled, reading, reversed by / superseded by HR-m with one optional balanced part) or a Status cell and parenthesis that differ, a citation or `#hr-N` link of an id no row defines (once per line and id), and a reading missing from § *Readings*' index, an index entry whose row is not a reading or whose label and link disagree exit 1 by name, and a roster with no `## Readings` heading exits 2 (zheref/hatsu#452); its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
+        "$comment": "The focused lane for scripts/clause_id_guard.mts, the HR id guard over docs/ROSTER.md (HR-2), ported from zheref/akatsuki-ai's clause_id_guard. Its fixture is hermetic for its synthetic rosters: definitions counted and citations never, a duplicate or a disagreeing anchor and any id=\"hr-N\" anchor not in the canonical form exit 1, a gap is a notice at exit 0 listing at most 20, order unasserted, HR-2 never matched by HR-20, an unreadable file, a directory, wrong arity, an empty id space, an id that is not a safe integer or exceeds the definition count plus 1000, and a path holding a comma, colon or line break exit 2; a status outside ROSTER \u00a7 *How HR ids are read*'s words (ruled, reading, reversed by / superseded by HR-m with one optional balanced part) or a Status cell and parenthesis that differ, a citation or `#hr-N` link of an id no row defines (once per line and id), and a reading missing from \u00a7 *Readings*' index, an index entry whose row is not a reading or whose label and link disagree exit 1 by name, and a roster with no `## Readings` heading exits 2 (zheref/hatsu#452); its last case runs the guard over the live roster. Run it as `nen shu test --lane clause-guard --repo <hatsu>` when the roster's anchors, the script or its fixture change. It is not a general suite."
       },
       "ruling-record": {
         "stack": "claude-code-plugin",
@@ -406,6 +353,41 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/schedule_install.mts (zheref/hatsu#448), the printer of the steady-state scheduler rows in contracts/schedule.json (ruling HR-354, record R-2026-10-23-21: Claude Desktop local scheduled tasks on the maintainer's machine). Its fixture is hermetic and offline: the live contract printed whole with every placeholder filled (exit 0) or each unfilled one named (exit 1), nothing registered or written (HOME stays empty), each wiring refusal at exit 2, and the symlinked entry. scripts/unit_tests_ci.mts runs it in unit-tests.yml (BC-9). Run it as `nen shu test --lane schedule-printer --repo <hatsu>` when the script, its fixture or contracts/schedule.json changes."
+      },
+      "consumer-trailer-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Focused Vitest fixtures for consumer trailer workflow adoption, trusted check publication on the exact PR head, base policy and the published range reader."
+      },
+      "plugin-bump-api-retry-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/plugin_bump_api_retry.mts (HA#381), the trusted plugin-bump workflow reader. Its hermetic Vitest fixture proves bounded retry for non-JSON and 5xx responses, persistent failure closed with sanitized diagnostics, 404 sentinel eligibility only after a confirmed base commit, rename coverage, and deterministic body-only reruns."
+      },
+      "mechanical-conflicts-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for Hatsu's top-level mechanical conflict declaration (zheref/hatsu#415). Its typed Vitest fixture uses the verified Nen binary with local bare origins and scratch repositories: three declared classes stop at exit 3, adding one undeclared path stops at exit 1, every path stays listed, and each mirror prints the exact declared regeneration argv. scripts/unit_tests_ci.mts requires and selects the fixture, so its removal is a wiring refusal rather than a silently skipped proof."
+      },
+      "stop-bell-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for hooks/stop-bell.sh (zheref/hatsu#453): hermetic and offline under stub nen, osascript, afplay and uname, it proves one bell per per-gate marker that nen stop list names, each cleared by its own nen stop clear --gate/--effort and only that, stale and HATSU_ATTENTION=off markers consumed unrung, unreadable rows left alone, and the single-file fallbacks for a nen without stop list and for no nen at all."
+      },
+      "idle-permissions-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/idle_permissions_check.mts (zheref/hatsu#453 AC-3), which lists the idle-batch exemplars of contracts/idle-permissions.json that the session's Claude Code settings do not pre-allow. Hermetic and offline: rule matching, deny precedence, absent and unreadable settings, the 0/1/2 exits and the shipped list's shape."
+      },
+      "ledger-findings-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/ledger_findings_prepare.mts (HA-PR-#463 review, SEC-3, SEC-8): the findings copy mukai step 8a posts in the public ledger slice. Hermetic: an unfixed security critical/high finding holds the post by id, the copy carries no /Users/ or /private/ path, the record is untouched, and the 0/1/2 exits."
+      },
+      "resume-proof": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The crash-and-resume proof's ledger half (zheref/hatsu#444): scripts/resume_proof.mts drives ren's and build's phase ledgers and the futon run manifest through an interruption after every phase begin and end, re-invokes under WORKFLOW's resume rule, and asserts convergence with the uninterrupted run (one entry per phase, one resumedAt on the interrupted one, a finished ledger byte-identical on re-invocation). It runs against the nen on PATH; it is a proof, not a general suite."
       }
     },
     "defaultLane": "plugin",
@@ -443,7 +425,7 @@
             "--repo",
             "."
           ],
-          "$comment": "RETIRED SEAT, maintainer's ruling 2026-09-19. This row previously read: \"Publication is a git tag plus the marketplace entry that already points at this repository — there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter prepares a release here; nothing in this repository publishes one.\" -- and that became false the moment a GitHub Release was published by hand at v0.39.0. A declaration that disagrees with the practice is a bug in the declaration, and the cost was concrete: `hatsu:mugetsu` exists to execute this row at G3, so a seat here meant publication happened outside the machinery entirely. The row now runs scripts/release-publish.sh, which publishes ONE GitHub Release for a tag that already resolves on the remote. It cuts no tag (that is `nen tag cut`, hatsu:getsuga section 4), pushes nothing, builds nothing, and attaches only artifacts it is handed -- for this stack there are none, because a Claude Code plugin is distributed by git ref through a marketplace and the tag IS the distribution. --tag is omitted here deliberately: `nen shu release` runs this argv with no arguments, so the script derives the newest v* tag and names it as DERIVED in its output. Every refusal fires before anything is sent -- an absent tag, a tag missing from the remote, and a tag that already has a release. G3 (CON-6) still holds the go: this row is what mugetsu RUNS, never permission to run it."
+          "$comment": "RETIRED SEAT, maintainer's ruling 2026-09-19. This row previously read: \"Publication is a git tag plus the marketplace entry that already points at this repository \u2014 there is no publish step to run, and G3 (CON-6) holds the tag decision anyway. Emitter prepares a release here; nothing in this repository publishes one.\" -- and that became false the moment a GitHub Release was published by hand at v0.39.0. A declaration that disagrees with the practice is a bug in the declaration, and the cost was concrete: `hatsu:mugetsu` exists to execute this row at G3, so a seat here meant publication happened outside the machinery entirely. The row now runs scripts/release-publish.sh, which publishes ONE GitHub Release for a tag that already resolves on the remote. It cuts no tag (that is `nen tag cut`, hatsu:getsuga section 4), pushes nothing, builds nothing, and attaches only artifacts it is handed -- for this stack there are none, because a Claude Code plugin is distributed by git ref through a marketplace and the tag IS the distribution. --tag is omitted here deliberately: `nen shu release` runs this argv with no arguments, so the script derives the newest v* tag and names it as DERIVED in its output. Every refusal fires before anything is sent -- an absent tag, a tag missing from the remote, and a tag that already has a release. G3 (CON-6) still holds the go: this row is what mugetsu RUNS, never permission to run it."
         },
         "dev": {
           "unsupported": "There is no debug build to start. The development loop is `claude plugin marketplace add ./hatsu` against a local checkout followed by `claude plugin install hatsu@hatsu`, which is a host operation on the developer's own session, not a process this repository spawns."
@@ -625,13 +607,6 @@
           "$comment": "Extraction only: reads coverage/permissions-pack-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
         }
       },
-      "consumer-trailer-guard": {
-        "test": {
-          "exe": "bash",
-          "argv": ["scripts/fixture_output_guard.sh", "node", "node_modules/vitest/vitest.mjs", "run", "--maxWorkers", "1", "--testTimeout", "15000", "scripts/tenkai_trailer_guard_fixture.test.mts"],
-          "$comment": "Existing pinned Vitest framework; offline fixtures execute the rendered job against real Git histories and the published reader's exact bytes, plus adoption drift and actual guard admission."
-        }
-      },
       "unit-tests-ci-guard": {
         "test": {
           "exe": "bash",
@@ -662,62 +637,6 @@
             "scripts/provider_tag_commit_fixture.test.mts"
           ],
           "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first."
-        }
-      },
-      "plugin-bump-api-retry-guard": {
-        "test": {
-          "steps": [
-            {
-              "exe": "node",
-              "argv": [
-                "--eval",
-                "require('node:fs').mkdirSync('coverage/plugin-bump-api-retry-guard', { recursive: true })"
-              ]
-            },
-            {
-              "exe": "bash",
-              "argv": [
-                "scripts/fixture_output_guard.sh",
-                "node",
-                "node_modules/vitest/vitest.mjs",
-                "run",
-                "--maxWorkers=1",
-                "--no-file-parallelism",
-                "--testTimeout",
-                "5000",
-                "scripts/plugin_bump_api_retry_fixture.test.mts"
-              ]
-            },
-            {
-              "exe": "node",
-              "argv": [
-                "--test",
-                "--experimental-test-coverage",
-                "--test-concurrency=1",
-                "--test-coverage-include=scripts/plugin_bump_api_retry.mts",
-                "--test-reporter=spec",
-                "--test-reporter=lcov",
-                "--test-reporter-destination=stdout",
-                "--test-reporter-destination=coverage/plugin-bump-api-retry-guard/lcov.info",
-                "scripts/plugin_bump_api_retry_coverage.test.mts"
-              ]
-            }
-          ],
-          "artifacts": [
-            "coverage/plugin-bump-api-retry-guard/lcov.info"
-          ],
-          "$comment": "The authoritative worker-one Vitest suite runs first. A separate Node 24 test then replays the same exported behavior cases in-process solely for exact-source LCOV over scripts/plugin_bump_api_retry.mts; it does not replace Vitest. The built-in spec reporter keeps capture failures visible while the paired lcov reporter writes the ignored artifact. Hermetic HA#381 cases prove bounded attempts/backoff and fetch-plus-body timeout, transient recovery, persistent fail-closed diagnostics, confirmed-base-only 404 handling, the documented 3,000-file ceiling, rename paths, and body-only determinism. Install locked dependencies with npm ci --ignore-scripts first."
-        },
-        "coverage": {
-          "exe": "node",
-          "argv": [
-            "--eval",
-            "const fs=require('node:fs');const path='coverage/plugin-bump-api-retry-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing plugin-bump API retry LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty plugin-bump API retry LCOV capture')"
-          ],
-          "artifacts": [
-            "coverage/plugin-bump-api-retry-guard/lcov.info"
-          ],
-          "$comment": "Extraction only: verifies the non-empty LCOV artifact written by this lane's test row and runs no fixture. Nen owns LCOV parsing and --from-capture provenance."
         }
       },
       "futon-effort-guard": {
@@ -1080,21 +999,6 @@
             "coverage/publish-gate-guard/lcov.info"
           ],
           "$comment": "Extraction only: reads coverage/publish-gate-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
-        }
-      },
-      "mechanical-conflicts-guard": {
-        "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "node_modules/vitest/vitest.mjs",
-            "run",
-            "--testTimeout",
-            "15000",
-            "scripts/mechanical_conflicts_fixture.test.mts"
-          ],
-          "$comment": "Hermetic and offline: the typed Vitest fixture copies the live top-level mechanical declaration into scratch repositories backed by local bare origins, then invokes the verified Nen binary. It proves manifest, changelog and mirror conflicts are classed and stop at exit 3, one undeclared path changes the stop to exit 1 while every path remains listed, and the mirror group prints exactly ['bash', 'scripts/surface_mirror_regenerate.sh']. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "canon-contracts-guard": {
@@ -1822,6 +1726,138 @@
           ],
           "$comment": "Hermetic schedule-printer fixture against the live contracts/schedule.json and throwaway copies (zheref/hatsu#448). Needs node only; no gh, no network, no Claude Desktop."
         }
+      },
+      "consumer-trailer-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--maxWorkers",
+            "1",
+            "--testTimeout",
+            "15000",
+            "scripts/tenkai_trailer_guard_fixture.test.mts"
+          ],
+          "$comment": "Existing pinned Vitest framework; offline fixtures execute the rendered job against real Git histories and the published reader's exact bytes, plus adoption drift and actual guard admission."
+        }
+      },
+      "plugin-bump-api-retry-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/plugin-bump-api-retry-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "--testTimeout",
+                "5000",
+                "scripts/plugin_bump_api_retry_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/plugin_bump_api_retry.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/plugin-bump-api-retry-guard/lcov.info",
+                "scripts/plugin_bump_api_retry_coverage.test.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/plugin-bump-api-retry-guard/lcov.info"
+          ],
+          "$comment": "The authoritative worker-one Vitest suite runs first. A separate Node 24 test then replays the same exported behavior cases in-process solely for exact-source LCOV over scripts/plugin_bump_api_retry.mts; it does not replace Vitest. The built-in spec reporter keeps capture failures visible while the paired lcov reporter writes the ignored artifact. Hermetic HA#381 cases prove bounded attempts/backoff and fetch-plus-body timeout, transient recovery, persistent fail-closed diagnostics, confirmed-base-only 404 handling, the documented 3,000-file ceiling, rename paths, and body-only determinism. Install locked dependencies with npm ci --ignore-scripts first."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/plugin-bump-api-retry-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing plugin-bump API retry LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty plugin-bump API retry LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/plugin-bump-api-retry-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the non-empty LCOV artifact written by this lane's test row and runs no fixture. Nen owns LCOV parsing and --from-capture provenance."
+        }
+      },
+      "mechanical-conflicts-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--testTimeout",
+            "15000",
+            "scripts/mechanical_conflicts_fixture.test.mts"
+          ],
+          "$comment": "Hermetic and offline: the typed Vitest fixture copies the live top-level mechanical declaration into scratch repositories backed by local bare origins, then invokes the verified Nen binary. It proves manifest, changelog and mirror conflicts are classed and stop at exit 3, one undeclared path changes the stop to exit 1 while every path remains listed, and the mirror group prints exactly ['bash', 'scripts/surface_mirror_regenerate.sh']. Install locked dependencies with npm ci --ignore-scripts first."
+        }
+      },
+      "stop-bell-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/stop_bell_fixture.mts"
+          ],
+          "$comment": "Hermetic hook fixture: stub nen/osascript/afplay/uname on PATH, a scratch git repository per case. Run when hooks/stop-bell.sh or its surface mirrors change."
+        }
+      },
+      "idle-permissions-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/idle_permissions_check_fixture.mts"
+          ],
+          "$comment": "Hermetic: scratch settings and exemplar files only. Run when the check, its fixture or contracts/idle-permissions.json changes."
+        }
+      },
+      "ledger-findings-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/ledger_findings_prepare_fixture.mts"
+          ],
+          "$comment": "Hermetic: scratch records only. Run when the prepare script, its fixture or mukai step 8a changes."
+        }
+      },
+      "resume-proof": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/resume_proof.mts"
+          ],
+          "$comment": "Needs git and nen on PATH (nen phase begin --resume, nen run start|park); offline. Run when a composite's phase vocabulary, the resume rule in WORKFLOW \u00a7 The effort's ledgers, or the nen pin changes."
+        }
       }
     },
     "preconditions": {
@@ -1890,7 +1926,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/prose_ambiguity_check_fixture.mts, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; cleanup_path_admit and prose_ambiguity_check_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane — it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/prose_ambiguity_check_fixture.mts, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; cleanup_path_admit and prose_ambiguity_check_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {
@@ -1904,7 +1940,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, with the probe also requiring import.meta.main for fail-closed CLI entry detection (HA#417). Node 22.18 supports that metadata; Node 23 and 24.0–24.1 do not and are refused by the capability probe even though they exceed the numeric floor. Use a release exposing the capability, such as Node 22.18+ or 24.2+. The type-stripping floor remains the one which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_doc.mts and scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, with the probe also requiring import.meta.main for fail-closed CLI entry detection (HA#417). Node 22.18 supports that metadata; Node 23 and 24.0\u201324.1 do not and are refused by the capability probe even though they exceed the numeric floor. Use a release exposing the capability, such as Node 22.18+ or 24.2+. The type-stripping floor remains the one which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_doc.mts and scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",
@@ -1978,7 +2014,7 @@
   "install_paths": {
     "note": "TWO cases, TWO paths. Which one applies is decided by the probe, never by preference.",
     "nen_absent": {
-      "when": "`nen --version` is not found on PATH, exits non-zero, or prints something unparseable — and equally when the binary on PATH is so old it has no `nen bootstrap` at all (exit 2, `unknown command`), since the re-pin path below presupposes that verb.",
+      "when": "`nen --version` is not found on PATH, exits non-zero, or prints something unparseable \u2014 and equally when the binary on PATH is so old it has no `nen bootstrap` at all (exit 2, `unknown command`), since the re-pin path below presupposes that verb.",
       "path": "The shell bootstrap, directly.",
       "commands": [
         "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o <local-file>",
@@ -1987,29 +2023,67 @@
       "why_shell_here": "Chicken-and-egg, and it is the ONLY reason shell is permitted anywhere on this path. `nen bootstrap` is a nen subcommand, so invoking it presupposes the binary that is precisely what is missing. The script exists because a bootstrap written in the language its own output provides cannot run before that output exists. This is the sole carve-out; it does not generalize to any other operation."
     },
     "nen_present_out_of_range": {
-      "when": "`nen shu tools --repo <this checkout>` answers the `nen` row `present-but-wrong-version` — the binary parses and does not satisfy `minimum` under dependency.zero_major_caveat's floor rule. The row is the verdict; the range is never recomputed here. TWO SHAPES, ONE PATH: a pin BELOW the build's compatibility floor (the row names the repin, and no build of that line will ever satisfy it — the fix is a pull request against this file, not an install), and a binary OLDER than the pin (the install below is the whole fix).",
+      "when": "`nen shu tools --repo <this checkout>` answers the `nen` row `present-but-wrong-version` \u2014 the binary parses and does not satisfy `minimum` under dependency.zero_major_caveat's floor rule. The row is the verdict; the range is never recomputed here. TWO SHAPES, ONE PATH: a pin BELOW the build's compatibility floor (the row names the repin, and no build of that line will ever satisfy it \u2014 the fix is a pull request against this file, not an install), and a binary OLDER than the pin (the install below is the whole fix).",
       "path": "Re-pin THROUGH NEN'S OWN VERB. A working nen is on PATH, so the chicken-and-egg rationale does not apply and the shell path is not the one to reach for.",
       "commands": [
         "curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o <local-file>",
         "nen bootstrap --ref v0.28.0 --source zheref/nen --script <local-file>"
       ],
-      "why_script_flag_is_required": "VERIFIED, and it contradicts what the verb's name suggests: `nen bootstrap` does not fetch the script. It runs the checksum bootstrap rather than reimplementing it, so it needs bootstrap/nen.sh ON DISK — from a checkout carrying it (--repo) or named with --script / $NEN_BOOTSTRAP_SH. A Hatsu user has no nen checkout, so --script with the freshly fetched file is the form that works; without it the verb exits 7. Deliberate on nen's part: a compiled binary has no sibling bootstrap/ directory, and guessing one is how a nonexistent path becomes a silent failure.",
-      "exit_codes": "The verb propagates the script's codes unchanged — a forced failure through the verb returns 6, verified — plus its own 7 above."
+      "why_script_flag_is_required": "VERIFIED, and it contradicts what the verb's name suggests: `nen bootstrap` does not fetch the script. It runs the checksum bootstrap rather than reimplementing it, so it needs bootstrap/nen.sh ON DISK \u2014 from a checkout carrying it (--repo) or named with --script / $NEN_BOOTSTRAP_SH. A Hatsu user has no nen checkout, so --script with the freshly fetched file is the form that works; without it the verb exits 7. Deliberate on nen's part: a compiled binary has no sibling bootstrap/ directory, and guessing one is how a nonexistent path becomes a silent failure.",
+      "exit_codes": "The verb propagates the script's codes unchanged \u2014 a forced failure through the verb returns 6, verified \u2014 plus its own 7 above."
     }
   },
   "halt": {
-    "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or out-of-range nen is not a halt — it is an auto-install.",
-    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} — ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.28.0 --source zheref/nen\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl … | bash` dies before it starts.\n",
-    "after_halt": "Stop. Do not perform the Nen-owned operation by another route — not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
+    "when": "ONLY when the bootstrap itself fails (any non-zero exit above). An absent or out-of-range nen is not a halt \u2014 it is an auto-install.",
+    "message_template": "Nen is unavailable and the checksum-verified bootstrap failed (exit ${EXIT_CODE} \u2014 ${EXIT_MEANING}). This operation is Nen-owned and will not be improvised. Run this yourself, then re-invoke:\n\n    curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o /tmp/nen-bootstrap.sh\n    bash /tmp/nen-bootstrap.sh --ref v0.28.0 --source zheref/nen\n\nTwo steps, never a pipe: the script reads ${BASH_SOURCE[0]} under `set -u`, so `curl \u2026 | bash` dies before it starts.\n",
+    "after_halt": "Stop. Do not perform the Nen-owned operation by another route \u2014 not with raw gh, not with a shell equivalent, not from memory. The operation does not happen."
   },
   "no_improvised_fallback": {
     "rule": "There is no LLM-improvised fallback for a Nen-owned operation, ever.",
-    "scope": "A Nen-owned operation is any operation for which a nen verb exists — readiness determination, backlog fetch and ordering, board assembly and render, gate derivation, label application, an issue or pull-request comment (`nen issue comment`), changelog collation, fan-out computation, method-block validation, perf comparison, a target repository's declared build/test/lint/coverage/deploy (`nen shu`), and the rest of `nen --help`.",
+    "scope": "A Nen-owned operation is any operation for which a nen verb exists \u2014 readiness determination, backlog fetch and ordering, board assembly and render, gate derivation, label application, an issue or pull-request comment (`nen issue comment`), changelog collation, fan-out computation, method-block validation, perf comparison, a target repository's declared build/test/lint/coverage/deploy (`nen shu`), and the rest of `nen --help`.",
     "consequence": "If nen is unavailable and the bootstrap failed, the operation does not happen. Reporting that is the correct outcome; substituting a hand-rolled equivalent is not."
   },
   "no_jq": {
     "rule": "Nothing on this path shells out to jq, yq or python to read this file.",
-    "why": "The ratified plan retires jq/yq as a DX friction — a machine needs one binary plus git and gh. And the reader here is an LLM agent that has already opened this file: parsing JSON by subprocess to hand values back to the entity that just read them buys a dependency for nothing.",
-    "how_instead": "Read this file, take the literal values, and issue plain curl / bash / nen commands with those literals substituted in. The one machine that also reads it is nen itself — `nen schema check --repo <this checkout>` — and that is a validation of the file, never a way of reading values out of it."
+    "why": "The ratified plan retires jq/yq as a DX friction \u2014 a machine needs one binary plus git and gh. And the reader here is an LLM agent that has already opened this file: parsing JSON by subprocess to hand values back to the entity that just read them buys a dependency for nothing.",
+    "how_instead": "Read this file, take the literal values, and issue plain curl / bash / nen commands with those literals substituted in. The one machine that also reads it is nen itself \u2014 `nen schema check --repo <this checkout>` \u2014 and that is a validation of the file, never a way of reading values out of it."
+  },
+  "mechanical": {
+    "manifests": [
+      ".claude-plugin/plugin.json",
+      ".codex-plugin/plugin.json"
+    ],
+    "changelog": [
+      "changelog.d/**"
+    ],
+    "mirrors": [
+      {
+        "paths": [
+          "surfaces/codex/**"
+        ],
+        "regenerate": [
+          "bash",
+          "scripts/surface_mirror_regenerate.sh"
+        ]
+      },
+      {
+        "paths": [
+          "surfaces/cursor/**"
+        ],
+        "regenerate": [
+          "bash",
+          "scripts/surface_mirror_regenerate.sh"
+        ]
+      },
+      {
+        "paths": [
+          "surfaces/antigravity/**"
+        ],
+        "regenerate": [
+          "bash",
+          "scripts/surface_mirror_regenerate.sh"
+        ]
+      }
+    ]
   }
 }

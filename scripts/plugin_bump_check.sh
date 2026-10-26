@@ -253,6 +253,13 @@ fi
 #   scripts/port_rule_reserve.sh
 #                     — bankai-rule reserves and re-checks ruling ids through this
 #                       installed-root helper; a stale copy can admit a duplicate.
+#   scripts/idle_permissions_check.mts
+#                     — the idle batch's permission list (zheref/hatsu#453), run from
+#                       `$hatsu_root/scripts/` before an idle run's first claim with
+#                       contracts/idle-permissions.json beside it.
+#   scripts/ledger_findings_prepare.mts
+#                     — mukai step 8a's findings copy for the public ledger slice:
+#                       the security hold and the relativised paths (HA-PR-#463).
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -423,6 +430,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/clause_id_guard.mts'
   'scripts/direct_matrix_doc.sh'
   'scripts/direct_matrix_doc.mts'
+  'scripts/idle_permissions_check.mts'
+  'scripts/ledger_findings_prepare.mts'
   '.mcp.json'
 )
 

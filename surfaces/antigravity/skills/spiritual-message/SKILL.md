@@ -70,6 +70,8 @@ source-tree identity is **stale**.
 nen report data --repo <path> --base origin/<branch.base> --effort <branch> [--tiers <json>] [--target <owner/name> --prs <n,...>] --json
 ```
 
+`--effort` keeps this effort's ledgers only: they are shared by every worktree (WORKFLOW § *The effort's ledgers*).
+
 One `nen.report.data/v0.1` document: `commits[]`, `files[]`, `evidence[]`, `coverage`, `proof`,
 `lastStop`, `phases[]`, `usage[]`, the header fields, plus `objects[]` where a target was named. It
 never writes; **every absence is `null` with the reason on stderr**, quoted not replaced; an

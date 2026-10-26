@@ -207,10 +207,33 @@ function sourceAlias(source: string | null, knownAliases: ReadonlySet<string>): 
   const alias = match[1] as string;
   return knownAliases.has(alias) ? alias : null;
 }
+// Plain `--git-common-dir` (git 2.5), never `--path-format=absolute` (git 2.31): a relative answer is
+// resolved against the root, as scripts/futon_effort_record.mts and hooks/stop-bell.sh resolve it.
+function gitCommonDir(root: string): string {
+  const result = spawnSync("git", ["-C", root, "rev-parse", "--git-common-dir"], { encoding: "utf8" });
+  if (result.error !== undefined || result.status !== 0 || result.stdout.trim() === "") fail(`${root}: git could not name the common directory`);
+  const raw = result.stdout.trim();
+  return realpathSync(isAbsolute(raw) ? raw : resolvePath(root, raw));
+}
+// The direct record's home is nen's durable one, <git-common-dir>/.nen/direct/ (zheref/nen#509); the older
+// <checkout>/.nen/direct/ is read in place only while nen reads it (through 0.28), and a record in both
+// homes is refused by name, as nen refuses it.
+function directRecordPath(root: string, effort: string): string | null {
+  const name = `${encodeURIComponent(effort)}.json`;
+  const common = gitCommonDir(root);
+  const durable = join(common, ".nen/direct", name);
+  const legacy = join(root, ".nen/direct", name);
+  const hasDurable = stat(durable) !== null;
+  const hasLegacy = stat(legacy) !== null;
+  if (hasDurable && hasLegacy) fail(`${durable} and ${legacy}: the direct record is in both homes; nen refuses it too`);
+  if (hasDurable) { noSymlinkPath(common, durable, false); return durable; }
+  if (hasLegacy) { noSymlinkPath(root, legacy, false); return legacy; }
+  return null;
+}
 function directSessionAlias(root: string, effort: string, surface: string): string | null {
-  const path = join(root, ".nen/direct", `${encodeURIComponent(effort)}.json`);
-  if (!existsSync(path)) return null;
-  noSymlinkPath(root, path, false);
+  const path = directRecordPath(root, effort);
+  if (path === null) return null;
+  if (!stat(path)?.isFile()) fail(`${path}: the direct record must be a regular file`);
   const direct = object(loadJson(path), `${path}: direct record must be an object`);
   if (direct.session !== null && direct.session !== undefined) {
     const session = object(direct.session, `${path}: session must be an object or null`);

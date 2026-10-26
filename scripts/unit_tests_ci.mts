@@ -76,6 +76,11 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // this lane automatically only after this trusted runner is adopted by the PR base.
   ['pr_delivery.ts', ['pr_body_delivery_check_fixture.sh', 'pr_body_delivery_check_fixture.ts'], 'pr-delivery-guard'],
   ['tenkai_trailer_guard.mts', 'tenkai_trailer_guard_fixture.test.mts', 'consumer-trailer-guard'],
+  // Self-contained proofs: the fixture is the script itself (zheref/hatsu#453, #444).
+  ['stop_bell_fixture.mts', 'stop_bell_fixture.mts', 'stop-bell-guard'],
+  ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],
+  ['idle_permissions_check.mts', 'idle_permissions_check_fixture.mts', 'idle-permissions-guard'],
+  ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
 ];
 for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

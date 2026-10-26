@@ -111,6 +111,7 @@ says which composite is holding it instead.
 | 6 | **publish the proved tree** | [`$murasaki`](../murasaki/SKILL.md) | final catch-up check; if it changes any tree path, invalidate regression and coverage and return to steps 3–5; only an unchanged, fully proved tree is pushed, and only through murasaki § 6's one gated step — catch-up `noOp: true`, `HEAD` equal to the SHA steps 3–5 proved (printed and quoted), checks and the provenance check over the outgoing range each exit `0`, joined by `&&` (zheref/hatsu#188, #170); a typed composite's handoff passes through (aka § 0, second carve-out; HR-20) |
 | 7 | **collect the evidence and section facts** | [`$kotoamatsukami`](../kotoamatsukami/SKILL.md)'s existing artifacts | build the `UZF-26` table without rerunning UI regression |
 | 8 | **compose and open** | [`$shibari`](../shibari/SKILL.md) | the body, checks, evidence, reviewers, and PR from the last pushed commit |
+| 8a | **the durable slice** | `nen pr ledger post` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*, *The durable slice*; nen 0.28, the pin) | one marker-keyed PR comment holding the effort's phases, usage, hanten findings and proof index, read by a resume on any clone; a later landing on the same PR updates it in place (`updated`/`unchanged`), never a second comment. **The comment is public**, so three steps come first and any failing posts nothing: `scripts/ledger_findings_prepare.mts` holds the post (`security-unsettled`) while a `security` finding of severity `critical` or `high` is not `fixed`, and writes the findings copy with every absolute path relativised (only that copy is posted); then `--dry-run --json` is scanned by the pinned `gitleaks` (`contracts/scans.json` → `secretScan`; not-scanned is a stop). A hold, a scan hit, or a `findings-invalid`, `secret-shape`, `too-large` or `refused` verdict is quoted in step 9's report, never retried another way |
 | 9 | **the landing report** | [`$spiritual-message`](../spiritual-message/SKILL.md) `as landing` | rendered after step 8 because the PR body and readiness result are its inputs; **00** is this mukai request |
 | → | **ring, offer En, and end Mukai** | [`$jutaisho`](../jutaisho/SKILL.md), then [`$en`](../en/SKILL.md) | Mukai rings the turn bell (jutaisho rung 1) and asks **through the surface's native picker** (`AskUserQuestion` on Claude Code): *start `$en on <CODE>#<N>` now?* — the maintainer's call, never started silently (ruling 9 R4). With `nen/workflow.json` → `mukai.autoEn` **`true`** (JSON `true` only; absent or any other value offers) Mukai instead starts En immediately; En then owns the capped drive to verified Ready at G2/G4 while the invoking user turn remains active |
 
@@ -136,7 +137,7 @@ kotoamatsukami's impacted suites and step 5 byakugan's coverage, and no `profile
 where a launch target is declared, the launch is [`amaterasu`](../amaterasu/SKILL.md)'s on the
 maintainer's call by name, never a mukai step.
 
-**The order is load-bearing in eight places, and those eight are the only ones mukai asserts:**
+**The order is load-bearing in nine places, and those nine are the only ones mukai asserts:**
 
 - **1 before 2.** A review of a branch that is behind its base is a review of a diff nobody will
   merge. Reviewers cost real tokens and real attention; spending them on a stale tree is spending
@@ -156,6 +157,7 @@ maintainer's call by name, never a mukai step.
   bless a tree whose coverage was measured before the merge.
 - **6 before 7.** Evidence is selected from artifacts for the pushed tree.
 - **7 before 8.** The PR body's evidence table needs its rows.
+- **8 before 8a before 9.** The slice is keyed to the PR step 8 opened and records its head; the landing report quotes its verdict and link.
 - **8 before 9.** [`spiritual-message`](../spiritual-message/SKILL.md) § 5's `landing` variant is 00–07 **plus 08 PR
   body and 09 Readiness**, and both are step 8's outputs. **The landing report is
   rendered once, here, after the PR exists** — not rendered early and re-rendered later.

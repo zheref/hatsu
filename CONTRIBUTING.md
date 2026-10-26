@@ -53,7 +53,8 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/shell_coverage.mts`, `scripts/hanten_findings_check.mts`, `scripts/clause_id_guard.mts`,
 `scripts/direct_matrix_doc.sh`, `scripts/direct_matrix_doc.mts`, `scripts/tenkai_adopt.ts`,
 `scripts/tenkai_adopt_legacy.sh`, `scripts/tenkai_trailer_guard.mts`, `scripts/consumer_trailer_ci.mts`,
-`scripts/pr_sections_history.ts`, `scripts/config_values_refresh.ts`)
+`scripts/pr_sections_history.ts`, `scripts/config_values_refresh.ts`,
+`scripts/idle_permissions_check.mts`, `scripts/ledger_findings_prepare.mts`)
 — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources

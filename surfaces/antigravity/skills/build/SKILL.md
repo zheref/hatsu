@@ -12,11 +12,11 @@ code; the mode is named at § 2, and said aloud when it switches mid-run.
 > **Give me an issue; I execute the canonical Hatsu protocol (§ 4) and deliver a PR that is
 > `CON-32`-Ready at its human gate — or a G5 stop saying exactly why it could not get there.**
 
-**Hatsu holds no CI plane to route work to** (no CI agent routing, stage labels, wave coordinators or wake
+**Hatsu holds no CI plane to route work to** (no CI routing, stage labels, waves or wake
 ladders): building an issue runs the local-plane pipeline — [`ten`](../ten/SKILL.md) warms up,
 [`classify`](../classify/SKILL.md) labels the two axes where unlabelled, [`direct`](../direct/SKILL.md) picks
 model, surface and effort against this session's, [`ren`](../ren/SKILL.md) authors and verifies,
-[`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures coverage and opens the PR (pickers in jutaisho § 4's shape),
+[`aka`](../aka/SKILL.md) publishes, [`mukai`](../mukai/SKILL.md) reviews, tests, measures coverage and opens the PR (pickers: jutaisho § 4),
 [`en`](../en/SKILL.md) drives it to readiness, [`rikugan`](../rikugan/SKILL.md) renders the delivered state,
 and [`cleanup`](../cleanup/SKILL.md) § 2 is offered.
 
@@ -115,7 +115,7 @@ takes shibari's Spec section and `spec-coverage` stop ([`spec-repo.md`](../../..
 **Each linked skill owns its stops.** Build writes:
 `nen phase begin --effort <branch> --phase <author|publish|pr|readiness>
 --surface <s> [--model <reported-model>] --dial <level>`, with WORKFLOW's served-model `--note`
-only when attested; `nen phase end` closes each phase;
+only when attested; `nen phase end` closes each phase; a resume reads first (ren § 2a);
 the first phase records `nen session record` when the harness exposes an identity. `nen usage record`
 at every § 7 report carries `--dial <level>` — **owed on every target, a stage taxonomy or not**. On a target whose `nen/labels.json`
 declares no delivery stages, WORKFLOW § *A target repository with no delivery-stage taxonomy* holds as
