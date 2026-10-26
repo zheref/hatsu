@@ -601,7 +601,7 @@ returned — `cleanup` required, `third-hand` optional. Cleaning and harvesting 
    [`spiritual-message`](../spiritual-message/SKILL.md)), `nen pr ready` / `nen pr body-check` / `nen pr staleness` and
    the two verbs `sharingan` refuses to call for a verdict (steps 2 and 4), `nen pr cascade-main`
    and its missing `--no-push` (step 3, named in [`ao`](../ao/SKILL.md)), `nen stop` plus the
-   `osascript`/`afplay` fallback and the `.nen/last-stop.json` marker (step 6, named in
+   `osascript`/`afplay` fallback and the stop marker (step 6, named in
    [`jutaisho`](../jutaisho/SKILL.md)).
 2. **RETIRED at nen `0.7`: counting cycles against the cap.** `nen loop iterate` claims each acting
    cycle and refuses past the cap (§ 2). `nen parse izanagi` still refuses a missing `N`

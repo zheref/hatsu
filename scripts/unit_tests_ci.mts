@@ -53,6 +53,11 @@ const gated: Array<[string, string, string]> = [
   // The issue-shape fixture runs the verified nen's body-check and questions over the catalogue and
   // templates; the interim checker it once tested is retired (zheref/hatsu#423).
   ['issue_sections_fixture.mts', 'issue_sections_fixture.mts', 'issue-shape'],
+  // Self-contained proofs: the fixture is the script itself (zheref/hatsu#453, #444).
+  ['stop_bell_fixture.mts', 'stop_bell_fixture.mts', 'stop-bell-guard'],
+  ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],
+  ['idle_permissions_check.mts', 'idle_permissions_check_fixture.mts', 'idle-permissions-guard'],
+  ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
 ];
 for (const [script, fixture, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

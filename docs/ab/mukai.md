@@ -240,3 +240,20 @@ authority, and the run says so before the call; the portable grant is the consum
 `.claude/settings.json` allow row (`Bash(ci_scripts/pr_screenshots.sh:*)` on `<product-repo-A>`), never Hatsu's pack
 (which carries Hatsu's verbs only) and never a per-machine file; where the consumer has not declared it, the
 stop is expected and named in shibari § 5's handover line (step 8 — the disclosure publish is shibari's; step 6 publishes the proved Git tree), not a G5. Not re-run against `<product-repo-A>` here.
+
+## Dated verification, 2026-10-23 — crash-and-resume: the publish steps (zheref/hatsu#444, #445)
+
+Mukai writes no phase ledger of its own: under `build` it runs inside the `pr` phase, which `docs/ab/build.md`
+(2026-10-23) proves at every interruption point. What a resumed mukai must not do is publish twice, and both
+publishing verbs were re-run live on HA-PR-#463 (2026-10-23, host `darwin`):
+
+```text
+$ nen pr open --target zheref/hatsu --base integration/sdd-100-2026-10-23 --head opus/kurapika/sdd100-h-k-resume-durable-idle …   # 0.26.0, then nen source 847f7dc4b8087591b3d68bb486d48855b7cb72b5
+opened: existing zheref/hatsu#463: https://github.com/zheref/hatsu/pull/463 -- already open for 'opus/kurapika/sdd100-h-k-resume-durable-idle' against 'integration/sdd-100-2026-10-23'; nothing was created. One head, one pull request.
+$ nen pr ledger post --target zheref/hatsu --pr 463 --effort opus/kurapika/sdd100-h-k-resume-durable-idle --proof … --repo <checkout>   # twice, nen source
+posted: https://github.com/zheref/hatsu/pull/463#issuecomment-6376486942 -- effort 'opus/kurapika/sdd100-h-k-resume-durable-idle', head 3836e79b3f71, 2 phase entries, 2 proof file(s)
+unchanged: https://github.com/zheref/hatsu/pull/463#issuecomment-6376486942 already holds effort 'opus/kurapika/sdd100-h-k-resume-durable-idle''s slice at head 3836e79b3f71.
+```
+
+Step 8a's post after a later push edits the same comment in place (`updated`; the run after this file's own commit is quoted in HA-PR-#463's body). No label is applied by mukai, so
+none can be applied twice. **Not proved here:** a live session killed between steps 8 and 9 and re-invoked.
