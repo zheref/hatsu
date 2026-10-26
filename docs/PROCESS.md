@@ -945,15 +945,16 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   default target is a `nen/workflow.json` key nen validates from `v0.21.0` and never acts on (`deploy.defaultTarget`,
   whose target must carry `project.targets.<name>.nonProduction: true`, zheref/nen#300);
   nen's own `shu deploy` still takes `--target` explicitly, and the skill still passes it.
-- **`kagutsuchi` § 3b.** `git fetch`, `git worktree list|add --detach|remove --force`, `git checkout
-  --detach`, `git ls-files`, `git check-ignore`, `git status --porcelain`, `mktemp`, `cp -p` and `mv -f`
-  inside `scripts/kagutsuchi_worktree.sh`, because **nen has no worktree verb** (`nen wc worktrees` reads,
-  never writes); core is resolved the way that verb resolves it (`git rev-parse --git-common-dir`) and
-  the report quotes the script's own `core:` line beside the verb's.
+- **`kagutsuchi` § 3b.** `nen wc worktrees --json` reports core and swap; kagutsuchi stops on a
+  non-null swap before it expands core's `project.fromCore[]` into repeated `--copy-from-core` flags,
+  previews or runs `nen wc worktree --name kagutsuchi`. Nen owns the fetch, fixed detached worktree, containment,
+  copy retention and refusal boundary. The path-to-flag expansion is Hatsu's small prose residue;
+  there is no raw-Git worktree engine here from the contract-pinned Nen onward (zheref/nen#299).
 - **Every worktree Hatsu makes** (rule 6 of `claude/rules/hatsu.md`, `hanten` § 4, the stash-and-restore
   proof, `docs/surfaces/antigravity.md` § 11.1). `git worktree add <core>/.nen/worktrees/<surface>/<name>`,
-  `git worktree remove` and `git worktree prune` are hand-spelt wherever Hatsu creates a worktree, for the
-  same reason: nen has no worktree verb that writes. The canonical path is `docs/WORKFLOW.md` § *Where
+  `git worktree remove` and `git worktree prune` are hand-spelt wherever Hatsu creates a worktree for
+  shapes outside kagutsuchi's fixed detached `wc worktree` — branches, reviewer checkouts and removals —
+  because the verb deliberately does not own those shapes. The canonical path is `docs/WORKFLOW.md` § *Where
   worktrees live* (the ruling of 2026-09-30), and the lapse would be a `nen wc worktree add|remove
   --surface <s> <name>` that resolves core and the canonical path itself — the same family as the
   owned dependency below.

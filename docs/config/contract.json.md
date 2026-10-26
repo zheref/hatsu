@@ -102,7 +102,7 @@ Facts nen asserts before it spawns a lane's verb, so a missing file fails as *th
 |---|---|---|---|---|
 | `preconditions.<lane>[]` | object[] | one object per fact | The lane's preconditions, asserted in order | `nen shu <verb>` (the plan prints each row, `FAIL` on an unmet one) |
 | `preconditions.<lane>[].kind` | string | `path` (the one kind Hatsu's file and the sources show) | What is being asserted | `nen shu` |
-| `preconditions.<lane>[].value` | string | a repo-relative path | The thing that must exist. Resolved against the real root; a path that leaves the tree is exit `2` | `nen shu`, `scripts/kagutsuchi_worktree.sh` (re-asserted in the clean worktree) |
+| `preconditions.<lane>[].value` | string | a repo-relative path | The thing that must exist. Resolved against the real root; a path that leaves the tree is exit `2` | `nen shu` (re-asserted in kagutsuchi's clean worktree) |
 | `preconditions.<lane>[].why` | string | prose | Why the verb cannot run without it | the plan's output |
 
 ### `project.hosts`
@@ -167,11 +167,11 @@ The host tools nen verifies before it runs, so a missing tool is found at warm-u
 
 ### `project.fromCore`
 
-Hatsu's own block, beside `preconditions`, read by `hatsu:kagutsuchi` § 3b through `scripts/kagutsuchi_worktree.sh` and by nothing in nen; nen's loader preserves it. Each entry names a repo-relative, gitignored, untracked file that exists only in the maintainer's core checkout, and the clean worktree kagutsuchi rebuilds in gets it copied from core before the fresh archive. The script refuses an entry that is tracked, not gitignored, absent in core, a symlink, or a path that leaves the tree. **No block copies nothing and says so.**
+Hatsu's own block, beside `preconditions`, read by `hatsu:kagutsuchi` § 3b and expanded into one repeated `nen wc worktree --copy-from-core <path>` flag per entry; the verb does not read the block implicitly. Each entry names a repo-relative, gitignored, untracked file that exists only in the maintainer's core checkout, and the clean worktree kagutsuchi rebuilds in gets it copied from core before the fresh archive. Nen refuses an entry that is tracked, not gitignored, absent in core, a symlink, or a path that leaves the tree. **No block passes no copy flags and reports an empty `copies` array.**
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `fromCore[].path` | string | a repo-relative, gitignored, untracked path | The file copied from core into the rebuild worktree | `scripts/kagutsuchi_worktree.sh` |
+| `fromCore[].path` | string | a repo-relative, gitignored, untracked path | The file copied from core into the rebuild worktree | `hatsu:kagutsuchi` → `nen wc worktree --copy-from-core` |
 | `fromCore[].why` | string | prose | Why it lives only in the maintainer's checkout | the report |
 
 ### `project.kind`

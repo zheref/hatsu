@@ -1111,20 +1111,20 @@ Pre-PR, PNGs are embedded as **data URIs** so a report is one self-contained fil
 ```
 
 **Hatsu's own block, beside `project.preconditions`, read by [`kagutsuchi`](../claude/skills/kagutsuchi/)
-§ 3b through `scripts/kagutsuchi_worktree.sh` and by nothing in nen** — nen's loader preserves it (verified at
-`0.16.0`: `nen schema check` and the `shu` executor both accept a contract carrying it), and **nen still
-asserts the precondition in the worktree exactly as before**; this block only says where the file
+§ 3b** — Hatsu repeats each declared path as `--copy-from-core` to `nen wc worktree`; the verb deliberately
+does not read this block implicitly. Nen's loader preserves it, and **nen still asserts the precondition
+in the worktree exactly as before**; this block only says where the file
 comes from. The maintainer's ruling of 2026-09-29 (zheref/hatsu#146): *"Let's have the composite ALWAYS
 copy own file from core checkout."* Each entry names a **repo-relative, gitignored, untracked** path
 that exists in the core checkout and nowhere in git — the base configuration carrying credentials, a
 local signing note — and kagutsuchi § 3b copies it **from core into its worktree, before the fresh
-archive it runs only when the freshness gate found the last one stale**, listing each copied path. The script refuses, before anything moves, an entry that is tracked (it
+archive it runs only when the freshness gate found the last one stale**, listing each copied path. The verb refuses an entry that is tracked (it
 is in every worktree already), not gitignored (the copy would dirty the worktree and refuse the next
 run), absent in core (the maintainer's own machine is where it comes from — **nothing is synthesised**,
 the same rule `project.preconditions` states), a symlink, or a path that leaves the tree — and, at the
 trunk's tip, a destination that is tracked, unignored or a symlink (a trunk commit never decides where a
-credential lands). **No block
-copies nothing and says so.** A precondition that FAILs in the worktree on a path that exists gitignored
+credential lands). **No block passes no copy flags and reports an empty `copies` array.** A precondition
+that FAILs in the worktree on a path that exists gitignored
 in core is the `missing-configuration` ask for a row here — proposed with its `why`, landed through
 that repository's declaration PR at its gate, never written unasked.
 
@@ -2461,8 +2461,8 @@ checkout.** `.nen/` is already ignored — Hatsu's own `.gitignore`, and in a co
 ([`hanten`](../claude/skills/hanten/SKILL.md) § 4's reviewer), `prove-<n>` (the stash-and-restore
 shape's proof, below), the effort's branch slug for a lead-session effort (rule 6 of
 [`claude/rules/hatsu.md`](../claude/rules/hatsu.md)), and kagutsuchi's fixed `.nen/worktrees/kagutsuchi`
-(§ 3b, `scripts/kagutsuchi_worktree.sh`) — the one purpose-named path with no surface segment, kept
-because the script's idempotence is built on the path being fixed.
+(§ 3b, `nen wc worktree --name kagutsuchi`) — the one purpose-named path with no surface segment, kept
+because the native verb's idempotence is built on the path being fixed.
 
 ### Per surface — the harness's own worktrees, and what Hatsu does
 

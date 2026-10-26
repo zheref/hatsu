@@ -284,11 +284,11 @@ fi
 #                       `$hatsu_root/scripts/` on an upload; a stale copy cuts
 #                       the wrong ref or refuses the right one.
 #   scripts/send_freshness_check.sh
-#   scripts/kagutsuchi_worktree.sh
-#                     — kagutsuchi § 3a's freshness gate and § 3b's clean
-#                       worktree (v0.64.0), both run from `$hatsu_root/scripts/`
-#                       before every `--run`; a stale copy sends an archive
-#                       the gate should refuse, or rebuilds in the wrong tree.
+#                     — kagutsuchi § 3a's freshness gate, run from
+#                       `$hatsu_root/scripts/` before every `--run`; a stale
+#                       copy sends an archive the gate should refuse. Section
+#                       3b's clean worktree is now the pinned `nen wc worktree`
+#                       verb, not a plugin runtime script.
 #                       From v0.66.0 this matters twice over: Codex installs
 #                       Hatsu by COPYING the checkout into a slot keyed on this
 #                       version, so an unbumped script change never reaches it.
@@ -371,7 +371,6 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/permissions_pack.sh'
   'scripts/dist_tag.sh'
   'scripts/send_freshness_check.sh'
-  'scripts/kagutsuchi_worktree.sh'
   'scripts/cleanup_path_admit.sh'
   'scripts/cleanup_path_admit.ts'
   'scripts/hatsu_surface_link.sh'
