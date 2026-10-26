@@ -2091,6 +2091,11 @@ def validate_workflow(path, hatsu: false)
     end
     if File.basename(path) == "plugin-bump-check.yml"
       node_step = step_maps.find { |step| scalar(step["name"]) == PLUGIN_BUMP_NODE_STEP }
+      step_maps.each do |step|
+        if scalar(step["uses"]) == CANON_LINT_NODE_USES && scalar(step["name"]) != PLUGIN_BUMP_NODE_STEP
+          fail_policy("#{path} setup-node is admitted only at #{PLUGIN_BUMP_NODE_STEP.inspect}")
+        end
+      end
       typed_api = step_maps.any? { |step| code_of(scalar(step["run"])).include?(".trusted/scripts/plugin_bump_api_retry.mts") }
       fail_policy("#{path} typed plugin bump API reader requires its pinned Node runtime step") if typed_api && !node_step
       if node_step
@@ -3488,7 +3493,9 @@ def self_test(root)
     # needs an exact pinned Node 24 action before the typed API reader runs.
     node_anchor = "      - name: #{PLUGIN_BUMP_API_STEP}\n"
     fail_policy("self-test: plugin bump API step anchor missing or repeated") unless original.scan(node_anchor).length == 1
-    plugin_node = original.sub(node_anchor, render_step(PLUGIN_BUMP_NODE_STEP, PLUGIN_BUMP_NODE_FROZEN) + "\n" + node_anchor)
+    node_block = /^      - name: #{Regexp.escape(PLUGIN_BUMP_NODE_STEP)}\n.*?(?=^      - name: |\z)/m
+    node_fixture = render_step(PLUGIN_BUMP_NODE_STEP, PLUGIN_BUMP_NODE_FROZEN) + "\n"
+    plugin_node = original.match?(node_block) ? original.sub(node_block, node_fixture) : original.sub(node_anchor, node_fixture + node_anchor)
     File.write(plugin, plugin_node)
     validate_repo(tmp, announce: false)
     [
@@ -3496,13 +3503,22 @@ def self_test(root)
       ["plugin bump with floating action", "uses: #{CANON_LINT_NODE_USES}", "uses: actions/setup-node@v7"],
       ["plugin bump with cache enabled", "package-manager-cache: false", "package-manager-cache: true"]
     ].each { |label, from, to| hostile.call(label, plugin, plugin_node, from, to, step: PLUGIN_BUMP_NODE_STEP) }
+    api_block = /^      - name: #{Regexp.escape(PLUGIN_BUMP_API_STEP)}\n.*?(?=^      - name: |\z)/m
+    extra_node = PLUGIN_BUMP_NODE_FROZEN.merge("with" => { "node-version" => "20", "mirror" => "https://attacker.invalid/node", "cache" => "true" })
+    plugin_extra_node = plugin_node.sub(api_block, render_step(PLUGIN_BUMP_API_STEP, extra_node) + "\n")
+    fixture_changed!("second setup-node at the API step", plugin_node, plugin_extra_node)
+    File.write(plugin, plugin_extra_node)
+    expect_rejected("second setup-node outside its frozen step") { validate_repo(tmp) }
     File.write(plugin, original)
     validate_repo(tmp, announce: false)
 
-    plugin_unpinned = fixture_sub("typed plugin bump reader without its runtime", original,
+    plugin_unpinned = plugin_node.sub(node_block, "")
+    unless plugin_unpinned.include?(".trusted/scripts/plugin_bump_api_retry.mts")
+      plugin_unpinned = fixture_sub("typed plugin bump reader without its runtime", plugin_unpinned,
                                  "          set -euo pipefail\n",
                                  "          set -euo pipefail\n          node .trusted/scripts/plugin_bump_api_retry.mts\n",
                                  step: PLUGIN_BUMP_API_STEP)
+    end
     File.write(plugin, plugin_unpinned)
     expect_rejected("typed plugin bump reader without pinned Node") { validate_repo(tmp) }
     File.write(plugin, original)
