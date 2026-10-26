@@ -90,7 +90,7 @@ let document: DeliveryDocument;
 let rendered = "";
 after((): void => {
   rmSync(temp, { recursive: true, force: true });
-  console.log("pr-body-delivery fixture: exact effort, roles, served IDs and aliases, sessions, hostile cells, Nen render, row guard, private paths and wrapper passed");
+  console.log("pr-body-delivery fixture: exact effort, roles, served IDs and aliases, sessions, hostile cells, Nen render, row guard, private paths, wrapper and per-effort Delivery passed");
 });
 
 test("normalization filters the exact branch and keeps served IDs separate from proved aliases", () => {
@@ -210,13 +210,16 @@ if [ "\${1:-} \${2:-}" = 'report data' ]; then
   [ "\${FAKE_REPORT_FAIL:-0}" = 0 ] || exit 7
   actual_target=''
   actual_pr=''
+  actual_effort=''
   while [ "$#" -gt 0 ]; do
     case "$1" in
+      --effort) actual_effort="$2"; shift 2 ;;
       --target) actual_target="$2"; shift 2 ;;
       --prs) actual_pr="$2"; shift 2 ;;
       *) shift ;;
     esac
   done
+  [ "$actual_effort" = "\${EXPECT_EFFORT:-}" ] || exit 9
   if [ -n "\${EXPECT_TARGET:-}" ]; then [ "$actual_target" = "$EXPECT_TARGET" ] || exit 8; fi
   if [ -n "\${EXPECT_PR:-}" ]; then [ "$actual_pr" = "$EXPECT_PR" ] || exit 8; fi
   if [ "\${EXPECT_NO_PR:-0}" = 1 ]; then [ -z "$actual_target" ] && [ -z "$actual_pr" ] || exit 8; fi
@@ -228,7 +231,7 @@ exec "$REAL_NEN" "$@"
   chmodSync(fake, 0o755);
   const body = join(temp, "guard-body.md"); writeFileSync(body, `${rendered}\n# ✨ What this changes for you\n`);
   const postBody = join(temp, "guard-post-body.md"); writeFileSync(postBody, `${readFileSync(postRenderedPath, "utf8")}\n# ✨ What this changes for you\n`);
-  const env = { ...process.env, PATH: `${bin}:${process.env.PATH ?? ""}`, REAL_NEN: realNen, FIXTURE_REPORT: reportPath, EXPECT_NO_PR: "1" };
+  const env = { ...process.env, PATH: `${bin}:${process.env.PATH ?? ""}`, REAL_NEN: realNen, FIXTURE_REPORT: reportPath, EXPECT_NO_PR: "1", EXPECT_EFFORT: effort };
   const passed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
   assert.equal(passed.status, 0, `${passed.stdout}${passed.stderr}`);
   assert.match(passed.stdout, /every current-effort ledger row/);
@@ -265,4 +268,41 @@ exec "$REAL_NEN" "$@"
   assert.equal(invalidPr.status, 2); assert.match(invalidPr.stderr, /positive integer/);
   const failed = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, { ...env, FAKE_REPORT_FAIL: "1" });
   assert.equal(failed.status, 7); assert.match(failed.stderr, /exit 7/);
+  // No branch, no effort: a detached HEAD is refused before nen is asked, never read globally.
+  git("switch", "-q", "--detach");
+  const detached = run("bash", [GUARD, "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
+  git("switch", "-q", effort);
+  assert.equal(detached.status, 2, `${detached.stdout}${detached.stderr}`); assert.match(detached.stderr, /current branch is unread/);
+});
+
+test("a body rendered by shibari § 3's exact commands (report data --effort <branch>) passes the guard against real nen ledgers (zheref/hatsu#492)", () => {
+  const perEffort = join(temp, "per-effort");
+  const branchName = "claude/opus/kurapika/per-effort";
+  mkdirSync(join(perEffort, "nen"), { recursive: true });
+  writeFileSync(join(perEffort, "nen/workflow.json"), readFileSync(join(repo, "nen/workflow.json")));
+  const inPerEffort = (...args: string[]): string => ok(args[0] as string, args.slice(1), perEffort);
+  inPerEffort("git", "init", "-q", "-b", "main"); inPerEffort("git", "config", "user.name", "Fixture"); inPerEffort("git", "config", "user.email", "fixture@example.invalid");
+  inPerEffort("git", "add", "."); inPerEffort("git", "commit", "-qm", "base"); inPerEffort("git", "switch", "-qc", branchName);
+  // A sibling effort's rows sit in the same shared ledgers: read globally they shift every index.
+  for (const phase of ["breath", "rasengan", "kokusen"]) inPerEffort("nen", "phase", "begin", "--effort", "aaa-sibling-effort", "--phase", phase, "--surface", "codex", "--model", "sol", "--dial", "high", "--repo", perEffort);
+  for (const phase of ["breath", "rasengan"]) inPerEffort("nen", "phase", "begin", "--effort", branchName, "--phase", phase, "--surface", "claude-code", "--model", "opus", "--dial", "medium", "--repo", perEffort);
+  const reports = join(perEffort, ".nen/reports"); mkdirSync(reports, { recursive: true, mode: 0o700 });
+  const renderFrom = (name: string, extra: readonly string[]): string => {
+    const data = join(reports, `${name}-data.json`); const normalized = join(reports, `${name}-normalized.json`); const out = join(reports, `${name}.md`);
+    writeFileSync(data, inPerEffort("nen", "report", "data", "--repo", perEffort, "--base", "main", ...extra, "--json"), { mode: 0o600 });
+    inPerEffort(process.execPath, ENGINE, "normalize", "--data", data, "--out", normalized, "--repo", perEffort, "--gate-forecast", "G4");
+    inPerEffort("nen", "report", "render", "--template", TEMPLATE, "--data", normalized, "--out", out, "--repo", perEffort);
+    const body = join(temp, `${name}-body.md`); writeFileSync(body, `${readFileSync(out, "utf8")}\n# ✨ What this changes for you\n`);
+    return body;
+  };
+  const shibariBody = renderFrom("per-effort", ["--effort", branchName]);
+  assert.match(readFileSync(shibariBody, "utf8"), /phase\\\[0\\\]/);
+  const guarded = run("bash", [GUARD, "--body", shibariBody, "--repo", perEffort, "--base", "main", "--gate-forecast", "G4"], perEffort);
+  assert.equal(guarded.status, 0, `${guarded.stdout}${guarded.stderr}`);
+  assert.match(guarded.stdout, /every current-effort ledger row/);
+  // The pre-#492 shape (indices numbered across every effort) is the one the guard now refuses.
+  const globalBody = renderFrom("global", []);
+  const refused = run("bash", [GUARD, "--body", globalBody, "--repo", perEffort, "--base", "main", "--gate-forecast", "G4"], perEffort);
+  assert.equal(refused.status, 1, `${refused.stdout}${refused.stderr}`);
+  assert.match(refused.stdout, /missing ledger row|extra or duplicate/);
 });

@@ -70,7 +70,7 @@ reader cap and prose budget (*Check every write*). Screenshots stay in the
 [UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); replace all Evidence on rewrite.
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
-In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --json`
+In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --effort <branch> --json`
 under `<path>/.nen/reports/` (directory 0700, files 0600). Run `node "$hatsu_root/scripts/pr_delivery.ts" normalize --data <report-data.json>
 --out <normalized.json> --repo <path> [--gate-forecast <G2|G4>]`; the optional gate token comes
 only from `nen gate derive`'s first line. Render with `nen report render --template
@@ -81,7 +81,7 @@ timestamp, optional phase) and what stays local.
 After opening, rerun report data with the actual PR (`--target <owner/name> --prs <n>`), normalize with the same derived
 gate, render, edit the PR body and read it back. Drive names `hatsu:en on <CODE>#<N>` and states
 readiness is `nen pr ready`'s verdict. The guard compares ledger rows and Drive to the rendered
-expectation, using the derived gate and actual PR reference after opening.
+expectation it reads with the same `--effort <branch>`, using the derived gate and actual PR reference after opening.
 
 **Associated issues — body AND Development** (ruling 2026-09-12):
 
@@ -116,7 +116,7 @@ nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body
   [--head <branch>] [--dry-run] [--json]  # title-file: the one commit's subject
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
-nen pr converge --target <owner/name> --pr <n> --requirements-from "$hatsu_root/contracts/issue-sections.json" --json  # HR-11
+nen pr converge --target <owner/name> --pr <n> --catalogue "$hatsu_root/contracts/issue-sections.json" --json  # HR-11
 ```
 
 - **HEAD must equal `origin/<branch>`**; else stop and name which is ahead. `pr open` exits `2` for

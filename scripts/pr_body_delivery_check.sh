@@ -61,11 +61,20 @@ if [ -z "$base" ]; then
   }
 fi
 
+# The effort is the current branch, exactly as shibari § 3 passes it (zheref/hatsu#492): the ledgers
+# are the repository's, shared by every worktree, and a row's index is its position in what nen
+# returns, so an expectation read without --effort numbers rows globally and refuses a body
+# rendered per effort. A detached HEAD names no effort and is refused, never guessed.
+effort="$(git -C "$repo" symbolic-ref --quiet --short HEAD 2>/dev/null)" || {
+  printf '%s\n' 'pr-delivery guard: current branch is unread; Delivery never mixes ledgers by guessing an effort' >&2
+  exit 2
+}
+
 data="$work/report-data.json"
 normalized="$work/delivery-data.json"
 expected="$work/delivery.md"
 set +e
-report_args=(report data --repo "$repo" --base "$base" --json)
+report_args=(report data --repo "$repo" --base "$base" --effort "$effort" --json)
 if [ -n "$pr" ]; then report_args+=(--target "$target" --prs "$pr"); fi
 nen "${report_args[@]}" > "$data"
 status=$?
