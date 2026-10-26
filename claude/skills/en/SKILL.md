@@ -29,9 +29,8 @@ there the PR belongs to En — and the still-active user turn only on the `autoE
 from the offer being its own turn — until Sharingan proves it Ready, or a concrete
 blocker/cap/terminal state/cancellation ends En's run. The merge is the maintainer's later act
 except for § 5's recorded Futon delivery exception. **This run does not harvest and does not clean.** When En has completed, the caller offers the
-**wrap-up** through the picker ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`; ruling 2026-10-13) — **only once
-every PR in the sitting's scope reads `MERGED` and the maintainer has explicitly declared the sitting satisfied**
-([HR-366](../../../docs/ROSTER.md#hr-366)); a Ready PR at § 5's prompt meets neither:
+**wrap-up** through the picker ([`cleanup`](../cleanup/SKILL.md) § 2, row `wrap-up`; ruling 2026-10-13) — only under
+cleanup § 2's two prerequisites ([HR-366](../../../docs/ROSTER.md#hr-366)); a Ready PR at § 5's prompt meets neither:
 [`hatsu:cleanup`](../cleanup/SKILL.md), required, with [`hatsu:third-hand`](../third-hand/SKILL.md) optional
 beside it — separate skills, started after this file's protocol has returned, never as a step of En.
 
@@ -610,8 +609,7 @@ observed Ready success.
 
 **Do not start [`hatsu:cleanup`](../cleanup/SKILL.md) or [`hatsu:third-hand`](../third-hand/SKILL.md)
 from this file.** When this run has completed, the caller offers the wrap-up picker (cleanup § 2) after En has
-returned, and only once cleanup § 2's two prerequisites hold (every scoped PR merged, the sitting declared
-satisfied by the maintainer) — `cleanup` required, `third-hand` optional. Cleaning and harvesting are those phases', not En's.
+returned, and only once cleanup § 2's two prerequisites hold — `cleanup` required, `third-hand` optional. Cleaning and harvesting are those phases', not En's.
 
 ## Residue
 
