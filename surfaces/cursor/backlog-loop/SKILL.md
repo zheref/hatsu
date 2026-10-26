@@ -185,9 +185,10 @@ moves** (`nen pr cascade-main --repo <path> [--trunk main]`).
 
 ## 10. Ending the run
 
-The run ends when the actionable queue is empty: every open issue delivered as a PR standing at its
-gate, briefed and awaiting a decision, or blocked with its blocker named. Say the run has ended so
-the delegation lapses. **The final report is the `final` Rikugan** — [`/rikugan`](../rikugan/SKILL.md)
+The run ends when the actionable queue is empty and no PR is `driving` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md)
+§ *Batch delivery*): every open issue delivered as a PR `ready` at its gate or merged, briefed and awaiting a
+decision, or **held** with its three facts — a held one leaves the run incomplete, said. Say the run has ended so
+the delegation lapses. **The final report is the `final` Rikugan** when nothing is held, else the `register` — [`/rikugan`](../rikugan/SKILL.md)
 over this run's queue, through backlog-board § 3 — one effort, a cleared desk, written to
 `<reports.dir>/<YYYY-MM-DD>-<effort>.html` — carrying every
 issue with its state, every PR's verdict verbatim, every label with its time, and what is on the
