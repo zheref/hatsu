@@ -135,7 +135,7 @@ The read-back is **explicit**, quoted; an amend quotes its comment.
 
 **The build go is the same typed call, said separately**: `hatsu:build <CODE>#<n>` here, to a `CON-32`-ready
 PR at the target's **G2**, *Associated issues* naming the port issue (closing) and the source PR
-(reference); **hiraishin holds build's phase 6** (the wrap-up, asked once; en § 8's `rikugan` renders as
+(reference); **hiraishin holds build's phase 6** (the wrap-up, asked once cleanup § 2's prerequisites hold; en § 8's `rikugan` renders as
 usual), a build's end read as *conventions* say. **The rulings PR opens once, at the run's end**, through
 `bankai-rule` and `mukai`, never draft — whenever a ruling was recorded, drops included; none recorded, none
 opened. The landing report names it, the citations it replaces, Hatsu's repin and the target's pin

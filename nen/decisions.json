@@ -586,7 +586,7 @@
     {
       "id": "wrap-up",
       "class": "ask-once-per-run",
-      "default": "ask once at a session delivery -- a PR standing at en section 5's merge prompt or merged, or a composite's run ending (en section 8, build phase 6, futon section 10, kazaana section 7, kamui section 8, hiraishin section 8) -- through the surface's own picker: cleanup, cleanup and third-hand in parallel, or continue iterating. cleanup is REQUIRED after a completed session and third-hand is optional (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of 2026-10-13, 5). The wrap-up names no human-called phase (aka, mukai, the merge, kagutsuchi, mugetsu) and is never a merge prompt. A completed .nen/cleanup/<slug>.json for the scope reads already-clean and the question is not re-asked",
+      "default": "ask once, and only when BOTH prerequisites hold (cleanup section 2; docs/ROSTER.md HR-366, zheref/hatsu#480): (1) every pull request in the sitting's scope reads MERGED on a live read -- a closed-unmerged PR or an unread merge state never counts as merged -- and (2) the maintainer has explicitly declared the sitting satisfied, in their own words, quoted in the report. Readiness, green checks, en section 5's merge prompt, a composite's run ending, a merge alone, silence, a configured default and an unattended run never supply (2); short of both, no picker is shown, no cleanup runs, and the report names the missing prerequisite. The callers, each at its terminus: Kurapika as main session after en section 8, build phase 6, futon section 10, kazaana section 7, kamui section 8, hiraishin section 8, backlog-loop section 10, dowsing-chain section 11. Under --idle (2) is never met, so this row is never reached: its idle pre-answer is printed with the others and never taken, and an idle run neither offers nor runs cleanup. When both hold, through the surface's own picker: cleanup, cleanup and third-hand in parallel, or continue iterating. cleanup is REQUIRED after a completed session and third-hand is optional (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of 2026-10-13, 5). The wrap-up names no human-called phase (aka, mukai, the merge, kagutsuchi, mugetsu) and is never a merge prompt. A completed .nen/cleanup/<slug>.json for the scope reads already-clean and the question is not re-asked",
       "preferred": [
         {
           "key": "A",
@@ -605,11 +605,11 @@
           "key": "C",
           "label": "continue iterating on this session",
           "command": "nothing runs; the next request is a ren turn on the same effort",
-          "consequence": "the offer returns at the next session delivery; nothing is swept or filed meanwhile"
+          "consequence": "the offer returns only when both prerequisites hold again; nothing is swept or filed meanwhile"
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-13: running cleanup is always required after a completed session and is offered once a single PR lands as a session delivery; third-hand remains optional; the maintainer may run cleanup, cleanup and third-hand in parallel, or continue iterating. This amends ruling 1 of 2026-09-09 (no agent prompts for the five phases -- neither offer here is one of them) and third-hand section 2's never-ask rule."
+      "why": "Ruling 2026-10-13: running cleanup is always required after a completed session and is offered once a single PR lands as a session delivery; third-hand remains optional; the maintainer may run cleanup, cleanup and third-hand in parallel, or continue iterating. This amends ruling 1 of 2026-09-09 (no agent prompts for the five phases -- neither offer here is one of them) and third-hand section 2's never-ask rule. Corrected 2026-10-25 by the maintainer (zheref/hatsu#480): 'Cleanup should never be offerered if PRs in scope are not merged and the sitting has been determined satisfied by maintainer.' Read as two independent prerequisites (docs/ROSTER.md HR-366, a reading): the trigger above replaces the 2026-10-13 ruling's 'offered once a single PR lands as a session delivery', whose words stand as the dated record."
     },
     {
       "id": "cleanup-plan",

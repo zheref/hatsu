@@ -83,7 +83,8 @@ flowchart LR
 
 **Five phases are yours to call, and no agent ever prompts for them**: `aka` (push), `mukai` (review and
 PR), **the merge**, `kagutsuchi` (non-production upload) and `mugetsu` (publish, **G3**). Two offers are not
-prompts for them: the **wrap-up picker** after every delivery — `cleanup` (required), `cleanup` and `third-hand`, or
+prompts for them: the **wrap-up picker**, only once every PR in the sitting's scope is merged and you have
+explicitly declared the sitting satisfied — `cleanup` (required), `cleanup` and `third-hand`, or
 continue — and `kazaana`'s one unstarred question after the tag it cut, whether `mugetsu` should publish it, whose
 affirmative answer is your own go. Everything
 between them runs on its own; only a genuine **G5** interrupts you: red required tests, touched-file
@@ -110,7 +111,7 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 | **Review, test and open the PR** | `mukai` | a pushed branch; `review.scopes`, `tests`, `coverage` declared; `nen/gates.json` with a reviewer | `murasaki → hanten → kokusen → kotoamatsukami → byakugan → evidence → shibari → landing report → offer en` (or start it under `mukai.autoEn`) |
 | **Drive a PR to Ready** | `en on <CODE>#<N>` · `sharingan <CODE>#<PR> to <G2\|G4>` | an open PR; `monitor.maxCycles` (the cap is grammar) | `sharingan → murasaki when behind → sharingan → observe CI and the current-head round → jutaisho at Ready`, then the merge prompt |
 | **Deliver one issue end to end** | `build <CODE>#<N>` | the issue exists; its `lang/` and `job/` labels (classify runs if missing); your session's model, surface and effort inside `direct`'s picks, else one question | `ten → classify → direct → ren → aka → mukai → en → rikugan → the wrap-up picker` |
-| **Clean up after a delivery** | `cleanup [for <scope>]` · the wrap-up picker's **A** or **B** | a session delivery landed (a PR at the merge prompt or merged); `nen wc worktrees` | **Shizuku** inventories worktrees, branches, remote heads, transient reports, caches and billed resources — this sitting's and prior sessions' — splits deterministic from proposed rows, you pick, she removes only that |
+| **Clean up after a delivery** | `cleanup [for <scope>]` · the wrap-up picker's **A** or **B** | every PR in the sitting's scope merged and you declared the sitting satisfied (`cleanup` § 2), or your own typed `cleanup`; `nen wc worktrees` | **Shizuku** inventories worktrees, branches, remote heads, transient reports, caches and billed resources — this sitting's and prior sessions' — splits deterministic from proposed rows, you pick, she removes only that |
 | **Turn a dirty working copy into a PR** | `tensho <target-branch\|main>` · `jujisho` to split by axis | uncommitted work; a target branch | review every file → commit → one PR (two stacked for `jujisho`) → `sharingan` to its gate |
 | **Review the branch before any PR** | `hanten [for <scope>]` | `review.scopes` in `nen/workflow.json`; reviewer budget left for the effort | `nen review scopes` → one reviewer per raised scope → findings in one shape → fix or push back |
 | **Validate a merged feature** | `black-voice [<CODE>#<PR>]` | a merged PR with acceptance criteria; `tests.uiValidation` tooling resolvable | **Shalnark** drives every criterion through ephemeral UI tests → pass / fail / not-testable as a Rikugan page |

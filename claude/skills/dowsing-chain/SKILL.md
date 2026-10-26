@@ -130,7 +130,7 @@ gaps are row `spec-converge-filing`. A clean recapture is byte-identical, said. 
 quoted, the spec desk above the fold: epics awaiting their mode label first, folders by status, coverage,
 open markers, stops with their resume line, SCs unmet, parity gaps, the merge order, one `hatsu:black-voice`
 line per merged PR (offered, never run). The record (*conventions*, `hatsu.spec.run/v0.1`) is rewritten at
-every boundary; `resume` recomputes the step from live state. Then the wrap-up once (row `wrap-up`).
+every boundary; `resume` recomputes the step from live state. Then the wrap-up once, if cleanup § 2's prerequisites hold (row `wrap-up`).
 **`--dry-run`**, every template, runnable today: § 1's reads and report; per member `nen wc worktree
 --dry-run`, `nen repo scenario` and `nen shu detect` with the inventory plan, no delegate raised; then every
 planned folder, PR, filing and build — written only to scratch, no record.

@@ -146,8 +146,8 @@ Futon § 10: the run ends when every queued issue is merged, closed by the maint
 blocked **and** the `then` step has run, halted, or is **held at its gate**. The final report is
 [`rikugan`](../rikugan/SKILL.md) over this run's scope — issues, every PR, the proposal, the tag, the
 fan-out, the publish outcome — `final` only if every PR merged and the tag cut, else `register` with
-§ 4's plan. Then **kazaana, once, asks the wrap-up picker** ([`cleanup`](../cleanup/SKILL.md) § 2, row
-`wrap-up`). **Kazaana never resumes itself**; re-invoke it.
+§ 4's plan. Then **kazaana, once, asks the wrap-up picker**, only when [`cleanup`](../cleanup/SKILL.md) § 2's
+prerequisites hold (row `wrap-up`; never `--idle`). **Kazaana never resumes itself**; re-invoke it.
 
 ## Residue
 

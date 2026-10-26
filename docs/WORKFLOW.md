@@ -780,7 +780,9 @@ Applied: every ask-once row resolves `default` where it stars an option; `publis
 published release cannot be taken back); a row that stars no option has no derived default and `hold`s
 (`missing-maintainer-choice` by HR-4's never-derived rule, and the rows whose answer is a pick among
 named things); `cleanup-plan` `default` is its starred *apply the deterministic rows*, read as this
-session's deterministic rows only; a merge into `main` is never a row — it is a hard limit — and an idle
+session's deterministic rows only — and neither it nor `wrap-up`'s `default` is ever taken, since an unattended run
+never meets `wrap-up`'s second prerequisite, the maintainer's declared satisfaction ([HR-366](ROSTER.md#hr-366)): an
+idle run neither offers nor runs cleanup; a merge into `main` is never a row — it is a hard limit — and an idle
 run always takes futon § 5's integration-branch shape; every decision taken on the maintainer's behalf is
 listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age and tokens are advisory
 (confirmed the same day).
@@ -1212,8 +1214,10 @@ invocation; only Futon may run `start`, and En only runs `verify`. A host runnin
 helper requires Node ≥22.18, declared in `nen/contract.json` and checked by `nen shu tools`.
 
 **Two offers are not prompts for those five** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*, 3 and 5).
-The **wrap-up picker** at every session delivery — a PR at `en` § 5's merge prompt or merged, a composite's run
-ending — asks once (row `wrap-up`): ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
+The **wrap-up picker** asks once (row `wrap-up`), and only when **both** of [`cleanup`](../claude/skills/cleanup/) § 2's
+prerequisites hold ([HR-366](ROSTER.md#hr-366), zheref/hatsu#480): every PR in the sitting's scope reads `MERGED` live
+(closed-unmerged or unread never counts) **and** the maintainer has explicitly declared the sitting satisfied —
+readiness, a merge prompt, a composite's run ending, a merge alone, silence or a default never supply that: ⭐ [`cleanup`](../claude/skills/cleanup/) · `cleanup` and
 [`third-hand`](../claude/skills/third-hand/) in parallel · continue iterating; `cleanup` is **required after a
 completed session**, `third-hand` optional, and neither is a phase of the five. And [`kazaana`](../claude/skills/kazaana/)
 § 6 asks once, after the tag it cut resolves on origin, whether `mugetsu` should publish it (row `publish-offer`,
@@ -1575,8 +1579,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    that merge). **Never a merge into `main`** — the maintainer alone merges there — **never `getsuga`,
    `mugetsu` or `kagutsuchi`**: a `then` step past the terminal is held, named, unrun. A host scheduler may
    re-invoke the build, never a release. The steady-state schedule is [`config/schedule.md`](config/schedule.md)'s; its
-   tasks are registered only by the maintainer. `cleanup` runs its deterministic rows for this session only
-   (`cleanup-plan` → `default`); a proposed row is never applied unattended.
+   tasks are registered only by the maintainer. `cleanup` **never runs**: the maintainer's declared satisfaction,
+   `wrap-up`'s second prerequisite, cannot be met unattended ([HR-366](ROSTER.md#hr-366)), so the row is never reached and
+   its pre-answer, like `cleanup-plan`'s, is never taken; the run's report names the wrap-up as not offered.
 6. **One manifest, one gate.** Every run `start` opens has one nen manifest, and futon § 8's `then` gate,
    kazaana § 5 and the register read it through `nen run verify` — every opened PR and every parked effort.
    Hatsu's ownership record beside it carries no PR set and no park (§ *Recorded Futon delivery ownership*).

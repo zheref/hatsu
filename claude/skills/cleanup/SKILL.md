@@ -1,6 +1,6 @@
 ---
 name: cleanup
-description: Clean up what a finished effort left behind locally and remotely as Shizuku, and prior leftovers. She inventories first: a 3-class plan, one picker, then only picked rows run. Use for hatsu:cleanup [for <scope>] or at wrap-up once delivery lands (required after a completed session).
+description: As Shizuku, clean up what a finished effort and prior sessions left locally and remotely: inventory first, only picked rows run. Use for hatsu:cleanup [for <scope>] or at wrap-up once § 2's two prerequisites hold.
 ---
 
 **Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
@@ -27,13 +27,14 @@ nen parse cleanup --grammar "for [<scope>]" --line "<the arguments>"
 (§ 4). `for <CODE>#<N>` or `for <branch>` names one effort; `for all` is all leftovers. Missing item
 asked inline (`missing-argument`).
 
-## 2. When it runs — wrap-up, offered once per delivery
+## 2. When it runs — wrap-up, both prerequisites
 
-**Session delivery is a PR standing at en § 5's prompt, merged, or composite ending.** **Who
-asks**: composite terminus — `build`, `futon`, `kazaana`, `kamui`, `hiraishin`, `backlog-loop` — or
-**Kurapika as main session** after `en` § 8 returns; **a delegate never asks**.
-Question via surface picker (row `wrap-up`): ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
-in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns next delivery.
+**Only when (1) every PR in the sitting's scope reads `MERGED` live** (closed-unmerged or unread: not)
+**and (2) the maintainer explicitly declared the sitting satisfied** (HR-366, zheref/hatsu#480): nothing
+else supplies (2), so `--idle` never offers or runs it. Else no picker, no run, the gap named.
+**Who asks**: a composite's terminus (row `wrap-up` names each) or **Kurapika as main session** after `en` § 8 returns; **a delegate never asks**.
+Asked via surface picker: ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
+in parallel · **C** continue iterating, recorded (`nen stop answer`). **Never a merge prompt.** On **C** it returns once both hold again.
 **Once per sitting**: § 7's marker with `result` `cleaned`, `none-proposed` or `already-clean` is **completed** —
 cleanup not re-asked, **B offered as third-hand alone**; `partial`, `none-picked` and `pending` offered again.
 Prior leftover found later is new scope.
@@ -51,7 +52,7 @@ worktree list; the prompt carries the absolute Hatsu root. No delegation: both p
 3. **Close.** Shizuku verifies read-backs against marker, one row per `done[]` id (none, or a named row:
    listed unmatched, `result` `partial`), updates freed bytes, closes it.
 
-## 4. What she inventories — the sitting first, then every prior leftover
+## 4. What she inventories — this sitting, then prior leftovers
 
 **First read is `git fetch origin`**: merged judged against fetched base on both entries. Core is
 `nen wc worktrees --repo <path> --json`'s `core`. **Every repo name is validated before entering any
@@ -122,16 +123,15 @@ Each row: `id` · class · object · exact command (none on named row) · what i
 **Ids are plan-unique**: class letter (`D`/`P`/`N`) plus one plan-wide count, never restarted per class or
 owner group (`D1`, `P2`).
 
-## 6. The picker — then only the pick runs
+## 6. The picker — only the pick runs
 
 **Ids first**, word for word:
 `jq -e -s 'length==1 and (.[0].plan|type=="array") and ([.[0].plan[].id] | all(type=="string" and test("\\S")) and length==(unique|length))' '<marker>'`
-— exit `1` or `5` (an id shared, missing or blank; not one plan array) stops before the question or its
-idle default; on `5` the parse error named, on `1` shared ids from
+— exit `1` or `5` (an id shared, missing or blank; not one plan array) stops before the question; on `5` the parse error named, on `1` shared ids from
 `jq -r -s '[.[0].plan[].id] | group_by(.)[] | select(length>1)[0]' '<marker>'`; main session re-raises
 pass 1 to re-mint (never renames) and reruns it. On a second stop main session records `pickerAnswer`
 `ids-invalid`, Shizuku closes `none-picked`, ids in the report. Any other exit (`2`, `127`) stops, host
-fact named, marker left `pending`. No deterministic or proposed row: no question, no idle default;
+fact named, marker left `pending`. No deterministic or proposed row: no question;
 Shizuku closes `already-clean` (empty plan) or `none-proposed` (named only). Else one native
 picker question (third-hand § 6; row `cleanup-plan`): ⭐ **A** every deterministic row · **B** deterministic **and** ticked proposed rows
 (batches <= 3; Codex CLI: 1 per row) · **C** `none` (keep all; wins over other ticks). Main session
@@ -159,7 +159,7 @@ closed.
 ## Residue
 
 Removals, `du -sk`, `readlink -f`, name validation and the id check have no nen verb — **owed to nen**
-(`nen wc prune`, zheref/nen#409); id-read exits assume jq >= 1.7. Raise and marker are Hatsu's.
+(`nen wc prune`, zheref/nen#409); id-read exits assume jq >= 1.7.
 
 ## Authority
 
