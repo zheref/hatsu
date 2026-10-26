@@ -78,8 +78,8 @@ bytes() {
 # DIETED_SKILLS (rikugan, v0.73.0) is counted by this fixture the moment it is added to the guard.
 DIETED="$(sed -n '/^DIETED_SKILLS="/,/"$/p' "$guard" | sed 's/^DIETED_SKILLS="//; s/"$//' | tr '\n' ' ')"
 [ -n "$DIETED" ] || fail "could not read DIETED_SKILLS from $guard"
-# the dieted skills, two agents and one rules file
-total=$(( $(printf '%s\n' $DIETED | wc -l | tr -d ' ') + 3 ))
+# the dieted skills, two agents, one rules file and its generated Antigravity mirror
+total=$(( $(printf '%s\n' $DIETED | wc -l | tr -d ' ') + 4 ))
 
 # make_root <dir>: every dieted skill at 100 bytes, two agents at 100 bytes, kurapika.md far over its
 # would-be ceiling, one rules file of 11950 characters (the smallest margin in the tree).
@@ -90,13 +90,14 @@ make_root() {
   bytes "$r/claude/agents/_review-preamble.md" 100
   bytes "$r/claude/agents/kurapika.md" 9000
   bytes "$r/claude/rules/hatsu.md" 11950
+  bytes "$r/surfaces/antigravity/rules/hatsu.md" 11900
 }
 
 # --- within every ceiling: exit 0, kurapika exempt, the count agrees ---
 clean="$fixture_root/clean"
 make_root "$clean"
 run 0 "$clean"
-assert_contains "$out" "prose ok: $total files within their ceilings" 'every dieted skill (rikugan among them), two agents and one rules file are counted; kurapika.md is not'
+assert_contains "$out" "prose ok: $total files within their ceilings" 'every dieted skill (rikugan among them), two agents, one rules file and its Antigravity mirror are counted; kurapika.md is not'
 assert_lacks "$out" 'kurapika' 'the exempt persona is never named'
 
 # --- --headroom: one row per file, smallest margin first, exit unchanged ---
@@ -160,6 +161,13 @@ mkdir -p "$rules/claude/rules"
 run 1 "$rules"
 assert_contains "$out" 'OVER  claude/rules/hatsu.md  12001 > 12000 chars' 'a rules file over by one character is over, in characters'
 
+# --- the generated Antigravity rules mirror is measured against the same limit (PD-3, 2026-10-26) ---
+mirror="$fixture_root/mirror"
+make_root "$mirror"
+{ i=0; while [ "$i" -lt 12001 ]; do printf 'é'; i=$((i + 1)); done; } > "$mirror/surfaces/antigravity/rules/hatsu.md"
+run 1 "$mirror"
+assert_contains "$out" 'OVER  surfaces/antigravity/rules/hatsu.md  12001 > 12000 chars' 'a mirror over the limit is over, whatever its source measures'
+
 # --- a rules file that is not valid UTF-8 is refused, never undercounted (Phinks, QA-16) ---
 bad="$fixture_root/badutf8"
 make_root "$bad"
@@ -182,9 +190,9 @@ run 2 -x "$clean"
 assert_contains "$out" 'unknown flag -x' 'a single-dash flag is refused as a flag, never taken as the root'
 norules="$fixture_root/norules"
 make_root "$norules"
-rm -r "$norules/claude/rules"
+rm -r "$norules/claude/rules" "$norules/surfaces"
 run 0 --headroom "$norules"
-assert_contains "$out" "prose ok: $((total - 1)) files" 'a checkout with no claude/rules measures the agents and skills alone'
+assert_contains "$out" "prose ok: $((total - 2)) files" 'a checkout with no claude/rules and no surfaces/ measures the agents and skills alone'
 assert_lacks "$out" '/12000  chars' 'no rules row is invented'
 run 2 "$fixture_root/nowhere"
 assert_contains "$out" 'is not a Hatsu checkout' 'a root without claude/agents and claude/skills is refused'

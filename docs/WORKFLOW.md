@@ -3019,11 +3019,12 @@ and a push to a target whose CI runs on this host (the job it starts is heavy wo
 budget: that machinery is owed to nen (zheref/nen#536 admission, zheref/nen#537 bounded test
 workers, zheref/nen#538 owned cancellation, zheref/nen#539 the pressure refusal, zheref/nen#540
 receipts). So every phase that runs a heavy verb — including `rasengan`'s inner-loop checks,
-`breath`'s base proof, `kokusen`, `hanten`'s guard-lane fixtures and its reviewers, `murasaki`'s
+`breath`'s base proof, `tsukuyomi`'s focused lanes, `kokusen`, `hanten`'s guard-lane fixtures and its reviewers, `murasaki`'s
 merged-tree checks, `kotoamatsukami`, `byakugan`, `susanoo` and a delegate's checks — says in its
 report `host admission: no guard (zheref/nen#536); serialized fallback`, and runs the fallback. No
 script, lock file or load reading stands in for the verb: a guard that cannot measure the host does
-not claim to.
+not claim to. The phase skills carry no pointer of their own: the rules file's rule 11 and
+`kurapika.md` § *The `shu` verbs*, read before any phase runs, are the carriers (N2-F4, 2026-10-26).
 
 **The serialized fallback** — the documented conservative mode until nen's admission verb
 (zheref/nen#536) is released and adopted:
@@ -3062,14 +3063,14 @@ not claim to.
    unread inventory are each *unknown*, and unknown counts as busy. A busy host is waited on: in an
    idle run till the minutes elapse, then `parked:budget`; in an interactive run in bounded waits
    under § *Delegate briefs*' ceiling, then a **G5** stop. Unknown parks an idle effort as
-   `parked:g5-host-ci-unknown`, the refusal quoted; in an interactive run it is a **G5** stop
+   `parked:g5-host-ci-unknown` (`nen/decisions.json` row `host-ci-unknown`), the refusal quoted; in an interactive run it is a **G5** stop
    (`nen stop`, the picker) quoting the refusal or naming what could not be read.
 
 **Stop on overload; retry only after recovery.** Overload is host-wide. Its symptoms are the desktop
 or an app unresponsive, the maintainer reporting it, a subprocess timeout repeated, a run cancelled,
 and a parent ended with its descendants uncertain. On any of them **no new heavy launch anywhere in
 the run**, smaller retries included. In an idle run the effort that saw it parks as
-`parked:g5-host-overload`, and every later effort runs light-only and parks at its first heavy step
+`parked:g5-host-overload` (`nen/decisions.json` row `host-overload`), and every later effort runs light-only and parks at its first heavy step
 the same way. In an interactive run it is a **G5** stop (`nen stop`, the picker): what was seen, the
 listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
 
@@ -3093,7 +3094,8 @@ only with that listing beside it. A process is never killed by name or pattern (
 a `node` match): that reaches the maintainer's own apps and other sessions. This section grants no
 kill authority: stopping any process, one the session launched and can name by recorded process
 group included, is the maintainer's, handed over as one `bash` block by recorded process group with
-where to run it (§ 4), a **G5**.
+where to run it (§ 4), a **G5** — and only for a group whose id equals the `$$` recorded beside it; a
+bare group id names no target.
 
 ### The host block a delegate brief carries
 
@@ -3107,7 +3109,7 @@ lanes (rule 3).
 - Heavy work is a test, build, coverage, UI/E2E, archive or dev/run launch, and a push that starts CI on this host; anything not named light (a read, other git, a `--dry-run`, a lint of the changed files, a prose check) is heavy.
 - Run heavy work only while this brief's `Heavy turn:` line grants it, one heavy workload at a time on this host, each runner at the worker count that line names.
 - A lane whose declaration cannot bound its workers runs only inside the turn, the gap named against zheref/nen#537, never with an improvised flag.
-- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`), and name every recorded group in your hand-back.
+- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`) beside its `$$`, and name both in your hand-back; a group that differs from `$$` is no recorded id.
 - Without the turn, run light checks only, commit, publish only where the push starts no CI on this host, and hand back each heavy lane named as pending, never as green.
 - The turn ends at your hand-back; name in it every heavy lane you ran and every one you did not.
 - On an unresponsive host, a repeated subprocess timeout, a cancelled run or uncertain descendants: launch nothing heavy, retry nothing, hand back with what you saw.
