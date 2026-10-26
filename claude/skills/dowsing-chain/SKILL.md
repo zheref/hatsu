@@ -113,7 +113,7 @@ folder, mode label **proposed** (row `mode-label`), children by `nen issue attac
 next-wave` from epics whose mode label the maintainer applied; then [`futon`](../futon/SKILL.md)
 `<member>@spec/<nnn>` by name per released folder (`nen parse futon` reads a label selector), delegates on `direct`'s primary in `nen loop slots`; each reads the spec
 **at the issue's sha**. Each PR's Spec section and `spec-coverage` stop are
-[`shibari`](../shibari/SKILL.md) § 4's (*conventions*). En drives each PR to its prompt; **nothing merges main**.
+[`shibari`](../shibari/SKILL.md) § 4's (*conventions*). En drives each PR to its prompt (WORKFLOW § *Batch delivery*); **nothing merges main**.
 
 ## 10. Recapture — a diff, never a rewrite
 
