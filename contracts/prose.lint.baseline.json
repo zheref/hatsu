@@ -854,24 +854,6 @@
     {
       "path": "claude/skills/hanten/SKILL.md",
       "rule": "PL-05",
-      "text": "erved worktree refusal (#218; ratified exception, RO",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
-      "text": "ing it, never built on (#170); `2` is a quoted wirin",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
-      "text": "`--not-reported` flags (#100). Only the cycle ledger",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/hanten/SKILL.md",
-      "rule": "PL-05",
       "text": "ck.sh --headroom` line (#119). **A finding is work,",
       "count": 1
     },

@@ -1447,24 +1447,45 @@
             "--capture",
             "pr-delivery-guard",
             "bash",
-            "scripts/pr_body_delivery_check_fixture.sh"
+            "scripts/pr_body_delivery_check_fixture.sh",
+            "--test",
+            "--experimental-test-coverage",
+            "--test-concurrency=1",
+            "--test-coverage-include=scripts/pr_delivery.ts",
+            "--test-reporter=spec",
+            "--test-reporter=lcov",
+            "--test-reporter-destination=stdout",
+            "--test-reporter-destination=coverage/pr-delivery-guard/node/lcov.info"
           ],
-          "why": "Focused actual Nen report/render integration and hostile ledger/body fixtures for the mandatory metadata preamble. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/pr-delivery-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane pr-delivery-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "why": "Focused actual Nen report/render integration and hostile ledger/body fixtures for the mandatory metadata preamble, in one fixture run. The existing shell wrapper forwards Node 24 built-in test coverage flags: scripts/pr_delivery.ts is imported in-process and only that production module is included in coverage/pr-delivery-guard/node/lcov.info; child CLI cases remain behavioral evidence and do not inflate parent coverage. The shell helper still captures executed shell sources in coverage/pr-delivery-guard/lcov.info where the pinned Bashcov is available, or explicitly reports uninstrumented execution. Nen records both declared artifacts in the same test capture for --from-capture provenance; neither report is evidence for an untested source/head.",
           "artifacts": [
-            "coverage/pr-delivery-guard/lcov.info"
+            "coverage/pr-delivery-guard/lcov.info",
+            "coverage/pr-delivery-guard/node/lcov.info"
           ]
         },
         "coverage": {
-          "exe": "node",
-          "argv": [
-            "scripts/shell_coverage.mts",
-            "--verify",
-            "pr-delivery-guard"
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "scripts/shell_coverage.mts",
+                "--verify",
+                "pr-delivery-guard"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "const fs=require('node:fs');const path=require('node:path');const file='coverage/pr-delivery-guard/node/lcov.info';const stat=fs.statSync(file);if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty pr-delivery-guard Node LCOV capture');const sources=[...fs.readFileSync(file,'utf8').matchAll(/^SF:(.+)$/gm)].map(match=>path.resolve(match[1]));if(sources.length!==1||sources[0]!==path.resolve('scripts/pr_delivery.ts'))throw new Error('pr-delivery-guard Node LCOV must name only scripts/pr_delivery.ts')"
+              ]
+            }
           ],
           "artifacts": [
-            "coverage/pr-delivery-guard/lcov.info"
+            "coverage/pr-delivery-guard/lcov.info",
+            "coverage/pr-delivery-guard/node/lcov.info"
           ],
-          "$comment": "Extraction only: reads coverage/pr-delivery-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+          "$comment": "Extraction only: the existing shell verifier reads its report hashes and source hashes; the Node step checks the nonempty exact-source LCOV report. Neither step runs a fixture. Nen owns LCOV parsing and the same-test source/head/artifact provenance checked by --from-capture."
         }
       },
       "issue-shape": {

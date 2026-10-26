@@ -39,7 +39,7 @@ for (const [fixture, lane] of requiredFixtures) {
 }
 // Each executable guard runs here once it exists, and refuses without its fixture (BC-9: a guard's
 // suite must actually execute in unit-tests.yml).
-const gated: Array<[string, string, string]> = [
+const gated: Array<[string, string | readonly string[], string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['plugin_bump_api_retry.mts', 'plugin_bump_api_retry_fixture.test.mts', 'plugin-bump-api-retry-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
@@ -66,12 +66,17 @@ const gated: Array<[string, string, string]> = [
   // The issue-shape fixture runs the verified nen's body-check and questions over the catalogue and
   // templates; the interim checker it once tested is retired (zheref/hatsu#423).
   ['issue_sections_fixture.mts', 'issue_sections_fixture.mts', 'issue-shape'],
+  // HA#441: the shell entry and imported typed cases are both required. The workflow selects
+  // this lane automatically only after this trusted runner is adopted by the PR base.
+  ['pr_delivery.ts', ['pr_body_delivery_check_fixture.sh', 'pr_body_delivery_check_fixture.ts'], 'pr-delivery-guard'],
 ];
-for (const [script, fixture, lane] of gated) {
+for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
-  if (!existsSync(join(root, 'scripts', fixture))) {
-    console.error(`unit-tests-ci: ${script} has no required fixture`);
-    process.exit(2);
+  for (const fixture of typeof fixtures === 'string' ? [fixtures] : fixtures) {
+    if (!existsSync(join(root, 'scripts', fixture))) {
+      console.error(`unit-tests-ci: ${script} has no required fixture ${fixture}`);
+      process.exit(2);
+    }
   }
   lanes.push(lane);
 }

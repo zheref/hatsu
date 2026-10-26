@@ -226,7 +226,18 @@ function directSessionAlias(root: string, effort: string, surface: string): stri
   return stringOrNull(modelRow?.session, `${path}: model compare session`);
 }
 
-function roleFor(kind: DeliveryKind, phase: string | null, source: string | null): string {
+function reviewerPersona(kind: DeliveryKind, source: string | null, where: string): string | null {
+  if (source === null) return null;
+  // Initial round, numbered round, bounded delta; bare delta is HA-PR-#433's legacy form.
+  const reviewer = /^hanten § 4: ([a-z][a-z0-9-]{0,63})(?: round [1-9][0-9]*| delta(?: since [0-9a-f]{7,40})?)?, .+$/.exec(source);
+  if (reviewer !== null) return reviewer[1] as string;
+  if (kind === "usage" && /^hanten\b/i.test(source)) {
+    fail(`${where}: malformed Hanten reviewer source; expected "hanten § 4: <persona>, <readout>", "hanten § 4: <persona> round <positive integer>, <readout>" or "hanten § 4: <persona> delta since <7–40 lowercase hex SHA>, <readout>" (legacy "<persona> delta, <readout>" is accepted)`);
+  }
+  return null;
+}
+function roleFor(kind: DeliveryKind, phase: string | null, source: string | null, where: string): string {
+  const reviewer = reviewerPersona(kind, source, where);
   if (phase !== null) {
     if (AUTHOR_PHASES.has(phase)) return "author";
     if (LANDING_PHASES.has(phase)) return "landing";
@@ -235,8 +246,7 @@ function roleFor(kind: DeliveryKind, phase: string | null, source: string | null
     if (delegate !== null) return `delegate author · ${delegate[1]}`;
   }
   if (source !== null) {
-    const reviewer = /^hanten § 4: ([a-z][a-z0-9-]{0,63}),/.exec(source);
-    if (reviewer !== null && PERSONA.test(reviewer[1] as string)) return `reviewer · ${reviewer[1]}`;
+    if (reviewer !== null) return `reviewer · ${reviewer}`;
     const delegate = /^delegate author(?:: | )([a-z][a-z0-9-]{0,63})(?:[,;]|$)/.exec(source);
     if (delegate !== null && PERSONA.test(delegate[1] as string)) return `delegate author · ${delegate[1]}`;
     if (/^(?:ren|build|spiritual-message)(?: §|:|$)/.test(source)) return "author";
@@ -279,7 +289,7 @@ function rowSource(row: Evidence): string {
   return row.kind === "phase" && row.phase !== null ? `${base} · ${row.phase}` : base;
 }
 function deliveryRow(root: string, config: JsonObject, evidence: Evidence): DeliveryRow {
-  const role = roleFor(evidence.kind, evidence.phase, evidence.source);
+  const role = roleFor(evidence.kind, evidence.phase, evidence.source, `${evidence.kind}[${evidence.index}].source`);
   const surface = evidence.surface ?? "unread — ledger records no surface";
   const knownAliases = evidence.surface === null ? new Set<string>() : surfaceAliases(config, evidence.surface);
   const directAlias = evidence.surface === null || role !== "author" ? null : directSessionAlias(root, evidence.effort, evidence.surface);
