@@ -43,6 +43,19 @@ reviewer identities in it are Hatsu's. Yours are yours.
 decision stays outside it, at `G2` in your repository (`CON-5`) — or `G4` (`CON-7`) if your
 repository's *product is the process*. See [`ROSTER.md`](ROSTER.md) HR-76, HR-77.
 
+A reported check name does not establish which workflow or App produced it. Until Nen's
+producer binding lands ([zheref/nen#546](https://github.com/zheref/nen/issues/546)), the Hatsu
+consumer workaround is a `pull_request_target` workflow that executes its guard from the trusted
+base/workflow revision and reads the event-selected PR head as data only. Preserve the trusted-base
+preflight and exact event-head checks when adopting it. The prepared readiness integrity form verifies its script
+against a reviewed trusted digest before Bash, then verifies the binary against the contract platform
+digest before execution. Under § 6, this preparer must land first; the tracked readiness template
+keeps its existing bytes until a separate activation PR after the preparer reaches `main`. That
+activation also needs a typed metadata reader and validated producer/pin binding; a template-only
+patch is design evidence, not executable adoption. [The dependency contract](NEN-CONTRACT.md#bootstrap-integrity-and-ownership)
+records the pin ownership; producer binding is still a Nen dependency, not a policy implemented by
+`$`-prefixed comments or this workaround.
+
 ---
 
 ## 3. The keys, and what each one costs you if it is wrong

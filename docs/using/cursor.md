@@ -97,12 +97,13 @@ contract pin in the Build's disk state with this committed `.cursor/environment.
 
 ```json
 {
-  "install": "set -eu; d=\"$(mktemp -d)\"; trap 'rm -rf \"$d\"' EXIT; curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o \"$d/nen-bootstrap.sh\"; nen_path=\"$(bash \"$d/nen-bootstrap.sh\" --ref v0.28.0 --source zheref/nen)\"; test -x \"$nen_path\"; mkdir -p \"$HOME/.local/bin\"; if [ -e \"$HOME/.local/bin/nen\" ] && [ ! -L \"$HOME/.local/bin/nen\" ]; then echo 'refusing to replace non-link $HOME/.local/bin/nen' >&2; exit 1; fi; ln -sfn \"$nen_path\" \"$HOME/.local/bin/nen\"; \"$HOME/.local/bin/nen\" --version"
+  "install": "set -eu; d=\"$(mktemp -d)\"; trap 'rm -rf \"$d\"' EXIT; printf '%s\\n' 'abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70' | grep -Eq '^[0-9a-f]{64}$'; printf '%s\\n' 'b8004b27620a6ffceacde1703d4844029f675431b27c9681a632092e1a5d5f35' | grep -Eq '^[0-9a-f]{64}$'; curl -fsSL https://raw.githubusercontent.com/zheref/nen/v0.28.0/bootstrap/nen.sh -o \"$d/nen-bootstrap.sh\"; printf '%s  %s\\n' \"abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70\" \"$d/nen-bootstrap.sh\" | sha256sum -c -; nen_path=\"$(bash \"$d/nen-bootstrap.sh\" --ref v0.28.0 --source zheref/nen)\"; test -x \"$nen_path\"; printf '%s  %s\\n' \"b8004b27620a6ffceacde1703d4844029f675431b27c9681a632092e1a5d5f35\" \"$nen_path\" | sha256sum -c -; mkdir -p \"$HOME/.local/bin\"; if [ -e \"$HOME/.local/bin/nen\" ] && [ ! -L \"$HOME/.local/bin/nen\" ]; then echo 'refusing to replace non-link $HOME/.local/bin/nen' >&2; exit 1; fi; ln -sfn \"$nen_path\" \"$HOME/.local/bin/nen\"; \"$HOME/.local/bin/nen\" --version"
 }
 ```
 
-Those literals are the current `nen/contract.json` values: `zheref/nen@v0.28.0`. Keep them together
-when the contract repins. On Cursor's Linux host, the bootstrap caches the verified binary at
+Those literals are the current `nen/contract.json` values: `zheref/nen@v0.28.0`. Keep the ref, `bootstrap.scriptSha256` and `bootstrap.sha256["linux-x64"]` together
+when the contract repins. The Build verifies the downloaded script against the independently reviewed
+contract digest before Bash runs, then verifies the binary against the contract before linking or executing it. On Cursor's Linux host, the bootstrap caches the verified binary at
 `${XDG_CACHE_HOME:-$HOME/.cache}/nen/zheref_nen/v0.28.0/nen-linux-x64`; the stable link is
 `$HOME/.local/bin/nen`. The bootstrap fetches `SHA256SUMS` before the binary, verifies the manifest's
 digest, deletes rejected bytes, and prints a path only after verification. The command is idempotent:
