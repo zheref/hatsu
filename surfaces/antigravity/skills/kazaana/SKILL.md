@@ -31,8 +31,7 @@ composite calls skip their own `## 0.`** ([`STANDALONE-ENTRY.md`](../../../../do
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
-Verified at nen `0.21.0`: `on llama` and an empty line are exit `2` — the trigger to ask (row `missing-argument`: the checkout's own
-repository is the derived candidate).
+Verified at nen `0.21.0`: `on llama` and an empty line are exit `2` — the ask (row `missing-argument`).
 
 **The line is the surface's main model, read, never remembered**: the session's surface as the harness
 reports it ([`direct`](../direct/SKILL.md) § 2), then `aliases.<a>.line` **read from the registry file**
@@ -98,7 +97,7 @@ session runs `mukai` and `en` per PR, one at a time**: a subagent raises no suba
 reviewers, Illumi), and hanten § 4's reviewer checkouts are per persona. `en` is started per PR, never
 offered; **a delegate never asks the wrap-up**.
 
-**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6 (the maintainer's word is stated there).
+**Stacks only on overlap** — WORKFLOW § *Stacked pull requests*, rules 1–6 (the maintainer's word: ROSTER § *Rulings of 2026-10-12*).
 Kazaana's own clause (attended; `--idle` opens no per-effort PR, WORKFLOW § *Batch delivery* 4): **disjoint efforts are never stacked** — each cut from `origin/<branch.base>` and
 opened against it; efforts sharing a path form one stack (rule 1), cut in order from the
 previous effort's published branch (rule 2), so a stacked delegate starts once that `aka` has run. The
@@ -151,8 +150,9 @@ prerequisites hold (row `wrap-up`; never `--idle`). **Kazaana never resumes itse
 
 ## Residue
 
-`nen direct registry --json` prints no `line` (§ 1; **owed to nen**, to file). A delegate's raise has no
-verb: it is § 3's native tool, never a park (WORKFLOW § *Idle batches* rule 3). § 3 names the
+`nen direct registry --json` prints no `line` (§ 1; owed to nen). A delegate's raise has no
+verb: it is § 3's native tool, never a park by itself; absent from the session's tools it parks
+`g5-capability-unavailable` (WORKFLOW § *Idle batches* rule 3). § 3 names the
 effort-dial residue; the overlap read has none.
 
 ## Authority

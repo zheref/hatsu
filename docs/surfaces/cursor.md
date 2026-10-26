@@ -127,7 +127,7 @@ the IDE's native **Worktree** mode or use Hatsu's named `git worktree add` fallb
 `--repo`. A new branch in the existing core workspace does not satisfy the rule.
 Each delegated author receives an independent target checkout and its absolute scope; a subagent
 definition alone establishes no isolation. A Cursor subagent is the native capability kazaana § 3
-raises a builder with, attended or `--idle`: that no Nen verb raises a delegate never makes it unavailable; only its absence from this session's tools, or an observed refusal, holds the one effort, evidence named ([WORKFLOW](../WORKFLOW.md) § *Idle batches* rule 3). Report unavailable creation or write access with the
+raises a builder with, attended or `--idle`: that no Nen verb raises a delegate never makes it unavailable; an effort parks only on one of rule 3's observed facts, its evidence named ([WORKFLOW](../WORKFLOW.md) § *Idle batches* rule 3). Report unavailable creation or write access with the
 actual path and command; never change permissions, invoke a swap or fall back to core.
 Native root/setup facts are § 1's cited worktree guide, not a Hatsu location setting.
 Evidence fetched 2026-10-03: "Start a task with `/worktree`" in a "separate checkout"

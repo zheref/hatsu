@@ -983,6 +983,33 @@
       ],
       "proposeIssue": false,
       "why": "docs/WORKFLOW.md section Host workload budget, Same-host CI: an unknown machine code, an unreadable pool set or an unread inventory counts as busy, and the machine code is the maintainer's typed word, never derived (HR-276; zheref/hatsu#478)."
+    },
+    {
+      "id": "capability-unavailable",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "provide the capability and resume",
+          "command": "the maintainer opens the session with the named tool exposed (or provisions the named prerequisite) and re-invokes the run; the parked effort is claimed again",
+          "consequence": "the effort resumes at the step that parked; nothing was improvised in its place"
+        },
+        {
+          "key": "B",
+          "label": "run the step yourself",
+          "command": "the maintainer performs the named operation by hand and says so; the run reads its result",
+          "consequence": "the effort continues past the step on the maintainer's own act, recorded with the park"
+        },
+        {
+          "key": "C",
+          "label": "leave it parked",
+          "command": "the effort stays parked:g5-capability-unavailable; independent efforts continue",
+          "consequence": "the register names the capability and the evidence (the tool list read) beside the park"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "docs/WORKFLOW.md section Idle batches rule 3 (zheref/hatsu#481): a park is an observed fact, here the named native capability or prerequisite absent from this session; a missing Nen verb is ownership, never this row, and a lane's missing CLI tool is row missing-tool."
     }
   ]
 }

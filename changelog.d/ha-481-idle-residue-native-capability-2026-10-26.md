@@ -7,7 +7,7 @@
 
 - `docs/ab/futon.md` § 2026-10-26: the original false stop of run `469c57416a765d2af7084e0801a59ded` (27 `residue-kazaana` parks, zero PRs) kept as recorded, and nine bounded scenarios evaluated on paper — supported delegation, unavailable delegation, an actual rejection, a deterministic owner unavailable, ordinary judgment, a human gate, an unrelated later rejection, one effort holding while the rest continue, and a true residue park.
 
-### Trimmed (size ceilings)
+### Trimmed (size ceilings) — against the stack base, each with where the text lives
 
-- `hatsu:kazaana`: the verified `<product-repo-A>` parse transcript in § 1 (kept in the A/B record), § Residue's restatement of § 1's registry read, and "never restated" after § 3's stacked-PR citation.
-- `hatsu:futon` § 2: the band's `+` restatement, now cited to § 1, which states it.
+- `hatsu:kazaana` § 1: the bare-repository parse note and its `missing-argument` candidate gloss (recorded in `docs/ab/kazaana.md`, 2026-10-26; futon § 1 states the candidate); § 3: the maintainer's stacking quote, now cited to ROSTER § *Rulings of 2026-10-12*; § Residue: the restatement of § 1's registry read and "to file".
+- `hatsu:futon` § 2: the band's `+` restatement, cited to § 1; § 6: "futon's policy" beside `--local-cap 7` (the flag's value is futon's, its presence nen's — zero headroom, noted).

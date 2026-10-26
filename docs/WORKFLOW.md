@@ -1653,7 +1653,7 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    A session that actually ended mid-run (en § 7) holds nothing: the resume (rule 5) finds each delivery
    `driving` again. nen `0.28`'s parks are append-only, so **a later state wins over a park**: a delivery
    `nen run verify` reads `merged` or `closed` after its `held-*` park is that state, never held. Under `--idle`, an effort's park (§ *Idle batches* rules
-   1–4: a `hold` or `refuse` row, `g5-<class>` with `g5-harness-denied`, `residue-<skill>`, `budget`) **is** its
+   1–4: a `hold` or `refuse` row, `g5-<class>` with `g5-harness-denied` and `g5-capability-unavailable`, `residue-<skill>`, `budget`) **is** its
    held record. The **three facts**: the exact prerequisite or bound; the last `nen pr ready` verdict with its
    judged head (`no PR` for an effort parked before one); the resume action (`hatsu:en on <CODE>#<N>`, or rule
    5). A held delivery is never counted Ready, and the rest of the authorized work continues around it.
@@ -1744,16 +1744,22 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    supplies a missing authorization or weakens a gate; then **a Nen verb** where Nen owns the operation;
    else **the owning skill's native capability or named surface adapter** — kazaana § 3's delegate is
    raised by the host's delegation tool (Claude Code's Agent tool, Codex `spawn_agent`, Cursor's
-   subagent, Antigravity `invoke_subagent`), under `--idle` exactly as attended; **judgment, drafting
-   and authoring** proceed, since no verb owns them. The effort parks only on an **observed** fact: the
-   named capability absent from this session's tools, an applicable prohibition, an unavailable
-   prerequisite, an observed rejection (rule 2) or an unresolved required human choice (rule 1). Shell
-   improvised in place of a Nen-owned safeguard stays refused, and the park names the unmet dependency
-   instead. `parked:residue-<skill>` is for a step whose only route is a hand-run operation the batch may
-   not improvise; an absent tool parks as `g5-capability-unavailable`, a refused act as
-   `g5-harness-denied`. **A hold is one effort's**: the register names, beside the park, the exact
+   subagent, Antigravity `invoke_subagent`) into its provisioned worktree (§ *Where worktrees live*),
+   under `--idle` exactly as attended; **judgment, drafting and authoring** proceed, since no verb owns
+   them. A step whose route is a hand-run shell operation is never improvised in the batch, Nen-owned or
+   not; only a native capability the owning skill names, or judgment and authoring, proceed without a
+   verb. The effort parks only on an **observed** fact, each with its one row: the named native
+   capability absent from this session's tools (a session tool, never a lane's CLI tool, which is row
+   `missing-tool`) → `parked:g5-capability-unavailable` (row `capability-unavailable`); an applicable
+   prohibition → `parked:g5-<its decisions row>`; an unavailable prerequisite (a worktree that cannot be
+   provisioned, a declared dependency absent) → `parked:g5-capability-unavailable`, the prerequisite
+   named; an observed rejection (rule 2) → `parked:g5-harness-denied`; an unresolved required human
+   choice → rule 1's hold row. A Nen-owned step whose nen is absent or out of range after the bootstrap
+   failed cannot persist its own park: the run ends as rule 2's startup case, `park not persisted`, the
+   dependency named in the report. `parked:residue-<skill>` is for a step whose only route is a hand-run
+   operation. **A hold is one effort's**: the register names, beside the park, the exact
    capability or refused act and its evidence (the tool list read, the refusal quoted) — nen's
-   `parked[]` carries the row only, a reason field owed to nen (unfiled) — and the independent efforts
+   `parked[]` carries the row only, a reason field owed to nen (proposed: `<core>/.nen/proposed/nen-run-park-reason.json`, filed at the owning run's third-hand harvest) — and the independent efforts
    continue. The report keeps a **policy judgment** (a park chosen from canon) apart from an **observed
    execution failure** (a tool absent, an act refused), and never names a later, unrelated rejection as
    an earlier park's cause. Conformance: `docs/ab/futon.md` § 2026-10-26.

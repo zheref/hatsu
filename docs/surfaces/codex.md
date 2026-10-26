@@ -111,7 +111,7 @@ for each delegated authoring effort and hand it that absolute path with explicit
 or start a separately scoped `codex exec -C <effort-path>` using the host's existing authorization.
 A sandbox failure follows § 5; an unreviewed `EPERM` alone is not a rejected approval.
 
-In-session delegation is `spawn_agent`, the native capability kazaana § 3 raises a builder with, attended or `--idle`: that no Nen verb raises a delegate never makes it unavailable; only its absence from this session's tools, or an observed refusal, holds the one effort, evidence named ([WORKFLOW](../WORKFLOW.md) § *Idle batches* rule 3). Hanten's isolated reviewer still runs as a second `codex exec`
+In-session delegation is `spawn_agent`, the native capability kazaana § 3 raises a builder with, attended or `--idle`: that no Nen verb raises a delegate never makes it unavailable; an effort parks only on one of rule 3's observed facts, its evidence named ([WORKFLOW](../WORKFLOW.md) § *Idle batches* rule 3); when `spawn_agent` is absent, the adapter's second route above, `codex exec -C <effort-path>`, is tried before the effort parks. Hanten's isolated reviewer still runs as a second `codex exec`
 in a worktree at `<core>/.nen/worktrees/codex/hanten-<persona>` (§ 1), because that reviewer must not
 share the author's tree.
 
