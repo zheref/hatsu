@@ -17,12 +17,13 @@ const coverageBash = ['/opt/homebrew/bin/bash', '/usr/local/bin/bash', '/usr/bin
 const roots: string[] = [];
 afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
-function fixture(interp = 'bash', body = 'echo ran >> ran.log\n', target?: string) {
+function fixture(interp = 'bash', body = 'echo ran >> ran.log\n', target?: string | string[], traceSubstitutions = false) {
   const root = mkdtempSync(join(tmpdir(), 'hatsu-shell-coverage-'));
   roots.push(root);
   for (const dir of ['scripts', 'nen', 'bin', 'gems']) mkdirSync(join(root, dir));
   writeFileSync(join(root, 'scripts/fixture.sh'), `#!/usr/bin/env ${interp}\n${body}`);
-  if (target) writeFileSync(join(root, target), '#!/usr/bin/env bash\necho target\n');
+  const targets = Array.isArray(target) ? target : target ? [target] : [];
+  for (const source of targets) writeFileSync(join(root, source), '#!/usr/bin/env bash\necho target\n');
   // Three stand-in .gem files; the contract pins their digests as it pins the real ones.
   const pins: Record<string, string> = { simplecov: '1.3.2', bashcov: '4.0.0', 'simplecov-lcov': '0.9.0' };
   const toolchain: Record<string, { version: string; gemSha256: string }> = {};
@@ -31,7 +32,7 @@ function fixture(interp = 'bash', body = 'echo ran >> ran.log\n', target?: strin
     writeFileSync(gem, `${name} ${version}\n`);
     toolchain[name] = { version, gemSha256: createHash('sha256').update(readFileSync(gem)).digest('hex') };
   }
-  const captureTail = target ? ['--target', target] : ['--self-test'];
+  const captureTail = targets.length ? [...targets.flatMap((source) => ['--target', source]), ...(traceSubstitutions ? ['--trace-substitutions'] : [])] : ['--self-test'];
   writeFileSync(join(root, 'nen/contract.json'), JSON.stringify({ project: {
     verbs: { sample: { test: { exe: 'bash', argv: [
       'scripts/fixture_output_guard.sh', 'node', 'scripts/shell_coverage.mts',
@@ -52,6 +53,7 @@ if (args[1].includes('cache_file')) {
   process.exit(0);
 }
 fs.writeFileSync('program', args[1]);
+fs.writeFileSync('targets-env', JSON.stringify(Object.fromEntries(Object.entries(process.env).filter(([key]) => /^HATSU_SHELL_COVERAGE_(EXEC|TARGET)(_|$)/.test(key)))));
 if (args.includes('--version')) { console.log('bashcov ' + args[3]); process.exit(0); }
 fs.appendFileSync('invocations', args.slice(2).join(' ') + '\\n');
 if (process.env.HATSU_SHELL_COVERAGE_TARGET) fs.writeFileSync('target-env', [
@@ -84,11 +86,19 @@ fs.writeFileSync(process.env.HATSU_COVERAGE_PATH, reported.map((source) => 'SF:'
 `);
   chmodSync(stub, 0o755);
   const bash = join(root, 'bin/fake-bash');
-  writeFileSync(bash, '#!/bin/sh\necho "GNU bash, version 5.2.0(1)-release"\n');
+  writeFileSync(bash, '#!/bin/sh\nif [ "$1" = --version ]; then echo "GNU bash, version 5.2.0(1)-release"; else exec "$FAKE_REAL_BASH" "$@"; fi\n');
   chmodSync(bash, 0o755);
-  const run = (args: string[], extra: Record<string, string> = {}) => spawnSync(process.execPath, [helper, ...args], {
-    cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, HATSU_COVERAGE_BASH: bash, ...extra },
-  });
+  const run = (args: string[], extra: Record<string, string> = {}) => {
+    // A shebang interpreter must be a native executable on macOS. Keep the real Bash behind a
+    // fixture-local symlink so the helper still prepends our stub Ruby directory to PATH.
+    if (extra.FAKE_REAL_BASH) {
+      rmSync(bash, { force: true });
+      symlinkSync(extra.FAKE_REAL_BASH, bash);
+    }
+    return spawnSync(process.execPath, [helper, ...args], {
+      cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, HATSU_COVERAGE_BASH: bash, ...extra },
+    });
+  };
   return { root, run, report: join(root, 'coverage/sample/lcov.info') };
 }
 const capture = ['--capture', 'sample', 'bash', 'scripts/fixture.sh', '--self-test'];
@@ -110,7 +120,34 @@ it('isolates a declared target behind a temporary wrapper and retains only that 
   expect(Object.keys(provenance.files)).toEqual([target]);
 });
 
-it('fails without a coverage report when target trace transfer state is missing', () => {
+it('requires every declared target in a multi-source capture and filters fixture records', () => {
+  const targets = ['scripts/first.sh', 'scripts/second.sh'];
+  const { root, run, report } = fixture('bash', 'echo fixture\n', targets);
+  const args = ['--capture', 'sample', 'bash', 'scripts/fixture.sh', ...targets.flatMap((target) => ['--target', target])];
+  const captured = run(args, { FAKE_SFS: `scripts/fixture.sh,${targets.join(',')}` });
+  expect(captured.status, captured.stderr).toBe(0);
+  expect(readFileSync(report, 'utf8').match(/^SF:(.+)$/gm)).toEqual(targets.map((target) => `SF:${target}`));
+  expect(Object.keys(JSON.parse(readFileSync(join(root, 'coverage/sample/provenance.json'), 'utf8')).files)).toEqual(targets);
+  const env = JSON.parse(readFileSync(join(root, 'targets-env'), 'utf8'));
+  expect(env.HATSU_SHELL_COVERAGE_TARGET_2).toBe(targets[1]);
+  expect(env.HATSU_SHELL_COVERAGE_EXEC_2).not.toBe(env.HATSU_SHELL_COVERAGE_EXEC);
+  expect(existsSync(env.HATSU_SHELL_COVERAGE_EXEC_2)).toBe(false);
+  const missing = run(args, { FAKE_SF: targets[0] });
+  expect(missing.status).toBe(2);
+  expect(missing.stderr).toContain('did not report exactly its declared sources');
+  expect(existsSync(report)).toBe(false);
+});
+
+it('refuses duplicate target declarations before running a fixture', () => {
+  const target = 'scripts/target.sh';
+  const { root, run } = fixture('bash', 'echo fixture\n', [target, target]);
+  const result = run(['--capture', 'sample', 'bash', 'scripts/fixture.sh', '--target', target, '--target', target]);
+  expect(result.status).toBe(2);
+  expect(result.stderr).toContain('duplicate coverage target');
+  expect(existsSync(join(root, 'invocations'))).toBe(false);
+});
+
+it.skipIf(!coverageBash)('fails without a coverage report when target trace transfer state is missing', () => {
   const target = 'scripts/target.sh';
   const { run, report } = fixture('bash', 'echo fixture\n', target);
   const result = run(['--capture', 'sample', 'bash', 'scripts/fixture.sh', '--target', target], {
@@ -169,6 +206,32 @@ done < <(printf '%s\\n' "$nested")
   const absentSource = spawnSync(coverageBash!, ['-uc', "names=(BASH_SOURCE); PS4='${!names[0]-}'; set -x; :"], { encoding: 'utf8' });
   expect(absentSource.status, absentSource.stderr).toBe(0);
   expect(absentSource.stderr).not.toContain('unbound variable');
+});
+
+it.skipIf(!coverageBash)('retains real nested source records only for a declared serial-target opt-in', () => {
+  const target = 'scripts/target.sh';
+  const { root, run } = fixture('bash', 'echo fixture\n', target, true);
+  writeFileSync(join(root, target), `set -eu
+value=$(
+  target_function() { printf nested; }
+  target_function
+)
+[ "$value" = nested ]
+`);
+  const result = run(['--capture', 'sample', 'bash', 'scripts/fixture.sh', '--target', target, '--trace-substitutions'], {
+    FAKE_RUN_TARGET: '1', FAKE_REAL_BASH: coverageBash!, FAKE_SF: target,
+  });
+  expect(result.status, result.stderr).toBe(0);
+  const trace = readFileSync(join(root, 'target-trace'), 'utf8').split('\n');
+  expect(trace.some((line) => line.includes(`TRACESEP${realpathSync(join(root, target))}TRACESEP`) && line.endsWith('target_function'))).toBe(true);
+  expect(trace.some((line) => line.includes('BASHCOV>') && line.endsWith('printf nested'))).toBe(true);
+});
+
+it('refuses nested-trace opt-in without a declared target', () => {
+  const { run } = fixture();
+  const result = run(['--capture', 'sample', 'bash', 'scripts/fixture.sh', '--trace-substitutions']);
+  expect(result.status).toBe(2);
+  expect(result.stderr).toContain('--trace-substitutions requires exactly one target');
 });
 
 it('captures the declared fixture at the pinned version and verifies it without rerunning', () => {

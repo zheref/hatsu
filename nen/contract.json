@@ -573,13 +573,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "nen-global-guard",
             "bash",
-            "scripts/nen_global_fixture_check.sh"
+            "scripts/nen_global_fixture_check.sh",
+            "--target",
+            "scripts/nen_global.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the host nen linker AND for step 0 of hooks/session-start.sh: digest-before-link, never-downgrade, the cleaned bootstrap environment, the url pin, the atomic link, rc paths with spaces and hostile bin dirs, the opt-outs, the lock, the TERM and time-bound behaviour, and the hook's JSON, stderr and .nen/session-start.log paths on a source and a mirrored copy. Run it as `nen shu test --lane nen-global-guard --repo <hatsu>` when scripts/nen_global.sh, scripts/bootstrap_integrity_fixture.test.mts, templates/pr-readiness.yml, docs/using/cursor.md, hooks/session-start.sh's step 0, dependency.bootstrap.scriptSha256, dependency.bootstrap.sha256 or the fixtures change; the new TypeScript snippet cases run through the existing locked Vitest harness (npm ci --ignore-scripts first), while the host pin negatives remain shell cases. It reads the real nen/contract.json pin (or a sed-edited copy of it) and runs every case under a throwaway HOME, XDG_CACHE_HOME and XDG_CONFIG_HOME, so it never touches the network or the real HOME."
+          "$comment": "A permanent, deterministic fixture for the host nen linker AND for step 0 of hooks/session-start.sh: digest-before-link, never-downgrade, the cleaned bootstrap environment, the url pin, the atomic link, rc paths with spaces and hostile bin dirs, the opt-outs, the lock, the TERM and time-bound behaviour, and the hook's JSON, stderr and .nen/session-start.log paths on a source and a mirrored copy. Run it as `nen shu test --lane nen-global-guard --repo <hatsu>` when scripts/nen_global.sh, scripts/bootstrap_integrity_fixture.test.mts, templates/pr-readiness.yml, docs/using/cursor.md, hooks/session-start.sh's step 0, dependency.bootstrap.scriptSha256, dependency.bootstrap.sha256 or the fixtures change; the new TypeScript snippet cases run through the existing locked Vitest harness (npm ci --ignore-scripts first), while the host pin negatives remain shell cases. It reads the real nen/contract.json pin (or a sed-edited copy of it) and runs every case under a throwaway HOME, XDG_CACHE_HOME and XDG_CONFIG_HOME, so it never touches the network or the real HOME. Exact-target instrumentation through scripts/shell_coverage.mts keeps fixture assertions and child shells off the shared trace descriptor; the pinned Bashcov writes this lane's LCOV capture when available. No instrumented result is claimed until the focused run succeeds.",
+          "artifacts": [
+            "coverage/nen-global-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "nen-global-guard"
+          ],
+          "artifacts": [
+            "coverage/nen-global-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source capture provenance and reads the report without running a fixture. Prefer --from-capture so Nen also proves the capture belongs to this tree (zheref/hatsu#148)."
         }
       },
       "permissions-pack-guard": {
@@ -677,7 +695,7 @@
           "$comment": "Run this focused fixture when the trusted preflight or its workflow-derived dispatch changes."
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): this lane was red uninstrumented on the measuring host on 2026-10-23, so its instrumented run could not be verified. Wire it through scripts/shell_coverage.mts once it passes there; until then it is unmeasured, never a clean zero."
+          "unsupported": "Shell coverage is not attributable to current-tree targets in this lane (zheref/hatsu#148): its implementation is scripts/trusted_guard_preflight.rb, and it runs guards from a Git archive of the selected trusted base in a temporary root (scripts/trusted_guard_preflight.rb, Dir.mktmpdir/git archive/adapters). Bashcov cannot measure Ruby or truthfully relabel copied historical shell lines as current scripts/*.sh. Those shell guards have their own focused coverage lanes. Ruby instrumentation and trusted-revision coverage provenance are not declared here; this lane remains unmeasured for its actual targets, never a clean zero."
         }
       },
       "surface-mirror-guard": {
@@ -715,13 +733,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "root-guard",
             "bash",
-            "scripts/hatsu_root_fixture_check.sh"
+            "scripts/hatsu_root_fixture_check.sh",
+            "--target",
+            "scripts/hatsu_root.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the plugin-root resolver. Run it as `nen shu test --lane root-guard --repo <hatsu>` when scripts/hatsu_root.sh or its fixture changes."
+          "$comment": "A permanent, deterministic fixture for the plugin-root resolver. Run it as `nen shu test --lane root-guard --repo <hatsu>` when scripts/hatsu_root.sh or its fixture changes. Exact-target instrumentation through scripts/shell_coverage.mts keeps fixture assertions and child shells off the shared trace descriptor; the pinned Bashcov writes this lane's LCOV capture when available. No instrumented result is claimed until the focused run succeeds.",
+          "artifacts": [
+            "coverage/root-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "root-guard"
+          ],
+          "artifacts": [
+            "coverage/root-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source capture provenance and reads the report without running a fixture. Prefer --from-capture so Nen also proves the capture belongs to this tree (zheref/hatsu#148)."
         }
       },
       "surface-link-guard": {
@@ -759,13 +795,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "redaction-guard",
             "bash",
-            "scripts/private_name_check_fixture.sh"
+            "scripts/private_name_check_fixture.sh",
+            "--target",
+            "scripts/private_name_check.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the private-repository-name guard. Run it as `nen shu test --lane redaction-guard --repo <hatsu>` when scripts/private_name_check.sh or its fixture changes; run the guard itself against the tree with `bash scripts/private_name_check.sh --tree .` on the maintainer's own credentials."
+          "$comment": "A permanent, deterministic fixture for the private-repository-name guard. Run it as `nen shu test --lane redaction-guard --repo <hatsu>` when scripts/private_name_check.sh or its fixture changes; run the guard itself against the tree with `bash scripts/private_name_check.sh --tree .` on the maintainer's own credentials. Exact-target Bashcov capture writes only scripts/private_name_check.sh; descendants do not inherit trace state. The settled strict absent-ignore-policy assertions are retained; source copies used by negative cases are not relabeled as in-place coverage.",
+          "artifacts": [
+            "coverage/redaction-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "redaction-guard"
+          ],
+          "artifacts": [
+            "coverage/redaction-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source provenance; runs no fixture or live scan. Prefer --from-capture (zheref/hatsu#148)."
         }
       },
       "redaction-tree": {
@@ -779,7 +833,7 @@
           "$comment": "The tree check itself (zheref/hatsu#149 criterion 2(b)): run it as `nen shu test --lane redaction-tree --repo <hatsu>` on the maintainer's credentials, with the ignore file in place; never in CI."
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): this lane was red uninstrumented on the measuring host on 2026-10-23, so its instrumented run could not be verified. Wire it through scripts/shell_coverage.mts once it passes there; until then it is unmeasured, never a clean zero."
+          "unsupported": "Live tree capture remains held (zheref/hatsu#148, related zheref/hatsu#149): the original maintainer-credentials --tree test ran under strict absent-ignore behavior on 2026-10-27 and returned 116 sanitized finding lines, so no valid capture was retained. The original live test remains executable and is never a hermetic fixture or a clean zero. Resolving its existing naming/policy context requires an explicit maintainer decision under #149; no ignore entry, exception or naming ruling is inferred here. Capture instrumentation for this live route is deferred while the independent redaction-guard fixture lane measures the current script."
         }
       },
       "bell-guard": {
@@ -1179,14 +1233,32 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "report-time-guard",
             "sh",
+            "scripts/report_time_fixture.sh",
+            "--target",
             "scripts/report_time.sh",
-            "--self-test"
+            "--trace-substitutions"
           ],
-          "$comment": "The report-time helper's own fixtures -- hermetic and offline, run under /bin/sh because the script is POSIX sh. Run it as `nen shu test --lane report-time-guard --repo <hatsu>` when scripts/report_time.sh changes."
+          "$comment": "Dedicated hermetic POSIX fixtures for scripts/report_time.sh, with all original --self-test assertions retained and the legacy --self-test forwarding path verified. The helper runs the fixture natively under sh first, then captures only the production report_time.sh through its exact-target Bashcov wrapper. Run when report_time.sh, report_time_fixture.sh, or the shell capture helper changes; no fixture code is represented as production source coverage. This serial target opts into nested substitution records so its exercised zone/epoch functions are measured rather than silently missed.",
+          "artifacts": [
+            "coverage/report-time-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "report-time-guard"
+          ],
+          "artifacts": [
+            "coverage/report-time-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source capture provenance and reads the report without running a fixture. Prefer --from-capture so Nen also proves the capture belongs to this tree (zheref/hatsu#148)."
         }
       },
       "gh-token-guard": {
@@ -1407,13 +1479,33 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "publish-integrity-guard",
             "bash",
-            "scripts/publish_integrity_fixture.sh"
+            "scripts/publish_integrity_fixture.sh",
+            "--target",
+            "scripts/branch_authorship_check.sh",
+            "--target",
+            "scripts/publish_gate_check.sh"
           ],
-          "$comment": "Hermetic and offline, 142 cases. branch_authorship_check.sh: a clean branch, an empty range and a present trailer pass; combined mode (--require-agent --trunk --forbid-trailers-from) passes a clean range and refuses a Co-authored-by range naming the key, under LC_ALL=C, on the live policy and on a fixture policy holding non-ASCII bytes (zheref/hatsu#470); --require-agent stops a reviewer persona's commit and a trailer-less one on the maintainer's own identity; a foreign author or committer and a missing required trailer stop at exit 1 naming the SHA, author and file count; a clean trunk merge passes only with --trunk, an evil merge and a clean merge of a non-trunk branch stop even with it; trunk history a catch-up brought in is out of range; RED-1 the outgoing range passes past a published web-flow commit; hostile subjects are sanitised; a malformed --require-trailer, --require-agent or --allow-email, an unresolvable base or trunk, a non-repository, an unknown argument, no identity at all and --trunk on a git without merge-tree --write-tree are exit 2; zheref/hatsu#314: the capability is read off `git merge-tree -h`, so a range with no exemption to prove passes on a git that cannot write, a supported git whose proof write is denied is exit 2 naming its exit status and git's sanitised error and never the version floor, a missing-trailer finding or a printed finding, and a conflicted trunk merge is judged at exit 1; the proof writes only a throwaway object directory, so a clean merge passes and an evil one (whose tree the store lacks) is judged at exit 1 on a read-only store and neither adds an object to it; an unrelated-history merge and a shallow clone are exit 2 without a denied-write diagnosis or a grant advice (RED-314a/b); exit 0 with no tree id is exit 2, never a finding; git's quoted text is labelled untrusted, its control bytes print as ?, and it is bounded to three lines and 300 characters; round 2: every read judges the objects as stored, so an evil merge replaced by a clean one under refs/replace and a commit hidden from the range by info/grafts are judged at exit 1; a blob:none partial clone whose proof needs a fetch is exit 2 offline, never a pass; grant advice needs its trigger inside the quoted lines; the throwaway directory is made under TMPDIR, removed on exit, and an unusable TMPDIR is exit 2 naming the directory used, as the grant advice does. publish_gate_check.sh: the full gated && block passes (redirections are not separators, a quoted # hides nothing); a ;, a ||, a bare newline, a pipe (glued to the publish too), a lone &, a negated catch-up, authorship check or noOp read, a second ungated publish, an authorship check on its own line and a ~~~, nested or unterminated fence each fail, as does a publish spelled with doubled spaces or a tab; a murasaki with no full gated block fails; the owners carry a file-level policy -- in murasaki or mukai every publish needs its own catch-up and authorship check, in aka its own authorship check, so a bare publish block beside a gated one fails, and anywhere a publish ahead of the check its block names fails (Copilot on HA-PR-#192); a directory or unreadable file is exit 2; the live skills pass. Run it as `nen shu test --lane publish-integrity-guard --repo <hatsu>` when either script or the publish prose changes."
+          "$comment": "Hermetic and offline, 142 cases. branch_authorship_check.sh: a clean branch, an empty range and a present trailer pass; combined mode (--require-agent --trunk --forbid-trailers-from) passes a clean range and refuses a Co-authored-by range naming the key, under LC_ALL=C, on the live policy and on a fixture policy holding non-ASCII bytes (zheref/hatsu#470); --require-agent stops a reviewer persona's commit and a trailer-less one on the maintainer's own identity; a foreign author or committer and a missing required trailer stop at exit 1 naming the SHA, author and file count; a clean trunk merge passes only with --trunk, an evil merge and a clean merge of a non-trunk branch stop even with it; trunk history a catch-up brought in is out of range; RED-1 the outgoing range passes past a published web-flow commit; hostile subjects are sanitised; a malformed --require-trailer, --require-agent or --allow-email, an unresolvable base or trunk, a non-repository, an unknown argument, no identity at all and --trunk on a git without merge-tree --write-tree are exit 2; zheref/hatsu#314: the capability is read off `git merge-tree -h`, so a range with no exemption to prove passes on a git that cannot write, a supported git whose proof write is denied is exit 2 naming its exit status and git's sanitised error and never the version floor, a missing-trailer finding or a printed finding, and a conflicted trunk merge is judged at exit 1; the proof writes only a throwaway object directory, so a clean merge passes and an evil one (whose tree the store lacks) is judged at exit 1 on a read-only store and neither adds an object to it; an unrelated-history merge and a shallow clone are exit 2 without a denied-write diagnosis or a grant advice (RED-314a/b); exit 0 with no tree id is exit 2, never a finding; git's quoted text is labelled untrusted, its control bytes print as ?, and it is bounded to three lines and 300 characters; round 2: every read judges the objects as stored, so an evil merge replaced by a clean one under refs/replace and a commit hidden from the range by info/grafts are judged at exit 1; a blob:none partial clone whose proof needs a fetch is exit 2 offline, never a pass; grant advice needs its trigger inside the quoted lines; the throwaway directory is made under TMPDIR, removed on exit, and an unusable TMPDIR is exit 2 naming the directory used, as the grant advice does. publish_gate_check.sh: the full gated && block passes (redirections are not separators, a quoted # hides nothing); a ;, a ||, a bare newline, a pipe (glued to the publish too), a lone &, a negated catch-up, authorship check or noOp read, a second ungated publish, an authorship check on its own line and a ~~~, nested or unterminated fence each fail, as does a publish spelled with doubled spaces or a tab; a murasaki with no full gated block fails; the owners carry a file-level policy -- in murasaki or mukai every publish needs its own catch-up and authorship check, in aka its own authorship check, so a bare publish block beside a gated one fails, and anywhere a publish ahead of the check its block names fails (Copilot on HA-PR-#192); a directory or unreadable file is exit 2; the live skills pass. Run it as `nen shu test --lane publish-integrity-guard --repo <hatsu>` when either script or the publish prose changes. Exact-target instrumentation through scripts/shell_coverage.mts keeps fixture assertions and child shells off the shared trace descriptor; the pinned Bashcov writes this lane's LCOV capture when available. No instrumented result is claimed until the focused run succeeds.",
+          "artifacts": [
+            "coverage/publish-integrity-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under a UTF-8 locale this lane passes uninstrumented, and under Bashcov 4.0.0 the trace of a child shell reaches the output it asserts on, so the instrumented run fails (measured 2026-10-23). Under an empty or C locale it is red uninstrumented as well, on the untouched base too: Ruby's JSON parse of a non-ASCII byte raises Encoding::InvalidByteSequenceError. Until the fixture keeps its assertions off the trace, this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "publish-integrity-guard"
+          ],
+          "artifacts": [
+            "coverage/publish-integrity-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source capture provenance and reads the report without running a fixture. Prefer --from-capture so Nen also proves the capture belongs to this tree (zheref/hatsu#148)."
         }
       },
       "cleanup-path-guard": {
@@ -1421,14 +1513,32 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "cleanup-path-guard",
             "sh",
+            "scripts/cleanup_path_admit.sh",
+            "--target",
             "scripts/cleanup_path_admit.sh",
             "--self-test"
           ],
-          "$comment": "The cleanup path guard's own fixtures -- hermetic and offline, run through the sh shim, which execs node on scripts/cleanup_path_admit.ts; the fixture root is removed on every path, an interrupted run included. Run it as `nen shu test --lane cleanup-path-guard --repo <hatsu>` when scripts/cleanup_path_admit.sh or scripts/cleanup_path_admit.ts changes."
+          "$comment": "The cleanup path guard's own fixtures -- hermetic and offline, run through the sh shim, which execs node on scripts/cleanup_path_admit.ts; the fixture root is removed on every path, an interrupted run included. Run it as `nen shu test --lane cleanup-path-guard --repo <hatsu>` when scripts/cleanup_path_admit.sh or scripts/cleanup_path_admit.ts changes. Exact-target instrumentation through scripts/shell_coverage.mts keeps fixture assertions and child shells off the shared trace descriptor; the pinned Bashcov writes this lane's LCOV capture when available. No instrumented result is claimed until the focused run succeeds.",
+          "artifacts": [
+            "coverage/cleanup-path-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "cleanup-path-guard"
+          ],
+          "artifacts": [
+            "coverage/cleanup-path-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source capture provenance and reads the report without running a fixture. Prefer --from-capture so Nen also proves the capture belongs to this tree (zheref/hatsu#148)."
         }
       },
       "runner-preflight-guard": {
@@ -1701,13 +1811,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "product-term-guard",
             "bash",
-            "scripts/product_term_check_fixture.sh"
+            "scripts/product_term_check_fixture.sh",
+            "--target",
+            "scripts/product_term_check.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the product-term guard, through the shared output guard like every other focused lane. Requires bash, perl with Encode and Unicode::Normalize, and mktemp; no gh and no network. Run it as `nen shu test --lane product-term-guard --repo <hatsu>` when scripts/product_term_check.sh or its fixture changes; run the guard itself on a drafted row as hatsu:bankai-rule section 4 does, against the maintainer's own list."
+          "$comment": "A permanent, deterministic fixture for the product-term guard, through the shared output guard like every other focused lane. Requires bash, perl with Encode and Unicode::Normalize, and mktemp; no gh and no network. Run it as `nen shu test --lane product-term-guard --repo <hatsu>` when scripts/product_term_check.sh or its fixture changes; run the guard itself on a drafted row as hatsu:bankai-rule section 4 does, against the maintainer's own list. Exact-target instrumentation through scripts/shell_coverage.mts keeps fixture assertions and child shells off the shared trace descriptor; the pinned Bashcov writes this lane's LCOV capture when available. No instrumented result is claimed until the focused run succeeds.",
+          "artifacts": [
+            "coverage/product-term-guard/lcov.info"
+          ]
         },
         "coverage": {
-          "unsupported": "Not measured yet (zheref/hatsu#148): under Bashcov 4.0.0 the trace of a child shell reaches the output this fixture captures and asserts on (a child bash 3.2 such as macOS /bin/sh ignores BASH_XTRACEFD and prints the inherited xtrace on stderr), so the instrumented run fails a fixture that passes plain (measured 2026-10-23). Measuring it needs the fixture to keep its assertions off the trace, or a tracer that does not leak; until then this lane is unmeasured, never a clean zero."
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "product-term-guard"
+          ],
+          "artifacts": [
+            "coverage/product-term-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source capture provenance and reads the report without running a fixture. Prefer --from-capture so Nen also proves the capture belongs to this tree (zheref/hatsu#148)."
         }
       },
       "dependency-audit-guard": {
@@ -1726,10 +1854,31 @@
           "exe": "bash",
           "argv": [
             "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "spec-family-guard",
             "bash",
-            "scripts/spec_family_fixture_check.sh"
+            "scripts/spec_family_fixture_check.sh",
+            "--target",
+            "scripts/config_values.sh"
           ],
-          "$comment": "The spec-family fixture reads and their red paths over temp copies (zheref/hatsu#405). Needs bash, git, mktemp, node and nen ($NEN, else PATH); no gh and no network."
+          "$comment": "The spec-family fixture reads and their red paths over temp copies (zheref/hatsu#405). Needs bash, git, mktemp, node and nen ($NEN, else PATH); no gh and no network. Exact-target Bashcov capture measures scripts/config_values.sh in place; spec fixtures and non-shell Nen reads are not represented as shell coverage.",
+          "artifacts": [
+            "coverage/spec-family-guard/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "spec-family-guard"
+          ],
+          "artifacts": [
+            "coverage/spec-family-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies exact-source capture provenance and reads the report without running a fixture. Prefer --from-capture (zheref/hatsu#148)."
         }
       },
       "schedule-printer": {

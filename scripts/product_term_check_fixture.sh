@@ -21,6 +21,15 @@ set -u
 
 here="$(cd "$(dirname "$0")" && pwd)"
 guard="$here/product_term_check.sh"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Only the declared target traces; fixture assertions and child shells stay plain.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/product_term_check.sh" ] && [ -x "$coverage_exec" ] || exit 2
+fi
+guard="${coverage_exec:-$guard}"
 work="$(mktemp -d)" || exit 2
 trap 'rm -rf "$work"' EXIT
 
