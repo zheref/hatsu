@@ -1,3 +1,0 @@
-### Fixed
-
-- **Activate bounded API retries in the plugin-bump workflow (zheref/hatsu#381).** The live changed-files and base-manifest step now invokes the already-shipped typed reader from the trusted workflow revision on pinned Node 24. Transient non-JSON, server and transport failures retry at most three times with backoff and bounded request timeouts; persistent failures refuse with HTTP status and a sanitized body prefix. A missing base manifest still writes the sentinel only after confirming the base commit. The `edited` trigger, rename paths, read-only API token boundary and deterministic body-only reruns remain covered by the focused fixtures. Plugin 0.152.2; generated mirrors refreshed.
