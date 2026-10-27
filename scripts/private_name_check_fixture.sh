@@ -294,6 +294,8 @@ EOF
 chmod +x "$bin/gh"
 sysbin="/usr/bin:/bin:$(dirname "$(command -v node)")"
 live() { PATH="$bin:$sysbin" expect "$@"; }
+live 0 "live tree: absent ignore policy scans strictly" --tree "$crepo"
+has 'no ignore file, so nothing ignored' "live tree: absent policy ignores nothing"
 live 1 "live list: bare name" "$work/bare.md"
 live 0 "live list: clean" "$work/clean.md"
 has '2 owner(s)' "the ok line counts the owners checked"
