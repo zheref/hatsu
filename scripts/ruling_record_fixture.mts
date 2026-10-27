@@ -160,12 +160,18 @@ try {
       ['a renamed repository', registry('renamed', { hatsu: one('zheref/hatsu-next'), nen: one('zheref/nen') })],
       ['a reference that stops resolving', registry('stops', { hatsu: one('zheref/hatsu') })],
       ['a word that newly resolves', registry('starts', { hatsu: one('zheref/hatsu'), nen: one('zheref/nen'), bankai: one('zheref/bankai-handbooks') })],
+      ['a word that becomes ambiguous', registry('ambiguous', { hatsu: one('zheref/hatsu'), nen: [...one('zheref/nen'), ...one('zheref/nen-fork')] })],
     ];
     for (const [what, env] of moves) {
-      expect(`HR-368: ${what} fails the landed row by HR id, naming the re-render`, run(['check', '--roster', landedRoster], env), 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it in this PR \(a nen\/repos\.json change re-renders every row it moves, HR-368\)/);
+      expect(`HR-368: ${what} fails the landed row by HR id, naming the re-render`, run(['check', '--roster', landedRoster], env), 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it in this PR \(its coded references moved with nen\/repos\.json, HR-368\)/);
       const again = renderUnder(env);
       expect(`HR-368: ${what}, the row re-rendered in the same PR, passes`, run(['check', '--roster', roster(join(dir, what.replace(/\W+/g, '-')), [again]), '--records', join(dir, 'ruling-records')], env), 0, /1 ROSTER rows match their records/);
       assert.match(again, /\| typed \(verbatim\): \*"hatsu #9 stands"\* \|/, `${what}: the typed words never change\n${again}`);
+    }
+    {
+      const retyped = run(['check', '--roster', roster(join(dir, 'retyped'), [landed.replace(' or bankai #7?', ' or bankai #7 instead?')]), '--records', join(dir, 'ruling-records')], refEnv);
+      expect('HR-368: a hand-retyped row under an unchanged registry is a plain mismatch', retyped, 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it$/m);
+      assert.equal(retyped.stdout.includes('nen/repos.json'), false, `a retyped row names no registry cause\n${retyped.stdout}`);
     }
     assert.equal(readFileSync(rec, 'utf8'), recordBytes, 'HR-368: the record is never rewritten');
     cases += 1; console.log(`ok ${cases} - HR-368: the record and the maintainer's typed words are unchanged by every re-render`);
