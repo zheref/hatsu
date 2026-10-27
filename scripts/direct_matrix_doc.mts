@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-/** HA341 compatibility preparer. The stable shell CLI forwards to this typed renderer.
- * Registry values and the generated page stay unchanged; dated prices, structured served
- * metadata and cost-per-task reporting belong to the activation after this preparer lands.
- * Offline routing remains presentation residue, held to pinned Nen by --verify.
+/** HA341 compatible evidence bootstrap. The stable shell CLI forwards here.
+ * Dated prices, benchmark task costs and served metadata are presentation evidence;
+ * routing stays with pinned Nen, with offline page claims held to it by --verify.
+ * snapshot.evidenceVersion defaults to 0: the trusted guard must land before activation.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -31,8 +31,13 @@ type Alias = { provider: string; family: string; line?: string | null; surface: 
   reviewer: boolean; selection: string; escalation?: string | null };
 type Surface = { label: string; modelsKey: string; restart: string; effortControl: string; lookup: string; interactive: string };
 type NonActionable = { label: string; provider?: string; what: string; lookup: string };
+type ListPrice = { input: number; output: number; unit: string; source: string; readOn: string; note?: string;
+  until?: string; next?: { input: number; output: number; from: string } };
+type Served = string | { id: string | null; readOn: string; lag: string | null; quota: string | null };
+type CostPerTask = { value: number; unit: string; basis: string; url: string; readOn: string };
+type SnapshotSource = { url: string; readOn: string; costPerTask?: CostPerTask };
 type SnapshotAlias = { primary: string; modelId: string | null; fallback: string;
-  listPrice?: { input: number; output: number; source?: string }; served?: Record<string, string> };
+  listPrice?: ListPrice; served?: Record<string, Served>; evidence?: string };
 type Side = { alias: string; surface?: string | null; also?: string; interactive?: string | null; note?: string | null };
 type Cell = { winner: Side; runnerUp: Side };
 type Route = { cells: Record<string, Cell>; phase: string; phaseName: string; alsoPhases?: string[] };
@@ -51,10 +56,10 @@ type Claim = { t: 'unreachable'; job: string; d: string } |
   { t: 'example'; ex: Example; domain: string; winner: string; runnerUp: string | null; effort: string; restart: string };
 type Registry = {
   aliases: Record<string, Alias>; surfaces: Record<string, Surface>; nonActionable: Record<string, NonActionable>; nonActionableComment: string;
-  snapshot: { asOf: string; aliases: Record<string, SnapshotAlias> }; routing: Record<string, Record<string, Route>>;
+  snapshot: { asOf: string; evidenceVersion: 0 | 1; aliases: Record<string, SnapshotAlias>; sources: Record<string, SnapshotSource> }; routing: Record<string, Record<string, Route>>;
   precedence: string[]; aggregationComment: string; levels: string[]; bands: Record<string, [number, number]>;
   surfaceMap: Record<string, Record<string, string>>; collapsed?: string; effortBase: string; plusOne: { key?: string; when: string }[];
-  picks: { comment: string; primary: string; fallback: string; recommended: { describe: string; rule: string }; fallbackRule: string; tiers: string };
+  picks: { comment: string; primary: string; fallback: string; inPool: Record<string, string>; recommended: { describe: string; rule: string }; fallbackRule: string; tiers: string };
   companions: { comment: string; role: Record<string, string> }; sourceDigest: string; emptyJob: string;
   nativeInteractive: Record<string, string>; liveLookup: Record<string, { cli: string | null; effort?: string | null; docs: string[] }>;
 };
@@ -73,9 +78,21 @@ function text(value: unknown, at: string): string {
 }
 function optionalText(value: unknown, at: string): string | undefined { return value === undefined ? undefined : text(value, at); }
 function nullableText(value: unknown, at: string): string | null { return value === null ? null : text(value, at); }
+function nonempty(value: unknown, at: string): string {
+  const result = text(value, at); if (!result.trim()) refuse(`${at}: expected nonempty text`); return result;
+}
+function isoDate(value: unknown, at: string): string {
+  const result = text(value, at);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(result) || !Number.isFinite(Date.parse(result)) || new Date(result).toISOString().slice(0, 10) !== result)
+    refuse(`${at}: expected a real ISO date (YYYY-MM-DD)`);
+  return result;
+}
 function number(value: unknown, at: string): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) refuse(`${at}: expected a finite number`);
   return value;
+}
+function cost(value: unknown, at: string): number {
+  const result = number(value, at); if (result < 0) refuse(`${at}: expected a nonnegative number`); return result;
 }
 function bool(value: unknown, at: string, fallback = false): boolean {
   if (value === undefined) return fallback;
@@ -154,17 +171,48 @@ function parseRegistry(value: unknown): Registry {
     return { label: text(n.label, `${at}.label`), provider: optionalText(n.provider, `${at}.provider`), what: text(n.what, `${at}.what`), lookup: text(n.lookup, `${at}.lookup`) };
   });
   const snapshot = record(r.snapshot, 'snapshot');
+  const evidenceVersion = snapshot.evidenceVersion ?? 0;
+  if (evidenceVersion !== 0 && evidenceVersion !== 1) refuse('snapshot.evidenceVersion: expected 0 (legacy) or 1 (dated evidence)');
+  const sources = mapRows(snapshot.sources ?? {}, 'snapshot.sources', (v, at): SnapshotSource => {
+    const s = record(v, at); let costPerTask: CostPerTask | undefined;
+    if (s.costPerTask !== undefined) {
+      const c = record(s.costPerTask, `${at}.costPerTask`); const cp = `${at}.costPerTask`;
+      costPerTask = { value: cost(c.value, `${cp}.value`), unit: nonempty(c.unit, `${cp}.unit`), basis: nonempty(c.basis, `${cp}.basis`),
+        url: nonempty(c.url, `${cp}.url`), readOn: isoDate(c.readOn, `${cp}.readOn`) };
+    }
+    return { url: nonempty(s.url, `${at}.url`), readOn: isoDate(s.readOn, `${at}.readOn`), costPerTask };
+  });
   const snapshotAliases = mapRows(snapshot.aliases, 'snapshot.aliases', (v, at, name): SnapshotAlias => {
     reference(aliases, name, at);
     const s = record(v, at);
     let listPrice: SnapshotAlias['listPrice'];
     if (s.listPrice !== undefined && s.listPrice !== null) {
       const p = record(s.listPrice, `${at}.listPrice`);
-      listPrice = { input: number(p.input, `${at}.listPrice.input`), output: number(p.output, `${at}.listPrice.output`), source: optionalText(p.source, `${at}.listPrice.source`) };
+      const pp = `${at}.listPrice`;
+      listPrice = { input: cost(p.input, `${pp}.input`), output: cost(p.output, `${pp}.output`), unit: nonempty(p.unit, `${pp}.unit`),
+        source: nonempty(p.source, `${pp}.source`), readOn: isoDate(p.readOn, `${pp}.readOn`), note: optionalText(p.note, `${pp}.note`) };
+      if ((p.until === undefined) !== (p.next === undefined)) refuse(`${pp}: until and next must be supplied together`);
+      if (p.until !== undefined) {
+        listPrice.until = isoDate(p.until, `${pp}.until`); const next = record(p.next, `${pp}.next`);
+        listPrice.next = { input: cost(next.input, `${pp}.next.input`), output: cost(next.output, `${pp}.next.output`), from: isoDate(next.from, `${pp}.next.from`) };
+        if (listPrice.readOn > listPrice.until) refuse(`${pp}.until: precedes readOn ${listPrice.readOn}`);
+        const followingDay = new Date(Date.parse(listPrice.until) + 86400000).toISOString().slice(0, 10);
+        if (listPrice.next.from !== followingDay) refuse(`${pp}.next.from: must be the day after until ${listPrice.until}`);
+      }
     }
-    const served = s.served === undefined ? undefined : stringMap(s.served, `${at}.served`);
+    const served = s.served === undefined ? undefined : mapRows(s.served, `${at}.served`, (v, at): Served => {
+      if (typeof v === 'string') return nonempty(v, at);
+      const row = record(v, at);
+      return { id: row.id === null ? null : nonempty(row.id, `${at}.id`), readOn: isoDate(row.readOn, `${at}.readOn`),
+        lag: nullableText(row.lag, `${at}.lag`), quota: nullableText(row.quota, `${at}.quota`) };
+    });
     for (const sk of Object.keys(served ?? {})) reference(surfaces, sk, `${at}.served`);
-    return { primary: text(s.primary, `${at}.primary`), modelId: nullableText(s.modelId, `${at}.modelId`), fallback: text(s.fallback, `${at}.fallback`), listPrice, served };
+    const evidence = optionalText(s.evidence, `${at}.evidence`);
+    if (evidence) {
+      if (!evidence.startsWith('snapshot.sources.')) refuse(`${at}.evidence: expected a snapshot.sources reference`);
+      reference(sources, evidence.slice('snapshot.sources.'.length), `${at}.evidence`);
+    }
+    return { primary: text(s.primary, `${at}.primary`), modelId: nullableText(s.modelId, `${at}.modelId`), fallback: text(s.fallback, `${at}.fallback`), listPrice, served, evidence };
   });
   for (const [name, a] of Object.entries(aliases)) {
     reference(snapshotAliases, name, 'snapshot.aliases');
@@ -211,13 +259,20 @@ function parseRegistry(value: unknown): Registry {
   }
   for (const a of Object.values(aliases)) if (a.surface !== null) reference(surfaceMap, a.surface, 'effort.surfaceMap');
   const picks = record(r.picks, 'picks'); const rec = record(picks.recommended, 'picks.recommended');
+  const inPool = stringMap(picks.inPool ?? {}, 'picks.inPool');
+  for (const [primary, fallback] of Object.entries(inPool)) {
+    const p = reference(aliases, primary, 'picks.inPool'); const f = reference(aliases, fallback, `picks.inPool.${primary}`);
+    if (p.reviewer || f.reviewer || primary === fallback || p.provider !== f.provider || p.surface !== f.surface)
+      refuse(`picks.inPool.${primary}: expected a distinct actionable alias on the same provider and surface`);
+    if (inPool[fallback] !== undefined) refuse(`picks.inPool.${primary}: the quota substitute must be terminal, without another in-pool substitute`);
+  }
   const companions = record(r.companions, 'companions');
   return { aliases, surfaces, nonActionable, nonActionableComment: optionalText(record(na, 'surfaces.$nonActionable').$comment, 'surfaces.$nonActionable.$comment') ?? '',
-    snapshot: { asOf: text(snapshot.asOf, 'snapshot.asOf'), aliases: snapshotAliases }, routing, precedence,
+    snapshot: { asOf: isoDate(snapshot.asOf, 'snapshot.asOf'), evidenceVersion, aliases: snapshotAliases, sources }, routing, precedence,
     aggregationComment: text(agg.$comment, 'aggregation.$comment'), levels, bands, surfaceMap,
     collapsed: optionalText(sm.$collapsed, 'effort.surfaceMap.$collapsed'), effortBase: text(rule.base, 'effort.rule.base'),
     plusOne: array(rule.plusOne, 'effort.rule.plusOne').map((v, i) => { const p = record(v, `effort.rule.plusOne[${i}]`); return { key: optionalText(p.key, `effort.rule.plusOne[${i}].key`), when: text(p.when, `effort.rule.plusOne[${i}].when`) }; }),
-    picks: { comment: text(picks.$comment, 'picks.$comment'), primary: text(picks.primary, 'picks.primary'), fallback: text(picks.fallback, 'picks.fallback'),
+    picks: { comment: text(picks.$comment, 'picks.$comment'), primary: text(picks.primary, 'picks.primary'), fallback: text(picks.fallback, 'picks.fallback'), inPool,
       recommended: { describe: text(rec.describe, 'picks.recommended.describe'), rule: text(rec.rule, 'picks.recommended.rule') },
       fallbackRule: text(picks.fallbackRule, 'picks.fallbackRule'), tiers: text(picks.tiers, 'picks.tiers') },
     companions: { comment: text(companions.$comment, 'companions.$comment'), role: stringMap(companions.role, 'companions.role') },
@@ -277,9 +332,10 @@ const slug = (heading: string): string => heading.toLowerCase().replace(/[^\p{L}
 const sameAlias = (x: Side, y: Side): boolean => x.alias === y.alias && x.also === y.also;
 const equal = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
 
-export function createMatrix(root: string) {
+export function createMatrix(root: string, options: { today?: string; workflowRoot?: string } = {}) {
   const reg = parseRegistry(load(root, REG_PATH)); const tax = parseTaxonomy(load(root, TAX_PATH));
-  const wf = record(load(root, WF_PATH), WF_PATH);
+  const today = isoDate(options.today ?? new Date().toISOString().slice(0, 10), 'today');
+  const wf = record(load(options.workflowRoot ?? root, WF_PATH), WF_PATH);
   const rawModels = record(wf.models ?? {}, 'models');
   const models: Record<string, Record<string, string>> = Object.create(null);
   for (const key of new Set([...Object.values(reg.surfaces).map(s => s.modelsKey), 'roles'])) {
@@ -288,6 +344,7 @@ export function createMatrix(root: string) {
   }
   const { aliases, surfaces, routing, precedence, bands, levels, surfaceMap, picks, companions, liveLookup } = reg;
   const snap = reg.snapshot; const { jobs, langs, domains, rules } = tax;
+  const evidenceEnabled = snap.evidenceVersion === 1;
   const jobByKey = Object.fromEntries(jobs.map(j => [j.key, j])); const langKeys = langs.map(l => l.key);
   const codeLang = Object.fromEntries(langs.map(l => [l.key, l.code])); const surfaceKeys = Object.keys(surfaces);
   const companionJobs = jobs.filter(j => j.companion).map(j => j.key);
@@ -391,10 +448,65 @@ export function createMatrix(root: string) {
     if (rounded !== 0 && (Math.abs(rounded) < 0.0001 || Math.abs(rounded) >= 1e6)) return rounded.toExponential().replace(/e([+-])(\d)$/, 'e$10$2');
     return String(rounded);
   }
-  function price(alias: string): string { const lp = snap.aliases[alias].listPrice; return lp ? `$${general(lp.input)} / $${general(lp.output)}` : '—'; }
+  function price(alias: string): string {
+    const lp = snap.aliases[alias].listPrice;
+    if (!lp) return '—';
+    let result = `$${general(lp.input)} / $${general(lp.output)}`;
+    if (evidenceEnabled && lp.next) result += ` through ${lp.until}; $${general(lp.next.input)} / $${general(lp.next.output)} from ${lp.next.from}`;
+    return result;
+  }
+  function priceFindings(): string[] {
+    if (!evidenceEnabled) return [];
+    return actionable.flatMap(alias => {
+      const lp = snap.aliases[alias].listPrice;
+      return lp?.until && lp.until < today ? [
+        `${alias}: listPrice.until ${lp.until} has passed as of ${today}; refresh the stored price from next (from ${lp.next!.from}) and remove or advance until/next before regenerating`
+      ] : [];
+    });
+  }
+  function taskCost(alias: string): CostPerTask | undefined {
+    const ref = snap.aliases[alias].evidence;
+    return ref ? snap.sources[ref.slice('snapshot.sources.'.length)].costPerTask : undefined;
+  }
+  function servedRows(alias: string) {
+    return Object.entries(snap.aliases[alias].served ?? {}).map(([surface, row]) => {
+      if (typeof row === 'string') return { surface, id: row, readOn: null, lag: null, quota: null, legacy: true,
+        line: `served ${surfaces[surface].label}: ${row} (legacy snapshot text; separate lag and quota unread)` };
+      return { surface, ...row, legacy: false,
+        line: `served ${surfaces[surface].label}: ${row.id ?? 'id unread'} · snapshot ${row.readOn} · lag: ${row.lag ?? 'none recorded'} · quota: ${row.quota ?? 'unread'}` };
+    });
+  }
+  function restartWarning(alias: string, product?: string): string | null {
+    if (!product) return null;
+    const target = product.trim().replace(/\s+/g, ' ').toLowerCase();
+    const unavailable = servedRows(alias).find(row => row.surface === aliases[alias].surface && row.lag &&
+      row.lag.toLowerCase().match(/not served on ([^:;\n.]+)/)?.[1]?.trim().replace(/\s+/g, ' ') === target);
+    return unavailable ? `not served on ${product.trim()} as of ${unavailable.readOn}` : null;
+  }
   function restart(alias: string, level: string): string {
     const a = aliases[alias]; const sk = a.surface!; const dial = surfaceMap[sk][level];
     return surfaces[sk].restart.replaceAll('<alias>', typed(alias) || '<alias>').replaceAll('<level>', dial);
+  }
+  function evidenceRow(alias: string, level: string, product?: string) {
+    const a = reference(aliases, alias, 'evidence.alias');
+    if (a.reviewer) refuse(`evidence.alias: ${alias} is a reviewer, not an actionable pick`);
+    const spelled = typed(alias);
+    if (!spelled) refuse(`models.${surfaces[a.surface!].modelsKey}.${a.tier}: a typed alias is required for ${alias}`);
+    const lp = snap.aliases[alias].listPrice; const task = taskCost(alias); const substitute = picks.inPool[alias];
+    return { alias, surface: a.surface, typedAlias: spelled, snapshotAsOf: snap.asOf,
+      price: lp ? { ...lp, line: `${price(alias)} · ${lp.unit} · snapshot ${lp.readOn} · ${lp.source}` } : null,
+      costPerTask: task ? { ...task, line: `$${general(task.value)} ${task.unit} · snapshot ${task.readOn} · basis: ${task.basis} · ${task.url}` } : null,
+      served: servedRows(alias), restart: restart(alias, level), restartWarning: restartWarning(alias, product),
+      inPool: substitute ? { alias: substitute, typedAlias: typed(substitute), surface: aliases[substitute].surface,
+        line: `in-pool: ${substitute} (${typed(substitute) ?? 'unspelled'}); quota-only substitute for ${alias}, only after its own availability and quota are read` } : null };
+  }
+  function verdictEvidence(primary: string, fallback: string | null, rec: string, level: string, product?: string) {
+    if (!evidenceEnabled) refuse('snapshot.evidenceVersion: dated evidence is not activated; the trusted bootstrap must merge before the registry opts in');
+    if (!levels.includes(level)) refuse(`evidence.effort: unknown level ${JSON.stringify(level)}`);
+    const rows = { primary: evidenceRow(primary, level, product), fallback: fallback ? evidenceRow(fallback, level, product) : null,
+      recommended: evidenceRow(rec, level, product) };
+    if (fallback && samePool(primary, fallback)) refuse('evidence.fallback: expected the cross-provider or cross-surface fallback, not an in-pool substitute');
+    return { snapshotAsOf: snap.asOf, costBasis: picks.comment, product: product ?? null, ...rows };
   }
   function render(): { page: string; claims: Claim[] } {
     const o: string[] = []; const claims: Claim[] = []; const w = (s: string): void => { o.push(s); };
@@ -454,17 +566,47 @@ export function createMatrix(root: string) {
         `${esc(s.fallback)} | ${esc(a.selection)} |`);
     }
     w(''); const providers = [...new Set(precedence.filter(n => !aliases[n].reviewer).map(n => aliases[n].provider))];
-    w('Legend: ' + providers.map(p => `${lookup(DOT, p) ?? '⚪'} ${lookup(PROVIDER_NAME, p) ?? p}`).join(' · ') +
+    if (evidenceEnabled) {
+      w('Legend: ' + providers.map(p => `${lookup(DOT, p) ?? '⚪'} ${lookup(PROVIDER_NAME, p) ?? p}`).join(' · ') +
       ' · 🔍 a PR review bot — never a session recommendation; where one wins a cell, the actionable alias ' +
-      'after its arrow is what you run. Row order is the tie-break `precedence`. List prices are the snapshot ' +
-      `of **${snap.asOf}** in USD per million tokens, each row's source in the registry — evidence for the ` +
-      "cost-aligned ordering, never today's price. The frontier aliases (" + escalations.map(a => `\`${a}\``).join(', ') +
+      'after its arrow is what you run. Row order is the tie-break `precedence`. **Price** is the input/output ' +
+      'snapshot in USD per million tokens: each row keeps its own `readOn`, source and unit in the registry. ' +
+      '`until` includes its date; `next` prints the following price and `from` date. An expired stored price ' +
+      'fails the self-test and CI drift check; it is refreshed by a registry PR before this page is regenerated. ' +
+      '**Cost per task** below carries a benchmark value, unit, basis, source URL and read date; it is a ' +
+      'different measure from list price, with the deep-tier tie basis stated under the three picks. ' +
+      '**Served** names the id, read date, lag and quota per pick. Legacy served strings remain readable with ' +
+      'their separate lag/quota marked unread. A lag explicitly saying `not served on <product>` attaches ' +
+      '`not served on <product> as of <readOn>` beside the restart for that session product; unobserved ' +
+      'availability is not an outage. These are dated observations, never current quota balances. The frontier aliases (' + escalations.map(a => `\`${a}\``).join(', ') +
       ') are reached only as the *recommended* pick, for **your own** session, never for a subagent.'); w('');
+    } else {
+      // The first landing is judged by main's old trusted renderer. Keep its output exact.
+      w('Legend: ' + providers.map(p => `${lookup(DOT, p) ?? '⚪'} ${lookup(PROVIDER_NAME, p) ?? p}`).join(' · ') +
+        ' · 🔍 a PR review bot — never a session recommendation; where one wins a cell, the actionable alias ' +
+        'after its arrow is what you run. Row order is the tie-break `precedence`. List prices are the snapshot ' +
+        `of **${snap.asOf}** in USD per million tokens, each row\'s source in the registry — evidence for the ` +
+        "cost-aligned ordering, never today's price. The frontier aliases (" + escalations.map(a => `\`${a}\``).join(', ') +
+        ') are reached only as the *recommended* pick, for **your own** session, never for a subagent.'); w('');
+    }
+    const taskCosts = evidenceEnabled ? actionable.filter(n => taskCost(n)) : [];
+    if (taskCosts.length) {
+      w('Cost per task (dated benchmark observations; repository-specific estimates and ranges remain unestimated where the basis says so):'); w('');
+      w('| Alias | Cost per task | Basis / method | Source / read on |'); w('|---|---|---|---|');
+      for (const n of taskCosts) { const t = taskCost(n)!; w(`| \`${n}\` | $${general(t.value)} ${esc(t.unit)} | ${esc(t.basis)} | ${esc(t.url)} · ${t.readOn} |`); }
+      w('');
+    }
     const served = actionable.filter(n => Object.keys(snap.aliases[n].served ?? {}).length > 0);
     if (served.length) {
-      w(`What each surface's own lookup served on ${snap.asOf} (the alias you type resolves to this id, which may lag the provider's newest):`); w('');
-      w('| Alias | Surface | Served id |'); w('|---|---|---|');
-      for (const n of served) for (const [sk, txt] of Object.entries(snap.aliases[n].served!)) w(`| \`${n}\` | ${surfaces[sk].label} | ${esc(txt)} |`);
+      if (evidenceEnabled) {
+        w('What each surface lookup served (each structured row has its own read date; a legacy row keeps its original text):'); w('');
+        w('| Alias | Surface | Served id | Read on | Lag | Quota |'); w('|---|---|---|---|---|---|');
+        for (const n of served) for (const row of servedRows(n)) w(`| \`${n}\` | ${surfaces[row.surface].label} | ${esc(row.id ?? 'id unread')} | ${row.readOn ?? 'legacy text'} | ${esc(row.legacy ? 'unread; see served text' : row.lag ?? 'none recorded')} | ${esc(row.quota ?? 'unread')} |`);
+      } else {
+        w(`What each surface's own lookup served on ${snap.asOf} (the alias you type resolves to this id, which may lag the provider's newest):`); w('');
+        w('| Alias | Surface | Served id |'); w('|---|---|---|');
+        for (const n of served) for (const [sk, row] of Object.entries(snap.aliases[n].served!)) w(`| \`${n}\` | ${surfaces[sk].label} | ${esc(typeof row === 'string' ? row : row.id ?? 'id unread')} |`);
+      }
       w('');
     }
     w(`## ${H.picks}`); w(''); w(`> ${picks.comment}`); w('');
@@ -473,6 +615,12 @@ export function createMatrix(root: string) {
     w(`| **fallback** | ${esc(picks.fallback)} | the cell's \`runnerUp\`, the verb's runner-up |`);
     w(`| **recommended** | ${esc(picks.recommended.describe)} | ${esc(picks.recommended.rule)} |`); w('');
     w(`\`picks.fallbackRule\`: *${esc(picks.fallbackRule)}*`); w('');
+    if (evidenceEnabled && Object.keys(picks.inPool).length) {
+      w('Quota-only substitutes appear as `in-pool: <alias>` beside the fallback row, while the cross-provider fallback stays in place. Read the substitute\'s own availability and quota before use:'); w('');
+      w('| Pick alias | In-pool substitute | Scope |'); w('|---|---|---|');
+      for (const [n, substitute] of Object.entries(picks.inPool)) w(`| \`${n}\` | in-pool: \`${substitute}\` (${label(substitute, true)}) | quota-only; separate availability/quota unread until checked |`);
+      w('');
+    }
     w('What each primary escalates to when the rule fires:'); w(''); w('| Primary | Recommended on a weight-4 job or a `max` effort |'); w('|---|---|');
     for (const a of actionable) { const up = aliases[a].escalation; w(`| ${label(a, true)} | ` + (up ? label(up, true) : 'itself — nothing above it') + ' |'); }
     w(''); w(`\`picks.tiers\`: *${esc(picks.tiers)}*`); w('');
@@ -661,6 +809,7 @@ export function createMatrix(root: string) {
     const fails: string[] = [];
     function ok(cond: boolean, what: string): void { console.log((cond ? '  ok    ' : '  FAIL  ') + what); if (!cond) fails.push(what); }
     function run(args: string[], r: string, env?: NodeJS.ProcessEnv) { const p = spawnSync('bash', [SCRIPT, ...args, r], { encoding: 'utf8', env: env ?? process.env }); return { code: p.status, out: p.stdout + p.stderr }; }
+    for (const finding of priceFindings()) ok(false, finding);
     const tmp = mkdtempSync(join(tmpdir(), 'direct-matrix-selftest.'));
     try {
       for (const p of [REG_PATH, TAX_PATH, WF_PATH]) { mkdirSync(dirname(join(tmp, p)), { recursive: true }); copyFileSync(join(root, p), join(tmp, p)); }
@@ -745,14 +894,41 @@ export function createMatrix(root: string) {
     if (fails.length) { console.error(`direct_matrix_doc --self-test: ${fails.length} failed`); return 1; }
     console.log('direct_matrix_doc --self-test: all passed'); return 0;
   }
-  return { render, verify, selfTest };
+  return { render, verify, selfTest, priceFindings, verdictEvidence, evidenceEnabled };
 }
 
-/** Internal normalized argv; user-facing parsing stays in the original shell wrapper. */
+/** The historical matrix modes keep their shell CLI. Direct calls the typed evidence mode
+ * with aliases already selected by Nen; this mode reports evidence and never resolves a pick.
+ */
 export function main(argv: string[]): number {
-  const [mode, root] = argv;
-  if (argv.length !== 2 || !['print', 'write', 'check', 'verify', 'self-test'].includes(mode)) refuse('expected a mode and repo-root from direct_matrix_doc.sh');
-  const matrix = createMatrix(root);
+  const [mode, root, ...args] = argv;
+  if (!root || !['print', 'write', 'check', 'verify', 'self-test', 'evidence'].includes(mode) || (mode !== 'evidence' && args.length))
+    refuse('expected a mode and repo-root from direct_matrix_doc.sh, or evidence <hatsu-root> --repo <consumer> --primary <alias> --fallback <alias|none> --recommended <alias> --effort <level> [--product <product>]');
+  const flags: Record<string, string> = Object.create(null);
+  if (mode === 'evidence') {
+    const admitted = ['--repo', '--primary', '--fallback', '--recommended', '--effort', '--product'];
+    for (let i = 0; i < args.length; i += 2) {
+      const key = args[i]; const value = args[i + 1];
+      if (!admitted.includes(key) || Object.hasOwn(flags, key) || !value?.trim() || value.startsWith('--')) refuse(`evidence: unknown, duplicate or missing argument ${JSON.stringify(key)}`);
+      flags[key] = value;
+    }
+    for (const key of admitted.filter(k => k !== '--product')) if (!flags[key]) refuse(`evidence: required ${key}`);
+  }
+  const matrix = createMatrix(root, { workflowRoot: flags['--repo'] });
+  if (mode === 'evidence' && !matrix.evidenceEnabled) {
+    process.stdout.write(JSON.stringify({ enabled: false, evidenceVersion: 0,
+      reason: 'Compatible bootstrap only; activate snapshot.evidenceVersion=1 in a follow-up after the trusted renderer has merged on main.' }, null, 2) + '\n');
+    return 0;
+  }
+  const expired = matrix.priceFindings();
+  for (const finding of expired) console.error(`direct_matrix_doc: ${finding}`);
+  if (mode === 'evidence') {
+    const evidence = matrix.verdictEvidence(flags['--primary'], flags['--fallback'] === 'none' ? null : flags['--fallback'],
+      flags['--recommended'], flags['--effort'], flags['--product']);
+    process.stdout.write(JSON.stringify({ enabled: true, evidenceVersion: 1, ...evidence, expiredPriceEvidence: expired }, null, 2) + '\n');
+    return expired.length ? 1 : 0;
+  }
+  if (expired.length) return 1;
   if (mode === 'verify') return matrix.verify();
   if (mode === 'self-test') return matrix.selfTest();
   const { page } = matrix.render(); const target = join(root, OUT_PATH);
