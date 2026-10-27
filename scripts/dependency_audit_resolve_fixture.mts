@@ -249,7 +249,7 @@ try {
   await expect('a bun alias key is queried as the real package', [bunCase('bun-alias', bunLock('    "lodash-cjs": ["lodash@4.17.15", "", {}, "sha512-a"],\n    "ms-old": ["ms-old@npm:ms@0.0.1", "", {}, "sha512-d"],\n')), '--query', '--scans', stub], 1,
     /2 packages\)\nfinding: GHSA-test-high HIGH "lodash@4\.17\.15"\nbelow-floor: GHSA-test-moderate[^\n]*\nfinding: GHSA-test-unknown UNRATED "ms@0\.0\.1"/);
   await expect('a comma inside a bun string is data, not a trailing comma', [bunCase('bun-string', bunLock('    "ok": ["ok@1.0.0", "", { "bin": "a,}\\\",]" }, "sha512-,]"],\n'))], 0, /bun\.lock, 1 packages\)\n$/);
-  await expect('bun workspace, link, root, git, github, tarball and file entries: local and unqueried', [bunCase('bun-kinds', bunLock([
+  await expect('bun workspace and root entries are local; link, git, github, tarball and file entries are unqueried', [bunCase('bun-kinds', bunLock([
     '    "ok": ["ok@1.0.0", "", {}, "sha512-c"],',
     '    "ws": ["ws@workspace:packages/ws"],',
     '    "lk": ["lk@link:lk", {}],',
@@ -259,7 +259,7 @@ try {
     '    "tb": ["tb@https://evil.invalid/tb-1.0.0.tgz", {}],',
     '    "fl": ["fl@file:../fl", {}],',
   ].join('\n') + '\n')), '--query', '--scans', stub], 1,
-    /1 packages\)\nlocal: 3 bun\.lock entries are workspace, link or directory packages, not queried\nunqueried: 4 bun\.lock entries come from git, file: or a host off registryHosts -- never clean\naudit: 0 finding\(s\) .*, 4 unqueried, across 1 packages\n$/);
+    /1 packages\)\nlocal: 2 bun\.lock entries are workspace, link or directory packages, not queried\nunqueried: 5 bun\.lock entries come from git, file: or a host off registryHosts -- never clean\naudit: 0 finding\(s\) .*, 5 unqueried, across 1 packages\n$/);
   await expect('a bun registry slot on registryHosts is queried; off it, or over http, is unqueried', [bunCase('bun-registry', bunLock([
     '    "lodash": ["lodash@4.17.15", "https://registry.npmjs.org/", {}, "sha512-a"],',
     '    "evil": ["evil@1.0.0", "https://evil.invalid/", {}, "sha512-e"],',
@@ -280,6 +280,23 @@ try {
   await expect('AC-2: the binary bun.lockb under a bun field is not scanned, named', [tree('bun-lockb-field', { 'package.json': pkg('bun@1.1.0'), 'bun.lockb': '\u0000bun-lockfile-format-v0\n' })], 3, /^not scanned: packageManager "bun@1\.1\.0" but its only lockfile is bun\.lockb, which has no dependencyAudit\.node parser\n$/);
   await expect('bun.lock beside bun.lockb: the text lock is audited, the binary named', [tree('bun-both', { 'package.json': pkg(), 'bun.lock': BUN, 'bun.lockb': '\u0000' })], 0, /bun\.lock, 2 packages\)\naudit-config: "bun\.lockb" "other-lockfile" -- not audited; evidence for Feitan\n$/);
   await expect('more bun entries than maxEntries is not scanned', [bunTree, '--scans', contract('few-bun', (n) => { n.maxEntries = 2; })], 3, /bun\.lock has more than 2 entries \(maxEntries\)/);
+  // zheref/hatsu#507 round 1 (Feitan F2, Nobunaga N1): link: and out-of-tree paths are not the tree's own code.
+  await expect('a bun workspace or root path that is absolute or climbs out is unqueried; link: is unqueried', [bunCase('bun-outside', bunLock([
+    '    "ok": ["ok@1.0.0", "", {}, "sha512-c"],',
+    '    "in": ["in@workspace:packages/in"],',
+    '    "up": ["up@workspace:../../../outside"],',
+    '    "abs": ["abs@workspace:/opt/abs"],',
+    '    "win": ["win@workspace:C:\\\\abs"],',
+    '    "deep": ["deep@root:packages/../../x", {}],',
+    '    "lk": ["lk@link:evil", {}],',
+  ].join('\n') + '\n')), '--query', '--scans', stub], 1,
+    /1 packages\)\nlocal: 1 bun\.lock entries [^\n]*\nunqueried: 5 bun\.lock entries [^\n]*\naudit: 0 finding\(s\) .*, 5 unqueried, across 1 packages\n$/);
+  // Feitan F3: a key repeated in one object is not scanned, never the last one audited.
+  await expect('AC-2: a duplicate bun.lock packages key is not scanned', [bunCase('bun-dup', bunLock('    "lodash": ["lodash@4.17.20", "", {}, "sha512-a"],\n    "lodash": ["lodash@4.17.21", "", {}, "sha512-b"],\n'))], 3, /^not scanned: bun\.lock repeats the key "lodash" in one object \(duplicate\)\n$/);
+  await expect('AC-2: a duplicate key spelled with an escape is still a duplicate', [bunCase('bun-dup-escape', bunLock('    "ok": ["ok@1.0.0", "", {}, "sha512-a"],\n    "\\u006fk": ["ok@1.0.1", "", {}, "sha512-b"],\n'))], 3, /repeats the key "ok" in one object \(duplicate\)/);
+  await expect('the same key in two different objects is not a duplicate', [bunCase('bun-dup-nested', bunLock('    "a": ["a@1.0.0", "", { "dependencies": { "x": "1" } }, "sha512-a"],\n    "b": ["b@1.0.0", "", { "dependencies": { "x": "1" } }, "sha512-b"],\n'))], 0, /bun\.lock, 2 packages\)\n$/);
+  // Feitan's behaviour note: no field with npm's and bun's lockfiles is now ambiguous, never npm alone.
+  await expect('no field with package-lock.json and bun.lock is ambiguous, not scanned', [tree('npm-and-bun', { 'package.json': pkg(), 'package-lock.json': NPM3, 'bun.lock': BUN })], 3, /package-lock\.json, bun\.lock are all present \(ambiguous\)/);
   await expect('a symlinked bun.lock is never followed', [(() => { const d = tree('bun-symlink', { 'package.json': pkg() }); symlinkSync(join(bunTree, 'bun.lock'), join(d, 'bun.lock')); return d; })()], 3, /bun\.lock is a symlink, never followed/);
 
   // 8: a deep or huge lockfile is not scanned, never an uncaught exit 1.
@@ -336,11 +353,35 @@ try {
   assert.equal(existsSync(marker), false, 'a bun tree hook (bunfig preload, install scanner, a lifecycle script) ran');
   assert.ok(seen.length > 0 && seen.every((r) => r.url.startsWith('/m/ok/') && r.headers.authorization === undefined && !JSON.stringify(r).includes(CANARY)), 'only the contract endpoints were contacted, with no token or canary');
   pass('AC-3: no bun hook ran, no token or canary was sent');
-  const quotedBun = await expect('a quoted or dotted bunfig key hides nothing', [tree('bunfig-quoted', { 'package.json': pkg(), 'bun.lock': BUN, 'bunfig.toml': `"install" . 'registry' = "https://evil.invalid/"\ninstall.scopes.corp = "https://evil.invalid/"\n` })], 0, /bun\.lock, 2 packages\)\n/);
+  const quotedBun = await expect('an unescaped quoted or dotted bunfig key is read', [tree('bunfig-quoted', { 'package.json': pkg(), 'bun.lock': BUN, 'bunfig.toml': `"install" . 'registry' = "https://evil.invalid/"\ninstall.scopes.corp = "https://evil.invalid/"\n` })], 0, /bun\.lock, 2 packages\)\n/);
   for (const key of ['install.registry', 'install.scopes']) assert.ok(quotedBun.includes(`audit-config: "bunfig.toml" "${key}" -- not honoured`), `missing ${key}\n${quotedBun}`);
   const inlineBun = await expect('an inline install table in bunfig is read', [tree('bunfig-inline', { 'package.json': pkg(), 'bun.lock': BUN, 'bunfig.toml': `install = { registry = "https://evil.invalid/" }\n` })], 0, /bun\.lock, 2 packages\)\n/);
   assert.ok(inlineBun.includes('audit-config: "bunfig.toml" "install.registry" -- not honoured'), inlineBun);
-  pass('bunfig.toml registry keys are evidence however they are spelled');
+  const bunfigOut = (name: string, toml: string): Promise<string> => expect(name, [tree(`bunfig-${cases}`, { 'package.json': pkg(), 'bun.lock': BUN, 'bunfig.toml': toml })], 0, /bun\.lock, 2 packages\)\n/);
+  const READ = 'audit-config: "bunfig.toml" "install.registry" -- not honoured';
+  const MENTIONED = 'audit-config: "bunfig.toml" "install.registry" -- its token "registry" appears outside a key this scanner read';
+  for (const [name, toml] of [['a quoted header', '["install"]\nregistry = "https://evil.invalid/"\n'], ['a quoted table, dotted', '"install".registry = "https://evil.invalid/"\n'], ['a quoted key', '[install]\n"registry" = "https://evil.invalid/"\n'], ['a multi-line array before the table', 'preload = [\n  "./a.ts",\n  "./b.ts",\n]\n[install]\nregistry = "https://evil.invalid/"\n']]) {
+    const read = await bunfigOut(`an unescaped bunfig spelling is read: ${name}`, toml);
+    assert.ok(read.includes(READ) && !read.includes('"unread"'), `${name}\n${read}`);
+  }
+  // Feitan F1, Nobunaga N2: spellings the line scanner cannot place fail toward evidence.
+  const lost: Array<[string, string, number]> = [
+    ['a multi-line inline table', 'install = {\n  registry = "https://evil.invalid/"\n}\n', 1],
+    ['a """ string holding a [other] line', '[install]\nnote = """\n[other]\n"""\nregistry = "https://evil.invalid/"\n', 2],
+    ["a ''' string", "x = '''\n'''\n[install]\nregistry = \"https://evil.invalid/\"\n", 1],
+    ['an escaped key', '[install]\n"re\\u0067istry" = "https://evil.invalid/"\n', 2],
+    ['an escaped header', '["\\u0069nstall"]\nregistry = "https://evil.invalid/"\n', 1],
+  ];
+  for (const [name, toml, line] of lost) {
+    const out = await bunfigOut(`a bunfig ${name} prints unread and the registry token`, toml);
+    assert.match(out, new RegExp(`audit-config: "bunfig\\.toml" "unread" -- \\d+ line\\(s\\) this scanner cannot place, first line ${line}; evidence for Feitan`), `${name}\n${out}`);
+    assert.ok(out.includes(READ) || out.includes(MENTIONED), `${name}: install.registry must be evidence\n${out}`);
+  }
+  const tokenOnly = await bunfigOut('a registry token in a value is mentioned, never silent', '[install.scopes]\ncorp = "https://registry.example.invalid/"\n');
+  assert.ok(tokenOnly.includes(MENTIONED) && tokenOnly.includes('"install.scopes" -- not honoured'), tokenOnly);
+  const plainBun = await bunfigOut('a bunfig with no redirect key prints no audit-config line', 'preload = ["./a.ts"]\n\n[test]\ncoverage = true\n');
+  assert.ok(!plainBun.includes('audit-config:'), plainBun);
+  pass('bunfig.toml: keys the scanner reads are evidence; a line it cannot place is unread, and a leaf token anywhere is mentioned');
 
   // AC-c and the hardening: nothing usable is NOT SCANNED, named.
   await expect('the pnpm field without its lockfile', [tree('pnpm-no-lock', { 'package.json': pkg('pnpm@9.15.9'), 'package-lock.json': NPM3 })], 3, /packageManager "pnpm@9\.15\.9" but no pnpm-lock\.yaml to audit/);
