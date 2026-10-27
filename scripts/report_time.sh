@@ -4,6 +4,9 @@
 #   scripts/report_time.sh --at <ISO-8601 UTC instant> [--tz <IANA zone>]
 #   scripts/report_time.sh --self-test
 #
+# --self-test reads report_time_fixture.sh beside this script in the full plugin source tree.
+# Normal rendering remains usable from a standalone copy without that test companion.
+#
 # `nen report data` and `nen board build` stamp `generatedAt` as an absolute ISO-8601 UTC instant,
 # and that instant stays the document's truth. A maintainer reading the page reads a clock, though,
 # and a UTC stamp late in their evening names tomorrow's date. This prints the same instant in the
@@ -130,89 +133,13 @@ render() {  # render <instant> <zone>
   printf 'timeZone=%s\n' "$zone"
 }
 
-# ---------------------------------------------------------------------------
-# --self-test — hermetic and offline: fixed instants, fixed zones, nothing written.
-# ---------------------------------------------------------------------------
-self_test() {
-  st_fails=0
-  st_self="$0"
-  st_expect() {  # st_expect <label> <expected output> [args...]
-    st_label="$1"; st_want="$2"; shift 2
-    st_got="$(sh "$st_self" "$@" 2>&1)"; st_rc=$?
-    if [ "$st_rc" -eq 0 ] && [ "$st_got" = "$st_want" ]; then
-      echo "ok    $st_label"
-    else
-      echo "FAIL  $st_label (exit $st_rc)"; echo "      want: $st_want"; echo "      got:  $st_got"
-      st_fails=$((st_fails + 1))
-    fi
-  }
-  st_refuse() {  # st_refuse <label> [args...]
-    st_label="$1"; shift
-    st_got="$(sh "$st_self" "$@" 2>&1)"; st_rc=$?
-    if [ "$st_rc" -eq 2 ]; then echo "ok    $st_label (refused)"; else
-      echo "FAIL  $st_label: want exit 2, got $st_rc: $st_got"; st_fails=$((st_fails + 1)); fi
-  }
-  nl='
-'
-  st_expect "afternoon in Bogota" \
-    "generatedAtLocal=Tue 22 Sep 2026 · 14:05 America/Bogota (UTC-05:00)${nl}generatedDateLocal=2026-09-22${nl}timeZone=America/Bogota" \
-    --at 2026-09-22T19:05:00Z --tz America/Bogota
-  st_expect "UTC past midnight is still yesterday locally; fractions and +00:00 read" \
-    "generatedAtLocal=Tue 22 Sep 2026 · 21:30 America/Bogota (UTC-05:00)${nl}generatedDateLocal=2026-09-22${nl}timeZone=America/Bogota" \
-    --at 2026-09-23T02:30:00.267+00:00 --tz America/Bogota
-  st_expect "ahead of UTC flips to tomorrow; single-digit day unpadded" \
-    "generatedAtLocal=Fri 2 Oct 2026 · 04:05 Asia/Tokyo (UTC+09:00)${nl}generatedDateLocal=2026-10-02${nl}timeZone=Asia/Tokyo" \
-    --at 2026-10-01T19:05Z --tz Asia/Tokyo
-  st_expect "half-hour offset" \
-    "generatedAtLocal=Wed 23 Sep 2026 · 00:35 Asia/Kolkata (UTC+05:30)${nl}generatedDateLocal=2026-09-23${nl}timeZone=Asia/Kolkata" \
-    --at 2026-09-22T19:05:00Z --tz Asia/Kolkata
-  st_host="$(mktemp -d)"
-  mkdir -p "$st_host/zoneinfo/America"
-  ln -s ../zoneinfo/America/Bogota "$st_host/relative-link"
-  printf 'TZif-copy' > "$st_host/copied"
-  printf '  America/Bogota  \n' > "$st_host/timezone"
-  st_zone() { env -u TZ REPORT_TIME_LOCALTIME="$1" REPORT_TIME_TIMEZONE_FILE="$2" sh "$st_self" --at 2026-09-22T19:05:00Z 2>&1; }
-  st_got="$(st_zone "$st_host/relative-link" "$st_host/none" | sed -n 3p)"
-  if [ "$st_got" = "timeZone=America/Bogota" ]; then echo "ok    a relative localtime symlink names the zone"; else
-    echo "FAIL  a relative localtime symlink names the zone: got $st_got"; st_fails=$((st_fails + 1)); fi
-  st_got="$(st_zone "$st_host/copied" "$st_host/timezone" | sed -n 3p)"
-  if [ "$st_got" = "timeZone=America/Bogota" ]; then echo "ok    a copied localtime is named by /etc/timezone"; else
-    echo "FAIL  a copied localtime is named by /etc/timezone: got $st_got"; st_fails=$((st_fails + 1)); fi
-  st_zone "$st_host/copied" "$st_host/none" >/dev/null; st_rc=$?
-  if [ "$st_rc" -eq 2 ]; then echo "ok    a copied localtime nothing names is refused, never guessed as UTC (refused)"; else
-    echo "FAIL  a copied localtime nothing names: want exit 2, got $st_rc"; st_fails=$((st_fails + 1)); fi
-  st_got="$(st_zone "$st_host/absent" "$st_host/none" | sed -n 3p)"
-  if [ "$st_got" = "timeZone=UTC" ]; then echo "ok    no localtime at all is UTC, as libc answers"; else
-    echo "FAIL  no localtime at all is UTC: got $st_got"; st_fails=$((st_fails + 1)); fi
-  rm -rf "$st_host"
-  st_got="$(TZ=Europe/Madrid sh "$st_self" --at 2026-09-22T19:05:00Z 2>&1 | sed -n 3p)"
-  if [ "$st_got" = "timeZone=Europe/Madrid" ]; then echo "ok    \$TZ is the default zone"; else
-    echo "FAIL  \$TZ is the default zone: got $st_got"; st_fails=$((st_fails + 1)); fi
-  st_expect "Etc/UTC is kept" \
-    "generatedAtLocal=Tue 22 Sep 2026 · 19:05 Etc/UTC (UTC+00:00)${nl}generatedDateLocal=2026-09-22${nl}timeZone=Etc/UTC" \
-    --at 2026-09-22T19:05:00Z --tz Etc/UTC
-  for st_meta in zone.tab tzdata.zi +VERSION leapseconds iso3166.tab; do
-    st_refuse "database metadata is not a zone: $st_meta" --at 2026-09-22T19:05:00Z --tz "$st_meta"
-  done
-  st_refuse "an impossible date: 2026-02-30" --at 2026-02-30T12:00:00Z --tz UTC
-  st_refuse "an impossible date: 2026-09-31" --at 2026-09-31T12:00:00Z --tz UTC
-  st_refuse "a fraction that is not digits" --at 2026-09-22T19:05:00.abcZ --tz UTC
-  st_refuse "an empty fraction" --at 2026-09-22T19:05:00.Z --tz UTC
-  st_refuse "a fraction with two dots" --at 2026-09-22T19:05:00.1.2Z --tz UTC
-  st_refuse "a zone not in zoneinfo" --at 2026-09-22T19:05:00Z --tz Mars/Olympus
-  st_refuse "a path, not a zone" --at 2026-09-22T19:05:00Z --tz ../../etc/passwd
-  st_refuse "a non-UTC instant" --at 2026-09-22T14:05:00-05:00 --tz America/Bogota
-  st_refuse "not an instant" --at yesterday --tz America/Bogota
-  st_refuse "no --at" --tz America/Bogota
-  st_refuse "an unknown flag" --at 2026-09-22T19:05:00Z --zone UTC
-  if [ "$st_fails" -eq 0 ]; then echo "report_time.sh --self-test: all passed"; return 0; fi
-  echo "report_time.sh --self-test: $st_fails failed"; return 1
-}
-
 at=""; tz=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --self-test) self_test; exit $? ;;
+    --self-test)
+      fixture_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd -P)" || exit 2
+      [ -r "$fixture_dir/report_time_fixture.sh" ] || { echo "report_time.sh: --self-test needs report_time_fixture.sh beside the script; use the full plugin source" >&2; exit 2; }
+      exec sh "$fixture_dir/report_time_fixture.sh" ;;
     --at) [ $# -ge 2 ] || { usage; exit 2; }; at="$2"; shift 2 ;;
     --tz) [ $# -ge 2 ] || { usage; exit 2; }; tz="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
