@@ -1,0 +1,21 @@
+{
+  "$schema": "hatsu.skill-shape/v0.1",
+  "contract": "hatsu.skill-shape/v0.1",
+  "$comment": "The skill shape canon asks for, as data (zheref/hatsu#502; SDD plan, SDD on Hatsu's own prose, wave 4; assessment finding B6): every claude/skills/<name>/SKILL.md carries a level-2 heading naming its Residue, its Authority and its Hard limits, in any order and in any heading that names them (`## 6. Authority and hard limits` satisfies two). scripts/skill_shape_check.mts reads this file and hands each touched skill to `nen pr body-check --body-from <SKILL.md> --requirements-from <the requirements below, less the skill's exemptions>`, so the heading match is nen's and no shell restates it. Enforced AS TOUCHED: a skill no change set touches is never failed for it, so the skills that predate this file are fixed when an effort next edits them. The posture is docs/config/skill-shape.json.md's.",
+  "requirements": [
+    {
+      "name": "residue",
+      "pattern": "^ {0,3}##[ \\t]+[^\\r\\n]*\\b[Rr]esidue\\b"
+    },
+    {
+      "name": "authority",
+      "pattern": "^ {0,3}##[ \\t]+[^\\r\\n]*\\b[Aa]uthority\\b"
+    },
+    {
+      "name": "hard-limits",
+      "pattern": "^ {0,3}##[ \\t]+[^\\r\\n]*\\b[Hh]ard limits\\b"
+    }
+  ],
+  "$exemptions": "One entry per skill that may lack a section: {\"skill\": \"<claude/skills directory name>\", \"sections\": [\"<a requirement name above>\", ...], \"reason\": \"<why this skill has no such section>\"}. An entry with no reason, an empty reason, an unknown skill or section, or a section the skill in fact carries when it is checked, fails the check by name. An empty list is a decision: no skill is exempt.",
+  "exemptions": []
+}

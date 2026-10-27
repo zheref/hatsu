@@ -229,6 +229,19 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 **Read by.** `hatsu:pr-state` § 2, `hatsu:en`, `hatsu:getsuga`, `hatsu:backlog-state`, `hatsu:tensho`, always as the absolute `--gates "$hatsu_root/contracts/reference.gates.json"` (a relative `--gates` resolves against `--repo`), and only for that one repository. A repository that ships its own `nen/gates.json` needs no `--gates` at all. **May a consumer override it?** No, and it is never reused as another repository's reviewer set (`hatsu:senkei`).
 
+## `contracts/skill-shape.json`
+
+**Purpose.** The skill shape as data (zheref/hatsu#502; assessment finding B6): every `claude/skills/<name>/SKILL.md` carries a level-2 heading naming its **Residue**, its **Authority** and its **Hard limits**, in any order (`## 6. Authority and hard limits` satisfies two), or a reasoned exemption. `scripts/skill_shape_check.mts` hands each checked skill to `nen pr body-check --body-from <SKILL.md> --requirements-from <requirements>`, so the heading match is nen's. **Enforced as touched**: only a skill a change set touches is checked, so a skill that predates the file is fixed when an effort next edits it.
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `requirements[]` | `{name, pattern}` objects | `residue`, `authority`, `hard-limits` | the requirement set, in the form `nen pr body-check --requirements-from` reads | `scripts/skill_shape_check.mts` |
+| `exemptions[]` | `{skill, sections, reason}` objects | **`[]`**: no skill is exempt | a skill that may lack the named sections, and why. An entry with no or a blank `reason`, an unknown skill or section, or a section the checked skill in fact carries (stale) fails the check by name | the same |
+
+**Validated by.** The same script (exit `2` on a malformed file) and the `skill-shape-guard` lane's fixture, which also runs `scripts/canon_coverage_check.mts`: every `nen/decisions.json` row's `citedBy` list ([`decisions.json.md`](decisions.json.md)) and every `project.lanes` key named by a canon file ([`contract.json.md`](contract.json.md) § *Hatsu's own lanes*). Its live reads are advisory until one tagged green release ([HR-13](../ROSTER.md#hr-13)). **May a consumer override it?** No.
+
 ## `contracts/prose.lint.json` and `contracts/prose.lint.baseline.json`
 
 **Purpose.** The canon prose lint's rules, `PL-01` … `PL-12`, and the shrink-only baseline of the findings the tree carried when the guard landed ([HR-13](../ROSTER.md#hr-13)). Read by `scripts/prose_ambiguity_check.mts` (lane `canon-lint`); never by a consumer. Keys, the exemptions and who reads it: [`prose.lint.json.md`](prose.lint.json.md).

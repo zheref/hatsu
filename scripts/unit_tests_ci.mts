@@ -83,6 +83,8 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],
   ['idle_permissions_check.mts', 'idle_permissions_check_fixture.mts', 'idle-permissions-guard'],
   ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
+  // The skill-shape check reads the touched skills against HATSU_BASE_ROOT below (zheref/hatsu#502).
+  ['skill_shape_check.mts', 'skill_shape_check_fixture.mts', 'skill-shape-guard'],
 ];
 for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
@@ -99,12 +101,16 @@ const fence = `unit_tests_${randomBytes(16).toString('hex')}`;
 // first on PATH and as NEN, ahead of any nen the PR checkout ships (the workflow installs it with --rc
 // none). PR code runs in the same job and user, so this is correctness, not an isolation boundary.
 const nenPath = [dirname(nenArg), process.env.PATH].filter(Boolean).join(delimiter);
+// This runner's own checkout is the base revision's tree (the workflow checks it out at the base SHA), so
+// a lane that compares the PR against its base reads it from here, never from the PR's git history,
+// which the shallow checkout does not carry (zheref/hatsu#502).
+const baseRoot = resolve(import.meta.dirname, '..');
 for (const lane of lanes) {
   console.log(`unit-tests-ci: ${lane}`);
   const result = spawnSync(nenArg, ['shu', 'test', '--repo', root, '--lane', lane], {
     cwd: root,
     encoding: 'utf8',
-    env: { ...process.env, PATH: nenPath, NEN: nenArg, GH_TOKEN: '', GITHUB_TOKEN: '' },
+    env: { ...process.env, PATH: nenPath, NEN: nenArg, HATSU_BASE_ROOT: baseRoot, GH_TOKEN: '', GITHUB_TOKEN: '' },
   });
   console.log(`::stop-commands::${fence}`);
   if (result.stdout) process.stdout.write(result.stdout);
