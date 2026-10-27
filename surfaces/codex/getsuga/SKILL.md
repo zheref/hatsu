@@ -51,7 +51,8 @@ of them lives* once the lattice is the map.
 - **Getsuga runs after a merge; it does not replace one.** What § 3 opens is a *proposal*; it is
   merged by `nen pr merge --release-unit` inside § 3a — its five gates green, this run's own PR —
   or else stops at the **declaration gate** (**G4** in a canon
-  repository, **G2** in a consumer one) for the maintainer, and only then does § 4 tag that merge SHA. A tag cut
+  repository, **G2** in a consumer one) for the maintainer, and only then does this skill tag the immutable
+  commit selected under § 4. A tag cut
   without a merged release PR would be a tag on a commit nobody approved, which is the whole reason
   `CON-33(b)` asks for the PR first.
 - **The release unit is [`susanoo`](../susanoo/SKILL.md)'s, not this skill's.** Where the repository
