@@ -51,7 +51,8 @@ of them lives* once the lattice is the map.
 - **Getsuga runs after a merge; it does not replace one.** What § 3 opens is a *proposal*; it is
   merged by `nen pr merge --release-unit` inside § 3a — its five gates green, this run's own PR —
   or else stops at the **declaration gate** (**G4** in a canon
-  repository, **G2** in a consumer one) for the maintainer, and only then does § 4 tag that merge SHA. A tag cut
+  repository, **G2** in a consumer one) for the maintainer, and only then does this skill tag the immutable
+  commit selected under § 4. A tag cut
   without a merged release PR would be a tag on a commit nobody approved, which is the whole reason
   `CON-33(b)` asks for the PR first.
 - **The release unit is [`susanoo`](../susanoo/SKILL.md)'s, not this skill's.** Where the repository
@@ -557,11 +558,33 @@ opens exactly one PR's worth of it, at `merge` and at `canon-merge` alike, throu
 
 ## 4. The cut
 
-After the release PR merges — by § 3a, or by the maintainer where § 3a fell back — re-fetch and cut
+After the release PR merges — by § 3a, or by the maintainer where § 3a fell back — re-fetch and
+retain both its merge SHA and § 3a's recorded `judged head`. The ordinary cut point is the merge
+SHA. **An intervening delivery can make that SHA carry a later, unreconciled release state:** on
+[HA-PR-#363](https://github.com/zheref/hatsu/pull/363#issuecomment-6291575435), the maintainer ruled
+the reviewed head `017a2bd` as the `v0.124.0` cut after HA-PR-#367 put `0.125.0` and an uncollated
+fragment into the merge. In that raced case the cut point is the recorded judged head, provided
+it remains reachable from `origin/<branch.base>` and passes § 2 there; the later delivery ships in
+the next release. A moved trunk tip alone does not establish this case.
+
+**Mechanical decision — owned dependency, not implemented at Nen 0.28.0.** No public verb compares
+the merge SHA's release state with the recorded judged head. `release resolve-target` decides
+reachability, `release preflight` checks § 2 at one commit, `release self-check` decides whether the
+proposal lists itself, and `release unit-check` bounds its changed paths; none decides this equality.
+The missing predicate is [NN-IS-#572](https://github.com/zheref/nen/issues/572). Until it ships and
+Hatsu adopts its named verb, **do not choose the raced cut
+point by eye or improvised shell**. Hold the raced case at G5, report both SHAs and the missing
+predicate, and obtain the maintainer's cut-point ruling as HA-PR-#363 did. This is a machinery dependency,
+not an additional merge bound in § 3a; its evidence is in [`docs/ab/getsuga.md`](../../../docs/ab/getsuga.md)
+§ *Dated verification, 2026-10-27 — the merge races a later delivery*.
+
+At the selected immutable SHA, check out that commit and re-run **the whole § 2 preflight**, with
+`--repo` naming that checkout, `--range <vPrev>..<selected SHA>` and `--changelog` naming its own
+`CHANGELOG.md`; refresh the caller-gathered critical and live-chore inputs as § 2 requires. Then cut
 with `nen tag cut`, which enforces reachability itself:
 
 ```bash
-nen tag cut --repo <path> --name <vX.Y.Z> --at <the release PR's merge SHA> \
+nen tag cut --repo <path> --name <vX.Y.Z> --at <selected immutable SHA> \
   --trunk <branch.base> [--message "<text>"] --push
 ```
 
@@ -571,13 +594,17 @@ defaults to `main`, so on a repository whose trunk is `develop` the cut would re
 > ⚠️ **Pin the commit explicitly — never `HEAD`.** `--at` is required and never defaulted;
 > `nen tag cut --help` states this outright. "Cut from `main`" is not an instruction the verb can
 > follow: if `main` advanced between the merge and the cut, `HEAD` is a *later* commit, and the tag
-> then covers PRs whose fragments are still uncollated. **Check out the release PR's merge SHA and
+> then covers PRs whose fragments are still uncollated. **Check out the selected immutable SHA and
 > cut there**, after re-verifying § 2 at that SHA — exactly how the `v0.10.0` window kept re-filling
 > (RR-IS-#683).
 
 - **Cut the reconciled commit, not necessarily the tip.** Verify § 2 again at that exact SHA before
   cutting; if either the `changelog.d/` or `CON-33(c)` row fails there, the cut needs another
   collation lap.
+- **A cut away from the merge SHA is reported explicitly:** the tag name and full tagged commit,
+  the proposal's judged head and merge SHA, the cut-point ruling, and the later commits and PRs left
+  out. Say that those omitted changes ship in the next release; a later trunk tip is never silently
+  included. Quote § 2's result at the selected commit and its reachability verdict.
 - **`--at` not an ancestor of `origin/<branch.base>` → refused, never tagged off-trunk.** **The tag name
   already existing, locally or on origin → refused, never re-tagged.** Both verified live in a
   disposable scratch repo, never against `<reference-repo>` or `hatsu` (`docs/ab/getsuga.md` § 2.5):
