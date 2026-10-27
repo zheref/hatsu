@@ -197,15 +197,6 @@ if [ -n "$target" ] && [ -z "$resolve" ]; then
   esac
 fi
 
-# A live tree sweep needs the maintainer's host policy before any private-list request. An absent
-# file is host provisioning, never a tree finding (zheref/hatsu#493). Synthetic --names-file runs
-# retain the stricter no-ignore behavior so fixtures need no personal host policy.
-if [ -n "$tree" ] && [ -z "$names_file" ]; then
-  [ -n "$ignore_file" ] || die "live tree scan needs a host ignore file; set HOME or XDG_CONFIG_HOME, or pass --ignore-file <path>; only the maintainer may populate it"
-  [ -f "$ignore_file" ] && [ -r "$ignore_file" ] \
-    || die "live tree scan NOT SCANNED: host redaction-ignore is missing or unreadable; the maintainer must create the configured hatsu/redaction-ignore file (or pass --ignore-file <path>) with only names they have ruled too generic; a comment-only file explicitly ignores nothing. Rerun the tree scan after provisioning; do not infer exclusions from findings"
-fi
-
 # --- the private list: live, or a names file ----------------------------------------------------
 list="$tmp/names"
 if [ -n "$names_file" ]; then
