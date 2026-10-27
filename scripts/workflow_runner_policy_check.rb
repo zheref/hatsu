@@ -7,6 +7,7 @@ require "stringio"
 require "digest"
 require "json"
 require "open3"
+require "rbconfig"
 
 # Every workflow YAML this script reads is UTF-8 (git, GitHub Actions, this
 # repository's own editors). Ruby 2.6's `File.read` otherwise decodes with
@@ -1307,14 +1308,40 @@ PLUGIN_BUMP_NODE_FROZEN = CANON_LINT_FROZEN_NODE.freeze
 PLUGIN_BUMP_API_STEP = "Compute changed files + base .claude-plugin/plugin.json (API — no git credential)"
 PLUGIN_BUMP_STEPS = EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP).freeze
 PLUGIN_BUMP_NODE_STEPS = PLUGIN_BUMP_STEPS.dup.insert(PLUGIN_BUMP_STEPS.index(PLUGIN_BUMP_API_STEP), PLUGIN_BUMP_NODE_STEP).freeze
+# Canon's new route verifies the downloaded script before bash sees it.
+# It has no consumer fallback; both the ref and script digest are trusted.
+CANON_LINT_NEN_PIN = READINESS_FROZEN_PIN.merge(
+  "run" => READINESS_FROZEN_PIN.fetch("run").sub(
+    'echo "ref=$ref" >> "$GITHUB_OUTPUT"',
+    <<~'RUN'.strip
+      script_sha="$(jq -j '.dependency.bootstrap.scriptSha256 // empty' .trusted/nen/contract.json 2>/dev/null && printf .)" || script_sha=""
+      script_sha="${script_sha%.}"
+      [[ "$script_sha" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::trusted bootstrap script digest must be 64 lowercase hex digits."; exit 1; }
+      echo "script_sha=$script_sha" >> "$GITHUB_OUTPUT"
+      echo "ref=$ref" >> "$GITHUB_OUTPUT"
+    RUN
+  )
+).freeze
+CANON_LINT_NEN_BOOTSTRAP = NEN_BOOTSTRAP_NEXT.merge(
+  "env" => NEN_BOOTSTRAP_NEXT.fetch("env").merge("SCRIPT_SHA256" => "${{ steps.pin.outputs.script_sha }}"),
+  "run" => NEN_BOOTSTRAP_NEXT.fetch("run").sub(
+    'bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"',
+    <<~'RUN'.strip
+      [[ "$SCRIPT_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::trusted bootstrap script digest must be 64 lowercase hex digits."; exit 1; }
+      printf '%s  %s\n' "$SCRIPT_SHA256" "${RUNNER_TEMP}/nen-bootstrap.sh" | sha256sum -c -
+      bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+    RUN
+  )
+).freeze
 # Exact next job shape: no Node action, and no combination of old and new
-# steps. The pin, bootstrap and digest are readiness's own frozen forms.
+# steps. Canon adds script verification to readiness's frozen pin/bootstrap;
+# the independent binary digest step remains readiness's exact form.
 CANON_LINT_NEN_FROZEN_STEPS = {
   "Checkout PR head (data only — nothing from here is executed)" => READINESS_FROZEN_HEAD_CHECKOUT,
   "Checkout guard code from the trusted workflow revision" => READINESS_FROZEN_TRUSTED_CHECKOUT,
   "Enforce workflow runner policy from trusted workflow revision" => READINESS_FROZEN_POLICY,
-  "Read the pinned nen ref from trusted nen/contract.json" => READINESS_FROZEN_PIN,
-  "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => NEN_BOOTSTRAP_NEXT,
+  "Read the pinned nen ref from trusted nen/contract.json" => CANON_LINT_NEN_PIN,
+  "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => CANON_LINT_NEN_BOOTSTRAP,
   NEN_DIGEST_STEP => NEN_DIGEST_FROZEN,
   CANON_LINT_STEP => CANON_LINT_NEN_GUARD
 }.freeze
@@ -2132,6 +2159,7 @@ def validate_workflow(path, hatsu: false)
     end
     if File.basename(path) == CANON_LINT_WORKFLOW
       if step_names == CANON_LINT_NEN_STEPS
+        extra_env = ["SCRIPT_SHA256"]
         CANON_LINT_NEN_FROZEN_STEPS.each do |name, frozen|
           require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen,
                               "#{path} #{name.inspect}")
@@ -2185,8 +2213,14 @@ def validate_workflow(path, hatsu: false)
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == digest_name }, digest_frozen, "#{path} #{digest_name.inspect}")
     end
     if digest_name && bootstrap_step
-      require_frozen_step(bootstrap_step, carries_digest ? NEN_BOOTSTRAP_NEXT : (integrity_rendered ? READINESS_INTEGRITY_BOOTSTRAP : READINESS_FROZEN_BOOTSTRAP),
-                          "#{path} #{scalar(bootstrap_step["name"]).inspect}")
+      bootstrap_form = if File.basename(path) == CANON_LINT_WORKFLOW
+                         CANON_LINT_NEN_BOOTSTRAP
+                       elsif carries_digest
+                         NEN_BOOTSTRAP_NEXT
+                       else
+                         integrity_rendered ? READINESS_INTEGRITY_BOOTSTRAP : READINESS_FROZEN_BOOTSTRAP
+                       end
+      require_frozen_step(bootstrap_step, bootstrap_form, "#{path} #{scalar(bootstrap_step["name"]).inspect}")
     end
     refuse_unadmitted_step_shapes(path, job_name, job, step_maps, PR_JOB_KEYS, extra_uses: extra_uses, extra_env: extra_env)
     starter = step_maps.first
@@ -4056,26 +4090,39 @@ def self_test(root)
       validate_repo(tmp, announce: false)
       FileUtils.rm(canon)
       expect_rejected("#{CANON_LINT_WORKFLOW} missing") { validate_repo(tmp) }
-      File.write(canon, canon_original)
+      # Derive both controls from frozen step maps, never from the installed
+      # implementation: main's trusted checker must self-test the future Nen
+      # workflow just as it self-tests today's Node workflow.
+      start_at = canon_original.index("      - name: #{EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW)[1]}\n")
+      finish_at = canon_original.index("      - name: #{EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW).last}\n")
+      fail_policy("self-test: missing canon lint fixture boundaries") unless start_at && finish_at
+      canon_with = lambda do |steps|
+        canon_original[0...start_at] + steps.map { |name, frozen| render_step(name, frozen) + "\n" }.join + canon_original[finish_at..-1]
+      end
+      canon_node = canon_with.call({
+        "Checkout PR head (data only — nothing from here is executed)" => READINESS_FROZEN_HEAD_CHECKOUT,
+        "Checkout guard code from the trusted workflow revision" => READINESS_FROZEN_TRUSTED_CHECKOUT,
+        CANON_LINT_NODE_STEP => CANON_LINT_FROZEN_NODE,
+        "Enforce workflow runner policy from trusted workflow revision" => READINESS_FROZEN_POLICY,
+        CANON_LINT_STEP => CANON_LINT_FROZEN_GUARD
+      })
+      canon_nen = canon_with.call(CANON_LINT_NEN_FROZEN_STEPS)
+      File.write(canon, canon_node)
+      validate_repo(tmp, announce: false)
       canon_offender = %Q{the baseline never grows (HR-13)."\n              exit 1\n}
       [
         ["canon lint run from the PR checkout", "guard=.trusted/scripts/prose_ambiguity_check.mts", "guard=scripts/prose_ambiguity_check.mts", CANON_LINT_STEP],
         ["canon lint reading the PR's own rules", "rules=.trusted/contracts/prose.lint.json", "rules=contracts/prose.lint.json", CANON_LINT_STEP],
         ["canon lint without the base baseline", %Q{ --base-baseline "$PWD/$base"}, "", CANON_LINT_STEP],
         ["canon lint growing against the PR's own baseline", "base=.trusted/contracts/prose.lint.baseline.json", "base=contracts/prose.lint.baseline.json", CANON_LINT_STEP],
-        ["canon lint on an unpinned node", "node-version: '24'", "node-version: 'latest'", CANON_LINT_NODE_STEP],
-        ["canon lint's setup-node on a floating tag", "uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0", "uses: actions/setup-node@v7", CANON_LINT_NODE_STEP],
+        ["canon lint on an unpinned node", "node-version: 24", "node-version: latest", CANON_LINT_NODE_STEP],
+        ["canon lint's setup-node on a floating tag", "uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1", "uses: actions/setup-node@v7", CANON_LINT_NODE_STEP],
         ["canon lint that passes a finding", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
         ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
         ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]
-      ].each { |label, from, to, step| hostile.call(label, canon, canon_original, from, to, step: step) }
-      # Build the next form from the real installed workflow's boundaries.
-      # It must pass before installation; mixing forms or changing any frozen
-      # body (a third form) must fail main's trusted policy.
-      start_at = canon_original.index("      - name: #{EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW)[1]}\n")
-      finish_at = canon_original.index("      - name: #{EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW).last}\n")
-      fail_policy("self-test: missing canon lint fixture boundaries") unless start_at && finish_at
-      canon_nen = canon_original[0...start_at] + CANON_LINT_NEN_FROZEN_STEPS.map { |name, frozen| render_step(name, frozen) + "\n" }.join + canon_original[finish_at..-1]
+      ].each { |label, from, to, step| hostile.call(label, canon, canon_node, from, to, step: step) }
+      # The next form must pass before installation; mixing forms or changing
+      # any frozen body (a third form) must fail main's trusted policy.
       File.write(canon, canon_nen)
       validate_repo(tmp, announce: false)
       [
@@ -4088,10 +4135,11 @@ def self_test(root)
         ["Nen lint accepting findings", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
         ["Nen lint with an untrusted pin", ".trusted/nen/contract.json", "nen/contract.json", TRUSTED_PIN_STEP],
         ["Nen lint running before digest", %Q{          echo "bin=$bin" >> "$GITHUB_OUTPUT"\n}, %Q{          echo "bin=$bin" >> "$GITHUB_OUTPUT"\n          "$bin" --version\n}, "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)"],
+        ["Nen lint without script verification", %Q{          printf '%s  %s\\n' "$SCRIPT_SHA256" "${RUNNER_TEMP}/nen-bootstrap.sh" | sha256sum -c -\n}, "", "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)"],
         ["Nen lint with a third body", '"$NEN_BIN" canon lint', '"$NEN_BIN" canon lint --json', CANON_LINT_STEP],
         ["Nen lint hashing the wrong binary", 'sha256sum "$NEN_BIN"', 'sha256sum "$0"', NEN_DIGEST_STEP],
-        ["Nen lint without the pin step", render_step(TRUSTED_PIN_STEP, READINESS_FROZEN_PIN) + "\n", "", TRUSTED_PIN_STEP],
-        ["Nen lint without bootstrap", render_step("Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)", NEN_BOOTSTRAP_NEXT) + "\n", "", "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)"],
+        ["Nen lint without the pin step", render_step(TRUSTED_PIN_STEP, CANON_LINT_NEN_PIN) + "\n", "", TRUSTED_PIN_STEP],
+        ["Nen lint without bootstrap", render_step("Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)", CANON_LINT_NEN_BOOTSTRAP) + "\n", "", "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)"],
         ["Nen lint missing digest", render_step(NEN_DIGEST_STEP, NEN_DIGEST_FROZEN) + "\n", "", NEN_DIGEST_STEP],
         ["Nen lint carrying Node too", "      - name: #{CANON_LINT_STEP}\n", render_step(CANON_LINT_NODE_STEP, CANON_LINT_FROZEN_NODE) + "\n      - name: #{CANON_LINT_STEP}\n", CANON_LINT_NODE_STEP]
       ].each { |label, from, to, step| hostile.call(label, canon, canon_nen, from, to, step: step) }
@@ -4100,6 +4148,76 @@ def self_test(root)
                      render_step(name, frozen), render_step(name, frozen.merge("continue-on-error" => "true")), step: name)
       end
       File.write(canon, canon_original)
+      # A synthetic download proves the trust boundary executes in the right
+      # order: mismatched script bytes never reach bash, and even the matching
+      # script only prints a binary path (the independent digest runs later).
+      Dir.mktmpdir("hatsu-canon-bootstrap") do |dir|
+        FileUtils.mkdir_p(File.join(dir, ".trusted/nen"))
+        contract = File.join(dir, ".trusted/nen/contract.json")
+        payload = File.join(dir, "payload.sh")
+        marker = File.join(dir, "bootstrap-ran")
+        binary_marker = File.join(dir, "binary-ran")
+        binary = File.join(dir, "nen")
+        File.write(binary, "#!/bin/sh\ntouch \"#{binary_marker}\"\n")
+        File.chmod(0o755, binary)
+        File.write(payload, "#!/bin/sh\ntouch \"#{marker}\"\nprintf '%s\\n' \"#{binary}\"\n")
+        script_sha = Digest::SHA256.file(payload).hexdigest
+        stubs = File.join(dir, "stubs")
+        FileUtils.mkdir_p(stubs)
+        File.write(File.join(stubs, "curl"), "#!/bin/sh\ncp \"$FIXTURE_DOWNLOAD\" \"$4\"\n")
+        File.chmod(0o755, File.join(stubs, "curl"))
+        output = File.join(dir, "output")
+        [script_sha, nil, "#{script_sha}\n"].each do |digest|
+          File.write(contract, JSON.generate("dependency" => { "pinned_ref" => "v0.28.0", "bootstrap" => { "scriptSha256" => digest } }))
+          File.write(output, "")
+          out, status = Open3.capture2e({ "PATH" => ENV.fetch("PATH"), "GITHUB_OUTPUT" => output },
+                                       "bash", "--noprofile", "--norc", "-c", CANON_LINT_NEN_PIN.fetch("run"),
+                                       chdir: dir, unsetenv_others: true)
+          ok = digest == script_sha ? status.success? && File.read(output).include?("script_sha=#{script_sha}\n") : !status.success?
+          fail_policy("self-test: canon bootstrap pin accepted a missing/malformed digest or refused its control: #{out}") unless ok
+        end
+        [false, true].each do |altered|
+          File.write(payload, File.read(payload) + "# altered download\n") if altered
+          FileUtils.rm_f(marker)
+          FileUtils.rm_f(binary_marker)
+          File.write(output, "")
+          env = { "PATH" => [stubs, ENV.fetch("PATH")].join(File::PATH_SEPARATOR),
+                  "PINNED_REF" => "v0.28.0", "SCRIPT_SHA256" => script_sha,
+                  "RUNNER_TEMP" => dir, "GITHUB_OUTPUT" => output, "FIXTURE_DOWNLOAD" => payload }
+          out, status = Open3.capture2e(env, "bash", "--noprofile", "--norc", "-c",
+                                       CANON_LINT_NEN_BOOTSTRAP.fetch("run"), chdir: dir, unsetenv_others: true)
+          ok = if altered
+                 !status.success? && !File.exist?(marker) && File.read(output).empty?
+               else
+                 status.success? && File.exist?(marker) && File.read(output).include?("bin=#{binary}\n")
+               end
+          fail_policy("self-test: canon bootstrap script integrity/order failed (altered=#{altered}): #{out}") unless ok && !File.exist?(binary_marker)
+        end
+      end
+      # Exercise the actual trusted-CI entrypoint, including every fixture,
+      # against both installed forms. Children skip only this recursive driver;
+      # all self-test assertions and the final validate_repo still run there.
+      unless ENV["HATSU_POLICY_CANON_ENTRYPOINT_CHILD"] == "1"
+        { "Node" => canon_node, "Nen" => canon_nen }.each do |label, workflow|
+          Dir.mktmpdir("hatsu-canon-entrypoint") do |entry_root|
+            FileUtils.mkdir_p(File.join(entry_root, ".github/workflows"))
+            Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each do |path|
+              FileUtils.cp(path, File.join(entry_root, ".github/workflows"))
+            end
+            FileUtils.cp_r(File.join(root, "templates"), entry_root)
+            FileUtils.mkdir_p(File.join(entry_root, "scripts"))
+            FileUtils.cp(File.join(root, "scripts/readiness_ci_verdict.mts"), File.join(entry_root, "scripts"))
+            File.write(File.join(entry_root, ".github/workflows", CANON_LINT_WORKFLOW), workflow)
+            out, status = Open3.capture2e({ "HATSU_POLICY_CANON_ENTRYPOINT_CHILD" => "1" },
+                                         RbConfig.ruby, File.expand_path(__FILE__), "--self-test", entry_root)
+            workflow_count = Dir.glob(File.join(entry_root, ".github/workflows/*.{yml,yaml}")).length
+            unless status.success? && out.include?("negative fixtures passed") && out.include?("#{workflow_count} workflows structurally valid")
+              fail_policy("self-test: full --self-test entrypoint with #{label} canon lint exited #{status.exitstatus}:\n#{out}")
+            end
+          end
+        end
+        puts "workflow-runner-policy: full --self-test entrypoints passed for Node and Nen canon lint"
+      end
     end
 
     # Remove the builder again: the ABSENT case must still validate after all
