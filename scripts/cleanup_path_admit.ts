@@ -60,8 +60,8 @@
 //   dirt     unreadable: <first stderr line>   status failed, or warned (a non-empty stderr)
 // `tree clean` means no counted dirt line. The command is printed, never run: the maintainer's pick
 // (§ 6) runs it, and a failure is reported, never retried with a wider flag.
-import { lstatSync, mkdtempSync, readdirSync, realpathSync, rmSync, mkdirSync, symlinkSync, writeFileSync, chmodSync, existsSync } from 'node:fs';
-import { spawn, spawnSync } from 'node:child_process';
+import { fstatSync, lstatSync, mkdtempSync, readdirSync, realpathSync, rmSync, mkdirSync, symlinkSync, writeFileSync, chmodSync, existsSync } from 'node:fs';
+import { spawn, spawnSync, type StdioOptions } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -255,6 +255,28 @@ function admit(argv: string[]): never {
 async function selfTest(): Promise<number> {
   const self = fileURLToPath(import.meta.url);
   const shim = join(dirname(self), 'cleanup_path_admit.sh');
+  const coverageExec = process.env.HATSU_SHELL_COVERAGE_EXEC;
+  if (coverageExec && (process.env.HATSU_SHELL_COVERAGE_TARGET !== 'scripts/cleanup_path_admit.sh' || !existsSync(coverageExec))) {
+    process.stderr.write(`${NAME} --self-test: invalid exact-target coverage wrapper\n`);
+    return 2;
+  }
+  let traceFd: number | undefined;
+  if (coverageExec) {
+    const rawFd = process.env.BASH_XTRACEFD ?? '';
+    traceFd = /^\d+$/.test(rawFd) ? Number(rawFd) : undefined;
+    try {
+      if (traceFd === undefined || traceFd < 3 || traceFd > 255 || !process.env.PS4) throw new Error('missing trace state');
+      fstatSync(traceFd);
+    } catch {
+      process.stderr.write(`${NAME} --self-test: inherited Bashcov trace descriptor unavailable; no shell coverage captured\n`);
+      return 2;
+    }
+    process.env.HATSU_SHELL_COVERAGE_PS4 = process.env.PS4;
+    process.env.HATSU_SHELL_COVERAGE_TRACE_FD = process.env.BASH_XTRACEFD;
+    delete process.env.PS4;
+    delete process.env.BASH_XTRACEFD;
+    delete process.env.SHELLOPTS;
+  }
   const tmpBase = [process.env.TMPDIR ?? '', '/tmp'].map((d) => real(d.replace(/\/+$/, '') || '/')).find((d) => d !== null && safeAbs(d)) ?? null;
   if (tmpBase === null) { process.stderr.write(`${NAME} --self-test: no temp directory inside the charset\n`); return 2; }
   const tmp = real(mkdtempSync(join(tmpBase, 'cleanup-path-admit.'))) as string;
@@ -275,7 +297,13 @@ async function selfTest(): Promise<number> {
   };
   const run = (exe: string, args: string[], extraEnv: NodeJS.ProcessEnv = {}): Promise<{ code: number; out: string; err: string }> =>
     new Promise((resolveRun) => {
-      const c = spawn(exe, args, { env: { ...env, ...extraEnv }, stdio: ['ignore', 'pipe', 'pipe'] });
+      const traceShim = coverageExec && (exe === 'sh' || exe === '/bin/sh') && args[0] === shim;
+      const stdio: StdioOptions = ['ignore', 'pipe', 'pipe'];
+      if (traceShim && traceFd !== undefined) {
+        while (stdio.length <= traceFd) stdio.push('ignore');
+        stdio[traceFd] = traceFd;
+      }
+      const c = spawn(traceShim ? coverageExec : exe, traceShim ? args.slice(1) : args, { env: { ...env, ...extraEnv }, stdio });
       children.add(c);
       const chunks: Buffer[] = [];
       const errs: Buffer[] = [];
@@ -388,7 +416,8 @@ async function selfTest(): Promise<number> {
     writeFileSync(join(nodeOld, 'node'), '#!/bin/sh\necho v22.14.0\n');
     chmodSync(join(nodeOld, 'node'), 0o755);
     mkdirSync(noNode);
-    symlinkSync(spawnSync('sh', ['-c', 'command -v dirname'], { env }).stdout.toString().trim(), join(noNode, 'dirname'));
+    const dirnameExe = spawnSync('sh', ['-c', 'command -v dirname'], { env }).stdout.toString().trim();
+    for (const bin of [nodeOld, noNode]) symlinkSync(dirnameExe, join(bin, 'dirname'));
     fakePath = `${join(tmp, 'fakebin')}:${process.env.PATH ?? ''}`;
     warnPath = `${join(tmp, 'warnbin')}:${process.env.PATH ?? ''}`;
   } catch (e) {

@@ -10,6 +10,19 @@ set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 auth="$here/branch_authorship_check.sh"
 gate="$here/publish_gate_check.sh"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Only the declared target traces; fixture assertions and child shells stay plain.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/branch_authorship_check.sh" ] && [ -x "$coverage_exec" ] || exit 2
+fi
+if [ -n "$coverage_exec" ]; then
+  [ "${HATSU_SHELL_COVERAGE_TARGET_2:-}" = "scripts/publish_gate_check.sh" ] && [ -x "${HATSU_SHELL_COVERAGE_EXEC_2:-}" ] || exit 2
+  auth="$coverage_exec"
+  gate="$HATSU_SHELL_COVERAGE_EXEC_2"
+fi
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
