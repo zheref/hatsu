@@ -88,7 +88,7 @@ try {
     assert.equal(spec.template, `templates/issue-body/${kind}.md`);
     const template = readFileSync(join(root, spec.template), "utf8");
     const headings = [...template.matchAll(/^## (.+)$/gm)].map((m) => m[1]).sort();
-    // `requirements` is Akatsuki's alternative to Acceptance criteria (zheref/hatsu#411): optional on epic so
+    // `requirements` is Akatsuki's section, allowed beside Acceptance criteria on an epic (zheref/hatsu#411): optional on epic so
     // body-check reads its rows, carried by no Hatsu template, which files Acceptance criteria.
     const templated = [...spec.required, ...spec.optional].filter((id) => id !== "requirements");
     assert.deepEqual(headings, templated.map((id) => catalogue.sections[id].heading).sort(), kind);
