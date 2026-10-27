@@ -116,10 +116,13 @@ assert.deepEqual(report.criteria.map((c) => c.id), ["AC-1"], "the Requirements s
 report = criteria(section("- AC-12-001 (P1): Given a When b Then c\n- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"));
 assert.equal(report.verifiable, false);
 assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Given a When b Then c", "- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"]);
-// A body carrying both headings (alternatives, never both): at 0.28 the two are one union and an id repeated
-// across them is a duplicate -- pinned; zheref/nen#553 refuses the body.
+// Requirements beside Acceptance criteria on an epic (HA-PR-#512 round 2, R2-1): one id names one criterion, so an
+// id repeated across the two sections is a duplicate (reported at 0.28; zheref/nen#553 refuses it), and distinct ids
+// are no duplicate -- the epic row itself still unrecognised at 0.28 (zheref/nen#519, zheref/nen#553).
 report = criteria("## Acceptance criteria\n\n- AC-1: Given a When b Then c\n\n## Requirements\n\n- AC-1: Given d When e Then f\n");
 assert.deepEqual((report as unknown as { duplicates: { id: string }[] }).duplicates.map((d) => d.id), ["AC-1"], "an id repeated across the two sections is a duplicate at 0.28");
+report = criteria("## Acceptance criteria\n\n- AC-1: Given a When b Then c\n\n## Requirements\n\n- AC-12-001 (P1): Given d When e Then f\n");
+assert.deepEqual([report.criteria.map((c) => c.id), (report as unknown as { duplicates: unknown[] }).duplicates.length, report.unrecognised.map((u) => u.text)], [["AC-1"], 0, ["- AC-12-001 (P1): Given d When e Then f"]], "distinct ids across the two sections are no duplicate");
 // body-check at 0.28 misreads an epic row's id as AC-{epic}: two rows of one epic read as AC-12 twice (a
 // pinned miss owed to zheref/nen#519 and zheref/nen#553; the honest row-shape miss on the base catalogue).
 {
