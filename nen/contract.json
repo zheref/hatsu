@@ -332,7 +332,7 @@
       "constitution-check": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/constitution_check.mts, the deterministic half of breath section 4a's plan-time constitution check (HR-10 narrowed by HR-337; zheref/hatsu#505), interim until zheref/nen#554 ships the verb. Its fixture is hermetic for its synthetic Hatsu-shaped roots: a ruled row cited binds whole and HR-2 never matches HR-20, a reading binds nothing, a partly displaced row binds its rest and is followed to the displacing row, a wholly reversed row is followed and binds nothing, a skill the request names selects only the binding rows naming it (never a longer word or a reading), the record line keeps the breath note's shape, a dangling HR or CON id exits 1, and a CON id with no --constitution, a constitution defining no CON clause, a usage error, an unreadable or non-file request, a roster the clause guard refuses and a root with no claude/skills exit 2, in-process and through the CLI alike; its last case reads the live roster (HR-10 read in part, HR-337 followed). Run it as `nen shu test --lane constitution-check --repo <hatsu>` when the script, its fixture or the roster's status words change. It is not a general suite."
+        "$comment": "The focused lane for scripts/constitution_check.mts, the deterministic half of breath section 4a's plan-time constitution check (HR-10 narrowed by HR-337; zheref/hatsu#505), interim until zheref/nen#554 ships the verb. Its fixture is hermetic: a throwaway Hatsu-shaped root beside a throwaway constitution repository tagged at its pinnedSha. It asserts the gate floor (CON-4, CON-5, CON-6, CON-7, CON-47, HR-10) is listed whatever the request says and an empty request records `none listed`, never `pass`; a ruled row binds whole and HR-2 never matches HR-20; a reading binds nothing; a partly displaced row binds its rest and is followed; a wholly reversed row is followed and binds nothing; a named skill selects only binding rows naming it; a dangling HR or CON id exits 1; the note keeps the begin note, proved through real `nen phase begin/end` (NEN or PATH); and a usage error, a missing required flag, a moved tag, an unknown or unpinned source, a missing checkout, an unreadable or non-file request, a roster the clause guard refuses, a missing floor clause and a claude/skills that is a file exit 2, in-process and through the CLI alike; its last case reads the live roster. Run it as `nen shu test --lane constitution-check --repo <hatsu>` when the script, its fixture or the roster's status words change. It is not a general suite."
       },
       "delegate-brief-guard": {
         "stack": "claude-code-plugin",
@@ -1921,6 +1921,13 @@
           "kind": "path",
           "value": "node_modules/vitest/vitest.mjs",
           "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
+        }
+      ],
+      "constitution-check": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree refuses here at 2 rather than failing as a red test."
         }
       ],
       "config-values-guard": [

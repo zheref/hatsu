@@ -153,19 +153,20 @@ Once per new effort, after § 4, over the request saved under `<path>/.nen/`, **
 (HR-58); [`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *The constitution check* owns the rest:
 
 ```bash
-node '<Hatsu root>/scripts/constitution_check.mts' --request <file> --root '<Hatsu root>' --json
+node '<Hatsu root>/scripts/constitution_check.mts' --request <file> --root '<Hatsu root>' \
+  --constitution-source <owner/name> --constitution-checkout <dir> [--begin-note <text>] --json
 ```
 
-It lists the clauses (the verb is owed, zheref/nen#554); breath reads each binding one against the plan
-(HR-337). **Pass**: `record:` plus `; pass` as the `breath` entry's `--note`, no stop. **Conflict**: row
-`constitution-conflict` (G5), the clause named — **A** change the plan · **B** file the amendment —
-nothing authored before the answer. Exit `1` or `2` is never a pass.
+It lists the minimum to read, the gate floor always (owed to nen, zheref/nen#554); breath reads each
+binding clause against the plan and may name any other (HR-337). **Clear**: `.note` plus `; <.clear>`
+as the entry's `--note`. **Conflict**: row `constitution-conflict` (G5). **Exit `2`**: row
+`capability-unavailable`, `; not-run`.
 
 ## 5. What the turn reports, and the residue
 
 One line, not a gate event: any active swap, the `wc classify` case, **new effort or explicit
 continuation**, the branch cut and its tip (or the branch reused), the toolchain verdict, the build's
-exit code, the constitution check's `record:` line, any `info/exclude` lines, and the *no workflow.json*
+exit code, the constitution check's `.record`, any `info/exclude` lines, and the *no workflow.json*
 sentence where it applies.
 
 Residue, unfiled: rendering `branch.template`, appending `info/exclude` (proved by `nen wc classify`).
@@ -177,8 +178,8 @@ a listed clause (§ 4a), stay judgment**; on a *clean* feature branch § 2a is a
 **Permitted:** classify the working copy; probe and (`corepack` only) install a declared host tool;
 fetch; fast-forward the trunk; cut a **non-trunk** branch; run the lane's declared `build`/`test`;
 open the cycle ledger; record the constitution check. **Not permitted:** any push, commit, PR, label,
-`--discard` or deploy. **Not a gate event**; four G5s it raises, not owns: an unsupported host (`3`), an
-unreadable checkout, a base tip that does not build (§ 4), a conflicting clause (§ 4a).
+`--discard` or deploy. **Not a gate event**; five G5s it raises, not owns: an unsupported host (`3`), an
+unreadable checkout, a base tip that does not build (§ 4), a conflicting clause or an unrun check (§ 4a).
 
 - **Never `--discard`s a tree unshown to the maintainer**, nor on its own account; **never touches
   `origin` but to `fetch`** and test a name.
@@ -186,6 +187,6 @@ unreadable checkout, a base tip that does not build (§ 4), a conflicting clause
 - **Never treats a pre-fast-forward `nen shu tools` `2` as the host's verdict**, **reuses a feature
   branch for a new effort** (§ 2a), or **cuts from a stale trunk or a literal `origin/main`**.
 - **Never lets authoring begin on a base tip that did not build** — the trunk's red, a **G5**, never
-  repaired inside this effort — **nor before § 4a recorded a pass or its stop was answered A**.
+  repaired inside this effort — **nor before § 4a cleared or its stop was answered A**.
 - **Never reports an unrun warm-up as clear** or an undeclared repository as verified; **never invents
   or writes unasked a `workflow.json` value**, runs twice on one effort, or resets a Hanten cycle ledger (§ 3b).

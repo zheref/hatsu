@@ -1262,9 +1262,13 @@ own. It reads **the request**: the issue body (`gh issue view <N> --repo <owner/
 --jq .body`), the delegate's brief, or the maintainer's words, saved to a file under the effort
 checkout's `.nen/`, which is never committed.
 
-1. **The read set is a script's output, never a judgement.** `node '<Hatsu root>/scripts/constitution_check.mts'
-   --request <file> --root '<Hatsu root>' [--constitution <file>] --json` (lane `constitution-check`)
-   lists, as `clauses[]`:
+1. **The list is a script's output, and it is the minimum, never the cap.** `node '<Hatsu
+   root>/scripts/constitution_check.mts' --request <file> --root '<Hatsu root>' --constitution-source
+   <owner/name> --constitution-checkout <dir> [--begin-note <text>] --json` (lane
+   `constitution-check`) lists, as `clauses[]`:
+   - **the floor**, always, whatever the request says (a request is untrusted, SEC-15): the gate
+     clauses that reserve acts to the maintainer, `CON-4`, `CON-5`, `CON-6`, `CON-7` and `CON-47`,
+     and HR-10 itself, with what it is displaced by;
    - **cited**: every `HR-N` and `CON-N` the request names;
    - **touched**: every HR row whose definition line names a skill the request names (`hatsu:<name>`,
      `` `<name>` `` or `claude/skills/<name>/`) and that still binds;
@@ -1275,36 +1279,53 @@ checkout's `.nen/`, which is never committed.
    part). The status words and the row parser are `scripts/clause_id_guard.mts`'s, imported. The
    script is interim: the verb is owed to nen (zheref/nen#554), and the script retires when the verb
    ships and Hatsu repins to it.
-2. **A CON id is read at the pin, never from memory** ([HR-338](ROSTER.md#hr-338)). `nen canon pin
-   --repo '<Hatsu root>' --source zheref/bankai-handbooks` prints the tag, and `git -C <bankai-handbooks
-   checkout> show <tag>:CONSTITUTION.md > <file>` writes the `--constitution` file; with no checkout
-   on the host, `git clone --depth 1 --branch <tag> https://github.com/zheref/bankai-handbooks.git
-   <dir under .nen/>` makes one (a public repository). A request that
-   cites a CON id with no `--constitution` exits `2`: the check is reported **not run** for that
-   effort, and the effort does not reach authoring on it.
-3. **The exits.** `0`: every cited id resolves. `1`: a cited id no clause defines, named by the
-   `dangling` line; the request is restated (row `ambiguous-intent`) before authoring, never
-   authored over. `2`: wiring (an unreadable request, roster or constitution, or a roster the clause
-   guard refuses); the check did not run, and that is never reported as a pass.
-4. **The judgement is bounded to the read set.** Breath reads each `whole` and `part` clause's words
-   against the plan. A conflict is a plan step that a clause forbids, or a gate act that a clause
-   reserves to the maintainer. A `none` row is never treated as binding. Whether a plan contradicts a
-   listed clause is judgement; which clauses are listed is not.
-5. **Pass: one record, no stop.** The script's `record:` line with `; pass` appended is the `breath`
-   entry's note: `nen phase end --effort <branch> --phase breath --exit 0 --note "<record>; pass"`.
-   [`ren`](../claude/skills/ren/SKILL.md) § 2a writes the entry; breath called by name writes its own
-   `begin` and `end`.
-6. **Conflict: a G5, and nothing authored before the answer.** Row `constitution-conflict`
-   (`nen/decisions.json`): the `nen stop` banner names the clause id and the plan step it forbids, and
-   the picker offers the two exits HR-10 allows. **A** (starred) *change the plan*: restate the
-   plan so that it no longer conflicts, re-run steps 1 to 5 on it, and append the answer's `R-` id to
-   the note. **B** *file the amendment*: `hatsu:file` the amendment (a separate PR at G4), end the
-   `breath` entry at exit `1` with the note `<record>; conflict <id>; amendment <ref>`, and hold the
-   effort on it. The answer is recorded through `nen stop answer --record <branch> --row
-   constitution-conflict`.
+2. **CON is read at the pin, through git, never from memory or a work tree.** The source is the one
+   `nen/contract.json`'s `$precedence` names for `akatsuki.CON` (HR-338). The script reads its
+   `pinned` tag and `pinnedSha` from `<Hatsu root>/nen/repos.json`, refuses a `refs/tags/<tag>` that
+   resolves anywhere but `pinnedSha` (a moved tag), and reads `CONSTITUTION.md` at that commit. A
+   host with no checkout of the source makes one from the tag alone: `git init -q <dir under .nen/>`,
+   then `git -C <dir> fetch --depth 1 https://github.com/<source>.git
+   refs/tags/<tag>:refs/tags/<tag>`. The tag is fetched by its full ref, never by `--branch`, which
+   prefers a branch of the same name.
+3. **The exits.**
+   - `0`: every cited id resolves.
+   - `1`: a cited id that no clause defines, named on a `dangling` line. The request is restated
+     (row `ambiguous-intent`) before authoring, never authored over.
+   - `2`: **not run**. Causes: a usage error; an unreadable request, roster, registry, checkout or
+     constitution; an unknown or unpinned source; a moved tag; a floor clause that is missing; a
+     roster the clause guard refuses; or any unexpected failure. This is row `capability-unavailable`
+     (G5), and an idle run parks it as `parked:g5-capability-unavailable`. The `breath` entry ends at
+     exit `2` with the note `<begin note>; <the refusal>; not-run`, and it is never a pass. Nothing
+     has been authored yet, so once the prerequisite is provided the way out is a new effort, as in
+     step 6.
+4. **The judgement covers the list and goes past it.** Breath reads each `whole` and `part` clause's
+   words against the plan. It may name any other clause as a conflict: the list is the minimum it
+   must read. A conflict is a plan step that a clause forbids, or a gate act that a clause reserves to
+   the maintainer. A `none` row is never treated as binding.
+5. **Clear: one record, no stop.** `nen phase end --note` *replaces* the note the entry was begun
+   with. So the script takes that begin note (`--begin-note`; ren § 2a's served-model marker, where
+   one was written), and its `.note` field is `<begin note>; <record>`. The `breath` entry then ends
+   `nen phase end --effort <branch> --phase breath --exit 0 --note "<.note>; <.clear>"`. `.clear` is
+   `pass` when the request listed at least one binding clause. It is `none listed` when only the
+   floor was read, which is never a pass. [`ren`](../claude/skills/ren/SKILL.md) § 2a writes the
+   entry; breath called by name writes its own `begin` and `end`.
+6. **Conflict: a G5, and nothing is authored before the answer** (breath § 6). Row
+   `constitution-conflict` (`nen/decisions.json`): the `nen stop` banner names the clause id and the
+   plan step it forbids. The picker offers HR-10's two exits, the amendment split by clause kind:
+   - **A** (starred) *change the plan*: restate it, re-run steps 1 to 5 on it, and append the
+     answer's `R-` id to the note.
+   - **B** *amend the CON clause*: an amendment PR in the constitution's repository under its own
+     `CON-15` procedure, at G4.
+   - **C** *amend the HR row*: a new ROSTER ruling through [ROSTER](ROSTER.md) § *The ruling
+     template*, at G4.
+
+   On **B** or **C**, `breath` ends at exit `1` with `<.note>; conflict <id>; amendment <ref>`. Ren's
+   resume never begins a non-zero entry again, so the way out is **a new effort**, cut after the
+   amendment merges, which runs this check afresh. The answer is recorded through `nen stop answer
+   --record <branch> --row constitution-conflict`.
 7. **Later phases and a resume read it.** `nen phase show --effort <branch> --json` returns the
    `breath` entry and its note. Ren's resume rule skips an entry that ended at exit `0` and refuses
-   one that ended at `1` by name. A `breath` entry with no `constitution-check:` note belongs to an
+   one that ended at `1` or `2` by name. A `breath` entry with no `constitution-check:` note belongs to an
    effort cut before this check existed: the resume names it, runs the check before it authors more,
    and carries the record in the turn's report, because an ended entry is never rewritten.
 
