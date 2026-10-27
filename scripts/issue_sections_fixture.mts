@@ -88,13 +88,28 @@ try {
     assert.equal(spec.template, `templates/issue-body/${kind}.md`);
     const template = readFileSync(join(root, spec.template), "utf8");
     const headings = [...template.matchAll(/^## (.+)$/gm)].map((m) => m[1]).sort();
-    assert.deepEqual(headings, [...spec.required, ...spec.optional].map((id) => catalogue.sections[id].heading).sort(), kind);
+    // `requirements` is Akatsuki's alternative to Acceptance criteria (zheref/hatsu#411): optional on epic so
+    // body-check reads its rows, carried by no Hatsu template, which files Acceptance criteria.
+    const templated = [...spec.required, ...spec.optional].filter((id) => id !== "requirements");
+    assert.deepEqual(headings, templated.map((id) => catalogue.sections[id].heading).sort(), kind);
     // 2. nen reads the catalogue's own shape: an unfilled template is a miss, every section empty.
     const unfilled = call("body-check", template, ["--kind", kind]);
     assert.equal(unfilled.status, 1, `${kind} template: ${unfilled.stderr}`);
     assert.equal(unfilled.json?.ok, false);
-    assert.equal(unfilled.json?.sections?.filter((s) => s.status === "empty").length, spec.required.length + spec.optional.length, kind);
+    assert.equal(unfilled.json?.sections?.filter((s) => s.status === "empty").length, templated.length, kind);
   }
+  assert.deepEqual(Object.entries(catalogue.kinds).filter(([, spec]) => [...spec.required, ...spec.optional].includes("requirements")).map(([kind]) => kind), ["epic"], "requirements is optional on epic alone and required by no kind");
+  // 1b. Akatsuki's Requirements section on an epic (zheref/hatsu#411): body-check shape-checks its rows
+  // (numbering, vague words), and a body carrying both headings -- alternatives, never both -- still passes
+  // at nen 0.28: a pinned miss owed to zheref/nen#553, which refuses it.
+  const epicBody = (acceptance: string) => `## Problem\n\nx\n\n## Audience and why\n\nme\n\n## Children\n\n- #1 a\n\n${acceptance}\n\n## Success criteria\n\n- SC-1: 100% of rows read\n\n## Assumptions\n\nNone.\n\n## Open questions\n\nNone.\n\n## Scope boundaries\n\nin\n\n## Cross-references\n\nnone\n`;
+  type Shaped = { misses?: Array<{ section: string; kind: string }>; advisories?: Array<{ kind: string; word: string }> };
+  const shaped = call("body-check", epicBody("## Acceptance criteria\n\n- AC-1: Given a When b Then c\n\n## Requirements\n\n- AC-1: Given a When quickly b Then c\n- AC-3: Given a When b Then c"), ["--kind", "epic"]);
+  assert.equal(shaped.status, 1, shaped.stderr);
+  assert.deepEqual(shaped.json?.misses?.map((m) => [m.section, m.kind]), [["requirements", "row-order"]], JSON.stringify(shaped.json?.misses));
+  assert.ok((shaped.json as Shaped | null)?.advisories?.some((a) => a.kind === "vague" && a.word === "quickly"), "a Requirements row is read for vague words");
+  const both = call("body-check", epicBody("## Acceptance criteria\n\n- AC-1: Given a When b Then c\n\n## Requirements\n\n- AC-1: Given d When e Then f"), ["--kind", "epic"]);
+  assert.equal(both.status, 0, `a body carrying both headings passes at nen 0.28 (pinned; zheref/nen#553 refuses it): ${JSON.stringify(both.json?.misses)}`);
   // 3. A filled body passes for its kind and against common; a missing required section is a miss.
   for (const extra of [["--kind", "machinery"], []]) {
     const pass = call("body-check", good, extra);
@@ -120,7 +135,7 @@ try {
   writeFileSync(broken, "{ not json");
   assert.equal(call("body-check", good, ["--kind", "machinery"], broken).status, 2);
   assert.equal(call("questions", good, [], broken).status, 2);
-  console.log("issue-shape: templates per kind, nen issue body-check and nen issue questions over the catalogue, and the malformed-catalogue refusal passed");
+  console.log("issue-shape: templates per kind, the Requirements alternative on epic, nen issue body-check and nen issue questions over the catalogue, and the malformed-catalogue refusal passed");
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

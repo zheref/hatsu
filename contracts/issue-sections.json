@@ -1,6 +1,6 @@
 {
   "contract": "hatsu.issue-sections/v1",
-  "$comment": "The issue section catalogue (HR-4; SDD plan piece P6). One catalogue owns the headings an issue Hatsu files carries per kind, which of them must be present and non-empty, the row shapes inside them, and the two word lists the acceptance rows are read against. Every heading is a level-2 heading matched case-insensitively. `nen issue body-check --requirements-from` and `nen issue questions --requirements-from` (nen 0.26.0) read this file and nothing else for the shape; templates/issue-body/<kind>.md is the body each kind starts from. A body checked with no --kind is read against `common` only. Acceptance criteria state intent, never technology: a flag, a verb or a path belongs in Plan notes alone. The acceptance row reads two id shapes (zheref/hatsu#411): Hatsu files `AC-{n}`, and Akatsuki's epic and child templates write `AC-{epic}-{nnn} (P{n})` under `## Requirements`; the whole id is the criterion, and a struck `withdrawn` row is the resolved form, never a live criterion. nen 0.28 reads the Requirements section and the withdrawn row's shape in body-check, while `nen issue criteria` and `nen pr converge` still list both Akatsuki forms as unrecognised until nen reads the id from this pattern (zheref/nen#519) and the annotation and withdrawn rows from this catalogue (zheref/nen#553).",
+  "$comment": "The issue section catalogue (HR-4; SDD plan piece P6). One catalogue owns the headings an issue Hatsu files carries per kind, which of them must be present and non-empty, the row shapes inside them, and the two word lists the acceptance rows are read against. Every heading is a level-2 heading matched case-insensitively. `nen issue body-check --requirements-from` and `nen issue questions --requirements-from` (nen 0.26.0) read this file and nothing else for the shape; templates/issue-body/<kind>.md is the body each kind starts from. A body checked with no --kind is read against `common` only. Acceptance criteria state intent, never technology: a flag, a verb or a path belongs in Plan notes alone. The acceptance row reads two id shapes (zheref/hatsu#411): Hatsu files `AC-{n}`, and Akatsuki's epic and child templates write `AC-{epic}-{nnn} (P{n})` under `## Requirements`; the whole id is the criterion, and a struck `withdrawn` row is the resolved form, never live. One id group serves both shapes, so the pattern is deliberately looser than either `shape` (an `AC-{n}` row may carry `(P{n})`, an epic row may omit it): nen reads the id shape from that one group (zheref/nen#519), and the fixture pins the looseness. A body carries `## Acceptance criteria` or `## Requirements`, never both: the two are alternatives, `requirements` is optional on the `epic` kind only so that body-check shape-checks its rows, and a body carrying both is a body-check miss once nen refuses it (zheref/nen#553); at nen 0.28 the two are read as one union, an id repeated across them reported as a duplicate. At nen 0.28, `nen issue criteria` reads the Requirements section and `nen issue body-check` admits a withdrawn `AC-{n}` row in order; both Akatsuki forms are still unrecognised by `issue criteria` and `pr converge`, and body-check misreads an `AC-{epic}-{nnn}` row's id as `AC-{epic}`, until nen reads the id from this pattern (zheref/nen#519) and the annotation and withdrawn rows from this catalogue (zheref/nen#553).",
   "sections": {
     "problem": { "heading": "Problem" },
     "audience": { "heading": "Audience and why" },
@@ -12,7 +12,7 @@
     "missing-rule": { "heading": "Missing rule", "$comment": "A canon gap's missing or wrong rule and what a reader did instead because of it (hatsu:file section 2)." },
     "children": { "heading": "Children", "$comment": "An epic's child issues or planned slices, one per line." },
     "acceptance": { "heading": "Acceptance criteria", "rows": "acceptance" },
-    "requirements": { "heading": "Requirements", "rows": "acceptance", "$comment": "Akatsuki's acceptance section in its epic and child templates (zheref/akatsuki-ai schemas/templates/epic.md, child.md), read for criteria beside Acceptance criteria; no Hatsu kind requires it." },
+    "requirements": { "heading": "Requirements", "rows": "acceptance", "$comment": "Akatsuki's acceptance section in its epic and child templates (zheref/akatsuki-ai schemas/templates/epic.md, child.md): the alternative to Acceptance criteria, never beside it. Optional on the epic kind so body-check reads its rows; no kind requires it, and no Hatsu template carries it." },
     "success": { "heading": "Success criteria", "rows": "success" },
     "entities": { "heading": "Key entities", "$comment": "Required only when the issue captures data; never required by a kind." },
     "assumptions": { "heading": "Assumptions", "rows": "assumption", "none": true },
@@ -47,7 +47,7 @@
     "epic": {
       "template": "templates/issue-body/epic.md",
       "required": ["problem", "audience", "children", "acceptance", "success", "assumptions", "open-questions", "scope", "cross-references"],
-      "optional": ["entities", "plan-notes"]
+      "optional": ["entities", "plan-notes", "requirements"]
     }
   },
   "rows": {
@@ -56,7 +56,7 @@
       "epicShape": "- AC-{epic}-{nnn} (P{n}): Given … When … Then …",
       "pattern": "^- AC-([0-9]+(?:-[0-9]{3})?)(?: \\(P[0-9]+\\))?: Given .+ When .+ Then .+$",
       "resolvedShape": "- ~~AC-{id}~~ withdrawn: <reason> (<YYYY-MM-DD>)",
-      "resolvedPattern": "^- ~~AC-([0-9]+(?:-[0-9]{3})?)(?: \\(P[0-9]+\\): Given .+ When .+ Then .+)?~~ withdrawn: .+ \\([0-9]{4}-[0-9]{2}-[0-9]{2}\\)$",
+      "resolvedPattern": "^- ~~AC-([0-9]+(?:-[0-9]{3})?)(?:(?: \\(P[0-9]+\\))?: Given .+ When .+ Then .+)?~~ withdrawn: .+ \\([0-9]{4}-[0-9]{2}-[0-9]{2}\\)$",
       "prefix": "^- (~~)?AC-"
     },
     "success": { "shape": "- SC-{n}: <a measurable outcome carrying a number or a percentage>", "pattern": "^- SC-([0-9]+): (.+)$", "prefix": "^- SC-", "measure": "[0-9]|%" },

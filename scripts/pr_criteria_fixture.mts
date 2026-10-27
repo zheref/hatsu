@@ -89,12 +89,17 @@ assert.equal(report.verifiable, false);
   assert.equal(id(live, "- AC-12-001 (P1): Given a When b Then c"), "12-001", "AC-1: the epic row's id is read whole");
   assert.equal(id(live, "- AC-12-001: Given a When b Then c"), "12-001");
   assert.equal(id(live, "- AC-3: Given a When b Then c"), "3", "AC-2: the AC-{n} row reads as before");
+  // Deliberately looser than either shape: one id group serves both (zheref/nen#519 reads that group), so an
+  // AC-{n} row may carry (P{n}) and an epic row may omit it -- pinned, not incidental.
+  assert.equal(id(live, "- AC-1 (P3): Given a When b Then c"), "1", "the annotation is not tied to the epic id (deliberate)");
   for (const bad of ["- AC-12-01 (P1): Given a When b Then c", "- AC-12-001 (P1) Given a When b Then c", "- AC-12-001 (high): Given a When b Then c", "- AC-: Given a When b Then c", "- AC-3: Given a Then c"]) {
     assert.equal(id(live, bad), null, `not an acceptance row: ${bad}`);
   }
   assert.equal(id(withdrawn, "- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"), "12-002", "AC-3: the struck row is the resolved form");
   assert.equal(id(withdrawn, "- ~~AC-12-003 (P2): Given a When b Then c~~ withdrawn: folded (2026-10-22)"), "12-003", "the struck part may keep the row's text");
   assert.equal(id(withdrawn, "- ~~AC-4~~ withdrawn: dropped (2026-10-26)"), "4");
+  assert.equal(id(withdrawn, "- ~~AC-4: Given a When b Then c~~ withdrawn: dropped (2026-10-26)"), "4", "the struck text keeps an unannotated row");
+  assert.equal(id(withdrawn, "- ~~AC-12-003: Given a When b Then c~~ withdrawn: folded (2026-10-22)"), "12-003");
   for (const bad of ["- ~~AC-12-002~~ withdrawn: folded", "- ~~AC-12-002~~ folded (2026-10-22)", "- AC-12-002 withdrawn: folded (2026-10-22)"]) {
     assert.equal(id(withdrawn, bad), null, `not a withdrawn row: ${bad}`);
   }
@@ -111,7 +116,21 @@ assert.deepEqual(report.criteria.map((c) => c.id), ["AC-1"], "the Requirements s
 report = criteria(section("- AC-12-001 (P1): Given a When b Then c\n- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"));
 assert.equal(report.verifiable, false);
 assert.deepEqual(report.unrecognised.map((u) => u.text), ["- AC-12-001 (P1): Given a When b Then c", "- ~~AC-12-002~~ withdrawn: folded (2026-10-22)"]);
-// `nen issue body-check` reads the resolved form at this pin: a withdrawn row keeps its number in order.
+// A body carrying both headings (alternatives, never both): at 0.28 the two are one union and an id repeated
+// across them is a duplicate -- pinned; zheref/nen#553 refuses the body.
+report = criteria("## Acceptance criteria\n\n- AC-1: Given a When b Then c\n\n## Requirements\n\n- AC-1: Given d When e Then f\n");
+assert.deepEqual((report as unknown as { duplicates: { id: string }[] }).duplicates.map((d) => d.id), ["AC-1"], "an id repeated across the two sections is a duplicate at 0.28");
+// body-check at 0.28 misreads an epic row's id as AC-{epic}: two rows of one epic read as AC-12 twice (a
+// pinned miss owed to zheref/nen#519 and zheref/nen#553; the honest row-shape miss on the base catalogue).
+{
+  const file = join(dir, "epic-rows.md");
+  writeFileSync(file, section("- AC-12-001 (P1): Given a When b Then c\n- AC-12-002 (P2): Given a When b Then c"));
+  const r = spawnSync(nen, ["issue", "body-check", "--body-file", file, "--requirements-from", catalogue, "--json"], { encoding: "utf8" });
+  const misses = (JSON.parse(r.stdout) as { misses: { section: string; kind: string; detail: string }[] }).misses.filter((m) => m.section === "acceptance");
+  assert.deepEqual(misses.map((m) => m.kind), ["row-order", "row-order"], JSON.stringify(misses));
+  assert.ok(misses[1].detail.includes("AC-12 repeats an earlier row's number"), misses[1].detail);
+}
+// `nen issue body-check` reads the resolved form at this pin, for AC-{n} rows: a withdrawn row keeps its number in order.
 {
   const file = join(dir, "withdrawn.md");
   writeFileSync(file, section("- AC-1: Given a When b Then c\n- ~~AC-2~~ withdrawn: folded (2026-10-22)\n- AC-3: Given a When b Then c"));
