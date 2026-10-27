@@ -78,6 +78,13 @@ done
 cmp -s "$body" "$tmp/body.expected" || fail 'refused draft touched symlink target'
 grep -Fq 'stamp 1.2.3' "$tmp/surfaces/codex/AGENTS.md" || fail 'draft flag rewrote a generated mirror'
 
+# A sibling whose name merely begins with surfaces is an ordinary local draft.
+mkdir -p "$tmp/surfaces-draft"
+printf 'Plugin 1.2.3\n' > "$tmp/surfaces-draft/body.md"
+bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.3 --to 1.2.4 \
+  --body-file "$tmp/surfaces-draft/body.md" --write > "$tmp/body-boundary.log"
+grep -Fxq 'Plugin 1.2.4' "$tmp/surfaces-draft/body.md" || fail 'surfaces-prefixed sibling draft was refused'
+
 # A local replacement of a tracked directory must not make --write touch a
 # file outside the checkout.
 outside="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-version-refs-outside.XXXXXXXX")"
