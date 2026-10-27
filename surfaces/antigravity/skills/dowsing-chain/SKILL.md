@@ -97,11 +97,11 @@ wait is [`kamui`](../kamui/SKILL.md) § 4's by name — `nen watch until … --m
 `traceability.md` are regenerated on the next branch (`nen spec index --write`, `nen spec trace --write`),
 never hand-edited; `nen spec coverage` is quoted in the body.
 
-## 8. Dispatch — the picker, then file's own confirmation
+## 8. Dispatch — the picker, then the filings
 
 `dispatch <family>` after `MERGED`: row `spec-dispatch` — every marker-free gap group, **none starred**,
-paged in fours, recorded (`nen stop answer`, WORKFLOW § 4); no per-dispatch G1, the typed dispatch the go (HR-344). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
-by name, its § 4 confirmation per dispatch, each rendered body file scanned first (`detect --no-git`, § 4's stop); the title and body
+paged in fours, recorded (`nen stop answer`, WORKFLOW § 4); the typed dispatch wave is the go, no per-dispatch G1 (HR-344). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
+by name, the wave its § 4 stand-in (plan shown), each rendered body file scanned first (`detect --no-git`, § 4's stop); the title and body
 `nen spec tasks groups --group <id>` renders (`Spec: specs/<nnn>-<slug>@<sha>`, scenarios as source data), an existing issue
 amended with `nen issue edit-body --expect-body-sha256`; `classify` and `direct` per filing; one epic per
 folder, mode label **proposed** (row `mode-label`), children by `nen issue attach-sub`. `--via build` runs
