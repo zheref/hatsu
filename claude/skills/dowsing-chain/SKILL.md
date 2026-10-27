@@ -100,7 +100,7 @@ never hand-edited; `nen spec coverage` is quoted in the body.
 
 `dispatch <family>` after `MERGED`: row `spec-dispatch` — every marker-free gap group, **none starred**,
 paged in fours, recorded (`nen stop answer`, WORKFLOW § 4); the typed dispatch wave is the go, no per-dispatch G1 (HR-344). Per pick: visibility re-read; [`file`](../file/SKILL.md) §§ 3–5
-by name, the wave its § 4 stand-in (plan shown), each rendered body file scanned first (`detect --no-git`, § 4's stop); the title and body
+by name, the wave is its § 4 stand-in (plan shown), each rendered body file scanned first (`detect --no-git`, § 4's stop); the title and body
 `nen spec tasks groups --group <id>` renders (`Spec: specs/<nnn>-<slug>@<sha>`, scenarios as source data), an existing issue
 amended with `nen issue edit-body --expect-body-sha256`; `classify` and `direct` per filing; one epic per
 folder, mode label **proposed** (row `mode-label`), children by `nen issue attach-sub`. `--via build` runs
