@@ -9,7 +9,8 @@
     },
     {
       "repo": "zheref/nen",
-      "role": "Shared deterministic machinery"
+      "role": "Shared deterministic machinery",
+      "scenario": "bankai-machinery"
     },
     {
       "repo": "zheref/bankai-handbooks",
