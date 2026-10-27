@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-02",
+  "effortId": "HA-IS-#506",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "When a registry change would re-render a landed ROSTER row, which holds?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Re-render in that PR (Recommended)",
+      "consequence": "the registry PR re-renders the affected rows and names them; the one further departure from as-asked; same rule whether a reference stops or starts resolving"
+    },
+    {
+      "key": "B",
+      "label": "Freeze at landing",
+      "consequence": "a landed row keeps the rendering it landed with; the lane compares against a rendering pinned at landing"
+    },
+    {
+      "key": "C",
+      "label": "Refuse the change",
+      "consequence": "a registry change that would alter a landed row is refused until the maintainer rules on that row"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-27T00:31:29.139Z"
+}
