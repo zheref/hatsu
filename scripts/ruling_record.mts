@@ -254,9 +254,31 @@ function render(argv: string[]): number {
 }
 
 const CELL_NAMES = ['HR id and record link', 'question', 'options', 'answer'];
-// A cell with every reference reduced to its number, coded (`<owner>/<name>#N`) or as written (`<word> #N`):
-// two cells equal under it differ only in how nen/repos.json codes their references.
-const refsOnly = (s: string): string => s.replace(/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+#(\d+)/g, '#$1').replace(/[A-Za-z0-9][A-Za-z0-9._-]* #(\d+)/g, '#$1');
+// Whether a row's cell differs from the record's uncoded rendering only where a reference is written:
+// each `<word> #N` of the record must stand in the row as written or as `<owner>/<name>#N` with the same
+// N, and that slug must be one the registry knows for the word -- what nen repo resolve names for it,
+// a slug nen repo resolve names for itself, or the repository whose name the word is (a rename or a
+// stop leaves the old slug in the row). Every other character must match, so a hand edit of a slug or a
+// word (`zheref/evil#5` for `hatsu #5`) is a plain mismatch.
+const escRe = (t: string): string => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function refsMoved(got: string, uncodedCell: string): boolean {
+  const words: string[] = [];
+  let pattern = '';
+  let last = 0;
+  for (const m of uncodedCell.matchAll(REF)) {
+    const [all, word = '', num = ''] = m;
+    pattern += `${escRe(uncodedCell.slice(last, m.index))}(?:${escRe(all)}|([A-Za-z0-9._-]+\\/[A-Za-z0-9._-]+)#${num}\\b)`;
+    words.push(word);
+    last = (m.index ?? 0) + all.length;
+  }
+  if (!words.length) return false;
+  const hit = new RegExp(`^${pattern}${escRe(uncodedCell.slice(last))}$`).exec(got);
+  if (!hit) return false;
+  return words.every((word, k) => {
+    const slug = hit[k + 1];
+    return slug === undefined || repoOf(word) === slug || repoOf(slug) === slug || slug.split('/')[1] === word;
+  });
+}
 
 function check(argv: string[]): number {
   const args = parseArgs(argv, new Set(['--roster', '--records']));
@@ -300,8 +322,8 @@ function check(argv: string[]): number {
       if (got[i] === want[i]) continue;
       // HR-368's remedy is named only where the row differs from the record in its coded references
       // alone (cells 1-3; a rename, a stop or a start in nen/repos.json); a hand-retyped cell is a plain mismatch.
-      const moved = i > 0 && refsOnly(got[i] ?? '') === refsOnly(uncoded[i] ?? '');
-      err(n, `${hr}: the ${CELL_NAMES[i]} cell differs from record ${id}; re-render it${moved ? ' in this PR (its coded references moved with nen/repos.json, HR-368)' : ''}`);
+      const moved = i > 0 && refsMoved(got[i] ?? '', uncoded[i] ?? '');
+      err(n, `${hr}: the ${CELL_NAMES[i]} cell differs from record ${id}; ${moved ? 'if nen/repos.json changed, re-render it in this PR (HR-368); otherwise the cell was edited by hand: re-render it from the record' : 're-render it'}`);
     }
     if (!got[4] || !got[5]) err(n, `${hr}: the status and what-it-settles cells must be filled`);
   });

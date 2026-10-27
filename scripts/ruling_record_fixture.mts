@@ -163,7 +163,7 @@ try {
       ['a word that becomes ambiguous', registry('ambiguous', { hatsu: one('zheref/hatsu'), nen: [...one('zheref/nen'), ...one('zheref/nen-fork')] })],
     ];
     for (const [what, env] of moves) {
-      expect(`HR-368: ${what} fails the landed row by HR id, naming the re-render`, run(['check', '--roster', landedRoster], env), 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it in this PR \(its coded references moved with nen\/repos\.json, HR-368\)/);
+      expect(`HR-368: ${what} fails the landed row by HR id, naming the re-render`, run(['check', '--roster', landedRoster], env), 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; if nen\/repos\.json changed, re-render it in this PR \(HR-368\); otherwise the cell was edited by hand: re-render it from the record$/m);
       const again = renderUnder(env);
       expect(`HR-368: ${what}, the row re-rendered in the same PR, passes`, run(['check', '--roster', roster(join(dir, what.replace(/\W+/g, '-')), [again]), '--records', join(dir, 'ruling-records')], env), 0, /1 ROSTER rows match their records/);
       assert.match(again, /\| typed \(verbatim\): \*"hatsu #9 stands"\* \|/, `${what}: the typed words never change\n${again}`);
@@ -172,6 +172,17 @@ try {
       const retyped = run(['check', '--roster', roster(join(dir, 'retyped'), [landed.replace(' or bankai #7?', ' or bankai #7 instead?')]), '--records', join(dir, 'ruling-records')], refEnv);
       expect('HR-368: a hand-retyped row under an unchanged registry is a plain mismatch', retyped, 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it$/m);
       assert.equal(retyped.stdout.includes('nen/repos.json'), false, `a retyped row names no registry cause\n${retyped.stdout}`);
+      // Round 2: only a slug the registry knows for the word stands in for it; a hand edit of the slug or
+      // the word before an unchanged number is a plain mismatch.
+      const probes: [string, string][] = [
+        ['a slug edited by hand before an unchanged number', landed.replace('zheref/hatsu#5', 'zheref/evil#5')],
+        ['a word edited by hand before an unchanged number', landed.replace('zheref/nen#6', 'nenx #6')],
+      ];
+      for (const [what, line] of probes) {
+        const r = run(['check', '--roster', roster(join(dir, what.replace(/\W+/g, '-')), [line]), '--records', join(dir, 'ruling-records')], refEnv);
+        expect(`HR-368: ${what} is a plain mismatch`, r, 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it$/m);
+        assert.equal(r.stdout.includes('nen/repos.json'), false, `${what}: no registry cause\n${r.stdout}`);
+      }
     }
     assert.equal(readFileSync(rec, 'utf8'), recordBytes, 'HR-368: the record is never rewritten');
     cases += 1; console.log(`ok ${cases} - HR-368: the record and the maintainer's typed words are unchanged by every re-render`);
