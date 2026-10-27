@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-03",
+  "effortId": "HA-IS-#503",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "What do the four PRS checklist rows test?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Proposed reading (Recommended)",
+      "consequence": "PRS-C criteria: every closing issue has AC rows in Given/When/Then; PRS-L measurable: each row names an observable or a number with its unit; PRS-S scope: the body's scope boundaries name what is out; PRS-M markers: no open OQ row and every AS assumption carried into the body. Pass = all four answered yes by the reviewer, not the author"
+    },
+    {
+      "key": "B",
+      "label": "Defer HA#503",
+      "consequence": "leave the issue parked until the maintainer writes the four definitions"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-27T00:31:29.211Z"
+}
