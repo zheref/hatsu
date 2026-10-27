@@ -40,9 +40,9 @@ A non-zero exit is a fact about the host.
 `/bankai-handbooks` resolves the always-load set plus **exactly one** stack handbook.
 Cite only from files that just resolved — `UZF-`, `SEC-`, `UX-`, `QA-`, `REL-`, the one stack prefix
 (`SW-`/`KT-`/`RC-`/`BC-`), `SP-` from a resolved spec handbook, `PT-` as `<from>--<to> PT-<n>` from a
-resolved pair file — or `ECON-`, from the `ECONOMICS.md` path hanten names
-— plus the repo's notes by path and heading, `<CODE>#<N>/AC-<k>`, `CON-{n}`, a ruled `HR-{n}` (critical, HR-10 as amended by HR-337) or, before its
-row lands, its `R-YYYY-MM-DD-nn` record; a wrong id discredits a right one. Unresolvable (that path absent too): **`{prefix}-{n} not resolved on this host`**, an observation, with evidence. No rule covers it: **`no rule id — handbook-question`**, returned to hanten.
+resolved pair file, `ECON-` from the `ECONOMICS.md` path hanten names, `PRS-` from `docs/PR-SECTIONS.md`
+(medium, pushable) — plus the repo's notes by path and heading, `<CODE>#<N>/AC-<k>`, `CON-{n}`, a ruled `HR-{n}` (critical, HR-10 as amended by HR-337) or, before its
+row lands, its `R-YYYY-MM-DD-nn` record. Unresolvable (that path absent too): **`{prefix}-{n} not resolved on this host`**, an observation, with evidence. No rule covers it: **`no rule id — handbook-question`**, returned to hanten.
 
 ## 4 · The fixed finding shape
 
@@ -67,7 +67,7 @@ re-read, re-run, re-measure — and say so in the evidence, at what head.
 
 Your budget is `nen/workflow.json` → `review.scopes.<scope>.budget`,
 counted in `.nen/hanten/<branch-slug>[-pr<N>].cycle.json` — a branch plus its PR; a new PR starts
-full. Hanten counts; you never do, nor ask a raise. **A spent reviewer meeting a new head gets one
+full. Hanten counts; you never do. **A spent reviewer meeting a new head gets one
 bounded delta pass**: the diff since the head you last read, both named.
 
 ## 7 · The refusals

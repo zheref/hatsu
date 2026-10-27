@@ -69,7 +69,9 @@ That page owns each section's content (*Write for the decision*), the seven-read
 prose budget (*Check every write*). Screenshots stay in the
 [UZF-26 table](../../../docs/WORKFLOW.md#the-uzf-26-evidence-shape); replace all Evidence on rewrite.
 
-**A closing issue's `Spec:` line** (spec-repo.md § *The PR Spec section*, matched whole) adds `--spec`.
+**A closing issue's `Spec:` line** (spec-repo.md § *The PR Spec section*, matched whole) adds `--spec`;
+canon prose `--scopes-from` `nen review scopes --json`, then Chrollo's `PRS` rows before readiness
+(PR-SECTIONS § *The prose checklist*).
 
 **Delivery is the first heading**, before the first reader section, `What this changes for you`.
 In the authoring worktree, save `nen report data --repo <path> --base origin/<branch.base> --effort <branch> --json`
@@ -81,8 +83,7 @@ paste the block, typing no cell.
 WORKFLOW § *The effort's ledgers* owns model provenance, the public Source cell and what stays local.
 After opening, rerun report data with the actual PR (`--target <owner/name> --prs <n>`), normalize with the same derived
 gate, render, edit the PR body and read it back. Drive names `$en on <CODE>#<N>` and states
-readiness is `nen pr ready`'s verdict. The guard compares ledger rows and Drive to the rendered
-expectation it reads with the same `--effort <branch>`, using the derived gate and actual PR reference after opening.
+readiness is `nen pr ready`'s verdict. The guard's comparison is PR-SECTIONS § *Check every write*'s.
 
 **Associated issues — body AND Development** (ruling 2026-09-12):
 
@@ -132,8 +133,7 @@ nen pr converge --target <owner/name> --pr <n> --catalogue "$hatsu_root/contract
 - **Spec coverage** (`--spec`): anything but `accounted` is **G5**, row `spec-coverage` (an absent verb: a wiring stop).
 - **The body is written only after sections, Delivery, Nen body-check, evidence, Spec, Development and changelog checks pass, before every create and edit.** The create is the first write and
   **every later revision is an edit**: `nen pr edit-body` replaces the body outright and **certifies
-  the number before any write**, refusing a 404/410. The body file is **absolute**
-  (a relative one resolves against `--repo`).
+  the number before any write**, refusing a 404/410. The body file is **absolute**.
 - **Development guard**: `--body` before each write, `--pr` after open/edit; fix refusals in body
   or sidebar. Off the default branch it says `retarget-pending` or `not-applicable`. Re-runs:
   `en` §§ 4–5, `sharingan` § 4.

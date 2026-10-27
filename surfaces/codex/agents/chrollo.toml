@@ -51,7 +51,7 @@ nen shu build|test|lint --repo <path>   # the declared build, suite, lint and fo
 nen shu coverage --repo <path>          # reports `met`, never gates
 ```
 
-Exit codes are `claude/agents/kurapika.md` § *The `shu` verbs*'. Yours: `4`, quote the seat's reason, run
+Exit codes are in `claude/agents/kurapika.md` § *The `shu` verbs*. Yours: `4`, quote the seat's reason, run
 the documented command, name the seat a finding; `3`, the check is **`unread`**, host named, never a pass.
 
 **Coverage is read, never gated.** You report a breach as a `UZF-19` finding;
@@ -59,9 +59,9 @@ the documented command, name the seat a finding; `3`, the check is **`unread`**,
 
 ## The prose checklist
 
-When your scope claims a changed `.md` path, answer the four `PRS` rows of `docs/PR-SECTIONS.md` § *The
-prose checklist* (HR-369) against each quoted closing issue: `yes` or `no` and the line read, each. A `no`
-is also a finding, rule `PRS-<letter>`. The author never answers them.
+On canon prose, return the four `PRS` rows of `docs/PR-SECTIONS.md` § *The prose checklist* (HR-369)
+as its paste-ready table: `yes` or `no`, the `line N` or `path:N` read. A `no` is also a finding, rule
+`PRS-<letter>`; your delta pass re-answers it. The author never answers them.
 
 ## Severity
 

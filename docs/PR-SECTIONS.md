@@ -19,7 +19,7 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    matched a policy or process path, `--spec` when a closing issue carries `Spec: specs/<nnn>-<slug>@<sha>`
    (the footer's Spec block and nen's `spec-rows` requirement, [`config/spec-repo.md`](config/spec-repo.md)
    § *The PR Spec section*), `--canon-prose` or `--scopes-from <nen review scopes --json output>` when
-   Chrollo's scope claims a changed `.md` path (§ *The prose checklist*). The footer row `decisions` is mandatory on every PR whose run took a
+   a changed `.md` is canon prose (§ *The prose checklist*). The footer row `decisions` is mandatory on every PR whose run took a
    decision for the maintainer (a pre-answered row or a default taken), whatever the kind or family: an idle
    run by [HR-334](ROSTER.md#hr-334), an attended one by zheref/hatsu#474 AC-1. Any positive source includes it:
    `--idle`, because an idle run always pre-answers its rows (WORKFLOW § *Idle batches* rule 8);
@@ -128,33 +128,45 @@ internal headings to level 3 or deeper when embedding, preserving all report con
 
 ## The prose checklist
 
-The four rows test a closing issue's definition, never the change's behaviour ([HR-369](ROSTER.md#hr-369),
-zheref/hatsu#503). "The body" below is each closing issue's body, which hanten quotes to Chrollo:
+The four rows test definition, never behaviour. Each row's test is [HR-369](ROSTER.md#hr-369)'s text,
+quoted verbatim (zheref/hatsu#503):
 
-| Row | Answered yes when |
+| Row | HR-369's words |
 |---|---|
-| `PRS-C` criteria | every closing issue carries AC rows, each in Given / When / Then |
-| `PRS-L` measurable | each AC row names an observable or a number with its unit |
+| `PRS-C` criteria | every closing issue has AC rows in Given/When/Then |
+| `PRS-L` measurable | each row names an observable or a number with its unit |
 | `PRS-S` scope | the body's scope boundaries name what is out |
-| `PRS-M` markers | no OQ row is open, and every assumption the change relies on is an AS row in the body |
+| `PRS-M` markers | no open OQ row and every AS assumption carried into the body |
 
-**Admission.** The footer block renders only under the `canon-prose` fact: `--canon-prose`, or
-`--scopes-from` a `nen review scopes --json` document in which a scope whose persona is Chrollo claims a
-changed `.md` path. The resolver reads nen's classification and matches no path itself; a malformed
-document refuses at exit 1 whatever else is passed. A PR that edits no such path has no Prose checklist,
-and the heading is then undeclared.
+"A PR passes when the reviewer, never the author, answers all four yes." "The body" is each closing
+issue's body, which hanten quotes to Chrollo. **Totality:** with no closing issue, all four rows read the
+PR body instead (its verify rows are the criteria; its scope and AS lines the body). With two or more,
+each letter has exactly one row: `yes` only when every issue passes, and its Line read cell cites a line
+of every issue.
 
-**Who answers.** Chrollo, raised by his existing architecture scope (zheref/hatsu#503 AS-1), returns each
-row with a `yes` or `no` and the line he read: an issue line as `nen issue criteria` numbers it, or a
-`path:line`. The author copies the four rows verbatim into the block, Reviewer cell `Chrollo`; the author
-never writes, ticks or edits a verdict, and an unfilled template row fails the section guard and
-`nen pr body-check` alike (the block's `prose-rows` requirement). A pass is four `yes`.
+**Admission.** The footer block renders only under the `canon-prose` fact. Canon prose is a changed `.md`
+under `docs/`, `claude/` or `templates/`, or directly under `contracts/`. The fact comes from
+`--canon-prose`, or from `--scopes-from` a `nen review scopes --json` document listing such a path in
+any scope. The architecture scope claims the same paths, so Chrollo's existing raise covers them
+(zheref/hatsu#503 AS-1). The resolver reads nen's classification and matches no glob itself. A document
+whose contract, scope list or any scope's `paths` is malformed or missing refuses at exit 1, whatever else
+is passed. A PR that edits no such path has no Prose checklist, and the heading is then undeclared.
 
-**A `no` is a finding.** Chrollo also returns it in hanten § 5's shape with rule `PRS-<letter>`; it is a
-row of the Adversarial review table and is settled like any other finding, fixed or pushed back with a
-cited reason (hanten § 6). The fix's object is the closing issue's text. A fixed row keeps the verdict
-Chrollo returned: the Hanten disposition names the amendment, and only a later Chrollo pass within
-budget (hanten § 2b) answers the row again.
+**Who answers.** Chrollo returns the four rows as a paste-ready table in the template's shape: Reviewer
+`Chrollo`, a `yes` or `no`, and the line he read, as `line N` (the issue line `nen issue criteria`
+numbers) or `path:N`. His report in hanten's `reports[]` is their durable home. Before any readiness read,
+shibari runs `nen review scopes --json`, resolves with `--scopes-from` that document, and pastes his rows verbatim.
+The author never writes, ticks or edits a verdict. The block's `prose-rows` requirement fails the section
+guard and `nen pr body-check` alike on an unfilled, missing, repeated or author-answered row, or a Line
+read cell with no line number.
+
+**A `no` is a finding.** Chrollo also returns it in hanten § 5's shape with rule `PRS-<letter>`, medium by
+default and pushable (HA#503 AC-2): only HR-369's text is ruled, not each row, so a `PRS` finding is never
+critical by shape. It is settled like any other finding, fixed or pushed back with a cited reason
+(hanten § 6). The fix's object is usually the closing issue's text. Chrollo's delta pass reads the
+settle: it re-reads the closing issues' bodies as well as the diff since his last head, and re-answers
+every `PRS` row. The hanten budget is per effort, and a delta pass is one of the effort's rounds. A `no`
+still standing at readiness is a G5, like any unsettled finding.
 
 ## Check every write
 

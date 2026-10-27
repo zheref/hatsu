@@ -24,6 +24,7 @@ import {
   decisionsTaken,
   defaults,
   fold,
+  isCanonProse,
   options,
   pattern,
   policyHit,
@@ -703,11 +704,15 @@ test("HA#503 AC-3: the prose checklist resolves on no cell without the canon-pro
   assert.equal(cat.footer.find((row): boolean => row.id === "prose")?.when, "canon-prose");
 });
 
-test("HA#503 AC-1/AC-2: every PRS row is answered by Chrollo with a verdict and the line read, yes or no", () => {
+test("HA#503 AC-1/AC-2: exactly one PRS row per letter, answered by Chrollo with a verdict and the line read", () => {
   const report = resolution("process", ["prose-authoring"], ["policy-hit", "canon-prose"]);
   assert.deepEqual(check(cat, proseBody(report, ANSWERED), report.requirements, 7)[0], []);
   // AC-2: a failed row is still an answered row; the finding it raises lives in the Hanten table.
   assert.deepEqual(check(cat, proseBody(report, ANSWERED.replace("| PRS-L | Chrollo | yes |", "| PRS-L | Chrollo | no |")), report.requirements, 7)[0], []);
+  // Totality: several closing issues fold into one row per letter citing a line of each; a path:N cell reads too.
+  const several = ANSWERED.replace("| PRS-C | Chrollo | yes | zheref/hatsu#503 line 17 |", "| PRS-C | Chrollo | no | zheref/hatsu#503 line 17; zheref/hatsu#9 line 4 |")
+    .replace("| PRS-S | Chrollo | yes | zheref/hatsu#503 line 17 |", "| PRS-S | Chrollo | yes | docs/PR-SECTIONS.md:131 |");
+  assert.deepEqual(check(cat, proseBody(report, several), report.requirements, 7)[0], []);
   const unmet = (rows: string): string[] => check(cat, proseBody(report, rows), report.requirements, 7)[0];
   const template = readFileSync(join(HATSU_ROOT, "templates/pr-body/prose.md"), "utf8");
   const placeholders = template.split("\n").filter((line): boolean => line.startsWith("| PRS-")).join("\n");
@@ -717,20 +722,37 @@ test("HA#503 AC-1/AC-2: every PRS row is answered by Chrollo with a verdict and 
     ["an author-answered row", ANSWERED.replace("| PRS-C | Chrollo |", "| PRS-C | Kurapika |")],
     ["a row with no verdict", ANSWERED.replace("| PRS-S | Chrollo | yes |", "| PRS-S | Chrollo | |")],
     ["a row with no line read", ANSWERED.replace("| PRS-M | Chrollo | yes | zheref/hatsu#503 line 17 |", "| PRS-M | Chrollo | yes | |")],
+    ["a line read with no line number", ANSWERED.replace("| PRS-M | Chrollo | yes | zheref/hatsu#503 line 17 |", "| PRS-M | Chrollo | yes | unread |")],
+    ["a dash for a line read", ANSWERED.replace("| PRS-M | Chrollo | yes | zheref/hatsu#503 line 17 |", "| PRS-M | Chrollo | yes | — |")],
     ["a missing row", ANSWERED.split("\n").slice(0, 3).join("\n")],
     ["a tick in place of a verdict", ANSWERED.replace("| PRS-C | Chrollo | yes |", "| PRS-C | Chrollo | [x] |")],
+    ["a repeated row", `${ANSWERED}\n| PRS-C | Chrollo | yes | zheref/hatsu#503 line 17 |`],
+    ["conflicting rows for one letter", `| PRS-C | Chrollo | no | zheref/hatsu#503 line 18 |\n${ANSWERED}`],
   ] as const) assert.deepEqual(unmet(rows), ["section prose: requirement prose-rows is unmet"], why);
   // A row answered under a later heading does not satisfy the section.
-  const moved = proseBody(report, ANSWERED.split("\n").slice(0, 3).join("\n")).replace("## 📋 Completion checklist\n\nFilled.", "## 📋 Completion checklist\n\n| Row | Reviewer | Verdict | Line read |\n|---|---|---|---|\n| PRS-M | Chrollo | yes | x |");
+  const moved = proseBody(report, ANSWERED.split("\n").slice(0, 3).join("\n")).replace("## 📋 Completion checklist\n\nFilled.", "## 📋 Completion checklist\n\n| Row | Reviewer | Verdict | Line read |\n|---|---|---|---|\n| PRS-M | Chrollo | yes | line 3 |");
   assert.deepEqual(check(cat, moved, report.requirements, 7)[0], ["section prose: requirement prose-rows is unmet"]);
+  // A later repeat outside the section is another section's business, never a duplicate here.
+  const later = proseBody(report, ANSWERED).replace("## 📋 Completion checklist\n\nFilled.", "## 📋 Completion checklist\n\n| Row | Reviewer | Verdict | Line read |\n|---|---|---|---|\n| PRS-M | Chrollo | yes | line 3 |");
+  assert.deepEqual(check(cat, later, report.requirements, 7)[0], []);
 });
 
-test("HA#503 AC-3: --scopes-from reads nen review scopes, and only Chrollo on a Markdown path admits the checklist", (context) => {
-  assert.equal(canonProse(scopes([{ persona: "nobunaga", paths: ["docs/PR-SECTIONS.md"] }, { persona: "chrollo", paths: ["claude/agents/chrollo.md"] }])), true);
-  assert.equal(canonProse(scopes([{ persona: "nobunaga", paths: ["docs/PR-SECTIONS.md"] }, { persona: "chrollo", paths: ["contracts/pr-sections.json"] }])), false);
-  assert.equal(canonProse(scopes([{ persona: "nobunaga", paths: ["README.md"] }])), false);
+test("HA#503 AC-3: --scopes-from reads nen review scopes, and only a changed canon-prose path admits the checklist", (context) => {
+  for (const [path, expected] of [["docs/PROCESS.md", true], ["docs/config/x.md", true], ["claude/skills/hanten/references/a.md", true],
+    ["templates/pr-body/prose.md", true], ["contracts/notes.md", true], ["contracts/sub/notes.md", false], ["README.md", false],
+    ["CLAUDE.md", false], ["nen/workflow.json", false], ["docs/PR-SECTIONS.json", false]] as const) {
+    assert.equal(isCanonProse(path), expected, path);
+  }
+  assert.equal(canonProse(scopes([{ persona: "nobunaga", paths: ["docs/PROCESS.md"] }])), true);
+  assert.equal(canonProse(scopes([{ persona: "chrollo", paths: ["contracts/pr-sections.json"] }, { persona: "nobunaga", paths: ["README.md"] }])), false);
+  assert.equal(canonProse(scopes([])), false);
   for (const bad of [null, [], {}, { contract: "nen.review.scopes/v0.2", scopes: [] }, { contract: "nen.review.scopes/v0.1", scopes: {} },
-    { contract: "nen.review.scopes/v0.1", scopes: [5] }, { contract: "nen.review.scopes/v0.1", scopes: [{ persona: "chrollo", paths: [""] }] }]) {
+    { contract: "nen.review.scopes/v0.1", scopes: [5] }, { contract: "nen.review.scopes/v0.1", scopes: [{ persona: "chrollo", paths: [""] }] },
+    // Nobunaga 2: a malformed entry after a match, a malformed non-Chrollo scope, and a scope without paths all refuse.
+    { contract: "nen.review.scopes/v0.1", scopes: [{ persona: "chrollo", paths: ["docs/a.md"] }, 5] },
+    { contract: "nen.review.scopes/v0.1", scopes: [{ persona: "nobunaga", paths: [""] }] },
+    { contract: "nen.review.scopes/v0.1", scopes: [{ persona: "chrollo" }] },
+    { contract: "nen.review.scopes/v0.1", scopes: [{ paths: ["docs/a.md"] }] }]) {
     assert.throws((): boolean => canonProse(bad), /--scopes-from/, JSON.stringify(bad));
   }
   const requirements = join(repo, "requirements.json");
@@ -759,10 +781,10 @@ test("HA#503 AC-3: --scopes-from reads nen review scopes, and only Chrollo on a 
   if (probe.error !== undefined || probe.status !== 0) { context.skip("nen is not installed: the body-check half is not run"); return; }
   writeJsonRequirements(requirements, withProse);
   const answered = join(repo, "answered.md");
-  writeFileSync(answered, proseBody(withProse, ANSWERED));
-  const pass = run(nen, ["pr", "body-check", "--body-from", answered, "--requirements-from", requirements]);
-  assert.equal(pass.status, 0, `${pass.stdout}${pass.stderr}`);
-  writeFileSync(answered, proseBody(withProse, ANSWERED.replace("| PRS-C | Chrollo |", "| PRS-C | Kurapika |")));
-  const refused = run(nen, ["pr", "body-check", "--body-from", answered, "--requirements-from", requirements]);
-  assert.equal(refused.status, 1, `${refused.stdout}${refused.stderr}`);
+  for (const [rows, status] of [[ANSWERED, 0], [ANSWERED.replace("| PRS-C | Chrollo |", "| PRS-C | Kurapika |"), 1],
+    [`${ANSWERED}\n| PRS-C | Chrollo | no | zheref/hatsu#503 line 18 |`, 1], [ANSWERED.replace("zheref/hatsu#503 line 17 |", "unread |"), 1]] as const) {
+    writeFileSync(answered, proseBody(withProse, rows));
+    const result = run(nen, ["pr", "body-check", "--body-from", answered, "--requirements-from", requirements]);
+    assert.equal(result.status, status, `${rows}\n${result.stdout}${result.stderr}`);
+  }
 });

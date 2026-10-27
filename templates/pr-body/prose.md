@@ -1,12 +1,13 @@
 <!-- block: prose; The reviewer-answered prose checklist (HR-369), resolved by the canon-prose fact; docs/PR-SECTIONS.md § The prose checklist. -->
 ## 🔎 Prose checklist
 
-<!-- Copy Chrollo's four answers verbatim from his hanten return; the author never writes or edits a
-verdict. Every `no` is also a row of the Adversarial review table above, rule PRS-<letter>. -->
+<!-- Paste Chrollo's four rows verbatim from his hanten report; the author never writes or edits a
+verdict. One row per letter; with several closing issues, the row cites a line of each. Every `no` is
+also a row of the Adversarial review table above, rule PRS-<letter>. -->
 
 | Row | Reviewer | Verdict | Line read |
 |---|---|---|---|
-| PRS-C | <reviewer> | <yes · no> | <the closing issue line or path:line read> |
-| PRS-L | <reviewer> | <yes · no> | <the closing issue line or path:line read> |
-| PRS-S | <reviewer> | <yes · no> | <the closing issue line or path:line read> |
-| PRS-M | <reviewer> | <yes · no> | <the closing issue line or path:line read> |
+| PRS-C | <reviewer> | <yes · no> | <line N of each closing issue, or path:N> |
+| PRS-L | <reviewer> | <yes · no> | <line N of each closing issue, or path:N> |
+| PRS-S | <reviewer> | <yes · no> | <line N of each closing issue, or path:N> |
+| PRS-M | <reviewer> | <yes · no> | <line N of each closing issue, or path:N> |

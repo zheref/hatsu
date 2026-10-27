@@ -134,7 +134,7 @@ Malformed Hanten usage refuses with row and forms. Repair from evidence; never i
 
 | Field | What it must carry |
 |---|---|
-| `rule` | **a rule id** (`UX-3`, `SEC-…`, `ECON-4`, a WCAG SC, a HIG reference, `<CODE>#<N>/AC-<k>`, `CON-{n}`, `HR-{n}`), never a bare preference |
+| `rule` | **a rule id** (`UX-3`, `SEC-…`, `ECON-4`, a WCAG SC, a HIG reference, `<CODE>#<N>/AC-<k>`, `CON-{n}`, `HR-{n}`, `PRS-<letter>` medium and pushable), never a bare preference |
 | `severity` | `critical` \| `high` \| `medium` \| `low` \| `nit` ([Hisoka's ladder](../AGENTS.md#hisoka)) |
 | `path`, `line` | where, exactly; no location is a note |
 | `evidence` | **what was observed or measured**, a number with its method; never the rule restated |
@@ -143,8 +143,8 @@ Malformed Hanten usage refuses with row and forms. Repair from evidence; never i
 The ignored record is a `hatsu.hanten.findings/v0.1` document at
 `<reports.dir>/hanten/<branch-slug>.json`: `scopes[]` (persona, tier, model, `used`/`max`, invocation,
 `adapted`, `gap`, `scans`), `findings[]` (the six fields plus `id`, `scope`, `persona`,
-`disposition`) and `reports[]` (`{scope, persona, invocation, head, path}`). Leorio returns his report;
-hanten appends delta passes (ECONOMICS.md § 5). **Hanten writes discovery**;
+`disposition`) and `reports[]` (`{scope, persona, invocation, head, path}`). Leorio returns his report
+(hanten appends delta passes, ECONOMICS.md § 5); on canon prose Chrollo's holds PR-SECTIONS' `PRS` rows. **Hanten writes discovery**;
 Kurapika applies `docs/DISCOVERY.md`.
 
 ## 6. Settle every finding — fixed, or pushed back with a reason
@@ -171,8 +171,8 @@ the alternatives, and stop in `jutaisho` § 4's shape.
 
 ## 7. On a surface that is not Claude Code
 
-§ 4's mechanism is Claude Code's; the contract is **PROCESS.md § Surfaces
-and pickers**: the worker at the scope's tier, a copy of the repo, § 5's shape, the pinned `nen` by absolute path, or none where the worker carries it (preamble § 2).
+Elsewhere **PROCESS.md § Surfaces and pickers** holds: the worker at the scope's tier, a repo copy,
+§ 5's shape, the pinned `nen`, or none (preamble § 2).
 
 ## Authority
 
