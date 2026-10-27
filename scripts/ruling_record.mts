@@ -17,7 +17,9 @@
 //              so render and check need nen; a coded slug passes the private-name guard (a hit: exit 1).
 //   check      the guard lane (nen shu test --lane ruling-record): every ROSTER line citing a record is
 //              re-rendered and compared cell by cell, reported by HR id; an orphan, a twice-cited or an
-//              unreadable record is a finding too.
+//              unreadable record is a finding too. A nen/repos.json change that moves a landed row's
+//              coding (a reference that stops or newly resolves) fails here by HR id until that same PR
+//              re-renders the row (HR-368); the record and the maintainer's typed words never change.
 //   preanswer  an idle pre-answer (HR-5, WORKFLOW § Idle batches): one `nen stop answer --record` call
 //              composed from the decisions row's preferred[] with its starred key picked and the source
 //              named in the question, so the pre-answer is recorded the same way and no picker is shown.
@@ -290,7 +292,7 @@ function check(argv: string[]): number {
     const got = splitRow(line);
     if (got.length < 6) { err(n, `${hr}: the row has ${got.length} cells, a ruling row has 6`); return; }
     for (let i = 0; i < want.length; i += 1) {
-      if (got[i] !== want[i]) err(n, `${hr}: the ${CELL_NAMES[i]} cell differs from record ${id}; re-render it`);
+      if (got[i] !== want[i]) err(n, `${hr}: the ${CELL_NAMES[i]} cell differs from record ${id}; re-render it in this PR (a nen/repos.json change re-renders every row it moves, HR-368)`);
     }
     if (!got[4] || !got[5]) err(n, `${hr}: the status and what-it-settles cells must be filled`);
   });
