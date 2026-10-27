@@ -89,8 +89,7 @@
 #     and say `no ignore file` when none was read: a default that is absent is not one that ignores 0,
 #     and a refusal on a machine without it can be the ordinary-word names alone (zheref/hatsu#149).
 #     An empty or comment-only ignore file ignores nothing; one that ignores EVERY name is a refusal
-#     (exit 2) unless --allow-empty is given. A live --tree scan requires a readable ignore file;
-#     absence stops as host provisioning (exit 2) before requesting the private list.
+#     (exit 2) unless --allow-empty is given.
 #
 # Usage:
 #   private_name_check.sh [--owner <login>]... [--names-file <path> [--allow-empty]]
