@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-06",
+  "effortId": "claude-kurapika-improves-aspects",
+  "n": 3,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "What should Resilience mean on a PR?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Recovers from failure (Recommended)",
+      "consequence": "when something fails mid-way, the change retries within a budget, resumes, or degrades and names the cause, rather than leaving partial state"
+    },
+    {
+      "key": "B",
+      "label": "Withstands failure",
+      "consequence": "fewer things can fail at all; close to the old Stability"
+    },
+    {
+      "key": "C",
+      "label": "Both",
+      "consequence": "prevention and recovery; overlaps Stability and Security more"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-27T23:31:29.323Z"
+}

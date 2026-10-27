@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-04",
+  "effortId": "claude-kurapika-improves-aspects",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "How should Predictability and Resilience relate to Stability in What this improves?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Split Stability (Recommended)",
+      "consequence": "Stability is replaced by Predictability and Resilience: 12 aspects; no claim lands twice"
+    },
+    {
+      "key": "B",
+      "label": "Add both, narrow Stability",
+      "consequence": "13 aspects; Stability narrows to existing behaviour keeps working (no regressions); the two new rows take determinism and recovery"
+    },
+    {
+      "key": "C",
+      "label": "Add both, keep Stability",
+      "consequence": "13 aspects, Stability undefined as today; overlap stays"
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-10-27T23:31:29.200Z"
+}

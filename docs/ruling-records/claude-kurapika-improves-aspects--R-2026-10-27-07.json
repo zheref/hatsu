@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-07",
+  "effortId": "claude-kurapika-improves-aspects",
+  "n": 4,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Should every moved (up or down) aspect row cite its evidence: a test, fixture, measurement or HR id?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Cite, and file nen check (Recommended)",
+      "consequence": "canon requires a citation on every moved row; an NN issue asks body-check to refuse an uncited moved row"
+    },
+    {
+      "key": "B",
+      "label": "Cite, canon only",
+      "consequence": "the citation rule lives in canon with no machine check"
+    },
+    {
+      "key": "C",
+      "label": "No evidence rule",
+      "consequence": "keep the one-line why; only the aspect list changes"
+    }
+  ],
+  "kind": "typed",
+  "pick": null,
+  "typed": "Let's cite and provide evidence as possible, depending on the repository and on the scope of work, of course.\n",
+  "answeredAt": "2026-10-27T23:31:29.382Z"
+}
