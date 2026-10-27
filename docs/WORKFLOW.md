@@ -1279,8 +1279,10 @@ checkout's `.nen/`, which is never committed.
    part). The status words and the row parser are `scripts/clause_id_guard.mts`'s, imported. The
    script is interim: the verb is owed to nen (zheref/nen#554), and the script retires when the verb
    ships and Hatsu repins to it.
-2. **CON is read at the pin, through git, never from memory or a work tree.** The source is the one
-   `nen/contract.json`'s `$precedence` names for `akatsuki.CON` (HR-338). The script reads its
+2. **CON is read at the pin, through git, never from memory or a work tree.** The caller types
+   `--constitution-source`, taking it from the entry `nen/contract.json`'s `$precedence` names for
+   `akatsuki.CON` (HR-338); the script never trusts that value alone, and checks it against the pin
+   `nen/repos.json` records for it. The script reads its
    `pinned` tag and `pinnedSha` from `<Hatsu root>/nen/repos.json`, refuses a `refs/tags/<tag>` that
    resolves anywhere but `pinnedSha` (a moved tag), and reads `CONSTITUTION.md` at that commit. A
    host with no checkout of the source makes one from the tag alone: `git init -q <dir under .nen/>`,
@@ -1294,10 +1296,12 @@ checkout's `.nen/`, which is never committed.
    - `2`: **not run**. Causes: a usage error; an unreadable request, roster, registry, checkout or
      constitution; an unknown or unpinned source; a moved tag; a floor clause that is missing; a
      roster the clause guard refuses; or any unexpected failure. This is row `capability-unavailable`
-     (G5), and an idle run parks it as `parked:g5-capability-unavailable`. The `breath` entry ends at
-     exit `2` with the note `<begin note>; <the refusal>; not-run`, and it is never a pass. Nothing
-     has been authored yet, so once the prerequisite is provided the way out is a new effort, as in
-     step 6.
+     (G5), and an idle run parks it as `parked:g5-capability-unavailable`. The `breath` entry is
+     **left open**, never ended: the stop and the turn's report carry `<the refusal>; not-run`, and it
+     is never a pass. The row's **A** (the prerequisite provided, the run re-invoked) resumes at this
+     step: ren's resume continues the open entry with `nen phase begin --resume`, the check runs
+     again, and the entry ends as step 5 or step 6 says. A new effort is the way out only after an
+     amendment (step 6, **B** or **C**).
 4. **The judgement covers the list and goes past it.** Breath reads each `whole` and `part` clause's
    words against the plan. It may name any other clause as a conflict: the list is the minimum it
    must read. A conflict is a plan step that a clause forbids, or a gate act that a clause reserves to
@@ -1306,8 +1310,10 @@ checkout's `.nen/`, which is never committed.
    with. So the script takes that begin note (`--begin-note`; ren § 2a's served-model marker, where
    one was written), and its `.note` field is `<begin note>; <record>`. The `breath` entry then ends
    `nen phase end --effort <branch> --phase breath --exit 0 --note "<.note>; <.clear>"`. `.clear` is
-   `pass` when the request listed at least one binding clause. It is `none listed` when only the
-   floor was read, which is never a pass. [`ren`](../claude/skills/ren/SKILL.md) § 2a writes the
+   `pass` when the request listed at least one binding clause, and `none listed` when only the
+   floor was read. Both are the clear outcome zheref/hatsu#505's AC-3 names: no stop, and the clauses
+   read are recorded (`floor=`, `listed=`). `none listed` is never written as `pass`, so a reader
+   can see that the request itself named nothing. [`ren`](../claude/skills/ren/SKILL.md) § 2a writes the
    entry; breath called by name writes its own `begin` and `end`.
 6. **Conflict: a G5, and nothing is authored before the answer** (breath § 6). Row
    `constitution-conflict` (`nen/decisions.json`): the `nen stop` banner names the clause id and the
@@ -1325,7 +1331,8 @@ checkout's `.nen/`, which is never committed.
    --record <branch> --row constitution-conflict`.
 7. **Later phases and a resume read it.** `nen phase show --effort <branch> --json` returns the
    `breath` entry and its note. Ren's resume rule skips an entry that ended at exit `0` and refuses
-   one that ended at `1` or `2` by name. A `breath` entry with no `constitution-check:` note belongs to an
+   one that ended at `1` by name, and continues an open one (a not-run check, step 3) with
+   `nen phase begin --resume`. A `breath` entry with no `constitution-check:` note belongs to an
    effort cut before this check existed: the resume names it, runs the check before it authors more,
    and carries the record in the turn's report, because an ended entry is never rewritten.
 

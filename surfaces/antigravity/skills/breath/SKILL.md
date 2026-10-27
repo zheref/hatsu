@@ -160,7 +160,7 @@ node '<Hatsu root>/scripts/constitution_check.mts' --request <file> --root '<Hat
 It lists the minimum to read, the gate floor always (owed to nen, zheref/nen#554); breath reads each
 binding clause against the plan and may name any other (HR-337). **Clear**: `.note` plus `; <.clear>`
 as the entry's `--note`. **Conflict**: row `constitution-conflict` (G5). **Exit `2`**: row
-`capability-unavailable`, `; not-run`.
+`capability-unavailable`, the entry left open.
 
 ## 5. What the turn reports, and the residue
 

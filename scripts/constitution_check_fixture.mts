@@ -155,6 +155,22 @@ export function runConstitutionCheckFixture(): void {
     assert.match(shown.phases[0]?.note ?? '', /^model-kind=served; registry alias x; constitution-check: .*; pass$/);
     cases += 1;
 
+    // A not-run check leaves the breath entry open (WORKFLOW step 3): capability-unavailable's A
+    // re-invokes, ren's resume continues the same entry with `begin --resume`, and it ends as step 5.
+    phase(['begin', '--effort', 'opus/kurapika/parked', '--phase', 'breath', '--note', 'model-kind=served; registry alias x']);
+    run(flags(base, request('parked', 'HR-1'), join(scratch, 'not-yet-fetched')), 2, /not run: cannot read the constitution checkout/);
+    const parked = JSON.parse(phase(['show', '--effort', 'opus/kurapika/parked', '--json'])) as { phases: Array<{ endedAt: string | null }> };
+    assert.equal(parked.phases.length, 1);
+    assert.equal(parked.phases[0]?.endedAt, null, 'a not-run check never ends the breath entry');
+    phase(['begin', '--effort', 'opus/kurapika/parked', '--phase', 'breath', '--resume']);
+    phase(['end', '--effort', 'opus/kurapika/parked', '--phase', 'breath', '--exit', '0', '--note', `${check(opts(base, request('resumed', 'HR-1'), 'model-kind=served; registry alias x')).note}; pass`]);
+    const resumed = JSON.parse(phase(['show', '--effort', 'opus/kurapika/parked', '--json'])) as { phases: Array<{ exitCode: number | null; resumedAt?: string[]; note?: string }> };
+    assert.equal(resumed.phases.length, 1, 'the resume keeps one breath entry');
+    assert.equal(resumed.phases[0]?.exitCode, 0);
+    assert.equal(resumed.phases[0]?.resumedAt?.length, 1);
+    assert.match(resumed.phases[0]?.note ?? '', /^model-kind=served; registry alias x; constitution-check: .*; pass$/);
+    cases += 1;
+
     // Not run, exit 2: usage, every required flag, a moved tag, an unknown or unpinned source, a
     // missing checkout, an unreadable request, a roster the clause guard refuses, a floor clause the
     // roster lacks, and a root whose claude/skills is a file.
