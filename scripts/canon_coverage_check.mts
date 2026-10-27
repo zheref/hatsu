@@ -3,11 +3,14 @@
 // it lists, and every declared lane is named by canon prose.
 //
 //   1. DECISION ROWS. Each row of nen/decisions.json carries `citedBy`, an array of skill names
-//      (claude/skills/<name>). A skill CITES a row when its SKILL.md carries the row id as a code
-//      span, `<id>`. Findings, by row id: a row with no citedBy array; a listed name with no
-//      SKILL.md; a listed skill that does not cite the row; a skill that cites the row and is not
-//      listed; a row cited by no skill with no `uncitedReason` (a non-empty string naming where the
-//      row is raised instead); and an `uncitedReason` on a row some skill cites (stale).
+//      (claude/skills/<name>), sorted, each once. A skill CITES a row when its SKILL.md carries the
+//      row id as a code span, `<id>`; an id that is an ordinary word (no `-`, such as `merge`) is
+//      cited only where that line or the one before it names a row (`row`, `rows`) or
+//      `decisions.json`, so `merge` as a stop-word or a git subcommand is not a citation.
+//      Findings, by row id: a row with no citedBy array, or one unsorted or with a repeat; a listed
+//      name with no SKILL.md; a listed skill that does not cite the row; a skill that cites the row
+//      and is not listed; a row cited by no skill with no `uncitedReason` (a non-empty string naming
+//      where the row is raised instead); and an `uncitedReason` on a row some skill cites (stale).
 //   2. LANES. Each key of nen/contract.json's project.lanes must be NAMED by at least one canon
 //      file: the paths contracts/prose.lint.json's paths.include lists (its own globs: `*` one path
 //      segment, `**` any number), surfaces/** never. A lane is named by a code span, `<lane>`, or by
@@ -47,6 +50,14 @@ function json(path: string): any {
   }
 }
 const codeSpan = (text: string, id: string): boolean => text.includes('`' + id + '`');
+const ROW_CONTEXT = /\brows?\b|decisions\.json/i;
+// A hyphenated id is unambiguous as a code span; an ordinary-word id needs a row context.
+function cites(text: string, id: string): boolean {
+  if (!codeSpan(text, id)) return false;
+  if (id.includes('-')) return true;
+  const lines = text.split('\n');
+  return lines.some((line, i) => line.includes('`' + id + '`') && (ROW_CONTEXT.test(line) || (i > 0 && ROW_CONTEXT.test(lines[i - 1]))));
+}
 const escape = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const findings: string[] = [];
@@ -66,13 +77,16 @@ let cited = 0;
 for (const [index, row] of decisions.rows.entries()) {
   if (!row || typeof row.id !== 'string' || row.id === '') refuse(`nen/decisions.json rows[${index}] has no string id`);
   const id: string = row.id;
-  const citing = [...skills].filter(([, text]) => codeSpan(text, id)).map(([name]) => name).sort();
+  const citing = [...skills].filter(([, text]) => cites(text, id)).map(([name]) => name).sort();
   if (citing.length) cited += 1;
   if (!Array.isArray(row.citedBy) || row.citedBy.some((s: unknown) => typeof s !== 'string')) {
     findings.push(`coverage: decision ${id}: no citedBy list of skill names (cited by ${citing.join(', ') || 'no skill'})`);
     continue;
   }
   const listed = new Set<string>(row.citedBy);
+  if (listed.size !== row.citedBy.length || row.citedBy.some((s: string, i: number) => i > 0 && row.citedBy[i - 1] > s)) {
+    findings.push(`coverage: decision ${id}: citedBy is not sorted, or names a skill twice`);
+  }
   for (const name of listed) {
     if (!skills.has(name)) findings.push(`coverage: decision ${id}: citedBy names ${name}, which has no claude/skills/${name}/SKILL.md`);
     else if (!citing.includes(name)) findings.push(`coverage: decision ${id}: citedBy lists ${name}, which does not cite it`);

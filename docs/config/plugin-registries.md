@@ -231,16 +231,7 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 ## `contracts/skill-shape.json`
 
-**Purpose.** The skill shape as data (zheref/hatsu#502; assessment finding B6): every `claude/skills/<name>/SKILL.md` carries a level-2 heading naming its **Residue**, its **Authority** and its **Hard limits**, in any order (`## 6. Authority and hard limits` satisfies two), or a reasoned exemption. `scripts/skill_shape_check.mts` hands each checked skill to `nen pr body-check --body-from <SKILL.md> --requirements-from <requirements>`, so the heading match is nen's. **Enforced as touched**: only a skill a change set touches is checked, so a skill that predates the file is fixed when an effort next edits it.
-
-### Keys
-
-| Key | Type | Values · default | Represents | Read by |
-|---|---|---|---|---|
-| `requirements[]` | `{name, pattern}` objects | `residue`, `authority`, `hard-limits` | the requirement set, in the form `nen pr body-check --requirements-from` reads | `scripts/skill_shape_check.mts` |
-| `exemptions[]` | `{skill, sections, reason}` objects | **`[]`**: no skill is exempt | a skill that may lack the named sections, and why. An entry with no or a blank `reason`, an unknown skill or section, or a section the checked skill in fact carries (stale) fails the check by name | the same |
-
-**Validated by.** The same script (exit `2` on a malformed file) and the `skill-shape-guard` lane's fixture, which also runs `scripts/canon_coverage_check.mts`: every `nen/decisions.json` row's `citedBy` list ([`decisions.json.md`](decisions.json.md)) and every `project.lanes` key named by a canon file ([`contract.json.md`](contract.json.md) § *Hatsu's own lanes*). Its live reads are advisory until one tagged green release ([HR-13](../ROSTER.md#hr-13)). **May a consumer override it?** No.
+**Purpose.** The skill shape [`docs/PROCESS.md`](../PROCESS.md) § *The skill shape* states, as data: the Residue, Authority and Hard limits requirements every touched `SKILL.md` is checked against through `nen pr body-check`, and the shrink-only exemption list. Read by `scripts/skill_shape_check.mts` (lane `skill-shape-guard`); never by a consumer. Keys, findings and the coverage checks beside it: [`skill-shape.json.md`](skill-shape.json.md).
 
 ## `contracts/prose.lint.json` and `contracts/prose.lint.baseline.json`
 

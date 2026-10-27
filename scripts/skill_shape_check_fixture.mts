@@ -3,9 +3,14 @@
 // scripts/canon_coverage_check.mts. Each case builds a throwaway root and asserts the exit code and
 // the stream split (findings on stdout, refusals on stderr). The shape cases run the REAL nen pr
 // body-check (NEN, else PATH), since the heading match is nen's; one stub nen proves a nen refusal is
-// wiring. The last cases read this checkout, ADVISORY until one tagged green release (HR-13).
+// wiring. The last read is this checkout's LIVE read, which fails the lane on a finding (exit 1) and
+// on a read that could not run (exit 2): a touched skill's shape is judged against the merge base of
+// HATSU_BASE_SHA (the base revision unit_tests_ci.mts hands every lane; fetched into a shallow
+// checkout, history unshallowed, when absent) else of origin/main, and with neither it is NOT
+// CHECKED, exit 2, never green. `--live <root>` runs that read alone; the hermetic cases run it over
+// planted roots to prove each red path.
 import assert from 'node:assert/strict';
-import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -15,6 +20,50 @@ const shape = fileURLToPath(new URL('./skill_shape_check.mts', import.meta.url))
 const coverage = fileURLToPath(new URL('./canon_coverage_check.mts', import.meta.url));
 const live = fileURLToPath(new URL('..', import.meta.url));
 const nen = process.env.NEN || 'nen';
+
+function gitIn(root: string, argv: string[]): { ok: boolean; out: string } {
+  const r = spawnSync('git', ['-C', root, ...argv], { encoding: 'utf8' });
+  return { ok: r.status === 0, out: String(r.stdout).trim() };
+}
+// The base commit and enough history to find the merge base; false when either cannot be had.
+function ensureBase(root: string, sha: string): boolean {
+  if (!/^[0-9a-f]{7,64}$/.test(sha)) return false;
+  if (!gitIn(root, ['cat-file', '-e', `${sha}^{commit}`]).ok && !gitIn(root, ['fetch', '--no-tags', '--quiet', 'origin', sha]).ok) return false;
+  if (gitIn(root, ['rev-parse', '--is-shallow-repository']).out === 'true' && !gitIn(root, ['fetch', '--no-tags', '--quiet', '--unshallow', 'origin']).ok) return false;
+  return gitIn(root, ['merge-base', sha, 'HEAD']).ok;
+}
+function liveRead(root: string): number {
+  let red = false;
+  const relay = (r: ReturnType<typeof spawnSync>): void => {
+    process.stdout.write(String(r.stdout));
+    process.stderr.write(String(r.stderr));
+  };
+  const cov = spawnSync(process.execPath, [coverage, '--root', root], { encoding: 'utf8' });
+  relay(cov);
+  if (cov.status !== 0 && cov.status !== 1) return 2;
+  if (cov.status === 1) red = true;
+  const sha = process.env.HATSU_BASE_SHA || '';
+  let selector: string[] | null = null;
+  if (sha) selector = ensureBase(root, sha) ? ['--base', sha] : null;
+  else if (gitIn(root, ['rev-parse', '--verify', '--quiet', 'origin/main']).ok) selector = ['--base', 'origin/main'];
+  if (!selector) {
+    console.error(`NOT CHECKED: live touched-skill shape (${sha ? `base ${sha} or its merge base could not be read` : 'no HATSU_BASE_SHA and no origin/main'}); a read that did not run fails the lane`);
+    return 2;
+  }
+  const sh = spawnSync(process.execPath, [shape, '--root', root, ...selector], { encoding: 'utf8', env: { ...process.env, NEN: nen } });
+  relay(sh);
+  if (sh.status !== 0 && sh.status !== 1) return 2;
+  if (sh.status === 1) red = true;
+  return red ? 1 : 0;
+}
+if (process.argv[2] === '--live') {
+  if (!process.argv[3]) {
+    console.error('usage: skill_shape_check_fixture.mts [--live <root>]');
+    process.exit(2);
+  }
+  process.exit(liveRead(process.argv[3]));
+}
+
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-skill-shape-fixture-'));
 let cases = 0;
 
@@ -99,6 +148,30 @@ try {
   root = shapeRoot('stale', [{ skill: 'good', sections: ['residue'], reason: 'r' }]);
   expect('an exemption for a section the checked skill carries is stale', shape, ['--root', root, '--skills', 'good'], 1, [/exemption good: stale, the skill carries the residue section/]);
 
+  // The exemption list only shrinks: an entry the base did not carry is a finding (Chrollo 6).
+  root = shapeRoot('grow');
+  const growBase = join(scratch, 'grow-base');
+  cpSync(root, growBase, { recursive: true });
+  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [{ skill: 'old', sections: ['residue'], reason: 'r' }] }));
+  expect('--base: an exemption added over the merge base is named', shape, ['--root', root, '--base', 'HEAD'], 1, [/^skill-shape: exemption old: section residue added over the base's list/m]);
+  expect('--base-root: the same against a base tree', shape, ['--root', root, '--base-root', growBase], 1, [/exemption old: section residue added over the base's list/]);
+  git(root, '-c', 'user.name=f', '-c', 'user.email=f@example.invalid', 'commit', '-qam', 'exempt');
+  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [] }));
+  expect('--base: an exemption removed from the base list passes', shape, ['--root', root, '--base', 'HEAD'], 0, [/0 finding/]);
+  rmSync(join(growBase, 'contracts/skill-shape.json'));
+  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [] }));
+  expect('--base-root: a base with no contract lists nothing', shape, ['--root', root, '--base-root', growBase], 0, [/0 finding/]);
+  write(join(growBase, 'contracts/skill-shape.json'), '{');
+  expect('--base-root: an unparseable base contract is wiring', shape, ['--root', root, '--base-root', growBase], 2, [/cannot read the base's shape contract/]);
+
+  // Only the section's own heading counts, never a heading that mentions the word (N517-10).
+  root = shapeRoot('exact');
+  for (const [heading, ok] of [['## 1. Invocation and authority', false], ['## 0. In-flight discovery — standing authority', false],
+    ['## Residue, authority and hard limits', true], ['## 4. Authority — per iteration', true], ['## 8. Resuming & Residue', false]] as Array<[string, boolean]>) {
+    write(join(root, 'claude/skills/bad/SKILL.md'), `# s\n\n## Residue\n\nx\n\n## Hard limits\n\nx\n\n${heading}\n\nx\n`);
+    expect(`heading ${JSON.stringify(heading)} ${ok ? 'is' : 'is not'} the Authority section`, shape, ['--root', root, '--skills', 'bad'], ok ? 0 : 1, ok ? [] : [/bad: missing the authority section/]);
+  }
+
   // Wiring is exit 2, never a finding.
   root = shapeRoot('wiring');
   const stub = join(scratch, 'nen-stub');
@@ -110,6 +183,11 @@ try {
   write(stub, '#!/bin/sh\necho \'{"results":[{"name":"residue","satisfied":true}]}\'\n');
   expect('a verdict missing a requirement row is wiring', shape, ['--root', root, '--skills', 'good', '--nen', stub], 2, [/has no row for authority/]);
   expect('a nen that cannot start is wiring', shape, ['--root', root, '--skills', 'good', '--nen', join(scratch, 'absent-nen')], 2, [/could not run/]);
+  const privateTmp = join(scratch, 'tmp');
+  mkdirSync(privateTmp);
+  write(stub, '#!/bin/sh\nexit 3\n');
+  expect('a wiring refusal removes its temporary directory', shape, ['--root', root, '--skills', 'good', '--nen', stub], 2, [/exited 3/], [], { TMPDIR: privateTmp, TMP: privateTmp, TEMP: privateTmp });
+  assert.deepEqual(readdirSync(privateTmp), [], 'a refusal left a hatsu-skill-shape-* directory behind');
   expect('no selector is usage', shape, ['--root', root], 2, [/exactly one of/]);
   expect('two selectors are usage', shape, ['--root', root, '--all', '--skills', 'good'], 2, [/exactly one of/]);
   expect('an unknown flag is usage', shape, ['--root', root, '--all', '--json'], 2, [/unknown argument "--json"/]);
@@ -160,6 +238,15 @@ try {
     /^coverage: decision row-c: citedBy names gamma, which has no claude\/skills\/gamma\/SKILL\.md$/m,
     /^coverage: decision row-d: citedBy lists alpha, which does not cite it$/m,
   ]);
+  root = coverageRoot('cov-word', [{ id: 'row-a', citedBy: ['alpha', 'beta'] }, { id: 'row-b', citedBy: ['alpha'] }, { id: 'merge', citedBy: ['alpha'] }], ['lane-one'], doc);
+  write(join(root, 'claude/skills/alpha/SKILL.md'), 'Row `row-a` and row `row-b`; the G2 prompt (row\n`merge`).\n');
+  write(join(root, 'claude/skills/beta/SKILL.md'), 'Row `row-a`.\n\nGit subcommands: `push`, `merge`, `tag`.\n');
+  expect('an ordinary-word id is cited only beside a row context', coverage, ['--root', root], 0, [/0 finding/]);
+  root = coverageRoot('cov-word-false', [{ id: 'row-a', citedBy: ['alpha', 'beta'] }, { id: 'row-b', citedBy: ['alpha'] }, { id: 'merge', citedBy: ['beta'] }], ['lane-one'], doc);
+  write(join(root, 'claude/skills/beta/SKILL.md'), 'Row `row-a`.\n\nGit subcommands: `push`, `merge`, `tag`.\n');
+  expect('a listed skill using the word as a plain code span does not cite it', coverage, ['--root', root], 1, [/^coverage: decision merge: citedBy lists beta, which does not cite it$/m]);
+  root = coverageRoot('cov-sort', [{ id: 'row-a', citedBy: ['beta', 'alpha'] }, { id: 'row-b', citedBy: ['alpha', 'alpha'] }, { id: 'merge', citedBy: [], uncitedReason: 'r' }], ['lane-one'], doc);
+  expect('an unsorted or repeated citedBy is reported by row id', coverage, ['--root', root], 1, [/decision row-a: citedBy is not sorted/, /decision row-b: citedBy is not sorted, or names a skill twice/]);
   root = coverageRoot('cov-stale', [{ id: 'row-a', citedBy: ['alpha', 'beta'], uncitedReason: 'old' }, { id: 'row-b', citedBy: ['alpha'] }], ['lane-one'], doc);
   expect('an uncitedReason on a cited row is stale', coverage, ['--root', root], 1, [/^coverage: decision row-a: uncitedReason on a row alpha, beta cites \(stale\)$/m]);
   root = coverageRoot('cov-lanes', clean, ['lane-one', 'lane-two', 'ghost-lane', 'lane'], doc);
@@ -174,26 +261,70 @@ try {
   expect('a lint contract with no include list is wiring', coverage, ['--root', root], 2, [/has no paths\.include list/]);
   expect('an unknown flag is usage', coverage, ['--root', root, '--json'], 2, [/unknown or incomplete argument "--json"/]);
 
-  // The live checkout, advisory (HR-13): a finding is printed, a wiring refusal fails the lane.
-  const liveCoverage = run(coverage, ['--root', live]);
-  assert.ok(liveCoverage.status === 0 || liveCoverage.status === 1, `live coverage could not run: ${liveCoverage.stderr}`);
-  process.stdout.write(liveCoverage.stdout);
-  if (liveCoverage.status === 1) console.log('ADVISORY (HR-13): the live canon-coverage findings above do not fail this lane yet');
-  cases += 1;
-  console.log(`ok ${cases} - live coverage read (exit ${liveCoverage.status})`);
-  const baseRoot = process.env.HATSU_BASE_ROOT;
-  const hasOrigin = spawnSync('git', ['-C', live, 'rev-parse', '--verify', '--quiet', 'origin/main'], { encoding: 'utf8' }).status === 0;
-  const selector = baseRoot ? ['--base-root', baseRoot] : hasOrigin ? ['--base', 'origin/main'] : null;
-  if (selector) {
-    const liveShapeRun = run(shape, ['--root', live, ...selector]);
-    assert.ok(liveShapeRun.status === 0 || liveShapeRun.status === 1, `live shape check could not run: ${liveShapeRun.stderr}`);
-    process.stdout.write(liveShapeRun.stdout);
-    if (liveShapeRun.status === 1) console.log('ADVISORY (HR-13): the touched-skill shape findings above do not fail this lane yet');
-    cases += 1;
-    console.log(`ok ${cases} - live touched-skill shape read (exit ${liveShapeRun.status})`);
-  } else {
-    console.log('NOT CHECKED: live touched-skill shape (no HATSU_BASE_ROOT and no origin/main to compare against)');
+  // The live read over planted roots: every finding and every unrun read fails it (zheref/hatsu#502).
+  const fixture = fileURLToPath(import.meta.url);
+  function liveRoot(name: string): string {
+    const r = coverageRoot(name, clean, ['lane-one', 'lane-two'], doc);
+    for (const skill of ['alpha', 'beta']) write(join(r, `claude/skills/${skill}/SKILL.md`), readFileSync(join(r, `claude/skills/${skill}/SKILL.md`), 'utf8') + '\n' + FULL);
+    write(join(r, 'claude/skills/old/SKILL.md'), NOTHING);
+    write(join(r, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [] }));
+    git(r, 'init', '-q');
+    git(r, 'add', '-A');
+    git(r, '-c', 'user.name=f', '-c', 'user.email=f@example.invalid', 'commit', '-qm', 'base');
+    return r;
   }
+  const head = (r: string): string => gitIn(r, ['rev-parse', 'HEAD']).out;
+  function expectLive(name: string, root: string, sha: string, status: number, out: RegExp[] = [], notOut: RegExp[] = []): void {
+    const r = spawnSync(process.execPath, [fixture, '--live', root], { cwd: scratch, encoding: 'utf8', env: { ...process.env, NEN: nen, HATSU_BASE_SHA: sha } });
+    const detail = `${name}: exit ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`;
+    assert.equal(r.status, status, detail);
+    for (const re of out) assert.match(String(r.stdout) + String(r.stderr), re, detail);
+    for (const re of notOut) assert.doesNotMatch(String(r.stdout), re, detail);
+    cases += 1;
+    console.log(`ok ${cases} - live: ${name}`);
+  }
+  root = liveRoot('live-clean');
+  expectLive('a clean planted root reads green', root, head(root), 0, [/0 finding/]);
+  write(join(root, 'claude/skills/alpha/SKILL.md'), 'Row `row-a` and row `row-b`.\n' + NO_AUTHORITY);
+  expectLive('a touched skill missing a section is red, the untouched old skill never named', root, head(root), 1, [/alpha: missing the authority section/], [/old:/]);
+  root = liveRoot('live-exempt');
+  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [{ skill: 'old', sections: ['residue'] }] }));
+  expectLive('a reasonless exemption is red', root, head(root), 1, [/exemption old: names no reason/]);
+  root = liveRoot('live-grown');
+  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [{ skill: 'old', sections: ['residue'], reason: 'r' }] }));
+  expectLive('an exemption added over the base list is red', root, head(root), 1, [/exemption old: section residue added over the base's list/]);
+  root = liveRoot('live-uncited');
+  write(join(root, 'nen/decisions.json'), JSON.stringify({ rows: [...clean, { id: 'row-z', citedBy: [] }] }));
+  expectLive('an uncited row with no reason is red', root, head(root), 1, [/decision row-z: cited by no skill/]);
+  root = liveRoot('live-lane');
+  write(join(root, 'nen/contract.json'), JSON.stringify({ project: { lanes: { 'lane-one': {}, 'lane-two': {}, 'lane-three': {} } } }));
+  expectLive('an unnamed lane is red', root, head(root), 1, [/lane lane-three: named by no canon file/]);
+  root = liveRoot('live-nobase');
+  expectLive('no base and no origin/main is NOT CHECKED, exit 2', root, '', 2, [/NOT CHECKED/]);
+  expectLive('an unreadable base sha is NOT CHECKED, exit 2', root, 'deadbeefdeadbeef', 2, [/NOT CHECKED: .*base deadbeefdeadbeef/]);
+  // A PR behind its base: the base branch edited `old` after the PR branched; only the PR's own
+  // changes are touched, so `old` is not failed for an edit the base made (N517-2).
+  root = liveRoot('live-behind');
+  const branchPoint = head(root);
+  git(root, 'checkout', '-q', '-b', 'pr');
+  git(root, 'checkout', '-q', '-');
+  write(join(root, 'claude/skills/old/SKILL.md'), NOTHING + '\nedited on the base branch\n');
+  git(root, '-c', 'user.name=f', '-c', 'user.email=f@example.invalid', 'commit', '-qam', 'base moves');
+  const baseTip = head(root);
+  git(root, 'checkout', '-q', 'pr');
+  assert.notEqual(baseTip, branchPoint);
+  expectLive('a PR behind its base is judged from the merge base, not the base tip', root, baseTip, 0, [/0 skill\(s\) checked against the merge base/], [/old:/]);
+  write(join(root, 'claude/skills/beta/SKILL.md'), 'Row `row-a`.\n' + NOTHING);
+  expectLive('the PR\'s own broken skill is still red behind its base', root, baseTip, 1, [/beta: missing the residue section/], [/old:/]);
+
+  // This checkout's live read: strict, red on any finding, exit 2 when it could not run.
+  const liveStatus = liveRead(live);
+  if (liveStatus !== 0) {
+    console.error(`skill-shape fixture: the live read of this checkout exited ${liveStatus}${liveStatus === 1 ? ' (findings above)' : ' (could not run)'}`);
+    process.exitCode = liveStatus;
+  }
+  cases += 1;
+  console.log(`ok ${cases} - live read of this checkout (exit ${liveStatus})`);
   console.log(`skill-shape fixture: ${cases} case(s) passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
