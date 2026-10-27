@@ -19,7 +19,7 @@
     },
     "verification": "Fetch checksumsUrl, fetch the host's asset, compute SHA256 over the downloaded archive, and compare it to that asset's line in the checksums file. A mismatch, an unfetchable manifest, or an asset the manifest is silent about is a REFUSAL: the row did not run, and it is reported as not scanned. Never execute unverified bytes, and never retry a checksum failure.",
     "run": "gitleaks detect --no-banner --redact --exit-code 1",
-    "failure": "A non-zero exit FAILS LOUD and is handed to Feitan with the finding paths. It is never swallowed, never downgraded to a warning, and never skipped silently. --redact is not optional: a scan that prints the secret it found has published it a second time.",
+    "failure": "A missing tool, a version different from the exact pin, an unsupported host, or absent checksum verification STOPS the security scope before review: Feitan-Read is unread, never clear. Name the install step: select the host asset, fetch it through assetUrlTemplate and fetch checksumsUrl, verify the archive SHA256 against its exact manifest entry before extracting or executing, install the verified binary on the existing PATH, confirm version, then rerun run in the checkout under review. No Nen provisioning verb is declared. A non-zero scan exit FAILS LOUD and is handed to Feitan with the finding paths. It is never swallowed, never downgraded to a warning, and never skipped silently. --redact is not optional: a scan that prints the secret it found has published it a second time.",
     "hostWithNoAsset": "A host this table names no asset for is reported as not scanned, naming the host. It is never substituted with another platform's build."
   },
   "dependencyAudit": {

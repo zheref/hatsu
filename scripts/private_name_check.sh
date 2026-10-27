@@ -89,7 +89,8 @@
 #     and say `no ignore file` when none was read: a default that is absent is not one that ignores 0,
 #     and a refusal on a machine without it can be the ordinary-word names alone (zheref/hatsu#149).
 #     An empty or comment-only ignore file ignores nothing; one that ignores EVERY name is a refusal
-#     (exit 2) unless --allow-empty is given.
+#     (exit 2) unless --allow-empty is given. A live --tree scan requires a readable ignore file;
+#     absence stops as host provisioning (exit 2) before requesting the private list.
 #
 # Usage:
 #   private_name_check.sh [--owner <login>]... [--names-file <path> [--allow-empty]]
@@ -194,6 +195,15 @@ if [ -n "$target" ] && [ -z "$resolve" ]; then
     PUBLIC) : ;;
     *) die "unexpected visibility for --target (not PUBLIC, PRIVATE or INTERNAL)" ;;
   esac
+fi
+
+# A live tree sweep needs the maintainer's host policy before any private-list request. An absent
+# file is host provisioning, never a tree finding (zheref/hatsu#493). Synthetic --names-file runs
+# retain the stricter no-ignore behavior so fixtures need no personal host policy.
+if [ -n "$tree" ] && [ -z "$names_file" ]; then
+  [ -n "$ignore_file" ] || die "live tree scan needs a host ignore file; set HOME or XDG_CONFIG_HOME, or pass --ignore-file <path>; only the maintainer may populate it"
+  [ -f "$ignore_file" ] && [ -r "$ignore_file" ] \
+    || die "live tree scan NOT SCANNED: host redaction-ignore is missing or unreadable; the maintainer must create the configured hatsu/redaction-ignore file (or pass --ignore-file <path>) with only names they have ruled too generic; a comment-only file explicitly ignores nothing. Rerun the tree scan after provisioning; do not infer exclusions from findings"
 fi
 
 # --- the private list: live, or a names file ----------------------------------------------------
