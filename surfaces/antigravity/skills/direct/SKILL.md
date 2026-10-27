@@ -78,6 +78,7 @@ or `Antigravity IDE`, omitted when unread; a surface name alone proves neither p
 
 ```bash
 hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path ten § 0 printed>'
+unset NODE_OPTIONS NODE_PATH
 node "$hatsu_root/scripts/direct_matrix_doc.mts" evidence "$hatsu_root" \
   --repo <checkout> --primary <alias> --fallback <alias|none> --recommended <alias> \
   --effort <level> [--product "<session-product>"]

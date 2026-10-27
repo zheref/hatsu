@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -90,7 +90,7 @@ export function runMatrixRuleFixture(): void {
 }
 
 export function runDatedEvidenceFixture(): void {
-  const data = mkdtempSync(join(tmpdir(), 'hatsu-direct-evidence-'));
+  const data = realpathSync(mkdtempSync(join(tmpdir(), 'hatsu-direct-evidence-')));
   const paths = ['contracts/direct.registry.json', 'contracts/classify.taxonomy.json', 'nen/workflow.json', 'docs/DIRECT-MATRIX.md'];
   const originals = new Map(paths.map(p => [p, readFileSync(join(root, p))]));
   type FixtureRegistry = { snapshot: { evidenceVersion?: unknown; aliases: Record<string, { listPrice: Record<string, unknown>; served: Record<string, unknown>; evidence?: string }>;
@@ -115,6 +115,38 @@ export function runDatedEvidenceFixture(): void {
       change(value); writeFileSync(join(data, 'contracts/direct.registry.json'), JSON.stringify(value));
     }
     function run(...args: string[]) { return spawnSync('bash', [join(scripts, 'direct_matrix_doc.sh'), ...args, data], { encoding: 'utf8', cwd: data }); }
+    function assertDocumentedEntrySanitized(version: 'absent' | 0) {
+      const blocks = [...readFileSync(join(root, 'claude/skills/direct/SKILL.md'), 'utf8').matchAll(/^```bash\n([\s\S]*?)^```/gm)]
+        .map(match => match[1]).filter(block => block.includes('scripts/direct_matrix_doc.mts" evidence '));
+      assert.equal(blocks.length, 1, 'exercise the unique evidence command actually documented in Direct');
+      const command = blocks[0]
+        .replace('--repo <checkout>', '--repo "$HA341_FIXTURE_DATA"')
+        .replace('--primary <alias>', '--primary VISUAL_ORCHESTRATOR')
+        .replace('--fallback <alias|none>', '--fallback SEMANTIC_FRONTIER')
+        .replace('--recommended <alias>', '--recommended VISUAL_MAX')
+        .replace('--effort <level>', '--effort max')
+        .replace(' [--product "<session-product>"]', '');
+      const fixtureScripts = join(data, 'scripts'); mkdirSync(fixtureScripts, { recursive: true });
+      const renderer = join(fixtureScripts, 'direct_matrix_doc.mts');
+      // The real renderer runs unchanged; the appended test probe also catches a retained
+      // NODE_PATH when removing NODE_OPTIONS alone happens to suppress the preload.
+      writeFileSync(renderer, readFileSync(join(scripts, 'direct_matrix_doc.mts'), 'utf8') +
+        "\nif (process.env.NODE_OPTIONS !== undefined || process.env.NODE_PATH !== undefined) throw Error('inherited Node settings reached the documented evidence entry');\n");
+      const marker = join(data, 'evidence-preload.marker'); const preload = join(data, 'evidence-preload.cjs');
+      writeFileSync(preload, "require('node:fs').writeFileSync(" + JSON.stringify(marker) + ", 'executed'); throw Error('synthetic inherited preload executed');\n");
+      const poisoned = { ...process.env, HATSU_PLUGIN_ROOT: data, HA341_FIXTURE_DATA: data,
+        NODE_OPTIONS: '--require ' + JSON.stringify(preload), NODE_PATH: data };
+      const control = spawnSync(process.execPath, [renderer, 'evidence', data, '--repo', data,
+        '--primary', 'VISUAL_ORCHESTRATOR', '--fallback', 'SEMANTIC_FRONTIER', '--recommended', 'VISUAL_MAX', '--effort', 'max'],
+      { cwd: data, env: poisoned, encoding: 'utf8' });
+      assert.equal(control.status, 1, `preload control (${version}): ${control.stdout}${control.stderr}`);
+      assert.ok(existsSync(marker), 'the synthetic preload must demonstrably execute before an unprotected default-off entry');
+      rmSync(marker);
+      const documented = spawnSync('bash', ['-c', command], { cwd: data, env: poisoned, encoding: 'utf8' });
+      assert.equal(documented.status, 0, `documented entry (${version}): ${documented.stdout}${documented.stderr}`);
+      assert.equal(JSON.parse(documented.stdout).enabled, false, `documented entry keeps evidenceVersion ${version} inactive`);
+      assert.ok(!existsSync(marker), `documented entry must block inherited preloads with evidenceVersion ${version}`);
+    }
     reset(false);
     const inactive = createMatrix(data, { today: '2026-10-27' });
     assert.equal(inactive.evidenceEnabled, false, 'absent evidenceVersion defaults to legacy behavior');
@@ -124,8 +156,15 @@ export function runDatedEvidenceFixture(): void {
       '--primary', 'VISUAL_ORCHESTRATOR', '--fallback', 'SEMANTIC_FRONTIER', '--recommended', 'VISUAL_MAX', '--effort', 'max'], { encoding: 'utf8' });
     assert.equal(inactiveCli.status, 0, inactiveCli.stdout + inactiveCli.stderr);
     assert.equal(JSON.parse(inactiveCli.stdout).enabled, false, 'the skill cannot silently activate dated reports');
+    assertDocumentedEntrySanitized('absent');
+    edit(d => { d.snapshot.evidenceVersion = 0; });
+    const explicitLegacy = createMatrix(data, { today: '2026-10-27' });
+    assert.equal(explicitLegacy.evidenceEnabled, false, 'explicit evidenceVersion 0 keeps legacy behavior');
+    assert.equal(explicitLegacy.render().page, originals.get('docs/DIRECT-MATRIX.md')!.toString(), 'explicit legacy mode preserves the live page byte for byte');
+    assertDocumentedEntrySanitized(0);
     reset();
     const current = createMatrix(data, { today: '2026-10-27' });
+    assert.equal(current.evidenceEnabled, true, 'explicit evidenceVersion 1 enables dated evidence');
     assert.deepEqual(current.priceFindings(), []);
     const page = current.render().page;
     assert.match(page, /\$2 \/ \$10 through 2026-11-30; \$4 \/ \$20 from 2026-12-01/);
@@ -166,6 +205,7 @@ export function runDatedEvidenceFixture(): void {
     assert.equal(createMatrix(data, { today: '2027-01-01' }).priceFindings().length, 2, 'both dated price steps eventually expire');
     const rejects: Array<[string, (d: FixtureRegistry) => void, RegExp]> = [
       ['unknown evidence version', d => { d.snapshot.evidenceVersion = 2; }, /snapshot.evidenceVersion/],
+      ['null evidence version', d => { d.snapshot.evidenceVersion = null; }, /snapshot.evidenceVersion/],
       ['invalid calendar date', d => { d.snapshot.aliases.VISUAL_MAX.listPrice.until = '2026-02-30'; }, /VISUAL_MAX.*until.*real ISO date/],
       ['missing next', d => { delete d.snapshot.aliases.VISUAL_MAX.listPrice.next; }, /until and next/],
       ['step gap', d => { (d.snapshot.aliases.VISUAL_MAX.listPrice.next as Record<string, unknown>).from = '2026-12-02'; }, /next.from.*day after/],
@@ -187,14 +227,29 @@ export function runDatedEvidenceFixture(): void {
       /Model: fixture-pro/, 'registry evidence and the consumer workflow are separate inputs');
     const evidenceArgs = ['evidence', data, '--repo', consumer, '--primary', 'VISUAL_ORCHESTRATOR', '--fallback', 'SEMANTIC_FRONTIER',
       '--recommended', 'VISUAL_MAX', '--effort', 'max', '--product', 'Antigravity CLI'];
+    const now = new Date().toISOString().slice(0, 10);
+    const successUntil = new Date(Date.parse(now) + 30 * 86400000).toISOString().slice(0, 10);
+    const successFrom = new Date(Date.parse(successUntil) + 86400000).toISOString().slice(0, 10);
+    // Only this successful child-process scratch input follows the real clock. Keep the
+    // fixed boundary cases above, and restore the expired-yesterday case below, independent.
+    edit(d => {
+      for (const row of Object.values(d.snapshot.aliases)) {
+        const lp = row.listPrice;
+        if (lp?.until !== undefined) {
+          lp.until = successUntil;
+          (lp.next as Record<string, unknown>).from = successFrom;
+        }
+      }
+    });
     const cli = spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), ...evidenceArgs], { encoding: 'utf8' });
     assert.equal(cli.status, 0, cli.stdout + cli.stderr);
     const cliEvidence = JSON.parse(cli.stdout) as typeof verdict;
     assert.equal(cliEvidence.primary.restartWarning, verdict.primary.restartWarning);
     assert.equal(cliEvidence.primary.typedAlias, 'fixture-pro');
+    assert.equal(cliEvidence.recommended.price?.until, successUntil, 'successful CLI data expires safely after the actual UTC date');
+    assert.equal(cliEvidence.recommended.price?.next?.from, successFrom, 'the future scratch price transition stays contiguous');
     assert.throws(() => main([...evidenceArgs, '--product', 'duplicate']), /duplicate/);
     assert.throws(() => main(['evidence', data]), /required --repo/);
-    const now = new Date().toISOString().slice(0, 10);
     const yesterday = new Date(Date.parse(now) - 86400000).toISOString().slice(0, 10);
     reset(); edit(d => { const lp = d.snapshot.aliases.VISUAL_MAX.listPrice; lp.readOn = yesterday; lp.until = yesterday;
       (lp.next as Record<string, unknown>).from = now; });

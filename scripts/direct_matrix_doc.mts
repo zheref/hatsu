@@ -171,7 +171,7 @@ function parseRegistry(value: unknown): Registry {
     return { label: text(n.label, `${at}.label`), provider: optionalText(n.provider, `${at}.provider`), what: text(n.what, `${at}.what`), lookup: text(n.lookup, `${at}.lookup`) };
   });
   const snapshot = record(r.snapshot, 'snapshot');
-  const evidenceVersion = snapshot.evidenceVersion ?? 0;
+  const evidenceVersion = snapshot.evidenceVersion === undefined ? 0 : snapshot.evidenceVersion;
   if (evidenceVersion !== 0 && evidenceVersion !== 1) refuse('snapshot.evidenceVersion: expected 0 (legacy) or 1 (dated evidence)');
   const sources = mapRows(snapshot.sources ?? {}, 'snapshot.sources', (v, at): SnapshotSource => {
     const s = record(v, at); let costPerTask: CostPerTask | undefined;
