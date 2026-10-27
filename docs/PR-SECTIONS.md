@@ -145,10 +145,10 @@ each letter has exactly one row: `yes` only when every issue passes, and its Lin
 of every issue.
 
 **Admission.** The footer block renders only under the `canon-prose` fact. Canon prose is a changed `.md`
-under `docs/`, `claude/` or `templates/`, or directly under `contracts/`. The fact comes from
-`--canon-prose`, or from `--scopes-from` a `nen review scopes --json` document listing such a path in
-any scope. The architecture scope claims the same paths, so Chrollo's existing raise covers them
-(zheref/hatsu#503 AS-1). The resolver reads nen's classification and matches no glob itself. A document
+that the architecture scope's globs in `nen/workflow.json` claim: they are its one definition, and they
+cover `docs/`, `claude/`, `templates/` and `contracts/` (zheref/hatsu#503 AS-1, AS-4). The fact comes from
+`--canon-prose`, or from `--scopes-from` a `nen review scopes --json` document in which the scope whose
+persona is Chrollo lists a `.md` path. nen applies the globs; the resolver matches no path itself. A document
 whose contract, scope list or any scope's `paths` is malformed or missing refuses at exit 1, whatever else
 is passed. A PR that edits no such path has no Prose checklist, and the heading is then undeclared.
 
@@ -165,8 +165,11 @@ default and pushable (HA#503 AC-2): only HR-369's text is ruled, not each row, s
 critical by shape. It is settled like any other finding, fixed or pushed back with a cited reason
 (hanten § 6). The fix's object is usually the closing issue's text. Chrollo's delta pass reads the
 settle: it re-reads the closing issues' bodies as well as the diff since his last head, and re-answers
-every `PRS` row. The hanten budget is per effort, and a delta pass is one of the effort's rounds. A `no`
-still standing at readiness is a G5, like any unsettled finding.
+every `PRS` row. The hanten budget is per effort, and a delta pass is one of the effort's rounds. The
+delta pass is granted on a new head **or** on an amended closing issue, so a settle made only by editing
+the issue is re-answered too. A **pushed-back** `no` is settled like any pushed-back finding: the row reads
+`no`, the cited reason stands in the Adversarial review table, and readiness is not blocked by it. A `no`
+that is neither re-answered `yes` nor pushed back is unsettled at readiness: a G5, like any unsettled finding.
 
 ## Check every write
 

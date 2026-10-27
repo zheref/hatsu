@@ -312,26 +312,25 @@ export function decisionsTaken(manifest: unknown, positive = false): boolean {
   if (positive) return false;
   throw new Error("a nen.run manifest records only idle pre-answers and cannot show that no decision was taken: omit --decisions-from; pass --decisions if a decision was taken");
 }
-/** HA#503: canon prose is a changed `.md` under docs/, claude/ or templates/, or directly under contracts/. */
-export function isCanonProse(path: string): boolean {
-  return /^(?:docs|claude|templates)\/.+\.md$/i.test(path) || /^contracts\/[^/]+\.md$/i.test(path);
-}
+/** HA#503 AS-1/AS-4: the reviewer whose existing raise answers the prose checklist (HR-369). */
+export const PROSE_REVIEWER = "chrollo";
 /**
- * HA#503 AC-3: whether a `nen review scopes --json` document (nen.review.scopes/v0.1) lists a canon-prose
- * path in any scope. The classification is nen's; this reads its output and matches no glob itself. Every
- * scope is validated before any is read, and a scope without a `paths` array refuses (never "no block").
+ * HA#503 AC-3: whether a `nen review scopes --json` document (nen.review.scopes/v0.1) shows canon prose: a
+ * scope whose persona is the prose reviewer claims a changed `.md` path. The architecture globs in
+ * nen/workflow.json are the one definition of canon prose; nen applies them, and this matches no path
+ * itself. Every scope is validated before any is read, and a scope without a `paths` array refuses.
  */
 export function canonProse(document: unknown): boolean {
   const record = object(document, "--scopes-from must be a nen review scopes document");
   if (record.contract !== "nen.review.scopes/v0.1") throw new Error("--scopes-from: expected contract nen.review.scopes/v0.1");
   if (!Array.isArray(record.scopes)) throw new Error("--scopes-from: scopes must be an array");
-  const paths = record.scopes.flatMap((value, index): string[] => {
+  const scopes = record.scopes.map((value, index): { persona: string; paths: string[] } => {
     const scope = object(value, `--scopes-from: scope ${index} must be an object`);
     if (typeof scope.persona !== "string" || scope.persona.length === 0) throw new Error(`--scopes-from: scope ${index} names no persona`);
     if (!Array.isArray(scope.paths)) throw new Error(`--scopes-from: scope ${index} carries no paths array`);
-    return strings(scope.paths, `--scopes-from: scope ${index} paths must be nonempty strings`);
+    return { persona: scope.persona, paths: strings(scope.paths, `--scopes-from: scope ${index} paths must be nonempty strings`) };
   });
-  return paths.some(isCanonProse);
+  return scopes.some((scope): boolean => scope.persona === PROSE_REVIEWER && scope.paths.some((path): boolean => /\.md$/i.test(path)));
 }
 export function resolve(cat: Catalogue, repo: string, kind: RepositoryKind, jobs: readonly string[], facts: ReadonlySet<string>): Resolution {
   const family = fold(cat, jobs);

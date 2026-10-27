@@ -24,7 +24,6 @@ import {
   decisionsTaken,
   defaults,
   fold,
-  isCanonProse,
   options,
   pattern,
   policyHit,
@@ -737,13 +736,11 @@ test("HA#503 AC-1/AC-2: exactly one PRS row per letter, answered by Chrollo with
   assert.deepEqual(check(cat, later, report.requirements, 7)[0], []);
 });
 
-test("HA#503 AC-3: --scopes-from reads nen review scopes, and only a changed canon-prose path admits the checklist", (context) => {
-  for (const [path, expected] of [["docs/PROCESS.md", true], ["docs/config/x.md", true], ["claude/skills/hanten/references/a.md", true],
-    ["templates/pr-body/prose.md", true], ["contracts/notes.md", true], ["contracts/sub/notes.md", false], ["README.md", false],
-    ["CLAUDE.md", false], ["nen/workflow.json", false], ["docs/PR-SECTIONS.json", false]] as const) {
-    assert.equal(isCanonProse(path), expected, path);
-  }
-  assert.equal(canonProse(scopes([{ persona: "nobunaga", paths: ["docs/PROCESS.md"] }])), true);
+test("HA#503 AC-3: --scopes-from reads nen review scopes, and only a Markdown path Chrollo's scope claims admits the checklist", (context) => {
+  // The architecture globs are the one definition: only .md paths Chrollo's scope claims admit the block.
+  assert.equal(canonProse(scopes([{ persona: "nobunaga", paths: ["docs/PROCESS.md"] }])), false, "a path Chrollo does not claim");
+  assert.equal(canonProse(scopes([{ persona: "chrollo", paths: ["contracts/a/b.md"] }])), true, "contracts/** claims a nested .md");
+  assert.equal(canonProse(scopes([{ persona: "chrollo", paths: ["docs/PROCESS.md"] }])), true);
   assert.equal(canonProse(scopes([{ persona: "chrollo", paths: ["contracts/pr-sections.json"] }, { persona: "nobunaga", paths: ["README.md"] }])), false);
   assert.equal(canonProse(scopes([])), false);
   for (const bad of [null, [], {}, { contract: "nen.review.scopes/v0.2", scopes: [] }, { contract: "nen.review.scopes/v0.1", scopes: {} },

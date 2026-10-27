@@ -101,8 +101,7 @@ nen wc worktrees --repo <target repo> --json
 git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD   # one per persona
 ```
 
-Observed worktree refusal (HA#218; ROSTER 2026-10-13): disclose **read-only** review at printed HEAD;
-**never `isolation: "worktree"`**.
+Observed worktree refusal (HA#218; ROSTER 2026-10-13): disclose **read-only** review at printed HEAD.
 **On return, compare both refs to printed SHAs; run
 `"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>`**,
 never piped. Moved ref or a commit in the range: G5, named, never built on (HA#170); `2`: quoted wiring stop.
@@ -171,7 +170,7 @@ the alternatives, and stop in `jutaisho` § 4's shape.
 ## 7. On a surface that is not Claude Code
 
 Elsewhere **PROCESS.md § Surfaces and pickers** holds: the worker at the scope's tier, a repo copy,
-§ 5's shape, the pinned `nen`, or none (preamble § 2).
+§ 5's shape, the pinned `nen` by absolute path, or none where the worker carries it (preamble § 2).
 
 ## Authority
 
