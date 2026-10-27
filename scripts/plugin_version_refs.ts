@@ -6,7 +6,7 @@
 // nen/contract.json's dependency.minimum and pinned_ref (0 agree, 1 drift,
 // 2 a side missing, unparseable, duplicated or resolving outside the root).
 import { lstatSync, readFileSync, readlinkSync, realpathSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 function refuse(message: string): never {
@@ -104,7 +104,22 @@ function main(args: string[]): void {
     try {
       if (!lstatSync(path).isFile()) refuse('--body-file must name a regular file, not a symlink');
       const real = realpathSync(path);
-      if (relative(root, real).startsWith(`surfaces${sep}`)) refuse('--body-file cannot name a generated mirror');
+      const draftPaths = [relative(root, path), relative(root, real)];
+      // A checkout may be entered through a filesystem alias such as /var.
+      // Preserve its lexical suffix even when a lower directory points outside.
+      let ancestor = dirname(path);
+      for (;;) {
+        if (realpathSync(ancestor) === root) {
+          draftPaths.push(relative(ancestor, path));
+          break;
+        }
+        const parent = dirname(ancestor);
+        if (parent === ancestor) break;
+        ancestor = parent;
+      }
+      if (draftPaths.some((candidate) => candidate === 'surfaces' || candidate.startsWith(`surfaces${sep}`))) {
+        refuse('--body-file cannot name a generated mirror');
+      }
       content = new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(path));
       if (content.includes('\0')) refuse('--body-file contains NUL bytes');
     } catch (error) { refuse(`--body-file: ${(error as Error).message}`); }

@@ -89,6 +89,24 @@ grep -Fxq 'Plugin 1.2.4' "$tmp/surfaces-draft/body.md" || fail 'surfaces-prefixe
 # file outside the checkout.
 outside="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-version-refs-outside.XXXXXXXX")"
 trap 'rm -rf -- "$tmp" "$outside"' EXIT
+# A lexical mirror path stays excluded when its ancestor resolves outside.
+mkdir -p "$outside/mirror"
+printf 'Plugin 1.2.4\n' > "$outside/mirror/AGENTS.md"
+cp "$outside/mirror/AGENTS.md" "$tmp/mirror.before"
+cp "$tmp/.claude-plugin/plugin.json" "$tmp/manifest.before"
+mv "$tmp/surfaces/codex" "$tmp/surfaces/codex.saved"
+ln -s "$outside/mirror" "$tmp/surfaces/codex"
+set +e
+bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.4 --to 1.2.5 \
+  --body-file "$tmp/surfaces/codex/AGENTS.md" --write > "$tmp/mirror-escape.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 2 ] || fail "mirror ancestor symlink exited $code, expected 2"
+cmp -s "$outside/mirror/AGENTS.md" "$tmp/mirror.before" || fail 'mirror ancestor target was rewritten'
+cmp -s "$tmp/.claude-plugin/plugin.json" "$tmp/manifest.before" || fail 'mirror refusal changed a tracked manifest'
+rm "$tmp/surfaces/codex"
+mv "$tmp/surfaces/codex.saved" "$tmp/surfaces/codex"
+
 mv "$tmp/docs" "$tmp/docs.saved"
 ln -s "$outside" "$tmp/docs"
 printf 'new in v1.2.3 outside\n' > "$outside/notes.md"
