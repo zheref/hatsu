@@ -231,7 +231,7 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 ## `contracts/skill-shape.json`
 
-**Purpose.** The skill shape [`docs/PROCESS.md`](../PROCESS.md) § *The skill shape* states, as data: the Residue, Authority and Hard limits requirements every touched `SKILL.md` is checked against through `nen pr body-check`, and the shrink-only exemption list. Read by `scripts/skill_shape_check.mts` (lane `skill-shape-guard`); never by a consumer. Keys, findings and the coverage checks beside it: [`skill-shape.json.md`](skill-shape.json.md).
+**Purpose.** The skill shape [`docs/PROCESS.md`](../PROCESS.md) § *The skill shape* states, as data: the Residue, Authority and Hard limits requirements every touched `SKILL.md` is checked against through `nen pr body-check`, and the reasoned exemption list. Read by `scripts/skill_shape_check.mts` (lane `skill-shape-guard`); never by a consumer. Keys, findings and the coverage checks beside it: [`skill-shape.json.md`](skill-shape.json.md).
 
 ## `contracts/prose.lint.json` and `contracts/prose.lint.baseline.json`
 

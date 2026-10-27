@@ -1,6 +1,6 @@
 # `contracts/skill-shape.json` — the skill shape as data, and the coverage checks beside it
 
-> **Lives in** this plugin, at [`contracts/skill-shape.json`](../../contracts/skill-shape.json); a consumer carries none · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; the exemption list only ever loses entries · **Validated by** `scripts/skill_shape_check.mts` itself (exit `2` on a malformed file) and lane `skill-shape-guard` · **Authority** [`docs/PROCESS.md`](../PROCESS.md) § *The skill shape*
+> **Lives in** this plugin, at [`contracts/skill-shape.json`](../../contracts/skill-shape.json); a consumer carries none · **Written by** the maintainer of `zheref/hatsu`, on a PR at its `G4` gate; a reasoned exemption may be added · **Validated by** `scripts/skill_shape_check.mts` itself (exit `2` on a malformed file) and lane `skill-shape-guard` · **Authority** [`docs/PROCESS.md`](../PROCESS.md) § *The skill shape*
 
 ## What it decides
 
@@ -19,10 +19,11 @@ Which sections a skill must carry when an effort edits it, as [`PROCESS.md`](../
 
 - a checked skill missing a section it is not exempt from;
 - an exemption with no or a blank `reason`, or naming an unknown skill or section;
-- an exemption for a section the checked skill in fact carries (stale);
-- under `--base` or `--base-root`, an exempt section the base's list did not carry. The list only shrinks, and a base with no contract file lists nothing.
+- an exemption for a section the checked skill in fact carries (stale).
 
-**A refusal** is exit `2`: wrong usage, an unreadable contract or base contract, a base git cannot resolve, or nen exiting other than `0` or `1`.
+A reasoned exemption may be added in any PR (HA#502/AC-2).
+
+**A refusal** is exit `2`: wrong usage, an unreadable contract, a base git cannot resolve, or nen exiting other than `0` or `1`.
 
 ## The coverage checks beside it
 

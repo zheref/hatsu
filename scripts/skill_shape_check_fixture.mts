@@ -148,21 +148,13 @@ try {
   root = shapeRoot('stale', [{ skill: 'good', sections: ['residue'], reason: 'r' }]);
   expect('an exemption for a section the checked skill carries is stale', shape, ['--root', root, '--skills', 'good'], 1, [/exemption good: stale, the skill carries the residue section/]);
 
-  // The exemption list only shrinks: an entry the base did not carry is a finding (Chrollo 6).
+  // A reasoned exemption may be added over the base's list (AC-2); one without a reason fails.
   root = shapeRoot('grow');
-  const growBase = join(scratch, 'grow-base');
-  cpSync(root, growBase, { recursive: true });
-  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [{ skill: 'old', sections: ['residue'], reason: 'r' }] }));
-  expect('--base: an exemption added over the merge base is named', shape, ['--root', root, '--base', 'HEAD'], 1, [/^skill-shape: exemption old: section residue added over the base's list/m]);
-  expect('--base-root: the same against a base tree', shape, ['--root', root, '--base-root', growBase], 1, [/exemption old: section residue added over the base's list/]);
-  git(root, '-c', 'user.name=f', '-c', 'user.email=f@example.invalid', 'commit', '-qam', 'exempt');
-  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [] }));
-  expect('--base: an exemption removed from the base list passes', shape, ['--root', root, '--base', 'HEAD'], 0, [/0 finding/]);
-  rmSync(join(growBase, 'contracts/skill-shape.json'));
-  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [] }));
-  expect('--base-root: a base with no contract lists nothing', shape, ['--root', root, '--base-root', growBase], 0, [/0 finding/]);
-  write(join(growBase, 'contracts/skill-shape.json'), '{');
-  expect('--base-root: an unparseable base contract is wiring', shape, ['--root', root, '--base-root', growBase], 2, [/cannot read the base's shape contract/]);
+  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [{ skill: 'old', sections: ['residue', 'authority', 'hard-limits'], reason: 'r' }] }));
+  write(join(root, 'claude/skills/old/SKILL.md'), NOTHING + '\ntouched\n');
+  expect('--base: an added reasoned exemption passes for a touched skill', shape, ['--root', root, '--base', 'HEAD'], 0, [/\(old\); 0 finding/]);
+  write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [{ skill: 'old', sections: ['residue', 'authority', 'hard-limits'] }] }));
+  expect('--base: an added exemption without a reason fails', shape, ['--root', root, '--base', 'HEAD'], 1, [/exemption old: names no reason/]);
 
   // Only the section's own heading counts, never a heading that mentions the word (N517-10).
   root = shapeRoot('exact');
@@ -292,7 +284,7 @@ try {
   expectLive('a reasonless exemption is red', root, head(root), 1, [/exemption old: names no reason/]);
   root = liveRoot('live-grown');
   write(join(root, 'contracts/skill-shape.json'), JSON.stringify({ requirements: liveShape.requirements, exemptions: [{ skill: 'old', sections: ['residue'], reason: 'r' }] }));
-  expectLive('an exemption added over the base list is red', root, head(root), 1, [/exemption old: section residue added over the base's list/]);
+  expectLive('a reasoned exemption added over the base list reads green', root, head(root), 0, [/0 finding/]);
   root = liveRoot('live-uncited');
   write(join(root, 'nen/decisions.json'), JSON.stringify({ rows: [...clean, { id: 'row-z', citedBy: [] }] }));
   expectLive('an uncited row with no reason is red', root, head(root), 1, [/decision row-z: cited by no skill/]);
@@ -317,15 +309,18 @@ try {
   write(join(root, 'claude/skills/beta/SKILL.md'), 'Row `row-a`.\n' + NOTHING);
   expectLive('the PR\'s own broken skill is still red behind its base', root, baseTip, 1, [/beta: missing the residue section/], [/old:/]);
 
-  // This checkout's live read: strict, red on any finding, exit 2 when it could not run.
+  // This checkout's live read: strict, red on any finding, exit 2 when it could not run. A red read
+  // prints its red summary and no `ok` line or pass count (N517-12).
   const liveStatus = liveRead(live);
   if (liveStatus !== 0) {
-    console.error(`skill-shape fixture: the live read of this checkout exited ${liveStatus}${liveStatus === 1 ? ' (findings above)' : ' (could not run)'}`);
+    console.error(`not ok ${cases + 1} - live read of this checkout (exit ${liveStatus})`);
+    console.error(`skill-shape fixture: RED, the live read of this checkout exited ${liveStatus}${liveStatus === 1 ? ' (findings above)' : ' (could not run)'}; ${cases} hermetic case(s) held before it`);
     process.exitCode = liveStatus;
+  } else {
+    cases += 1;
+    console.log(`ok ${cases} - live read of this checkout (exit 0)`);
+    console.log(`skill-shape fixture: ${cases} case(s) passed`);
   }
-  cases += 1;
-  console.log(`ok ${cases} - live read of this checkout (exit ${liveStatus})`);
-  console.log(`skill-shape fixture: ${cases} case(s) passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });
 }

@@ -16,6 +16,6 @@
       "pattern": "^ {0,3}##[ \\t]+(?:\\d+\\.[ \\t]+)?(?:(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits)(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+))*[Hh]ard limits(?:(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+)(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits))*(?:[ \\t]+—[^\\r\\n]*)?[ \\t]*$"
     }
   ],
-  "$exemptions": "One entry per skill that may lack a section: {\"skill\": \"<claude/skills directory name>\", \"sections\": [\"<a requirement name above>\", ...], \"reason\": \"<why this skill has no such section>\"}. An entry with no reason, an empty reason, an unknown skill or section, a section the skill in fact carries when it is checked, or a section the base revision's list did not carry (the list only shrinks) fails the check by name. An empty list is a decision: no skill is exempt.",
+  "$exemptions": "One entry per skill that may lack a section: {\"skill\": \"<claude/skills directory name>\", \"sections\": [\"<a requirement name above>\", ...], \"reason\": \"<why this skill has no such section>\"}. An entry with no reason, an empty reason, an unknown skill or section, or a section the skill in fact carries when it is checked fails the check by name. An empty list is a decision: no skill is exempt.",
   "exemptions": []
 }

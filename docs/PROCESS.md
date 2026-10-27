@@ -25,7 +25,7 @@ and on whose word (§ *Authority every phase shares*). The **Hard limits** name 
 which `nen/contract.json`'s `precedence` ranks first (`skill.hardLimit`). One heading may hold
 several of them (`## 6. Authority and hard limits`). A heading that only mentions the word
 (`## 1. Invocation and authority`) is not the section. A skill that genuinely has no such section
-carries an exemption with its reason in `contracts/skill-shape.json`, and that list only shrinks.
+carries an exemption with its reason in `contracts/skill-shape.json`; an exemption without a reason is a finding.
 **Enforced as touched:** `scripts/skill_shape_check.mts` (lane `skill-shape-guard`) fails a skill an
 effort edits by the missing section's name, and never fails a skill no effort touched. A skill that
 predates the check is fixed when an effort next edits it. Keys and exits:

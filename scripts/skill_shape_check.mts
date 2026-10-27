@@ -13,12 +13,11 @@
 //      A skill no selector reaches is never failed for its shape. A deleted skill is not checked.
 //   3. FINDINGS, exit 1, one line each on stdout: a checked skill missing a required section it is
 //      not exempt from (named); an exemption with no reason, or naming an unknown skill or section;
-//      an exemption whose section the checked skill in fact carries (stale); and, under --base or
-//      --base-root, an exempt section the base's contract did not list (the list only shrinks; a
-//      base with no contract file lists nothing). The reason and name rules bind every entry.
+//      and an exemption whose section the checked skill in fact carries (stale). The reason and
+//      name rules bind every entry, checked or not; a reasoned entry may be added (AC-2).
 //   4. A TOOLING FAILURE IS NOT A FINDING: wrong usage, an unreadable or malformed contract, a --base
 //      git cannot resolve (or one starting with '-'), a missing --base-root, an unknown --skills name,
-//      an unparseable base contract, or nen exiting other than 0 or 1 or printing no verdict exits 2
+//      or nen exiting other than 0 or 1 or printing no verdict exits 2
 //      on stderr (the temporary directory removed first), so "could not look" never reads as
 //      "looked and found nothing".
 //
@@ -26,7 +25,7 @@
 //          (--base <ref> | --base-root <dir> | --skills <a,b> | --all)
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, relative, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -120,33 +119,9 @@ function git(argv: string[]): string {
 }
 const SKILL_PATH = /^claude\/skills\/([^/]+)\/SKILL\.md$/;
 
-// The exempt (skill, section) pairs an exemptions array lists; malformed entries list nothing here,
-// since the head's own malformed entries are findings above.
-function pairs(list: unknown): Set<string> {
-  const out = new Set<string>();
-  if (!Array.isArray(list)) return out;
-  for (const row of list) {
-    const e = row as Exemption;
-    if (e && typeof e.skill === 'string' && Array.isArray(e.sections)) for (const x of e.sections) if (typeof x === 'string') out.add(`${e.skill}\u0000${x}`);
-  }
-  return out;
-}
-function baseExemptions(text: string | null, where: string): Set<string> {
-  if (text === null) return new Set();
-  try {
-    const parsed = JSON.parse(text);
-    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('not a JSON object');
-    return pairs(parsed.exemptions);
-  } catch (error) {
-    refuse(`cannot read the base's shape contract ${where}: ${(error as Error).message}`);
-  }
-}
-const contractRel = relative(root, contractPath).split('\\').join('/');
-
 const [selector, selected] = selectors[0];
 let checked: string[];
 let against: string;
-let base: Set<string> | null = null;
 if (selector === '--all') {
   checked = onDisk;
   against = 'every skill';
@@ -163,8 +138,6 @@ if (selector === '--all') {
   const untracked = git(['ls-files', '-z', '--others', '--exclude-standard', '--', 'claude/skills']).split('\0');
   checked = [...new Set([...changed, ...untracked].map((p) => SKILL_PATH.exec(p)?.[1]).filter((s): s is string => !!s && known.has(s)))].sort();
   against = `the merge base of ${ref} (${mergeBase.slice(0, 12)})`;
-  const shown = spawnSync('git', ['-C', root, 'cat-file', '-e', `${mergeBase}:${contractRel}`], { encoding: 'utf8' });
-  base = baseExemptions(shown.status === 0 ? git(['show', `${mergeBase}:${contractRel}`]) : null, `${mergeBase.slice(0, 12)}:${contractRel}`);
 } else {
   const baseRoot = resolve(String(selected));
   if (!existsSync(baseRoot) || !statSync(baseRoot).isDirectory()) refuse(`--base-root ${baseRoot} is not a directory`);
@@ -173,18 +146,7 @@ if (selector === '--all') {
     return !existsSync(before) || !readFileSync(before).equals(readFileSync(join(skillsDir, s, 'SKILL.md')));
   });
   against = `the base tree ${baseRoot}`;
-  const baseContract = join(baseRoot, contractRel);
-  base = baseExemptions(existsSync(baseContract) ? readFileSync(baseContract, 'utf8') : null, baseContract);
 }
-if (base) {
-  for (const key of pairs(contract.exemptions)) {
-    if (!base.has(key)) {
-      const [skill, section] = key.split('\u0000');
-      findings.push(`skill-shape: exemption ${skill}: section ${section} added over the base's list (the exemption list only shrinks)`);
-    }
-  }
-}
-
 const dir = mkdtempSync(join(tmpdir(), 'hatsu-skill-shape-'));
 scratch = dir;
 const reqFile = join(dir, 'requirements.json');
