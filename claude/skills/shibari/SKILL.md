@@ -56,7 +56,7 @@ in `## Completion checklist` as `injected attribution trailer: <sha> <key>, publ
 **Resolve before drafting** through [PR-SECTIONS.md](../../../docs/PR-SECTIONS.md):
 `nen repo classify` gives kind; associated issues give distinct `job/` labels. Read consumer-owned
 `pr.sections`, reuse Mukai's run facts, then run the interim resolver with
-`--repo`, `--kind`, `--jobs`, applicable `--evidence`, `--economics`, `--policy-hit`, `--idle`, and
+`--repo`, `--kind`, `--jobs`, each applicable run-fact flag (PR-SECTIONS step 3), and
 `--out <absolute-requirements.json>`. `--idle` adds the decisions section for an idle run's pre-answers
 (HR-334); `--decisions` for any other decision taken for the maintainer, attended or mid-run
 (zheref/hatsu#474 AC-1), which no nen manifest records (PR-SECTIONS step 3). The

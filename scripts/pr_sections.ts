@@ -25,7 +25,7 @@ export interface SectionRow {
   readonly level: 1 | 2;
   readonly template: string;
   readonly $comment: string;
-  readonly when?: "evidence" | "economics" | "policy-hit" | "spec" | "decisions";
+  readonly when?: "evidence" | "economics" | "policy-hit" | "spec" | "decisions" | "canon-prose";
   readonly reserved?: boolean;
   /**
    * A whole-body requirement another plane owns, quoted whole (the spec row's `spec-rows`, nen's
@@ -64,7 +64,7 @@ export interface Resolution {
 type JsonObject = Record<string, unknown>;
 const ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const KINDS: readonly RepositoryKind[] = ["product", "library", "process", "unknown"];
-const FACTS = new Set(["evidence", "economics", "policy-hit", "spec", "decisions"]);
+const FACTS = new Set(["evidence", "economics", "policy-hit", "spec", "decisions", "canon-prose"]);
 /** Run facts a caller may pass: `idle` is an input only, and implies `decisions` (HA#474). */
 const INPUT_FACTS = new Set([...FACTS, "idle"]);
 const CONTROL = /[\u0000-\u001F\u007F-\u009F]/g;
@@ -311,6 +311,23 @@ export function decisionsTaken(manifest: unknown, positive = false): boolean {
   if (Object.keys(answers).length > 0) return true;
   if (positive) return false;
   throw new Error("a nen.run manifest records only idle pre-answers and cannot show that no decision was taken: omit --decisions-from; pass --decisions if a decision was taken");
+}
+/** HA#503 AS-1: the reviewer whose existing raise answers the prose checklist (HR-369). */
+export const PROSE_REVIEWER = "chrollo";
+/**
+ * HA#503 AC-3: whether a `nen review scopes --json` document (nen.review.scopes/v0.1) shows canon prose:
+ * a raised scope whose persona is the prose reviewer claims at least one changed Markdown path. The
+ * classification is nen's; this reads its output and never matches a path itself.
+ */
+export function canonProse(document: unknown): boolean {
+  const record = object(document, "--scopes-from must be a nen review scopes document");
+  if (record.contract !== "nen.review.scopes/v0.1") throw new Error("--scopes-from: expected contract nen.review.scopes/v0.1");
+  if (!Array.isArray(record.scopes)) throw new Error("--scopes-from: scopes must be an array");
+  return record.scopes.some((value): boolean => {
+    const scope = object(value, "--scopes-from: every scope must be an object");
+    if (scope.persona !== PROSE_REVIEWER) return false;
+    return strings(scope.paths ?? [], "--scopes-from: scope paths must be nonempty strings").some((path): boolean => /\.md$/i.test(path));
+  });
 }
 export function resolve(cat: Catalogue, repo: string, kind: RepositoryKind, jobs: readonly string[], facts: ReadonlySet<string>): Resolution {
   const family = fold(cat, jobs);
@@ -594,11 +611,11 @@ function writeJson(path: string, value: unknown): void {
   }
 }
 function usage(): never {
-  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--spec] [--decisions] [--decisions-from <nen.run manifest>] [--idle] --out <path> | check --body <path> --requirements <path> --max <n>");
+  throw new Error("usage: pr_sections.ts validate | resolve --repo <path> --kind <kind> [--jobs <csv>] [--evidence] [--economics] [--policy-hit] [--spec] [--decisions] [--decisions-from <nen.run manifest>] [--idle] [--canon-prose] [--scopes-from <nen review scopes json>] --out <path> | check --body <path> --requirements <path> --max <n>");
 }
 function argumentsFor(action: string, argv: readonly string[]): Record<string, string | boolean> {
-  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "spec", "decisions", "idle"] : []);
-  const valued = new Set(action === "resolve" ? ["repo", "kind", "jobs", "decisions-from", "out"] : action === "check" ? ["body", "requirements", "max"] : []);
+  const boolean = new Set(action === "resolve" ? ["evidence", "economics", "policy-hit", "spec", "decisions", "idle", "canon-prose"] : []);
+  const valued = new Set(action === "resolve" ? ["repo", "kind", "jobs", "decisions-from", "scopes-from", "out"] : action === "check" ? ["body", "requirements", "max"] : []);
   const result: Record<string, string | boolean> = {};
   for (let at = 0; at < argv.length; at++) {
     const token = argv[at] as string;
@@ -607,7 +624,7 @@ function argumentsFor(action: string, argv: readonly string[]): Record<string, s
     if (boolean.has(key)) { result[key] = true; continue; }
     if (!valued.has(key) || at + 1 >= argv.length || (argv[at + 1] as string).startsWith("--")) usage();
     // HA#474 PH-2: a second manifest would silently replace the first, dropping a recorded decision.
-    if (key === "decisions-from" && Object.hasOwn(result, key)) throw new Error("--decisions-from given twice: pass one manifest");
+    if ((key === "decisions-from" || key === "scopes-from") && Object.hasOwn(result, key)) throw new Error(`--${key} given twice: pass one document`);
     result[key] = argv[++at] as string;
   }
   return result;
@@ -633,8 +650,10 @@ function main(argv = process.argv.slice(2)): number {
       const kind = required(args, "kind") as RepositoryKind;
       const jobsValue = typeof args.jobs === "string" ? args.jobs : "";
       const jobs = jobsValue === "" ? [] : jobsValue.split(",");
-      const facts = new Set(["evidence", "economics", "policy-hit", "spec", "decisions", "idle"].filter((fact): boolean => args[fact] === true));
+      const facts = new Set(["evidence", "economics", "policy-hit", "spec", "decisions", "idle", "canon-prose"].filter((fact): boolean => args[fact] === true));
       if (typeof args["decisions-from"] === "string" && decisionsTaken(load(args["decisions-from"]), facts.has("decisions") || facts.has("idle"))) facts.add("decisions");
+      // HA#503: a malformed scopes document refuses even beside --canon-prose; a valid one only adds.
+      if (typeof args["scopes-from"] === "string" && canonProse(load(args["scopes-from"]))) facts.add("canon-prose");
       if (kind === "process" && !facts.has("policy-hit") && policyHit(repo)) facts.add("policy-hit");
       const report = resolve(cat, repo, kind, jobs, facts);
       writeJson(required(args, "out"), report.requirements);
