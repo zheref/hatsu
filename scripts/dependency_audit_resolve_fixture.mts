@@ -371,6 +371,7 @@ try {
     ["a ''' string", "x = '''\n'''\n[install]\nregistry = \"https://evil.invalid/\"\n", 1],
     ['an escaped key', '[install]\n"re\\u0067istry" = "https://evil.invalid/"\n', 2],
     ['an escaped header', '["\\u0069nstall"]\nregistry = "https://evil.invalid/"\n', 1],
+    ['a \\x-escaped key', '[install]\n"reg\\x69stry" = "https://evil.invalid/"\n', 2],
   ];
   for (const [name, toml, line] of lost) {
     const out = await bunfigOut(`a bunfig ${name} prints unread and the registry token`, toml);

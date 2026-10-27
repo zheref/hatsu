@@ -587,7 +587,7 @@ function auditConfig(repo: string, row: NodeRow, others: readonly string[]): str
       // alone, a dotted key, an unescaped quoted key and a one-line inline table's keys
       // count. It FAILS TOWARD EVIDENCE: a line it cannot place (a multi-line string or
       // inline table, an escaped key, anything else) is one `unread` line, and a key whose
-      // leaf token appears anywhere in the file, its \u escapes decoded, is printed as mentioned.
+      // leaf token appears anywhere in the file, its \u, \U and \x escapes decoded, is printed as mentioned.
       const norm = (k: string): string => k.replace(/["']/g, '').replace(/\s*\.\s*/g, '.');
       const hit = (k: string): void => { for (const want of keys) if (k === want || k.startsWith(`${want}.`)) present.add(want); };
       const code = (s: string): string => s.replace(/"(?:[^"\\]|\\.)*"|'[^']*'/g, '""').replace(/#.*$/, '');
@@ -613,8 +613,8 @@ function auditConfig(repo: string, row: NodeRow, others: readonly string[]): str
         } else if (value.startsWith('[')) array = Math.max(net(value, '[', ']'), 0);
       });
       if (unread.length > 0) extra.push(`audit-config: ${q(file)} "unread" -- ${unread.length} line(s) this scanner cannot place, first line ${unread[0]}; evidence for Feitan`);
-      const decoded = read.text.replace(/\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})/g, (raw, a?: string, b?: string) => {
-        try { return String.fromCodePoint(parseInt(a ?? b ?? '', 16)); } catch { return raw; }
+      const decoded = read.text.replace(/\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})|\\x([0-9A-Fa-f]{2})/g, (raw, a?: string, b?: string, c?: string) => {
+        try { return String.fromCodePoint(parseInt(a ?? b ?? c ?? '', 16)); } catch { return raw; }
       });
       for (const want of keys) {
         const leaf = want.slice(want.lastIndexOf('.') + 1);
