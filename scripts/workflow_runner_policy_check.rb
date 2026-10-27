@@ -428,8 +428,9 @@ PROSE_FROZEN_GUARD = {
 # from the PR's tree; a finding outside the baseline, a stale baseline row, a
 # row grown over the trusted revision's baseline (--base-baseline, so the CI
 # form refuses growth without a merge base) or a wiring refusal fails the check.
-# Frozen like PROSE_FROZEN_GUARD, one form; the node it runs on is pinned by the
-# frozen setup step below (unit-tests.yml's pin), the only setup action admitted.
+# Step one of #496 admits the exact Node and Nen forms together. The live
+# workflow stays on Node until this validator merges on main; step two then
+# installs Nen and removes the old form. Each form selects its entire step set.
 CANON_LINT_WORKFLOW = "prose-ambiguity-check.yml"
 CANON_LINT_STEP = "Canon prose lint"
 CANON_LINT_NODE_STEP = "Set up Node for the canon prose lint"
@@ -469,6 +470,37 @@ CANON_LINT_FROZEN_GUARD = {
         ;;
       *)
         echo "::error::the canon prose lint could not run (exit ${code}), a wiring refusal: scripts/prose_ambiguity_check.mts's header names every cause. See its output above."
+        exit 1
+        ;;
+    esac
+  RUN
+}.freeze
+
+# The next form preserves the trusted rules, shrink-only baseline and output
+# fence, using only the binary checked against the trusted contract below.
+CANON_LINT_NEN_GUARD = {
+  "env" => { "NEN_BIN" => "${{ steps.nen.outputs.bin }}" },
+  "shell" => "bash",
+  "run" => <<~'RUN'.strip
+    set -uo pipefail
+    [ -x "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
+    rules=.trusted/contracts/prose.lint.json
+    base=.trusted/contracts/prose.lint.baseline.json
+    [ -f "$rules" ] && [ -f "$base" ] || { echo "::error::trusted canon prose rules or baseline is missing."; exit 1; }
+    stop="stop_$(openssl rand -hex 16)" || stop=""
+    [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the lint's output; nothing was read."; exit 1; }
+    code=0
+    echo "::stop-commands::${stop}"
+    "$NEN_BIN" canon lint --root "$PWD" --rules "$PWD/$rules" --baseline contracts/prose.lint.baseline.json --base-baseline "$PWD/$base" --skill-paths 'claude/skills/*/SKILL.md,claude/agents/*.md,claude/rules/*.md' 2>&1 || code=$?
+    printf '\n::%s::\n' "$stop"
+    case "$code" in
+      0) echo "no canon prose finding outside the baseline." ;;
+      1)
+        echo "::error::a canon prose finding outside contracts/prose.lint.baseline.json, a stale baseline row, or a row grown over the base revision's baseline; each is named above. Fix the prose or remove the stale row; the baseline never grows (HR-13)."
+        exit 1
+        ;;
+      *)
+        echo "::error::the canon prose lint could not run (exit ${code}), a wiring refusal. See its output above."
         exit 1
         ;;
     esac
@@ -648,6 +680,7 @@ REGENERATE_NEN_DIGEST_FROZEN = NEN_DIGEST_FROZEN.merge(
 NEN_DIGEST_STEPS = {
   "surface-mirror-check.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
   "pr-readiness.yml" => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
+  CANON_LINT_WORKFLOW => [NEN_DIGEST_STEP, NEN_DIGEST_FROZEN],
   "surface-mirror-regenerate.yml" => [REGENERATE_NEN_DIGEST_STEP, REGENERATE_NEN_DIGEST_FROZEN]
 }.freeze
 
@@ -1274,7 +1307,22 @@ PLUGIN_BUMP_NODE_FROZEN = CANON_LINT_FROZEN_NODE.freeze
 PLUGIN_BUMP_API_STEP = "Compute changed files + base .claude-plugin/plugin.json (API — no git credential)"
 PLUGIN_BUMP_STEPS = EXPECTED_STEPS.fetch("plugin-bump-check.yml").dup.insert(-2, TRAILER_GUARD_STEP).freeze
 PLUGIN_BUMP_NODE_STEPS = PLUGIN_BUMP_STEPS.dup.insert(PLUGIN_BUMP_STEPS.index(PLUGIN_BUMP_API_STEP), PLUGIN_BUMP_NODE_STEP).freeze
+# Exact next job shape: no Node action, and no combination of old and new
+# steps. The pin, bootstrap and digest are readiness's own frozen forms.
+CANON_LINT_NEN_FROZEN_STEPS = {
+  "Checkout PR head (data only — nothing from here is executed)" => READINESS_FROZEN_HEAD_CHECKOUT,
+  "Checkout guard code from the trusted workflow revision" => READINESS_FROZEN_TRUSTED_CHECKOUT,
+  "Enforce workflow runner policy from trusted workflow revision" => READINESS_FROZEN_POLICY,
+  "Read the pinned nen ref from trusted nen/contract.json" => READINESS_FROZEN_PIN,
+  "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)" => NEN_BOOTSTRAP_NEXT,
+  NEN_DIGEST_STEP => NEN_DIGEST_FROZEN,
+  CANON_LINT_STEP => CANON_LINT_NEN_GUARD
+}.freeze
+CANON_LINT_NEN_STEPS = [EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW).first,
+                        *CANON_LINT_NEN_FROZEN_STEPS.keys,
+                        EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW).last].freeze
 ALLOWED_STEP_SHAPES = EXPECTED_STEPS.transform_values { |steps| [steps] }.merge(
+  CANON_LINT_WORKFLOW => [EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW), CANON_LINT_NEN_STEPS],
   "plugin-bump-check.yml" => [PLUGIN_BUMP_STEPS, PLUGIN_BUMP_NODE_STEPS],
   "pr-readiness.yml" => [EXPECTED_STEPS.fetch("pr-readiness.yml"), EXPECTED_STEPS.fetch("pr-readiness.yml") - [NEN_DIGEST_STEP]]
   # surface-mirror-check.yml: one shape again (the default row). zheref/hatsu#337's
@@ -2083,11 +2131,18 @@ def validate_workflow(path, hatsu: false)
                           "#{path} #{PROSE_GUARD_STEP.inspect}")
     end
     if File.basename(path) == CANON_LINT_WORKFLOW
-      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_STEP }, CANON_LINT_FROZEN_GUARD,
-                          "#{path} #{CANON_LINT_STEP.inspect}")
-      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_NODE_STEP }, CANON_LINT_FROZEN_NODE,
-                          "#{path} #{CANON_LINT_NODE_STEP.inspect}")
-      extra_uses = [CANON_LINT_NODE_USES]
+      if step_names == CANON_LINT_NEN_STEPS
+        CANON_LINT_NEN_FROZEN_STEPS.each do |name, frozen|
+          require_frozen_step(step_maps.find { |step| scalar(step["name"]) == name }, frozen,
+                              "#{path} #{name.inspect}")
+        end
+      else
+        require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_STEP }, CANON_LINT_FROZEN_GUARD,
+                            "#{path} #{CANON_LINT_STEP.inspect}")
+        require_frozen_step(step_maps.find { |step| scalar(step["name"]) == CANON_LINT_NODE_STEP }, CANON_LINT_FROZEN_NODE,
+                            "#{path} #{CANON_LINT_NODE_STEP.inspect}")
+        extra_uses = [CANON_LINT_NODE_USES]
+      end
     end
     if File.basename(path) == "plugin-bump-check.yml"
       node_step = step_maps.find { |step| scalar(step["name"]) == PLUGIN_BUMP_NODE_STEP }
@@ -2748,6 +2803,8 @@ def self_test(root)
     NEN_DIGEST_STEPS.each_key do |name|
       file = File.join(tmp, ".github/workflows/#{name}")
       text = File.read(file)
+      # #496 registers the next canon form before the live workflow carries it.
+      next if name == CANON_LINT_WORKFLOW && !text.include?("      - name: #{NEN_DIGEST_STEP}\n")
       fail_policy("self-test: #{name} does not carry the fatal digest echo") unless text.include?(fatal_echo)
       File.write(file, text.sub(fatal_echo, old_echo))
       expect_rejected("digest step with the non-fatal --version echo (#{name})", /#{Regexp.escape(NEN_DIGEST_STEPS.fetch(name).first)}" run must be exactly the frozen form/) { validate_repo(tmp) }
@@ -4012,6 +4069,36 @@ def self_test(root)
         ["canon lint printing PR file names unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
         ["canon-lint creating its check under another name", "-f name=canon-lint ", "-f name=lint ", "Start check on the exact PR head"]
       ].each { |label, from, to, step| hostile.call(label, canon, canon_original, from, to, step: step) }
+      # Build the next form from the real installed workflow's boundaries.
+      # It must pass before installation; mixing forms or changing any frozen
+      # body (a third form) must fail main's trusted policy.
+      start_at = canon_original.index("      - name: #{EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW)[1]}\n")
+      finish_at = canon_original.index("      - name: #{EXPECTED_STEPS.fetch(CANON_LINT_WORKFLOW).last}\n")
+      fail_policy("self-test: missing canon lint fixture boundaries") unless start_at && finish_at
+      canon_nen = canon_original[0...start_at] + CANON_LINT_NEN_FROZEN_STEPS.map { |name, frozen| render_step(name, frozen) + "\n" }.join + canon_original[finish_at..-1]
+      File.write(canon, canon_nen)
+      validate_repo(tmp, announce: false)
+      [
+        ["Nen lint with the PR's own rules", "rules=.trusted/contracts/prose.lint.json", "rules=contracts/prose.lint.json", CANON_LINT_STEP],
+        ["Nen lint without base baseline", ' --base-baseline "$PWD/$base"', "", CANON_LINT_STEP],
+        ["Nen lint without explicit baseline", ' --baseline contracts/prose.lint.baseline.json', "", CANON_LINT_STEP],
+        ["Nen lint without skill paths", " --skill-paths 'claude/skills/*/SKILL.md,claude/agents/*.md,claude/rules/*.md'", "", CANON_LINT_STEP],
+        ["Nen lint with a checkout binary", '"$NEN_BIN" canon lint', './nen canon lint', CANON_LINT_STEP],
+        ["Nen lint unfenced", %Q{          echo "::stop-commands::${stop}"\n}, "", CANON_LINT_STEP],
+        ["Nen lint accepting findings", canon_offender, canon_offender.sub("exit 1", "exit 0"), CANON_LINT_STEP],
+        ["Nen lint with an untrusted pin", ".trusted/nen/contract.json", "nen/contract.json", TRUSTED_PIN_STEP],
+        ["Nen lint running before digest", %Q{          echo "bin=$bin" >> "$GITHUB_OUTPUT"\n}, %Q{          echo "bin=$bin" >> "$GITHUB_OUTPUT"\n          "$bin" --version\n}, "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)"],
+        ["Nen lint with a third body", '"$NEN_BIN" canon lint', '"$NEN_BIN" canon lint --json', CANON_LINT_STEP],
+        ["Nen lint hashing the wrong binary", 'sha256sum "$NEN_BIN"', 'sha256sum "$0"', NEN_DIGEST_STEP],
+        ["Nen lint without the pin step", render_step(TRUSTED_PIN_STEP, READINESS_FROZEN_PIN) + "\n", "", TRUSTED_PIN_STEP],
+        ["Nen lint without bootstrap", render_step("Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)", NEN_BOOTSTRAP_NEXT) + "\n", "", "Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)"],
+        ["Nen lint missing digest", render_step(NEN_DIGEST_STEP, NEN_DIGEST_FROZEN) + "\n", "", NEN_DIGEST_STEP],
+        ["Nen lint carrying Node too", "      - name: #{CANON_LINT_STEP}\n", render_step(CANON_LINT_NODE_STEP, CANON_LINT_FROZEN_NODE) + "\n      - name: #{CANON_LINT_STEP}\n", CANON_LINT_NODE_STEP]
+      ].each { |label, from, to, step| hostile.call(label, canon, canon_nen, from, to, step: step) }
+      CANON_LINT_NEN_FROZEN_STEPS.each do |name, frozen|
+        hostile.call("Nen lint changed frozen #{name}", canon, canon_nen,
+                     render_step(name, frozen), render_step(name, frozen.merge("continue-on-error" => "true")), step: name)
+      end
       File.write(canon, canon_original)
     end
 
