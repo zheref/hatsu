@@ -191,11 +191,21 @@ same number. After every catch-up, compare both actual manifests (`.claude-plugi
 the base's, re-bump both to the same version **strictly above that base** before readiness; update
 the version line in this effort's existing `changelog.d/` fragment too. This is Hatsu authoring,
 not an automatic `nen wc catch-up` re-bump. After the next version has been decided, run
-`bash scripts/plugin_version_refs.sh --from <old> --to <new>` to list every tracked reference.
-Its `--write` invokes the existing `scripts/plugin_version_refs.ts` helper for only the declared
-unambiguous lines; read the others, update the PR body by
-hand, then regenerate the mirrors with the command above. The helper never chooses the version or
-rewrites generated mirrors.
+`bash scripts/plugin_version_refs.sh --from <old> --to <new> --body-file <local-draft>` to list
+tracked references and draft lines. Add `--write` to rewrite declared tracked forms and every exact
+old-version token on unambiguous draft lines; read the printed `review` lines, which stay unchanged.
+The helper never chooses the version, rewrites generated mirrors or edits a remote PR. Regenerate
+the mirrors with the command above, then refresh the catch-up-invalidated body facts:
+
+| Body fact | Re-derive after catch-up |
+|---|---|
+| Plugin version | `git show HEAD:.claude-plugin/plugin.json` and `git show HEAD:.codex-plugin/plugin.json` after committing the bump |
+| Head and base commits | `git rev-parse HEAD origin/<base>` after the final commit and fetch |
+| Figures measured against the base (bytes, diff, coverage, review evidence) | **re-measure** against that fresh base and final head |
+| PR number in the Drive line | `gh pr list --repo <owner/name> --state open --head <branch> --json number,url`; use the returned current PR |
+| Changelog fragment prerequisites line | **re-measure** against the caught-up dependency contract and this effort's actual prerequisites |
+
+Review the refreshed local draft, then use `nen pr edit-body` as the remote writer.
 Re-run the bump check against the fresh base; the original branch point cannot prove this comparison.
 
 **Semantic** — anything where a *person* has to prefer one intent to another. **`UD`/`DU` is always
