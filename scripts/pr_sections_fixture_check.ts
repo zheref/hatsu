@@ -740,18 +740,21 @@ test("HA#527: a Line-read cell may begin with its only line reference; a cell wi
   const report = resolution("process", ["prose-authoring"], ["policy-hit", "canon-prose"]);
   const unmet = (rows: string): string[] => check(cat, proseBody(report, rows), report.requirements, 7)[0];
   const each = (cell: string): string => ["C", "L", "S", "M"].map((letter): string => `| PRS-${letter} | Chrollo | yes | ${cell} |`).join("\n");
-  const one = (cell: string): string => ANSWERED.replace("| PRS-S | Chrollo | yes | zheref/hatsu#503 line 17 |", `| PRS-S | Chrollo | yes | ${cell} |`);
+  const only = (letter: string, cell: string): string => ANSWERED.replace(`| PRS-${letter} | Chrollo | yes | zheref/hatsu#503 line 17 |`, `| PRS-${letter} | Chrollo | yes | ${cell} |`);
+  const one = (cell: string): string => only("S", cell);
   // AC-1: the reference is the cell's first token and its only one (HA-PR-#513's PRS-S row), on every letter.
-  for (const cell of ["line 36 (Out of scope: the rest)", "line 7", "a:3 first", "docs/PR-SECTIONS.md:131 (the scope paragraph)"]) {
+  for (const cell of ["line 36 (Out of scope: the rest)", "line 7", "a:3 first", "x:9", "1:2", "docs/PR-SECTIONS.md:131 (the scope paragraph)"]) {
     assert.deepEqual(unmet(each(cell)), [], `every letter: ${cell}`);
     assert.deepEqual(unmet(one(cell)), [], `PRS-S alone: ${cell}`);
   }
   // AC-2: the shapes accepted before still read.
   for (const cell of ["zheref/hatsu#503 line 17", "zheref/hatsu#503 line 17; zheref/hatsu#9 line 4", "docs/PR-SECTIONS.md:131", "read at line 36"])
     assert.deepEqual(unmet(one(cell)), [], cell);
-  // AC-3: a cell with no reference, empty, a dash or the placeholder still refuses.
-  for (const cell of ["unread", "—", "", "<line read>", "<line read> line 3", "the scope paragraph", "outline 3", "path:"])
-    assert.deepEqual(unmet(one(cell)), ["section prose: requirement prose-rows is unmet"], JSON.stringify(cell));
+  // AC-3: a cell with no reference, empty, a dash or the placeholder still refuses, on each letter alone
+  // (the other three rows answered), so a lookahead dropped from any one letter's copy fails here.
+  for (const letter of ["C", "L", "S", "M"])
+    for (const cell of ["unread", "—", "-", "", "<line read>", "<line read> line 3", "the scope paragraph", "outline 3", "path:"])
+      assert.deepEqual(unmet(only(letter, cell)), ["section prose: requirement prose-rows is unmet"], `PRS-${letter}: ${JSON.stringify(cell)}`);
 });
 
 test("HA#503 AC-3: --scopes-from reads nen review scopes, and only a Markdown path Chrollo's scope claims admits the checklist", (context) => {
