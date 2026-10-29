@@ -3,7 +3,7 @@
 // and a stub nen (its `repo resolve` included, so reference coding is hermetic too); the last cases run
 // the REAL nen (NEN, else `nen` on PATH; unit-tests.yml hands its verified binary) through record ->
 // export -> render -> check in a throwaway git repository, one coded render against this checkout's
-// nen/repos.json, and the check over the live roster.
+// nen/repos.json, and the check over the live roster. HR-368's cases (zheref/hatsu#506) move the stub registry under a landed row.
 import assert from 'node:assert/strict';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -134,6 +134,58 @@ try {
     const t = renderRef({ ...base, id: 'R-2026-10-23-11', question: 'hatsu #5?', kind: 'typed', pick: null, typed: 'hatsu #9 stands' });
     assert.match(t.stdout, /\| zheref\/hatsu#5\? \|.*\| typed \(verbatim\): \*"hatsu #9 stands"\* \|/);
     cases += 1; console.log(`ok ${cases} - the maintainer's typed words are never coded`);
+  }
+  {
+    // HR-368 (zheref/hatsu#506): a nen/repos.json change that moves a landed row's coding fails the lane by
+    // HR id until that same PR re-renders the row. One rule whether a reference is renamed, stops resolving
+    // or newly resolves; the record and the maintainer's typed words never change.
+    const dir = join(scratch, 'hr368');
+    const rec = recordFile(join(dir, 'ruling-records'), { ...base, id: 'R-2026-10-27-02', question: 'hatsu #5, nen #6 or bankai #7?', kind: 'typed', pick: null, typed: 'hatsu #9 stands' });
+    const recordBytes = readFileSync(rec, 'utf8');
+    const renderUnder = (env: Record<string, string>): string => {
+      const r = run(['render', '--record', rec, '--hr', 'HR-368', '--status', 'ruled', '--settles', 'x', '--names-file', privList], env);
+      assert.equal(r.status, 0, r.stdout + r.stderr);
+      return r.stdout.trimEnd();
+    };
+    const landed = renderUnder(refEnv);
+    assert.match(landed, /\| zheref\/hatsu#5, zheref\/nen#6 or bankai #7\? \|/);
+    const landedRoster = roster(dir, [landed]);
+    expect('HR-368: a landed coded row matches under the registry it landed with', run(['check', '--roster', landedRoster], refEnv), 0, /1 ROSTER rows match their records/);
+    const registry = (name: string, map: Record<string, unknown>): Record<string, string> => {
+      const file = join(scratch, `resolve-${name}.json`);
+      writeFileSync(file, JSON.stringify(map));
+      return { ...refEnv, STUB_RESOLVE: file };
+    };
+    const moves: [string, Record<string, string>][] = [
+      ['a renamed repository', registry('renamed', { hatsu: one('zheref/hatsu-next'), nen: one('zheref/nen') })],
+      ['a reference that stops resolving', registry('stops', { hatsu: one('zheref/hatsu') })],
+      ['a word that newly resolves', registry('starts', { hatsu: one('zheref/hatsu'), nen: one('zheref/nen'), bankai: one('zheref/bankai-handbooks') })],
+      ['a word that becomes ambiguous', registry('ambiguous', { hatsu: one('zheref/hatsu'), nen: [...one('zheref/nen'), ...one('zheref/nen-fork')] })],
+    ];
+    for (const [what, env] of moves) {
+      expect(`HR-368: ${what} fails the landed row by HR id, naming the re-render`, run(['check', '--roster', landedRoster], env), 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; if nen\/repos\.json changed, re-render it in this PR \(HR-368\); otherwise the cell was edited by hand: re-render it from the record$/m);
+      const again = renderUnder(env);
+      expect(`HR-368: ${what}, the row re-rendered in the same PR, passes`, run(['check', '--roster', roster(join(dir, what.replace(/\W+/g, '-')), [again]), '--records', join(dir, 'ruling-records')], env), 0, /1 ROSTER rows match their records/);
+      assert.match(again, /\| typed \(verbatim\): \*"hatsu #9 stands"\* \|/, `${what}: the typed words never change\n${again}`);
+    }
+    {
+      const retyped = run(['check', '--roster', roster(join(dir, 'retyped'), [landed.replace(' or bankai #7?', ' or bankai #7 instead?')]), '--records', join(dir, 'ruling-records')], refEnv);
+      expect('HR-368: a hand-retyped row under an unchanged registry is a plain mismatch', retyped, 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it$/m);
+      assert.equal(retyped.stdout.includes('nen/repos.json'), false, `a retyped row names no registry cause\n${retyped.stdout}`);
+      // Round 2: only a slug the registry knows for the word stands in for it; a hand edit of the slug or
+      // the word before an unchanged number is a plain mismatch.
+      const probes: [string, string][] = [
+        ['a slug edited by hand before an unchanged number', landed.replace('zheref/hatsu#5', 'zheref/evil#5')],
+        ['a word edited by hand before an unchanged number', landed.replace('zheref/nen#6', 'nenx #6')],
+      ];
+      for (const [what, line] of probes) {
+        const r = run(['check', '--roster', roster(join(dir, what.replace(/\W+/g, '-')), [line]), '--records', join(dir, 'ruling-records')], refEnv);
+        expect(`HR-368: ${what} is a plain mismatch`, r, 1, /HR-368: the question cell differs from record opus-kurapika-demo--R-2026-10-27-02; re-render it$/m);
+        assert.equal(r.stdout.includes('nen/repos.json'), false, `${what}: no registry cause\n${r.stdout}`);
+      }
+    }
+    assert.equal(readFileSync(rec, 'utf8'), recordBytes, 'HR-368: the record is never rewritten');
+    cases += 1; console.log(`ok ${cases} - HR-368: the record and the maintainer's typed words are unchanged by every re-render`);
   }
   {
     const r = renderRef({ ...base, id: 'R-2026-10-23-12', question: 'zzp #3?' });
