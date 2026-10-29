@@ -43,7 +43,8 @@ export type Gate = {
   title: string | null
 }
 
-export type Pr = { number: number; state: string; title: string; url: string; isDraft: boolean; labels?: { name: string }[] }
+/** `mergeable` is GitHub's: MERGEABLE, CONFLICTING, or UNKNOWN while it computes. */
+export type Pr = { number: number; state: string; title: string; url: string; isDraft: boolean; labels?: { name: string }[]; mergeable?: string }
 
 /** This session's own effort: its branch, working copy and PR. */
 export type SessionEffort = {

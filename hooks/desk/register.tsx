@@ -103,7 +103,7 @@ async function readPr($: EngineInterface, branch: string, now: number): Promise<
   prReadAt = now
   const r = await run($, [
     'gh', 'pr', 'list', '--head', branch, '--state', 'all', '--limit', '1',
-    '--json', 'number,state,title,url,isDraft,labels',
+    '--json', 'number,state,title,url,isDraft,labels,mergeable',
   ])
   if (r.code === 0) {
     const list = JSON.parse(r.out) as Pr[]
@@ -593,6 +593,7 @@ export const register: Register = on => {
       code: s.repo?.code ?? '',
       gate: gateOfMerge,
       base: where.base,
+      isConflicted: s.pr?.mergeable === 'CONFLICTING',
       ...progressOf(s, acts, edited),
     })
     const reading = stateOf(stage, s, acts)

@@ -109,6 +109,8 @@ export type EffortState = {
   isDriven: boolean
   /** En's Ready stop for this branch is unrung: the PR stands at the maintainer's merge prompt. */
   atGate: boolean
+  /** GitHub reads the open PR as CONFLICTING with its base. */
+  isConflicted: boolean
 }
 
 /** A PR state as gh reports it; anything else is a read the desk did not understand. */
@@ -194,6 +196,16 @@ export function stepFor(s: EffortState): Step {
         `${plural(s.dirty, 'file')} not committed. Commit them, then Update pushes them onto PR ${pr}.`,
         paths,
         'hatsu:kokusen',
+      )
+    }
+    // A conflicted PR runs no checks, so it can look quiet; Update (murasaki) merges the base in,
+    // settles the mechanical conflicts and stops on a semantic one. Unblock PR only names it.
+    if (s.isConflicted) {
+      return step(
+        `Conflicts with ${s.base}`,
+        `PR ${pr} cannot merge: its branch conflicts with ${s.base}. Update catches it up, resolving mechanical conflicts and stopping for you on a semantic one.`,
+        paths,
+        'hatsu:murasaki',
       )
     }
     if (s.atGate) {

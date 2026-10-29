@@ -5,7 +5,7 @@ import type { EffortState } from '../actions'
 
 const base: EffortState = {
   dirty: 0, ahead: 0, hasUpstream: false, unpushed: 0, pr: null, ref: null, code: 'HA', gate: 'G4', base: 'main',
-  isStarted: false, isIdeating: false, isDriven: false, atGate: false,
+  isStarted: false, isIdeating: false, isDriven: false, atGate: false, isConflicted: false,
 }
 const started = { ...base, isStarted: true }
 const labels = (s: EffortState) => stepFor(s).paths.map(p => p.label)
@@ -160,4 +160,12 @@ test('a reading turns past tense once its step has ended', async () => {
   expect(readingOf('kokusen-review-fixes', true)).toBe('Remediated')
   expect(readingOf('some-new-step', true)).toBe('Some new step')
   for (const present of Object.values(READINGS)) expect(PAST[present]).toBeTruthy()
+})
+
+test('a conflicted PR stars Update, whatever En has done; uncommitted work comes first', async () => {
+  const pr = { ...started, ahead: 1, hasUpstream: true, pr: { number: 9, state: 'OPEN' }, isConflicted: true }
+  expect(stepFor(pr).headline).toBe('Conflicts with main')
+  expect(starred(pr)).toEqual(['Update'])
+  expect(starred({ ...pr, isDriven: true, atGate: true })).toEqual(['Update'])
+  expect(starred({ ...pr, dirty: 1 })).toEqual(['Commit'])
 })
