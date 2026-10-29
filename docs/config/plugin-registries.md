@@ -229,6 +229,10 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 **Read by.** `hatsu:pr-state` § 2, `hatsu:en`, `hatsu:getsuga`, `hatsu:backlog-state`, `hatsu:tensho`, always as the absolute `--gates "$hatsu_root/contracts/reference.gates.json"` (a relative `--gates` resolves against `--repo`), and only for that one repository. A repository that ships its own `nen/gates.json` needs no `--gates` at all. **May a consumer override it?** No, and it is never reused as another repository's reviewer set (`hatsu:senkei`).
 
+## `contracts/skill-shape.json`
+
+**Purpose.** The skill shape [`docs/PROCESS.md`](../PROCESS.md) § *The skill shape* states, as data: the Residue, Authority and Hard limits requirements every touched `SKILL.md` is checked against through `nen pr body-check`, and the reasoned exemption list. Read by `scripts/skill_shape_check.mts` (lane `skill-shape-guard`); never by a consumer. Keys, findings and the coverage checks beside it: [`skill-shape.json.md`](skill-shape.json.md).
+
 ## `contracts/prose.lint.json` and `contracts/prose.lint.baseline.json`
 
 **Purpose.** The canon prose lint's rules, `PL-01` … `PL-12`, and the shrink-only baseline of the findings the tree carried when the guard landed ([HR-13](../ROSTER.md#hr-13)). Read by `scripts/prose_ambiguity_check.mts` (lane `canon-lint`); never by a consumer. Keys, the exemptions and who reads it: [`prose.lint.json.md`](prose.lint.json.md).

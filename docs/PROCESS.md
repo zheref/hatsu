@@ -16,6 +16,21 @@ page is **binding wherever the skill is silent**; where it and `WORKFLOW.md` dis
 the bug.
 *Assembled 2026-09-22 from the passages the skill diet moved out of the capped skills, so each skill keeps headroom for its own rules.*
 
+## The skill shape
+
+**Every `claude/skills/<name>/SKILL.md` carries three level-2 sections: its Residue, its Authority
+and its Hard limits** (zheref/hatsu#502). The **Residue** names each step that has no Nen verb at the
+pin and who owns it (§ *Residue and owned dependencies*). The **Authority** names what the run may do
+and on whose word (§ *Authority every phase shares*). The **Hard limits** name what it never does,
+which `nen/contract.json`'s `precedence` ranks first (`skill.hardLimit`). One heading may hold
+several of them (`## 6. Authority and hard limits`). A heading that only mentions the word
+(`## 1. Invocation and authority`) is not the section. A skill that genuinely has no such section
+carries an exemption with its reason in `contracts/skill-shape.json`; an exemption without a reason is a finding.
+**Enforced as touched:** `scripts/skill_shape_check.mts` (lane `skill-shape-guard`) fails a skill an
+effort edits by the missing section's name, and never fails a skill no effort touched. A skill that
+predates the check is fixed when an effort next edits it. Keys and exits:
+[`config/skill-shape.json.md`](config/skill-shape.json.md).
+
 ## Standalone entry
 
 **Shared policy (`docs/*.md`) lives at the Hatsu plugin root that `ten` prints**, and every

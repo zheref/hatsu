@@ -15,7 +15,7 @@ const runner = join(import.meta.dirname, 'unit_tests_ci.mts');
 mkdirSync(join(repo, 'nen'), { recursive: true });
 mkdirSync(join(repo, 'scripts'));
 writeFileSync(join(repo, 'nen', 'contract.json'), '{}\n');
-writeFileSync(nen, '#!/bin/sh\nprintf "%s|%s|%s\\n" "$6" "${GH_TOKEN:-}" "${GITHUB_TOKEN:-}" >> "$HATSU_LANE_LOG"\n[ -z "${HATSU_PATH_LOG:-}" ] || printf "%s|%s|%s\\n" "$6" "${PATH%%:*}" "${NEN:-}" >> "$HATSU_PATH_LOG"\necho "::warning title=forged::from PR code"\n[ "$6" != "${HATSU_FAIL_LANE:-}" ]\n');
+writeFileSync(nen, '#!/bin/sh\nprintf "%s|%s|%s\\n" "$6" "${GH_TOKEN:-}" "${GITHUB_TOKEN:-}" >> "$HATSU_LANE_LOG"\n[ -z "${HATSU_PATH_LOG:-}" ] || printf "%s|%s|%s\\n" "$6" "${PATH%%:*}" "${NEN:-}" >> "$HATSU_PATH_LOG"\n[ -z "${HATSU_BASE_LOG:-}" ] || printf "%s|%s\\n" "$6" "${HATSU_BASE_SHA:-}" >> "$HATSU_BASE_LOG"\necho "::warning title=forged::from PR code"\n[ "$6" != "${HATSU_FAIL_LANE:-}" ]\n');
 chmodSync(nen, 0o755);
 
 function run(extraEnv: Record<string, string> = {}, nenPath = nen) {
@@ -243,6 +243,25 @@ try {
   assert(readFileSync(log, 'utf8').includes('consumer-trailer-guard||'), 'consumer trailer fixture lane not selected');
   result = run({ HATSU_FAIL_LANE: 'consumer-trailer-guard' });
   assert(result.status === 1 && result.stderr.includes('consumer-trailer-guard failed'), 'failing consumer trailer guard was not red');
+
+  // HA502: the skill-shape lane is selected with its fixture, and every lane is handed this runner's
+  // own checkout's HEAD (the base SHA in CI) as HATSU_BASE_SHA: a commit id, never a tree to read or
+  // execute, and not an isolation boundary.
+  writeFileSync(join(repo, 'scripts', 'skill_shape_check.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('skill_shape_check.mts has no required fixture'), 'missing skill-shape fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'skill_shape_check_fixture.mts'), '');
+  writeFileSync(log, '');
+  const baseLog = join(dir, 'bases');
+  result = run({ HATSU_BASE_LOG: baseLog });
+  assert(result.status === 0, `skill-shape lane refused: ${result.stderr}`);
+  assert(readFileSync(log, 'utf8').includes('skill-shape-guard||'), 'skill-shape lane not selected (HA502)');
+  const trustedHead = String(spawnSync('git', ['-C', join(import.meta.dirname, '..'), 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout).trim();
+  const bases = readFileSync(baseLog, 'utf8').trim().split('\n');
+  assert(/^[0-9a-f]{40,64}$/.test(trustedHead) && bases.length > 0 && bases.every((line) => line.endsWith(`|${trustedHead}`)),
+    `a lane did not get the runner's own HEAD as HATSU_BASE_SHA: ${bases.join(' ; ')}`);
+  result = run({ HATSU_FAIL_LANE: 'skill-shape-guard' });
+  assert(result.status === 1 && result.stderr.includes('skill-shape-guard failed'), 'failing skill-shape lane was not red (HA502)');
 
 } finally {
   rmSync(dir, { recursive: true, force: true });
