@@ -86,6 +86,8 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],
   ['idle_permissions_check.mts', 'idle_permissions_check_fixture.mts', 'idle-permissions-guard'],
   ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
+  // The skill-shape check judges the touched skills from the merge base of HATSU_BASE_SHA below (zheref/hatsu#502).
+  ['skill_shape_check.mts', 'skill_shape_check_fixture.mts', 'skill-shape-guard'],
 ];
 for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
@@ -102,12 +104,20 @@ const fence = `unit_tests_${randomBytes(16).toString('hex')}`;
 // first on PATH and as NEN, ahead of any nen the PR checkout ships (the workflow installs it with --rc
 // none). PR code runs in the same job and user, so this is correctness, not an isolation boundary.
 const nenPath = [dirname(nenArg), process.env.PATH].filter(Boolean).join(delimiter);
+// This runner's own checkout is at the PR's base SHA (the workflow checks it out there), so its HEAD is
+// the base revision a lane compares the PR against: handed as a commit id only, which the lane fetches
+// into the PR checkout to find the merge base (zheref/hatsu#502). Nothing in the runner's tree is
+// read or executed for it, and it is not an isolation boundary: PR code runs in the same job and user
+// and could rewrite that tree, so no lane anchors integrity on it. Unset when git cannot read it, which
+// the lane reports as NOT CHECKED, a red read.
+const baseHead = spawnSync('git', ['-C', resolve(import.meta.dirname, '..'), 'rev-parse', 'HEAD'], { encoding: 'utf8' });
+const baseSha = baseHead.status === 0 ? String(baseHead.stdout).trim() : '';
 for (const lane of lanes) {
   console.log(`unit-tests-ci: ${lane}`);
   const result = spawnSync(nenArg, ['shu', 'test', '--repo', root, '--lane', lane], {
     cwd: root,
     encoding: 'utf8',
-    env: { ...process.env, PATH: nenPath, NEN: nenArg, GH_TOKEN: '', GITHUB_TOKEN: '' },
+    env: { ...process.env, PATH: nenPath, NEN: nenArg, ...(baseSha ? { HATSU_BASE_SHA: baseSha } : {}), GH_TOKEN: '', GITHUB_TOKEN: '' },
   });
   console.log(`::stop-commands::${fence}`);
   if (result.stdout) process.stdout.write(result.stdout);
