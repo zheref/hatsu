@@ -102,7 +102,8 @@ All three scripts are POSIX sh, use no jq, yq or python, and fail open except th
 on the five forms where the branch it can see is not the branch the write would land on. The desk
 module is TypeScript the harness runs in its own sandbox, not a shell hook: it switches on only in a
 checkout that declares `nen/workflow.json`, reads through nen, git and two cached read-only `gh pr list` queries,
-writes nothing, and fails open (its `tool.call` and `agent.spawn` hooks pass the call on when they fault). The permission
+writes nothing, and fails open (its `tool.call` and `agent.spawn` hooks pass the call on when they fault); its tests run on
+the `desk-guard` lane (`scripts/desk_mod_test.sh`, under `claude plugin test`). The permission
 pack is placed by the warm-up, an install-time step, never by a hook: a hook is plugin-global and fires
 in every repository.
 
