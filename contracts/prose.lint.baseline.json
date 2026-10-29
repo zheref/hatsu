@@ -151,12 +151,6 @@
     },
     {
       "path": "claude/skills/ao/SKILL.md",
-      "rule": "PL-01",
-      "text": "ers, update the PR body by hand, then regenerate the mi",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/ao/SKILL.md",
       "rule": "PL-06",
       "text": "> **The textbook case, verified live (`docs/ab/ao.md` § 2.4)",
       "count": 1
