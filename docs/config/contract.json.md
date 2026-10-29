@@ -77,6 +77,74 @@ A **lane** is one buildable unit of the repository: its stack id and the directo
 | `lanes.<lane>.cwd` | string | a repo-relative directory, **`.`** | Where every verb of the lane and every `after` step is spawned. Resolved against the repository's real root; a `cwd` that leaves the tree is exit `2` at use | every `nen shu` verb |
 | `defaultLane` | open | a key of `lanes` | The lane a verb runs on when none is named; without it every lane-taking verb needs `--lane` | `nen shu`, `hatsu:susanoo`, `hatsu:kagutsuchi`, `hatsu:gyo`, `hatsu:rasengan`, `hatsu:tenkai`; `iteration.lane` derives from it |
 
+#### Hatsu's own lanes
+
+Every key of `project.lanes` in Hatsu's own file is named here, with the scripts its declared verb runs; the lane's `$comment` in [`nen/contract.json`](../../nen/contract.json) says when to run it. A lane no canon file names is a finding of `scripts/canon_coverage_check.mts`, which lane `skill-shape-guard` runs (zheref/hatsu#502), so a new lane lands with its row here.
+
+| Lane | What its declared verb runs |
+|---|---|
+| `plugin` | lint: `claude plugin validate . --strict` |
+| `plugin-bump-guard` | test: `scripts/plugin_bump_check_fixture.sh` |
+| `plugin-update` | test: `scripts/hatsu_plugin_update_fixture_check.sh`, `scripts/hatsu_plugin_update.sh` |
+| `surface-link` | test: `scripts/hatsu_surface_link_fixture_check.sh`, `scripts/hatsu_surface_link.sh` |
+| `surface-bootstrap-guard` | test: `scripts/surface_bootstrap_fixture_check.sh`, `scripts/surface_bootstrap.sh` |
+| `nen-global-guard` | test: `scripts/nen_global_fixture_check.sh` |
+| `root-guard` | test: `scripts/hatsu_root_fixture_check.sh` |
+| `permissions-pack-guard` | test: `scripts/permissions_pack_fixture_check.sh` |
+| `unit-tests-ci-guard` | test: `scripts/unit_tests_ci_fixture.test.mts`, `scripts/release_changelog_fixture.test.mts`, `scripts/tenkai_release_guard_fixture.test.mts`, `scripts/shell_coverage_fixture.test.mts` |
+| `gh-api-read-guard` | test: `scripts/gh_api_read_fixture.test.mts`, `scripts/provider_tag_commit_fixture.test.mts` |
+| `futon-effort-guard` | test: `scripts/futon_effort_record_fixture.mts` |
+| `readiness-json-guard` | test: `scripts/readiness_ci_verdict_fixture.mts` |
+| `trusted-guard-preflight` | test: `scripts/trusted_guard_preflight_fixture.sh` |
+| `surface-mirror-guard` | test: `scripts/surface_mirror_check_fixture.sh` |
+| `surface-link-guard` | test: `scripts/surface_link_check_fixture.sh` |
+| `bell-guard` | test: `scripts/bell_notify_fixture.sh` |
+| `redaction-guard` | test: `scripts/private_name_check_fixture.sh` |
+| `redaction-tree` | test: `scripts/private_name_check.sh` |
+| `prose-guard` | test: `scripts/prose_size_check_fixture.sh`, `scripts/prose_size_check.sh` |
+| `canon-lint` | test: `scripts/prose_ambiguity_check_fixture.mts` |
+| `tenkai-guard` | test: `scripts/tenkai_adopt.sh` |
+| `pr-composition-guard` | test: `scripts/pr_composition_check_fixture.sh` |
+| `report-markdown-guard` | test: `scripts/report_markdown_check_fixture.sh` |
+| `config-values-guard` | test: `scripts/config_values_fixture.sh` |
+| `publish-gate-guard` | test: `scripts/publish_gate_fixture.sh` |
+| `canon-contracts-guard` | test: `scripts/canon_contracts_check.sh` |
+| `direct-matrix-guard` | test: `scripts/direct_matrix_ci_fixture_check.mts`, `scripts/direct_matrix_doc_fixture.test.mts`, `scripts/direct_matrix_doc_coverage.test.mts` |
+| `workflow-policy-guard` | test: `scripts/workflow_runner_policy_check.rb` |
+| `release-guard` | test: `scripts/release-publish.sh` |
+| `dist-tag-guard` | test: `scripts/dist_tag.sh` |
+| `report-time-guard` | test: `scripts/report_time.sh` |
+| `gh-token-guard` | test: `scripts/gh_token_env_fixture.sh` |
+| `reach-probe-guard` | test: `scripts/nen_reach_probe_fixture.sh` |
+| `mirror-regenerate-guard` | test: `scripts/surface_mirror_regenerate_fixture.sh` |
+| `plugin-version-refs-guard` | test: `scripts/plugin_version_refs_fixture.sh` |
+| `pr-body-guard` | test: `scripts/pr_body_evidence_check.sh` |
+| `development-link-guard` | test: `scripts/pr_development_link_check.sh` |
+| `freshness-guard` | test: `scripts/send_freshness_check.sh` |
+| `publish-integrity-guard` | test: `scripts/publish_integrity_fixture.sh` |
+| `cleanup-path-guard` | test: `scripts/cleanup_path_admit.sh` |
+| `runner-preflight-guard` | test: `scripts/runner_preflight_fixture_check.sh` |
+| `pr-sections-guard` | test: `scripts/pr_sections_fixture_check.ts` |
+| `port-rule-guard` | test: `scripts/port_rule_reserve_fixture.sh` |
+| `pr-delivery-guard` | test: `scripts/pr_body_delivery_check_fixture.sh` |
+| `issue-shape` | test: `scripts/issue_sections_fixture.mts` |
+| `criteria` | test: `scripts/pr_criteria_fixture.mts`, `scripts/hanten_findings_check_fixture.test.mts`, `scripts/clause_id_guard_fixture.test.mts`, `scripts/hanten_findings_coverage.test.mts` |
+| `clause-guard` | test: `scripts/clause_id_guard_fixture.test.mts` |
+| `delegate-brief-guard` | test: `scripts/delegate_brief_check_fixture.mts` |
+| `ruling-record` | test: `scripts/ruling_record_fixture.mts` |
+| `product-term-guard` | test: `scripts/product_term_check_fixture.sh` |
+| `dependency-audit-guard` | test: `scripts/dependency_audit_resolve_fixture.mts` |
+| `spec-family-guard` | test: `scripts/spec_family_fixture_check.sh` |
+| `schedule-printer` | test: `scripts/schedule_install_fixture.mts` |
+| `consumer-trailer-guard` | test: `scripts/tenkai_trailer_guard_fixture.test.mts` |
+| `plugin-bump-api-retry-guard` | test: `scripts/plugin_bump_api_retry_fixture.test.mts`, `scripts/plugin_bump_api_retry_coverage.test.mts` |
+| `mechanical-conflicts-guard` | test: `scripts/mechanical_conflicts_fixture.test.mts` |
+| `stop-bell-guard` | test: `scripts/stop_bell_fixture.mts` |
+| `idle-permissions-guard` | test: `scripts/idle_permissions_check_fixture.mts` |
+| `ledger-findings-guard` | test: `scripts/ledger_findings_prepare_fixture.mts` |
+| `resume-proof` | test: `scripts/resume_proof.mts` |
+| `skill-shape-guard` | test: `scripts/skill_shape_check_fixture.mts` |
+
 ### `project.verbs`
 
 One row per lane, one entry per verb. A verb the lane has is `{exe, argv}`; a verb it does not have is an explicit **seat**, `{"unsupported": "<why>"}`. **A seat is exit `4`, a stated fact in the repository's own words; an omission is exit `2`, which reads as a broken declaration.** The verb names are nen's family: `lint`, `build`, `test`, `ui-test`, `coverage`, `archive`, `release`, `dev`, `run`, `deploy`.

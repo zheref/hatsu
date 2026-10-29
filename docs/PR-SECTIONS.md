@@ -116,7 +116,8 @@ declares an empty glyph because its compatibility contract requires the exact `#
 
 The non-product forms satisfy `CON-17(b)`'s observable proxy; the handbook is not amended.
 Every kind's verify section also carries one Criterion / Coverage / Evidence row per AC id of each
-closing issue (HR-11): `<CODE>#<N>/AC-<k>`; satisfied · partial · missing · contradicts · unrequested;
+closing issue (HR-11): `<CODE>#<N>/AC-<k>`, `<k>` the id as the issue writes it (`{n}`, or Akatsuki's
+`{epic}-{nnn}`; the catalogue's acceptance row reads both, zheref/hatsu#411); satisfied · partial · missing · contradicts · unrequested;
 a test name, path:line or scenario. `nen pr converge --catalogue contracts/issue-sections.json`
 judges the table, its rules nen's (zheref/hatsu#413); an empty verify heading fails `body-check`.
 Compatibility carries Symbol / Before / After / Consumer action and a semver verdict. Across

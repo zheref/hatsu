@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // zheref/hatsu#247 item 1: the Node dependency audit, as contracts/scans.json ->
 // dependencyAudit.node (hatsu.scans/v0.2) declares it. hanten section 2a runs it.
+// zheref/hatsu#507 adds the bun text lockfile (bun.lock) and bunfig.toml evidence.
 //
 // NO PACKAGE MANAGER IS EVER EXECUTED, and nothing of this process's environment
-// reaches anything: running pnpm, yarn or npm inside the tree under review runs that
-// tree's hooks, honours its registry and expands its tokens. Instead:
+// reaches anything: running pnpm, yarn, npm or bun inside the tree under review runs
+// that tree's hooks, honours its registry and expands its tokens. Instead:
 //
 //   1. `packageManager` selects the manager (only where it is absent does the one
 //      lockfile present select it); the manager names the lockfile and its format.
@@ -35,7 +36,8 @@ import { lstatSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-type Format = 'pnpm-lock' | 'yarn-lock' | 'npm-lock';
+type Format = 'pnpm-lock' | 'yarn-lock' | 'npm-lock' | 'bun-lock';
+const FORMATS: readonly string[] = ['pnpm-lock', 'yarn-lock', 'npm-lock', 'bun-lock'];
 interface Manager { readonly lockfiles: readonly string[]; readonly format: Format; readonly markers?: { readonly berry: RegExp; readonly classic: RegExp } }
 interface NodeRow {
   readonly stacks: readonly string[];
@@ -148,8 +150,8 @@ function loadRow(path: string): NodeRow {
     const where = `dependencyAudit.node.managers.${name}`;
     if (!isRecord(value)) tooling(`${where} must be an object`);
     for (const [key] of own(value)) if (!MANAGER_KEYS.has(key)) tooling(`${where}.${key} is not a key this resolver reads`);
-    if (!isStrings(value.lockfiles) || !['pnpm-lock', 'yarn-lock', 'npm-lock'].includes(String(value.format))) {
-      tooling(`${where} needs lockfiles and a format of pnpm-lock, yarn-lock or npm-lock`);
+    if (!isStrings(value.lockfiles) || !FORMATS.includes(String(value.format))) {
+      tooling(`${where} needs lockfiles and a format of ${FORMATS.join(', ')}`);
     }
     let markers: Manager['markers'];
     if (value.format === 'yarn-lock') {
@@ -409,6 +411,89 @@ function parseNpm(p: Parser, text: string): Entry[] {
   return entries;
 }
 
+// bun: JSON whose only extension is a trailing comma closing an array or object. A
+// comment, or any other comma out of place, survives the strip and fails JSON.parse.
+// A key repeated in one object is reported: JSON.parse would keep only the last, so
+// the audit would read a different set than the file states (Bun refuses it too).
+const JSON_SPACE = ' \t\r\n';
+function stripTrailingCommas(text: string): { json: string; duplicate?: string } {
+  let result = '';
+  let last = '';
+  let duplicate: string | undefined;
+  const objects: Array<Set<string> | undefined> = [];
+  for (let i = 0; i < text.length; i += 1) {
+    const c = text[i];
+    if (c === '"') {
+      let j = i + 1;
+      while (j < text.length && text[j] !== '"') j += text[j] === '\\' ? 2 : 1;
+      const raw = text.slice(i, j + 1);
+      result += raw;
+      let k = j + 1;
+      while (k < text.length && JSON_SPACE.includes(text[k])) k += 1;
+      const keys = objects[objects.length - 1];
+      if (text[k] === ':' && keys && duplicate === undefined) {
+        let key = raw;
+        try { key = JSON.parse(raw) as string; } catch { /* JSON.parse of the whole file refuses it */ }
+        if (keys.has(key)) duplicate = key;
+        keys.add(key);
+      }
+      last = '"';
+      i = j;
+      continue;
+    }
+    if (c === '{') objects.push(new Set());
+    else if (c === '[') objects.push(undefined);
+    else if (c === '}' || c === ']') objects.pop();
+    if (c === ',' && !'[{,'.includes(last)) {
+      let j = i + 1;
+      while (j < text.length && JSON_SPACE.includes(text[j])) j += 1;
+      if (text[j] === '}' || text[j] === ']') continue;
+    }
+    result += c;
+    if (!JSON_SPACE.includes(c)) last = c;
+  }
+  return { json: result, duplicate };
+}
+function bunEntry(p: Parser, key: string, value: unknown): Entry {
+  if (!Array.isArray(value) || typeof value[0] !== 'string') notScanned(`bun.lock entry ${q(key)} is not a package tuple`);
+  const spec = value[0];
+  const at = spec.indexOf('@', spec.startsWith('@') ? 1 : 0);
+  if (at <= 0) notScanned(`bun.lock entry ${q(key)} names no <name>@<spec>`);
+  let name = spec.slice(0, at);
+  let version = spec.slice(at + 1);
+  // `link:` is a package `bun link` registered in the machine's global link folder, not
+  // the tree; a workspace or root path that is absolute or climbs out is not the tree either.
+  const path = /^(?:workspace|root):(.*)$/.exec(version)?.[1];
+  if (path !== undefined) return /^(?:[\\/]|[A-Za-z]:)|(?:^|[\\/])\.\.(?:[\\/]|$)/.test(path) ? { kind: 'unqueried' } : { kind: 'local' };
+  if (/^link:/.test(version)) return { kind: 'unqueried' };
+  if (/^(?:file:|\.{0,2}\/|git|github:|gitlab:|bitbucket:|https?:)/.test(version) || version.includes('#')) return { kind: 'unqueried' };
+  const alias = /^npm:(.+)@([^@]+)$/.exec(version);
+  if (alias) { name = alias[1]; version = alias[2]; }
+  if (value.length !== 4 || typeof value[1] !== 'string' || !isRecord(value[2]) || typeof value[3] !== 'string') {
+    notScanned(`bun.lock entry ${q(key)} is registry-shaped but not a [spec, registry, metadata, integrity] tuple`);
+  }
+  if (!onRegistry(p, value[1] === '' ? undefined : value[1])) return { kind: 'unqueried' };
+  return registry(p, name, version, spec);
+}
+function parseBun(p: Parser, text: string): Entry[] {
+  requireNewline(p, text);
+  let lock: unknown;
+  const stripped = stripTrailingCommas(text);
+  try {
+    lock = JSON.parse(stripped.json);
+  } catch {
+    notScanned(`${p.lockfile} does not parse as JSON with trailing commas`);
+  }
+  if (stripped.duplicate !== undefined) notScanned(`${p.lockfile} repeats the key ${q(stripped.duplicate)} in one object (duplicate)`);
+  if (!isRecord(lock)) notScanned(`${p.lockfile} is not a JSON object`);
+  if (![0, 1, 2].includes(lock.lockfileVersion as number)) notScanned(`${p.lockfile} lockfileVersion is not one this parser reads (0, 1, 2)`);
+  if (!isRecord(lock.packages)) notScanned(`${p.lockfile} has no packages object`);
+  return Object.entries(lock.packages).map(([key, value]) => {
+    counted(p);
+    return bunEntry(p, key, value);
+  });
+}
+
 interface Resolution { readonly manager: string; readonly lockfile: string; readonly source: string; readonly packages: Pkg[]; readonly local: number; readonly unqueried: number; readonly others: string[] }
 
 function resolveTree(repo: string, row: NodeRow): Resolution {
@@ -447,7 +532,11 @@ function resolveTree(repo: string, row: NodeRow): Resolution {
   }
   const m = row.managers[manager];
   const lockfile = m.lockfiles.find((f) => exists(repo, f));
-  if (!lockfile) notScanned(`${source} but no ${m.lockfiles.join(' or ')} to audit`);
+  if (!lockfile) {
+    const foreign = Object.keys(row.unsupportedLockfiles).find((f) => row.unsupportedLockfiles[f] === manager && exists(repo, f));
+    if (foreign) notScanned(`${source} but its only lockfile is ${foreign}, which has no dependencyAudit.node parser`);
+    notScanned(`${source} but no ${m.lockfiles.join(' or ')} to audit`);
+  }
   const others = [
     ...Object.keys(row.managers).filter((name) => name !== manager).flatMap(lockfilesOf),
     ...Object.keys(row.unsupportedLockfiles).filter((f) => exists(repo, f)),
@@ -457,7 +546,7 @@ function resolveTree(repo: string, row: NodeRow): Resolution {
   if (lock.refused) notScanned(lock.refused);
   const p: Parser = { lockfile, row, count: 0 };
   const text = lock.text ?? '';
-  const entries = m.format === 'pnpm-lock' ? parsePnpm(p, text) : m.format === 'yarn-lock' ? parseYarn(p, text, m.markers!) : parseNpm(p, text);
+  const entries = m.format === 'pnpm-lock' ? parsePnpm(p, text) : m.format === 'yarn-lock' ? parseYarn(p, text, m.markers!) : m.format === 'bun-lock' ? parseBun(p, text) : parseNpm(p, text);
   const seen = new Map<string, Pkg>();
   let local = 0;
   let unqueried = 0;
@@ -477,6 +566,7 @@ function auditConfig(repo: string, row: NodeRow, others: readonly string[]): str
     if (read.refused) { hits.push(`audit-config: ${q(file)} ${q(read.refused)}`); continue; }
     if (read.text === undefined) continue;
     const present = new Set<string>();
+    const extra: string[] = [];
     if (file === 'package.json') {
       let pkg: unknown;
       try { pkg = JSON.parse(read.text); } catch { continue; }
@@ -492,6 +582,46 @@ function auditConfig(repo: string, row: NodeRow, others: readonly string[]): str
         if (!key) continue;
         for (const k of keys) if (k.startsWith('*') ? key.endsWith(k.slice(1).toLowerCase()) : key === k.toLowerCase()) present.add(k);
       }
+    } else if (file.endsWith('.toml')) {
+      // Evidence, not a TOML parser. A key is `<table>.<key>` under its header; a header
+      // alone, a dotted key, an unescaped quoted key and a one-line inline table's keys
+      // count. It FAILS TOWARD EVIDENCE: a line it cannot place (a multi-line string or
+      // inline table, an escaped key, anything else) is one `unread` line, and a key whose
+      // leaf token appears anywhere in the file, its \u, \U and \x escapes decoded, is printed as mentioned.
+      const norm = (k: string): string => k.replace(/["']/g, '').replace(/\s*\.\s*/g, '.');
+      const hit = (k: string): void => { for (const want of keys) if (k === want || k.startsWith(`${want}.`)) present.add(want); };
+      const code = (s: string): string => s.replace(/"(?:[^"\\]|\\.)*"|'[^']*'/g, '""').replace(/#.*$/, '');
+      const net = (s: string, open: string, close: string): number => s.split(open).length - s.split(close).length;
+      const unread: number[] = [];
+      let table = '';
+      let array = 0;
+      read.text.split(/\r?\n/).forEach((line, i) => {
+        if (/"""|'''/.test(line)) { unread.push(i + 1); return; }
+        const bare = code(line);
+        if (array > 0) { array += net(bare, '[', ']'); return; }
+        if (bare.trim() === '') return;
+        const header = /^\s*\[\[?([^\]\\]+)\]\]?\s*$/.exec(bare) && /^\s*\[\[?([^\]\\]+)\]\]?/.exec(line)?.[1];
+        if (header) { table = norm(header.trim()); hit(table); return; }
+        const m = /^\s*([A-Za-z0-9_"'. -]+?)\s*=\s*(.*)$/.exec(line);
+        if (!m) { unread.push(i + 1); return; }
+        const full = table ? `${table}.${norm(m[1])}` : norm(m[1]);
+        hit(full);
+        const value = code(m[2]).trim();
+        if (value.startsWith('{')) {
+          if (net(value, '{', '}') !== 0) { unread.push(i + 1); return; }
+          for (const inner of m[2].matchAll(/([A-Za-z0-9_"'-]+)\s*=/g)) hit(`${full}.${norm(inner[1])}`);
+        } else if (value.startsWith('[')) array = Math.max(net(value, '[', ']'), 0);
+      });
+      if (unread.length > 0) extra.push(`audit-config: ${q(file)} "unread" -- ${unread.length} line(s) this scanner cannot place, first line ${unread[0]}; evidence for Feitan`);
+      const decoded = read.text.replace(/\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})|\\x([0-9A-Fa-f]{2})/g, (raw, a?: string, b?: string, c?: string) => {
+        try { return String.fromCodePoint(parseInt(a ?? b ?? c ?? '', 16)); } catch { return raw; }
+      });
+      for (const want of keys) {
+        const leaf = want.slice(want.lastIndexOf('.') + 1);
+        if (!present.has(want) && new RegExp(`(?<![A-Za-z0-9_-])${leaf}(?![A-Za-z0-9_-])`, 'i').test(decoded)) {
+          extra.push(`audit-config: ${q(file)} ${q(want)} -- its token ${q(leaf)} appears outside a key this scanner read; not honoured; evidence for Feitan`);
+        }
+      }
     } else {
       for (const line of read.text.split(/\r?\n/)) {
         const key = /^([A-Za-z][A-Za-z0-9_-]*)\s*:/.exec(line)?.[1];
@@ -499,6 +629,7 @@ function auditConfig(repo: string, row: NodeRow, others: readonly string[]): str
       }
     }
     for (const key of present) hits.push(`audit-config: ${q(file)} ${q(key)} -- not honoured; evidence for Feitan`);
+    hits.push(...extra);
   }
   return hits;
 }
