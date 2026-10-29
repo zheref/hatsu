@@ -2,17 +2,20 @@
 // shell_coverage.mts — the focused shell lanes' line coverage (zheref/hatsu#148, UZF-19).
 //
 // USAGE
-//   node scripts/shell_coverage.mts --capture <lane> <bash|sh> <fixture> [--target <script>] [args...]
+//   node scripts/shell_coverage.mts --capture <lane> <bash|sh> <fixture> [--target <script>]... [--trace-substitutions] [args...]
 //   node scripts/shell_coverage.mts --verify <lane>
 //   node scripts/shell_coverage.mts --bash-version
 //
 // --capture is a lane's declared `test` row: it runs the fixture and, where the pinned Bashcov
 // and a Bash 5+ are on this host, runs it under Bashcov and writes coverage/<lane>/lcov.info with
 // repository-relative SF: paths, naming only the scripts the run executed (a script another lane
-// covers is unmatched here, never a false 0%). `--target` keeps the fixture and its descendants off the
+// covers is unmatched here, never a false 0%). Repeated `--target` arguments name an exact set; every
+// target must appear before provenance is written. Each gets a wrapper (EXEC, EXEC_2, ...) and keeps
+// the fixture and its descendants off the
 // shared trace descriptor, then traces only that script through a short-lived wrapper. Root-shell records
 // retain Bashcov's fields; nested command/process substitutions emit no Bashcov prefix or field delimiter,
-// so the parser ignores them instead of interleaving them. The report is filtered to that exact source. A
+// so the parser ignores them instead of interleaving them. A serial target can explicitly opt in with
+// --trace-substitutions to retain its nested records. The report is filtered to the declared sources. A
 // `sh` fixture runs under sh first, so its POSIX check is kept, then once more
 // instrumented. Without Bashcov (or with HATSU_SHELL_COVERAGE=0) the fixture runs
 // once, uninstrumented, the stale report is removed, and stderr says so: nen then records no
@@ -67,7 +70,7 @@ if (mode === '--bash-version') {
 }
 if (!['--capture', '--verify'].includes(mode ?? '') || !lane || !/^[a-z][a-z0-9-]*$/.test(lane) ||
     (mode === '--verify' && interp !== undefined)) {
-  fail('expected --capture <lane> <bash|sh> <fixture> [--target <script>] [args...] or --verify <lane>');
+  fail('expected --capture <lane> <bash|sh> <fixture> [--target <script>]... [--trace-substitutions] [args...] or --verify <lane>');
 }
 const root = process.cwd();
 const dir = join(root, 'coverage', lane);
@@ -103,15 +106,25 @@ const fixturePath = resolve(root, fixture);
 if (!existsSync(fixturePath) || !lstatSync(fixturePath).isFile()) fail(`${lane}: ${fixture} must be a regular file`);
 
 let fixtureArgs = extra;
-let target: string | undefined;
-if (extra[0] === '--target') {
-  target = extra[1];
-  fixtureArgs = extra.slice(2);
+const targets: string[] = [];
+while (fixtureArgs[0] === '--target') {
+  const target = fixtureArgs[1];
+  fixtureArgs = fixtureArgs.slice(2);
   if (!target || !/^scripts\/[A-Za-z0-9_./-]+\.sh$/.test(target) || target.includes('..')) {
     fail(`${lane}: ${target ?? 'no target'} is not a repository shell script under scripts/`);
   }
+  if (targets.includes(target)) fail(`${lane}: duplicate coverage target ${target}`);
+  targets.push(target);
   const targetPath = resolve(root, target);
   if (!existsSync(targetPath) || !lstatSync(targetPath).isFile()) fail(`${lane}: ${target} must be a regular file`);
+}
+
+// Serial targets can opt in to full command/process-substitution records. Complex concurrent
+// fixtures keep the isolated root-only default; an opt-in belongs in the exact declared argv.
+const traceSubstitutions = fixtureArgs[0] === '--trace-substitutions';
+if (traceSubstitutions) {
+  if (targets.length !== 1) fail(`${lane}: --trace-substitutions requires exactly one target`);
+  fixtureArgs = fixtureArgs.slice(1);
 }
 
 // The helper runs only as the lane declares it: the argv after the script name must match exactly.
@@ -188,16 +201,24 @@ if (interp === 'sh') {
 }
 mkdirSync(dir, { recursive: true });
 let wrapperDir: string | undefined;
-let wrapper: string | undefined;
-if (target) {
+const targetEnvironment: Record<string, string> = {};
+if (targets.length) {
   wrapperDir = mkdtempSync(join(tmpdir(), 'hatsu-shell-coverage-target-'));
-  wrapper = join(wrapperDir, 'run');
-  // The fixture moves Bashcov's exported PS4 and BASH_XTRACEFD into these dedicated transfer
-  // variables before unexporting the originals. Consume and unexport the transfers here, then pass
-  // their values as arguments to Bash 5: neither fixture nor target descendants inherit trace state.
-  writeFileSync(wrapper, `#!/usr/bin/env bash
+  for (const [index, target] of targets.entries()) {
+    const wrapper = join(wrapperDir, `run-${index + 1}`);
+    const suffix = index === 0 ? '' : `_${index + 1}`;
+    targetEnvironment[`HATSU_SHELL_COVERAGE_EXEC${suffix}`] = wrapper;
+    targetEnvironment[`HATSU_SHELL_COVERAGE_TARGET${suffix}`] = target;
+    targetEnvironment[`HATSU_SHELL_COVERAGE_TARGET_PATH${suffix}`] = resolve(root, target);
+    const targetLiteral = `'${resolve(root, target).replaceAll("'", "'\"'\"'")}'`;
+    const traceIndex = traceSubstitutions ? '0' : 'BASH_SUBSHELL>0';
+    // The fixture moves Bashcov's exported PS4 and BASH_XTRACEFD into these dedicated transfer
+    // variables before unexporting the originals. Consume and unexport the transfers here, then pass
+    // their values as arguments to Bash 5: neither fixture nor target descendants inherit trace state.
+    writeFileSync(wrapper, `#!${bash5.path}
 set -euo pipefail
 set +x
+target_path=${targetLiteral}
 trace_ps4=\${HATSU_SHELL_COVERAGE_PS4}
 trace_fd=\${HATSU_SHELL_COVERAGE_TRACE_FD}
 export -n HATSU_SHELL_COVERAGE_PS4 HATSU_SHELL_COVERAGE_TRACE_FD PS4 BASH_XTRACEFD SHELLOPTS
@@ -215,13 +236,14 @@ exec "$HATSU_SHELL_COVERAGE_BASH" -c '
   source_name=(BASH_SOURCE empty)
   pwd_name=(PWD empty)
   oldpwd_name=(OLDPWD empty)
-  PS4="\\\${prefix[BASH_SUBSHELL>0]}\\\${!lineno_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}\\\${!source_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}\\\${!pwd_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}\\\${!oldpwd_name[BASH_SUBSHELL>0]-}\\\${field[BASH_SUBSHELL>0]}"
+  PS4="\\\${prefix[${traceIndex}]}\\\${!lineno_name[${traceIndex}]-}\\\${field[${traceIndex}]}\\\${!source_name[${traceIndex}]-}\\\${field[${traceIndex}]}\\\${!pwd_name[${traceIndex}]-}\\\${field[${traceIndex}]}\\\${!oldpwd_name[${traceIndex}]-}\\\${field[${traceIndex}]}"
   set -x
   source "$0"
   target_status=$?
   exit "$target_status"
-' "$HATSU_SHELL_COVERAGE_TARGET_PATH" "$trace_ps4" "$trace_fd" "$@"
+' "$target_path" "$trace_ps4" "$trace_fd" "$@"
 `, { mode: 0o700 });
+  }
 }
 let run: ReturnType<typeof spawnSync>;
 try {
@@ -235,12 +257,8 @@ try {
       HATSU_COVERAGE_PATH: join('coverage', lane, 'lcov.info'),
       HATSU_COVERAGE_DIR: join('coverage', lane),
       HATSU_SIMPLECOV_LCOV_VERSION: lcovPin,
-      ...(target && wrapper ? {
-        HATSU_SHELL_COVERAGE_EXEC: wrapper,
-        HATSU_SHELL_COVERAGE_TARGET: target,
-        HATSU_SHELL_COVERAGE_TARGET_PATH: resolve(root, target),
-        HATSU_SHELL_COVERAGE_BASH: bash5.path,
-      } : {}),
+      ...targetEnvironment,
+      ...(targets.length ? { HATSU_SHELL_COVERAGE_BASH: bash5.path } : {}),
     },
   });
 } finally {
@@ -278,18 +296,18 @@ const normalizedAll = readFileSync(report, 'utf8').replace(/^SF:(.+)$/gm, (_line
   }
   return `SF:${path}`;
 });
-const normalized = target
-  ? normalizedAll.split(/(?<=end_of_record\n)/).filter((record) => sources(record).includes(target!)).join('')
+const normalized = targets.length
+  ? normalizedAll.split(/(?<=end_of_record\n)/).filter((record) => sources(record).some((path) => targets.includes(path))).join('')
   : normalizedAll;
 const namedSources = sources(normalized);
 const files = namedSources.filter((path) => path.startsWith('scripts/')).length;
 if (!files) {
   rmSync(report, { force: true });
-  fail(`${lane}: Bashcov reported no ${target ?? 'repository script'}`);
+  fail(`${lane}: Bashcov reported no ${targets.join(', ') || 'repository script'}`);
 }
-if (target && namedSources.some((path) => path !== target)) {
+if (targets.length && (namedSources.some((path) => !targets.includes(path)) || targets.some((path) => !namedSources.includes(path)))) {
   rmSync(report, { force: true });
-  fail(`${lane}: target capture retained an unexpected source`);
+  fail(`${lane}: target capture did not report exactly its declared sources`);
 }
 writeFileSync(report, normalized);
 const recorded: Record<string, string> = {};

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // #158: inspect tracked references to a version and rewrite only exact,
-// unambiguous forms. Mirrors and PR bodies require separate human steps.
+// unambiguous forms. --body-file additionally rewrites an explicit local draft;
+// generated mirrors and remote PR objects are never edited.
 // --check-nen-pin: docs/NEN-CONTRACT.md's echoed pin line must name
 // nen/contract.json's dependency.minimum and pinned_ref (0 agree, 1 drift,
 // 2 a side missing, unparseable, duplicated or resolving outside the root).
 import { lstatSync, readFileSync, readlinkSync, realpathSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 function refuse(message: string): never {
@@ -72,18 +73,20 @@ function main(args: string[]): void {
   let from: string | undefined;
   let to: string | undefined;
   let write = false;
+  let bodyArg: string | undefined;
   for (let i = 0; i < args.length; i++) {
     const flag = args[i];
     if (flag === '--write') { write = true; continue; }
-    if (!['--root', '--from', '--to'].includes(flag)) refuse(`unknown argument ${flag}`);
+    if (!['--root', '--from', '--to', '--body-file'].includes(flag)) refuse(`unknown argument ${flag}`);
     const value = args[++i];
     if (!value) refuse(`${flag} needs a value`);
     if (flag === '--root') rootArg = value;
     else if (flag === '--from') from = value;
+    else if (flag === '--body-file') bodyArg = value;
     else to = value;
   }
   if (!from || !to || !/^\d+\.\d+\.\d+$/.test(from) || !/^\d+\.\d+\.\d+$/.test(to)) {
-    refuse('use --from X.Y.Z --to X.Y.Z [--write], or --check-nen-pin');
+    refuse('use --from X.Y.Z --to X.Y.Z [--body-file DRAFT] [--write], or --check-nen-pin');
   }
   if (from === to) refuse('old and new versions are the same');
   let root: string;
@@ -92,6 +95,36 @@ function main(args: string[]): void {
   if (top !== root) refuse('root is not a Git checkout');
   const paths = git(root, 'ls-files', '-z').toString('utf8').split('\0').filter(Boolean);
   const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Validate the entire explicitly named local draft before any tracked write.
+  // A draft may live outside the checkout, but must be a regular UTF-8 file.
+  let body: { path: string; content: string } | undefined;
+  if (bodyArg !== undefined) {
+    const path = resolve(root, bodyArg);
+    let content: string;
+    try {
+      if (!lstatSync(path).isFile()) refuse('--body-file must name a regular file, not a symlink');
+      const real = realpathSync(path);
+      const draftPaths = [relative(root, path), relative(root, real)];
+      // A checkout may be entered through a filesystem alias such as /var.
+      // Preserve its lexical suffix even when a lower directory points outside.
+      let ancestor = dirname(path);
+      for (;;) {
+        if (realpathSync(ancestor) === root) {
+          draftPaths.push(relative(ancestor, path));
+          break;
+        }
+        const parent = dirname(ancestor);
+        if (parent === ancestor) break;
+        ancestor = parent;
+      }
+      if (draftPaths.some((candidate) => candidate === 'surfaces' || candidate.startsWith(`surfaces${sep}`))) {
+        refuse('--body-file cannot name a generated mirror');
+      }
+      content = new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(path));
+      if (content.includes('\0')) refuse('--body-file contains NUL bytes');
+    } catch (error) { refuse(`--body-file: ${(error as Error).message}`); }
+    body = { path, content };
+  }
   // A suffix makes the reference a different version; even a trailing dot is
   // left for review, since it may be another numeric component.
   const newIn = new RegExp(`(new in v)${escaped}(?![A-Za-z0-9_.-])`, 'i');
@@ -101,6 +134,7 @@ function main(args: string[]): void {
   let rewritten = 0;
   for (const path of paths) {
     const full = resolve(root, path);
+    if (body?.path === full) continue; // Handle a tracked draft only as a draft below.
     if (!inside(root, full)) refuse(`tracked path escapes root: ${path}`);
     let stat;
     try { stat = lstatSync(full); } catch { continue; }
@@ -143,7 +177,34 @@ function main(args: string[]): void {
   }
   console.log(`plugin-version-refs: ${found} tracked line(s) mention ${from}; ${write ? `rewrote ${rewritten}` : 'list only'}`);
   console.log('plugin-version-refs: generated mirrors are never rewritten; run bash scripts/surface_mirror_regenerate.sh and its check.');
-  console.log(`plugin-version-refs: update the PR body to ${to} by hand; this command does not edit a PR.`);
+  if (body) {
+    // All occurrences on a line must be exact version tokens. A prefix/suffix
+    // such as 11.2.3 or 1.2.3-rc makes the whole line ambiguous, never half-edited.
+    const exact = new RegExp(`(^|[^A-Za-z0-9_.-])(v?)${escaped}(?![A-Za-z0-9_.-])`, 'g');
+    const lines = body.content.match(/[^\n]*\n|[^\n]+$/g) ?? [];
+    let mentions = 0;
+    let rewrites = 0;
+    let changed = false;
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
+      if (!line.includes(from)) continue;
+      mentions++;
+      const count = line.split(from).length - 1;
+      const matches = [...line.matchAll(exact)];
+      const safe = matches.length === count;
+      console.log(`${body.path}:${index + 1}: ${safe ? 'rewrite' : 'review'}: ${line.trim()}`);
+      if (write && safe) {
+        lines[index] = line.replace(exact, (_match, prefix: string, v: string) => `${prefix}${v}${to}`);
+        rewrites += count;
+        changed = true;
+      }
+    }
+    if (changed) writeFileSync(body.path, lines.join(''));
+    console.log(`plugin-version-refs: ${mentions} draft line(s) mention ${from}; ${write ? `rewrote ${rewrites} occurrence(s)` : 'list only'}`);
+  } else {
+    console.log('plugin-version-refs: use --body-file <local-draft> to list draft references; add --write to rewrite exact versions.');
+  }
+  console.log('plugin-version-refs: this command does not edit a PR; publish the reviewed local draft through nen pr edit-body.');
 }
 
 try { main(process.argv.slice(2)); }

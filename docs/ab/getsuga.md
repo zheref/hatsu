@@ -501,6 +501,9 @@ d1af049... refs/tags/v1.0.0
 b70f639... refs/tags/v1.0.0^{}
 ```
 
+The following properties describe § 4 at the original port; the later raced case has its own record
+below.
+
 Every property `SKILL.md` § 4 claims is now verified live, in scratch: **never defaults to `HEAD`**
 (`--at` is mandatory), **refuses an off-trunk commit**, **refuses re-tagging an existing name**,
 **never auto-pushes without `--push`**, **pushes only when explicitly told to**, **always
@@ -828,6 +831,64 @@ Run `hatsu:futon hatsu@bug then getsuga+mugetsu` (the advance go, quoted). No to
 the phase at the tag and mugetsu never runs from inside it, so a step here that waited on the attached
 assets could only ever take its deferral branch. § 7 says one line — the target's `origin` equals
 `dependency.source`, the re-pin is mugetsu's once the assets attach — and touches no pin.
+
+## Dated verification, 2026-10-27 — the merge races a later delivery
+
+HA-IS-#371's raced cut was re-read through the live GitHub PR metadata and the
+[Published comment on HA-PR-#363](https://github.com/zheref/hatsu/pull/363#issuecomment-6291575435).
+This pass cut no tag, ran no release and did not repeat the historical preflight.
+
+| Object | Immutable commit | Live metadata |
+|---|---|---|
+| HA-PR-#363, reviewed head | `017a2bd30eb29559b5b9b50e35a3448984aea68f` | The comment records this as the maintainer-ruled `v0.124.0` cut, reachable from `origin/main` |
+| HA-PR-#367, intervening delivery | `eb75e893c78854f0d3dadd058897f5bfb426f1b1` | Merged 2026-10-20 at `12:44:26Z` |
+| HA-PR-#363, merge | `1c7f7ff373738bf776854de3133d3cd6ef98a64e` | Merged at `12:45:07Z`, 41 seconds later |
+
+The comment records `0.125.0` and an uncollated fragment at the merge SHA, and says HA-PR-#367 ships in
+the next release. It records the cut-point preflight at `v0.114.0..017a2bd`: hold unset, no open
+criticals, no live chores, empty fragments, and complete reconciliation. Its tag-existence row is
+`FAIL`, because that transcript is **after the cut** and the tag already exists; this is historical
+evidence, never a passing pre-cut row. The ruling selects the proposal's reviewed state, not a
+later trunk tip. Section 4 now names that cut, the complete § 2 re-verification there, and the report
+of the actual tag commit and omitted later commits and PRs.
+
+**HA-IS-#371 criterion 2 is not implemented.** Live `nen --version` read `0.28.0`, and
+`nen release --help` listed only `preflight`, `resolve-target`, `self-check` and `unit-check`.
+Source inspection of `src/release/command.ts`, `target.ts`, `selfcheck.ts` and `unitcheck.ts` agrees:
+the four predicates are one-commit preflight, ancestry, range membership and release-unit bounds.
+They do not compare the merge commit's release state with the judged head. A passing preflight at
+each commit would still not establish their equality.
+
+Other available mechanisms do not supply the missing predicate: `nen commit check` compares the
+current working copy with a green build proof, never two caller-named commits; its internal
+`src/repo/tree.ts` helper is not a public ref-comparison verb. `nen split verify` compares the hunks
+of supplied split diffs, refuses an empty original, and is not a two-commit equality check. Hatsu's
+source search found no release-state adapter; adding an improvised one would move shared Nen
+machinery into this prose change. No new executable or fixture is claimed.
+
+The existing `scripts/getsuga_default_cut_point_red.sh` fixture covers § 1's no-token resolution
+with a non-`main` trunk, not § 4's raced cut. Its caller is the declared `surface-bootstrap-guard`
+lane. It is unchanged and was not run in this prose pass. A raced-case fixture remains owed with
+the named predicate's adoption: equal and different release states, an unreadable ref, and a
+reviewed head absent from the trunk must have distinct, fail-closed outcomes before a cut.
+
+**Discovery ownership:** Nen owns the missing reusable mechanical predicate; Hatsu owns § 4's
+adoption and the explicit hold until it exists. Reconciliation on 2026-10-27 completed all four
+passes: subject/open and subject/recently-closed found no candidates; files/rule IDs found
+[NN-IS-#524](https://github.com/zheref/nen/issues/524); lane `job/release` found NN-IS-#524 and
+[NN-IS-#461](https://github.com/zheref/nen/issues/461). Both bodies and their sole Direct comments
+were read; `nen issue open-pr-check` scanned eight open PRs and reported neither candidate has an
+open PR. NN-IS-#524 adds tag modes and precondition sets; NN-IS-#461 validates live-chore input. Neither owns
+two-commit release-state equality. The sanitized requirement was returned to the orchestrator,
+the sole discovery writer, who filed and read back
+[NN-IS-#572](https://github.com/zheref/nen/issues/572), classified and routed. HA-IS-#371 remains
+partial on that public dependency; no comparison capability is claimed here.
+
+Removal condition: a released, pinned Nen verb accepts the immutable merge and judged-head refs,
+names the state it compares, distinguishes equality, difference and an unreadable comparison,
+and exposes auditable verdicts without cutting a tag. Hatsu then names that real verb and adds the
+raced-case fixture. Until then § 4 retains the maintainer-ruling hold for this case; no shell
+comparison is presented as Nen and no new automatic cut-point policy is inferred from a moved tip.
 
 ## Dated verification, 2026-10-23 — crash-and-resume (zheref/hatsu#444)
 
