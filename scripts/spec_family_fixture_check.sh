@@ -19,6 +19,15 @@ set -uo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 root="$(cd "$here/.." && pwd -P)"
 fixtures="$root/scripts/fixtures/spec-family"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Measure the configuration entry point; keep the spec assertions and their descendants plain.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/config_values.sh" ] && [ -x "$coverage_exec" ] || exit 2
+fi
+port_guard="${coverage_exec:-$root/scripts/config_values.sh}"
 nen="${NEN:-nen}"
 command -v "$nen" >/dev/null 2>&1 || { echo "spec-family-guard: no nen on PATH (NEN unset)" >&2; exit 2; }
 command -v node >/dev/null 2>&1 || { echo "spec-family-guard: node is not on PATH" >&2; exit 2; }
@@ -49,7 +58,7 @@ read_resolve() {
   "$nen" repo resolve FI --repo "$1" >"$work/out" 2>&1 || return 1
   grep -q '^fixture-owner/fixture-ios  (FI)  via code$' "$work/out"
 }
-read_port() { bash "$root/scripts/config_values.sh" diagnose --repo "$1" --domain port >"$work/out" 2>&1; }
+read_port() { "$port_guard" diagnose --repo "$1" --domain port >"$work/out" 2>&1; }
 read_families() {
   # HR-16: a member's families[] must equal the spec repository's copy (else missing-configuration).
   node -e '

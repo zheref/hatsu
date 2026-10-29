@@ -112,6 +112,32 @@ try {
   assert(result.status === 1 && result.stderr.includes('pr-sections-guard failed'),
     'PR sections fixture failure did not fail CI');
 
+  // HA148: a companion alone must not expand legacy selection; its renderer requires it.
+  writeFileSync(join(repo, 'scripts', 'report_time_fixture.sh'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `report-time companion alone refused: ${result.stderr}`);
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'report-time companion alone expanded CI selection');
+  rmSync(join(repo, 'scripts', 'report_time_fixture.sh'));
+  writeFileSync(join(repo, 'scripts', 'report_time.sh'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('report_time.sh has no required fixture report_time_fixture.sh'),
+    'report-time renderer without its companion did not refuse');
+  assert(readFileSync(log, 'utf8') === '', 'missing report-time companion started a lane');
+  writeFileSync(join(repo, 'scripts', 'report_time_fixture.sh'), '');
+  result = run();
+  assert(result.status === 0, `report-time pair refused: ${result.stderr}`);
+  expected += ',report-time-guard||';
+  calls = readFileSync(log, 'utf8').trim().split('\n');
+  assert(calls.join(',') === expected, 'report-time pair did not select its declared lane');
+  assert(calls.filter((line) => line === 'report-time-guard||').length === 1,
+    'report-time pair selected its lane more than once');
+  result = run({ HATSU_FAIL_LANE: 'report-time-guard' });
+  assert(result.status === 1 && result.stderr.includes('report-time-guard failed'),
+    'report-time fixture failure did not fail CI');
+
   // The tenkai engine is its own fixture (--self-test), so its lane is selected by the script alone,
   // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427).
   writeFileSync(join(repo, 'scripts', 'tenkai_adopt.sh'), '');

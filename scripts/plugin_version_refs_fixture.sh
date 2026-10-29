@@ -27,7 +27,7 @@ for expected in '.claude-plugin/plugin.json:2: rewrite' '.codex-plugin/plugin.js
   'docs/notes.md:1: review' 'surfaces/codex/AGENTS.md:1: generated'; do
   grep -Fq "$expected" "$tmp/list.log" || fail "list-only missed $expected"
 done
-grep -Fq 'update the PR body to 1.2.4 by hand' "$tmp/list.log" || fail 'PR-body reminder missing'
+grep -Fq 'use --body-file <local-draft>' "$tmp/list.log" || fail 'PR-body reminder missing'
 
 bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.3 --to 1.2.4 --write > "$tmp/write.log"
 grep -Fq '"version": "1.2.4"' "$tmp/.claude-plugin/plugin.json" || fail 'Claude manifest not rewritten'
@@ -44,10 +44,69 @@ grep -Fq 'stamp 1.2.3' "$tmp/surfaces/codex/AGENTS.md" || fail 'generated mirror
 grep -Fq 'rewrote 4' "$tmp/write.log" || fail 'write count did not name four unambiguous lines'
 grep -Fq 'run bash scripts/surface_mirror_regenerate.sh' "$tmp/write.log" || fail 'mirror reminder missing'
 
+# An explicit local body draft is independent of tracked-file rewrite forms.
+# A stub would expose any accidental remote PR command.
+mkdir -p "$tmp/bin"
+printf '#!/bin/sh\nprintf remote-called > "%s"\nexit 99\n' "$tmp/remote-called" > "$tmp/bin/gh"
+chmod +x "$tmp/bin/gh"
+body="$tmp/body draft.md"
+printf 'Plugin 1.2.3 and `v1.2.3`\r\nRelease: v1.2.3\nAmbiguous 1.2.3-rc.1\nMixed 1.2.3 and 1.2.3.4\nPrefix 11.2.3 and build1.2.3\nUnchanged 8.9.0\nNo final newline: 1.2.3' > "$body"
+cp "$body" "$tmp/body.before"
+PATH="$tmp/bin:$PATH" bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.3 --to 1.2.4 \
+  --body-file 'body draft.md' > "$tmp/body-list.log"
+cmp -s "$body" "$tmp/body.before" || fail 'body list-only changed the draft'
+for expected in ':1: rewrite:' ':2: rewrite:' ':3: review:' ':4: review:' ':5: review:' ':7: rewrite:'; do
+  grep -Fq "body draft.md$expected" "$tmp/body-list.log" || fail "body list-only missed $expected"
+done
+PATH="$tmp/bin:$PATH" bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.3 --to 1.2.4 \
+  --body-file "$body" --write > "$tmp/body-write.log"
+printf 'Plugin 1.2.4 and `v1.2.4`\r\nRelease: v1.2.4\nAmbiguous 1.2.3-rc.1\nMixed 1.2.3 and 1.2.3.4\nPrefix 11.2.3 and build1.2.3\nUnchanged 8.9.0\nNo final newline: 1.2.4' > "$tmp/body.expected"
+cmp -s "$body" "$tmp/body.expected" || fail 'body write changed ambiguous lines or lost exact versions/line endings'
+grep -Fq 'rewrote 4 occurrence(s)' "$tmp/body-write.log" || fail 'draft occurrence count wrong'
+[ ! -e "$tmp/remote-called" ] || fail 'body helper invoked remote PR command'
+
+# A generated file or symlink cannot be smuggled through the draft flag.
+ln -s "$body" "$tmp/body-link.md"
+for refused in "$tmp/body-link.md" "$tmp/surfaces/codex/AGENTS.md" "$tmp/missing.md"; do
+  set +e
+  bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.3 --to 1.2.4 \
+    --body-file "$refused" --write > "$tmp/body-refused.log" 2>&1
+  code=$?
+  set -e
+  [ "$code" -eq 2 ] || fail "invalid body $refused exited $code, expected 2"
+done
+cmp -s "$body" "$tmp/body.expected" || fail 'refused draft touched symlink target'
+grep -Fq 'stamp 1.2.3' "$tmp/surfaces/codex/AGENTS.md" || fail 'draft flag rewrote a generated mirror'
+
+# A sibling whose name merely begins with surfaces is an ordinary local draft.
+mkdir -p "$tmp/surfaces-draft"
+printf 'Plugin 1.2.3\n' > "$tmp/surfaces-draft/body.md"
+bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.3 --to 1.2.4 \
+  --body-file "$tmp/surfaces-draft/body.md" --write > "$tmp/body-boundary.log"
+grep -Fxq 'Plugin 1.2.4' "$tmp/surfaces-draft/body.md" || fail 'surfaces-prefixed sibling draft was refused'
+
 # A local replacement of a tracked directory must not make --write touch a
 # file outside the checkout.
 outside="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-version-refs-outside.XXXXXXXX")"
 trap 'rm -rf -- "$tmp" "$outside"' EXIT
+# A lexical mirror path stays excluded when its ancestor resolves outside.
+mkdir -p "$outside/mirror"
+printf 'Plugin 1.2.4\n' > "$outside/mirror/AGENTS.md"
+cp "$outside/mirror/AGENTS.md" "$tmp/mirror.before"
+cp "$tmp/.claude-plugin/plugin.json" "$tmp/manifest.before"
+mv "$tmp/surfaces/codex" "$tmp/surfaces/codex.saved"
+ln -s "$outside/mirror" "$tmp/surfaces/codex"
+set +e
+bash "$here/plugin_version_refs.sh" --root "$tmp" --from 1.2.4 --to 1.2.5 \
+  --body-file "$tmp/surfaces/codex/AGENTS.md" --write > "$tmp/mirror-escape.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 2 ] || fail "mirror ancestor symlink exited $code, expected 2"
+cmp -s "$outside/mirror/AGENTS.md" "$tmp/mirror.before" || fail 'mirror ancestor target was rewritten'
+cmp -s "$tmp/.claude-plugin/plugin.json" "$tmp/manifest.before" || fail 'mirror refusal changed a tracked manifest'
+rm "$tmp/surfaces/codex"
+mv "$tmp/surfaces/codex.saved" "$tmp/surfaces/codex"
+
 mv "$tmp/docs" "$tmp/docs.saved"
 ln -s "$outside" "$tmp/docs"
 printf 'new in v1.2.3 outside\n' > "$outside/notes.md"
@@ -106,4 +165,4 @@ code=$?
 set -e
 [ "$code" -eq 0 ] || fail "the committed tree's nen pin echo exited $code: $(cat "$tmp/live.log")"
 
-echo 'plugin-version-refs-fixture: list-only, conservative write, mirrors, ambiguity, the nen pin echo and the live echo passed'
+echo 'plugin-version-refs-fixture: list-only, conservative write, local draft, mirrors, ambiguity, the nen pin echo and the live echo passed'

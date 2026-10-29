@@ -1065,7 +1065,7 @@
     {
       "id": "spec-clarify",
       "class": "ask-once-per-run",
-      "default": "ask once per run the wave's markers ranked by Spec Kit clarify's taxonomy, in ONE sitting per run of at most spec.clarify.maxQuestions (5 by the proposed default), spec.clarify.maxRounds counting successive runs, not rounds inside one (3 by the proposed default; the cap is the owed nen spec check --markers --rank --max, zheref/nen#493), three questions a call, short options. A platform contradiction on one rule is a question whose options are the two cited readings. The typed answer lands VERBATIM as a CL-nnn entry under spec.md's ## Clarifications -> ### Session <date> (question as asked, options shown, answer quoted, lines it ruled), written with the surface's file tool, and the FR cites [ruled: CL-nnn]. A declined or over-cap question stays a marker; a story holding any marker is clarifying and is excluded from dispatch and wave. The star is derived per ask (the reading a declared-tier citation carries); NONE is starred where the answer is a priority, an audience, a threshold or 'intentional' (WORKFLOW section 4, the maintainer's word is never derived). Never raises a mid-run G5",
+      "default": "ask once per run the wave's markers ranked by Spec Kit clarify's taxonomy, in up to spec.clarify.maxRounds rounds in one run (3 by the proposed default), each of at most spec.clarify.maxQuestions (5 by the proposed default), maxRounds bounding that run and never successive runs (docs/ROSTER.md HR-351; the ranked, capped list is nen spec check --markers --rank --max, shipped at the pin, zheref/nen#493), three questions a call, short options. A platform contradiction on one rule is a question whose options are the two cited readings. The typed answer lands VERBATIM as a CL-nnn entry under spec.md's ## Clarifications -> ### Session <date> (question as asked, options shown, answer quoted, lines it ruled), written with the surface's file tool, and the FR cites [ruled: CL-nnn]. A declined or over-cap question stays a marker; a story holding any marker is clarifying and is excluded from dispatch and wave. The star is derived per ask (the reading a declared-tier citation carries); NONE is starred where the answer is a priority, an audience, a threshold or 'intentional' (WORKFLOW section 4, the maintainer's word is never derived). Never raises a mid-run G5",
       "preferred": [
         {
           "key": "A",
@@ -1087,7 +1087,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Bounded so the agent can neither interrogate indefinitely nor silently stop asking; the answer is quoted, never paraphrased.",
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers; the round reading is HR-351's (several rounds per run). Bounded so the agent can neither interrogate indefinitely nor silently stop asking; the answer is quoted, never paraphrased.",
       "citedBy": [
         "dowsing-chain"
       ]
@@ -1104,7 +1104,7 @@
     {
       "id": "spec-dispatch",
       "class": "ask-once-per-run",
-      "default": "ask once per dispatch run, after the folders it names read MERGED, through the surface's picker: which gap groups receive an issue. Each item is `<folder> · <story> · <member> · <direct's primary>` for every [ ] group whose story holds zero markers. Multi-select, NO option starred (the porting rulings' fan-out picker, like port-siblings); paged in fours, a fifth item opening a second call; an empty answer reads none. The answer is NOT the filings' G1 (no ruling makes it one; listed unruled in docs/config/spec-repo.md): per pick, visibility re-read PRIVATE, then file sections 3-5 by name, file section 4's own one-plan confirmation running per dispatch, with the title `spec: <story> (F<nnn>/US<k> · <platform>)`, an existing issue amended with its body sha guard, never filed twice; one capability epic per folder, its mode label proposed and never applied (row mode-label)",
+      "default": "ask once per dispatch run, after the folders it names read MERGED, through the surface's picker: which gap groups receive an issue. Each item is `<folder> · <story> · <member> · <direct's primary>` for every [ ] group whose story holds zero markers. Multi-select, NO option starred (the porting rulings' fan-out picker, like port-siblings); paged in fours, a fifth item opening a second call; an empty answer reads none. No per-dispatch gate (docs/ROSTER.md HR-344): the typed dowsing-chain dispatch wave is the go, and an idle run holds it. Per pick, visibility re-read PRIVATE, then file sections 3-5 by name, the typed wave standing as file section 4's confirmation under its stand-in clause (the plan still shown), with the title `spec: <story> (F<nnn>/US<k> · <platform>)`, an existing issue amended with its body sha guard, never filed twice; one capability epic per folder, its mode label proposed and never applied (row mode-label)",
       "preferred": [
         {
           "key": "A",
@@ -1120,7 +1120,7 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Filings always pass this picker and then file section 4's confirmation, since whether this picker may stand as their G1 is unruled (a recommendation for the maintainer's next sitting); only builds of already-filed, marker-free issues run on the typed wave call. No option is recommended, and a consumer's own decisions file may not star one (advisory, as port-siblings).",
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Filings always pass this picker; HR-344 ruled that no per-dispatch gate follows it, so the typed dispatch wave stands as file section 4's confirmation (its stand-in clause; the plan still shown); builds of already-filed, marker-free issues run on the typed wave call. No option is recommended, and a consumer's own decisions file may not star one (advisory, as port-siblings).",
       "citedBy": [
         "dowsing-chain"
       ]
