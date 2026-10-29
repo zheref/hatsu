@@ -736,6 +736,24 @@ test("HA#503 AC-1/AC-2: exactly one PRS row per letter, answered by Chrollo with
   assert.deepEqual(check(cat, later, report.requirements, 7)[0], []);
 });
 
+test("HA#527: a Line-read cell may begin with its only line reference; a cell with none still refuses", () => {
+  const report = resolution("process", ["prose-authoring"], ["policy-hit", "canon-prose"]);
+  const unmet = (rows: string): string[] => check(cat, proseBody(report, rows), report.requirements, 7)[0];
+  const each = (cell: string): string => ["C", "L", "S", "M"].map((letter): string => `| PRS-${letter} | Chrollo | yes | ${cell} |`).join("\n");
+  const one = (cell: string): string => ANSWERED.replace("| PRS-S | Chrollo | yes | zheref/hatsu#503 line 17 |", `| PRS-S | Chrollo | yes | ${cell} |`);
+  // AC-1: the reference is the cell's first token and its only one (HA-PR-#513's PRS-S row), on every letter.
+  for (const cell of ["line 36 (Out of scope: the rest)", "line 7", "a:3 first", "docs/PR-SECTIONS.md:131 (the scope paragraph)"]) {
+    assert.deepEqual(unmet(each(cell)), [], `every letter: ${cell}`);
+    assert.deepEqual(unmet(one(cell)), [], `PRS-S alone: ${cell}`);
+  }
+  // AC-2: the shapes accepted before still read.
+  for (const cell of ["zheref/hatsu#503 line 17", "zheref/hatsu#503 line 17; zheref/hatsu#9 line 4", "docs/PR-SECTIONS.md:131", "read at line 36"])
+    assert.deepEqual(unmet(one(cell)), [], cell);
+  // AC-3: a cell with no reference, empty, a dash or the placeholder still refuses.
+  for (const cell of ["unread", "—", "", "<line read>", "<line read> line 3", "the scope paragraph", "outline 3", "path:"])
+    assert.deepEqual(unmet(one(cell)), ["section prose: requirement prose-rows is unmet"], JSON.stringify(cell));
+});
+
 test("HA#503 AC-3: --scopes-from reads nen review scopes, and only a Markdown path Chrollo's scope claims admits the checklist", (context) => {
   // The architecture globs are the one definition: only .md paths Chrollo's scope claims admit the block.
   assert.equal(canonProse(scopes([{ persona: "nobunaga", paths: ["docs/PROCESS.md"] }])), false, "a path Chrollo does not claim");
