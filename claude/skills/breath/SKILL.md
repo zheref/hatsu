@@ -161,12 +161,14 @@ binding clause against the plan and may name any other (HR-337). **Clear**: `.no
 as the entry's `--note`. **Conflict**: row `constitution-conflict` (G5). **Exit `2`**: row
 `capability-unavailable`, the entry left open.
 
-## 5. What the turn reports, and the residue
+## 5. What the turn reports
 
 One line, not a gate event: any active swap, the `wc classify` case, **new effort or explicit
 continuation**, the branch cut and its tip (or the branch reused), the toolchain verdict, the build's
 exit code, the constitution check's `.record`, any `info/exclude` lines, and the *no workflow.json*
 sentence where it applies.
+
+## Residue
 
 Residue, unfiled: rendering `branch.template`, appending `info/exclude` (proved by `nen wc classify`).
 **Whether an existing dirty branch is this effort, and whether a plan contradicts

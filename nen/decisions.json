@@ -1,55 +1,85 @@
 {
   "$schema": "nen.decisions/v0.1",
-  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Rows cited by a skill's one-liner: dirty-tree (breath), cap-reached (en, sharingan, senkei, build), red-lint (kokusen, gyo), missing-focused-route (kokusen, tsukuyomi), missing-tool (hanten), release-precondition-red (getsuga), semantic-conflict (ao), mode-unknown (build), stale-base (ao), staging-flag and secret-shape (kokusen), unsettled-finding (hanten), hand-edited-canon-mirror (limbo), release-go (mugetsu), canon-merge (getsuga), rewrite-published-history (aka), supply-chain-failure and host-nen-link (ten), constitution-conflict and capability-unavailable (breath section 4a: a conflicting clause, and a check that did not run), unruled-policy-surface (backlog-state), ambiguous-intent (rasengan), missing-argument and missing-configuration (every skill that takes arguments or reads configuration, WORKFLOW.md § 4 Ask, set up, continue), missing-maintainer-choice (kagutsuchi, mugetsu, izanagi, jujutsu, ren's missing request, jusshin's target, machine code and service identity; the keys it governs are its own `governs` list), stale-send (kagutsuchi section 3a), on-device-act (jujutsu; jusshin: the UAC consent, the typed service-account password, the macOS Login Items approval -- a G5 by the ruling of 2026-10-17; G5 is the open class of what only the human can do, these rows its recorded kinds), missing-tool, secret-shape and red-lint (also jusshin), wrap-up (cleanup section 2, cited at en section 8, build phase 6, futon section 10, kazaana section 7 and kamui section 8), cleanup-plan (cleanup section 6), publish-offer (kazaana section 6, mugetsu section 0 form (4)), mode-label (emperor-time section 6, dowsing-chain section 8), intake-challenger and intake-stall (emperor-time section 4, dowsing-chain section 6), ci-install-rulings and ci-ceremony (kuchiyose sections 3 and 5), harness-denied (every skill whose command a harness refuses: jutaisho section 3, WORKFLOW section Idle batches rule 2), port-siblings (kamui section 5), port-drift (bankai-rule section 5, answered for the port composites hiraishin and kamui, zheref/hatsu#357 and #356), spec-capture-scope, spec-slice, spec-clarify, spec-claim-unverified, spec-dispatch, spec-coverage, spec-conflict and spec-converge-filing (dowsing-chain sections 2, 4, 5, 8, 9 and 10; docs/config/spec-repo.md; spec-coverage raised by shibari section 4, zheref/hatsu#405). Data-only until a skill cites them: merge, signing-material, missing-consumer-declaration (tenkai, once zheref/hatsu#83's engine grows the item).",
+  "$comment": "Hatsu's decision matrix (zheref/hatsu#85, maintainer rulings of 2026-09-19). One row per condition the canon has met so far (the class is open: a human-only stop not yet recorded is still a G5). `autonomous` rows are resolved by `default` with no question and each skill states the default in one line citing the row id; `ask-once-per-run` rows ask once through the surface's picker (Crazy Slots), seeded by `preferred`; `human-gate` rows are the gates canon reserves for the maintainer and cannot be reclassified by a consumer's own file. Validated by `nen schema check` and written by `nen schema set`; read by every skill before it asks (no `nen stop` flag reads it — zheref/hatsu#289 item 8). Which skills cite a row is the row's own `citedBy` list, and a row no skill cites carries `uncitedReason` (zheref/hatsu#502); scripts/canon_coverage_check.mts holds both to the skills (docs/config/decisions.json.md).",
   "contract": "nen.decisions/v0.1",
   "rows": [
     {
       "id": "dirty-tree",
       "class": "autonomous",
       "default": "nen shu warmup --repo <checkout> --branch <branch> --carry",
-      "why": "Ruling 2026-09-19: a dirty working copy at breath is always carried onto the new branch (stash including untracked, warm, restore). Nothing is discarded, the paths are listed in the report."
+      "why": "Ruling 2026-09-19: a dirty working copy at breath is always carried onto the new branch (stash including untracked, warm, restore). Nothing is discarded, the paths are listed in the report.",
+      "citedBy": [
+        "breath"
+      ]
     },
     {
       "id": "stale-send",
       "class": "autonomous",
       "default": "scripts/send_freshness_check.sh --repo <checkout> reports at exit 2 with both SHAs named; kagutsuchi section 3b then previews and runs nen wc worktree --name kagutsuchi at origin/<branch.base>'s tip (project.fromCore repeated as --copy-from-core), rebuilds through susanoo there, re-runs the gate there, and sends from the worktree -- never from the stale checkout",
-      "why": "Ruling 2026-09-29 (zheref/hatsu#146): a non-production upload is a release act, so the archive kagutsuchi sends must be a build of the checkout's HEAD at origin/<branch.base>'s tip, on a clean tree, asserted BEFORE --run rather than by the tag after it. A stale, dirty or foreign-commit archive is rebuilt, never a question and never sent as it stands: no maintainer answer makes a 95-commit-stale binary the right one to put in front of testers, and the maintainer's ruling is that kagutsuchi runs susanoo for a fresh build only when the latest build is not up to date with the target branch. A repository declaring no tags.identity cannot be checked (exit 3): the send proceeds and the report reads `freshness: unverified`, never `fresh`."
+      "why": "Ruling 2026-09-29 (zheref/hatsu#146): a non-production upload is a release act, so the archive kagutsuchi sends must be a build of the checkout's HEAD at origin/<branch.base>'s tip, on a clean tree, asserted BEFORE --run rather than by the tag after it. A stale, dirty or foreign-commit archive is rebuilt, never a question and never sent as it stands: no maintainer answer makes a 95-commit-stale binary the right one to put in front of testers, and the maintainer's ruling is that kagutsuchi runs susanoo for a fresh build only when the latest build is not up to date with the target branch. A repository declaring no tags.identity cannot be checked (exit 3): the send proceeds and the report reads `freshness: unverified`, never `fresh`.",
+      "citedBy": [
+        "kagutsuchi"
+      ]
     },
     {
       "id": "cap-reached",
       "class": "autonomous",
       "default": "nen pr request-reviews --target <owner/name> --pr <n> --add-bots <reviewer>",
-      "why": "Ruling 2026-09-19, bounded by zheref/hatsu#102; both caps are nen's keys from v0.21.0 (zheref/nen#240), and nen pr request-reviews refuses a bot's request past maxRounds at exit 2 -- exit 2 WITH a 'refused:' line is this row's bound, never retried; any other exit 2 is usage, relayed: an owed reviewer round is requested on the maintainer's behalf, through nen pr request-reviews only, while this PR's requested rounds are under nen/gates.json round_policy.maxRounds AND its resolved rounds are under round_policy.minRounds (never asked about); once minRounds resolved rounds exist no further round is requested -- 'owed at head' after the run's own push or request is not a reason -- and maxRounds with fewer resolved is the reported blocker: the run ends at not-ready with the board and nen pr ready --explain quoted, never with a question, never a number raised in-session. nen/workflow.json monitor.maxCycles is en's ACTING-cycle cap, a different number."
+      "why": "Ruling 2026-09-19, bounded by zheref/hatsu#102; both caps are nen's keys from v0.21.0 (zheref/nen#240), and nen pr request-reviews refuses a bot's request past maxRounds at exit 2 -- exit 2 WITH a 'refused:' line is this row's bound, never retried; any other exit 2 is usage, relayed: an owed reviewer round is requested on the maintainer's behalf, through nen pr request-reviews only, while this PR's requested rounds are under nen/gates.json round_policy.maxRounds AND its resolved rounds are under round_policy.minRounds (never asked about); once minRounds resolved rounds exist no further round is requested -- 'owed at head' after the run's own push or request is not a reason -- and maxRounds with fewer resolved is the reported blocker: the run ends at not-ready with the board and nen pr ready --explain quoted, never with a question, never a number raised in-session. nen/workflow.json monitor.maxCycles is en's ACTING-cycle cap, a different number.",
+      "citedBy": [
+        "en",
+        "sharingan"
+      ]
     },
     {
       "id": "own-pr-merge",
       "class": "autonomous",
       "default": "into main: never merge -- en § 5's five checks in order (on branch.base, the verdict -- ready, or the sixth stop of docs/PROCESS.md section Reviewer rounds and review threads, The sixth stop (row reviewer-exhausted, under aiReviewers required), or the hanten prompt of AI reviewers per consumer (row ai-reviewers, under optional and off) --, the body, the Development guard -- WORKFLOW § Build accountability and issue associations' three exclusive cases, the PR's own base first: (1) the PR's base is the default branch, whatever branch.base declares, verified fully and its 0 required; (2) the PR's base is not the default branch and branch.base is, its retarget-pending line quoted, no prompt; (3) neither branch.base nor the PR's base is the default branch, its not-applicable line quoted in the 0's place --, the head pinned), then the merge prompt: the PR's link and the inline line gh pr merge <n> --repo <owner/name> --merge --match-head-commit <judged head>, offered for the maintainer to run or to replace with the GitHub UI, never run by the agent. Except for a recorded Futon-owned stacked delivery PR at pinned Ready, which en § 5 may merge into a non-main base through nen pr merge --delivery after its live checks. A PR off branch.base without that ownership gets no prompt: the verdict, its base and the guard's line (retarget-pending in case 2, not-applicable in case 3) are reported. A PR on branch.base in case 3 gets the prompt, the not-applicable line quoted: the G2/G4 merge stop, never a G5",
-      "why": "Ruling 2026-09-30, docs/ROSTER.md § Rulings of 2026-09-30 -- En never merges: 'En is NOT meant to merge by default.' and 'Futon is allowed to merge by itself ONLY when target is NOT main ... (every time main is target) I should be prompted to merge myself either from the GitHub UI or from a command line offered inline.' It supersedes ruling 3 of 2026-09-29; 'main' reads as branch.base. The id is kept so existing citations resolve; it now names what happens to the run's own PR at its terminus, which is the prompt, not a merge. The class stays autonomous because the run never asks whether to merge: the prompt presents the link and the line, and its picker never carries the merge act (jutaisho § 4); the maintainer merges outside the session. Totality: a PR into branch.base, whether or not branch.base is the repository's default branch, is this row (the prompt, in case 3 with the guard's not-applicable line quoted in place of its 0) or getsuga § 3a's release proposal (rows merge and canon-merge, nen pr merge --release-unit; in case 3 § 3a does not merge and falls back to the declaration gate, which is this row's prompt); a PR off branch.base is this row's off-base report; futon's merge into its own integration branch is a local git merge --no-ff, no PR and no gate (futon § 5), so no row governs it. The 2026-10-19 Futon exception permits only recorded Ready stacked delivery PRs into non-main bases through nen pr merge --delivery; it does not alter this main-bound rule. The one PR into main an agent merges is getsuga § 3a's own release proposal, through nen pr merge --release-unit (rows merge and canon-merge). Never another's PR, never --admin or --auto."
+      "why": "Ruling 2026-09-30, docs/ROSTER.md § Rulings of 2026-09-30 -- En never merges: 'En is NOT meant to merge by default.' and 'Futon is allowed to merge by itself ONLY when target is NOT main ... (every time main is target) I should be prompted to merge myself either from the GitHub UI or from a command line offered inline.' It supersedes ruling 3 of 2026-09-29; 'main' reads as branch.base. The id is kept so existing citations resolve; it now names what happens to the run's own PR at its terminus, which is the prompt, not a merge. The class stays autonomous because the run never asks whether to merge: the prompt presents the link and the line, and its picker never carries the merge act (jutaisho § 4); the maintainer merges outside the session. Totality: a PR into branch.base, whether or not branch.base is the repository's default branch, is this row (the prompt, in case 3 with the guard's not-applicable line quoted in place of its 0) or getsuga § 3a's release proposal (rows merge and canon-merge, nen pr merge --release-unit; in case 3 § 3a does not merge and falls back to the declaration gate, which is this row's prompt); a PR off branch.base is this row's off-base report; futon's merge into its own integration branch is a local git merge --no-ff, no PR and no gate (futon § 5), so no row governs it. The 2026-10-19 Futon exception permits only recorded Ready stacked delivery PRs into non-main bases through nen pr merge --delivery; it does not alter this main-bound rule. The one PR into main an agent merges is getsuga § 3a's own release proposal, through nen pr merge --release-unit (rows merge and canon-merge). Never another's PR, never --admin or --auto.",
+      "citedBy": [
+        "en",
+        "limbo"
+      ]
     },
     {
       "id": "reviewer-exhausted",
       "class": "autonomous",
       "default": "under nen/workflow.json aiReviewers required (the default; optional and off are row ai-reviewers): read nen pr ready --json at the judged head: nen/gates.json declares no exhaustion (reviewer_fallback is retired). A nen pr request-reviews exit 9 (unrecordedBots, zheref/nen#277) is never retried and never counted as requested, and is recorded verbatim with the headRefOid read just before the call. Where a met round_quorum fulfils an unavailable member's round (zheref/nen#361) request nothing of it and go on; where the sixth stop's five conditions hold -- docs/PROCESS.md section Reviewer rounds and review threads, The sixth stop, (a) a declared non-empty any_of, (b) failing exactly [rounds-owed], (c) every member unavailable by exit 9 or by a round-check run at the judged head that completed without a round (no run at head never counts), (d) bound to the judged head, (e) no reviewer outside any_of owed, read from owedRounds[] (HR-365); stated once there -- present the PR at en section 5's merge prompt on hanten's rounds (en section 6's sixth stop) with nen pr ready's not-ready verdict quoted verbatim, never 'ready', and the Hatsu body line carrying the recorded head and --json; any other unmet quorum stays inside sharingan section 6's bounds, and any other failing row ends at row cap-reached's terminus. A CI reviewer lane -- its round, why it is never requested, its quorum place and when it is unavailable -- is docs/PROCESS.md section Reviewer rounds and review threads, Event-driven reviewer lanes, stated once there",
-      "why": "Rulings 2026-10-04, 'retire 2, adopt 2' (zheref/nen#310; zheref/hatsu#227), and 2026-10-11, 'Prompt on hanten' (docs/ROSTER.md section Rulings of 2026-10-11 -- prompt on hanten): reviewer_fallback, its chain and dated exhausted[] rows are deleted, superseded by round_quorum and zheref/nen#361; unavailability is observed (request-reviews exit 9), never declared; and when PROCESS's sixth-stop predicate holds hanten's rounds are the review and the PR goes to the maintainer's merge prompt, keeping ruling 1 of 2026-09-29's intent (docs/PROCESS.md section Reviewer rounds and review threads, One bot reviewer suffices, states it once). The run never asks. PRECEDENCE: this terminus outranks cap-reached -- an observed impossibility, not a ceiling. The verdict is nen pr ready's, quoted verbatim, never a string the verb did not print. The id is kept so existing citations resolve; the merge is the maintainer's (row own-pr-merge)."
+      "why": "Rulings 2026-10-04, 'retire 2, adopt 2' (zheref/nen#310; zheref/hatsu#227), and 2026-10-11, 'Prompt on hanten' (docs/ROSTER.md section Rulings of 2026-10-11 -- prompt on hanten): reviewer_fallback, its chain and dated exhausted[] rows are deleted, superseded by round_quorum and zheref/nen#361; unavailability is observed (request-reviews exit 9), never declared; and when PROCESS's sixth-stop predicate holds hanten's rounds are the review and the PR goes to the maintainer's merge prompt, keeping ruling 1 of 2026-09-29's intent (docs/PROCESS.md section Reviewer rounds and review threads, One bot reviewer suffices, states it once). The run never asks. PRECEDENCE: this terminus outranks cap-reached -- an observed impossibility, not a ceiling. The verdict is nen pr ready's, quoted verbatim, never a string the verb did not print. The id is kept so existing citations resolve; the merge is the maintainer's (row own-pr-merge).",
+      "citedBy": [
+        "en"
+      ]
     },
     {
       "id": "ai-reviewers",
       "class": "autonomous",
       "default": "read nen/workflow.json aiReviewers at the PR's base and at the default branch's tip through gh api contents, never the local checkout, the stricter applying (required > optional > off; a failed, absent or unparseable read is required) (required: today's behaviour -- request within round_policy's caps, expect the round, prompt only at verified Ready or docs/PROCESS.md The sixth stop; optional: request within the caps, never wait; off: never call nen pr request-reviews for reviewers[]). Under optional and off nen pr ready (nen 0.26) waives the round of a reviewer nen/gates.json declares kind bot with an identical declaration at both refs, so such a PR reads ready and goes to en section 5's merge prompt on that verified Ready, hanten having settled (zheref/hatsu#428; docs/ROSTER.md HR-333, ruled 2026-10-22). For a round nen did not waive: when nen pr ready --json at the judged head fails exactly [rounds-owed], hanten has settled, and, at both refs, every reviewers[] entry is in round_quorum.any_of with an anchored login_pattern and none is kind human (a declaration, not a bot check), present the PR at en section 5's merge prompt on hanten's rounds with the not-ready verdict quoted verbatim, never 'ready', and the Hatsu line aiReviewers: <value> (base <sha>, default <sha>); a posted bot's threads are settled first; any other failing row ends at row cap-reached's terminus. A value outside required | optional | off is missing-configuration, required applying meanwhile. The one value covers CI reviewer lanes too (ruling 2026-10-19, 'One value for every bot'): docs/PROCESS.md section Reviewer rounds and review threads, Event-driven reviewer lanes and AI reviewers per consumer, stated once there",
-      "why": "The maintainer's rulings of 2026-10-11 (docs/ROSTER.md section Rulings of 2026-10-11 -- AI reviewers per consumer; zheref/hatsu#245): the per-consumer setting takes 'required | optional | off', and Hatsu's own value is 'optional'. It returns the off switch for AI-reviewer spend that deleting reviewer_fallback removed, as one consumer value rather than a dated exhaustion row. docs/PROCESS.md section Reviewer rounds and review threads, AI reviewers per consumer, states it once; under required row reviewer-exhausted's sixth stop is unchanged, under optional and off this row replaces it. Coherent with CON-16 (only enabled reviewers gate) and CON-32(b) (for a round nen did not waive, the verdict is quoted not-ready, never represented as ready; a round nen waives for a declared bot reads ready by nen's own verdict, docs/ROSTER.md HR-333). The run never asks; the merge is the maintainer's (row own-pr-merge)."
+      "why": "The maintainer's rulings of 2026-10-11 (docs/ROSTER.md section Rulings of 2026-10-11 -- AI reviewers per consumer; zheref/hatsu#245): the per-consumer setting takes 'required | optional | off', and Hatsu's own value is 'optional'. It returns the off switch for AI-reviewer spend that deleting reviewer_fallback removed, as one consumer value rather than a dated exhaustion row. docs/PROCESS.md section Reviewer rounds and review threads, AI reviewers per consumer, states it once; under required row reviewer-exhausted's sixth stop is unchanged, under optional and off this row replaces it. Coherent with CON-16 (only enabled reviewers gate) and CON-32(b) (for a round nen did not waive, the verdict is quoted not-ready, never represented as ready; a round nen waives for a declared bot reads ready by nen's own verdict, docs/ROSTER.md HR-333). The run never asks; the merge is the maintainer's (row own-pr-merge).",
+      "citedBy": [],
+      "uncitedReason": "Raised by no skill's one-liner: docs/PROCESS.md section AI reviewers per consumer and docs/WORKFLOW.md read it where a pull request's bot rounds are judged."
     },
     {
       "id": "red-lint",
       "class": "autonomous",
       "default": "hand the tree back to hatsu:rasengan with the failing check quoted",
-      "why": "Ruling 2026-09-19: a red iteration check kokusen cannot clear returns to rasengan; the turn continues. It is never a G5."
+      "why": "Ruling 2026-09-19: a red iteration check kokusen cannot clear returns to rasengan; the turn continues. It is never a G5.",
+      "citedBy": [
+        "great-hiker",
+        "gyo",
+        "jusshin",
+        "kokusen"
+      ]
     },
     {
       "id": "injected-attribution-trailer",
       "class": "autonomous",
       "default": "git reset --soft HEAD~1 on the tip this step just wrote (kokusen § 5) or re-squash (aka § 7), then row harness-attribution-switch for the off-switch",
-      "why": "Ruling 2026-09-28 (zheref/hatsu#66): an ATTRIBUTION key (docs/WORKFLOW.md § commits: a trailer key ending in -by or -with, or listed in commits.forbiddenTrailers; Closes and its kind are ordinary and untouched) outside commits.allowedAttributionTrailers on a commit a Hatsu step just wrote is a harness injection (Cursor's Co-authored-by), keys compared case-insensitively as nen's layer (c) does. The just-written tip is unpublished by construction and is dropped, never amended; a published commit is row rewrite-published-history."
+      "why": "Ruling 2026-09-28 (zheref/hatsu#66): an ATTRIBUTION key (docs/WORKFLOW.md § commits: a trailer key ending in -by or -with, or listed in commits.forbiddenTrailers; Closes and its kind are ordinary and untouched) outside commits.allowedAttributionTrailers on a commit a Hatsu step just wrote is a harness injection (Cursor's Co-authored-by), keys compared case-insensitively as nen's layer (c) does. The just-written tip is unpublished by construction and is dropped, never amended; a published commit is row rewrite-published-history.",
+      "citedBy": [
+        "aka",
+        "ao",
+        "kokusen"
+      ]
     },
     {
       "id": "harness-denied",
@@ -77,7 +107,9 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Zheref/hatsu#453 (HR-5; assessment D3-D5) and the maintainer's ruling of 2026-10-23 on idle runs, applied by HA-PR-#460 (WORKFLOW section 2 idle: an act a default leads to that the harness refuses parks as g5-harness-denied, never retried another way); this row lands after HA-PR-#460. A command the harness refused -- its permission prompt unanswered, or its auto-mode classifier -- is an act only the maintainer can take, so it is a G5 and a human-gate row like secret-shape and on-device-act: the step ends unrun and is never retried, rephrased, split or routed through another tool; the refused command and the harness's reason are quoted verbatim; the stop is marked for the effort (nen stop --who <persona> --gate G5 --title 'harness denied: <step>' --body '<the refused command>' --mark, with --effort <branch> at nen 0.28, the pin, whose per-gate marker under <git-common-dir>/.nen/marks/ is the record; below the pin the single .nen/last-stop.json); attended, the stop is jutaisho section 4's; under --idle the effort parks (nen run park --id <run> --issue <CODE>#<N> --row g5-harness-denied, WORKFLOW section Idle batches rule 2) and the run moves on. The PR body's decisions section and the landing report list it. The 2026-10-22 delivery run met harness denials on a push, two local merges and a force-push and handed each over in prose only; this row makes each one a recorded fact with its own bell."
+      "why": "Zheref/hatsu#453 (HR-5; assessment D3-D5) and the maintainer's ruling of 2026-10-23 on idle runs, applied by HA-PR-#460 (WORKFLOW section 2 idle: an act a default leads to that the harness refuses parks as g5-harness-denied, never retried another way); this row lands after HA-PR-#460. A command the harness refused -- its permission prompt unanswered, or its auto-mode classifier -- is an act only the maintainer can take, so it is a G5 and a human-gate row like secret-shape and on-device-act: the step ends unrun and is never retried, rephrased, split or routed through another tool; the refused command and the harness's reason are quoted verbatim; the stop is marked for the effort (nen stop --who <persona> --gate G5 --title 'harness denied: <step>' --body '<the refused command>' --mark, with --effort <branch> at nen 0.28, the pin, whose per-gate marker under <git-common-dir>/.nen/marks/ is the record; below the pin the single .nen/last-stop.json); attended, the stop is jutaisho section 4's; under --idle the effort parks (nen run park --id <run> --issue <CODE>#<N> --row g5-harness-denied, WORKFLOW section Idle batches rule 2) and the run moves on. The PR body's decisions section and the landing report list it. The 2026-10-22 delivery run met harness denials on a push, two local merges and a force-push and handed each over in prose only; this row makes each one a recorded fact with its own bell.",
+      "citedBy": [],
+      "uncitedReason": "Raised by no skill's one-liner: docs/WORKFLOW.md section Idle batches rule 2 parks every act a harness refuses, whichever skill ran it."
     },
     {
       "id": "harness-attribution-switch",
@@ -105,7 +137,12 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-09-28 (zheref/hatsu#66, Copilot round 1 on HA-PR-#124): missing-configuration's default writes the item through its owner, which a harness file outside the repository never has; this row gives the picker an action that resumes after the maintainer toggles it."
+      "why": "Ruling 2026-09-28 (zheref/hatsu#66, Copilot round 1 on HA-PR-#124): missing-configuration's default writes the item through its owner, which a harness file outside the repository never has; this row gives the picker an action that resumes after the maintainer toggles it.",
+      "citedBy": [
+        "aka",
+        "ao",
+        "kokusen"
+      ]
     },
     {
       "id": "host-nen-link",
@@ -127,37 +164,66 @@
         }
       ],
       "proposeIssue": false,
-      "why": "zheref/hatsu#164: the warm-up had proved nen runs for the agent while the maintainer's pasted command answered command not found. Installed and reachable are two facts; only the second is the human's, and a directory holding only the platform asset (nen-<os>-<arch>) on PATH is the trap that fails silently at the point of use, so the offer names the link, not the directory."
+      "why": "zheref/hatsu#164: the warm-up had proved nen runs for the agent while the maintainer's pasted command answered command not found. Installed and reachable are two facts; only the second is the human's, and a directory holding only the platform asset (nen-<os>-<arch>) on PATH is the trap that fails silently at the point of use, so the offer names the link, not the directory.",
+      "citedBy": [
+        "bakuryuha",
+        "mugetsu",
+        "ten"
+      ]
     },
     {
       "id": "missing-focused-route",
       "class": "autonomous",
       "default": "hand the tree back to hatsu:rasengan to author the focused tests, then hatsu:tsukuyomi runs them",
-      "why": "Ruling 2026-09-19: a changed executable with no declared scoped lane gets its tests authored, never a stop and never the full suite as a substitute."
+      "why": "Ruling 2026-09-19: a changed executable with no declared scoped lane gets its tests authored, never a stop and never the full suite as a substitute.",
+      "citedBy": [
+        "kokusen",
+        "tsukuyomi"
+      ]
     },
     {
       "id": "missing-tool",
       "class": "autonomous",
       "default": "nen shu tools --repo <checkout> --install",
-      "why": "Ruling 2026-09-19: a missing tool or model id is installed or resolved through the surface's own catalogue probe, never with elevation and never a version the declaration did not pin. A verify-only row that cannot be installed is reported with its remedy line and the run continues where it can."
+      "why": "Ruling 2026-09-19: a missing tool or model id is installed or resolved through the surface's own catalogue probe, never with elevation and never a version the declaration did not pin. A verify-only row that cannot be installed is reported with its remedy line and the run continues where it can.",
+      "citedBy": [
+        "black-voice",
+        "breath",
+        "build",
+        "classify",
+        "direct",
+        "file",
+        "great-hiker",
+        "jusshin"
+      ]
     },
     {
       "id": "stale-base",
       "class": "autonomous",
       "default": "nen wc catch-up --repo <checkout> --base <branch.base> (ao section 3; rebase when unpublished, merge when published)",
-      "why": "A base that can be fast-forwarded or merged mechanically is caught up; only a semantic conflict reaches semantic-conflict."
+      "why": "A base that can be fast-forwarded or merged mechanically is caught up; only a semantic conflict reaches semantic-conflict.",
+      "citedBy": [
+        "ao",
+        "sharingan"
+      ]
     },
     {
       "id": "release-precondition-red",
       "class": "autonomous",
       "default": "nen changelog collate --write, then nen changelog completeness; reconcile in the same chunk and re-run nen release preflight",
-      "why": "Ruling 2026-09-19: a red release precondition (changelog completeness, uncollated fragments) is reconciled inside the same chunk of work, never a cause of stopping. An active RELEASE_HOLD and an open critical issue are not preconditions of this kind and stay human gates."
+      "why": "Ruling 2026-09-19: a red release precondition (changelog completeness, uncollated fragments) is reconciled inside the same chunk of work, never a cause of stopping. An active RELEASE_HOLD and an open critical issue are not preconditions of this kind and stay human gates.",
+      "citedBy": [
+        "getsuga"
+      ]
     },
     {
       "id": "staging-flag",
       "class": "autonomous",
       "default": "skip ignored, large and out-of-scope paths; mention-or-skip an unmentioned deletion; commit local-config and binary paths only when the request named them",
-      "why": "Six of the seven nen stage triage flag kinds have a canon default; secret-shape is the seventh and is never askable (see secret-shape)."
+      "why": "Six of the seven nen stage triage flag kinds have a canon default; secret-shape is the seventh and is never askable (see secret-shape).",
+      "citedBy": [
+        "kokusen"
+      ]
     },
     {
       "id": "missing-consumer-declaration",
@@ -185,7 +251,9 @@
         }
       ],
       "proposeIssue": true,
-      "why": "Ruling 2026-09-19: a missing declaration always gets a path forward. A Hatsu-owned scaffolding piece is repaired by tenkai without asking; a nen-routed declaration is set up through an assisted flow that asks the configuration questions itself and runs the owning verb."
+      "why": "Ruling 2026-09-19: a missing declaration always gets a path forward. A Hatsu-owned scaffolding piece is repaired by tenkai without asking; a nen-routed declaration is set up through an assisted flow that asks the configuration questions itself and runs the owning verb.",
+      "citedBy": [],
+      "uncitedReason": "Raised by no skill's one-liner: docs/WORKFLOW.md section 4 (Ask, set up, continue) and docs/config/contract.json.md route a missing declaration to tenkai or the owning nen verb."
     },
     {
       "id": "missing-argument",
@@ -213,7 +281,59 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-09-22: a missing or unparseable argument is completed inline, through the picker, and the operation continues; a refusal the maintainer has to retype around is never the outcome."
+      "why": "Ruling 2026-09-22: a missing or unparseable argument is completed inline, through the picker, and the operation continues; a refusal the maintainer has to retype around is never the outcome.",
+      "citedBy": [
+        "aka",
+        "amaterasu",
+        "amenotejikara",
+        "ao",
+        "backlog-board",
+        "backlog-loop",
+        "backlog-state",
+        "backlog-synthesis",
+        "bakuryuha",
+        "bankai-handbooks",
+        "bankai-quality",
+        "bankai-rule",
+        "black-voice",
+        "build",
+        "byakugan",
+        "classify",
+        "cleanup",
+        "dowsing-chain",
+        "emperor-time",
+        "en",
+        "file",
+        "futon",
+        "getsuga",
+        "great-hiker",
+        "gyo",
+        "hiraishin",
+        "izanagi",
+        "izanami",
+        "jusshin",
+        "jutaisho",
+        "kamui",
+        "kazaana",
+        "kokusen",
+        "kotoamatsukami",
+        "kuchiyose",
+        "limbo",
+        "mukai",
+        "murasaki",
+        "pr-state",
+        "rasengan",
+        "rikugan",
+        "senkei",
+        "sharingan",
+        "spiritual-message",
+        "susanoo",
+        "ten",
+        "tenkai",
+        "tensho",
+        "third-hand",
+        "tsukuyomi"
+      ]
     },
     {
       "id": "missing-configuration",
@@ -245,6 +365,58 @@
       "refuse": [
         "a value shaped like a secret, credential or signing material is never written: a requiresEnv-style key takes environment-variable NAMES only, and nen stage triage runs on the written file before the operation resumes (secret-shape, signing-material)",
         "a frozen or foreign registry (a reference repository, another owner's nen/repos.json) is reported, never written"
+      ],
+      "citedBy": [
+        "aka",
+        "amaterasu",
+        "amenotejikara",
+        "ao",
+        "backlog-board",
+        "backlog-loop",
+        "backlog-state",
+        "backlog-synthesis",
+        "bakuryuha",
+        "bankai-handbooks",
+        "bankai-quality",
+        "bankai-rule",
+        "black-voice",
+        "build",
+        "byakugan",
+        "classify",
+        "dowsing-chain",
+        "en",
+        "file",
+        "futon",
+        "getsuga",
+        "great-hiker",
+        "gyo",
+        "hanten",
+        "izanagi",
+        "izanami",
+        "jujutsu",
+        "jusshin",
+        "jutaisho",
+        "kagutsuchi",
+        "kamui",
+        "kokusen",
+        "kotoamatsukami",
+        "limbo",
+        "mukai",
+        "murasaki",
+        "pr-state",
+        "rasengan",
+        "ren",
+        "rikugan",
+        "senkei",
+        "sharingan",
+        "shibari",
+        "spiritual-message",
+        "susanoo",
+        "ten",
+        "tenkai",
+        "tensho",
+        "third-hand",
+        "tsukuyomi"
       ]
     },
     {
@@ -276,7 +448,24 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only for the destination, on the maintainer's own same-turn hatsu:mugetsu that names none where several are declared; the go itself is never asked (mugetsu § 0), and every other reach prints the plan and stops. Ruling 2026-09-30 (docs/ROSTER.md, Rulings of 2026-09-30 -- jusshin) extends the class to jusshin's target repository, the machine code every runner on a host is named by, and the service identity its services log on as; <target> and <machine> are grammar slots, and <service-identity> is typed like jujutsu <device>, completing the elicitation rather than the line. Ruling 2026-10-04 adds jusshin's <accept-daily-account> word. Its <desktop-overlap> answer is historical: nen 0.21 and Hatsu#204 give every pool its own label, so that overlap no longer arises."
+      "why": "Ruling 2026-09-23: a value that is the maintainer's own word (a target, a go, a cap, a device, the request) is typed, never picked and never derived. No default and no recommended option: a default is a derivation and a starred option is a pick. The declared candidates may be listed for reference, none starred, and none is ever an option that performs the act. mugetsu asks only for the destination, on the maintainer's own same-turn hatsu:mugetsu that names none where several are declared; the go itself is never asked (mugetsu § 0), and every other reach prints the plan and stops. Ruling 2026-09-30 (docs/ROSTER.md, Rulings of 2026-09-30 -- jusshin) extends the class to jusshin's target repository, the machine code every runner on a host is named by, and the service identity its services log on as; <target> and <machine> are grammar slots, and <service-identity> is typed like jujutsu <device>, completing the elicitation rather than the line. Ruling 2026-10-04 adds jusshin's <accept-daily-account> word. Its <desktop-overlap> answer is historical: nen 0.21 and Hatsu#204 give every pool its own label, so that overlap no longer arises.",
+      "citedBy": [
+        "bakuryuha",
+        "dowsing-chain",
+        "emperor-time",
+        "getsuga",
+        "great-hiker",
+        "izanagi",
+        "jujutsu",
+        "jusshin",
+        "jutaisho",
+        "kagutsuchi",
+        "kamui",
+        "limbo",
+        "mugetsu",
+        "ren",
+        "tenkai"
+      ]
     },
     {
       "id": "mode-unknown",
@@ -303,7 +492,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "The mode is derived from the issue's labels and the diff's paths first; the picker fires only on a genuine tie."
+      "why": "The mode is derived from the issue's labels and the diff's paths first; the picker fires only on a genuine tie.",
+      "citedBy": [
+        "build"
+      ]
     },
     {
       "id": "semantic-conflict",
@@ -336,7 +528,12 @@
         }
       ],
       "proposeIssue": true,
-      "why": "Ruling 2026-09-19: a semantic conflict in ao always goes to Crazy Slots with both sides shown verbatim and these four options; the run never picks a side."
+      "why": "Ruling 2026-09-19: a semantic conflict in ao always goes to Crazy Slots with both sides shown verbatim and these four options; the run never picks a side.",
+      "citedBy": [
+        "ao",
+        "breath",
+        "sharingan"
+      ]
     },
     {
       "id": "unsettled-finding",
@@ -363,7 +560,10 @@
         }
       ],
       "proposeIssue": true,
-      "why": "hanten section 7: only after the four-fact test proves none of section 6's dispositions can be chosen without the maintainer."
+      "why": "hanten section 7: only after the four-fact test proves none of section 6's dispositions can be chosen without the maintainer.",
+      "citedBy": [
+        "hanten"
+      ]
     },
     {
       "id": "hand-edited-canon-mirror",
@@ -390,49 +590,86 @@
         }
       ],
       "proposeIssue": true,
-      "why": "limbo section 3: a hand-edited mirror file means a rule was written into the mirror instead of the canon, and nen canon mirror generate would overwrite a marked one silently (an unmarked one it refuses whole, exit 2, nothing written). Where the rule belongs -- canon, the consumer's own file, or nowhere because the file was a retired generator's -- is the maintainer's to say; limbo names the files and stops before any write. C is starred in the picker only for a file whose first line is the predecessor's marker."
+      "why": "limbo section 3: a hand-edited mirror file means a rule was written into the mirror instead of the canon, and nen canon mirror generate would overwrite a marked one silently (an unmarked one it refuses whole, exit 2, nothing written). Where the rule belongs -- canon, the consumer's own file, or nowhere because the file was a retired generator's -- is the maintainer's to say; limbo names the files and stops before any write. C is starred in the picker only for a file whose first line is the predecessor's marker.",
+      "citedBy": [
+        "limbo"
+      ]
     },
     {
       "id": "merge",
       "class": "human-gate",
       "gate": "G2",
-      "why": "No PR into main is merged by an agent in this plane, the run's own included: every one ends at en § 5's merge prompt (row own-pr-merge, docs/ROSTER.md § Rulings of 2026-09-30 -- En never merges, superseding ruling 3 of 2026-09-29). Futon's local git merge into its own integration branch is no PR merge and stands at no gate (futon § 5). The one exception: getsuga § 3a merges its own release-proposal PR through nen pr merge --release-unit when every gate of that verb passes (§ Rulings of 2026-09-26/27/28). A typed futon then step counts as the maintainer's call for a skill whose call is the maintainer's (the advance go, mugetsu § 3)."
+      "why": "No PR into main is merged by an agent in this plane, the run's own included: every one ends at en § 5's merge prompt (row own-pr-merge, docs/ROSTER.md § Rulings of 2026-09-30 -- En never merges, superseding ruling 3 of 2026-09-29). Futon's local git merge into its own integration branch is no PR merge and stands at no gate (futon § 5). The one exception: getsuga § 3a merges its own release-proposal PR through nen pr merge --release-unit when every gate of that verb passes (§ Rulings of 2026-09-26/27/28). A typed futon then step counts as the maintainer's call for a skill whose call is the maintainer's (the advance go, mugetsu § 3).",
+      "citedBy": [
+        "build",
+        "dowsing-chain",
+        "getsuga",
+        "kamui",
+        "sharingan"
+      ]
     },
     {
       "id": "canon-merge",
       "class": "human-gate",
       "gate": "G4",
-      "why": "A merge into main (branch.base) in a canon repository decides how every other repository behaves -- with the same single carve-out as the merge row (every other PR into main ends at the merge prompt, row own-pr-merge, ruling 2026-09-30; futon's local merge into its own integration branch is no PR merge and no gate, futon § 5): getsuga § 3a's own release-proposal PR through nen pr merge --release-unit in a canon repository too; the release unit is declared in nen/workflow.json release.unitPaths and the verb bounds the diff to it."
+      "why": "A merge into main (branch.base) in a canon repository decides how every other repository behaves -- with the same single carve-out as the merge row (every other PR into main ends at the merge prompt, row own-pr-merge, ruling 2026-09-30; futon's local merge into its own integration branch is no PR merge and no gate, futon § 5): getsuga § 3a's own release-proposal PR through nen pr merge --release-unit in a canon repository too; the release unit is declared in nen/workflow.json release.unitPaths and the verb bounds the diff to it.",
+      "citedBy": [
+        "build",
+        "getsuga",
+        "sharingan"
+      ]
     },
     {
       "id": "release-go",
       "class": "human-gate",
       "gate": "G3",
-      "why": "Publication is the maintainer's own go, quoted verbatim, in one of four forms (mugetsu § 0): their typed hatsu:mugetsu [<target>], the go by name (docs/ROSTER.md § The human gates, the G3 row; ruling 2(a) of § Rulings of 2026-09-26/27/28, clarified 2026-09-30), needing no second message; their own words saying to publish; the advance go; or their publish answer to kazaana section 6's one unstarred question after the tag it cut (form (4), row publish-offer; the ruling of 2026-10-13, 3). A scheduled, looped, headless, hook-injected, self-loaded or resumed invocation is not the go, and no composite reaches it on its own authority. The composite paths are the advance go (mugetsu § 3, docs/ROSTER.md § Rulings of 2026-09-26/27/28): the maintainer's own typed futon invocation whose then chain names mugetsu, gated by nen parse futon on nen/workflow.json futon.advanceGo (process and library only) -- and kazaana's publish-offer answer, under the same kind gate. With no target typed, mugetsu publishes the latest unpublished cut tag to the single declared destination; only several declared and none named is asked, as free text."
+      "why": "Publication is the maintainer's own go, quoted verbatim, in one of four forms (mugetsu § 0): their typed hatsu:mugetsu [<target>], the go by name (docs/ROSTER.md § The human gates, the G3 row; ruling 2(a) of § Rulings of 2026-09-26/27/28, clarified 2026-09-30), needing no second message; their own words saying to publish; the advance go; or their publish answer to kazaana section 6's one unstarred question after the tag it cut (form (4), row publish-offer; the ruling of 2026-10-13, 3). A scheduled, looped, headless, hook-injected, self-loaded or resumed invocation is not the go, and no composite reaches it on its own authority. The composite paths are the advance go (mugetsu § 3, docs/ROSTER.md § Rulings of 2026-09-26/27/28): the maintainer's own typed futon invocation whose then chain names mugetsu, gated by nen parse futon on nen/workflow.json futon.advanceGo (process and library only) -- and kazaana's publish-offer answer, under the same kind gate. With no target typed, mugetsu publishes the latest unpublished cut tag to the single declared destination; only several declared and none named is asked, as free text.",
+      "citedBy": [
+        "amaterasu",
+        "kagutsuchi",
+        "mugetsu"
+      ]
     },
     {
       "id": "mode-label",
       "class": "human-gate",
       "gate": "G1",
-      "why": "CON-4 and CON-25: the epic mode label and the building label are the maintainer's."
+      "why": "CON-4 and CON-25: the epic mode label and the building label are the maintainer's.",
+      "citedBy": [
+        "build",
+        "dowsing-chain",
+        "emperor-time",
+        "kazaana"
+      ]
     },
     {
       "id": "rewrite-published-history",
       "class": "human-gate",
       "gate": "G5",
-      "why": "A force-push, a rewrite of a pushed commit, or an overwrite of a tracked path destroys somebody's history."
+      "why": "A force-push, a rewrite of a pushed commit, or an overwrite of a tracked path destroys somebody's history.",
+      "citedBy": [
+        "aka"
+      ]
     },
     {
       "id": "secret-shape",
       "class": "human-gate",
       "gate": "G5",
-      "why": "A secret-shape path is never committed and never askable: the answer is rotate or remove. Reported, not offered."
+      "why": "A secret-shape path is never committed and never askable: the answer is rotate or remove. Reported, not offered.",
+      "citedBy": [
+        "jusshin",
+        "kokusen",
+        "mukai",
+        "tensho"
+      ]
     },
     {
       "id": "signing-material",
       "class": "human-gate",
       "gate": "G5",
-      "why": "nen never synthesises signing material and neither does any skill; a missing identity ends the run naming the precondition."
+      "why": "nen never synthesises signing material and neither does any skill; a missing identity ends the run naming the precondition.",
+      "citedBy": [],
+      "uncitedReason": "Raised by no skill's one-liner: docs/WORKFLOW.md section 4 (Ask, set up, continue) names it in the missing-configuration row's refuse list, beside secret-shape."
     },
     {
       "id": "on-device-act",
@@ -453,19 +690,30 @@
           "consequence": "nothing acted on; the act stays the maintainer's"
         }
       ],
-      "proposeIssue": false
+      "proposeIssue": false,
+      "citedBy": [
+        "jujutsu",
+        "jusshin"
+      ]
     },
     {
       "id": "supply-chain-failure",
       "class": "human-gate",
       "gate": "G5",
-      "why": "A checksum or manifest failure in the bootstrap is a security event the maintainer must see; never retried."
+      "why": "A checksum or manifest failure in the bootstrap is a security event the maintainer must see; never retried.",
+      "citedBy": [
+        "jusshin",
+        "ten"
+      ]
     },
     {
       "id": "unruled-policy-surface",
       "class": "human-gate",
       "gate": "G5",
-      "why": "A consumer repository declaring a policy surface of its own is unruled; until ruled it is G2 and a genuine-looking exception is brought to the maintainer."
+      "why": "A consumer repository declaring a policy surface of its own is unruled; until ruled it is G2 and a genuine-looking exception is brought to the maintainer.",
+      "citedBy": [
+        "backlog-state"
+      ]
     },
     {
       "id": "ambiguous-intent",
@@ -493,13 +741,20 @@
           "consequence": "nothing authored on a guess"
         }
       ],
-      "proposeIssue": false
+      "proposeIssue": false,
+      "citedBy": [
+        "rasengan"
+      ]
     },
     {
       "id": "classify-undecidable",
       "class": "autonomous",
       "default": "leave the axis empty; list the issue as undecidable with the reason in the classify table; a later run picks it up",
-      "why": "Ruling 2026-10-04: an axis the classifier cannot decide with confidence is never filled with a best guess -- nen's own undecidable discipline (effort classify). Low-confidence keys are listed and never applied by hatsu:classify; nen classify apply --include-low exists for the maintainer's own hand."
+      "why": "Ruling 2026-10-04: an axis the classifier cannot decide with confidence is never filled with a best guess -- nen's own undecidable discipline (effort classify). Low-confidence keys are listed and never applied by hatsu:classify; nen classify apply --include-low exists for the maintainer's own hand.",
+      "citedBy": [
+        "build",
+        "classify"
+      ]
     },
     {
       "id": "direct-mismatch",
@@ -521,7 +776,12 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-04: direct advises, never gates -- a mismatch is asked once through the picker with continue starred, and a build is never blocked from starting on a non-recommended model or effort. Ruling 2026-10-05: the compare runs against the whole set of picks, so a session already on the cost-agnostic recommended or the cost-aligned fallback pick is within the registry and is told so in one line."
+      "why": "Ruling 2026-10-04: direct advises, never gates -- a mismatch is asked once through the picker with continue starred, and a build is never blocked from starting on a non-recommended model or effort. Ruling 2026-10-05: the compare runs against the whole set of picks, so a session already on the cost-agnostic recommended or the cost-aligned fallback pick is within the registry and is told so in one line.",
+      "citedBy": [
+        "build",
+        "direct",
+        "emperor-time"
+      ]
     },
     {
       "id": "port-drift",
@@ -554,7 +814,13 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-19/20 (zheref/hatsu#354, 'When a source change has no target equivalent?' -> 'Ask once, record ruling'; the challenge settlement 'port-drift per row' -> one batched picker call per run): a drift is the maintainer's decision, asked once and recorded as canon so the next port never asks it again; four handlings and no fifth (bankai-rule section 4). SDD plan 2026-10-22 (porting-drift): a pre-starred agent-derived equivalent became append-only canon on one tap, and one rationale field held both the maintainer's words and the agent's redraft -- so the star is earned by a quoted source, and the row keeps both side by side."
+      "why": "Ruling 2026-10-19/20 (zheref/hatsu#354, 'When a source change has no target equivalent?' -> 'Ask once, record ruling'; the challenge settlement 'port-drift per row' -> one batched picker call per run): a drift is the maintainer's decision, asked once and recorded as canon so the next port never asks it again; four handlings and no fifth (bankai-rule section 4). SDD plan 2026-10-22 (porting-drift): a pre-starred agent-derived equivalent became append-only canon on one tap, and one rationale field held both the maintainer's words and the agent's redraft -- so the star is earned by a quoted source, and the row keeps both side by side.",
+      "citedBy": [
+        "bankai-rule",
+        "dowsing-chain",
+        "hiraishin",
+        "kamui"
+      ]
     },
     {
       "id": "intake-challenger",
@@ -588,7 +854,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:emperor-time (2026-10-19) to ask while OPEN-4 was open; rewritten when OPEN-4's rulings landed (docs/ROSTER.md HR-23 ... HR-38): the challenger is a dedicated intake cast isolated from code review, declared as a map from artifact to examiner (HR-21), every matching examiner challenging (HR-25). The ask remains only for an absent or out-of-set value; the star is derived per ask, that artifact's HR-24 examiner. docs/INTAKE-CHALLENGE.md section 1."
+      "why": "Added with hatsu:emperor-time (2026-10-19) to ask while OPEN-4 was open; rewritten when OPEN-4's rulings landed (docs/ROSTER.md HR-23 ... HR-38): the challenger is a dedicated intake cast isolated from code review, declared as a map from artifact to examiner (HR-21), every matching examiner challenging (HR-25). The ask remains only for an absent or out-of-set value; the star is derived per ask, that artifact's HR-24 examiner. docs/INTAKE-CHALLENGE.md section 1.",
+      "citedBy": [
+        "emperor-time"
+      ]
     },
     {
       "id": "port-siblings",
@@ -609,7 +878,11 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:kamui (zheref/hatsu#356) under the epic's rulings (zheref/hatsu#354): the siblings are always picked by the maintainer, so no option is recommended -- like publish-offer, a consumer's own decisions file may not star an option or give this row a default that skips the question -- advisory: no guard enforces it yet, the same as publish-offer."
+      "why": "Added with hatsu:kamui (zheref/hatsu#356) under the epic's rulings (zheref/hatsu#354): the siblings are always picked by the maintainer, so no option is recommended -- like publish-offer, a consumer's own decisions file may not star an option or give this row a default that skips the question -- advisory: no guard enforces it yet, the same as publish-offer.",
+      "citedBy": [
+        "jutaisho",
+        "kamui"
+      ]
     },
     {
       "id": "wrap-up",
@@ -637,7 +910,18 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-13: running cleanup is always required after a completed session and is offered once a single PR lands as a session delivery; third-hand remains optional; the maintainer may run cleanup, cleanup and third-hand in parallel, or continue iterating. This amends ruling 1 of 2026-09-09 (no agent prompts for the five phases -- neither offer here is one of them) and third-hand section 2's never-ask rule. Corrected 2026-10-25 by the maintainer (zheref/hatsu#480): 'Cleanup should never be offerered if PRs in scope are not merged and the sitting has been determined satisfied by maintainer.' Read as two independent prerequisites (docs/ROSTER.md HR-366, a reading): the trigger above replaces the 2026-10-13 ruling's 'offered once a single PR lands as a session delivery', whose words stand as the dated record."
+      "why": "Ruling 2026-10-13: running cleanup is always required after a completed session and is offered once a single PR lands as a session delivery; third-hand remains optional; the maintainer may run cleanup, cleanup and third-hand in parallel, or continue iterating. This amends ruling 1 of 2026-09-09 (no agent prompts for the five phases -- neither offer here is one of them) and third-hand section 2's never-ask rule. Corrected 2026-10-25 by the maintainer (zheref/hatsu#480): 'Cleanup should never be offerered if PRs in scope are not merged and the sitting has been determined satisfied by maintainer.' Read as two independent prerequisites (docs/ROSTER.md HR-366, a reading): the trigger above replaces the 2026-10-13 ruling's 'offered once a single PR lands as a session delivery', whose words stand as the dated record.",
+      "citedBy": [
+        "backlog-loop",
+        "build",
+        "cleanup",
+        "dowsing-chain",
+        "en",
+        "futon",
+        "kamui",
+        "kazaana",
+        "third-hand"
+      ]
     },
     {
       "id": "cleanup-plan",
@@ -665,7 +949,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-13: Shizuku offers an action plan split between deterministic and non-deterministic proposed operations to free storage and resources and ensure maximum hygiene, covering prior sessions' leftovers as encountered; she never destroys before the pick and never a tree she has not inspected (dirty-tree's discipline), and the .nen/ ledgers are the record, never a leftover."
+      "why": "Ruling 2026-10-13: Shizuku offers an action plan split between deterministic and non-deterministic proposed operations to free storage and resources and ensure maximum hygiene, covering prior sessions' leftovers as encountered; she never destroys before the pick and never a tree she has not inspected (dirty-tree's discipline), and the .nen/ ledgers are the record, never a leftover.",
+      "citedBy": [
+        "cleanup"
+      ]
     },
     {
       "id": "publish-offer",
@@ -686,7 +973,12 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-13: once the tag is cut successfully, offer the maintainer through a picker whether mugetsu should be started to publish a new release under the last cut tag in the session. This is the one question an agent asks about G3: mugetsu section 1's no-agent-ever-prompts and missing-maintainer-choice's typed-never-picked are amended for this question alone; the gate itself (row release-go) is unchanged and the answer is the maintainer's own word, never starred, never derived. Because the answer crosses G3, this row is bound like a human-gate row: a consumer's own decisions file may not reclassify it, give it a default, or star an option (docs/config/decisions.json.md section The three row classes). The kind gate is the target's futon.advanceGo.mugetsu as nen parse futon reads it (declared, or nen's default where absent) on the target's nen repo classify kind; zero declared destinations is no offer; several are one unstarred option each."
+      "why": "Ruling 2026-10-13: once the tag is cut successfully, offer the maintainer through a picker whether mugetsu should be started to publish a new release under the last cut tag in the session. This is the one question an agent asks about G3: mugetsu section 1's no-agent-ever-prompts and missing-maintainer-choice's typed-never-picked are amended for this question alone; the gate itself (row release-go) is unchanged and the answer is the maintainer's own word, never starred, never derived. Because the answer crosses G3, this row is bound like a human-gate row: a consumer's own decisions file may not reclassify it, give it a default, or star an option (docs/config/decisions.json.md section The three row classes). The kind gate is the target's futon.advanceGo.mugetsu as nen parse futon reads it (declared, or nen's default where absent) on the target's nen repo classify kind; zero declared destinations is no offer; several are one unstarred option each.",
+      "citedBy": [
+        "jutaisho",
+        "kazaana",
+        "mugetsu"
+      ]
     },
     {
       "id": "intake-stall",
@@ -707,7 +999,11 @@
         }
       ],
       "proposeIssue": false,
-      "why": "The stop: in emperor-time section 4's challenge loop, when no intake examiner remains active and at least one has stalled -- its round amended, answered or withdrew none of its challenges and raised no new one (HR-35) -- ask the maintainer through the picker, at EVERY such stop, never defaulted (HR-30, HR-36); each stalled examiner's unsettled challenges are already open questions in the brief (HR-37). Rulings of 2026-10-21 (docs/ROSTER.md HR-29, HR-30, HR-32 ... HR-37): intake challenge rounds are never counted, a stall is judged per examiner and drops that examiner, and the maintainer's stop is the loop's only bound -- a ruled exception, for the intake challenge alone, to izanagi section 6 and en's cap limit. Human-gate because the maintainer is asked at every all-stalled stop (HR-36)."
+      "why": "The stop: in emperor-time section 4's challenge loop, when no intake examiner remains active and at least one has stalled -- its round amended, answered or withdrew none of its challenges and raised no new one (HR-35) -- ask the maintainer through the picker, at EVERY such stop, never defaulted (HR-30, HR-36); each stalled examiner's unsettled challenges are already open questions in the brief (HR-37). Rulings of 2026-10-21 (docs/ROSTER.md HR-29, HR-30, HR-32 ... HR-37): intake challenge rounds are never counted, a stall is judged per examiner and drops that examiner, and the maintainer's stop is the loop's only bound -- a ruled exception, for the intake challenge alone, to izanagi section 6 and en's cap limit. Human-gate because the maintainer is asked at every all-stalled stop (HR-36).",
+      "citedBy": [
+        "dowsing-chain",
+        "emperor-time"
+      ]
     },
     {
       "id": "spec-capture-scope",
@@ -729,7 +1025,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. The scope is the maintainer's to narrow; the whole map is the default because a partial canon is the drift the skill exists to end."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. The scope is the maintainer's to narrow; the whole map is the default because a partial canon is the drift the skill exists to end.",
+      "citedBy": [
+        "dowsing-chain"
+      ]
     },
     {
       "id": "spec-slice",
@@ -756,7 +1055,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Which capability a shared screen belongs to is a product judgement the inventory cannot make; no option is statically starred."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Which capability a shared screen belongs to is a product judgement the inventory cannot make; no option is statically starred.",
+      "citedBy": [
+        "dowsing-chain"
+      ]
     },
     {
       "id": "spec-clarify",
@@ -783,13 +1085,19 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers; the round reading is HR-351's (several rounds per run). Bounded so the agent can neither interrogate indefinitely nor silently stop asking; the answer is quoted, never paraphrased."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers; the round reading is HR-351's (several rounds per run). Bounded so the agent can neither interrogate indefinitely nor silently stop asking; the answer is quoted, never paraphrased.",
+      "citedBy": [
+        "dowsing-chain"
+      ]
     },
     {
       "id": "spec-claim-unverified",
       "class": "autonomous",
       "default": "a spec statement with no backing inventory row, a citation that does not resolve, or a value only inferred gets exactly one marker in place of prose: [NEEDS CLARIFICATION: <question>] where a picker could settle it, [NEEDS RULING] where only the maintainer's word may (a priority, an audience, a threshold, 'intentional'), [UNVERIFIED] otherwise; the sentence is kept, an inferred row stays in research.md, and the marker is counted per folder in the spec PR body, INDEX.md and the desk",
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Citation-or-marker: the skill never writes a sentence it cannot point at, and never drops one silently either."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Citation-or-marker: the skill never writes a sentence it cannot point at, and never drops one silently either.",
+      "citedBy": [
+        "dowsing-chain"
+      ]
     },
     {
       "id": "spec-dispatch",
@@ -810,7 +1118,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Filings always pass this picker; HR-344 ruled that no per-dispatch gate follows it, so the typed dispatch wave stands as file section 4's confirmation (its stand-in clause; the plan still shown); builds of already-filed, marker-free issues run on the typed wave call. No option is recommended, and a consumer's own decisions file may not star one (advisory, as port-siblings)."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Filings always pass this picker; HR-344 ruled that no per-dispatch gate follows it, so the typed dispatch wave stands as file section 4's confirmation (its stand-in clause; the plan still shown); builds of already-filed, marker-free issues run on the typed wave call. No option is recommended, and a consumer's own decisions file may not star one (advisory, as port-siblings).",
+      "citedBy": [
+        "dowsing-chain"
+      ]
     },
     {
       "id": "spec-coverage",
@@ -837,7 +1148,12 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. A delivery PR on a spec-derived issue whose Spec section leaves an SC neither satisfied nor deferred, or cites an id the issue does not carry, does not open: the gap is the maintainer's to resolve, never defaulted. Raised by shibari section 4 when nen spec coverage's delivery form reads anything but accounted -- unaccounted or could-not-read at exit 1, or exit 2 with a document whose outside list names an id the issue does not carry (exit 2 with no document is wiring); the section is the catalogue's spec footer row under the run fact spec, carrying nen's spec-rows requirement (zheref/nen#493, zheref/hatsu#405)."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. A delivery PR on a spec-derived issue whose Spec section leaves an SC neither satisfied nor deferred, or cites an id the issue does not carry, does not open: the gap is the maintainer's to resolve, never defaulted. Raised by shibari section 4 when nen spec coverage's delivery form reads anything but accounted -- unaccounted or could-not-read at exit 1, or exit 2 with a document whose outside list names an id the issue does not carry (exit 2 with no document is wiring); the section is the catalogue's spec footer row under the run fact spec, carrying nen's spec-rows requirement (zheref/nen#493, zheref/hatsu#405).",
+      "citedBy": [
+        "build",
+        "dowsing-chain",
+        "shibari"
+      ]
     },
     {
       "id": "spec-conflict",
@@ -864,7 +1180,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Recapture found a merged FR the code now contradicts: which one is right is the maintainer's word, quoted verbatim, never an agent's edit (the living spec's one human stop)."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Recapture found a merged FR the code now contradicts: which one is right is the maintainer's word, quoted verbatim, never an agent's edit (the living spec's one human stop).",
+      "citedBy": [
+        "dowsing-chain"
+      ]
     },
     {
       "id": "spec-converge-filing",
@@ -886,7 +1205,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Keeps black-voice's never-file-without-a-pick rule for the gaps a run discovers."
+      "why": "Added with hatsu:dowsing-chain (ROSTER HR-12, HR-16; the SDD plan's piece P10), the capture skill's design as authored; docs/config/spec-repo.md, The pickers. Keeps black-voice's never-file-without-a-pick rule for the gaps a run discovers.",
+      "citedBy": [
+        "dowsing-chain"
+      ]
     },
     {
       "id": "ci-install-rulings",
@@ -907,7 +1229,11 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:kuchiyose (zheref/hatsu#331). The maintainer's rulings of 2026-10-19 (docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier, HR-137, HR-139): Hidan's activation is asked per consumer at install, and the Claude billing is asked at install with the subscription token starred; the record is the credential TYPE, never its value. Which CI tier a consumer runs and under which rulings is the maintainer's word for that repository, so it is never defaulted, derived or carried from another consumer; a human-gate so no consumer file can reclassify it. The ci catalogue rows carry ownedBy: kuchiyose, so config_values diagnose, fill and need never list them and tenkai never asks or fills them; the class is human-gate so no consumer file can turn HR-137's per-consumer ask into a default."
+      "why": "Added with hatsu:kuchiyose (zheref/hatsu#331). The maintainer's rulings of 2026-10-19 (docs/ROSTER.md section Rulings of 2026-10-19 -- the CI reviewers tier, HR-137, HR-139): Hidan's activation is asked per consumer at install, and the Claude billing is asked at install with the subscription token starred; the record is the credential TYPE, never its value. Which CI tier a consumer runs and under which rulings is the maintainer's word for that repository, so it is never defaulted, derived or carried from another consumer; a human-gate so no consumer file can reclassify it. The ci catalogue rows carry ownedBy: kuchiyose, so config_values diagnose, fill and need never list them and tenkai never asks or fills them; the class is human-gate so no consumer file can turn HR-137's per-consumer ask into a default.",
+      "citedBy": [
+        "kuchiyose",
+        "tenkai"
+      ]
     },
     {
       "id": "ci-ceremony",
@@ -928,7 +1254,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "Added with hatsu:kuchiyose (zheref/hatsu#331). The day-one ceremony -- creating each -akatsuki GitHub App with its permission tier and installing it (HR-138), setting its App id and private-key secrets and the Claude auth secret (HR-139), the Hidan variable, and applying the ruleset that registers the lane checks as required status checks (HR-140: printed, never applied) -- is account-level identity creation, secret material and a repository security setting: a permission, secret or settings change only the human can make, a G5 under CON-47 (HR-138, HR-140; the provider's docs/provisioning/RUNBOOK.md, Human gates). CON-12 fixes only the shape -- one least-privilege App per lane at its tier. The install PR itself stands at the consumer's declaration gate, CON-5 (G2) or CON-7 (G4) as nen repo classify answers, and is never merged by the run. The run prints one block per step and waits; no option performs a step or takes a credential, and a secret value typed into the picker or chat is never used and is rotated. Secret steps run in the maintainer's own terminal, never the session (the private key by stdin, the downloaded .pem deleted); the ruleset payload is printed inline with its sha256 for the maintainer to check; the permission pack denies the session gh secret set/delete, gh variable set and gh api writes to rulesets, secrets and variables."
+      "why": "Added with hatsu:kuchiyose (zheref/hatsu#331). The day-one ceremony -- creating each -akatsuki GitHub App with its permission tier and installing it (HR-138), setting its App id and private-key secrets and the Claude auth secret (HR-139), the Hidan variable, and applying the ruleset that registers the lane checks as required status checks (HR-140: printed, never applied) -- is account-level identity creation, secret material and a repository security setting: a permission, secret or settings change only the human can make, a G5 under CON-47 (HR-138, HR-140; the provider's docs/provisioning/RUNBOOK.md, Human gates). CON-12 fixes only the shape -- one least-privilege App per lane at its tier. The install PR itself stands at the consumer's declaration gate, CON-5 (G2) or CON-7 (G4) as nen repo classify answers, and is never merged by the run. The run prints one block per step and waits; no option performs a step or takes a credential, and a secret value typed into the picker or chat is never used and is rotated. Secret steps run in the maintainer's own terminal, never the session (the private key by stdin, the downloaded .pem deleted); the ruleset payload is printed inline with its sha256 for the maintainer to check; the permission pack denies the session gh secret set/delete, gh variable set and gh api writes to rulesets, secrets and variables.",
+      "citedBy": [
+        "kuchiyose"
+      ]
     },
     {
       "id": "host-overload",
@@ -955,7 +1284,9 @@
         }
       ],
       "proposeIssue": false,
-      "why": "docs/WORKFLOW.md section Host workload budget, Stop on overload: overload is host-wide; a retry needs an empty listing of the recorded process group and the maintainer's word on recovery, and no session stops a process (zheref/hatsu#478)."
+      "why": "docs/WORKFLOW.md section Host workload budget, Stop on overload: overload is host-wide; a retry needs an empty listing of the recorded process group and the maintainer's word on recovery, and no session stops a process (zheref/hatsu#478).",
+      "citedBy": [],
+      "uncitedReason": "Raised by no skill's one-liner: docs/WORKFLOW.md section Host workload budget, Stop on overload, binds every skill that launches heavy work."
     },
     {
       "id": "host-ci-unknown",
@@ -982,7 +1313,9 @@
         }
       ],
       "proposeIssue": false,
-      "why": "docs/WORKFLOW.md section Host workload budget, Same-host CI: an unknown machine code, an unreadable pool set or an unread inventory counts as busy, and the machine code is the maintainer's typed word, never derived (HR-276; zheref/hatsu#478)."
+      "why": "docs/WORKFLOW.md section Host workload budget, Same-host CI: an unknown machine code, an unreadable pool set or an unread inventory counts as busy, and the machine code is the maintainer's typed word, never derived (HR-276; zheref/hatsu#478).",
+      "citedBy": [],
+      "uncitedReason": "Raised by no skill's one-liner: docs/WORKFLOW.md section Host workload budget, Same-host CI, binds every skill that launches heavy work."
     },
     {
       "id": "capability-unavailable",
@@ -1009,7 +1342,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "docs/WORKFLOW.md section Idle batches rule 3 (zheref/hatsu#481): a park is an observed fact, here the named native capability or prerequisite absent from this session; a missing Nen verb is ownership, never this row, and a lane's missing CLI tool is row missing-tool."
+      "why": "docs/WORKFLOW.md section Idle batches rule 3 (zheref/hatsu#481): a park is an observed fact, here the named native capability or prerequisite absent from this session; a missing Nen verb is ownership, never this row, and a lane's missing CLI tool is row missing-tool.",
+      "citedBy": [
+        "breath"
+      ]
     },
     {
       "id": "constitution-conflict",
@@ -1037,7 +1373,10 @@
         }
       ],
       "proposeIssue": false,
-      "why": "docs/ROSTER.md HR-10 (narrowed by HR-337; zheref/hatsu#505): breath section 4a reads the request against the clauses it lists, the gate floor always, before authoring, and a plan that a binding clause forbids is never authored. HR-10's two exits are a changed plan or an amendment, split here by clause kind: a CON amendment follows CON-15 in the constitution's repository, an HR amendment is a ROSTER ruling; docs/WORKFLOW.md section The constitution check, step 6."
+      "why": "docs/ROSTER.md HR-10 (narrowed by HR-337; zheref/hatsu#505): breath section 4a reads the request against the clauses it lists, the gate floor always, before authoring, and a plan that a binding clause forbids is never authored. HR-10's two exits are a changed plan or an amendment, split here by clause kind: a CON amendment follows CON-15 in the constitution's repository, an HR amendment is a ROSTER ruling; docs/WORKFLOW.md section The constitution check, step 6.",
+      "citedBy": [
+        "breath"
+      ]
     }
   ]
 }

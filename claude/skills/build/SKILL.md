@@ -169,7 +169,7 @@ stuck build or capability gap, `DECIDE`/`DO` with the proposed issue (a tool per
 ended it, `en` was offered and not started, or at a G1 or G5 stop — any other ending is a G5: say which, and that the
 delegation lapsed.
 
-## 8. Resuming & Residue
+## 8. Residue — resuming
 
 [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Resuming a run*; each phase is idempotent, and worktree/branch
 state records progress. Residue: mode reasoning and G5 diagnosis are agent judgment; on a target with no stage

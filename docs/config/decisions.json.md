@@ -47,6 +47,8 @@ The `$schema` and `contract` are both `nen.decisions/v0.1`. The file is one `row
 | `governs` | string[] | `<skill> <slot>` entries | For `missing-maintainer-choice`: the argument slots whose value is the maintainer's own word, typed and never picked | every skill that takes one of those slots |
 | `proposeIssue` | boolean | `true` · `false` | Whether the stop carries a proposed process issue (`nen stop --propose-issue`, Netero's completeness shape) so the next session does not hit the same stop | `nen schema set`, `hatsu:jutaisho` § 3 |
 | `refuse[]` | string[] | prose | For `missing-configuration`: what is never written even when asked (a secret-shaped value, a frozen or foreign registry) | `hatsu:tenkai` § 6d, `scripts/config_values.sh set` |
+| `citedBy[]` | string[] | skill names (`claude/skills/<name>`), sorted; `[]` when no skill cites the row | Every skill whose `SKILL.md` carries the row id as a code span; an id that is an ordinary word (no `-`, `merge`) counts only where that line or the one before names a row (`row`, `rows`) or `decisions.json`. Findings by row id: unsorted or repeated names, a listed skill that does not cite the row, a citing skill not listed, and a name with no `SKILL.md` (zheref/hatsu#502) | `scripts/canon_coverage_check.mts` (lane `skill-shape-guard`); nothing in nen, whose loader keeps the key |
+| `uncitedReason` | string | prose; only where `citedBy` is `[]` | Where a row no skill cites is raised instead (a `docs/WORKFLOW.md` section, a rule every skill inherits). A row cited by no skill without one, and one on a cited row, are findings | the same |
 
 ### Every row
 

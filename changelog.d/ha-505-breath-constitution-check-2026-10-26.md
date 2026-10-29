@@ -15,7 +15,7 @@
 
 ### Changed
 
-- `hatsu:breath` is put on a diet to make room for the check (12,285 to 12,256 of 12,288 bytes).
+- `hatsu:breath` is put on a diet to make room for the check (12,285 to 12,251 of 12,288 bytes).
   - **Citations:** the no-`workflow.json` paragraph now cites PROCESS § *Invocation and parsing*, the host's exit `5`/`7` paragraph cites `kurapika.md` § *The `shu` verbs*, and the branch rendering cites WORKFLOW § 2 *`branch`*.
   - **Duplicates:** restated rules moved into § 6's hard limits, including the duplicated `--discard` and `origin/main` reasons.
   - **Stale residue:** the line "opening the cycle ledger" is gone (a nen verb since v0.26.0, [HR-244](docs/ROSTER.md#hr-244)). The bare `#113` is now `zheref/hatsu#113`, so their two rows leave `contracts/prose.lint.baseline.json` (1,208 to 1,206).

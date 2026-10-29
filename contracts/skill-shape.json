@@ -1,0 +1,21 @@
+{
+  "$schema": "hatsu.skill-shape/v0.1",
+  "contract": "hatsu.skill-shape/v0.1",
+  "$comment": "The skill shape docs/PROCESS.md section The skill shape states, as data (zheref/hatsu#502; SDD plan wave 4, assessment finding B6). Each requirement matches a level-2 heading whose title, after an optional `N.` number, is the section's name or a list of the three names joined by `,`, `and` or `&` (`## 6. Authority and hard limits` satisfies two), optionally followed by ` — ` and a gloss; a heading that only mentions the word (`## 1. Invocation and authority`) is not the section. scripts/skill_shape_check.mts hands each touched SKILL.md to `nen pr body-check --body-from <SKILL.md> --requirements-from <these requirements>`, so the heading match is nen's. Keys, exemptions and the check: docs/config/skill-shape.json.md.",
+  "requirements": [
+    {
+      "name": "residue",
+      "pattern": "^ {0,3}##[ \\t]+(?:\\d+\\.[ \\t]+)?(?:(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits)(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+))*[Rr]esidue(?:(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+)(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits))*(?:[ \\t]+—[^\\r\\n]*)?[ \\t]*$"
+    },
+    {
+      "name": "authority",
+      "pattern": "^ {0,3}##[ \\t]+(?:\\d+\\.[ \\t]+)?(?:(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits)(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+))*[Aa]uthority(?:(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+)(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits))*(?:[ \\t]+—[^\\r\\n]*)?[ \\t]*$"
+    },
+    {
+      "name": "hard-limits",
+      "pattern": "^ {0,3}##[ \\t]+(?:\\d+\\.[ \\t]+)?(?:(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits)(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+))*[Hh]ard limits(?:(?:,[ \\t]+(?:and[ \\t]+)?|[ \\t]+(?:and|&)[ \\t]+)(?:[Rr]esidue|[Aa]uthority|[Hh]ard limits))*(?:[ \\t]+—[^\\r\\n]*)?[ \\t]*$"
+    }
+  ],
+  "$exemptions": "One entry per skill that may lack a section: {\"skill\": \"<claude/skills directory name>\", \"sections\": [\"<a requirement name above>\", ...], \"reason\": \"<why this skill has no such section>\"}. An entry with no reason, an empty reason, an unknown skill or section, or a section the skill in fact carries when it is checked fails the check by name. An empty list is a decision: no skill is exempt.",
+  "exemptions": []
+}
