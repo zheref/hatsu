@@ -33,7 +33,7 @@ if (outcome.error || outcome.signal || outcome.code === null) {
 } else if (outcome.code === 0) {
   console.log('docs/DIRECT-MATRIX.md matches the registry, taxonomy and models.');
 } else if (outcome.code === 1) {
-  console.error('::error::docs/DIRECT-MATRIX.md is stale; regenerate it with the direct matrix renderer and commit the result.');
+  console.error('::error::docs/DIRECT-MATRIX.md is stale or contains expired price evidence; refresh any named registry price step, then regenerate the page and commit the result.');
   process.exitCode = 1;
 } else {
   console.error(`::error::direct matrix guard could not check the page (exit ${outcome.code}).`);

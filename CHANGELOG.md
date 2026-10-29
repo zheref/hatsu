@@ -2,6 +2,44 @@
 
 All notable changes to Hatsu are documented in this file. Releases follow [Semantic Versioning](https://semver.org/).
 
+## v0.152.2 — GPT idle batch: evidence, bootstrap boundaries and trusted workflow retries
+
+### Changed
+
+- Prepare the first landing of #496: the trusted workflow validator admits the current Node canon lint and the exact Nen form with trusted pin, bootstrap and digest steps. Both installed forms pass the full trusted self-test entrypoint. The new Nen form checks the downloaded bootstrap script against the trusted script digest before execution, then checks the binary independently. The live workflow stays on Node until this validator merges; the workflow flip and old guard retirement remain step two.
+### Changed
+
+- Prepare Direct's dated price steps, task-cost methods, served-product warnings and quota-only in-pool evidence behind `snapshot.evidenceVersion` (default off). Preserve the live registry and generated page byte for byte; fixtures prove the enabled report and expired-price CI refusal. Activation requires a follow-up after this compatible trusted renderer merges on main. (Part of HA#341)
+- Reject an explicit null evidence version, clear inherited Node settings in the documented evidence command, and keep successful CLI fixtures valid as the UTC date advances. (HA#341 review fixes)
+### Changed
+
+- Add exact-source capture and extraction to eight remaining focused shell lanes, including both publish integrity targets. Move report-time assertions into a dedicated fixture while preserving and verifying its --self-test forwarding path. Preserve strict absent-ignore redaction behavior. Live tree capture remains held for an explicit maintainer naming/policy decision under #149, and trusted preflight stays unsupported for its Ruby implementation and archived historical guard copies. Delivers part of #148; the issue remains open and the 80/85/90 ladder is unchanged.
+
+- Wire the report-time companion into the trusted CI runner, refusing a missing companion and propagating fixture failures. Automatic workflow selection begins after the updated runner is adopted by the PR base.
+### Fixed
+
+- Getsuga § 4 records the maintainer's reviewed-head cut when a later delivery races the release
+  proposal's merge, requires the full preflight at the selected immutable SHA, and reports the
+  commits and PRs left for the next release. HA-IS-#371 is partial: automatic selection remains at
+  G5 until [NN-IS-#572](https://github.com/zheref/nen/issues/572) supplies a public mechanical
+  release-state comparison; no shell substitute or new Nen verb is claimed.
+### Fixed
+
+- **Activate bounded API retries in the plugin-bump workflow (zheref/hatsu#381).** The live changed-files and base-manifest step now invokes the already-shipped typed reader from the trusted workflow revision on pinned Node 24. Transient non-JSON, server and transport failures retry at most three times with backoff and bounded request timeouts; persistent failures refuse with HTTP status and a sanitized body prefix. A missing base manifest still writes the sentinel only after confirming the base commit. The `edited` trigger, rename paths, read-only API token boundary and deterministic body-only reruns remain covered by the focused fixtures. Plugin 0.152.2; generated mirrors refreshed.
+## Fixed
+
+- Recorded fresh scratch Tenkai adoption passing the PR-sections guard and an unchanged deployed Hanten gate with zero script edits, including negative controls and all outstanding adoption prerequisites (HA#475).
+### Fixed
+
+- **Security scan prerequisites fail loud (zheref/hatsu#493).** Feitan stops the security scope when the pinned gitleaks seat is missing, wrong-version or unverified, naming the declared archive/checksum installation step and returning an unread verdict until the scope reruns. Live redaction tree scans retain their strict default when no ignore policy exists; fixture evidence confirms that nothing is excluded. The trusted-preflight fixture accepts multiple source workflows while still requiring the plugin-bump workflow for its canon lint. The existing UTF-8 policy decoding and C-locale fixture remain verified.
+## HA#494 — Refresh local PR body versions after catch-up
+
+Version-reference inspection accepts `--body-file <local-draft>`; `--write` updates every exact old-version token on unambiguous draft lines and prints ambiguous lines unchanged. The helper never edits a remote PR or generated mirror. Ao now names the draft rewrite and how to refresh catch-up-invalidated body facts.
+- Fix Nen handbook resolution from Hatsu’s maintained-tool registry by declaring the pinned manifest’s `bankai-machinery` scenario (HA-IS-#514).
+### Changed
+
+- **Two rulings of 2026-10-26 recorded as HR-368 and HR-369 (part of zheref/hatsu#454).** `docs/ROSTER.md` § *Rulings of 2026-10-26 — registry re-rendering and the PRS checklist rows* renders both rows from their records, `docs/ruling-records/HA-IS--506--R-2026-10-27-02.json` and `docs/ruling-records/HA-IS--503--R-2026-10-27-03.json`. HR-368 (zheref/hatsu#506 OQ-1 and OQ-2): a `nen/repos.json` change that alters a landed row's coded reference re-renders the affected rows in that same PR and names them, the same rule whether a reference stops or starts resolving. HR-369 (zheref/hatsu#503 OQ-1): the four prose checklist rows `PRS-C`, `PRS-L`, `PRS-S` and `PRS-M` and their pass rule, all four answered yes by the reviewer, never the author. Governance 1.59.0; plugin 0.152.1, mirrors regenerated. Nothing applies either ruling yet; that is each issue's own work.
+
 ## v0.152.0 — The kazaana claude batch: bounded delegate waits, the host workload budget, the wrap-up's two prerequisites, parks on observed blockers only, and the durable ledger slice
 
 Thirteen pull requests landed on `main` since `v0.142.0` (#479 … #500, 2026-10-25 → 2026-10-26), five of them the `hatsu:kazaana zheref/hatsu` batch of 2026-10-26 (HA-PR-#483, #497, #498, #499, #500, one stack merged bottom-up by the maintainer), one the Codex idle batch's integration (#491, nineteen fragments), and the rest the SDD-100 follow-ups (#462, #479, #484, #485, #487, #489, #490). Their thirty-one `changelog.d/` fragments are folded here in the collation order, each closing with the pull request that landed it; the plugin manifests already read `0.152.0` on `main` (HA-PR-#500), so this release touches the changelog only.
