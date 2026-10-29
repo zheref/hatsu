@@ -17,7 +17,10 @@
 //              so render and check need nen; a coded slug passes the private-name guard (a hit: exit 1).
 //   check      the guard lane (nen shu test --lane ruling-record): every ROSTER line citing a record is
 //              re-rendered and compared cell by cell, reported by HR id; an orphan, a twice-cited or an
-//              unreadable record is a finding too.
+//              unreadable record is a finding too. A nen/repos.json change that moves a landed row's
+//              coding (a rename, a reference that stops or newly resolves) fails here by HR id until that
+//              same PR re-renders the row (HR-368), and only a difference confined to coded references
+//              names HR-368; the record and the maintainer's typed words never change.
 //   preanswer  an idle pre-answer (HR-5, WORKFLOW § Idle batches): one `nen stop answer --record` call
 //              composed from the decisions row's preferred[] with its starred key picked and the source
 //              named in the question, so the pre-answer is recorded the same way and no picker is shown.
@@ -147,7 +150,7 @@ function repoOf(token: string): string | null {
   resolved.set(token, repo);
   return repo;
 }
-const coded = (s: string): string => s.replace(REF, (all, token: string, n: string) => {
+const codeRefs = (s: string): string => s.replace(REF, (all, token: string, n: string) => {
   const repo = repoOf(token);
   if (!repo) return all;
   introduced.add(repo);
@@ -168,7 +171,7 @@ function preSource(r: AnswerRecord): string | null {
   return src?.startsWith('Source: ') ? src.slice('Source: '.length) : 'source unstated';
 }
 
-function cells(record: AnswerRecord, hr: number): string[] {
+function cells(record: AnswerRecord, hr: number, coded: (s: string) => string = codeRefs): string[] {
   const options = isReference(record) ? 'none: typed by design'
     : record.options.map((o) => `(${o.key}) ${flat(coded(o.label))} — *${em(coded(o.consequence))}*`).join(' · ');
   const source = preSource(record);
@@ -251,6 +254,31 @@ function render(argv: string[]): number {
 }
 
 const CELL_NAMES = ['HR id and record link', 'question', 'options', 'answer'];
+// Whether a row's cell differs from the record's uncoded rendering only where a reference is written:
+// each `<word> #N` of the record must stand in the row as written or as `<owner>/<name>#N` with the same
+// N, and that slug must be one the registry knows for the word -- what nen repo resolve names for it,
+// a slug nen repo resolve names for itself, or the repository whose name the word is (a rename or a
+// stop leaves the old slug in the row). Every other character must match, so a hand edit of a slug or a
+// word (`zheref/evil#5` for `hatsu #5`) is a plain mismatch.
+const escRe = (t: string): string => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function refsMoved(got: string, uncodedCell: string): boolean {
+  const words: string[] = [];
+  let pattern = '';
+  let last = 0;
+  for (const m of uncodedCell.matchAll(REF)) {
+    const [all, word = '', num = ''] = m;
+    pattern += `${escRe(uncodedCell.slice(last, m.index))}(?:${escRe(all)}|([A-Za-z0-9._-]+\\/[A-Za-z0-9._-]+)#${num}\\b)`;
+    words.push(word);
+    last = (m.index ?? 0) + all.length;
+  }
+  if (!words.length) return false;
+  const hit = new RegExp(`^${pattern}${escRe(uncodedCell.slice(last))}$`).exec(got);
+  if (!hit) return false;
+  return words.every((word, k) => {
+    const slug = hit[k + 1];
+    return slug === undefined || repoOf(word) === slug || repoOf(slug) === slug || slug.split('/')[1] === word;
+  });
+}
 
 function check(argv: string[]): number {
   const args = parseArgs(argv, new Set(['--roster', '--records']));
@@ -287,10 +315,15 @@ function check(argv: string[]): number {
     }
     if (stemOf(record) !== id) { err(n, `${hr}: ${id}.json holds record ${stemOf(record)}; a collision of ids across clones is refused`); return; }
     const want = cells(record, Number(bold));
+    const uncoded = cells(record, Number(bold), (t) => t);
     const got = splitRow(line);
     if (got.length < 6) { err(n, `${hr}: the row has ${got.length} cells, a ruling row has 6`); return; }
     for (let i = 0; i < want.length; i += 1) {
-      if (got[i] !== want[i]) err(n, `${hr}: the ${CELL_NAMES[i]} cell differs from record ${id}; re-render it`);
+      if (got[i] === want[i]) continue;
+      // HR-368's remedy is named only where the row differs from the record in its coded references
+      // alone (cells 1-3; a rename, a stop or a start in nen/repos.json); a hand-retyped cell is a plain mismatch.
+      const moved = i > 0 && refsMoved(got[i] ?? '', uncoded[i] ?? '');
+      err(n, `${hr}: the ${CELL_NAMES[i]} cell differs from record ${id}; ${moved ? 'if nen/repos.json changed, re-render it in this PR (HR-368); otherwise the cell was edited by hand: re-render it from the record' : 're-render it'}`);
     }
     if (!got[4] || !got[5]) err(n, `${hr}: the status and what-it-settles cells must be filled`);
   });
