@@ -296,7 +296,6 @@
         "bankai-quality",
         "bankai-rule",
         "black-voice",
-        "breath",
         "build",
         "byakugan",
         "classify",
@@ -381,7 +380,6 @@
         "bankai-quality",
         "bankai-rule",
         "black-voice",
-        "breath",
         "build",
         "byakugan",
         "classify",
@@ -1345,8 +1343,40 @@
       ],
       "proposeIssue": false,
       "why": "docs/WORKFLOW.md section Idle batches rule 3 (zheref/hatsu#481): a park is an observed fact, here the named native capability or prerequisite absent from this session; a missing Nen verb is ownership, never this row, and a lane's missing CLI tool is row missing-tool.",
-      "citedBy": [],
-      "uncitedReason": "No skill cites the row id: kazaana names its park form `g5-capability-unavailable`, and docs/WORKFLOW.md section Idle batches rule 3 raises the row, whichever skill ran the step."
+      "citedBy": [
+        "breath"
+      ]
+    },
+    {
+      "id": "constitution-conflict",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "change the plan",
+          "command": "restate the plan so it no longer conflicts with the named clause; breath section 4a re-runs the check on it and appends this answer's R- id to the breath entry's note",
+          "consequence": "authoring proceeds on the changed plan; the clause stands as written",
+          "recommended": true
+        },
+        {
+          "key": "B",
+          "label": "amend the CON clause",
+          "command": "an amendment PR in the pinned constitution's repository under its own CON-15 procedure, at G4; the breath entry ends at exit 1 with the conflict and the amendment's reference",
+          "consequence": "this effort ends held; a new effort, cut after the amendment merges, runs the check afresh (ren's resume never re-begins a non-zero entry)"
+        },
+        {
+          "key": "C",
+          "label": "amend the HR row",
+          "command": "a new ROSTER ruling through docs/ROSTER.md section The ruling template, at G4; the breath entry ends at exit 1 with the conflict and the ruling's reference",
+          "consequence": "this effort ends held; a new effort, cut after the ruling merges, runs the check afresh"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "docs/ROSTER.md HR-10 (narrowed by HR-337; zheref/hatsu#505): breath section 4a reads the request against the clauses it lists, the gate floor always, before authoring, and a plan that a binding clause forbids is never authored. HR-10's two exits are a changed plan or an amendment, split here by clause kind: a CON amendment follows CON-15 in the constitution's repository, an HR amendment is a ROSTER ruling; docs/WORKFLOW.md section The constitution check, step 6.",
+      "citedBy": [
+        "breath"
+      ]
     }
   ]
 }
