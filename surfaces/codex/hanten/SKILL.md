@@ -84,7 +84,7 @@ Three checks per persona: `ls "$hatsu_root/claude/agents/<persona>.md"`, the sam
 `_review-preamble.md`, and the surface's own agent registry for `hatsu:<persona>`.
 Raisable → raise; present, not raisable → **§ 7's adapter, disclosed as weaker** (`"adapted": "…"`); **absent → a
 gap**: the persona, the raising paths, **this scope not reviewed** — never a pass, never improvised.
-**Never an examiner** (ROSTER § *The intake examiners*, HR-23): a gap.
+**Never an examiner** (`satotz`, `lippo`, `buhara`, `bisky`; HR-23): a gap.
 
 ## 4. Raising a reviewer, and its cost
 
