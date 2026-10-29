@@ -18,7 +18,8 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
    `--economics` only when Leorio ran or took a delta pass, `--policy-hit` when `nen gate derive`
    matched a policy or process path, `--spec` when a closing issue carries `Spec: specs/<nnn>-<slug>@<sha>`
    (the footer's Spec block and nen's `spec-rows` requirement, [`config/spec-repo.md`](config/spec-repo.md)
-   § *The PR Spec section*). The footer row `decisions` is mandatory on every PR whose run took a
+   § *The PR Spec section*), `--canon-prose` or `--scopes-from <nen review scopes --json output>` when
+   a changed `.md` is canon prose (§ *The prose checklist*). The footer row `decisions` is mandatory on every PR whose run took a
    decision for the maintainer (a pre-answered row or a default taken), whatever the kind or family: an idle
    run by [HR-334](ROSTER.md#hr-334), an attended one by zheref/hatsu#474 AC-1. Any positive source includes it:
    `--idle`, because an idle run always pre-answers its rows (WORKFLOW § *Idle batches* rule 8);
@@ -36,13 +37,13 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 ```bash
 "$hatsu_root/scripts/pr_sections_resolve.sh" --repo <target> --kind <kind> --jobs <comma-joined-jobs> \
   [--evidence] [--economics] [--policy-hit] [--spec] [--decisions] [--decisions-from <nen.run manifest>] [--idle] \
-  --out <absolute-requirements.json>
+  [--canon-prose] [--scopes-from <nen review scopes json>] --out <absolute-requirements.json>
 ```
 
 The resolver prints the ordered ids and writes the per-run `{name, pattern}` requirements array.
 Place the always-on Delivery preamble first, then fill the reader fragments from
 `templates/pr-body/<id>.md` in resolved order, then Spec (only with `--spec`), Decisions (when admitted),
-Hanten, checklist, issues and final attribution.
+Hanten, Prose checklist (when admitted), checklist, issues and final attribution.
 Never append an undeclared level-2 heading. Delivery is outside the seven-reader cap and does
 not change any kind × family cell or consumer-owned override.
 The default requirements file is the process × canon fixture, never a substitute for resolving a run.
@@ -126,10 +127,55 @@ Flag / Rollback step. Product evidence uses [WORKFLOW's UZF-26 shape](WORKFLOW.m
 Economics keeps Leorio's summary visible and the full report collapsed under `<details>`; demote its
 internal headings to level 3 or deeper when embedding, preserving all report content and delta history.
 
+## The prose checklist
+
+The four rows test definition, never behaviour. Each row's test is [HR-369](ROSTER.md#hr-369)'s text,
+quoted verbatim (zheref/hatsu#503):
+
+| Row | HR-369's words |
+|---|---|
+| `PRS-C` criteria | every closing issue has AC rows in Given/When/Then |
+| `PRS-L` measurable | each row names an observable or a number with its unit |
+| `PRS-S` scope | the body's scope boundaries name what is out |
+| `PRS-M` markers | no open OQ row and every AS assumption carried into the body |
+
+"A PR passes when the reviewer, never the author, answers all four yes." "The body" is each closing
+issue's body, which hanten quotes to Chrollo. **Totality:** with no closing issue, all four rows read the
+PR body instead (its verify rows are the criteria; its scope and AS lines the body). With two or more,
+each letter has exactly one row: `yes` only when every issue passes, and its Line read cell cites a line
+of every issue.
+
+**Admission.** The footer block renders only under the `canon-prose` fact. Canon prose is a changed `.md`
+that the architecture scope's globs in `nen/workflow.json` claim: they are its one definition, and they
+cover `docs/`, `claude/`, `templates/` and `contracts/` (zheref/hatsu#503 AS-1, AS-4). The fact comes from
+`--canon-prose`, or from `--scopes-from` a `nen review scopes --json` document in which the scope whose
+persona is Chrollo lists a `.md` path. nen applies the globs; the resolver matches no path itself. A document
+whose contract, scope list or any scope's `paths` is malformed or missing refuses at exit 1, whatever else
+is passed. A PR that edits no such path has no Prose checklist, and the heading is then undeclared.
+
+**Who answers.** Chrollo returns the four rows as a paste-ready table in the template's shape: Reviewer
+`Chrollo`, a `yes` or `no`, and the line he read, as `line N` (the issue line `nen issue criteria`
+numbers) or `path:N`. His report in hanten's `reports[]` is their durable home. Before any readiness read,
+shibari runs `nen review scopes --json`, resolves with `--scopes-from` that document, and pastes his rows verbatim.
+The author never writes, ticks or edits a verdict. The block's `prose-rows` requirement fails the section
+guard and `nen pr body-check` alike on an unfilled, missing, repeated or author-answered row, or a Line
+read cell with no line number.
+
+**A `no` is a finding.** Chrollo also returns it in hanten § 5's shape with rule `PRS-<letter>`, medium by
+default and pushable (HA#503 AC-2): only HR-369's text is ruled, not each row, so a `PRS` finding is never
+critical by shape. It is settled like any other finding, fixed or pushed back with a cited reason
+(hanten § 6). The fix's object is usually the closing issue's text. Chrollo's delta pass reads the
+settle: it re-reads the closing issues' bodies as well as the diff since his last head, and re-answers
+every `PRS` row. The hanten budget is per effort, and a delta pass is one of the effort's rounds. The
+delta pass is granted on a new head **or** on an amended closing issue, so a settle made only by editing
+the issue is re-answered too. A **pushed-back** `no` is settled like any pushed-back finding: the row reads
+`no`, the cited reason stands in the Adversarial review table, and readiness is not blocked by it. A `no`
+that is neither re-answered `yes` nor pushed back is unsettled at readiness: a G5, like any unsettled finding.
+
 ## Check every write
 
-Reader sections are capped at seven; first-heading Delivery, conditional Spec and Decisions, Hanten,
-Completion checklist, Associated issues and final Agent attribution are outside that count. The footer's
+Reader sections are capped at seven; first-heading Delivery, conditional Spec, Decisions and Prose
+checklist, Hanten, Completion checklist, Associated issues and final Agent attribution are outside that count. The footer's
 substance is fixed: Hanten dispositions are settled and deferred rows cite tracked issues, checklist
 claims cite evidence, issue closing lines belong under the Associated issues table, and
 attribution records only actual participants under [the ledger contract](AGENT-ATTRIBUTION.md).
