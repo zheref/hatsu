@@ -91,3 +91,9 @@ export function worktreeName(path: string, repoFolder: string): string {
 
   return last === repoFolder && parts.length > 1 ? parts[parts.length - 2]! : last
 }
+
+/** The base branch from nen/workflow.json, accepted only as a plain ref name: the repository under
+ * the desk is not trusted, and the base reaches a prompt the Ship button fills. Anything else is `main`. */
+export function safeBase(raw: unknown): string {
+  return typeof raw === 'string' && /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.test(raw) && !raw.includes('..') ? raw : 'main'
+}

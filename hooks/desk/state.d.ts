@@ -59,6 +59,8 @@ export type SessionEffort = {
   pr: Pr | null
   /** Phases the nen ledger recorded for this effort, in order. */
   phases: string[]
+  /** A G2/G4 stop for this branch is unrung: En left it at Ready, at the maintainer's merge prompt. */
+  atGate: boolean
   /** The nature of the work (feature, machinery, governance…) and what it was read from. */
   nature: { label: string; source: string } | null
 }

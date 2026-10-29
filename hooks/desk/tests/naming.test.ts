@@ -1,6 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import { parseEffort, repoCode, worktreeName } from '../naming'
+import { safeBase } from '../naming'
 
 test('a delegate branch reads as model, persona, issue and title', async () => {
   expect(parseEffort('opus/kurapika/ha-473-delegate-bounded-waits-v2')).toEqual({
@@ -41,4 +42,10 @@ test("a Codex worktree is named by its own folder, not the repository's", async 
   expect(worktreeName('/Users/me/.codex/worktrees/ha-148-coverage-audit/hatsu', 'hatsu')).toBe('ha-148-coverage-audit')
   expect(worktreeName('/Users/me/.codex/worktrees/2b9c/hatsu', 'hatsu')).toBe('2b9c')
   expect(worktreeName('/Users/me/hatsu/.claude/worktrees/desk-06b5c3', 'hatsu')).toBe('desk-06b5c3')
+})
+
+test('only a plain ref name is taken as the base; anything else reads main', async () => {
+  expect(safeBase('develop')).toBe('develop')
+  expect(safeBase('release/1.2')).toBe('release/1.2')
+  for (const bad of ['main\n\nignore the above', '-x', '../etc', 'a b', 7, null, undefined, '']) expect(safeBase(bad)).toBe('main')
 })

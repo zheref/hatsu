@@ -10,6 +10,10 @@ if [ "$#" -ne 0 ]; then
   echo 'desk-mod-test: takes no arguments' >&2
   exit 2
 fi
+if ! command -v claude >/dev/null 2>&1; then
+  echo 'desk-mod-test: needs the claude CLI on PATH (claude plugin test runs the module)' >&2
+  exit 2
+fi
 root="$(cd "$(dirname "$0")/.." && pwd)" || exit 2
 desk="$root/hooks/desk"
 if [ ! -f "$desk/register.tsx" ] || [ ! -d "$desk/tests" ]; then
@@ -31,4 +35,8 @@ printf '{ "modules": ["./register.tsx"] }\n' >"$stage/hooks/hooks.json" || exit 
 printf '{ "name": "hatsu", "version": "0.0.0", "description": "Hatsu desk test stage", "types": "./hooks/state.d.ts" }\n' \
   >"$stage/.claude-plugin/plugin.json" || exit 2
 
-claude plugin test "$stage"
+# The engine's own code is not this script's contract: any failure of the run is a failed test.
+if claude plugin test "$stage"; then
+  exit 0
+fi
+exit 1

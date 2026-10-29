@@ -98,10 +98,10 @@ A persona's `model` is a tier alias resolved from the matrix, never a versioned 
 | function-hook module | `modules` in `hooks/hooks.json` → `hooks/desk/register.tsx`, the Hatsu desk: a pane beside the chat with the effort's canon stage and every path from it (a button fills the prompt with a skill call and sends nothing; the merge, `kagutsuchi` and `mugetsu` are never a button), the session's activity, the gate stops `nen stop list` names, and the other efforts in the shared phase ledgers with their PR state; `/hatsu-desk` reopens it. Its state contract is `hooks/desk/state.d.ts`, named by `types` in the manifest; its tests are the `desk-guard` lane |
 | session start | the pinned `nen` bound on the host — `~/.local/bin/nen` linked to the checksum-verified pin (a non-symlink there is refused, exit 3) and a marked `# >>> hatsu nen-global >>>` PATH block in the shell rc when the bin dir is not on `PATH`; `HATSU_NEN_GLOBAL=0` opts out (ruling 2026-09-30). The plugin itself is read in place, so there is nothing to refresh |
 
-Both scripts are POSIX sh, use no jq, yq or python, and fail open except the guard, which fails closed
+All three scripts are POSIX sh, use no jq, yq or python, and fail open except the guard, which fails closed
 on the five forms where the branch it can see is not the branch the write would land on. The desk
 module is TypeScript the harness runs in its own sandbox, not a shell hook: it switches on only in a
-checkout that declares `nen/workflow.json`, reads through nen, git and one cached read-only `gh pr list`,
+checkout that declares `nen/workflow.json`, reads through nen, git and two cached read-only `gh pr list` queries,
 writes nothing, and fails open (its `tool.call` and `agent.spawn` hooks pass the call on when they fault). The permission
 pack is placed by the warm-up, an install-time step, never by a hook: a hook is plugin-global and fires
 in every repository.

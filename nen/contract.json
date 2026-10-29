@@ -2035,7 +2035,10 @@
           "argv": [
             "scripts/desk_mod_test.sh"
           ],
-          "$comment": "Needs the claude CLI on PATH (claude plugin test); offline. Run when hooks/desk or scripts/desk_mod_test.sh changes."
+          "$comment": "Needs the claude CLI on PATH (claude plugin test); offline. Run when hooks/desk or scripts/desk_mod_test.sh changes. Not in scripts/unit_tests_ci.mts's gated list: the unit-tests runner has no claude CLI, a named gap tracked by zheref/hatsu#523."
+        },
+        "coverage": {
+          "unsupported": "No line-coverage tool is declared for the engine's test kit (claude plugin test), so hooks/desk is an unmeasured gap, never a clean zero; zheref/hatsu#523 tracks the capture."
         }
       }
     },

@@ -5,7 +5,7 @@ import type { EffortState } from '../actions'
 
 const base: EffortState = {
   dirty: 0, ahead: 0, hasUpstream: false, unpushed: 0, pr: null, ref: null, code: 'HA', gate: 'G4', base: 'main',
-  isStarted: false, isIdeating: false, isDriven: false,
+  isStarted: false, isIdeating: false, isDriven: false, atGate: false,
 }
 const started = { ...base, isStarted: true }
 const labels = (s: EffortState) => stepFor(s).paths.map(p => p.label)
@@ -73,8 +73,30 @@ test('an open PR keeps iterating, committing and updating on its branch', async 
   expect(labels(pr)).toEqual(['Drive PR', 'Unblock PR', 'Iterate', 'Update', 'Review', 'Lint', 'Launch', 'Summary', 'Report', 'Commit'])
   expect(starred(pr)).toEqual(['Drive PR'])
   expect(starred({ ...pr, dirty: 2 })).toEqual(['Commit'])
-  expect(labels({ ...pr, isDriven: true })[0]).toBe('Unblock PR')
-  expect(starred({ ...pr, isDriven: true })).toEqual([])
+  // En having run is not readiness: without its Ready stop the PR is driven again.
+  expect(stepFor({ ...pr, isDriven: true }).headline).toBe('Driven, readiness unread')
+  expect(starred({ ...pr, isDriven: true })).toEqual(['Drive PR'])
+  expect(labels({ ...pr, isDriven: true, atGate: true })[0]).toBe('Unblock PR')
+  expect(starred({ ...pr, isDriven: true, atGate: true })).toEqual([])
+})
+
+test('a PR state the desk does not know offers no PR-less path', async () => {
+  const odd = stepFor({ ...started, ahead: 1, hasUpstream: true, pr: { number: 9, state: 'LOCKED' } })
+  expect(odd.headline).toBe('PR state unread')
+  expect(odd.paths.map(p => p.label)).toEqual(['Report'])
+})
+
+test('no copy names a human call as what the effort waits on (HR-370)', async () => {
+  for (const s of [{ ...started, ahead: 2 }, { ...started, ahead: 1, hasUpstream: true }]) {
+    expect(stepFor(s).why).not.toMatch(/waiting|your call|ends only on/i)
+  }
+})
+
+test('the wrap-up shows on a merged PR and names the declaration still owed (HR-371)', async () => {
+  const merged = stepFor({ ...started, pr: { number: 9, state: 'MERGED' } })
+  expect(merged.paths.filter(p => p.blocked === null).map(p => p.label)).toContain('Clean Up')
+  expect(merged.paths.some(p => p.isPrimary)).toBe(false)
+  expect(merged.why).toContain('satisfied')
 })
 
 test('after the PR, the next effort is a fresh build', async () => {
@@ -128,13 +150,14 @@ test("another effort's phase reads as what it is doing, not its skill name", asy
   expect(readingOf('aka-publish')).toBe('Publishing')
   expect(readingOf('final-head-verification')).toBe('Verifying')
   expect(readingOf('integrate-ha246')).toBe('Integrating')
-  expect(readingOf('kokusen-review-fixes')).toBe('Fixing findings')
+  expect(readingOf('kokusen-review-fixes')).toBe('Remediating')
+  expect(readingOf('mukai')).toBe('Preparing PR')
   expect(readingOf('some-new-step')).toBe('Some new step')
 })
 
 test('a reading turns past tense once its step has ended', async () => {
   expect(readingOf('en', true)).toBe('Drove PR')
-  expect(readingOf('kokusen-review-fixes', true)).toBe('Fixed findings')
+  expect(readingOf('kokusen-review-fixes', true)).toBe('Remediated')
   expect(readingOf('some-new-step', true)).toBe('Some new step')
   for (const present of Object.values(READINGS)) expect(PAST[present]).toBeTruthy()
 })

@@ -3,11 +3,13 @@
 //
 // The desk mirrors the canon, it never extends it (docs/WORKFLOW.md § 4, STANDALONE-ENTRY § 6):
 // - the merge, kagutsuchi and mugetsu are never a button;
-// - aka and mukai (and tensho, which composes them) are the maintainer's calls: offered, never
-//   starred, flagged with the person glyph;
+// - aka and mukai (and tensho, which composes them) are the maintainer's calls: a button only
+//   fills the prompt, never starred, flagged, and pressing it is the maintainer's own typed call
+//   (docs/ROSTER.md HR-370); the copy describes the state and never names one as awaited;
 // - ren ends only on the maintainer's aka or tensho, so a committed ren turn stars nothing;
-// - the wrap-up picker stars cleanup only once the sitting is declared satisfied, which the desk
-//   cannot read, so a merged effort stars nothing either (HR-366).
+// - the wrap-up buttons show only once every PR in the sitting reads MERGED, naming the
+//   satisfied declaration as still owed (HR-366, HR-371). The desk's sitting is this session's
+//   effort: it reads one branch, so a session spanning several PRs is not seen whole.
 
 export const LABELS: Record<string, string> = {
   ten: 'Warm Up',
@@ -90,7 +92,7 @@ export type EffortState = {
   hasUpstream: boolean
   /** Commits not yet on the upstream; 0 when there is none. */
   unpushed: number
-  pr: { number: number; state: string } | null
+  pr: { number: number; state: PrState } | null
   /** The issue ref the branch names, e.g. `HA#473`. */
   ref: string | null
   /** The repository's object code, e.g. `HA`. */
@@ -103,9 +105,14 @@ export type EffortState = {
   isStarted: boolean
   /** emperor-time ran and nothing has been built yet. */
   isIdeating: boolean
-  /** En has driven the open PR in this session: it stands at the maintainer's merge prompt. */
+  /** En has run in this session; not, by itself, readiness. */
   isDriven: boolean
+  /** En's Ready stop for this branch is unrung: the PR stands at the maintainer's merge prompt. */
+  atGate: boolean
 }
+
+/** A PR state as gh reports it; anything else is a read the desk did not understand. */
+export type PrState = 'OPEN' | 'CLOSED' | 'MERGED' | (string & {})
 
 /** One way forward. A blocked path is still shown, so every branch the canon allows is visible;
  * its `blocked` says what it waits on, and pressing it says so instead of filling the prompt. */
@@ -152,10 +159,13 @@ export function stepFor(s: EffortState): Step {
   const lint: Offer = 'hatsu:gyo'
   const launch: Offer = 'hatsu:amaterasu'
 
+  if (s.pr !== null && !['OPEN', 'CLOSED', 'MERGED'].includes(s.pr.state)) {
+    return step('PR state unread', `PR ${pr} reads "${s.pr.state}", a state the desk does not know. Refresh, or read it on GitHub.`, [report], null, true)
+  }
   if (s.pr?.state === 'MERGED') {
     return step(
-      'Merged: the sitting can wrap up',
-      `PR ${pr} is merged. Wrap-up runs once you declare the sitting satisfied; until then you can start the next effort.`,
+      'Merged',
+      `PR ${pr} is merged, and with it every PR the desk sees in this sitting. Wrap-up still waits on you declaring the sitting satisfied (HR-366); pressing Clean Up is that call. Or start the next effort.`,
       ['hatsu:cleanup', 'hatsu:third-hand', `hatsu:rikugan for ${pr}`, 'hatsu:getsuga', ren, report],
       null,
       true,
@@ -167,7 +177,7 @@ export function stepFor(s: EffortState): Step {
   if (s.pr?.state === 'OPEN') {
     // More work on a PR branch is still ren and kokusen; Update (murasaki) pushes it onto the PR.
     const paths: Offer[] = [
-      s.isDriven ? null : `hatsu:en on ${pr}`,
+      s.atGate ? null : `hatsu:en on ${pr}`,
       `hatsu:sharingan ${pr} to ${s.gate}`,
       ren,
       commit,
@@ -186,11 +196,15 @@ export function stepFor(s: EffortState): Step {
         'hatsu:kokusen',
       )
     }
+    if (s.atGate) {
+      return step(`At your merge gate (${s.gate})`, `En left PR ${pr} at your ${s.gate} prompt. The merge is yours, outside the session, never a button.`, paths)
+    }
     return s.isDriven
       ? step(
-          `At your merge gate (${s.gate})`,
-          `En has driven PR ${pr}. The merge is yours, outside the session, never a button.`,
+          'Driven, readiness unread',
+          `En ran on PR ${pr} but recorded no Ready stop: it may have stopped on a blocker, its cap or an owed round. Drive it again or unblock it.`,
           paths,
+          `hatsu:en on ${pr}`,
         )
       : step(
           'Drive the PR to readiness',
@@ -233,13 +247,13 @@ export function stepFor(s: EffortState): Step {
     }
     if (unpushed > 0) {
       return step(
-        s.hasUpstream ? 'Local commits on a published branch' : 'Ren is waiting on your call',
-        `${plural(unpushed, 'commit')} on this machine only. Publish folds them into one and pushes it; iterate now or on top of the folded commit. Ren ends only on your Publish or Ship.`,
+        s.hasUpstream ? 'Local commits on a published branch' : 'Committed, not published',
+        `${plural(unpushed, 'commit')} on this machine only, local to this checkout. Publish would fold them into one and push it; more ren turns iterate on top.`,
         paths,
       )
     }
     if (s.hasUpstream) {
-      return step('Pushed: the PR is your call', 'The branch is published with no PR. Open PR reviews, tests and opens it when you call it; or keep iterating.', paths)
+      return step('Pushed, no PR', 'The branch is published and no PR exists yet. Open PR would review, test and open it; more ren turns iterate on the published branch.', paths)
     }
     return step('Building', 'The flow has started and nothing is committed yet. Each request is one ren turn.', paths, ren)
   }
@@ -287,7 +301,7 @@ export const READINGS: Record<string, string> = {
   kotoamatsukami: 'Testing',
   integration: 'Testing',
   byakugan: 'Measuring coverage',
-  mukai: 'Opening PR',
+  mukai: 'Preparing PR',
   shibari: 'Opening PR',
   pr: 'Opening PR',
   en: 'Driving PR',
@@ -329,14 +343,15 @@ export const PAST: Record<string, string> = {
   'Cutting release': 'Cut release',
   Integrating: 'Integrated',
   'Watching CI': 'Watched CI',
-  'Fixing findings': 'Fixed findings',
+  Remediating: 'Remediated',
+  'Preparing PR': 'Prepared PR',
   'Fixing CI': 'Fixed CI',
   'Taking inventory': 'Took inventory',
   Verifying: 'Verified',
 }
 
 const PATTERNS: [RegExp, string][] = [
-  [/review-fix|^remediat/, 'Fixing findings'],
+  [/review-fix|^remediat/, 'Remediating'],
   [/^repair.*ci/, 'Fixing CI'],
   [/^readiness/, 'Driving PR'],
   [/^integrat/, 'Integrating'],

@@ -2,7 +2,8 @@
 // canon and every path the maintainer can take from it, the gates waiting on them, and the other
 // sessions' efforts read from the shared nen ledgers. Claude Code's function-hook module, named in
 // hooks/hooks.json under `modules`; it switches on only in a checkout that declares nen/workflow.json,
-// reads through nen, git and one cached `gh pr list`, and never writes, pushes or merges: every button
+// reads through nen, git and two cached read-only `gh pr list` queries (this branch's PR, every
+// branch's newest), and never writes, pushes or merges: every button
 // fills the prompt with a skill call for the maintainer to send (actions.ts holds the canon matrix).
 
 import { atom, read, update } from 'claude-code'
@@ -11,9 +12,9 @@ import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 import type { Activity, Effort, Gate, Pr, SessionEffort } from './state'
 import { HUMAN_FLAG, glyphOf, readingOf, stepFor } from './actions'
 import { chip } from './chip'
-import { STAGES, isStageDone, progressOf, stageOf } from './stages'
+import { STAGES, isStageDone, progressOf, stageOf, stateOf } from './stages'
 import type { ChipIcon, ChipSize, ChipStyle, Tone } from './chip'
-import { ago, humanize, parseEffort, repoCode, short, worktreeName } from './naming'
+import { ago, humanize, parseEffort, repoCode, safeBase, short, worktreeName } from './naming'
 
 const PANE = 'hatsu-desk'
 const TITLE = 'Hatsu desk'
@@ -23,6 +24,8 @@ const STALE_MIN = 30
 // How far back other sessions' ledgers are listed: a week, so a sitting from a day or two ago still shows.
 const WINDOW_MIN = 7 * 24 * 60
 const MAX_EFFORTS = 12
+// A command that moves the effort forces a re-read, at most this often.
+const FORCED_MIN_MS = 10_000
 
 const session = atom({ plugin: 'hatsu', key: 'deskSession' } as const, null)
 const efforts = atom({ plugin: 'hatsu', key: 'deskEfforts' } as const, [])
@@ -49,6 +52,11 @@ let prReadAt = 0
 let branchPrs = new Map<string, { number: number; state: string }>()
 let branchPrsReadAt = 0
 const toasted = new Set<string>()
+// The refresh in flight, so overlapping triggers share one read; and when a command last forced one.
+let refreshing: Promise<void> | null = null
+let forcedAt = 0
+// A spawned subagent's id → its activity row: the spawn resolves once it started, its turn.complete ends it.
+const spawned = new Map<string, string>()
 
 // The next-step box's fill, a step above the desktop's dark background and below its button grey.
 // Its round border is drawn in the same colour: the corners stay rounded with no visible outline.
@@ -120,7 +128,15 @@ async function readBranchPrs($: EngineInterface, now: number): Promise<void> {
   }
 }
 
-async function refresh($: EngineInterface): Promise<void> {
+function refresh($: EngineInterface): Promise<void> {
+  refreshing ??= read_($).finally(() => {
+    refreshing = null
+  })
+
+  return refreshing
+}
+
+async function read_($: EngineInterface): Promise<void> {
   if (where === null) {
     return
   }
@@ -160,14 +176,25 @@ async function refresh($: EngineInterface): Promise<void> {
     const core = where.common.endsWith('/.git') ? where.common.slice(0, -'/.git'.length) : where.top
     const repoFolder = core.slice(core.lastIndexOf('/') + 1)
 
+    // The gates first, so another effort's unreadable ledger never silences one waiting on you.
+    const stops = (await json($, ['nen', 'stop', 'list', '--repo', where.top, '--json'])) as { marks?: StopRow[] }
+
+    // No nen verb lists the ledgers (nen phase has begin/end/show; zheref/nen#583), so the directory is listed and each
+    // file name decoded to its effort id, then read through `nen phase show`. Each ledger is read on
+    // its own: a truncated, newer-schema or oddly named file is skipped and named, never fatal.
     let myPhases: string[] = []
     const others: Effort[] = []
+    const skipped: string[] = []
     for (const entry of recent) {
-      const id = decodeURIComponent(entry.name.slice(0, -'.json'.length))
-      const ledger = (await json($, ['nen', 'phase', 'show', '--effort', id, '--repo', where.top, '--json'])) as {
-        phases?: Phase[]
+      let id: string
+      let phases: Phase[]
+      try {
+        id = decodeURIComponent(entry.name.slice(0, -'.json'.length))
+        phases = ((await json($, ['nen', 'phase', 'show', '--effort', id, '--repo', where.top, '--json'])) as { phases?: Phase[] }).phases ?? []
+      } catch {
+        skipped.push(entry.name)
+        continue
       }
-      const phases = ledger.phases ?? []
       const name = parseEffort(id)
       if (id === branch || (mine.ref !== null && name.ref === mine.ref)) {
         myPhases = phases.map(p => p.phase)
@@ -202,7 +229,6 @@ async function refresh($: EngineInterface): Promise<void> {
       })
     }
 
-    const stops = (await json($, ['nen', 'stop', 'list', '--repo', where.top, '--json'])) as { marks?: StopRow[] }
     const waiting: Gate[] = (stops.marks ?? []).map(m => ({
       gate: m.gate ?? 'stop',
       effort: m.effort ?? null,
@@ -229,6 +255,7 @@ async function refresh($: EngineInterface): Promise<void> {
       unpushed: upstream.code === 0 ? Number((await run($, ['git', '-C', where.top, 'rev-list', '--count', '@{u}..HEAD'])).out.trim()) || 0 : 0,
       pr,
       phases: myPhases,
+      atGate: waiting.some(g => g.effort === branch && (g.gate === 'G2' || g.gate === 'G4')),
       nature: natureOf(pr, latestMode(await $.session.messages()), wc.state.existingCommitSubjects ?? [], wc.state.uncommittedPaths, repo),
     }
 
@@ -238,9 +265,10 @@ async function refresh($: EngineInterface): Promise<void> {
     await update($, session, () => mineNow)
     await update($, efforts, () => others.slice(0, MAX_EFFORTS))
     await update($, gates, () => waiting)
-    await update($, failure, () => null)
-    const now_ = STAGES[stageOf(mineNow, await read($, activity), await read($, edits))]!
-    $.ui.status(`Hatsu · ${now_.name} (${now_.meaning})`)
+    await update($, failure, () => (skipped.length > 0 ? `skipped ${skipped.length} unreadable ledger${skipped.length === 1 ? '' : 's'}: ${short(skipped.join(', '), 120)}` : null))
+    const acts = await read($, activity)
+    const at_ = stageOf(mineNow, acts, await read($, edits))
+    $.ui.status(`Hatsu · ${STAGES[at_]!.name} (${stateOf(at_, mineNow, acts)})`)
   } catch (err) {
     await update($, failure, () => (err instanceof Error ? err.message : String(err)))
   }
@@ -337,19 +365,24 @@ export const register: Register = on => {
     const [top, common] = git.stdout.trim().split('\n')
     // Only a Hatsu consumer gets the desk: one that declares nen/workflow.json.
     if (git.exitCode === 0 && top && common && (await $.fs.exists(`${top}/nen/workflow.json`))) {
-      let base = 'main'
+      // Whatever the desk's own start-up does, the session starts: a fault is shown, never thrown.
       try {
-        const workflow = JSON.parse(await $.fs.read(`${top}/nen/workflow.json`)) as { branch?: { base?: string } }
-        base = workflow.branch?.base ?? 'main'
-      } catch {
-        // An unreadable workflow file keeps the default base.
+        let base = 'main'
+        try {
+          const workflow = JSON.parse(await $.fs.read(`${top}/nen/workflow.json`)) as { branch?: { base?: unknown } }
+          base = safeBase(workflow.branch?.base)
+        } catch {
+          // An unreadable workflow file keeps the default base.
+        }
+        where = { top, common, base }
+        await $.command.register({ name: 'hatsu-desk', description: 'Open the Hatsu desk' })
+        await seed($)
+        await refresh($)
+        $.clock.every(REFRESH_MS, () => void refresh($))
+        void $.ui.open({ id: PANE, title: TITLE })
+      } catch (err) {
+        await update($, failure, () => (err instanceof Error ? err.message : String(err)))
       }
-      where = { top, common, base }
-      await $.command.register({ name: 'hatsu-desk', description: 'Open the Hatsu desk' })
-      await seed($)
-      await refresh($)
-      $.clock.every(REFRESH_MS, () => void refresh($))
-      void $.ui.open({ id: PANE, title: TITLE })
     }
 
     return next(e)
@@ -372,14 +405,19 @@ export const register: Register = on => {
       await update($, edits, n => n + 1)
     }
     if (where !== null && e.tool === 'Bash' && /\b(nen (phase|stop|wc|pr)|git (commit|push)|gh pr)\b/.test(e.command)) {
-      prReadAt = 0
-      branchPrsReadAt = 0
-      void refresh($)
+      const now = await $.clock.now()
+      if (now - forcedAt >= FORCED_MIN_MS) {
+        forcedAt = now
+        prReadAt = 0
+        branchPrsReadAt = 0
+        void refresh($)
+      }
     }
 
     return result
   })
     // The desk only watches tool calls: a fault of its own fails open and never stands in a call's way.
+    // `next` is replay-safe here (the engine's Caught): a call already made settles to its own result.
     .catch(($, e, next) => next(e))
 
   on('agent.spawn', async ($, e, next) => {
@@ -388,13 +426,28 @@ export const register: Register = on => {
     }
     const who = humanize(e.subagentType.replace(/^.*:/, ''))
     await track($, { id: e.tool_use_id, at: await $.clock.now(), kind: 'agent', label: who, detail: e.description, isDone: false })
-    try {
-      return await next(e)
-    } finally {
+    const result = await next(e)
+    // The spawn resolves once the subagent started; it is done at its own turn.complete.
+    if ('agentId' in result && result.agentId) {
+      spawned.set(result.agentId, e.tool_use_id)
+    } else {
       await finish($, e.tool_use_id)
     }
+
+    return result
   })
     // Likewise for a subagent: the spawn goes on whatever the desk's own bookkeeping did.
+    .catch(($, e, next) => next(e))
+
+  on('turn.complete', async ($, e, next) => {
+    const id = e.agentId ? spawned.get(e.agentId) : undefined
+    if (id !== undefined) {
+      spawned.delete(e.agentId!)
+      await finish($, id)
+    }
+
+    return next(e)
+  })
     .catch(($, e, next) => next(e))
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
@@ -525,7 +578,6 @@ export const register: Register = on => {
     }
 
     const stage = stageOf(s, acts, edited)
-    const current = STAGES[stage]!
     // Where the effort runs: the main checkout, the worktree inside it (if any), the branch.
     const home = (path: string) => path.replace(/^\/(Users|home)\/[^/]+/, '~')
     const checkout = where.common.endsWith('/.git') ? where.common.slice(0, -'/.git'.length) : where.top
@@ -543,6 +595,7 @@ export const register: Register = on => {
       base: where.base,
       ...progressOf(s, acts, edited),
     })
+    const reading = stateOf(stage, s, acts)
 
     return (
       <Box flexDirection="column" padding="xs" gap={1}>
@@ -579,7 +632,7 @@ export const register: Register = on => {
                 <Text size="title" weight="bold">{s.title}</Text>
                 {s.nature && <Chip text={s.nature.label} tone="info" size="md" />}
               </Box>
-              <Chip text={current.state} tone="accent" size="lg" bold style="dotted" />
+              <Chip text={reading} tone="accent" size="lg" bold style="dotted" />
             </Box>
             <Box gap="xs" flexWrap="wrap" alignItems="center">
               {s.ref && <Pill text={s.ref} tone="ref" />}
@@ -690,7 +743,8 @@ export const register: Register = on => {
                     key={`answer-${i}`}
                     label="Show me this stop"
                     variant="secondary"
-                    onPress={() => fill($, `Take me to the ${g.gate} stop on effort ${g.effort ?? '(none)'}${g.title ? ` ("${g.title}")` : ''}: show the question and its options.`)}
+                    // By reference only: the stop's title is read by the skill, never copied into the prompt.
+                    onPress={() => fill($, `Take me to the ${g.gate} stop on effort ${g.effort ?? '(none)'}: show the question and its options.`)}
                   />
                 </Box>
               )}
