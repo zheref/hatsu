@@ -125,7 +125,7 @@ release into building is the typed invocation, and § 1's handoff of a PR to `en
 
 | Phase | Skill | What build takes from it |
 |---|---|---|
-| **1 · author** | [`$ren`](../ren/SKILL.md), turn after turn: `breath` → `rasengan` → `kokusen` (the commit with `Hatsu-Agent: Kurapika`) → `amaterasu` → `spiritual-message` → `jutaisho` | every acceptance criterion met and committed locally; never a push |
+| **1 · author** | [`$ren`](../ren/SKILL.md), turn after turn: `breath` (its § 4a constitution check recorded) → `rasengan` → `kokusen` → `amaterasu` → `spiritual-message` → `jutaisho` | every acceptance criterion met and committed locally; never a push |
 | **2 · publish** | [`$aka`](../aka/SKILL.md): `gyo` → squash the unpushed → `ao` → `gyo` again if the tree moved → push | the branch on origin; no PR |
 | **3 · PR** | [`$mukai`](../mukai/SKILL.md): `murasaki` → `hanten` → `kokusen` → `kotoamatsukami` → `byakugan` → evidence → `shibari` → landing report → `en` offered, or started under `mukai.autoEn` | one open PR, the four pre-PR G5 stops honoured |
 | **4 · readiness** | [`$en on <CODE>#<PR>`](../en/SKILL.md): the capped acting cycle, `nen pr ready` quoted verbatim, the bell at Ready | the PR at its merge prompt (**G2**, **G4** in a canon repository); En never merges |
@@ -150,7 +150,7 @@ worktree; the push through `aka` and the PR through `mukai`'s
 `shibari`, linking the issue; `en` until `nen pr ready` exits `0`. Never a merge, a G1 mode label, a review vote,
 or work on core.
 
-**The delegation expires when the run ends. Say when it ends.**
+**The delegation expires when the run ends.**
 
 ## 6. When it will not move (G5)
 
@@ -171,7 +171,7 @@ stuck build or capability gap, `DECIDE`/`DO` with the proposed issue (a tool per
 ended it, `en` was offered and not started, or at a G1 or G5 stop — any other ending is a G5: say which, and that the
 delegation lapsed.
 
-## 8. Resuming & Residue
+## 8. Residue — resuming
 
 [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Resuming a run*; each phase is idempotent, and worktree/branch
 state records progress. Residue: mode reasoning and G5 diagnosis are agent judgment; on a target with no stage

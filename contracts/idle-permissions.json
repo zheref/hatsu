@@ -31,6 +31,18 @@
       "by": "breath (shu build|test|lint|coverage)"
     },
     {
+      "command": "node <hatsu>/scripts/constitution_check.mts --request <file> --root <hatsu> --constitution-source <owner/name> --constitution-checkout <dir> --begin-note <text> --json",
+      "by": "breath § 4a (the constitution check; lane constitution-check; it reads CONSTITUTION.md through git itself)"
+    },
+    {
+      "command": "git init -q <dir>",
+      "by": "breath § 4a (no checkout of the CON source on the host; WORKFLOW § The constitution check step 2)"
+    },
+    {
+      "command": "git -C <dir> fetch --depth 1 https://github.com/<source>.git refs/tags/<tag>:refs/tags/<tag>",
+      "by": "breath § 4a (the pinned tag by its full ref, never --branch)"
+    },
+    {
       "command": "nen phase begin --effort <branch> --phase <name>",
       "by": "ren § 2a, build § 4 (phase begin|end|show)"
     },

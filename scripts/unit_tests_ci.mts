@@ -43,6 +43,8 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['gh_api_read.mts', 'gh_api_read_fixture.mts', 'gh-api-read-guard'],
   ['plugin_bump_api_retry.mts', 'plugin_bump_api_retry_fixture.test.mts', 'plugin-bump-api-retry-guard'],
   ['clause_id_guard.mts', 'clause_id_guard_fixture.mts', 'clause-guard'],
+  // Breath § 4a's read set over the roster's status words (zheref/hatsu#505); interim until zheref/nen#554.
+  ['constitution_check.mts', 'constitution_check_fixture.mts', 'constitution-check'],
   // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
   ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],
   ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],

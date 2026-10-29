@@ -510,18 +510,6 @@
       "count": 1
     },
     {
-      "path": "claude/skills/breath/SKILL.md",
-      "rule": "PL-05",
-      "text": ", before the dry run** (#113). `nen wc worktrees --r",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/breath/SKILL.md",
-      "rule": "PL-01",
-      "text": "By hand: rendering `branch.temp",
-      "count": 1
-    },
-    {
       "path": "claude/skills/byakugan/SKILL.md",
       "rule": "PL-01",
       "text": "coverage configuration by hand.",
