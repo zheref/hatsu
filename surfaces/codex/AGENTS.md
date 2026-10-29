@@ -216,7 +216,7 @@ cannot run is not scanned — never clean.** **Every version, URL, asset and com
 | Row | What runs | Failure |
 |---|---|---|
 | **Secret scan** | gitleaks at `secretScan.version`, its host asset **SHA256-verified against `checksumsUrl`** before it runs | a missing, wrong-version or unverifiable seat **stops this scope** with the install step below; a non-zero scan exit **fails loud** |
-| **Dependency audit** | the row whose `stacks` lists it. Node `run`: `packageManager`'s lockfile to OSV, nothing executed; OSV at `SwiftURL`; `dependencyCheckAnalyze` (JVM) | Node: `0`/`1` yours (`1` never clean), `3` not scanned, `2` wiring; **a stack on no row: not scanned** |
+| **Dependency audit** | the row whose `stacks` lists it. Node `run` (`bun-cli` too): the lockfile to OSV, nothing executed; OSV at `SwiftURL`; `dependencyCheckAnalyze` (JVM) | Node: `0`/`1` yours (`1` never clean), `3` not scanned, `2` wiring; **a stack on no row: not scanned** |
 | **Secret shapes** | `nen stage triage` over the change set | each path listed with its shape |
 | **Builder-touching workflow** | in a **consumer** repo (`nen repo classify` → `role` not `canon`) a diff touching `.github/workflows/**` raises this scope and **requires your read** | **never waived** |
 
