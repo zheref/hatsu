@@ -18,6 +18,15 @@ export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
 
 script_dir="$(CDPATH='' cd -- "$(dirname -- "$0")" >/dev/null 2>&1 && pwd -P)"
 resolver="$script_dir/hatsu_root.sh"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Only the declared target traces; fixture assertions and child shells stay plain.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/hatsu_root.sh" ] && [ -x "$coverage_exec" ] || exit 2
+fi
+resolver_exec="${coverage_exec:-$resolver}"
 fixture_root="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-root.XXXXXX")"
 trap 'rm -rf "$fixture_root"' EXIT
 
@@ -58,7 +67,7 @@ run() {
   # run <expected exit> <args...>; stdout to $out, stderr to $err
   local expected="$1"; shift
   set +e
-  out="$(cd "$run_in" && env -u HATSU_PLUGIN_ROOT -u CLAUDE_PLUGIN_ROOT "$resolver" "$@" 2>"$fixture_root/err")"
+  out="$(cd "$run_in" && env -u HATSU_PLUGIN_ROOT -u CLAUDE_PLUGIN_ROOT "$resolver_exec" "$@" 2>"$fixture_root/err")"
   code=$?
   set -e
   err="$(cat "$fixture_root/err")"
@@ -131,7 +140,7 @@ second="$fixture_root/second"
 make_plugin "$second"
 canon_second="$(CDPATH='' cd -- "$second" >/dev/null 2>&1 && pwd -P)"
 set +e
-env_out="$(cd "$run_in" && HATSU_PLUGIN_ROOT="$second" CLAUDE_PLUGIN_ROOT= "$resolver" "$plugin/claude/skills/ten" 2>/dev/null)"
+env_out="$(cd "$run_in" && HATSU_PLUGIN_ROOT="$second" CLAUDE_PLUGIN_ROOT= "$resolver_exec" "$plugin/claude/skills/ten" 2>/dev/null)"
 env_code=$?
 set -e
 [ "$env_code" -eq 0 ] || fail "HATSU_PLUGIN_ROOT candidate exited $env_code"
@@ -159,7 +168,7 @@ assert_contains "$err" "→ $canon_plugin" 'the walk line names where the walk e
 
 # a stale $CLAUDE_PLUGIN_ROOT beside a newer checkout: the pin stays, the slot is named
 set +e
-c_out="$(cd "$run_in" && env -u HATSU_PLUGIN_ROOT CLAUDE_PLUGIN_ROOT="$plugin" "$resolver" 2>"$fixture_root/err")"; c_code=$?
+c_out="$(cd "$run_in" && env -u HATSU_PLUGIN_ROOT CLAUDE_PLUGIN_ROOT="$plugin" "$resolver_exec" 2>"$fixture_root/err")"; c_code=$?
 set -e
 err="$(cat "$fixture_root/err")"
 [ "$c_code" -eq 0 ] && [ "$c_out" = "$canon_plugin" ] || fail "a stale CLAUDE_PLUGIN_ROOT beside a newer checkout: exit $c_code, got '$c_out'"
@@ -168,7 +177,7 @@ assert_contains "$err" 'newer than the root $CLAUDE_PLUGIN_ROOT resolved' 'the C
 # an explicit $HATSU_PLUGIN_ROOT — given as the root AND as a skill directory — is kept and named as the word
 for exp in "$plugin" "$plugin/claude/skills/ten"; do
   set +e
-  env_out="$(cd "$run_in" && HATSU_PLUGIN_ROOT="$exp" CLAUDE_PLUGIN_ROOT= "$resolver" 2>"$fixture_root/err")"; env_code=$?
+  env_out="$(cd "$run_in" && HATSU_PLUGIN_ROOT="$exp" CLAUDE_PLUGIN_ROOT= "$resolver_exec" 2>"$fixture_root/err")"; env_code=$?
   set -e
   err="$(cat "$fixture_root/err")"
   [ "$env_code" -eq 0 ] && [ "$env_out" = "$canon_plugin" ] || fail "explicit export '$exp' beside a newer checkout: exit $env_code, got '$env_out'"
@@ -231,7 +240,7 @@ nogit="$fixture_root/nogit"; mkdir -p "$nogit"
 for t in sh awk sed wc tr; do ln -s "$(command -v "$t")" "$nogit/$t"; done
 run_in="$checkout"
 set +e
-g_out="$(cd "$run_in" && env -u HATSU_PLUGIN_ROOT -u CLAUDE_PLUGIN_ROOT PATH="$nogit" "$resolver" "$plugin" 2>"$fixture_root/err")"; g_code=$?
+g_out="$(cd "$run_in" && env -u HATSU_PLUGIN_ROOT -u CLAUDE_PLUGIN_ROOT PATH="$nogit" "$resolver_exec" "$plugin" 2>"$fixture_root/err")"; g_code=$?
 set -e
 err="$(cat "$fixture_root/err")"
 [ "$g_code" -eq 0 ] && [ "$g_out" = "$canon_plugin" ] || fail "without git: exit $g_code, got '$g_out'"

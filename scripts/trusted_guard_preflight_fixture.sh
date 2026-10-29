@@ -113,7 +113,7 @@ git -C "$checkout" add -A
 git -C "$checkout" commit -qm 'fixture: a base workflow running the canon lint'
 git -C "$checkout" update-ref refs/remotes/origin/preflight-canon HEAD
 ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon --list > "$fixture/canon-list.log" 2>&1 \
-  && grep -q '  prose_ambiguity_check.mts (plugin-bump-check.yml)' "$fixture/canon-list.log" \
+  && grep -Eq '^  prose_ambiguity_check[.]mts [(][^)]*plugin-bump-check[.]yml([,)]|$)' "$fixture/canon-list.log" \
   || { cat "$fixture/canon-list.log"; echo 'trusted-guard-preflight-fixture: the .mts canon lint was not derived' >&2; exit 1; }
 set +e
 ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-lint.log" 2>&1

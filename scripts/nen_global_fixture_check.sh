@@ -14,6 +14,17 @@ set -u
 here="$(cd "$(dirname "$0")" && pwd -P)"
 root="$(cd "$here/.." && pwd -P)"
 script="$root/scripts/nen_global.sh"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # Only the declared target traces; fixture assertions and child shells stay plain.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/nen_global.sh" ] && [ -x "$coverage_exec" ] || exit 2
+fi
+script_exec() {
+  if [ -n "$coverage_exec" ]; then "$coverage_exec" "$@"; else sh "$script" "$@"; fi
+}
 hook="$root/hooks/session-start.sh"
 pin="$(sed -n 's/^[[:space:]]*"pinned_ref"[[:space:]]*:[[:space:]]*"v\{0,1\}\([^"]*\)".*/\1/p' "$root/nen/contract.json" | head -n 1)"
 [ -n "$pin" ] || { echo "nen-global-fixture: cannot read the pin" >&2; exit 1; }
@@ -88,7 +99,7 @@ run() {
     set -- "$@" --expect-script-sha256 "${SCRIPT_SHA_OVERRIDE:-$(sha <"$local_script")}"
   fi
   out="$(cd "$work/cwd" && HOME="$_h" XDG_CACHE_HOME="$_h/.cache" XDG_CONFIG_HOME="$_h/.config" TMPDIR="$work/tmp" \
-    PATH="${RUNPATH:-$PATH}" SHELL="$_s" HATSU_NEN_GLOBAL="${NG:-1}" sh "$script" --root "${ROOT:-$root}" "$@" 2>&1)"
+    PATH="${RUNPATH:-$PATH}" SHELL="$_s" HATSU_NEN_GLOBAL="${NG:-1}" script_exec --root "${ROOT:-$root}" "$@" 2>&1)"
   rc=$?
 }
 # runstub HOME SHELL args... — run with the current stub and its digest.
@@ -494,7 +505,7 @@ if [ "$rc" -eq 2 ] && has 'fixture seam'; then pass "--expect-sha256 without --b
 # 26. TERM: the whole child tree dies, the temp dir is removed, exit 5, quickly
 h="$(newhome term)"; mkstub hang "$pin" 0 hang; rm -f "$work/childpid"; rm -rf "$work/tmp"; mkdir -p "$work/tmp"
 (cd "$work/cwd" && HOME="$h" XDG_CACHE_HOME="$h/.cache" XDG_CONFIG_HOME="$h/.config" TMPDIR="$work/tmp" SHELL=/bin/zsh HATSU_NEN_GLOBAL=1 \
-  sh "$script" --root "$root" --bootstrap-script "$stub" --expect-sha256 "$stubsha" --expect-script-sha256 "$(sha <"$stub")" >"$work/term.out" 2>&1) &
+  script_exec --root "$root" --bootstrap-script "$stub" --expect-sha256 "$stubsha" --expect-script-sha256 "$(sha <"$stub")" >"$work/term.out" 2>&1) &
 tpid=$!
 i=0; while [ ! -s "$work/childpid" ] && [ "$i" -lt 50 ]; do sleep 0.2; i=$((i + 1)); done
 child="$(cat "$work/childpid" 2>/dev/null)"

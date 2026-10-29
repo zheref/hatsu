@@ -21,6 +21,15 @@ set -u
 
 here="$(cd "$(dirname "$0")" && pwd)"
 guard="$here/private_name_check.sh"
+coverage_exec="${HATSU_SHELL_COVERAGE_EXEC:-}"
+if [ -n "$coverage_exec" ]; then
+  # The real source alone traces; assertions, private-list stubs and descendants stay plain.
+  set +x
+  export HATSU_SHELL_COVERAGE_PS4="${PS4-}" HATSU_SHELL_COVERAGE_TRACE_FD="${BASH_XTRACEFD-}"
+  export -n PS4 BASH_XTRACEFD SHELLOPTS
+  [ "${HATSU_SHELL_COVERAGE_TARGET:-}" = "scripts/private_name_check.sh" ] && [ -x "$coverage_exec" ] || exit 2
+fi
+guard_exec="${coverage_exec:-$guard}"
 work="$(mktemp -d)" || exit 2
 trap 'rm -rf "$work"' EXIT
 
@@ -46,7 +55,7 @@ printf '%s\n' '4. **The predecessor marker** — `head -1` against `<!-- GENERAT
 # Run the guard; capture stdout+stderr and the exit code. HOME is a throwaway so no real ignore file
 # is ever read.
 run() {
-  out="$(HOME="$work/home" XDG_CONFIG_HOME="$work/home/.config" "$guard" "$@" 2>&1)"
+  out="$(HOME="$work/home" XDG_CONFIG_HOME="$work/home/.config" "$guard_exec" "$@" 2>&1)"
   rc=$?
 }
 # expect <rc> <case> <args...>: also asserts no private name ever reaches the output.
@@ -159,17 +168,17 @@ expect 0 "--verbose names the list size" --names-file "$names" --verbose "$work/
 has 'checked against 3' "--verbose ok line"
 
 # --- stdin, labels and paths never print a name -------------------------------------------------
-out="$(printf 'body naming zz-secret\n' | HOME="$work/home" "$guard" --names-file "$names" --label issue-body - 2>&1)"; rc=$?
+out="$(printf 'body naming zz-secret\n' | HOME="$work/home" "$guard_exec" --names-file "$names" --label issue-body - 2>&1)"; rc=$?
 [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^issue-body:1:' && ok || bad "stdin with --label: $rc $out"
-out="$(printf 'body naming zz-secret\n' | HOME="$work/home" "$guard" --names-file "$names" --label 'draft for zz-secret' - 2>&1)"; rc=$?
+out="$(printf 'body naming zz-secret\n' | HOME="$work/home" "$guard_exec" --names-file "$names" --label 'draft for zz-secret' - 2>&1)"; rc=$?
 [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^draft for <private #' && ! printf '%s' "$out" | grep -qi 'zz-secret' && ok || bad "a label naming a repository is redacted: $rc $out"
-out="$(printf 'body naming zz-secret\n' | HOME="$work/home" "$guard" --names-file "$names" --label 'draft %7Az-secret' - 2>&1)"; rc=$?
+out="$(printf 'body naming zz-secret\n' | HOME="$work/home" "$guard_exec" --names-file "$names" --label 'draft %7Az-secret' - 2>&1)"; rc=$?
 [ "$rc" -eq 1 ] && printf '%s' "$out" | grep -q '^<label withheld: private #' && ! printf '%s' "$out" | grep -qi '%7Az-secret\|zz-secret' && ok || bad "a label naming a repository once normalised is withheld: $rc $out"
-out="$(printf 'clean body\n' | HOME="$work/home" "$guard" --names-file "$names" - 2>&1)"; rc=$?
+out="$(printf 'clean body\n' | HOME="$work/home" "$guard_exec" --names-file "$names" - 2>&1)"; rc=$?
 [ "$rc" -eq 0 ] && ok || bad "clean stdin: $rc $out"
-out="$(printf 'x\n' | HOME="$work/home" "$guard" --names-file "$names" - - 2>&1)"; rc=$?
+out="$(printf 'x\n' | HOME="$work/home" "$guard_exec" --names-file "$names" - - 2>&1)"; rc=$?
 [ "$rc" -eq 2 ] && ok || bad "stdin twice: $rc $out"
-out="$(printf 'zz-secret\n' | HOME="$work/home" "$guard" --names-file "$names" - -- - 2>&1)"; rc=$?
+out="$(printf 'zz-secret\n' | HOME="$work/home" "$guard_exec" --names-file "$names" - -- - 2>&1)"; rc=$?
 [ "$rc" -eq 2 ] && ok || bad "stdin twice through --: $rc $out"
 mkdir -p "$work/zz-secret" && printf 'clean\n' > "$work/zz-secret/f.md" && chmod 000 "$work/zz-secret/f.md"
 if [ ! -r "$work/zz-secret/f.md" ]; then
@@ -210,10 +219,10 @@ rm -f "$work/home/.config/hatsu/redaction-ignore"
 expect 1 "ignore file never hides another name" --names-file "$names" --ignore-file "$work/ignore" "$work/bare.md"
 has '1 ignored' "ignored count reported on a refusal"
 expect 2 "explicit ignore file missing" --names-file "$names" --ignore-file "$work/nope" "$work/bare.md"
-out="$(env -u HOME -u XDG_CONFIG_HOME "$guard" --names-file "$names" "$work/bare.md" 2>&1)"; rc=$?
+out="$(env -u HOME -u XDG_CONFIG_HOME "$guard_exec" --names-file "$names" "$work/bare.md" 2>&1)"; rc=$?
 [ "$rc" -eq 2 ] && ok || bad "HOME and XDG_CONFIG_HOME unset is a wiring fault: exit $rc, wanted 2 -- $out"
 has 'neither XDG_CONFIG_HOME nor HOME' "the wiring fault names why there is no default"
-out="$(env -u HOME -u XDG_CONFIG_HOME "$guard" --names-file "$names" --ignore-file "$work/ignore-empty" "$work/bare.md" 2>&1)"; rc=$?
+out="$(env -u HOME -u XDG_CONFIG_HOME "$guard_exec" --names-file "$names" --ignore-file "$work/ignore-empty" "$work/bare.md" 2>&1)"; rc=$?
 [ "$rc" -eq 1 ] && ok || bad "an explicit ignore file needs no HOME: exit $rc, wanted 1 -- $out"
 expect 1 "no default ignore file: still a refusal" --names-file "$names" "$work/bare.md"
 has 'no ignore file, so nothing ignored' "a refusal says no ignore file was read, never 0 ignored"
@@ -294,6 +303,8 @@ EOF
 chmod +x "$bin/gh"
 sysbin="/usr/bin:/bin:$(dirname "$(command -v node)")"
 live() { PATH="$bin:$sysbin" expect "$@"; }
+live 0 "live tree: absent ignore policy scans strictly" --tree "$crepo"
+has 'no ignore file, so nothing ignored' "live tree: absent policy ignores nothing"
 live 1 "live list: bare name" "$work/bare.md"
 live 0 "live list: clean" "$work/clean.md"
 has '2 owner(s)' "the ok line counts the owners checked"

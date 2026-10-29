@@ -62,6 +62,9 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
   // A delegate's brief carries WORKFLOW § Delegate briefs' wait block word for word (zheref/hatsu#473).
   ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard'],
+  // HA148: the paired companion proves rendering and legacy --self-test forwarding.
+  // Automatic selection starts after this trusted runner is adopted by the PR base.
+  ['report_time.sh', 'report_time_fixture.sh', 'report-time-guard'],
   // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
