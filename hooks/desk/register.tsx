@@ -255,6 +255,8 @@ async function read_($: EngineInterface): Promise<void> {
       unpushed: upstream.code === 0 ? Number((await run($, ['git', '-C', where.top, 'rev-list', '--count', '@{u}..HEAD'])).out.trim()) || 0 : 0,
       pr,
       phases: myPhases,
+      // Whether a catch-up has anything left to merge, read locally against the last fetched base.
+      hasBase: (await run($, ['git', '-C', where.top, 'merge-base', '--is-ancestor', `origin/${where.base}`, 'HEAD'])).code === 0,
       atGate: waiting.some(g => g.effort === branch && (g.gate === 'G2' || g.gate === 'G4')),
       nature: natureOf(pr, latestMode(await $.session.messages()), wc.state.existingCommitSubjects ?? [], wc.state.uncommittedPaths, repo),
     }
@@ -594,6 +596,7 @@ export const register: Register = on => {
       gate: gateOfMerge,
       base: where.base,
       isConflicted: s.pr?.mergeable === 'CONFLICTING',
+      hasBase: s.hasBase,
       ...progressOf(s, acts, edited),
     })
     const reading = stateOf(stage, s, acts)

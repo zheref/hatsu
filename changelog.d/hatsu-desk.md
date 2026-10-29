@@ -15,4 +15,6 @@
 - Before a PR exists the desk reads Preparing PR, Reviewing while hanten's reviewers run, or
   Remediating while their findings are settled, and the merge gate only from the stop En records at Ready.
 - When GitHub reads the open PR as conflicting with its base, the desk says so and stars Update
-  (`murasaki`), which merges the base in and stops on a semantic conflict; Unblock PR only names it.
+  (`murasaki`), which merges the base into the local branch and stops on a semantic conflict; once
+  the branch holds the base and the PR still conflicts, it stars Drive PR (`en`), which publishes
+  the catch-up. Unblock PR (`sharingan`) pushes only a clean merge and resolves nothing.

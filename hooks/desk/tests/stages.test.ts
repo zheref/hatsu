@@ -6,7 +6,7 @@ import type { Pr, SessionEffort } from '../state'
 
 const effort: SessionEffort = {
   branch: 'opus/kurapika/hatsu-desk-pane', title: 'Hatsu desk pane', ref: null, repo: null,
-  dirty: 0, ahead: 1, hasUpstream: false, unpushed: 0, pr: null, phases: [], atGate: false, nature: null,
+  dirty: 0, ahead: 1, hasUpstream: false, unpushed: 0, pr: null, phases: [], atGate: false, hasBase: false, nature: null,
 }
 const pr = (state: string): Pr => ({ number: 9, state, title: 'x', url: 'https://example.invalid', isDraft: false })
 const at = (s: SessionEffort) => STAGES[stageOf(s, [], 0)]!.name

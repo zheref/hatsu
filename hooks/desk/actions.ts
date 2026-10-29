@@ -111,6 +111,8 @@ export type EffortState = {
   atGate: boolean
   /** GitHub reads the open PR as CONFLICTING with its base. */
   isConflicted: boolean
+  /** The local branch already contains `origin/<base>`: a catch-up has nothing left to merge. */
+  hasBase: boolean
 }
 
 /** A PR state as gh reports it; anything else is a read the desk did not understand. */
@@ -177,9 +179,10 @@ export function stepFor(s: EffortState): Step {
     return step('Closed without merging', `PR ${pr} was closed unmerged, so it has left the sitting's scope.`, [ren, report], null, true)
   }
   if (s.pr?.state === 'OPEN') {
-    // More work on a PR branch is still ren and kokusen; Update (murasaki) pushes it onto the PR.
+    // More work on a PR branch is still ren and kokusen; Drive PR (en) publishes it onto the PR, since
+    // a standalone Update (murasaki) catches up locally and pushes nothing (murasaki § 0).
     const paths: Offer[] = [
-      s.atGate ? null : `hatsu:en on ${pr}`,
+      s.atGate && !s.isConflicted ? null : `hatsu:en on ${pr}`,
       `hatsu:sharingan ${pr} to ${s.gate}`,
       ren,
       commit,
@@ -193,20 +196,29 @@ export function stepFor(s: EffortState): Step {
     if (s.dirty > 0) {
       return step(
         'Uncommitted work on the PR branch',
-        `${plural(s.dirty, 'file')} not committed. Commit them, then Update pushes them onto PR ${pr}.`,
+        `${plural(s.dirty, 'file')} not committed. Commit them, then Drive PR publishes them onto PR ${pr}.`,
         paths,
         'hatsu:kokusen',
       )
     }
-    // A conflicted PR runs no checks, so it can look quiet; Update (murasaki) merges the base in,
-    // settles the mechanical conflicts and stops on a semantic one. Unblock PR only names it.
+    // A conflicted PR runs no checks, so it can look quiet. Update (murasaki) merges the base into the
+    // local branch, settling mechanical conflicts and stopping on a semantic one, and pushes nothing
+    // when called on its own; Drive PR (en) then publishes the caught-up branch. Unblock PR
+    // (sharingan) pushes only a clean merge and leaves a real conflict unresolved.
     if (s.isConflicted) {
-      return step(
-        `Conflicts with ${s.base}`,
-        `PR ${pr} cannot merge: its branch conflicts with ${s.base}. Update catches it up, resolving mechanical conflicts and stopping for you on a semantic one.`,
-        paths,
-        'hatsu:murasaki',
-      )
+      return s.hasBase
+        ? step(
+            `Conflicts on GitHub, caught up locally`,
+            `This branch already holds ${s.base}, but PR ${pr} still reads as conflicting: the catch-up is not pushed. Drive PR publishes it onto the PR and drives it to readiness.`,
+            paths,
+            `hatsu:en on ${pr}`,
+          )
+        : step(
+            `Conflicts with ${s.base}`,
+            `PR ${pr} cannot merge: its branch conflicts with ${s.base}. Update merges ${s.base} into the local branch, resolving mechanical conflicts and stopping for you on a semantic one; Drive PR then publishes it.`,
+            paths,
+            'hatsu:murasaki',
+          )
     }
     if (s.atGate) {
       return step(`At your merge gate (${s.gate})`, `En left PR ${pr} at your ${s.gate} prompt. The merge is yours, outside the session, never a button.`, paths)

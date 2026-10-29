@@ -62,6 +62,8 @@ export type SessionEffort = {
   phases: string[]
   /** A G2/G4 stop for this branch is unrung: En left it at Ready, at the maintainer's merge prompt. */
   atGate: boolean
+  /** The branch already contains `origin/<base>`, as last fetched. */
+  hasBase: boolean
   /** The nature of the work (feature, machinery, governance…) and what it was read from. */
   nature: { label: string; source: string } | null
 }
