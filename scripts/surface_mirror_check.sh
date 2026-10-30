@@ -58,9 +58,10 @@
 # pinned one, and .github/workflows/surface-mirror-check.yml turns it into an
 # ERROR rather than the skip-with-notice it used to be. Verified against the
 # pinned build: this script exits 0 for codex, cursor and antigravity against a
-# fresh generation (`ok: 62` codex; `ok: 61` cursor/antigravity — skills plus
-# personas plus the preamble include, plus the hook, rules, permission and
-# manifest files). Re-read the counts a run actually prints after a
+# fresh generation (`ok: 84` on each of the three at zheref/hatsu#530 — 60 skills,
+# 17 personas on codex and 18 on cursor and antigravity where the preamble
+# include is its own file, 3 hook scripts, and each surface's own 4 or 3 hook,
+# rules, permission and manifest files). Re-read the counts a run actually prints after a
 # regeneration rather than remember them here: a skill count, a persona
 # layout (one include today; nen may fold `_review-preamble.md` into a plain
 # `include` and move where antigravity's skills live) both shift the number

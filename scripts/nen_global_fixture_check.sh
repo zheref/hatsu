@@ -38,11 +38,18 @@ cleanup() { chmod -R u+rwx "$work" 2>/dev/null; rm -rf "$work"; }
 trap cleanup EXIT
 mkdir -p "$work/cwd" "$work/tmp"
 fails=0
-# Shipped Cloud and prepared readiness snippets are exercised by the same focused lane.
-node "$root/node_modules/vitest/vitest.mjs" run --root "$root" --testTimeout 15000 "$root/scripts/bootstrap_integrity_fixture.test.mts" || fails=$((fails + 1))
 
 pass() { echo "PASS $1"; }
 fail() { echo "FAIL $1 — $2"; fails=$((fails + 1)); }
+
+# Shipped Cloud and prepared readiness snippets are exercised by the same focused lane. It runs
+# through fail() like every other case: a tally that increments with no `FAIL <case>` line tells a
+# reader one case failed and gives them nothing to point at (Phinks, zheref/hatsu#530).
+if node "$root/node_modules/vitest/vitest.mjs" run --root "$root" --testTimeout 15000 "$root/scripts/bootstrap_integrity_fixture.test.mts"; then
+  pass "bootstrap integrity vitest suite"
+else
+  fail "bootstrap integrity vitest suite" "see the vitest output above"
+fi
 
 sha() { if command -v shasum >/dev/null 2>&1; then shasum -a 256 | awk '{print $1}'; else sha256sum | awk '{print $1}'; fi; }
 

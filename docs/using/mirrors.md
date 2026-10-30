@@ -48,6 +48,15 @@ churn. A bump now rewrites exactly one generated file,
 than a copy of one. A copy placed before the change still carries `, stamp: <version>`; the warm-up
 and the bootstrap read both grammars, so such a copy still names its surface and still refreshes.
 
+**The transition is one-way.** A workspace this release has refreshed carries only the new form, and a
+**pre-#530** `scripts/surface_bootstrap.sh` cannot see it: `--install-all` from such a tree refuses on
+every surface with *"carries no existing `<s>` mirror marker under `.<dir>` — refusing an unattended
+full-surface install; run `--bootstrap` or `hatsu:tenkai` first"*, and in `--plugin` mode leaves a
+codex-placed skill behind. The past cannot be taught a new grammar, so this is inherent; it fails
+closed and names its own remedy. The way to meet it is to run the bootstrap from a branch still on a
+pre-#530 tree against a target a newer branch has already refreshed — recorded here so the refusal is
+recognised rather than debugged.
+
 **Edit the source, never the mirror.** A hand edit is reported by the check, by name, as
 `hand-edited`; a mirror whose bytes match a fresh generation is current, whatever version the
 manifest beside it declares. The
