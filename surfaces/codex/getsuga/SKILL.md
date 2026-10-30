@@ -738,19 +738,29 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 
 ## Residue
 
-The shape `docs/PROCESS.md` § *The skill shape* asks for, written from what the steps above already
-state rather than added as new rule (owed since HA#502; this skill was next edited by HA#530).
+The shape [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *The skill shape* asks for, written from what
+the steps above already state; each item cites its issue or the literal `unfiled`, per that document's
+§ *Residue and owned dependencies* (owed since HA#502; this skill was next edited by HA#530).
 
-- **The version writes.** No `nen` verb owns `nen/repos.json`'s `product_codes` edit (§ 5, step 4) or
-  the version manifest's bump (step 5): both are a direct edit, and the second is a no-op wherever the
-  delivery PR already carried it.
-- **The reads around the proposal.** The base read-back `gh pr view <N> --repo <owner/name> --json
-  baseRefName` is named residue (§ 3), and a release PR's live body is read directly because
-  `nen pr fetch` returns none.
-- **The placement judgement.** Where a cut point sits relative to the trunk stays a direct `git` read
-  plus judgement, recorded in `docs/ab/getsuga.md`; no verb decides it.
-- **A distinct exit code from a verb this skill drives is a nen residue**, filed as an issue rather
-  than worked around (§ 1).
+- **The pre-resolve read.** `git rev-parse --verify -q '<token>^{commit}'` runs before
+  `nen release resolve-target` because that verb's exit `1` conflates an unresolvable token with a
+  resolved commit that is not an ancestor, and the two need different answers (§ 1); the missing
+  distinction is owed to nen — `unfiled`.
+- **The registry and manifest writes.** No `nen` verb owns `nen/repos.json`'s `latest` bump (§ 5,
+  step 4) or the version manifest's bump (step 5): both are a direct edit, and the second is a no-op
+  wherever the delivery PR already carried it — `unfiled`.
+- **The back-fill placement.** Which CHANGELOG section a fragment stranded at the previous tag belongs
+  to stays a direct `git ls-tree -r <prevTag> -- changelog.d` read plus judgement (§ 5, step 2;
+  [`docs/ab/getsuga.md`](../../../docs/ab/getsuga.md) § 3); never a file timestamp — `unfiled`.
+- **The reads around the proposal.** The base read-back `gh pr view <N> --json baseRefName` is named
+  residue (§ 3), and a release PR's live body is read directly because `nen pr fetch` returns none
+  (§ 3a) — `unfiled`.
+- **The raced cut point — an owned dependency, not residue.** No public verb compares the merge SHA's
+  release state with § 3a's recorded judged head (§ 4); the missing predicate is zheref/nen#572
+  ([NN-IS-#572](https://github.com/zheref/nen/issues/572)), and until it ships the raced case is held
+  at G5 and never chosen by eye.
+- **A distinct exit code this skill asks of a verb it drives is filed, never worked around** (§ 1) —
+  `unfiled` until one is owed.
 
 ## 8. Authority
 

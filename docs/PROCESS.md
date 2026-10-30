@@ -935,7 +935,8 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   `nen commit write --message-file`, gated on `nen commit format`.
 - **`bakuryuha`.** The first-party install is `scripts/hatsu_surface_link.sh` and updating the checkout is
   `scripts/hatsu_plugin_update.sh`, as for `ten`; the served-version read-backs (`claude plugin list
-  --json`, `codex plugin list`, `agy plugin validate`, a placed marker stamp) and following a skill body
+  --json`, `codex plugin list`, `agy plugin validate`, a linked checkout's own `.claude-plugin/plugin.json`
+  — never a placed marker, which carries no version since HA#530) and following a skill body
   from the new path until the surface switches are done by hand. No nen verb owns a host's installed
   plugin: an owned dependency, zheref/nen#298 (BC-11 reads the scripts' branching shell as a verb's
   job, a G4 question until the verb lands).
@@ -1007,7 +1008,7 @@ one, the block and the guard's sentence quoted; a throwaway helper script is nev
 
 **The mirror regeneration** `great-hiker` § 4 and `docs/using/mirrors.md` § 3 run after every
 source change is `scripts/surface_mirror_regenerate.sh`, one plain call: the three `nen surface mirror
-generate` calls at the manifest's stamp, built from `scripts/surface_mirror_check.sh`'s own constants
+generate` calls, built from `scripts/surface_mirror_check.sh`'s own constants
 and hooks-root table, which it sources (one table, never a copy; lane `mirror-regenerate-guard`). It is
 run in the Hatsu checkout being authored, never by an installed copy. **Owned dependencies**, filed
 at this run's third-hand harvest after En, their numbers added then: a body-file flag on `nen commit

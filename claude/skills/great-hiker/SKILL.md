@@ -84,8 +84,8 @@ bash scripts/surface_mirror_regenerate.sh             # codex, cursor, antigravi
 One plain call (#218): the check's own flags per surface, a refusal exiting with nen's code and
 generating nothing after it. `--models` renders the model map (Cursor's `inherit`, Codex's `[agents]` fragment), `--permissions`
 the permission pack, `--hooks` the hook rows, `--rules` the rules file (under the surface's limit), and
-`--manifest` one surface's own plugin manifest. **No marker carries the plugin version** (HA#530), so a
-bump rewrites that one mirror file and nothing else. Then, in this order:
+`--manifest` one surface's own plugin manifest. **No marker carries the plugin version** (HA#530).
+Then, in this order:
 
 1. `bash scripts/surface_mirror_check.sh`: one `nen surface mirror check` per surface; exit `1` names
    the class (`missing`, `extra`, `stale`, `hand-edited`), exit `2` means the nen on PATH is not the
@@ -103,7 +103,8 @@ The regeneration lands in the **same commit** as the change that caused it.
 Run `claude plugin validate . --strict` and `sh scripts/prose_size_check.sh`. Bump
 `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` to the same version strictly above the
 fresh base; a collision owes [`hatsu:ao`](../ao/SKILL.md) § 5's re-bump and same-effort fragment update.
-`scripts/plugin_bump_check.sh` refuses equal, lower or lagging versions. Run
+`scripts/plugin_bump_check.sh` refuses equal, lower or lagging versions. **Then regenerate again**
+(§ 4): a bump lands in a generated manifest. Run
 `agy plugin validate surfaces/antigravity` where `agy` is on PATH. Return a red check to the authoring
 subsession with its failing line (row `red-lint`, never a G5).
 

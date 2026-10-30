@@ -39,9 +39,11 @@ where there is no fence; the `description` field in a JSON file), naming the sur
 
 **The marker carries no version** ([HA#530](https://github.com/zheref/hatsu/issues/530)). It used to:
 `--stamp` wrote `.claude-plugin/plugin.json`'s version into all 252 of them, so every bump made the
-whole tree stale at once and rewrote all 252 files — 43% of the commits that touched `surfaces/` over
-one 60-commit window changed nothing else — while the only code that read that version was the
-plugin-bump guard's own scan explaining the churn. A bump now rewrites exactly one generated file,
+whole tree stale at once and rewrote all 252 files. Over the last 60 commits touching `surfaces/`,
+6,284 of 7,201 file diffs there (87.3%) changed nothing but that marker — measured with first-parent `git diff --unified=0 <c>^1 <c> -- surfaces/`, a file diff counted marker-only when every changed line matches the marker or a `"version"` key — and
+nine of the last 20 such commits rewrote all 252 files to carry a median of 4 files of real change.
+Meanwhile the only code that read the version was the plugin-bump guard's own scan explaining the
+churn. A bump now rewrites exactly one generated file,
 `surfaces/antigravity/plugin.json`, because that one IS a plugin manifest declaring a version rather
 than a copy of one. A copy placed before the change still carries `, stamp: <version>`; the warm-up
 and the bootstrap read both grammars, so such a copy still names its surface and still refreshes.
@@ -76,6 +78,15 @@ From the repository root, in the same commit as the source change, one plain cal
 ```sh
 bash scripts/surface_mirror_regenerate.sh --dry-run   # the three generate lines it runs, nothing written
 bash scripts/surface_mirror_regenerate.sh             # codex, cursor, antigravity
+```
+
+**Run it again after a version bump.** `--manifest` renders `.claude-plugin/plugin.json`'s version
+into `surfaces/antigravity/plugin.json`, so a bump that lands after a regeneration leaves that one
+mirror stale — one drift row, and since HA#530 no guard names the bump as its cause. The second run
+rewrites that file and nothing else.
+
+```sh
+bash scripts/surface_mirror_regenerate.sh             # again, after the bump
 ```
 
 It runs one `nen surface mirror generate` per surface with exactly the flags and hooks roots
@@ -115,7 +126,7 @@ generation — a manual check, not the warm-up's step.
 
 **The link guard** ([`scripts/surface_link_check.sh`](../../scripts/surface_link_check.sh), zheref/hatsu#72) proves what the drift check cannot: that the generated bodies' relative links — every `](…)` target that is not absolute, `http(s)`, `mailto:` or a bare fragment, whatever its suffix — resolve at the depth each mirror sits at, in every generated file that carries markdown (`.md`, Cursor's `.mdc`, the Codex persona `.toml` bodies). It resolves every such link from its file's own directory, folding `.` and `..` as text (a link that climbs above the repository root, or passes through a symbolic link, is dangling and never stat'ed), and exits `0` clean, `1` dangling (file, link, resolved path per row; `--summary` classifies by surface and prefix), `2` on a wiring defect (a non-Hatsu root, no or an empty `surfaces/`, an unreadable file, a file name with a control character, an unexpected argument); it needs no `nen`, so `3` is never used. Its fixture is the focused lane `surface-link-guard` (hermetic: a green lane says the guard works, never that the mirrors are clean); the live verdict is the script itself — **in CI** inside [`surface-mirror-check.yml`](../../.github/workflows/surface-mirror-check.yml)'s drift step (trusted revision against the PR checkout, so a dangling link fails `surface-mirror-check` on a same-repository pull request that adds it, once its mirrors match a fresh generation: the link guard runs only after a clean drift verdict, and the job skips fork and draft pull requests), and by hand. It was red against these mirrors until nen v0.17.0 re-aimed relative links per mirror depth (zheref/nen#270, fixed by zheref/nen#285: 406 of 2674 dangled at v0.52.0, every one generator-produced; the table is in `docs/ab/surface-link-check.md`), and it stayed out of CI while red, because `nen pr ready` counts every reported check and a context red on every pull request would read every pull request not-ready for a defect none of them made. Never an allowlist, a warning mode or a skipped run.
 
-**In CI.** After a real bump, `plugin-bump-check` (required on `main`) also fails a `surfaces/<s>` whose marker stamp lags the bumped manifest, naming the bump as the cause (zheref/hatsu#99); `surface-mirror-check` reports the same drift in the same round, and mukai's `scripts/surface_mirror_check.sh` is the local catch before the PR opens. [`surface-mirror-check.yml`](../../.github/workflows/surface-mirror-check.yml) bootstraps nen at
+**In CI.** After a real bump, `plugin-bump-check` (required on `main`) also reads `.codex-plugin/plugin.json`'s own version, which Codex keys its plugin-cache slot on, and fails a lagging or misnamed overlay by name. It no longer reads the mirrors' markers at all: a bump restamps none of them, so there is nothing there to lag (HA#530, retiring zheref/hatsu#99's scan with the churn it explained). A mirror's correctness is `surface-mirror-check`'s byte comparison alone, and mukai's `scripts/surface_mirror_check.sh` is the local catch before the PR opens. [`surface-mirror-check.yml`](../../.github/workflows/surface-mirror-check.yml) bootstraps nen at
 the ref `nen/contract.json` pins, checks the binary against that contract's linux-x64 digest before
 anything runs it ([`GATE-CONFIGURATION.md`](../GATE-CONFIGURATION.md), the 2026-10-13 nen-digest record;
 zheref/hatsu#230), and runs the script from the trusted checkout against the PR's, then,

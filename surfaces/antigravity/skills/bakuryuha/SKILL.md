@@ -51,7 +51,7 @@ snapshot, never the checkout); else `$HATSU_PLUGIN_ROOT`; else asked (`missing-c
 | Claude Code | `~/.claude/skills/hatsu` → the checkout, in place (`hatsu@skills-dir`) | `hatsu@hatsu`, copied to the cache | `claude plugin list --json`: the serving row — an enabled `hatsu@hatsu` shadows, else `hatsu@skills-dir` |
 | Codex | the `hatsu` plugin from the checkout's marketplace | `.agents/skills/` copies | `codex plugin list`: the `hatsu@hatsu` row |
 | Antigravity | `~/.gemini/config/plugins/hatsu` → `<checkout>/surfaces/antigravity` | `.agents/` copies | the linked `plugin.json` |
-| Cursor | `.cursor/skills/` links into `<checkout>/surfaces/cursor/` | — | the linked marker |
+| Cursor | `.cursor/skills/` links into `<checkout>/surfaces/cursor/` | — | the link's target checkout `.claude-plugin/plugin.json` (it serves in place, so before and after are the same bytes; no marker carries a version, HA#530) |
 | cloud session (only by the ask) | none: it "doesn't load the plugins you installed on your own machine" | — | **not applicable**, said; § 7 still ends the run |
 
 **You are the JSON parser** (`ten` § 0): no `jq`. A surface on both forms is on its legacy form.

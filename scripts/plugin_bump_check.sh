@@ -443,6 +443,28 @@ PLUGIN_SURFACE_GLOBS=(
   '.mcp.json'
 )
 
+# --- head_token VALUE ---------------------------------------------------------
+# THE PR HEAD IS DATA under `pull_request_target` (Feitan, HA-PR-#121, re-filed on
+# zheref/hatsu#530). Anything this guard prints that came out of the head tree -- a manifest's
+# `name` or `version`, a changed path -- reaches the trusted job's log, where a CR can forge a
+# `::error` workflow command and an ESC can conceal text from the maintainer reading the required
+# check. The retired `surfaces_stamp_scan` carried this rule for the whole file; it left with the
+# scan, and the three remaining head reads had never had it. So it lives here, once, and they all
+# pass through it.
+#
+# A value of only `[0-9A-Za-z.+/_-]` and at most 128 characters is printed as itself; anything else
+# -- empty, over length, or carrying any other byte, control characters included -- becomes the
+# fixed word `<malformed>`. A malformed value still fails the check it is part of; it simply cannot
+# say anything in the log. `/` and `_` are admitted because a changed PATH goes through here too.
+head_token() {
+  case "$1" in
+    "") printf '<malformed>'; return ;;
+    *[!0-9A-Za-z.+/_-]*) printf '<malformed>'; return ;;
+  esac
+  [ "${#1}" -le 128 ] || { printf '<malformed>'; return; }
+  printf '%s' "$1"
+}
+
 # --- codex_overlay_check ROOT CLAUDE_VERSION ---------------------------------
 # .codex-plugin/plugin.json is the Codex-facing plugin manifest overlay
 # (see PLUGIN_SURFACE_GLOBS's own comment on it). Codex keys its OWN
@@ -473,11 +495,11 @@ codex_overlay_check() {
   name="$(plugin_name "$overlay")"
   version="$(plugin_version "$overlay")"
   if [ "$name" != "hatsu" ]; then
-    printf '.codex-plugin/plugin.json name is %s, must be hatsu (Codex keys its own plugin-cache slot on this manifest'"'"'s name and version)\n' "${name:-<none>}"
+    printf '.codex-plugin/plugin.json name is %s, must be hatsu (Codex keys its own plugin-cache slot on this manifest'"'"'s name and version)\n' "$(head_token "${name:-<none>}")"
     return 0
   fi
   if [ "$version" != "$claude_version" ]; then
-    printf '.codex-plugin/plugin.json version is %s, .claude-plugin/plugin.json version is %s -- they must match (Codex keys its own plugin-cache slot on this manifest'"'"'s version, so a lagging overlay leaves every Codex install on the old slot)\n' "${version:-<none>}" "$claude_version"
+    printf '.codex-plugin/plugin.json version is %s, .claude-plugin/plugin.json version is %s -- they must match (Codex keys its own plugin-cache slot on this manifest'"'"'s version, so a lagging overlay leaves every Codex install on the old slot)\n' "$(head_token "${version:-<none>}")" "$(head_token "$claude_version")"
     return 0
   fi
   return 1
@@ -824,8 +846,18 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     if [ -n "$head_root" ]; then
       node "$(dirname -- "${BASH_SOURCE[0]}")/changelog_fragment_guard.ts" "$changed_files" "$head_root" "$pr_body"
     fi
+    # codex_overlay_check returns 1 for BOTH "absent" and "consistent" — a missing overlay is not a
+    # defect — so the caller reads the file itself rather than claiming a verification it did not make
+    # (Nobunaga, zheref/hatsu#530). And the mirrors: one generated file, surfaces/antigravity/plugin.json,
+    # IS a plugin manifest rendered from --manifest and a bump does rewrite it; what no mirror carries
+    # is the version in its MARKER, which is the churn that retired.
     if [ -n "$head_root" ]; then
-      summary=".codex-plugin/plugin.json consistent at ${head_version_now}; no mirror under surfaces/ carries the version, so a bump restamps none of them (zheref/hatsu#530)"
+      if [ -f "$head_root/.codex-plugin/plugin.json" ]; then
+        summary=".codex-plugin/plugin.json consistent at ${head_version_now}"
+      else
+        summary="no .codex-plugin/plugin.json overlay in the head tree"
+      fi
+      summary="${summary}; no mirror marker under surfaces/ carries the version, so a bump rewrites only surfaces/antigravity/plugin.json (zheref/hatsu#530)"
     else
       summary="overlay check skipped (the head manifest is not at <root>/.claude-plugin/plugin.json, so no head tree)"
     fi
@@ -836,12 +868,12 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     exit 0
   fi
 
-  base_version_reported="$(plugin_version "$base_plugin")"
-  head_version_reported="$(plugin_version "$head_plugin")"
+  base_version_reported="$(head_token "$(plugin_version "$base_plugin")")"
+  head_version_reported="$(head_token "$(plugin_version "$head_plugin")")"
   if [ "$opt_out_declared" -eq 1 ]; then
     {
       echo "plugin-bump opt-out refused: the \`no plugin bump:\` line is honoured only where no plugin-shipped path changed, and this diff changes:"
-      plugin_surface_paths "$changed_files" | while IFS= read -r shipped; do echo "  - $shipped"; done
+      plugin_surface_paths "$changed_files" | while IFS= read -r shipped; do echo "  - $(head_token "$shipped")"; done
       echo "An installed copy reads every path above, so even a wording change there is a patch bump (zheref/hatsu#171; CONTRIBUTING.md, A change to a shipped surface needs a version bump)."
       echo
     } >&2

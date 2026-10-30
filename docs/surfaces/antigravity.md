@@ -178,7 +178,7 @@ nen surface mirror generate --surface antigravity \
   --invocation-prefix hatsu: --models nen/workflow.json \
   --permissions contracts/permissions.json --hooks hooks/hooks.json \
   --rules claude/rules/hatsu.md --source-surface claude \
-  --hooks-root <root expression> --manifest .claude-plugin/plugin.json --stamp <plugin version>
+  --hooks-root <root expression> --manifest .claude-plugin/plugin.json
 ```
 
 | emits | from |
@@ -187,7 +187,7 @@ nen surface mirror generate --surface antigravity \
 | `surfaces/antigravity/agents/<persona>.md`, 13 files (twelve personas plus the preamble include), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/antigravity/rules/hatsu.md`, under 12,000 characters | the surface row and the matrix |
 | `surfaces/antigravity/hooks.json`: `PreInvocation`, `PreToolUse` on `run_command`, `Stop` | `hooks/hooks.json` |
-| `surfaces/antigravity/plugin.json`: `$schema`, `name`, `description`, `version` = the stamp | `.claude-plugin/plugin.json` |
+| `surfaces/antigravity/plugin.json`: `$schema`, `name`, `description`, `version` = `.claude-plugin/plugin.json`'s `version`, through `--manifest`; the only generated file that declares one (HA#530) | `.claude-plugin/plugin.json` |
 
 Marker, first markdown line after the frontmatter fence, line 1 in a file without one, and the
 `description` field in the JSON files:

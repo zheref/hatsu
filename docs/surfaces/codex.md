@@ -230,7 +230,7 @@ nen surface mirror generate --surface codex \
   --invocation-prefix hatsu: --models nen/workflow.json \
   --permissions contracts/permissions.json --hooks hooks/hooks.json \
   --rules claude/rules/hatsu.md --source-surface claude \
-  --hooks-root <root expression> --manifest .claude-plugin/plugin.json --stamp <plugin version>
+  --hooks-root <root expression> --manifest .claude-plugin/plugin.json
 ```
 
 | emits | from |
