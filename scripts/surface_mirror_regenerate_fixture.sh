@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prove scripts/surface_mirror_regenerate.sh (zheref/hatsu#218): one generate per surface, in order,
 # each carrying EXACTLY the inputs scripts/surface_mirror_check.sh hands `nen surface mirror check`
-# for that surface (same flags, same values, same hooks root, the manifest's stamp), so regeneration
+# for that surface (same flags, same values, same hooks root, the same manifest), so regeneration
 # and the drift check cannot disagree; a dry run spawns nothing; a refusal stops at the surface that
 # refused with nen's code and generates nothing after it; wiring failures are 2 and a missing nen 3.
 # Offline and hermetic: a stub `nen` under mktemp logs every call, one argument per line.
@@ -75,9 +75,13 @@ for s in codex cursor antigravity; do
   [ "$(pairs_sorted "$g")" = "$(pairs_sorted "$c")" ] || fail "generate and check differ for $s:
 generate: $(pairs_sorted "$g" | tr '\n' ' ')
 check:    $(pairs_sorted "$c" | tr '\n' ' ')"
-  case "$(pairs_sorted "$g")" in *"--stamp=9.8.7"*) ;; *) fail "$s was not stamped with the manifest's version" ;; esac
+  # zheref/hatsu#530: --stamp is gone from BOTH sides. A generate that carried it would write the
+  # plugin version into all 252 mirror files and make every bump rewrite them.
+  case "$(pairs_sorted "$g")" in *"--stamp"*) fail "$s was generated with --stamp; zheref/hatsu#530 removed it" ;; esac
+  case "$(pairs_sorted "$c")" in *"--stamp"*) fail "$s was checked with --stamp; zheref/hatsu#530 removed it" ;; esac
+  case "$(pairs_sorted "$g")" in *"--manifest=.claude-plugin/plugin.json"*) ;; *) fail "$s was generated without the manifest input" ;; esac
 done
-ok "each generate carries exactly the check's inputs for its surface, stamped 9.8.7"
+ok "each generate carries exactly the check's inputs for its surface; neither side carries --stamp, both carry --manifest"
 
 case "$out" in *"Next: bash scripts/surface_mirror_check.sh"*) ;; *) fail "the next step is not named: $out" ;; esac
 ok "a clean run names the drift check as the next step"
@@ -106,14 +110,14 @@ code=0; out="$(NEN_BIN="$stub" "$regen" "$fixture_root/notroot" 2>&1)" || code=$
 [ "$code" = 2 ] || fail "a non-Hatsu root exited $code, not 2"
 nover="$fixture_root/nover"; mkdir -p "$nover/claude/skills" "$nover/.claude-plugin"; printf '{"name": "hatsu"}\n' > "$nover/.claude-plugin/plugin.json"
 code=0; out="$(NEN_BIN="$stub" "$regen" "$nover" 2>&1)" || code=$?
-[ "$code" = 2 ] || fail "an unstamped manifest exited $code, not 2"
-case "$out" in *"never generated unstamped"*) ;; *) fail "the unstamped refusal is not named: $out" ;; esac
+[ "$code" = 2 ] || fail "a manifest with no version exited $code, not 2"
+case "$out" in *"never generated unversioned"*) ;; *) fail "the unversioned refusal is not named: $out" ;; esac
 old="$fixture_root/old-nen"; printf '#!/usr/bin/env bash\necho "usage: nen <command>"\n' > "$old"; chmod +x "$old"
 code=0; out="$(NEN_BIN="$old" "$regen" "$tree" 2>&1)" || code=$?
 [ "$code" = 2 ] || fail "a nen with no surface verb exited $code, not 2"
 code=0; out="$(NEN_BIN="$stub" "$regen" --bogus "$tree" 2>&1)" || code=$?
 [ "$code" = 2 ] || fail "an unknown option exited $code, not 2"
-ok "no nen is 3; a wrong root, an unstamped manifest, no surface verb and an unknown option are 2"
+ok "no nen is 3; a wrong root, a manifest with no version, no surface verb and an unknown option are 2"
 
 # 5. A bare `nen` is looked up on PATH only: a root carrying its own nen/ directory (Hatsu does) with
 # no nen on PATH is 3, never "no surface verb" (the old `[ -x nen ]` read the directory as the binary).
@@ -134,43 +138,63 @@ fi
 grep -q 'surface_mirror_check.sh"$' "$regen" || fail "the regenerator does not source the check"
 ok "a nen/ directory in the root is never read as nen (3); an unreadable manifest is refused by name; one table, sourced"
 
-# 6. Run the real pinned generator on a scratch checkout. A manifest-only stamp
-# change may alter generated stamp/version text, but no other mirror content.
+# 6. Run the real pinned generator on a scratch checkout, and prove zheref/hatsu#530 against it:
+# a MANIFEST-ONLY version change must rewrite exactly ONE mirror file — surfaces/antigravity/
+# plugin.json, the single generated file that IS a plugin manifest declaring a version — and
+# nothing else. Through 0.154.1 the same bump rewrote all 252 of them, one marker line apiece,
+# which is the churn this issue removed. The assertion is a count, so a regression that restamps
+# the tree again fails here by number rather than by eye.
 real_nen="$(command -v nen || true)"
-[ -n "$real_nen" ] || fail "the real stamp case needs pinned nen on PATH"
-stamp_tree="$fixture_root/stamp-tree"; mkdir -p "$stamp_tree"
-git -C "$script_dir/.." archive --format=tar HEAD | tar -xf - -C "$stamp_tree"
-NEN_BIN="$real_nen" "$regen" "$stamp_tree" > "$fixture_root/real-generate.log" \
+[ -n "$real_nen" ] || fail "the real manifest-version case needs pinned nen on PATH"
+version_tree="$fixture_root/version-tree"; mkdir -p "$version_tree"
+git -C "$script_dir/.." archive --format=tar HEAD | tar -xf - -C "$version_tree"
+NEN_BIN="$real_nen" "$regen" "$version_tree" > "$fixture_root/real-generate.log" \
   || { cat "$fixture_root/real-generate.log"; fail "real scratch regeneration refused"; }
-NEN_BIN="$real_nen" "$check" "$stamp_tree" > "$fixture_root/real-check.log" \
+NEN_BIN="$real_nen" "$check" "$version_tree" > "$fixture_root/real-check.log" \
   || { cat "$fixture_root/real-check.log"; fail "real scratch check refused"; }
-cp -R "$stamp_tree/surfaces" "$fixture_root/before-stamp"
-old_stamp="$(awk -F'"' '/"version"[[:space:]]*:/ { print $4; exit }' "$stamp_tree/.claude-plugin/plugin.json")"
-[ -n "$old_stamp" ] || fail "scratch manifest has no version"
-new_stamp=9.8.8
-awk -v new="$new_stamp" '
+cp -R "$version_tree/surfaces" "$fixture_root/before-bump"
+old_version="$(awk -F'"' '/"version"[[:space:]]*:/ { print $4; exit }' "$version_tree/.claude-plugin/plugin.json")"
+[ -n "$old_version" ] || fail "scratch manifest has no version"
+new_version=9.8.8
+awk -v new="$new_version" '
   !done && /"version"[[:space:]]*:/ {
     sub(/"version"[[:space:]]*:[[:space:]]*"[^"]+"/, "\"version\": \"" new "\"")
     done=1
   }
   { print }
   END { if (!done) exit 2 }
-' "$stamp_tree/.claude-plugin/plugin.json" > "$fixture_root/bumped-manifest.json" \
+' "$version_tree/.claude-plugin/plugin.json" > "$fixture_root/bumped-manifest.json" \
   || fail "could not bump the scratch manifest"
-mv "$fixture_root/bumped-manifest.json" "$stamp_tree/.claude-plugin/plugin.json"
-NEN_BIN="$real_nen" "$regen" "$stamp_tree" > "$fixture_root/bumped-generate.log" \
-  || { cat "$fixture_root/bumped-generate.log"; fail "stamp-only regeneration refused"; }
-NEN_BIN="$real_nen" "$check" "$stamp_tree" > "$fixture_root/bumped-check.log" \
-  || { cat "$fixture_root/bumped-check.log"; fail "stamp-only scratch check refused"; }
-code=0; diff -ru "$fixture_root/before-stamp" "$stamp_tree/surfaces" > "$fixture_root/stamp.diff" || code=$?
-[ "$code" -eq 1 ] || fail "stamp-only diff exited $code, expected changed mirrors"
-! grep -q '^Only in ' "$fixture_root/stamp.diff" || fail "stamp-only regeneration changed mirror paths"
-removed="$(awk '/^--- / { next } /^-/ { print substr($0, 2) }' "$fixture_root/stamp.diff")"
-added="$(awk '/^\+\+\+ / { next } /^\+/ { print substr($0, 2) }' "$fixture_root/stamp.diff")"
-[ -n "$removed" ] || fail "stamp-only regeneration changed no stamp lines"
-old_pattern="${old_stamp//./\\.}"
-normalized="$(printf '%s\n' "$removed" | sed "s/$old_pattern/$new_stamp/g")"
-[ "$normalized" = "$added" ] || fail "stamp-only regeneration changed text besides the version stamp"
-ok "real scratch regenerate-then-check passes; a version change alters only stamp/version text"
+mv "$fixture_root/bumped-manifest.json" "$version_tree/.claude-plugin/plugin.json"
+NEN_BIN="$real_nen" "$regen" "$version_tree" > "$fixture_root/bumped-generate.log" \
+  || { cat "$fixture_root/bumped-generate.log"; fail "manifest-only regeneration refused"; }
+NEN_BIN="$real_nen" "$check" "$version_tree" > "$fixture_root/bumped-check.log" \
+  || { cat "$fixture_root/bumped-check.log"; fail "manifest-only scratch check refused"; }
+code=0; diff -rq "$fixture_root/before-bump" "$version_tree/surfaces" > "$fixture_root/bump.diff" || code=$?
+[ "$code" -eq 1 ] || fail "the manifest-only diff exited $code, expected exactly one changed mirror"
+! grep -q '^Only in ' "$fixture_root/bump.diff" || fail "a manifest-only regeneration added or removed mirror paths:
+$(cat "$fixture_root/bump.diff")"
+changed_files="$(grep -c '^Files ' "$fixture_root/bump.diff" || true)"
+[ "$changed_files" -eq 1 ] || fail "a manifest-only regeneration rewrote $changed_files mirror files, expected exactly 1:
+$(cat "$fixture_root/bump.diff")"
+grep -q 'antigravity/plugin\.json' "$fixture_root/bump.diff" \
+  || fail "the one rewritten mirror is not antigravity/plugin.json:
+$(cat "$fixture_root/bump.diff")"
+code=0; diff -u "$fixture_root/before-bump/antigravity/plugin.json" "$version_tree/surfaces/antigravity/plugin.json" \
+  > "$fixture_root/bump-manifest.diff" || code=$?
+[ "$code" -eq 1 ] || fail "the one rewritten mirror diffed at $code, expected a change"
+changed_lines="$(awk '/^(---|\+\+\+)/ { next } /^[+-]/ { print }' "$fixture_root/bump-manifest.diff")"
+[ -n "$changed_lines" ] || fail "antigravity/plugin.json changed no lines"
+if printf '%s\n' "$changed_lines" | grep -qv '"version"'; then
+  fail "antigravity/plugin.json changed text besides its version:
+$changed_lines"
+fi
+case "$changed_lines" in *"$new_version"*) ;; *) fail "the rewritten manifest does not carry $new_version: $changed_lines" ;; esac
+# No MARKER carries a version. The word "stamp" may still appear in a mirrored BODY -- the hook
+# script's own comments describe both marker grammars -- so this matches the marker, not the word.
+! grep -rqE 'GENERATED by nen surface mirror \(surface: [a-z-]+, stamp:' "$version_tree/surfaces" \
+  || fail "a generated file's marker still carries a stamp:
+$(grep -rlE 'GENERATED by nen surface mirror \(surface: [a-z-]+, stamp:' "$version_tree/surfaces" | head -5)"
+ok "real scratch bump rewrites exactly 1 mirror file (antigravity/plugin.json, version only); no marker carries a version"
 
 echo "surface-mirror-regenerate-fixture: all $pass checks passed"

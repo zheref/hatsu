@@ -59,7 +59,7 @@ Hanten hands you their output, or you run them and say so. **A row that cannot r
 checked — never clean.** `scripts/surface_mirror_check.sh <path>`: every mirror matches a fresh generation
 (exit 0). `scripts/surface_link_check.sh --summary <path>`: every relative link resolves at its mirror's
 depth (exit 1 names file, link and path; the generator's known depth count is not a new finding). Then
-read what they cannot: a stamp, a hook root, an invocation prefix.
+read what they cannot: a hook root, an invocation prefix.
 
 ## The verdict — one line, advisory (`QA-21`)
 

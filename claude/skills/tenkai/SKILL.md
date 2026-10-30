@@ -139,8 +139,8 @@ diagnose row for it is filed as a follow-up on the engine.
 **The surface packs are items too, placed by one generator.** Off Claude Code a consumer carries, per
 surface, the hooks, the allowlists, the rules files and the `.codex/agents` fragments — everything
 `nen surface mirror generate --surface <codex|cursor|antigravity> --out <consumer>/<surface dir>`
-emits from this plugin's `nen/workflow.json` models, `contracts/permissions.json` and `hooks/hooks.json`,
-stamped with the plugin version (zheref/hatsu#93). The surface dir is `.agents` for Codex skills and
+emits from this plugin's `nen/workflow.json` models, `contracts/permissions.json` and `hooks/hooks.json`
+(zheref/hatsu#93; no generated file carries the plugin version, HA#530). The surface dir is `.agents` for Codex skills and
 `.codex` for its config, `.cursor` for Cursor, the workspace's Antigravity dir for Antigravity. They
 are placed by this step at adoption and refreshed by the warm-up's `surface_bootstrap.sh
 --install-all` on every session (ten § 5), the in-tree mirrors having passed `scripts/surface_mirror_check.sh` first; a pack Tenkai did not generate is left alone and named,

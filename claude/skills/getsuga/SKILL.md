@@ -326,8 +326,8 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/R
    still agree no longer changes the verdict. Edit `nen/repos.json`; delete the stale duplicate.
 5. **Bump the version manifest** — same reasoning as the old skill: a cached plugin would report
    consumers current while they sit a tag behind. No `nen` verb owns this write either — residue, a
-   direct edit; bump — the `no plugin bump:` line is not accepted over a shipped path (zheref/hatsu#171). **Where the surface stamp follows
-   `plugin.json` and the delivery PR carries the bump — hatsu, by the maintainer's ruling of
+   direct edit; bump — the `no plugin bump:` line is not accepted over a shipped path (zheref/hatsu#171). **Where the generated surface manifest's
+   own version follows `plugin.json` and the delivery PR carries the bump — hatsu, by the maintainer's ruling of
    2026-09-28 ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*) — this step is a no-op**: the release PR
    touches the changelog only, and `release.unitPaths` says exactly that.
 
@@ -733,6 +733,22 @@ says (verified live at `v0.3.0` on a scaffolded `nextjs` tree: *"'deploy' is uns
 'nextjs' … The declaration's own reason: PROPOSED SEAT — replace it …"*), and that is the whole report
 for such a repository: it declares no deploy. A repository with no declaration at all is not deployed
 through nen and this section does not apply. `<reference-repo>` is machinery and declares none.
+
+## Residue
+
+The shape `docs/PROCESS.md` § *The skill shape* asks for, written from what the steps above already
+state rather than added as new rule (owed since HA#502; this skill was next edited by HA#530).
+
+- **The version writes.** No `nen` verb owns `nen/repos.json`'s `product_codes` edit (§ 5, step 4) or
+  the version manifest's bump (step 5): both are a direct edit, and the second is a no-op wherever the
+  delivery PR already carried it.
+- **The reads around the proposal.** The base read-back `gh pr view <N> --repo <owner/name> --json
+  baseRefName` is named residue (§ 3), and a release PR's live body is read directly because
+  `nen pr fetch` returns none.
+- **The placement judgement.** Where a cut point sits relative to the trunk stays a direct `git` read
+  plus judgement, recorded in `docs/ab/getsuga.md`; no verb decides it.
+- **A distinct exit code from a verb this skill drives is a nen residue**, filed as an issue rather
+  than worked around (§ 1).
 
 ## 8. Authority
 

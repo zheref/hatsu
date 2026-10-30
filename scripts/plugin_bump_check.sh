@@ -31,13 +31,21 @@
 # trusted (HA-PR-#163, #173, #233) skipped a bump the policy asked for, and every
 # legitimate one (#130, #137, #187) sat over unshipped paths only, where the
 # guard already passes. A PR whose version DID
-# increase is then read a second time (zheref/hatsu#99): the mirrors under
-# `surfaces/` carry the version in their generated marker, and one whose stamp
-# lags the bumped manifest fails BY NAME — the cause is the bump, the fix a
-# regeneration — instead of surface-mirror-check's drift row with no cause
-# attached. The head tree for that read is the directory two levels above
-# <head-plugin-json> (`<root>/.claude-plugin/plugin.json`); a detached head
-# manifest, or a root with no `surfaces/`, has nothing to scan and says so.
+# increase is then read a second time for the CODEX OVERLAY: Codex keys its own
+# plugin-cache slot on `.codex-plugin/plugin.json`'s name and version, so an
+# overlay lagging the Claude manifest fails BY NAME. The head tree for that read
+# is the directory two levels above <head-plugin-json>
+# (`<root>/.claude-plugin/plugin.json`); a detached head manifest has nothing to
+# read and says so.
+#
+# IT NO LONGER SCANS THE MIRRORS' STAMPS (zheref/hatsu#530). Through 0.154.1 a
+# bump restamped all 252 files under `surfaces/`, and this guard carried
+# `surfaces_stamp_scan` to blame the bump rather than a source edit for the
+# drift that followed (zheref/hatsu#99). `--stamp` is gone from the generator
+# calls, so a bump now rewrites one mirror file — the surface manifest that
+# genuinely declares a version — and there is no lag left to explain. The
+# mirrors' correctness is `surface-mirror-check`'s byte comparison, as it always
+# was; the scan this replaces proved nothing that comparison does not.
 # A bumped PR that changes a declared spec path also owes a changed, surviving
 # changelog.d/ fragment, following contracts/pr-composition.json. An integration
 # PR with its own CHANGELOG.md section uses that contract's directSection line.
@@ -435,57 +443,6 @@ PLUGIN_SURFACE_GLOBS=(
   '.mcp.json'
 )
 
-# --- surfaces_stamp_scan ROOT HEAD_VERSION ------------------------------------
-# zheref/hatsu#99. `nen surface mirror generate` writes the plugin version into
-# every generated file's marker, so bumping .claude-plugin/plugin.json makes all
-# three mirrors stale at once. The local catch is mukai's scripts/surface_mirror_check.sh
-# (docs/WORKFLOW.md § 2 → iteration); in CI, surface-mirror-check reports drift in the
-# same round as this guard. What this guard adds is the CAUSE, named on the required
-# check without nen: a lagging stamp right after a bump is the bump, and the fix is a
-# regeneration, not a source edit (186 files of stamp churn on HA-PR-#95 arrived with no
-# such line). For each surface directory under ROOT/surfaces it reads the stamp off the
-# first generated marker it finds and prints one line per surface:
-#   `<surface> lag <stamps>`    at least one generated file's stamp is not HEAD_VERSION —
-#                               every DISTINCT stamp found is listed, comma-joined
-#   `<surface> ok <stamp>`      every generated file under it is stamped HEAD_VERSION
-#   `<surface> unread -`        no GENERATED marker matched in any file (the grammar moved,
-#                               or the directory holds no generated file) — never "read"
-# EVERY marker under the surface is read, in every generated file whatever its suffix
-# (.md, .mdc, .toml, .json, .sh, .yml), never the first .md only: a surface whose first
-# file is current and whose others lag is lagging (Phinks, HA-PR-#121). Returns 0 when
-# at least one surface lags (the caller fails by name), 1 otherwise — including when ROOT
-# carries no surfaces/ at all (a fixture root, a consumer with no mirrors): nothing
-# printed, and absence of mirrors is not a lag.
-surfaces_stamp_scan() {
-  local root="$1" head_version="$2" surface_dir surface marker stamp lag=1
-  # The PR head is DATA under pull_request_target (Feitan, HA-PR-#121): a symlinked surfaces/ or
-  # surface directory is never followed, and a stamp or surface name is printed only when it
-  # matches a strict whitelist -- a CR or ESC inside a marker would otherwise reach the trusted
-  # job's log as a forged workflow command or concealed text. A malformed stamp still counts as
-  # lagging, printed as the fixed word <malformed>.
-  [ -d "$root/surfaces" ] && [ ! -L "$root/surfaces" ] || return 1
-  for surface_dir in "$root"/surfaces/*/; do
-    [ -d "$surface_dir" ] && [ ! -L "${surface_dir%/}" ] || continue
-    surface="${surface_dir%/}"; surface="${surface##*/}"
-    # Anchored: every character must be [a-z-], the first a letter, at most 32 -- a shell glob's
-    # trailing `*` matches anything, so `[a-z][a-z-]*` alone let `ab<CR>` through (Copilot, round 3).
-    case "$surface" in *[!a-z-]*|""|-*) continue ;; esac
-    [ "${#surface}" -le 32 ] || continue
-    stamps="$(LC_ALL=C grep -rhoE 'GENERATED by nen surface mirror \(surface: [a-z-]+, stamp: [^)]+\)' "$surface_dir" 2>/dev/null \
-      | sed 's/.*stamp: //; s/)$//' \
-      | awk '{ if ($0 == "" || $0 ~ /[^0-9A-Za-z.+-]/ || length($0) > 64) print "<malformed>"; else print $0 }' \
-      | sort -u | tr '\n' ',' | sed 's/,$//')"
-    if [ -z "$stamps" ]; then printf '%s unread -\n' "$surface"; continue; fi
-    if [ "$stamps" = "$head_version" ]; then
-      printf '%s ok %s\n' "$surface" "$stamps"
-    else
-      printf '%s lag %s\n' "$surface" "$stamps"
-      lag=0
-    fi
-  done
-  return "$lag"
-}
-
 # --- codex_overlay_check ROOT CLAUDE_VERSION ---------------------------------
 # .codex-plugin/plugin.json is the Codex-facing plugin manifest overlay
 # (see PLUGIN_SURFACE_GLOBS's own comment on it). Codex keys its OWN
@@ -836,41 +793,21 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   fi
 
   if version_bumped "$base_plugin" "$head_plugin"; then
-    # The bump is real. Now the cause the bump makes worth naming (#99): the mirrors under
-    # surfaces/ carry the version in their stamp, and a lagging one right after a bump is the
-    # bump — surface-mirror-check reports the drift in the same CI round, this line says why.
-    # The head tree is the directory the head manifest sits under (`<root>/.claude-plugin/
-    # plugin.json` → `<root>`, which is CI's PR checkout); a root with no surfaces/ has nothing
-    # to scan, and a surface with no readable marker is reported unread, never as read.
+    # The bump is real. What the bump still makes worth reading is the CODEX OVERLAY: Codex keys
+    # its own plugin-cache slot on .codex-plugin/plugin.json, so an overlay lagging this bump
+    # leaves every Codex install on the old slot. The head tree is the directory the head manifest
+    # sits under (`<root>/.claude-plugin/plugin.json` → `<root>`, which is CI's PR checkout).
     # Only a manifest that sits at <root>/.claude-plugin/plugin.json names a head tree; a detached
-    # manifest (a fixture's <tmp>/head.json) names none, and the stamp check is skipped and said so
-    # rather than scanning whatever surfaces/ happens to sit beside the file's parent (Nobunaga,
-    # Phinks, HA-PR-#121: that read made the fixture non-hermetic).
+    # manifest (a fixture's <tmp>/head.json) names none, and the overlay check is skipped and said
+    # so rather than reading whatever happens to sit beside the file's parent (Nobunaga, Phinks,
+    # HA-PR-#121: that read made the fixture non-hermetic). The mirrors' own stamps are no longer
+    # scanned here — a bump does not restamp them any more (zheref/hatsu#530).
     head_root=""
     if [ "$(basename "$(dirname "$head_plugin")")" = ".claude-plugin" ]; then
       head_root="$(CDPATH= cd "$(dirname "$head_plugin")/.." 2>/dev/null && pwd -P)" || head_root=""
     fi
     head_version_now="$(plugin_version "$head_plugin")"
-    stamp_scan=""
     if [ -n "$head_root" ]; then
-      set +e
-      stamp_scan="$(surfaces_stamp_scan "$head_root" "$head_version_now")"
-      stamp_lag_rc=$?
-      set -e
-      if [ "$stamp_lag_rc" -eq 0 ]; then
-        {
-          echo "plugin.json version bumped to ${head_version_now}, but generated files under surfaces/ carry a different stamp:"
-          printf '%s\n' "$stamp_scan" | while read -r s st stamp; do
-            case "$st" in
-              lag) echo "  - surfaces/$s: stamp(s) $stamp (needs $head_version_now on every generated file)" ;;
-              unread) echo "  - surfaces/$s: stamp unread (no GENERATED marker matched)" ;;
-            esac
-          done
-          echo "A bump restamps every mirror file: the cause is this bump, the fix is a regeneration at stamp ${head_version_now}, never a source edit (zheref/hatsu#99)."
-          echo "Regenerate and commit the result: scripts/surface_mirror_regenerate.sh is the one owner of the command (docs/using/mirrors.md § 3); it reads scripts/surface_mirror_check.sh's exact flags per surface."
-        } >&2
-        exit 1
-      fi
       set +e
       codex_overlay_problem="$(codex_overlay_check "$head_root" "$head_version_now")"
       codex_overlay_rc=$?
@@ -887,13 +824,10 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     if [ -n "$head_root" ]; then
       node "$(dirname -- "${BASH_SOURCE[0]}")/changelog_fragment_guard.ts" "$changed_files" "$head_root" "$pr_body"
     fi
-    stamps_ok="$(printf '%s\n' "$stamp_scan" | awk '$2 == "ok" { printf "%s%s", (n++ ? ", " : ""), $1 }')"
-    stamps_unread="$(printf '%s\n' "$stamp_scan" | awk '$2 == "unread" { printf "%s%s", (n++ ? ", " : ""), $1 }')"
-    summary=""
-    [ -n "$stamps_ok" ] && summary="surfaces/ stamps read ${head_version_now}: ${stamps_ok}"
-    [ -n "$stamps_unread" ] && summary="${summary:+$summary; }stamp unread (no GENERATED marker matched): ${stamps_unread}"
-    if [ -z "$summary" ]; then
-      if [ -n "$head_root" ]; then summary="no surfaces/ mirrors under the head tree to scan"; else summary="stamp check skipped (the head manifest is not at <root>/.claude-plugin/plugin.json, so no head tree)"; fi
+    if [ -n "$head_root" ]; then
+      summary=".codex-plugin/plugin.json consistent at ${head_version_now}; no mirror under surfaces/ carries the version, so a bump restamps none of them (zheref/hatsu#530)"
+    else
+      summary="overlay check skipped (the head manifest is not at <root>/.claude-plugin/plugin.json, so no head tree)"
     fi
     if [ "$opt_out_declared" -eq 1 ]; then
       summary="${summary}; the \`no plugin bump:\` line was ignored (inert beside a bump, zheref/hatsu#171)"
