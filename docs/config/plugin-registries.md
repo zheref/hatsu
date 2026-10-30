@@ -263,12 +263,12 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `name`, `displayName` | string | `hatsu`, `Hatsu Agent Team` | the plugin identity | the host; `hatsu_root.sh` |
-| `version` | string | semver; the stamp every generated mirror carries | the version the cache is keyed on | the host; `plugin_bump_check.sh`; `nen surface mirror generate --manifest … --stamp` |
+| `version` | string | semver; the version Claude Code keys its cache on, rendered into one generated file | the version the cache is keyed on | the host; `plugin_bump_check.sh`; `nen surface mirror generate --manifest` |
 | `description`, `author{name,url}`, `repository`, `keywords[]` | strings, object, list | the public description; `zheref` and `https://github.com/zheref/hatsu` | the listing | the host |
 | `agents[]` | paths | `./claude/agents/<persona>.md`, twelve at the pinned build | the personas the host loads | the host; `plugin_bump_check.sh` (what counts as plugin-visible) |
 | `commands`, `skills` | paths | `./claude/commands/`, `./claude/skills/` | where the host reads commands and skills | the host |
 
-**Rendered where.** The version is stamped into every `surfaces/<s>` file and into Antigravity's generated `plugin.json`. **May a consumer override it?** No.
+**Rendered where.** Into Antigravity's generated `plugin.json` only (HA#530). Through 0.154.1 `--stamp` also wrote it into every one of the 252 `surfaces/<s>` files' markers, so a bump rewrote all 252; it is passed by nothing now. **May a consumer override it?** No.
 
 ## `.codex-plugin/plugin.json`
 

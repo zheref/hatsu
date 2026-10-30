@@ -3358,11 +3358,12 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    tip, never from the trunk.
 3. **One mechanical commit per PR at stack time.** The bump (monotonic along the stack: patch for
    wording, minor for behaviour — CONTRIBUTING § *A change to a shipped surface needs a version bump*),
-   the `changelog.d/` fragment (CONTRIBUTING § *Changelog fragments*) and the stamp-only mirror churn
-   land on each branch after its content; a mirrored skill's own body change regenerates in the same
-   commit as its source (README). A catch-up over the previous PR's mechanical commit conflicts on the
-   manifests and the stamps — Hatsu declares no `mechanical` block — and is resolved by keeping the
-   branch's own manifests and regenerating the mirrors at its stamp, said.
+   the `changelog.d/` fragment (CONTRIBUTING § *Changelog fragments*) and the one generated surface
+   manifest the bump rewrites land on each branch after its content; a mirrored skill's own body change
+   regenerates in the same commit as its source (README). A catch-up over the previous PR's mechanical
+   commit conflicts on the manifests only — Hatsu declares no `mechanical` block — and is resolved by
+   keeping the branch's own and regenerating, said. Since HA#530 no marker carries the version, so the
+   252-file same-line conflict that rule was written around is gone.
 4. **The PRs.** Each PR's base is the previous effort's branch; only the bottom PR targets
    `branch.base`. Every PR is reviewed on its own (hanten per effort, its own budgets), carries its own
    `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is

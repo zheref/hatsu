@@ -316,8 +316,8 @@ and nen hard-codes no system's vocabulary.
 ## Generated and authored
 
 Hatsu's canonical skills live in `claude/skills/` and its personas in `claude/agents/`; the files under
-[`surfaces/`](../../surfaces/) are generated from them, one layout per surface, each stamped with the
-plugin version, and a hand edit there is reported by name. [`mirrors.md`](mirrors.md) has the full table of
+[`surfaces/`](../../surfaces/) are generated from them, one layout per surface, and a hand edit there
+is reported by name. [`mirrors.md`](mirrors.md) has the full table of
 what is authored and what is generated, what the warm-up places in a target repository, the one
 regeneration command and the check that runs in `mukai` and in CI.
 

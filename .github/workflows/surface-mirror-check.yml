@@ -40,7 +40,7 @@
 # exit 2, precisely so that it would disappear by itself the moment the pinned
 # nen carried the verb — no edit to this file, no remembering.
 #
-# The pin is `v0.24.0` (nen/contract.json is the source; this line is a convenience copy) and that nen carries `nen surface mirror generate|check` with the v0.13 pack flags.
+# The pin is `v0.28.0` (nen/contract.json is the source; this line is a convenience copy) and that nen carries `nen surface mirror generate|check` with the v0.13 pack flags.
 #
 # NOTE, and it is why a repin PR goes red here: the step below reads the ref from
 # the TRUSTED checkout's own copy of the contract, never from the PR's -- a pull
@@ -51,12 +51,38 @@
 # the security property working, not drift: it clears the moment the repin is on
 # the trunk, because the trusted copy is then the new pin.
 #
+# THE SAME IS TRUE OF THIS GUARD'S OWN ARGUMENTS, and that case is less obvious
+# than the repin above (zheref/hatsu#530). The guard script is the TRUSTED
+# revision's, so a pull request that CHANGES WHICH ARGUMENTS the guard hands
+# `nen surface mirror generate` is judged by the base's argument list and not by
+# its own. Drop a generator flag that writes into the mirrors -- `--stamp` was
+# one, and zheref/hatsu#530 removed it -- and the base's guard regenerates WITH
+# that flag, compares the result against a head tree generated WITHOUT it, and
+# calls every mirrored file `stale`. The giveaway is the SHAPE of the verdict
+# rather than its size: `ok: 0` with `missing: (none)`, `extra: (none)` and,
+# above all, `hand-edited: (none)` -- nothing in the tree was touched by hand,
+# and one generated line differs in every file. Verified for zheref/hatsu#530 by
+# running both guards against both trees: base-guard/base-tree and
+# head-guard/head-tree each exit 0 with `ok: 84` per surface, and only the cross
+# pairing fails.
+#
+# DO NOT SPLIT SUCH A CHANGE INTO A TWO-STEP LANDING. That is the usual remedy
+# for a trusted-guard change (zheref/hatsu#151, zheref/hatsu#153), and here it is
+# the worse one: a first pull request carrying only the new guard would leave
+# `main`'s own mirrors stale to `main`'s own guard until the second landed, so the
+# trunk itself would be red in between. A guard and the mirrors it judges belong
+# in ONE commit, and the red on that one pull request is what the trust boundary
+# costs -- it clears on merge, exactly as the repin case does.
+#
 # Prose here may name any path: workflow_runner_policy_check.rb's hostile
 # fixtures edit a literal only where the edit reaches what runs, and a fixture
 # that cannot stops the self-test as broken (zheref/hatsu#136).
 # Verified locally against this branch: `bash scripts/surface_mirror_check.sh`
-# exits 0 with 45 skill directories per surface (44 plus ten), personas 11 plus the preamble, for codex,
-# cursor and antigravity, no drift rows. So the skip branch is unreachable at this pin, and it is kept as an
+# exits 0 with `ok: 84` for each of codex, cursor and antigravity and no stale,
+# missing, extra or hand-edited row (61 skill directories and 18 personas as this
+# is written; the guard's own `ok:` line is the source, and a count copied to here
+# goes stale exactly as the one it replaced did -- zheref/hatsu#530). So the skip
+# branch is unreachable at this pin, and it is kept as an
 # ERROR rather than deleted: a pinned nen without the verb now means the pin or
 # the bootstrap is wrong, which is a failure to report and not a condition to
 # pass through. A check that reported success as though the mirrors had been
@@ -64,7 +90,12 @@
 #
 # ENFORCEMENT POSTURE (2026-09-10, Hatsu 0.7.1): ADVISORY, and READY TO BE
 # REQUIRED. The blocker was that requiring a job which skipped would require a
-# skip; the pin moved and the job runs the real check. Require it — the context
+# skip; the pin moved and the job runs the real check. Require it -- but read the
+# guard-argument note above first: while this job is advisory, a pull request that
+# changes the guard's own arguments merges with one documented red, and once the
+# context is required that same pull request cannot merge at all without an
+# override. Making it required is a maintainer's act and owes that decision.
+# The context
 # is the job id below, `surface-mirror-check`, so renaming that job silently
 # un-requires it. That is a repo-settings act and a maintainer's, not something
 # this file can do; it is named in this PR's Deferred section for that reason.

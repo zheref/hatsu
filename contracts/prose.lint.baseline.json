@@ -3512,12 +3512,6 @@
     {
       "path": "docs/PROCESS.md",
       "rule": "PL-01",
-      "text": "rface switches are done by hand. No nen verb owns a hos",
-      "count": 1
-    },
-    {
-      "path": "docs/PROCESS.md",
-      "rule": "PL-01",
       "text": "ewer than the launch is by hand, and the transcript is",
       "count": 1
     },
