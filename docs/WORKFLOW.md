@@ -2121,7 +2121,7 @@ reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../cla
 at Ready → the dated **final** report, [`rikugan`](../claude/skills/rikugan/)'s one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
 
 **Who starts en:** [`mukai`](../claude/skills/mukai/) (its offer, or `mukai.autoEn`), [`futon`](../claude/skills/futon/)'s
-per-issue chain, the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
+per-issue chain, [`kage-bunshin`](../claude/skills/kage-bunshin/) § 3's per-PR start (zheref/hatsu#536), the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
 proposal it opens, where en runs ¹–⁵ and **returns the quoted verdict to getsuga instead of ringing ⁶**:
 § 3a is that proposal's merge (ROSTER § *Rulings of 2026-09-26/27/28*, ruling 4; zheref/hatsu#103).
 
@@ -3079,8 +3079,8 @@ never responsibility for the final claim. Before a handover:
 
 ## Delegate briefs — how a delegate waits (zheref/hatsu#473)
 
-Every brief that raises a builder delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's and
-[`futon`](../claude/skills/futon/SKILL.md) § 4's — carries the lines between the two markers below **word
+Every brief that raises a builder delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's,
+[`futon`](../claude/skills/futon/SKILL.md) § 4's and [`kage-bunshin`](../claude/skills/kage-bunshin/SKILL.md) § 4's — carries the lines between the two markers below **word
 for word**. **Illumi's long watch is not one**: it is `en`'s observation hold, governed by
 [`en`](../claude/skills/en/SKILL.md) §§ 6–7 and [`illumi.md`](../claude/agents/illumi.md), and measured in
 hours. The orchestrating session owns the clock; a wait the
