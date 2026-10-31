@@ -73,7 +73,7 @@
     {
       "id": "injected-attribution-trailer",
       "class": "autonomous",
-      "default": "git reset --soft HEAD~1 on the tip this step just wrote (kokusen § 5) or re-squash (aka § 7), then row harness-attribution-switch for the off-switch; where the repository's commit-msg hook refused the key outright (nen exit 1, nothing committed) there is nothing to drop and the same row applies, a Cursor cloud agent stopping at its option C at once (docs/AGENT-ATTRIBUTION.md)",
+      "default": "git reset --soft HEAD~1 on the tip this step just wrote (kokusen § 5) or re-squash (aka § 7), then row harness-attribution-switch for the off-switch; where the repository's commit-msg hook refused the key outright (nen exit 1, nothing committed) there is nothing to drop and the same row applies, and row harness-attribution-switch says when the ask is skipped (docs/AGENT-ATTRIBUTION.md)",
       "why": "Ruling 2026-09-28 (zheref/hatsu#66): an ATTRIBUTION key (docs/WORKFLOW.md § commits: a trailer key ending in -by or -with, or listed in commits.forbiddenTrailers; Closes and its kind are ordinary and untouched) outside commits.allowedAttributionTrailers on a commit a Hatsu step just wrote is a harness injection (Cursor's Co-authored-by), keys compared case-insensitively as nen's layer (c) does. The just-written tip is unpublished by construction and is dropped, never amended; a published commit is row rewrite-published-history.",
       "citedBy": [
         "aka",
@@ -114,7 +114,7 @@
     {
       "id": "harness-attribution-switch",
       "class": "ask-once-per-run",
-      "default": "ask once: the harness's commit-attribution switch is the maintainer's own configuration outside the repository, toggled by their hand; no skill writes it. On their word the dropped commit is re-run (kokusen § 5) or re-squashed (aka § 7)",
+      "default": "ask once: the harness's commit-attribution switch is the maintainer's own configuration outside the repository, toggled by their hand; no skill writes it. On their word the dropped commit is re-run (kokusen § 5) or re-squashed (aka § 7). Where no documented switch reaches the hook (a Cursor cloud agent as of 2026-10-31, or a harness the run cannot place) there is no ask: option A reaches nothing, so option C at once (docs/AGENT-ATTRIBUTION.md § When the commit-msg hook refuses the commit outright)",
       "preferred": [
         {
           "key": "A",

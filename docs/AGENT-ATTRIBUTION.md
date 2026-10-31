@@ -52,8 +52,8 @@ consumer's isolated effort. A consumer with a workflow policy guard must first l
 that admits the actual proposed workflow; Tenkai probes that guard and stages a refused rendering.
 There is no two-step requirement for a consumer without such a guard. This change does not adopt
 any other repository or edit its rulesets. Until a consumer's adoption PR lands, that consumer has
-no such check. On 2026-10-31, zheref/zheref.io's `.github/workflows/` held only `deploy.yml` and
-`pr.yml` (zheref/hatsu#470), so its adoption is still owed. Never call the check required in a
+no such check. On 2026-10-31, the consumer zheref/hatsu#470 names held only `deploy.yml` and
+`pr.yml` under `.github/workflows/`, so its adoption is still owed. Never call the check required in a
 consumer whose destination branch does not carry it.
 
 Before enabling a required-check rule, adopt both the workflow and
@@ -132,17 +132,23 @@ hook adds the trailer, then the nen-written hook refuses it:
 > not list under commits.allowedAttributionTrailers.
 
 `nen commit write` and `nen wc squash` exit `1` (a failed git). Read that line in their stderr: it
-is the same re-injecting hook, already caught before the first push. If the key it names was not in
-the composed message, the hook added it. **Nothing was committed, so there is nothing to drop.**
+is the same re-injecting hook, already caught before the first push, when the key it names (compared case-insensitively) was
+not in the composed message: the harness's hook added it. **If the composed message itself carried that
+key**, the hook and the current `nen/workflow.json` disagree (layer (c) would otherwise have refused
+it at exit `2`). That is a repository defect, not an injection: stop, name it, and leave the
+regeneration to `nen scaffold init`, never to the run. **Either way nothing was committed, so there
+is nothing to drop.**
 `nen commit write` leaves the change staged. A refused `nen wc squash` has already reset the branch
-to the squash point, and its stderr names the undo that restores the folded commits
-(`git reset --hard ORIG_HEAD`). Run that one line and nothing else.
+to the squash point. Restore the folded commits with `git -C <path> reset --soft ORIG_HEAD` and
+nothing else. The squash refuses a dirty tree, so this has the same result as the `--hard` line nen
+prints, without touching the working tree (aka § Residue).
 
-- **On a Cursor cloud agent, the first refusal is the stop.** Option A of row
+- **Where no documented switch reaches the hook, the first refusal is the stop.** That is a Cursor
+  cloud agent as of 2026-10-31, and any harness the run cannot place. Option A of row
   `harness-attribution-switch` reaches nothing there. Push nothing, then stop at **G5** through
   option C (`nen stop --who Kurapika --gate G5 <efforts.md>`) and name the hook's line in the stop.
-- **On an IDE or CLI harness**, ask row `harness-attribution-switch` once and re-run once. A second
-  refusal is the same G5.
+- **On an IDE or CLI harness with a documented switch**, ask row `harness-attribution-switch` once
+  and re-run once. A second refusal is the same G5.
 - **Never work around the hook.** `--no-verify`, `-c core.hooksPath=<elsewhere>`, editing or
   removing a file under `.git/hooks/`, writing the commit with `git commit-tree`, and a wrapper that
   edits the message after `prepare-commit-msg` all skip layer (b). Each is `--no-verify` by another
@@ -155,6 +161,8 @@ ruled and released, a cloud agent cannot commit in such a repository. The mainta
 are option B (a surface whose harness appends nothing), starting the cloud agent from a service
 account (Cursor documents that such agents get no trailer; that choice is the maintainer's, not a
 setting a skill applies), or leaving the effort stopped.
+
+## Pull request provenance
 
 The pull request body begins with `## Delivery`, rendered from the effort's Nen phase, usage and session ledgers. It reports role, surface, recorded model with registry alias, effort dial, session and a ledger locator. The public Source cell gives kind/index, timestamp and optional phase; free-form ledger provenance stays local. An exact served model ID appears only when the harness reported and the ledger recorded it; an alias alone never proves an ID. An unread ID or session is stated explicitly. This is PR delivery provenance, not commit attribution. The pull request body also ends with this final section:
 

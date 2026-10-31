@@ -136,7 +136,7 @@ amend — ask once for the switch (row `harness-attribution-switch`), then re-ru
 reads the key back again is a hook re-injecting on every commit** (a Cursor cloud agent's,
 [AGENT-ATTRIBUTION](../../../docs/AGENT-ATTRIBUTION.md)): drop it, keep it staged, **G5** before
 any push, option C — never publish and disclose. **Exit `1` quoting the `commit-msg` hook's refused
-key is that hook, nothing committed**: a cloud agent's is G5 at once; never a way past the hook.
+key is that hook, nothing committed**: G5 at once on a cloud agent, else ask once; never bypass it.
 
 ## 6. Residue
 

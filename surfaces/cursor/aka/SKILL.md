@@ -350,10 +350,14 @@ each refused key: one a `prepare-commit-msg` or `commit-msg` hook added, or one 
 stderr prints (`git -C <path> reset --soft ORIG_HEAD`) restores the folded commits. Then row
 `harness-attribution-switch` is asked once, and the squash runs again — once: a second exit `3` is
 § 7's re-injecting hook, a **G5** before any push. **Exit `1` whose stderr quotes a `commit-msg`
-hook refusing an attribution key** is the same hook, refused before any squash commit exists:
-the branch already sits at the squash point, so run the one undo line the stderr names
-(`git reset --hard ORIG_HEAD`) and nothing else. That restores the folded commits. Then take § 7's
-re-injecting-hook stop. Since nen `0.19` the verb also
+hook refusing an attribution key the composed message did not carry** is the same hook (a key the
+message carried is hook/policy drift: stop and name it,
+[`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md)), refused before any squash commit exists:
+the branch already sits at the squash point. Restore the folded commits with
+`git -C <path> reset --soft ORIG_HEAD` and nothing else. The squash refused a dirty tree, so this
+matches the `--hard` line the stderr prints without touching the working tree. Then § 7: on a
+cloud agent, or wherever no documented switch reaches the hook, the G5 at once; otherwise row
+`harness-attribution-switch` once. Since nen `0.19` the verb also
 loads `nen/workflow.json` on every run, so a malformed policy is exit `1` before anything moves.
 
 **Enforcement of the trailer rule is three-layered, and the third layer is now the binary's.** (a)
@@ -467,8 +471,9 @@ first publish included — and stop at **G5** through row `harness-attribution-s
 stop is unconditional; it does not wait on whether a switch exists. Publishing and then disclosing is
 never the recovery for a commit this run wrote (zheref/hatsu#470). **Where the repository's
 `commit-msg` hook refuses the key outright** (§ 4's exit `1`, nothing committed), it is the same
-stop. On a Cursor cloud agent, option A reaches nothing, so the first refusal is the G5. On an IDE
-or CLI harness, ask the row once, and a second refusal is the G5. `--no-verify`,
+stop. Where no documented switch reaches the hook (a Cursor cloud agent, or a harness the run cannot
+place), option A reaches nothing, so the first refusal is the G5. On an IDE or CLI harness with a
+documented switch, ask the row once, and a second refusal is the G5. `--no-verify`,
 `-c core.hooksPath`, an edited `.git/hooks/` file or `git commit-tree` is never the way past it, and
 no nen verb strips a hook's key at the pin (zheref/nen#594;
 [`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md) § *When the `commit-msg` hook
@@ -562,6 +567,10 @@ that content.
    `commit format`'s trailer list.
 6. **The exit-`3` undo after `nen wc squash`** — `git -C <path> reset --soft ORIG_HEAD`, the line the
    verb's stderr names (§ 4): a raw git write, owned by no nen verb.
+7. **The exit-`1` undo after `nen wc squash` refused by a `commit-msg` hook** — the same
+   `git -C <path> reset --soft ORIG_HEAD` (§ 4). The verb prints `git reset --hard ORIG_HEAD`; the
+   soft form gives the same result on the clean tree the squash requires, and it never touches the
+   working tree. A raw git write, owned by no nen verb.
 
 
 ## Authority
