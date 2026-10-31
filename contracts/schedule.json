@@ -116,7 +116,7 @@
       "id": "morning-desk",
       "kind": "desktop-task",
       "name": "hatsu-morning-desk",
-      "description": "Weekday morning register: the Rikugan register page over one repository, every verdict quoted, the last idle run first.",
+      "description": "Weekday morning register: the Rikugan register page over one repository, every verdict quoted, the last idle run first, with the prose-ratchet and release-lag lines beside it.",
       "trigger": {
         "form": "Weekdays",
         "cron": "33 7 * * 1-5",
@@ -131,7 +131,8 @@
         "Run hatsu:rikugan for <repo> as register, each pull request's readiness quoted from nen pr ready, never judged by eye.",
         "If a hatsu:futon --idle run on <repo> ended since the previous desk, put its terminal state and its parked efforts above the fold; that run's own last report already links its register (futon section 10).",
         "Run node scripts/prose_ambiguity_check.mts --root . --history 10 exactly and quote its last line beside the page's link: the baseline rows removed by the last ten merged prose pull requests (a pull request is a first-parent Merge pull request #N merge or a squash commit whose subject ends (#N), an integration branch's sub-PRs counting once through their delivery PR; prose commits naming no pull request are counted as skipped, never as pull requests), the walk's end when it is not complete, and the baseline's findings. A non-zero exit is reported as not run, never as none removed.",
-        "End with the page's link and that line. Never a release step (HR-5)."
+        "Run node scripts/release_lag_check.mts --root . exactly and quote its one line beside the page's link: how far Hatsu's own latest published release trails the plugin version on Hatsu's main (this checkout, whichever repository the register renders), read against docs/WORKFLOW.md section 4's release cadence (exit 0 in step or within it; exit 1 a cut is owed, or a release reads ahead of main). A non-zero exit other than 1 is reported as not run, never as in step. Quote the line only: acting on it is the maintainer's own call.",
+        "End with the page's link and those two lines. Never a release step (HR-5)."
       ],
       "alwaysAllow": [
         "nen report data",
@@ -139,6 +140,7 @@
         "nen pr ready",
         "nen backlog",
         "node scripts/prose_ambiguity_check.mts --root . --history 10",
+        "node scripts/release_lag_check.mts --root .",
         "git fetch",
         "git status",
         "git rev-parse",

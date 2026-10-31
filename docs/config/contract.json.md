@@ -136,6 +136,7 @@ Every key of `project.lanes` in Hatsu's own file is named here, with the scripts
 | `dependency-audit-guard` | test: `scripts/dependency_audit_resolve_fixture.mts` |
 | `spec-family-guard` | test: `scripts/spec_family_fixture_check.sh` |
 | `schedule-printer` | test: `scripts/schedule_install_fixture.mts` |
+| `release-lag-guard` | test: `scripts/release_lag_check_fixture.mts` |
 | `consumer-trailer-guard` | test: `scripts/tenkai_trailer_guard_fixture.test.mts` |
 | `plugin-bump-api-retry-guard` | test: `scripts/plugin_bump_api_retry_fixture.test.mts`, `scripts/plugin_bump_api_retry_coverage.test.mts` |
 | `mechanical-conflicts-guard` | test: `scripts/mechanical_conflicts_fixture.test.mts` |

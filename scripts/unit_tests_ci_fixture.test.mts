@@ -89,6 +89,7 @@ try {
     ['dependency_audit_resolve.mts', 'dependency_audit_resolve_fixture.mts', 'dependency-audit-guard'],
     ['config_values.ts', 'config_values_fixture.sh', 'config-values-guard'],
     ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
+    ['release_lag_check.mts', 'release_lag_check_fixture.mts', 'release-lag-guard'],
     ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
     ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
     ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard']]) {
@@ -266,4 +267,5 @@ try {
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }
-});
+// One test spawns the runner about forty times; Vitest's 5 s default timed it out on a loaded host (zheref/hatsu#533).
+}, 60_000);
