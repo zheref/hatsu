@@ -1424,9 +1424,9 @@ cut point and nothing else (getsuga § 1 stops on a tag name that disagrees with
 between two cuts are never tagged after the fact; they ride the next cut, their `changelog.d/` fragments folded into
 its one section. A cut is **owed** once `main` is more than one minor ahead of the latest published release, and
 when it is a major ahead or no release exists; a patch or a single minor behind is within the cadence and rides the
-next cut. A tag cut and not yet published owes its publication, [`mugetsu`](../claude/skills/mugetsu/)'s at **G3**.
+next cut. A tag cut and not yet published is named as such; its publication is [`mugetsu`](../claude/skills/mugetsu/)'s, at **G3**.
 `node scripts/release_lag_check.mts --root <hatsu>` measures this from live reads (the plugin version at
-`origin/main`, `gh release view`, the newest `vX.Y.Z` tag on origin), exits `1` when a cut is owed, and the weekday
+`origin/main`, `gh release view` on origin's own repository, the tags on origin), exits `1` when a cut is owed (its `--max-minor` default is this paragraph's one minor; another value is a what-if, not the cadence), and the weekday
 `morning-desk` row quotes its line ([`config/schedule.md`](config/schedule.md) § *Row 3*). It detects and nothing
 more: an owed cut is still `getsuga` on the maintainer's own call and its publication still `mugetsu` on their go,
 and no scheduler or composite cuts or publishes because the line reads owed ([HR-5](ROSTER.md#hr-5)).
