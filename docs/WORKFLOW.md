@@ -2121,7 +2121,7 @@ reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../cla
 at Ready → the dated **final** report, [`rikugan`](../claude/skills/rikugan/)'s one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
 
 **Who starts en:** [`mukai`](../claude/skills/mukai/) (its offer, or `mukai.autoEn`), [`futon`](../claude/skills/futon/)'s
-per-issue chain, the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
+per-issue chain, [`kage-bunshin`](../claude/skills/kage-bunshin/) § 3's per-PR start (zheref/hatsu#536), the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
 proposal it opens, where en runs ¹–⁵ and **returns the quoted verdict to getsuga instead of ringing ⁶**:
 § 3a is that proposal's merge (ROSTER § *Rulings of 2026-09-26/27/28*, ruling 4; zheref/hatsu#103).
 

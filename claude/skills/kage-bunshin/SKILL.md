@@ -38,7 +38,7 @@ from `1` to `7` is the same ask, the candidate `7` — **the cap is never derive
 `<owner/name>` and `<n>`; `nen repo resolve <owner/name> --repo <this checkout>` gives the `<CODE>`
 ([`build`](../build/SKILL.md) § 1's form). A URL of another shape, or a repository the registry does not
 carry, is a **row blocked at the start** — `blocked (unresolved: <token>)` — never dropped, never widened
-to a neighbour. **Echo before anything is fetched**: the list in its given order with each `<CODE>#<N>`,
+to a neighbour; a repeated `<owner/name>#<N>` collapses to its first position, said. **Echo before anything is fetched**: the list in its given order with each `<CODE>#<N>`,
 the mode, the cap, the blocked rows. **Say the run has started** (a bounded `CON-25` delegation per
 clone, build § 5; the whole lapses when § 6 ends it).
 
@@ -54,13 +54,18 @@ moved, stashed or switched for a clone, on any repository.
 
 ## 3. Sequential — one clone at a time, in the given order
 
-Each issue, in order: `hatsu:build <CODE>#<N>` whole — ten, classify where unlabelled, direct (its mismatch
-question, HR-234, is asked **at most once per run**, the answer covering every clone), ren, aka, mukai, then
-build's phase 4, [`en`](../en/SKILL.md) — [`sharingan`](../sharingan/SKILL.md) inside it — to the PR's gate.
+Each issue, in order: `hatsu:build <CODE>#<N>` through its phase 4 — ten, classify where unlabelled, direct, ren,
+aka, mukai, then [`en`](../en/SKILL.md) — [`sharingan`](../sharingan/SKILL.md) inside it — to the PR's gate.
 Where `mukai` offers `en` and does not start it (`mukai.autoEn` false), **this run starts it**: the typed
 invocation is the go for every clone's readiness drive, for nothing past the gate. The clone ends when the
 PR reads Ready and its merge prompt was shown (`ready+prompted`, HR-353), or at a stop § 5 names; **then
-the next begins.** One clone runs at a time; no cap is read.
+the next begins.** One clone runs at a time; no cap is read. A clone never asks build's phase 6: **the
+wrap-up is § 6's alone** (HR-366). **Direct's mismatch question** (row `direct-mismatch`, HR-234) is asked
+**once per run**, on the first clone, in either mode: **A** covers every clone, recorded against each clone's
+effort; **B** ends every clone not yet started (`skipped (direct: restart on <surface>)`), a running one finishes. **Overlap stacks here too**: two clones in one
+repository whose diffs would touch a common path form one stack (§ 4's rule, WORKFLOW § *Stacked pull
+requests* rules 1–6) — on a plugin repository every plugin-shipped effort overlaps on the manifests and
+mirrors, so the later clone is cut from the earlier's published branch, never from the trunk beside it.
 
 ## 4. Parallel — clones in their own worktrees, under the cap
 
@@ -68,17 +73,20 @@ Up to `<cap>` clones at once, each a **builder effort** raised by the surface's 
 [`kazaana`](../kazaana/SKILL.md) § 3 raises one: titled `kage-bunshin · kurapika · <alias>`, bound to its
 repository's `<core>/.nen/worktrees/<surface>/<name>`, handed the path, the issue, the stack base and
 aka § 0's push scope (HR-20), with WORKFLOW § *Delegate briefs*' wait block and § *The host block a
-delegate brief carries* verbatim and one `Heavy turn:` line. **Its model is direct's primary pick** for
+delegate brief carries* verbatim and one `Heavy turn:` line. **This session runs build §§ 2–2b per issue before each raise** — the issue read, the shape check, classify,
+direct; the clone authors and publishes only. **Its model is direct's primary pick** for
 that issue, spelled through `models.<surface>.<tier>`, **never frontier**. The clone runs `ren` then
 `aka` (on a canon repository [`great-hiker`](../great-hiker/SKILL.md) §§ 3–5 in `ren`'s place, at its
 tier); **this session runs `mukai` and `en` per PR, one at a time** — a subagent raises no subagent.
 
 **The slots**: `nen loop slots --efforts <abs path> --local-cap <cap> --repo <this checkout> --json`
 before every raise, the efforts file one row per clone under `<this checkout>/.nen/kage-bunshin/`; a slot
-frees at `ready+prompted` (HR-353). **Two clones never share a file**: efforts in one repository whose
+frees at `ready+prompted` (HR-353); a held clone with an open PR keeps its slot until then; a blocked or
+skipped clone's row is removed from the file, which frees it. **Two clones never share a file**: efforts in one repository whose
 diffs would touch a common path form one stack — WORKFLOW § *Stacked pull requests*, rules 1–6, the
 later cut from the earlier's published branch once its `aka` has run; disjoint efforts are never stacked;
-efforts in different repositories share nothing. The stack plan is stated at § 1's echo and carried to § 6.
+efforts in different repositories share nothing. The stack plan is stated once every issue is read and before the first raise — overlap is read from the
+files each effort touches, never from the URL — and carried to § 6.
 
 ## 5. A clone that will not move — reported, skipped, the run continues
 
@@ -90,22 +98,24 @@ carries the reason, the next clone starts or the slot frees.
 | an open `OQ-{n}` row (`nen issue questions`, exit `1`, document printed) | `held (open questions)` — never answered here |
 | the shape unread (exit `1`, no document) · the check not run (exit `2`) | `blocked (shape unread)` · `blocked (questions not read)` — the whole list is never stopped by one issue |
 | an epic awaiting its mode label (build § 2, row `mode-label`) | `held (G1)` |
-| a closed issue | `skipped (closed by <PR>)` |
+| a closed issue · a repeated URL (§ 1) · direct's **B** (§ 3) | `skipped (closed by <PR>, or closed with no PR)` · `skipped (duplicate of row <k>)` · `skipped (direct: restart on <surface>)` |
 | build's G5 — a red base, a capability gap, a failed commit, a worktree refused | `blocked (<build's reason>)` |
-| `en` ending short of Ready — the cap, a halt | `held (<en's terminus>)`, the PR named |
+| `en` ending short of Ready — its sixth stop or hanten prompt (WORKFLOW § *Batch delivery* rule 2), the cap, a halt | `held (gate)` · `held (<en's terminus>)`, the PR named; a stacked PR's Ready stop is `ready+prompted` (HR-353) |
+| the PR merged or closed by the maintainer before the handoff (en § 6) · a stack child stranded by its base's close (WORKFLOW § *Stacked pull requests* rule 5) | `merged (by <who>)` · `skipped (closed unmerged)` · `held (stranded: base closed)` |
+| **any other clone ending** | `blocked (<the ending, said>)` — build § 7's fall-through, carried up |
 
 A clone's G5 is reported in its own shape (build § 6) **without waiting for the answer**; the maintainer
 takes it up from the table. **No row is ever retried, re-ordered or dropped** by this run.
 
 ## 6. Ending the run — the table, then the wrap-up
 
-The run ends once every row is `ready+prompted`, `held`, `blocked` or `skipped`. The final report is
+The run ends once every row is `ready+prompted`, `merged`, `held`, `blocked` or `skipped`. The final report is
 [`rikugan`](../rikugan/SKILL.md) `register` over the run's scope — a multi-object scope is never
 `final` (HR-260) — carrying **one row per issue**:
 
 | Issue | PR | Gate state |
 |---|---|---|
-| `<owner/name>#<N>` | `#<M>` or none | `ready+prompted` · `held (<reason>)` · `blocked (<reason>)` · `skipped (<reason>)` |
+| `<owner/name>#<N>` | `#<M>` or none | `ready+prompted` · `merged (by <who>)` · `held (<reason>)` · `blocked (<reason>)` · `skipped (<reason>)` |
 
 Each PR's `nen pr ready` verdict is quoted verbatim; the stack plan is one line per stack, bottom-up. For
 every `held (open questions)` row the report **offers the surface's picker flow** over that issue's open
