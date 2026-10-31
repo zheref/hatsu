@@ -39,5 +39,6 @@
     "./claude/agents/bisky.md"
   ],
   "commands": "./claude/commands/",
-  "skills": "./claude/skills/"
+  "skills": "./claude/skills/",
+  "types": "./hooks/desk/state.d.ts"
 }

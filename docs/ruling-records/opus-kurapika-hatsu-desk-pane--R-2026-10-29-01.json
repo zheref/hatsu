@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-29-01",
+  "effortId": "opus-kurapika-hatsu-desk-pane",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "May the desk show unstarred buttons that fill (never submit) a human-only call like Publish, Open PR or Ship?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Yes, record a ruling (Recommended)",
+      "consequence": "A fill-only button the maintainer presses is their own typed call, not an agent's offer. New HR row in ROSTER in this PR; the 'waiting on your Publish' copy is reworded to describe state only."
+    },
+    {
+      "key": "B",
+      "label": "No, remove them",
+      "consequence": "The desk names the state ('pushed, no PR') and shows no button for aka, mukai or tensho."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-29T02:55:14.884Z"
+}
