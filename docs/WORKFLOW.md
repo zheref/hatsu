@@ -1418,6 +1418,19 @@ repository declares `tags.identity` it names the identity `kagutsuchi`'s tag wil
 is not (§ 3b, the maintainer's ruling of 2026-09-29: only when the latest build is not up to date with
 the target branch).
 
+**The release cadence: which versions get a tag** (zheref/hatsu#533). Not every version `main` declares is
+tagged. A [`getsuga`](../claude/skills/getsuga/) cut tags the version `.claude-plugin/plugin.json` carries at its
+cut point and nothing else (getsuga § 1 stops on a tag name that disagrees with it): the versions that landed
+between two cuts are never tagged after the fact; they ride the next cut, their `changelog.d/` fragments folded into
+its one section. A cut is **owed** once `main` is more than one minor ahead of the latest published release, and
+when it is a major ahead or no release exists; a patch or a single minor behind is within the cadence and rides the
+next cut. A tag cut and not yet published owes its publication, [`mugetsu`](../claude/skills/mugetsu/)'s at **G3**.
+`node scripts/release_lag_check.mts --root <hatsu>` measures this from live reads (the plugin version at
+`origin/main`, `gh release view`, the newest `vX.Y.Z` tag on origin), exits `1` when a cut is owed, and the weekday
+`morning-desk` row quotes its line ([`config/schedule.md`](config/schedule.md) § *Row 3*). It detects and nothing
+more: an owed cut is still `getsuga` on the maintainer's own call and its publication still `mugetsu` on their go,
+and no scheduler or composite cuts or publishes because the line reads owed ([HR-5](ROSTER.md#hr-5)).
+
 **A port ruling's PR is a canon PR** ([`bankai-rule`](../claude/skills/bankai-rule/) § 6, zheref/hatsu#354): it opens once per port run on the handbooks repository and ends at `en` § 5's prompt as **G4**, the maintainer's merge, like every PR into a canon repository.
 
 **More things only the maintainer calls — and none is one of the five.**
