@@ -14,7 +14,7 @@ Run at nen 0.28.0 (the pin) from a Hatsu checkout, `nen parse kage-bunshin --gra
 ```
 
 where `<url1>` is `https://github.com/zheref/hatsu/issues/470`, `<url2>` `https://github.com/zheref/nen/issues/300`
-and `<url3>` `https://github.com/zheref/GymKai/issues/4`. The three refusals are the trigger to ask (row
+and `<url3>` `https://github.com/fixture-owner/fixture-web/issues/4` (a fictional slug from docs/PUBLIC-REDACTION.md standing in for the private repository the run typed; the refusal is the same for any unregistered slug). The three refusals are the trigger to ask (row
 `missing-argument`). Two findings went to nen as one issue (zheref/nen#593): the space-joined list slot
 returns one value with no `items` where the comma-joined `<urls>{,}` form returns them, and the corrected
 line splices the mode placeholder onto the last URL with no space. Until it ships, kage-bunshin § 1 splits
@@ -23,7 +23,7 @@ the value on whitespace itself and names that as residue.
 `nen repo resolve` at 0.28.0 takes a product code, an `owner/name` slug or a short name, never a URL:
 `nen repo resolve https://github.com/zheref/nen/issues/300 --repo <hatsu>` is the registry refusal listing
 the codes, while `nen repo resolve zheref/nen --repo <hatsu>` answers `zheref/nen (NN) via slug`. A URL whose
-repository the registry does not carry (`zheref/GymKai`) is the same refusal, which kage-bunshin § 1 reads
+repository the registry does not carry (`fixture-owner/fixture-web` here) is the same refusal, which kage-bunshin § 1 reads
 as a row blocked at the start.
 
 **Not proved here:** a live run of the skill, sequential or parallel; the skill shipped as prose with no
