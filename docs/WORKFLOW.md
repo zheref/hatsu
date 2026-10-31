@@ -692,7 +692,9 @@ that `commits.forbiddenTrailers` lists is an attribution key; every other key �
 `Refs`, `See-also` — is an ordinary trailer, permitted above, and never compared. An attribution key
 outside `allowedAttributionTrailers` (keys compared case-insensitively, as nen's layer (c) compares) is
 a stop with the default `nen/decisions.json` row `injected-attribution-trailer` states — the
-just-written commit is dropped or re-squashed; the switch is row `harness-attribution-switch`, an ask
+just-written commit is dropped or re-squashed, and where layer (b) refuses the commit outright nothing
+is committed (the row's exit-`1` branch, [`AGENT-ATTRIBUTION.md`](AGENT-ATTRIBUTION.md) § *When the
+`commit-msg` hook refuses the commit outright*); the switch is row `harness-attribution-switch`, an ask
 the maintainer answers by toggling the harness (no skill writes that file); a published commit is never
 rewritten and is disclosed by `shibari` in the PR body's checklist. Layer (b), where a repository carries it, is the only mechanical refusal in that path; this
 repository does not carry it.

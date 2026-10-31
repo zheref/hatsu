@@ -126,22 +126,21 @@ index, and reports `{sha, subject, trailers}`.
 
 **Exit `3`: the commit exists and a hook added a refused trailer** (`injected[]`, read back;
 zheref/nen#357). Exit `1` whose stderr begins *"committed"* also exists, unchecked: never
-committed again. **An attribution key outside `commits.allowedAttributionTrailers` is a stop with a
+re-commit. **An attribution key outside `commits.allowedAttributionTrailers` is a stop with a
 default** ([WORKFLOW](../../../docs/WORKFLOW.md) § `commits`: a key ending `-by`/`-with` or in
 `forbiddenTrailers`, case-insensitive; `Closes` is ordinary; row `injected-attribution-trailer`):
-**drop the unpublished tip with the undo line nen prints** — never an earlier commit, never an
-amend — ask once for the switch (row `harness-attribution-switch`), then re-run. **A re-run that
-reads the key back again is a hook re-injecting on every commit** (a Cursor cloud agent's,
-[AGENT-ATTRIBUTION](../../../docs/AGENT-ATTRIBUTION.md)): drop it, keep the change staged, stop at
-**G5** before any push through the row's option C (`nen stop --who Kurapika --gate G5 …`) — never
-publish and disclose.
+**drop the unpublished tip with nen's undo line** — never an earlier one, never an amend — ask
+row `harness-attribution-switch` once, re-run. **A re-run that reads the key back again is a hook re-injecting on every commit** (a Cursor cloud agent's,
+[AGENT-ATTRIBUTION](../../../docs/AGENT-ATTRIBUTION.md)): drop it, keep it staged, **G5** before
+any push, option C — never publish and disclose. **Exit `1` quoting the `commit-msg` hook's refused
+key is that hook, nothing committed**: the row's no-switch case is G5 at once, else ask once (drift:
+AGENT-ATTRIBUTION); never bypass it.
 
 ## 6. Residue
 
 The explicit per-path `git -C <path> add` and the exit-`3` undo nen prints are the raw calls
-([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies). Of WORKFLOW § `commits`'s three enforcement layers the
-`commit-msg` hook exists only in a repository `nen scaffold init` stood up, so **say which layers
-the repository in front of you actually has**. **Whether two changes are one coherent commit is
+([PROCESS.md](../../../docs/PROCESS.md) § Residue and owned dependencies). Of WORKFLOW § `commits`'s three layers the
+`commit-msg` hook exists only where `nen scaffold init` ran: **say which layers this repository has**. **Whether two changes are one coherent commit is
 judgment.** **Reusable focused selection is an owned dependency**
 ([nen#207](https://github.com/zheref/nen/issues/207)): use actual runner identifiers and separate
 focused artifacts, never a probe-only lane of one language as focused tests for another's behaviour
