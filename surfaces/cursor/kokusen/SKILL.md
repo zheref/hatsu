@@ -128,15 +128,15 @@ index, and reports `{sha, subject, trailers}`.
 
 **Exit `3`: the commit exists and a hook added a refused trailer** (`injected[]`, read back;
 zheref/nen#357). Exit `1` whose stderr begins *"committed"* also exists, unchecked: never
-committed again. **An attribution key outside `commits.allowedAttributionTrailers` is a stop with a
+re-commit. **An attribution key outside `commits.allowedAttributionTrailers` is a stop with a
 default** ([WORKFLOW](../../../docs/WORKFLOW.md) § `commits`: a key ending `-by`/`-with` or in
 `forbiddenTrailers`, case-insensitive; `Closes` is ordinary; row `injected-attribution-trailer`):
-**drop the unpublished tip with the undo line nen prints** — never an earlier commit, never an
-amend — ask once for the switch (row `harness-attribution-switch`), then re-run. **A re-run that
-reads the key back again is a hook re-injecting on every commit** (a Cursor cloud agent's,
+**drop the unpublished tip with nen's undo line** — never an earlier one, never an amend — ask
+row `harness-attribution-switch` once, re-run. **A re-run that reads the key back again is a hook re-injecting on every commit** (a Cursor cloud agent's,
 [AGENT-ATTRIBUTION](../../../docs/AGENT-ATTRIBUTION.md)): drop it, keep it staged, **G5** before
 any push, option C — never publish and disclose. **Exit `1` quoting the `commit-msg` hook's refused
-key is that hook, nothing committed**: G5 at once on a cloud agent, else ask once; never bypass it.
+key is that hook, nothing committed**: the row's no-switch case is G5 at once, else ask once (drift:
+AGENT-ATTRIBUTION); never bypass it.
 
 ## 6. Residue
 
