@@ -3079,8 +3079,8 @@ never responsibility for the final claim. Before a handover:
 
 ## Delegate briefs — how a delegate waits (zheref/hatsu#473)
 
-Every brief that raises a builder delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's and
-[`futon`](../claude/skills/futon/SKILL.md) § 4's — carries the lines between the two markers below **word
+Every brief that raises a builder delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's,
+[`futon`](../claude/skills/futon/SKILL.md) § 4's and [`kage-bunshin`](../claude/skills/kage-bunshin/SKILL.md) § 4's — carries the lines between the two markers below **word
 for word**. **Illumi's long watch is not one**: it is `en`'s observation hold, governed by
 [`en`](../claude/skills/en/SKILL.md) §§ 6–7 and [`illumi.md`](../claude/agents/illumi.md), and measured in
 hours. The orchestrating session owns the clock; a wait the

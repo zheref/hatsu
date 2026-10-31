@@ -77,7 +77,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **60**, the fifty-nine plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **61**, the sixty plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its

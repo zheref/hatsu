@@ -4,7 +4,7 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-A history of the count, never the current one (`ls -d claude/skills/*/` is): fifty-nine skills at `v0.140.0` ([`kuchiyose`](kuchiyose/); fifty-eight at `v0.133.0`, [`dowsing-chain`](dowsing-chain/); fifty-seven at `v0.132.0`, [`okiro`](okiro/); fifty-six at `v0.126.0`, fifty-four at `v0.125.0`, fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`; one directory each per surface, plus `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+A history of the count, never the current one (`ls -d claude/skills/*/` is): sixty skills at `v0.155.0` ([`kage-bunshin`](kage-bunshin/); fifty-nine at `v0.140.0`, [`kuchiyose`](kuchiyose/); fifty-eight at `v0.133.0`, [`dowsing-chain`](dowsing-chain/); fifty-seven at `v0.132.0`, [`okiro`](okiro/); fifty-six at `v0.126.0`, fifty-four at `v0.125.0`, fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`; one directory each per surface, plus `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
@@ -149,7 +149,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 | [`third-hand`](third-hand/) | **Session harvest — Netero's last look, after En.** A separate phase, **optional** from the ruling of 2026-10-13, picked beside `cleanup` at the wrap-up. Raise Netero in parallel, fold this sitting's process friction into **0–3** issues, file only what the maintainer picks through the surface picker, then the sitting is over. Never merges, never implements. Not a step of En. |
 | [`cleanup`](cleanup/) | **Shizuku's sweep — required after a completed session.** Offered once through the wrap-up picker (`cleanup` · `cleanup` and `third-hand` · continue), and only when every PR in the sitting's scope is merged and the maintainer has explicitly declared the sitting satisfied (§ 2, HR-366) — never at a Ready PR's prompt, never under `--idle`. Shizuku inventories what the effort used — worktrees, branches, remote heads, transient reports, caches, billed resources — and every prior session's leftover, returns a plan split into deterministic and proposed rows, and removes only what the maintainer picked, bytes read back. Never before the pick, never a tree she has not inspected, never a `.nen/` ledger. |
 
-**Composite** — an order, not a new capability. `ren` shipped at `v0.4.0`; the three after it at `v0.5.0`; `kazaana` at `v0.108.0`:
+**Composite** — an order, not a new capability. `ren` shipped at `v0.4.0`; the three after it at `v0.5.0`; `kazaana` at `v0.108.0`; `kage-bunshin` at `v0.155.0`:
 
 | Skill | Order inside |
 |---|---|
@@ -158,6 +158,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 | [`mukai`](mukai/) | **The review-and-publication phase — human-called.** `murasaki`¹ → `hanten`² → kokusen checkpoint³ → `kotoamatsukami` impacted tests⁴ → `byakugan` coverage⁵ → final unchanged catch-up and update push⁶ → existing UI evidence⁷ → `shibari` PR⁸ → landing report⁹ → **offer `en`** and end Mukai (`nen/workflow.json` → `mukai.autoEn: true` starts En immediately in the same turn instead; default off). |
 | [`en`](en/) | **The readiness watch, `izanagi`-capped** by `nen/workflow.json` → `monitor`. [`spiritual-message`](spiritual-message/)¹ (landing) → [`sharingan`](sharingan/)² → `murasaki`³ when the branch is behind → `sharingan`⁴ → observe⁵ required CI/current-head review → [`jutaisho`](jutaisho/)⁶ at Ready → the dated final report ([`rikugan`](rikugan/), a one-effort Rikugan through [`backlog-board`](backlog-board/) § 3) and stop at the human gate. **A run with no acting cap does not run; quiet observations spend none**. A long hold may be handed to **Illumi**, read-only. When En has completed, the caller offers the wrap-up — [`cleanup`](cleanup/), with [`third-hand`](third-hand/) optional. |
 | [`kazaana`](kazaana/) | **The surface-matched backlog, drawn in and delivered.** `hatsu:futon <repo>@model/<this surface's line> then getsuga` under the hood: `direct` on the unlabelled first, the backlog refetched, then each queued issue authored and published by a delegate in its own worktree on `direct`'s primary pick (up to 7 at once; `ren`, or `great-hiker` on a canon repository, then `aka`) while this session runs `mukai` → `en` per effort, stacked only on overlap, the merge order on the register; once every PR is merged or closed, `getsuga` with its release proposal merged autonomously (a fall-back is a G5 halt, never the maintainer's merge prompt); then one unstarred question whether `mugetsu` should publish the tag, then the wrap-up picker. |
+| [`kage-bunshin`](kage-bunshin/) | **A hand-picked list of issues, each to its gate — shadow clones.** URLs that may span repositories, parsed and echoed before anything is fetched, never widened; one `build` per issue, in the given order (`--sequential`) or as parallel clones in their own worktrees on `direct`'s primary pick under a cap of at most 7 (`--parallel [--cap <n>]`), stacked only on overlap within one repository, while this session runs `mukai` → `en` per PR; a blocked or held issue is reported and skipped and the run continues (HR-335); the run ends with one `rikugan` register row per issue — PR and gate state — then the wrap-up picker once. Never merges, never applies a G1 label, never raises a frontier clone. |
 
 > **The release side closed at `v0.6.0`.** [`susanoo`](susanoo/), [`kagutsuchi`](kagutsuchi/) and
 > [`mugetsu`](mugetsu/) are the last three rows of the atomic table above, so **every phase a skill can
@@ -174,7 +175,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the fifty-nine. They landed with the skeleton because the plugin does not function
+Neither is one of the sixty. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |

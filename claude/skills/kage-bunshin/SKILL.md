@@ -1,0 +1,137 @@
+---
+name: kage-bunshin
+description: Deliver an explicit, hand-picked list of issues — URLs that may span repositories — each to a PR at its gate, in the given order or as parallel shadow clones in their own worktrees under a cap of at most 7. Use when the maintainer invokes hatsu:kage-bunshin <url> [<url> ...] --sequential | --parallel [--cap <n>], or asks to build these issues together. Every issue runs build (en, with sharingan inside it, drives its PR to the gate); a blocked issue is reported and skipped and the run continues; one table at the end lists every issue, its PR and its gate state. Never merges, never applies a G1 mode label, never widens the list, never raises a frontier clone.
+---
+
+**Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
+
+# Kage Bunshin — shadow clones: a hand-picked list of issues, each to its gate
+
+**Nature: Manipulator** while the list, the clones and the PRs are driven; the mode
+[`build`](../build/SKILL.md) § 2 confirms per issue inside each clone.
+
+> **Hand me the issues you picked, in any repositories; I give each back as a PR standing at your
+> merge prompt — or a row saying why it could not get there — and one table of all of them.**
+
+[`futon`](../futon/SKILL.md) needs a shared selector, [`kazaana`](../kazaana/SKILL.md) a whole
+surface queue, [`izanagi`](../izanagi/SKILL.md) one task repeated. This composite takes **a typed list**
+and runs **one [`build`](../build/SKILL.md) per issue** — a clone — with nothing of its own beyond the
+order, the cap, the skip rule and the table. **The phases this composite calls skip their own `## 0.`**
+([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4). Attended only; it declares no `--idle`.
+
+## 1. Invocation — the list is typed, never widened
+
+**P1 — `hatsu:ten kage-bunshin` opens this run** ([`ten`](../ten/SKILL.md) § 6).
+
+```
+hatsu:kage-bunshin <url> [<url> ...] --sequential | --parallel [--cap <n>]
+nen parse kage-bunshin --grammar "<urls>{ } --<mode:sequential|parallel> [--cap <cap>]" --line "<the arguments>"
+```
+
+Verified at nen `0.28.0` on 2026-10-31 ([`docs/ab/kage-bunshin.md`](../../../docs/ab/kage-bunshin.md)): a
+missing mode, an unknown mode and a line with no URL are exit `2` — the ask (row `missing-argument`); the
+list slot comes back as **one value**, split on whitespace here until nen's own grammar ships
+(zheref/nen#593; § Residue). **The cap** is `--cap` when typed, else `7`; one that is not a whole number
+from `1` to `7` is the same ask, the candidate `7` — **the cap is never derived beyond 7**.
+
+**Every URL is read, never guessed**: the shape `https://github.com/<owner>/<name>/issues/<n>` gives
+`<owner/name>` and `<n>`; `nen repo resolve <owner/name> --repo <this checkout>` gives the `<CODE>`
+([`build`](../build/SKILL.md) § 1's form). A URL of another shape, or a repository the registry does not
+carry, is a **row blocked at the start** — `blocked (unresolved: <token>)` — never dropped, never widened
+to a neighbour. **Echo before anything is fetched**: the list in its given order with each `<CODE>#<N>`,
+the mode, the cap, the blocked rows. **Say the run has started** (a bounded `CON-25` delegation per
+clone, build § 5; the whole lapses when § 6 ends it).
+
+## 2. The repositories — one checkout each, asked once
+
+A clone runs where `build` § 3 isolates: `<core>/.nen/worktrees/<surface>/<name>` **of that issue's
+repository** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live*). The session's own
+checkout serves the repository `nen repo resolve --from <it>` reads from its origin; **every other
+repository's checkout is asked once per run** (row `missing-configuration`): an absolute path whose
+origin `nen repo resolve --from <path>` reads as that `<owner/name>`, used for every clone of that
+repository. Declined or unreadable, each of its issues is `blocked (no checkout: <owner/name>)`. No core is
+moved, stashed or switched for a clone, on any repository.
+
+## 3. Sequential — one clone at a time, in the given order
+
+Each issue, in order: `hatsu:build <CODE>#<N>` whole — ten, classify where unlabelled, direct (its mismatch
+question, HR-234, is asked **at most once per run**, the answer covering every clone), ren, aka, mukai, then
+build's phase 4, [`en`](../en/SKILL.md) — [`sharingan`](../sharingan/SKILL.md) inside it — to the PR's gate.
+Where `mukai` offers `en` and does not start it (`mukai.autoEn` false), **this run starts it**: the typed
+invocation is the go for every clone's readiness drive, for nothing past the gate. The clone ends when the
+PR reads Ready and its merge prompt was shown (`ready+prompted`, HR-353), or at a stop § 5 names; **then
+the next begins.** One clone runs at a time; no cap is read.
+
+## 4. Parallel — clones in their own worktrees, under the cap
+
+Up to `<cap>` clones at once, each a **builder effort** raised by the surface's native tool exactly as
+[`kazaana`](../kazaana/SKILL.md) § 3 raises one: titled `kage-bunshin · kurapika · <alias>`, bound to its
+repository's `<core>/.nen/worktrees/<surface>/<name>`, handed the path, the issue, the stack base and
+aka § 0's push scope (HR-20), with WORKFLOW § *Delegate briefs*' wait block and § *The host block a
+delegate brief carries* verbatim and one `Heavy turn:` line. **Its model is direct's primary pick** for
+that issue, spelled through `models.<surface>.<tier>`, **never frontier**. The clone runs `ren` then
+`aka` (on a canon repository [`great-hiker`](../great-hiker/SKILL.md) §§ 3–5 in `ren`'s place, at its
+tier); **this session runs `mukai` and `en` per PR, one at a time** — a subagent raises no subagent.
+
+**The slots**: `nen loop slots --efforts <abs path> --local-cap <cap> --repo <this checkout> --json`
+before every raise, the efforts file one row per clone under `<this checkout>/.nen/kage-bunshin/`; a slot
+frees at `ready+prompted` (HR-353). **Two clones never share a file**: efforts in one repository whose
+diffs would touch a common path form one stack — WORKFLOW § *Stacked pull requests*, rules 1–6, the
+later cut from the earlier's published branch once its `aka` has run; disjoint efforts are never stacked;
+efforts in different repositories share nothing. The stack plan is stated at § 1's echo and carried to § 6.
+
+## 5. A clone that will not move — reported, skipped, the run continues
+
+**Nothing blocks the list** (HR-335's words, applied to a typed list): a stop ends **that clone**, its row
+carries the reason, the next clone starts or the slot frees.
+
+| The stop | The row |
+|---|---|
+| an open `OQ-{n}` row (`nen issue questions`, exit `1`, document printed) | `held (open questions)` — never answered here |
+| the shape unread (exit `1`, no document) · the check not run (exit `2`) | `blocked (shape unread)` · `blocked (questions not read)` — the whole list is never stopped by one issue |
+| an epic awaiting its mode label (build § 2, row `mode-label`) | `held (G1)` |
+| a closed issue | `skipped (closed by <PR>)` |
+| build's G5 — a red base, a capability gap, a failed commit, a worktree refused | `blocked (<build's reason>)` |
+| `en` ending short of Ready — the cap, a halt | `held (<en's terminus>)`, the PR named |
+
+A clone's G5 is reported in its own shape (build § 6) **without waiting for the answer**; the maintainer
+takes it up from the table. **No row is ever retried, re-ordered or dropped** by this run.
+
+## 6. Ending the run — the table, then the wrap-up
+
+The run ends once every row is `ready+prompted`, `held`, `blocked` or `skipped`. The final report is
+[`rikugan`](../rikugan/SKILL.md) `register` over the run's scope — a multi-object scope is never
+`final` (HR-260) — carrying **one row per issue**:
+
+| Issue | PR | Gate state |
+|---|---|---|
+| `<owner/name>#<N>` | `#<M>` or none | `ready+prompted` · `held (<reason>)` · `blocked (<reason>)` · `skipped (<reason>)` |
+
+Each PR's `nen pr ready` verdict is quoted verbatim; the stack plan is one line per stack, bottom-up. For
+every `held (open questions)` row the report **offers the surface's picker flow** over that issue's open
+rows (HR-335), started only on the answer. `nen usage record --effort <run id> --surface <s> --dial
+<level>` at this report; each clone's `build` keeps its own ledgers. Then **once, the wrap-up picker**,
+only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites hold (row `wrap-up`). **Kage-bunshin never
+resumes itself**: re-invoke it with the rows still open; a clone's `build` resumes as build § 8 says.
+
+## Residue
+
+The URL read and the whitespace split of § 1's list slot, and a refusal's corrected line, are this skill's
+until nen publishes the grammar (zheref/nen#593). A clone's raise has no verb (§ 4's native tool). The
+gate-state words of § 5's table are this run's read of each stop; `nen pr ready` decides readiness.
+
+## Authority
+
+- **Permitted:** build's delegation per issue, direct's and classify's publishes under their own keys;
+  clones at direct's primary tier; branch pushes through `aka`; `mukai` and `en` per PR to Ready; the
+  register render; the wrap-up question.
+- **Not permitted:** a merge, a G1 label, a review vote, raw `gh pr create`, a `then` chain, adding,
+  dropping or re-ordering an issue.
+
+## Hard limits
+
+- **Never merges a PR** (`CON-5`/`CON-7`), **never applies a G1 mode label** (`CON-4`), never votes.
+- **Never widens the list** — not to a label, a neighbour, a sibling repository or an open epic's children.
+- **Never exceeds the cap, never a cap above 7**, never lets two clones share a file, never stacks disjoint efforts.
+- **Never raises a clone on the frontier tier**, nor on a tier direct did not name.
+- **Never answers an open question, retries a blocked row, or moves a core checkout** to make room for a clone.
