@@ -64,7 +64,7 @@ RULES_MAX=12000
 DESC_MAX=1024
 
 # The thirty-one: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
-# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), bankai-rule (v0.125.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), kage-bunshin (v0.155.0), which were authored
+# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), bankai-rule (v0.125.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), kage-bunshin (v0.156.0), which were authored
 # under the ceiling rather than reduced to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build classify direct futon great-hiker
 hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time bankai-rule kamui hiraishin dowsing-chain kuchiyose kage-bunshin"
