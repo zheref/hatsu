@@ -347,7 +347,11 @@ each refused key: one a `prepare-commit-msg` or `commit-msg` hook added, or one 
 `injected-attribution-trailer`'s autonomous drop applies, as at § 7 step 0: the undo line the verb's
 stderr prints (`git -C <path> reset --soft ORIG_HEAD`) restores the folded commits. Then row
 `harness-attribution-switch` is asked once, and the squash runs again — once: a second exit `3` is
-§ 7's re-injecting hook, a **G5** before any push. Since nen `0.19` the verb also
+§ 7's re-injecting hook, a **G5** before any push. **Exit `1` whose stderr quotes a `commit-msg`
+hook refusing an attribution key** is the same hook, refused before any squash commit exists:
+the branch already sits at the squash point, so run the one undo line the stderr names
+(`git reset --hard ORIG_HEAD`) and nothing else. That restores the folded commits. Then take § 7's
+re-injecting-hook stop. Since nen `0.19` the verb also
 loads `nen/workflow.json` on every run, so a malformed policy is exit `1` before anything moves.
 
 **Enforcement of the trailer rule is three-layered, and the third layer is now the binary's.** (a)
@@ -459,7 +463,14 @@ cloud environment's `commit-msg` hook ([`docs/AGENT-ATTRIBUTION.md`](../../../do
 first publish included — and stop at **G5** through row `harness-attribution-switch` option C
 (`nen stop --who Kurapika --gate G5 <efforts.md>`), the branch unpublished and the change kept. That
 stop is unconditional; it does not wait on whether a switch exists. Publishing and then disclosing is
-never the recovery for a commit this run wrote (zheref/hatsu#470).
+never the recovery for a commit this run wrote (zheref/hatsu#470). **Where the repository's
+`commit-msg` hook refuses the key outright** (§ 4's exit `1`, nothing committed), it is the same
+stop. On a Cursor cloud agent, option A reaches nothing, so the first refusal is the G5. On an IDE
+or CLI harness, ask the row once, and a second refusal is the G5. `--no-verify`,
+`-c core.hooksPath`, an edited `.git/hooks/` file or `git commit-tree` is never the way past it, and
+no nen verb strips a hook's key at the pin (zheref/nen#594;
+[`docs/AGENT-ATTRIBUTION.md`](../../../docs/AGENT-ATTRIBUTION.md) § *When the `commit-msg` hook
+refuses the commit outright*).
 **Whether step 0b carries `--forbid-trailers-from` is decided before the call, by reading
 `<path>/nen/workflow.json`**: pass `--forbid-trailers-from <path>/nen/workflow.json` where the file lists
 a non-empty `commits.forbiddenTrailers`; where the file is absent or lists none, omit the flag and say
