@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { catalogue } from './pr_sections.ts';
 import { history, readSections, summary } from './pr_sections_history.ts';
 import { declarationText, strictJson } from './config_values_refresh.ts';
+import { fixFor, fixRows, guide, OUTSTANDING, resolveAction } from './tenkai_fixes.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -60,7 +61,14 @@ function run(): number {
     document.items.push({ id: 'pr.sections', title: 'PR-section catalogue freshness', owner: 'hatsu', action: finding ? `config_values.sh fill --refresh --repo ${plain(repo)}` : null,
       ...(finding ?? { state: 'repaired', detail: 'pr.sections: refreshed unedited defaults and options; consumer-owned cells retained' }) });
   }
-  document.outstanding = document.items.filter((row: any) => ['missing', 'drift', 'routed', 'staged', 'blocked'].includes(row.state)).length;
+  // HA#535: every outstanding row names its fix — run, edit, detect and who supplies the value.
+  const fixes = fixRows(root);
+  for (const row of document.items) {
+    row.action = resolveAction(row.action, repo);
+    if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root, slug: document.slug });
+  }
+  document.outstanding = document.items.filter((row: any) => OUTSTANDING.includes(row.state)).length;
+  document.guide = guide(document.items);
   if (json) process.stdout.write(JSON.stringify(document, null, 2) + '\n');
   else {
     process.stdout.write(`repository: ${plain(document.repo)}\nslug:       ${plain(document.slug ?? '(unreadable)')}\n`);
@@ -70,8 +78,22 @@ function run(): number {
     for (const row of document.items) {
       process.stdout.write(`  ${glyph[row.state] ?? plain(row.state)}  ${plain(row.id)}\n        ${plain(row.detail)}\n`);
       if (row.action && !['satisfied', 'repaired'].includes(row.state)) process.stdout.write(`        → ${plain(row.action)}\n`);
+      if (row.fix) {
+        for (const command of row.fix.run) process.stdout.write(`          run:    ${plain(command)}\n`);
+        if (row.fix.edit) process.stdout.write(`          edit:   ${plain(row.fix.edit)}${row.fix.guide ? ` (${plain(row.fix.guide)})` : ''}\n`);
+        process.stdout.write(`          detect: ${plain(row.fix.detect)}\n`);
+        process.stdout.write(`          fill:   ${row.fix.fill === 'default' ? 'catalogue default or Hatsu seed — apply writes it' : row.fix.fill === 'owner' ? `the owner answers ${plain(row.fix.asks.join(', '))}` : 'the owner decides; edit the file, then detect'}\n`);
+      }
     }
-    process.stdout.write(document.outstanding ? `\n${document.outstanding} item(s) outstanding. Re-run \`apply\` after settling the routed and staged ones.\n` : '\nevery item is satisfied — this repository is a working Hatsu consumer.\n');
+    if (document.outstanding) {
+      const { defaults, owner, manual } = document.guide;
+      process.stdout.write(`\n${document.outstanding} item(s) outstanding. Re-run \`apply\` after settling the routed and staged ones.\n`);
+      process.stdout.write(`\nguided fill — Tenkai writes only catalogue defaults and values the owner answered, never an invented one:\n`);
+      process.stdout.write(`  1. defaults (${defaults.length}): bash ${plain(root)}/scripts/tenkai_adopt.sh apply --repo ${plain(repo)}${defaults.length ? ` settles ${defaults.map(plain).join(', ')}` : ''}\n`);
+      process.stdout.write(`  2. owner answers (${owner.length}): ${owner.length ? owner.map((row: any) => plain(row.id)).join(', ') + ' — ask each, then run its line with the answer in its <token>' : 'none'}\n`);
+      process.stdout.write(`  3. owner edits (${manual.length}): ${manual.length ? manual.map(plain).join(', ') : 'none'}\n`);
+      process.stdout.write(`then re-run diagnose: the outstanding count goes down by every item that settled.\n`);
+    } else process.stdout.write('\nevery item is satisfied — this repository is a working Hatsu consumer.\n');
   }
   process.stderr.write(result.stderr ?? '');
   return document.outstanding ? 1 : 0;

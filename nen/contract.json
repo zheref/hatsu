@@ -209,6 +209,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/report_markdown_check.sh (zheref/hatsu#215), the guard for the Markdown report templates (templates/spiritual-message.md, templates/rikugan.md) a Markdown-artifact surface publishes, following the one-lane-per-executable-guard pattern. It reads nen/workflow.json reports.sections, both report templates in both formats, templates/graph.example.json and templates/report-examples/, so a change to any of them selects it. Its fixture is hermetic and offline but for nen, whose render it checks: throwaway Hatsu-shaped trees prove a faithful tree passes; a block out of the declared order, a declared block never rendered, an HTML render out of order and a missing Markdown template fail; a desk with every option or no option starred, a dropped ask, an unquoted verdict, a G5 blocker with no g5-blocker wrapper and an omitted gate fail; a value in a code span or a fence, a raw slot outside the mermaid fence, a | splitting a table cell and an unfilled {{ fail; a token the HTML template does not name and a refused render fail; a stale or missing checked example fails and --write-examples refreshes it; an unknown argument, a missing nen, a non-Hatsu root and a workflow with no reports.sections are wiring refusals at exit 2; then the check runs on this repository."
       },
+      "tenkai-fixes-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/tenkai_fixes.ts and contracts/tenkai-fixes.json (zheref/hatsu#535): the fix every outstanding hatsu:tenkai item names in scripts/tenkai_adopt.sh's report. A sibling of tenkai-guard rather than a second step of it, because scripts/shell_coverage.mts admits only a lane's one declared test argv. From zheref/hatsu#535, scripts/unit_tests_ci.mts selects it."
+      },
       "config-values-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -953,6 +958,23 @@
             "coverage/tenkai-guard/lcov.info"
           ],
           "$comment": "Extraction only: reads coverage/tenkai-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+        }
+      },
+      "tenkai-fixes-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "node_modules/vitest/vitest.mjs",
+            "run",
+            "--maxWorkers",
+            "1",
+            "--testTimeout",
+            "60000",
+            "scripts/tenkai_fixes_fixture.test.mts"
+          ],
+          "$comment": "Pinned Vitest fixture for the Tenkai report's fix shape. Every contracts/tenkai-fixes.json row is well-formed and only an owner row takes an answer token; every id the engine emits maps to a named fix before the catch-all; an unfilled template is refused; a scaffolded product's every outstanding item names its run, edit and detect lines with no `--repo <path>` left; and a re-run after apply, after an owner-answered run line and after an owner's edit each shows the outstanding count going down. It drives scripts/tenkai_adopt.sh with --visibility and a failing gh stub, so it is offline, and runs nen schema set from PATH (the pinned nen). Install locked dependencies with npm ci --ignore-scripts first. Run it as `nen shu test --lane tenkai-fixes-guard --repo <hatsu>` when scripts/tenkai_fixes.ts, scripts/tenkai_adopt.ts or contracts/tenkai-fixes.json changes."
         }
       },
       "pr-composition-guard": {

@@ -123,6 +123,21 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **May a consumer override it?** The catalogue is Hatsu's; the values are the consumer's. Anything `set` or hand-edited in the consumer's file is never rewritten by `fill`; a `secret-env` row takes an environment-variable name, never a secret, and every written string is screened before the write.
 
+## `contracts/tenkai-fixes.json`
+
+**Purpose.** The fix every outstanding [`hatsu:tenkai`](../../claude/skills/tenkai/SKILL.md) item names ([zheref/hatsu#535](https://github.com/zheref/hatsu/issues/535)): what to run, which file and key to edit, which command reads the item again, and who supplies the value. `scripts/tenkai_fixes.ts` renders it into each outstanding row's `fix` block and the report's `guide`; lane `tenkai-fixes-guard` holds it.
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `$schema` | string | `hatsu.tenkai-fixes/v1` | the shape | `scripts/tenkai_fixes.ts` |
+| `fixes[]` | ordered rows; the first that matches wins, and the last is the `^.*$` catch-all | `id` (a pattern over the item id, its named groups filled into the templates), `states?`, `detail?`, `action?` (patterns that must also match, their groups filled too), `each?` (a group split on `, `, one `run` per element), `run?` (commands), `asks?` (the `<token>` values the owner answers), `edit?`, `guide?` (a page here), `detect`, `fill` (`default` \| `owner` \| `edit`) | one item family's fix: `{repo}`, `{root}`, `{slug}`, `{id}` and the groups are filled, shell-quoted in `run` and `detect`; an unfilled `{name}` is refused, never printed | `tenkai_adopt.sh diagnose|apply`; `tenkai` § 7 |
+
+**The three fills.** `default`: the run writes only catalogue defaults or Hatsu's own seeds (`tenkai_adopt.sh apply`, `config_values.sh fill`). `owner`: the run takes the owner's answer in its `asks` tokens, and an owner row is the only kind that carries one. `edit`: a structure `nen schema set` never replaces (it adds a missing member or swaps a scalar), such as a scaffold's `PROPOSED SEAT`; the owner decides and the file is edited, then `detect` reads it. **Tenkai never invents a value**: a token nobody answered keeps its item outstanding.
+
+**May a consumer override it?** No; it is Hatsu's. A consumer's own values go into its own files through the fixes the file names.
+
 ## `contracts/scans.json`
 
 **Purpose.** The one source of the deterministic security-scan rows `hatsu:hanten` runs before Feitan reads: an exact gitleaks tag with its checksum manifest and per-host asset names, one dependency-audit row per ecosystem, selected by its `stacks`, the `nen stage triage` secret-shape read, and the builder-touching-workflow gate. A row that cannot run is reported as not scanned, never as clean.
