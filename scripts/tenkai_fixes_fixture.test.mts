@@ -1,5 +1,5 @@
 import { test, expect, afterAll } from 'vitest';
-import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -126,6 +126,13 @@ test('every item a real engine run reports outstanding names a fix, across repos
   const contract = JSON.parse(readFileSync(join(noLane, 'nen/contract.json'), 'utf8')); delete contract.project.defaultLane;
   writeFileSync(join(noLane, 'nen/contract.json'), JSON.stringify(contract)); shapes['no defaultLane'] = noLane;
   const bare = temp(); git(bare, 'init', '-q', '-b', 'main'); shapes['bare repository'] = bare;
+  const reader = scaffold(); mkdirSync(join(reader, 'scripts')); symlinkSync(join(source, 'scripts/readiness_ci_verdict.mts'), join(reader, 'scripts/readiness_ci_verdict.mts')); shapes['symlinked reader'] = reader;
+  const trailers = scaffold(); mkdirSync(join(trailers, '.github/workflows'), { recursive: true });
+  writeFileSync(join(trailers, '.github/workflows/forbidden-commit-trailers.yml'), 'name: hand-written\n');
+  const policy = JSON.parse(readFileSync(join(trailers, 'nen/workflow.json'), 'utf8')); policy.commits = { forbiddenTrailers: ['Co-Authored-By'] };
+  writeFileSync(join(trailers, 'nen/workflow.json'), JSON.stringify(policy)); shapes['hand-written trailer workflow'] = trailers;
+  const gates = scaffold(); writeFileSync(join(gates, 'nen/gates.json'), JSON.stringify({ check_exclusions: [] })); shapes['retired gates key'] = gates;
+  const linkedGates = scaffold(); const outside = join(temp(), 'gates.json'); writeFileSync(outside, '{}'); symlinkSync(outside, join(linkedGates, 'nen/gates.json')); shapes['symlinked gates'] = linkedGates;
   const applied = scaffold(); tenkai(applied, 'apply'); shapes['scaffolded product after apply'] = applied;
   for (const [shape, repo] of Object.entries(shapes)) {
     const report = tenkai(repo, 'diagnose');
@@ -133,6 +140,8 @@ test('every item a real engine run reports outstanding names a fix, across repos
     expect(report.outstanding, shape).toBe(open.length);
     for (const row of open) {
       expect(row.fix?.fill, `${shape}: ${row.id} ${row.state} — ${row.detail}`).not.toBe('unmapped');
+      // Only the trailer policy itself is Tenkai's edit; a hand-written or linked workflow is routed.
+      if (row.id.endsWith('forbidden-commit-trailers.yml') && !/forbiddenTrailers/.test(row.detail)) expect(row.fix.fill, `${shape}: ${row.detail}`).toBe('route');
       expect(row.fix.edit ?? row.fix.run[0], `${shape}: ${row.id}`).toBeTruthy();
       expect(row.action ?? '', `${shape}: ${row.id}`).not.toContain('--repo <path>');
     }
@@ -142,25 +151,32 @@ test('every item a real engine run reports outstanding names a fix, across repos
   }
   // The scaffold's own non-repository state routes every git-dependent item to `git init`, not a false fix.
   const pre = tenkai(shapes['scaffold before git init'], 'diagnose');
-  for (const id of ['dirs/reports', 'hooks/commit-msg']) expect(pre.items.find((row: any) => row.id === id).fix.run, id).toEqual([`git -C ${shapes['scaffold before git init']} init`]);
+  for (const id of ['dirs/reports', 'hooks/commit-msg']) expect(pre.items.find((row: any) => row.id === id).fix.run, id).toEqual([`git -C ${quote(realpathSync(shapes['scaffold before git init']))} init`]);
+  expect(tenkai(shapes['symlinked reader'], 'diagnose').items.find((row: any) => row.id === 'scripts/readiness_ci_verdict.mts')).toMatchObject({ state: 'blocked', fix: { fill: 'route' } });
+  expect(tenkai(shapes['retired gates key'], 'diagnose').items.find((row: any) => row.id === 'gates/retired-keys').fix.edit).toContain('remove check_exclusions');
+  expect(tenkai(shapes['symlinked gates'], 'diagnose').items.find((row: any) => row.id === 'gates/retired-keys').fix.edit).toContain('replace a link');
 });
 
 test('the report names each fix as a line, quoted, with the guided fill in its groups', () => {
   const repo = scaffold({ dir: join(temp(), 'a repo') });
   const text = tenkai(repo, 'diagnose', false) as string;
-  const shown = quote(repo);
+  // macOS's temp directory is a symlink: the report prints the real path, quoted, everywhere.
+  const shown = quote(realpathSync(repo));
+  for (const line of text.split('\n').filter((entry) => entry.includes('--repo '))) expect(line, line).not.toContain(`--repo ${realpathSync(repo)}`);
   expect(text).toContain(`run:    nen schema set --repo ${shown} --file nen/contract.json --pointer /project/verbs/nextjs/build --value <command-json> --gate-change`);
   expect(text).toContain('edit:   nen/contract.json → project.verbs.nextjs.archive: replace the row');
   expect(text).toContain(`detect: nen schema check --repo ${shown}`);
   expect(text).toMatch(/guided fill — Tenkai writes only catalogue defaults and values the owner answered/);
-  expect(text).toContain(`apply --repo ${shown} settles`);
+  expect(text).toMatch(/1\. defaults \(\d+\), settling .*:\n {7}bash .*tenkai_adopt\.sh apply --repo /);
   expect(text).toMatch(/2\. owner answers \(\d+\): .* single-quoted in place of its <token>/);
   expect(text).toMatch(/4\. routed to their owner \(\d+\): .*nen\/gates\.json/);
   expect(text).not.toMatch(/5\. unmapped/);
-  // The printed guided-fill line runs as printed, even with a space in the path.
-  const line = text.split('\n').find((entry) => entry.startsWith('  1. defaults'))!;
-  const command = line.replace(/^ {2}1\. defaults \(\d+\): /, '').replace(/ settles .*$/, '');
-  expect(spawnSync('bash', ['-c', `${command} --visibility private --self-hosted 0 --json`], { encoding: 'utf8', env }).status).toBe(1);
+  // The printed guided-fill line runs verbatim, even with a space in the path; it is the line after the heading.
+  const lines = text.split('\n');
+  const command = lines[lines.findIndex((entry) => entry.startsWith('  1. defaults')) + 1].trim();
+  const ran = spawnSync('bash', ['-c', command], { encoding: 'utf8', env });
+  expect([0, 1], ran.stderr).toContain(ran.status);
+  expect(ran.stdout).toMatch(/item\(s\) outstanding|every item is satisfied/);
 });
 
 test('a --hatsu-root without the catalogue still reports: the catalogue is read from the running tree', () => {
@@ -192,7 +208,7 @@ test('a re-run after each fix shows the outstanding count going down', () => {
   expect(answered.outstanding).toBe(settled.outstanding - 1);
   // Step 3: Tenkai's § 6c edit replaces a seat after the owner decides; its detect reads it, and the count drops again.
   const archive = answered.items.find((row: any) => row.id === 'lane/nextjs/archive');
-  expect(archive.fix).toMatchObject({ run: [], fill: 'edit', detect: `nen schema check --repo ${repo}` });
+  expect(archive.fix).toMatchObject({ run: [], fill: 'edit', detect: `nen schema check --repo ${quote(realpathSync(repo))}` });
   const file = join(repo, 'nen/contract.json');
   const contract = JSON.parse(readFileSync(file, 'utf8'));
   contract.project.verbs.nextjs.archive = { exe: 'pnpm', argv: ['run', 'build'] };

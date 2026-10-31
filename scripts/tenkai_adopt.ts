@@ -1,5 +1,6 @@
 /** HA#370: PR-section freshness in Tenkai's inbox; the frozen adoption engine keeps its own items. */
 import { spawnSync } from 'node:child_process';
+import { existsSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { catalogue } from './pr_sections.ts';
@@ -23,7 +24,9 @@ function run(): number {
     const result = legacy(args); process.stdout.write(result.stdout ?? ''); process.stderr.write(result.stderr ?? ''); return result.status ?? 2;
   }
   const root = resolve(options['--hatsu-root'] ?? dirname(here));
-  const repo = resolve(options['--repo']);
+  // The engine resolves symlinks (Path.resolve), so the report matches its path, the real one.
+  const given = resolve(options['--repo']);
+  const repo = existsSync(given) ? realpathSync(given) : given;
   // HA#535: the fix catalogue is read and checked before anything can write, from this script's own tree.
   const fixes = fixRows(dirname(here));
   // Preserve the frozen adopter's invocation refusals before the explicit refresh can write.
@@ -66,7 +69,7 @@ function run(): number {
   // HA#535: every outstanding row names its fix — run, edit, detect and who supplies the value.
   for (const row of document.items) {
     row.action = resolveAction(row.action, repo);
-    if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root, slug: document.slug });
+    if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root: dirname(here), slug: document.slug });
   }
   document.outstanding = document.items.filter((row: any) => OUTSTANDING.includes(row.state)).length;
   document.guide = guide(document.items);
@@ -91,7 +94,7 @@ function run(): number {
       const list = (ids: string[]) => ids.length ? ids.map(plain).join(', ') : 'none';
       process.stdout.write(`\n${document.outstanding} item(s) outstanding. Re-run \`apply\` after settling the routed and staged ones.\n`);
       process.stdout.write(`\nguided fill — Tenkai writes only catalogue defaults and values the owner answered, never an invented one:\n`);
-      process.stdout.write(`  1. defaults (${defaults.length}): bash ${plain(quote(join(root, 'scripts', 'tenkai_adopt.sh')))} apply --repo ${plain(quote(repo))} settles ${list(defaults)}\n`);
+      process.stdout.write(`  1. defaults (${defaults.length}), settling ${list(defaults)}:\n       bash ${plain(quote(join(dirname(here), 'scripts', 'tenkai_adopt.sh')))} apply --repo ${plain(quote(repo))}\n`);
       process.stdout.write(`  2. owner answers (${owner.length}): ${list(owner.map((row: any) => row.id))} — ask each, then run its line with the answer single-quoted in place of its <token>\n`);
       process.stdout.write(`  3. Tenkai's edits (${edits.length}): ${list(edits)} — the owner decides, Tenkai edits nen/contract.json or nen/workflow.json (§ 6c), then detect\n`);
       process.stdout.write(`  4. routed to their owner (${routed.length}): ${list(routed)} — the owner or the named tool makes the change; Tenkai never does\n`);

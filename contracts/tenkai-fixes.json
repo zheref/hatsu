@@ -103,10 +103,9 @@
       "id": "^\\.github/workflows/pr-readiness\\.yml$",
       "states": ["blocked"],
       "detail": "slug",
-      "run": ["bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo} --slug <owner/name>"],
-      "asks": ["<owner/name>"],
-      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
-      "fill": "owner"
+      "edit": "git remote origin: add one (git remote add origin https://github.com/<owner/name>.git) so the slug persists; a --slug on one diagnose is not recorded",
+      "detect": "nen repo classify --repo {repo}",
+      "fill": "route"
     },
     {
       "id": "^\\.github/workflows/pr-readiness\\.yml$",
@@ -131,7 +130,23 @@
       "edit": "nen/workflow.json → commits.forbiddenTrailers: a non-empty list of the trailer keys this repository refuses",
       "guide": "docs/config/workflow.json.md",
       "detect": "nen schema check --repo {repo}",
-      "fill": "edit"
+      "fill": "edit",
+      "detail": "forbiddenTrailers"
+    },
+    {
+      "id": "^(scripts/readiness_ci_verdict\\.mts|\\.github/workflows/pr-readiness\\.yml|\\.github/workflows/forbidden-commit-trailers\\.yml|scripts/release-publish\\.sh)$",
+      "states": ["staged"],
+      "detail": "workflow guard",
+      "edit": "the consumer's workflow guard: land its admission of this workflow in its own pull request, or replace a linked guard with a regular file; then re-run apply",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^(scripts/readiness_ci_verdict\\.mts|\\.github/workflows/pr-readiness\\.yml|\\.github/workflows/forbidden-commit-trailers\\.yml|scripts/release-publish\\.sh)$",
+      "states": ["blocked"],
+      "edit": "{id} or the path the detail names: replace a link or non-regular path with a regular one, or review a file Tenkai did not render before replacing it; Tenkai never writes through either",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
     },
     {
       "id": "^(scripts/readiness_ci_verdict\\.mts|\\.github/workflows/pr-readiness\\.yml|\\.github/workflows/forbidden-commit-trailers\\.yml|scripts/release-publish\\.sh)$",
@@ -280,6 +295,14 @@
     {
       "id": "^gates/retired-keys$",
       "edit": "nen/gates.json → remove check_exclusions and reviewer_fallback",
+      "guide": "docs/config/gates.json.md",
+      "detect": "nen schema check --repo {repo}",
+      "fill": "route",
+      "detail": "retired key"
+    },
+    {
+      "id": "^gates/retired-keys$",
+      "edit": "nen/gates.json: replace a link with a regular file, or repair it until it parses as a JSON object",
       "guide": "docs/config/gates.json.md",
       "detect": "nen schema check --repo {repo}",
       "fill": "route"
