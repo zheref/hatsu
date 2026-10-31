@@ -69,7 +69,7 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // ledger` from PATH (zheref/hatsu#427).
   ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
   // The fix every outstanding Tenkai item names, and the count going down after it (zheref/hatsu#535).
-  ['tenkai_fixes.ts', 'tenkai_fixes_fixture.test.mts', 'tenkai-fixes-guard'],
+  ['tenkai_fixes.ts', ['tenkai_fixes_fixture.test.mts', 'tenkai_fixes_coverage.test.mts'], 'tenkai-fixes-guard'],
   // The spec-family fixture reads (zheref/hatsu#405): the script is its own fixture, as tenkai's is.
   ['spec_family_fixture_check.sh', 'spec_family_fixture_check.sh', 'spec-family-guard'],
   // The Development-link guard is its own fixture (--self-test): bash, jq, awk and perl's Encode,

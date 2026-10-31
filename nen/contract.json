@@ -962,19 +962,58 @@
       },
       "tenkai-fixes-guard": {
         "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "node_modules/vitest/vitest.mjs",
-            "run",
-            "--maxWorkers",
-            "1",
-            "--testTimeout",
-            "60000",
-            "scripts/tenkai_fixes_fixture.test.mts"
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/tenkai-fixes-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers",
+                "1",
+                "--testTimeout",
+                "120000",
+                "scripts/tenkai_fixes_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/tenkai_fixes.ts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/tenkai-fixes-guard/lcov.info",
+                "scripts/tenkai_fixes_coverage.test.mts"
+              ]
+            }
           ],
-          "$comment": "Pinned Vitest fixture for the Tenkai report's fix shape. Every contracts/tenkai-fixes.json row is well-formed and only an owner row takes an answer token; every id the engine emits maps to a named fix before the catch-all; an unfilled template is refused; a scaffolded product's every outstanding item names its run, edit and detect lines with no `--repo <path>` left; and a re-run after apply, after an owner-answered run line and after an owner's edit each shows the outstanding count going down. It drives scripts/tenkai_adopt.sh with --visibility and a failing gh stub, so it is offline, and runs nen schema set from PATH (the pinned nen). Install locked dependencies with npm ci --ignore-scripts first. Run it as `nen shu test --lane tenkai-fixes-guard --repo <hatsu>` when scripts/tenkai_fixes.ts, scripts/tenkai_adopt.ts or contracts/tenkai-fixes.json changes."
+          "artifacts": [
+            "coverage/tenkai-fixes-guard/lcov.info"
+          ],
+          "$comment": "The authoritative pinned Vitest fixture for the Tenkai report's fix shape runs first. Every contracts/tenkai-fixes.json row is well-formed: only an owner row takes an answer token, an edit row names only nen/contract.json or nen/workflow.json and carries no run line, and the last row is the one unmapped catch-all. Real engine strings map to named fixes; a target-controlled lane name and a malformed slug never reach a command; an unrenderable row reads unmapped with its defect, never a crash. Across real repository shapes (a scaffolded product before and after apply, a scaffold before git init, a process, an unregistered and a bare repository, an unparseable workflow, a symlinked Reports, no defaultLane) every outstanding item names a fix and the guide accounts for each. The text report quotes a path with a space and its guided-fill line runs as printed; a --hatsu-root without the catalogue still reports; and a re-run after apply, after an owner-answered run line and after Tenkai's section 6c edit each shows the outstanding count going down. A native Node test then replays the renderer's cases in-process solely for exact-source LCOV over scripts/tenkai_fixes.ts; scripts/tenkai_adopt.ts runs only as the CLI the Vitest fixture drives and is not measured. Offline: --visibility and a failing gh stub; nen schema set runs from PATH (the pinned nen). Install locked dependencies with npm ci --ignore-scripts first. Run it as `nen shu test --lane tenkai-fixes-guard --repo <hatsu>` when scripts/tenkai_fixes.ts, scripts/tenkai_adopt.ts or contracts/tenkai-fixes.json changes."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/tenkai-fixes-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing tenkai-fixes-guard LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty tenkai-fixes-guard LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/tenkai-fixes-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the nonempty LCOV written by the focused test row and runs no fixture. Nen owns parsing and --from-capture provenance."
         }
       },
       "pr-composition-guard": {

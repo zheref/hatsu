@@ -1,7 +1,14 @@
 {
   "$schema": "hatsu.tenkai-fixes/v1",
-  "$comment": "The fix every outstanding hatsu:tenkai item names (zheref/hatsu#535). scripts/tenkai_fixes.ts reads it: the first row whose `id` pattern matches the item's id (and whose `states`, `detail` and `action` filters hold) renders the item's `fix`. `{name}` fills from the patterns' named groups and from `{repo}`, `{root}`, `{slug}` and `{id}`, shell-quoted in `run` and `detect`; an unfilled `{name}` is a defect the fixture refuses. `<token>` is a value the OWNER answers and must be listed in `asks`: Tenkai never invents one. `fill` says who supplies the value: `default` (the run writes only catalogue defaults or Hatsu-owned seeds, through apply or config_values.sh fill), `owner` (the run takes the owner's answer in its `asks` tokens), `edit` (the owner decides and the file is edited by hand, then `detect` validates it; `run` is empty, because `nen schema set` adds a member or swaps a scalar and never replaces a structure). `each` names a group split on `, ` that renders one `run` per element. Every id the engine emits maps to a row before the catch-all; docs/config/plugin-registries.md documents the keys.",
+  "$comment": "The fix every outstanding hatsu:tenkai item names (zheref/hatsu#535). scripts/tenkai_fixes.ts reads this file from the Hatsu tree it ships in, before the engine writes anything: the first row whose `id` pattern matches the item's id (and whose `states`, `detail` and `action` filters hold) renders the item's `fix`. `{name}` fills from the patterns' named groups and from `{repo}`, `{root}`, `{slug}` (only a well-formed owner/name, else `<owner/name>`) and `{id}`, shell-quoted in `run` and `detect`; an unfilled `{name}` renders the item `unmapped`, never a half-filled command. A lane or verb group admits only [A-Za-z0-9_.-], so a target-controlled name never reaches a command. `each` names a group split on `,` that renders one `run` per element. `<token>` is a value the OWNER answers, single-quoted in place of the token, and appears only in an `owner` row's `run`, listed in `asks`: Tenkai never invents one. `fill` says who acts: `default` (the run writes only catalogue defaults or Hatsu-owned seeds, through apply or config_values.sh fill), `owner` (the run takes the owner's answer in its `asks` tokens), `edit` (tenkai section 6c's scoped edit of nen/contract.json or nen/workflow.json after the owner decides; `run` is empty, because `nen schema set` adds a member or swaps a scalar and never replaces a structure), `route` (the owner or the named tool makes this change and Tenkai never does: a file nen or the maintainer owns, a policy guard, a ledger; `run`, when present, takes no answer) and `unmapped` (the catch-all, the last row: a defect to file). docs/config/plugin-registries.md documents the keys.",
   "fixes": [
+    {
+      "id": "^",
+      "detail": "not a git repository",
+      "run": ["git -C {repo} init"],
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
     {
       "id": "^nen/(?<file>contract|workflow)\\.json$",
       "states": ["routed"],
@@ -13,63 +20,115 @@
       "fill": "owner"
     },
     {
-      "id": "^nen/(?<file>repos)\\.json$",
-      "edit": "nen/repos.json → consumers[] (a product) or maintained_tools[] (a process repository), one {\"repo\": \"{slug}\"} entry",
-      "guide": "docs/config/repos.json.md",
-      "detect": "nen repo classify --repo {repo}",
-      "fill": "edit"
-    },
-    {
-      "id": "^nen/(?<file>[a-z]+)\\.json$",
-      "edit": "nen/{file}.json",
+      "id": "^nen/(?<file>contract|workflow)\\.json$",
+      "edit": "nen/{file}.json: repair it by hand until it parses",
       "guide": "docs/config/{file}.json.md",
       "detect": "nen schema check --repo {repo}",
       "fill": "edit"
     },
     {
+      "id": "^nen/(?<file>gates|labels|repos)\\.json$",
+      "states": ["routed"],
+      "edit": "create nen/{file}.json in the shape its page documents; no nen verb writes one",
+      "guide": "docs/config/{file}.json.md",
+      "detect": "nen schema check --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^nen/(?<file>[a-z]+)\\.json$",
+      "edit": "nen/{file}.json: repair it by hand until it parses",
+      "guide": "docs/config/{file}.json.md",
+      "detect": "nen schema check --repo {repo}",
+      "fill": "route"
+    },
+    {
       "id": "^nen/colors\\.yml$",
+      "states": ["missing", "drift"],
       "run": ["bash {root}/scripts/tenkai_adopt.sh apply --repo {repo}"],
-      "edit": "nen/colors.yml (seeded from templates/colors.yml; tune the values)",
+      "edit": "nen/colors.yml, seeded from templates/colors.yml; tune the values",
       "guide": "docs/config/colors.yml.md",
       "detect": "nen schema check --repo {repo}",
       "fill": "default"
     },
     {
       "id": "^dirs/",
-      "detail": "^(?<rel>\\S+)/ ",
+      "states": ["missing", "drift"],
+      "detail": "^(?<rel>[A-Za-z0-9_./-]+?)/ ",
       "run": ["bash {root}/scripts/tenkai_adopt.sh apply --repo {repo}"],
       "edit": ".gitignore → {rel}/",
-      "detect": "git -C {repo} check-ignore -q {rel}/",
+      "detect": "test -d {repo}/{rel} && git -C {repo} check-ignore -q {rel}/",
       "fill": "default"
     },
     {
+      "id": "^(dirs/|nen/colors\\.yml$)",
+      "detail": "symlink",
+      "edit": "replace the link with a real file or directory, or point --repo at the real checkout",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
       "id": "^hooks/commit-msg$",
+      "states": ["routed"],
       "run": ["nen scaffold init --repo {repo} --marker-env <marker-env> --agent-trailer Hatsu-Agent --accept-detected"],
       "asks": ["<marker-env>"],
-      "edit": "nen/workflow.json → commits",
+      "edit": "nen/workflow.json → commits; the hook is generated from it",
       "guide": "docs/config/workflow.json.md",
-      "detect": "test -x {repo}/.git/hooks/commit-msg",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
       "fill": "owner"
     },
     {
       "id": "^guard/registration$",
-      "edit": "scripts/workflow_runner_policy_check.rb → EXPECTED_JOBS, EXPECTED_TYPES and EXPECTED_STEPS, in its own pull request before the workflow",
+      "edit": "scripts/workflow_runner_policy_check.rb → EXPECTED_JOBS, EXPECTED_TYPES and EXPECTED_STEPS, in its own pull request before the workflow; Tenkai never edits a policy guard",
       "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
-      "fill": "edit"
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["staged"],
+      "detail": "policy guard",
+      "edit": "land guard/registration's pull request first, then re-run apply",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
     },
     {
       "id": "^(\\.github/workflows/pr-readiness\\.yml|scripts/release-publish\\.sh|release/row)$",
       "states": ["blocked"],
       "detail": "role",
-      "edit": "nen/repos.json → consumers[] (a product) or maintained_tools[] (a process repository), one {\"repo\": \"{slug}\"} entry",
+      "edit": "nen/repos.json → consumers[] (a product) or maintained_tools[] (a process repository), one {\"repo\": \"{slug}\"} entry; the maintainer records the role, and with no readable origin the slug comes from git remote add origin or --slug",
       "guide": "docs/config/repos.json.md",
       "detect": "nen repo classify --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "slug",
+      "run": ["bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo} --slug <owner/name>"],
+      "asks": ["<owner/name>"],
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "owner"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "pinned_ref",
+      "edit": "Hatsu's own nen/contract.json → dependency.pinned_ref, not this repository's; repin Hatsu",
+      "detect": "nen schema check --repo {root}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "self-hosted",
+      "edit": "nen/workflow.json → runners.pools: one pool with its pool-<id> label",
+      "guide": "docs/config/workflow.json.md",
+      "detect": "nen schema check --repo {repo}",
       "fill": "edit"
     },
     {
       "id": "^\\.github/workflows/forbidden-commit-trailers\\.yml$",
       "states": ["blocked"],
-      "edit": "nen/workflow.json → commits.forbiddenTrailers: a non-empty list of trailer keys this repository refuses",
+      "edit": "nen/workflow.json → commits.forbiddenTrailers: a non-empty list of the trailer keys this repository refuses",
       "guide": "docs/config/workflow.json.md",
       "detect": "nen schema check --repo {repo}",
       "fill": "edit"
@@ -78,24 +137,52 @@
       "id": "^(scripts/readiness_ci_verdict\\.mts|\\.github/workflows/pr-readiness\\.yml|\\.github/workflows/forbidden-commit-trailers\\.yml|scripts/release-publish\\.sh)$",
       "states": ["missing", "drift", "staged"],
       "run": ["bash {root}/scripts/tenkai_adopt.sh apply --repo {repo}"],
-      "edit": "{id} (rendered by Tenkai from Hatsu's copy)",
+      "edit": "{id}, rendered by Tenkai from Hatsu's copy",
       "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
       "fill": "default"
     },
     {
       "id": "^release/row$",
-      "action": "project\\.verbs\\.(?<lane>[^.\\s]+)\\.release",
+      "detail": "contract\\.json is absent",
+      "run": ["nen scaffold init --repo {repo} --marker-env <marker-env> --accept-detected"],
+      "asks": ["<marker-env>"],
+      "edit": "nen/contract.json",
+      "guide": "docs/config/contract.json.md",
+      "detect": "nen schema check --repo {repo}",
+      "fill": "owner"
+    },
+    {
+      "id": "^release/row$",
+      "detail": "defaultLane",
+      "run": ["bash {root}/scripts/config_values.sh set --repo {repo} --id contract.project.defaultLane --value <lane-name-json>"],
+      "asks": ["<lane-name-json>"],
+      "edit": "nen/contract.json → project.defaultLane",
+      "guide": "docs/config/contract.json.md",
+      "detect": "nen schema check --repo {repo}",
+      "fill": "owner"
+    },
+    {
+      "id": "^release/row$",
+      "detail": "^product lane '(?<lane>[A-Za-z0-9_.-]+)'",
+      "edit": "nen/contract.json → project.verbs.{lane}.release, once the owner chooses the destinations, package identity, signing and publisher (tenkai section 6c step 3)",
+      "guide": "docs/config/contract.json.md",
+      "detect": "nen schema check --repo {repo}",
+      "fill": "edit"
+    },
+    {
+      "id": "^release/row$",
+      "detail": "is absent",
+      "action": "project\\.verbs\\.(?<lane>[A-Za-z0-9_.-]+)\\.release",
       "run": ["nen schema set --repo {repo} --file nen/contract.json --pointer /project/verbs/{lane}/release --value <release-row-json> --gate-change"],
       "asks": ["<release-row-json>"],
       "edit": "nen/contract.json → project.verbs.{lane}.release",
       "guide": "docs/config/contract.json.md",
       "detect": "nen schema check --repo {repo}",
-      "fill": "owner",
-      "detail": "is absent"
+      "fill": "owner"
     },
     {
       "id": "^release/row$",
-      "action": "project\\.verbs\\.(?<lane>[^.\\s]+)\\.release",
+      "action": "project\\.verbs\\.(?<lane>[A-Za-z0-9_.-]+)\\.release",
       "edit": "nen/contract.json → project.verbs.{lane}.release: replace the seat with the row the action offers",
       "guide": "docs/config/contract.json.md",
       "detect": "nen schema check --repo {repo}",
@@ -111,20 +198,20 @@
       "fill": "owner"
     },
     {
-      "id": "^lane/(?<lane>[^/]+)/(?<verb>[^/]+)$",
+      "id": "^lane/(?<lane>[A-Za-z0-9_.-]+)/(?<verb>[A-Za-z0-9_.-]+)$",
+      "detail": "no command is declared|no product release command",
       "run": ["nen schema set --repo {repo} --file nen/contract.json --pointer /project/verbs/{lane}/{verb} --value <command-json> --gate-change"],
       "asks": ["<command-json>"],
       "edit": "nen/contract.json → project.verbs.{lane}.{verb}",
       "guide": "docs/config/contract.json.md",
-      "detect": "nen shu detect --repo {repo}",
-      "fill": "owner",
-      "detail": "no command is declared"
+      "detect": "nen schema check --repo {repo}",
+      "fill": "owner"
     },
     {
-      "id": "^lane/(?<lane>[^/]+)/(?<verb>[^/]+)$",
-      "edit": "nen/contract.json → project.verbs.{lane}.{verb}: replace the row with {\"exe\", \"argv\"} or {\"steps\"}, or keep its unsupported reason as an explicit limitation",
+      "id": "^lane/(?<lane>[A-Za-z0-9_.-]+)/(?<verb>[A-Za-z0-9_.-]+)$",
+      "edit": "nen/contract.json → project.verbs.{lane}.{verb}: replace the row with a real {\"exe\", \"argv\"} or {\"steps\"} command (nen shu detect proposes one where the manifest answers); an explicit unsupported row is a limitation and stays outstanding by design",
       "guide": "docs/config/contract.json.md",
-      "detect": "nen shu detect --repo {repo}",
+      "detect": "nen schema check --repo {repo}",
       "fill": "edit"
     },
     {
@@ -137,8 +224,8 @@
       "fill": "owner"
     },
     {
-      "id": "^workflow/test-selection/(?<verb>.+)$",
-      "detail": "lane '(?<lane>[^']+)'",
+      "id": "^workflow/test-selection/(?<verb>[A-Za-z0-9_.-]+)$",
+      "detail": "lane '(?<lane>[A-Za-z0-9_.-]+)'",
       "run": ["bash {root}/scripts/config_values.sh set --repo {repo} --id workflow.tests.required --value <tests-required-json>"],
       "asks": ["<tests-required-json>"],
       "edit": "nen/workflow.json → tests.required or tests.extra, or nen/contract.json → project.verbs.{lane}.{verb}",
@@ -148,20 +235,20 @@
     },
     {
       "id": "^workflow/test-results$",
-      "action": "lane '(?<lane>[^']+)'",
+      "action": "lane '(?<lane>[A-Za-z0-9_.-]+)'",
       "run": ["nen schema set --repo {repo} --file nen/contract.json --pointer /project/verbs/{lane}/test/artifacts --value <artifacts-json> --gate-change"],
       "asks": ["<artifacts-json>"],
       "edit": "nen/contract.json → project.verbs.{lane}.test.artifacts",
       "guide": "docs/config/contract.json.md",
-      "detect": "nen shu test-report --repo {repo} --lane {lane}",
+      "detect": "nen schema check --repo {repo}",
       "fill": "owner"
     },
     {
       "id": "^workflow/coverage$",
-      "detail": "lane '(?<lane>[^']+)'",
+      "detail": "lane '(?<lane>[A-Za-z0-9_.-]+)'",
       "run": ["nen schema set --repo {repo} --file nen/contract.json --pointer /project/verbs/{lane}/coverage --value <coverage-row-json> --gate-change"],
       "asks": ["<coverage-row-json>"],
-      "edit": "nen/contract.json → project.verbs.{lane}.coverage",
+      "edit": "nen/contract.json → project.verbs.{lane}.coverage; an unsupported seat moves the item to lane/{lane}/coverage",
       "guide": "docs/config/contract.json.md",
       "detect": "nen schema check --repo {repo}",
       "fill": "owner"
@@ -185,23 +272,31 @@
       "fill": "owner"
     },
     {
+      "id": "^effort/review-ledger$",
+      "edit": "Hanten owns this ledger: nen review ledger ensure opens it at the effort's first review, and nen/workflow.json → review.scopes names its roster; Tenkai mints no budget",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
       "id": "^gates/retired-keys$",
       "edit": "nen/gates.json → remove check_exclusions and reviewer_fallback",
       "guide": "docs/config/gates.json.md",
       "detect": "nen schema check --repo {repo}",
-      "fill": "edit"
+      "fill": "route"
     },
     {
       "id": "^config/defaults$",
+      "states": ["missing"],
       "run": ["bash {root}/scripts/config_values.sh fill --repo {repo}"],
-      "edit": "nen/workflow.json and nen/contract.json — absent keys at their catalogue defaults",
+      "edit": "nen/workflow.json and nen/contract.json, absent keys at their catalogue defaults",
       "guide": "docs/config/plugin-registries.md",
       "detect": "bash {root}/scripts/config_values.sh diagnose --repo {repo}",
       "fill": "default"
     },
     {
       "id": "^config/needed$",
-      "detail": "no default: (?<ids>[^;]+)",
+      "states": ["routed"],
+      "detail": "no default: (?<ids>[A-Za-z0-9_., -]+)",
       "each": "ids",
       "run": ["bash {root}/scripts/config_values.sh set --repo {repo} --id {ids} --value <answer-json>"],
       "asks": ["<answer-json>"],
@@ -211,7 +306,15 @@
       "fill": "owner"
     },
     {
+      "id": "^config/(defaults|needed)$",
+      "states": ["blocked"],
+      "edit": "the declaration the detail names: repair it by hand (unparseable, a symlink, or outside the repository)",
+      "detect": "bash {root}/scripts/config_values.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
       "id": "^pr\\.sections$",
+      "states": ["drift"],
       "run": ["bash {root}/scripts/config_values.sh fill --refresh --repo {repo}"],
       "edit": "nen/workflow.json → pr.sections",
       "guide": "docs/config/workflow.json.md",
@@ -219,10 +322,18 @@
       "fill": "default"
     },
     {
-      "id": "^.*$",
-      "$comment": "The catch-all: the engine's own action is the fix, and a re-run of diagnose reads whether it settled. The fixture refuses any scaffolded item reaching it.",
-      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "id": "^pr\\.sections$",
+      "states": ["blocked"],
+      "edit": "nen/workflow.json → pr.sections: the declaration must parse as strict JSON before Tenkai refreshes it",
+      "guide": "docs/config/workflow.json.md",
+      "detect": "nen schema check --repo {repo}",
       "fill": "edit"
+    },
+    {
+      "id": "^[\\s\\S]*$",
+      "$comment": "The catch-all: no row names this item's fix. It is a defect to file, never a fix to improvise; the fixture refuses any item a real engine run sends here.",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "unmapped"
     }
   ]
 }
