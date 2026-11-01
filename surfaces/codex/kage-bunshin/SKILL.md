@@ -40,7 +40,7 @@ from `1` to `7` is the same ask, the candidate `7` — **the cap is never derive
 `<owner/name>` and `<n>`; `nen repo resolve <owner/name> --repo <this checkout>` gives the `<CODE>`
 ([`build`](../build/SKILL.md) § 1's form). A URL of another shape, or a repository the registry does not
 carry, is a **row blocked at the start** — `blocked (unresolved: <token>)` — never dropped, never widened
-to a neighbour; a repeated `<owner/name>#<N>` collapses to its first position, said. **Echo before anything is fetched**: the list in its given order with each `<CODE>#<N>`,
+to a neighbour; a repeated `<owner/name>#<N>` is `skipped (duplicate of row <k>)`, said at the echo. **Echo before anything is fetched**: the list in its given order with each `<CODE>#<N>`,
 the mode, the cap, the blocked rows. **Say the run has started** (a bounded `CON-25` delegation per
 clone, build § 5; the whole lapses when § 6 ends it).
 
@@ -63,11 +63,14 @@ invocation is the go for every clone's readiness drive, for nothing past the gat
 PR reads Ready and its merge prompt was shown (`ready+prompted`, HR-353), or at a stop § 5 names; **then
 the next begins.** One clone runs at a time; no cap is read. A clone never asks build's phase 6: **the
 wrap-up is § 6's alone** (HR-366). **Direct's mismatch question** (row `direct-mismatch`, HR-234) is asked
-**once per run**, on the first clone, in either mode: **A** covers every clone, recorded against each clone's
-effort; **B** ends every clone not yet started (`skipped (direct: restart on <surface>)`), a running one finishes. **Overlap stacks here too**: two clones in one
+**once per run**, on the first clone that reaches direct, in either mode: **A** covers every clone, recorded
+against each clone's effort; **B** gives the asking clone and every clone not yet started `skipped (direct:
+restart on <surface>)`, a running one finishes. **Overlap stacks here too**: two clones in one
 repository whose diffs would touch a common path form one stack (§ 4's rule, WORKFLOW § *Stacked pull
 requests* rules 1–6) — on a plugin repository every plugin-shipped effort overlaps on the manifests and
-mirrors, so the later clone is cut from the earlier's published branch, never from the trunk beside it.
+mirrors, so the later clone is cut from the earlier's published branch, never from the trunk beside it; **a clone that
+ends before its `aka` publishes leaves the stack**, and the next is cut from the nearest published branch
+below it, or from `origin/<branch.base>` when there is none — said in the echo and carried to § 6.
 
 ## 4. Parallel — clones in their own worktrees, under the cap
 
@@ -83,8 +86,9 @@ tier); **this session runs `mukai` and `en` per PR, one at a time** — a subage
 
 **The slots**: `nen loop slots --efforts <abs path> --local-cap <cap> --repo <this checkout> --json`
 before every raise, the efforts file one row per clone under `<this checkout>/.nen/kage-bunshin/`; a slot
-frees at `ready+prompted` (HR-353); a held clone with an open PR keeps its slot until then; a blocked or
-skipped clone's row is removed from the file, which frees it. **Two clones never share a file**: efforts in one repository whose
+frees at `ready+prompted` (HR-353) **or when the clone's row is written final** — `held`, `blocked`, `skipped`,
+`merged` — since this run never retries a row (§ 5): that row leaves the efforts file, which frees it; this is
+kage-bunshin's own reading of HR-353's `ready+prompted`, said, not futon's. **Two clones never share a file**: efforts in one repository whose
 diffs would touch a common path form one stack — WORKFLOW § *Stacked pull requests*, rules 1–6, the
 later cut from the earlier's published branch once its `aka` has run; disjoint efforts are never stacked;
 efforts in different repositories share nothing. The stack plan is stated once every issue is read and before the first raise — overlap is read from the
