@@ -8,7 +8,7 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the thirty dieted skills                      <= 12288 bytes
+#   the thirty-one dieted skills                      <= 12288 bytes
 #   every claude/rules/*.md, and the generated      <= 12000 characters (Antigravity's own documented
 #   surfaces/antigravity/rules/*.md mirror
 #                                                     rules-file limit, docs/surfaces/antigravity.md --
@@ -63,11 +63,11 @@ SKILL_MAX=12288
 RULES_MAX=12000
 DESC_MAX=1024
 
-# The thirty: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
-# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), bankai-rule (v0.125.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), which were authored
+# The thirty-one: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
+# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), bankai-rule (v0.125.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), kage-bunshin (v0.156.0), which were authored
 # under the ceiling rather than reduced to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build classify direct futon great-hiker
-hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time bankai-rule kamui hiraishin dowsing-chain kuchiyose"
+hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time bankai-rule kamui hiraishin dowsing-chain kuchiyose kage-bunshin"
 
 usage_error() { echo "prose_size_check.sh: $1" >&2; exit 2; }
 
