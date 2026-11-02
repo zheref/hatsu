@@ -769,7 +769,12 @@ State, out loud, in this order:
 
 1. the repository, the slug, and the derived runner **with its reason**;
 2. every item, with its state and its detail;
-3. for each outstanding item, the named action and its **owner**;
+3. for each outstanding item, the named action, its **owner** and its **fix** — the engine's `fix`
+   block, relayed line by line: `run` (the command, its target filled in), `edit` (the file and key),
+   `detect` (the command that reads the item again) and `fill`. The fixes are rows of
+   [`contracts/tenkai-fixes.json`](../../../contracts/tenkai-fixes.json), held by lane
+   `tenkai-fixes-guard` (zheref/hatsu#535); an `unmapped` item, one no row names, is a defect to
+   file, never a fix to improvise;
 4. the outstanding count, and — where anything is `staged` — **the order the pull requests must land
    in**;
 5. the settable values by domain: how many `fill` wrote, which were answered, which were deferred
@@ -784,6 +789,19 @@ State, out loud, in this order:
 
 **An outstanding count above zero is a finding, not a failure**, and it is stated as one.
 
+**Then offer the guided fill**, the report's `guide` in its groups, once and in order.
+**Defaults**: one `apply`, which writes only catalogue defaults and Hatsu's own seeds. **Owner
+answers**: § 6d's question for each item, then its `run` line with the answer single-quoted in place
+of the `<token>` its `asks` names. **Tenkai's edits**: a `fill: edit` item is a structure
+`nen schema set` never replaces (a scaffold's `PROPOSED SEAT`, say), in `nen/contract.json` or
+`nen/workflow.json` only; the owner decides it, the agent makes § 6c's scoped edit, and its `detect`
+reads it back. **Routed to their owner**: a `fill: route` item is a change Tenkai never makes (a
+policy guard, `nen/repos.json`, `nen/gates.json`, a Hanten ledger, `git init`); name it and its
+owner, and stop there. **Unmapped**: file it (§ 3). **Tenkai never invents a value**: a token nobody
+answered stays unanswered and its item stays outstanding. **After each group, re-run `diagnose`** and
+state the count
+before and after; a count that did not go down names the item that did not settle.
+
 ---
 
 ## Residue
@@ -796,8 +814,9 @@ State, out loud, in this order:
 - **The JSON readiness reader.** Tenkai installs the reader before its workflow. A process repository
   whose trusted workflow guard still admits only the old text step stages the workflow until its
   exact JSON step is admitted in a separate policy PR.
-- **Writing a declaration value has no nen verb.** `config_values.sh` scans and inserts JSON
-  itself (§ 6d's `fill` and `set`), and relies on nen reading every `$`-prefixed key as metadata — a
+- **Writing a declaration value has no general nen verb.** `nen schema set` adds a missing member
+  or swaps a scalar (the fix rows use it), but never replaces a structure; `config_values.sh` scans
+  and inserts JSON itself (§ 6d's `fill` and `set`), and relies on nen reading every `$`-prefixed key as metadata — a
   convention zheref/nen's loaders follow (`src/schema/source.ts`) but no published contract states.
   Both belong to nen: a value-setting verb and a documented metadata-key guarantee are an owned
   dependency, **not yet filed** — named here so it is not lost, for Netero's harvest.
