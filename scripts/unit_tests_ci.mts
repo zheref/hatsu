@@ -57,6 +57,8 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // The settable-values aggregate runs the frozen engine and every TypeScript overlay fixture (BC-9).
   ['config_values.ts', 'config_values_fixture.sh', 'config-values-guard'],
   ['schedule_install.mts', 'schedule_install_fixture.mts', 'schedule-printer'],
+  // The release-lag read morning-desk quotes against WORKFLOW § 4's cadence (zheref/hatsu#533).
+  ['release_lag_check.mts', 'release_lag_check_fixture.mts', 'release-lag-guard'],
   // HA341: the compatibility renderer's malformed-data and trusted-boundary fixtures must run in CI.
   ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
   ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],

@@ -364,6 +364,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/schedule_install.mts (zheref/hatsu#448), the printer of the steady-state scheduler rows in contracts/schedule.json (ruling HR-354, record R-2026-10-23-21: Claude Desktop local scheduled tasks on the maintainer's machine). Its fixture is hermetic and offline: the live contract printed whole with every placeholder filled (exit 0) or each unfilled one named (exit 1), nothing registered or written (HOME stays empty), each wiring refusal at exit 2, and the symlinked entry. scripts/unit_tests_ci.mts runs it in unit-tests.yml (BC-9). Run it as `nen shu test --lane schedule-printer --repo <hatsu>` when the script, its fixture or contracts/schedule.json changes."
       },
+      "release-lag-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/release_lag_check.mts (zheref/hatsu#533), the read of how far the latest published release trails the plugin version on main, against docs/WORKFLOW.md \u00a7 4's release cadence, the one place its threshold is stated. Its fixture is hermetic and offline: the given form over every verdict (in step, a patch or minor within the cadence, a cut owed past --max-minor, a major behind, no release at all, a release ahead of main, an unpublished tag and a tag above main named without changing the exit and the stray one hiding neither, the --json document, the origin-URL to gh-repository mapping, foreign text cut to one quoted line), every refusal at exit 2 with stdout empty, and the live form over a throwaway bare origin with a stubbed gh first on PATH (main read at the ref and never the working file, gh asked with -R for origin's repository and never its own pick, an origin naming no hosted repository refused, gh's release-not-found as no release, a hostile tag gh returns counted and never echoed, a gh failure, an unreadable ref and an unreachable origin at exit 2). morning-desk (contracts/schedule.json) runs the live form every weekday; scripts/unit_tests_ci.mts runs this lane in unit-tests.yml (BC-9). Run it as `nen shu test --lane release-lag-guard --repo <hatsu>` when the script or its fixture changes. It is not a general suite."
+      },
       "consumer-trailer-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -1920,6 +1925,17 @@
             "scripts/schedule_install_fixture.mts"
           ],
           "$comment": "Hermetic schedule-printer fixture against the live contracts/schedule.json and throwaway copies (zheref/hatsu#448). Needs node only; no gh, no network, no Claude Desktop."
+        }
+      },
+      "release-lag-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/release_lag_check_fixture.mts"
+          ],
+          "$comment": "Hermetic release-lag fixture (zheref/hatsu#533): the given form, the refusals and the live form over a throwaway bare origin with a stubbed gh. Needs node, git and a POSIX shell; no network."
         }
       },
       "consumer-trailer-guard": {
