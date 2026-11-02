@@ -1420,6 +1420,19 @@ repository declares `tags.identity` it names the identity `kagutsuchi`'s tag wil
 is not (§ 3b, the maintainer's ruling of 2026-09-29: only when the latest build is not up to date with
 the target branch).
 
+**The release cadence: which versions get a tag** (zheref/hatsu#533). Not every version `main` declares is
+tagged. A [`getsuga`](../claude/skills/getsuga/) cut tags the version `.claude-plugin/plugin.json` carries at its
+cut point and nothing else (getsuga § 1 stops on a tag name that disagrees with it): the versions that landed
+between two cuts are never tagged after the fact; they ride the next cut, their `changelog.d/` fragments folded into
+its one section. A cut is **owed** once `main` is more than one minor ahead of the latest published release, and
+when it is a major ahead or no release exists; a patch or a single minor behind is within the cadence and rides the
+next cut. A tag cut and not yet published is named as such; its publication is [`mugetsu`](../claude/skills/mugetsu/)'s, at **G3**.
+`node scripts/release_lag_check.mts --root <hatsu>` measures this from live reads (the plugin version at
+`origin/main`, `gh release view` on origin's own repository, the tags on origin), exits `1` when a cut is owed (its `--max-minor` default is this paragraph's one minor; another value is a what-if, not the cadence), and the weekday
+`morning-desk` row quotes its line ([`config/schedule.md`](config/schedule.md) § *Row 3*). It detects and nothing
+more: an owed cut is still `getsuga` on the maintainer's own call and its publication still `mugetsu` on their go,
+and no scheduler or composite cuts or publishes because the line reads owed ([HR-5](ROSTER.md#hr-5)).
+
 **A port ruling's PR is a canon PR** ([`bankai-rule`](../claude/skills/bankai-rule/) § 6, zheref/hatsu#354): it opens once per port run on the handbooks repository and ends at `en` § 5's prompt as **G4**, the maintainer's merge, like every PR into a canon repository.
 
 **More things only the maintainer calls — and none is one of the five.**
@@ -2123,7 +2136,7 @@ reacting to new comments, threads, reviews and conflicts → [`jutaisho`](../cla
 at Ready → the dated **final** report, [`rikugan`](../claude/skills/rikugan/)'s one-effort Rikugan rendered through `nen report render --variant final` (`backlog-board` § 3's path), **the only report written to `Reports/`**, then stop at the human gate.
 
 **Who starts en:** [`mukai`](../claude/skills/mukai/) (its offer, or `mukai.autoEn`), [`futon`](../claude/skills/futon/)'s
-per-issue chain, the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
+per-issue chain, [`kage-bunshin`](../claude/skills/kage-bunshin/) §§ 3–4's per-PR start (zheref/hatsu#536), the maintainer by name — and [`getsuga`](../claude/skills/getsuga/) § 3 for the release
 proposal it opens, where en runs ¹–⁵ and **returns the quoted verdict to getsuga instead of ringing ⁶**:
 § 3a is that proposal's merge (ROSTER § *Rulings of 2026-09-26/27/28*, ruling 4; zheref/hatsu#103).
 
@@ -3081,8 +3094,8 @@ never responsibility for the final claim. Before a handover:
 
 ## Delegate briefs — how a delegate waits (zheref/hatsu#473)
 
-Every brief that raises a builder delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's and
-[`futon`](../claude/skills/futon/SKILL.md) § 4's — carries the lines between the two markers below **word
+Every brief that raises a builder delegate — [`kazaana`](../claude/skills/kazaana/SKILL.md) § 3's,
+[`futon`](../claude/skills/futon/SKILL.md) § 4's and [`kage-bunshin`](../claude/skills/kage-bunshin/SKILL.md) § 4's — carries the lines between the two markers below **word
 for word**. **Illumi's long watch is not one**: it is `en`'s observation hold, governed by
 [`en`](../claude/skills/en/SKILL.md) §§ 6–7 and [`illumi.md`](../claude/agents/illumi.md), and measured in
 hours. The orchestrating session owns the clock; a wait the

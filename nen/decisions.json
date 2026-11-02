@@ -313,6 +313,7 @@
         "izanami",
         "jusshin",
         "jutaisho",
+        "kage-bunshin",
         "kamui",
         "kazaana",
         "kokusen",
@@ -396,6 +397,7 @@
         "jujutsu",
         "jusshin",
         "jutaisho",
+        "kage-bunshin",
         "kagutsuchi",
         "kamui",
         "kokusen",
@@ -639,6 +641,7 @@
         "build",
         "dowsing-chain",
         "emperor-time",
+        "kage-bunshin",
         "kazaana"
       ]
     },
@@ -780,7 +783,8 @@
       "citedBy": [
         "build",
         "direct",
-        "emperor-time"
+        "emperor-time",
+        "kage-bunshin"
       ]
     },
     {
@@ -887,7 +891,7 @@
     {
       "id": "wrap-up",
       "class": "ask-once-per-run",
-      "default": "ask once, and only when BOTH prerequisites hold (cleanup section 2; docs/ROSTER.md HR-366, zheref/hatsu#480): (1) every pull request in the sitting's scope reads MERGED on a live read -- an unread merge state never counts as merged, and a PR the maintainer closed unmerged leaves the scope (HR-367) -- and (2) the maintainer has explicitly declared the sitting satisfied, in their own words, quoted in the report. Readiness, green checks, en section 5's merge prompt, a composite's run ending, a merge alone, silence, a configured default and an unattended run never supply (2); short of both, no picker is shown, no cleanup runs, and the report names the missing prerequisite. The callers, each at its terminus: Kurapika as main session after en section 8, build phase 6, futon section 10, kazaana section 7, kamui section 8, hiraishin section 8, backlog-loop section 10, dowsing-chain section 11. Under --idle (2) is never met, so this row and cleanup-plan read refuse (HR-366, ruled 2026-10-26; a floor futon_effort_record.mts start enforces) and an idle run neither offers nor runs cleanup. When both hold, through the surface's own picker: cleanup, cleanup and third-hand in parallel, or continue iterating. cleanup is REQUIRED after a completed session and third-hand is optional (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of 2026-10-13, 5). The wrap-up names no human-called phase (aka, mukai, the merge, kagutsuchi, mugetsu) and is never a merge prompt. A section 7 marker reading cleaned, none-proposed or already-clean is completed: cleanup is not re-asked and B is offered as third-hand alone (cleanup section 2). When a terminus finds a prerequisite missing it names it with the resume words; a later declaration in the maintainer's own message has Kurapika as main session re-read every scoped PR live and ask once when all read MERGED; no agent solicits the declaration; a maintainer-typed hatsu:cleanup is their own word and runs under cleanup section 1, outside this offer",
+      "default": "ask once, and only when BOTH prerequisites hold (cleanup section 2; docs/ROSTER.md HR-366, zheref/hatsu#480): (1) every pull request in the sitting's scope reads MERGED on a live read -- an unread merge state never counts as merged, and a PR the maintainer closed unmerged leaves the scope (HR-367) -- and (2) the maintainer has explicitly declared the sitting satisfied, in their own words, quoted in the report. Readiness, green checks, en section 5's merge prompt, a composite's run ending, a merge alone, silence, a configured default and an unattended run never supply (2); short of both, no picker is shown, no cleanup runs, and the report names the missing prerequisite. The callers, each at its terminus: Kurapika as main session after en section 8, build phase 6, futon section 10, kazaana section 7, kage-bunshin section 6, kamui section 8, hiraishin section 8, backlog-loop section 10, dowsing-chain section 11. Under --idle (2) is never met, so this row and cleanup-plan read refuse (HR-366, ruled 2026-10-26; a floor futon_effort_record.mts start enforces) and an idle run neither offers nor runs cleanup. When both hold, through the surface's own picker: cleanup, cleanup and third-hand in parallel, or continue iterating. cleanup is REQUIRED after a completed session and third-hand is optional (the maintainer's ruling of 2026-10-13, docs/ROSTER.md section Rulings of 2026-10-13, 5). The wrap-up names no human-called phase (aka, mukai, the merge, kagutsuchi, mugetsu) and is never a merge prompt. A section 7 marker reading cleaned, none-proposed or already-clean is completed: cleanup is not re-asked and B is offered as third-hand alone (cleanup section 2). When a terminus finds a prerequisite missing it names it with the resume words; a later declaration in the maintainer's own message has Kurapika as main session re-read every scoped PR live and ask once when all read MERGED; no agent solicits the declaration; a maintainer-typed hatsu:cleanup is their own word and runs under cleanup section 1, outside this offer",
       "preferred": [
         {
           "key": "A",
@@ -918,6 +922,7 @@
         "dowsing-chain",
         "en",
         "futon",
+        "kage-bunshin",
         "kamui",
         "kazaana",
         "third-hand"
