@@ -60,23 +60,25 @@ publish call for the working branches that run authors** — one standing call, 
 **The scope is the destination, never the SHA.** A new commit on the same branch of the same repository
 is inside it; asking again because the commit moved is the failure #332 records. **Every handoff carries
 it** — parent to builder delegate (kazaana § 3) and every maintenance step after (`mukai`, `en`,
-`murasaki`): the invocation **quoted verbatim**, the repository, the working branch, and *scope: initial
-publication and maintenance pushes to this branch until the run ends*. A checkpoint, a run record or a
+`murasaki`): the five-fact record of the next paragraph — the invocation **quoted verbatim**, any maintainer
+answer the push also stands on, the repository, the working branch, and *scope: initial publication and
+maintenance pushes to this branch until the run ends*. A checkpoint, a run record or a
 later handoff **never narrows it to an exact commit**; where an older line says otherwise, the later
 correction **replaces** it rather than standing beside it.
 
-**It survives every handoff, prerequisite and maintenance ones included** (zheref/hatsu#529). The
-record a handoff carries is five facts, the same on every surface: the **typed invocation** quoted, any
-**prerequisite the maintainer approved into the run** with that answer quoted (an effort the maintainer's
-own words add is an effort in the run's queue; one an agent proposed and nobody approved is not), the
-**target repository**, the effort's **own working branch** as the destination, and the **scope line**
-above. An idle run's one integration delivery carries it the same way, its destination the branch
-futon § 5 names. **A routine push that needs the host's approval presents that record** in the request
-— on Codex, the justification of its supported review route ([`docs/surfaces/codex.md`](../../../docs/surfaces/codex.md)
-§ *Publication requests*) — so a changed actor, worktree or commit never needs another human answer. The
-record is evidence for the reviewer, never a self-granted approval: an out-of-scope destination, the
-protected base, a rewrite or a release act stays refused or behind its own gate, and an actual
-rejection is the next paragraph's. The bounded cases are [`docs/ab/publication-authority.md`](../../../docs/ab/publication-authority.md).
+**The record survives every handoff, maintenance ones included, the same on every surface**
+(zheref/hatsu#529). **This paragraph widens none of the three rows.** A
+prerequisite outside the selector's queue is not Covered by the typed line: its push stands only on the
+maintainer's own words authorizing that publication (§ 1's call, in their own words), quoted as the
+second fact, on the run's target repository — an answer approving only its preparation authorizes no
+push, and is asked once. An idle run's integration delivery stays futon § 5's (Not covered above); its
+request carries the same facts and cites futon § 5 as its authority. **A routine push that needs the
+host's approval presents that record** in the request — on Codex, the justification of its supported
+review route ([`docs/surfaces/codex.md`](../../../docs/surfaces/codex.md) § *Publication requests*) — so
+a changed actor, worktree or commit is no reason to ask the maintainer again; what the host decides
+stays the host's. The record is evidence for the reviewer, never a self-granted approval: an
+out-of-scope destination, the protected base, a rewrite or a release act stays refused or behind its
+own gate, and an actual rejection is the next paragraph's. The bounded cases are [`docs/ab/publication-authority.md`](../../../docs/ab/publication-authority.md).
 
 **A host refusal stays the host's.** Where the harness's approval layer refuses a push inside the scope,
 the refusal is **quoted to the maintainer with the invocation and the scope**, and resolved **only through

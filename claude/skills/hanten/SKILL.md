@@ -139,7 +139,7 @@ is hand-edited.
 
 The ignored record, `<reports.dir>/hanten/<branch-slug>.json`, copies
 [`contracts/hanten-findings.example.json`](../../../contracts/hanten-findings.example.json)'s shape (HA#549); a pass
-not raised (§ 3) is a `not-raised` scope naming its `gap`. Leorio returns his report
+not raised (§ 3) or not returned is a `not-raised` scope naming its `gap`. Leorio returns his report
 (hanten appends delta passes, ECONOMICS.md § 5); on canon prose Chrollo's holds PR-SECTIONS' `PRS` rows. **Hanten writes discovery**;
 Kurapika applies `docs/DISCOVERY.md`.
 

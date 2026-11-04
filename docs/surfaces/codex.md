@@ -181,14 +181,16 @@ approval, and an admitted action is proved by its execution result, not merely i
 #### Publication requests — the authority a justification carries (zheref/hatsu#529)
 
 A working-branch push inside [`aka`](../../claude/skills/aka/SKILL.md) § 0's Covered row — an initial
-publication, a review fix, a catch-up, an approved prerequisite's or an idle integration delivery's —
-that needs review is submitted through this same route, its narrow justification carrying the
-handoff's five-fact record: the typed `kazaana`/`futon` invocation quoted, any prerequisite approval
-quoted, the repository, the exact working branch, and the scope line. A new builder, maintenance
+publication, a review fix, a catch-up — that needs review is submitted through this same route, its
+narrow justification carrying the handoff's five-fact record: the typed `kazaana`/`futon` invocation
+quoted, any maintainer answer the push also stands on quoted, the repository, the exact working branch,
+and the scope line. A prerequisite's push stands only on the maintainer's own words authorizing it, and
+an idle integration delivery on futon § 5's own rule (aka § 0); their requests carry the same facts and
+cite that authority instead of the Covered row. A new builder, maintenance
 actor, worktree or commit inside that record is not a reason to ask the maintainer again. The record is
 evidence, never a self-granted approval: an **actual rejection** keeps its decision and reason (the table
-above), independent work continues, and a retry goes through the same supported route only with new
-evidence or newly given human words. A destination outside the record, the protected base, a force or
+above), independent work continues, and the one recovery is aka § 0's: the maintainer's own newly given words,
+through the same supported route — never a re-attempt on new evidence alone. A destination outside the record, the protected base, a force or
 rewrite and a release stay refused or behind their own gates.
 
 **This recovery precedes an idle denial or park**, including a failure while creating the isolated

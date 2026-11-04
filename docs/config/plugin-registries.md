@@ -223,7 +223,7 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `scopes[].invocation` | enum | `ran` · `delta` · `skipped-exhausted` · `not-raised` | how a scope's reviewer pass went; `not-raised` is a required pass that could not be raised (hanten § 3's gap, or a scope the target declares no reviewer for), and requires `gap` with `used` `0` — this scope not reviewed, never a pass (zheref/hatsu#549) | `hatsu:hanten` §§ 3, 5 |
+| `scopes[].invocation` | enum | `ran` · `delta` · `skipped-exhausted` · `not-raised` | how a scope's reviewer pass went; `not-raised` is hanten § 5's: a required pass that could not be raised (hanten § 3's gap) or was raised and never returned, and requires `gap` with `used` `0` — this scope not reviewed, never a pass (zheref/hatsu#549) | `hatsu:hanten` §§ 3, 5 |
 | `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
 | `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
 | `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |

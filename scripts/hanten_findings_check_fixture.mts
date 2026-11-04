@@ -155,6 +155,7 @@ try {
   exercise('a not-raised scope names its gap', [gapFile('gap-ok', gapScope({ gap: 'architecture scope not reviewed' })), roster], 0, null, null);
   exercise('a not-raised scope without a gap is refused', [gapFile('gap-missing', gapScope({})), roster], 1, /\$\.scopes\[0\]\.gap is required/, null);
   exercise('a not-raised scope cannot have used budget', [gapFile('gap-used', gapScope({ gap: 'x', used: 1 })), roster], 1, /\$\.scopes\[0\]\.used must equal its schema constant/, null);
+  exercise('an invented scope key is refused, never a gap record', [gapFile('gap-invented', { persona: 'Chrollo', tier: 'deep', used: 0, max: 1, invocation: 'ran', architectureGap: 'x' }), roster], 1, /\$\.scopes\[0\]\.architectureGap is not a declared key/, null);
   run('ruled rows require critical and fixed-or-deferred', [
     base('ruled-severity', 'HR-1', 'low'),
     base('ruled-pushback', 'HR-1', 'critical', 'pushed-back', 'because'),
@@ -185,7 +186,8 @@ try {
   schemaRefusal('unsupported minItems fails closed', (schema) => { schema.properties.findings.minItems = 1; }, /cannot read findings schema .*minItems is not supported/);
   schemaRefusal('unsupported not fails closed', (schema) => { schema.$defs.finding.not = {}; }, /cannot read findings schema .*\.not is not supported/);
   schemaRefusal('unsupported oneOf fails closed', (schema) => { schema.$defs.finding.oneOf = []; }, /cannot read findings schema .*\.oneOf is not supported/);
-  schemaRefusal('unsupported additionalProperties fails closed', (schema) => { schema.$defs.finding.additionalProperties = false; }, /cannot read findings schema .*additionalProperties is not supported/);
+  schemaRefusal('additionalProperties other than false fails closed', (schema) => { schema.$defs.finding.additionalProperties = true; }, /cannot read findings schema .*additionalProperties must be false beside properties/);
+  schemaRefusal('additionalProperties without properties fails closed', (schema) => { schema.properties.findings.additionalProperties = false; }, /cannot read findings schema .*additionalProperties must be false beside properties/);
   schemaRefusal('an unresolved local ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/$defs/absent'; }, /cannot read findings schema .*unresolved findings-schema reference/);
   schemaRefusal('an inherited __proto__ ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/__proto__'; }, /cannot read findings schema .*unresolved findings-schema reference/);
   schemaRefusal('an inherited constructor ref is tooling exit 2', (schema) => { schema.$defs.finding.properties.disposition.$ref = '#/constructor'; }, /cannot read findings schema .*unresolved findings-schema reference/);

@@ -16,8 +16,7 @@ Per issue, futon is [`build`](../build/SKILL.md) → [`tensho`](../tensho/SKILL.
 Futon is a **scoped, terminated [`backlog-loop`](../backlog-loop/SKILL.md)**: a **selector**, an
 **explicit `then`**, and **who is behind every PR**.
 
-> **No CI plane** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Building an issue with no CI plane*):
-> **Kurapika builds every issue.**
+> **No CI plane** (WORKFLOW § *Building an issue with no CI plane*): **Kurapika builds every issue.**
 
 ## 1. Invocation
 
@@ -54,7 +53,7 @@ reads **truncated**. Then:
 - **Select** — by band: every issue whose `bankai:severity/*` label is in the band (§ 1). By label: **every open issue carrying that exact label**,
   whatever its severity.
 - **Triage the untriaged** as `backlog-loop` § 4 does. Under a band, **a triaged severity inside it
-  joins the queue; outside, it is out of scope.** Under a label, triage **orders only, never selects**.
+  joins the queue; outside, it is out of scope.** Under a label, triage **orders only, never selects** (said).
 - **`bankai:handbook-question` items and design calls are briefed, never guessed**, never holding the
   scope open.
 - **Shape** (HR-4): `build` § 2's check. **Nothing blocks the batch** (HR-335): an open `OQ-{n}` row
@@ -102,8 +101,8 @@ nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target chec
 Summed: the manifest's delivery PRs and claimed efforts without one (WORKFLOW § *Idle batches* rule 4; the host's budget is § *Host workload budget*, apart).
 
 **CI** (legacy-CI PRs only) frees at PR-open; **local** frees at **`ready+prompted`**
-(HR-353). **`--local-cap 7` is always passed**; omitted, exit `2`.
-**Never traded**: a full local budget is back-pressure.
+or a verified sixth-stop handoff (HR-353, HR-372). **`--local-cap 7` is always passed**; omitted, exit `2`.
+**Never traded**: a full local budget is backpressure.
 
 ## 7. Authority — the CON-25 delegation
 
@@ -168,8 +167,8 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 - **Never claims a CI author for a PR it opened**, never abandons its own short of Ready (§ 10), never claims readiness `nen pr ready` + `nen pr body-check` did not give.
 - **Never exceeds 2 CI-plane objects or 7 local slots**; never lets two efforts share a file concurrently.
 - **Never widens its selector** (§ 1).
-- **Never applies a G1 mode label.**
-- **Never batches the merges** — one merge and report per effort.
+- **Never applies a G1 label.**
+- **Never batches merges** — one merge and report per effort.
 - **Never runs `nen release preflight`, `nen fanout compute/record` or `nen shu deploy --run`
   itself**; `kagutsuchi` or `mugetsu` only as § 8's gated `then` step, never from prose.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open.**

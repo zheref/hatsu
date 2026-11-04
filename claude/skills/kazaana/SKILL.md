@@ -30,12 +30,12 @@ hatsu:kazaana <repo> [on <line>] [--idle [--dry-run]]
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
-An unknown or empty line is exit `2`: the ask (row `missing-argument`).
+`on llama` or `on ''` is exit `2`: the ask (row `missing-argument`).
 
 **The line is the surface's main model, read, never remembered**: the session's surface as the harness
 reports it ([`direct`](../direct/SKILL.md) § 2), then `aliases.<a>.line` **read from the registry file**
 `$hatsu_root/contracts/direct.registry.json` for the alias whose `surface` is that surface and whose
-`tier` is `deep` (`claude`, `gpt`, `grok`, `gemini`); § Residue: the verb prints no `line`. A typed `on <line>` overrides it. Cursor's second line is inventoried, its
+`tier` is `deep` (`claude`, `gpt`, `grok`, `gemini`); § Residue: `nen direct registry` prints no `line`. A typed `on <line>` overrides it. Cursor's second line is inventoried, its
 own run named, never selected here (futon § 11).
 
 Then the futon line, parsed as futon § 1 does and **echoed before anything is fetched**:
@@ -64,7 +64,7 @@ lands in exactly one set:
 
 - **one `model/*`, this surface's line** — **the queue**.
 - **one `model/*`, another line** — out of scope, listed with its line; never built here.
-- **more than one `model/*`** (direct § 7 never removes one) — **conflicting**: out
+- **more than one `model/*`** (direct § 7 removes none) — **conflicting**: out
   of scope, listed; the maintainer settles the labels.
 - **no `model/*`** — `hatsu:direct <CODE>#<N>[,…]` over **exactly these** (a missing `lang/`/`job/`
   axis is classify § 3 proposed there). **One table, one confirmation** for the batch (direct § 8's
@@ -75,7 +75,7 @@ lands in exactly one set:
 **Then refetch** — the same verb again — and re-partition: a `model/<line>` applied under this run joins
 the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4: only an open
 `OQ-{n}` row skips, the queue continuing, HR-335); an epic awaiting its mode label is **G1**
-(`mode-label`). **State the queue before advancing anything**: count, issues, exclusions, § 3's plan.
+(`mode-label`). **State the queue before advancing**: count, issues, exclusions, § 3's plan.
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
 

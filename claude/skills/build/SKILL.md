@@ -94,12 +94,12 @@ All authoring, feature work, and verification for the issue **must run in an iso
 <core>/.nen/worktrees/<surface>/<name>
 ```
 
-Git-ignored inside core, never a sibling; branch `{model}/{persona}/{descriptor}` (`nen/workflow.json`); core
-stays clean and parked on the trunk unless the maintainer's own prose says to work on core. **One checkout per
+Git-ignored inside core, never a sibling; branch `{model}/{persona}/{descriptor}`; core
+stays clean, on the trunk, unless the maintainer's own prose says to work on core. **One checkout per
 concurrent effort** (step 2 there; hatsu#229): a second issue is never started
 in an occupied worktree — it gets its own `<name>` — and a tree a reviewer is reading is never switched
 under them: hanten § 4's detached checkout exists for that, and where the isolation hook refused it, the
-run waits for the review to return (a moved ref is hanten § 4's G5).
+run waits for the review to return (a moved ref is hanten § 4's G5). A refused write there: HR-374.
 
 ## 4. Building protocol
 
@@ -137,7 +137,7 @@ never rendered a second time by build.
 
 ### Phase 6: the wrap-up — `cleanup`, with `third-hand` optional
 
-After En completes and rikugan has rendered, ask once, only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites
+After En completes and rikugan has rendered, a blocker captured (DISCOVERY, HA#508), ask once, only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites
 hold, never at a merge prompt (row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
 continue, recorded (`nen stop answer`, WORKFLOW § 4); each runs only the pick.
 
@@ -150,7 +150,7 @@ worktree; the push through `aka` and the PR through `mukai`'s
 `shibari`, linking the issue; `en` until `nen pr ready` exits `0`. Never a merge, a G1 mode label, a review vote,
 or work on core.
 
-**The delegation expires when the run ends.**
+**The delegation expires when the run ends; say when, never left open.**
 
 ## 6. When it will not move (G5)
 
@@ -187,4 +187,3 @@ taxonomy the chain position is a raw issue read.
   starts a subsession **to act on direct's recommendation** — it is for the maintainer's own session; every
   subagent keeps its `models.roles` tier and never the frontier tier (WORKFLOW § `models`).
 - **Never commits without Conventional Commits body and `Hatsu-Agent: Kurapika` trailer**.
-- **Never leaves delegation open** — say when it ends.

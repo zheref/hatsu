@@ -16,7 +16,7 @@
       "used": 0,
       "max": 1,
       "invocation": "not-raised",
-      "gap": "architecture scope: raising path docs/WORKFLOW.md; the target declares no architecture reviewer, so this scope was not reviewed"
+      "gap": "architecture scope (hanten § 3 gap): persona not raisable on this surface; raising path docs/WORKFLOW.md; this scope was not reviewed"
     }
   ],
   "findings": [

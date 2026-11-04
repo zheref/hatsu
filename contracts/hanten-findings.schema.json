@@ -21,9 +21,10 @@
           "gap": { "type": "string", "minLength": 1 },
           "scans": { "type": "array" }
         },
+        "additionalProperties": false,
         "if": { "properties": { "invocation": { "const": "not-raised" } } },
         "then": {
-          "$comment": "A required review pass that could not be raised (hanten § 3's gap, or a scope nen declares no reviewer for) is recorded here: invocation not-raised, used 0, and gap naming the persona or scope, the raising paths and why it was not raised (zheref/hatsu#549 AC-3). It is this scope not reviewed, never a pass.",
+          "$comment": "hanten § 5's not-raised scope: a required review pass that could not be raised (hanten § 3's gap) or was raised and never returned, recorded with invocation not-raised, used 0, and gap naming the persona, the raising paths and why (zheref/hatsu#549 AC-3); never ran. It is this scope not reviewed, never a pass.",
           "required": ["gap"],
           "properties": { "used": { "const": 0 } }
         }
