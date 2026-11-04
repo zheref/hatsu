@@ -8,7 +8,7 @@
 // so the hook's own parsing and its clear calls are what is asserted, never nen's behaviour. The
 // stub markers carry a placeholder contract: the hook reads only their gate, title, body and effort.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -21,7 +21,12 @@ const bin = join(temp, 'bin');
 const log = join(temp, 'calls.log');
 mkdirSync(bin);
 const stub = (name: string, body: string): void => { writeFileSync(join(bin, name), `#!/bin/sh\n${body}\n`); chmodSync(join(bin, name), 0o755); };
-stub('osascript', `printf 'osascript %s\\n' "$*" >> "${log}"`);
+// STUB_OSASCRIPT=hang never returns; stubborn also ignores TERM. Each records its PID (zheref/hatsu#516).
+stub('osascript', `printf 'osascript %s\\n' "$*" >> "${log}"
+case "$STUB_OSASCRIPT" in
+  hang) echo $$ > "${temp}/osascript.pid"; exec sleep 30 ;;
+  stubborn) trap '' TERM; echo $$ > "${temp}/osascript.pid"; exec sleep 30 ;;
+esac`);
 stub('afplay', `printf 'afplay\\n' >> "${log}"`);
 stub('uname', 'echo Darwin');
 stub('nen', `case "$1 $2" in
@@ -139,6 +144,35 @@ try {
     assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 1);
     assert.deepEqual(calls.filter((c) => c.startsWith('clear')), [`clear --gate G4 --effort HA-IS-#9 --repo ${dir}`]);
   }
+  // 9. A notification that never returns is bounded (zheref/hatsu#516 AC-4/5): at a one-second deadline the
+  //    hook returns, its own hung child is stopped and reaped, a same-shaped process it did not start is
+  //    untouched, the sound still plays once after it, and the marker is still cleared. A child that
+  //    ignores TERM is KILLed a second later. spawnSync returns only once every holder of the hook's
+  //    pipes is gone, so the elapsed time also proves nothing left behind holds them.
+  for (const mode of ['hang', 'stubborn']) {
+    const dir = repo();
+    const a = writeMarker(dir, 'HA-IS-#516', 'G4', 'bounded');
+    const decoy = spawn(join(bin, 'osascript'), [], { env: { PATH: `${bin}:/usr/bin:/bin`, STUB_OSASCRIPT: 'hang' }, stdio: 'ignore' });
+    for (let i = 0; i < 50 && !existsSync(join(temp, 'osascript.pid')); i++) spawnSync('sleep', ['0.1']);
+    rmSync(join(temp, 'osascript.pid'), { force: true });
+    const started = Date.now();
+    const calls = hook(dir, { STUB_OSASCRIPT: mode, HATSU_BELL_DEADLINE: '1', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G4' }]) });
+    const took = (Date.now() - started) / 1000;
+    assert.ok(took < 5, `a ${mode} notifier returns within the bound (${took}s)`);
+    const pid = Number(readFileSync(join(temp, 'osascript.pid'), 'utf8').trim());
+    assert.throws(() => process.kill(pid, 0), `the ${mode} child ${pid} was stopped and reaped`);
+    assert.doesNotThrow(() => process.kill(decoy.pid ?? -1, 0), 'a process the hook did not start is untouched');
+    decoy.kill('SIGKILL');
+    assert.deepEqual(calls.map((c) => c.split(' ')[0]), ['osascript', 'afplay', 'clear'], 'the sound runs once after the timeout, then the clear');
+    rmSync(join(temp, 'osascript.pid'), { force: true });
+  }
+  // 10. A deadline that is not 1 to 60 whole seconds falls back to 5: a clean bell still rings both rungs.
+  {
+    const dir = repo();
+    const a = writeMarker(dir, 'HA-IS-#516', 'G2', 'default');
+    const calls = hook(dir, { HATSU_BELL_DEADLINE: '0', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G2' }]) });
+    assert.deepEqual(calls.map((c) => c.split(' ')[0]), ['osascript', 'afplay', 'clear']);
+  }
   // 8. The documented marking form for the nen this host runs (jutaisho § 3): `--mark --effort <branch>`
   //    where `nen stop --help` lists `--effort` (nen 0.27 on), the single-file `--mark` otherwise (0.26).
   //    Real nen, stub bells. Skipped by name when no nen is on the inherited PATH.
@@ -165,7 +199,7 @@ try {
       console.log(`stop-bell fixture: case 8 ran the ${perGate ? 'per-gate (--effort)' : 'single-file (0.26)'} form against ${realNen}`);
     }
   }
-  console.log(`stop-bell fixture: ${cases} cases passed (one bell per gate, hour-old gates still ring, per-gate clears, off consumed, unreadable untouched, 0.26 and no-nen fallbacks, outside git, the real marking form, idle exit)`);
+  console.log(`stop-bell fixture: ${cases} cases passed (one bell per gate, hour-old gates still ring, per-gate clears, off consumed, unreadable untouched, 0.26 and no-nen fallbacks, outside git, hung and TERM-ignoring notifiers bounded, the real marking form, idle exit)`);
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

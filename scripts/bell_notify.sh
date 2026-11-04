@@ -61,14 +61,15 @@ trap 'exit 130' INT TERM HUP
 # run_bounded <argv...>: stdin /dev/null, stdout discarded, stderr to a file (never a pipe a stray grandchild
 # could hold open); sets rb_timeout, rb_rc and rb_err (stderr, one line, 240 characters at most).
 run_bounded() {
-  "$@" </dev/null >/dev/null 2>"$work/err" &
+  # The child turns tracing off before it execs, so a caller's xtrace (bashcov's) never reads as the tool's stderr.
+  ( set +x; exec "$@" </dev/null >/dev/null 2>"$work/err" ) &
   child=$!; rb_timeout=0; t=0
   while alive; do
     if [ "$t" -ge $((deadline * 10)) ]; then stop_child; rb_timeout=1; rb_rc=0; rb_err=""; return; fi
     sleep 0.1; t=$((t + 1))
   done
   wait "$child"; rb_rc=$?; child=""
-  rb_err="$(tr '\n\r' '  ' < "$work/err" | cut -c1-240)"
+  rb_err="$(tr '\n\r' '  ' < "$work/err" | sed 's/[[:space:]]*$//' | cut -c1-240)"
 }
 # report <rung label> <success word>: the line for the run that just finished.
 report() {
