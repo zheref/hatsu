@@ -433,7 +433,8 @@
         "jusshin <target>",
         "jusshin <machine>",
         "jusshin <service-identity>",
-        "jusshin <accept-daily-account>"
+        "jusshin <accept-daily-account>",
+        "senkei <reviewers>"
       ],
       "preferred": [
         {
@@ -466,6 +467,7 @@
         "limbo",
         "mugetsu",
         "ren",
+        "senkei",
         "tenkai"
       ]
     },
