@@ -598,14 +598,15 @@ sixth class", which is the reading `zheref/nen#53` closes: it is not a sixth cla
 the help is now derived from the two lists rather than written, so a hard-coded number cannot go
 stale beside them.
 
-## Re-run at nen 0.28 — 2026-11-03 (zheref/hatsu#524)
+## Re-run of 2026-11-03 (zheref/hatsu#524)
 
 Run: 2026-11-03, `nen` `0.28.0` (`~/.local/bin/nen`, the host link `hatsu:ten` read as `ok`), every
-GitHub-reaching call through `scripts/gh_token_env.sh`. **Read-only throughout**: nothing was labelled,
+GitHub-reaching `nen` call through `scripts/gh_token_env.sh` (the one `gh run view` in R.7 is a plain
+read). **Read-only throughout**: nothing was labelled,
 merged, pushed, commented on or opened. Hatsu's registry records **no consumers** at this date
 (`nen/repos.json` → `consumers: []`; the four codes are maintained tools), so every live call ran against
-`zheref/hatsu` itself and the classifier ran against a synthetic input. **§§ 2–6 above are history**: they
-were gathered at nen `0.1`–`0.7` against `<product-repo-A>` and the frozen `<reference-repo>` registry, and
+`zheref/hatsu` itself and the classifier ran against a synthetic input. **Everything above this section is history** — the mapping table, §§ 2–7 and both *Retired*
+sections: it was gathered at nen `0.1`–`0.7` against `<product-repo-A>` and the frozen `<reference-repo>` registry, and
 what they verified about those repositories is not re-verified here. What the skill now rests on is this
 section.
 
@@ -721,3 +722,42 @@ exit 1
 ```
 
 A run with no failed job refuses with no mutation. The affirmative path stays unexercised.
+
+### R.8 — `repo scenario`, `resolve all`, `ref format`, `schema check`, and a relative `--input` decoy
+
+```
+$ nen repo scenario --repo . --target zheref/hatsu
+bankai-machinery                                       exit 0
+$ nen repo resolve all --repo .
+zheref/hatsu  (HA)  via all
+zheref/nen  (NN)  via all
+zheref/bankai-handbooks  (BH)  via all
+zheref/akatsuki-ai  (AK)  via all                      exit 0
+$ nen ref format --repo . --code HA --kind IS --number 524 --state open
+📄 HA-IS-#524                                          exit 0
+$ (cd <scratch> && nen ref format --code HA --kind IS --number 524)   # no registry in the calling directory
+exit 1
+$ nen schema check --repo .
+  ok    nen/labels.json  59 labels
+  ok    nen/repos.json  0 consumers, 4 product codes, …
+$ cd <scratch>/decoy && nen effort classify --input in.json --repo <scratch>/decoy/repo
+building
+  carries the released stage label 'x:stage/ready-for-bankai'; a branch exists but no PR yet
+exit 0
+```
+
+The decoy: `<scratch>/decoy/in.json` holds one closed epic with a live branch (it would read `idle`);
+`<scratch>/decoy/repo/in.json` is R.4's seven-row input, whose first row reads `building`. The verb read
+`--repo`'s copy, not the calling directory's.
+
+`nen ref format` needs the registry by `--repo`: it reads `nen/repos.json` from that checkout, so senkei
+§ 5 passes the registry § 1 resolved.
+
+### Not exercised on 2026-11-03
+
+No registered consumer existed to read, so these paths of the skill rest on the verbs' own `--help` and
+on the synthetic input, not on a live product repository: a target that **declares** a stage family
+(R.5 shows only the none-declared refusal, and § 3 now reads the family from `nen/labels.json`
+directly); the mode / pre-G1 / released sort against a real declaration (R.4 is synthetic); `nen pr
+ready` with `--reviewers`/`--approvers` (R.6 shows only the refusal); `nen shu detect` against a product
+checkout; `nen run rerun-failed`'s affirmative path; and the `register` hand-over to rikugan.

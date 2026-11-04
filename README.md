@@ -287,7 +287,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `backlog-state` | the backlog as one gate-oriented table. Read-only | `nen` reads → `nen/colors.yml` status | you |
 | `backlog-board` | the same sweep as a Rikugan page. Read-only | `nen report render --variant register` | you; `backlog-loop`; `rikugan` |
 | `rikugan` | the final state of a just-completed workflow as a Rikugan page: `final` for a delivered one-effort scope, `register` otherwise. Read-only | `backlog-board` § 3's render path; `nen pr ready` quoted per PR | `build`, `futon`, `backlog-loop`, `en`; you |
-| `senkei` | a consumer repository's own efforts inventoried; not read-only | `ten` → classify → readiness per PR → `nen run rerun-failed` → `sharingan` for a stuck PR → rikugan `register` | you |
+| `senkei` | a consumer repository's own efforts inventoried; not read-only | `ten` → inventory → classify → readiness per PR → `nen run rerun-failed` → `sharingan` for a stuck PR → rikugan `register` | you |
 | `black-voice` | post-merge UI validation, on your call only | resolve the PR and its issues → **Shalnark** once → Rikugan page | you |
 | `izanagi` · `izanami` | repeat a task until a condition holds: acting under a mandatory cap, or read-only | the task per iteration | you; `en` (the cap is `izanagi`'s) |
 | `tensho` · `jujisho` | a dirty working copy into one PR, or split into two stacked PRs by axis | review each file → commit → `shibari` → `sharingan` | you |
