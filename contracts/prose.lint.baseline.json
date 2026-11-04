@@ -1128,12 +1128,6 @@
       "count": 1
     },
     {
-      "path": "claude/skills/jutaisho/SKILL.md",
-      "rule": "PL-05",
-      "text": "age <m>`, a fixed argv (#289). **Residue:** `osascri",
-      "count": 1
-    },
-    {
       "path": "claude/skills/kamui/SKILL.md",
       "rule": "PL-05",
       "text": "t` ruling was recorded (#355); then [`rikugan`](../r",
