@@ -60,7 +60,7 @@ publish call for the working branches that run authors** — one standing call, 
 **The scope is the destination, never the SHA.** A new commit on the same branch of the same repository
 is inside it; asking again because the commit moved is the failure #332 records. **Every handoff carries
 it** — parent to builder delegate (kazaana § 3) and every maintenance step after (`mukai`, `en`,
-`murasaki`): the five-fact record of the next paragraph — the invocation **quoted verbatim**, any maintainer
+`murasaki`): the five-fact record — the invocation **quoted verbatim**, any maintainer
 answer the push also stands on, the repository, the working branch, and *scope: initial publication and
 maintenance pushes to this branch until the run ends*. A checkpoint, a run record or a
 later handoff **never narrows it to an exact commit**; where an older line says otherwise, the later
@@ -82,8 +82,10 @@ own gate, and an actual rejection is the next paragraph's. The bounded cases are
 
 **A host refusal stays the host's.** Where the harness's approval layer refuses a push inside the scope,
 the refusal is **quoted to the maintainer with the invocation and the scope**, and resolved **only through
-that host's supported approval path — the maintainer's act, never a re-attempt**: never another command,
-route or surface to the same push, never a wider grant asked for, never a permission setting touched. An
+that host's supported approval path — the maintainer's act**: their approval there, or one re-submission
+through that same route carrying their newly given words quoted beside the record (zheref/hatsu#529) —
+never a re-attempt on evidence alone, never another command, route or surface to the same push, never a
+wider grant asked for, never a permission setting touched. An
 exact approval given there stays a valid receipt for its own action, and widens nothing.
 
 **A representative trajectory.** `hatsu:kazaana zheref/nen` → the delegate's `aka` first-publishes

@@ -189,8 +189,8 @@ an idle integration delivery on futon § 5's own rule (aka § 0); their requests
 cite that authority instead of the Covered row. A new builder, maintenance
 actor, worktree or commit inside that record is not a reason to ask the maintainer again. The record is
 evidence, never a self-granted approval: an **actual rejection** keeps its decision and reason (the table
-above), independent work continues, and the one recovery is aka § 0's: the maintainer's own newly given words,
-through the same supported route — never a re-attempt on new evidence alone. A destination outside the record, the protected base, a force or
+above), independent work continues, and recovery is aka § 0's host-refusal rule, quoted: "their approval there, or one
+re-submission through that same route carrying their newly given words quoted beside the record". A destination outside the record, the protected base, a force or
 rewrite and a release stay refused or behind their own gates.
 
 **This recovery precedes an idle denial or park**, including a failure while creating the isolated

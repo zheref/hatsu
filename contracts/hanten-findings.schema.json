@@ -19,7 +19,9 @@
           "invocation": { "enum": ["ran", "delta", "skipped-exhausted", "not-raised"] },
           "adapted": { "type": "string", "minLength": 1 },
           "gap": { "type": "string", "minLength": 1 },
-          "scans": { "type": "array" }
+          "scans": { "type": "array" },
+          "scope": { "type": "string", "minLength": 1 },
+          "reviewed": { "enum": [true, false] }
         },
         "additionalProperties": false,
         "if": { "properties": { "invocation": { "const": "not-raised" } } },

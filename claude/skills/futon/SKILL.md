@@ -31,14 +31,14 @@ hatsu:futon <repo>@<label>       [--idle [--dry-run]] [then ...]
 nen parse futon --repo <target checkout> "<invocation, minus the prefix and a --dry-run>" [--self <owner/name>]
 ```
 
-**One `nen parse futon` call** resolves the repo, reads the **selector**, classifies `then` (§ 8) and enforces a terminal's scope rule. A severity name
+**One `nen parse futon` call** resolves the repo, reads the **selector**, classifies `then` (§ 8), enforces a terminal's scope rule. A severity name
 (`critical`, `high`, `medium`, `low`) is a **band**, `+` that severity **and above**; **any other token
-is a label**, matched as `nen parse futon --help` says and **never expanded**, a lifted `--dry-run` said at the echo. **Exit `2` asks, never ends**: any corrected line to the picker, the answer re-parsed; a missing argument or
+is a label**, matched per `nen parse futon --help`, **never expanded**, a lifted `--dry-run` said at the echo. **Exit `2` asks, never ends**: a corrected line to the picker, re-parsed; a missing argument or
 configuration set up inline (`missing-argument`, `missing-configuration`). **A re-parsed answer never carries a `then`
 step**; the maintainer retypes it. **The selector
 is the maintainer's word: never derived.**
 
-**Echo the full parse before any fetch** — repo, selector, the `then` clause as classified or
+**Echo the parse before any fetch** — repo, selector, the `then` clause as classified or
 *build-only*, any integration branch — and **say the run has started** (a bounded `CON-25`
 delegation, § 7).
 
@@ -100,8 +100,8 @@ nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target chec
 
 Summed: the manifest's delivery PRs and claimed efforts without one (WORKFLOW § *Idle batches* rule 4; the host's budget is § *Host workload budget*, apart).
 
-**CI** (legacy-CI PRs only) frees at PR-open; **local** frees at **`ready+prompted`**
-or a verified sixth-stop handoff (HR-353, HR-372). **`--local-cap 7` is always passed**; omitted, exit `2`.
+**CI** (legacy-CI only) frees at PR-open; **local** frees at **`ready+prompted`**
+or a verified sixth-stop handoff (HR-372; nen 0.28 counts it, futon's report frees). **`--local-cap 7` is always passed**; omitted, exit `2`.
 **Never traded**: a full local budget is backpressure.
 
 ## 7. Authority — the CON-25 delegation
@@ -168,7 +168,7 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 - **Never exceeds 2 CI-plane objects or 7 local slots**; never lets two efforts share a file concurrently.
 - **Never widens its selector** (§ 1).
 - **Never applies a G1 label.**
-- **Never batches merges** — one merge and report per effort.
+- **Never batches merges**: one merge and report per effort.
 - **Never runs `nen release preflight`, `nen fanout compute/record` or `nen shu deploy --run`
   itself**; `kagutsuchi` or `mugetsu` only as § 8's gated `then` step, never from prose.
 - **Never hand-authors the status board** (§ 9); **never leaves the delegation open.**

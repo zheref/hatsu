@@ -155,6 +155,7 @@ try {
   exercise('a not-raised scope names its gap', [gapFile('gap-ok', gapScope({ gap: 'architecture scope not reviewed' })), roster], 0, null, null);
   exercise('a not-raised scope without a gap is refused', [gapFile('gap-missing', gapScope({})), roster], 1, /\$\.scopes\[0\]\.gap is required/, null);
   exercise('a not-raised scope cannot have used budget', [gapFile('gap-used', gapScope({ gap: 'x', used: 1 })), roster], 1, /\$\.scopes\[0\]\.used must equal its schema constant/, null);
+  exercise('a scope carrying its scope id and reviewed flag passes', [gapFile('scope-keys', { persona: 'nobunaga', tier: 'deep', used: 1, max: 2, invocation: 'ran', scope: 'code', reviewed: true }), roster], 0, null, null);
   exercise('an invented scope key is refused, never a gap record', [gapFile('gap-invented', { persona: 'Chrollo', tier: 'deep', used: 0, max: 1, invocation: 'ran', architectureGap: 'x' }), roster], 1, /\$\.scopes\[0\]\.architectureGap is not a declared key/, null);
   run('ruled rows require critical and fixed-or-deferred', [
     base('ruled-severity', 'HR-1', 'low'),

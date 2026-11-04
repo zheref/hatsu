@@ -182,8 +182,11 @@ test("a rostered Hanten persona in any letter case renders lowercase; an unroste
   assert.deepEqual(normalize(repo, data).deliveryRows.map((row) => row.role), sources.map(([, persona]) => `reviewer · ${persona}`));
   assert.equal(JSON.stringify(data), before, "a mixed-case source is read, never rewritten");
   for (const source of ["hanten § 4: Gyro, counters unavailable", "hanten § 4: gyro, counters unavailable", "hanten § 4: Review-Preamble, counters unavailable"]) {
-    assert.throws(() => normalize(repo, { ...report, usage: [{ ...report.usage[0], source }] }), /^Error: usage\[0\]\.source: unknown Hanten reviewer persona /, source);
+    assert.throws(() => normalize(repo, { ...report, usage: [{ ...report.usage[0], source }] }), /^Error: usage\[0\]\.source: unknown Hanten reviewer persona .*claude\/agents\/\*\.md$/, source);
   }
+  // A phase note that merely reads like a reviewer source keeps its phase role, roster or not.
+  const noted = normalize(repo, { ...report, sessions: [], usage: [], phases: [{ ...report.phases[0], note: "hanten § 4: Returned, three findings" }] });
+  assert.ok(noted.deliveryRows.every((row) => !row.role.startsWith("reviewer")), "a phase note never becomes a reviewer row");
 });
 
 test("malformed Hanten usage refuses with the indexed record and expected source forms", () => {
@@ -359,6 +362,13 @@ exec "$REAL_NEN" "$@"
   const noTemplate = run("bash", [join(bare, "scripts/pr_body_delivery_check.sh"), "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
   assert.equal(noTemplate.status, 2, `${noTemplate.stdout}${noTemplate.stderr}`);
   assert.match(noTemplate.stderr, /bare-plugin\/scripts\/\.\.\/templates\/pr-delivery\.md/);
+  // A plugin root with no roster refuses at the reviewer rows, naming the roster it could not read.
+  const rosterless = join(temp, "rosterless-plugin"); mkdirSync(join(rosterless, "scripts"), { recursive: true }); mkdirSync(join(rosterless, "templates"), { recursive: true });
+  for (const file of ["pr_body_delivery_check.sh", "pr_delivery.ts"]) writeFileSync(join(rosterless, "scripts", file), readFileSync(join(ROOT, "scripts", file)));
+  writeFileSync(join(rosterless, "templates", "pr-delivery.md"), readFileSync(TEMPLATE));
+  const noRoster = run("bash", [join(rosterless, "scripts/pr_body_delivery_check.sh"), "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
+  assert.equal(noRoster.status, 2, `${noRoster.stdout}${noRoster.stderr}`);
+  assert.match(noRoster.stderr, /cannot read the Hanten roster at .*rosterless-plugin\/claude\/agents/);
   rmSync(join(repo, "templates"), { recursive: true, force: true });
   // Through a symlinked plugin root (~/.claude/skills/hatsu is one), from a cwd outside the target.
   const linked = join(temp, "linked plugin root"); symlinkSync(ROOT, linked);

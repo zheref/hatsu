@@ -254,11 +254,13 @@ function directSessionAlias(root: string, effort: string, surface: string): stri
 
 // The Hanten roster is this plugin's own claude/agents/*.md, never the target's (R-2026-11-04-06, zheref/hatsu#542).
 let roster: ReadonlySet<string> | null = null;
+let rosterDir = "";
 function hantenRoster(): ReadonlySet<string> {
   if (roster === null) {
     const agents = join(dirname(realpathSync(import.meta.filename)), "..", "claude", "agents");
     let names: string[];
     try { names = readdirSync(agents); } catch (error) { fail(`cannot read the Hanten roster at ${agents}: ${(error as Error).message}`); }
+    rosterDir = agents;
     roster = new Set(names.filter((name): boolean => name.endsWith(".md") && !name.startsWith("_")).map((name): string => name.slice(0, -3)));
   }
   return roster;
@@ -270,8 +272,10 @@ function reviewerPersona(kind: DeliveryKind, source: string | null, where: strin
   const reviewer = /^hanten § 4: ([A-Za-z][A-Za-z0-9-]{0,63})(?: round [1-9][0-9]*| delta(?: since [0-9a-f]{7,40})?)?, .+$/.exec(source);
   if (reviewer !== null) {
     const persona = (reviewer[1] as string).toLowerCase();
-    if (!hantenRoster().has(persona)) fail(`${where}: unknown Hanten reviewer persona ${JSON.stringify(reviewer[1])}; expected a persona of claude/agents/*.md`);
-    return persona;
+    if (hantenRoster().has(persona)) return persona;
+    // Only a usage row claims spend; a phase or session note that reads like one keeps its own role.
+    if (kind === "usage") fail(`${where}: unknown Hanten reviewer persona ${JSON.stringify(reviewer[1])}; expected a persona of the Hatsu plugin's own roster, ${rosterDir}/*.md`);
+    return null;
   }
   if (kind === "usage" && /^hanten\b/i.test(source)) {
     fail(`${where}: malformed Hanten reviewer source; expected "hanten § 4: <persona>, <readout>", "hanten § 4: <persona> round <positive integer>, <readout>" or "hanten § 4: <persona> delta since <7–40 lowercase hex SHA>, <readout>" (legacy "<persona> delta, <readout>" is accepted)`);

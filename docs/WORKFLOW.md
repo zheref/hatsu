@@ -1026,8 +1026,8 @@ nen review ledger show --repo <path> --branch <branch> [--pr <N>] --json
 The first output is saved under `<path>/.nen/reports/` as shibari saves it; before a PR exists the
 normalized next step reads `unread — report data carries no unique PR`, which is expected. **It passes**
 only when all five hold: normalize exits `0` (every usage row's source in hanten § 4's grammar, the
-Delivery rows readable — a persona of `claude/agents/*.md` is read in any letter case and rendered
-lowercase, one off the roster refused, [R-2026-11-04-06](ruling-records/opus-kurapika-ha-508-delivery-canon-fold--R-2026-11-04-06.json)); the session ledger has a row for this session, or none where the surface exposes neither title nor id
+Delivery rows readable — a persona of the Hatsu plugin's own `claude/agents/*.md` is read in any letter case and rendered
+lowercase, one off that roster refused on a usage row, [HR-376](ROSTER.md#hr-376)); the session ledger has a row for this session, or none where the surface exposes neither title nor id
 (rendered `unread` as above); the phase ledger has an open
 entry; the cycle ledger shows one `ran` record per reviewer pass this effort raised and returned, a delta
 pass included (`nen review ledger record` has no delta outcome at 0.28; the delta is named in the usage source);
@@ -1779,9 +1779,9 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    ceiling, en § 6); `held-handback` (en § 6's observation errors, a draft or a retarget, en § 5's ownership or
    gate refusal); `held-stranded` (the child of a closed stacked PR, waiting on the maintainer to retarget or
    close it, § *Stacked pull requests* rule 5 — and a child GitHub itself closed when its base branch was
-   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw, is `held-stranded`, never `closed`,
-   **only where `en` § 6's base-deletion row cannot run** — its head branch gone or its deleted base unmerged; with the head on origin it
-   is driven through that row's successor PR, `driving` again, zheref/hatsu#495).
+   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw and paginated, is `held-stranded`, never `closed`,
+   **only where `en` § 6's base-deletion row cannot run** — its head branch gone or its deleted base unmerged; with the head on origin and the
+   deleted base merged it is driven through that row's successor PR, `driving` again, zheref/hatsu#495).
    A session that actually ended mid-run (en § 7) holds nothing: the resume (rule 5) finds each delivery
    `driving` again. nen `0.28`'s parks are append-only, so **a later state wins over a park**: a delivery
    `nen run verify` reads `merged` or `closed` after its `held-*` park is that state, never held. Under `--idle`, an effort's park (§ *Idle batches* rules
