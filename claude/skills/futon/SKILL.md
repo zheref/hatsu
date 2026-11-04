@@ -32,16 +32,15 @@ hatsu:futon <repo>@<label>       [--idle [--dry-run]] [then ...]
 nen parse futon --repo <target checkout> "<invocation, minus the prefix and a --dry-run>" [--self <owner/name>]
 ```
 
-**`futon` is a built-in `nen parse` grammar** — one call resolves the repo,
-reads the **selector**, classifies `then` (§ 8) and enforces a terminal's scope rule. A severity name
+**One `nen parse futon` call** resolves the repo, reads the **selector**, classifies `then` (§ 8) and enforces a terminal's scope rule. A severity name
 (`critical`, `high`, `medium`, `low`) is a **band**, `+` that severity **and above**; **any other token
 is a label**, matched as `nen parse futon --help` says and **never expanded**, a lifted `--dry-run` said at the echo. **Exit `2` asks, never ends**: any corrected line to the picker, the answer re-parsed; a missing argument or
 configuration set up inline (`missing-argument`, `missing-configuration`). **A re-parsed answer never carries a `then`
 step**; the maintainer retypes it. **The selector
 is the maintainer's word: never derived.**
 
-**Echo the full parse before anything is fetched** — repo, selector, the `then` clause as classified or
-*build-only*, the integration branch if one is cut — and **say the run has started** (a bounded `CON-25`
+**Echo the full parse before any fetch** — repo, selector, the `then` clause as classified or
+*build-only*, any integration branch — and **say the run has started** (a bounded `CON-25`
 delegation, § 7).
 
 Before PR-open, run WORKFLOW § *Recorded Futon delivery ownership* `resume`, `start` only on its exit `3` (§ *Batch
@@ -56,15 +55,14 @@ reads **truncated**. Then:
   whatever its severity.
 - **Triage the untriaged** as `backlog-loop` § 4 does. Under a band, **a triaged severity inside it
   joins the queue; outside, it is out of scope.** Under a label, triage **orders only, never selects**.
-  Said every time.
 - **`bankai:handbook-question` items and design calls are briefed, never guessed**, never holding the
   scope open.
 - **Shape** (HR-4): `build` § 2's check. **Nothing blocks the batch** (HR-335): an open `OQ-{n}` row
   (exit `1`, document printed) parks the issue `needs-clarification`; unread (exit `1`, no document)
   `g5-shape-unread`; exit `2` stops it (HR-364, a reading); a miss never skips (WORKFLOW § *Idle batches* 9).
-- **Order within the scope** with `nen backlog order` (§ 3).
+- **Order the scope** with `nen backlog order` (§ 3).
 
-**State the queue before advancing anything** — count, issues, exclusions and why.
+**State the queue before advancing** — count, issues, exclusions and why.
 
 ## 3. The engine is `backlog-loop`'s, invoked
 
@@ -112,7 +110,7 @@ Summed: the manifest's delivery PRs and claimed efforts without one (WORKFLOW §
 **Futon may** apply `bankai:stage/building` on issues in scope, and `bankai:severity/*` on an
 untriaged one with its reasoning, logged: object, label, time. **No Route or Wake row**; a stalled
 review round is `sharingan`'s channel, never a label fire. **The typed line
-is the publish call** for each effort's branch (aka § 0, HR-20). **Futon may not** do what § 11 forbids; out-of-scope work is reported, not worked. **Under `--dry-run` none of §§ 4–7's acts run** (WORKFLOW § *Idle batches* rule 7).
+is the publish call** for each effort's branch (aka § 0, HR-20), its record in every handoff (HA#529). **Futon may not** do what § 11 forbids; out-of-scope work is reported, not worked. **Under `--dry-run` none of §§ 4–7's acts run** (WORKFLOW § *Idle batches* rule 7).
 
 ## 8. The `then` clause — futon gates it, never performs it
 
@@ -140,7 +138,7 @@ classified it:
 
 ## 9. Reporting — the register, every cycle
 
-**Progress turns carry no banner.** The board is the **Rikugan** register, via [`backlog-board`](../backlog-board/SKILL.md) § 3: rows are the scope's issues and their
+**No banner on progress turns.** The board is the **Rikugan** register, via [`backlog-board`](../backlog-board/SKILL.md) § 3: rows are the scope's issues and their
 PRs, the desk this cycle's asks. State every cycle the briefed and held items,
 triage in and out, and every label with its time. A local row's verdict is
 `nen pr ready`'s output verbatim; a `CI (legacy)` row is reported, never driven.
@@ -158,7 +156,7 @@ run or is held at its gate**. Under `--idle`, § 12: it ends at `idle.terminal`,
 
 Say the run has ended (`end`); the delegation lapses. The closing report lists each skipped issue's open `OQ-{n}`
 rows and ends **offering**, never starting, the open-question flow (WORKFLOW § *Idle batches* rule 9). The final report is [`hatsu:rikugan`](../rikugan/SKILL.md)
-over this run's scope — its § 2 futon row, the `then` outcome included (§ 8's one render); `final` only if every PR merged, else `register` with the asks. Then the
+over this run's scope — its § 2 futon row, the `then` outcome included (§ 8's one render); `final` only if every PR merged, else `register` with the asks. A blocker is captured first (DISCOVERY, HA#508); then the
 **wrap-up picker**, only once [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites hold (row `wrap-up`). **Futon never resumes itself**; re-invoke it.
 
 ## 11. Hard limits
@@ -180,4 +178,6 @@ over this run's scope — its § 2 futon row, the `then` outcome included (§ 8'
 
 WORKFLOW § *Idle batches* is the protocol, `--dry-run` its rehearsal; one integration delivery, kept on resume (*Batch delivery* 4–5); every decision taken for the maintainer is recorded (`nen stop answer`) and listed (rule 8); residue is ownership, never a park alone (rule 3). Never `main`, `getsuga`, `mugetsu` or `kagutsuchi`.
 
-*Residue: PROCESS § Residue; `docs/ab/futon.md`.*
+## Residue
+
+PROCESS § Residue; `docs/ab/futon.md`.

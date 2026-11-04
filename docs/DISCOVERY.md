@@ -108,6 +108,41 @@ sanitized pending Nen dependency for the orchestrator only when a missing reusab
 metadata prerequisite is concrete, owned by Nen, and itself passes reconciliation; do not propose a
 generic lock system. Otherwise retain the pending record and surface the blocker.
 
+## A blocker found while executing — captured before any wrap-up (zheref/hatsu#508)
+
+A gap that **blocks the current objective** — an execution, evidence, capability or rule gap that
+recovery cannot clear at once — takes this protocol **as a step of the run, never as wrap-up
+friction**. Composites (`kazaana`, `futon`, `build`, `kage-bunshin`) and their delegates apply it in
+this order:
+
+1. **Recover first, within the authority already held.** A required launch-evidence read that fails
+   before a workload starts — the host block's process-group read returning `operation not permitted`
+   or nothing — means **the workload does not start** (WORKFLOW § *Host workload budget*, *Confirmed
+   quiescence*). Tell the two failures apart and quote which one it was: an **unreviewed sandbox or
+   filesystem failure** is retried once through the host's supported review or recovery route where
+   that route is already authorized; an **actual rejection** by a reviewing approver is preserved
+   verbatim with its reason, and is never retried around. A successful later read never reconstructs
+   evidence for a workload that already ran without it.
+2. **Capture the blocker before any wrap-up offer.** When recovery cannot clear it, run *Reconcile
+   before every write* now, while the run still holds its objective, and reach `created`, `updated`,
+   `folded` or `unchanged` — a `created` result carrying its classification and routing rows
+   (*Authority and convergence*). An existing issue with the same owner and root cause takes only
+   material new evidence and keeps its canonical URL; no duplicate is created.
+3. **Filing unavailable is `pending`, never "filed".** Credentials, network, a provider quota or a
+   write that cannot complete leave a **Pending filing record** (*Unavailable prerequisites*) naming
+   the failed pass, the owner, the evidence and the exact recovery check — a provider's reset time
+   included. A local draft or a report artifact is never reported as a filed issue.
+4. **Ownership uncertain after a workload ran.** Host safeguards stay enforced, no launch evidence is
+   invented after the fact, and safe independent work — light checks, authoring, the capture itself —
+   continues within the authority actually held.
+5. **Hold, never complete.** An effort or run stopped on the blocker is reported **held** on its
+   canonical issue (or the pending record): the original objective, the worktrees and branches, the
+   last checkpoint, the restart or resume condition and any human action named precisely. A held run
+   **does not present cleanup as the default next step**: the composite's wrap-up picker (`cleanup`
+   § 2) is asked only once no blocker is left uncaptured, and only where its own prerequisites hold.
+
+The bounded conformance scenarios are [`docs/ab/discovery-before-wrap-up.md`](ab/discovery-before-wrap-up.md).
+
 ## Scenarios
 
 **Constructed — duplicate:** a reviewer reproduces a documented Hatsu rule ambiguity and finds an

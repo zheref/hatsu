@@ -145,6 +145,16 @@ function schemaRecord(name: string, finding: unknown, status: number, stdoutPatt
 }
 
 try {
+  // zheref/hatsu#549 AC-2: the shipped worked example passes against the real ROSTER, so it cannot rot unseen.
+  const example = fileURLToPath(new URL('../contracts/hanten-findings.example.json', import.meta.url));
+  const realRoster = fileURLToPath(new URL('../docs/ROSTER.md', import.meta.url));
+  exercise('the shipped worked example passes the checker', [example, realRoster], 0, /every HR-cited finding/, null);
+  // AC-3: a pass that could not be raised is recorded as not-raised, its gap named and nothing used.
+  const gapScope = (extra: Record<string, unknown>) => ({ persona: 'Chrollo', tier: 'deep', used: 0, max: 1, invocation: 'not-raised', ...extra });
+  const gapFile = (name: string, scope: unknown) => { const file = join(scratch, `${name}.json`); writeFileSync(file, `${JSON.stringify({ scopes: [scope], findings: [] })}\n`); return file; };
+  exercise('a not-raised scope names its gap', [gapFile('gap-ok', gapScope({ gap: 'architecture scope not reviewed' })), roster], 0, null, null);
+  exercise('a not-raised scope without a gap is refused', [gapFile('gap-missing', gapScope({})), roster], 1, /\$\.scopes\[0\]\.gap is required/, null);
+  exercise('a not-raised scope cannot have used budget', [gapFile('gap-used', gapScope({ gap: 'x', used: 1 })), roster], 1, /\$\.scopes\[0\]\.used must equal its schema constant/, null);
   run('ruled rows require critical and fixed-or-deferred', [
     base('ruled-severity', 'HR-1', 'low'),
     base('ruled-pushback', 'HR-1', 'critical', 'pushed-back', 'because'),

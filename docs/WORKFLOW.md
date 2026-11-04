@@ -61,7 +61,9 @@ composite, reviewer and resumed run. It grants standing authority to file or fol
 without another filing prompt, after Nen reconciliation and inspection of candidate issues and
 open PRs. Unchanged evidence produces no write. New ownership is linked, not silently implemented.
 Reports distinguish created, updated, folded, unchanged and pending; a real blocker is still a
-blocker, but a discovery does not replace the original task.
+blocker, but a discovery does not replace the original task. A blocker that stops the run is captured
+**before** any wrap-up offer, never deferred to `third-hand` (DISCOVERY § *A blocker found while
+executing*, zheref/hatsu#508).
 
 The tool repositories now carry `nen/repos.json` for verified repository identity and
 `nen/labels.json` for their existing GitHub labels. These are issue-routing/filing metadata, in
@@ -1007,6 +1009,31 @@ A record named `<home>/…` below is that row's directory for the nen that runs.
 `spiritual-message` § 4); without it every effort of the repository is read. `stop --mark --effort` is
 refused by 0.26, a binary older than the pin (`unknown option`), so a stop passes `--effort` only where `nen stop --help` lists it
 (jutaisho § 3); `hooks/stop-bell.sh` rings either form.
+
+**Provenance is checked when each hanten round returns, never first at publish** (zheref/hatsu#542).
+After a returned round's `nen review ledger record` and `nen usage record` ([`hanten`](../claude/skills/hanten/SKILL.md)
+§§ 2b, 4), and before hanten hands control back, the author runs the publish-time check early, in the
+authoring worktree:
+
+```bash
+nen report data --repo <path> --base origin/<branch.base> --effort <branch> --json
+node "$hatsu_root/scripts/pr_delivery.ts" normalize --data <report-data.json> --out <normalized.json> --repo <path>
+nen session show --effort <branch> --repo <path> --json
+nen phase show --effort <branch> --repo <path> --json
+nen review ledger show --repo <path> --branch <branch> [--pr <N>] --json
+```
+
+The first output is saved under `<path>/.nen/reports/` as shibari saves it; before a PR exists the
+normalized next step reads `unread — report data carries no unique PR`, which is expected. **It passes**
+only when all four hold: normalize exits `0` (every usage row's source in hanten § 4's grammar, the
+Delivery rows readable); the session ledger has a row for this session; the phase ledger has an open
+entry; and the cycle ledger shows one `ran` (or `delta`) invocation per reviewer pass this effort
+raised and returned. **Any other result stops the run** before the next phase, the failing row
+named. **A generated ledger is never edited by hand** — no inline script, editor or `jq` rewrite of any
+file under `<git common dir>/.nen/` or `.nen/hanten/`: a missing row is recorded now through its verb with
+a `--note`/`--source` saying it was recorded late; a malformed row has no superseding verb at the pin,
+so the run stops as a **G5** naming the row and its correct form, and the malformed row stays as
+written.
 
 **The durable slice — the ledgers on the pull request** (zheref/hatsu#445; nen > 0.26.0, zheref/nen#516 and zheref/nen#518).
 The ledgers above live on one machine; the slice is the copy a morning review, a second machine or a fresh
@@ -3104,6 +3131,14 @@ delegate owns is one it cannot see. Three hand-backs were lost that way in the 2
 reading the pull request itself hours later. The brief also carries § *Host workload budget*'s host
 block, word for word.
 
+**A brief carries the publication authority it hands over** (HR-20, zheref/hatsu#529): the five-fact
+record of [`aka`](../claude/skills/aka/SKILL.md) § 0 — the typed invocation quoted, any prerequisite the
+maintainer approved into the run with that answer quoted, the target repository, the delegate's own
+working branch and the scope line — and every later handoff (a maintenance delegate, `mukai`, `en`,
+`murasaki`) carries the same record, never one narrowed to a commit. A delegate that meets a blocker
+captures it through [DISCOVERY.md](DISCOVERY.md) § *A blocker found while executing* before it hands
+back held, never as wrap-up friction (zheref/hatsu#508).
+
 <!-- delegate-wait:begin -->
 - Never wait on `gh pr checks --watch`, an open `sleep` or poll loop, or a background job left running.
 - A wait is one `nen watch until … --max-iterations <n> --interval-ms <ms>`, both flags passed, the two multiplied within this brief's ceiling: 9 minutes unless this brief names another.
@@ -3208,7 +3243,10 @@ listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
 - **Confirmed quiescence.** Every heavy call records its process group at launch: the shell call that
   runs the verb records `ps -o pgid= -p $$` before it. `$$` alone is the shell's process id, which is
   its group only where the shell leads one; a nested `sh -c` has its own `$$` and its parent's group,
-  so a group that differs from `$$`, or cannot be read, is no recorded id. With job control off the
+  so a group that differs from `$$`, or cannot be read, is no recorded id. **A read that fails before
+  the launch stops the launch**: the heavy verb never runs without its id, and a later successful read
+  is no evidence for a workload that already ran without one ([DISCOVERY.md](DISCOVERY.md) § *A blocker
+  found while executing*, zheref/hatsu#508). With job control off the
   shell's descendants carry the recorded id as their process group, orphans reparented to `1`
   included. A later call lists them with `ps -A -o pid,ppid,pgid,command`, keeping the rows whose
   `PGID` column is the recorded id; the same form runs on macOS (BSD `ps`) and Linux. Quiescence is
@@ -3391,7 +3429,9 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    the next PR to `branch.base` first** (`nen pr retarget --base <branch.base>`, en § 5 check 1) **and only
    then deletes the merged head branch**: deleting it first closes the dependent PR (observed on HA-PR-#250
    and #253, 2026-10-13: each timeline shows `base_ref_deleted` then `closed` within a second, against GitHub's
-   *Deleting and restoring branches in a pull request* page, which promises a retarget). A dependent PR above a
+   *Deleting and restoring branches in a pull request* page, which promises a retarget). A PR already closed that
+   way is recovered by en § 6's base-deletion row — a successor PR with its own slice — never by the
+   *closed unmerged* row (zheref/hatsu#495). A dependent PR above a
    change to a frozen workflow step reads red on CON-32(a) until that change is on `main`: the
    guard workflows run the TRUSTED validator at `main`'s head, not the PR's base; the push after the
    retarget runs it again at the new head (a close-and-reopen is the fallback where no push follows;

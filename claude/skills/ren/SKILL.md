@@ -167,7 +167,7 @@ so the six steps stay six entries ([HR-58](../../../docs/ROSTER.md#hr-58)). **Th
 the surface's own cost readout, `--not-reported` on a surface that exposes none.
 
 **A resumed effort reads before it writes** (zheref/hatsu#444, zheref/hatsu#445; nen 0.28, the pin). An effort whose
-branch already has a phase ledger, or a PR, is a resume: first, where a PR exists, `nen pr ledger read
+branch already has a phase ledger, or a PR, is a resume: first, where a PR exists — **the open one**: a successor's number, never the PR a base deletion closed (en § 6) — `nen pr ledger read
 --target <owner/name> --pr <n> --effort <branch> --repo <checkout> --json`, adding `--restore` only where
 `nen phase show` finds no local ledger; then `nen phase show --effort <branch> --json`. WORKFLOW § *The
 effort's ledgers*, *The durable slice*, owns the verdicts and the one skip-line form; a skipped

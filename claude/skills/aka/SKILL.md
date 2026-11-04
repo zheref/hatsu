@@ -65,6 +65,19 @@ publication and maintenance pushes to this branch until the run ends*. A checkpo
 later handoff **never narrows it to an exact commit**; where an older line says otherwise, the later
 correction **replaces** it rather than standing beside it.
 
+**It survives every handoff, prerequisite and maintenance ones included** (zheref/hatsu#529). The
+record a handoff carries is five facts, the same on every surface: the **typed invocation** quoted, any
+**prerequisite the maintainer approved into the run** with that answer quoted (an effort the maintainer's
+own words add is an effort in the run's queue; one an agent proposed and nobody approved is not), the
+**target repository**, the effort's **own working branch** as the destination, and the **scope line**
+above. An idle run's one integration delivery carries it the same way, its destination the branch
+futon § 5 names. **A routine push that needs the host's approval presents that record** in the request
+— on Codex, the justification of its supported review route ([`docs/surfaces/codex.md`](../../../docs/surfaces/codex.md)
+§ *Publication requests*) — so a changed actor, worktree or commit never needs another human answer. The
+record is evidence for the reviewer, never a self-granted approval: an out-of-scope destination, the
+protected base, a rewrite or a release act stays refused or behind its own gate, and an actual
+rejection is the next paragraph's. The bounded cases are [`docs/ab/publication-authority.md`](../../../docs/ab/publication-authority.md).
+
 **A host refusal stays the host's.** Where the harness's approval layer refuses a push inside the scope,
 the refusal is **quoted to the maintainer with the invocation and the scope**, and resolved **only through
 that host's supported approval path — the maintainer's act, never a re-attempt**: never another command,
