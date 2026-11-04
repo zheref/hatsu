@@ -927,5 +927,38 @@
     "failure": "a non-zero exit from the verb (an empty body's 2, a gh failure) is quoted in that issue's report row, never retried blind, and is not a stop: the run continues with the next issue. The private-name guard's 4 is the exception: a body built only from this block's closed grammar cannot name a repository, so a 4 means the contract was broken -- the remaining posts stop and the breach is reported",
     "confirmation": "under label+comment the one confirmation names the comments: classify section 5's starred option reads `apply the high and medium rows and post <n> criteria comments`, beside `apply labels only` (this run, the key unchanged) and `do not apply`; one sample body is shown with the table. Under build and file the body is shown with the rows before the go.",
     "residue": "the marker read is gh api and the comment write is unledgered: nen issue comment takes no --ledger and no marker; a marker-keyed, ledgered comment verb that also RENDERS the body from the plan row (so the model never types it) is owed to nen -- it would serve direct section 7 too"
+  },
+  "families": {
+    "model": {
+      "prefix": "model/",
+      "color": "0e8a16",
+      "keys": [
+        {
+          "key": "claude",
+          "title": "Claude",
+          "description": "hatsu:direct's primary pick is on the Claude line (Anthropic)"
+        },
+        {
+          "key": "gpt",
+          "title": "GPT",
+          "description": "hatsu:direct's primary pick is on the GPT line (OpenAI)"
+        },
+        {
+          "key": "gemini",
+          "title": "Gemini",
+          "description": "hatsu:direct's primary pick is on the Gemini line (Google)"
+        },
+        {
+          "key": "grok",
+          "title": "Grok",
+          "description": "hatsu:direct's primary pick is on the Grok line (xAI, served by Cursor)"
+        },
+        {
+          "key": "composer",
+          "title": "Composer",
+          "description": "hatsu:direct's primary pick is on Cursor's Composer line"
+        }
+      ]
+    }
   }
 }

@@ -1,0 +1,1 @@
+- Declare the five canonical install-only model labels alongside the two classification axes and name `nen classify install` as their declaration route. Adoption is held until a released Nen containing NN597 is actually pinned; no unreleased pin or GitHub label mutation is introduced.
