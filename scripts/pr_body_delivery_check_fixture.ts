@@ -172,6 +172,20 @@ test("reviewer spend attributes initial, numbered and bounded delta passes inclu
   assert.deepEqual(compareBody(`${body}\n# Changes\n`, body), []);
 });
 
+test("a rostered Hanten persona in any letter case renders lowercase; an unrostered one is refused (R-2026-11-04-06)", () => {
+  const sources = [["hanten § 4: Nobunaga, counters unavailable", "nobunaga"], ["hanten § 4: FEITAN round 2, counters unavailable", "feitan"],
+    ["hanten § 4: ChRoLLo delta since 3830f0e, counters unavailable", "chrollo"]];
+  const data = { ...report, phases: [], sessions: [], usage: sources.map(([source]) => ({
+    effort, recordedAt: "2026-10-20T10:01:00.000Z", surface: "codex", model: "sol", dial: "high", source,
+  })) };
+  const before = JSON.stringify(data);
+  assert.deepEqual(normalize(repo, data).deliveryRows.map((row) => row.role), sources.map(([, persona]) => `reviewer · ${persona}`));
+  assert.equal(JSON.stringify(data), before, "a mixed-case source is read, never rewritten");
+  for (const source of ["hanten § 4: Gyro, counters unavailable", "hanten § 4: gyro, counters unavailable", "hanten § 4: Review-Preamble, counters unavailable"]) {
+    assert.throws(() => normalize(repo, { ...report, usage: [{ ...report.usage[0], source }] }), /^Error: usage\[0\]\.source: unknown Hanten reviewer persona /, source);
+  }
+});
+
 test("malformed Hanten usage refuses with the indexed record and expected source forms", () => {
   for (const source of [
     "hanten § 4: chrollo", "hanten § 4: chrollo,", "hanten § 4: chrollo,   ",
@@ -339,6 +353,9 @@ exec "$REAL_NEN" "$@"
   // ...and never stands in when the plugin's own is missing: a plugin root without it refuses.
   const bare = join(temp, "bare-plugin"); mkdirSync(join(bare, "scripts"), { recursive: true });
   for (const file of ["pr_body_delivery_check.sh", "pr_delivery.ts"]) writeFileSync(join(bare, "scripts", file), readFileSync(join(ROOT, "scripts", file)));
+  // The roster the reviewer rows are checked against (R-2026-11-04-06) is present, so the refusal is the template's alone.
+  mkdirSync(join(bare, "claude", "agents"), { recursive: true });
+  for (const persona of ["chrollo", "hisoka"]) writeFileSync(join(bare, "claude", "agents", `${persona}.md`), "");
   const noTemplate = run("bash", [join(bare, "scripts/pr_body_delivery_check.sh"), "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
   assert.equal(noTemplate.status, 2, `${noTemplate.stdout}${noTemplate.stderr}`);
   assert.match(noTemplate.stderr, /bare-plugin\/scripts\/\.\.\/templates\/pr-delivery\.md/);

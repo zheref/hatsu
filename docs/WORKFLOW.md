@@ -1026,7 +1026,8 @@ nen review ledger show --repo <path> --branch <branch> [--pr <N>] --json
 The first output is saved under `<path>/.nen/reports/` as shibari saves it; before a PR exists the
 normalized next step reads `unread — report data carries no unique PR`, which is expected. **It passes**
 only when all five hold: normalize exits `0` (every usage row's source in hanten § 4's grammar, the
-Delivery rows readable); the session ledger has a row for this session, or none where the surface exposes neither title nor id
+Delivery rows readable — a persona of `claude/agents/*.md` is read in any letter case and rendered
+lowercase, one off the roster refused, [R-2026-11-04-06](ruling-records/opus-kurapika-ha-508-delivery-canon-fold--R-2026-11-04-06.json)); the session ledger has a row for this session, or none where the surface exposes neither title nor id
 (rendered `unread` as above); the phase ledger has an open
 entry; the cycle ledger shows one `ran` record per reviewer pass this effort raised and returned, a delta
 pass included (`nen review ledger record` has no delta outcome at 0.28; the delta is named in the usage source);
