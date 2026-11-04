@@ -558,6 +558,25 @@ class Ctx:
             return None
         return ref
 
+    def nen_integrity(self):
+        """Render only validated integrity data from the same pinned contract."""
+        try:
+            dep = json.loads((self.hatsu_root / "nen" / "contract.json").read_text())["dependency"]
+            data = dep["bootstrap"]
+            script = data["scriptSha256"]
+            binaries = data["sha256"]
+            if not isinstance(script, str) or not re.fullmatch(r"[a-f0-9]{64}", script):
+                return None
+            if not isinstance(binaries, dict) or "linux-x64" not in binaries:
+                return None
+            if any(not isinstance(k, str) or not re.fullmatch(r"[a-z0-9-]+", k)
+                   or not isinstance(v, str) or not re.fullmatch(r"[a-f0-9]{64}", v)
+                   for k, v in binaries.items() if k != "$comment"):
+                return None
+            return json.dumps({"scriptSha256": script, "sha256": {k: v for k, v in binaries.items() if k != "$comment"}}, separators=(",", ":"))
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+
 
 # --------------------------------------------------------------------------
 # Items
@@ -928,7 +947,9 @@ class ReadinessWorkflow(Item):
                  .replace("@@RUNNER_REASON@@", ctx.runner["reason"])
                  .replace("@@GUARD_REQUIRED@@", "true" if process else "false")
                  .replace("@@PIN_FALLBACK_ALLOWED@@", "false" if process else "true")
-                 .replace("@@NEN_REF@@", ctx.nen_ref()))
+                 .replace("@@NEN_REF@@", ctx.nen_ref())
+                 .replace("@@NEN_SCRIPT_SHA256@@", json.loads(ctx.nen_integrity())["scriptSha256"])
+                 .replace("@@NEN_BINARY_SHA256@@", json.loads(ctx.nen_integrity())["sha256"]["linux-x64"]))
 
     def detect(self, ctx):
         if ctx.role is None:
@@ -937,8 +958,8 @@ class ReadinessWorkflow(Item):
         readiness = readiness_guard(ctx, "workflow-gate")
         if readiness["state"] != SATISFIED:
             return self.row(**readiness)
-        if ctx.nen_ref() is None:
-            return self.row(BLOCKED, "Hatsu's dependency.pinned_ref is absent or malformed; "
+        if ctx.nen_ref() is None or ctx.nen_integrity() is None:
+            return self.row(BLOCKED, "Hatsu's dependency pin or bootstrap checksums are absent or malformed; "
                             "the readiness workflow cannot bootstrap Nen", "repair Hatsu's nen/contract.json")
         # BEFORE the file check, so `repair`'s BLOCKED early-return stops the write
         # on a fresh repository too -- not only where a file already exists.
@@ -2712,12 +2733,16 @@ def self_test() -> int:
         output_path = pin_dir / "github-output.txt"
         env = dict(os.environ, TENKAI_PIN_FALLBACK_ALLOWED="true",
                    TENKAI_FALLBACK_REF=ctx_for(dprod).nen_ref(),
+                   TENKAI_FALLBACK_SCRIPT_SHA256=json.loads(ctx_for(dprod).nen_integrity())["scriptSha256"],
+                   TENKAI_FALLBACK_BINARY_SHA256=json.loads(ctx_for(dprod).nen_integrity())["sha256"]["linux-x64"],
                    GITHUB_OUTPUT=str(output_path))
         missing_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
                                      env=env, capture_output=True, text=True)
         check("consumer pin step executes fallback when trusted contract is absent",
               missing_pin.returncode == 0
-              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
+              and output_path.read_text().splitlines() == [f"ref={ctx_for(dprod).nen_ref()}",
+                  "script_sha=" + env["TENKAI_FALLBACK_SCRIPT_SHA256"],
+                  "binary_sha=" + env["TENKAI_FALLBACK_BINARY_SHA256"]])
         (pin_dir / ".trusted" / "nen").mkdir(parents=True)
         (pin_dir / ".trusted" / "nen" / "contract.json").write_text("{bad json")
         output_path.write_text("")
@@ -2744,7 +2769,9 @@ def self_test() -> int:
                                      env=env, capture_output=True, text=True)
         check("a valid consumer contract may omit dependency and use the fallback",
               omitted_pin.returncode == 0
-              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
+              and output_path.read_text().splitlines() == [f"ref={ctx_for(dprod).nen_ref()}",
+                  "script_sha=" + env["TENKAI_FALLBACK_SCRIPT_SHA256"],
+                  "binary_sha=" + env["TENKAI_FALLBACK_BINARY_SHA256"]])
     product_workflow_path = dprod / WORKFLOW_PATH
     product_workflow_path.write_text(product_workflow.replace(
         "TENKAI_GUARD_REQUIRED: false", "TENKAI_GUARD_REQUIRED: true"))
