@@ -220,10 +220,14 @@ jobs:
         env:
           TENKAI_PIN_FALLBACK_ALLOWED: @@PIN_FALLBACK_ALLOWED@@
           TENKAI_FALLBACK_REF: @@NEN_REF@@
+          TENKAI_FALLBACK_SCRIPT_SHA256: @@NEN_SCRIPT_SHA256@@
+          TENKAI_FALLBACK_BINARY_SHA256: @@NEN_BINARY_SHA256@@
         shell: bash
         run: |
           set -euo pipefail
           ref=""
+          script_sha=""
+          binary_sha=""
           if [ -f .trusted/nen/contract.json ]; then
             if ! ref="$(jq -r '
               if type != "object" then error("root must be an object")
@@ -236,8 +240,14 @@ jobs:
               exit 1
             fi
           fi
+          if [ -n "$ref" ]; then
+            script_sha="$(jq -er '.dependency.bootstrap.scriptSha256 | strings' .trusted/nen/contract.json)"
+            binary_sha="$(jq -er '.dependency.bootstrap.sha256["linux-x64"] | strings' .trusted/nen/contract.json)"
+          fi
           if [ -z "$ref" ] && [ "$TENKAI_PIN_FALLBACK_ALLOWED" = true ]; then
             ref="$TENKAI_FALLBACK_REF"
+            script_sha="$TENKAI_FALLBACK_SCRIPT_SHA256"
+            binary_sha="$TENKAI_FALLBACK_BINARY_SHA256"
             echo "Using the Nen ref rendered from Hatsu's dependency contract: $ref"
           fi
           [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
@@ -248,21 +258,29 @@ jobs:
             echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
             exit 1
           fi
+          [[ "$script_sha" =~ ^[0-9a-f]{64}$ && "$binary_sha" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::Trusted bootstrap script/binary digests must be 64 lowercase hex digits."; exit 1; }
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "script_sha=$script_sha" >> "$GITHUB_OUTPUT"
+          echo "binary_sha=$binary_sha" >> "$GITHUB_OUTPUT"
           echo "pinned nen ref: $ref"
 
       - name: Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)
         id: nen
         env:
           PINNED_REF: ${{ steps.pin.outputs.ref }}
+          SCRIPT_SHA256: ${{ steps.pin.outputs.script_sha }}
+          BINARY_SHA256: ${{ steps.pin.outputs.binary_sha }}
         shell: bash
         run: |
           set -euo pipefail
           ref="$PINNED_REF"
           url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
           curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+          [[ "$SCRIPT_SHA256" =~ ^[0-9a-f]{64}$ && "$BINARY_SHA256" =~ ^[0-9a-f]{64}$ ]] || exit 1
+          printf '%s  %s\n' "$SCRIPT_SHA256" "${RUNNER_TEMP}/nen-bootstrap.sh" | sha256sum -c -
           bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
           [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+          printf '%s  %s\n' "$BINARY_SHA256" "$bin" | sha256sum -c -
           echo "bin=$bin" >> "$GITHUB_OUTPUT"
           echo "nen: $("$bin" --version) at $bin"
 
