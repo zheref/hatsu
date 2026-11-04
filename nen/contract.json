@@ -172,7 +172,7 @@
       "bell-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/bell_notify.sh (zheref/hatsu#289 item 9, the ruling of 2026-10-17): jutaisho section 5's in-session bell with a fixed argv, replacing the osascript allow row. Its fixture is hermetic and offline under stub osascript, afplay, notify-send and uname: the title carries the Hatsu prefix, a value starting with a dash follows a -- separator and never becomes an -e statement, quotes, backslashes and newlines are stripped, a message is capped at 240 characters, a sound name with path characters or an absent sound falls back to Glass, a missing or empty value and an unknown argument are exit 2, --help prints the header, and on Linux rung 2 goes through notify-send with rung 3 not applicable. Since zheref/hatsu#516: afplay takes the absolute sound path alone (its stub refuses a --, as the player did) and is attempted once; a missing tool reads not applicable, a stubbed failure reads failed with its exit and stderr, and neither reads sent or played; a notifier or player that never returns, or ignores TERM, is stopped by its own PID at a 1-second --deadline within the bound, a same-named process the run did not start survives, and the sound still runs once after a timed-out or failed notification; --deadline outside 1 to 60 whole seconds is exit 2."
+        "$comment": "The focused lane for scripts/bell_notify.sh (zheref/hatsu#289 item 9, the ruling of 2026-10-17): jutaisho section 5's in-session bell with a fixed argv, replacing the osascript allow row. Its fixture is hermetic and offline under stub osascript, afplay, notify-send and uname: the title carries the Hatsu prefix, a value starting with a dash follows a -- separator and never becomes an -e statement, quotes, backslashes and newlines are stripped, a message is capped at 240 characters, a sound name with path characters or an absent sound falls back to Glass, a missing or empty value and an unknown argument are exit 2, --help prints the header, and on Linux rung 2 goes through notify-send with rung 3 not applicable. Since zheref/hatsu#516: afplay takes the absolute sound path alone (its stub refuses a --, as the player did) and is attempted once; a missing tool reads not applicable, a stubbed failure reads failed with its exit and stderr (exit 0 with stderr, the seat-error case, and a silent non-zero exit included), and none reads sent or played; --no-sound and another host give rung 3 its not applicable line; a notifier or player that never returns, or ignores TERM, and both at once, is stopped by its own PID at a 1-second --deadline within the bound, a decoy named osascript that the run did not start survives, and the sound still runs once after a timed-out or failed notification; --deadline outside 1 to 60 whole seconds, three digits or more included, is exit 2."
       },
       "redaction-guard": {
         "stack": "claude-code-plugin",
@@ -873,7 +873,7 @@
             "bash",
             "scripts/bell_notify_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the bell script. Run it as `nen shu test --lane bell-guard --repo <hatsu>`; 20 checks. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/bell-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane bell-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "A permanent, deterministic fixture for the bell script. Run it as `nen shu test --lane bell-guard --repo <hatsu>`; 76 checks. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/bell-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane bell-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
           "artifacts": [
             "coverage/bell-guard/lcov.info"
           ]
@@ -2095,7 +2095,7 @@
             "node",
             "scripts/stop_bell_fixture.mts"
           ],
-          "$comment": "Hermetic hook fixture: stub nen/osascript/afplay/uname on PATH, a scratch git repository per case. Run when hooks/stop-bell.sh or its surface mirrors change."
+          "$comment": "Hermetic hook fixture: stub nen/osascript/afplay/uname on PATH, a scratch git repository per case. Run when hooks/stop-bell.sh or its surface mirrors change. Since zheref/hatsu#516 it also proves the bounded rungs: a notifier that hangs or ignores TERM is stopped by its own PID at HATSU_BELL_DEADLINE=1 and the sound still plays once after it, a decoy named osascript that the hook did not start survives, a notifier that always hangs is tried once across three markers, both rungs hung across three markers at the default deadline finish under the 15-second hook timeout with every marker cleared, and a deadline outside 1 to 5 reads 5. The afplay expectations drop out, named, on a host without /System/Library/Sounds/Glass.aiff."
         }
       },
       "idle-permissions-guard": {

@@ -9,7 +9,7 @@
 // stub markers carry a placeholder contract: the hook reads only their gate, title, body and effort.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +27,11 @@ case "$STUB_OSASCRIPT" in
   hang) echo $$ > "${temp}/osascript.pid"; exec sleep 30 ;;
   stubborn) trap '' TERM; echo $$ > "${temp}/osascript.pid"; exec sleep 30 ;;
 esac`);
-stub('afplay', `printf 'afplay\\n' >> "${log}"`);
+stub('afplay', `printf 'afplay\\n' >> "${log}"
+case "$STUB_AFPLAY" in
+  hang) echo $$ > "${temp}/afplay.pid"; exec sleep 30 ;;
+  stubborn) trap '' TERM; echo $$ > "${temp}/afplay.pid"; exec sleep 30 ;;
+esac`);
 stub('uname', 'echo Darwin');
 stub('nen', `case "$1 $2" in
   "stop list") [ -n "$NEN_STUB_LIST" ] && cat "$NEN_STUB_LIST"; exit "\${NEN_STUB_LIST_EXIT:-0}" ;;
@@ -144,35 +148,6 @@ try {
     assert.equal(calls.filter((c) => c.startsWith('osascript')).length, 1);
     assert.deepEqual(calls.filter((c) => c.startsWith('clear')), [`clear --gate G4 --effort HA-IS-#9 --repo ${dir}`]);
   }
-  // 9. A notification that never returns is bounded (zheref/hatsu#516 AC-4/5): at a one-second deadline the
-  //    hook returns, its own hung child is stopped and reaped, a same-shaped process it did not start is
-  //    untouched, the sound still plays once after it, and the marker is still cleared. A child that
-  //    ignores TERM is KILLed a second later. spawnSync returns only once every holder of the hook's
-  //    pipes is gone, so the elapsed time also proves nothing left behind holds them.
-  for (const mode of ['hang', 'stubborn']) {
-    const dir = repo();
-    const a = writeMarker(dir, 'HA-IS-#516', 'G4', 'bounded');
-    const decoy = spawn(join(bin, 'osascript'), [], { env: { PATH: `${bin}:/usr/bin:/bin`, STUB_OSASCRIPT: 'hang' }, stdio: 'ignore' });
-    for (let i = 0; i < 50 && !existsSync(join(temp, 'osascript.pid')); i++) spawnSync('sleep', ['0.1']);
-    rmSync(join(temp, 'osascript.pid'), { force: true });
-    const started = Date.now();
-    const calls = hook(dir, { STUB_OSASCRIPT: mode, HATSU_BELL_DEADLINE: '1', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G4' }]) });
-    const took = (Date.now() - started) / 1000;
-    assert.ok(took < 5, `a ${mode} notifier returns within the bound (${took}s)`);
-    const pid = Number(readFileSync(join(temp, 'osascript.pid'), 'utf8').trim());
-    assert.throws(() => process.kill(pid, 0), `the ${mode} child ${pid} was stopped and reaped`);
-    assert.doesNotThrow(() => process.kill(decoy.pid ?? -1, 0), 'a process the hook did not start is untouched');
-    decoy.kill('SIGKILL');
-    assert.deepEqual(calls.map((c) => c.split(' ')[0]), ['osascript', 'afplay', 'clear'], 'the sound runs once after the timeout, then the clear');
-    rmSync(join(temp, 'osascript.pid'), { force: true });
-  }
-  // 10. A deadline that is not 1 to 60 whole seconds falls back to 5: a clean bell still rings both rungs.
-  {
-    const dir = repo();
-    const a = writeMarker(dir, 'HA-IS-#516', 'G2', 'default');
-    const calls = hook(dir, { HATSU_BELL_DEADLINE: '0', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G2' }]) });
-    assert.deepEqual(calls.map((c) => c.split(' ')[0]), ['osascript', 'afplay', 'clear']);
-  }
   // 8. The documented marking form for the nen this host runs (jutaisho § 3): `--mark --effort <branch>`
   //    where `nen stop --help` lists `--effort` (nen 0.27 on), the single-file `--mark` otherwise (0.26).
   //    Real nen, stub bells. Skipped by name when no nen is on the inherited PATH.
@@ -199,7 +174,72 @@ try {
       console.log(`stop-bell fixture: case 8 ran the ${perGate ? 'per-gate (--effort)' : 'single-file (0.26)'} form against ${realNen}`);
     }
   }
-  console.log(`stop-bell fixture: ${cases} cases passed (one bell per gate, hour-old gates still ring, per-gate clears, off consumed, unreadable untouched, 0.26 and no-nen fallbacks, outside git, hung and TERM-ignoring notifiers bounded, the real marking form, idle exit)`);
+  // 9–12. Bounded rungs (zheref/hatsu#516 AC-4/5). The hook only plays a sound where the system sound exists,
+  //    so on a host without it (the Linux CI runner) the afplay expectations drop out and say so; the timing,
+  //    reaping and decoy checks hold everywhere. The decoy is a symlink to sleep NAMED osascript, started by sh in
+  //    the background so it is not this process's child: were it killed, init would reap it and kill(pid, 0)
+  //    would throw. spawnSync returns only once every holder of the hook's pipes is gone, so each elapsed time
+  //    also proves nothing left behind holds them.
+  const hasSound = existsSync('/System/Library/Sounds/Glass.aiff');
+  if (!hasSound) console.log('stop-bell fixture: cases 9-12 skip the afplay expectations -- no /System/Library/Sounds/Glass.aiff here');
+  const sound = (n: number): string[] => (hasSound ? Array(n).fill('afplay') : []);
+  const pidOf = (name: string): number => Number(readFileSync(join(temp, `${name}.pid`), 'utf8').trim());
+  const gone = (pid: number, what: string): void => assert.throws(() => process.kill(pid, 0), `${what} ${pid} was stopped and reaped`);
+  const clearPids = (): void => { for (const n of ['osascript', 'afplay']) rmSync(join(temp, `${n}.pid`), { force: true }); };
+  const timed = (dir: string, env: Record<string, string>): { calls: string[]; took: number } => {
+    clearPids();
+    const started = Date.now();
+    const calls = hook(dir, env);
+    return { calls: calls.map((c) => c.split(' ')[0]), took: (Date.now() - started) / 1000 };
+  };
+  const decoyBin = join(temp, 'decoy', 'osascript');
+  mkdirSync(dirname(decoyBin), { recursive: true });
+  symlinkSync(spawnSync('sh', ['-c', 'command -v sleep'], { encoding: 'utf8' }).stdout.trim(), decoyBin); // a copied system binary is refused at launch on macOS
+  // 9. One marker, a notifier that hangs or ignores TERM, a one-second deadline.
+  for (const mode of ['hang', 'stubborn']) {
+    const dir = repo();
+    const a = writeMarker(dir, 'HA-IS-#516', 'G4', 'bounded');
+    const decoy = Number(spawnSync('sh', ['-c', `"${decoyBin}" 30 >/dev/null 2>&1 & echo $!`], { encoding: 'utf8' }).stdout.trim());
+    assert.ok(spawnSync('pgrep', ['-x', 'osascript'], { encoding: 'utf8' }).stdout.split('\n').includes(String(decoy)), 'the decoy is visible to a match by name');
+    const { calls, took } = timed(dir, { STUB_OSASCRIPT: mode, HATSU_BELL_DEADLINE: '1', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G4' }]) });
+    assert.ok(took < 3.5, `a ${mode} notifier returns within deadline + grace (${took}s)`);
+    gone(pidOf('osascript'), `the ${mode} child`);
+    assert.doesNotThrow(() => process.kill(decoy, 0), 'a process named osascript that the hook did not start is untouched');
+    process.kill(decoy, 'SIGKILL');
+    assert.deepEqual(calls, ['osascript', ...sound(1), 'clear'], 'the sound runs once after the timeout, then the clear');
+  }
+  // 10. Three markers and a notifier that always hangs: it is tried once, the sound plays for each, all clear.
+  {
+    const dir = repo();
+    const rows = [1, 2, 3].map((n) => ({ source: 'gate', path: writeMarker(dir, `HA-IS-#${n}`, 'G2', `m ${n}`), gate: 'G2' }));
+    const { calls, took } = timed(dir, { STUB_OSASCRIPT: 'hang', HATSU_BELL_DEADLINE: '1', NEN_STUB_LIST: listing(dir, rows) });
+    assert.ok(took < 4, `three markers with a hung notifier stay bounded (${took}s)`);
+    assert.deepEqual(calls, ['osascript', ...sound(1), 'clear', ...sound(1), 'clear', ...sound(1), 'clear']);
+  }
+  // 11. Three markers, both rungs hung, the default deadline: the run stays inside the harness's 15 seconds
+  //     (the 12-second budget) and every marker is cleared.
+  {
+    const dir = repo();
+    const rows = [1, 2, 3].map((n) => ({ source: 'gate', path: writeMarker(dir, `HA-IS-#${n}`, 'G2', `m ${n}`), gate: 'G2' }));
+    const { calls, took } = timed(dir, { STUB_OSASCRIPT: 'stubborn', STUB_AFPLAY: 'stubborn', NEN_STUB_LIST: listing(dir, rows) });
+    assert.ok(took < 14, `both rungs hung across three markers finish under the 15-second hook timeout (${took}s)`);
+    gone(pidOf('osascript'), 'the hung notifier');
+    // Whether the player still fits the budget after the notifier's six seconds depends on where the
+    // whole-second clock ticks (date +%s), so it is tried at most once, never asserted exactly once.
+    if (existsSync(join(temp, 'afplay.pid'))) gone(pidOf('afplay'), 'the hung player');
+    assert.equal(calls.filter((c) => c === 'osascript').length, 1, 'the hung notifier is tried once');
+    assert.ok(calls.filter((c) => c === 'afplay').length <= 1, 'the hung player is tried at most once');
+    assert.equal(calls.filter((c) => c === 'clear').length, 3, 'every marker is cleared');
+  }
+  // 12. A deadline outside 1 to 5 whole seconds reads 5: a hung notifier is stopped after about five seconds.
+  {
+    const dir = repo();
+    const a = writeMarker(dir, 'HA-IS-#516', 'G2', 'default');
+    const { calls, took } = timed(dir, { STUB_OSASCRIPT: 'hang', HATSU_BELL_DEADLINE: '61', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G2' }]) });
+    assert.ok(took >= 4.5 && took < 7.5, `HATSU_BELL_DEADLINE=61 reads the default 5 (${took}s)`);
+    assert.deepEqual(calls, ['osascript', ...sound(1), 'clear']);
+  }
+  console.log(`stop-bell fixture: ${cases} cases passed (one bell per gate, hour-old gates still ring, per-gate clears, off consumed, unreadable untouched, 0.26 and no-nen fallbacks, outside git, the real marking form, idle exit, hung and TERM-ignoring rungs bounded per rung and per run)`);
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

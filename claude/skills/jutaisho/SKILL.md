@@ -147,7 +147,7 @@ read-stderr rules are [`docs/surfaces/README.md`](../../../docs/surfaces/README.
 Here: **the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
 is removed by the side that consumed it** (the hook, when it fired; the fallback, only where no hook
 file is placed), and **the stop still stands** whichever path rang, § 4's four parts being the real bell.
-**The fallback is one call**, `"$hatsu_root/scripts/bell_notify.sh" --title <t> --message <m>`, a fixed argv (#289). **Residue:** `osascript` and `afplay` inside it are harness shell, `[unknown]` to nen; the script prints each rung's stderr.
+**The fallback is one call**, `"$hatsu_root/scripts/bell_notify.sh" --title <t> --message <m>`, a fixed argv (#289). **Residue:** `osascript` and `afplay` inside it are harness shell, `[unknown]` to nen; it prints one line per rung.
 
 ## Authority
 

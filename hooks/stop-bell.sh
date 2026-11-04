@@ -133,30 +133,65 @@ case "$os" in
   MINGW*|MSYS*|CYGWIN*) os=Windows ;;
 esac
 
-# bounded ARGV... — one rung's tool, run as this hook's own background child under a finite deadline
-# (zheref/hatsu#516): a hung `osascript` once held the turn for more than five minutes and the sound behind
-# it. `HATSU_BELL_DEADLINE` whole seconds, 1 to 60, default 5. A watchdog, also this hook's own child, sends
-# TERM to that child's PID at the deadline and KILL a second later, never a name or a pattern; once the
-# child is reaped the watchdog is stopped, its own sleep with it. stdin, stdout and stderr are detached, so
-# nothing left behind holds the harness's pipe. The exit is the tool's; a stopped tool reads non-zero.
+# bounded RUNG ARGV... — one rung's tool (RUNG is os or sound), run as this hook's own background child
+# under a finite deadline (zheref/hatsu#516): a hung `osascript` once held the turn for more than five
+# minutes and the sound behind it. `HATSU_BELL_DEADLINE` whole seconds, 1 to 5, default 5 (any other value
+# reads 5). A watchdog, also this hook's own child, sends TERM to that child's PID at the deadline and KILL a
+# second later, by PID only, never a name or a pattern, and only while `ps` still names this hook as that
+# PID's parent, so a reaped and recycled PID is never signalled; once the child is reaped the watchdog is
+# stopped, its own sleep with it. stdin, stdout and stderr are detached, so nothing left behind holds the
+# harness's pipe, and the job status a stopped child leaves is kept off stderr.
+# THE WHOLE RUN IS BOUNDED TOO. The harness gives this hook 15 seconds (hooks/hooks.json), and markers ring
+# one after another, so a rung that timed out is not tried again for a later marker in the same run (the
+# sound still plays once after a hung notification), and no rung starts unless its deadline plus its grace
+# second fit in a 12-second budget from the hook's start. A skipped rung returns 125. Every marker is still
+# cleared, whatever rang. The exit is otherwise the tool's; a stopped tool reads 137 or 143.
 deadline=${HATSU_BELL_DEADLINE:-5}
-case "$deadline" in ""|*[!0-9]*) deadline=5 ;; esac
-{ [ "$deadline" -ge 1 ] && [ "$deadline" -le 60 ]; } || deadline=5
+case "$deadline" in [1-5]) ;; *) deadline=5 ;; esac
+budget=12
+hook_pid=$$
+run_start=$(date +%s 2>/dev/null || echo 0)
+hung_os=0; hung_sound=0; b_child=""; b_watch=""; rows=""
+# owned — is $b_child still this hook's own child? Where no `ps` runs, the PID is trusted as before.
+owned() {
+  command -v ps >/dev/null 2>&1 || return 0
+  [ "$(ps -o ppid= -p "$b_child" 2>/dev/null | tr -d ' ')" = "$hook_pid" ]
+}
 bounded() {
+  b_rung=$1; shift
+  case "$b_rung" in
+    os) [ "$hung_os" -eq 0 ] || return 125 ;;
+    *) [ "$hung_sound" -eq 0 ] || return 125 ;;
+  esac
+  now=$(date +%s 2>/dev/null || echo 0)
+  [ $((now - run_start + deadline + 1)) -le "$budget" ] || return 125
   "$@" </dev/null >/dev/null 2>&1 &
   b_child=$!
   (
-    trap 'kill "$s" 2>/dev/null; exit 0' TERM
-    sleep "$deadline" & s=$!; wait "$s"
-    kill -TERM "$b_child" 2>/dev/null
-    sleep 1 & s=$!; wait "$s"
-    kill -KILL "$b_child" 2>/dev/null
+    s=""
+    trap '[ -n "$s" ] && kill "$s" 2>/dev/null; exit 0' TERM
+    sleep "$deadline" & s=$!; wait "$s"; s=""
+    owned && kill -TERM "$b_child" 2>/dev/null
+    sleep 1 & s=$!; wait "$s"; s=""
+    owned && kill -KILL "$b_child" 2>/dev/null
   ) </dev/null >/dev/null 2>&1 &
   b_watch=$!
-  wait "$b_child"; b_rc=$?
-  kill -TERM "$b_watch" 2>/dev/null; wait "$b_watch" 2>/dev/null
+  { wait "$b_child"; } 2>/dev/null; b_rc=$?
+  kill -TERM "$b_watch" 2>/dev/null; { wait "$b_watch"; } 2>/dev/null
+  b_child=""; b_watch=""
+  case "$b_rc" in
+    137|143) if [ "$b_rung" = os ]; then hung_os=1; else hung_sound=1; fi ;;
+  esac
   return "$b_rc"
 }
+# Killed by the harness's timeout or a signal: stop this run's own watchdog and child, drop the row file.
+bell_cleanup() {
+  [ -n "$b_watch" ] && kill -TERM "$b_watch" 2>/dev/null
+  [ -n "$b_child" ] && owned && kill -TERM "$b_child" 2>/dev/null
+  [ -n "$rows" ] && rm -f "$rows"
+}
+trap bell_cleanup EXIT
+trap 'exit 0' INT TERM HUP
 
 # ring DOCUMENT — rungs 2 and 3 for one marker's text.
 ring() {
@@ -176,7 +211,7 @@ ring() {
       Darwin)
         if command -v osascript >/dev/null 2>&1; then
           # `on run argv` makes the values ARGUMENTS, never script text.
-          bounded osascript \
+          bounded os osascript \
             -e "on run argv" \
             -e "display notification (item 2 of argv) with title (item 1 of argv) subtitle (item 3 of argv)" \
             -e "end run" "Hatsu — $gate: $title" "$message" "$subtitle" || :
@@ -184,7 +219,7 @@ ring() {
         ;;
       Linux)
         if command -v notify-send >/dev/null 2>&1; then
-          bounded notify-send -- "Hatsu — $gate: $title" "$message" || :
+          bounded os notify-send -- "Hatsu — $gate: $title" "$message" || :
         fi
         ;;
       Windows)
@@ -206,12 +241,12 @@ ring() {
         sound_file="/System/Library/Sounds/$sound.aiff"
         [ -f "$sound_file" ] || sound_file="/System/Library/Sounds/Glass.aiff"
         if command -v afplay >/dev/null 2>&1 && [ -f "$sound_file" ]; then
-          bounded afplay "$sound_file" && rang=1
+          bounded sound afplay "$sound_file" && rang=1
         fi
         ;;
       Linux)
         if command -v paplay >/dev/null 2>&1 && [ -f /usr/share/sounds/freedesktop/stereo/complete.oga ]; then
-          bounded paplay /usr/share/sounds/freedesktop/stereo/complete.oga && rang=1
+          bounded sound paplay /usr/share/sounds/freedesktop/stereo/complete.oga && rang=1
         fi
         ;;
       Windows)

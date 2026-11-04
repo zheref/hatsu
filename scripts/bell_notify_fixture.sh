@@ -3,7 +3,8 @@
 # (zheref/hatsu#289 item 9, zheref/hatsu#516). Lane `bell-guard`: `nen shu test --lane bell-guard --repo <hatsu>`.
 # Hermetic and offline: stub `osascript`, `afplay`, `notify-send` and `uname` on a throwaway PATH log their argv
 # and never ring anything. STUB_OSASCRIPT / STUB_AFPLAY pick a stub's behaviour: ok (default), fail (stderr,
-# exit 1), hang (never returns) or stubborn (never returns and ignores TERM). The afplay stub refuses a `--`
+# exit 1), warn (stderr, exit 0), silentfail (no stderr, exit 3), hang (never returns) or stubborn (never
+# returns and ignores TERM). The afplay stub refuses a `--`
 # as the player did in #516. Every hung stub records its PID; the trap below stops only those PIDs.
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"; guard="$here/bell_notify.sh"
@@ -24,6 +25,8 @@ case "\$n" in osascript) mode="\${STUB_OSASCRIPT:-ok}" ;; afplay) mode="\${STUB_
 if [ "\$n" = afplay ] && [ "\${1-}" = "--" ]; then echo "afplay: unsupported option --" >&2; exit 1; fi
 case "\$mode" in
   fail) echo "\$n: stub execution error" >&2; exit 1 ;;
+  warn) echo "\$n: stub seat error" >&2; exit 0 ;;
+  silentfail) exit 3 ;;
   hang) echo \$\$ > "\$d/\$n.pid"; exec sleep 30 ;;
   stubborn) trap '' TERM; echo \$\$ > "\$d/\$n.pid"; exec sleep 30 ;;
 esac
@@ -33,10 +36,12 @@ chmod +x "$tmp/stub"
 for t in osascript afplay notify-send; do cp "$tmp/stub" "$tmp/bin/$t"; done
 printf '#!/bin/sh\necho "${BELL_UNAME:-Darwin}"\n' > "$tmp/bin/uname"; chmod +x "$tmp/bin/uname"
 # A PATH holding only what bell_notify.sh itself needs, so a missing tool is really missing.
-for t in tr cut mktemp sleep rm awk basename cat; do ln -s "$(command -v "$t")" "$tmp/core/$t"; done
+for t in tr cut sed grep mktemp sleep rm awk basename cat; do ln -s "$(command -v "$t")" "$tmp/core/$t"; done
 for t in osascript uname; do cp "$tmp/bin/$t" "$tmp/no-afplay/$t"; done
 for t in afplay uname; do cp "$tmp/bin/$t" "$tmp/no-osascript/$t"; done
-printf '#!/bin/sh\nexec sleep 30\n' > "$tmp/decoy/osascript"; chmod +x "$tmp/decoy/osascript"
+# The decoy IS named osascript (a symlink to sleep: `pgrep -x osascript` and `pgrep -f` both see it; a copied
+# system binary is refused at launch on macOS), so a kill by name or pattern would reach it.
+ln -s "$(command -v sleep)" "$tmp/decoy/osascript"
 export PATH="$tmp/bin:$PATH"
 pass=0; fail=0; out=""
 ok() { pass=$((pass+1)); echo "ok    $1"; }
@@ -73,9 +78,11 @@ has "Glass.aiff" "Glass played for the absent one"
 expect 0 "no player on PATH is reported, not run" env PATH="$tmp/no-afplay:$tmp/core" "$BASH" "$guard" --title t --message m
 says "rung 3 (sound): not applicable, no afplay" "a missing player reads not applicable"
 saysnot "played" "a missing player never reads played"
+saysnot "command not found" "the minimal PATH holds every tool the script runs"
 expect 0 "no osascript on PATH is reported, and the sound still runs" env PATH="$tmp/no-osascript:$tmp/core" "$BASH" "$guard" --title t --message m
 says "rung 2 (OS notification): not applicable, no osascript" "a missing notifier reads not applicable"
 says "rung 3 (sound): played Glass" "the sound runs without the notifier"
+saysnot "command not found" "the minimal PATH holds every tool the script runs, again"
 expect 0 "a failing player is a failure, not a missing seat" env STUB_AFPLAY=fail bash "$guard" --title t --message m
 says "rung 3 (sound): failed (exit 1: afplay: stub execution error)" "the player's exit and stderr are quoted"
 saysnot "played" "a failing player never reads played"
@@ -85,12 +92,19 @@ expect 0 "a failing notifier is a failure, and the sound still runs once" env ST
 says "rung 2 (OS notification): failed (exit 1: osascript: stub execution error)" "the notifier's exit and stderr are quoted"
 saysnot "sent" "a failing notifier never reads sent"
 calls afplay 1 "the sound follows a failed notification once"
+expect 0 "a notifier exiting 0 with stderr is a failure (the XPC seat case)" env STUB_OSASCRIPT=warn bash "$guard" --title t --message m --no-sound
+says "rung 2 (OS notification): failed (exit 0: osascript: stub seat error)" "exit 0 with stderr reads failed"
+saysnot "sent" "exit 0 with stderr never reads sent"
+says "rung 3 (sound): not applicable, --no-sound" "--no-sound names rung 3 as not applicable"
+expect 0 "a player failing silently is a failure" env STUB_AFPLAY=silentfail bash "$guard" --title t --message m
+says "rung 3 (sound): failed (exit 3: no stderr)" "a silent non-zero exit reads failed, no stderr"
 
 # A notification that never returns is bounded, its own child stopped, the sound still tried (#516 AC-4/5).
-"$tmp/decoy/osascript" & decoy=$!  # a hung process of the same name and shape this run did not start
+"$tmp/decoy/osascript" 30 & decoy=$!  # a hung process named osascript that this run did not start
+sleep 0.2; pgrep -x osascript | grep -qx "$decoy" && ok "the decoy is visible to a match by name" || no "the decoy is not visible by name"
 reset; start=$SECONDS; out="$(env STUB_OSASCRIPT=hang bash "$guard" --title t --message m --deadline 1 2>&1)"; rc=$?; took=$((SECONDS - start))
 [ "$rc" = 0 ] && ok "a hung notifier still exits 0" || no "a hung notifier exit: $rc -- $out"
-within "$took" 4 "a hung notifier returns within the bound"
+within "$took" 3 "a hung notifier returns within the bound"
 says "rung 2 (OS notification): timed out after 1s, its own child stopped" "the timeout is reported"
 saysnot "sent" "a timed-out notifier never reads sent"
 gone osascript "the hung child was stopped and reaped"
@@ -99,13 +113,20 @@ kill -KILL "$decoy" 2>/dev/null; wait "$decoy" 2>/dev/null; decoy=""
 says "rung 3 (sound): played Glass" "the sound runs after the timeout"
 calls afplay 1 "the sound follows the timeout once"
 reset; start=$SECONDS; out="$(env STUB_OSASCRIPT=stubborn bash "$guard" --title t --message m --deadline 1 --no-sound 2>&1)"; took=$((SECONDS - start))
-within "$took" 4 "a child ignoring TERM is KILLed within the bound"
+within "$took" 3 "a child ignoring TERM is KILLed within the bound"
 gone osascript "the TERM-ignoring child was stopped and reaped"
 reset; start=$SECONDS; out="$(env STUB_AFPLAY=hang bash "$guard" --title t --message m --deadline 1 2>&1)"; took=$((SECONDS - start))
-within "$took" 4 "a hung player returns within the bound"
+within "$took" 3 "a hung player returns within the bound"
 says "rung 3 (sound): timed out after 1s, its own child stopped" "the player timeout is reported"
 saysnot "played" "a timed-out player never reads played"
 gone afplay "the hung player was stopped and reaped"
+reset; start=$SECONDS; out="$(env STUB_AFPLAY=stubborn bash "$guard" --title t --message m --deadline 1 2>&1)"; took=$((SECONDS - start))
+within "$took" 3 "a player ignoring TERM is KILLed within the bound"
+gone afplay "the TERM-ignoring player was stopped and reaped"
+reset; start=$SECONDS; out="$(env STUB_OSASCRIPT=stubborn STUB_AFPLAY=stubborn bash "$guard" --title t --message m --deadline 1 2>&1)"; took=$((SECONDS - start))
+within "$took" 6 "both rungs hung return within 2 x (deadline + 2)"
+says "rung 2 (OS notification): timed out after 1s" "the notifier timeout is reported with both hung"
+says "rung 3 (sound): timed out after 1s" "the player timeout is reported with both hung"
 
 expect 2 "a missing --message is wiring" bash "$guard" --title t
 expect 2 "an empty --title is wiring" bash "$guard" --title "" --message m
@@ -113,9 +134,13 @@ expect 2 "an unknown argument is wiring" bash "$guard" --title t --message m --l
 expect 2 "a zero deadline is wiring" bash "$guard" --title t --message m --deadline 0
 expect 2 "a deadline past 60 seconds is wiring" bash "$guard" --title t --message m --deadline 61
 expect 2 "a non-numeric deadline is wiring" bash "$guard" --title t --message m --deadline 5s
+expect 2 "a three-digit deadline is wiring" bash "$guard" --title t --message m --deadline 100
+expect 2 "a deadline that would wrap is wiring" bash "$guard" --title t --message m --deadline 18446744073709551621
 expect 0 "a leading-zero deadline is decimal" bash "$guard" --title t --message m --deadline 08 --no-sound
 expect 0 "--help prints the header" bash "$guard" --help
 says "--deadline" "the header documents the deadline"
 expect 0 "on Linux rung 2 goes through notify-send and rung 3 is not applicable" env BELL_UNAME=Linux bash "$guard" --title t --message m
 has "notify-send" "notify-send was called"
+expect 0 "another host names both rungs as not applicable" env BELL_UNAME=Plan9 bash "$guard" --title t --message m
+says "rung 3 (sound): not applicable on Plan9" "rung 3 has a line on another host"
 echo "bell-guard: $pass passed, $fail failed"; [ "$fail" = 0 ]
