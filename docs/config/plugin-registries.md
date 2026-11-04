@@ -223,12 +223,13 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
+| `scopes[].invocation` | enum | `ran` · `delta` · `skipped-exhausted` · `not-raised` | how a scope's reviewer pass went; `not-raised` is hanten § 5's: a required pass that could not be raised (hanten § 3's gap) or was raised and never returned, and requires `gap` with `used` `0` — this scope not reviewed, never a pass (zheref/hatsu#549) | `hatsu:hanten` §§ 3, 5 |
 | `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
 | `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
 | `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
 | `$defs.finding` (rule `CON-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10 as amended by HR-337: critical by shape, never pushed back; an `HR-{n}` rule is critical only on a ruled row, which `hanten` § 6 holds until the status-aware check [zheref/hatsu#466](https://github.com/zheref/hatsu/issues/466) lands | the same |
 
-**Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
+**Worked example.** [`contracts/hanten-findings.example.json`](../../contracts/hanten-findings.example.json) is a minimal record that passes `scripts/hanten_findings_check.mts` against the real ROSTER — one `ran` scope, one `not-raised` gap scope, a `fixed` and a `deferred` finding, one report; the checker prints every schema fault at once, one `::error` line each. **Validated by.** The `criteria` lane's fixture holds its structural invariants and fails if the shipped example stops passing. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
 
 ## `contracts/reference.gates.json`
 

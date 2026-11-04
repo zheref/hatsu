@@ -19,7 +19,7 @@ const HR_LIKE = /^\s*HR-/i;
 type Schema = Readonly<Record<string, unknown>>;
 const SCHEMA_KEYS = new Set([
   '$schema', '$id', '$comment', '$defs', '$ref', 'type', 'required', 'properties', 'items',
-  'enum', 'const', 'pattern', 'minimum', 'minLength', 'allOf', 'if', 'then',
+  'enum', 'const', 'pattern', 'minimum', 'minLength', 'allOf', 'if', 'then', 'additionalProperties',
 ]);
 const SCHEMA_TYPES = new Set(['object', 'array', 'string', 'integer']);
 
@@ -85,6 +85,9 @@ function assertSchemaNode(schema: Schema, root: Schema, path: string, visiting: 
       throw new Error(`${path}.enum must be a non-empty array of scalar values`);
     }
     if (own(schema, 'const') && !scalar(schema.const)) throw new Error(`${path}.const must be a scalar value`);
+    if (own(schema, 'additionalProperties') && (schema.additionalProperties !== false || !object(schema.properties))) {
+      throw new Error(`${path}.additionalProperties must be false beside properties`);
+    }
     if (own(schema, 'pattern')) {
       if (typeof schema.pattern !== 'string') throw new Error(`${path}.pattern must be a string`);
       try { new RegExp(schema.pattern); } catch { throw new Error(`${path}.pattern is not a valid regular expression`); }
@@ -154,6 +157,10 @@ function schemaErrors(value: unknown, schema: Schema, root: Schema, path: string
     if (object(schema.properties)) {
       for (const [key, propertySchema] of Object.entries(schema.properties)) {
         if (own(value, key) && object(propertySchema)) errors.push(...schemaErrors(value[key], propertySchema, root, `${path}.${key}`));
+      }
+      // zheref/hatsu#549: a closed object refuses an invented key (an `architectureGap` beside a scope).
+      if (schema.additionalProperties === false) {
+        for (const key of Object.keys(value)) if (!own(schema.properties, key)) errors.push(`${path}.${safe(key, '?')} is not a declared key`);
       }
     }
   }
