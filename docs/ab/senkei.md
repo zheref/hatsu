@@ -597,3 +597,127 @@ nothing here places the object anywhere. This port's SKILL.md called `undecidabl
 sixth class", which is the reading `zheref/nen#53` closes: it is not a sixth class, and the count in
 the help is now derived from the two lists rather than written, so a hard-coded number cannot go
 stale beside them.
+
+## Re-run at nen 0.28 — 2026-11-03 (zheref/hatsu#524)
+
+Run: 2026-11-03, `nen` `0.28.0` (`~/.local/bin/nen`, the host link `hatsu:ten` read as `ok`), every
+GitHub-reaching call through `scripts/gh_token_env.sh`. **Read-only throughout**: nothing was labelled,
+merged, pushed, commented on or opened. Hatsu's registry records **no consumers** at this date
+(`nen/repos.json` → `consumers: []`; the four codes are maintained tools), so every live call ran against
+`zheref/hatsu` itself and the classifier ran against a synthetic input. **§§ 2–6 above are history**: they
+were gathered at nen `0.1`–`0.7` against `<product-repo-A>` and the frozen `<reference-repo>` registry, and
+what they verified about those repositories is not re-verified here. What the skill now rests on is this
+section.
+
+### R.1 — `nen parse senkei`
+
+```
+$ nen parse senkei --grammar "<repo>" --line "HA"
+repo: HA
+exit 0
+$ nen parse senkei --grammar "<repo>" --line ""
+nen parse: <repo> is required and the line does not supply it.
+
+Corrected line:
+  senkei <repo>
+exit 2
+```
+
+`--line` takes the arguments after the skill's name, not the whole invocation: a line of
+`hatsu:senkei HA` parses with the slot reading `hatsu:senkei HA`.
+
+### R.2 — `nen repo resolve`
+
+```
+$ nen repo resolve HA --repo .
+zheref/hatsu  (HA)  via code                           exit 0
+$ nen repo resolve --repo .
+zheref/hatsu  (HA)  via origin                         exit 0
+$ nen repo resolve notarealtoken --repo .
+nen repo: 'notarealtoken' does not name a repository in this registry (…/nen/repos.json). … Codes: HA (zheref/hatsu), NN (zheref/nen), BH (zheref/bankai-handbooks), AK (zheref/akatsuki-ai). …
+exit 1
+```
+
+### R.3 — `nen repo inventory`
+
+```
+$ nen repo inventory --target zheref/hatsu --epic-label epic --integration-prefix integration/ --trunk main
+epics: 0
+integration branches: 1
+  integration/sdd-plan-2026-10-22  +0/-454 vs trunk
+open PRs: 2
+  #532 -> main  feat(mirrors): decouple the generated mirrors' marker from the plugin version
+  #486 -> main  chore(surfaces): regenerate mirrors
+exit 0
+```
+
+Hatsu declares no epic label (`gh label list --search epic` returns only `job/backlog`), so `epics: 0` is
+the label's absence, not an empty backlog. The integration branch is alive with no epic to own it:
+the `idle`-shaped case senkei reports for cleanup.
+
+### R.4 — `nen effort classify`: the seven answers and the reshape traps
+
+The input is seven synthetic rows under an `x:stage/*` family, absolute path, `--repo .`:
+
+```
+$ nen effort classify --input <scratch>/efforts.json --repo .
+building
+  carries the released stage label 'x:stage/ready-for-bankai'; a branch exists but no PR yet
+queued
+  G1-approved (a mode label was picked) but not yet released with a stage label
+stalled
+  carries 'x:stage/researched' -- released, but no branch or PR was ever opened
+undecidable
+  no stage label, no mode label, no PR, no live integration branch -- nothing here places it in the taxonomy
+state-machine-violation
+  carries 2 stage-family labels at once (x:stage/building, x:stage/review) -- exactly one at all times is the invariant; this is flagged, not resolved by guessing which is authoritative
+idle
+  the epic is closed but its integration branch is still alive -- flag for cleanup
+delivering
+  an open PR is the delivery PR the caller flagged as prIsDelivery -- this is at G2
+exit 0
+```
+
+Rows 1–3 hold § 3.3–3.5's findings at `0.28`: a mode label fed as a stage label reads `building`, the
+same object reshaped reads `queued`, and a pre-G1 label reads `stalled`. The verb reads the label text it
+is given and nothing else, so the namespace is the caller's.
+
+### R.5 — `nen stage check --exclusive`: the declared stage family
+
+```
+$ nen stage check --exclusive --target zheref/hatsu --issue 524 --repo .
+nen stage: …/nen/labels.json declares no '<namespace>:stage/<leaf>' label, so there is no stage family to hold an issue to. Declare the family, or do not ask this check.
+exit 2
+```
+
+The stage family is every `<namespace>:stage/<leaf>` label the target's `nen/labels.json` declares
+(`nen stage --help`). Exit `2` here is the reading for a repository that declares none.
+
+### R.6 — `nen pr ready`
+
+```
+$ nen pr ready 532 --gh-repo zheref/hatsu --repo .
+zheref/hatsu#532: not-ready: mergeable=CONFLICTING (expected MERGEABLE — CON-42/1's added predicate)
+  judged head: eb9af15274df41ec72409bd613da2cf8fe8d829c (…)
+  aiReviewers optional; base b2e99fc…: optional; default tip 4324b76f…: optional
+  waived bot round: copilot (no-round-at-head; aiReviewers optional)
+exit 1
+$ nen pr ready 532 --gh-repo zheref/hatsu --repo <scratch>/nogates   # a checkout with no nen/gates.json
+nen: no reviewer identities. This gate never falls back to a built-in reviewer set: … Give it one of: --gates <path>, a 'nen/gates.json' in the target repository (looked for at '<scratch>/nogates/nen/gates.json'), or --reviewers a,b,c.
+exit 2
+```
+
+The verdict now reads `aiReviewers` and waives a kind-bot round, which a flat `--reviewers` list does not
+express; the refusal with no gates file is unchanged.
+
+### R.7 — `nen run rerun-failed`: refusal shape only
+
+```
+$ gh run view 41476088931 --repo zheref/hatsu --json conclusion,status,name
+["surface-mirror-regenerate","completed","success"]
+$ nen run rerun-failed --target zheref/hatsu --run-id 41476088931
+could not rerun zheref/hatsu's run 41476088931: run 41476088931 cannot be rerun; This workflow run cannot be retried
+exit 1
+```
+
+A run with no failed job refuses with no mutation. The affirmative path stays unexercised.
