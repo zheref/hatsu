@@ -132,7 +132,7 @@ arguments. `<CODE>#<N>` is an issue or PR by its product code (`HA#12`), the cod
 | **Drive the whole backlog to zero** | `backlog-loop` | a repository with product codes and a release lane | triage → `build` and `sharingan` across at most two efforts → `getsuga` at severity-batch boundaries → a board per cycle |
 | **Consolidate a long backlog** | `backlog-synthesis <critical\|high\|medium\|low\|all> [<repo>]` | open issues sharing a clause, file or root cause | a plan artifact → on approval one consolidated issue, originals attached and closed |
 | **See the state** | `backlog-state <repo\|all\|context>[@<gates\|severity\|label>][#<labels>]` · `backlog-board` (the same, plus `every …`) · `pr-state <CODE>#<N>` · `rikugan [for …] [as final\|register]` | read access | read-only tables and Rikugan pages; readiness is `nen pr ready`'s verdict, quoted |
-| **Inventory a consumer's own efforts** | `senkei <repo>` | a consumer repository | classify every effort, re-run a dead reviewer job, wake a stalled PR, state Ready or not per PR |
+| **Inventory a consumer's own efforts** | `senkei <repo>` | a consumer repository | classify every effort, re-run a dead reviewer job, state Ready or not per PR, hand a stuck PR to `sharingan` |
 | **Repeat until a condition holds** | `izanami <task> until <cond>` (read-only) · `izanagi <task> until <cond> up to <N>` (acts) | for `izanagi`, the cap typed: no cap, no run | the task per iteration, under its own authority |
 | **Harvest the sitting's friction** | `third-hand` · the wrap-up picker's **B** | En completed, or you are wrapping up; optional beside `cleanup` | **Netero** proposes 0 to 3 issues; only what you pick is filed |
 
@@ -287,7 +287,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `backlog-state` | the backlog as one gate-oriented table. Read-only | `nen` reads → `nen/colors.yml` status | you |
 | `backlog-board` | the same sweep as a Rikugan page. Read-only | `nen report render --variant register` | you; `backlog-loop`; `rikugan` |
 | `rikugan` | the final state of a just-completed workflow as a Rikugan page: `final` for a delivered one-effort scope, `register` otherwise. Read-only | `backlog-board` § 3's render path; `nen pr ready` quoted per PR | `build`, `futon`, `backlog-loop`, `en`; you |
-| `senkei` | a consumer repository's own efforts inventoried and driven; not read-only | classify → `nen run rerun-failed` → wake → readiness per PR | you |
+| `senkei` | a consumer repository's own efforts inventoried; not read-only | `ten` → inventory → classify → readiness per PR → `nen run rerun-failed` → `sharingan` for a stuck PR → rikugan `register` | you |
 | `black-voice` | post-merge UI validation, on your call only | resolve the PR and its issues → **Shalnark** once → Rikugan page | you |
 | `izanagi` · `izanami` | repeat a task until a condition holds: acting under a mandatory cap, or read-only | the task per iteration | you; `en` (the cap is `izanagi`'s) |
 | `tensho` · `jujisho` | a dirty working copy into one PR, or split into two stacked PRs by axis | review each file → commit → `shibari` → `sharingan` | you |
