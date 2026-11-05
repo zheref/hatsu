@@ -165,6 +165,8 @@ const state = process.env.API_LOG + '.state';
 fs.appendFileSync(process.env.API_LOG, JSON.stringify({ args: process.argv.slice(2), body, token: process.env.GH_TOKEN }) + '\\n');
 if (!post && process.env.FAIL_PATCH === 'yes') process.exit(1);
 const result = post ? { ...body, id: 17, app: { slug: process.env.PRODUCER || 'github-actions' } } : { ...JSON.parse(fs.readFileSync(state)), ...body };
+// GitHub replaces a github-actions check's details_url with its own run page (HA#562).
+result.details_url = 'https://github.com/acme/widget/runs/' + result.id;
 if (process.env.WRONG_HEAD === 'yes') result.head_sha = '0'.repeat(40);
 if (process.env.WRONG_EXTERNAL === 'yes') result.external_id = 'another workflow';
 if (!post && process.env.WRONG_ID === 'yes') result.id = 99;
@@ -253,6 +255,22 @@ test('published check is bound to the exact head, GitHub Actions producer and th
 });
 test.each([{ producer: 'other-app' }, { wrongHead: true }, { wrongExternal: true }, { wrongId: true }, { failPatch: true }])('wrong producer, head, run identity or publication failure is never a successful job: %j', options => {
   const result = exercise('clean', options); expect(result.status, result.text).not.toBe(0);
+});
+test('GitHub rewriting details_url to its own run page still identifies the check (HA#562)', () => {
+  const result = exercise('clean');
+  expect(result.status, result.text).toBe(0);
+  expect(result.text).not.toContain('does not identify');
+  expect(result.calls[0].body.details_url).toBe('https://github.com/acme/widget/actions/runs/123/attempts/1');
+  expect(result.calls[1].args).toContain('repos/acme/widget/check-runs/17');
+  expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'success' });
+});
+test.each([{ producer: 'other-app' }, { wrongHead: true }, { wrongExternal: true }])('a refused check identity still completes the created check with failure: %j', options => {
+  const result = exercise('clean', options);
+  expect(result.status, result.text).toBe(1);
+  expect(result.text).toContain('does not identify this producer');
+  expect(result.calls).toHaveLength(2);
+  expect(result.calls[1].args).toContain('repos/acme/widget/check-runs/17');
+  expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'failure' });
 });
 
 

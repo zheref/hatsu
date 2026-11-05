@@ -38,10 +38,13 @@ function api(method: string, endpoint: string, body: unknown): Record<string, an
   if (result.status !== 0 || result.error) throw new Error('GitHub check publication failed');
   return JSON.parse(result.stdout);
 }
+// GitHub replaces a github-actions check's details_url with its own
+// /runs/<check id> page, so identity rests on the fields it preserves; the
+// external_id already binds the workflow ref, run id and attempt.
 function identity(check: Record<string, any>, id?: number): number {
   if (!Number.isSafeInteger(check.id) || check.id <= 0 || (id !== undefined && check.id !== id) ||
       check.name !== NAME || check.head_sha !== head || check.app?.slug !== 'github-actions' ||
-      check.external_id !== external || check.details_url !== details) {
+      check.external_id !== external) {
     throw new Error('GitHub check response does not identify this producer, workflow run and exact PR head');
   }
   return check.id;
@@ -50,9 +53,13 @@ let checkId: number | undefined;
 let temporary: string | undefined;
 let passed = false;
 try {
-  checkId = identity(api('POST', `repos/${repo}/check-runs`, {
+  const created = api('POST', `repos/${repo}/check-runs`, {
     name: NAME, head_sha: head, status: 'in_progress', external_id: external, details_url: details,
-  }));
+  });
+  // Bind the id GitHub created before verifying the response, so a refused
+  // identity still completes this run's check instead of leaving it in progress.
+  if (Number.isSafeInteger(created.id) && created.id > 0) checkId = created.id;
+  identity(created, checkId);
   const root = resolve(process.argv[2] ?? '.');
   if (execute('git', ['-C', join(root, '.base'), 'rev-parse', 'HEAD']).trim() !== base) throw new Error('checkout differs from event base');
   temporary = mkdtempSync(join(tmpdir(), 'hatsu-consumer-trailers-'));

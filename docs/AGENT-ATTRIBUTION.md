@@ -35,9 +35,12 @@ published v0.142.0 commit `16ff11b07b69305cf6a420972ca3d3926b44be67`, SHA-256
 forbidden-trailer range verb; the released script already checks body lines, case-insensitive keys
 and every range commit, so this adoption reuses its reviewed implementation. The template verifies
 the digest before executing it. The trusted publisher creates a check on the event's exact PR head,
-then completes that returned check ID. It verifies the response's head SHA, `github-actions` producer,
-workflow-ref/run/attempt external identity, details URL and persisted conclusion; it never finds or
-trusts a check by name alone. API failure or identity mismatch cannot produce a successful job.
+then completes that returned check ID. It verifies the response's check ID, name, head SHA, `github-actions`
+producer, workflow-ref/run/attempt external identity and persisted conclusion; it never finds or
+trusts a check by name alone. The details URL is sent but not compared, because GitHub replaces it on a
+`github-actions` check with its own `/runs/<check id>` page (zheref/hatsu#562). API failure or identity
+mismatch cannot produce a successful job, and a mismatch found after creation still completes the created
+check with `failure` rather than leaving it in progress.
 
 Explicit publication follows GitHub's [check-run API](https://docs.github.com/en/rest/checks/runs#create-a-check-run),
 which identifies the target commit through `head_sha`. GitHub's [required-check troubleshooting](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks)
