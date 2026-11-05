@@ -103,7 +103,7 @@ nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target chec
 Summed: the manifest's delivery PRs and claimed efforts without one (WORKFLOW § *Idle batches* rule 4; the host's budget is § *Host workload budget*, apart).
 
 **CI** (legacy-CI only) frees at PR-open; **local** frees at **`ready+prompted`**
-or a verified sixth-stop handoff (HR-372; nen 0.28 counts it, futon's report frees). **`--local-cap 7` is always passed**; omitted, exit `2`.
+or a verified sixth-stop handoff (HR-372; nen counts it at the pin, futon's report frees). **`--local-cap 7` is always passed**; omitted, exit `2`.
 **Never traded**: a full local budget is backpressure.
 
 ## 7. Authority — the CON-25 delegation

@@ -96,7 +96,7 @@ try {
   assert.deepEqual(Object.entries(catalogue.kinds).filter(([, spec]) => [...spec.required, ...spec.optional].includes("requirements")).map(([kind]) => kind), ["epic"], "requirements is optional on epic alone and required by no kind");
   // 1b. Akatsuki's Requirements section (zheref/hatsu#411; HA-PR-#512 round 2, R2-1): allowed beside Acceptance
   // criteria on an epic only -- Acceptance rows AC-{n}, Requirements rows AC-{epic}-{nnn}, one id one criterion --
-  // and absent on every other kind. body-check shape-checks its rows (numbering, vague words); at nen 0.28 it
+  // and absent on every other kind. body-check shape-checks its rows (numbering, vague words); from nen 0.28 it
   // neither refuses an id repeated across the two sections nor flags Requirements on another kind: pinned
   // misses owed to zheref/nen#553.
   const epicSpec = catalogue.kinds.epic;
@@ -108,9 +108,9 @@ try {
   assert.deepEqual(shaped.json?.misses?.map((m) => [m.section, m.kind]), [["requirements", "row-order"]], JSON.stringify(shaped.json?.misses));
   assert.ok((shaped.json as Shaped | null)?.advisories?.some((a) => a.kind === "vague" && a.word === "quickly"), "a Requirements row is read for vague words");
   const repeated = call("body-check", epicBody("## Acceptance criteria\n\n- AC-1: Given a When b Then c\n\n## Requirements\n\n- AC-1: Given d When e Then f"), ["--kind", "epic"]);
-  assert.equal(repeated.status, 0, `an id repeated across the two sections passes body-check at nen 0.28 (pinned; zheref/nen#553 refuses it): ${JSON.stringify(repeated.json?.misses)}`);
+  assert.equal(repeated.status, 0, `an id repeated across the two sections passes body-check from nen 0.28 (pinned; zheref/nen#553 refuses it): ${JSON.stringify(repeated.json?.misses)}`);
   const elsewhere = call("body-check", good.replace("## Success criteria", "## Requirements\n\n- AC-12-001 (P1): Given a When b Then c\n\n## Success criteria"), ["--kind", "machinery"]);
-  assert.equal(elsewhere.status, 0, `Requirements on a non-epic kind passes body-check at nen 0.28 (pinned; zheref/nen#553 flags it): ${JSON.stringify(elsewhere.json?.misses)}`);
+  assert.equal(elsewhere.status, 0, `Requirements on a non-epic kind passes body-check from nen 0.28 (pinned; zheref/nen#553 flags it): ${JSON.stringify(elsewhere.json?.misses)}`);
   // 3. A filled body passes for its kind and against common; a missing required section is a miss.
   for (const extra of [["--kind", "machinery"], []]) {
     const pass = call("body-check", good, extra);

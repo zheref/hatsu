@@ -1,6 +1,6 @@
 {
   "$schema": "nen.contract/v0.1",
-  "$comment": "Authoritative Hatsu/Nen dependency and execution declaration. The v0.30.0 repin (2026-11-05) absorbs released Nen v0.29.0 and v0.30.0, whose compatibility floor moved to 0.29 and then 0.30 for verdict, exit and output changes already read by Hatsu callers, absorbed note by note in docs/history/nen-repins.md section v0.30.0; no new verb is adopted. HA449 adopted released Nen v0.28.0 (the floor moved to 0.28 at v0.28.0 for six exit or output changes, absorbed in section v0.28.0): the spec verb family, the durable effort ledgers in the git common dir, nen canon lint and its declared home canon.lint, pr converge --composite and --require-head, pr ledger, run record and import, stop markers per gate, issue questions batch read, changelog collate, and the precedenceRestatedIn and review.excludedPersonas schema rows (zheref/nen#527). Feature minimum and compatible-minor floor are 0.30; older releases are refused by the 0.30 binary and do not carry every verb. The adoption history is docs/history/nen-repins.md.",
+  "$comment": "Authoritative Hatsu/Nen dependency and execution declaration. The v0.30.0 repin (2026-11-05) absorbs released Nen v0.29.0 and v0.30.0, whose compatibility floor moved to 0.29 and then 0.30 for verdict, exit and output changes Hatsu callers already read; no new verb is adopted. Feature minimum and compatible-minor floor are 0.30; a pin below it is refused by the 0.30 binary. Every repin's adoptions and absorbed notes, this one's included, are docs/history/nen-repins.md.",
   "contract": "hatsu-nen-dependency",
   "contract_version": 2,
   "decision": "D10",
@@ -1783,7 +1783,7 @@
             "node",
             "scripts/issue_sections_fixture.mts"
           ],
-          "$comment": "The issue-shape fixture through the shared output guard. Requires node, bash and nen 0.26.0 or later on PATH (or NEN); no gh and no network."
+          "$comment": "The issue-shape fixture through the shared output guard. Requires node, bash and nen 0.28.0 or later on PATH (or NEN); no gh and no network."
         }
       },
       "criteria": {

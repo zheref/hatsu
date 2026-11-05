@@ -154,7 +154,7 @@ prints, without touching the working tree (aka § Residue).
   edits the message after `prepare-commit-msg` all skip layer (b). Each is `--no-verify` by another
   name, and each is refused.
 
-**No sanctioned strip step exists at the pin** (nen 0.28.0). The hook `nen scaffold init` writes
+**No sanctioned strip step exists at the pin** (nen 0.28.0; the v0.29.0 and v0.30.0 notes add none). The hook `nen scaffold init` writes
 refuses a listed key on every commit, and no nen verb removes a key a hook added. Whether nen should
 offer one, and on what terms, is zheref/nen#594, a design question for the maintainer. Until it is
 ruled and released, a cloud agent cannot commit in such a repository. The maintainer's ways forward

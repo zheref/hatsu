@@ -46,16 +46,16 @@ adoption narrative in the contract.
 | `v0.24.0` | 0.24 | 0.24 | 2026-10-20 | `d9645c8e3` | #374 | [§ v0.24.0](#v0240) |
 | `v0.26.0` | 0.26 | 0.26 | 2026-10-22 | `333117c7c` | HA-PR-#422 | [§ v0.26.0](#v0260) |
 | `v0.28.0` | 0.28 | 0.28 | 2026-10-25 | `5141c8ee3` | HA-PR-#485 | [§ v0.28.0](#v0280) |
-| `v0.30.0` | 0.30 | 0.30 | 2026-11-05 | `COMMIT_TBD` | HA-PR-#PR_TBD | [§ v0.30.0](#v0300) |
+| `v0.30.0` | 0.30 | 0.30 | 2026-11-05 | `e5a88dc59` | HA-PR-#PR_TBD | [§ v0.30.0](#v0300) |
 
 One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
 `pinned_ref` unchanged at `v0.16.0`.
 
 The minimum's own path, as the contract recorded it: 0.13, then 0.14, 0.15, 0.16, 0.18, 0.19, 0.20,
-0.21, 0.22, 0.24, 0.26 and 0.28. Nen raised its floor to 0.17 at v0.17.0, to 0.18 at v0.18.0 (the maintainer's
+0.21, 0.22, 0.24, 0.26, 0.28 and 0.30. Nen raised its floor to 0.17 at v0.17.0, to 0.18 at v0.18.0 (the maintainer's
 ruling of 2026-09-30: nen commit format's new exit 2 on an unreadable commitlint config with prose lines
 over 100, zheref/nen#302, is breaking), to 0.19 at v0.19.0, to 0.20 at v0.20.0, to 0.21 at v0.21.0, to
-0.22 at v0.22.0, to 0.24 by v0.24.0 and to 0.26 at v0.26.0. So 0.18 was the minimum on both counts at that repin, the
+0.22 at v0.22.0, to 0.24 by v0.24.0, to 0.26 at v0.26.0, to 0.28 at v0.28.0, to 0.29 at v0.29.0 and to 0.30 at v0.30.0. So 0.18 was the minimum on both counts at that repin, the
 feature and the floor, as 0.19 was at the v0.19.0 repin, 0.20 at the v0.20.0 repin (the classify and
 direct families), 0.21 at the v0.21.0 repin (the floor and nen's gates keys), 0.22 at the v0.22.0 repin
 (v0.22.0 moved the floor to 0.22 and Hatsu adopted the list slots and backlog filters), 0.24 at the
@@ -63,53 +63,86 @@ v0.24.0 repin, 0.26 at the v0.26.0 repin (the floor and `nen review ledger`), 0.
 
 ## v0.30.0
 
-The v0.30.0 repin (HA-PR-#PR_TBD, no tracking issue) absorbs released v0.29.0 (release unit NN#581, published
-2026-10-29) and v0.30.0 (release proposal NN#633 merged by the maintainer, the raced fragment folded through NN#640,
-the tag cut at the fold's judged head `1e2217a2` rather than the merge commit, published 2026-11-05 on the
-maintainer's go). nen's floor moved to 0.29 and then to 0.30 because each release changes verdicts, exits or
-output shapes a consumer already reads; **no new verb is adopted**, so the minimum moves for the floor alone.
-Hatsu's own callers at v0.28.0 bootstrapped and executed 0.30.0 on every verb this repin exercised (`schema
-check`, `surface mirror check`, `release preflight`, `issue comment`, `tag cut`, `fanout`, `shu release`).
-Absorbed, note by note, against Hatsu's callers:
+The v0.30.0 repin (HA-PR-#PR_TBD, no tracking issue; the commit that moved `pinned_ref` is `e5a88dc59`) absorbs
+released v0.29.0 (release unit NN#581, published 2026-10-29) and v0.30.0 (release proposal NN#633 merged by the
+maintainer, the raced fragment folded through NN#640, the tag cut at the fold's judged head `1e2217a2` rather than
+the merge commit, published 2026-11-05 on the maintainer's go). nen's floor moved to 0.29 and then to 0.30 because
+each release changes verdicts, exits or output shapes a consumer already reads; **no new verb is adopted** (Hatsu calls
+none of the 0.29/0.30 verbs `audit deps`, `wc ahead`, `tests map`, `pr edit-title`, `shu typecheck`,
+`scaffold migrate`), so the minimum moves for the floor alone. Run under the 0.30.0 binary at this head:
+`nen shu tools` → `ok nen 0.30.0 pinned >=0.30.0 <0.31.0`; `nen schema check` exit 0; `plugin_version_refs
+--check-nen-pin` agrees; `prose_ambiguity_check` 0 new; the `issue-shape` and `criteria` lanes exit 0; a
+fresh-consumer bootstrap of the contract's URL verified the script and the binary against the contract's digests
+and printed 0.30.0; `surface_mirror_check.sh` reads exactly one file stale, `surfaces/antigravity/hooks.json`
+(the hook-mirror note below). Absorbed, note by note, against Hatsu's callers:
 
 - **v0.29.0 — `pr ready` no longer reads a readiness placeholder as green** (a check whose record only says the
   verdict did not report reads undetermined, and `not-ready` can replace `ready` on the same bytes): `en`,
   `sharingan` and `rikugan` quote the verdict line and match no string, so a placeholder now holds a PR at its
-  gate where it used to pass it — the reading readiness-needs-the-quoted-verdict already asked for.
+  gate where it used to pass it, the reading readiness-needs-the-quoted-verdict already asked for.
 - **v0.29.0 — `parse izanami` classifies bare `run verify` and `run budget` as mutating**; only their
   `--dry-run` forms read as read-only, and the run verbs refuse a symlinked manifest, legacy manifest or runs
-  directory at exit 1. No Hatsu allowlist row names either verb (`contracts/permissions.json` carries no
-  `run verify`/`run budget` row), so an idle run's budget read prompts on a surface that prompts for mutating
-  verbs until a row naming the `--dry-run` forms is declared — a follow-up, not this repin.
+  directory at exit 1. The caller this reaches is `hatsu:izanami`'s read-only loop: a loop carrying a bare
+  `run verify` or `run budget` is now refused whole (`nen parse izanami` prints `[mutating] nen run verify …`
+  and refuses the run, exit 1), so such a loop must name the `--dry-run` forms. `futon` § 2 and `kazaana` call
+  the bare verbs directly, outside any read-only loop, and are unaffected; Hatsu's allowlists (`contracts/
+  permissions.json` `nen *`, the Cursor `Shell(nen:*)` row) are wildcards that never consult izanami's
+  classification, so nothing prompts. The izanami loop grammar naming `--dry-run` is a follow-up harvested at
+  this sitting's wrap-up (`third-hand`); no issue is filed in this PR.
 - **v0.29.0 — one criterion-id grammar, blocking where it used to clear**: `pr converge`, `pr body-check
   --criteria*` and `pr merge --delivery` block on a closing issue stating one id on two rows, and a verify row's
   prefix is the catalogue's acceptance prefix. Hatsu's catalogue (`contracts/issue-sections.json`) keeps the
-  `AC` prefix, so `| AC-1 |` rows still cover. The `criteria` lane (`scripts/pr_criteria_fixture.mts`) pinned the
-  0.28 wording of the duplicate-row miss ("repeats an earlier row's number"); 0.29+ says "id", so the fixture admits
-  both, green under 0.28.0 (CI's binary until this merges) and 0.30.0.
-- **v0.29.0 — the private-name guard's hits gain `form` and `class`, and a bare ordinary word is reported under
-  `ruled`, not refused**: `scripts/private_name_check.sh` reads the verdict, never a hit by exact equality, and the
-  ruling of 2026-10-25 (Mark/Friday as ordinary words) already asked for the `ruled` reading.
-- **v0.29.0 — `surface mirror generate` writes Antigravity hooks in their native named-definition format**, so a
-  committed hook mirror reads `stale` under 0.29+ until regenerated. This PR's mirrors are regenerated at stamp
-  0.163.0 with the 0.28.0 binary, because `surface-mirror-check.yml` bootstraps `main`'s pin until the repin
-  merges (the v0.28.0 precedent below); the 0.30 hook shape lands in the first AUTHORED pull request after the merge,
-  regenerated with 0.30.0 at its own bump, never through `surface-mirror-regenerate.yml`'s bump-less PR.
+  `AC` prefix, so `| AC-1 |` rows still cover; a `- AC-1-2:` row that `pr converge` used to block as
+  unrecognised now reads as the criterion `AC-1-2`, so `en` §§ 4–5, `shibari` § 4 and `rikugan` § 3 read
+  coverage on an Akatsuki epic row (`AC-{epic}-{nnn}`, HA#411) where they read a block. The `criteria` lane
+  (`scripts/pr_criteria_fixture.mts`) pinned the 0.28 wording of the duplicate-row miss ("repeats an earlier
+  row's number"); 0.29+ says "id", so the fixture admits both, green under 0.28.0 (CI's binary until this
+  merges) and 0.30.0; the `number` alternative is dropped at the next repin.
+- **v0.29.0 — the private-name guard's hits gain `form` and `class`, and a bare ordinary word is reported
+  under `ruled`, not refused**: the one Hatsu reader of nen's `privateNameCheck` is `hatsu:file` § 4, which
+  reads `privateNameCheck.result` and never a hit by exact equality; the ruling of 2026-10-25 (Mark/Friday as
+  ordinary words) already asked for the `ruled` reading. `scripts/private_name_check.sh` is Hatsu's own
+  scanner (BC-11), not a nen reader, and is unaffected.
+- **v0.29.0 — `surface mirror generate` writes Antigravity hooks in their native named-definition format**
+  (zheref/nen#560: the `$generated` key and the `hooks` wrapper go, the inner arrays flatten, `PreInvocation`
+  becomes `SessionStart`), so a committed hook mirror reads `stale` under 0.29+ until regenerated. This PR's
+  mirrors are regenerated at stamp 0.163.0 with the 0.28.0 binary, because `surface-mirror-check.yml` bootstraps
+  `main`'s pin until the repin merges (the v0.28.0 precedent below). **Between the merge and the authored
+  regeneration, every PR's `surface-mirror-check` reads exactly one file red, `surfaces/antigravity/hooks.json`**
+  (advisory: `main`'s required checks are `check` and `prose-size-check`). The merge itself triggers
+  `surface-mirror-regenerate.yml` (its paths include `nen/**` and `.claude-plugin/**`), which refreshes the bot's
+  `bot/surface-mirror-regenerate` branch (HA-PR-#486 at this writing) with the 0.30 shape and no bump; that PR is
+  closed unmerged as before, since an unbumped mirror reaches no installed copy. **Owner:** the first authored Hatsu
+  PR after the merge regenerates with 0.30.0 at its own bump, the very next landing. Whether a repin that changes
+  the generator's output shape belongs as a `docs/GATE-CONFIGURATION.md` two-step-landing entry is a handbook
+  question for the maintainer at this PR's G4; this page records the precedent, never the rule.
+- **v0.29.0 — the worktree-local ledger fallback § v0.28.0 said "goes in 0.29.0" did not go**: at 0.30.0 nen still
+  reads the legacy home (`src/ledger/home.ts` `WORKTREE_LEGACY_REMOVED_IN = "0.29.0"` names the intent, the read
+  stays), so `scripts/pr_delivery.ts`'s "(through 0.28)" comment is a lower bound; the removal moved to a later
+  release.
 - **v0.30.0 — `parse futon` reads `--dry-run` as a scope flag and refuses flag-shaped words** (an `=<value>`
   token, an unknown `--option`, text after a bare `--`, `--dry-run` after `then` or typed twice, a repeated
   `--idle`): `futon` § 1 and `kazaana` relay the parse echo verbatim; a label that carries `--dry-run` inside
-  it must be quoted to keep it. `--json` gains `dryRun`.
-- **v0.30.0 — `loop slots` frees a merged local effort with no PR and counts claims** under `--from-run`
-  (unreadable claim rows force `free: 0` at exit 1; a `parked[].at` that is not an ISO-8601 instant is refused):
-  `kazaana`'s slot read quotes the verb's counts; the HR-372 slot reader owed to `senkei` reads the same verb.
+  it must be quoted to keep it. `--json` gains `dryRun`. `futon` § 1 still strips `--dry-run` itself before
+  the parse call ("minus the prefix and a --dry-run"), a job nen now owns and whose refusals the strip skips; letting
+  nen own it is a follow-up beside the izanami one, not this repin.
+- **v0.30.0 — `loop slots` frees a merged local effort with no PR and counts claims**: under `--from-run` a
+  claimed effort in the manifest's `claims[]` with no PR holds a slot (unreadable claim rows force `free: 0` at
+  exit 1; a `parked[].at` that is not an ISO-8601 instant is refused). No Hatsu writer records `claims[]` (nen's
+  own manifests read "claims: not recorded"), so `futon` § 6's sum of the verb's count plus the claimed efforts
+  with no PR double-counts nothing today; that addend drops once a writer records claims (WORKFLOW § *Idle batches*
+  rule 4 says so). The HR-372 slot reader owed to `senkei` reads the same verb.
 - **v0.30.0 — a test report whose files failed to load is no longer a green run**: `shu test-report` and every
-  reader of its parsers count a load failure as one failed row named for the file, so `kotoamatsukami` and
-  `byakugan` read red where they read nothing.
-- **v0.30.0 — `classify labels --json` adds `families` and a per-label `family`**; every other `wc` verb refuses
-  `--of` and `--head` by name at exit 2. `scripts/canon_contracts_check.sh` reads the verb's exit, not its JSON
-  by equality, and no Hatsu caller passes `--of` or `--head` to a `wc` verb other than `classify`.
+  reader of its parsers count a load failure as one failed row named for the file, so `kotoamatsukami`, `rasengan`,
+  `mukai`, `tsukuyomi` and `shibari`'s `nen spec coverage --test-report` read red where they read nothing.
+- **v0.30.0 — `classify labels --json` adds `families` and a per-label `family`**; every `wc` verb other than
+  `ahead` refuses `--of` and `--head` by name at exit 2. `scripts/canon_contracts_check.sh` reads the verb's
+  exit, not its JSON by equality, and no Hatsu caller passes `--of` or `--head` to any `wc` verb.
 - **Dropped at this repin, as promised at v0.28.0**: `scripts/issue_sections_fixture.mts` (lane `issue-shape`) no
   longer reads the open-question exit off `nen --version`; every pin CI can now install answers 1.
+- **Prose copies of the pin**: the twelve lines that called 0.28 "the pin" (ren, mukai, jutaisho, futon, WORKFLOW,
+  AGENT-ATTRIBUTION, decisions.json and its page) now read "from nen 0.28", a historical attribution the contract's
+  authority clause does not police; WORKFLOW's pin-history parenthesis points at this page instead of growing.
 
 ## v0.28.0
 
