@@ -112,7 +112,7 @@ test('actual consumer validator admission gates the write, including a misleadin
 
 // Run the actual rendered shell, with curl supplying the real published helper
 // bytes offline. No alternate implementation of the range reader is tested.
-function exercise(message: string, options: { corrupt?: boolean; baseKeys?: unknown; symlinkPolicy?: boolean; merge?: boolean; advanceBase?: boolean; producer?: string; wrongHead?: boolean; wrongExternal?: boolean; wrongId?: boolean; failPatch?: boolean; retarget?: boolean; rewrittenDetails?: boolean; wrongDetails?: string } = {}) {
+function exercise(message: string, options: { corrupt?: boolean; baseKeys?: unknown; symlinkPolicy?: boolean; merge?: boolean; advanceBase?: boolean; producer?: string; wrongHead?: boolean; wrongExternal?: boolean; wrongName?: boolean; badId?: unknown; wrongId?: boolean; failPatch?: boolean; retarget?: boolean; wrongDetails?: string } = {}) {
   const root = temp();
   try {
     const base = join(root, '.base'); const pr = join(root, '.pr'); const bin = join(root, 'bin'); const runner = join(root, 'runner');
@@ -164,18 +164,20 @@ const post = process.argv.includes('POST');
 const state = process.env.API_LOG + '.state';
 fs.appendFileSync(process.env.API_LOG, JSON.stringify({ args: process.argv.slice(2), body, token: process.env.GH_TOKEN }) + '\\n');
 if (!post && process.env.FAIL_PATCH === 'yes') process.exit(1);
-const result = post ? { ...body, id: 17, app: { slug: process.env.PRODUCER || 'github-actions' } } : { ...JSON.parse(fs.readFileSync(state)), ...body };
+const result = post ? { ...body, id: process.env.BAD_ID ? JSON.parse(process.env.BAD_ID) : 17, app: { slug: process.env.PRODUCER || 'github-actions' } } : { ...JSON.parse(fs.readFileSync(state)), ...body };
+// GitHub replaces a github-actions check's details_url with its own run page (HA#562).
+result.details_url = 'https://github.com/acme/widget/runs/' + result.id;
 if (process.env.WRONG_HEAD === 'yes') result.head_sha = '0'.repeat(40);
 if (process.env.WRONG_EXTERNAL === 'yes') result.external_id = 'another workflow';
+if (process.env.WRONG_NAME === 'yes') result.name = 'other-check';
 if (!post && process.env.WRONG_ID === 'yes') result.id = 99;
-// GitHub rewrites details_url on every check run a GitHub Actions token creates to the check's own page.
-if (process.env.REWRITTEN_DETAILS === 'yes') result.details_url = 'https://github.com/acme/widget/runs/' + result.id;
+// A test may replace the rewrite with any other URL to prove it is refused.
 if (process.env.WRONG_DETAILS) result.details_url = process.env.WRONG_DETAILS;
 fs.writeFileSync(state, JSON.stringify(result));
 process.stdout.write(JSON.stringify(result));
 `, { mode: 0o755 });
     const head = git(pr, 'rev-parse', 'HEAD');
-    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '', REWRITTEN_DETAILS: options.rewrittenDetails ? 'yes' : '', WRONG_DETAILS: options.wrongDetails ?? '' } });
+    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_NAME: options.wrongName ? 'yes' : '', BAD_ID: options.badId === undefined ? '' : JSON.stringify(options.badId), WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '', WRONG_DETAILS: options.wrongDetails ?? '' } });
     // Both bases are already ancestors of this exact head. Retargeting must
     // rescan it against the destination policy rather than retain old success.
     if (destination) {
@@ -201,6 +203,7 @@ test.each(['bad\n\nCo-Authored-By: assistant', 'bad\n\n  cO-aUtHoReD-bY : assist
   expect(result.status, result.text).toBe(1);
   expect(result.text).toContain(result.bad.slice(0, 7));
   expect(result.text).toContain('forbidden trailer');
+  expect(result.calls[1].body.output.text).toContain(result.bad.slice(0, 7));
 });
 test('all PR commits includes side history carried by a merge', () => {
   const result = exercise('bad side\n\nCo-Authored-By: assistant', { merge: true });
@@ -222,6 +225,7 @@ test('consumer custom keys and hostile values are data', () => {
   expect(custom.status, custom.text).toBe(1);
   const hostile = exercise('::error::untrusted\n\nCo-Authored-By: $(touch "$RUNNER_TEMP/COMMIT_EXECUTED")');
   expect(hostile.status, hostile.text).toBe(1);
+  expect(hostile.calls[1].body.output.text).toMatch(/^Commits failing the base trailer policy: [0-9a-f]{7,40}$/);
 });
 test('fork history missing the current base obtains that exact object from the trusted checkout', () => {
   const result = exercise('clean', { advanceBase: true }); expect(result.status, result.text).toBe(0);
@@ -253,9 +257,28 @@ test('published check is bound to the exact head, GitHub Actions producer and th
   expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'success' });
   const forbidden = exercise('bad\n\nCo-Authored-By: assistant');
   expect(forbidden.calls[1].body.conclusion).toBe('failure');
+  expect(forbidden.calls[1].body.output.summary).toContain('https://github.com/acme/widget/actions/runs/123/attempts/1');
+  expect(forbidden.calls[1].body.output.text).toMatch(new RegExp(`^Commits failing the base trailer policy: ${forbidden.bad.slice(0, 7)}[0-9a-f]*$`));
+  expect(result.calls[1].body.output.text).toBeUndefined();
 });
-test.each([{ producer: 'other-app' }, { wrongHead: true }, { wrongExternal: true }, { wrongId: true }, { failPatch: true }])('wrong producer, head, run identity or publication failure is never a successful job: %j', options => {
+test.each([{ wrongId: true }, { failPatch: true }])('a wrong PATCH id or a failed publication is never a successful job: %j', options => {
   const result = exercise('clean', options); expect(result.status, result.text).not.toBe(0);
+});
+test('GitHub rewriting details_url to its own run page still identifies the check (HA#562)', () => {
+  const result = exercise('clean');
+  expect(result.status, result.text).toBe(0);
+  expect(result.text).not.toContain('does not identify');
+  expect(result.calls[0].body.details_url).toBe('https://github.com/acme/widget/actions/runs/123/attempts/1');
+  expect(result.calls[1].args).toContain('repos/acme/widget/check-runs/17');
+  expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'success' });
+});
+test.each([{ producer: 'other-app' }, { wrongHead: true }, { wrongExternal: true }, { wrongName: true }])('a refused check identity still completes the created check with failure: %j', options => {
+  const result = exercise('clean', options);
+  expect(result.status, result.text).toBe(1);
+  expect(result.text).toContain('does not identify this producer');
+  expect(result.calls).toHaveLength(2);
+  expect(result.calls[1].args).toContain('repos/acme/widget/check-runs/17');
+  expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'failure' });
 });
 
 // GitHub never echoes the details_url a GitHub Actions token requests on a check run; it answers
@@ -263,12 +286,12 @@ test.each([{ producer: 'other-app' }, { wrongHead: true }, { wrongExternal: true
 // exactly that rewrite on the create and the completion responses, still requests the run URL,
 // and still binds the producer, workflow run and attempt through external_id.
 test('published check accepts the details_url GitHub rewrites to the check page', () => {
-  const result = exercise('clean', { rewrittenDetails: true });
+  const result = exercise('clean');
   expect(result.status, result.text).toBe(0);
   expect(result.calls).toHaveLength(2);
   expect(result.calls[0].body.details_url).toBe('https://github.com/acme/widget/actions/runs/123/attempts/1');
   expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'success' });
-  const forbidden = exercise('bad\n\nCo-Authored-By: assistant', { rewrittenDetails: true });
+  const forbidden = exercise('bad\n\nCo-Authored-By: assistant');
   expect(forbidden.status, forbidden.text).toBe(1);
   expect(forbidden.text).not.toContain('does not identify');
   expect(forbidden.calls[1].body.conclusion).toBe('failure');
@@ -297,4 +320,10 @@ test('retargeting the unchanged head rescans against a destination base with str
   expect(result.calls[2].body.head_sha).toBe(result.head);
   expect(result.calls[1].body.conclusion).toBe('success');
   expect(result.calls[3].body.conclusion).toBe('failure');
+});
+test.each([null, 0, -17, '17', 17.5, 2 ** 53])('a POST response without a usable check id is refused and never PATCHed: %j', badId => {
+  const result = exercise('clean', { badId });
+  expect(result.status, result.text).toBe(1);
+  expect(result.text).toContain('does not identify this producer');
+  expect(result.calls).toHaveLength(1);
 });
