@@ -131,7 +131,9 @@ assert.deepEqual([report.criteria.map((c) => c.id), (report as unknown as { dupl
   const r = spawnSync(nen, ["issue", "body-check", "--body-file", file, "--requirements-from", catalogue, "--json"], { encoding: "utf8" });
   const misses = (JSON.parse(r.stdout) as { misses: { section: string; kind: string; detail: string }[] }).misses.filter((m) => m.section === "acceptance");
   assert.deepEqual(misses.map((m) => m.kind), ["row-order", "row-order"], JSON.stringify(misses));
-  assert.ok(misses[1].detail.includes("AC-12 repeats an earlier row's number"), misses[1].detail);
+  // 0.28 says "number"; from 0.29 the one criterion-id grammar (zheref/nen#548) says "id". CI installs the base pin until a
+  // repin merges, so both wordings are admitted; the row-shape miss itself is unchanged.
+  assert.match(misses[1].detail, /AC-12 repeats an earlier row's (number|id)/, misses[1].detail);
 }
 // `nen issue body-check` reads the resolved form at this pin, for AC-{n} rows: a withdrawn row keeps its number in order.
 {

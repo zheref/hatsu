@@ -46,6 +46,7 @@ adoption narrative in the contract.
 | `v0.24.0` | 0.24 | 0.24 | 2026-10-20 | `d9645c8e3` | #374 | [§ v0.24.0](#v0240) |
 | `v0.26.0` | 0.26 | 0.26 | 2026-10-22 | `333117c7c` | HA-PR-#422 | [§ v0.26.0](#v0260) |
 | `v0.28.0` | 0.28 | 0.28 | 2026-10-25 | `5141c8ee3` | HA-PR-#485 | [§ v0.28.0](#v0280) |
+| `v0.30.0` | 0.30 | 0.30 | 2026-11-05 | `COMMIT_TBD` | HA-PR-#PR_TBD | [§ v0.30.0](#v0300) |
 
 One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
 `pinned_ref` unchanged at `v0.16.0`.
@@ -58,7 +59,57 @@ over 100, zheref/nen#302, is breaking), to 0.19 at v0.19.0, to 0.20 at v0.20.0, 
 feature and the floor, as 0.19 was at the v0.19.0 repin, 0.20 at the v0.20.0 repin (the classify and
 direct families), 0.21 at the v0.21.0 repin (the floor and nen's gates keys), 0.22 at the v0.22.0 repin
 (v0.22.0 moved the floor to 0.22 and Hatsu adopted the list slots and backlog filters), 0.24 at the
-v0.24.0 repin, 0.26 at the v0.26.0 repin (the floor and `nen review ledger`) and 0.28 at the v0.28.0 repin (the floor, nen canon lint and the spec family).
+v0.24.0 repin, 0.26 at the v0.26.0 repin (the floor and `nen review ledger`), 0.28 at the v0.28.0 repin (the floor, nen canon lint and the spec family) and 0.30 at the v0.30.0 repin (the floor alone: no new verb).
+
+## v0.30.0
+
+The v0.30.0 repin (HA-PR-#PR_TBD, no tracking issue) absorbs released v0.29.0 (release unit NN#581, published
+2026-10-29) and v0.30.0 (release proposal NN#633 merged by the maintainer, the raced fragment folded through NN#640,
+the tag cut at the fold's judged head `1e2217a2` rather than the merge commit, published 2026-11-05 on the
+maintainer's go). nen's floor moved to 0.29 and then to 0.30 because each release changes verdicts, exits or
+output shapes a consumer already reads; **no new verb is adopted**, so the minimum moves for the floor alone.
+Hatsu's own callers at v0.28.0 bootstrapped and executed 0.30.0 on every verb this repin exercised (`schema
+check`, `surface mirror check`, `release preflight`, `issue comment`, `tag cut`, `fanout`, `shu release`).
+Absorbed, note by note, against Hatsu's callers:
+
+- **v0.29.0 — `pr ready` no longer reads a readiness placeholder as green** (a check whose record only says the
+  verdict did not report reads undetermined, and `not-ready` can replace `ready` on the same bytes): `en`,
+  `sharingan` and `rikugan` quote the verdict line and match no string, so a placeholder now holds a PR at its
+  gate where it used to pass it — the reading readiness-needs-the-quoted-verdict already asked for.
+- **v0.29.0 — `parse izanami` classifies bare `run verify` and `run budget` as mutating**; only their
+  `--dry-run` forms read as read-only, and the run verbs refuse a symlinked manifest, legacy manifest or runs
+  directory at exit 1. No Hatsu allowlist row names either verb (`contracts/permissions.json` carries no
+  `run verify`/`run budget` row), so an idle run's budget read prompts on a surface that prompts for mutating
+  verbs until a row naming the `--dry-run` forms is declared — a follow-up, not this repin.
+- **v0.29.0 — one criterion-id grammar, blocking where it used to clear**: `pr converge`, `pr body-check
+  --criteria*` and `pr merge --delivery` block on a closing issue stating one id on two rows, and a verify row's
+  prefix is the catalogue's acceptance prefix. Hatsu's catalogue (`contracts/issue-sections.json`) keeps the
+  `AC` prefix, so `| AC-1 |` rows still cover. The `criteria` lane (`scripts/pr_criteria_fixture.mts`) pinned the
+  0.28 wording of the duplicate-row miss ("repeats an earlier row's number"); 0.29+ says "id", so the fixture admits
+  both, green under 0.28.0 (CI's binary until this merges) and 0.30.0.
+- **v0.29.0 — the private-name guard's hits gain `form` and `class`, and a bare ordinary word is reported under
+  `ruled`, not refused**: `scripts/private_name_check.sh` reads the verdict, never a hit by exact equality, and the
+  ruling of 2026-10-25 (Mark/Friday as ordinary words) already asked for the `ruled` reading.
+- **v0.29.0 — `surface mirror generate` writes Antigravity hooks in their native named-definition format**, so a
+  committed hook mirror reads `stale` under 0.29+ until regenerated. This PR's mirrors are regenerated at stamp
+  0.163.0 with the 0.28.0 binary, because `surface-mirror-check.yml` bootstraps `main`'s pin until the repin
+  merges (the v0.28.0 precedent below); the 0.30 hook shape lands in the first AUTHORED pull request after the merge,
+  regenerated with 0.30.0 at its own bump, never through `surface-mirror-regenerate.yml`'s bump-less PR.
+- **v0.30.0 — `parse futon` reads `--dry-run` as a scope flag and refuses flag-shaped words** (an `=<value>`
+  token, an unknown `--option`, text after a bare `--`, `--dry-run` after `then` or typed twice, a repeated
+  `--idle`): `futon` § 1 and `kazaana` relay the parse echo verbatim; a label that carries `--dry-run` inside
+  it must be quoted to keep it. `--json` gains `dryRun`.
+- **v0.30.0 — `loop slots` frees a merged local effort with no PR and counts claims** under `--from-run`
+  (unreadable claim rows force `free: 0` at exit 1; a `parked[].at` that is not an ISO-8601 instant is refused):
+  `kazaana`'s slot read quotes the verb's counts; the HR-372 slot reader owed to `senkei` reads the same verb.
+- **v0.30.0 — a test report whose files failed to load is no longer a green run**: `shu test-report` and every
+  reader of its parsers count a load failure as one failed row named for the file, so `kotoamatsukami` and
+  `byakugan` read red where they read nothing.
+- **v0.30.0 — `classify labels --json` adds `families` and a per-label `family`**; every other `wc` verb refuses
+  `--of` and `--head` by name at exit 2. `scripts/canon_contracts_check.sh` reads the verb's exit, not its JSON
+  by equality, and no Hatsu caller passes `--of` or `--head` to a `wc` verb other than `classify`.
+- **Dropped at this repin, as promised at v0.28.0**: `scripts/issue_sections_fixture.mts` (lane `issue-shape`) no
+  longer reads the open-question exit off `nen --version`; every pin CI can now install answers 1.
 
 ## v0.28.0
 
