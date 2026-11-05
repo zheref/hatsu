@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-08",
+  "effortId": "claude-kurapika-improves-aspects",
+  "n": 5,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "Release PRs skip the improves table (HR-319). Does \"always measure\" override that for Predictability and Resilience?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Keep release exempt (Recommended)",
+      "consequence": "release PRs keep their written matrix with no improves table"
+    },
+    {
+      "key": "B",
+      "label": "Release gets the two rows",
+      "consequence": "release bodies gain a Predictability and Resilience table under the seven-section cap"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-27T23:31:29.441Z"
+}
