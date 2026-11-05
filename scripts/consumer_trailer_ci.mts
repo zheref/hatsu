@@ -55,10 +55,15 @@ function identity(check: Record<string, any>, id?: number): number {
 let checkId: number | undefined;
 let temporary: string | undefined;
 let passed = false;
+let offending: string[] = [];
 try {
-  checkId = identity(api('POST', `repos/${repo}/check-runs`, {
+  const created = api('POST', `repos/${repo}/check-runs`, {
     name: NAME, head_sha: head, status: 'in_progress', external_id: external, details_url: details,
-  }));
+  });
+  // Bind the id GitHub created before verifying the response, so a refused
+  // identity still completes this run's check instead of leaving it in progress.
+  if (Number.isSafeInteger(created.id) && created.id > 0) checkId = created.id;
+  identity(created);
   const root = resolve(process.argv[2] ?? '.');
   if (execute('git', ['-C', join(root, '.base'), 'rev-parse', 'HEAD']).trim() !== base) throw new Error('checkout differs from event base');
   temporary = mkdtempSync(join(tmpdir(), 'hatsu-consumer-trailers-'));
@@ -91,6 +96,8 @@ try {
   });
   const fence = randomBytes(16).toString('hex');
   process.stdout.write(`::stop-commands::${fence}\n${result.stdout ?? ''}${result.stderr ?? ''}\n::${fence}::\n`);
+  // Only the short SHAs that lead each reader finding reach the check; commit text stays in the log.
+  offending = [...(result.stdout ?? '').matchAll(/^([0-9a-f]{7,40})  author=/gm)].map(match => match[1]);
   passed = result.status === 0 && !result.error;
 } catch (error) {
   console.error(`consumer-trailer-ci: ${(error as Error).message}`);
@@ -101,7 +108,8 @@ try {
       const conclusion = passed ? 'success' : 'failure';
       const response = api('PATCH', `repos/${repo}/check-runs/${checkId}`, {
         status: 'completed', conclusion, completed_at: new Date().toISOString(),
-        output: { title: NAME, summary: passed ? 'Every PR commit passes the base trailer policy.' : 'Trailer policy or trusted check execution failed; see this workflow run.' },
+        output: { title: NAME, summary: passed ? 'Every PR commit passes the base trailer policy.' : `Trailer policy or trusted check execution failed; see ${details}`,
+          ...(!passed && offending.length > 0 ? { text: `Commits failing the base trailer policy: ${offending.join(', ')}` } : {}) },
       });
       identity(response, checkId);
       if (response.status !== 'completed' || response.conclusion !== conclusion) throw new Error('GitHub did not persist the intended check conclusion');
