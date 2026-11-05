@@ -703,6 +703,18 @@ test("HA#503 AC-3: the prose checklist resolves on no cell without the canon-pro
   assert.equal(cat.footer.find((row): boolean => row.id === "prose")?.when, "canon-prose");
 });
 
+test("HR-377/HR-383: the improves template and the definitions table carry the catalogue's aspects, in order", () => {
+  const aspects = (JSON.parse(readFileSync(join(HATSU_ROOT, "contracts/pr-sections.json"), "utf8")) as { aspects: string[] }).aspects;
+  assert.equal(aspects.length, 13, "the catalogue carries thirteen aspects");
+  const template = readFileSync(join(HATSU_ROOT, "templates/pr-body/improves.md"), "utf8");
+  const rows = template.split("\n").filter((line): boolean => / \| ➖ \| \|$/.test(line)).map((line): string => line.split("|")[1].trim());
+  assert.deepEqual(rows, aspects, "templates/pr-body/improves.md rows");
+  const doc = readFileSync(join(HATSU_ROOT, "docs/PR-SECTIONS.md"), "utf8");
+  const table = doc.slice(doc.indexOf("| Aspect | Moves when the change alters… |")).split("\n\n")[0];
+  const defined = table.split("\n").slice(2).map((line): string => line.split("|")[1].trim());
+  assert.deepEqual(defined, aspects, "docs/PR-SECTIONS.md § Write for the decision definitions");
+});
+
 test("HA#503 AC-1/AC-2: exactly one PRS row per letter, answered by Chrollo with a verdict and the line read", () => {
   const report = resolution("process", ["prose-authoring"], ["policy-hit", "canon-prose"]);
   assert.deepEqual(check(cat, proseBody(report, ANSWERED), report.requirements, 7)[0], []);

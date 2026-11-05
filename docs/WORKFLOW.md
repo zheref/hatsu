@@ -2132,7 +2132,7 @@ not in the session:
 The body follows [PR-SECTIONS.md](PR-SECTIONS.md), resolving the catalogue's kind × family cell
 from the repository classification, issue jobs, consumer `pr.sections` and Mukai's run facts. It
 opens with the ledger-rendered Delivery preamble, then consumer effect and cost in **What this changes for you**; tables and diagrams carry
-the decision. Non-release rows carry the eleven-aspect improves ladder; release rows follow the
+the decision. Non-release rows carry the thirteen-aspect improves ladder; release rows follow the
 written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
 library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
 `CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
