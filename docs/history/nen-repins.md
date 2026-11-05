@@ -46,7 +46,7 @@ adoption narrative in the contract.
 | `v0.24.0` | 0.24 | 0.24 | 2026-10-20 | `d9645c8e3` | #374 | [§ v0.24.0](#v0240) |
 | `v0.26.0` | 0.26 | 0.26 | 2026-10-22 | `333117c7c` | HA-PR-#422 | [§ v0.26.0](#v0260) |
 | `v0.28.0` | 0.28 | 0.28 | 2026-10-25 | `5141c8ee3` | HA-PR-#485 | [§ v0.28.0](#v0280) |
-| `v0.30.0` | 0.30 | 0.30 | 2026-11-05 | `e5a88dc59` | HA-PR-#PR_TBD | [§ v0.30.0](#v0300) |
+| `v0.30.0` | 0.30 | 0.30 | 2026-11-05 | `e5a88dc59` | HA-PR-#568 | [§ v0.30.0](#v0300) |
 
 One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
 `pinned_ref` unchanged at `v0.16.0`.
@@ -63,7 +63,7 @@ v0.24.0 repin, 0.26 at the v0.26.0 repin (the floor and `nen review ledger`), 0.
 
 ## v0.30.0
 
-The v0.30.0 repin (HA-PR-#PR_TBD, no tracking issue; the commit that moved `pinned_ref` is `e5a88dc59`) absorbs
+The v0.30.0 repin (HA-PR-#568, no tracking issue; the commit that moved `pinned_ref` is `e5a88dc59`) absorbs
 released v0.29.0 (release unit NN#581, published 2026-10-29) and v0.30.0 (release proposal NN#633 merged by the
 maintainer, the raced fragment folded through NN#640, the tag cut at the fold's judged head `1e2217a2` rather than
 the merge commit, published 2026-11-05 on the maintainer's go). nen's floor moved to 0.29 and then to 0.30 because
