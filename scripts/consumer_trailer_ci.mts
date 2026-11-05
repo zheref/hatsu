@@ -38,13 +38,16 @@ function api(method: string, endpoint: string, body: unknown): Record<string, an
   if (result.status !== 0 || result.error) throw new Error('GitHub check publication failed');
   return JSON.parse(result.stdout);
 }
-// GitHub replaces a github-actions check's details_url with its own
-// /runs/<check id> page, so identity rests on the fields it preserves; the
-// external_id already binds the workflow ref, run id and attempt.
 function identity(check: Record<string, any>, id?: number): number {
+  // GitHub does not persist the details_url a GitHub Actions token requests on a check run: the
+  // response carries the check's own page, https://github.com/<repo>/runs/<check id>, instead,
+  // while name, head_sha, app.slug and external_id come back exactly as sent (observed live on a
+  // consumer, 2026-11-04). Accept the requested run URL or exactly that rewrite; the producer,
+  // workflow run and attempt stay bound by external_id, and the id was validated just before.
   if (!Number.isSafeInteger(check.id) || check.id <= 0 || (id !== undefined && check.id !== id) ||
       check.name !== NAME || check.head_sha !== head || check.app?.slug !== 'github-actions' ||
-      check.external_id !== external) {
+      check.external_id !== external ||
+      (check.details_url !== details && check.details_url !== `https://github.com/${repo}/runs/${check.id}`)) {
     throw new Error('GitHub check response does not identify this producer, workflow run and exact PR head');
   }
   return check.id;

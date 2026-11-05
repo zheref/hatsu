@@ -37,8 +37,8 @@ and every range commit, so this adoption reuses its reviewed implementation. The
 the digest before executing it. The trusted publisher creates a check on the event's exact PR head,
 then completes that returned check ID. It verifies the response's check ID, name, head SHA, `github-actions`
 producer, workflow-ref/run/attempt external identity and persisted conclusion; it never finds or
-trusts a check by name alone. The details URL is sent but not compared, because GitHub replaces it on a
-`github-actions` check with its own `/runs/<check id>` page (zheref/hatsu#562). API failure or identity
+trusts a check by name alone. The details URL is compared too: the requested run URL or the `/runs/<check id>` page GitHub
+substitutes on a `github-actions` check (zheref/hatsu#562) is accepted, and any other URL is refused. API failure or identity
 mismatch cannot produce a successful job. Whenever GitHub returned a usable check ID, a refusal or failure
 after creation still completes that check with `failure`, its summary linking the workflow run and, on a
 policy finding, its text listing the offending short SHAs (never commit text). A POST whose response is lost

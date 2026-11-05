@@ -112,7 +112,7 @@ test('actual consumer validator admission gates the write, including a misleadin
 
 // Run the actual rendered shell, with curl supplying the real published helper
 // bytes offline. No alternate implementation of the range reader is tested.
-function exercise(message: string, options: { corrupt?: boolean; baseKeys?: unknown; symlinkPolicy?: boolean; merge?: boolean; advanceBase?: boolean; producer?: string; wrongHead?: boolean; wrongExternal?: boolean; wrongName?: boolean; badId?: unknown; wrongId?: boolean; failPatch?: boolean; retarget?: boolean } = {}) {
+function exercise(message: string, options: { corrupt?: boolean; baseKeys?: unknown; symlinkPolicy?: boolean; merge?: boolean; advanceBase?: boolean; producer?: string; wrongHead?: boolean; wrongExternal?: boolean; wrongName?: boolean; badId?: unknown; wrongId?: boolean; failPatch?: boolean; retarget?: boolean; wrongDetails?: string } = {}) {
   const root = temp();
   try {
     const base = join(root, '.base'); const pr = join(root, '.pr'); const bin = join(root, 'bin'); const runner = join(root, 'runner');
@@ -171,11 +171,13 @@ if (process.env.WRONG_HEAD === 'yes') result.head_sha = '0'.repeat(40);
 if (process.env.WRONG_EXTERNAL === 'yes') result.external_id = 'another workflow';
 if (process.env.WRONG_NAME === 'yes') result.name = 'other-check';
 if (!post && process.env.WRONG_ID === 'yes') result.id = 99;
+// A test may replace the rewrite with any other URL to prove it is refused.
+if (process.env.WRONG_DETAILS) result.details_url = process.env.WRONG_DETAILS;
 fs.writeFileSync(state, JSON.stringify(result));
 process.stdout.write(JSON.stringify(result));
 `, { mode: 0o755 });
     const head = git(pr, 'rev-parse', 'HEAD');
-    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_NAME: options.wrongName ? 'yes' : '', BAD_ID: options.badId === undefined ? '' : JSON.stringify(options.badId), WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '' } });
+    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_NAME: options.wrongName ? 'yes' : '', BAD_ID: options.badId === undefined ? '' : JSON.stringify(options.badId), WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '', WRONG_DETAILS: options.wrongDetails ?? '' } });
     // Both bases are already ancestors of this exact head. Retargeting must
     // rescan it against the destination policy rather than retain old success.
     if (destination) {
@@ -277,6 +279,34 @@ test.each([{ producer: 'other-app' }, { wrongHead: true }, { wrongExternal: true
   expect(result.calls).toHaveLength(2);
   expect(result.calls[1].args).toContain('repos/acme/widget/check-runs/17');
   expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'failure' });
+});
+
+// GitHub never echoes the details_url a GitHub Actions token requests on a check run; it answers
+// with the check's own page, https://github.com/<repo>/runs/<check id>. The publisher accepts
+// exactly that rewrite on the create and the completion responses, still requests the run URL,
+// and still binds the producer, workflow run and attempt through external_id.
+test('published check accepts the details_url GitHub rewrites to the check page', () => {
+  const result = exercise('clean');
+  expect(result.status, result.text).toBe(0);
+  expect(result.calls).toHaveLength(2);
+  expect(result.calls[0].body.details_url).toBe('https://github.com/acme/widget/actions/runs/123/attempts/1');
+  expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'success' });
+  const forbidden = exercise('bad\n\nCo-Authored-By: assistant');
+  expect(forbidden.status, forbidden.text).toBe(1);
+  expect(forbidden.text).not.toContain('does not identify');
+  expect(forbidden.calls[1].body.conclusion).toBe('failure');
+});
+test.each([
+  'https://github.com/acme/widget/runs/99',
+  'https://github.com/other/widget/runs/17',
+  'https://github.com/acme/widget/actions/runs/123/attempts/2',
+  'https://github.com/acme/widget/actions/runs/124/attempts/1',
+  'http://github.com/acme/widget/runs/17',
+  'https://github.com/acme/widget/runs/17/',
+])('a check response with any other details_url is still refused: %s', wrongDetails => {
+  const result = exercise('clean', { wrongDetails });
+  expect(result.status, result.text).not.toBe(0);
+  expect(result.text).toContain('does not identify');
 });
 
 
