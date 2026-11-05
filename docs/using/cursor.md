@@ -64,7 +64,7 @@ The warm-up refreshes the complete Cursor surface every session:
 
 | | |
 |---|---|
-| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **60**, the fifty-nine plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
+| `<repo>/.cursor/skills/<name>/` | one **symlink** per mirrored skill directory — **61**, the sixty plus `ten` itself — pointing at `$HATSU_PLUGIN_ROOT/surfaces/cursor/<name>` |
 | `<repo>/.cursor/agents/<persona>.md` | one markdown subagent file each — **18**: every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include — symlinked from `$HATSU_PLUGIN_ROOT/surfaces/cursor/agents/` |
 
 **Symlinks are honest here, and that is measured rather than assumed.** Four controlled probes on
@@ -266,7 +266,7 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    follows instead is that **on Cursor the skill `name` does almost all of the routing work.**
 2. **The name space is flat, global and shared.** It is not only your repository's `.cursor/skills/`: on
    this host one listing carried the fifty-one mirrored skills **plus** Cursor's own built-ins **plus**
-   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims fifty-nine ordinary
+   this host's Claude Code plugin skills, `build` and `drive` among them. Hatsu claims sixty ordinary
    words at once — `build`, `file`, `en`, `ao`, `ren`, `breath`. **The shadowing itself is inferred, not
    proven, and is written here as such**: two probes tried to confirm it and could not, because the
    descriptions this surface keeps are far too short to tell two rival `build` entries apart. It is a
@@ -286,7 +286,11 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    commit, and document no switch for that trailer (the IDE/CLI *Attribution* toggle covers
    `Made with Cursor`). `Co-Authored-By` is forbidden, so a cloud-agent effort reads the trailer back
    after every commit and **stops at G5 before its first push** — it never publishes and discloses
-   ([`../AGENT-ATTRIBUTION.md`](../AGENT-ATTRIBUTION.md), zheref/hatsu#470). The IDE and `cursor-agent`
+   ([`../AGENT-ATTRIBUTION.md`](../AGENT-ATTRIBUTION.md), zheref/hatsu#470). In a repository whose
+   `commit-msg` hook `nen scaffold init` wrote, the hook refuses the commit outright and nothing is
+   committed: that first refusal is the G5, and `--no-verify` or any other way past the hook is never
+   the fix (no nen verb strips the key at the pin, zheref/nen#594). Cursor's docs, re-read 2026-10-31,
+   still document no switch. The IDE and `cursor-agent`
    have a documented *Attribution* toggle, but it is documented for `Made with Cursor` only: turn it off,
    and if a `Co-authored-by` still reads back, that path stops on the same read-back before any push.
 

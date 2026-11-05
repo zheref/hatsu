@@ -172,7 +172,7 @@
       "bell-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/bell_notify.sh (zheref/hatsu#289 item 9, the ruling of 2026-10-17): jutaisho section 5's in-session bell with a fixed argv, replacing the osascript allow row. Its fixture is hermetic and offline under stub osascript, afplay, notify-send and uname: the title carries the Hatsu prefix, a value starting with a dash follows a -- separator and never becomes an -e statement, quotes, backslashes and newlines are stripped, a message is capped at 240 characters, a sound name with path characters or an absent sound falls back to Glass, a missing or empty value and an unknown argument are exit 2, --help prints the header, and on Linux rung 2 goes through notify-send with rung 3 not applicable."
+        "$comment": "The focused lane for scripts/bell_notify.sh (zheref/hatsu#289 item 9, the ruling of 2026-10-17): jutaisho section 5's in-session bell with a fixed argv, replacing the osascript allow row. Its fixture is hermetic and offline under stub osascript, afplay, notify-send and uname: the title carries the Hatsu prefix, a value starting with a dash follows a -- separator and never becomes an -e statement, quotes, backslashes and newlines are stripped, a message is capped at 240 characters, a sound name with path characters or an absent sound falls back to Glass, a missing or empty value and an unknown argument are exit 2, --help prints the header, and on Linux rung 2 goes through notify-send with rung 3 not applicable. Since zheref/hatsu#516: afplay takes the absolute sound path alone (its stub refuses a --, as the player did) and is attempted once; a missing tool reads not applicable, a stubbed failure reads failed with its exit and stderr (exit 0 with stderr, the seat-error case, and a silent non-zero exit included), and none reads sent or played; --no-sound and another host give rung 3 its not applicable line; a notifier or player that never returns, or ignores TERM, and both at once, is stopped by its own PID at a 1-second --deadline within the bound, a decoy named osascript that the run did not start survives, and the sound still runs once after a timed-out or failed notification; --deadline outside 1 to 60 whole seconds, three digits or more included, is exit 2."
       },
       "redaction-guard": {
         "stack": "claude-code-plugin",
@@ -208,6 +208,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for scripts/report_markdown_check.sh (zheref/hatsu#215), the guard for the Markdown report templates (templates/spiritual-message.md, templates/rikugan.md) a Markdown-artifact surface publishes, following the one-lane-per-executable-guard pattern. It reads nen/workflow.json reports.sections, both report templates in both formats, templates/graph.example.json and templates/report-examples/, so a change to any of them selects it. Its fixture is hermetic and offline but for nen, whose render it checks: throwaway Hatsu-shaped trees prove a faithful tree passes; a block out of the declared order, a declared block never rendered, an HTML render out of order and a missing Markdown template fail; a desk with every option or no option starred, a dropped ask, an unquoted verdict, a G5 blocker with no g5-blocker wrapper and an omitted gate fail; a value in a code span or a fence, a raw slot outside the mermaid fence, a | splitting a table cell and an unfilled {{ fail; a token the HTML template does not name and a refused render fail; a stale or missing checked example fails and --write-examples refreshes it; an unknown argument, a missing nen, a non-Hatsu root and a workflow with no reports.sections are wiring refusals at exit 2; then the check runs on this repository."
+      },
+      "tenkai-fixes-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/tenkai_fixes.ts and contracts/tenkai-fixes.json (zheref/hatsu#535): the fix every outstanding hatsu:tenkai item names in scripts/tenkai_adopt.sh's report. A sibling of tenkai-guard rather than a second step of it, because scripts/shell_coverage.mts admits only a lane's one declared test argv. From zheref/hatsu#535, scripts/unit_tests_ci.mts selects it."
       },
       "config-values-guard": {
         "stack": "claude-code-plugin",
@@ -364,6 +369,11 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/schedule_install.mts (zheref/hatsu#448), the printer of the steady-state scheduler rows in contracts/schedule.json (ruling HR-354, record R-2026-10-23-21: Claude Desktop local scheduled tasks on the maintainer's machine). Its fixture is hermetic and offline: the live contract printed whole with every placeholder filled (exit 0) or each unfilled one named (exit 1), nothing registered or written (HOME stays empty), each wiring refusal at exit 2, and the symlinked entry. scripts/unit_tests_ci.mts runs it in unit-tests.yml (BC-9). Run it as `nen shu test --lane schedule-printer --repo <hatsu>` when the script, its fixture or contracts/schedule.json changes."
       },
+      "release-lag-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for scripts/release_lag_check.mts (zheref/hatsu#533), the read of how far the latest published release trails the plugin version on main, against docs/WORKFLOW.md \u00a7 4's release cadence, the one place its threshold is stated. Its fixture is hermetic and offline: the given form over every verdict (in step, a patch or minor within the cadence, a cut owed past --max-minor, a major behind, no release at all, a release ahead of main, an unpublished tag and a tag above main named without changing the exit and the stray one hiding neither, the --json document, the origin-URL to gh-repository mapping, foreign text cut to one quoted line), every refusal at exit 2 with stdout empty, and the live form over a throwaway bare origin with a stubbed gh first on PATH (main read at the ref and never the working file, gh asked with -R for origin's repository and never its own pick, an origin naming no hosted repository refused, gh's release-not-found as no release, a hostile tag gh returns counted and never echoed, a gh failure, an unreadable ref and an unreachable origin at exit 2). morning-desk (contracts/schedule.json) runs the live form every weekday; scripts/unit_tests_ci.mts runs this lane in unit-tests.yml (BC-9). Run it as `nen shu test --lane release-lag-guard --repo <hatsu>` when the script or its fixture changes. It is not a general suite."
+      },
       "consumer-trailer-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -399,6 +409,11 @@
         "cwd": ".",
         "$comment": "The crash-and-resume proof's ledger half (zheref/hatsu#444): scripts/resume_proof.mts drives ren's and build's phase ledgers and the futon run manifest through an interruption after every phase begin and end, re-invokes under WORKFLOW's resume rule, and asserts convergence with the uninterrupted run (one entry per phase, one resumedAt on the interrupted one, a finished ledger byte-identical on re-invocation). It runs against the nen on PATH; it is a proof, not a general suite."
       },
+      "desk-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The focused lane for the Hatsu desk, the Claude Code function-hook module at hooks/desk (hooks/hooks.json -> modules). scripts/desk_mod_test.sh stages the module and its tests into a scratch mod named hatsu and runs them under the engine's own kit with claude plugin test, since that command pointed at this repository would also load the Vitest fixtures under scripts/. Hermetic and offline: the canon path matrix (Build before anything is authored and Iterate after, every authored stage's paths with the blocked ones after the open ones, the maintainer's aka, mukai and tensho offered and never starred, no merge, kagutsuchi or mugetsu in any state), phase readings in both tenses, the stage an effort stands at (a ren turn's own report and bell never move it; Publish is drawn done only once the branch is pushed), worktree naming, and the chip drawing. Exit 1 on a failing test, 2 when the stage cannot be built."
+      },
       "skill-shape-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -422,10 +437,10 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, desk-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
-          "unsupported": "There is no user interface to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; the only rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md), which are report templates, not an application."
+          "unsupported": "There is no application to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; its rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md) and the desk pane (hooks/desk), which Claude Code draws from the module's ui.render trees. The engine's test kit renders no tree to a surface, so the desk's screens are captured by hand on a PR, not by a ui-test run (zheref/hatsu#523)."
         },
         "coverage": {
           "unsupported": "The plugin lane has no aggregate test run, so it has nothing to capture. The executable shell guards under scripts/ are measured on their focused fixture lanes: a measured lane's test row runs its fixture under the pinned Bashcov and writes coverage/<lane>/lcov.info, read with `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148); a lane Bashcov cannot measure yet seats its own coverage row with the reason. Most TypeScript guards under scripts/ still have no line-coverage declaration: an unmeasured gap, never a clean zero, and byakugan reports those files as `not measurable here`. The criteria and direct-matrix-guard lanes are the measured TypeScript exceptions: native Node replay writes exact-source LCOV for hanten_findings_check.mts, its reused clause_id_guard.mts parser, and direct_matrix_doc.mts. Neither the remaining gaps nor these exceptions move the 80/85/90 ladder in nen/workflow.json. Gyo is linting."
@@ -858,7 +873,7 @@
             "bash",
             "scripts/bell_notify_fixture.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the bell script. Run it as `nen shu test --lane bell-guard --repo <hatsu>`; 20 checks. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/bell-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane bell-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "A permanent, deterministic fixture for the bell script. Run it as `nen shu test --lane bell-guard --repo <hatsu>`; 76 checks. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/bell-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane bell-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
           "artifacts": [
             "coverage/bell-guard/lcov.info"
           ]
@@ -948,6 +963,62 @@
             "coverage/tenkai-guard/lcov.info"
           ],
           "$comment": "Extraction only: reads coverage/tenkai-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+        }
+      },
+      "tenkai-fixes-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/tenkai-fixes-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers",
+                "1",
+                "--testTimeout",
+                "120000",
+                "scripts/tenkai_fixes_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/tenkai_fixes.ts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/tenkai-fixes-guard/lcov.info",
+                "scripts/tenkai_fixes_coverage.test.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/tenkai-fixes-guard/lcov.info"
+          ],
+          "$comment": "The authoritative pinned Vitest fixture for the Tenkai report's fix shape runs first. Every contracts/tenkai-fixes.json row is well-formed: only an owner row takes an answer token, an edit row names only nen/contract.json or nen/workflow.json and carries no run line, and the last row is the one unmapped catch-all. Real engine strings map to named fixes; a target-controlled lane name and a malformed slug never reach a command; an unrenderable row reads unmapped with its defect, never a crash. Across thirteen real repository shapes (a scaffolded product before and after apply, a scaffold before git init, a process, an unregistered and a bare repository, an unparseable workflow, a symlinked Reports, no defaultLane, a symlinked reader, a hand-written trailer workflow, a retired gates key and a symlinked gates file) every outstanding item names a fix and the guide accounts for each. The text report prints the real path, quoted, through a symlinked temp directory with a space in it, and its guided-fill line runs verbatim; a --hatsu-root without the catalogue still reports; and a re-run after apply, after an owner-answered run line and after Tenkai's section 6c edit each shows the outstanding count going down. A native Node test then replays the renderer's cases in-process solely for exact-source LCOV over scripts/tenkai_fixes.ts; scripts/tenkai_adopt.ts runs only as the CLI the Vitest fixture drives and is not measured. Offline: --visibility and a failing gh stub; nen schema set runs from PATH (the pinned nen). Install locked dependencies with npm ci --ignore-scripts first. Run it as `nen shu test --lane tenkai-fixes-guard --repo <hatsu>` when scripts/tenkai_fixes.ts, scripts/tenkai_adopt.ts or contracts/tenkai-fixes.json changes."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/tenkai-fixes-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing tenkai-fixes-guard LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty tenkai-fixes-guard LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/tenkai-fixes-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the nonempty LCOV written by the focused test row and runs no fixture. Nen owns parsing and --from-capture provenance."
         }
       },
       "pr-composition-guard": {
@@ -1917,6 +1988,17 @@
           "$comment": "Hermetic schedule-printer fixture against the live contracts/schedule.json and throwaway copies (zheref/hatsu#448). Needs node only; no gh, no network, no Claude Desktop."
         }
       },
+      "release-lag-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/fixture_output_guard.sh",
+            "node",
+            "scripts/release_lag_check_fixture.mts"
+          ],
+          "$comment": "Hermetic release-lag fixture (zheref/hatsu#533): the given form, the refusals and the live form over a throwaway bare origin with a stubbed gh. Needs node, git and a POSIX shell; no network."
+        }
+      },
       "consumer-trailer-guard": {
         "test": {
           "exe": "bash",
@@ -2013,7 +2095,7 @@
             "node",
             "scripts/stop_bell_fixture.mts"
           ],
-          "$comment": "Hermetic hook fixture: stub nen/osascript/afplay/uname on PATH, a scratch git repository per case. Run when hooks/stop-bell.sh or its surface mirrors change."
+          "$comment": "Hermetic hook fixture: stub nen/osascript/afplay/uname on PATH, a scratch git repository per case. Run when hooks/stop-bell.sh or its surface mirrors change. Since zheref/hatsu#516 it also proves the bounded rungs: a notifier that hangs or ignores TERM is stopped by its own PID at HATSU_BELL_DEADLINE=1 and the sound still plays once after it, a decoy named osascript that the hook did not start survives, a notifier that always hangs is tried once across three markers, both rungs hung across three markers at the default deadline finish under the 15-second hook timeout with every marker cleared, and a deadline outside 1 to 5 reads 5. The afplay expectations drop out, named, on a host without /System/Library/Sounds/Glass.aiff."
         }
       },
       "idle-permissions-guard": {
@@ -2047,6 +2129,18 @@
             "scripts/resume_proof.mts"
           ],
           "$comment": "Needs git and nen on PATH (nen phase begin --resume, nen run start|park); offline. Run when a composite's phase vocabulary, the resume rule in WORKFLOW \u00a7 The effort's ledgers, or the nen pin changes."
+        }
+      },
+      "desk-guard": {
+        "test": {
+          "exe": "bash",
+          "argv": [
+            "scripts/desk_mod_test.sh"
+          ],
+          "$comment": "Needs the claude CLI on PATH (claude plugin test); offline. Run when hooks/desk or scripts/desk_mod_test.sh changes. Not in scripts/unit_tests_ci.mts's gated list: the unit-tests runner has no claude CLI, a named gap tracked by zheref/hatsu#523."
+        },
+        "coverage": {
+          "unsupported": "No line-coverage tool is declared for the engine's test kit (claude plugin test), so hooks/desk is an unmeasured gap, never a clean zero; zheref/hatsu#523 tracks the capture."
         }
       },
       "skill-shape-guard": {

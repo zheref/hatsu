@@ -80,7 +80,7 @@ freshness finding. Ten reads that finding in its policy inbox and performs no re
 Every cell below is materialized in the consumer, including the unknown-kind cells derived as above.
 Conditional ids appear in the matrix but render only with their run fact. Economics appends to any
 cell when raised. The release matrix is the maintainer's explicit exception to `improves` on every PR
-(clarification 2026-10-20, HA#351); all other families carry all eleven aspects.
+(clarification 2026-10-20, HA#351; it stands, HR-381); all other families carry all thirteen aspects.
 
 | Family | Product | Library | Process |
 |---|---|---|---|
@@ -101,9 +101,29 @@ Generate the structure diagram through `nen report mermaid --graph`; its legend 
 Change, using file, function, class, hook, skill, verb, config, template or script. A second flow
 diagram appears only when the flow changed, inside `How`; add one rejected-alternative line.
 
-`What this improves` lists Observability, Security, Traceability, End-user experience, Autonomy,
-Stability, Performance, Maintainability, Cost, Portability and Accessibility. Mark each ⬆ improves,
-➖ unchanged or ⬇ regresses; explain movement in one line, leave unchanged rows unexplained.
+`What this improves` lists the thirteen aspects below, in this order (HR-377). Give each ⬆ improves,
+➖ unchanged or ⬇ regresses; explain movement in one line, leave unchanged rows unexplained. A row
+moves only on its own definition, so one claim is never counted in two rows (HR-383, the lead's reading). Cite what
+shows the movement — a test or fixture name, a measured number with its method, an HR id — where
+the repository and the scope of work allow it (HR-380); where they do not, one line of reasoning
+stands (HR-382).
+
+| Aspect | Moves when the change alters… | Evidence, for example |
+|---|---|---|
+| Observability | what a run, failure or state shows while it happens: messages, status, named causes — outside a recovery path, whose named cause is Resilience | the fixture asserting the message |
+| Security | exposure of secrets, credentials, trust boundaries, the supply chain or user data | a refusal at a trust boundary; a `SEC-{n}` row |
+| Traceability | how a result is traced afterwards to its decision, record or source | the ledger row, record or HR id written |
+| End-user experience | what the person using the product or workflow does or reads — not the human answers counted (Autonomy) or the time measured (Performance) | UZF-26 evidence; the screen or message before and after |
+| Autonomy | how many steps run without a human answer, inside the gates | the decisions row; the prompt removed |
+| Stability | whether existing behaviour keeps working: a regression caught or introduced (HR-377); prevention that is no regression is read by what it does (HR-379) | the regression test that would have failed |
+| Predictability | whether the same inputs give the same result, and whether a step states what it will do — plan, dry run, refusal — before it acts (HR-378) | a fixture run twice; the printed plan |
+| Resilience | how a failure part-way is met: retry within a budget, resume, or degrade and name the cause, never partial state left (HR-379) | a fault-injection or interruption fixture |
+| Performance | measured time, memory, size or request count | a number with its method block (Uvogin's P1–P7) |
+| Maintainability | how hard the next change is: duplication, coupling, one home per rule | the copy removed; the one owner cited |
+| Cost | money spent or likely to be spent | Leorio's report (`ECON-{n}`) |
+| Portability | which platforms, shells, surfaces or toolchains it runs on | the platform each check ran on |
+| Accessibility | whether a rendered surface is usable with assistive needs | a `UX-{n}` check; contrast or target size measured |
+
 Other table glyphs use ✅ proved, ⚠️ a named gap and — not applicable; never use a glyph to hide
 missing evidence. The catalogue supplies the heading glyphs; guards tolerate those prefixes. Hanten
 declares an empty glyph because its compatibility contract requires the exact `## Adversarial review (hanten)` heading.

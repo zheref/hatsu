@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-29-02",
+  "effortId": "opus-kurapika-hatsu-desk-pane",
+  "n": 2,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "On a merged PR, may the desk show Cleanup and Retro buttons?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Only after your go (Recommended)",
+      "consequence": "Hidden until every PR in the sitting reads merged; the copy says your satisfied declaration is still owed. Pressing it is your own typed hatsu:cleanup."
+    },
+    {
+      "key": "B",
+      "label": "Show on merge",
+      "consequence": "Keep showing them as soon as this branch's PR merges, recorded as a ruling beside HR-366."
+    },
+    {
+      "key": "C",
+      "label": "Never show them",
+      "consequence": "The desk states the wrap-up prerequisites only; you type hatsu:cleanup yourself."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-29T02:55:14.945Z"
+}

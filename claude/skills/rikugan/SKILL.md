@@ -70,7 +70,7 @@ was touched; the session's impression of it does not.
 ```bash
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> --register <desk> --json  # an object scope
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --backlog --register <desk> --json                       # a repository scope
-nen pr ready --repo <path> --pr <N> [--explain]  # per PR, quoted verbatim
+"$hatsu_root/scripts/gh_token_env.sh" nen pr ready --target <owner/name> --pr <N> [--explain]  # per PR, verbatim
 nen pr converge --target <owner/name> --pr <N> --catalogue "$hatsu_root/contracts/issue-sections.json"  # HR-11, quoted
 ```
 
@@ -135,8 +135,8 @@ no bell — a composite that owed a bell rang it before this step ([`jutaisho`](
   runs after futon § 8's gate, under this skill's own authority, its scope § 2 row 1; **it and futon
   § 10's final render are one render**, after the `then` outcome exists.
 - **The closing step of a composite that names `hatsu:rikugan` by name and hands over its scope** —
-  today [`en`](../en/SKILL.md) § 8, [`futon`](../futon/SKILL.md) § 10 and
-  [`backlog-loop`](../backlog-loop/SKILL.md) § 10 — this skill's § 0 is skipped. It is the dated
+  today [`en`](../en/SKILL.md) § 8, [`futon`](../futon/SKILL.md) § 10,
+  [`backlog-loop`](../backlog-loop/SKILL.md) § 10 and [`senkei`](../senkei/SKILL.md) § 5 (`register`) — this skill's § 0 is skipped. It is the dated
   final report those skills owe (futon's offers the open-question flow, WORKFLOW § *Idle batches* rule 9). `build` and `getsuga` do not name it;
   their objects reach this page typed or by § 2 row 4.
 

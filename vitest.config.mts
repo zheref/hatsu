@@ -9,6 +9,8 @@ import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    exclude: [...configDefaults.exclude, '**/.trusted/**'],
+    // hooks/desk's tests import the engine's own kit ('claude-code/testing') and run under
+    // `claude plugin test` on the desk-guard lane (scripts/desk_mod_test.sh), never under Vitest.
+    exclude: [...configDefaults.exclude, '**/.trusted/**', 'hooks/desk/**'],
   },
 });

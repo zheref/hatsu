@@ -123,6 +123,21 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **May a consumer override it?** The catalogue is Hatsu's; the values are the consumer's. Anything `set` or hand-edited in the consumer's file is never rewritten by `fill`; a `secret-env` row takes an environment-variable name, never a secret, and every written string is screened before the write.
 
+## `contracts/tenkai-fixes.json`
+
+**Purpose.** The fix every outstanding [`hatsu:tenkai`](../../claude/skills/tenkai/SKILL.md) item names ([zheref/hatsu#535](https://github.com/zheref/hatsu/issues/535)): what to run, which file and key to edit, which command reads the item again, and who supplies the value. `scripts/tenkai_fixes.ts` renders it into each outstanding row's `fix` block and the report's `guide`; lane `tenkai-fixes-guard` holds it.
+
+### Keys
+
+| Key | Type | Values · default | Represents | Read by |
+|---|---|---|---|---|
+| `$schema` | string | `hatsu.tenkai-fixes/v1` | the shape | `scripts/tenkai_fixes.ts` |
+| `fixes[]` | ordered rows; the first that matches wins, and the last is the `unmapped` catch-all | `id` (a pattern over the item id, its named groups filled into the templates), `states?`, `detail?`, `action?` (patterns that must also match, their groups filled too), `each?` (a group split on `, `, one `run` per element), `run?` (commands), `asks?` (the `<token>` values the owner answers), `edit?`, `guide?` (a page here), `detect`, `fill` (`default` \| `owner` \| `edit` \| `route` \| `unmapped`) | one item family's fix: `{repo}`, `{root}`, `{slug}` (a well-formed owner/name only), `{id}` and the groups (lane and verb admit only `[A-Za-z0-9_.-]`) are filled, shell-quoted in `run` and `detect`; an unfilled `{name}` renders the item `unmapped`, never a half-filled command | `tenkai_adopt.sh diagnose\|apply`; `tenkai` § 7 |
+
+**The five fills.** `default`: the run writes only catalogue defaults or Hatsu's own seeds (`tenkai_adopt.sh apply`, `config_values.sh fill`). `owner`: the run takes the owner's answer, single-quoted in place of its `asks` tokens, and an owner row is the only kind that carries one. `edit`: Tenkai's own § 6c scoped edit of `nen/contract.json` or `nen/workflow.json` after the owner decides, for a structure `nen schema set` never replaces (it adds a missing member or swaps a scalar), such as a scaffold's `PROPOSED SEAT`; `detect` reads it back. `route`: a change Tenkai never makes (a policy guard, `nen/repos.json`, `nen/gates.json`, a Hanten ledger, `git init`), named with its owner. `unmapped`: the catch-all, a defect to file. **Tenkai never invents a value**: a token nobody answered keeps its item outstanding. The catalogue is read from the Hatsu tree that runs, before anything writes, never from `--hatsu-root`.
+
+**May a consumer override it?** No; it is Hatsu's. A consumer's own values go into its own files through the fixes the file names.
+
 ## `contracts/scans.json`
 
 **Purpose.** The one source of the deterministic security-scan rows `hatsu:hanten` runs before Feitan reads: an exact gitleaks tag with its checksum manifest and per-host asset names, one dependency-audit row per ecosystem, selected by its `stacks`, the `nen stage triage` secret-shape read, and the builder-touching-workflow gate. A row that cannot run is reported as not scanned, never as clean.
@@ -208,12 +223,13 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
+| `scopes[].invocation` | enum | `ran` · `delta` · `skipped-exhausted` · `not-raised` | how a scope's reviewer pass went; `not-raised` is hanten § 5's: a required pass that could not be raised (hanten § 3's gap) or was raised and never returned, and requires `gap` with `used` `0` — this scope not reviewed, never a pass (zheref/hatsu#549) | `hatsu:hanten` §§ 3, 5 |
 | `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
 | `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
 | `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
 | `$defs.finding` (rule `CON-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10 as amended by HR-337: critical by shape, never pushed back; an `HR-{n}` rule is critical only on a ruled row, which `hanten` § 6 holds until the status-aware check [zheref/hatsu#466](https://github.com/zheref/hatsu/issues/466) lands | the same |
 
-**Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
+**Worked example.** [`contracts/hanten-findings.example.json`](../../contracts/hanten-findings.example.json) is a minimal record that passes `scripts/hanten_findings_check.mts` against the real ROSTER — one `ran` scope, one `not-raised` gap scope, a `fixed` and a `deferred` finding, one report; the checker prints every schema fault at once, one `::error` line each. **Validated by.** The `criteria` lane's fixture holds its structural invariants and fails if the shipped example stops passing. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
 
 ## `contracts/reference.gates.json`
 

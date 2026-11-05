@@ -178,6 +178,21 @@ the host may use a human or automatic reviewer. Read the exposed schema each tim
 is applied; other hosts may expose a different route or none. A request still pending is not
 approval, and an admitted action is proved by its execution result, not merely its submission.
 
+#### Publication requests — the authority a justification carries (zheref/hatsu#529)
+
+A working-branch push inside [`aka`](../../claude/skills/aka/SKILL.md) § 0's Covered row — an initial
+publication, a review fix, a catch-up — that needs review is submitted through this same route, its
+narrow justification carrying the handoff's five-fact record: the typed `kazaana`/`futon` invocation
+quoted, any maintainer answer the push also stands on quoted, the repository, the exact working branch,
+and the scope line. A prerequisite's push stands only on the maintainer's own words authorizing it, and
+an idle integration delivery on futon § 5's own rule (aka § 0); their requests carry the same facts and
+cite that authority instead of the Covered row. A new builder, maintenance
+actor, worktree or commit inside that record is not a reason to ask the maintainer again. The record is
+evidence, never a self-granted approval: an **actual rejection** keeps its decision and reason (the table
+above), independent work continues, and recovery is aka § 0's host-refusal rule, quoted: "their approval there, or one
+re-submission through that same route carrying their newly given words quoted beside the record". A destination outside the record, the protected base, a force or
+rewrite and a release stay refused or behind their own gates.
+
 **This recovery precedes an idle denial or park**, including a failure while creating the isolated
 checkout or run manifest. For checkout creation, retain the planned isolated destination and use the
 existing repository as cwd; once created, bind its returned absolute path. Git metadata may live

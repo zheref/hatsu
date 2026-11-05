@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-04-06",
+  "effortId": "opus-kurapika-ha-508-delivery-canon-fold",
+  "n": 5,
+  "gate": "G5",
+  "row": null,
+  "who": "Kurapika",
+  "question": "D1's PR can't open: 4 reviewer usage rows were recorded with a capitalised persona (\"Nobunaga\"), and pr_delivery normalize refuses them. How should it unblock?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Normalize reads case ⭐ (Recommended)",
+      "consequence": "D1 makes Hatsu's pr_delivery normalize accept a known persona in any case and render it lowercase, with a fixture. The ledger is never touched; it is folded under #542. A nen issue is filed for write-time validation."
+    },
+    {
+      "key": "B",
+      "label": "One-time ledger repair",
+      "consequence": "A scripted fix rewrites the 4 rows to lowercase, recorded as a Decisions row on the PR as an exception to #542's rule that generated ledgers are never hand-edited."
+    },
+    {
+      "key": "C",
+      "label": "Hold for nen verb",
+      "consequence": "File the nen issue (supersede verb plus write-time validation); D1's PR waits until nen ships and Hatsu repins."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-04T03:07:45.856Z"
+}

@@ -51,7 +51,10 @@ adoption PR at G2. Run `scripts/tenkai_adopt.sh diagnose --repo <consumer> --jso
 consumer's isolated effort. A consumer with a workflow policy guard must first land registration
 that admits the actual proposed workflow; Tenkai probes that guard and stages a refused rendering.
 There is no two-step requirement for a consumer without such a guard. This change does not adopt
-any other repository or edit its rulesets.
+any other repository or edit its rulesets. Until a consumer's adoption PR lands, that consumer has
+no such check. On 2026-10-31, the consumer zheref/hatsu#470 names held only `deploy.yml` and
+`pr.yml` under `.github/workflows/`, so its adoption is still owed. Never call the check required in a
+consumer whose destination branch does not carry it.
 
 Before enabling a required-check rule, adopt both the workflow and
 `scripts/consumer_trailer_ci.mts` on every protected destination branch it covers, and scope the
@@ -70,7 +73,8 @@ Never report a consumer check as installed without reading that destination bran
 
 ## Cursor cloud agents: no documented off-switch
 
-Fetched 2026-10-25 from Cursor's own documentation. The cloud-agent page
+Fetched 2026-10-25 and again on 2026-10-31 from Cursor's own documentation; both reads quote the
+same words. The cloud-agent page
 <https://cursor.com/docs/cloud-agent/security-network> (§ *Commit author*) says:
 
 > "On GitHub, Cloud Agents author and commit as `Cursor Agent <cursoragent@cursor.com>`, not as the
@@ -92,6 +96,16 @@ under which a cloud agent's commit lacks the trailer is an agent started by a se
 to run cloud agents that way is the maintainer's decision, not a setting a skill applies. A cloud agent
 therefore stamps `Co-authored-by` on **every** commit, which `commits.forbiddenTrailers` refuses.
 
+The 2026-10-31 read also covered the cloud agent's settings and setup pages
+(<https://cursor.com/docs/cloud-agent/settings>, <https://cursor.com/docs/cloud-agent/setup>), the
+cloud agent overview (<https://cursor.com/docs/cloud-agent>) and the changelog's first page
+(<https://cursor.com/changelog>). None of them names a trailer, a commit author setting or a git
+hook. The overview's *Hooks support* section, "Cloud agents run command-based hooks from
+`.cursor/hooks.json` in your repository", concerns Cursor's agent hooks, not git's. **No off-switch
+for a cloud agent's `Co-authored-by` is documented as of 2026-10-31.** Cursor does not document how
+it adds the trailer. The maintainer's observation on zheref/hatsu#470 (2026-10-31) is that a
+`prepare-commit-msg` hook adds it.
+
 ## A hook that re-injects on every commit
 
 The recovery is a **stop before the first push**, never publish and disclose (zheref/hatsu#470).
@@ -107,6 +121,48 @@ agent's own read of every outgoing commit and is not mechanical. `--no-verify` i
 published is never rewritten by a run (row `rewrite-published-history`; the maintainer's alone). The
 maintainer's options are to move the effort to a surface whose harness appends nothing (row
 `harness-attribution-switch`, option B) or to leave it stopped.
+
+### When the `commit-msg` hook refuses the commit outright
+
+In a repository whose `commit-msg` hook `nen scaffold init` wrote (layer (b), [WORKFLOW](WORKFLOW.md)
+§ `commits`), the key is refused **before any commit exists**. The harness's `prepare-commit-msg`
+hook adds the trailer, then the nen-written hook refuses it:
+
+> commit-msg: this message carries a '<Key>:' trailer, which this repository's nen/workflow.json does
+> not list under commits.allowedAttributionTrailers.
+
+`nen commit write` and `nen wc squash` exit `1` (a failed git). Read that line in their stderr: it
+is the same re-injecting hook, already caught before the first push, when the key it names (compared case-insensitively) was
+not in the composed message: the harness's hook added it. **If the composed message itself carried that
+key**, the hook and the current `nen/workflow.json` disagree (layer (c) would otherwise have refused
+it at exit `2`). That is a repository defect, not an injection: stop, name it, and leave the
+regeneration to `nen scaffold init`, never to the run. **Either way nothing was committed, so there
+is nothing to drop.**
+`nen commit write` leaves the change staged. A refused `nen wc squash` has already reset the branch
+to the squash point. Restore the folded commits with `git -C <path> reset --soft ORIG_HEAD` and
+nothing else. The squash refuses a dirty tree, so this has the same result as the `--hard` line nen
+prints, without touching the working tree (aka § Residue).
+
+- **Where no documented switch reaches the hook, the first refusal is the stop.** That is a Cursor
+  cloud agent as of 2026-10-31, and any harness the run cannot place. Option A of row
+  `harness-attribution-switch` reaches nothing there. Push nothing, then stop at **G5** through
+  option C (`nen stop --who Kurapika --gate G5 <efforts.md>`) and name the hook's line in the stop.
+- **On an IDE or CLI harness with a documented switch**, ask row `harness-attribution-switch` once
+  and re-run once. A second refusal is the same G5.
+- **Never work around the hook.** `--no-verify`, `-c core.hooksPath=<elsewhere>`, editing or
+  removing a file under `.git/hooks/`, writing the commit with `git commit-tree`, and a wrapper that
+  edits the message after `prepare-commit-msg` all skip layer (b). Each is `--no-verify` by another
+  name, and each is refused.
+
+**No sanctioned strip step exists at the pin** (nen 0.28.0). The hook `nen scaffold init` writes
+refuses a listed key on every commit, and no nen verb removes a key a hook added. Whether nen should
+offer one, and on what terms, is zheref/nen#594, a design question for the maintainer. Until it is
+ruled and released, a cloud agent cannot commit in such a repository. The maintainer's ways forward
+are option B (a surface whose harness appends nothing), starting the cloud agent from a service
+account (Cursor documents that such agents get no trailer; that choice is the maintainer's, not a
+setting a skill applies), or leaving the effort stopped.
+
+## Pull request provenance
 
 The pull request body begins with `## Delivery`, rendered from the effort's Nen phase, usage and session ledgers. It reports role, surface, recorded model with registry alias, effort dial, session and a ledger locator. The public Source cell gives kind/index, timestamp and optional phase; free-form ledger provenance stays local. An exact served model ID appears only when the harness reported and the ledger recorded it; an alias alone never proves an ID. An unread ID or session is stated explicitly. This is PR delivery provenance, not commit attribution. The pull request body also ends with this final section:
 

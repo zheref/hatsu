@@ -147,7 +147,7 @@ try {
   expect('--print beside --print-host exits 2', ['--print', '--print-host'], 2, null, /usage/);
 
   // AC-1: the skills that raise a delegate cite the section the block lives in.
-  for (const skill of ['kazaana', 'futon']) {
+  for (const skill of ['kazaana', 'futon', 'kage-bunshin']) {
     const text = readFileSync(join(root, 'claude', 'skills', skill, 'SKILL.md'), 'utf8');
     assert.match(text, /WORKFLOW[^\n]*§ \*Delegate briefs\*/, `${skill} does not cite WORKFLOW § Delegate briefs`);
     cases += 1;

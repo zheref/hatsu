@@ -63,7 +63,7 @@
 # above all, `hand-edited: (none)` -- nothing in the tree was touched by hand,
 # and one generated line differs in every file. Verified for zheref/hatsu#530 by
 # running both guards against both trees: base-guard/base-tree and
-# head-guard/head-tree each exit 0 with `ok: 84` per surface, and only the cross
+# head-guard/head-tree each exit 0 with `ok: 85` per surface, and only the cross
 # pairing fails.
 #
 # DO NOT SPLIT SUCH A CHANGE INTO A TWO-STEP LANDING. That is the usual remedy
@@ -78,8 +78,8 @@
 # fixtures edit a literal only where the edit reaches what runs, and a fixture
 # that cannot stops the self-test as broken (zheref/hatsu#136).
 # Verified locally against this branch: `bash scripts/surface_mirror_check.sh`
-# exits 0 with `ok: 84` for each of codex, cursor and antigravity and no stale,
-# missing, extra or hand-edited row (61 skill directories and 18 personas as this
+# exits 0 with `ok: 85` for each of codex, cursor and antigravity and no stale,
+# missing, extra or hand-edited row (62 skill directories and 18 personas as this
 # is written; the guard's own `ok:` line is the source, and a count copied to here
 # goes stale exactly as the one it replaced did -- zheref/hatsu#530). So the skip
 # branch is unreachable at this pin, and it is kept as an

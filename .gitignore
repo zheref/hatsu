@@ -3,3 +3,5 @@ Reports/
 .claude/worktrees/
 node_modules/
 coverage/
+# Written by Claude Code when it loads the desk module from a checkout (hooks/desk): the engine's types.
+.claude-plugin/types/

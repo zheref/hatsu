@@ -703,6 +703,18 @@ test("HA#503 AC-3: the prose checklist resolves on no cell without the canon-pro
   assert.equal(cat.footer.find((row): boolean => row.id === "prose")?.when, "canon-prose");
 });
 
+test("HR-377/HR-383: the improves template and the definitions table carry the catalogue's aspects, in order", () => {
+  const aspects = (JSON.parse(readFileSync(join(HATSU_ROOT, "contracts/pr-sections.json"), "utf8")) as { aspects: string[] }).aspects;
+  assert.equal(aspects.length, 13, "the catalogue carries thirteen aspects");
+  const template = readFileSync(join(HATSU_ROOT, "templates/pr-body/improves.md"), "utf8");
+  const rows = template.split("\n").filter((line): boolean => / \| ➖ \| \|$/.test(line)).map((line): string => line.split("|")[1].trim());
+  assert.deepEqual(rows, aspects, "templates/pr-body/improves.md rows");
+  const doc = readFileSync(join(HATSU_ROOT, "docs/PR-SECTIONS.md"), "utf8");
+  const table = doc.slice(doc.indexOf("| Aspect | Moves when the change alters… |")).split("\n\n")[0];
+  const defined = table.split("\n").slice(2).map((line): string => line.split("|")[1].trim());
+  assert.deepEqual(defined, aspects, "docs/PR-SECTIONS.md § Write for the decision definitions");
+});
+
 test("HA#503 AC-1/AC-2: exactly one PRS row per letter, answered by Chrollo with a verdict and the line read", () => {
   const report = resolution("process", ["prose-authoring"], ["policy-hit", "canon-prose"]);
   assert.deepEqual(check(cat, proseBody(report, ANSWERED), report.requirements, 7)[0], []);
@@ -734,6 +746,27 @@ test("HA#503 AC-1/AC-2: exactly one PRS row per letter, answered by Chrollo with
   // A later repeat outside the section is another section's business, never a duplicate here.
   const later = proseBody(report, ANSWERED).replace("## 📋 Completion checklist\n\nFilled.", "## 📋 Completion checklist\n\n| Row | Reviewer | Verdict | Line read |\n|---|---|---|---|\n| PRS-M | Chrollo | yes | line 3 |");
   assert.deepEqual(check(cat, later, report.requirements, 7)[0], []);
+});
+
+test("HA#527: a Line-read cell may begin with its only line reference; a cell with none still refuses", () => {
+  const report = resolution("process", ["prose-authoring"], ["policy-hit", "canon-prose"]);
+  const unmet = (rows: string): string[] => check(cat, proseBody(report, rows), report.requirements, 7)[0];
+  const each = (cell: string): string => ["C", "L", "S", "M"].map((letter): string => `| PRS-${letter} | Chrollo | yes | ${cell} |`).join("\n");
+  const only = (letter: string, cell: string): string => ANSWERED.replace(`| PRS-${letter} | Chrollo | yes | zheref/hatsu#503 line 17 |`, `| PRS-${letter} | Chrollo | yes | ${cell} |`);
+  const one = (cell: string): string => only("S", cell);
+  // AC-1: the reference is the cell's first token and its only one (HA-PR-#513's PRS-S row), on every letter.
+  for (const cell of ["line 36 (Out of scope: the rest)", "line 7", "a:3 first", "x:9", "1:2", "docs/PR-SECTIONS.md:131 (the scope paragraph)"]) {
+    assert.deepEqual(unmet(each(cell)), [], `every letter: ${cell}`);
+    assert.deepEqual(unmet(one(cell)), [], `PRS-S alone: ${cell}`);
+  }
+  // AC-2: the shapes accepted before still read.
+  for (const cell of ["zheref/hatsu#503 line 17", "zheref/hatsu#503 line 17; zheref/hatsu#9 line 4", "docs/PR-SECTIONS.md:131", "read at line 36"])
+    assert.deepEqual(unmet(one(cell)), [], cell);
+  // AC-3: a cell with no reference, empty, a dash or the placeholder still refuses, on each letter alone
+  // (the other three rows answered), so a lookahead dropped from any one letter's copy fails here.
+  for (const letter of ["C", "L", "S", "M"])
+    for (const cell of ["unread", "—", "-", "", "<line read>", "<line read> line 3", "the scope paragraph", "outline 3", "path:"])
+      assert.deepEqual(unmet(only(letter, cell)), ["section prose: requirement prose-rows is unmet"], `PRS-${letter}: ${JSON.stringify(cell)}`);
 });
 
 test("HA#503 AC-3: --scopes-from reads nen review scopes, and only a Markdown path Chrollo's scope claims admits the checklist", (context) => {
