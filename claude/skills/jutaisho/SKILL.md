@@ -147,9 +147,11 @@ read-stderr rules are [`docs/surfaces/README.md`](../../../docs/surfaces/README.
 Here: **the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
 is removed by the side that consumed it** (the hook, when it fired; the fallback, only where no hook
 file is placed), and **the stop still stands** whichever path rang, § 4's four parts being the real bell.
-**The fallback is one call**, `"$hatsu_root/scripts/bell_notify.sh" --title <t> --message <m>`, a fixed argv (#289). **Residue:** `osascript` and `afplay` inside it are harness shell, `[unknown]` to nen; the script prints each rung's stderr.
+**The fallback is one call**, `"$hatsu_root/scripts/bell_notify.sh" --title <t> --message <m>`, a fixed argv (zheref/hatsu#289).
 
-## Authority
+## Residue & Authority
+
+`osascript`/`afplay` in the fallback: harness shell, `[unknown]` to nen; one line per rung.
 
 **Permitted:** write the marker through `nen stop --mark`; run `nen stop` and `nen stop answer`; fire the
 workflow's declared rungs; ask through the surface's option picker. **Not permitted:** any git or

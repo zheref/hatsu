@@ -110,8 +110,17 @@ fires rungs 2 and 3 itself and says so, sanitising every value exactly as
 [`hooks/stop-bell.sh`](../../hooks/stop-bell.sh) does: strip `"`, `\` and newlines from title and body,
 pass each as one argument, reduce the sound name to `[A-Za-z0-9_-]` with `Glass` as the fallback, and
 drop a value that cannot be sanitised rather than ring with it. Read stderr, not the exit code:
-`osascript` exits 0 with nothing delivered where the session has no Notification Center seat, and
-`afplay` exits 1 with `AudioQueueStart failed`; either is reported `not applicable, no seat`, by rung.
+`osascript` exits 0 with nothing delivered where the session has no Notification Center seat, so `sent`
+never confirms delivery. A rung whose tool is absent is reported `not applicable`; a tool that ran and
+reported an error (`afplay` exiting 1 with `AudioQueueStart failed`, an XPC seat error) is `failed`, its
+exit and stderr quoted; a tool that never returns is stopped at the fallback's deadline and reported
+`timed out`, and the sound rung still runs once after it (`scripts/bell_notify.sh`, zheref/hatsu#516). The
+fallback's deadline is `--deadline` whole seconds, 1 to 60, default 5; each rung returns within deadline +
+2 seconds, and the child is stopped by its own PID, TERM then KILL, never by name. The Stop hook bounds the
+same tools with `HATSU_BELL_DEADLINE` (1 to 5, default 5, any other value 5), tries a rung that timed out
+only once per run, and starts no rung past a 12-second budget measured in whole seconds, so the rungs end
+within about 13 seconds and the remaining time of the hook's 15-second timeout is left to `nen stop clear`;
+the fixture proves three markers cleared inside it, and the clears themselves are not budgeted.
 Never retry, never substitute another noise-maker, and an unfired rung is never rendered as fired. Where no
 hook file is placed the skill also clears the marker (`nen stop clear`) once the stop is answered; where the
 hook fired, the hook consumed the marker and the skill does not.
