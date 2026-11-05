@@ -324,9 +324,30 @@ run_case 'Codex overlay that is a dangling symlink fails, not absent' 1 "$fixtur
 # with it while three head reads stayed: the overlay's name and version, and the no-bump refusal's
 # head version, which fires on EVERY refused PR. head_token() is the rule now, and these rows are its
 # proof: neither a CR nor an ESC reaches the trusted job's log. ---------------------------------
+# --- assert_decodes FILE FIELD LABEL -----------------------------------------
+# Proves a hostile fixture below is VALID JSON whose FIELD decodes to a real CR
+# and a real ESC. A raw CR or ESC written straight into a JSON string literal is
+# INVALID JSON -- RFC 8259 forbids unescaped U+0000 through U+001F -- so jq
+# refuses the file, plugin_name()/plugin_version() echo "", and head_token()'s
+# EMPTY branch prints <malformed>. The <malformed> assertions then pass while the
+# character rule they exist to prove is never reached, and a sanitizer regression
+# goes undetected (Copilot on zheref/hatsu#532). This guard fails loudly instead.
+assert_decodes() {
+  local decoded
+  jq -e . "$1" >/dev/null 2>&1 \
+    || { printf '%s: fixture is not valid JSON, so jq never hands head_token anything\n' "$3" >&2; exit 1; }
+  decoded="$(jq -r "$2" "$1")"
+  [ -n "$decoded" ] \
+    || { printf '%s: %s decoded empty, so the <malformed> below is head_token empty branch\n' "$3" "$2" >&2; exit 1; }
+  printf '%s' "$decoded" | LC_ALL=C grep -q $'\r' \
+    || { printf '%s: %s decodes no CR\n' "$3" "$2" >&2; exit 1; }
+  printf '%s' "$decoded" | LC_ALL=C grep -q $'\033' \
+    || { printf '%s: %s decodes no ESC\n' "$3" "$2" >&2; exit 1; }
+}
 mkdir -p "$fixture_root/tree-codex-hostile/.claude-plugin" "$fixture_root/tree-codex-hostile/.codex-plugin"
 printf '%s\n' '{"version":"0.16.1"}' > "$fixture_root/tree-codex-hostile/.claude-plugin/plugin.json"
-printf '{"name":"ha%s::notice title=x::forged%s[2J","version":"0.16.1"}\n' "$(printf '\r')" "$(printf '\033')" > "$fixture_root/tree-codex-hostile/.codex-plugin/plugin.json"
+printf '%s\n' '{"name":"ha\r::notice title=x::forged\u001b[2J","version":"0.16.1"}' > "$fixture_root/tree-codex-hostile/.codex-plugin/plugin.json"
+assert_decodes "$fixture_root/tree-codex-hostile/.codex-plugin/plugin.json" .name 'hostile overlay name'
 hostile_overlay="$(bash "$guard" "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/tree-codex-hostile/.claude-plugin/plugin.json" "$fixture_root/body.md" 2>&1 || true)"
 grep -Fq -- '.codex-plugin/plugin.json name is <malformed>' <<<"$hostile_overlay" \
   || { printf 'hostile overlay name: expected <malformed>, got:\n%s\n' "$hostile_overlay" >&2; exit 1; }
@@ -335,7 +356,8 @@ if printf '%s' "$hostile_overlay" | LC_ALL=C grep -q $'\033'; then echo 'hostile
 printf '%s\n' 'hostile overlay name printed as <malformed>, no CR and no ESC: ok'
 # the no-bump refusal path, which every refused PR reaches
 mkdir -p "$fixture_root/tree-hostile-version/.claude-plugin"
-printf '{"version":"0.0.1%s::error title=plugin-bump::forged%s[2K"}\n' "$(printf '\r')" "$(printf '\033')" > "$fixture_root/tree-hostile-version/.claude-plugin/plugin.json"
+printf '%s\n' '{"version":"0.0.1\r::error title=plugin-bump::forged\u001b[2K"}' > "$fixture_root/tree-hostile-version/.claude-plugin/plugin.json"
+assert_decodes "$fixture_root/tree-hostile-version/.claude-plugin/plugin.json" .version 'hostile head version'
 hostile_version="$(bash "$guard" "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/tree-hostile-version/.claude-plugin/plugin.json" "$fixture_root/body.md" 2>&1 || true)"
 grep -Fq -- 'head <malformed>' <<<"$hostile_version" \
   || { printf 'hostile head version: expected "head <malformed>", got:\n%s\n' "$hostile_version" >&2; exit 1; }
