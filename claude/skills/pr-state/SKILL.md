@@ -18,10 +18,10 @@ the open set:
 
 | PR | claimed | actual verdict |
 | --- | --- | --- |
-| #575 | "merge it" | `not-ready` — `CON-32(a)` |
-| #679 | "once green" | `not-ready` — 1 unresolved thread |
-| #603 | ready | **`ready`** |
-| #622, #678 | "driving to ready" | `not-ready` — `CONFLICTING` |
+| RR-PR-#575 | "merge it" | `not-ready` — `CON-32(a)` |
+| RR-PR-#679 | "once green" | `not-ready` — 1 unresolved thread |
+| RR-PR-#603 | ready | **`ready`** |
+| RR-PR-#622, RR-PR-#678 | "driving to ready" | `not-ready` — `CONFLICTING` |
 
 **Three of four wrong.** Not for want of a tool — the tool evaluated 19 of 21 PRs fine on that same
 host. It was skipped. **A deterministic authority an agent may skip is a suggestion**, so this skill
@@ -51,7 +51,7 @@ hatsu:pr-state <repo_code>#<PR_NUMBER>        e.g.  hatsu:pr-state BC#603
 | Part | Accepts | Rule |
 |---|---|---|
 | `<repo_code>` | a product code from the target repository's `nen/repos.json` → `product_codes` | **case-insensitive**; an unknown code is **asked for** with the valid ones as the picker's options, never a guess |
-| `<PR_NUMBER>` | a positive integer | a number that names an **issue**, not a PR, is **not** caught as one before the call — verified against `v0.1.0`, it comes back `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of <N>.)`, carrying `nen`'s generic token-grants remedy even though the token is fine — see the callout below and § 4. No `v0.2.0`/`v0.3.0` changelog entry touches this path; it is not re-verified at `v0.3.0` (a live GitHub read) |
+| `<PR_NUMBER>` | a positive integer | a number that names an **issue**, not a PR, is **not** caught as one before the call — verified, by 2026-09-08, against `v0.1.0`, it comes back `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of <N>.)`, carrying `nen`'s generic token-grants remedy even though the token is fine — see the callout below and § 4. No `v0.2.0`/`v0.3.0` changelog entry touches this path; it is not re-verified at `v0.3.0` (a live GitHub read) |
 
 The codes are read from the registry **at run time, never from memory** — they change. `nen pr ready`
 does this itself: pass the ref straight through and let the verb resolve it against
@@ -65,17 +65,17 @@ registry entry is set up through the registry's own key, never by this read-only
 
 > **Write the `#`.** This port filed a finding against `v0.1.0` (`docs/ab/pr-state.md` § 4): the no-`#`
 > shorthand split off only the **last** digit, so `BC925` refused with `'BC92' is not a product code`.
-> **Closed by nen `v0.2.0` (#72, closes zheref/nen#26)** — the shorthand now reads the **longest
-> trailing digit run** as the number, and `nen pr ready --help` says so. Verified live at `v0.3.0`
+> **Closed by nen `v0.2.0` (zheref/nen#72, closes zheref/nen#26)** — the shorthand now reads the **longest
+> trailing digit run** as the number, and `nen pr ready --help` says so. Verified live, by 2026-10-22, at `v0.3.0`
 > against the bundled registry: `nen pr ready BC925 --repo <path>` and `nen pr ready BC#925 --repo
-> <path>` both resolve to `<reference-repo>#925` (and then, with no token, `unevaluated` at exit `1` —
+> <path>` both resolve to RR-PR-#925 in `<reference-repo>` (and then, with no token, `unevaluated` at exit `1` —
 > the ref resolved; GitHub was not read). The instruction stands as belt-and-braces rather than as a
 > workaround: `<CODE>#<N>` is the unambiguous form, and a product code that itself **ends in a digit**
 > still needs the `#`, by the verb's own account.
 
 > **A wrong number is caught by GitHub, not by `nen`, and the remedy it prints can mislead.**
 > `nen pr ready` never checks whether `<PR_NUMBER>` names a pull request before asking GitHub —
-> verified against `v0.1.0`, `BC#918` (`918` is an issue on `<reference-repo>`, not a PR) does
+> verified, by 2026-09-08, against `v0.1.0`, `BC#918` (`918` is an issue on `<reference-repo>`, not a PR) does
 > **not** come back as "that's an issue." It comes back
 > `unevaluated: GitHub could not be read (… Could not resolve to a PullRequest with the number of
 > 918.)`, followed by `nen`'s generic token-grants remedy (`pull-requests:read AND checks:read AND
@@ -90,7 +90,7 @@ registry entry is set up through the registry's own key, never by this read-only
 
 Every `nen pr ready` call below runs through `scripts/gh_token_env.sh` — `nen` never picks a token up
 ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`
-([WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, #218).
+([WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, zheref/hatsu#218).
 
 **Which identity flag goes on the call is decided BEFORE it is typed — never the `--gates` form by
 default.** This section owns the rule for every flag on the call — the identity flag and, below, why no
@@ -145,8 +145,8 @@ optional | off` read at the base and default tip, never the head (PROCESS, *AI r
 reviewer suffices*). **A CI reviewer lane's** round is read the same way, by the verdict: [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*, stated once there.
 
 **Always the `$hatsu_root`-anchored form when `--gates` is the one in play, never a bare `contracts/reference.gates.json`.** The
-reason moved with nen `v0.2.0` (#86) and the practice did not: a **relative** `--gates` now resolves
-against **`--repo`'s root, never the cwd** — verified live at `v0.3.0`, from `/tmp` with `--repo` pointed
+reason moved with nen `v0.2.0` (zheref/nen#86) and the practice did not: a **relative** `--gates` now resolves
+against **`--repo`'s root, never the cwd** — verified live, by 2026-09-08, at `v0.3.0`, from `/tmp` with `--repo` pointed
 at a checkout that lacks the file: `nen: <repo>/contracts/reference.gates.json: no such file. --gates was
 given 'contracts/reference.gates.json', which is RELATIVE, so it was resolved against the target
 repository root … not the current directory` (exit `2`). The file lives in *this* plugin's checkout, not in
@@ -172,7 +172,7 @@ line), so the report itself says which file decided.
 - **`--gates "$hatsu_root/contracts/reference.gates.json"`** — `<reference-repo>` is FROZEN and ships
   no gates file of its own (no `nen/gates.json`); without
   `--gates` (or a `--reviewers` override) `nen pr ready` refuses outright with `no reviewer identities`
-  rather than guessing a reviewer set — verified live at `v0.3.0`, and the refusal now names **both**
+  rather than guessing a reviewer set — verified live, by 2026-09-08, at `v0.3.0`, and the refusal now names **both**
   locations it looked in. This repository's `contracts/reference.gates.json` carries the same reviewer
   identities the oracle script hard-codes — see that file's own header. **A repo that ships its own
   `nen/gates.json` needs no `--gates` flag at all**; this one
@@ -200,7 +200,7 @@ line), so the report itself says which file decided.
 - **Exit `2`** → the invocation itself was refused before evaluation ever started (an unknown code, an
   unparseable ref, no reviewer identities). Never render this as any of the three verdicts — quote the
   refusal text verbatim; it is the trigger to ask for the missing piece and re-run (§ 1), not the end. A missing or expired `GH_TOKEN` is **not** this case: it
-  surfaces as the `unevaluated` verdict on exit `1` (§ 4), verified live — quote that verdict, don't
+  surfaces as the `unevaluated` verdict on exit `1` (§ 4), observed live, by 2026-09-01 with no evidence file kept — quote that verdict, don't
   reclassify it as a refusal.
 
 **Never pass `--round-policy strict`.** `bounded` is the default and the settled `CON-32(b)` reading
@@ -228,7 +228,7 @@ the part after the `: ` — e.g. `not-ready: 3 unresolved review thread(s) (CON-
 > decided by nen 0.7.0 (/Users/<you>/.cache/nen/zheref_nen/v0.7.0/nen-darwin-arm64) at 2026-09-10T21:07:18Z
 > ```
 >
-> Verified live (`docs/ab/pr-state.md` § *Retired at nen 0.7*); at `v0.6.0` the same invocation
+> Verified live, by 2026-09-10 (`docs/ab/pr-state.md` § *Retired at nen 0.7*); at `v0.6.0` the same invocation
 > printed the two header lines and no third. `--json` gains `meta.generator.executable` beside the
 > `program` and `version` it has carried since `v0.1`.
 >
@@ -244,7 +244,7 @@ the part after the `: ` — e.g. `not-ready: 3 unresolved review thread(s) (CON-
 Then the conjunct-by-conjunct table — **rendered by `--explain`, not reconstructed by hand.** The gate
 is a conjunction evaluated **in this order**, and it **short-circuits on the first failure**, so
 everything after the failing row is genuinely *unknown* and `nen` itself prints it as `unevaluated`
-rather than as passing. The "what a failure reads as" column below is illustrative, verified live and
+rather than as passing. The "what a failure reads as" column below is illustrative, observed live, by 2026-10-22 with no evidence file kept, and
 against `nen`'s own source at the port (ported at `v0.1.0`; the six rows, their order and the three "does
 NOT decide" caveats re-verified byte-for-byte in `--explain`'s output at `v0.3.0`, and no `v0.2.0`/`v0.3.0`
 changelog entry touches a conjunct's text) — **relay `--explain`'s own printed text, never retype it from
@@ -279,7 +279,7 @@ memory**, since more than one of these rows has more than one real shape:
 > **Read it off the report, never infer it.** `--explain` prints the reason under each row it
 > satisfied (`conjuncts[].note` under `--json` — a **separate field from `reason`**, which means
 > "the gate's own words for what FAILED"; rendering one as the other reports a satisfied row as a
-> problem), and **`meta.dependabotCarveOut`** says whether it fired. Verified live at the pinned
+> problem), and **`meta.dependabotCarveOut`** says whether it fired. Verified live, by 2026-10-22, at the pinned
 > `0.7.0` (`docs/ab/pr-state.md` § *Retired at nen 0.7*): **`false`** on an ordinary evaluation,
 > **`null`** on an `unevaluated` report — where the gate never ran far enough to ask, and `false`
 > there would read as "asked, and no", a claim about evidence nobody looked at.
@@ -288,7 +288,7 @@ memory**, since more than one of these rows has more than one real shape:
 > identity path**, which names no file and therefore declares none. And
 > `contracts/reference.gates.json` — the file this skill passes for the frozen reference
 > implementation — **declares no carve-out**, so every verdict it produces is `dependabotCarveOut:
-> false`. An **empty `satisfied_by_context` is refused at LOAD**, exit `2` (verified live): a
+> false`. An **empty `satisfied_by_context` is refused at LOAD**, exit `2` (verified live, by 2026-10-22): a
 > carve-out satisfied by no context is satisfied by nothing, and would open `CON-32(b)` outright for
 > the one author whose whole premise is that nobody reviews its work.
 
@@ -323,19 +323,19 @@ names the fix, and a paraphrase risks losing the exact grant or cause it points 
 **Never `ready`, and never silently omitted.** This is RR-IS-#680's principle in its smallest form:
 *absence is never a pass.* An unevaluated PR is a row that needs attention, not one that cleared.
 
-**What would fix it — quote `nen`'s own remedy line, verified live (and against `nen`'s `v0.1.0` source
-at the port; the first shape re-verified live at `v0.3.0`, the others untouched by any later changelog
+**What would fix it — quote `nen`'s own remedy line, observed live, by 2026-09-08 with no evidence file kept (and against `nen`'s `v0.1.0` source
+at the port; the first shape re-observed live, by 2026-09-08 with no evidence file kept, at `v0.3.0`, the others untouched by any later changelog
 entry) for each shape below:**
 
 - `unevaluated: no usable token, so GitHub could not be read` — § 2's call ran without
-  `scripts/gh_token_env.sh`, or the token `gh auth token` printed has expired (`gh auth status`); re-run through it. This is verified live at
+  `scripts/gh_token_env.sh`, or the token `gh auth token` printed has expired (`gh auth status`); re-run through it. This is observed live, by 2026-10-22 with no evidence file kept, at
   `v0.3.0`: an invocation with no `GH_TOKEN` set prints this exact string and a second line naming the
   cause — `GH_TOKEN is not set -- this client never picks a token up ambiently the way gh does, so the
   caller must mint one and name the variable it lives in`. Never read this as "the PR is not ready" — it
   is a caller-side setup gap.
 - `unevaluated: the check rollup could not be read for <owner>/<repo>#<N>` — the remedy is a **missing
   token grant**: `checks:read` alone is not enough, the rollup's own `checkSuite.workflowRun` sub-field
-  needs `actions:read` too (verified against `src/github/pr_state.ts` at the `v0.1.0` tag). `nen`
+  needs `actions:read` too (verified, by 2026-09-01, against `src/github/pr_state.ts` at the `v0.1.0` tag). `nen`
   deliberately **refuses to conflate this with an EMPTY rollup** — a genuinely empty, *readable* rollup
   is `CON-32(a)`'s own `not-ready` instead (see § 3's build-check caveat). Unreadable and empty are two
   different findings with two different remedies; never collapse one into the other.
@@ -372,7 +372,18 @@ A skill nobody is obliged to use changes nothing, so the obligation is the rule 
 merely the convenient way to satisfy it. **Where the gate cannot evaluate, the claim is
 `unevaluated`** — the one thing that is never available is calling it ready anyway.
 
-## 6. What this skill must never do
+## Residue
+
+None of its own at the pin: § 2's whole computation is `nen pr ready`, run through
+`scripts/gh_token_env.sh` (§ 2), and the report quotes it.
+
+## Authority
+
+**Permitted:** read — `nen pr ready`, as §§ 1–2 run it — and
+report the verdict verbatim with its breakdown. **Not permitted:** any write: no label, merge, push,
+comment, review request or re-run (§ 6). It holds no gate and grants no delegation.
+
+## 6. Hard limits — what this skill must never do
 
 - **Act on the verdict.** No label, no merge, no push, no comment, no re-request, no re-run — even
   when the verdict is `ready` and the next step is obvious. Say what the action is; do not take it.
@@ -386,5 +397,5 @@ merely the convenient way to satisfy it. **Where the gate cannot evaluate, the c
   issue-number ref.** § 1's second finding means that remedy is printed identically whether the token
   is actually missing a grant or the number simply names an issue, not a PR — check which before acting
   on the remedy.
-- **Pass `--round-policy strict`**, or re-derive any conjunct by hand when `nen pr ready` is available.
+- **Pass `--round-policy strict`**, or re-derive any conjunct outside the verb when `nen pr ready` is available.
 - **Claim the conjuncts after the failing one passed.** The gate short-circuits; they are unknown.

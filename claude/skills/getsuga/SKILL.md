@@ -57,7 +57,7 @@ of them lives* once the lattice is the map.
   declares an `archive`, producing the distributable is that phase — the declared verb, run locally,
   uploading nothing — and getsuga consumes the unit rather than building it. A lane whose `archive`
   is a seat answers exit `4` with the declaration's own reason and **that is the whole report** for
-  such a repository; verified live at `0.3.0` against this plugin's own `plugin` lane
+  such a repository; verified live, by 2026-09-10, at `0.3.0` against this plugin's own `plugin` lane
   (`docs/ab/getsuga.md` § 2.7).
 - **The release itself is never getsuga's.** Publication is [`mugetsu`](../mugetsu/SKILL.md)'s phase,
   per target, at **G3**, on the maintainer's own go (mugetsu § 0); a non-production upload is
@@ -136,7 +136,7 @@ passed is the LITERAL `main`**: nen maps it to the re-fetched `origin/<trunk>` t
 trunk is called, whereas `--token <branch.base>` would resolve a possibly stale LOCAL ref — a typed
 token is passed through only as the explicit override it is. The verb re-fetches `origin/<trunk>`
 itself, runs `git merge-base --is-ancestor <resolved> origin/<trunk>`, and refuses a
-dirty `checkout` outright (uncommitted work is not in any commit, so there is nothing to tag). Verified live against the real `<reference-repo>` (`docs/ab/getsuga.md`
+dirty `checkout` outright (uncommitted work is not in any commit, so there is nothing to tag). Verified live, by 2026-09-02, against the real `<reference-repo>` (`docs/ab/getsuga.md`
 § 2.1): `--token main` and `--token last-commit` both resolve to the freshly re-fetched
 `origin/main` tip and report `an ancestor of the trunk -- safe to cut`; a branch token pointing at a
 live `integration/*` branch reports `NOT an ancestor of the trunk -- it has to reach the trunk first
@@ -150,7 +150,7 @@ before it can be tagged` — exit `1`, never a refusal to run.
 [`hatsu:tensho`](../tensho/SKILL.md), which is the verb for that, and resume once its PR lands.
 
 **The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
-contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+contract for a phase the maintainer types into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
 says which composite is holding it instead.
@@ -175,7 +175,7 @@ GitHub reads that produce the raw facts:
   open --json number`. **The label is the full `bankai:severity/critical`, never the bare
   `critical`** — a bare `critical` label does not exist in `nen/labels.json`,
   and the query silently returns zero matches rather than erroring, which would defeat this precondition without
-  ever surfacing a mistake (regression caught in review; re-verified live with `--state all` that
+  ever surfacing a mistake (regression caught in review; re-verified live, by 2026-09-01, with `--state all` that
   the corrected query returns the real historical criticals — `docs/ab/getsuga.md` § 2.2). Pass the
   numbers, or `--critical-issues ''` to assert there are none — never omit the flag, which reports
   the row as **not checked** and fails the table.
@@ -186,13 +186,13 @@ GitHub reads that produce the raw facts:
   targets `main` from it (`gh pr list --state open --json baseRefName,headRefName`). `nen` computes
   the AND per chore and the "none live" verdict; point the file at `[]` to assert none are live.
 
-Verified live against the real `<reference-repo>` backlog (`docs/ab/getsuga.md` § 2.2 —
+Verified live, by 2026-09-02, against the real `<reference-repo>` backlog (`docs/ab/getsuga.md` § 2.2 —
 zero open `critical` issues, `RELEASE_HOLD` read as `false`, sixteen historical `integration/*`
 branches gathered and fed through, one of them — `879-g2-gate-definition` — carrying a genuinely
 open chore issue but no PR targeting it or `main`, so the three-part AND still reads **not live**):
 every row the table used to check by separate hand-run command now comes back in one report.
 
-> **Finding this port filed against `v0.1.0`, closed by nen `v0.2.0` (#63, closes zheref/nen#23):
+> **Finding this port filed against `v0.1.0`, closed by nen `v0.2.0` (zheref/nen#63, closes zheref/nen#23):
 > `RELEASE_HOLD` is now parsed for truthiness, not mere presence.** At the port, `<reference-repo>`'s
 > `RELEASE_HOLD` Variable — literally the string `"false"`, meaning *not* held under the old
 > `scripts/tag_cut.sh` semantics — reported `FAIL  RELEASE_HOLD -- HELD: RELEASE_HOLD = 'false'`, so a
@@ -208,7 +208,7 @@ every row the table used to check by separate hand-run command now comes back in
 > evidence.
 
 > **A second, safer divergence: `nen release preflight`'s `RELEASE_HOLD` read fails CLOSED on an
-> unreachable `gh`, where the old `scripts/tag_cut.sh` failed OPEN.** Verified live (`docs/ab/getsuga.md`
+> unreachable `gh`, where the old `scripts/tag_cut.sh` failed OPEN.** Verified live, by 2026-09-01 (`docs/ab/getsuga.md`
 > § 2.2.2): with `gh` made unreachable, `nen` reports `FAIL  RELEASE_HOLD -- could not be read:
 > Executable not found in $PATH: "gh"` and the whole table exits `1` — a `gh` outage refuses the
 > release rather than silently waving it through. The old script's own `hold_value="$(gh variable
@@ -234,7 +234,7 @@ every row the table used to check by separate hand-run command now comes back in
 
 **Check the cut point, not the tip.** `--range`'s second half and `--changelog` must both name the
 **cut point**, not `main`'s current tip — `main` moves while a release is assembled (RR-IS-#683 has
-run six laps on exactly this), and a precondition verified against a tip that has since moved was
+run six laps on exactly this), and a precondition checked against a tip that has since moved was
 never verified at all.
 
 ## 3. The release unit — fold everything that can fold into ONE PR
@@ -261,7 +261,7 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/R
 
    **Without `--write`, this only previews** — the rendered result, with neither `CHANGELOG.md` nor
    `changelog.d/` touched. **With `--write`, it rewrites `CHANGELOG.md` in place and deletes every
-   collated fragment** — verified live against a constructed fixture (`docs/ab/getsuga.md` § 2.3):
+   collated fragment** — verified live, by 2026-09-01, against a constructed fixture (`docs/ab/getsuga.md` § 2.3):
    never hand-write the section, never leave a fragment behind.
 
    > ### RETIRED at nen `0.7`: the manifest that disagreed with the write
@@ -270,7 +270,7 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/R
    > moved.** Through the pinned `v0.6.0` the manifest was printed in `readdirSync` order while the
    > section was rendered by the fragment sort — newest-first by the leading `<n>-` prefix,
    > `CON-33(b)`'s own convention — so the two disagreed **by construction, at any fragment count**.
-   > Verified live, the same fixture through both binaries (`docs/ab/getsuga.md`
+   > Verified live, by 2026-09-10, the same fixture through both binaries (`docs/ab/getsuga.md`
    > § *Retired at nen 0.7*):
    >
    > ```text
@@ -308,10 +308,10 @@ maintainer's ruling of 2026-09-26 this skill merges it itself** (§ 3a; [`docs/R
      --changelog <path to CHANGELOG.md> --owner-repo <owner/name> [--fragment-dir changelog.d]
    ```
 
-   Verified live against the real `<reference-repo>` range `v0.11.2..v0.11.3`
+   Verified live, by 2026-09-02, against the real `<reference-repo>` range `v0.11.2..v0.11.3`
    (`docs/ab/getsuga.md` § 2.4): **same verdict** as the old
    `scripts/changelog_release_completeness_check.sh v0.11.2 v0.11.3` run read-only side by side —
-   both report every merged PR reconciled, exit `0`. Since nen `v0.2.0` (#83) `--fragment-dir` defaults
+   both report every merged PR reconciled, exit `0`. Since nen `v0.2.0` (zheref/nen#83) `--fragment-dir` defaults
    to `changelog.d` here **and** in `release preflight` — the two verbs reconcile the same range and
    can no longer disagree about where fragments live — and an **empty** value, or a path that is not a
    directory, is refused; a directory that does not exist contributes no fragments. Omit the flag or
@@ -341,11 +341,11 @@ nen release self-check --repo <path> --pr-merge-sha <sha> --previous-tag <vPrev>
 ```
 
 True iff the release PR's own merge commit is reachable from `--cut-point` and **not already**
-reachable from `--previous-tag` — a git-mechanical fact, never a judgement. Verified live against
+reachable from `--previous-tag` — a git-mechanical fact, never a judgement. Observed live, by 2026-10-22 with no evidence file kept, against
 the real `v0.11.3` release PR (RR-PR-#916): `nen` reports it **should list ITSELF** against
 `v0.11.2..v0.11.3` (correct — that PR's merge is the cut point), and **should NOT list itself**
-against `v0.11.3..v0.11.3` (correct — already reachable from its own tag). Four laps got this wrong
-by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) before this existed.
+against `v0.11.3..v0.11.3` (correct — already reachable from its own tag). Four hand-run laps got this
+wrong in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) before this existed.
 
 > **Collation manufactures contradictions — look for them.** Two fragments written weeks apart are
 > each true when written and become **simultaneous claims** in one dated section. Before opening the
@@ -357,7 +357,7 @@ by hand in `<reference-repo>` (RR-PR-#651, RR-PR-#679, RR-PR-#682, RR-PR-#691) b
 opened while § 6 was driving an off-`main` target sits on that delivery branch, and **GitHub retargets a
 pull request only when its base branch is deleted** — zheref/nen#232 merged into
 `fable/kurapika/surfaces-spend-speed` 71 minutes after that branch had merged, zheref/nen#222 the same
-shape, and `main` was carried by hand (zheref/nen#234). **The mechanism is authored once, in
+shape, and `main` was hand-carried (zheref/nen#234). **The mechanism is authored once, in
 [`jujisho`](../jujisho/SKILL.md) § *State the cost in both bodies*** — `nen pr retarget --target
 <owner/name> --pr <N> --base <branch.base>`, `<owner/name>` from `nen repo resolve --from <checkout>`,
 the read-back `gh pr view <N> --repo <owner/name> --json baseRefName -q .baseRefName` as named residue —
@@ -604,12 +604,12 @@ defaults to `main`, so on a repository whose trunk is `develop` the cut would re
   out. Say that those omitted changes ship in the next release; a later trunk tip is never silently
   included. Quote § 2's result at the selected commit and its reachability verdict.
 - **`--at` not an ancestor of `origin/<branch.base>` → refused, never tagged off-trunk.** **The tag name
-  already existing, locally or on origin → refused, never re-tagged.** Both verified live in a
+  already existing, locally or on origin → refused, never re-tagged.** Both verified live, by 2026-10-22, in a
   disposable scratch repo, never against `<reference-repo>` or `hatsu` (`docs/ab/getsuga.md` § 2.5):
   cutting at an unreachable commit refuses with `is not an ancestor of origin/<trunk> ... Use 'nen
   release resolve-target' first`; re-cutting an existing name refuses with `already exists locally
   -- never re-tagged`.
-- **The tag is created LOCALLY ONLY unless `--push` is passed — verified live**: without `--push`,
+- **The tag is created LOCALLY ONLY unless `--push` is passed — verified live, by 2026-09-01**: without `--push`,
   `git ls-remote --tags origin` on the scratch remote stayed empty after the cut; with `--push`, the
   annotated tag reached origin and nothing else did. **A tag getsuga cuts is meant to resolve for
   consumers — pass `--push`**, the same effective outcome the old `scripts/tag_cut.sh` always
@@ -681,9 +681,9 @@ nen --repo <path> fanout compute --range <vPrev>..<newTag>
 
 `changed-workflows(vPrev..newTag)` intersected against each registered consumer's `consumes` from
 `nen/repos.json` — every consumer comes back `AFFECTED`
-with the workflow basenames that hit it, or an implicit N/A. Verified live against the real range `v0.11.2..v0.11.3`
+with the workflow basenames that hit it, or an implicit N/A. Verified live, by 2026-09-01, against the real range `v0.11.2..v0.11.3`
 (`docs/ab/getsuga.md` § 2.6): `nen`'s output reproduces the historical `CON-22` determination
-recorded by hand at that release's own registry entry (RR-PR-#916) **exactly** — `<product-repo-A>`
+hand-recorded at that release's own registry entry (RR-PR-#916) **exactly** — `<product-repo-A>`
 affected via the same five files, `<product-repo-B>` via the same four, `<scaffold-repo>` via the
 same one. **Record every unaffected consumer as an explicit N/A with its basis** — an
 unstated N/A is indistinguishable from an unswept repo.
@@ -723,16 +723,23 @@ each step as `would run:` — and spawns **nothing**, at exit `0`; `--target` is
 even for a single declared destination, and `--run --dry-run` together is exit `2`. Exit `0` is the plan
 on a host that could send it: an unsatisfied precondition — the lane's own, or a variable the target's
 `requiresEnv` names that is not set here — is exit `2` **with the report** (the plan still prints, the
-failing rows marked `FAIL`, and the last line says how many preconditions are unmet; verified live at
+failing rows marked `FAIL`, and the last line says how many preconditions are unmet; observed live, by 2026-09-09 with no evidence file kept, at
 `v0.3.0`: *"1 precondition on lane 'site' is not satisfied. nen ASSERTS a precondition and never performs
 it"*), and a `--target` naming no declared destination is exit `2` listing the declared ones. A G3 stop
 carries whichever of those the host produced, never a plan rewritten to look sendable. **`--run` is the
 maintainer's word at G3 (`CON-6`), per target, recorded in the release PR body — never this skill's.** A
 lane whose `deploy` is a seat answers exit `4` with the declaration's own reason whatever `--target`
-says (verified live at `v0.3.0` on a scaffolded `nextjs` tree: *"'deploy' is unsupported on lane
+says (observed live, by 2026-09-08 with no evidence file kept, at `v0.3.0` on a scaffolded `nextjs` tree: *"'deploy' is unsupported on lane
 'nextjs' … The declaration's own reason: PROPOSED SEAT — replace it …"*), and that is the whole report
 for such a repository: it declares no deploy. A repository with no declaration at all is not deployed
 through nen and this section does not apply. `<reference-repo>` is machinery and declares none.
+
+## Residue
+
+The steps no Nen verb owns at the pin are named where they run, and listed once in
+[`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*, its `getsuga` entry: the
+release proposal's base read-back after a retarget (`gh pr view <N> --json baseRefName`,
+zheref/hatsu#98), with § 3's placement read and its two direct edits named in place. This section adds none.
 
 ## 8. Authority
 
@@ -756,7 +763,7 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 ## 9. Hard limits
 
 - **Never tags a commit unreachable from `origin/<branch.base>`** — `nen release resolve-target` and
-  `nen tag cut`'s own `--at` check both enforce this; verified live in scratch, never against
+  `nen tag cut`'s own `--at` check both enforce this; observed live, by 2026-09-01 with no evidence file kept, in scratch, never against
   `<reference-repo>` or `hatsu`.
 - **Never tags past an open `critical`, an active `RELEASE_HOLD`, or an unreconciled `CON-33(c)`** —
   and read the `RELEASE_HOLD` row exactly as printed: since nen `v0.2.0` `true`/`1`/`yes` is held,
@@ -778,7 +785,7 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
   phase, on the maintainer's own go (mugetsu § 0).
 - **Never routes around a refused capability.**
 - **Never re-orders `nen changelog collate --write`'s written section by eye.** The written body is
-  already correct (newest-first, `CON-33(b)`) — verified live against the old script's own written
+  already correct (newest-first, `CON-33(b)`) — observed live, by 2026-09-01 with no evidence file kept, against the old script's own written
   output, byte-for-byte. **RETIRED at nen `0.7`: the printed manifest no longer disagrees with the
   write** (§ 3), so relay it as the record of what landed rather than as a defect to note — and the
   rule against re-ordering the section stands on its own, unchanged.

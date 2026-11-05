@@ -172,7 +172,7 @@ The ask question tool, invoked by instructing the agent to "use the ask question
 several tickable answers. The tool is never named `AskQuestion` on any official page; Hatsu's prose
 says "the ask question tool".
 
-**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries the
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and zheref/hatsu#295):** the picker carries the
 question alone, the rest of the stop in the chat message (`jutaisho` § 4 states the shape). No Run button on
 a code fence is known here (*Known gaps*), so a command the maintainer must run is one complete `bash` block
 per command and the message says *paste into a terminal*.

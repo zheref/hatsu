@@ -105,7 +105,7 @@ hatsu:kotoamatsukami [on <lane>] [against <base>]
 nen parse kotoamatsukami --grammar "on [<lane>] against [<base>]" --line "<the invocation, minus the hatsu:kotoamatsukami prefix>"
 ```
 
-Two optional anchored clauses in one grammar, verified live at nen `0.10.0`: `on shell against
+Two optional anchored clauses in one grammar, observed live, by 2026-09-18 with no evidence file kept, at nen `0.10.0`: `on shell against
 origin/main` → `lane: shell`, `base: origin/main`; `against origin/main` alone → the lane absent and
 the base set; an empty line → both absent. Every one exit `0`.
 
@@ -117,7 +117,7 @@ fetch that cannot run is a stop rather than a silent fall-back
 named out loud either way.
 
 
-Verified live at `v0.3.0` (`docs/ab/kotoamatsukami.md` § 2.1): `on shell` → `lane: shell`, exit `0`.
+Verified live, by 2026-09-10, at `v0.3.0` (`docs/ab/kotoamatsukami.md` § 2.1): `on shell` → `lane: shell`, exit `0`.
 The clause is anchored behind a literal for the reason [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 1
 records; with no clause the starting lane is `nen/workflow.json` → `iteration.lane`, defaulting to
 the declaration's own `project.defaultLane`. **A bare invocation is not parsed** — there is nothing
@@ -151,7 +151,7 @@ missing lane or verb row is set up through `nen scaffold init` (§ 6).
 loader parses it rather than preserving it, and from this release **the block key itself is guarded
 against a near-miss**: `evidences`, `Evidence` or `evidenc` would have been preserved, read by
 nobody, and `nen shu evidence` would then have refused at exit `2` saying the repository declares no
-evidence block — about a file that plainly declares one. Now it is refused by pointer. Verified live
+evidence block — about a file that plainly declares one. Now it is refused by pointer. Verified live, by 2026-10-22
 (`docs/ab/kotoamatsukami.md` § *Retired at nen 0.5*): a declaration carrying `evidence` and `launch`
 reports `ok nen/contract.json project (…)` under `nen schema check`, and `nen shu evidence --base
 main` groups the changed artifacts suite → scene at exit `0`.
@@ -215,7 +215,7 @@ worse than a slow run: it is an unperformed check rendered as a clean one.
 The grain this skill may select at the pinned build is **the declared row** — a lane × a verb,
 whose argv the repository already wrote. It does not invent `--grep`, `--only-changed`, or a
 runner flag the declaration does not contain. Per-test selection *inside* a declared row is
-[Nen #207](https://github.com/zheref/nen/issues/207); until that verb exists, name the residue
+[zheref/nen#207](https://github.com/zheref/nen/issues/207); until that verb exists, name the residue
 and keep the grain at the row. A row whose declared argv is already scoped (Hatsu's
 `plugin-bump-guard` fixture) is selected or skipped as a whole, which is the point of declaring
 it as its own lane.
@@ -293,7 +293,7 @@ Never the runner's own command line typed from memory. Under `--json` the report
 where **`steps[].exitCode` is the runner's own code** and the top-level `exitCode` is nen's. **One
 plain call per selected row, never a loop over lanes**, and a duration is the report's own
 `durationMs`, never `$(date)` arithmetic (shape (5) of
-[WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, #218).
+[WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, zheref/hatsu#218).
 
 **Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs* is the authority):
 
@@ -306,7 +306,7 @@ plain call per selected row, never a loop over lanes**, and a duration is the re
 | `4` | a **seat** — this lane declares no such suite | **quote the reason verbatim.** A seat on a *required* name is the two-file disagreement; it is not a skip-with-proof |
 | `5` | the runner is not on `PATH` | `nen shu tools --repo <path>`, relay the per-tool remedy |
 
-Verified live at this pin (`docs/ab/kotoamatsukami.md` § 2.3, § 2.2): a red UI run relays the
+Verified live, by 2026-09-10, at this pin (`docs/ab/kotoamatsukami.md` § 2.3, § 2.2): a red UI run relays the
 runner's own stdout, prints `ran: … -- exit 1`, and puts `1` in both `steps[0].exitCode` and nen's
 `exitCode`; a seat prints its sentence on **stderr** and, under `--json`, **no document at all**.
 
@@ -373,7 +373,7 @@ nen shu evidence --repo <path> --base origin/<base> [--json]
 
 It matches `git diff --name-status <base>...HEAD` — through the seam, spawning no invocation the
 repository declared, only `git diff` itself — against `project.evidence`, derives each surviving
-file's **suite** and **scene**, and reports them grouped suite → scene. Verified live at `v0.5.0`,
+file's **suite** and **scene**, and reports them grouped suite → scene. Observed live, by 2026-10-22 with no evidence file kept, at `v0.5.0`,
 exit `0`:
 
 ```
@@ -396,7 +396,7 @@ write, the second is a truthful "this change re-recorded nothing".
 > **Never pass a declared glob to git as a bare pathspec.** A `project.evidence.globs` entry is
 > written in **shell-glob** terms; a git **pathspec** is not that. Passed bare to `git diff`,
 > `'**/__Snapshots__/**/*.png'` matched **zero** of three changed snapshots, exit `0`, no warning
-> (verified live, `docs/ab/kotoamatsukami.md` § 2.4). **An empty evidence table read as "this change
+> (verified live, by 2026-09-10, `docs/ab/kotoamatsukami.md` § 2.4). **An empty evidence table read as "this change
 > re-recorded nothing" is the worst failure mode this skill has.** `nen shu evidence` carries its
 > own matcher.
 
@@ -435,7 +435,7 @@ and bands are [`hatsu:byakugan`](../byakugan/SKILL.md)'s report, not this one.
 
 1. **Impact selection at declared-row grain** (§ 4). No nen verb answers "which of these declared
    rows can this diff move". Per-test selection inside a row remains
-   [Nen #207](https://github.com/zheref/nen/issues/207).
+   [zheref/nen#207](https://github.com/zheref/nen/issues/207).
 2. **RETIRED at nen `0.5`: `nen shu evidence --base <ref>`** (§ 9).
 3. **RETIRED at nen `0.5`: `nen shu test-report`** (`tsukuyomi` § 6).
 4. **Parsing a declared UI-test artifact** that `test-report` does not read is still residue.

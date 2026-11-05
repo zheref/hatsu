@@ -143,6 +143,9 @@ test("every one of 24 cells resolves and every one of 39 taxonomy jobs is owned 
 test("family folding counts distinct jobs, uses precedence for ties, and refuses unknown jobs", () => {
   assert.equal(fold(cat, []), "build");
   assert.equal(fold(cat, ["release", "machinery"]), "release");
+  // HR-386: the observability job folds into maintain, so its PR carries the improves ladder.
+  assert.equal(fold(cat, ["observability"]), "maintain");
+  assert.ok(resolution("product", ["observability"], []).ids.includes("improves"));
   assert.equal(fold(cat, ["schema", "machinery", "prose-authoring"]), "maintain");
   assert.equal(fold(cat, ["review", "review", "documentation"]), "verify");
   assert.throws((): string => fold(cat, ["imaginary"]), /no unique declared family/);

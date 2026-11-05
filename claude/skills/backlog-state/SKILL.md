@@ -125,7 +125,7 @@ directory's `origin` remote against the target registry:
 nen repo resolve --repo <path> --from <cwd>
 ```
 
-> **A gap this port filed against `v0.1.0`, closed by nen `v0.2.0` (#66, closes zheref/nen#27).** At the
+> **A gap this port filed against `v0.1.0`, closed by nen `v0.2.0` (zheref/nen#66, closes zheref/nen#27).** At the
 > port the no-token form matched the resolved origin against `consumers` ∪ `maintained_tools` only —
 > never the `product_codes` map — so, standing in `<reference-repo>` itself, `nen repo resolve --repo
 > <path> --from <same path>` refused with *"'`<reference-repo>`' … is not in this registry"* while the
@@ -159,12 +159,12 @@ nen repo resolve all --repo <path>
 ```
 
 `all` enumerates the registry's `consumers` ∪ `maintained_tools` entries. **Whether the standing
-repo also appears in that set is registry-content-dependent, not a fixed rule** — verified live
+repo also appears in that set is registry-content-dependent, not a fixed rule** — verified live, by 2026-10-22
 against `<reference-repo>`'s own registry (`docs/ab/backlog-state.md` § 2.2): `<reference-repo>` (`BC`) *does*
 show up in `all`'s own output here, because `<reference-repo>`'s registry happens to list itself among the
 enumerated entries even though it is the source, not a consumer, of that registry. A different
 registry that omits the source repo from both arrays would produce the gap the old skill's prose
-named and worked around by hand. **Check the returned rows by code before doing anything else**:
+named and used to work around by hand. **Check the returned rows by code before doing anything else**:
 
 - **If the standing repo's code is already among the rows** `all` returned, use the set as-is —
   adding it again would duplicate the row.
@@ -180,12 +180,12 @@ swept:
 
 A reader who cannot see what was swept cannot tell an empty band from an unswept one.
 
-> **A second finding from the same output at the port, closed by nen `v0.2.0` (#81, closes
+> **A second finding from the same output at the port, closed by nen `v0.2.0` (zheref/nen#81, closes
 > zheref/nen#17).** `nen repo resolve all`'s row set used to include the registry's own `$comment`
 > documentation key inside `product_codes`, printed as if it were a resolvable repository
 > (`Object-reference notation (...) ($comment) via all`), and the same key appeared in the unknown-code
 > refusal's list (`docs/ab/pr-state.md` § 4 finding 3). Since `v0.2.0` a `$`-prefixed key in
-> `product_codes` loads silently as metadata — verified live at `v0.3.0` against a registry carrying
+> `product_codes` loads silently as metadata — verified live, by 2026-09-08, at `v0.3.0` against a registry carrying
 > exactly that key: `nen repo resolve all` lists six repositories and no `$comment` row, and `nen parse
 > futon`'s refusal lists codes only. **Still never hard-code N** — count whatever the live call returned;
 > it varies with the registry's own content — and if a non-repository row ever appears again, name it in
@@ -338,7 +338,7 @@ explicit-input line `hatsu_root='<the absolute path § 0 printed>'` (the value
 quotes included) or by `pr-state` § 2's resolver. It is never a variable carried from another shell — that
 variable is not exported — never a raw path embedded in the command text, and never
 `$CLAUDE_PLUGIN_ROOT` alone, which is Claude Code's and is unset or wrong on the two mirrored surfaces. Since nen `v0.2.0` a relative `--gates` resolves against **`--repo`'s root, never the cwd** (verified
-live at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md) § 2), and the file lives in this plugin's
+live, by 2026-09-08, at `v0.3.0`, [`pr-state`](../pr-state/SKILL.md) § 2), and the file lives in this plugin's
 checkout, not the target's. For any OTHER repository that this table reports on and that ships no
 `nen/gates.json`, pass `--reviewers` plus explicit `--approvers` by hand instead — reviewer identities
 from its `CODEOWNERS` or the PR's own requested reviewers, approval policy from an authoritative target
@@ -361,10 +361,10 @@ Two things follow, unchanged from the old skill:
 > **`nen pr fetch` was broken against every real PR tested at `v0.1.0`, and this port never routes
 > around it.** `nen pr fetch --target <owner/name> --pr <n>` is documented to return "one typed
 > snapshot: head SHA, mergeability, the check rollup, reviews PER COMMIT, review threads ..." —
-> verified live at the port, it crashed on **every** PR tried, in **two different repositories**
-> (`<reference-repo>#925`, `#927`, `#916`, `#932`; `zheref/hatsu#5`), plain and `--json` output printing
+> verified live, by 2026-09-08, at the port, it crashed on **every** PR tried, in **two different repositories**
+> (RR-PR-#925, RR-PR-#927, RR-PR-#916 and RR-PR-#932 in `<reference-repo>`; `zheref/hatsu#5`), plain and `--json` output printing
 > the identical error: `nen pr: could not fetch <owner/repo>#<n> reviews: gh: Unprocessable Entity
-> (HTTP 422)`. **Provenance at the current pin:** nen `v0.2.0` (#59) made every `gh api` argv in the
+> (HTTP 422)`. **Provenance at the current pin:** nen `v0.2.0` (zheref/nen#59) made every `gh api` argv in the
 > PR fetch name its HTTP method explicitly; no `v0.2.0`/`v0.3.0` changelog entry says the 422 is fixed,
 > and the crash is not re-verified at `v0.3.0` (a live GitHub read this reconciliation did not run).
 > **This skill still does not use `nen pr fetch` for anything**, on the recorded evidence — readiness
@@ -382,10 +382,10 @@ nen color status --repo <path> --present <a,b,c>
 
 Resolves the target repository's own `nen/colors.yml`
 precedence for whatever category values are true of one row, and prints the first match plus what it
-outranked. Verified live against `<reference-repo>`'s own file at the port, and the exit codes re-verified
+outranked. Observed live, by 2026-09-08 with no evidence file kept, against `<reference-repo>`'s own file at the port, and the exit codes re-verified
 at `v0.3.0` against nen's bundled fixture: a resolved row exits `0`; `unresolved` — nothing present, or a
 name that is not a value of the category — exits `1` (a finding, per below); a `--category` the file does
-not declare is a **usage error, exit `2`**, naming the categories it does (nen `v0.2.0`, #83):
+not declare is a **usage error, exit `2`**, naming the categories it does (nen `v0.2.0`, zheref/nen#83):
 
 | Test | Result |
 |---|---|
@@ -422,7 +422,7 @@ nen board render --board-from <path>
 
 `board build` assembles a `Board` from rows this skill has already computed (gate from § 4, colour
 from § 6, `refs` formatted with `nen ref format`); `board render` prints it as the padded-markdown
-table this repository's own `ichigo_board.sh` established. Verified live end to end: feeding two
+table this repository's own `ichigo_board.sh` established. Observed live, by 2026-09-01 with no evidence file kept, end to end: feeding two
 rows (one G4/in-progress, one G1-M/ready-to-start) through `build` then `render` produces
 
 ```
@@ -430,12 +430,12 @@ rows (one G4/in-progress, one G1-M/ready-to-start) through `build` then `render`
 ```
 
 with each row's `status` cell holding whatever string was passed — pass the **resolved glyph** from
-§ 6 (`🟠`, not the bare word `in_progress`), verified live: the render layer does not itself look up
+§ 6 (`🟠`, not the bare word `in_progress`), observed live, by 2026-09-01 with no evidence file kept: the render layer does not itself look up
 `colors.yml`, it prints the cell verbatim. Two facts about that cell since nen `v0.2.0`/`v0.3.0`: a
 `refs` value that is not an **array** of ref strings is **refused at exit `2` naming the file, row and
-field** by `build`, `render` and `diff` alike (verified live at `v0.3.0`; at the port `build` crashed
+field** by `build`, `render` and `diff` alike (observed live, by 2026-09-08 with no evidence file kept, at `v0.3.0`; at the port `build` crashed
 with `row.refs.join is not a function`), and `render` — like `nen stop` — escapes a `|` in a cell as
-`\|` and flattens an embedded newline to one space (#83), so a title carrying either no longer shifts
+`\|` and flattens an embedded newline to one space (zheref/nen#83), so a title carrying either no longer shifts
 the columns. This skill relays the rendered table and never re-splits it; a consumer that does must
 split on `(?<!\\)\|`.
 
@@ -518,19 +518,19 @@ nen backlog order --rows-from <path> --severity-order critical,high,medium,low \
                   [--blocks <n,n>] [--affects-consumers <n,n>]
 ```
 
-Verified live: severity is the primary key (`high` rows sort before `medium`, both before an
+Observed live, by 2026-09-01 with no evidence file kept: severity is the primary key (`high` rows sort before `medium`, both before an
 unrecognised severity string, which ranks last rather than erroring); `--blocks`/`--affects-
 consumers` only break ties **within** one severity, exactly as documented. Feed `nen backlog
 fetch --json`'s rows reshaped to `{id, severity, createdAt, number}` (severity read off the
 `bankai:severity/*` label) — the reshape itself is expected caller work, per the verb's own
-`--help` example, **and since nen `v0.3.0` (#107) it is enforced at the read seam**: `backlog fetch
+`--help` example, **and since nen `v0.3.0` (zheref/nen#107) it is enforced at the read seam**: `backlog fetch
 --json`'s document handed straight through is refused at exit `2` (*"must be a JSON ARRAY of rows {
 id, severity, createdAt, number }, got an object"*), and so is a row missing `id` (*"row at index 0
-needs a string 'id'"*) — both verified live — instead of the `{} is not iterable` crash of before.
+needs a string 'id'"*) — both observed live, by 2026-09-08 with no evidence file kept — instead of the `{} is not iterable` crash of before.
 `id`/`number` come from `issueNumber` (or the lone `prNumbers` entry for a PR-only effort),
 `createdAt` must be an ISO-8601 instant (ordering compares it as text). `--blocks`/`--affects-
 consumers` take a row's `id` **or** its bare issue number, and a token naming no row is refused at
-`2` (nen `v0.2.0`, #64) — never silently ignored.
+`2` (nen `v0.2.0`, zheref/nen#64) — never silently ignored.
 
 ## 12. Close with the shape, not just the rows
 
@@ -538,7 +538,19 @@ Unchanged — judgment. End with two or three lines of shape: what collapses, wh
 cause, what is one merge away. Derive it from the rows just rendered; never assert a collapse not
 computed from them.
 
-## 13. What this skill must never do
+## Residue
+
+One raw read, named where it runs: § 3's `gh pr list --repo <owner/name> --state open` cross-check
+for a lone PR that references no open issue, the one shape `nen backlog fetch` does not carry
+(`docs/ab/backlog-state.md` § 3; unfiled).
+
+## Authority
+
+**Permitted:** read — the `nen` verbs §§ 1–11 name and § 3's one raw read — and render the table.
+**Not permitted:** any write: no label, merge, push, open, close, comment or review request (§ 13).
+It holds no gate and grants no delegation.
+
+## 13. Hard limits — what this skill must never do
 
 - Apply, remove or suggest applying any label as a side effect.
 - Merge, push, open, close, comment, or re-request review.
@@ -550,7 +562,7 @@ computed from them.
 - Render a truncated fetch (`nen backlog fetch`'s own `truncated` field) as if it were complete.
 - Silently add the source repo to a sweep without saying so, or silently filter a non-repository
   row out of `nen repo resolve all`'s output should one ever reappear (§ 2).
-- Split a selector on `+`, `&` or `#` by hand, read a parsed slot by `name` instead of `alternative`
+- Hand-split a selector on `+`, `&` or `#`, read a parsed slot by `name` instead of `alternative`
   and `items`, or filter rows by label or severity by eye — § 1's parse and `nen`'s `--label` /
   `--severity` are the only way, and a refusal from either is relayed, never worked around.
 - Widen `context` past the objects named in the conversation, or fetch before its list is echoed.

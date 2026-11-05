@@ -42,7 +42,7 @@ Hatsu-authored key beside nen's own — the zero-major caveat, the two install p
 no-`jq` rule — is preserved verbatim by nen's loader and read by nothing in nen. There is deliberately no
 second copy: it was `nen.contract.json` at the root through `v0.2.0`.
 
-Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own lane, written by hand because
+Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own lane, hand-written because
 `nen shu detect --repo .` answers *no lane detected* for a bash-and-markdown repository. `lint` is
 `claude plugin validate . --strict`; every other verb of the family is an explicit `unsupported` **seat**
 stating in this repository's words why it does not exist, because a seat is exit `4`, a stated fact, while an
@@ -179,7 +179,7 @@ memory. Reporting that is the correct outcome; substituting a hand-rolled equiva
 
 The warm-up installs `nen` itself where the host allows it, and from `v0.73.0` also binds the pinned
 binary on the host so your own terminal and the agent run the same build. The one surface that needs the
-binary placed by hand before a sandboxed run is Codex, for the reason the box below gives.
+binary the maintainer places before a sandboxed run is Codex, for the reason the box below gives.
 
 > **`nen` auto-installs itself on Claude Code and on Cursor — and, from `v0.73.0`, binds itself on the
 > host. Put it on the host yourself before a sandboxed Codex run.** The bootstrap resolves and verifies the

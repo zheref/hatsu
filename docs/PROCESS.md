@@ -106,7 +106,7 @@ is named, never asked about and never softened into a default.
 may return no match as an expected check outcome uses `|| true`, then an explicit `fail` with the
 expected and actual values. Wiring substitutions may still fail directly. Every declared
 `nen shu test` seat runs through `scripts/fixture_output_guard.sh`, which reports every fixture
-that exits nonzero by name and exit code, including failures after progress output, while preserving its exit code (#243).
+that exits nonzero by name and exit code, including failures after progress output, while preserving its exit code (zheref/hatsu#243).
 
 ## Reporting a phase
 
@@ -207,7 +207,7 @@ The dated `final` file stays the HTML render rikugan § 4 keeps.
 (`lastTurnRequestFull`, `launch`, `prBody[].markdown`, an option's `command`): a newline ends the Markdown
 line the value sits on, so it could open a forged ask or an unclosed fence. A failing value is dropped and
 named in *Not delivered*, like the validations in § *Escaping and validation of report data* — the caller's
-interim until nen escapes Markdown.
+interim until nen escapes Markdown (zheref/nen#407 item 6).
 
 **Where enforcement is impossible, and what holds instead.** Step 2 is the one path no verb performs — the
 copy is the model's own act — so step 3 is its check. A turn where `nen report render` cannot run is **not**
@@ -414,7 +414,7 @@ nen pr threads resolve --target <owner/name> --pr <n> --thread <id>
 ```
 
 **Requesting a round.** Through `scripts/gh_token_env.sh` (§ *Residue and owned dependencies*,
-#218) — the **maintainer's** user token; a bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
+zheref/hatsu#218) — the **maintainer's** user token; a bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
 `gh pr edit --add-reviewer` and `…/requested_reviewers` never resolve, so it goes through
 `--add-bots <node id>`, the id **data** read off the target's own reviewer set (`BOT_kgDOCnlnWA` in
 `zheref/hatsu`); `--add-bots copilot` cannot resolve it today (zheref/nen#160). A bare login that is
@@ -801,7 +801,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
-  `~/.local/bin/nen` link and the shell rc's PATH block, around nen's own bootstrap) are done by the warm-up's scripts and by hand: no nen
+  `~/.local/bin/nen` link and the shell rc's PATH block, around nen's own bootstrap) are done by the warm-up's scripts and hand-run steps: no nen
   verb owns a checkout's local exclude, a host's `PATH` or its shell profile, and where Hatsu is checked out is the host's property. The
   login-shell probe (`scripts/nen_reach_probe.sh --root "$hatsu_root"`, which runs `"$SHELL" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe <root> </dev/null`, zheref/hatsu#218) and the name-correct host link ten § 2c offers as the fallback by its
   offer predicate (stated once there, verbatim in row `host-nen-link`) are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host. § 6's reads —
@@ -902,7 +902,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   `nen pr ready` row, not yet filed (origin zheref/hatsu#203). Until it lands, shibari and en quote
   the guard's `0` beside the verdict (BC-11 reads the guard's branching shell as a verb's job, a G4
   question until the verb lands).
-- **`contracts/pr-composition.json`, its `gateDerive.zheref/nen` row above all** (zheref/hatsu#171, #334;
+- **`contracts/pr-composition.json`, its `gateDerive.zheref/nen` row above all** (zheref/hatsu#171, zheref/hatsu#334;
   [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-20 — zheref/nen's gate path sets*). Five items are owed,
   and none is filed yet. **(a) A tree-freshness check at repin**: list nen's tree at the pinned tag
   (`gh api repos/zheref/nen/git/trees/<tag>`) and fail when a top-level entry is in neither of the row's
@@ -945,7 +945,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 - **`bakuryuha`.** The first-party install is `scripts/hatsu_surface_link.sh` and updating the checkout is
   `scripts/hatsu_plugin_update.sh`, as for `ten`; the served-version read-backs (`claude plugin list
   --json`, `codex plugin list`, `agy plugin validate`, a placed marker stamp) and following a skill body
-  from the new path until the surface switches are done by hand. No nen verb owns a host's installed
+  from the new path until the surface switches are hand-run steps. No nen verb owns a host's installed
   plugin: an owned dependency, zheref/nen#298 (BC-11 reads the scripts' branching shell as a verb's
   job, a G4 question until the verb lands).
 - **`jusshin`.** The elevated launch on Windows has no verb by design: the session runs `nen runner script --json`'s own `launch` line (`Start-Process -Verb RunAs`) through the harness's own permission prompt — no allow row exists, so that prompt is the maintainer's advance consent — and the UAC consent and the typed service-account password are the maintainer's on-device acts, as `sudo bash <script>` on Linux and the Login Items approval on macOS are. Reading the one-line `register-<ts>.summary` newer than the launch is by hand, and the transcript is never read. The script is rendered outside the runner root; locking the root down, keeping the secrets off `config.cmd`'s argv and writing the summary file are nen's, owned in [zheref/nen#312](https://github.com/zheref/nen/issues/312). The shared `_work/_actions` cache across one host's runners, runner removal, organization runner groups and `--ephemeral` supervisors have no verb yet — owed, unfiled — and are named, never improvised.
@@ -965,12 +965,12 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   shares the primary's pool; companion jobs are kept out of the deciding call rather than struck. Under
   `direct.publish`, the marker read on an issue's comments is `gh api`, read-only, and `nen label` has no
   `--remove`, so an older `model/` label is named, never removed (zheref/nen#389). `nen direct registry|resolve|answer`
-  ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by #380), the pin zheref/hatsu#168 moved; on an older
+  ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by NN-PR-#380), the pin zheref/hatsu#168 moved; on an older
   binary they are absent, § 2's probe says so, and `build` continues unrouted (row `missing-tool`).
 - **`classify`.** The judgement — reading an issue's title, body and paths and deciding its `lang/` and
   `job/` keys (classify § 3) — is prose by design: nen owns operations, not reading an issue. The issue read
   is `nen classify status --with-body`'s. Every other step is the `nen classify` family (`labels`, `install`,
-  `status`, `apply`), which ships in nen `v0.20.0` (zheref/nen#370, carried to `main` by #380), the pin
+  `status`, `apply`), which ships in nen `v0.20.0` (zheref/nen#370, carried to `main` by NN-PR-#380), the pin
   zheref/hatsu#168 moved; on an older binary those verbs are absent, § 2's probe says so, and the skill
   continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, ten § 2's install named).
   The GitHub half of a declaration is `nen classify install --sync`, with `nen labels sync` the whole-file form.
