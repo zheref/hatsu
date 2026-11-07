@@ -58,13 +58,14 @@
 # pinned one, and .github/workflows/surface-mirror-check.yml turns it into an
 # ERROR rather than the skip-with-notice it used to be. Verified against the
 # pinned build: this script exits 0 for codex, cursor and antigravity against a
-# fresh generation (`ok: 62` codex; `ok: 61` cursor/antigravity — skills plus
-# personas plus the preamble include, plus the hook, rules, permission and
-# manifest files). Re-read the counts a run actually prints after a
+# fresh generation (`ok: 84` on each of the three at zheref/hatsu#530 — 60 skills,
+# 17 personas on codex and 18 on cursor and antigravity where the preamble
+# include is its own file, 3 hook scripts, and each surface's own 4 or 3 hook,
+# rules, permission and manifest files). Re-read the counts a run actually prints after a
 # regeneration rather than remember them here: a skill count, a persona
 # layout (one include today; nen may fold `_review-preamble.md` into a plain
-# `include` and move where antigravity's skills live) and a stamp all shift
-# the number without this comment noticing.
+# `include` and move where antigravity's skills live) both shift the number
+# without this comment noticing.
 #
 # NOT A SECOND LINT. nen/contract.json's `plugin` lane keeps exactly one lint
 # seat — `claude plugin validate . --strict` — and nen/workflow.json's
@@ -110,7 +111,7 @@ hooks_root_for() {
 }
 # check_one SURFACE ROOT -- one `nen surface mirror check` of SURFACE's committed mirror against a
 # fresh in-memory generation whose hook commands resolve through ROOT. The exit code is nen's:
-# 0 match, 1 drift, anything else a refusal. Reads the caller's $nen and $stamp.
+# 0 match, 1 drift, anything else a refusal. Reads the caller's $nen.
 check_one() {
   "$nen" surface mirror check \
     --source "$SOURCE_DIR" \
@@ -124,7 +125,6 @@ check_one() {
     --source-surface "$SOURCE_SURFACE" \
     --hooks-root "$2" \
     --manifest "$MANIFEST_FILE" \
-    --stamp "$stamp" \
     --invocation-prefix "$INVOCATION_PREFIX"
 }
 installed_path=""
@@ -182,20 +182,30 @@ has_surface_verb() {
   esac
 }
 
-# --- plugin_stamp MANIFEST_FILE -------------------------------------------
+# --- manifest_version MANIFEST_FILE ---------------------------------------
 # Reads plugin.json's `version` field with the same structural awk this
 # repository already uses elsewhere (no python3 dependency in a bash-3.2 /
 # POSIX-sh lane). Empty on a missing or unparsable manifest rather than a hard
-# failure: a missing stamp is reported by the invocation it feeds, not guessed
-# at here.
-plugin_stamp() {
+# failure: a missing version is reported by the invocation it feeds, not
+# guessed at here.
+#
+# IT IS NOT WRITTEN INTO A MIRROR (zheref/hatsu#530). `--stamp` is gone from
+# every generate and check here, so no generated file carries the plugin
+# version in its marker and a bump rewrites no mirror. The version still
+# reaches ONE mirror, and only because it belongs there: `--manifest` renders
+# `surfaces/antigravity/plugin.json`'s own `name`/`version`/`description`, which
+# is a plugin manifest declaring a version rather than a copy of one. What this
+# function is for is the report line and the regeneration's precondition — a
+# manifest nen cannot read a version out of would generate that one manifest
+# unversioned, which is the silent defect the plugin-bump guard exists for.
+manifest_version() {
   local manifest="$1"
   [ -f "$manifest" ] || { printf ''; return; }
   awk -F'"' '/"version"[[:space:]]*:/ { for (i = 1; i <= NF; i++) { if ($i == "version") { print $(i + 2); exit } } }' "$manifest"
 }
 
 main() {
-  local root nen drift=0 stamp
+  local root nen drift=0 manifest_ver
   local args=()
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -256,8 +266,8 @@ EOF
     exit 2
   fi
 
-  stamp="$(plugin_stamp "$MANIFEST_FILE")"
-  echo "surface-mirror-check: nen $("$nen" --version 2>/dev/null || echo "?") · source $SOURCE_DIR · agents $AGENTS_DIR · stamp ${stamp:-<none>}"
+  manifest_ver="$(manifest_version "$MANIFEST_FILE")"
+  echo "surface-mirror-check: nen $("$nen" --version 2>/dev/null || echo "?") · source $SOURCE_DIR · agents $AGENTS_DIR · manifest ${manifest_ver:-<none>}"
 
   if [ -n "$installed_path" ]; then
     echo "--- claude-code (installed: $installed_path)"
@@ -276,7 +286,6 @@ EOF
       --permissions "$PERMISSIONS_FILE" \
       --hooks "$HOOKS_FILE" \
       --rules "$RULES_FILE" \
-      --stamp "$stamp" \
       --invocation-prefix "$INVOCATION_PREFIX" || code=$?
     case "$code" in
       0) echo "surface-mirror-check: installed plugin cache matches a fresh generation." ; return 0 ;;
@@ -330,11 +339,11 @@ Fix it by regenerating — never by editing surfaces/ (docs/using/mirrors.md § 
 runs all three: bash scripts/surface_mirror_regenerate.sh (zheref/hatsu#218); its lines are:
 
   nen surface mirror generate --source $SOURCE_DIR --agents $AGENTS_DIR \\
-    --surface codex      --out surfaces/codex      --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for codex)' --manifest $MANIFEST_FILE --stamp "$stamp" --invocation-prefix "$INVOCATION_PREFIX"
+    --surface codex      --out surfaces/codex      --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for codex)' --manifest $MANIFEST_FILE --invocation-prefix "$INVOCATION_PREFIX"
   nen surface mirror generate --source $SOURCE_DIR --agents $AGENTS_DIR \\
-    --surface cursor      --out surfaces/cursor      --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for cursor)' --manifest $MANIFEST_FILE --stamp "$stamp" --invocation-prefix "$INVOCATION_PREFIX"
+    --surface cursor      --out surfaces/cursor      --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for cursor)' --manifest $MANIFEST_FILE --invocation-prefix "$INVOCATION_PREFIX"
   nen surface mirror generate --source $SOURCE_DIR --agents $AGENTS_DIR \\
-    --surface antigravity --out surfaces/antigravity --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for antigravity)' --manifest $MANIFEST_FILE --stamp "$stamp" --invocation-prefix "$INVOCATION_PREFIX"
+    --surface antigravity --out surfaces/antigravity --models $MODELS_FILE --permissions $PERMISSIONS_FILE --hooks $HOOKS_FILE --rules $RULES_FILE --source-surface $SOURCE_SURFACE --hooks-root '$(hooks_root_for antigravity)' --manifest $MANIFEST_FILE --invocation-prefix "$INVOCATION_PREFIX"
 
 then commit the regenerated files in the same commit as the source change.
 EOF
@@ -345,7 +354,7 @@ EOF
 }
 
 # Sourced, main does not run: scripts/surface_mirror_regenerate.sh reads the constants, hooks_root_for,
-# plugin_stamp and the nen probes above, so generation and this check are one table (zheref/hatsu#218).
+# manifest_version and the nen probes above, so generation and this check are one table (zheref/hatsu#218).
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
   main "$@"
 fi

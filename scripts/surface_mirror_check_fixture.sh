@@ -19,7 +19,7 @@ fail() {
   exit 1
 }
 
-# A Hatsu-shaped root: the guard only needs claude/skills/ to exist and the manifest for its stamp.
+# A Hatsu-shaped root: the guard only needs claude/skills/ to exist and the manifest to pass on.
 tree="$fixture_root/tree"
 mkdir -p "$tree/claude/skills/ten" "$tree/.claude-plugin"
 printf '{\n  "name": "hatsu",\n  "version": "9.9.9"\n}\n' > "$tree/.claude-plugin/plugin.json"
