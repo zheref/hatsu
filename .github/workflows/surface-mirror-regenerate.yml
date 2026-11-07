@@ -83,9 +83,12 @@ on:
       # surfaces/ (a hand edit, or this job's own regenerate commit landing
       # some other way) is not a source change to regenerate FROM, and
       # waking on the generated tree risks a self-triggering loop.
-      # '.claude-plugin/**' IS an input: it is the stamp source (--stamp
-      # reads plugin.json's version) and the manifest --manifest renders
-      # into every mirror.
+      # '.claude-plugin/**' IS an input, and still is after zheref/hatsu#530
+      # retired --stamp: --manifest renders plugin.json's name, version and
+      # description into surfaces/antigravity/plugin.json, the one generated
+      # file that is itself a plugin manifest. A bump therefore still changes
+      # one mirror file, and this job must wake to regenerate it; it no longer
+      # changes the other 251.
       - 'claude/**'
       - '.claude-plugin/**'
       - 'contracts/**'
