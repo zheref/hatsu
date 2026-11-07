@@ -10,7 +10,7 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 1. Read `nen repo classify --repo <target>` for the repository kind. Collect the distinct `job/`
    labels on every associated issue, stripping the `job/` prefix; no issue defaults to `build`. A companion job (`companion: true` in
    `contracts/classify.taxonomy.json`: `review`, `delivery-ops`) counts only when no other job is present, as
-   `hatsu:direct` reads it. Most jobs wins; ties use `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
+   `hatsu:direct` reads it; `nen pr sections family` does not drop it yet (zheref/nen#642), so the script is the fold. Most jobs wins; ties use `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
 2. Read the target's `nen/workflow.json → pr.sections`. Its full matrix is filled from the catalogue,
    with `$sections` beside it listing all ids and purposes. An edited cell belongs to that consumer;
    fills and diagnosis preserve it. `$canon` records the originating catalogue contract and sha256.
@@ -235,7 +235,7 @@ repo-local `.nen/reports/` data files (directory 0700, files 0600). After either
 check with `--pr <owner/name#n> --base <base>`. The section guard refuses undeclared headings,
 wrong order, missing sections and an eighth reader section. Keep declaration-derived changelog and
 gate checks from `contracts/pr-composition.json` alongside them. The two HA#351 section scripts
-remain interim under `BC-11`: Nen v0.24 carries NN#448's resolver verbs, but NN#464's envelope defect
-blocks their adoption in Hatsu (HA#370). Existing configuration/path-set Python stays frozen.
+remain interim under `BC-11`: Nen v0.24 carries NN#448's resolver verbs, and the envelope defect that
+blocked adopting them is closed (NN#464, HA#370); the companion fold (zheref/nen#642) still keeps them here. Existing configuration/path-set Python stays frozen.
 No new guard replaces Mukai's review,
 regression, coverage or evidence phases.

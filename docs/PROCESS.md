@@ -988,6 +988,10 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   `--remove`, so an older `model/` label is named, never removed (zheref/nen#389). `nen direct registry|resolve|answer`
   ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by NN-PR-#380), the pin zheref/hatsu#168 moved; on an older
   binary they are absent, § 2's probe says so, and `build` continues unrouted (row `missing-tool`).
+- **PR sections (`scripts/pr_sections.ts`).** `fold()` drops a companion job (`companion: true` in the
+  taxonomy) whenever a non-companion job is present; `nen pr sections family` still counts it, so the two
+  folds disagree on a mixed list until nen honours the flag (zheref/nen#642). The script stays Hatsu's
+  interim fold until then ([`PR-SECTIONS.md`](PR-SECTIONS.md) § *Resolve the run* step 1).
 - **`classify`.** The judgement — reading an issue's title, body and paths and deciding its `lang/` and
   `job/` keys (classify § 3) — is prose by design: nen owns operations, not reading an issue. The issue read
   is `nen classify status --with-body`'s. Every other step is the `nen classify` family (`labels`, `install`,

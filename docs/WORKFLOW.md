@@ -2999,13 +2999,14 @@ build). The lane is fixed so the run can be allowed ahead of time and read after
    scaffold command creates the project inside it, and every later command takes that project as its
    working directory or target. Nothing in the effort checkout is a command's working directory, and
    nothing the scratch run writes is committed. The directory is the run's own: the run removes it
-   after its last command, and its report names the path and the removal.
+   (`rm -rf <the mktemp path>`, named in step 2's plan) on every exit, a mid-run refusal included, and its
+   report names the path and the removal.
 2. **The permission it needs, named before the run.** Hatsu's permission pack carries no row for the
    scratch lane: `contracts/permissions.json` is scoped to the session's repository, its worktrees and
    its associated repositories, and a package runner there executes code it downloads, so the lane
    stays outside it and keeps prompting until the maintainer allows it. The build's plan therefore
-   lists, before the first scratch command, each command and the narrowest Claude Code rule that
-   allows it, as `Bash(<exe> <args>)`, pinned where the rule pins a version — the HA#534 build's two
+   lists, before the first scratch command, each command (the directory's removal included) and the
+   narrowest Claude Code rule that allows it, as `Bash(<exe> <args>)`, pinned where the rule pins a version — the HA#534 build's two
    were a package-runner scaffold and its install, `Bash(npx create-expo-app@<version> *)` and
    `Bash(npm install *)`. The maintainer allows them once, ahead of the run, in the
    `.claude/settings.local.json` of their core checkout; a permission setting is the maintainer's
