@@ -143,9 +143,27 @@ test("every one of 24 cells resolves and every one of 39 taxonomy jobs is owned 
 test("family folding counts distinct jobs, uses precedence for ties, and refuses unknown jobs", () => {
   assert.equal(fold(cat, []), "build");
   assert.equal(fold(cat, ["release", "machinery"]), "release");
+  // HR-386 and HR-387: the observability job folds into build, so its PR carries the improves ladder
+  // and keeps product evidence; it loses rollout and release-unit.
+  assert.equal(fold(cat, ["observability"]), "build");
+  assert.ok(resolution("product", ["observability"], []).ids.includes("improves"));
+  const observed = resolution("product", ["observability"], ["evidence"]).ids;
+  assert.ok(observed.includes("evidence") && !observed.includes("rollout") && !observed.includes("release-unit"));
   assert.equal(fold(cat, ["schema", "machinery", "prose-authoring"]), "maintain");
-  assert.equal(fold(cat, ["review", "review", "documentation"]), "verify");
+  assert.equal(fold(cat, ["unit-tests", "unit-tests", "documentation"]), "verify");
   assert.throws((): string => fold(cat, ["imaginary"]), /no unique declared family/);
+});
+
+test("a companion job never decides the family beside another job, as hatsu:direct reads it", () => {
+  assert.deepEqual([...cat.companions].sort(), ["delivery-ops", "review"]);
+  assert.equal(fold(cat, ["implementation", "delivery-ops"]), "build");
+  assert.equal(fold(cat, ["bug-fix", "delivery-ops"]), "fix");
+  assert.equal(fold(cat, ["observability", "delivery-ops"]), "build");
+  assert.equal(fold(cat, ["review", "documentation"]), "canon");
+  assert.equal(fold(cat, ["delivery-ops"]), "release");
+  assert.equal(fold(cat, ["review"]), "verify");
+  assert.equal(fold(cat, ["review", "delivery-ops"]), "release");
+  assert.throws((): string => fold(cat, ["imaginary", "delivery-ops"]), /no unique declared family/);
 });
 
 test("run facts admit only conditional readers while Delivery stays an always-first preamble", () => {

@@ -8,8 +8,9 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 ## Resolve the run
 
 1. Read `nen repo classify --repo <target>` for the repository kind. Collect the distinct `job/`
-   labels on every associated issue, stripping the `job/` prefix; no issue defaults to `build`. Most jobs wins; ties use
-   `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
+   labels on every associated issue, stripping the `job/` prefix; no issue defaults to `build`. A companion job (`companion: true` in
+   `contracts/classify.taxonomy.json`: `review`, `delivery-ops`) counts only when no other job is present, as
+   `hatsu:direct` reads it; `nen pr sections family` does not drop it yet (zheref/nen#642), so the script is the fold. Most jobs wins; ties use `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
 2. Read the target's `nen/workflow.json → pr.sections`. Its full matrix is filled from the catalogue,
    with `$sections` beside it listing all ids and purposes. An edited cell belongs to that consumer;
    fills and diagnosis preserve it. `$canon` records the originating catalogue contract and sha256.
@@ -81,6 +82,12 @@ Every cell below is materialized in the consumer, including the unknown-kind cel
 Conditional ids appear in the matrix but render only with their run fact. Economics appends to any
 cell when raised. The release matrix is the maintainer's explicit exception to `improves` on every PR
 (clarification 2026-10-20, HA#351; it stands, HR-381); all other families carry all thirteen aspects.
+The `observability` job folds into `build`, not `release` (HR-386, and HR-387 for the
+destination), so a PR whose job is observability carries the ladder and shows its Observability
+row; it keeps the product `evidence` reader and loses `rollout` and `release-unit`. `release` keeps
+`release` and `delivery-ops`, the two jobs whose PR is a release unit or its delivery, and that is the
+whole exemption's reach: `delivery-ops` is a companion, so beside any other job it does not count and
+the PR folds by its other jobs (§ *Resolve the run*, step 1).
 
 | Family | Product | Library | Process |
 |---|---|---|---|
@@ -103,7 +110,10 @@ diagram appears only when the flow changed, inside `How`; add one rejected-alter
 
 `What this improves` lists the thirteen aspects below, in this order (HR-377). Give each ⬆ improves,
 ➖ unchanged or ⬇ regresses; explain movement in one line, leave unchanged rows unexplained. A row
-moves only on its own definition, so one claim is never counted in two rows (HR-383, the lead's reading). Cite what
+moves only on its own definition, so one claim is never counted in two rows (HR-383, the lead's reading). An
+aspect that improves in one respect and regresses in another — a dry run added while the output comes
+to depend on the clock, a faster run that uses more memory — shows ⬇, and its one line names both
+halves, the gain and the loss; this holds for every one of the thirteen aspects, none excepted (HR-385). Cite what
 shows the movement — a test or fixture name, a measured number with its method, an HR id — where
 the repository and the scope of work allow it (HR-380); where they do not, one line of reasoning
 stands (HR-382).
@@ -140,6 +150,9 @@ closing issue (HR-11): `<CODE>#<N>/AC-<k>`, `<k>` the id as the issue writes it 
 `{epic}-{nnn}`; the catalogue's acceptance row reads both, zheref/hatsu#411); satisfied · partial · missing · contradicts · unrequested;
 a test name, path:line or scenario. `nen pr converge --catalogue contracts/issue-sections.json`
 judges the table, its rules nen's (zheref/hatsu#413); an empty verify heading fails `body-check`.
+A change to a handbook or stack rule that names commands adds one row per command — ran with its exit
+code, or not run with its reason, the host version it executed on, an account-bound command never
+covered ([WORKFLOW.md](WORKFLOW.md) § *The scratch lane*, zheref/hatsu#558).
 Compatibility carries Symbol / Before / After / Consumer action and a semver verdict. Across
 repositories answers what another repository does differently after merge, recording rulings.
 Release unit carries Archive / Version / Size / Provenance / Verification and the `CON-22` fan-out. Rollout carries Target /
@@ -222,7 +235,7 @@ repo-local `.nen/reports/` data files (directory 0700, files 0600). After either
 check with `--pr <owner/name#n> --base <base>`. The section guard refuses undeclared headings,
 wrong order, missing sections and an eighth reader section. Keep declaration-derived changelog and
 gate checks from `contracts/pr-composition.json` alongside them. The two HA#351 section scripts
-remain interim under `BC-11`: Nen v0.24 carries NN#448's resolver verbs, but NN#464's envelope defect
-blocks their adoption in Hatsu (HA#370). Existing configuration/path-set Python stays frozen.
+remain interim under `BC-11`: Nen v0.24 carries NN#448's resolver verbs, and the envelope defect that
+blocked adopting them is closed (NN#464, HA#370); the companion fold (zheref/nen#642) still keeps them here. Existing configuration/path-set Python stays frozen.
 No new guard replaces Mukai's review,
 regression, coverage or evidence phases.

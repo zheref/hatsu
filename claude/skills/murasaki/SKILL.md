@@ -121,13 +121,13 @@ hatsu:murasaki [from <base>]
 nen parse murasaki --grammar "from [<base>]" --line "<the invocation, minus the hatsu:murasaki prefix>"
 ```
 
-Verified live at `v0.3.0` (`docs/ab/murasaki.md` § 2.1): `from release/1.4` → `base: release/1.4`,
+Verified live, by 2026-09-10, at `v0.3.0` (`docs/ab/murasaki.md` § 2.1): `from release/1.4` → `base: release/1.4`,
 exit `0`. The clause is anchored behind a literal for the reason
 [`hatsu:spiritual-message`](../spiritual-message/SKILL.md) § 1 records, and the shape is deliberately ao's, because the
 clause means the same thing in both.
 
 > **A bare invocation is not parsed, and that is the verb's own answer rather than an omission.**
-> Verified live: `--line ""` against this grammar refuses at exit `2` — *"the line must open with the
+> Verified live, by 2026-09-10: `--line ""` against this grammar refuses at exit `2` — *"the line must open with the
 > literal 'from' — it is what introduces `<base>`"*. There is nothing to parse in `hatsu:murasaki`
 > with no clause, so the parse runs **only when the maintainer typed one**; with no clause the base
 > is `nen/workflow.json` → `branch.base`, default `main`. Name the base out loud either way.
@@ -140,7 +140,7 @@ clause means the same thing in both.
 | `iteration.checks` | the declared verbs § 5 re-proves the merge with | `["build"]` |
 | `iteration.lane` | the lane those verbs run in | `project.defaultLane` |
 
-`nen schema check --repo <path>` VALIDATES this file at the pinned build — verified live, the row
+`nen schema check --repo <path>` VALIDATES this file at the pinned build — verified live, by 2026-10-22, the row
 reads `ok    nen/workflow.json  coverage 80/85/90 (touched), branch '{model}/{persona}/{descriptor}'
 off 'main', checks: lint`. A malformed key is a FAIL **by pointer**, so this skill no longer checks
 the shape by eye; it reads the values, and states the defaults whenever they are what applied.
@@ -302,7 +302,7 @@ unnecessary. **Squashing is [`hatsu:aka`](../aka/SKILL.md) § 4's, once, before 
 rule level.
 
 > **RETIRED at nen `0.5`, superseded at `0.13`.** Step 1's merge half ran through `nen pr
-> cascade-main --repo <path> --trunk <base> --no-push` (verified live at `v0.5.0`,
+> cascade-main --repo <path> --trunk <base> --no-push` (verified live, by 2026-10-22, at `v0.5.0`,
 > `docs/ab/murasaki.md` § *Retired at nen 0.5*); [`hatsu:ao`](../ao/SKILL.md) § 3 now runs both
 > halves through `nen wc catch-up`, and step 3 is `nen wc publish`. The shape is unchanged: step 2
 > runs **between** the catch-up and the push, and nothing publishes a tree nothing proved.

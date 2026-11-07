@@ -99,7 +99,7 @@ recommends for a piece of work, on which surface and at what effort, is
 ## 4 · Maintenance
 
 **To update**, type `/hatsu:bakuryuha` in any session: it fast-forwards the checkout, re-proves the
-warm-up from the new files, reads back what is served, and ends with the one line left to type. By hand:
+warm-up from the new files, reads back what is served, and ends with the one line left to type. To do it yourself:
 
 ```sh
 ~/Code/Agents/hatsu/scripts/hatsu_plugin_update.sh --root ~/Code/Agents/hatsu --channel trunk --claude

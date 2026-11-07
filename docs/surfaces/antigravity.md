@@ -77,7 +77,7 @@ Provenance of each step:
 - **Held by** the `report-markdown-guard` lane, which renders every variant from its sample document in both
   formats and compares each to its checked example.
 - **What predates it**: HA-PR-#189 (zheref/hatsu#145) fixed where the artifact goes and that it is
-  overwritten once per conversation; until #215 its body was hand-authored from a description, and its
+  overwritten once per conversation; until zheref/hatsu#215 its body was hand-authored from a description, and its
   structure drifted from turn to turn.
 
 ## 2. Skills
@@ -165,7 +165,7 @@ at exit 0, and that pending CI, reviewer rounds, or open review threads strictly
 `ask_question`: multiple-choice questions, argument `questions` (an array of `question`, `options`,
 `is_multi_select`). `jutaisho` sets `is_multi_select: true` when several options may all be true.
 
-**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and #295):** the picker carries the
+**The shape and the hand-over (rulings of 2026-10-17, zheref/hatsu#294 and zheref/hatsu#295):** the picker carries the
 question alone, the rest of the stop in the chat message (`jutaisho` § 4 states the shape). No Run button on
 a code fence is known here (*Known gaps*), so a command the maintainer must run is one complete `bash` block
 per command and the message says *paste into a terminal*.

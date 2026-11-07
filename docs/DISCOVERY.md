@@ -20,7 +20,7 @@ Independent Hatsu prose and Nen machinery work remain separate, cross-linked iss
 
 **Netero is the one writer for process-chairman findings** — constitution, canon prose, and
 machinery enhancement observed while Hunters execute (duration, redundancy, autonomy gaps,
-deterministic jobs still done by hand, missing toolchain, other roster friction).
+deterministic jobs a session still runs itself, missing toolchain, other roster friction).
 [`claude/agents/netero.md`](../claude/agents/netero.md) is the authority on that class: complete
 issues, every declared label that classifies them, observable acceptance criteria, and
 cross-references for deployment, fan-out and provisioning. Reviewers and executing Hunters still
@@ -165,8 +165,8 @@ any retry. It neither asserts a clean search nor creates a recursive issue about
 
 ## Tracked concurrency dependency
 
-[Nen #205](https://github.com/zheref/nen/issues/205) tracks conflict-aware whole-body writes.
-It was reconciled and filed during #49 implementation. Until that primitive has a supported
+[zheref/nen#205](https://github.com/zheref/nen/issues/205) tracks conflict-aware whole-body writes.
+It was reconciled and filed during zheref/hatsu#49's implementation. Until that primitive has a supported
 backend guarantee, an immediately preceding read is not atomic compare-and-swap: serialize known
 writers, prefer additive material comments where appropriate, and keep an unsafe fold pending.
 Independent simultaneous issue creates likewise have no atomic uniqueness guarantee. If a race
