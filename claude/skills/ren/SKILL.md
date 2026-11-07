@@ -293,7 +293,7 @@ exists to replace, and duplicating it is how the page stops being read.
 **One entry, and it is a boundary rather than a gap:**
 
 1. **The composition itself has no verb, and is not expected to get one.** nen owns operations, not
-   conversations (§ 4, observed live, by 2026-09-10 with no evidence file kept). Ren's ordering is prose because it is a *sequence of other
+   conversations (§ 4, verified live, by 2026-09-10 (`docs/ab/ren.md` §§2.2, 4.2)). Ren's ordering is prose because it is a *sequence of other
    skills*, each of which is verb-backed where a verb exists. **Every deterministic step inside a
    turn is a verb or a named residue in the skill that owns it** — `nen shu <check>` and
    `nen shu tools` (step 2's inner loop; the authoring itself is that skill's own named boundary),

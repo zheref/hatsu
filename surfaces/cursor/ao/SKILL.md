@@ -335,7 +335,7 @@ and the pair of SHAs is the cheapest possible way to say so.
 ## Residue
 
 1. **RETIRED at nen `0.5`: the merge half** (§ 3) is `nen pr cascade-main --repo <path> --trunk
-   <base> --no-push` — observed live, by 2026-09-10 with no evidence file kept, exit `0`, `not pushed (--no-push)` and `--json`'s `noPush: true`.
+   <base> --no-push` — verified live, by 2026-09-10 (`docs/ab/ao.md` § *Retired at nen 0.5 — 2026-09-10*), exit `0`, `not pushed (--no-push)` and `--json`'s `noPush: true`.
 2. **RETIRED at nen `0.13`: the rebase half** (§ 3) is `nen wc catch-up` under `auto` or
    `--strategy rebase`; nothing in ao types a rebase.
 3. **RETIRED at nen `0.13`: the published/unpublished test** (§ 3) is `wc catch-up`'s own, fetched
@@ -347,7 +347,7 @@ and the pair of SHAs is the cheapest possible way to say so.
    `:1:` base stage is still `git show`.
 6. **The in-progress check** (§ 2) — `git rev-parse -q --verify MERGE_HEAD` and `git rebase
    --show-current-patch`, asked of git, never of `.git/` on disk, which a linked worktree's `.git`
-   file hides; `nen wc classify` folds an unresolved merge into `on-branch-dirty` (observed live, by 2026-09-10 with no evidence file kept).
+   file hides; `nen wc classify` folds an unresolved merge into `on-branch-dirty` (verified live, by 2026-09-10 (`docs/ab/ao.md` § 2.2)).
 7. **RETIRED at nen `0.13`: the merge commit itself** (§ 5) is `nen commit write --message-file`,
    gated on `commit format`'s exit code with the two streams kept apart; a rebase finishes by
    re-running `wc catch-up`.

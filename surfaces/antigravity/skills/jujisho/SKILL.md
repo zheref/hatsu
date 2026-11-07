@@ -271,7 +271,8 @@ against a base that will change; take A to its gate, and start B once A's merge 
 One raw call, named where it runs: § 4's base read-back after `nen pr retarget`
 (`gh pr view <B> --json baseRefName`), because nen exposes no read of a PR's current base — the
 same gap `getsuga`'s entry in [`PROCESS.md`](../../../../docs/PROCESS.md) § *Residue and owned
-dependencies* names (zheref/hatsu#98; `docs/ab/jujisho.md` § 3).
+dependencies* names (zheref/hatsu#98; `docs/ab/jujisho.md` § 3), and listed there once under its own
+`jujisho` entry.
 
 ## 8. Authority
 

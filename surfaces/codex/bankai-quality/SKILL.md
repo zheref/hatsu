@@ -140,7 +140,7 @@ here where a bigger measured number is good. Exits 1 when severity is `high` or 
 than divided by (verified live, by 2026-09-01, `docs/ab/bankai-quality.md` § 2.3) — record a non-zero baseline or compare
 the absolute values by hand.
 
-**Observed live, by 2026-09-01 with no evidence file kept, exactly at both boundaries (§ 2.3):** `10.0%` itself is `ok` (the rule is *strictly*
+**Verified live, by 2026-09-01 (`docs/ab/bankai-quality.md` § 2.3), exactly at both boundaries (§ 2.3):** `10.0%` itself is `ok` (the rule is *strictly*
 greater than 10%, not "at least"), and `25.0%` itself is `high`, not `critical` — the same strict-`>`
 reading on both edges. Never round a boundary value up to the next severity by hand; relay the verb's own
 computed severity.
@@ -264,13 +264,15 @@ Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate 
 ## Residue
 
 Named where it runs: the `zheref/bankai-handbooks` checkout this skill reads is
-[`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 0's block, that skill's residue (unfiled). Every
-resolution here — scenario, tooling, thresholds, method blocks, the candidate's own checks — is a
-`nen` verb (§§ 1, 3–5a).
+[`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 0's block, that skill's residue (unfiled), listed once
+in [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*. Every
+resolution here — scenario, tooling, thresholds, method blocks — is a `nen` verb (§§ 1, 3–5); the
+candidate's own checks, § 5a's `nen shu` verbs, are Phinks's and Uvogin's to run.
 
 ## Authority
 
-**Permitted:** the `nen` verbs §§ 1, 3–5a name, run against the candidate repository; reading the
+**Permitted:** the `nen` reads §§ 1, 3–5 run (scenario, tooling, perf-compare, method-check); § 5a's
+`nen shu` verbs are named for citation, run by Phinks and Uvogin, never by this resolver; reading the
 quality canon at the pinned tag (§ 2); a report whose findings cite rule ids. **Not permitted:** any
 write to canon or to `<reference-repo>`, and the `Quality-Gate:` line itself, which Phinks emits
 (§ *Rules this resolver still carries*).
@@ -282,3 +284,5 @@ write to canon or to `<reference-repo>`, and the `Quality-Gate:` line itself, wh
 - **Never cites a rule id it did not read** at the pinned tag, and never invents one for a gap: the gap
   is a finding, stopped at **G5**.
 - **Never writes `Verdict:`** and never emits the `Quality-Gate:` line on its own account (`QA-21`).
+- **Never runs `nen shu deploy --run`** (§ 5a), nor any other § 5a `nen shu` verb: they are named here
+  for citation and run by Phinks and Uvogin.

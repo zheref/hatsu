@@ -333,7 +333,7 @@ fully declared repository undeclared.
 own remedy.** The shape is `"stall": { "elapsedMs", "quietMs", "onStall": { "exe", "argv" },
 "maxStrikes" }`, on an invocation or on one `steps[]` entry; it fires only once **both** budgets are
 past — total elapsed **and** a quiet window with no output — because a guard acting on silence alone
-would fire at a healthy build that went quiet early. Observed live, by 2026-09-10 with no evidence file kept, at `v0.5.0` against a declared
+would fire at a healthy build that went quiet early. Verified live, by 2026-09-10 (`docs/ab/rasengan.md` § *Retired at nen 0.5 — 2026-09-10*), at `v0.5.0` against a declared
 guard: `--dry-run` prints `on stall: after 60000ms elapsed AND 30000ms with no output: sh -c 'echo
 kill'  (up to 2 times)` and the real run reports the same line, exit `0`.
 

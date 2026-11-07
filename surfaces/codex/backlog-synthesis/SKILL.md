@@ -400,7 +400,7 @@ silently.
 
 One raw call, named where it runs: § 2's per-issue `gh issue view <n> --json body,comments` for
 § 3's grouping read, because no `nen` verb fetches bodies, comments or the sub-issue graph in bulk
-(`docs/ab/backlog-synthesis.md` § 3; unfiled). Every write is a Nen verb.
+(`docs/ab/backlog-synthesis.md` § 3; unfiled), listed once in [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*. Every write is a Nen verb.
 
 ## 6. Authority
 

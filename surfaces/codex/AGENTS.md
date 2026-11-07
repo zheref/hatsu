@@ -952,7 +952,7 @@ the truth.
 Standing a repository up is this mode's: [`$okiro`](okiro/SKILL.md) for an empty
 directory; for an existing tree, `nen shu detect` → `nen scaffold init` → `nen schema check` →
 `nen shu tools`, in that order and with `--dry-run`
-first — § *The `shu` verbs* above spells out the lines. So is hand-writing a `project` block for a
+first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block yourself for a
 repository `detect` cannot propose one for, and replacing a proposed seat with the command the repository
 actually runs: both are declarations of machinery, landed as PRs at **G4** *where the repository being
 stood up is a canon one* and at **G2** where it is a consumer (see *Which gate a PR stands at*),
@@ -1504,7 +1504,7 @@ implementing the filed work, or authoring canon.
 | Class | Typical owner |
 |---|---|
 | **Duration** — a job too long for the value it returns | Hatsu prose; Nen if a declared step is the cost |
-| **Redundancy** — repetitive manual work every run | Nen when it can become a verb; Hatsu when a skill restates another |
+| **Redundancy** — repetitive work a session redoes every run | Nen when it can become a verb; Hatsu when a skill restates another |
 | **Autonomy gap** — stops that contradict expected autonomy | Hatsu prose; Nen if a missing verb is it |
 | **Determinism** — improvised shell where a Nen verb belongs | **Nen**, cross-linked to the improvising skill |
 | **Toolchain** — missing toolchain, versions or utilities | the repo that should declare it |

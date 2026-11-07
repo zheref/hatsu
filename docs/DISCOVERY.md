@@ -20,7 +20,7 @@ Independent Hatsu prose and Nen machinery work remain separate, cross-linked iss
 
 **Netero is the one writer for process-chairman findings** — constitution, canon prose, and
 machinery enhancement observed while Hunters execute (duration, redundancy, autonomy gaps,
-deterministic jobs still done manually, missing toolchain, other roster friction).
+deterministic jobs a session still runs itself, missing toolchain, other roster friction).
 [`claude/agents/netero.md`](../claude/agents/netero.md) is the authority on that class: complete
 issues, every declared label that classifies them, observable acceptance criteria, and
 cross-references for deployment, fan-out and provisioning. Reviewers and executing Hunters still

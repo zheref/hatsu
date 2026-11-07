@@ -181,8 +181,8 @@ output, and name the on-device step that closes it** — `unauthorized` → the 
 replug or `adb kill-server`, `no permissions` → this host's USB rules. **Never fall back to the
 simulator for it**: the fallback answers "nobody plugged it in", and this device is one tap from
 working. Where the target declares `readyWhen`, **nen has already refused at exit `5`** naming the
-device, the state seen and the states accepted — relay that verbatim; where it declares none, read the state column
-directly and **report the missing `readyWhen` as a declaration defect**.
+device, the state seen and the states accepted — relay that verbatim; where it declares none, the launching session reads the
+state column itself and **reports the missing `readyWhen` as a declaration defect**.
 
 **`device.name` is matched byte for byte** — exact string equality, no case folding, no Unicode
 normalisation, no punctuation smoothing — so a name carrying **U+2019** (`Sergio’s iPhone`) declared

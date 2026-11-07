@@ -1781,9 +1781,9 @@
         ]
       }
     },
-    "74bbc9765d5b0b432d3a167b666289c4da8a00f57c8174629c29d643dcf1f8f4": {
+    "7d90997f59c780fc3058c9da6d501964f045eab5dedb3c5963a695c04cb8c340": {
       "contract": "hatsu.pr-sections/v1",
-      "documentSha256": "74bbc9765d5b0b432d3a167b666289c4da8a00f57c8174629c29d643dcf1f8f4",
+      "documentSha256": "7d90997f59c780fc3058c9da6d501964f045eab5dedb3c5963a695c04cb8c340",
       "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, glyphs, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect. The spec footer row is admitted by the run fact spec (a closing issue carrying a Spec: line) and carries nen's spec-rows requirement whole; the always-on Hanten footer keeps its exact unglyphed compatibility heading and precedes checklist evidence.",
       "max": 7,
       "proseBudget": 150,
@@ -1997,7 +1997,8 @@
           "api-design",
           "architecture",
           "accessibility",
-          "parity"
+          "parity",
+          "observability"
         ],
         "fix": [
           "bug-fix",
@@ -2015,8 +2016,7 @@
           "provisioning",
           "onboarding",
           "adapters",
-          "schema",
-          "observability"
+          "schema"
         ],
         "verify": [
           "unit-tests",

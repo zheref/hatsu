@@ -342,7 +342,7 @@ nen release self-check --repo <path> --pr-merge-sha <sha> --previous-tag <vPrev>
 ```
 
 True iff the release PR's own merge commit is reachable from `--cut-point` and **not already**
-reachable from `--previous-tag` — a git-mechanical fact, never a judgement. Observed live, by 2026-10-22 with no evidence file kept, against
+reachable from `--previous-tag` — a git-mechanical fact, never a judgement. Verified live, by 2026-10-22 (`docs/ab/getsuga.md` § 2.4b), against
 the real `v0.11.3` release PR (RR-PR-#916): `nen` reports it **should list ITSELF** against
 `v0.11.2..v0.11.3` (correct — that PR's merge is the cut point), and **should NOT list itself**
 against `v0.11.3..v0.11.3` (correct — already reachable from its own tag). Four hand-run laps got this
@@ -740,7 +740,8 @@ through nen and this section does not apply. `<reference-repo>` is machinery and
 The steps no Nen verb owns at the pin are named where they run, and listed once in
 [`PROCESS.md`](../../../../docs/PROCESS.md) § *Residue and owned dependencies*, its `getsuga` entry: the
 release proposal's base read-back after a retarget (`gh pr view <N> --json baseRefName`,
-zheref/hatsu#98), with § 3's placement read and its two direct edits named in place. This section adds none.
+zheref/hatsu#98), and § 3's placement read, its two direct edits and its live-body read before
+`nen pr edit-body` (unfiled). This section adds none.
 
 ## 8. Authority
 
@@ -764,7 +765,7 @@ zheref/hatsu#98), with § 3's placement read and its two direct edits named in p
 ## 9. Hard limits
 
 - **Never tags a commit unreachable from `origin/<branch.base>`** — `nen release resolve-target` and
-  `nen tag cut`'s own `--at` check both enforce this; observed live, by 2026-09-01 with no evidence file kept, in scratch, never against
+  `nen tag cut`'s own `--at` check both enforce this; verified live, by 2026-09-01 (`docs/ab/getsuga.md` § 2.5), in scratch, never against
   `<reference-repo>` or `hatsu`.
 - **Never tags past an open `critical`, an active `RELEASE_HOLD`, or an unreconciled `CON-33(c)`** —
   and read the `RELEASE_HOLD` row exactly as printed: since nen `v0.2.0` `true`/`1`/`yes` is held,
@@ -786,7 +787,7 @@ zheref/hatsu#98), with § 3's placement read and its two direct edits named in p
   phase, on the maintainer's own go (mugetsu § 0).
 - **Never routes around a refused capability.**
 - **Never re-orders `nen changelog collate --write`'s written section by eye.** The written body is
-  already correct (newest-first, `CON-33(b)`) — observed live, by 2026-09-01 with no evidence file kept, against the old script's own written
+  already correct (newest-first, `CON-33(b)`) — verified live, by 2026-09-01 (`docs/ab/getsuga.md` § 2.3.1), against the old script's own written
   output, byte-for-byte. **RETIRED at nen `0.7`: the printed manifest no longer disagrees with the
   write** (§ 3), so relay it as the record of what landed rather than as a defect to note — and the
   rule against re-ordering the section stands on its own, unchanged.

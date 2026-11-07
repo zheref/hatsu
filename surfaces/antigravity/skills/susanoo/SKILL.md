@@ -135,7 +135,7 @@ authority; this is what susanoo does with each.
 
 A precondition is nen's to **assert** and never to perform. On an archive row that is nearly always
 the material that signs the package — a keychain export, a keystore, a provisioning profile, a
-notarization credential. Observed live, by 2026-09-10 with no evidence file kept: with the declared signing path absent, `nen shu archive`
+notarization credential. Verified live, by 2026-09-10 (`docs/ab/susanoo.md` § 2.3): with the declared signing path absent, `nen shu archive`
 reports
 
 ```

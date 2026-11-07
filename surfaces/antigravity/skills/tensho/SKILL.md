@@ -163,7 +163,7 @@ nen stage triage --repo <path> [--scope <in-scope prefixes>] [--mentions "<commi
 Detects, never decides, and exits `1` whenever anything is flagged — verified live, by 2026-10-22, against a
 constructed working copy carrying one of each (`docs/ab/tensho.md` § 2.2):
 
-| Flag `nen stage triage` reports | Trigger, observed live, by 2026-09-01 with no evidence file kept |
+| Flag `nen stage triage` reports | Trigger, verified live, by 2026-09-01 (`docs/ab/tensho.md` § 2.2) |
 |---|---|
 | `secret-shape` | `.env`, `*.pem`, `*.key`, `credentials*`, or a token/key shape in the diff |
 | `ignored` | The path is git-ignored and would need `-f` to stage |
@@ -367,7 +367,8 @@ against G4."*
 
 One step, named where it runs: § 5's changed-file list handed to `nen gate derive --files-from`,
 since no `nen` verb fetches a remote PR's changed-file set
-([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Gate derivation* owns the protocol; unfiled).
+([`WORKFLOW.md`](../../../../docs/WORKFLOW.md) § *Gate derivation* owns the protocol; unfiled), listed once
+in [`PROCESS.md`](../../../../docs/PROCESS.md) § *Residue and owned dependencies*.
 
 ## 7. Authority
 

@@ -24,7 +24,7 @@ by eye, every invocation. This port replaces the parse and the per-iteration con
 the trigger to ask for it (§ 1), never to default it — `nen watch until` — the same read-only observation engine `izanami`'s port uses —
 evaluates the condition, run single-shot per iteration, and from nen `0.7` **`nen loop iterate`
 holds the count of acting iterations across the whole loop**, refusing the claim at the cap instead
-of trusting a caller to stop (§ 3). **What `nen` still does not own, observed live, by 2026-09-10 with no evidence file kept, below, is the act
+of trusting a caller to stop (§ 3). **What `nen` still does not own, verified live, by 2026-09-10 (`docs/ab/izanagi.md` § *Retired at nen 0.7 — 2026-09-10*), below, is the act
 itself** — it stays exactly where the old skill's prose kept it, with the skill, under the looped
 task's own authority.
 
@@ -43,11 +43,11 @@ nen parse izanagi "<the invocation line>"
 ```
 
 `nen parse izanagi` (no `--grammar` — it is one of the three built-in grammars, alongside `futon`
-and `izanami`; observed live, by 2026-09-01 with no evidence file kept, `--grammar`/`--line` are refused for it with "parse izanagi takes the
+and `izanami`; verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.1), `--grammar`/`--line` are refused for it with "parse izanagi takes the
 invocation string") matches `until` and `up to` **case-insensitively, as the LAST whole-word
 occurrence of each**, and echoes `task:` / `until:` / `cap:` back before anything runs.
 
-**Observed live, by 2026-09-01 with no evidence file kept, a well-formed invocation:**
+**Verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.1), a well-formed invocation:**
 
 ```
 $ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged up to 3"
@@ -58,7 +58,7 @@ $ echo $?
 0
 ```
 
-**Case-insensitive, last-occurrence matching of both `until` and `up to` — observed live, by 2026-10-22 with no evidence file kept** (an
+**Case-insensitive, last-occurrence matching of both `until` and `up to` — verified live, by 2026-10-22 (`docs/ab/izanagi.md` § 2.1)** (an
 earlier stray "UNTIL"/"UP TO" inside the task text does not win):
 
 ```
@@ -72,11 +72,11 @@ $ echo $?
 
 **There is only ONE grammar shape** — unlike `izanami`, which publishes a second `until
 <condition>` + following-command-lines form, `nen parse izanagi` accepts no such alternate; the
-single-line form above is the whole grammar (observed live, by 2026-09-01 with no evidence file kept: feeding it `izanami`'s two-line shape
+single-line form above is the whole grammar (verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.1): feeding it `izanami`'s two-line shape
 does not parse as a task/commands split — it is read as trailing text after `up to`, and fails the
 integer-cap check instead). Never offer a second form to the maintainer; there isn't one.
 
-**The missing-cap case — the load-bearing refusal, observed live, by 2026-09-01 with no evidence file kept:**
+**The missing-cap case — the load-bearing refusal, verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.2):**
 
 ```
 $ nen parse izanagi "gh pr merge 925 --repo <reference-repo> until it is merged"
@@ -97,7 +97,7 @@ free text, never derived, defaulted or offered as a picker option — not `nen`'
 value "that worked last time". Any other missing argument or configuration item is asked for and set
 up inline (`missing-argument`, `missing-configuration`; § 4 *Ask, set up, continue*).
 
-**Missing `until`, and a malformed cap — both exit `2`, observed live, by 2026-09-22 with no evidence file kept, and both are asked for the same way:**
+**Missing `until`, and a malformed cap — both exit `2`, verified live, by 2026-09-22 (`docs/ab/izanagi.md` § 2.3), and both are asked for the same way:**
 
 ```
 $ nen parse izanagi "gh pr merge 925 --repo <reference-repo> up to 3"
@@ -128,7 +128,7 @@ If the task is entirely read-only, say so and point at [`/izanami`](../izanami/S
 needs no cap and no confirmation. Running a read-only watch through izanagi is harmless but buys a
 ceiling nobody needed.
 
-**`nen parse izanagi` runs no classifier over the task — observed live, by 2026-09-01 with no evidence file kept**, unlike `nen parse izanami`
+**`nen parse izanagi` runs no classifier over the task — verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.5)**, unlike `nen parse izanami`
 (which tags every command `[read-only]`/`[mutating]`/`[unknown]` and refuses on a bad tag). Feeding
 `izanagi` a task that looks read-only still parses fine — there is nothing here to gate, because
 izanagi's task is *expected* to mutate:
@@ -209,7 +209,7 @@ reported and relayed as such, never silently folded into "not yet". When this ca
 first one of the run — before any act — an exit `0` here is exactly the **iteration 0** case (§ 3's
 opening step): reported, but not counted against the cap. Every other call to this same command,
 before or after an iteration's act, is an ordinary part of that iteration's own step 1 or step 3,
-not a fresh "iteration 0". **Observed live, by 2026-09-01 with no evidence file kept**, the same condition false, then true, then reused
+not a fresh "iteration 0". **Verified live, by 2026-09-01 (`docs/ab/izanagi.md` §§2.4–2.5)**, the same condition false, then true, then reused
 against a real target:
 
 ```
@@ -234,7 +234,7 @@ $ echo $?
 0
 ```
 
-**The composition boundary, observed live, by 2026-09-01 with no evidence file kept: `nen watch until` REFUSES the act itself.** Handing it
+**The composition boundary, verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.6): `nen watch until` REFUSES the act itself.** Handing it
 the task instead of the condition check — even a plain `git add`, which is not on the classifier's
 refused list, only its unrecognized one — is refused outright, redirecting to `izanagi`'s own parse
 verb:
@@ -311,7 +311,7 @@ per claim, rather than this skill's arithmetic. `nen watch until --max-iteration
 **different, unrelated bound**: its own `--help` still says so — "a SAFETY bound, not izanagi's
 mandatory cap" — and it bounds *one condition check*, never the count of acting iterations.
 
-**Observed live, by 2026-09-01 with no evidence file kept — the full composed loop, converging before the cap** (`cap: 5`, condition becomes
+**Verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.4) — the full composed loop, converging before the cap** (`cap: 5`, condition becomes
 true on the act itself, at iteration 3):
 
 ```
@@ -380,8 +380,8 @@ remains and the recommended next step.
 
 One step has no Nen verb at the pin, named where it runs: § 2's log of every mutating action across
 the run (object, action, iteration, time) is the skill's own bookkeeping, since no `nen` verb keeps a
-run-wide ledger the way `nen label apply` keeps one per call (unfiled). The loop itself is
-`nen watch until` and `nen loop`, § 3.
+run-wide ledger the way `nen label apply` keeps one per call (unfiled), listed once in
+[`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*. The loop itself is `nen watch until` and `nen loop`, § 3.
 
 ## 6. Hard limits
 
@@ -396,7 +396,7 @@ run-wide ledger the way `nen label apply` keeps one per call (unfiled). The loop
 - **Never retries past a human gate.**
 - **Never substitutes its confirmation for a looped skill's own** plan confirmation (§ 2).
 - **Never accumulates authority across iterations** — each resolves fresh and lapses (§ 2).
-- **Never routes the act through `nen watch until`** — observed live, by 2026-09-01 with no evidence file kept (§ 3) to refuse it outright;
+- **Never routes the act through `nen watch until`** — verified live, by 2026-09-01 (`docs/ab/izanagi.md` § 2.6) (§ 3) to refuse it outright;
   the act runs directly, under the looped task's own machinery.
 - **Never merges (the merge is the maintainer's at `en` § 5's prompt, never a loop's), never applies a G1 mode label, never casts a review vote** — the looped
   task's limits are the loop's limits, and looping cannot widen them (`kurapika.md`'s Manipulator

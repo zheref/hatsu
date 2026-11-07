@@ -75,7 +75,7 @@ Verified live, by 2026-09-10, at `v0.3.0` (`docs/ab/en.md` § 2.1): `on HA#41` �
 reason [`$spiritual-message`](../spiritual-message/SKILL.md) § 1 records — a lone bracketed slot is refused at the
 template.
 
-> **The empty line is refused, and that is why a composite does not parse at all.** Observed live, by 2026-09-10 with no evidence file kept:
+> **The empty line is refused, and that is why a composite does not parse at all.** Verified live, by 2026-09-10 (`docs/ab/en.md` § 2.1):
 > `--line ""` exits `2` with *"the line must open with the literal 'on' — it is what introduces
 > `<ref>`"*. **An anchored optional clause requires its anchor**; "no clause" and "empty line" are
 > different inputs, and only the first parses. So `mukai`, under `autoEn`, hands the PR over directly and **calls

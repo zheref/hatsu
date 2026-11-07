@@ -488,13 +488,13 @@ version. The next go is the maintainer's.
 1. **Nothing records the go.** No nen verb writes "the maintainer authorised `production` for
    `v1.2.0`", and `.nen/last-stop.json` is a bell marker, not an authorization ledger. The quote in
    § 7 is the record, written by hand into the report and the comment.
-2. **`nen shu release` has no `--run` gate** (§ 5a, observed live, by 2026-09-10 with no evidence file kept) — so the whole "show it before you
+2. **`nen shu release` has no `--run` gate** (§ 5a, verified live, by 2026-09-10 (`docs/ab/mugetsu.md` § 2.5)) — so the whole "show it before you
    do it" discipline on the publication verb is this skill's, unenforced by anything. The one
    mechanical helper is `--dry-run`, and typing it is a rule, not a guard.
-3. **`nen shu release` has no `--target`** (observed live, by 2026-09-10 with no evidence file kept, exit `2`). "One target per call" is this
+3. **`nen shu release` has no `--target`** (verified live, by 2026-09-10 (`docs/ab/mugetsu.md` § 2.5), exit `2`). "One target per call" is this
    skill's discipline; per-destination publication has to be modelled as lanes or as `deploy`
    targets in the declaration.
-4. **`release preflight`'s tag row inverts after the cut** (§ 4, observed live, by 2026-09-10 with no evidence file kept) — so the pass/fail
+4. **`release preflight`'s tag row inverts after the cut** (§ 4, verified live, by 2026-09-10 (`docs/ab/mugetsu.md` § 2.3)) — so the pass/fail
    reading is by hand, off the rows, and the exit code alone is never the verdict. There is no
    `--expect-tag-exists` or post-cut mode at this pin.
 5. **Nothing marks a destination as production.** `project.targets.<name>` carries no such field

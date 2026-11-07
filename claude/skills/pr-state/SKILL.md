@@ -200,7 +200,7 @@ line), so the report itself says which file decided.
 - **Exit `2`** → the invocation itself was refused before evaluation ever started (an unknown code, an
   unparseable ref, no reviewer identities). Never render this as any of the three verdicts — quote the
   refusal text verbatim; it is the trigger to ask for the missing piece and re-run (§ 1), not the end. A missing or expired `GH_TOKEN` is **not** this case: it
-  surfaces as the `unevaluated` verdict on exit `1` (§ 4), observed live, by 2026-09-01 with no evidence file kept — quote that verdict, don't
+  surfaces as the `unevaluated` verdict on exit `1` (§ 4), verified live, by 2026-09-01 (`docs/ab/pr-state.md` § 2.4) — quote that verdict, don't
   reclassify it as a refusal.
 
 **Never pass `--round-policy strict`.** `bounded` is the default and the settled `CON-32(b)` reading
@@ -244,7 +244,7 @@ the part after the `: ` — e.g. `not-ready: 3 unresolved review thread(s) (CON-
 Then the conjunct-by-conjunct table — **rendered by `--explain`, not reconstructed by hand.** The gate
 is a conjunction evaluated **in this order**, and it **short-circuits on the first failure**, so
 everything after the failing row is genuinely *unknown* and `nen` itself prints it as `unevaluated`
-rather than as passing. The "what a failure reads as" column below is illustrative, observed live, by 2026-10-22 with no evidence file kept, and
+rather than as passing. The "what a failure reads as" column below is illustrative, verified live, by 2026-10-22 (`docs/ab/pr-state.md` §§2.1–2.3), and
 against `nen`'s own source at the port (ported at `v0.1.0`; the six rows, their order and the three "does
 NOT decide" caveats re-verified byte-for-byte in `--explain`'s output at `v0.3.0`, and no `v0.2.0`/`v0.3.0`
 changelog entry touches a conjunct's text) — **relay `--explain`'s own printed text, never retype it from
@@ -323,7 +323,7 @@ names the fix, and a paraphrase risks losing the exact grant or cause it points 
 **Never `ready`, and never silently omitted.** This is RR-IS-#680's principle in its smallest form:
 *absence is never a pass.* An unevaluated PR is a row that needs attention, not one that cleared.
 
-**What would fix it — quote `nen`'s own remedy line, observed live, by 2026-09-08 with no evidence file kept (and against `nen`'s `v0.1.0` source
+**What would fix it — quote `nen`'s own remedy line, verified live, by 2026-09-08 (`docs/ab/pr-state.md` §§2.4, 4) (and against `nen`'s `v0.1.0` source
 at the port; the first shape re-observed live, by 2026-09-08 with no evidence file kept, at `v0.3.0`, the others untouched by any later changelog
 entry) for each shape below:**
 
@@ -375,7 +375,7 @@ merely the convenient way to satisfy it. **Where the gate cannot evaluate, the c
 ## Residue
 
 None of its own at the pin: § 2's whole computation is `nen pr ready`, run through
-`scripts/gh_token_env.sh` (§ 2), and the report quotes it.
+`scripts/gh_token_env.sh` (§ 2), and the report quotes it; [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies* says so.
 
 ## Authority
 

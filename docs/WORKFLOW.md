@@ -2351,7 +2351,7 @@ prints is what every later block takes:
 | **`$HATSU_PLUGIN_ROOT`** | the environment the session was started with — the form that works on all three surfaces, and the one to prefer |
 | the path the run was handed | `$ten <path>` on Codex, `/ten <path>` on Cursor (`docs/SURFACES.md` § 1's invocation row), or whoever raised the run |
 | **`$CLAUDE_PLUGIN_ROOT`**, when set | Claude Code's own — the installed plugin directory, which changes on every update and is never a literal. Inside a Hatsu skill invocation on Claude Code it passes the identity check on the first comparison |
-| **none of the three** | the root is reported unresolved, never guessed — `NOT INSTALLED` in the warm-up, `--reviewers` by hand in `sharingan` § 4. The prelude reads three candidates and no fourth. On Claude Code alone, a caller can obtain the path it hands in (row 2) from the surface's own registry: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`** (observed live, by 2026-09-10 with no evidence file kept: the `--json` flag exists and `installPath` is the plugin root); neither other surface has one |
+| **none of the three** | the root is reported unresolved, never guessed — `NOT INSTALLED` in the warm-up, `--reviewers` by hand in `sharingan` § 4. The prelude reads three candidates and no fourth. On Claude Code alone, a caller can obtain the path it hands in (row 2) from the surface's own registry: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`** (verified live, by 2026-09-29, `docs/surfaces/evidence/surfaces.md` § 10.1: the `--json` flag exists and `installPath` is the plugin root); neither other surface has one |
 
 **Never substitute a bare relative path.** `--gates` in particular resolves a relative path against
 `--repo`'s root since nen `v0.2.0`, never the cwd, so `contracts/reference.gates.json` looks for a file
@@ -2998,8 +2998,8 @@ build). The lane is fixed so the run can be allowed ahead of time and read after
    outside the effort worktree, core and every repository `nen/repos.json` names; the rule's own
    scaffold command creates the project inside it, and every later command takes that project as its
    working directory or target. Nothing in the effort checkout is a command's working directory, and
-   nothing the scratch run writes is committed. The directory is the run's own: its path goes in the
-   report, and [`cleanup`](../claude/skills/cleanup/SKILL.md) inventories it like any other leftover.
+   nothing the scratch run writes is committed. The directory is the run's own: the run removes it
+   after its last command, and its report names the path and the removal.
 2. **The permission it needs, named before the run.** Hatsu's permission pack carries no row for the
    scratch lane: `contracts/permissions.json` is scoped to the session's repository, its worktrees and
    its associated repositories, and a package runner there executes code it downloads, so the lane
@@ -3007,9 +3007,13 @@ build). The lane is fixed so the run can be allowed ahead of time and read after
    lists, before the first scratch command, each command and the narrowest Claude Code rule that
    allows it, as `Bash(<exe> <args>)`, pinned where the rule pins a version — the HA#534 build's two
    were a package-runner scaffold and its install, `Bash(npx create-expo-app@<version> *)` and
-   `Bash(npm install *)`. The maintainer allows them once, in their own `.claude/settings.local.json`,
-   ahead of the run (the shape zheref/hatsu#154 and zheref/hatsu#156 gave `en`'s merge and `mugetsu`'s
-   publication; a permission setting is the maintainer's alone, so the build only names the rule). A
+   `Bash(npm install *)`. The maintainer allows them once, ahead of the run, in the
+   `.claude/settings.local.json` of their core checkout; a permission setting is the maintainer's
+   alone, so the build only names the rule. It is the same `Bash(<exe> <args>)` rule shape the pack
+   renders for zheref/hatsu#154 and zheref/hatsu#156 (`en`'s merge, `mugetsu`'s publication), but not a
+   pack row: the lane is outside the pack's scope (`contracts/permissions.json` → `$comment`), so the
+   build names a per-plan rule. The rule has no root scoping (a Claude Code allow rule has no root
+   syntax), so the permission does not enforce *away from every checkout*; step 1's `mktemp -d` does. A
    command the permission layer refuses mid-run is not retried or routed around: its row reads not
    run, the refusal its reason.
 3. **The verify row says what ran.** The PR's verify section carries one row per command the rule

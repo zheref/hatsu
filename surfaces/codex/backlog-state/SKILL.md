@@ -384,8 +384,8 @@ nen color status --repo <path> --present <a,b,c>
 
 Resolves the target repository's own `nen/colors.yml`
 precedence for whatever category values are true of one row, and prints the first match plus what it
-outranked. Observed live, by 2026-09-08 with no evidence file kept, against `<reference-repo>`'s own file at the port, and the exit codes re-verified
-at `v0.3.0` against nen's bundled fixture: a resolved row exits `0`; `unresolved` — nothing present, or a
+outranked. Verified live, by 2026-09-08 (`docs/ab/backlog-state.md` § 2.6), against `<reference-repo>`'s own file at the port, and the exit codes re-observed
+at `v0.3.0` against nen's bundled fixture, that re-check with no evidence file kept: a resolved row exits `0`; `unresolved` — nothing present, or a
 name that is not a value of the category — exits `1` (a finding, per below); a `--category` the file does
 not declare is a **usage error, exit `2`**, naming the categories it does (nen `v0.2.0`, zheref/nen#83):
 
@@ -432,7 +432,7 @@ rows (one G4/in-progress, one G1-M/ready-to-start) through `build` then `render`
 ```
 
 with each row's `status` cell holding whatever string was passed — pass the **resolved glyph** from
-§ 6 (`🟠`, not the bare word `in_progress`), observed live, by 2026-09-01 with no evidence file kept: the render layer does not itself look up
+§ 6 (`🟠`, not the bare word `in_progress`), verified live, by 2026-09-01 (`docs/ab/backlog-state.md` § 2.7): the render layer does not itself look up
 `colors.yml`, it prints the cell verbatim. Two facts about that cell since nen `v0.2.0`/`v0.3.0`: a
 `refs` value that is not an **array** of ref strings is **refused at exit `2` naming the file, row and
 field** by `build`, `render` and `diff` alike (observed live, by 2026-09-08 with no evidence file kept, at `v0.3.0`; at the port `build` crashed
@@ -520,7 +520,7 @@ nen backlog order --rows-from <path> --severity-order critical,high,medium,low \
                   [--blocks <n,n>] [--affects-consumers <n,n>]
 ```
 
-Observed live, by 2026-09-01 with no evidence file kept: severity is the primary key (`high` rows sort before `medium`, both before an
+Verified live, by 2026-09-01 (`docs/ab/backlog-state.md` § 2.9): severity is the primary key (`high` rows sort before `medium`, both before an
 unrecognised severity string, which ranks last rather than erroring); `--blocks`/`--affects-
 consumers` only break ties **within** one severity, exactly as documented. Feed `nen backlog
 fetch --json`'s rows reshaped to `{id, severity, createdAt, number}` (severity read off the
@@ -544,7 +544,7 @@ computed from them.
 
 One raw read, named where it runs: § 3's `gh pr list --repo <owner/name> --state open` cross-check
 for a lone PR that references no open issue, the one shape `nen backlog fetch` does not carry
-(`docs/ab/backlog-state.md` § 3; unfiled).
+(`docs/ab/backlog-state.md` § 3; unfiled), listed once in [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
 
 ## Authority
 

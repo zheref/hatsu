@@ -412,7 +412,7 @@ the truth.
 Standing a repository up is this mode's: [`hatsu:okiro`](../skills/okiro/SKILL.md) for an empty
 directory; for an existing tree, `nen shu detect` → `nen scaffold init` → `nen schema check` →
 `nen shu tools`, in that order and with `--dry-run`
-first — § *The `shu` verbs* above spells out the lines. So is hand-writing a `project` block for a
+first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block yourself for a
 repository `detect` cannot propose one for, and replacing a proposed seat with the command the repository
 actually runs: both are declarations of machinery, landed as PRs at **G4** *where the repository being
 stood up is a canon one* and at **G2** where it is a consumer (see *Which gate a PR stands at*),

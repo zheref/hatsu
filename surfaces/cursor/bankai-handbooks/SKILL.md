@@ -149,7 +149,7 @@ the order above is what runs, and an OPEN item stays OPEN.
   `nen repo resolve BH --repo "$canon"` → `zheref/bankai-handbooks  (BH)  via code`).
   `--from` is the no-token form's flag only and is refused beside a token.
 - **No `GH_TOKEN` needed anywhere in this skill.** Both verbs here are pure local-file reads against
-  the checkouts on disk — observed live, by 2026-09-01 with no evidence file kept, with no token exported at all.
+  the checkouts on disk — verified live, by 2026-09-01 (`docs/ab/bankai-handbooks.md` § 2.3), with no token exported at all.
 - **Exit `1`** → a finding about **the registry**, with a distinct reason for each state (nen `v0.2.0`,
   zheref/nen#73): the checkout carries **no registry** (`<checkout>/nen/repos.json: no such file`); the target
   is **not recorded anywhere** in it (*"not as a consumer, a product-code value, a maintained tool, or a
@@ -325,7 +325,7 @@ reads as though the question were already settled: an OPEN gap stays OPEN
 
 One step has no Nen verb at the pin, named where it runs: § 0's checkout of `zheref/bankai-handbooks`
 at the pinned tag (clone, fetch, checkout and the `describe` gate), since `nen bootstrap` fetches only
-nen itself (unfiled). `bankai-quality` runs the same block.
+nen itself (unfiled), listed once in [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*. `bankai-quality` runs the same block.
 
 ## Authority
 

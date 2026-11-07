@@ -374,7 +374,7 @@ nen shu evidence --repo <path> --base origin/<base> [--json]
 
 It matches `git diff --name-status <base>...HEAD` — through the seam, spawning no invocation the
 repository declared, only `git diff` itself — against `project.evidence`, derives each surviving
-file's **suite** and **scene**, and reports them grouped suite → scene. Observed live, by 2026-10-22 with no evidence file kept, at `v0.5.0`,
+file's **suite** and **scene**, and reports them grouped suite → scene. Verified live, by 2026-10-22 (`docs/ab/kotoamatsukami.md` § *Retired at nen 0.5 — 2026-09-10*), at `v0.5.0`,
 exit `0`:
 
 ```

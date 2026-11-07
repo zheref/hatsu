@@ -40,7 +40,7 @@ One family. The seed declares `status` (one backlog row's state) and `severity` 
 
 ### The `status` category, as the seed declares it
 
-Precedence `on_hold > blocked > ready_g2_g4 > ready_g1 > in_progress`: the thing a human must act on outranks the thing that is merely finished. Transcribed from `backlog-state` § 6, checked, by 2026-10-11 with no evidence file kept, against a consumer's own file at the port.
+Precedence `on_hold > blocked > ready_g2_g4 > ready_g1 > in_progress`: the thing a human must act on outranks the thing that is merely finished. Transcribed from `backlog-state` § 6, verified against a consumer's own file at the port, by 2026-10-11 (`docs/ab/backlog-state.md` § 2.6).
 
 | Value | Emoji | Hex | Label | Means |
 |---|---|---|---|---|

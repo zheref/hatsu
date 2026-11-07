@@ -42,7 +42,7 @@ Hatsu-authored key beside nen's own — the zero-major caveat, the two install p
 no-`jq` rule — is preserved verbatim by nen's loader and read by nothing in nen. There is deliberately no
 second copy: it was `nen.contract.json` at the root through `v0.2.0`.
 
-Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own lane, hand-written because
+Since `v0.4.0` the same file also carries a **`project`** block — Hatsu's own lane, written by the PR that added it because
 `nen shu detect --repo .` answers *no lane detected* for a bash-and-markdown repository. `lint` is
 `claude plugin validate . --strict`; every other verb of the family is an explicit `unsupported` **seat**
 stating in this repository's words why it does not exist, because a seat is exit `4`, a stated fact, while an

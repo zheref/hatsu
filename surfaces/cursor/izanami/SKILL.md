@@ -48,7 +48,7 @@ nen parse izanami "<the invocation line, or a newline-separated block for the se
 condition back as `until: <condition>`, and then prints **every** task/command line with its
 classification tag — `[read-only]`, `[mutating]` or `[unknown]` — before anything is allowed to run.
 
-**Observed live, by 2026-09-01 with no evidence file kept**, first form, all read-only:
+**Verified live, by 2026-09-01 (`docs/ab/izanami.md` § 2.1)**, first form, all read-only:
 
 ```
 $ nen parse izanami "gh pr checks 925 --repo <reference-repo> until they are all green"
@@ -70,7 +70,7 @@ $ echo $?
 ```
 
 **The task/command line must be a literal, executable command — never a prose description of intent.**
-Observed live, by 2026-09-01 with no evidence file kept: a prose task line classifies `[unknown]` and refuses the whole run exactly like a
+Verified live, by 2026-09-01 (`docs/ab/izanami.md` § 2.2): a prose task line classifies `[unknown]` and refuses the whole run exactly like a
 genuinely unrecognized command does —
 
 ```
@@ -86,7 +86,7 @@ $ echo $?
 This is the same enforcement the loop itself applies (§4) — write the real `gh`/`git` invocation, not
 a description of what it does.
 
-**Exit codes, observed live, by 2026-09-01 with no evidence file kept:**
+**Exit codes, verified live, by 2026-09-01 (`docs/ab/izanami.md` §§2.1–2.2):**
 
 | Exit | Meaning |
 |---|---|
@@ -137,7 +137,7 @@ spawns the *target repository's* declared version probes, so nen labels it "not 
 than "writes"; `nen shu tools --dry-run` spawns nothing and is `[read-only]`. Quoted arguments are fine
 (`gh pr view 1 --json state --jq '.state'` is `[read-only]`); a pipe is not.
 
-**This table is a sample, spot-observed live, by 2026-09-01 with no evidence file kept, against the shipped binary, not an exhaustive
+**This table is a sample, spot-verified live, by 2026-09-01 (`docs/ab/izanami.md` § 2.3), against the shipped binary, not an exhaustive
 transcription** — a command not listed here is checked with `nen parse izanami` before it is ever
 handed to `nen watch until`, never assumed from this table by analogy. Note in particular that
 `git branch` and `git remote` split **within the same family**: the bare/listing form is
@@ -261,7 +261,7 @@ nen watch until --command "<the classified read-only command>" \
   minutes, a merge on the order of a human's attention. Say the interval chosen and why.
 - **`--max-iterations`** — a **safety bound**, never izanagi's mandatory cap. Omit it for an unbounded
   watch — izanami can compound no mistake, so an unbounded watch costs time and nothing else. **Three
-  consecutive observation errors stop the run regardless of this bound**, observed live, by 2026-09-01 with no evidence file kept, below.
+  consecutive observation errors stop the run regardless of this bound**, verified live, by 2026-09-01 (`docs/ab/izanami.md` § 2.6), below.
 - **`--cwd <path>`** — where a `git` command needs to run against a specific checkout (a `gh` command
   instead takes its target via its own `--repo`/`-R` flag, so `--cwd` is rarely needed alongside `gh`).
 
@@ -279,7 +279,7 @@ A watch is not a gate event; the drawn Kurapika header fires only when the run *
 maintainer is needed. Do not restate this per-iteration output as a screenful of status yourself — it
 already prints one line and stops there.
 
-**Exit codes, observed live, by 2026-09-01 with no evidence file kept:**
+**Exit codes, verified live, by 2026-09-01 (`docs/ab/izanami.md` §§2.4–2.6):**
 
 | Exit | Meaning |
 |---|---|

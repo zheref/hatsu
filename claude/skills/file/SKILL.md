@@ -87,7 +87,7 @@ not a typo'd repo — never silently repoint a filing at a repo the maintainer d
 
 **The repo, when omitted:** run `nen repo resolve` with **no token** — it resolves the current
 working directory's `origin` remote against the same registry. If the cwd is not a registry
-repo, it refuses (observed live, by 2026-09-01 with no evidence file kept) and the refusal text already lists the registry's codes and
+repo, it refuses (verified live, by 2026-09-01 (`docs/ab/file.md` § 2.4)) and the refusal text already lists the registry's codes and
 repositories — **ask, quoting that list**, rather than reconstructing it. Filing into the wrong
 repo is worse than a round-trip: it routes the work to the wrong lane, wakes the wrong agent,
 and hides from the sweep that would have caught it.
@@ -145,7 +145,7 @@ token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token
 This **is** the four duplicate searches, run in order and reported with what each pass was
 for — never reconstructed by hand: **subject/open**, **subject/recently-closed** (the verb picks
 its own lookback window), **files+rule-ids**, **lane**. A pass with no terms to search on is
-reported `skipped`, never silently omitted (observed live, by 2026-09-01 with no evidence file kept: an invocation with no `--files`,
+reported `skipped`, never silently omitted (verified live, by 2026-09-01 (`docs/ab/file.md` § 2.2): an invocation with no `--files`,
 `--rule-ids` or `--lane-labels` prints `skipped -- this pass had no terms to search with` for
 both of those passes rather than staying quiet about them). **Exits `1`** when any pass could
 not run at all — "found nothing" and "could not look" must never read the same; a non-zero exit
@@ -216,7 +216,7 @@ Guard every candidate first:
 nen issue open-pr-check --target <owner/name> --issues <n1,n2,...>
 ```
 
-**Exits `1`** when any candidate carries an open PR (observed live, by 2026-09-02 with no evidence file kept, against `<reference-repo>`:
+**Exits `1`** when any candidate carries an open PR (verified live, by 2026-09-02 (`docs/ab/file.md` § 2.3), against `<reference-repo>`:
 scanned every open PR, matched by both `closingIssuesReferences` and body mentions, and flagged
 every issue either one touches — cross-checked manually against `gh pr view <n> --json
 closingIssuesReferences,body`, byte-identical). **Exit `0`** clears every candidate.

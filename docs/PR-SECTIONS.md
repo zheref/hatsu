@@ -8,8 +8,9 @@ file is copied into a run's prose. The retired `templates/pr-body.md` has no run
 ## Resolve the run
 
 1. Read `nen repo classify --repo <target>` for the repository kind. Collect the distinct `job/`
-   labels on every associated issue, stripping the `job/` prefix; no issue defaults to `build`. Most jobs wins; ties use
-   `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
+   labels on every associated issue, stripping the `job/` prefix; no issue defaults to `build`. A companion job (`companion: true` in
+   `contracts/classify.taxonomy.json`: `review`, `delivery-ops`) counts only when no other job is present, as
+   `hatsu:direct` reads it. Most jobs wins; ties use `release > fix > build > maintain > verify > canon`. Unknown kind uses library without `compat`.
 2. Read the target's `nen/workflow.json → pr.sections`. Its full matrix is filled from the catalogue,
    with `$sections` beside it listing all ids and purposes. An edited cell belongs to that consumer;
    fills and diagnosis preserve it. `$canon` records the originating catalogue contract and sha256.
@@ -81,10 +82,12 @@ Every cell below is materialized in the consumer, including the unknown-kind cel
 Conditional ids appear in the matrix but render only with their run fact. Economics appends to any
 cell when raised. The release matrix is the maintainer's explicit exception to `improves` on every PR
 (clarification 2026-10-20, HA#351; it stands, HR-381); all other families carry all thirteen aspects.
-The `observability` job folds into `maintain`, not `release` (HR-386), so a PR whose job is
-observability carries the ladder and shows its Observability row; `release` keeps `release` and
-`delivery-ops`, the two jobs whose PR is a release unit or its delivery, and that is the whole
-exemption's reach.
+The `observability` job folds into `build`, not `release` (HR-386, and HR-387 for the
+destination), so a PR whose job is observability carries the ladder and shows its Observability
+row; it keeps the product `evidence` reader and loses `rollout` and `release-unit`. `release` keeps
+`release` and `delivery-ops`, the two jobs whose PR is a release unit or its delivery, and that is the
+whole exemption's reach: `delivery-ops` is a companion, so beside any other job it does not count and
+the PR folds by its other jobs (§ *Resolve the run*, step 1).
 
 | Family | Product | Library | Process |
 |---|---|---|---|
