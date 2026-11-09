@@ -1,3 +1,4 @@
 ### Fixed
 
 - `scripts/stop_bell_fixture.mts`'s decoy `osascript` is now a symlink to node rather than to `sleep`. GitHub's `ubuntu-latest` moved to Ubuntu 26.04, whose multicall uutils coreutils dispatches on argv[0], so a `sleep` invoked as `osascript` exited at once and `stop-bell-guard` failed every PR with `the decoy is visible to a match by name`. The decoy sets `process.title`, since node renames itself on Linux; the name check polls briefly for the exec to land and, on failure, prints what `ps` and `pgrep` saw.
+- `scripts/resume_proof.mts` reads the futon run manifest's path from the first line of `nen run start`'s output. Nen v0.30.0 prints a `mode:` line after it, so the futon park case read a path with that line appended and failed `resume-proof` on every PR since the v0.30.0 repin.

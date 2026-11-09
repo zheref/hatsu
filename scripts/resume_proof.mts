@@ -180,7 +180,7 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
   let ok = true; let detail = '';
   try {
     const started = must(repo, start); must(repo, park);
-    const path = started.trim().split(' -- ').pop() as string;
+    const path = started.trim().split('\n')[0].split(' -- ').pop() as string; // nen 0.30 adds a `mode:` line after the path
     const before = readFileSync(path, 'utf8');
     // ← killed after the park; the same line again.
     const again = must(repo, start); const repark = must(repo, park);
