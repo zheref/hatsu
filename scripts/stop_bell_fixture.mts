@@ -176,10 +176,11 @@ try {
   }
   // 9–12. Bounded rungs (zheref/hatsu#516 AC-4/5). The hook only plays a sound where the system sound exists,
   //    so on a host without it (the Linux CI runner) the afplay expectations drop out and say so; the timing,
-  //    reaping and decoy checks hold everywhere. The decoy is a symlink to sleep NAMED osascript, started by sh in
+  //    reaping and decoy checks hold everywhere. The decoy is a symlink to node NAMED osascript, started by sh in
   //    the background so it is not this process's child: were it killed, init would reap it and kill(pid, 0)
   //    would throw. spawnSync returns only once every holder of the hook's pipes is gone, so each elapsed time
-  //    also proves nothing left behind holds them.
+  //    also proves nothing left behind holds them. Node, not sleep: a multicall coreutils (uutils, the default
+  //    on Ubuntu 26.04) dispatches on argv[0], so a sleep invoked as osascript exits at once.
   const hasSound = existsSync('/System/Library/Sounds/Glass.aiff');
   if (!hasSound) console.log('stop-bell fixture: cases 9-12 skip the afplay expectations -- no /System/Library/Sounds/Glass.aiff here');
   const sound = (n: number): string[] => (hasSound ? Array(n).fill('afplay') : []);
@@ -194,13 +195,20 @@ try {
   };
   const decoyBin = join(temp, 'decoy', 'osascript');
   mkdirSync(dirname(decoyBin), { recursive: true });
-  symlinkSync(spawnSync('sh', ['-c', 'command -v sleep'], { encoding: 'utf8' }).stdout.trim(), decoyBin); // a copied system binary is refused at launch on macOS
+  symlinkSync(process.execPath, decoyBin); // a copied binary is refused at launch on macOS
+  const named = (pid: number): boolean => {
+    for (let i = 0; i < 40; i += 1) {
+      if (spawnSync('pgrep', ['-x', 'osascript'], { encoding: 'utf8' }).stdout.split('\n').includes(String(pid))) return true;
+      spawnSync('sleep', ['0.05']);
+    }
+    return false;
+  };
   // 9. One marker, a notifier that hangs or ignores TERM, a one-second deadline.
   for (const mode of ['hang', 'stubborn']) {
     const dir = repo();
     const a = writeMarker(dir, 'HA-IS-#516', 'G4', 'bounded');
-    const decoy = Number(spawnSync('sh', ['-c', `"${decoyBin}" 30 >/dev/null 2>&1 & echo $!`], { encoding: 'utf8' }).stdout.trim());
-    assert.ok(spawnSync('pgrep', ['-x', 'osascript'], { encoding: 'utf8' }).stdout.split('\n').includes(String(decoy)), 'the decoy is visible to a match by name');
+    const decoy = Number(spawnSync('sh', ['-c', `"${decoyBin}" -e 'setTimeout(() => {}, 30000)' >/dev/null 2>&1 & echo $!`], { encoding: 'utf8' }).stdout.trim());
+    assert.ok(named(decoy), 'the decoy is visible to a match by name');
     const { calls, took } = timed(dir, { STUB_OSASCRIPT: mode, HATSU_BELL_DEADLINE: '1', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G4' }]) });
     assert.ok(took < 3.5, `a ${mode} notifier returns within deadline + grace (${took}s)`);
     gone(pidOf('osascript'), `the ${mode} child`);
