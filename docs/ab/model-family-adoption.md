@@ -1,33 +1,25 @@
-# Model-family adoption is held for a containing Nen release
+# Model-family adoption on the released Nen pin
 
-This proposal supplies Hatsu#538's canonical data and installer route. It is
-not ready to merge: acceptance criterion 3 requires an actually released Nen
-version containing the install-only `families` mechanism, followed by the real
-Hatsu dependency repin.
+This change supplies Hatsu#538's canonical data and installer route: the five
+`families.model` labels in `contracts/classify.taxonomy.json`, installed by
+`nen classify install` beside the `lang/` and `job/` axes and never classified on.
 
-On 2026-11-03 (America/Bogota), Hatsu declares `v0.28.0`; the newest published Nen
-release is `v0.29.0` (2026-10-29). NN597's mechanism merged on 2026-10-31 as
-`d070a1da`, after that release. No published containing release was found.
-No pin, version range, bootstrap digest or executable dependency is changed
-here. Never substitute a guessed future tag or a source build for the release
-and pin criterion.
+Acceptance criterion 3 asked for a released Nen containing the install-only
+`families` mechanism and a real Hatsu repin. Both hold: NN597 merged on
+2026-10-31 as `d070a1da` and first shipped in Nen `v0.30.0`, and
+`nen/contract.json` pins `v0.30.0` (minimum `0.30`) since the 2026-11-05 repin.
+This change adds no pin, version range, bootstrap digest or executable dependency.
 
-The current Nen source at `65613133` was used only for bounded compatibility
-proofs: `classify labels` reports 49 labels (5 lang, 39 job, 5 model), and
-`classify install --dry-run --json` reports all 49 present, zero foreign labels,
-`written: null`, `sync: null`. No GitHub labels were changed. The three exact
-model-data tests and the existing three matrix fixture tests pass using the
-repository's pinned Vitest 5.0.5. Canonical mirror regeneration/check also pass.
+Proofs with the released, pinned `nen 0.30.0` binary (2026-11-09):
 
-Before converting the draft to a merge candidate:
+- `nen classify labels --taxonomy contracts/classify.taxonomy.json` reports
+  `49 label(s): 5 lang, 39 job, 5 model`.
+- `nen classify install --json` against a scratch consumer whose
+  `nen/labels.json` declares only `bug` lists all five `model/` labels as
+  `absent`, to be written by `--write`. No GitHub labels were changed.
 
-1. Publish and verify a Nen release containing NN597 through the release owner's
-   normal process; that release is external to this proposal.
-2. Repin Hatsu with the actual release and its verified bootstrap/binary hashes,
-   preserving the dependency contract's existing requirements.
-3. Run the label listing and installer dry run with that released, pinned binary.
-4. Refresh the candidate plugin patch version and generated mirrors against the
-   then-current main, then rerun focused guards. Another proposal may consume the
-   current candidate patch number before this held adoption lands.
+The model-data fixture and the existing matrix fixture tests pass with the
+repository's pinned Vitest, and the generated mirrors match a fresh generation.
 
-NN590 remains open until this ordering is satisfied and Hatsu#538 lands.
+NN590 closes once this lands; its auto-close cannot cross repositories, so it is
+closed by hand after the merge.

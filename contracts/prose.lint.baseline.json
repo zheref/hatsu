@@ -1128,12 +1128,6 @@
       "count": 1
     },
     {
-      "path": "claude/skills/jutaisho/SKILL.md",
-      "rule": "PL-05",
-      "text": "age <m>`, a fixed argv (#289). **Residue:** `osascri",
-      "count": 1
-    },
-    {
       "path": "claude/skills/kamui/SKILL.md",
       "rule": "PL-05",
       "text": "t` ruling was recorded (#355); then [`rikugan`](../r",
@@ -3411,12 +3405,6 @@
       "path": "docs/PROCESS.md",
       "rule": "PL-05",
       "text": "ll** (zheref/hatsu#171, #334; [`ROSTER.md`](ROSTER",
-      "count": 1
-    },
-    {
-      "path": "docs/PROCESS.md",
-      "rule": "PL-01",
-      "text": "rface switches are done by hand. No nen verb owns a hos",
       "count": 1
     },
     {

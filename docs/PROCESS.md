@@ -506,6 +506,8 @@ every member is unavailable **by (c)'s observations**; a posted-review lane make
 requested, and declares no round check); nen `0.26` exposes its state as `eventRun.state` (zheref/nen#440), but
 reading those states as (c)'s observations is unruled, so until a ruling does, under `required` a PR
 whose quorum is unmet with such a lane installed ends at `cap-reached`'s terminus, never the sixth stop.
+A member that **declares a round check** and never creates a run at the judged head is not this case: it
+is (c)'s third observation once its window has passed ([HR-373](ROSTER.md#hr-373)).
 Under an effective `aiReviewers: optional` or `off` the hanten prompt (below) applies unchanged. **The gates file is
 the base's** (zheref/nen#372, nen 0.23, inside the pin): without `--gates`, nen reads `reviewers[]`,
 `round_quorum` and every other gate input at the pull request's base, so a PR that changes either key,
@@ -528,7 +530,7 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
   other failing row — `mergeable` (a conflict or a draft), `checks-green`, `round-stalled`,
   `approvals-at-head`, `unresolved-threads`, or one this list does not name — ends at row `cap-reached`'s
   not-ready terminus, no prompt. And on that row only `any_of` members may be owed: (e).
-- **(c) Every `any_of` member is unavailable at this head**, each by one of two observations, never by
+- **(c) Every `any_of` member is unavailable at this head**, each by one of three observations, never by
   declaration:
   - `nen pr request-reviews` answered **exit `9`** for it, the bot named in `unrecordedBots` — GitHub
     accepted the request and never recorded it (zheref/nen#277). Such a request is never retried and never
@@ -536,10 +538,17 @@ read from `nen pr ready <ref> --json` at the judged head (`judgedHead`):
   - a round-check run **at the judged head that completed without a round**, read structurally from the
     `rounds-owed` row's `roundQuorum.members[].roundCheck`: `from` is `head` and `conclusion` is one of
     `NEUTRAL`, `CANCELLED`, `SKIPPED`, `FAILURE` (zheref/nen#361's classification — Cursor Bugbot's
-    `NEUTRAL` "usage limit reached" is the case). **No run at head never counts**: right after a push it
-    cannot be told from a run not yet created, so it is a wait, or `round-stalled`. Nor does a run still
-    **in flight** (`QUEUED`, `IN_PROGRESS`, `PENDING`, `WAITING`), nor a pending request that never came
-    back at exit `9`.
+    `NEUTRAL` "usage limit reached" is the case). A run still **in flight** (`QUEUED`, `IN_PROGRESS`,
+    `PENDING`, `WAITING`) never counts, nor a pending request that never came back at exit `9`;
+  - **no round-check run at the judged head after the window** ([HR-373](ROSTER.md#hr-373), zheref/hatsu#543):
+    a member that declares a round check and has **no run of it at the judged head** — `nen pr ready --json`
+    reports it with no round and no check of that name — once **the checks have settled** at that head (every
+    other row passing: (b) holds) **and two bounded `nen watch until` windows have passed** after that, each
+    `en` § 6's paced refresh window (`--max-iterations 2 --interval-ms <monitor.pollSeconds × 1000>`) run
+    by this session at the judged head, with the member still showing no run. **Inside the window it is a
+    wait** — right after a push no run cannot be told from a run not yet created — and a head that moves
+    restarts it. The two windows are this session's own recorded calls, each quoted with its head, so a
+    resumed session that cannot quote both runs them again; nen needs no new fact for it.
 - **(d) The observation is bound to the judged head.** Read `headRefOid` immediately before each
   `nen pr request-reviews` call and record it with that call's `--json` output (`unrecordedBots` and
   `message`) **verbatim**. An exit `9` counts only when that head equals the head `en` § 5 check 5 judged;
@@ -935,7 +944,8 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   `nen commit write --message-file`, gated on `nen commit format`.
 - **`bakuryuha`.** The first-party install is `scripts/hatsu_surface_link.sh` and updating the checkout is
   `scripts/hatsu_plugin_update.sh`, as for `ten`; the served-version read-backs (`claude plugin list
-  --json`, `codex plugin list`, `agy plugin validate`, a placed marker stamp) and following a skill body
+  --json`, `codex plugin list`, `agy plugin validate`, a linked checkout's own `.claude-plugin/plugin.json`
+  — never a placed marker, which carries no version since HA#530) and following a skill body
   from the new path until the surface switches are done by hand. No nen verb owns a host's installed
   plugin: an owned dependency, zheref/nen#298 (BC-11 reads the scripts' branching shell as a verb's
   job, a G4 question until the verb lands).
@@ -1007,7 +1017,7 @@ one, the block and the guard's sentence quoted; a throwaway helper script is nev
 
 **The mirror regeneration** `great-hiker` § 4 and `docs/using/mirrors.md` § 3 run after every
 source change is `scripts/surface_mirror_regenerate.sh`, one plain call: the three `nen surface mirror
-generate` calls at the manifest's stamp, built from `scripts/surface_mirror_check.sh`'s own constants
+generate` calls, built from `scripts/surface_mirror_check.sh`'s own constants
 and hooks-root table, which it sources (one table, never a copy; lane `mirror-regenerate-guard`). It is
 run in the Hatsu checkout being authored, never by an installed copy. **Owned dependencies**, filed
 at this run's third-hand harvest after En, their numbers added then: a body-file flag on `nen commit

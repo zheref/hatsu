@@ -61,7 +61,9 @@ composite, reviewer and resumed run. It grants standing authority to file or fol
 without another filing prompt, after Nen reconciliation and inspection of candidate issues and
 open PRs. Unchanged evidence produces no write. New ownership is linked, not silently implemented.
 Reports distinguish created, updated, folded, unchanged and pending; a real blocker is still a
-blocker, but a discovery does not replace the original task.
+blocker, but a discovery does not replace the original task. A blocker that stops the run is captured
+**before** any wrap-up offer, never deferred to `third-hand` (DISCOVERY § *A blocker found while
+executing*, zheref/hatsu#508).
 
 The tool repositories now carry `nen/repos.json` for verified repository identity and
 `nen/labels.json` for their existing GitHub labels. These are issue-routing/filing metadata, in
@@ -104,7 +106,7 @@ There are two execution/policy configuration files, and the split is not stylist
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
 > independently.** At the v0.24.0 repin `dependency.minimum` read `0.24` and `dependency.pinned_ref` read
-> `v0.24.0` (`0.26` / `v0.26.0` since HA-PR-#422, `0.28` / `v0.28.0` since the HA#449 repin): the first is the capability minimum, the second is the build its
+> `v0.24.0` (every later move is a row of [`docs/history/nen-repins.md`](history/nen-repins.md), and the contract alone carries the current values): the first is the capability minimum, the second is the build its
 > bootstrap installs. That repin adopted NN#437's
 > phase/usage dials, session ledger and report data `sessions[]`; older Nen cannot supply them. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
@@ -778,7 +780,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees` |
+| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees`. **A verified sixth-stop handoff also frees the slot** ([HR-372](ROSTER.md#hr-372), zheref/hatsu#522, amending HR-353): a delivery at PROCESS's *The sixth stop* — `nen pr ready --json` failing exactly `["rounds-owed"]` with (a)–(e) holding, its `judgedHead` equal to the PR's live `headRefOid`, and `en` § 5's merge prompt shown at that same head (its stop marker) — frees its local slot while its verdict stays **not-ready** and its merge stays the maintainer's. The release is bound to that head: a push, a new failing row or a moved head re-holds the slot. A delivery with a failing check, a repair hold, or a handoff missing any of those three facts keeps its slot. nen's slot reader at the pin reads `ready` from `nen pr ready` alone (from 0.30 it also holds a slot for a claimed effort in the manifest's `claims[]`, which no Hatsu writer records yet), so futon reads `--from-run` as above, then releases each such delivery in its report, naming the PR, the head and the quoted verdict — never by typing a field into an efforts file. The cap of 7 and the one-heavy-workload rule (§ *Host workload budget*) do not change |
 
 ### `idle`
 
@@ -809,7 +811,7 @@ listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age a
 |---|---|---|
 | `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` where it stars none (`missing-maintainer-choice`, `port-drift`, `intake-challenger`, `port-siblings`, `spec-slice`, `spec-clarify`, `spec-dispatch`), `publish-offer`, `wrap-up` and `cleanup-plan` `refuse` — the ruling of 2026-10-23 above, which lifts the holds of 2026-10-22 on `harness-attribution-switch`, `host-nen-link` and the starred `spec-*` rows, and [HR-366](ROSTER.md#hr-366) (2026-10-26) for the two cleanup rows | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name takes the same resolution (starred → `default`, else `hold`; `publish-offer`, `wrap-up` and `cleanup-plan` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer`, `wrap-up` and `cleanup-plan` are always `refuse` (HR-5; [HR-366](ROSTER.md#hr-366)); `missing-maintainer-choice` is at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. An act a `default` leads to that the harness refuses parks as `g5-harness-denied`, never retried another way. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the ownership record's `idle.source`, the resolutions as nen's manifest's `idleAnswers`, which `start` refuses unless nen stored exactly the map it sent |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: under the ruling of 2026-10-23 every effort is merged into the run's **non-main integration branch** (futon § 5's shape, always, never a picker) and the integration PR stands Ready at the maintainer's merge prompt; `ready-at-prompt` stops short of the integration merge. **Never `main`** (only the maintainer merges there), never `getsuga` or `mugetsu` |
-| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum, read from the usage home § *The effort's ledgers* names by nen version: at nen 0.28 (the pin) every effort's ledger shares the git common directory, which `--repo` reaches from any checkout, so the sum is readable from one worktree; whether the token bound is then **enforced** or stays **advisory** (reported, never summed by hand, as it was while each worktree held its own ledger below the pin and `tokensUnread` was the answer) is a ruling owed, not read here — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
+| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum, read from the usage home § *The effort's ledgers* names by nen version: from nen 0.28 every effort's ledger shares the git common directory, which `--repo` reaches from any checkout, so the sum is readable from one worktree; whether the token bound is then **enforced** or stays **advisory** (reported, never summed by hand, as it was while each worktree held its own ledger below the pin and `tokensUnread` was the answer) is a ruling owed, not read here — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
 
 ### `models`
 
@@ -996,7 +998,7 @@ Keep report data, normalized data and rendered fragment under the private repo-l
 **Where each record lives, by nen version — stated once, here** (zheref/nen#509, zheref/nen#513; read by every
 page that names a home, `idle.budget` included):
 
-| Record | nen 0.26, older than the pin | nen 0.28, the pin |
+| Record | nen 0.26, older than the pin | nen 0.28 and later, the pin |
 |---|---|---|
 | phases, usage, sessions, the direct record | `<checkout>/.nen/{phases,usage,sessions,direct}/` — one per worktree | `<git common dir>/.nen/{phases,usage,sessions,direct}/` — one per repository, shared by every worktree, untouched by `git worktree remove` and `git clean`; an older checkout copy is read in place and moved by the next write, through 0.28 |
 | stop markers | `<checkout>/.nen/last-stop.json` (marker contract `v0.1`/`v0.2`), one, overwritten | the same file **and**, with `--effort`, `<git common dir>/.nen/marks/<effort>/<gate>.json` (`v0.3`), one per gate and effort; outside git `<checkout>/.nen/marks/` |
@@ -1007,6 +1009,35 @@ A record named `<home>/…` below is that row's directory for the nen that runs.
 `spiritual-message` § 4); without it every effort of the repository is read. `stop --mark --effort` is
 refused by 0.26, a binary older than the pin (`unknown option`), so a stop passes `--effort` only where `nen stop --help` lists it
 (jutaisho § 3); `hooks/stop-bell.sh` rings either form.
+
+**Provenance is checked when each hanten round returns, never first at publish** (zheref/hatsu#542).
+After a returned round's `nen review ledger record` and `nen usage record` ([`hanten`](../claude/skills/hanten/SKILL.md)
+§§ 2b, 4), and before hanten hands control back, the author runs the publish-time check early, in the
+authoring worktree:
+
+```bash
+nen report data --repo <path> --base origin/<branch.base> --effort <branch> --json
+node "$hatsu_root/scripts/pr_delivery.ts" normalize --data <report-data.json> --out <normalized.json> --repo <path>
+nen session show --effort <branch> --repo <path> --json
+nen phase show --effort <branch> --repo <path> --json
+nen review ledger show --repo <path> --branch <branch> [--pr <N>] --json
+```
+
+The first output is saved under `<path>/.nen/reports/` as shibari saves it; before a PR exists the
+normalized next step reads `unread — report data carries no unique PR`, which is expected. **It passes**
+only when all five hold: normalize exits `0` (every usage row's source in hanten § 4's grammar, the
+Delivery rows readable — a persona of the Hatsu plugin's own `claude/agents/*.md` is read in any letter case and rendered
+lowercase, one off that roster refused on a usage row, [HR-376](ROSTER.md#hr-376)); the session ledger has a row for this session, or none where the surface exposes neither title nor id
+(rendered `unread` as above); the phase ledger has an open
+entry; the cycle ledger shows one `ran` record per reviewer pass this effort raised and returned, a delta
+pass included (`nen review ledger record` has no delta outcome at 0.28; the delta is named in the usage source);
+and **every such pass has its usage row**, its source naming that persona in hanten § 4's grammar — a
+skipped `nen usage record` leaves no row for normalize to refuse, so this fifth condition is what catches it. **Any other result stops the run** before the next phase, the failing row
+named. **A generated ledger is never edited by hand** — no inline script, editor or `jq` rewrite of any
+file under `<git common dir>/.nen/` or `.nen/hanten/`: a missing row is recorded now through its verb with
+a `--note`/`--source` saying it was recorded late; a malformed row has no superseding verb at the pin,
+so the run stops as a **G5** naming the row and its correct form, and the malformed row stays as
+written.
 
 **The durable slice — the ledgers on the pull request** (zheref/hatsu#445; nen > 0.26.0, zheref/nen#516 and zheref/nen#518).
 The ledgers above live on one machine; the slice is the copy a morning review, a second machine or a fresh
@@ -1748,7 +1779,9 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    ceiling, en § 6); `held-handback` (en § 6's observation errors, a draft or a retarget, en § 5's ownership or
    gate refusal); `held-stranded` (the child of a closed stacked PR, waiting on the maintainer to retarget or
    close it, § *Stacked pull requests* rule 5 — and a child GitHub itself closed when its base branch was
-   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw, is `held-stranded`, never `closed`).
+   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw and paginated, is `held-stranded`, never `closed`,
+   **only where `en` § 6's base-deletion row cannot run** — its head branch gone or its deleted base unmerged; with the head on origin and the
+   deleted base merged it is driven through that row's successor PR, `driving` again, zheref/hatsu#495).
    A session that actually ended mid-run (en § 7) holds nothing: the resume (rule 5) finds each delivery
    `driving` again. nen `0.28`'s parks are append-only, so **a later state wins over a park**: a delivery
    `nen run verify` reads `merged` or `closed` after its `held-*` park is that state, never held. Under `--idle`, an effort's park (§ *Idle batches* rules
@@ -1871,7 +1904,7 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    effort worktree of this run (`nen wc worktrees`) whose branch no `nen run verify` row names, one object
    `{"id": "<CODE>#<N>", "plane": "local", "prOpen": false, "ready": false, "prompted": false, "merged":
    <its branch is an ancestor of the integration branch>}`; the run claims only while the two `local.occupied`
-   sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs only and refuses `--efforts` beside it:
+   sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs and, from 0.30, the manifest's `claims[]`, refusing `--efforts` beside it; no Hatsu writer records `claims[]` yet, so the claimed efforts are summed here and that addend drops once a writer records them:
    a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
    its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
    (back-pressure) and park as `parked:budget` only when the minutes elapse. **The merge no longer caps the night at seven**:
@@ -1919,7 +1952,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    `legendRows` (`backlog-board` § 3), one row per decision.
 
 9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — [HR-335](ROSTER.md#hr-335)
-   (typed, record `R-2026-10-23-02`; its words are the row's, not restated here).
+   (typed, record `R-2026-10-23-02`; its words are the row's, not restated here). `build` § 2's amendment offer
+   for a shape miss (zheref/hatsu#546) is **not asked inside a batch**: the miss is stated in that delivery's PR
+   body, and under `--idle` recorded as a decision taken for the maintainer (rule 8).
 
    Applied, attended or `--idle`: futon § 2's shape check (`docs/config/plugin-registries.md`, *The check*)
    **skips** an issue whose `nen issue questions` reads `counts.open` above `0` — parked in the run record by
@@ -1954,10 +1989,10 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
   exit `2` (a settings file unreadable) is reported as *not checked*, never as *all allowed*.
 - **A harness refusal is row `harness-denied`**, a `human-gate` G5 (rule 2's harness denial): the refused
   command quoted verbatim, the stop marked for the effort (`nen stop … --mark`, with `--effort <branch>`,
-  nen 0.28 the pin), the effort parked as `g5-harness-denied`, and the run moves on — never retried, rephrased, split or
+  from nen 0.28), the effort parked as `g5-harness-denied`, and the run moves on — never retried, rephrased, split or
   routed through another tool.
   The decisions list (the PR body's and the final brief's) names each one.
-- **One marker per gate, one bell per gate** (nen 0.28, the pin). Every stop marks with `--effort <branch>`, so seven
+- **One marker per gate, one bell per gate** (from nen 0.28). Every stop marks with `--effort <branch>`, so seven
   efforts at seven prompts leave seven markers under `<git common dir>/.nen/marks/`; `hooks/stop-bell.sh`
   rings each through `nen stop list` **whatever its age** (an orchestrator's turn spans hours, and the hook
   fires at its end) and clears each with `nen stop clear --gate <g> --effort <branch>`, and a cleared gate
@@ -2097,7 +2132,7 @@ not in the session:
 The body follows [PR-SECTIONS.md](PR-SECTIONS.md), resolving the catalogue's kind × family cell
 from the repository classification, issue jobs, consumer `pr.sections` and Mukai's run facts. It
 opens with the ledger-rendered Delivery preamble, then consumer effect and cost in **What this changes for you**; tables and diagrams carry
-the decision. Non-release rows carry the eleven-aspect improves ladder; release rows follow the
+the decision. Non-release rows carry the thirteen-aspect improves ladder; release rows follow the
 written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
 library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
 `CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
@@ -2194,7 +2229,7 @@ is verified; a watchdog bounds it at about 50 s even where no `timeout` exists.
 
 | Hook | Event | What it does |
 |---|---|---|
-| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** once per unrung stop marker — every per-gate marker `nen stop list` names (nen 0.28, the pin; whatever its age), else the single `.nen/last-stop.json` within ten minutes (a binary below the pin) — and clears each it rang with `nen stop clear` (§ *The effort's ledgers*, the homes) |
+| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** once per unrung stop marker — every per-gate marker `nen stop list` names (from nen 0.28; whatever its age), else the single `.nen/last-stop.json` within ten minutes (a binary below the pin) — and clears each it rang with `nen stop clear` (§ *The effort's ledgers*, the homes) |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a raw `git` commit or push while the branch equals `branch.base`; the skills commit and push through `nen commit write` and `nen wc publish`, and the latter refuses the trunk itself at exit `2` |
 
 **Every surface has all three hooks once its hook file was placed.** `hooks/hooks.json` is Claude Code's
@@ -2710,6 +2745,18 @@ their separate-checkout protocol, save one exception: on an **observed** refusal
 effort checkout read-only and discloses it ([`hanten`](../claude/skills/hanten/SKILL.md) § 4;
 § *Writing a skill block*, row (a), #218; ROSTER § *Rulings of 2026-10-13*, the #218 (ii) row).
 
+**A harness-worktree session authors in its own worktree** ([HR-374](ROSTER.md#hr-374), zheref/hatsu#544,
+extending this ruling): when the session already runs in a worktree its harness created (Claude Code's
+`.claude/worktrees/<name>`) and the harness's isolation hook **observably** refuses a Write or Edit under
+`<core>/.nen/worktrees/<surface>/<name>` — never pre-empted, as [HR-193](ROSTER.md#hr-193) reads the
+reviewer's refusal — the effort is authored in that harness worktree, on the canon
+`{model}/{persona}/{descriptor}` branch cut there (`git switch -c <branch> origin/<branch.base>`; the
+harness's own `worktree-<name>` branch is never the effort's). **That harness worktree is the effort
+checkout**: ledgers, phase and session records, hanten's printed refs, the durable slice and cleanup read
+it as such, and the effort report quotes the refusal once. A `git worktree add` the hook admits (hanten
+§ 4's reviewer checkouts) is unaffected. [`build`](../claude/skills/build/SKILL.md) § 3 and
+[`ren`](../claude/skills/ren/SKILL.md) step 1 cite this paragraph.
+
 **The sole core-authoring waiver is the maintainer's explicit instruction in the ORIGINAL effort
 prompt to work in core.** Quote that instruction with the bound path in the effort report. A
 later convenience suggestion, a parent agent's instruction, an existing core feature branch,
@@ -3104,6 +3151,14 @@ delegate owns is one it cannot see. Three hand-backs were lost that way in the 2
 reading the pull request itself hours later. The brief also carries § *Host workload budget*'s host
 block, word for word.
 
+**A brief carries the publication authority it hands over** (HR-20, zheref/hatsu#529): the five-fact
+record of [`aka`](../claude/skills/aka/SKILL.md) § 0 — the typed invocation quoted, any maintainer
+answer the push also stands on (a prerequisite's publication) quoted, the target repository, the
+delegate's own working branch and the scope line — and every later handoff (a maintenance delegate, `mukai`, `en`,
+`murasaki`) carries the same record, never one narrowed to a commit. A delegate that meets a blocker
+captures it through [DISCOVERY.md](DISCOVERY.md) § *A blocker found while executing* before it hands
+back held, never as wrap-up friction (zheref/hatsu#508).
+
 <!-- delegate-wait:begin -->
 - Never wait on `gh pr checks --watch`, an open `sleep` or poll loop, or a background job left running.
 - A wait is one `nen watch until … --max-iterations <n> --interval-ms <ms>`, both flags passed, the two multiplied within this brief's ceiling: 9 minutes unless this brief names another.
@@ -3208,7 +3263,10 @@ listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
 - **Confirmed quiescence.** Every heavy call records its process group at launch: the shell call that
   runs the verb records `ps -o pgid= -p $$` before it. `$$` alone is the shell's process id, which is
   its group only where the shell leads one; a nested `sh -c` has its own `$$` and its parent's group,
-  so a group that differs from `$$`, or cannot be read, is no recorded id. With job control off the
+  so a group that differs from `$$`, or cannot be read, is no recorded id. **A read that fails before
+  the launch stops the launch**: the heavy verb never runs without its id, and a later successful read
+  is no evidence for a workload that already ran without one ([DISCOVERY.md](DISCOVERY.md) § *A blocker
+  found while executing*, zheref/hatsu#508). With job control off the
   shell's descendants carry the recorded id as their process group, orphans reparented to `1`
   included. A later call lists them with `ps -A -o pid,ppid,pgid,command`, keeping the rows whose
   `PGID` column is the recorded id; the same form runs on macOS (BSD `ps`) and Linux. Quiescence is
@@ -3240,7 +3298,7 @@ lanes (rule 3).
 - Heavy work is a test, build, coverage, UI/E2E, archive or dev/run launch, and a push that starts CI on this host; anything not named light (a read, other git, a `--dry-run`, a lint of the changed files, a prose check) is heavy.
 - Run heavy work only while this brief's `Heavy turn:` line grants it, one heavy workload at a time on this host, each runner at the worker count that line names.
 - A lane whose declaration cannot bound its workers runs only inside the turn, the gap named against zheref/nen#537, never with an improvised flag.
-- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`) beside its `$$`, and name both in your hand-back; a group that differs from `$$` is no recorded id.
+- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`) beside its `$$`, and name both in your hand-back; a group that differs from `$$` is no recorded id, and a read that fails or prints nothing is none either: that launch does not run.
 - Without the turn, run light checks only, commit, publish only where the push starts no CI on this host, and hand back each heavy lane named as pending, never as green.
 - The turn ends at your hand-back; name in it every heavy lane you ran and every one you did not.
 - On an unresponsive host, a repeated subprocess timeout, a cancelled run or uncertain descendants: launch nothing heavy, retry nothing, hand back with what you saw.
@@ -3373,11 +3431,12 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    tip, never from the trunk.
 3. **One mechanical commit per PR at stack time.** The bump (monotonic along the stack: patch for
    wording, minor for behaviour — CONTRIBUTING § *A change to a shipped surface needs a version bump*),
-   the `changelog.d/` fragment (CONTRIBUTING § *Changelog fragments*) and the stamp-only mirror churn
-   land on each branch after its content; a mirrored skill's own body change regenerates in the same
-   commit as its source (README). A catch-up over the previous PR's mechanical commit conflicts on the
-   manifests and the stamps — Hatsu declares no `mechanical` block — and is resolved by keeping the
-   branch's own manifests and regenerating the mirrors at its stamp, said.
+   the `changelog.d/` fragment (CONTRIBUTING § *Changelog fragments*) and the one generated surface
+   manifest the bump rewrites land on each branch after its content; a mirrored skill's own body change
+   regenerates in the same commit as its source (README). A catch-up over the previous PR's mechanical
+   commit conflicts on the manifests only — Hatsu declares no `mechanical` block — and is resolved by
+   keeping the branch's own and regenerating, said. Since HA#530 no marker carries the version, so the
+   252-file same-line conflict that rule was written around is gone.
 4. **The PRs.** Each PR's base is the previous effort's branch; only the bottom PR targets
    `branch.base`. Every PR is reviewed on its own (hanten per effort, its own budgets), carries its own
    `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is
@@ -3391,7 +3450,9 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    the next PR to `branch.base` first** (`nen pr retarget --base <branch.base>`, en § 5 check 1) **and only
    then deletes the merged head branch**: deleting it first closes the dependent PR (observed on HA-PR-#250
    and #253, 2026-10-13: each timeline shows `base_ref_deleted` then `closed` within a second, against GitHub's
-   *Deleting and restoring branches in a pull request* page, which promises a retarget). A dependent PR above a
+   *Deleting and restoring branches in a pull request* page, which promises a retarget). A PR already closed that
+   way is recovered by en § 6's base-deletion row — a successor PR with its own slice — never by the
+   *closed unmerged* row (zheref/hatsu#495). A dependent PR above a
    change to a frozen workflow step reads red on CON-32(a) until that change is on `main`: the
    guard workflows run the TRUSTED validator at `main`'s head, not the PR's base; the push after the
    retarget runs it again at the new head (a close-and-reopen is the fallback where no push follows;

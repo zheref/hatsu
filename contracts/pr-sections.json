@@ -1,6 +1,6 @@
 {
   "contract": "hatsu.pr-sections/v1",
-  "documentSha256": "154b9ec48d7ea412f001509af84191569e0782c0f5a6eab12cf7d3c3813d296d",
+  "documentSha256": "0866077046311f0f01af519b1a0bc365d2c98d1741584573a57290d3e4f90640",
   "$comment": "HA#351, rulings 2026-10-19. One catalogue owns preamble, reader and footer ids, templates, titles, glyphs, job families, precedence and every default cell. Reader max excludes the preamble and footer blocks. Conditional run facts come from Mukai. Nen v0.24.0 carries the resolver verbs; interim scripts remain for the separate NN#464/HA#370 envelope defect. The spec footer row is admitted by the run fact spec (a closing issue carrying a Spec: line) and carries nen's spec-rows requirement whole; the always-on Hanten footer keeps its exact unglyphed compatibility heading and precedes checklist evidence.",
   "max": 7,
   "proseBudget": 150,
@@ -11,6 +11,8 @@
     "End-user experience",
     "Autonomy",
     "Stability",
+    "Predictability",
+    "Resilience",
     "Performance",
     "Maintainability",
     "Cost",
@@ -58,7 +60,7 @@
       "title": "What this improves",
       "level": 2,
       "template": "templates/pr-body/improves.md",
-      "$comment": "All eleven aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement."
+      "$comment": "All thirteen aspects, marked ⬆ improves / ➖ unchanged / ⬇ regresses; justify only movement, citing evidence where the repository and scope allow."
     },
     {
       "id": "verify",

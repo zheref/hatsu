@@ -5,9 +5,10 @@
 # TEST-ONLY. Nothing installed reads this file; it is not a plugin surface.
 #
 # WHY IT EXISTS. Hatsu 0.43.0 adds a `paths:` filter to the mirror-drift
-# guard's `pull_request_target` trigger, and the same release stamps
-# `.claude-plugin/plugin.json`'s `version` into EVERY generated mirror marker
-# (`--stamp`, read by `plugin_stamp` in scripts/surface_mirror_check.sh). A `paths:` filter is a
+# guard's `pull_request_target` trigger, and `.claude-plugin/plugin.json` is
+# a generator input: `--manifest` renders its name, version and description
+# into surfaces/antigravity/plugin.json (through 0.154.1 `--stamp` wrote that
+# version into every marker too; zheref/hatsu#530 retired it). A `paths:` filter is a
 # wake condition, and a wake condition that omits an input the guard reads is a
 # guard that does not wake for a change it would have failed. QA-17: assert it
 # against the LIVE workflow definition, conjunct by conjunct, never by eye.

@@ -30,13 +30,12 @@ hatsu:kazaana <repo> [on <line>] [--idle [--dry-run]]
 nen parse kazaana --grammar "<repo> [on <line:claude|gpt|gemini|grok|composer>]" --line "<the arguments>"
 ```
 
-Verified at nen `0.21.0`: `on llama` and an empty line are exit `2` — the ask (row `missing-argument`).
+`on llama` or `on ''` is exit `2`: the ask (row `missing-argument`).
 
 **The line is the surface's main model, read, never remembered**: the session's surface as the harness
 reports it ([`direct`](../direct/SKILL.md) § 2), then `aliases.<a>.line` **read from the registry file**
 `$hatsu_root/contracts/direct.registry.json` for the alias whose `surface` is that surface and whose
-`tier` is `deep` (`claude`, `gpt`, `grok`, `gemini`); `nen direct registry --json` validates the file
-but prints no `line` (§ Residue). A typed `on <line>` overrides it. Cursor's second line is inventoried, its
+`tier` is `deep` (`claude`, `gpt`, `grok`, `gemini`); § Residue: `nen direct registry` prints no `line`. A typed `on <line>` overrides it. Cursor's second line is inventoried, its
 own run named, never selected here (futon § 11).
 
 Then the futon line, parsed as futon § 1 does and **echoed before anything is fetched**:
@@ -65,7 +64,7 @@ lands in exactly one set:
 
 - **one `model/*`, this surface's line** — **the queue**.
 - **one `model/*`, another line** — out of scope, listed with its line; never built here.
-- **more than one `model/*`** (direct § 7 names an older label, never removes it) — **conflicting**: out
+- **more than one `model/*`** (direct § 7 removes none) — **conflicting**: out
   of scope, listed; the maintainer settles the labels.
 - **no `model/*`** — `hatsu:direct <CODE>#<N>[,…]` over **exactly these** (a missing `lang/`/`job/`
   axis is classify § 3 proposed there). **One table, one confirmation** for the batch (direct § 8's
@@ -76,7 +75,7 @@ lands in exactly one set:
 **Then refetch** — the same verb again — and re-partition: a `model/<line>` applied under this run joins
 the queue. Triage, briefing, ordering and the shape check are futon § 2's (HR-4: only an open
 `OQ-{n}` row skips, the queue continuing, HR-335); an epic awaiting its mode label is **G1**
-(`mode-label`). **State the queue before advancing anything**: count, issues, exclusions, § 3's plan.
+(`mode-label`). **State the queue before advancing**: count, issues, exclusions, § 3's plan.
 
 ## 3. The engine — futon's, with parallel delegates on direct's primary
 
@@ -84,7 +83,7 @@ Futon §§ 3–6 hold. This file adds:
 
 **One delegate authors and publishes each issue in its worktree**, raised as a **builder
 effort** by the surface's native tool, `--idle` alike — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter — titled `kazaana · kurapika · <alias>`, bound to
-`<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's push scope (HR-20), and WORKFLOW § *Delegate briefs*' wait block and § *The host block a delegate brief carries* verbatim, with one `Heavy turn:` line. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
+`<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's five-fact push record (HR-20, HA#529), and WORKFLOW § *Delegate briefs*' wait block and § *The host block a delegate brief carries* verbatim, with one `Heavy turn:` line. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
 raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `--dial` on phase/usage calls
 and title/id at its first phase when exposed; shibari reads its ledgers. The primary
@@ -144,8 +143,8 @@ the maintainer, briefed, skipped or **held** with its three facts, **and** the `
 its gate**. The final report is
 [`rikugan`](../rikugan/SKILL.md) over this run's scope — issues, every PR, the proposal, the tag, the
 fan-out, the publish outcome — `final` only if every PR merged and the tag cut, else `register` with
-§ 4's plan. Then **kazaana, once, asks the wrap-up picker**, only when [`cleanup`](../cleanup/SKILL.md) § 2's
-prerequisites hold (row `wrap-up`; never `--idle`). **Kazaana never resumes itself**; re-invoke it.
+§ 4's plan. A blocker is captured first (DISCOVERY § *A blocker found while executing*, HA#508). Then **kazaana, once,
+asks the wrap-up picker**, only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites hold (row `wrap-up`; never `--idle`). **Kazaana never resumes itself**; re-invoke it.
 
 ## Residue
 
