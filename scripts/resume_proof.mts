@@ -29,7 +29,8 @@
 // post` → `unchanged`). A composite that writes no ledger of its own (getsuga, kamui, hiraishin) has
 // nothing here to resume from; its section records that as the finding it is.
 //
-// exit 0  every case converged · exit 1  a case diverged, each named · exit 2  wiring (no nen, bad flag)
+// exit 0  every case converged · exit 1  a case diverged, each named · exit 2  wiring (no nen, a bad
+// flag, no writable temp root)
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -65,15 +66,17 @@ function call(repo: string, argv: string[]): { status: number; out: string; stdo
 }
 function must(repo: string, argv: string[]): string {
   const { status, out } = call(repo, argv);
-  if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${out.trim()}`);
+  // Through an excerpt, because this message becomes a row's `detail`: wider than a parse refusal's,
+  // so a real nen refusal stays readable, and still path-free.
+  if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${excerpt(out, 400)}`);
   return out;
 }
 // What a refusal here is allowed to quote: ONE bounded excerpt with absolute paths elided. A row's
 // detail is printed by this lane and transcribed into public prose, so it is held to the treatment
 // `scripts/ledger_findings_prepare.mts` gives the findings copy it posts (SEC-12).
-function excerpt(printed: string): string {
+function excerpt(printed: string, limit = 160): string {
   const flat = printed.replace(/\s+/g, ' ').trim().replace(/\/(?:Users|home|private|var|tmp)\/[^\s"',}\]]*/g, '<path>');
-  return JSON.stringify(flat.length > 160 ? `${flat.slice(0, 160)}...` : flat);
+  return JSON.stringify(flat.length > limit ? `${flat.slice(0, limit)}...` : flat);
 }
 // `nen run start|park --json` answers with a CONTRACT — `outcome` and `path` as fields — so this lane
 // reads those and never the prose form. The prose carries a second line stating the permissions it
@@ -95,8 +98,18 @@ function mustJson(repo: string, argv: string[], verb: string): RunAnswer {
   if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${out.trim()}`);
   return runAnswer(stdout, verb);
 }
+// A temp root this process cannot write is the HOST's state, not a diverged case, so it leaves by the
+// wiring exit this file's header declares rather than as an uncaught throw at exit 1 — which is the code
+// reserved for "a case diverged", and would read as a resume regression with no case named.
+function tempRoot(): string {
+  try { return mkdtempSync(join(tmpdir(), 'resume-proof-')); }
+  catch (error) {
+    console.error(`resume-proof: could not create a temp repository under ${tmpdir()}: ${(error as Error).message}`);
+    process.exit(2);
+  }
+}
 function freshRepo(): string {
-  const repo = mkdtempSync(join(tmpdir(), 'resume-proof-'));
+  const repo = tempRoot();
   const init = spawnSync('git', ['init', '-q', repo], { encoding: 'utf8' });
   if (init.status !== 0) { console.error('resume-proof: git init failed'); process.exit(2); }
   return repo;
