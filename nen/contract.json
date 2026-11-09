@@ -1199,7 +1199,7 @@
                 "run",
                 "--maxWorkers=1",
                 "--no-file-parallelism",
-                "scripts/direct_matrix_doc_fixture.test.mts"
+                "scripts/direct_matrix_doc_fixture.test.mts", "scripts/model_family_fixture.test.mts"
               ]
             },
             {
