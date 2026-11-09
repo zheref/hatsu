@@ -180,7 +180,8 @@ try {
   //    the background so it is not this process's child: were it killed, init would reap it and kill(pid, 0)
   //    would throw. spawnSync returns only once every holder of the hook's pipes is gone, so each elapsed time
   //    also proves nothing left behind holds them. Node, not sleep: a multicall coreutils (uutils, the default
-  //    on Ubuntu 26.04) dispatches on argv[0], so a sleep invoked as osascript exits at once.
+  //    on Ubuntu 26.04) dispatches on argv[0], so a sleep invoked as osascript exits at once;
+  //    and node renames itself on Linux, so the decoy sets process.title. A failed name check prints what ps saw.
   const hasSound = existsSync('/System/Library/Sounds/Glass.aiff');
   if (!hasSound) console.log('stop-bell fixture: cases 9-12 skip the afplay expectations -- no /System/Library/Sounds/Glass.aiff here');
   const sound = (n: number): string[] => (hasSound ? Array(n).fill('afplay') : []);
@@ -203,12 +204,14 @@ try {
     }
     return false;
   };
+  const seen = (pid: number): string => [['ps', '-o', 'pid=,comm=,args=', '-p', String(pid)], ['pgrep', '-a', 'osascript'], ['pgrep', '-V']]
+    .map(([cmd, ...args]) => { const r = spawnSync(cmd, args, { encoding: 'utf8' }); return `$ ${cmd} ${args.join(' ')}\n${(r.stdout + r.stderr).trim()}`; }).join('\n');
   // 9. One marker, a notifier that hangs or ignores TERM, a one-second deadline.
   for (const mode of ['hang', 'stubborn']) {
     const dir = repo();
     const a = writeMarker(dir, 'HA-IS-#516', 'G4', 'bounded');
-    const decoy = Number(spawnSync('sh', ['-c', `"${decoyBin}" -e 'setTimeout(() => {}, 30000)' >/dev/null 2>&1 & echo $!`], { encoding: 'utf8' }).stdout.trim());
-    assert.ok(named(decoy), 'the decoy is visible to a match by name');
+    const decoy = Number(spawnSync('sh', ['-c', `"${decoyBin}" -e 'process.title = "osascript"; setTimeout(() => {}, 30000)' >/dev/null 2>&1 & echo $!`], { encoding: 'utf8' }).stdout.trim());
+    assert.ok(named(decoy), `the decoy is visible to a match by name\n${seen(decoy)}`);
     const { calls, took } = timed(dir, { STUB_OSASCRIPT: mode, HATSU_BELL_DEADLINE: '1', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G4' }]) });
     assert.ok(took < 3.5, `a ${mode} notifier returns within deadline + grace (${took}s)`);
     gone(pidOf('osascript'), `the ${mode} child`);
