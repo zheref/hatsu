@@ -18,7 +18,10 @@
 //   * a phase that ended non-zero is refused by name on resume, never begun a second time (one entry).
 // The futon run manifest (futon and kazaana, which composes it) is proved the same way: a re-`start`
 // with the same idle answers is `existing`, a re-`park` is `unchanged`, and the manifest's bytes do not
-// move. Instants are the only thing two runs cannot share, so they are the only thing elided.
+// move. Instants are the only thing two runs cannot share, so they are the only thing elided. How that
+// manifest is LOCATED is proved too, on printed text rather than a live run: the location is the first
+// line's and the trailing mode line is not part of it, and a first line carrying no location is refused
+// by name instead of read as a path that is then missing (zheref/hatsu#574).
 //
 // WHAT IT DOES NOT PROVE. The publishing steps (a PR, a comment, a label) need GitHub: they are proved
 // live in the docs/ab sections against a real pull request (`nen pr open` → `existing`, `nen pr ledger
@@ -61,6 +64,19 @@ function must(repo: string, argv: string[]): string {
   const { status, out } = call(repo, argv);
   if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${out.trim()}`);
   return out;
+}
+// Where a `nen run start` printed its manifest. The location is on the FIRST line and nowhere else:
+// the verb prints a second line stating the permissions it wrote with, on a write and not on a no-op,
+// so reading the whole stdout glues that line onto the path and the row then reports ENOENT against
+// text it assembled itself (zheref/hatsu#574). A first line that carries no location is REFUSED by
+// name, because a dependency that changes what it prints should read as a refusal naming the line it
+// could not parse, never as a missing file.
+function manifestLocation(printed: string, verb: string): string {
+  const first = (printed.split('\n', 1)[0] as string).trim();
+  const cut = first.lastIndexOf(' -- ');
+  const location = cut < 0 ? '' : first.slice(cut + ' -- '.length).trim();
+  if (!location) throw new Error(`${verb} printed no ' -- <path>' on its first line: ${JSON.stringify(first)}`);
+  return location;
 }
 function freshRepo(): string {
   const repo = mkdtempSync(join(tmpdir(), 'resume-proof-'));
@@ -180,7 +196,7 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
   let ok = true; let detail = '';
   try {
     const started = must(repo, start); must(repo, park);
-    const path = started.trim().split(' -- ').pop() as string;
+    const path = manifestLocation(started, 'nen run start');
     const before = readFileSync(path, 'utf8');
     // ← killed after the park; the same line again.
     const again = must(repo, start); const repark = must(repo, park);
@@ -189,6 +205,33 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
   } catch (error) { ok = false; detail = (error as Error).message; }
   results.push({ composite: 'futon (and kazaana)', case: 'killed after a park, re-invoked', verdict: ok ? 'converged' : 'diverged', detail });
   rmSync(repo, { recursive: true, force: true });
+}
+
+// How the row above locates that manifest, proved on printed text rather than on a live run, because
+// the second line only appears on a write: the case that broke the lane on main is the one a live run
+// cannot be relied on to produce (zheref/hatsu#574).
+{
+  const manifest = '/tmp/resume-proof-x/.git/.nen/runs/0123456789abcdef0123456789abcdef.json';
+  const read = manifestLocation(`started: run 0123456789abcdef0123456789abcdef -- ${manifest}\nmode: file 0600, directory 0700\n`, 'nen run start');
+  results.push({
+    composite: 'any',
+    case: 'a location printed above a mode line',
+    verdict: read === manifest ? 'converged' : 'diverged',
+    detail: read === manifest ? 'the first line alone; the mode line is not part of the path' : `read ${JSON.stringify(read)}`,
+  });
+}
+{
+  const unparsable = 'started: run 0123456789abcdef0123456789abcdef';
+  let refusal = '';
+  try { manifestLocation(`${unparsable}\nmode: file 0600, directory 0700\n`, 'nen run start'); }
+  catch (error) { refusal = (error as Error).message; }
+  const named = refusal.includes("printed no ' -- <path>' on its first line") && refusal.includes(unparsable);
+  results.push({
+    composite: 'any',
+    case: 'a first line carrying no location',
+    verdict: named ? 'converged' : 'diverged',
+    detail: named ? 'refused by name, quoting the line it could not parse' : refusal || 'returned a path instead of refusing',
+  });
 }
 
 const diverged = results.filter((r) => r.verdict === 'diverged');
