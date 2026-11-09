@@ -18,10 +18,11 @@
 //   * a phase that ended non-zero is refused by name on resume, never begun a second time (one entry).
 // The futon run manifest (futon and kazaana, which composes it) is proved the same way: a re-`start`
 // with the same idle answers is `existing`, a re-`park` is `unchanged`, and the manifest's bytes do not
-// move. Instants are the only thing two runs cannot share, so they are the only thing elided. How that
-// manifest is LOCATED is proved too, on printed text rather than a live run: the location is the first
-// line's and the trailing mode line is not part of it, and a first line carrying no location is refused
-// by name instead of read as a path that is then missing (zheref/hatsu#574).
+// move. Instants are the only thing two runs cannot share, so they are the only thing elided. That case
+// reads the verb's `--json` ANSWER rather than its prose — `outcome` and `path` as fields — and how it
+// reads it is proved too, on a payload: every other key is ignored, and an answer missing a field is
+// refused by name with a bounded, path-free excerpt instead of read as a path that is then missing
+// (zheref/hatsu#574).
 //
 // WHAT IT DOES NOT PROVE. The publishing steps (a PR, a comment, a label) need GitHub: they are proved
 // live in the docs/ab sections against a real pull request (`nen pr open` → `existing`, `nen pr ledger
@@ -55,28 +56,44 @@ const COMPOSITES: Record<string, { source: string; phases: string[] }> = {
   build: { source: 'claude/skills/build/SKILL.md § 4', phases: ['author', 'publish', 'pr', 'readiness'] },
 };
 
-function call(repo: string, argv: string[]): { status: number; out: string } {
+function call(repo: string, argv: string[]): { status: number; out: string; stdout: string } {
   const result = spawnSync(nen, argv, { encoding: 'utf8' }); // --repo names the repository; cwd stays the caller's
   if (result.error) { console.error(`resume-proof: could not run '${nen}': ${result.error.message}`); process.exit(2); }
-  return { status: result.status ?? 1, out: `${result.stdout}${result.stderr}` };
+  // `out` is both streams, for a refusal's text; `stdout` is kept apart for the rows that parse a
+  // --json payload, which a warning on stderr would otherwise make unparseable.
+  return { status: result.status ?? 1, out: `${result.stdout}${result.stderr}`, stdout: result.stdout };
 }
 function must(repo: string, argv: string[]): string {
   const { status, out } = call(repo, argv);
   if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${out.trim()}`);
   return out;
 }
-// Where a `nen run start` printed its manifest. The location is on the FIRST line and nowhere else:
-// the verb prints a second line stating the permissions it wrote with, on a write and not on a no-op,
-// so reading the whole stdout glues that line onto the path and the row then reports ENOENT against
-// text it assembled itself (zheref/hatsu#574). A first line that carries no location is REFUSED by
-// name, because a dependency that changes what it prints should read as a refusal naming the line it
-// could not parse, never as a missing file.
-function manifestLocation(printed: string, verb: string): string {
-  const first = (printed.split('\n', 1)[0] as string).trim();
-  const cut = first.lastIndexOf(' -- ');
-  const location = cut < 0 ? '' : first.slice(cut + ' -- '.length).trim();
-  if (!location) throw new Error(`${verb} printed no ' -- <path>' on its first line: ${JSON.stringify(first)}`);
-  return location;
+// What a refusal here is allowed to quote: ONE bounded excerpt with absolute paths elided. A row's
+// detail is printed by this lane and transcribed into public prose, so it is held to the treatment
+// `scripts/ledger_findings_prepare.mts` gives the findings copy it posts (SEC-12).
+function excerpt(printed: string): string {
+  const flat = printed.replace(/\s+/g, ' ').trim().replace(/\/(?:Users|home|private|var|tmp)\/[^\s"',}\]]*/g, '<path>');
+  return JSON.stringify(flat.length > 160 ? `${flat.slice(0, 160)}...` : flat);
+}
+// `nen run start|park --json` answers with a CONTRACT — `outcome` and `path` as fields — so this lane
+// reads those and never the prose form. The prose carries a second line stating the permissions it
+// wrote with, on a write and not on a no-op, and reading it as one string put that line inside the
+// manifest's location: the row then reported ENOENT against text it had assembled itself, as a
+// convergence divergence (zheref/hatsu#574). A payload missing either field is REFUSED by name, so a
+// later change to the contract reads as a refusal naming the field rather than as a missing file.
+type RunAnswer = { outcome: string; path: string };
+function runAnswer(printed: string, verb: string): RunAnswer {
+  let parsed: unknown;
+  try { parsed = JSON.parse(printed); } catch { throw new Error(`${verb} --json did not print JSON: ${excerpt(printed)}`); }
+  const answer = (parsed ?? {}) as Partial<RunAnswer>;
+  if (typeof answer.outcome !== 'string' || !answer.outcome) throw new Error(`${verb} --json printed no 'outcome': ${excerpt(printed)}`);
+  if (typeof answer.path !== 'string' || !answer.path) throw new Error(`${verb} --json printed no 'path': ${excerpt(printed)}`);
+  return { outcome: answer.outcome, path: answer.path };
+}
+function mustJson(repo: string, argv: string[], verb: string): RunAnswer {
+  const { status, out, stdout } = call(repo, argv);
+  if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${out.trim()}`);
+  return runAnswer(stdout, verb);
 }
 function freshRepo(): string {
   const repo = mkdtempSync(join(tmpdir(), 'resume-proof-'));
@@ -191,46 +208,61 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
 {
   const repo = freshRepo();
   const id = '0123456789abcdef0123456789abcdef';
-  const start = ['run', 'start', '--id', id, '--target', 'zheref/hatsu', '--repo', repo, '--idle-answers', '{"host-nen-link":"default"}'];
-  const park = ['run', 'park', '--id', id, '--issue', 'zheref/hatsu#444', '--row', 'g5-harness-denied', '--repo', repo];
+  const start = ['run', 'start', '--id', id, '--target', 'zheref/hatsu', '--repo', repo, '--idle-answers', '{"host-nen-link":"default"}', '--json'];
+  const park = ['run', 'park', '--id', id, '--issue', 'zheref/hatsu#444', '--row', 'g5-harness-denied', '--repo', repo, '--json'];
   let ok = true; let detail = '';
   try {
-    const started = must(repo, start); must(repo, park);
-    const path = manifestLocation(started, 'nen run start');
+    const started = mustJson(repo, start, 'nen run start'); mustJson(repo, park, 'nen run park');
+    const path = started.path;
     const before = readFileSync(path, 'utf8');
     // ← killed after the park; the same line again.
-    const again = must(repo, start); const repark = must(repo, park);
-    ok = again.startsWith('existing') && repark.startsWith('unchanged') && readFileSync(path, 'utf8') === before;
-    detail = ok ? 're-start existing, re-park unchanged, manifest bytes unchanged' : `${again.trim()} / ${repark.trim()}`;
+    const again = mustJson(repo, start, 'nen run start');
+    const repark = mustJson(repo, park, 'nen run park');
+    // Named one by one, so a divergence says WHICH of the three did not hold rather than printing two
+    // outcomes that both read as correct.
+    const checks: Array<[string, boolean]> = [
+      ['re-start answered existing', again.outcome === 'existing'],
+      ['re-park answered unchanged', repark.outcome === 'unchanged'],
+      ['manifest bytes unchanged', readFileSync(path, 'utf8') === before],
+    ];
+    const failed = checks.find((check) => !check[1]);
+    ok = failed === undefined;
+    detail = failed
+      ? `${failed[0]} is FALSE (re-start ${again.outcome}, re-park ${repark.outcome})`
+      : 're-start existing, re-park unchanged, manifest bytes unchanged';
   } catch (error) { ok = false; detail = (error as Error).message; }
   results.push({ composite: 'futon (and kazaana)', case: 'killed after a park, re-invoked', verdict: ok ? 'converged' : 'diverged', detail });
   rmSync(repo, { recursive: true, force: true });
 }
 
-// How the row above locates that manifest, proved on printed text rather than on a live run, because
-// the second line only appears on a write: the case that broke the lane on main is the one a live run
-// cannot be relied on to produce (zheref/hatsu#574).
+// How the row above reads that answer. Proved on a payload rather than on a live run, because the
+// shapes that break the read are the ones a healthy nen never prints (zheref/hatsu#574).
 {
   const manifest = '/tmp/resume-proof-x/.git/.nen/runs/0123456789abcdef0123456789abcdef.json';
-  const read = manifestLocation(`started: run 0123456789abcdef0123456789abcdef -- ${manifest}\nmode: file 0600, directory 0700\n`, 'nen run start');
+  const payload = JSON.stringify({ outcome: 'started', path: manifest, reason: null, manifest: { contract: 'nen.run/v0.1' }, mode: { verdict: 'set', file: '0600', directory: '0700' } }, null, 2);
+  let read: RunAnswer | null = null; let refusal = '';
+  try { read = runAnswer(payload, 'nen run start'); } catch (error) { refusal = (error as Error).message; }
+  const got = read !== null && read.path === manifest && read.outcome === 'started';
   results.push({
     composite: 'any',
-    case: 'a location printed above a mode line',
-    verdict: read === manifest ? 'converged' : 'diverged',
-    detail: read === manifest ? 'the first line alone; the mode line is not part of the path' : `read ${JSON.stringify(read)}`,
+    case: 'an answer carrying a mode block',
+    verdict: got ? 'converged' : 'diverged',
+    detail: got ? 'outcome and path read as fields; every other key ignored' : refusal || `read ${JSON.stringify(read)}`,
   });
 }
 {
-  const unparsable = 'started: run 0123456789abcdef0123456789abcdef';
+  // A refusal names the missing field, and its excerpt is bounded and carries no absolute path: a
+  // row's detail is printed by this lane and transcribed into public prose (SEC-12).
+  const payload = JSON.stringify({ outcome: 'started', reason: `could not write under /Users/someone/${'x'.repeat(400)}` });
   let refusal = '';
-  try { manifestLocation(`${unparsable}\nmode: file 0600, directory 0700\n`, 'nen run start'); }
-  catch (error) { refusal = (error as Error).message; }
-  const named = refusal.includes("printed no ' -- <path>' on its first line") && refusal.includes(unparsable);
+  try { runAnswer(payload, 'nen run start'); } catch (error) { refusal = (error as Error).message; }
+  const named = refusal.includes("printed no 'path'");
+  const safe = refusal.length <= 240 && !refusal.includes('/Users/') && refusal.includes('<path>');
   results.push({
     composite: 'any',
-    case: 'a first line carrying no location',
-    verdict: named ? 'converged' : 'diverged',
-    detail: named ? 'refused by name, quoting the line it could not parse' : refusal || 'returned a path instead of refusing',
+    case: 'an answer missing its path field',
+    verdict: named && safe ? 'converged' : 'diverged',
+    detail: named && safe ? "refused naming 'path', the excerpt bounded and path-free" : refusal || 'returned a path instead of refusing',
   });
 }
 
