@@ -93,7 +93,9 @@ declaration/tree may differ from this effort's: name that limit beside the exact
 report/bell without asking for approval. A plan is not a build or launch result.
 
 Only a maintainer's explicit `$amaterasu` call authorizes the core launch; if core needs the
-effort's tree, `$amenotejikara` is a separate explicit call. An original-prompt core-authoring
+effort's tree, `$amenotejikara` is a separate explicit call. The one other such call is
+[`senkaimon`](../senkaimon/SKILL.md) § 3's answer: both, for the PRs its queue showed, that run
+only. An original-prompt core-authoring
 waiver alone does not authorize either action. After either call, authoring, parity and delivery
 remain in the bound effort checkout under WORKFLOW § *Where worktrees live*.
 
@@ -106,7 +108,7 @@ half-swapped core.
 four** hold: the maintainer's written delegation **names the device and the target**; the purpose is
 **a declaration under review**, never a turn's launch, `ren`'s phase four or a composite; **no other
 session holds the app**; and **the report says so, in these words** — *"validation launch from a non-core checkout: `<path>`; delegation names device `<name>` and
-target `<key>`; declaration PR `<url>`"* — each precondition read and stated in that report (§ 5: the boundary and its owned residue).
+target `<key>`; declaration PR `<url>`"* — each precondition read and stated in that report (§ 5's boundary and residue).
 **Everything outside those four is forbidden.**
 
 ## 4. Resolving the device, the dry run, and the command you paste
@@ -145,10 +147,10 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 
 ## 5. Residue
 
-**A boundary ([HR-389](../../../docs/ROSTER.md#hr-389)):** § 3a's delegation, purpose and report
+**A boundary ([HR-390](../../../docs/ROSTER.md#hr-390)):** § 3a's delegation, purpose and report
 wording — the maintainer's written delegation and the session's read of it, which no verb owns.
 **§ 3a's third condition** (no other session holds the app) is residue owned by
-[zheref/nen#536](https://github.com/zheref/nen/issues/536). **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a
+zheref/nen#536. **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a
 jujutsu PR writes the rule. **No default target ever**, **no `--` passthrough** (an undeclared argv
 is an unreviewed one), and **nothing in nen stops a long-running child**.
 
