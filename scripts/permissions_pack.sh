@@ -157,7 +157,7 @@ render_antigravity() {
 # 'commandExecutionPolicy: auto' would approve arbitrary commands rather than
 # the declared set, so it is NOT emitted. The pack on this surface is the
 # generated .agents/hooks.json already placed by surface_bootstrap.sh (Stop
-# bell, PreToolUse guard, PreInvocation install). Commands outside the surface's
+# bell, PreToolUse guard, SessionStart refresh). Commands outside the surface's
 # own defaults keep their confirmation until Antigravity offers a scoped
 # mechanism. Nothing to write here.
 EOF

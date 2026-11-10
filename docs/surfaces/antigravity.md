@@ -121,10 +121,12 @@ In-session delegation is
 | | |
 |---|---|
 | file | `hooks.json` (plugin); `<repo>/.agents/hooks.json` (workspace); `~/.gemini/config/hooks.json` (global) |
-| events | `PreToolUse`, `PostToolUse`, `PreInvocation`, `PostInvocation`, `Stop`; `PreInvocation`, `PostInvocation` and `Stop` carry the simpler structure |
-| session start | there is no `SessionStart`; `PreInvocation` is the earliest event and is what Hatsu uses for the refresh |
+| format | a mapping of **named hook definitions**, each name to an object keyed by event, the native shape Google's [hooks page](https://antigravity.google/docs/hooks?tab=cli) documents (*"The `hooks.json` file maps hook names to their event configurations"*, fetched 2026-11-09). nen generates it from `v0.29.0` (zheref/nen#543): Hatsu's one definition is the generator's ownership marker, its three events beneath it |
+| events | `SessionStart`, `PreToolUse`, `PostToolUse`, `PreInvocation`, `PostInvocation`, `Stop`; `PreToolUse` and `PostToolUse` take a `matcher`, the other four a list of handlers directly under the event key |
+| session start | `SessionStart`, documented to fire *"once when a new conversation session starts, before the first model invocation"* (fetched 2026-11-09). **Unverified on a host:** `agy` 1.4.7 accepts the file (below) and no live session here has been observed firing it |
+| validation | `agy plugin validate surfaces/antigravity` at nen `v0.30.0`'s mirror: *"✔ Validation passed with 21 warnings"* (`agy` 1.4.7, 2026-11-09; the warnings are skill-size lines). The `v0.28.0` shape, a `hooks` wrapper beside a string-valued marker, fails the same validator and the loader skips the whole file (zheref/nen#543, `agy` 1.4.3, 2026-10-25) |
 | decision shape | top-level `decision`: `allow`, `deny`, `ask`, `force_ask`, `deny_unless_prior_grant`, with `reason` and `permissionOverrides[]`; `ask` respects "Always Allow" |
-| what Hatsu installs | `PreInvocation` → `surface_bootstrap.sh --surface antigravity --target . --install-all` when `HATSU_PLUGIN_ROOT` is set and `.agents/` exists; `PreToolUse` on `run_command` → `hooks/guard-base-branch.sh` (`deny` on the base branch); `Stop` → `hooks/stop-bell.sh` |
+| what Hatsu installs | `SessionStart` → `hooks/session-start.sh` (the nen binding, then, on an adopted workspace with `HATSU_PLUGIN_ROOT` set and a marker under `.agents/`, `surface_bootstrap.sh --surface antigravity --target . --install-all`); `PreToolUse` on `run_command` → `hooks/guard-base-branch.sh` (`deny` on the base branch); `Stop` → `hooks/stop-bell.sh` |
 
 The hook commands resolve their scripts through one expression, the `--hooks-root` the generator was
 given: `${HATSU_PLUGIN_ROOT:-${GEMINI_CONFIG_DIR:-$HOME/.gemini}/config/plugins/hatsu}/hooks/`, so an
@@ -133,10 +135,11 @@ mirror and the global-plugin install. A WORKSPACE install is different: `surface
 the hook scripts at `.agents/hooks/` and rewrites the PLACED `.agents/hooks.json` (never the tracked
 mirror) to `${HATSU_PLUGIN_ROOT:-./.agents}/hooks/`, so the workspace copy comes last and only there;
 the generator cannot emit that fallback itself because its root expression admits no command
-substitution. A `PreInvocation` refresh fires on every invocation, not once per session, which is
-why the refresh is idempotent: `surface_bootstrap.sh --install-all` replaces only what it placed and
-reports installed/replaced/kept per name (ten § 5; the check-then-copy it once described is retired,
-zheref/hatsu#106).
+substitution. The refresh is idempotent whichever event carries it: `surface_bootstrap.sh
+--install-all` replaces only what it placed and reports installed/replaced/kept per name (ten § 5;
+the check-then-copy it once described is retired, zheref/hatsu#106). Until nen `v0.29.0` the file
+carried no `SessionStart` and the refresh rode `PreInvocation`, once per invocation; the generated
+file is the authority for the shape, never this page (mirrors are regenerated, never hand-edited).
 
 ## 5. Permissions
 
@@ -186,7 +189,7 @@ nen surface mirror generate --surface antigravity \
 | `surfaces/antigravity/skills/<name>/SKILL.md`, 49 files (forty-eight plus `ten`), frontmatter reduced to `name` and `description`, `hatsu:<name>` respelled `/<name>` (anchored on the prefix, never a bare `gsub`) | `claude/skills/**` |
 | `surfaces/antigravity/agents/<persona>.md`, 13 files (twelve personas plus the preamble include), `model` from the tier where admissible | `claude/agents/**`, `nen/workflow.json` |
 | `surfaces/antigravity/rules/hatsu.md`, under 12,000 characters | the surface row and the matrix |
-| `surfaces/antigravity/hooks.json`: `PreInvocation`, `PreToolUse` on `run_command`, `Stop` | `hooks/hooks.json` |
+| `surfaces/antigravity/hooks.json`: one named definition carrying `SessionStart`, `PreToolUse` on `run_command`, `Stop` (§ 4) | `hooks/hooks.json` |
 | `surfaces/antigravity/plugin.json`: `$schema`, `name`, `description`, `version` = `.claude-plugin/plugin.json`'s `version`, through `--manifest`; the only generated file that declares one (HA#530) | `.claude-plugin/plugin.json` |
 
 Marker, first markdown line after the frontmatter fence, line 1 in a file without one, and the
@@ -217,7 +220,8 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 | skills path | `.agents/skills`, `.agent/skills` back-compat | "Antigravity defaults to .agents/skills, but still maintains backward compatibility for .agent/skills." | https://antigravity.google/docs/skills | 2026-09-20 |
 | skill frontmatter | name and triggering criteria | "Every SKILL.md file begins with YAML frontmatter defining its name and triggering criteria" | https://antigravity.google/docs/skills | 2026-09-20 |
 | workspace hooks | `.agents/hooks.json` | "Workspace level: .agents/hooks.json at your project root." | https://antigravity.google/docs/hooks | 2026-09-20 |
-| hook events | five, no SessionStart | "For PreInvocation, PostInvocation, and Stop, the structure is simpler" | https://antigravity.google/docs/hooks | 2026-09-20 |
+| hook events | six, `SessionStart` among them | "Fires once when a new conversation session starts, before the first model invocation." | https://antigravity.google/docs/hooks?tab=cli | 2026-11-09 |
+| hooks file shape | named definitions | "The `hooks.json` file maps hook names to their event configurations:" | https://antigravity.google/docs/hooks?tab=cli | 2026-11-09 |
 | ask semantics | respects Always Allow | "\"ask\": Prompts the user, but respects \"Always Allow\" settings." | https://antigravity.google/docs/hooks | 2026-09-20 |
 | option picker | `ask_question` | "ask_question: Ask multiple-choice questions." | https://antigravity.google/docs/hooks | 2026-09-20 |
 | option picker arguments | questions array | "Arguments: questions (array of questions with question, options, is_multi_select)" | https://antigravity.google/docs/hooks | 2026-09-20 |
@@ -243,7 +247,7 @@ nen surface mirror check --surface antigravity <same flags> --installed ~/.gemin
 
 - **A Run button on a code fence** (§ 7, WORKFLOW § 4's hand-over rule): none observed and no official page fetched (2026-10-17); the fence is treated as the copy source until a fetched line says otherwise.
 
-- A `SessionStart` hook event; `PreInvocation` is the substitute and fires per invocation.
+- Whether `SessionStart` fires in a live session: documented (§ 9) and accepted by `agy` 1.4.7's validator (§ 4, 2026-11-09), never observed firing on a host here.
 - Whether the artifact viewer renders inline HTML (`<details>`, `<summary>`, `<code>`, `<pre>`) and GFM alerts as GitHub does: the Markdown report templates use them, and only GitHub's renderer has been read (§ 9). Whether `write_to_file` stores its content byte for byte is answered per render by the `cmp` read-back, never assumed.
 - A hooks manifest other than `hooks.json`.
 - `/docs/personas` answers 404; personas are the `agents/` directory of the plugins page.

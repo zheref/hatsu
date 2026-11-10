@@ -123,9 +123,9 @@ unchanged / deleted`; the second check's `drift:`; the commit, the push, the PR 
    own marker only, by design.
 5. **`mkdir -p "<path>/.nen"`** — `--markdown-out` resolves against `--repo` and does not create its
    parent: exit `1` + `ENOENT`, indistinguishable from drift. Filed.
-6. **`iteration.canonMirror.command`** (WORKFLOW § *The local verification gate*, step 2) cannot carry
-   a machine-local `--rules-dir` as literal argv, so a canon-values edit's regenerate is this skill,
-   by hand, until nen resolves the checkout itself — filed.
+6. **`iteration.canonMirror.command`** (WORKFLOW § *The local verification gate*, step 2): nen
+   resolves the checkout itself (zheref/nen#294), unadopted here, so a canon-values edit's
+   regenerate is still this skill; adoption is zheref/hatsu#578.
 
 ## Authority
 

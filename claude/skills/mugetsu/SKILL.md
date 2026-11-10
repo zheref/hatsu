@@ -484,9 +484,11 @@ version. The next go is the maintainer's.
 
 ## Residue
 
-1. **Nothing records the go.** No nen verb writes "the maintainer authorised `production` for
-   `v1.2.0`", and `.nen/last-stop.json` is a bell marker, not an authorization ledger. The quote in
-   § 7 is the record, written by hand into the report and the comment.
+1. **Nothing records the go as data here.** This skill writes "the maintainer authorised
+   `production` for `v1.2.0`" through no verb, and `.nen/last-stop.json` is a bell marker, not an
+   authorization ledger. The quote in § 7 is the record, written into the report and the comment;
+   adopting `nen stop answer`'s verbatim record for it is
+   [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579).
 2. **`nen shu release` has no `--run` gate** (§ 5a, verified live, by 2026-09-10 (`docs/ab/mugetsu.md` § 2.5)) — so the whole "show it before you
    do it" discipline on the publication verb is this skill's, unenforced by anything. The one
    mechanical helper is `--dry-run`, and typing it is a rule, not a guard.
@@ -494,13 +496,17 @@ version. The next go is the maintainer's.
    skill's discipline; per-destination publication has to be modelled as lanes or as `deploy`
    targets in the declaration.
 4. **`release preflight`'s tag row inverts after the cut** (§ 4, verified live, by 2026-09-10 (`docs/ab/mugetsu.md` § 2.3)) — so the pass/fail
-   reading is by hand, off the rows, and the exit code alone is never the verdict. There is no
-   `--expect-tag-exists` or post-cut mode at this pin.
-5. **Nothing marks a destination as production.** `project.targets.<name>` carries no such field
+   reading is the session's, off the rows, and the exit code alone is never the verdict. There is no
+   `--expect-tag-exists` or post-cut mode at this pin; that reading is
+   [zheref/nen#649](https://github.com/zheref/nen/issues/649).
+5. **Nothing this skill reads marks a destination as production.** `project.targets.<name>`'s
+   `nonProduction` word (zheref/nen#300) is unread here
    ([`hatsu:kagutsuchi`](../kagutsuchi/SKILL.md) § Residue 1), so the split between that skill and
-   this one is read out of `why` prose by hand.
+   this one is read out of `why` prose; adopting the field is
+   [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579).
 6. **What state a failed publication left the destination in.** nen reports the tool's own exit code
-   and never queries the far end. Saying so is by hand, and it is the sentence § 6's exit `1` row
+   and never queries the far end, by design: the destination's state is the destination's to report.
+   Saying so is prose by design (a boundary, not a gap), and it is the sentence § 6's exit `1` row
    requires.
 7. **A per-run log file.** `A .nen/logs/ transcript is not in this release (zheref/nen#91)` — the
    report is the only record of what a publication printed.

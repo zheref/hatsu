@@ -136,7 +136,8 @@ to `--baseline`**, and **lower is better for every one of the fixed seven metric
 here where a bigger measured number is good. Exits 1 when severity is `high` or `critical`; exits 0 on
 `ok`, including an **improvement** (a negative regression). A **zero baseline** is refused outright rather
 than divided by (verified live, by 2026-09-01, `docs/ab/bankai-quality.md` § 2.3) — record a non-zero baseline or compare
-the absolute values by hand.
+the absolute values in the report, a judgement by design: QA-13 defines no absolute threshold, so
+no verb can decide one (nen's own refusal says to compare them yourself).
 
 **Verified live, by 2026-09-01 (`docs/ab/bankai-quality.md` § 2.3), exactly at both boundaries (§ 2.3):** `10.0%` itself is `ok` (the rule is *strictly*
 greater than 10%, not "at least"), and `25.0%` itself is `high`, not `critical` — the same strict-`>`
