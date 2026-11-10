@@ -56,7 +56,7 @@ catch-up is stale if any tracked path moved.*
 nen parse ao --grammar "from [<base>]" --line "<the invocation, minus the /ao prefix>"
 ```
 
-Verified live at `v0.3.0` (`docs/ab/ao.md` § 2.1): `from release/1.4` → `base: release/1.4`; a bare
+Verified live, by 2026-09-10, at `v0.3.0` (`docs/ab/ao.md` § 2.1): `from release/1.4` → `base: release/1.4`; a bare
 `from` parses with the clause absent, exit `0`. The clause is anchored behind a literal for the
 reason [`/spiritual-message`](../spiritual-message/SKILL.md) § 1 records.
 
@@ -73,7 +73,7 @@ A missing argument or configuration item is asked for and set up inline (`missin
 nen wc classify --repo <path> --base <base> --json
 ```
 
-Verified live at `v0.3.0` (`docs/ab/ao.md` § 2.2), `--json` carries exactly what this skill needs
+Verified live, by 2026-09-10, at `v0.3.0` (`docs/ab/ao.md` § 2.2), `--json` carries exactly what this skill needs
 before it touches anything: `state.branch`, `state.isTrunk`, `state.dirty`, `state.aheadOfBase`,
 `state.existingCommitSubjects[]`, `state.uncommittedPaths[]`.
 
@@ -84,7 +84,7 @@ before it touches anything: `state.branch`, `state.isTrunk`, `state.dirty`, `sta
 | `on-branch-clean` | Proceed to § 3 |
 
 > **`nen wc classify` is not a conflict detector, and a half-finished merge reads as ordinary
-> dirt — verified live (`docs/ab/ao.md` § 2.2).** Run inside an unresolved merge it reports
+> dirt — verified live, by 2026-09-10 (`docs/ab/ao.md` § 2.2).** Run inside an unresolved merge it reports
 > `on-branch-dirty` with the conflicted paths counted among "uncommitted path(s)", saying nothing
 > about the merge in progress. So **ask git for one before classifying**, never `.git/` on disk (in a
 > linked worktree `.git` is a file): `git rev-parse -q --verify MERGE_HEAD` resolving, or `git
@@ -140,7 +140,7 @@ Say which one the verb chose and why, in one line, from its report, **and name t
 *"`origin` fetched; the branch is on `@{upstream}`, so `strategy: merge`, not a rebase."*
 
 > **RETIRED at nen `0.5`, superseded at `0.13`.** The merge half ran through `nen pr cascade-main
-> --repo <path> --trunk <base> --no-push` (verified live at `v0.5.0`, `docs/ab/ao.md` § *Retired at
+> --repo <path> --trunk <base> --no-push` (verified live, by 2026-09-20, at `v0.5.0`, `docs/ab/ao.md` § *Retired at
 > nen 0.5*) and the rebase half had no verb at any flag. **Both halves are now `nen wc catch-up`'s**,
 > which never pushes. `cascade-main` keeps its `mutating` row in izanami's automation table,
 > `--no-push` included, and is no longer what ao calls.
@@ -153,7 +153,7 @@ git -C <path> diff --name-only --diff-filter=U      # the conflicted paths, alon
 git -C <path> ls-files -u                           # which stages each path has
 ```
 
-Verified live against a constructed fixture carrying one of each (`docs/ab/ao.md` § 2.4):
+Verified live, by 2026-09-10, against a constructed fixture carrying one of each (`docs/ab/ao.md` § 2.4):
 
 | Porcelain | Kind | Stages present |
 |---|---|---|
@@ -212,7 +212,7 @@ semantic**: "deleted" and "still being edited" are two beliefs about whether a t
 merge algorithm holds the belief. So is a `UU` where both sides changed the same behaviour, and an
 `AA` whose two files are not the same file.
 
-> **The textbook case, verified live (`docs/ab/ao.md` § 2.4).** Base has `retries = 3`; the branch
+> **The textbook case, verified live, by 2026-09-10 (`docs/ab/ao.md` § 2.4).** Base has `retries = 3`; the branch
 > raised it to `5`; the trunk raised it to `9` and also moved `timeout`. Textually this is one small
 > hunk. Semantically it is two people deciding a policy number, and taking either side silently
 > ships somebody's decision that nobody made. `git show :1:` / `:2:` / `:3:` on the path prints the
@@ -241,7 +241,7 @@ nen commit write --repo <path> --message-file <msg-file> [--dry-run] [--json]   
 ```
 
 **Gate the second line on the first's exit code, and keep the two streams apart.** The refusal goes
-to **stderr** with **nothing on stdout** — verified live at the pin: a 87-character header exits `2`
+to **stderr** with **nothing on stdout** — verified live, by 2026-09-10, at the pin: a 87-character header exits `2`
 with `0` bytes on stdout and the sentence on stderr, while the accepted message exits `0` with `0`
 bytes on stderr. So `2>&1` into the message file commits the refusal *as the message*, and a plain
 redirect commits an empty one. Both happened; the second was repaired by an amend that was only safe
@@ -262,7 +262,7 @@ the switch (row `harness-attribution-switch`) first, then this catch-up again fr
 An exit `1` whose stderr begins *"committed"* is the same reading, the trailers unchecked: the merge
 commit exists and is never committed again. Any other exit `1` committed nothing.
 
-**RETIRED at nen `0.5`: pass `--repo <path>` and the binary enforces the house rule.** Verified live
+**RETIRED at nen `0.5`: pass `--repo <path>` and the binary enforces the house rule.** Observed live, by 2026-10-22 with no evidence file kept
 at the pin against this repository: `--trailer "Co-Authored-By=someone"` is refused at exit `2` naming
 the file and the keys it admits, while a truthful `--trailer "Hatsu-Agent=<responsible-persona>"` renders at exit `0`. The
 policy is opened only when the invocation carries a `--trailer`, so **`--repo` is not optional here**:
@@ -291,7 +291,7 @@ A mechanical conflict, and a base that merely moved, are resolved and caught up 
 and never a blend that is neither side's intent.
 
 The stop is [`/jutaisho`](../jutaisho/SKILL.md)'s shape, in full — the `nen stop` banner and
-efforts table (`nen stop --who Kurapika --gate G5 <efforts.md>`, verified live, `docs/ab/ao.md`
+efforts table (`nen stop --who Kurapika --gate G5 <efforts.md>`, verified live, by 2026-09-10, `docs/ab/ao.md`
 § 2.5), the [`/spiritual-message`](../spiritual-message/SKILL.md) report's link, lettered options with a ⭐ on the
 report, and the question through the surface's own option picker. What this skill adds to it:
 
@@ -334,7 +334,7 @@ and the pair of SHAs is the cheapest possible way to say so.
 ## Residue
 
 1. **RETIRED at nen `0.5`: the merge half** (§ 3) is `nen pr cascade-main --repo <path> --trunk
-   <base> --no-push` — verified live, exit `0`, `not pushed (--no-push)` and `--json`'s `noPush: true`.
+   <base> --no-push` — verified live, by 2026-09-10 (`docs/ab/ao.md` § *Retired at nen 0.5 — 2026-09-10*), exit `0`, `not pushed (--no-push)` and `--json`'s `noPush: true`.
 2. **RETIRED at nen `0.13`: the rebase half** (§ 3) is `nen wc catch-up` under `auto` or
    `--strategy rebase`; nothing in ao types a rebase.
 3. **RETIRED at nen `0.13`: the published/unpublished test** (§ 3) is `wc catch-up`'s own, fetched
@@ -346,7 +346,7 @@ and the pair of SHAs is the cheapest possible way to say so.
    `:1:` base stage is still `git show`.
 6. **The in-progress check** (§ 2) — `git rev-parse -q --verify MERGE_HEAD` and `git rebase
    --show-current-patch`, asked of git, never of `.git/` on disk, which a linked worktree's `.git`
-   file hides; `nen wc classify` folds an unresolved merge into `on-branch-dirty` (verified live).
+   file hides; `nen wc classify` folds an unresolved merge into `on-branch-dirty` (verified live, by 2026-09-10 (`docs/ab/ao.md` § 2.2)).
 7. **RETIRED at nen `0.13`: the merge commit itself** (§ 5) is `nen commit write --message-file`,
    gated on `commit format`'s exit code with the two streams kept apart; a rebase finishes by
    re-running `wc catch-up`.

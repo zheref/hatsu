@@ -9,6 +9,9 @@
 # the sound reduced to [A-Za-z0-9_-] with Glass as the fallback (and Glass where the named sound is absent).
 # The sound is an absolute /System/Library/Sounds path, so `afplay` takes it bare: it has no `--` (#516).
 #
+# Stays bash, a recorded BC-11 exemption beside hooks/stop-bell.sh (docs/ROSTER.md HR-384,
+# zheref/hatsu#556): the bell runner, hook and fallback alike, stays shell rather than a TypeScript port.
+#
 #   scripts/bell_notify.sh --title <text> --message <text> [--subtitle <text>] [--sound <name>] [--no-sound]
 #                          [--deadline <seconds>]
 #

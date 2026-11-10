@@ -14,6 +14,11 @@
 # skill is running to ring it. `nen stop --mark` writes the marker; `nen stop
 # clear` consumes it where no hook is installed.
 #
+# STAYS POSIX SH, A RECORDED BC-11 EXEMPTION (docs/ROSTER.md HR-384, zheref/hatsu#556). Its deadline
+# loop and its rung verdicts are what BC-11 gives TypeScript, but the hook runs on an installed host
+# where only nen, git and gh are guaranteed (docs/WORKFLOW.md section 6), so no node is there to run a
+# port. scripts/bell_notify.sh, the in-session fallback, holds the same exemption.
+#
 # ONE MARKER PER GATE (zheref/hatsu#453; nen > 0.26.0, zheref/nen#513). Every
 # `--mark` also writes `<git-common-dir>/.nen/marks/<effort>/<gate>.json`
 # (marker contract v0.3), so seven efforts reaching seven gates leave seven

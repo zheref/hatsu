@@ -194,13 +194,20 @@ try {
   };
   const decoyBin = join(temp, 'decoy', 'osascript');
   mkdirSync(dirname(decoyBin), { recursive: true });
-  symlinkSync(spawnSync('sh', ['-c', 'command -v sleep'], { encoding: 'utf8' }).stdout.trim(), decoyBin); // a copied system binary is refused at launch on macOS
+  // macOS refuses a copied system binary, so the decoy is a symlink to sleep there. A multicall coreutils
+  // (uutils, the ubuntu-26.04 runner's) dispatches on its own name and exits at once as `osascript`, so on Linux
+  // the decoy is a script whose own process carries the name while it waits on sleep.
+  if (process.platform === 'linux') { writeFileSync(decoyBin, '#!/bin/sh\nsleep "$1"\n'); chmodSync(decoyBin, 0o755); }
+  else symlinkSync(spawnSync('sh', ['-c', 'command -v sleep'], { encoding: 'utf8' }).stdout.trim(), decoyBin);
   // 9. One marker, a notifier that hangs or ignores TERM, a one-second deadline.
   for (const mode of ['hang', 'stubborn']) {
     const dir = repo();
     const a = writeMarker(dir, 'HA-IS-#516', 'G4', 'bounded');
     const decoy = Number(spawnSync('sh', ['-c', `"${decoyBin}" 30 >/dev/null 2>&1 & echo $!`], { encoding: 'utf8' }).stdout.trim());
-    assert.ok(spawnSync('pgrep', ['-x', 'osascript'], { encoding: 'utf8' }).stdout.split('\n').includes(String(decoy)), 'the decoy is visible to a match by name');
+    // The decoy is only visible by name once its exec has happened; poll, bounded at 3 s, rather than race it.
+    const seen = (): boolean => spawnSync('pgrep', ['-x', 'osascript'], { encoding: 'utf8' }).stdout.split('\n').includes(String(decoy));
+    for (let i = 0; i < 30 && !seen(); i++) spawnSync('sleep', ['0.1']);
+    assert.ok(seen(), 'the decoy is visible to a match by name');
     const { calls, took } = timed(dir, { STUB_OSASCRIPT: mode, HATSU_BELL_DEADLINE: '1', NEN_STUB_LIST: listing(dir, [{ source: 'gate', path: a, gate: 'G4' }]) });
     assert.ok(took < 3.5, `a ${mode} notifier returns within deadline + grace (${took}s)`);
     gone(pidOf('osascript'), `the ${mode} child`);

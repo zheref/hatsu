@@ -113,7 +113,7 @@ Each cell is quoted in its guide's § 9:
 **A human-only step is handed over, never performed**: no surface documents an agent reloading
 itself. **Until the switch, this session follows the new canon from disk**: a Hatsu skill whose
 injected body is not *after*'s is followed from § 5's path for that name (the rule
-[`docs/using/README.md`](../../../docs/using/README.md) § *Targeting a local checkout* gives an inlined pin, #67). Skill prose only: personas,
+[`docs/using/README.md`](../../../docs/using/README.md) § *Targeting a local checkout* gives an inlined pin, zheref/hatsu#67). Skill prose only: personas,
 hooks and MCP servers stay *before*'s until the switch, said once.
 
 ## 7. Report, then **Next** — every run, always last
@@ -138,7 +138,7 @@ Inside `ren` it closes the turn's line; no bell of its own.
 
 ## Residue
 
-1. **First adoption.** A host whose loaded version predates this skill runs, once, by hand:
+1. **First adoption.** On a host whose loaded version predates this skill, the maintainer runs, once:
    `scripts/hatsu_surface_link.sh --surface <s>` from the checkout, then § 6's switch.
 2. **No nen verb owns a host's installed plugin** — an owned dependency, zheref/nen#298; the two
    scripts do meanwhile, and the read-backs are named raw calls ([PROCESS.md](../../../docs/PROCESS.md)

@@ -127,19 +127,18 @@ report*.
 same order, same letters the surface's own picker will show. **A gate with nothing owed is rendered
 cleared, not omitted.** The page briefs; the picker asks.
 
-**A drawing is optional.** Where the scope has a shape worth seeing — a chore's PR graph, an epic's
-child tree — pass a `nen.report.graph/v0.1` document as `--graph`; otherwise `graphNodes` stays
+**A drawing is optional.** Where the scope has a shape worth seeing (a PR graph, a child tree), pass a `nen.report.graph/v0.1` document as `--graph`; otherwise `graphNodes` stays
 empty and the block does not render.
 
 ### Other callers
 
 [`futon`](../futon/SKILL.md) and [`backlog-loop`](../backlog-loop/SKILL.md) render through this exact
 line, **the register variant, the data document from `--register`**;
-[`black-voice`](../black-voice/SKILL.md) § 6's per-criterion rows are not objects `--register` reads, so it
-keeps the hand-built document (`render --dry-run` names the keys) until nen carries criterion rows, `generatedAtLocal` from `"$hatsu_root/scripts/report_time.sh" --at <generatedAt>`
+[`black-voice`](../black-voice/SKILL.md) § 6's per-criterion rows are not objects `--register` reads (unfiled), so
+it keeps the hand-built document (`render --dry-run` names the keys), `generatedAtLocal` from `"$hatsu_root/scripts/report_time.sh" --at <generatedAt>`
 on every render (`PROCESS.md` § *The report data document*). The **dated final report** is the same template at `--variant
 final`, titled by the effort's headline (§ *Report titles*): one effort, a cleared desk, at
-`<reports.dir>/<generatedDateLocal>-<effort>.html` (ruling 2026-09-19) — the one render kept on disk.
+`<reports.dir>/<generatedDateLocal>-<effort>.html` (ruling 2026-09-19), the one render kept on disk.
 **Its callable entry is [`/rikugan`](../rikugan/SKILL.md)** (ruling 2026-09-30): typed, a futon
 `then rikugan` step, or the closing step of a composite that names it (`en`, `futon`, `backlog-loop`)
 — it composes this section by name and this section stays the render path.
@@ -164,9 +163,13 @@ failing for its own reasons: **relay it in one line, then fall back to `backlog-
 table with the same arguments**, saying so. Inside a repeating loop the same failure **ends the
 loop** — one fallback pass, then stop; it never retries blind.
 
-## Hard limits
+## Residue
 
-Everything in `backlog-state`'s own never-list, plus:
+§ 3's `black-voice` document (unfiled), listed in PROCESS.md.
+
+## Authority and hard limits
+
+Read-only: everything in `backlog-state`'s never-list, plus:
 
 - **Never hand-authors the page.** § 3 is a verb call over a fixed template; only a rendered page is
   checkable.

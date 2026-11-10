@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-05-06",
+  "effortId": "opus-kurapika-ha-516-macos-bell-deadline",
+  "n": 1,
+  "gate": "G5",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#556: BC-11 gives timeout/retry loops to TypeScript, but the Stop hook must run where only nen, git and gh are guaranteed. Is the bell runner an exemption?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Exemption ⭐ (Recommended)",
+      "consequence": "Both bell scripts stay shell, a recorded BC-11 exemption (like HR-177's fixed fallback). A ROSTER HR row is cited from both headers; folded into PR #557 with the WORKFLOW § 6 deadline row."
+    },
+    {
+      "key": "B",
+      "label": "Port to TypeScript",
+      "consequence": "The fallback gets a .mts runner behind the .sh; the hook stays POSIX sh. A ROSTER row records the port, which becomes its own later effort."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-05T11:57:38.870Z"
+}

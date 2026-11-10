@@ -83,7 +83,7 @@ bash scripts/surface_mirror_regenerate.sh --dry-run   # the three generate lines
 bash scripts/surface_mirror_regenerate.sh             # codex, cursor, antigravity
 ```
 
-One plain call (#218): the check's own flags per surface, a refusal exiting with nen's code and
+One plain call (HA#218): the check's own flags per surface, a refusal exiting with nen's code and
 generating nothing after it. `--models` renders the model map (Cursor's `inherit`, Codex's `[agents]` fragment), `--permissions`
 the permission pack, `--hooks` the hook rows, `--rules` the rules file (under the surface's limit), and
 `--manifest` one surface's own plugin manifest. **No marker carries the plugin version** (HA#530).
@@ -94,8 +94,8 @@ Then, in this order:
    pin: [`ten`](../ten/SKILL.md) installs it (row `missing-tool`) and the check re-runs.
 2. For a consumer the request named whose copy is a WHOLE mirror (Antigravity's global plugin, a
    symlink into `surfaces/<s>`): `nen surface mirror check --surface <s> <the wrapper's flags> --installed
-   <that copy>`, a differing copy reported per path. A placed skills-only copy and a
-   first-party install (Claude Code's link, the Codex plugin) are not whole mirrors (#106): `ten` and
+   <that copy>`, a differing copy named per path. A placed skills-only copy and a
+   first-party install (Claude Code's link, Codex's plugin) are not whole mirrors (HA#106): `ten` and
    [`bakuryuha`](../bakuryuha/SKILL.md) refresh them, never this skill.
 
 The regeneration lands in the **same commit** as the change that caused it.

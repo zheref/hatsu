@@ -47,9 +47,9 @@ $limbo [for <path>] [to <tag>] [as <check|sync>]
 nen parse limbo --grammar "for [<path>] to [<tag>] as [<mode:check|sync>]" --line "<the line, minus the prefix>"
 ```
 
-Verified live: every clause is optional, the empty line parses with each `(clause absent)`, and
+Verified live, by 2026-09-29: every clause is optional, the empty line parses each `(clause absent)`, and
 `as verify` is refused naming `check | sync`. `<path>` defaults to the session's checkout; `<tag>` is
-a **repin** (§ 4); with no `as` the run diagnoses, then asks through the picker —
+a **repin** (§ 4); with no `as` the run diagnoses, then asks in the picker —
 ⭐ **Sync** · **Report only** · **Stop** — `as sync` supplies that answer, `as check` never asks and
 never writes. A missing argument or configuration item is asked and set up inline
 (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4).
