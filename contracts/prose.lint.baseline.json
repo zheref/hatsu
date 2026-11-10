@@ -6,138 +6,6 @@
   },
   "findings": [
     {
-      "path": "claude/skills/amaterasu/SKILL.md",
-      "rule": "PL-01",
-      "text": "preconditions satisfied by hand. **Everything outside t",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/amaterasu/SKILL.md",
-      "rule": "PL-01",
-      "text": "**By hand:** § 3a's four conditio",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/bankai-quality/SKILL.md",
-      "rule": "PL-01",
-      "text": "are the absolute values by hand.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/byakugan/SKILL.md",
-      "rule": "PL-01",
-      "text": "coverage configuration by hand.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/great-hiker/SKILL.md",
-      "rule": "PL-01",
-      "text": "elta table is assembled by hand from `--json` output**",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/jusshin/SKILL.md",
-      "rule": "PL-01",
-      "text": "er-*.summary` after it, by hand.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/limbo/SKILL.md",
-      "rule": "PL-01",
-      "text": "erate is this skill, by hand, until nen resolves the",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/limbo/SKILL.md",
-      "rule": "PL-02",
-      "text": "this skill, by hand, until nen resolves the checkout i",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/mugetsu/SKILL.md",
-      "rule": "PL-01",
-      "text": "is the record, written by hand into the report and the",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/mugetsu/SKILL.md",
-      "rule": "PL-01",
-      "text": "pass/fail reading is by hand, off the rows, and the",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/mugetsu/SKILL.md",
-      "rule": "PL-01",
-      "text": "read out of `why` prose by hand.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/mugetsu/SKILL.md",
-      "rule": "PL-01",
-      "text": "e far end. Saying so is by hand, and it is the sentence",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/rasengan/SKILL.md",
-      "rule": "PL-01",
-      "text": "laration's prose remedy by hand, and **say that you ran",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/rasengan/SKILL.md",
-      "rule": "PL-01",
-      "text": "ration's prose remedy by hand, named.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/susanoo/SKILL.md",
-      "rule": "PL-01",
-      "text": "**Size is this skill's, by hand** — nen reports existen",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/susanoo/SKILL.md",
-      "rule": "PL-01",
-      "text": "wer there, and still by hand.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/susanoo/SKILL.md",
-      "rule": "PL-01",
-      "text": "ce; the byte count is by hand and says so.",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/ten/SKILL.md",
-      "rule": "PL-05",
-      "text": "ill directory up to it (#105). A newer checkout in f",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/ten/SKILL.md",
-      "rule": "PL-05",
-      "text": "ds it (using/README.md, #67).",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/ten/SKILL.md",
-      "rule": "PL-05",
-      "text": "line, never an export (#218).",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/ten/SKILL.md",
-      "rule": "PL-05",
-      "text": "intainer's own shell** (#164). Ask it once, after §",
-      "count": 1
-    },
-    {
-      "path": "claude/skills/ten/SKILL.md",
-      "rule": "PL-05",
-      "text": "\" --auto`. Quote skips (#67; README § *Shared rules",
-      "count": 1
-    },
-    {
       "path": "docs/Loop/hatsu-48-49-nen-204/discoveries.md",
       "rule": "PL-05",
       "text": "| Hatsu #48 | Existing scope | Phas",
@@ -1548,12 +1416,6 @@
       "count": 1
     },
     {
-      "path": "docs/PROCESS.md",
-      "rule": "PL-01",
-      "text": "ewer than the launch is by hand, and the transcript is",
-      "count": 1
-    },
-    {
       "path": "docs/ROSTER.md",
       "rule": "PL-01",
       "text": "uled) Phinks is invoked by hand before a release (`QA-2",
@@ -2175,12 +2037,6 @@
       "path": "docs/ROSTER.md",
       "rule": "PL-05",
       "text": "#hr-204) | 2026-10-13 | #149: the dictionary-word ca",
-      "count": 1
-    },
-    {
-      "path": "docs/WORKFLOW.md",
-      "rule": "PL-05",
-      "text": "su#219, <product-repo-C>#242's three PRs). **Overlap",
       "count": 1
     },
     {
@@ -4323,42 +4179,6 @@
       "path": "docs/ab/worktree-isolation.md",
       "rule": "PL-05",
       "text": "ed stop (G5). Whether #188's chain is split, shipp",
-      "count": 1
-    },
-    {
-      "path": "docs/config/canon-values.yml.md",
-      "rule": "PL-01",
-      "text": "erate is `hatsu:limbo`, by hand (`limbo` § *Residue* 6)",
-      "count": 1
-    },
-    {
-      "path": "docs/config/decisions.json.md",
-      "rule": "PL-11",
-      "text": "er in place of prose — `[NEEDS CLARIFICATION: …]`, `[N — not [NEEDS <row-id>: question]",
-      "count": 1
-    },
-    {
-      "path": "docs/config/decisions.json.md",
-      "rule": "PL-11",
-      "text": "DS CLARIFICATION: …]`, `[NEEDS RULING]` or `[UNVERIFIE — not [NEEDS <row-id>: question]",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-11",
-      "text": "| `[NEEDS CLARIFICATION: <questio — not [NEEDS <row-id>: question]",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-11",
-      "text": "| `[NEEDS RULING]` | a value only — not [NEEDS <row-id>: question]",
-      "count": 1
-    },
-    {
-      "path": "docs/config/spec-repo.md",
-      "rule": "PL-11",
-      "text": "stories with priority `[NEEDS RULING]` until typed; * — not [NEEDS <row-id>: question]",
       "count": 1
     },
     {

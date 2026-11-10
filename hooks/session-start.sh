@@ -4,7 +4,7 @@
 # WHAT THIS IS
 # A Claude Code `SessionStart` hook (see hooks/hooks.json) — and, mirrored by
 # `nen surface mirror generate --hooks`, a Codex `SessionStart`, a Cursor
-# `sessionStart` and an Antigravity `PreInvocation` hook. It has three purposes
+# `sessionStart` and an Antigravity `SessionStart` hook. It has three purposes
 # and nothing else: (0) bind the contract-pinned nen on the HOST, (1) remind a
 # Claude Code session that Nen-owned work starts with hatsu:ten, (2) keep a
 # mirrored surface's installed copy fresh. Step 0 runs FIRST, on the source copy

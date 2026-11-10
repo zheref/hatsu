@@ -185,9 +185,10 @@ both are in every report susanoo writes:
   `dist/app.tgz` still reported `"exists": true` — a leftover from the previous green run
   (`docs/ab/susanoo.md` § 2.3). Where it matters, record the mtime and size **before** and after.
 
-**Size is this skill's, by hand** — nen reports existence and nothing else (`docs/ab/susanoo.md`
-§ 4.1). For each declared artifact that exists, `ls -l` / `stat` it and report bytes beside the path,
-naming the read as by-hand. Residue, not a verb.
+**Size is this skill's read, not a verb's** — nen reports existence and nothing else
+(`docs/ab/susanoo.md` § 4.1). For each declared artifact that exists, `ls -l` / `stat` it and report
+bytes beside the path, naming the read as the session's. Residue, owned by
+[zheref/nen#648](https://github.com/zheref/nen/issues/648).
 
 ## 5a. The tag it ANNOUNCES and does not cut
 
@@ -397,11 +398,12 @@ are not one flag apart here.
    **What is still residue is the ARTIFACT side of that question.** The proof binds a *tree* to a
    *build*, not a *package* to a tag: nothing records that `dist/app.tgz` came out of the proved
    tree rather than an earlier one. Freshness (2) and a manifest (4) are still the answer there, and
-   still by hand.
+   still the session's read, owned by [zheref/nen#648](https://github.com/zheref/nen/issues/648).
 4. **A checksum or manifest of what was produced.** Nothing in nen hashes an artifact. Where a
    repository wants one, it is a step of its own `archive` row (the fixture in `docs/ab/susanoo.md`
    declares `dist/app.tgz.sha256` for exactly that reason) — never a hash computed here and reported
-   as though the declaration produced it.
+   as though the declaration produced it. An artifact digest nen reports is owned by
+   [zheref/nen#648](https://github.com/zheref/nen/issues/648).
 5. **A per-run log file.** `log: not captured to a file … A .nen/logs/ transcript is not in this
    release (zheref/nen#91)` — each step's output is relayed as it finishes, so the report is the only
    record. Quote what matters; do not claim a log exists.
@@ -436,7 +438,7 @@ are not one flag apart here.
 - **Never reports a declared artifact as produced because it exists** (§ 5) — existence is not
   freshness, and a leftover from the last run reads identically.
 - **Never claims an artifact's size came from a verb.** nen reports existence; the byte count is
-  by hand and says so.
+  the session's read and says so (zheref/nen#648).
 - **Never hands a failed or partial archive onward as a release unit**, and never lets a green
   archive read as authorization to send it anywhere.
 - **Never cuts a tag, and never pushes one** (§ 5a). It names the tag that is coming; the cut is

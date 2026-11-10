@@ -347,7 +347,9 @@ declarable only where nen READS the output — `build`, `test`, `ui-test`, `lint
 
 **Residue: whether a lane declares one is the repository's business, not this skill's.** Where a lane
 declares no `stall`, a check that hangs still hangs and nothing times it out — watch the step, run
-the declaration's prose remedy by hand, and **say that you ran it by hand** (§ 11). Never background
+the declaration's prose remedy yourself, and **say that you ran it outside a verb** (§ 11). This is
+a boundary rather than a gap ([HR-389](../../../docs/ROSTER.md#hr-389)): the guard is the
+repository's to declare, and nen runs a declared one. Never background
 a check to escape a stall; a check nobody watched is a check nobody ran.
 
 ## 10. What "green" means in the inner loop — and whose the commit gate is
@@ -396,7 +398,7 @@ gate, from the same fact.
   live, exit `0`). A repository that does not ignore `.nen/` will see the file in `git status`.
 - **RETIRED at nen `0.5`: the stall guard** (§ 9) — a declared `stall` block is nen's to run. What
   stays this skill's is watching a lane that declares **none**, and running that declaration's prose
-  remedy by hand, named.
+  remedy, named: a boundary (§ 9, [HR-389](../../../docs/ROSTER.md#hr-389)).
 - **RETIRED at nen `0.5`: validating `nen/workflow.json`.** `nen schema check` carries the row.
   Reading `iteration.checks` is still this skill's (see [`$breath`](../breath/SKILL.md) § 2),
   and a read is not a residue.
