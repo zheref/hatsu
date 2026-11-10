@@ -29,6 +29,8 @@
 #
 # EXIT CODES — the check's, so a caller reads both the same way:
 #   0  all three surfaces regenerated (or, with --dry-run, printed)
+#   1  a mirrored source carries a concrete generated-marker literal (the check's
+#      source_marker_scan, zheref/hatsu#531): refused by file and line, nothing generated
 #   2  wiring: a root that is not a Hatsu checkout, a manifest that is unreadable or carries no
 #      version, a nen with no `surface` verb, an unknown argument
 #   3  no `nen` on PATH (and NEN_BIN names nothing executable)
@@ -66,6 +68,8 @@ regenerate() {
   [ -f "$MANIFEST_FILE" ] && [ -r "$MANIFEST_FILE" ] || die "$MANIFEST_FILE is missing or unreadable; it is the generator's manifest input."
   manifest_ver="$(manifest_version "$MANIFEST_FILE")"
   [ -n "$manifest_ver" ] || die "$MANIFEST_FILE carries no readable version; the surface manifest it renders is never generated unversioned."
+  # A source that would place a concrete marker is refused before it can be generated (#531).
+  source_marker_scan || exit 1
 
   nen="$(nen_bin)"
   if [ "$dry" -eq 0 ]; then
