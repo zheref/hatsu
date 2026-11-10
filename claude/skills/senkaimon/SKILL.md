@@ -17,8 +17,8 @@ and `docs/PROCESS.md` belong to the resolved **Hatsu plugin root** (`ten` prints
 
 Typed only; no composite calls it. **P1** `hatsu:ten senkaimon`. **P2** orients on **core — the local
 checkout of the resolved `<owner/name>`** (`nen wc worktrees --repo <it> --json`), never a scratch
-clone; none on this machine ends the run (`missing-configuration`). `nen wc swap --status` first: an
-active swap is **refused** until `hatsu:amenotejikara return`. **P1b and P3 are declined** (the subjects
+clone; none on this machine ends the run (`missing-configuration`). `nen wc swap --status --repo <core>` first:
+an active swap is **refused** until `hatsu:amenotejikara return`. **P1b and P3 are declined** (the subjects
 are other PRs' heads); **P4** is § 1's parse; **P5**: no merge, `--take`, deploy or push runs.
 `amaterasu` § 4 and `en` § 5 skip their own `## 0.`; this run holds them
 ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4).
@@ -51,7 +51,8 @@ and end. Each row is read with `node '<installed Hatsu root>/scripts/gh_api_read
 | otherwise | eligible at that `head`, its changed paths shown |
 
 **The diff is read from objects, before any checkout** (§ Residue): `git -C <core> fetch origin
-<baseRef> refs/pull/<N>/head`, `git -C <core> rev-parse FETCH_HEAD` equal to `head` (else it moved:
+<baseRef>`, then `git -C <core> fetch origin refs/pull/<N>/head` alone, `git -C <core> rev-parse
+FETCH_HEAD` equal to `head` (else it moved:
 read it again), `git -C <core> merge-base origin/<baseRef> <head>` — the PR's own base, so a stacked
 parent is not counted — then `git -C <core> diff --name-only <that sha> <head>`. **Any of these exiting
 non-zero** makes the row **untested at `<head>`**, the git message quoted, never eligible. **A same-repo
@@ -79,7 +80,7 @@ reads pass on it again with its changed paths shown. A view swap and the declare
    core.hooksPath=/dev/null checkout --detach <head>` — § 2's objects, no tracked hook run — and
    `git -C <wt> rev-parse HEAD` read back equal to `<head>`.
 3. **The previous launch has released core and the target (AC-7)**: its child exited (a `dev` child:
-   the maintainer's word, step 5) and `nen wc swap --status` answers; a child still running is named and
+   the maintainer's word, step 5) and `nen wc swap --status --repo <core>` answers; a child still running is named and
    the next build **waits** — nothing in nen stops it (amaterasu § 5). **A launch that wrote tracked
    files in core** (a lockfile an install rewrote) makes the next swap exit `3`: those paths are the
    tested head's build output, listed; the maintainer discards them in their own shell, or picks
@@ -122,7 +123,7 @@ maintainer's: **Send to merge gate** · **Request revision** · **Defer** · **S
 
 ## 6. Ending — core back, whatever ended it (AC-6)
 
-The queue done, a stop or a failure: `nen wc swap --status` first. No swap: nothing to return, said. A
+The queue done, a stop or a failure: `nen wc swap --status --repo <core>` first. No swap: nothing to return, said. A
 child still holding core: wait as § 4 step 3. Then `nen wc swap --return --repo <core>`: exit `3` is
 § 4 step 3's build output, asked the same way; exit `1` or a failed return shows the pinned
 `refs/nen/wc-swap/parked` ref (amenotejikara § 4) and **no further launch** follows. `--status` read
