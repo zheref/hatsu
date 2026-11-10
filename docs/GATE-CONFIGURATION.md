@@ -350,7 +350,7 @@ which still expects the old shape — and is refused no matter how the new shape
 agree with each other. Land the validator first, accepting the old shape and the new one; only once
 `main` trusts that validator can a follow-up PR flip the live workflow.
 
-**The trusted revision is `main`'s head, not the pull request's base** (observed on the 2026-10-13 stack; the rule is WORKFLOW § *Stacked pull requests* rule 5, cited here): a stacked PR above a frozen-step change reads red until that change merges; the next push after its retarget runs the validator at the new head, a close-and-reopen is the fallback where no push follows, and `gh run rerun` reuses the stale trusted revision. **Drift step (2026-10-17, #289 item 2):** `DRIFT_FROZEN_GUARD` holds the *Surface-mirror drift check* body and the live step is held to it — one landing, since the workflow itself did not change. **Digest step's `--version` echo (#289 item 3, a two-step landing):** step one admits the step's next form — the closing echo made fatal — beside the current one (the constants `NEN_DIGEST_FATAL` and `REGENERATE_NEN_DIGEST_FATAL` carried the next form and were retired at step two; `require_frozen_step` keeps its list branch, tested, for the next landing); step two (HA-PR-#303) flipped the three workflows' echo lines and narrowed the admission back to one form: the frozen digest body ends with the fatal echo and the old echo is refused as a shape change. Step one's self-test built its refused third form from whichever digest form the tree lacked, so a tree already carrying the fatal echo had the old form accepted and `main`'s copy refused HA-PR-#303 by its own self-test; the third form is now built from the fatal form, whichever the tree carries (HA-PR-#304, 0.112.1). The validator also refuses an empty workflow file with a policy line and refuses the PR-root script spellings its self-test names, the original pattern kept whole.
+**The trusted revision is `main`'s head, not the pull request's base** (observed on the 2026-10-13 stack; the rule is WORKFLOW § *Stacked pull requests* rule 5, cited here): a stacked PR above a frozen-step change reads red until that change merges; the next push after its retarget runs the validator at the new head, a close-and-reopen is the fallback where no push follows, and `gh run rerun` reuses the stale trusted revision. **Drift step (2026-10-17, zheref/hatsu#289 item 2):** `DRIFT_FROZEN_GUARD` holds the *Surface-mirror drift check* body and the live step is held to it — one landing, since the workflow itself did not change. **Digest step's `--version` echo (zheref/hatsu#289 item 3, a two-step landing):** step one admits the step's next form — the closing echo made fatal — beside the current one (the constants `NEN_DIGEST_FATAL` and `REGENERATE_NEN_DIGEST_FATAL` carried the next form and were retired at step two; `require_frozen_step` keeps its list branch, tested, for the next landing); step two (HA-PR-#303) flipped the three workflows' echo lines and narrowed the admission back to one form: the frozen digest body ends with the fatal echo and the old echo is refused as a shape change. Step one's self-test built its refused third form from whichever digest form the tree lacked, so a tree already carrying the fatal echo had the old form accepted and `main`'s copy refused HA-PR-#303 by its own self-test; the third form is now built from the fatal form, whichever the tree carries (HA-PR-#304, 0.112.1). The validator also refuses an empty workflow file with a policy line and refuses the PR-root script spellings its self-test names, the original pattern kept whole.
 
 **Step two landed (zheref/hatsu#93 follow-up, Hatsu 0.44.0).** `plugin-bump-check.yml`,
 `surface-mirror-check.yml` and `pr-readiness.yml` now carry the hardened shape: `ready_for_review`
@@ -395,14 +395,14 @@ outgrows the pipe buffer — it fails closed, Publish posting `readiness undeter
 `${explain%%$'\n'*}`; and splitting the verdict (read-only token) from Publish (the only step that
 needs `checks: write`) into two jobs changes `EXPECTED_JOBS` (hanten on step two, Phinks and Feitan).
 
-**2026-10-19, #131 policy stage.** `READINESS_FROZEN_VERDICT` also admits one next frozen form:
+**2026-10-19, zheref/hatsu#131 policy stage.** `READINESS_FROZEN_VERDICT` also admits one next frozen form:
 `node .trusted/scripts/readiness_ci_verdict.mts`. The trusted TypeScript reader pins the event head,
 passes the trusted gates path to `nen pr ready --json`, and takes its title, failing rows and judged
 head from that document. This stage leaves the live workflow and Tenkai template on their old form;
 the next PR changes them after this validator and reader reach the trusted base. The JSON form
 supersedes the first-line SIGPIPE repair above, while the separate-job permission question remains.
 
-**#131 installation stage.** The live workflow and Tenkai template now invoke that exact trusted
+**zheref/hatsu#131 installation stage.** The live workflow and Tenkai template now invoke that exact trusted
 reader. Tenkai places it in a consumer's `scripts/` before rendering the workflow and stages the
 workflow if a Hatsu-style guard has not admitted the JSON step yet. The reader validates Nen's six
 conjuncts, including `unevaluated` rows, and writes the verdict and failing details from JSON.
@@ -481,8 +481,8 @@ item 8); it stays in the three workflows until that lands and the step becomes g
 
 **2026-10-13. The prose-diet guard is a pull request check
 ([zheref/hatsu#135](https://github.com/zheref/hatsu/issues/135)), both steps landed.**
-`scripts/prose_size_check.sh` ran only by hand and in its focused lane, so a file over its ceiling
-reached `main` with #129. `prose-size-check.yml` runs the trusted revision's guard against every pull
+`scripts/prose_size_check.sh` ran only on a manual call and in its focused lane, so a file over its ceiling
+reached `main` with HA-PR-#129. `prose-size-check.yml` runs the trusted revision's guard against every pull
 request's checkout and fails the `prose-size-check` check on any offender, the guard's own `OVER` row
 naming the file, its size and its ceiling. It is a check of its own because `pr-readiness.yml`
 concludes `success` by construction. Its guard step is frozen (`PROSE_FROZEN_GUARD`) and refuses to
@@ -507,13 +507,13 @@ for the guard, the binary and openssl, so the exit mapping, the error lines and 
 runtime), so the pull request that installs it is judged by a validator already holding the body; step
 two added the step to the workflow and narrowed `EXPECTED_STEPS` to it, one shape admitted again. A
 canon-contract failure reads as a red `surface-mirror-check`, and a run red at the drift step never
-reaches it (a check of its own would be the #135 route).
+reaches it (a check of its own would be the zheref/hatsu#135 route).
 
 **2026-10-20. The redaction-guard fixture runs in CI
 ([zheref/hatsu#337](https://github.com/zheref/hatsu/issues/337)), both steps landed.**
 `scripts/private_name_check_fixture.sh`, the `redaction-guard` lane's hermetic fixture, ran only when a
 session ran that lane. It now runs as a `Redaction guard fixture` step of `surface-mirror-check.yml`,
-right before the finish step, landed the #223 way under the frozen-step rule. Step one taught the
+right before the finish step, landed the zheref/hatsu#223 way under the frozen-step rule. Step one taught the
 validator the step and admitted both shapes, with and without it (`ALLOWED_STEP_SHAPES`,
 `REDACTION_FIXTURE_STEP`), and froze its one form (`REDACTION_FIXTURE_FROZEN`: `set -euo pipefail`,
 then the trusted checkout's fixture; no env, no token, no `nen shu test --repo .`, no swallowed red;
@@ -523,14 +523,14 @@ reads no secret and no private list, so the step proves the base branch's guard 
 request into main) on the runner's Linux toolchain; it first runs live on the first pull request opened
 after it reaches that base. A pull request that breaks the guard is judged by the base's copy, so its
 red lands on the pull requests after it merges — the fix included, which is red by the same copy until
-the maintainer merges it past that red (the #230 trap; a dated `checks.excluded` entry is the other
+the maintainer merges it past that red (the zheref/hatsu#230 trap; a dated `checks.excluded` entry is the other
 route, GATE-CONFIGURATION § 3); the `redaction-guard` lane, run locally before the push, stays the
 check on the change itself. A run red at an earlier step never reaches the fixture step; the local lane
-is the reading then. The job skips a fork pull request (the same-repository guard) and a draft: #337's
+is the reading then. The job skips a fork pull request (the same-repository guard) and a draft: zheref/hatsu#337's
 "green" there is a skip, nothing runs.
 The tree check (`redaction-tree`) needs the live list and stays on the maintainer's machine.
 
-**The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
+**The new-workflow rule.** A new pull-request workflow lands in two pull requests, the HA-PR-#80 order. The
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
 stages its file at `templates/<name>`, where the self-test judges it as if installed; the second
 installs it under `.github/workflows/` and moves it to `PORTABLE_HOSTED_WORKFLOWS`, which makes its

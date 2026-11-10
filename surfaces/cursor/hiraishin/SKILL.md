@@ -99,7 +99,7 @@ In the session's scratch directory, **shown before any write**:
 
 **Handling** is `bankai-rule`'s (HA#355), **citing its entry** in ports.md § *Mirror versus map*
 (`map: gesture`; a `map` cites the handbook rule on both sides, the pair file in `--always-load` until
-nen resolves pairs); a concept no entry names is `unclassifiable`, asked in § 6. **Ruling**: a ports id,
+nen resolves pairs, zheref/nen#457); a concept no entry names is `unclassifiable`, asked in § 6. **Ruling**: a ports id,
 `<pair> PT-<n> (branch <ref>, unmerged)`, a `## Platform decisions` row cited (ports.md), or
 `unmapped`. Below: the UZF-26 evidence the target PR owes.
 
@@ -156,8 +156,8 @@ Recorded, dated: `docs/ab/hiraishin.md`.
 ## Residue
 
 The concept cut, the mapping and the prerequisite read are judgement; the file list is `gh api`. **Owed
-to nen**: a file-fed title (#444), a dangling clause refused (#366), `families[]` and the `spec` role
-(#453), `watch until --until merged` (#454), pair resolution (`bankai-rule`'s, HA#355). **PR-body
+to nen**: a file-fed title (NN#444), a dangling clause refused (NN#366), `families[]` and the `spec` role
+(NN#453), `watch until --until merged` (NN#454), pair resolution (`bankai-rule`'s, HA#355). **PR-body
 evidence comes from `scripts/fixtures/port-family/`**, never a private product's objects.
 
 ## Authority
