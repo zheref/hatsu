@@ -66,17 +66,24 @@ function call(repo: string, argv: string[]): { status: number; out: string; stdo
 }
 function must(repo: string, argv: string[]): string {
   const { status, out } = call(repo, argv);
-  // Through an excerpt, because this message becomes a row's `detail`: wider than a parse refusal's,
-  // so a real nen refusal stays readable, and still path-free.
-  if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${excerpt(out, 400)}`);
+  if (status !== 0) throw failure(argv, status, out);
   return out;
 }
 // What a refusal here is allowed to quote: ONE bounded excerpt with absolute paths elided. A row's
 // detail is printed by this lane and transcribed into public prose, so it is held to the treatment
 // `scripts/ledger_findings_prepare.mts` gives the findings copy it posts (SEC-12).
+function elide(text: string): string {
+  return text.replace(/\/(?:Users|home|private|var|tmp)\/[^\s"',}\]]*/g, '<path>');
+}
 function excerpt(printed: string, limit = 160): string {
-  const flat = printed.replace(/\s+/g, ' ').trim().replace(/\/(?:Users|home|private|var|tmp)\/[^\s"',}\]]*/g, '<path>');
+  const flat = elide(printed.replace(/\s+/g, ' ').trim());
   return JSON.stringify(flat.length > limit ? `${flat.slice(0, limit)}...` : flat);
+}
+// A failing call's message, for both callers below. The ARGV echo carries absolute paths as surely as
+// the output does — the throwaway repository is named in the arguments — so the elision covers the
+// whole message and not only the quoted part.
+function failure(argv: string[], status: number, out: string): Error {
+  return new Error(`nen ${elide(argv.join(' '))} exited ${status}: ${excerpt(out, 400)}`);
 }
 // `nen run start|park --json` answers with a CONTRACT — `outcome` and `path` as fields — so this lane
 // reads those and never the prose form. The prose carries a second line stating the permissions it
@@ -95,7 +102,7 @@ function runAnswer(printed: string, verb: string): RunAnswer {
 }
 function mustJson(repo: string, argv: string[], verb: string): RunAnswer {
   const { status, out, stdout } = call(repo, argv);
-  if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${out.trim()}`);
+  if (status !== 0) throw failure(argv, status, out);
   return runAnswer(stdout, verb);
 }
 // A temp root this process cannot write is the HOST's state, not a diverged case, so it leaves by the
@@ -245,6 +252,25 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
       : 're-start existing, re-park unchanged, manifest bytes unchanged';
   } catch (error) { ok = false; detail = (error as Error).message; }
   results.push({ composite: 'futon (and kazaana)', case: 'killed after a park, re-invoked', verdict: ok ? 'converged' : 'diverged', detail });
+  rmSync(repo, { recursive: true, force: true });
+}
+
+// A FAILING nen call's text reaches a row's `detail` too, and both call sites owe it the same excerpt
+// — a duty one of them missed once, caught in review (zheref/hatsu#576). Live, because what a refusal
+// prints is the dependency's to decide: `run park` on an unstarted id quotes the manifest's absolute
+// path, so a raw interpolation would put a host path in the row.
+{
+  const repo = freshRepo();
+  let message = '';
+  try { mustJson(repo, ['run', 'park', '--id', 'not-a-run-id', '--issue', 'zheref/hatsu#444', '--row', 'g5-harness-denied', '--repo', repo, '--json'], 'nen run park'); }
+  catch (error) { message = (error as Error).message; }
+  const held = message !== '' && !/\/(?:Users|home|private|var|tmp)\//.test(message) && message.includes('<path>');
+  results.push({
+    composite: 'any',
+    case: 'a failing nen call quoted into a row',
+    verdict: held ? 'converged' : 'diverged',
+    detail: held ? 'excerpted: the host path is elided before it reaches the row' : message || 'the call did not fail, so nothing was quoted',
+  });
   rmSync(repo, { recursive: true, force: true });
 }
 
