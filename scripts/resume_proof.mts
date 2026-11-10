@@ -18,14 +18,19 @@
 //   * a phase that ended non-zero is refused by name on resume, never begun a second time (one entry).
 // The futon run manifest (futon and kazaana, which composes it) is proved the same way: a re-`start`
 // with the same idle answers is `existing`, a re-`park` is `unchanged`, and the manifest's bytes do not
-// move. Instants are the only thing two runs cannot share, so they are the only thing elided.
+// move. Instants are the only thing two runs cannot share, so they are the only thing elided. That case
+// reads the verb's `--json` ANSWER rather than its prose — `outcome` and `path` as fields — and how it
+// reads it is proved too, on a payload: every other key is ignored, and an answer missing a field is
+// refused by name with a bounded, path-free excerpt instead of read as a path that is then missing
+// (zheref/hatsu#574).
 //
 // WHAT IT DOES NOT PROVE. The publishing steps (a PR, a comment, a label) need GitHub: they are proved
 // live in the docs/ab sections against a real pull request (`nen pr open` → `existing`, `nen pr ledger
 // post` → `unchanged`). A composite that writes no ledger of its own (getsuga, kamui, hiraishin) has
 // nothing here to resume from; its section records that as the finding it is.
 //
-// exit 0  every case converged · exit 1  a case diverged, each named · exit 2  wiring (no nen, bad flag)
+// exit 0  every case converged · exit 1  a case diverged, each named · exit 2  wiring (no nen, a bad
+// flag, no writable temp root)
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -52,18 +57,66 @@ const COMPOSITES: Record<string, { source: string; phases: string[] }> = {
   build: { source: 'claude/skills/build/SKILL.md § 4', phases: ['author', 'publish', 'pr', 'readiness'] },
 };
 
-function call(repo: string, argv: string[]): { status: number; out: string } {
+function call(repo: string, argv: string[]): { status: number; out: string; stdout: string } {
   const result = spawnSync(nen, argv, { encoding: 'utf8' }); // --repo names the repository; cwd stays the caller's
   if (result.error) { console.error(`resume-proof: could not run '${nen}': ${result.error.message}`); process.exit(2); }
-  return { status: result.status ?? 1, out: `${result.stdout}${result.stderr}` };
+  // `out` is both streams, for a refusal's text; `stdout` is kept apart for the rows that parse a
+  // --json payload, which a warning on stderr would otherwise make unparseable.
+  return { status: result.status ?? 1, out: `${result.stdout}${result.stderr}`, stdout: result.stdout };
 }
 function must(repo: string, argv: string[]): string {
   const { status, out } = call(repo, argv);
-  if (status !== 0) throw new Error(`nen ${argv.join(' ')} exited ${status}: ${out.trim()}`);
+  if (status !== 0) throw failure(argv, status, out);
   return out;
 }
+// What a refusal here is allowed to quote: ONE bounded excerpt with absolute paths elided. A row's
+// detail is printed by this lane and transcribed into public prose, so it is held to the treatment
+// `scripts/ledger_findings_prepare.mts` gives the findings copy it posts (SEC-12).
+function elide(text: string): string {
+  return text.replace(/\/(?:Users|home|private|var|tmp)\/[^\s"',}\]]*/g, '<path>');
+}
+function excerpt(printed: string, limit = 160): string {
+  const flat = elide(printed.replace(/\s+/g, ' ').trim());
+  return JSON.stringify(flat.length > limit ? `${flat.slice(0, limit)}...` : flat);
+}
+// A failing call's message, for both callers below. The ARGV echo carries absolute paths as surely as
+// the output does — the throwaway repository is named in the arguments — so the elision covers the
+// whole message and not only the quoted part.
+function failure(argv: string[], status: number, out: string): Error {
+  return new Error(`nen ${elide(argv.join(' '))} exited ${status}: ${excerpt(out, 400)}`);
+}
+// `nen run start|park --json` answers with a CONTRACT — `outcome` and `path` as fields — so this lane
+// reads those and never the prose form. The prose carries a second line stating the permissions it
+// wrote with, on a write and not on a no-op, and reading it as one string put that line inside the
+// manifest's location: the row then reported ENOENT against text it had assembled itself, as a
+// convergence divergence (zheref/hatsu#574). A payload missing either field is REFUSED by name, so a
+// later change to the contract reads as a refusal naming the field rather than as a missing file.
+type RunAnswer = { outcome: string; path: string };
+function runAnswer(printed: string, verb: string): RunAnswer {
+  let parsed: unknown;
+  try { parsed = JSON.parse(printed); } catch { throw new Error(`${verb} --json did not print JSON: ${excerpt(printed)}`); }
+  const answer = (parsed ?? {}) as Partial<RunAnswer>;
+  if (typeof answer.outcome !== 'string' || !answer.outcome) throw new Error(`${verb} --json printed no 'outcome': ${excerpt(printed)}`);
+  if (typeof answer.path !== 'string' || !answer.path) throw new Error(`${verb} --json printed no 'path': ${excerpt(printed)}`);
+  return { outcome: answer.outcome, path: answer.path };
+}
+function mustJson(repo: string, argv: string[], verb: string): RunAnswer {
+  const { status, out, stdout } = call(repo, argv);
+  if (status !== 0) throw failure(argv, status, out);
+  return runAnswer(stdout, verb);
+}
+// A temp root this process cannot write is the HOST's state, not a diverged case, so it leaves by the
+// wiring exit this file's header declares rather than as an uncaught throw at exit 1 — which is the code
+// reserved for "a case diverged", and would read as a resume regression with no case named.
+function tempRoot(): string {
+  try { return mkdtempSync(join(tmpdir(), 'resume-proof-')); }
+  catch (error) {
+    console.error(`resume-proof: could not create a temp repository under ${tmpdir()}: ${(error as Error).message}`);
+    process.exit(2);
+  }
+}
 function freshRepo(): string {
-  const repo = mkdtempSync(join(tmpdir(), 'resume-proof-'));
+  const repo = tempRoot();
   const init = spawnSync('git', ['init', '-q', repo], { encoding: 'utf8' });
   if (init.status !== 0) { console.error('resume-proof: git init failed'); process.exit(2); }
   return repo;
@@ -175,21 +228,81 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
 {
   const repo = freshRepo();
   const id = '0123456789abcdef0123456789abcdef';
-  const start = ['run', 'start', '--id', id, '--target', 'zheref/hatsu', '--repo', repo, '--idle-answers', '{"host-nen-link":"default"}'];
-  const park = ['run', 'park', '--id', id, '--issue', 'zheref/hatsu#444', '--row', 'g5-harness-denied', '--repo', repo];
+  const start = ['run', 'start', '--id', id, '--target', 'zheref/hatsu', '--repo', repo, '--idle-answers', '{"host-nen-link":"default"}', '--json'];
+  const park = ['run', 'park', '--id', id, '--issue', 'zheref/hatsu#444', '--row', 'g5-harness-denied', '--repo', repo, '--json'];
   let ok = true; let detail = '';
   try {
-    const started = must(repo, start); must(repo, park);
-    // nen 0.30 adds a `mode: …` line after a fresh start's own line; the path is the first line's.
-    const path = started.trim().split('\n')[0].split(' -- ').pop() as string;
+    const started = mustJson(repo, start, 'nen run start'); mustJson(repo, park, 'nen run park');
+    const path = started.path;
     const before = readFileSync(path, 'utf8');
     // ← killed after the park; the same line again.
-    const again = must(repo, start); const repark = must(repo, park);
-    ok = again.startsWith('existing') && repark.startsWith('unchanged') && readFileSync(path, 'utf8') === before;
-    detail = ok ? 're-start existing, re-park unchanged, manifest bytes unchanged' : `${again.trim()} / ${repark.trim()}`;
+    const again = mustJson(repo, start, 'nen run start');
+    const repark = mustJson(repo, park, 'nen run park');
+    // Named one by one, so a divergence says WHICH of the three did not hold rather than printing two
+    // outcomes that both read as correct.
+    const checks: Array<[string, boolean]> = [
+      ['re-start answered existing', again.outcome === 'existing'],
+      ['re-park answered unchanged', repark.outcome === 'unchanged'],
+      ['manifest bytes unchanged', readFileSync(path, 'utf8') === before],
+    ];
+    const failed = checks.find((check) => !check[1]);
+    ok = failed === undefined;
+    detail = failed
+      ? `${failed[0]} is FALSE (re-start ${again.outcome}, re-park ${repark.outcome})`
+      : 're-start existing, re-park unchanged, manifest bytes unchanged';
   } catch (error) { ok = false; detail = (error as Error).message; }
   results.push({ composite: 'futon (and kazaana)', case: 'killed after a park, re-invoked', verdict: ok ? 'converged' : 'diverged', detail });
   rmSync(repo, { recursive: true, force: true });
+}
+
+// A FAILING nen call's text reaches a row's `detail` too, and both call sites owe it the same excerpt
+// — a duty one of them missed once, caught in review (zheref/hatsu#576). Live, because what a refusal
+// prints is the dependency's to decide: `run park` on an unstarted id quotes the manifest's absolute
+// path, so a raw interpolation would put a host path in the row.
+{
+  const repo = freshRepo();
+  let message = '';
+  try { mustJson(repo, ['run', 'park', '--id', 'not-a-run-id', '--issue', 'zheref/hatsu#444', '--row', 'g5-harness-denied', '--repo', repo, '--json'], 'nen run park'); }
+  catch (error) { message = (error as Error).message; }
+  const held = message !== '' && !/\/(?:Users|home|private|var|tmp)\//.test(message) && message.includes('<path>');
+  results.push({
+    composite: 'any',
+    case: 'a failing nen call quoted into a row',
+    verdict: held ? 'converged' : 'diverged',
+    detail: held ? 'excerpted: the host path is elided before it reaches the row' : message || 'the call did not fail, so nothing was quoted',
+  });
+  rmSync(repo, { recursive: true, force: true });
+}
+
+// How the row above reads that answer. Proved on a payload rather than on a live run, because the
+// shapes that break the read are the ones a healthy nen never prints (zheref/hatsu#574).
+{
+  const manifest = '/tmp/resume-proof-x/.git/.nen/runs/0123456789abcdef0123456789abcdef.json';
+  const payload = JSON.stringify({ outcome: 'started', path: manifest, reason: null, manifest: { contract: 'nen.run/v0.1' }, mode: { verdict: 'set', file: '0600', directory: '0700' } }, null, 2);
+  let read: RunAnswer | null = null; let refusal = '';
+  try { read = runAnswer(payload, 'nen run start'); } catch (error) { refusal = (error as Error).message; }
+  const got = read !== null && read.path === manifest && read.outcome === 'started';
+  results.push({
+    composite: 'any',
+    case: 'an answer carrying a mode block',
+    verdict: got ? 'converged' : 'diverged',
+    detail: got ? 'outcome and path read as fields; every other key ignored' : refusal || `read ${JSON.stringify(read)}`,
+  });
+}
+{
+  // A refusal names the missing field, and its excerpt is bounded and carries no absolute path: a
+  // row's detail is printed by this lane and transcribed into public prose (SEC-12).
+  const payload = JSON.stringify({ outcome: 'started', reason: `could not write under /Users/someone/${'x'.repeat(400)}` });
+  let refusal = '';
+  try { runAnswer(payload, 'nen run start'); } catch (error) { refusal = (error as Error).message; }
+  const named = refusal.includes("printed no 'path'");
+  const safe = refusal.length <= 240 && !refusal.includes('/Users/') && refusal.includes('<path>');
+  results.push({
+    composite: 'any',
+    case: 'an answer missing its path field',
+    verdict: named && safe ? 'converged' : 'diverged',
+    detail: named && safe ? "refused naming 'path', the excerpt bounded and path-free" : refusal || 'returned a path instead of refusing',
+  });
 }
 
 const diverged = results.filter((r) => r.verdict === 'diverged');
