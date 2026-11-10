@@ -604,6 +604,8 @@
       "port-drift": "hold",
       "intake-challenger": "hold",
       "port-siblings": "hold",
+      "review-queue-authorize": "hold",
+      "review-verdict": "hold",
       "wrap-up": "refuse",
       "cleanup-plan": "refuse",
       "publish-offer": "refuse",

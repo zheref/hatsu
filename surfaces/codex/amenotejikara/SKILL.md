@@ -111,12 +111,19 @@ never swap core at once.
 
 - **[`amaterasu`](../amaterasu/SKILL.md)** launches from core, so after a swap it builds the swapped-in
   tree with no special case; name the swapped-in branch in its report line.
+- **[`senkaimon`](../senkaimon/SKILL.md)** runs a view swap per queued PR head and one `return` at its end
+  under its § 3 answer, which stands as this skill's explicit call for that run only; never `--take`.
 - **Parallel sessions:** a view swap never touches the worktree, so the effort there keeps running.
   A `--take` detaches it — **say so before taking**, because that session's next commit would land on
   no branch until `return`.
 - **Core is not an effort's checkout while swapped:** return before running
   [`breath`](../breath/SKILL.md), [`aka`](../aka/SKILL.md) or any Ren turn **in core**.
 - **Not a gate event.** No stop, no bell of its own; inside a `ren` turn it is reported in the turn.
+
+## Residue
+
+Nothing outside a verb: every step is `nen wc swap` or `nen wc worktrees`. What stays judgment is § 5's — which
+session a `--take` detaches, said before taking.
 
 ## Authority and hard limits
 

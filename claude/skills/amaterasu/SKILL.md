@@ -91,7 +91,9 @@ declaration/tree may differ from this effort's: name that limit beside the exact
 report/bell without asking for approval. A plan is not a build or launch result.
 
 Only a maintainer's explicit `hatsu:amaterasu` call authorizes the core launch; if core needs the
-effort's tree, `hatsu:amenotejikara` is a separate explicit call. An original-prompt core-authoring
+effort's tree, `hatsu:amenotejikara` is a separate explicit call. The one other such call is
+[`senkaimon`](../senkaimon/SKILL.md) § 3's answer: both, for the PRs its queue showed, that run
+only. An original-prompt core-authoring
 waiver alone does not authorize either action. After either call, authoring, parity and delivery
 remain in the bound effort checkout under WORKFLOW § *Where worktrees live*.
 
