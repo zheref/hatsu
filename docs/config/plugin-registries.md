@@ -57,7 +57,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/classify.taxonomy.json`
 
-**Purpose.** The two classification axes `hatsu:classify` applies: `lang/<key>` (five keys) and `job/<key>` (thirty-nine keys), each key carrying the source document's phases per domain, and the rule that derives the five domains at run time. nen hard-codes none of the names: the file is `--taxonomy` to the whole `nen classify` family. Full key lists are in [`labels.json.md`](labels.json.md).
+**Purpose.** The two classification axes `hatsu:classify` applies: `lang/<key>` (five keys) and `job/<key>` (thirty-nine keys), each key carrying the source document's phases per domain, and the rule that derives the five domains at run time; plus `families`, install-only label families `nen classify install` declares and nothing classifies on. nen hard-codes none of the names: the file is `--taxonomy` to the whole `nen classify` family. Full key lists are in [`labels.json.md`](labels.json.md).
 
 ### Keys
 
@@ -68,6 +68,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `source` | object | `document`, `rulings`, `readers[]` | where the vocabulary came from and who reads it | a reader |
 | `axes.lang` | object | `prefix: lang/`, `color`, `describe`, `keys[] {key, code, title, description}`, `companions[]`, `companionRule` | the language axis; `code: false` marks `prose`; companions are never labelled | `nen classify *`, `nen direct resolve` (counts only code languages) |
 | `axes.job` | object | `prefix: job/`, `color`, `describe`, `keys[] {key, title, description, companion?, phases per domain}` | the job axis; the first listed phase is the one `hatsu:direct` routes on | `nen classify *`, `nen direct resolve` |
+| `families.model` | object | `prefix: model/`, `color: 0e8a16`, `keys[] {key, title, description}` (`claude`, `gpt`, `gemini`, `grok`, `composer`) | `hatsu:direct`'s verdict labels, install-only: declared beside the axes, never classified on (zheref/hatsu#538) | `nen classify labels\|install\|status` (from Nen v0.30.0) |
 | `domains` | object | `keys[]`, `tablePrefix`, `firstMatchWins`, `inputs`, `rule[]`, `fallback` | the derivation of `feature`, `maintenance`, `parity`, `aigov`, `library` from repo kind and role, the issue's labels and jobs; never a label | `nen direct resolve`; `hatsu:direct` § 3 |
 | `classification` | object | `perAxisMinimum`, `gradedPer`, `undecidable`, `confidence`, `planRow`, `untrusted`, `signals` | the judgement discipline: high and medium applied, low listed, issue text treated as untrusted data | `hatsu:classify` § 3 |
 
@@ -75,7 +76,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **Rendered where.** Into a consumer's `nen/labels.json` by `nen classify install --write` (the declaration), then onto GitHub by `--sync`; into [`docs/DIRECT-MATRIX.md`](../DIRECT-MATRIX.md) by `scripts/direct_matrix_doc.sh`.
 
-**May a consumer override it?** No. A consumer's `nen/labels.json` may carry any other label; a label wearing an axis prefix with a key the taxonomy lacks is `foreign`, listed and never touched. A third axis is refused by nen's contract (exactly `lang` and `job`).
+**May a consumer override it?** No. A consumer's `nen/labels.json` may carry any other label; a label wearing an axis prefix with a key the taxonomy lacks is `foreign`, listed and never touched. A third axis is refused by nen's contract (exactly `lang` and `job`); a label family that must be installed but never classified on goes in `families` instead.
 
 ## `contracts/direct.registry.json`
 

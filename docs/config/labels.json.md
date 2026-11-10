@@ -1,6 +1,6 @@
 # `nen/labels.json` — the label vocabulary every filing and classification is checked against
 
-> **Lives in** the consumer repository · **Written by** `nen classify install --write` for the `lang/` and `job/` families, the maintainer by hand for every other label (the first Hatsu declaration was hand-written, byte-equal to what the verb writes); pushed to GitHub by `nen labels sync` and `nen classify install --sync` · **Validated by** the `nen/labels.json` row of `nen schema check --repo .` (the description length guard runs at schema load) · **Authority** [`contracts/classify.taxonomy.json`](../../contracts/classify.taxonomy.json) for the two classification families; this file for everything else
+> **Lives in** the consumer repository · **Written by** `nen classify install --write` for the `lang/` and `job/` axes and the install-only `model/` family, the maintainer by hand for every other label (the first Hatsu declaration was hand-written, byte-equal to what the verb writes); pushed to GitHub by `nen labels sync` and `nen classify install --sync` · **Validated by** the `nen/labels.json` row of `nen schema check --repo .` (the description length guard runs at schema load) · **Authority** [`contracts/classify.taxonomy.json`](../../contracts/classify.taxonomy.json) for the two classification axes and the `families` it declares; this file for everything else
 
 ## What it decides
 
@@ -96,7 +96,7 @@ The two axes of [`contracts/classify.taxonomy.json`](../../contracts/classify.ta
 
 ### The verdict family: `model/<line>`
 
-`hatsu:direct`'s opt-in verdict label (colour `0e8a16`), one per model line of [`contracts/direct.registry.json`](../../contracts/direct.registry.json) → `publish.label`. The value is the primary pick's line only, never a tier, version, surface or effort. Applied through `nen label apply`, never `nen classify` (whose contract carries exactly `lang` and `job`), and only where `nen/workflow.json` → `direct.publish` is `label` or `label+comment`.
+`hatsu:direct`'s opt-in verdict label (colour `0e8a16`), one per model line of [`contracts/direct.registry.json`](../../contracts/direct.registry.json) → `publish.label`. The value is the primary pick's line only, never a tier, version, surface or effort. Declared by `nen classify install --write` from the taxonomy's install-only `families.model` block (zheref/hatsu#538, Nen v0.30.0); applied through `nen label apply`, never `nen classify apply` (whose contract classifies on exactly `lang` and `job`), and only where `nen/workflow.json` → `direct.publish` is `label` or `label+comment`.
 
 | Key | Meaning |
 |---|---|
@@ -112,8 +112,8 @@ The two axes of [`contracts/classify.taxonomy.json`](../../contracts/classify.ta
 |---|---|---|
 | 1 | `nen classify install --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --repo <checkout>` | report only: present, `drift`, absent, `foreign`; exit `1` while anything is absent or stale |
 | 2 | the same with `--write` | rewrites this file so every taxonomy label is present; uncommitted, it lands through the consumer's own declaration PR |
-| 3 | `nen classify install … --sync --target <owner/name>` | creates or updates the taxonomy's labels on GitHub, and only those; refused at exit `1` while step 2 has not landed |
-| 4 | `nen labels sync --target <owner/name> --repo <checkout> [--dry-run]` | create-or-update every label here, including the `model/` family and the repository's own; one rejected description never aborts the run |
+| 3 | `nen classify install … --sync --target <owner/name>` | creates or updates the taxonomy's labels on GitHub, the `model/` family included, and only those; refused at exit `1` while step 2 has not landed |
+| 4 | `nen labels sync --target <owner/name> --repo <checkout> [--dry-run]` | create-or-update every label here, the repository's own included; one rejected description never aborts the run |
 | any | `nen labels rename --target <o/n> --map from=to` | renames in place, preserving every issue association |
 
 `--write` and `--sync` together are a usage error. A GitHub sync before the declaration lands is what `hatsu:classify` § *Hard limits* forbids.
