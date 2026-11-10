@@ -9,6 +9,8 @@ const root = mkdtempSync(join(tmpdir(), 'hatsu-gh-api-read-'));
 const gh = join(root, 'gh');
 const log = join(root, 'argv');
 const entry = join(import.meta.dirname, 'gh_api_read.mts');
+// A literal copy, not an import: importing the entrypoint would run its CLI. A drifted projection fails here.
+const PR_HEAD_PROJECTION = '{number,state,draft,title,head:.head.sha,headRef:.head.ref,headRepo:.head.repo.full_name,baseRef:.base.ref,baseRepo:.base.repo.full_name}';
 writeFileSync(gh, '#!/bin/sh\nprintf "%s\\n" "$@" > "$HATSU_GH_CAPTURE"\n');
 chmodSync(gh, 0o755);
 
@@ -46,7 +48,8 @@ try {
   }
   const head = run(['pr-head', 'zheref/hatsu', '577'], true);
   if (head.slice(0, 4).join(' ') !== 'api --method GET repos/zheref/hatsu/pulls/577' || head[4] !== '--jq' ||
-      !/headRepo:\.head\.repo\.full_name/.test(head[5] ?? '') || !/baseRepo:\.base\.repo\.full_name/.test(head[5] ?? '')) {
+      head[5] !== PR_HEAD_PROJECTION || head.length !== 6 || !/head:\.head\.sha/.test(PR_HEAD_PROJECTION) ||
+      !/headRepo:\.head\.repo\.full_name/.test(PR_HEAD_PROJECTION) || !/baseRepo:\.base\.repo\.full_name/.test(PR_HEAD_PROJECTION)) {
     throw new Error('PR head read is not a fixed GET projecting head SHA and both repositories');
   }
   const workflow = run(['workflow-content', 'zheref/hatsu', 'main'], true);

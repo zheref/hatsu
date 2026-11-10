@@ -17,11 +17,13 @@ and `docs/PROCESS.md` belong to the resolved **Hatsu plugin root** (`ten` prints
 
 ## 0. Standalone entry
 
-Typed only; no composite calls it. **P1** `$ten senkaimon`; **P2** orient on the consumer's core
-(`nen wc worktrees --repo <checkout> --json`), `nen wc swap --status` first — an active swap is named
-and **refused** until `$amenotejikara return`. **P1b and P3 are declined** (the subjects are other
-PRs' heads, not a delta). The phases it calls — `amaterasu` § 4, `en` § 5 — skip their own `## 0.`;
-this run holds them ([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4).
+Typed only; no composite calls it. **P1** `$ten senkaimon`. **P2** orients on **core — the local
+checkout of the resolved `<owner/name>`** (`nen wc worktrees --repo <it> --json`), never a scratch
+clone; none on this machine ends the run (`missing-configuration`). `nen wc swap --status` first: an
+active swap is **refused** until `$amenotejikara return`. **P1b and P3 are declined** (the subjects
+are other PRs' heads); **P4** is § 1's parse; **P5**: no merge, `--take`, deploy or push runs.
+`amaterasu` § 4 and `en` § 5 skip their own `## 0.`; this run holds them
+([`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4).
 
 ## 1. Invocation
 
@@ -32,55 +34,71 @@ nen repo resolve <token> --repo <checkout>
 ```
 
 `<repo>` resolves as [`senkei`](../senkei/SKILL.md) § 1's does, never guessed; `--target` names a key of
-the consumer's `project.launch` ([`amaterasu`](../amaterasu/SKILL.md) § 1). Missing either: row
-`missing-argument`.
+the consumer's `project.launch` ([`amaterasu`](../amaterasu/SKILL.md) § 1). A missing or unresolved
+`<repo>`, a `--target` naming no key, or a bare trailing `--target` (which nen parses as absent) asks
+through row `missing-argument`; with no `--target`, § 3 picks.
 
 ## 2. The queue — shown before anything moves (AC-1)
 
 `"$hatsu_root/scripts/gh_token_env.sh" nen repo inventory --target <owner/name> …` (senkei § 2's flags)
 gives `openPrs`; the queue is **ordered by PR number, fixed for the run**. **None: say "No open PRs."**
-and end. Each row is read with `node "$hatsu_root/scripts/gh_api_read.mts" pr-head <owner/name> <N>`:
+and end. Each row is read with `node '<installed Hatsu root>/scripts/gh_api_read.mts' pr-head
+<owner/name> <N>` (the absolute root pasted literally, so the pack's grant matches):
 
 | Read | The row |
 |---|---|
 | `headRepo` ≠ `baseRepo`, or `null` | **ineligible — fork head**: no trust policy here permits it |
-| the diff from the merge base touches `nen/contract.json` or `nen/workflow.json` | **ineligible — changes the launch declaration**; [`amaterasu`](../amaterasu/SKILL.md) § 3a is its route |
-| otherwise | eligible at that `head` |
+| the diff touches `nen/contract.json` or `nen/workflow.json` | **ineligible — changes the launch declaration**; [`amaterasu`](../amaterasu/SKILL.md) § 3a is its route |
+| `draft` | eligible, marked draft |
+| otherwise | eligible at that `head`, its changed paths shown |
 
-The declaration read runs after § 4 step 2 brings the head in; until then the row reads *eligible,
-declaration unread*. Show the queue as `▶ <position>/<total> · #<N> <title>`, the current item first,
-then the rest, then every ineligible row with its reason (UX-4).
+**The diff is read from objects, before any checkout** (§ Residue): `git -C <core> fetch origin
+<baseRef> refs/pull/<N>/head`, `git -C <core> rev-parse FETCH_HEAD` equal to `head` (else it moved:
+read it again), `git -C <core> merge-base origin/<baseRef> <head>` — the PR's own base, so a stacked
+parent is not counted — then `git -C <core> diff --name-only <that sha> <head>`. **Any of these exiting
+non-zero** makes the row **untested at `<head>`**, the git message quoted, never eligible. **A same-repo
+head is trusted, not vetted** (SEC-16 reads non-fork as trusted; CON-28 accepts the write-access
+residual): the two files are the declaration, not the scripts, manifests or project files it runs, so
+those paths are **shown, never judged**. Show `▶ <position>/<total> · #<N> <title>`, the current item
+first, the rest with their changed-path counts, then each ineligible row with its reason (UX-4). **No
+eligible row**: show them and end before § 3.
 
 ## 3. The one authorization — the swap and the launch, for this queue only
 
 One picker, row `review-queue-authorize`: the declared targets (`launch.default` starred), or **stop**.
-The answer is **the explicit maintainer call** amaterasu § 3 requires for a core launch and
-amenotejikara requires for a swap, **for the heads § 2 showed, on the picked target, until this run
-ends** — a view swap and the declared launch only: never `--take`, a deploy, another target or a head
-the queue did not show. Recorded through `nen stop answer`.
+It is **the explicit maintainer call** amaterasu § 3 requires for a core launch and amenotejikara for a
+swap, **for the PRs § 2 showed, on the picked target — or `launch.fallback` where amaterasu § 4 falls
+back, both named — until this run ends**: the head § 2 read, or a later head of the same PR once § 2's
+reads pass on it again with its changed paths shown. A view swap and the declared launch only: never
+`--take`, a deploy, another target or a PR the queue did not show. Recorded through `nen stop answer`.
 
 ## 4. One item — bring the head in, launch, wait (AC-1, AC-5, AC-7)
 
-1. **Recheck** `pr-head`: no longer open → skipped, said; a new head → that head, said.
-2. **The review worktree** — `nen wc worktree --repo <core> --name senkaimon --base <branch.base>`,
-   each `project.fromCore[]` path as `--copy-from-core`; then (§ Residue)
-   `git -C <wt> fetch origin refs/pull/<N>/head` and `git -C <wt> checkout --detach <head>`, and
-   `git -C <wt> rev-parse HEAD` read back equal to `<head>`. Then § 2's declaration read:
-   `git -C <wt> merge-base origin/<branch.base> <head>`, then `git -C <wt> diff --name-only <that sha>
-   <head> -- nen/contract.json nen/workflow.json` — any path printed makes the head ineligible.
-3. **The previous launch has released core and the target (AC-7)**: its child exited, and
-   `nen wc swap --status` answers. A `dev`/`run` child still running is named and the next build
-   **waits**: nothing in nen stops it (amaterasu § 5); the maintainer does.
-4. **Swap** — `nen wc swap <wt> --repo <core>`, a view. The first swap parks core's own work
-   (amenotejikara § 3); later swaps keep that first home. Exits are amenotejikara § 4's.
-5. **Launch** — amaterasu § 4 on `<core>`, the dry run first, its pasted line run bare. A present but
-   unusable device stops at row `on-device-act` and retries once it is done. An absent one falls back
-   only to `launch.fallback`, **naming both the requested and the actual target**. Success is the build,
-   the install where the target installs, and the launch, each with its evidence; anything less is
-   `launch incomplete`.
+1. **Recheck** `pr-head`: no longer open → skipped, said; ineligible → **untested at `<head>`**, its
+   reason, **defer · stop**; moved → § 2's reads on the new head, its paths shown, said.
+2. **The review worktree** — `nen wc worktree --repo <core> --name senkaimon-<surface> --base
+   <branch.base>` (WORKFLOW § *Where worktrees live*); then (§ Residue) `git -C <wt> -c
+   core.hooksPath=/dev/null checkout --detach <head>` — § 2's objects, no tracked hook run — and
+   `git -C <wt> rev-parse HEAD` read back equal to `<head>`.
+3. **The previous launch has released core and the target (AC-7)**: its child exited (a `dev` child:
+   the maintainer's word, step 5) and `nen wc swap --status` answers; a child still running is named and
+   the next build **waits** — nothing in nen stops it (amaterasu § 5). **A launch that wrote tracked
+   files in core** (a lockfile an install rewrote) makes the next swap exit `3`: those paths are the
+   tested head's build output, listed; the maintainer discards them in their own shell, or picks
+   **defer · stop** — never discarded here.
+4. **Swap** — `nen wc swap <wt> --repo <core>`, a view; the first parks core's own work (amenotejikara
+   § 3), later ones keep that home; exits are amenotejikara § 4's. Then `git -C <core> rev-parse HEAD`
+   must equal `<head>` before the dry run: the tested head is the tree core holds.
+5. **Launch** — amaterasu § 4 on `<core>`, the dry run first, its pasted line run bare in the
+   foreground. A `run` target returns once installed and launched; a `dev` target holds the session, so
+   its line is handed to the maintainer's own terminal and its release is their word in § 5's answer. A
+   present but unusable device stops at row `on-device-act`, retried once done; an absent one falls back
+   only to `launch.fallback`, **naming the requested and the actual target**. Success is the build, the
+   install where the target installs, and the launch, each evidenced; less is `launch incomplete`.
 
-A failure, an unavailable target, an ineligible head or a moved head records the item **untested at
-`<head>`**, with the reason, and offers **retry · defer · stop**.
+A failure or an unavailable target records the item **untested at `<head>`**, the reason quoted, with
+**retry · defer · stop**. A head that moves after its launch leaves this item at the tested head; the
+new head is a new item.
 
 ## 5. The verdict — tied to the tested head (AC-2, AC-3, AC-4)
 
@@ -89,23 +107,28 @@ a fallback), above the picker. Row `review-verdict`, **no option starred** — t
 maintainer's: **Send to merge gate** · **Request revision** · **Defer** · **Stop**. Recorded through
 `nen stop answer`, the question carrying PR, head and target.
 
-- **Merge**: `pr-head` again, and `nen pr ready <N> --gh-repo <owner/name> --require-head <tested head>
-  --explain`. Only with the head unmoved and that verdict Ready, [`en`](../en/SKILL.md) § 5's five checks
-  run with the tested head as the pinned head, and its prompt offers
+- **Merge**: `pr-head` again, then [`en`](../en/SKILL.md) § 5's five checks as they stand — its verdict
+  `"$hatsu_root/scripts/gh_token_env.sh" nen pr ready <N> --gh-repo <owner/name> --require-head <tested
+  head> --explain` Ready, or its sixth stop or hanten prompt — the tested head pinned. Only with the head
+  unmoved and those checks met does its prompt offer
   `gh pr merge <N> --repo <owner/name> --merge --match-head-commit <tested head>`, **never run here**.
-  Otherwise the item stays **pending**, the failing read quoted, with **retry · defer**.
+  Otherwise **pending**, the failing read quoted (off `branch.base`: en § 5 check 1, the base quoted),
+  with **retry · defer · stop**; a PR no longer open is skipped, never pending.
 - **Revision**: the maintainer's feedback is taken as typed and written, with the PR, tested head and
   actual target, to `<scratch>/senkaimon-<N>-revise.md`, handed to a revision effort on that PR's
-  branch — `$ren` in its own effort worktree, in another session where the surface has one, never
-  this run's review worktree; publication goes through `aka`/`murasaki` as normal. Then
-  **Continue to next PR** · **Wait for a revised head** (relaunched once `pr-head` shows a new one).
+  branch — `$ren` in its own effort worktree, in another session where the surface has one; its
+  publication goes through `aka`/`murasaki`. Then **Continue to next PR** · **Wait for a revised head**:
+  the item is held, and `pr-head` is re-read on the maintainer's word (**relaunch · defer**), never on
+  a timer.
 - **Defer**: recorded, untested where it was not launched; the queue moves on.
 
 ## 6. Ending — core back, whatever ended it (AC-6)
 
-The queue done, a stop or a failure: `nen wc swap --return --repo <core>`, then `nen wc swap --status`
-read back **no swap active** — core on its home, its parked work restored. A return that fails is shown
-with the pinned `refs/nen/wc-swap/parked` ref (amenotejikara § 4) and **no further launch** follows.
+The queue done, a stop or a failure: `nen wc swap --status` first. No swap: nothing to return, said. A
+child still holding core: wait as § 4 step 3. Then `nen wc swap --return --repo <core>`: exit `3` is
+§ 4 step 3's build output, asked the same way; exit `1` or a failed return shows the pinned
+`refs/nen/wc-swap/parked` ref (amenotejikara § 4) and **no further launch** follows. `--status` read
+back **no swap active** — core on its home, its parked work restored.
 Then one row per PR: tested head · actual target · outcome (*at merge prompt*, *pending: <reason>*,
 *revision handed*, *deferred*, *untested at <head>: <reason>*, *ineligible: <reason>*). The review
 worktree stays for [`cleanup`](../cleanup/SKILL.md). The delegation of § 3 ends here; say so.
@@ -113,30 +136,32 @@ worktree stays for [`cleanup`](../cleanup/SKILL.md). The delegation of § 3 ends
 ## 7. Proof
 
 SC-1 — two open PRs through both verdicts, one physical-device and one simulator launch on the same
-consumer — is [`docs/ab/senkaimon.md`](../../../docs/ab/senkaimon.md)'s protocol, owed until run.
+consumer — is [`docs/ab/senkaimon.md`](../../../docs/ab/senkaimon.md)'s protocol, owed until run (zheref/hatsu#580).
 
 ## Residue
 
-- **The head into the review worktree**: `nen wc worktree` stands only at `origin/<base>`; the fetch of
-  `refs/pull/<N>/head` and the detached checkout are git in the run's own worktree until a verb takes a
-  head (zheref/nen#650).
-- **The declaration read** — the changed paths against the two declaration files — is a git diff, read.
+- **The head into the review worktree**: `nen wc worktree` stands only at `origin/<base>`; § 2's fetch
+  of `refs/pull/<N>/head` and § 4's hook-less detached checkout are git until a verb takes a head
+  (zheref/nen#650). `nen wc swap`'s own checkout honours a consumer's tracked `core.hooksPath`; noted
+  there.
+- **The declaration read** — the changed paths from objects, two of them the declaration — is a git
+  diff, read.
 - **A long-running child** is stopped by the maintainer, never by this skill.
 
 ## Authority
 
-- **Permitted:** the reads above; under § 3's answer only, `nen wc worktree`, the git of § Residue in
-  that worktree, `nen wc swap` (view) and `--return` in the consumer's core, and amaterasu's declared
+- **Permitted:** the reads above; under § 3's answer only, `nen wc worktree`, the git of § Residue, `nen wc swap` (view) and `--return` in the consumer's core, and amaterasu's declared
   launch, per queue head, this run only; `nen stop answer`; the revision brief file.
 - **Not permitted:** a merge, `--take`, a deploy (G3), a push, a commit, a PR or issue write, a review
-  vote, a launch of an ineligible head or a head the queue did not show.
+  vote, a launch of an ineligible head or of a PR the queue did not show.
 
 ## Hard limits
 
 - **Never merges** (CON-5, CON-7): the merge line is offered pinned to the tested head, never run.
 - **Never swaps or launches before the queue is shown and § 3 answered.**
 - **Never two launches at once**, and never a swap over a launch still holding core or the target.
-- **Never launches a fork head or one that changes the launch declaration.**
+- **Never launches a fork head or one that changes the launch declaration**, and never calls a
+  same-repo head vetted: its other changed paths are shown, not judged.
 - **Never falls back silently** — requested and actual target are both named.
 - **Never ends with core swapped** without showing the recovery state; never stashes, discards or
   commits core's work.

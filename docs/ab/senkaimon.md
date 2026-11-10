@@ -59,7 +59,7 @@ $ git diff --name-only 691865a36a6e60bb6479a569badfb7dfcb916310 94a01e4480536b4c
 **Not run here**: the worktree created for real, the swap, the launch, the verdict pickers, the merge
 prompt and the return. Each moves the maintainer's core checkout or a device and needs § 3's answer.
 
-## 2. Owed — the SC-1 proof run
+## 2. Owed — the SC-1 proof run (zheref/hatsu#580)
 
 On one consumer with a declared physical-device target and a declared simulator target, and at least
 two open PRs, the maintainer runs `hatsu:senkaimon <CODE>` attended and this file records, dated:

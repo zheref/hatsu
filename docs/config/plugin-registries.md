@@ -37,6 +37,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `sharingan`: branch rules and protected branch required checks | `branch-rules`, `required-checks` | A missing required check vetoes readiness. |
 | `build`: issue's PR marker; `PROCESS`: workflow declaration at a ref | `issue-pr`, `workflow-content` | These are ordinary issue and configuration reads. |
 | `spiritual-message`: Actions run timing; `cleanup`: caches and artifacts | `actions-timing`, `actions-caches`, `actions-artifacts` | These are fixed REST GET paths. |
+| `senkaimon`: a PR's head SHA and its head and base repositories | `pr-head` | A fixed REST GET with a fixed projection. |
 | `file`: issue edit count | `issue-edits` | The only packed GraphQL form is a fixed query with typed variables. |
 
 `release-publish.sh` reads a tag ref through `gh api` internally, under the release command's separate authority; `tag-ref` is available for direct audit reads. `tenkai_adopt.sh`'s repository lookup is also internal to its script. `direct`'s marker lookup, `illumi`'s arbitrary GraphQL read, generic `izanami` observations and any undocumented endpoint still require an explicit surface permission prompt. CI's check-run POST/PATCH and cleanup DELETE run under workflow credentials, outside this pack. The helper does not accept raw GraphQL text, so a `mergePullRequest` mutation cannot be smuggled into its query.

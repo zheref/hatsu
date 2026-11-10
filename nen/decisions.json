@@ -410,6 +410,7 @@
         "rasengan",
         "ren",
         "rikugan",
+        "senkaimon",
         "senkei",
         "sharingan",
         "shibari",
@@ -895,7 +896,7 @@
     {
       "id": "review-queue-authorize",
       "class": "ask-once-per-run",
-      "default": "ask once per senkaimon run, after section 2 has shown the queue and before any worktree, swap or launch: which declared project.launch target the queue runs on, launch.default starred, or stop. The answer is the explicit maintainer call amaterasu section 3 requires for a core launch and amenotejikara requires for a swap, for the PR heads the shown queue named, on the picked target, until that run ends: a view swap of core to the run's review worktree, its return, and the target's declared launch. Never --take, a deploy, another target or a head the queue did not show; a later run asks again",
+      "default": "ask once per senkaimon run, after section 2 has shown the queue and before any worktree, swap or launch: which declared project.launch target the queue runs on, launch.default starred, or stop. The answer is the explicit maintainer call amaterasu section 3 requires for a core launch and amenotejikara requires for a swap, for the PRs the shown queue named -- the head section 2 read, or a later head of the same PR once section 2's reads pass on it again and its changed paths are shown -- on the picked target, or launch.fallback where amaterasu section 4 falls back with both named, until that run ends: a view swap of core to the run's review worktree, its return, and the target's declared launch. Never --take, a deploy, another target or a PR the queue did not show; a later run asks again",
       "preferred": [
         {
           "key": "A",
@@ -931,7 +932,7 @@
         {
           "key": "A",
           "label": "send to merge gate",
-          "command": "pr-head re-read and nen pr ready <N> --gh-repo <owner/name> --require-head <tested head> --explain; only with the head unmoved and Ready, en section 5's five checks and its prompt with gh pr merge <N> --merge --match-head-commit <tested head>, offered never run",
+          "command": "pr-head re-read and nen pr ready <N> --gh-repo <owner/name> --require-head <tested head> --explain; only with the head unmoved and Ready, en section 5's five checks and its prompt with gh pr merge <N> --repo <owner/name> --merge --match-head-commit <tested head>, offered never run",
           "consequence": "the PR stands at its human merge prompt pinned to the tested head, or stays pending with the failing read quoted"
         },
         {

@@ -4,7 +4,7 @@ This directory is the plugin's skill surface (`plugin.json` → `"skills": "./cl
 surface lives beside it at `claude/commands/` (`"commands": "./claude/commands/"`); both are listed together
 under *Skills* by `claude plugin details`, which is why they are described together here.
 
-A history of the count, never the current one (`ls -d claude/skills/*/` is): sixty skills at `v0.156.0` ([`kage-bunshin`](kage-bunshin/); fifty-nine at `v0.140.0`, [`kuchiyose`](kuchiyose/); fifty-eight at `v0.133.0`, [`dowsing-chain`](dowsing-chain/); fifty-seven at `v0.132.0`, [`okiro`](okiro/); fifty-six at `v0.126.0`, fifty-four at `v0.125.0`, fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`; one directory each per surface, plus `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
+A history of the count, never the current one (`ls -d claude/skills/*/` is): sixty-one skills at `v0.164.0` ([`senkaimon`](senkaimon/)); sixty at `v0.156.0` ([`kage-bunshin`](kage-bunshin/); fifty-nine at `v0.140.0`, [`kuchiyose`](kuchiyose/); fifty-eight at `v0.133.0`, [`dowsing-chain`](dowsing-chain/); fifty-seven at `v0.132.0`, [`okiro`](okiro/); fifty-six at `v0.126.0`, fifty-four at `v0.125.0`, fifty-three at `v0.116.0`, fifty-two at `v0.108.0`, fifty at `v0.89.0`, forty-nine at `v0.88.0`, forty-eight at `v0.73.0`, forty-seven at `v0.68.0`, forty-six at `v0.66.0`, forty-five at `v0.60.0`, forty-four at `v0.45.0`, forty-three at `v0.43.0`, forty at `v0.30.0`; one directory each per surface, plus `ten`): the **seventeen ported skills** ([zheref/hatsu#2][2]) that made the
 surface complete at `v0.1.0` — one of them, `drive`, **renamed to [`sharingan`](sharingan/) at `v0.5.0`** —
 the **ten workflow skills** added at `v0.4.0`, the **eight added at `v0.5.0`** that carry the PR side,
 **[`byakugan`](byakugan/) at `v0.24.0`**, the
@@ -176,7 +176,7 @@ three at `v0.6.0`; `byakugan` at `v0.24.0`; `third-hand` at `v0.27.0` (phase spl
 
 ## The two roster-machinery residents
 
-Neither is one of the sixty. They landed with the skeleton because the plugin does not function
+Neither is one of the sixty-one. They landed with the skeleton because the plugin does not function
 without them, and they are recorded here rather than folded silently into the count.
 
 | Resident | Why it exists |
