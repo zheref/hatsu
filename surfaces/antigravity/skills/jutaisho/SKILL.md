@@ -135,7 +135,7 @@ into `main`, the run's own included: its link and the `gh pr merge` line as a `b
 as its own `bash` block (CON-33(b)). The **picker** carries part 4 alone: a header of at most 12 characters (the
 gate id), one question of at most two sentences, three or four options (`port-siblings` and kamui's start picker page in fours, under three plus *none of them*), labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
 in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form. A free-text answer is the maintainer's word (HR-173, R-2026-10-23-08); recording every answer and the one re-ask
-are WORKFLOW § 4 *Every picker answer is recorded* (`nen stop answer`). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
+are WORKFLOW § 4 *Every picker answer is recorded* (`nen stop answer`). Example: header `Merge HA#287`; *Merge HA#287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
 
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../../docs/WORKFLOW.md) § 4
 records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.

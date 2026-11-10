@@ -218,7 +218,7 @@ cannot run is not scanned — never clean.** **Every version, URL, asset and com
 
 | Row | What runs | Failure |
 |---|---|---|
-| **Secret scan** | gitleaks at `secretScan.version`, its host asset **SHA256-verified against `checksumsUrl`** before it runs | a missing, wrong-version or unverifiable seat **stops this scope** with the install step below; a non-zero scan exit **fails loud** |
+| **Secret scan** | gitleaks at `secretScan.version`, its host asset **SHA256-checked against `checksumsUrl`** before it runs | a missing, wrong-version or unverifiable seat **stops this scope** with the install step below; a non-zero scan exit **fails loud** |
 | **Dependency audit** | the row whose `stacks` lists it. Node `run` (`bun-cli` too): the lockfile to OSV, nothing executed; OSV at `SwiftURL`; `dependencyCheckAnalyze` (JVM) | Node: `0`/`1` yours (`1` never clean), `3` not scanned, `2` wiring; **a stack on no row: not scanned** |
 | **Secret shapes** | `nen stage triage` over the change set | each path listed with its shape |
 | **Builder-touching workflow** | in a **consumer** repo (`nen repo classify` → `role` not `canon`) a diff touching `.github/workflows/**` raises this scope and **requires your read** | **never waived** |
@@ -826,8 +826,8 @@ unchanged, and this is the general statement they instance.
 nen's own checkout, any bash-and-markdown repository — is what `nen shu detect --repo <path>` answers with
 **exit `1`, "no lane detected"**, and `nen scaffold init --accept-detected` then refuses at `2` with nothing
 to accept. That is not a defect to file against nen: the verbs are declaration-driven, and nothing on disk
-told nen how this repository is built. What you do: if the repository has a build worth declaring, **write
-the `project` block by hand** (`nen shu --help` names the fields; a verb it does not have is an explicit
+told nen how this repository is built. What you do: if the repository has a build worth declaring, **write the `project` block
+yourself** (`nen shu --help` names the fields; a verb it does not have is an explicit
 `{"unsupported": "<why>"}` seat, never left out) and land it as a PR — at **G4** where this is a canon
 repository, since there the machinery *is* the process, and at **G2** in a consumer repository, where the
 same block is that repository's own configuration (§ *Which gate a PR stands at*). Until it
@@ -875,7 +875,7 @@ and `.gitignore`, into an empty directory it refuses to merge into. **At the pin
 hook's automated half is DERIVED from the resolved policy** rather than from a hard-coded trailer pair: it
 requires the one key `--agent-trailer` resolved to, plus `commits.runTrailer` only where the policy states
 one, and `--marker-env` is the single flag still required unconditionally — its missing-flag refusal names
-itself and says what the other two default to (verified live, exit `2`). A policy whose
+itself and says what the other two default to (verified live, by 2026-09-10, exit `2`). A policy whose
 `commits.allowedAttributionTrailers` does not admit the resolved key generates a hook that refuses every
 automated commit outright, naming the missing policy, rather than checking for a trailer no commit there
 could honestly carry. Every post-step (`git init`, the dependency install) is printed and none is
@@ -952,7 +952,7 @@ the truth.
 Standing a repository up is this mode's: [`$okiro`](okiro/SKILL.md) for an empty
 directory; for an existing tree, `nen shu detect` → `nen scaffold init` → `nen schema check` →
 `nen shu tools`, in that order and with `--dry-run`
-first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block by hand for a
+first — § *The `shu` verbs* above spells out the lines. So is writing a `project` block yourself for a
 repository `detect` cannot propose one for, and replacing a proposed seat with the command the repository
 actually runs: both are declarations of machinery, landed as PRs at **G4** *where the repository being
 stood up is a canon one* and at **G2** where it is a consumer (see *Which gate a PR stands at*),
@@ -978,7 +978,7 @@ stewardship — the board-facing half of the work.
   settled effort branch locally (`git merge --no-ff`) into its own integration branch, unasked, with no
   sub-PR and no `gh pr merge`; its integration→`main` PR then ends at the prompt. [`en`](en/SKILL.md)
   § 5 may merge a recorded Futon-owned stacked delivery PR into a non-main base through
-  `nen pr merge --delivery`, only at pinned Ready (ruling 2026-10-19; #154). **The release carve-out**, the maintainer's ruling
+  `nen pr merge --delivery`, only at pinned Ready (ruling 2026-10-19; zheref/hatsu#154). **The release carve-out**, the maintainer's ruling
   of 2026-09-26, kept on 2026-10-01 ([`docs/ROSTER.md`](../../docs/ROSTER.md)
   § *Rulings of 2026-09-26/27/28*): [`getsuga`](getsuga/SKILL.md) § 3a merges its own release-proposal PR
   through `nen pr merge --release-unit`, at `merge` and `canon-merge` alike, never with a review of your own.
@@ -1504,7 +1504,7 @@ implementing the filed work, or authoring canon.
 | Class | Typical owner |
 |---|---|
 | **Duration** — a job too long for the value it returns | Hatsu prose; Nen if a declared step is the cost |
-| **Redundancy** — repetitive work done by hand every run | Nen when it can become a verb; Hatsu when a skill restates another |
+| **Redundancy** — repetitive work a session redoes every run | Nen when it can become a verb; Hatsu when a skill restates another |
 | **Autonomy gap** — stops that contradict expected autonomy | Hatsu prose; Nen if a missing verb is it |
 | **Determinism** — improvised shell where a Nen verb belongs | **Nen**, cross-linked to the improvising skill |
 | **Toolchain** — missing toolchain, versions or utilities | the repo that should declare it |
@@ -2011,9 +2011,9 @@ closing line. You are a LOCAL-ONLY subagent on the maintainer's own credentials,
 ## 2 · Bind `nen`, then classify the repository
 
 Where the prompt names the pinned `nen` by path, **every block you run starts `PATH="<its
-dir>:$PATH"`**; else your own `PATH`'s `nen`. Failing
+dir>:$PATH"`**; else your `PATH`'s `nen`. Failing
 `nen --version`, or below the quoted pin, every Nen verb below is **unread** —
-*nen not bound in the subagent* — enumerated in § 8's line, never improvised (#107).
+*nen not bound in the subagent* — enumerated in § 8's line, never improvised (HA#107).
 
 ```bash
 PATH="<dir from the prompt>:$PATH" nen repo classify --repo <the isolated checkout hanten handed you>

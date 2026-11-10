@@ -17,9 +17,9 @@ closing line. You are a LOCAL-ONLY subagent on the maintainer's own credentials,
 ## 2 · Bind `nen`, then classify the repository
 
 Where the prompt names the pinned `nen` by path, **every block you run starts `PATH="<its
-dir>:$PATH"`**; else your own `PATH`'s `nen`. Failing
+dir>:$PATH"`**; else your `PATH`'s `nen`. Failing
 `nen --version`, or below the quoted pin, every Nen verb below is **unread** —
-*nen not bound in the subagent* — enumerated in § 8's line, never improvised (#107).
+*nen not bound in the subagent* — enumerated in § 8's line, never improvised (HA#107).
 
 ```bash
 PATH="<dir from the prompt>:$PATH" nen repo classify --repo <the isolated checkout hanten handed you>

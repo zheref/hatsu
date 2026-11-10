@@ -50,7 +50,7 @@ nen parse ren --grammar "<request> [--profile <profile:fast|standard|thorough>]"
 `profile: (clause absent)` means `profile.default` (§ 2a); the words "fast turn" or "thorough turn"
 inside the request are read as the same override.
 
-Verified live at `v0.3.0` (`docs/ab/ren.md` § 2.1): a request line parses to
+Verified live, by 2026-09-10, at `v0.3.0` (`docs/ab/ren.md` § 2.1): a request line parses to
 `request: <the whole line>` at exit `0`, and an empty line refuses at exit `2` — *"<request> is
 required and the line does not supply it"* — with the corrected line printed. **A turn with no
 request is never inferred from what the session was last doing — it is asked for as free text**:
@@ -102,7 +102,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
   the maintainer to nothing.
 
 **The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
-contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+contract for a phase the maintainer types into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
 says which composite is holding it instead.
@@ -293,7 +293,7 @@ exists to replace, and duplicating it is how the page stops being read.
 **One entry, and it is a boundary rather than a gap:**
 
 1. **The composition itself has no verb, and is not expected to get one.** nen owns operations, not
-   conversations (§ 4, verified live). Ren's ordering is prose because it is a *sequence of other
+   conversations (§ 4, verified live, by 2026-09-10 (`docs/ab/ren.md` §§2.2, 4.2)). Ren's ordering is prose because it is a *sequence of other
    skills*, each of which is verb-backed where a verb exists. **Every deterministic step inside a
    turn is a verb or a named residue in the skill that owns it** — `nen shu <check>` and
    `nen shu tools` (step 2's inner loop; the authoring itself is that skill's own named boundary),

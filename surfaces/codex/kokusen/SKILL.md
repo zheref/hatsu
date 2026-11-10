@@ -77,7 +77,7 @@ up, continue*); a missing scoped lane is authored by rasengan (`missing-focused-
 **The gate's five steps are [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The local verification
 gate***, run **here, now**: the declared `iteration.checks` in order on
 `iteration.lane`; a consumer's canon mirror regenerated and staged where `.claude/canon-values.yml`
-changed (#111); the focused tests for changed executable behaviour through
+changed (HA#111); the focused tests for changed executable behaviour through
 [`tsukuyomi`](../tsukuyomi/SKILL.md); the build proof read back only where step 1 ran a green `build`;
 and `nen wc classify` proving this is not the trunk. What is this skill's is the refusal:
 **a `1` ends the commit** — quote the failing check, commit nothing, hand the turn back to

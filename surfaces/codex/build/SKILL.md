@@ -14,7 +14,7 @@ code; the mode is named at § 2, and said aloud when it switches mid-run.
 > `CON-32`-Ready at its human gate — or a G5 stop saying exactly why it could not get there.**
 
 **Hatsu holds no CI plane** (no CI routing, stage labels, waves or wake
-ladders): building an issue runs § 4's local-plane pipeline (pickers: jutaisho § 4).
+ladders): § 4's local-plane pipeline builds an issue (pickers: jutaisho § 4).
 
 **The phases this composite calls skip their own `## 0.`**
 ([`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) § 4); the plugin root is
@@ -51,10 +51,10 @@ Read the issue first:
 gh issue view <N> --repo <owner/name> --json title,body,state,labels,closedByPullRequestsReferences
 ```
 
-- **If closed**: the run ends immediately, reporting what closed it and which PR delivered it (from
-  `closedByPullRequestsReferences`).
+- **If closed**: the run ends, reporting what closed it and the PR that delivered it
+  (`closedByPullRequestsReferences`).
 - **If an epic awaiting approval**: stop at **G1** (row `mode-label`) — the mode label is the
-  maintainer's decision (`CON-4`), never an agent's.
+  maintainer's (`CON-4`), never an agent's.
 - **Read requirements**: title, body, acceptance criteria, constraints, then its shape
   ([`plugin-registries`](../../../docs/config/plugin-registries.md#contractsissue-sectionsjson), *The check*; HR-4): an open `OQ-{n}`
   row is a **G1** `DECIDE`, `next: clarify`, never answered here (futon § 2 skips it); a miss never stops: **the first plan message names each missing
@@ -89,7 +89,7 @@ publishes under `direct.publish` only, as classify § 5b does under `classify.pu
 
 ## 3. Worktree isolation by default
 
-All authoring, feature work, and verification for the issue **must run in an isolated git worktree**
+All authoring and verification **runs in an isolated git worktree**
 ([`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live*):
 
 ```
@@ -110,7 +110,7 @@ Build runs § 2b's intake, then, for `job/parity`, **the spec read** in the work
 takes shibari's Spec section and `spec-coverage` stop ([`spec-repo.md`](../../../docs/config/spec-repo.md)):
 [`ten`](../ten/SKILL.md) → [`classify`](../classify/SKILL.md) (if needed) → [`direct`](../direct/SKILL.md) → `ren` → `aka` → `mukai` → `en` → [`rikugan`](../rikugan/SKILL.md) → [`cleanup`](../cleanup/SKILL.md)'s wrap-up.
 
-**Load each linked skill before its phase's first command** (the Skill tool, or the surface's
+**Load each linked skill before its phase's first command** (the Skill tool or its surface
 equivalent) — `direct`, `ren`, `aka`, `mukai` with its `shibari` body step, `en` — **never a phase
 command typed from memory**; the transcript shows one load per phase run (HA#548).
 
@@ -127,19 +127,19 @@ release into building is the typed invocation, and § 1's handoff of a PR to `en
 
 | Phase | Skill | What build takes from it |
 |---|---|---|
-| **1 · author** | [`$ren`](../ren/SKILL.md), turn after turn: `breath` (its § 4a constitution check recorded) → `rasengan` → `kokusen` → `amaterasu` → `spiritual-message` → `jutaisho` | every acceptance criterion met and committed locally; never a push |
+| **1 · author** | [`$ren`](../ren/SKILL.md), turn after turn: `breath` (its § 4a constitution check recorded) → `rasengan` → `kokusen` → `amaterasu` → `spiritual-message` → `jutaisho` | every acceptance criterion met, committed locally; a skill diff passes [the pre-review guards](../../../docs/config/skill-shape.json.md#before-review) (HA#563); handbook-rule commands on WORKFLOW § *The scratch lane* (HA#558); never a push |
 | **2 · publish** | [`$aka`](../aka/SKILL.md): `gyo` → squash the unpushed → `ao` → `gyo` again if the tree moved → push | the branch on origin; no PR |
 | **3 · PR** | [`$mukai`](../mukai/SKILL.md): `murasaki` → `hanten` → `kokusen` → `kotoamatsukami` → `byakugan` → evidence → `shibari` → landing report → `en` offered, or started under `mukai.autoEn` | one open PR, the four pre-PR G5 stops honoured |
 | **4 · readiness** | [`$en on <CODE>#<PR>`](../en/SKILL.md): the capped acting cycle, `nen pr ready` quoted verbatim, the bell at Ready | the PR at its merge prompt (**G2**, **G4** in a canon repository); En never merges |
 
 ### Phase 5: `rikugan` — The delivered state, seen once
 
-The final Rikugan ([`rikugan`](../rikugan/SKILL.md) `final`) is **`en` § 8's own render at its terminus**,
-never rendered a second time by build.
+The final Rikugan (`rikugan final`) is **`en` § 8's own render at its terminus**,
+never rendered again by build.
 
 ### Phase 6: the wrap-up — `cleanup`, with `third-hand` optional
 
-After En completes and rikugan has rendered, a blocker captured (DISCOVERY, HA#508), ask once, only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites
+After En completes and rikugan has rendered, a blocker captured (DISCOVERY, HA#508), ask once, only when `cleanup` § 2's prerequisites
 hold, never at a merge prompt (row `wrap-up`): ⭐ `cleanup` · `cleanup` and [`third-hand`](../third-hand/SKILL.md) in parallel ·
 continue, recorded (`nen stop answer`, WORKFLOW § 4); each runs only the pick.
 
@@ -157,14 +157,14 @@ or work on core.
 ## 6. When it will not move (G5)
 
 A stall is reported plainly — the blocker, and whether it needs the maintainer: a gap unresolvable locally
-is a **G5** naming it, in [`jutaisho`](../jutaisho/SKILL.md) § 4's shape; filing is a legitimate outcome
+is a **G5** naming it, in jutaisho § 4's shape; filing is a legitimate outcome
 ([`file`](../file/SKILL.md), linked, the build held on it).
 
 ## 7. Reporting
 
 Every report follows [`docs/PROCESS.md`](../../../docs/PROCESS.md) § *Reporting a phase*:
 [`spiritual-message`](../spiritual-message/SKILL.md) for `ren` turns and the `mukai` landing,
-[`rikugan`](../rikugan/SKILL.md) for the final state at `en`'s terminus.
+`rikugan` for the final state at `en`'s terminus.
 
 **G1**: an epic awaiting its mode label (row `mode-label`) or an open `OQ-{n}` row (§ 2), a `DECIDE` with the trade-off. **G2/G4**: the
 delivery PR `CON-32`-Ready (§ 9), a `MERGE` whose verdict says everything. **G5**: a
