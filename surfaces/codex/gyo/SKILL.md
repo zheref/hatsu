@@ -47,7 +47,7 @@ so there is no turn boundary to inherit. [`docs/STANDALONE-ENTRY.md`](../../../d
 contract that applies here is **P1**: run [`$ten gyo`](../ten/SKILL.md) (ten § 6 catches up the prerequisites) first when
 no composite did, because `nen shu lint` is a `nen` call.
 
-**Being typed by hand changes nothing else.** Gyo still never measures coverage and never runs tests —
+**Being typed by the maintainer changes nothing else.** Gyo still never measures coverage and never runs tests —
 [`$byakugan`](../byakugan/SKILL.md) and [`$kotoamatsukami`](../kotoamatsukami/SKILL.md) own
 those — and a green lint is never reported as anything more than a green lint.
 

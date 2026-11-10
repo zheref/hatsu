@@ -106,7 +106,7 @@ is named, never asked about and never softened into a default.
 may return no match as an expected check outcome uses `|| true`, then an explicit `fail` with the
 expected and actual values. Wiring substitutions may still fail directly. Every declared
 `nen shu test` seat runs through `scripts/fixture_output_guard.sh`, which reports every fixture
-that exits nonzero by name and exit code, including failures after progress output, while preserving its exit code (#243).
+that exits nonzero by name and exit code, including failures after progress output, while preserving its exit code (zheref/hatsu#243).
 
 ## Reporting a phase
 
@@ -207,7 +207,7 @@ The dated `final` file stays the HTML render rikugan § 4 keeps.
 (`lastTurnRequestFull`, `launch`, `prBody[].markdown`, an option's `command`): a newline ends the Markdown
 line the value sits on, so it could open a forged ask or an unclosed fence. A failing value is dropped and
 named in *Not delivered*, like the validations in § *Escaping and validation of report data* — the caller's
-interim until nen escapes Markdown.
+interim until nen escapes Markdown (zheref/nen#407 item 6).
 
 **Where enforcement is impossible, and what holds instead.** Step 2 is the one path no verb performs — the
 copy is the model's own act — so step 3 is its check. A turn where `nen report render` cannot run is **not**
@@ -414,7 +414,7 @@ nen pr threads resolve --target <owner/name> --pr <n> --thread <id>
 ```
 
 **Requesting a round.** Through `scripts/gh_token_env.sh` (§ *Residue and owned dependencies*,
-#218) — the **maintainer's** user token; a bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
+zheref/hatsu#218) — the **maintainer's** user token; a bot token silently no-ops. Humans go through `--add-reviewers <a,b>`. **Copilot is a `Bot`**, which
 `gh pr edit --add-reviewer` and `…/requested_reviewers` never resolve, so it goes through
 `--add-bots <node id>`, the id **data** read off the target's own reviewer set (`BOT_kgDOCnlnWA` in
 `zheref/hatsu`); `--add-bots copilot` cannot resolve it today (zheref/nen#160). A bare login that is
@@ -783,7 +783,9 @@ deferral to nen with no issue, or a residue with neither is not one (`PL-02` and
 is the answer). `unfiled` is an admission, never a resting state: the next discovery
 pass files it through `hatsu:file` and replaces the word with the reference.
 
-**Named residue, by skill** — the live list; each skill's `Residue` section points here.
+**Named residue, by skill** — the live list; each skill's `Residue` section points here. A skill
+whose section names none is said here too: `pr-state`, whose § 2 is `nen pr ready` run through
+`scripts/gh_token_env.sh`.
 
 - **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
   TypeScript verdict, frozen to fixes: `nen canon lint` (zheref/nen#481) shipped in nen `0.28` with its declared home
@@ -801,7 +803,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 - **`ten`.** Copying a mirror (the drift check is nen's), composing `AGENTS.override.md`,
   writing `info/exclude` and proving it took, the first install on Codex and Cursor, resolving the
   plugin root (and ordering the checkout's manifest version against the bound pin's, zheref/hatsu#67), updating the plugin source and binding the pinned `nen` on the host (`scripts/nen_global.sh`: the
-  `~/.local/bin/nen` link and the shell rc's PATH block, around nen's own bootstrap) are done by the warm-up's scripts and by hand: no nen
+  `~/.local/bin/nen` link and the shell rc's PATH block, around nen's own bootstrap) are done by the warm-up's scripts and the warm-up session's own steps: no nen
   verb owns a checkout's local exclude, a host's `PATH` or its shell profile, and where Hatsu is checked out is the host's property. The
   login-shell probe (`scripts/nen_reach_probe.sh --root "$hatsu_root"`, which runs `"$SHELL" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe <root> </dev/null`, zheref/hatsu#218) and the name-correct host link ten § 2c offers as the fallback by its
   offer predicate (stated once there, verbatim in row `host-nen-link`) are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host. § 6's reads —
@@ -861,14 +863,16 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   examples. **Ruled 2026-10-13** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-13*): BC-11 binds it as
   it binds the ledger — frozen to fixes only, its header saying so, the verb filed as zheref/nen#406 and the script retiring when it lands.
 - **`spiritual-message`, `rikugan` and `backlog-board` — the report data document** (zheref/hatsu#291;
-  § *The report data document*). Two owed dependencies on `zheref/nen`, **not yet filed**, named for
+  § *The report data document*). Three owed dependencies on `zheref/nen`, **not yet filed**, named for
   Netero's harvest. **(a) A verb that derives the extension's defaults** — the table there, the
   `turnLabel` from `turnNumber` and the `repo` fallback included; until it lands each default is the
   caller's, derived by that table and named as residue on the page. zheref/nen#406 and zheref/nen#220 are
   template-conformance verbs and do not own it. **(b) The `--register` pass's own clock**: a desk's
   `generatedAtLocal` is the plain pass's while the register pass stamps a later `generatedAt` (measured
   +152–168 ms at `0.22.0`, minutes with real composition between the passes); nen should localise the
-  register pass's own `generatedAt` under `--register`. **The derived context it already owns** came
+  register pass's own `generatedAt` under `--register`. **(c) Criterion rows under `--register`**:
+  [`black-voice`](../claude/skills/black-voice/SKILL.md) § 6's per-criterion rows are not objects the pass
+  reads, so `backlog-board` § 3 keeps that page's hand-built document (unfiled). **The derived context it already owns** came
   through zheref/nen#258 (closed) and zheref/nen#375: `repo` (the hosted `owner/name`), `worktree`,
   `effortStage`, `gate` and `stageClass` from `v0.20.0`, each `null` with its reason on stderr when a fact
   is missing, and `generatedAtLocal`, `generatedDateLocal`, `timeZone` and `turnNumber` at nen
@@ -902,7 +906,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   `nen pr ready` row, not yet filed (origin zheref/hatsu#203). Until it lands, shibari and en quote
   the guard's `0` beside the verdict (BC-11 reads the guard's branching shell as a verb's job, a G4
   question until the verb lands).
-- **`contracts/pr-composition.json`, its `gateDerive.zheref/nen` row above all** (zheref/hatsu#171, #334;
+- **`contracts/pr-composition.json`, its `gateDerive.zheref/nen` row above all** (zheref/hatsu#171, zheref/hatsu#334;
   [`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-20 — zheref/nen's gate path sets*). Five items are owed,
   and none is filed yet. **(a) A tree-freshness check at repin**: list nen's tree at the pinned tag
   (`gh api repos/zheref/nen/git/trees/<tag>`) and fail when a top-level entry is in neither of the row's
@@ -937,7 +941,24 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   merge-base --is-ancestor <sha> <head>`, because nen reads a PR's head but not the ancestry of a commit in it.
 - **`getsuga`.** The release proposal's base read-back after a retarget (`gh pr view <N> --json
   baseRefName`), because nen exposes no read of a PR's base (zheref/hatsu#98); the retarget itself is
-  `nen pr retarget`.
+  `nen pr retarget`. § 3's other steps no verb owns: the stranded-fragment placement read
+  (`git ls-tree -r <prevTag> -- changelog.d`, then judgment), the two direct edits (the `latest` bump in
+  `nen/repos.json` and the version-manifest bump), and the live-body read before `nen pr edit-body`
+  (`gh pr view <N> --json body`, since `nen pr fetch` returns no body) — unfiled.
+- **`jujisho`.** § 4's base read-back after `nen pr retarget` (`gh pr view <B> --json baseRefName`), the
+  same gap as `getsuga`'s (zheref/hatsu#98).
+- **`izanagi`.** § 2's log of every mutating action across the run (object, action, iteration, time) is
+  the skill's own bookkeeping: no `nen` verb keeps a run-wide ledger the way `nen label apply` keeps one
+  per call (unfiled).
+- **`tensho`.** § 5's changed-file list handed to `nen gate derive --files-from`, since no `nen` verb
+  fetches a remote PR's changed-file set (unfiled).
+- **`backlog-state`.** § 3's `gh pr list --repo <owner/name> --state open` cross-check for a lone PR that
+  references no open issue, the one shape `nen backlog fetch` does not carry (unfiled).
+- **`backlog-synthesis`.** § 2's per-issue `gh issue view <n> --json body,comments` for § 3's grouping
+  read, since no `nen` verb fetches bodies, comments or the sub-issue graph in bulk (unfiled).
+- **`bankai-handbooks` and `bankai-quality`.** `bankai-handbooks` § 0's checkout of
+  `zheref/bankai-handbooks` at the pinned tag (clone, fetch, checkout and the `describe` gate), which
+  `bankai-quality` runs too, since `nen bootstrap` fetches only nen itself (unfiled).
 - **`kokusen`.** The explicit per-path `git -C <path> add -- <file>` and the drop of a just-written tip on
   `commit write`'s exit `3` (the undo line nen prints, `git -C <path> reset --soft HEAD~1` for a non-root
   commit; row `injected-attribution-trailer`) are the raw calls; the commit is
@@ -946,7 +967,7 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   `scripts/hatsu_plugin_update.sh`, as for `ten`; the served-version read-backs (`claude plugin list
   --json`, `codex plugin list`, `agy plugin validate`, a linked checkout's own `.claude-plugin/plugin.json`
   — never a placed marker, which carries no version since HA#530) and following a skill body
-  from the new path until the surface switches are done by hand. No nen verb owns a host's installed
+  from the new path until the surface switches are the session's own steps. No nen verb owns a host's installed
   plugin: an owned dependency, zheref/nen#298 (BC-11 reads the scripts' branching shell as a verb's
   job, a G4 question until the verb lands).
 - **`jusshin`.** The elevated launch on Windows has no verb by design: the session runs `nen runner script --json`'s own `launch` line (`Start-Process -Verb RunAs`) through the harness's own permission prompt — no allow row exists, so that prompt is the maintainer's advance consent — and the UAC consent and the typed service-account password are the maintainer's on-device acts, as `sudo bash <script>` on Linux and the Login Items approval on macOS are. Reading the one-line `register-<ts>.summary` newer than the launch is by hand, and the transcript is never read. The script is rendered outside the runner root; locking the root down, keeping the secrets off `config.cmd`'s argv and writing the summary file are nen's, owned in [zheref/nen#312](https://github.com/zheref/nen/issues/312). The shared `_work/_actions` cache across one host's runners, runner removal, organization runner groups and `--ephemeral` supervisors have no verb yet — owed, unfiled — and are named, never improvised.
@@ -966,12 +987,16 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   shares the primary's pool; companion jobs are kept out of the deciding call rather than struck. Under
   `direct.publish`, the marker read on an issue's comments is `gh api`, read-only, and `nen label` has no
   `--remove`, so an older `model/` label is named, never removed (zheref/nen#389). `nen direct registry|resolve|answer`
-  ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by #380), the pin zheref/hatsu#168 moved; on an older
+  ship in nen `v0.20.0` (zheref/nen#371, carried to `main` by NN-PR-#380), the pin zheref/hatsu#168 moved; on an older
   binary they are absent, § 2's probe says so, and `build` continues unrouted (row `missing-tool`).
+- **PR sections (`scripts/pr_sections.ts`).** `fold()` drops a companion job (`companion: true` in the
+  taxonomy) whenever a non-companion job is present; `nen pr sections family` still counts it, so the two
+  folds disagree on a mixed list until nen honours the flag (zheref/nen#642). The script stays Hatsu's
+  interim fold until then ([`PR-SECTIONS.md`](PR-SECTIONS.md) § *Resolve the run* step 1).
 - **`classify`.** The judgement — reading an issue's title, body and paths and deciding its `lang/` and
   `job/` keys (classify § 3) — is prose by design: nen owns operations, not reading an issue. The issue read
   is `nen classify status --with-body`'s. Every other step is the `nen classify` family (`labels`, `install`,
-  `status`, `apply`), which ships in nen `v0.20.0` (zheref/nen#370, carried to `main` by #380), the pin
+  `status`, `apply`), which ships in nen `v0.20.0` (zheref/nen#370, carried to `main` by NN-PR-#380), the pin
   zheref/hatsu#168 moved; on an older binary those verbs are absent, § 2's probe says so, and the skill
   continues where it can (row `missing-tool`: the judgement shown, nothing labelled by hand, ten § 2's install named).
   The GitHub half of a declaration is `nen classify install --sync`, with `nen labels sync` the whole-file form.
@@ -986,7 +1011,9 @@ pass files it through `hatsu:file` and replaces the word with the reference.
   close comments and the `pr` writers (zheref/nen#363) — is the script's alone. The committed named
   list (`scripts/private_name_named.txt`, the one name ruled public) reaches nen through `file` § 4's
   joined ignore file, because nen takes one; with it the script is BC-11 debt, frozen to fixes only, and
-  it retires when a nen private-name verb also checks a tree (zheref/nen#441).
+  it retires when a nen private-name verb also checks a tree (zheref/nen#441). And § 3's single-issue
+  close (`gh issue close`), since `nen issue consolidate-close` takes two or more children and a parent
+  (unfiled).
 - **`aka`.** The outgoing range's trailer read-back immediately before the push (§ 7 step 0), the same call over `<the SHA ls-remote printed | origin/<base>>..HEAD`, on `--repo <path>`; and the undo of `wc squash`'s exit `3`, `git -C <path> reset --soft ORIG_HEAD` (§ 4).
 - **`kagutsuchi` § 3a.** The freshness gate is `scripts/send_freshness_check.sh` — a `git fetch`,
   `rev-parse`, `rev-list` and `status --porcelain` over the archive's recorded build SHA — and the

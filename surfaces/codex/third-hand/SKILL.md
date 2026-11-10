@@ -57,7 +57,7 @@ starts, with `D10` unsatisfied and nothing to show for it. **Skipped when a comp
 run**, which has already warmed.
 
 **The state class Third-Hand inherits is `S3` — "this sitting".** § 1 resolves a clause-less
-invocation to *the PR En is holding, or the branch this session cut*. Typed by hand into a checkout
+invocation to *the PR En is holding, or the branch this session cut*. Typed by the maintainer into a checkout
 that never ran En, neither exists until they are read off the checkout.
 
 **P2 · Resolve the sitting, in this order, and name what it resolved to.** The table is **total** —
@@ -106,7 +106,7 @@ $third-hand [on <CODE>#<N>]
 nen parse third-hand --grammar "on [<ref>]" --line "<the invocation, minus the $third-hand prefix>"
 ```
 
-Verified live at nen `0.10.0` (`docs/ab/third-hand.md` § 2.1): `on HA#62` → `ref: HA#62` at exit
+Verified live, by 2026-09-15, at nen `0.10.0` (`docs/ab/third-hand.md` § 2.1): `on HA#62` → `ref: HA#62` at exit
 `0`; a bare `on` and an empty line both parse with the clause absent, also exit `0`. **No clause
 means this sitting** — the PR En is holding, or the branch this session cut, named out loud.
 

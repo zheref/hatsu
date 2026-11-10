@@ -1,15 +1,15 @@
 # Shared launch resolution and consumer migration
 
-Hatsu #48 owns the workflow contract. Nen #204 owns record extraction in the existing
-`nen shu dev/run --target` machinery. Hatsu #49 owns capture and reconciliation of new gaps.
+zheref/hatsu#48 owns the workflow contract. zheref/nen#204 owns record extraction in the existing
+`nen shu dev/run --target` machinery. zheref/hatsu#49 owns capture and reconciliation of new gaps.
 The consumer owns its concrete build, installation and launch commands. These are linked
 changes, not three copies of the same implementation.
 
 ## Availability and release boundary
 
 [Nen v0.9.0](https://github.com/zheref/nen/releases/tag/v0.9.0) publishes the implementation of
-[Nen #204](https://github.com/zheref/nen/issues/204) from [PR #206](https://github.com/zheref/nen/pull/206),
-released at the merge of [PR #208](https://github.com/zheref/nen/pull/208). Its three binaries and
+[zheref/nen#204](https://github.com/zheref/nen/issues/204) from [NN-PR-#206](https://github.com/zheref/nen/pull/206),
+released at the merge of [NN-PR-#208](https://github.com/zheref/nen/pull/208). Its three binaries and
 SHA256SUMS are published. Hatsu initially adopted extraction with `minimum: "0.9"` and
 `pinned_ref: "v0.9.0"`; Nen 0.8.0 does not execute `device.extract`. Hatsu's current dependency is
 declared in `nen/contract.json` and is Nen 0.10 for the explicit reviewer policy. Nen 0.9 kept compatibility floor 0.7 for
@@ -18,7 +18,7 @@ Verify the installed binary accepts the extraction declaration before changing a
 Retain the Apple-device normalizer (`ci_scripts/nen_apple_devices.py`) in the consumer that carries it
 (`<product-repo-A>`) until its declaration migration and successful physical build, install and
 launch; publishing the shared replacement is not consumer-device proof.
-Hatsu #49 was addressed by Hatsu PR #50 before the next Hatsu release. This migration guide does
+zheref/hatsu#49 was addressed by HA-PR-#50 before the next Hatsu release. This migration guide does
 not itself authorize a tag or release.
 
 ## Record ownership
@@ -82,7 +82,7 @@ change preserving UZF-19/UZF-26; consumer generated rules cannot repair their ow
 | Build succeeds but install/launch fails | Report the failed step and incomplete delivery |
 | No app target exists (Hatsu/Nen tooling) | Explicit no-launch skip |
 
-These are acceptance scenarios. Synthetic execution belongs to Nen #204's tests; actual device
+These are acceptance scenarios. Synthetic execution belongs to zheref/nen#204's tests; actual device
 execution belongs to the consumer migration. This document does not claim either ran merely
 because a row describes its expected outcome.
 
@@ -181,8 +181,8 @@ output, and name the on-device step that closes it** — `unauthorized` → the 
 replug or `adb kill-server`, `no permissions` → this host's USB rules. **Never fall back to the
 simulator for it**: the fallback answers "nobody plugged it in", and this device is one tap from
 working. Where the target declares `readyWhen`, **nen has already refused at exit `5`** naming the
-device, the state seen and the states accepted — relay that verbatim; where it declares none, read the
-state column by hand and **report the missing `readyWhen` as a declaration defect**.
+device, the state seen and the states accepted — relay that verbatim; where it declares none, the launching session reads the
+state column itself and **reports the missing `readyWhen` as a declaration defect**.
 
 **`device.name` is matched byte for byte** — exact string equality, no case folding, no Unicode
 normalisation, no punctuation smoothing — so a name carrying **U+2019** (`Sergio’s iPhone`) declared

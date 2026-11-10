@@ -108,7 +108,7 @@ when this surface is the recommended one, is [`../DIRECT-MATRIX.md`](../DIRECT-M
 | workspace bootstrap (legacy): copies under `<repo>/.agents/` | fast-forward, then `/ten` re-copies | a new conversation |
 
 `/bakuryuha` makes the global link where `.agents/` copies stood, fast-forwards the checkout the link
-names, validates the plugin with `agy plugin validate`, and ends with what to open. By hand:
+names, validates the plugin with `agy plugin validate`, and ends with what to open. To do it yourself:
 
 ```sh
 mkdir -p ~/.gemini/config/plugins

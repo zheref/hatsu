@@ -94,7 +94,7 @@ authority for the next one. Say when Mukai starts, say when it ends at the En of
 only on the automatic path — do not end the user turn while En still owns an ordinary pending state.
 
 **The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
-contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+contract for a phase the maintainer types into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
 says which composite is holding it instead.
@@ -108,7 +108,7 @@ says which composite is holding it instead.
 | 3 | **checkpoint review mutations** | [`/kokusen`](../kokusen/SKILL.md), then [`/ao`](../ao/SKILL.md) if the tree still needs catch-up | focused tests and a local commit for review/snapshot edits; no project-wide suite |
 | 4 | **impacted tests** | [`/kotoamatsukami`](../kotoamatsukami/SKILL.md) | the sole project-wide test run: unit, UI and integration suites this change can affect. No coverage capture |
 | 5 | **the coverage bar** | [`/byakugan`](../byakugan/SKILL.md) | capture and measure independently of those suites; if byakugan adds tests, repeat steps 3–5 |
-| 6 | **publish the proved tree** | [`/murasaki`](../murasaki/SKILL.md) | final catch-up check; if it changes any tree path, invalidate regression and coverage and return to steps 3–5; only an unchanged, fully proved tree is pushed, and only through murasaki § 6's one gated step — catch-up `noOp: true`, `HEAD` equal to the SHA steps 3–5 proved (printed and quoted), checks and the provenance check over the outgoing range each exit `0`, joined by `&&` (zheref/hatsu#188, #170); a typed composite's handoff passes through (aka § 0, second carve-out; HR-20) |
+| 6 | **publish the proved tree** | [`/murasaki`](../murasaki/SKILL.md) | final catch-up check; if it changes any tree path, invalidate regression and coverage and return to steps 3–5; only an unchanged, fully proved tree is pushed, and only through murasaki § 6's one gated step — catch-up `noOp: true`, `HEAD` equal to the SHA steps 3–5 proved (printed and quoted), checks and the provenance check over the outgoing range each exit `0`, joined by `&&` (zheref/hatsu#188, zheref/hatsu#170); a typed composite's handoff passes through (aka § 0, second carve-out; HR-20) |
 | 7 | **collect the evidence and section facts** | [`/kotoamatsukami`](../kotoamatsukami/SKILL.md)'s existing artifacts | build the `UZF-26` table without rerunning UI regression |
 | 8 | **compose and open** | [`/shibari`](../shibari/SKILL.md) | the body, checks, evidence, reviewers, and PR from the last pushed commit |
 | 8a | **the durable slice** | `nen pr ledger post` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers*, *The durable slice*; from nen 0.28) | one marker-keyed PR comment holding the effort's phases, usage, hanten findings and proof index, read by a resume on any clone; a later landing on the same PR updates it in place (`updated`/`unchanged`), never a second comment; a **successor PR** (en § 6, a base-deletion close) gets a fresh slice of its own, and the closed PR's is historical from then on. **The comment is public**, so three steps come first and any failing posts nothing: `scripts/ledger_findings_prepare.mts` holds the post (`security-unsettled`) while a `security` finding of severity `critical` or `high` is not `fixed`, and writes the findings copy with every absolute path relativised (only that copy is posted); then `--dry-run --json` is scanned by the pinned `gitleaks` (`contracts/scans.json` → `secretScan`; not-scanned is a stop). A hold, a scan hit, or a `findings-invalid`, `secret-shape`, `too-large` or `refused` verdict is quoted in step 9's report, never retried another way |
@@ -278,7 +278,7 @@ that owns it. A missing argument or configuration item is asked for and set up i
 that reads it (`missing-argument`, `missing-configuration`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § 4 *Ask, set up, continue*); a `project` lane or verb through `nen scaffold init`.
 
-> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned build** — verified live
+> **`nen schema check` VALIDATES `nen/workflow.json` at the pinned build** — verified live, by 2026-10-22
 > (`docs/ab/mukai.md` § *Retired at nen 0.5*): six rows, the sixth the workflow file, `ok`. A
 > malformed key is a FAIL by pointer, so no step here checks the shape by eye; every step still reads
 > the values and states the defaults it fell back to.
@@ -331,7 +331,7 @@ Verification is **How to verify** for products, **How a consumer verifies** for 
 
    > **RETIRED at nen `0.5`.** Six of the verbs this list used to call *missing* are in the pinned
    > binary — `pr cascade-main --no-push`, `shu test-report`, `shu coverage --touched`,
-   > `shu evidence`, `pr edit-body`, and both `report` verbs — each verified live before the entry
+   > `shu evidence`, `pr edit-body`, and both `report` verbs — each verified live, by 2026-09-10, before the entry
    > was rewritten, with the exit codes in the owning skill's `docs/ab/` file under *Retired at nen
    > 0.5*. **RETIRED at nen `0.13`**: the push, the commit and the PR are `wc publish`,
    > `commit write` and `pr open`; nothing here is by-hand git now.
