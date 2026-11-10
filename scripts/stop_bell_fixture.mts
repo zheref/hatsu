@@ -194,7 +194,11 @@ try {
   };
   const decoyBin = join(temp, 'decoy', 'osascript');
   mkdirSync(dirname(decoyBin), { recursive: true });
-  symlinkSync(spawnSync('sh', ['-c', 'command -v sleep'], { encoding: 'utf8' }).stdout.trim(), decoyBin); // a copied system binary is refused at launch on macOS
+  // macOS refuses a copied system binary, so the decoy is a symlink to sleep there. A multicall coreutils
+  // (uutils, the ubuntu-26.04 runner's) dispatches on its own name and exits at once as `osascript`, so on Linux
+  // the decoy is a script whose own process carries the name while it waits on sleep.
+  if (process.platform === 'linux') { writeFileSync(decoyBin, '#!/bin/sh\nsleep "$1"\n'); chmodSync(decoyBin, 0o755); }
+  else symlinkSync(spawnSync('sh', ['-c', 'command -v sleep'], { encoding: 'utf8' }).stdout.trim(), decoyBin);
   // 9. One marker, a notifier that hangs or ignores TERM, a one-second deadline.
   for (const mode of ['hang', 'stubborn']) {
     const dir = repo();
