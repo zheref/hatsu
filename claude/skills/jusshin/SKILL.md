@@ -344,7 +344,8 @@ x 0`; **exclusion edit pending** — that PR at `<gate>`; **live** — *nothing 
 ## Residue
 
 1. **The elevated launch has no verb** — the consent is the harness's prompt and then UAC, by design.
-2. **The summary read** — the launch time noted and the newest `register-*.summary` after it, by hand.
+2. **The summary read** — the launch time noted and the newest `register-*.summary` after it, read in
+   the session: no verb reads it (zheref/nen#647).
 3. Removal and deregistration — owed, unfiled.
 4. The shared `_work/_actions` cache — owed, unfiled.
 5. Runner groups on organization accounts; `--ephemeral` supervisors — owed, unfiled.

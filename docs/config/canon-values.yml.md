@@ -98,7 +98,7 @@ Exit `0` is current, `1` is drift, `2` is the invocation or the declaration, nev
 - **No `surfaces:` key.** `check` exits `2` with the sentence above. `limbo` § 3 treats it as `missing-configuration` ([WORKFLOW § 4](../WORKFLOW.md)): recommends from what is on disk (`.claude/`, `AGENTS.md` or `.codex/`, `.cursor/`, `.agents/`), asks once through the picker, writes the key, re-runs the check. Never `--surfaces` from its own head, never all four.
 - **A token is unbound.** The generator fails closed (`zheref/bankai-handbooks`, `.claude/rules/03-tokens.md`); the missing binding is the consumer's to add, never a value guessed from the illustrative example.
 - **No pin, or a non-tag pin.** `nen canon pin` exits `1`; `limbo` § 2 step 2 asks for the tag, typed, and records it in `nen/repos.json`; a floating `--ref` is refused by nen.
-- **No `iteration.canonMirror.command`.** `tenkai` § 6c names the routed gap; until it is set the regenerate is `hatsu:limbo`, by hand (`limbo` § *Residue* 6).
+- **No `iteration.canonMirror.command`.** `tenkai` § 6c names the routed gap; until it is set the regenerate is a `hatsu:limbo` run (`limbo` § *Residue* 6; adopting the portable command nen now accepts is [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578)).
 - **A destination is hand-edited.** `G5` before any write: `nen/decisions.json` row `hand-edited-canon-mirror` carries the three remedies (file the rule upstream, move it to a file the mirror does not own, or `git rm` a predecessor generator's mirror).
 
 ## Known gaps

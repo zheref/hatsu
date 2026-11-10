@@ -6,14 +6,13 @@ description: Satisfy D10; bind the effort before target writes/catch-up. P1 of e
 
 # Ten — the Nen contract, executed; prerequisites caught up
 
-**`nen/contract.json` at the plugin root is the single source of truth**; every value here is a
-copy; the contract wins. Run first, every session. Transmuter. `/ten [<phase>]`.
+**`nen/contract.json` at the plugin root is the single source of truth**: every value here is a
+copy it beats. Run first, every session. Transmuter. `/ten [<phase>]`.
 
 ## 0 · Resolve the root, THEN read the contract yourself
 
-The resolver is the plugin root's, walking a handed skill directory up to it (#105).
-A newer checkout in front of you is named, never bound — `export HATSU_PLUGIN_ROOT` binds it
-(using/README.md, #67).
+The resolver is the plugin root's (HA#105); a newer checkout is named, never bound — `export
+HATSU_PLUGIN_ROOT` binds it (using/README.md, HA#67).
 
 ```bash
 <base_dir>/../../../scripts/hatsu_root.sh <base_dir>  # under $HATSU_PLUGIN_ROOT/ first, else as shown, else ../../../../; 1 = NOT INSTALLED: stop; --quoted: a literal
@@ -22,7 +21,7 @@ nen schema check --repo <hatsu_root>  # once nen is on PATH
 ```
 
 **`$hatsu_root` in any skill block is that printed path, typed** — one plain call per line,
-never an export (#218).
+never an export (HA#218).
 
 **You are the JSON parser**: `dependency.minimum`, `.pinned_ref`, `.source`, `.version_probe` and
 `.bootstrap.url` are literal values — **no `jq`, `yq`, `python`, no version from
@@ -31,7 +30,7 @@ values; **a `FAIL` on either stops this gate**.
 
 ## 0a · Adoption is Tenkai's; this skill VERIFIES
 
-Pin, reachability (§ 2c), source (§ 4b): Ten. Adoption: `tenkai`:
+Adoption: `tenkai`:
 `"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <target> --json`, read-only, no pipe.
 **Report, never repair** findings in the inbox: `pr.sections` stale/missing counts and stamp/catalogue
 sha7s; current: none. Missing argument/value: ask/set inline
@@ -51,17 +50,17 @@ then § 2c; there its exit only feeds the predicate — `5` and `2` quoted in
 row → § 2 — `WRONG` with a repin remedy (pin below floor: a `nen/contract.json`
 PR moving `bootstrap.sha256` too, GATE-CONFIGURATION;
 never an install), `WRONG` without one, `MISSING`, or the verb absent. Not found or
-unparseable is absent — § 2 too. Exit `5` per non-`ok` row (`BEHIND` `7`; coverage-only: PROCESS), never `1`. The
+unparseable: absent, § 2 too. Exit `5` per non-`ok` row (`BEHIND` `7`; coverage-only: PROCESS), never `1`. The
 range rule is the contract's; a pre-floor build prints no floor line — said, never
 inferred.
 
 ## 2 · Auto-install — host first, session as fallback
 
-Absent or unsatisfied is an install, not a halt. **The host is the DEFAULT** (ROSTER § Rulings of
-2026-09-30, ruling A): **the hook acts, § 2c
+Absent or unsatisfied is an install, not a halt. **The host is the DEFAULT** (ROSTER,
+2026-09-30 ruling A): **the hook acts, § 2c
 verifies.** Its checksum-verified shell two-step is **the sanctioned exception to *shell only when
 nen is absent***. **The session always resolves the pin** — through the host link (`PATH` prefixed
-per call) or, where the host was not bound, the session bind.
+per call), else the session bind.
 
 ```bash
 "$hatsu_root/scripts/nen_global.sh" --root "$hatsu_root"  # host: bootstrap if ≠ pin, link, rc PATH block
@@ -87,18 +86,17 @@ mkdir -p <d>/bin
 ln -sfn <verified> <d>/bin/nen  # only once every line above exited 0
 ```
 
-- **Each line is one call, its exit read before the next** (the refused `||`).
-  **Fetch to a file; never pipe the script into bash** (piped, it **exits `1`**); the shell line
+- **Each line is one call, its exit read before the next** (the refused `||`); the shell line
   only with nen absent; the verb line's `--script` required, `--source` shape-checked; `rc` quoted.
-- Later calls take `<d>/bin` as `gh_token_env.sh --path <d>/bin` (recorded); a `PATH=<d>/bin:$PATH`
-  prefix is unproven against the guard (`docs/ab/worktree-isolation.md`).
-- Never copy or rename the binary. Publishing `nen` itself → the verb line for its tag
+- Later calls take `<d>/bin` as `gh_token_env.sh --path <d>/bin`; a `PATH=` prefix is unproven
+  (`docs/ab/worktree-isolation.md`).
+- Publishing `nen` itself → the verb line for its tag
   (`mugetsu` § 7); the host link follows the repin (§ 4b, `bakuryuha`).
 
 ## 2c · Reachable, not merely installed
 
-§§ 1–2 prove `nen` runs for this session; handed-back argv runs in the **maintainer's own
-shell** (#164). Ask it once, after § 2, never this session's `PATH`:
+Handed-back argv runs in the **maintainer's own shell**, not here (HA#164). Ask it once, after
+§ 2, never this session's `PATH`:
 
 ```bash
 "$hatsu_root/scripts/nen_reach_probe.sh" --root "$hatsu_root"  # $SHELL -lic, root as $1, stdin /dev/null
@@ -130,8 +128,8 @@ improvised (D10): that report is *correct*.
 
 ## 4 · Report, in one line
 
-**Every value is quoted from `nen shu tools`, never assembled or inferred from the pin** (the
-fields: PROCESS § *Reporting a phase*, *ten § 4*). A clear run reads
+**Every value is quoted from `nen shu tools`** (never inferred: PROCESS § *Reporting a phase*,
+*ten § 4*). A clear run reads
 `Nen <v> · floor <f> · satisfies <range> · host: reachable at <path> · warm-up clear`, beside it
 § 2's `nen-global:` token (exit, summary line; `5`/`2` on § 1's `ok` route) and **which `nen` § 2
 bound** (host link or session bind), every route; an install adds `bootstrapped to <ref> (checksum
@@ -149,11 +147,11 @@ grants none. Only effort-owned isolated Hatsu source may refresh as `hatsu_root`
 Dependency/host setup stays separate.
 
 Eligible: `"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --auto`.
-Quote skips (#67; README § *Shared rules the warm-up follows*), continue.
+Quote skips (HA#67; README § *Shared rules the warm-up follows*), continue.
 
 ## 5 · Surfaces — what a target gets
 
-Read-only/no-phase: **skip placement/provisioning**. Setup is Tenkai's. Retain § 4b's target/root/cwd;
+Read-only/no-phase: **skip placement/provisioning**. Retain § 4b's target/root/cwd;
 failed isolation stops writes. Codex: `docs/surfaces/codex.md` § 5's write probe/recovery first.
 Installation: mirrors.md § 2.
 
@@ -198,8 +196,14 @@ stop at the maintainer's call. No phase → none. Breath/ao skip preservation, n
 Step 7's exception (ROSTER ruling 2b): a typed `futon` `then` step is the maintainer's call **for
 the skill it names only**; an unnamed one still stops, named. Suggested next steps: ruling 7.
 
-## Residue
+## Residue, authority and hard limits
 
-PROCESS § Residue (§ 2c's probe, § 6's `gh`/`git` reads). **Not `nen warmup`** (read-only) nor
-**`nen shu warmup`** (breath's): **this skill first**, then `nen warmup --current <vX.Y.Z>` on the
-target.
+PROCESS § Residue (§ 2c's probe, § 6's `gh`/`git` reads; why neither `nen warmup` verb is
+this skill). **This skill first**, then `nen warmup --current <vX.Y.Z>` on the target.
+
+**Authority:** on standing canon (D10; ROSTER 2026-09-30 ruling A): § 1, § 2c probes, § 2's binds,
+§ 4b's effort bind and plugin refresh; on the calling phase's word: § 5's placement, § 6's catch-up;
+on the maintainer's word only: § 2c option A. Setup is Tenkai's (§ 0a); no contract edit.
+
+**Hard limits:** fetch to a file, never piped to bash (it exits `1`); never copy or rename the
+binary.

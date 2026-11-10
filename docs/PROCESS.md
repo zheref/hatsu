@@ -808,7 +808,9 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   login-shell probe (`scripts/nen_reach_probe.sh --root "$hatsu_root"`, which runs `"$SHELL" -lic 'command -v nen && nen shu tools --repo "$1"' nen-probe <root> </dev/null`, zheref/hatsu#218) and the name-correct host link ten § 2c offers as the fallback by its
   offer predicate (stated once there, verbatim in row `host-nen-link`) are the same kind (zheref/hatsu#164): a shell's `PATH` is the maintainer's, and nen binds no name on a host. § 6's reads —
   `gh auth status`/`gh auth token`, `gh pr list --head <branch> --state all`, `git branch --merged origin/<branch.base>` — are hand-spelt too; an unnamed human-call prerequisite at its step 7 stops,
-  named, and the maintainer names the skill it is for by typing `then aka+mukai`.
+  named, and the maintainer names the skill it is for by typing `then aka+mukai`. Neither warm-up
+  verb is this skill: `nen warmup` is the target's read-only policy sweep and `nen shu warmup` is
+  breath's working-copy warm-up, so ten runs first, then `nen warmup --current <vX.Y.Z>` on the target.
   Cursor's version check is a string compare on a date part; the host-global half of the skill-name
   collision question has no answer from inside a repository. **§ 5's Claude Code `mirrors:` is
   `nen surface status` (the retired `nen surface status`'s job, zheref/hatsu#289 item 6)**, a byte comparison with six exit codes (five verdicts and a wiring stop) that no verb owns: an
@@ -959,6 +961,29 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
 - **`bankai-handbooks` and `bankai-quality`.** `bankai-handbooks` § 0's checkout of
   `zheref/bankai-handbooks` at the pinned tag (clone, fetch, checkout and the `describe` gate), which
   `bankai-quality` runs too, since `nen bootstrap` fetches only nen itself (unfiled).
+- **`amaterasu`.** § 3a's delegation, purpose and report wording are a ruled boundary
+  ([HR-390](ROSTER.md#hr-390)); § 3a's third condition, that no other session holds the app, is owned
+  by [zheref/nen#536](https://github.com/zheref/nen/issues/536); record discovery is
+  [zheref/nen#204](https://github.com/zheref/nen/issues/204).
+- **`bankai-quality` § 4.** The comparison against QA-13's absolute ceilings, which a zero baseline
+  leaves to the session, is owned by [zheref/nen#651](https://github.com/zheref/nen/issues/651).
+- **`byakugan`.** The touched set's exclusions, read from the repository's own coverage configuration,
+  are owned by [zheref/nen#645](https://github.com/zheref/nen/issues/645).
+- **`great-hiker`.** The delta table assembled from `--json` output is owned by
+  [zheref/nen#646](https://github.com/zheref/nen/issues/646); the schedule's dry step is unfiled.
+- **`limbo`.** Residue 6, the canon-values regenerate nen now resolves itself (zheref/nen#294), is owed
+  its adoption, [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578).
+- **`mugetsu`.** Residues 1 and 5 (the recorded go, the `nonProduction` field) are owed their adoption,
+  [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579); residue 4's post-cut preflight reading
+  is [zheref/nen#649](https://github.com/zheref/nen/issues/649); residue 6's GitHub Release state read
+  is [zheref/nen#652](https://github.com/zheref/nen/issues/652); the per-run log is
+  [zheref/nen#91](https://github.com/zheref/nen/issues/91).
+- **`rasengan`.** Watching a lane that declares no `stall`, and running its prose remedy, is a ruled
+  boundary in both rows ([HR-390](ROSTER.md#hr-390)); the per-run log is
+  [zheref/nen#91](https://github.com/zheref/nen/issues/91).
+- **`susanoo`.** An artifact's size, its freshness against the proved build and its digest are owned by
+  [zheref/nen#648](https://github.com/zheref/nen/issues/648); the per-run log is
+  [zheref/nen#91](https://github.com/zheref/nen/issues/91).
 - **`kokusen`.** The explicit per-path `git -C <path> add -- <file>` and the drop of a just-written tip on
   `commit write`'s exit `3` (the undo line nen prints, `git -C <path> reset --soft HEAD~1` for a non-root
   commit; row `injected-attribution-trailer`) are the raw calls; the commit is
@@ -970,7 +995,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   from the new path until the surface switches are the session's own steps. No nen verb owns a host's installed
   plugin: an owned dependency, zheref/nen#298 (BC-11 reads the scripts' branching shell as a verb's
   job, a G4 question until the verb lands).
-- **`jusshin`.** The elevated launch on Windows has no verb by design: the session runs `nen runner script --json`'s own `launch` line (`Start-Process -Verb RunAs`) through the harness's own permission prompt — no allow row exists, so that prompt is the maintainer's advance consent — and the UAC consent and the typed service-account password are the maintainer's on-device acts, as `sudo bash <script>` on Linux and the Login Items approval on macOS are. Reading the one-line `register-<ts>.summary` newer than the launch is by hand, and the transcript is never read. The script is rendered outside the runner root; locking the root down, keeping the secrets off `config.cmd`'s argv and writing the summary file are nen's, owned in [zheref/nen#312](https://github.com/zheref/nen/issues/312). The shared `_work/_actions` cache across one host's runners, runner removal, organization runner groups and `--ephemeral` supervisors have no verb yet — owed, unfiled — and are named, never improvised.
+- **`jusshin`.** The elevated launch on Windows has no verb by design: the session runs `nen runner script --json`'s own `launch` line (`Start-Process -Verb RunAs`) through the harness's own permission prompt — no allow row exists, so that prompt is the maintainer's advance consent — and the UAC consent and the typed service-account password are the maintainer's on-device acts, as `sudo bash <script>` on Linux and the Login Items approval on macOS are. Reading the one-line `register-<ts>.summary` newer than the launch is the session's, owned by [zheref/nen#647](https://github.com/zheref/nen/issues/647), and the transcript is never read. The script is rendered outside the runner root; locking the root down, keeping the secrets off `config.cmd`'s argv and writing the summary file are nen's, owned in [zheref/nen#312](https://github.com/zheref/nen/issues/312). The shared `_work/_actions` cache across one host's runners, runner removal, organization runner groups and `--ephemeral` supervisors have no verb yet — owed, unfiled — and are named, never improvised.
 - **`rikugan`.** Which objects the last completed workflow touched is read from that run's own record
   and the checkout (`gh pr list --head <branch> --state all`, the PR body's closing lines) — no nen verb
   derives a run's scope; `nen report data --base origin/<branch.base> --prs <n,...> --issues <n,...>`

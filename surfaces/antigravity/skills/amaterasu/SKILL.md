@@ -107,8 +107,8 @@ half-swapped core.
 four** hold: the maintainer's written delegation **names the device and the target**; the purpose is
 **a declaration under review**, never a turn's launch, `ren`'s phase four or a composite; **no other
 session holds the app**; and **the report says so, in these words** — *"validation launch from a non-core checkout: `<path>`; delegation names device `<name>` and
-target `<key>`; declaration PR `<url>`"* — with the preconditions satisfied by hand. **Everything
-outside those four is forbidden.**
+target `<key>`; declaration PR `<url>`"* — each precondition read and stated in that report (§ 5's boundary and residue).
+**Everything outside those four is forbidden.**
 
 ## 4. Resolving the device, the dry run, and the command you paste
 
@@ -146,7 +146,10 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 
 ## 5. Residue
 
-**By hand:** § 3a's four conditions. **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a
+**A boundary ([HR-390](../../../../docs/ROSTER.md#hr-390)):** § 3a's delegation, purpose and report
+wording — the maintainer's written delegation and the session's read of it, which no verb owns.
+**§ 3a's third condition** (no other session holds the app) is residue owned by
+zheref/nen#536. **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a
 jujutsu PR writes the rule. **No default target ever**, **no `--` passthrough** (an undeclared argv
 is an unreviewed one), and **nothing in nen stops a long-running child**.
 

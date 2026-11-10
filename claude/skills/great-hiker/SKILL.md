@@ -155,8 +155,8 @@ rule is waived is evidence to file, not a waiver.
 
 1. **The schedule** is [`schedule.md`](../../../docs/config/schedule.md)'s `drift-pass`, a Desktop task
    only the maintainer registers (HR-354); its dry step is the prompt's, no flag (unfiled).
-2. **The delta table is assembled by hand from `--json` output** until `nen surface mirror generate`
-   emits it as one document. Named here so the by-hand step is visible, never silent.
+2. **The delta table is assembled from `--json` output**; one per-surface document is
+   zheref/nen#646. Named so the step is visible, never silent.
 3. **`nen parse` carries no alternation**, so the two shapes are two parses (§ 1). One grammar for
    both is a nen request, not a Hatsu workaround.
 

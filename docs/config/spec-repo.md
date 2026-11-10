@@ -51,14 +51,25 @@ As [`ports.md`](ports.md) § *Shared conventions* states them: `{slug}` (a capab
 
 ## Citations and markers
 
-Every FR, SC, story line, entity field, product rule and quoted value ends in **exactly one** of:
+Every FR, SC, story line, entity field, product rule and quoted value ends in **exactly one** of the
+four forms below. They are written in a fenced definition block on purpose: the block is the
+vocabulary *named*, never a question asked, so the canon prose lint's open-question rule (PL-11),
+which exempts fenced code (HR-13), reads none of them as an unshaped marker
+([HR-389](../ROSTER.md#hr-389)). Written outside such a block in canon prose, a marker is still held to
+PL-11's shape and ledger reference.
 
-| Form | Meaning |
-|---|---|
-| `[src: <CODE>:<path>:<l1>-<l2> @ <sha> · <tier>]` | a citation: the member by product code, the file, the line range, the commit, the tier below. Several citations may follow one sentence (one per member); each resolves on its own |
-| `[NEEDS CLARIFICATION: <question>]` | a question a picker can settle (row `spec-clarify`); the question is written as it will be asked |
-| `[NEEDS RULING]` | a value only the maintainer's word may supply — a priority, an audience, a threshold, *intentional* — never derived (WORKFLOW § 4, *The maintainer's word is never derived*) |
-| `[UNVERIFIED]` | a statement whose backing row or citation could not be verified (row `spec-claim-unverified`) |
+```text
+[src: <CODE>:<path>:<l1>-<l2> @ <sha> · <tier>]
+    a citation: the member by product code, the file, the line range, the commit, the tier
+    below. Several citations may follow one sentence (one per member); each resolves on its own
+[NEEDS CLARIFICATION: <question>]
+    a question a picker can settle (row spec-clarify); the question is written as it will be asked
+[NEEDS RULING]
+    a value only the maintainer's word may supply (a priority, an audience, a threshold,
+    intentional), never derived (WORKFLOW § 4, The maintainer's word is never derived)
+[UNVERIFIED]
+    a statement whose backing row or citation could not be verified (row spec-claim-unverified)
+```
 
 Two more forms are written by later phases and never by the capture author: `[ruled: CL-nnn]` (an answered clarification, in place of the marker it settled) and `[STALE @ <old sha>]` (recapture, beside the sentence whose range moved or vanished — the sentence is never deleted). **A sentence with no backing row and no marker is a high-severity challenge finding.** Marker counts per kind (CLARIFICATION · RULING · UNVERIFIED) are printed per folder in every spec PR body, in `specs/INDEX.md` and on the desk.
 
@@ -81,7 +92,7 @@ One persistence model (HR-6 makes `spec.md` canon; the *living spec* shape is th
 | File | Rule |
 |---|---|
 | `.specify/memory/constitution.md` | merged **before any capability folder**; cites `CON-{n}`, `UZF-`, `SEC-`, `UX-`, `REL-`, `QA-` and each member's `SW-`/`KT-`/`RC-` ids, never restates them (CON-13); its *Product rules* are each cited or marked; *Spec discipline* cites this page |
-| `specs/{nnn}-{slug}/spec.md` | the pinned template; header with the sources (fenced), the capture sha per member, the SEC-15 line and, where `nen spec inventory` could not run (a nen whose `nen --help` lacks the verb, below the pin), the line **`inventory prose-made, unverified`**; stories with priority `[NEEDS RULING]` until typed; *Assumptions* holds only `[ruled: CL-nnn]` lines; `## Clarifications` → `### Session YYYY-MM-DD`, each `CL-nnn` carrying the question as asked, the options shown, the answer **verbatim**, the date and the lines it ruled — written with the surface's file tool, never a heredoc |
+| `specs/{nnn}-{slug}/spec.md` | the pinned template; header with the sources (fenced), the capture sha per member, the SEC-15 line and, where `nen spec inventory` could not run (a nen whose `nen --help` lacks the verb, below the pin), the line **`inventory prose-made, unverified`**; stories carry the RULING marker of § *Citations and markers* as their priority until typed; *Assumptions* holds only `[ruled: CL-nnn]` lines; `## Clarifications` → `### Session YYYY-MM-DD`, each `CL-nnn` carrying the question as asked, the options shown, the answer **verbatim**, the date and the lines it ruled — written with the surface's file tool, never a heredoc |
 | `plan.md` | one file per the pinned layout: technical context, the constitution check, one `## Platform: <member>` section per member, decisions and divergences by `PT-n` or `CL-nnn` |
 | `data-model.md`, `contracts/`, `research.md`, `quickstart.md` | entities with per-platform citations; contracts **copied** from source at a sha, never retyped; the rows used plus inferred rows awaiting promotion; the declared launch rows |
 | `tasks.md` | delivered behaviour as `- [x] captured — <cite>`, gaps as `- [ ] <text> (FR-###)` grouped by story and platform; `- [x] delivered — <PR>` **only** when a merged PR's Development link closes an issue citing the folder, never from a path search; convergence appends `## Phase N: Convergence <date>` (§ *The tasks grammar*) |

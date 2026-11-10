@@ -325,7 +325,8 @@ artifact nen reads (a declaration defect, to propose at the **declaration gate**
 1. **The capture file** (`.nen/regression/<lane>.json`, `hatsu.regression-capture/v0.1`) — Hatsu
    residue, not Nen output (§ 3).
 2. **The touched set's exclusions** (§ 5, rules 2 and 2b) — read from the repository's own
-   coverage configuration by hand.
+   coverage configuration, since no declared exclusion set exists for nen to apply
+   ([zheref/nen#645](https://github.com/zheref/nen/issues/645)).
 3. **Deciding whether a test asserts anything** stays judgment (§ 6).
 4. **RETIRED at nen `0.5`: `nen shu coverage --touched --base <ref>`**, per-file bands, and the
    ladder read — those are the verb's. What stays this skill's is naming *why* each `unmatched`

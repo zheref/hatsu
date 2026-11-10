@@ -44,7 +44,7 @@ on Cursor and Antigravity.
 | rules file | none | `AGENTS.override.md` (32 KiB cap) | `.cursor/rules/hatsu.mdc` | `rules/hatsu.md`, 12,000 characters max |
 | invocation spelling | `hatsu:<name>` | `$hatsu:<name>` (plugin); `$<name>` (legacy copy) | `/<name>` | `/<name>` |
 | turn-end hook | **yes**, `Stop` in `hooks/hooks.json` | **yes**, `Stop` in `surfaces/codex/hooks.json`, named by the plugin overlay (legacy: `.codex/hooks.json`) | **yes**, `stop` in `.cursor/hooks.json` | **yes**, `Stop` in the plugin's `hooks.json` |
-| session-start hook | `SessionStart`, `hooks/session-start.sh` (binds the pinned `nen` on the host first — `scripts/nen_global.sh`: `~/.local/bin/nen` and the rc PATH block, opt-out `HATSU_NEN_GLOBAL=0` — then a reminder; the plugin is read in place) | `SessionStart` (the nen binding, then the mirror refresh, adopted repositories only) | `sessionStart` (the same) | `PreInvocation` (no `SessionStart` exists; the same) |
+| session-start hook | `SessionStart`, `hooks/session-start.sh` (binds the pinned `nen` on the host first — `scripts/nen_global.sh`: `~/.local/bin/nen` and the rc PATH block, opt-out `HATSU_NEN_GLOBAL=0` — then a reminder; the plugin is read in place) | `SessionStart` (the nen binding, then the mirror refresh, adopted repositories only) | `sessionStart` (the same) | `SessionStart` (the same; nen `v0.29.0` on, [`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 4; documented, not yet observed firing) |
 | live desk pane | **yes**: the `hooks/desk` module (`modules` in `hooks/hooks.json`) opens it where the checkout declares `nen/workflow.json`; `/hatsu-desk` reopens it; tested on the `desk-guard` lane | no | no | no |
 | trunk guard | `PreToolUse` on `Bash`, `permissionDecision: deny` | `PreToolUse`, `permissionDecision: deny` (`ask` not honoured yet) | `beforeShellExecution`, `permission: deny` | `PreToolUse` on `run_command`, `decision: deny` |
 | permissions | `.claude/settings.local.json`, `Bash(<exe> <args>)` | `.codex/config.toml`: `sandbox_mode`, `writable_roots` (the one root-scoped surface) | `.cursor/cli.json`, `Shell(<exe> <args>)` | per-agent `commandExecutionPolicy`; the guard is the enforcement |
@@ -300,7 +300,8 @@ on stderr which pin this session bound, that the skill bodies already inlined ar
 read the tree's protocol (`<checkout>/claude/skills/<name>/SKILL.md`) and the quoted
 `export HATSU_PLUGIN_ROOT='<checkout>'` — candidate 1, the maintainer's word — that binds the tree from
 the next session. The effective order is unchanged: `$HATSU_PLUGIN_ROOT`, the handed path,
-`$CLAUDE_PLUGIN_ROOT`; the tree is a fourth only in the sense that it is named. Three limits, stated:
+`$CLAUDE_PLUGIN_ROOT`, the resolver being the plugin root's own, which walks a handed skill directory
+up to that root (zheref/hatsu#105); the tree is a fourth only in the sense that it is named. Three limits, stated:
 the line exists from the first installed pin whose resolver carries it (0.53.0 or later — `ten` § 0
 runs the bound pin's own resolver, so an older pin says nothing and the export is the only form); on
 Claude Code the slash-skill bodies are always the installed pin's (no mirror, § 2), so binding the tree

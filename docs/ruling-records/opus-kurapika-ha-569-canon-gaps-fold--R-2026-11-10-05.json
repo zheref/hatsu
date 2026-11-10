@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-10-05",
+  "effortId": "opus-kurapika-ha-569-canon-gaps-fold",
+  "n": 3,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HR-388's question named 'OQ-/AS- markers', but the five PL-11 rows it cleared are the NEEDS-form markers. Does your fenced-block ruling cover those NEEDS forms?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Yes, it covers them ⭐ (Recommended)",
+      "consequence": "Recorded as a new confirmation record cited from HR-388; Nobunaga's N6 becomes fixed and the ruled row's words stay untouched (HR-2)."
+    },
+    {
+      "key": "B",
+      "label": "No, re-ask it",
+      "consequence": "HR-388 is pulled from D6 and the NEEDS-form rows return to the baseline until a new ruling."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-10T03:32:45.810Z"
+}
