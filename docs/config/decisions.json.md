@@ -73,7 +73,7 @@ The rows at the time of writing, with the class, the default or gate, and the sk
 | `release-precondition-red` | `nen changelog collate --write`, then `nen changelog completeness`; reconcile in the same chunk and re-run `nen release preflight`. An active `RELEASE_HOLD` and an open critical issue stay human gates | `hatsu:getsuga` |
 | `staging-flag` | Skip ignored, large and out-of-scope paths; mention-or-skip an unmentioned deletion; commit local-config and binary paths only when the request named them. Six of `nen stage triage`'s seven flag kinds; the seventh is `secret-shape` | `hatsu:kokusen` |
 | `classify-undecidable` | Leave the axis empty, list the issue as undecidable with the reason; low-confidence keys are listed and never applied (`nen classify apply --include-low` is the maintainer's own hand) | `hatsu:classify`, `hatsu:build` |
-| `spec-claim-unverified` | A spec statement with no backing inventory row, an unresolvable citation or an inferred value gets exactly one marker in place of prose — the CLARIFICATION, RULING or UNVERIFIED form, defined in the fenced block of [`spec-repo.md`](spec-repo.md) § *Citations and markers* ([HR-388](../ROSTER.md#hr-388)); the sentence is kept and counted per folder | `hatsu:dowsing-chain` |
+| `spec-claim-unverified` | A spec statement with no backing inventory row, an unresolvable citation or an inferred value gets exactly one marker in place of prose — the CLARIFICATION, RULING or UNVERIFIED form, defined in the fenced block of [`spec-repo.md`](spec-repo.md) § *Citations and markers* ([HR-389](../ROSTER.md#hr-389)); the sentence is kept and counted per folder | `hatsu:dowsing-chain` |
 
 </details>
 

@@ -143,7 +143,7 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 
 ## 5. Residue
 
-**A boundary ([HR-389](../../../docs/ROSTER.md#hr-389)):** § 3a's delegation, purpose and report
+**A boundary ([HR-390](../../../docs/ROSTER.md#hr-390)):** § 3a's delegation, purpose and report
 wording — the maintainer's written delegation and the session's read of it, which no verb owns.
 **§ 3a's third condition** (no other session holds the app) is residue owned by
 [zheref/nen#536](https://github.com/zheref/nen/issues/536). **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a

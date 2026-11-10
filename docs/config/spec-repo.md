@@ -55,7 +55,7 @@ Every FR, SC, story line, entity field, product rule and quoted value ends in **
 four forms below. They are written in a fenced definition block on purpose: the block is the
 vocabulary *named*, never a question asked, so the canon prose lint's open-question rule (PL-11),
 which exempts fenced code (HR-13), reads none of them as an unshaped marker
-([HR-388](../ROSTER.md#hr-388)). Written outside such a block in canon prose, a marker is still held to
+([HR-389](../ROSTER.md#hr-389)). Written outside such a block in canon prose, a marker is still held to
 PL-11's shape and ledger reference.
 
 ```text

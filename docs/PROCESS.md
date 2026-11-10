@@ -962,7 +962,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   `zheref/bankai-handbooks` at the pinned tag (clone, fetch, checkout and the `describe` gate), which
   `bankai-quality` runs too, since `nen bootstrap` fetches only nen itself (unfiled).
 - **`amaterasu`.** § 3a's delegation, purpose and report wording are a ruled boundary
-  ([HR-389](ROSTER.md#hr-389)); § 3a's third condition, that no other session holds the app, is owned
+  ([HR-390](ROSTER.md#hr-390)); § 3a's third condition, that no other session holds the app, is owned
   by [zheref/nen#536](https://github.com/zheref/nen/issues/536); record discovery is
   [zheref/nen#204](https://github.com/zheref/nen/issues/204).
 - **`bankai-quality` § 4.** The comparison against QA-13's absolute ceilings, which a zero baseline
@@ -979,7 +979,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   is [zheref/nen#652](https://github.com/zheref/nen/issues/652); the per-run log is
   [zheref/nen#91](https://github.com/zheref/nen/issues/91).
 - **`rasengan`.** Watching a lane that declares no `stall`, and running its prose remedy, is a ruled
-  boundary in both rows ([HR-389](ROSTER.md#hr-389)); the per-run log is
+  boundary in both rows ([HR-390](ROSTER.md#hr-390)); the per-run log is
   [zheref/nen#91](https://github.com/zheref/nen/issues/91).
 - **`susanoo`.** An artifact's size, its freshness against the proved build and its digest are owned by
   [zheref/nen#648](https://github.com/zheref/nen/issues/648); the per-run log is
