@@ -44,6 +44,11 @@ try {
   if (issue.join(' ') !== 'api --method GET repos/zheref/hatsu/issues/326 --jq .pull_request') {
     throw new Error('issue-to-PR lookup is not a fixed GET');
   }
+  const head = run(['pr-head', 'zheref/hatsu', '577'], true);
+  if (head.slice(0, 4).join(' ') !== 'api --method GET repos/zheref/hatsu/pulls/577' || head[4] !== '--jq' ||
+      !/headRepo:\.head\.repo\.full_name/.test(head[5] ?? '') || !/baseRepo:\.base\.repo\.full_name/.test(head[5] ?? '')) {
+    throw new Error('PR head read is not a fixed GET projecting head SHA and both repositories');
+  }
   const workflow = run(['workflow-content', 'zheref/hatsu', 'main'], true);
   if (workflow.join(' ') !== 'api --method GET repos/zheref/hatsu/contents/nen/workflow.json?ref=main -H Accept: application/vnd.github.raw') {
     throw new Error('workflow content lost the fixed ref query or raw header');
@@ -75,6 +80,8 @@ try {
     ['issue-pr', 'zheref/hatsu', '1/pulls/1/merge'],
     ['issue-pr', 'zheref/hatsu', '0'],
     ['tag-ref', 'zheref/hatsu', '../pulls/1/merge'],
+    ['pr-head', 'zheref/hatsu', '1/merge'],
+    ['pr-head', 'zheref/hatsu', '577', '--method', 'PUT'],
     ['graphql', 'mutation { mergePullRequest(input:{pullRequestId:"x"}) { clientMutationId } }'],
     ['issue-edits', 'zheref/hatsu', '326', 'mutation { mergePullRequest }'],
     ['actions-timing', 'zheref/hatsu', '123', '--method', 'DELETE'],
