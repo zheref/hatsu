@@ -10,9 +10,8 @@ copy it beats. Run first, every session. Transmuter. `hatsu:ten [<phase>]`.
 
 ## 0 · Resolve the root, THEN read the contract yourself
 
-The resolver is the plugin root's, walking a handed skill directory up to it (HA#105).
-A newer checkout in front of you is named, never bound — `export HATSU_PLUGIN_ROOT` binds it
-(using/README.md, HA#67).
+The resolver is the plugin root's (HA#105); a newer checkout is named, never bound — `export
+HATSU_PLUGIN_ROOT` binds it (using/README.md, HA#67).
 
 ```bash
 <base_dir>/../../../scripts/hatsu_root.sh <base_dir>  # under $HATSU_PLUGIN_ROOT/ first, else as shown, else ../../../../; 1 = NOT INSTALLED: stop; --quoted: a literal
@@ -30,7 +29,7 @@ values; **a `FAIL` on either stops this gate**.
 
 ## 0a · Adoption is Tenkai's; this skill VERIFIES
 
-Pin, reachability (§ 2c), source (§ 4b): Ten. Adoption: `tenkai`:
+Adoption: `tenkai`:
 `"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <target> --json`, read-only, no pipe.
 **Report, never repair** findings in the inbox: `pr.sections` stale/missing counts and stamp/catalogue
 sha7s; current: none. Missing argument/value: ask/set inline
@@ -58,8 +57,8 @@ inferred.
 
 Absent or unsatisfied is an install, not a halt. **The host is the DEFAULT** (ROSTER,
 2026-09-30 ruling A): **the hook acts, § 2c
-verifies.** Its checksum-verified shell two-step is **the sanctioned exception to *shell only with
-nen absent***. **The session always resolves the pin** — through the host link (`PATH` prefixed
+verifies.** Its checksum-verified shell two-step is **the sanctioned exception to *shell only when
+nen is absent***. **The session always resolves the pin** — through the host link (`PATH` prefixed
 per call), else the session bind.
 
 ```bash
@@ -88,15 +87,15 @@ ln -sfn <verified> <d>/bin/nen  # only once every line above exited 0
 
 - **Each line is one call, its exit read before the next** (the refused `||`); the shell line
   only with nen absent; the verb line's `--script` required, `--source` shape-checked; `rc` quoted.
-- Later calls take `<d>/bin` as `gh_token_env.sh --path <d>/bin` (recorded); a `PATH=<d>/bin:$PATH`
-  prefix is unproven against the guard (`docs/ab/worktree-isolation.md`).
+- Later calls take `<d>/bin` as `gh_token_env.sh --path <d>/bin`; a `PATH=` prefix is unproven
+  (`docs/ab/worktree-isolation.md`).
 - Publishing `nen` itself → the verb line for its tag
   (`mugetsu` § 7); the host link follows the repin (§ 4b, `bakuryuha`).
 
 ## 2c · Reachable, not merely installed
 
-§§ 1–2 prove `nen` runs here; handed-back argv runs in the **maintainer's own
-shell** (HA#164). Ask it once, after § 2, never this session's `PATH`:
+Handed-back argv runs in the **maintainer's own shell**, not here (HA#164). Ask it once, after
+§ 2, never this session's `PATH`:
 
 ```bash
 "$hatsu_root/scripts/nen_reach_probe.sh" --root "$hatsu_root"  # $SHELL -lic, root as $1, stdin /dev/null
@@ -109,7 +108,7 @@ failing — any other exit, `$SHELL` unset or not POSIX, win32: **`not read (<rc
 line>)`**.
 
 **The offer predicate** — row `host-nen-link`, the host's FALLBACK, an offer never an act:
-offered only where the login shell reads installed, not reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A.
+offered where the login shell reads installed, not reachable; never where it reads reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A.
 **Option A's halves follow § 2's state.** Host **BOUND** (`current`, `linked`, `kept-newer`): the one `PATH`
 line only, **never a relink** (`kept-newer` is never downgraded), what that shell resolved named. **NOT
 bound** (`2` unfixed, `3`, `4`, `skipped (another session is binding)`): the name-correct `~/.local/bin/nen` link → the
@@ -128,8 +127,8 @@ improvised (D10): that report is *correct*.
 
 ## 4 · Report, in one line
 
-**Every value is quoted from `nen shu tools`, never assembled or inferred from the pin** (the
-fields: PROCESS § *Reporting a phase*, *ten § 4*). A clear run reads
+**Every value is quoted from `nen shu tools`** (never inferred: PROCESS § *Reporting a phase*,
+*ten § 4*). A clear run reads
 `Nen <v> · floor <f> · satisfies <range> · host: reachable at <path> · warm-up clear`, beside it
 § 2's `nen-global:` token (exit, summary line; `5`/`2` on § 1's `ok` route) and **which `nen` § 2
 bound** (host link or session bind), every route; an install adds `bootstrapped to <ref> (checksum
@@ -156,7 +155,7 @@ failed isolation stops writes. Codex: `docs/surfaces/codex.md` § 5's write prob
 Installation: mirrors.md § 2.
 
 ```sh
-# <hatsu_root>, <target>: § 4b's guarded root and bound target; <surface>: codex|cursor|antigravity|claude-code
+# <hatsu_root>: § 4b's guarded root; <target>: § 4b's bound target; <surface>: codex|cursor|antigravity|claude-code
 cd <target>  # its own call; failing, stop
 <hatsu_root>/scripts/surface_mirror_check.sh <hatsu_root>  # FIRST; not on claude-code
 <hatsu_root>/scripts/surface_bootstrap.sh --surface <surface> --target <target> --install-all [--plugin]  # not on claude-code; --plugin: Codex hatsu@hatsu
@@ -198,11 +197,12 @@ the skill it names only**; an unnamed one still stops, named. Suggested next ste
 
 ## Residue, authority and hard limits
 
-PROCESS § Residue (§ 2c's probe, § 6's `gh`/`git` reads). **Not `nen warmup`**
-(read-only) nor **`nen shu warmup`** (breath's): **this skill first**, then `nen warmup
---current <vX.Y.Z>` on the target.
+PROCESS § Residue (§ 2c's probe, § 6's `gh`/`git` reads; why neither `nen warmup` verb is
+this skill). **This skill first**, then `nen warmup --current <vX.Y.Z>` on the target.
 
-**Authority:** probes, § 2's binds, § 5's placement, § 6's catch-up; no contract edit.
+**Authority:** on standing canon (D10; ROSTER, 2026-09-30 ruling A): § 1's probes, § 2's binds,
+§ 4b's effort bind and plugin refresh; on the invoking phase's call: § 5's placement, § 6's catch-up;
+on the maintainer's word only: § 2c option A. Setup is Tenkai's (§ 0a); no contract edit.
 
 **Hard limits:** fetch to a file, never piped into bash (it exits `1`); never copy or rename the
 binary.

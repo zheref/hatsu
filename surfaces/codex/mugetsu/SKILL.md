@@ -503,13 +503,16 @@ version. The next go is the maintainer's.
    [zheref/nen#649](https://github.com/zheref/nen/issues/649).
 5. **Nothing this skill reads marks a destination as production.** `project.targets.<name>`'s
    `nonProduction` word (zheref/nen#300) is unread here
-   ([`$kagutsuchi`](../kagutsuchi/SKILL.md) § Residue 1), so the split between that skill and
+   ([`$kagutsuchi`](../kagutsuchi/SKILL.md) § Residue: *"Only a default is typed (§ 2 reads
+   every `why`)"*), so the split between that skill and
    this one is read out of `why` prose; adopting the field is
    [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579).
 6. **What state a failed publication left the destination in.** nen reports the tool's own exit code
-   and never queries the far end, by design: the destination's state is the destination's to report.
-   Saying so is prose by design (a boundary, not a gap), and it is the sentence § 6's exit `1` row
-   requires.
+   and never queries the far end. For a GitHub Release destination the state is readable, and its
+   read is the session's `gh release view <tag> --repo <owner/name>` (§ 2 step 2's call), owned by
+   [zheref/nen#652](https://github.com/zheref/nen/issues/652). Only a destination with no state this
+   run can read — a store submission, or a declared `deploy` target that declares no status read —
+   keeps "no far-end read": saying so is the sentence § 6's exit `1` row requires.
 7. **A per-run log file.** `A .nen/logs/ transcript is not in this release (zheref/nen#91)` — the
    report is the only record of what a publication printed.
 8. **The surface may refuse a valid go.** Claude Code's auto-mode classifier has denied the bare

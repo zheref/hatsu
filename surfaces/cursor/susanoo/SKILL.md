@@ -404,7 +404,8 @@ are not one flag apart here.
 4. **A checksum or manifest of what was produced.** Nothing in nen hashes an artifact. Where a
    repository wants one, it is a step of its own `archive` row (the fixture in `docs/ab/susanoo.md`
    declares `dist/app.tgz.sha256` for exactly that reason) — never a hash computed here and reported
-   as though the declaration produced it.
+   as though the declaration produced it. An artifact digest nen reports is owned by
+   [zheref/nen#648](https://github.com/zheref/nen/issues/648).
 5. **A per-run log file.** `log: not captured to a file … A .nen/logs/ transcript is not in this
    release (zheref/nen#91)` — each step's output is relayed as it finishes, so the report is the only
    record. Quote what matters; do not claim a log exists.

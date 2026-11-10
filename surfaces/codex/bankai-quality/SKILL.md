@@ -137,17 +137,19 @@ greater than 10%** is `high`, **strictly greater than 25%** is `critical` — bo
 to `--baseline`**, and **lower is better for every one of the fixed seven metrics**, so there is no metric
 here where a bigger measured number is good. Exits 1 when severity is `high` or `critical`; exits 0 on
 `ok`, including an **improvement** (a negative regression). A **zero baseline** is refused outright rather
-than divided by (verified live, by 2026-09-01, `docs/ab/bankai-quality.md` § 2.3) — record a non-zero baseline or compare
-the absolute values in the report, a judgement by design: QA-13 defines no absolute threshold, so
-no verb can decide one (nen's own refusal says to compare them yourself).
+than divided by (verified live, by 2026-09-01, `docs/ab/bankai-quality.md` § 2.3) — record a non-zero baseline or,
+with a zero baseline, compare the absolute values against QA-13's ceilings listed below, named in
+the report as the session's comparison: no verb checks them yet, an owned dependency
+([zheref/nen#651](https://github.com/zheref/nen/issues/651)).
 
 **Verified live, by 2026-09-01 (`docs/ab/bankai-quality.md` § 2.3), exactly at both boundaries (§ 2.3):** `10.0%` itself is `ok` (the rule is *strictly*
 greater than 10%, not "at least"), and `25.0%` itself is `high`, not `critical` — the same strict-`>`
 reading on both edges. Never round a boundary value up to the next severity by hand; relay the verb's own
 computed severity.
 
-**Independently, these absolutes hold regardless of baseline** — `perf-compare` does not check them, so
-they remain this skill's own citation, never a computation to improvise:
+**Independently, these absolutes hold regardless of baseline** — `perf-compare` does not check them
+([zheref/nen#651](https://github.com/zheref/nen/issues/651)), so they remain this skill's own citation,
+never a computation to improvise:
 
 - **P1 ≤ 2000 ms** median on the reference device.
 - **P7 ≤ 250 ms** (Apple hang threshold) / **jank frames ≤ 5%** (Android) / **INP ≤ 200 ms** (web).
@@ -267,8 +269,9 @@ Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate 
 Named where it runs: the `zheref/bankai-handbooks` checkout this skill reads is
 [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 0's block, that skill's residue (unfiled), listed once
 in [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*. Every
-resolution here — scenario, tooling, thresholds, method blocks — is a `nen` verb (§§ 1, 3–5); the
-candidate's own checks, § 5a's `nen shu` verbs, are Phinks's and Uvogin's to run.
+resolution here — scenario, tooling, thresholds, method blocks — is a `nen` verb (§§ 1, 3–5), save
+§ 4's comparison against QA-13's absolute ceilings, the session's until
+[zheref/nen#651](https://github.com/zheref/nen/issues/651) lands; the candidate's own checks, § 5a's `nen shu` verbs, are Phinks's and Uvogin's to run.
 
 ## Authority
 

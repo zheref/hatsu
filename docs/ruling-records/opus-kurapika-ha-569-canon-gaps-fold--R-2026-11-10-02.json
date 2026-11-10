@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-10-02",
+  "effortId": "opus-kurapika-ha-569-canon-gaps-fold",
+  "n": 2,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#570: rule the remaining 'prose by design' residue steps (rasengan's undeclared stall ×2; amaterasu § 3a's delegation, purpose and report wording) as boundaries?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Rule them boundaries ⭐ (Recommended)",
+      "consequence": "One HR row records those three steps as boundaries no verb owns. The rest get owners: bankai-quality's QA-13 ceilings and amaterasu's 'no other session holds the app' read (zheref/nen#536), and mugetsu's far-end read for GitHub releases."
+    },
+    {
+      "key": "B",
+      "label": "File an owner for each",
+      "consequence": "No boundary ruling: every step, rasengan's and amaterasu's included, gets a filed owning issue (more nen issues), and #570 closes on owners alone."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-10T01:21:40.289Z"
+}
