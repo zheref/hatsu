@@ -200,9 +200,9 @@ the skill it names only**; an unnamed one still stops, named. Suggested next ste
 PROCESS § Residue (§ 2c's probe, § 6's `gh`/`git` reads; why neither `nen warmup` verb is
 this skill). **This skill first**, then `nen warmup --current <vX.Y.Z>` on the target.
 
-**Authority:** on standing canon (D10; ROSTER, 2026-09-30 ruling A): § 1's probes, § 2's binds,
-§ 4b's effort bind and plugin refresh; on the invoking phase's call: § 5's placement, § 6's catch-up;
+**Authority:** on standing canon (D10; ROSTER 2026-09-30 ruling A): § 1, § 2c probes, § 2's binds,
+§ 4b's effort bind and plugin refresh; on the calling phase's word: § 5's placement, § 6's catch-up;
 on the maintainer's word only: § 2c option A. Setup is Tenkai's (§ 0a); no contract edit.
 
-**Hard limits:** fetch to a file, never piped into bash (it exits `1`); never copy or rename the
+**Hard limits:** fetch to a file, never piped to bash (it exits `1`); never copy or rename the
 binary.

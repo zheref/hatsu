@@ -106,7 +106,7 @@ half-swapped core.
 four** hold: the maintainer's written delegation **names the device and the target**; the purpose is
 **a declaration under review**, never a turn's launch, `ren`'s phase four or a composite; **no other
 session holds the app**; and **the report says so, in these words** — *"validation launch from a non-core checkout: `<path>`; delegation names device `<name>` and
-target `<key>`; declaration PR `<url>`"* — each precondition read and stated in that report (§ 5's boundary).
+target `<key>`; declaration PR `<url>`"* — each precondition read and stated in that report (§ 5: the boundary and its owned residue).
 **Everything outside those four is forbidden.**
 
 ## 4. Resolving the device, the dry run, and the command you paste
