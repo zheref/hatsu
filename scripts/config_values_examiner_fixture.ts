@@ -42,6 +42,10 @@ function refused(result: ReturnType<typeof run>, pattern: RegExp, before: string
 }
 const EXAMINER = /intake examiner.*HR-23/;
 
+test("HA397 temporary red CI probe", () => {
+  assert.fail("HA397_PROBE: deliberate config-values examiner fixture failure");
+});
+
 test("the examiner set is the four intake examiners, each a definition on disk", () => {
   assert.deepEqual([...examiners].sort(), ["bisky", "buhara", "lippo", "satotz"]);
   for (const name of examiners) assert.ok(existsSync(join(HATSU_ROOT, "claude/agents", `${name}.md`)), name);
