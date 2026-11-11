@@ -9,12 +9,13 @@
 //              record's own keys. Before it writes, the record's text passes the private-name guard
 //              (scripts/private_name_check.sh) and a secret-shape pass; a hit is refused. An existing copy
 //              with other content is refused.
+//   next-id    inventory the live base and open PRs, plus this checkout's unlanded HR anchors.
 //   render     print one ROSTER ruling row from a committed record: the HR id cell (anchor plus the
 //              record link), the question, every option with its consequence, and the answer with its
 //              capture class. Status and what it settles are the lead's words, passed in and kept as
 //              markdown (only a pipe or a line break is handled); the record's cells are escaped, and a
 //              `<repository> #N` in its prose is coded `<owner>/<name>#N` through `nen repo resolve` (PL-05),
-//              so render and check need nen; a coded slug passes the private-name guard (a hit: exit 1).
+//              render refuses an HR held by another record or PR; render and check need nen; a coded slug passes the private-name guard (a hit: exit 1).
 //   check      the guard lane (nen shu test --lane ruling-record): every ROSTER line citing a record is
 //              re-rendered and compared cell by cell, reported by HR id; an orphan, a twice-cited or an
 //              unreadable record is a finding too. A nen/repos.json change that moves a landed row's
@@ -35,23 +36,27 @@
 // writes it; any other contract is wiring (exit 2), never rendered, and moves only with a repin.
 //
 // Exit codes: 0 ok · 1 a finding (a differing, unreadable, orphan or twice-cited record; an export id
-// not in the ledger or a conflicting copy; a render that would code a private repository) · 2 wiring (usage,
+// not in the ledger or a conflicting copy; a render that would code a private repository or collide) · 2 wiring (usage,
 // an unreadable roster or records directory, a ledger nen could not read, a `nen repo resolve` reply
 // that is not its documented shape, a path that would forge an annotation, a row that cannot be pre-answered).
 // "Could not read" is never "found nothing": a roster with no record-citing line says so at exit 0.
 //
 // Usage:
 //   node scripts/ruling_record.mts export --effort <id> --id <R-id> [--repo <checkout>] [--out <dir>] [--names-file <path>]
-//   node scripts/ruling_record.mts render --record <file.json> --hr <HR-n> --status <text> (--settles <text> | --settles-file <path>) [--names-file <path>]
+//   node scripts/ruling_record.mts next-id [--repo <checkout>] [--json]
+//   node scripts/ruling_record.mts render --record <file.json> --hr <HR-n> --status <text>
+//                                 (--settles <text> | --settles-file <path>) [--repo <checkout>] [--names-file <path>]
 //   node scripts/ruling_record.mts check [--roster <docs/ROSTER.md>] [--records <docs/ruling-records>]
 //   node scripts/ruling_record.mts preanswer --effort <id> --row <row-id> --source <text> [--repo <checkout>]
 //                                  [--decisions <nen/decisions.json>] [--who <persona>] [--dry-run]
 // The nen binary is $NEN, else `nen` on PATH.
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
+import { inventory, InventoryError, MAX_HR, readBlob, readLocal } from './ruling_id_inventory.mts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTRACT = 'nen.stop.answer/v0.1';
@@ -227,8 +232,46 @@ function hrNumber(text: string): number {
   return Number(m[1]);
 }
 
+function checkout(args: Map<string, string>): string {
+  try { return realpathSync(args.get('--repo') ?? ROOT); } catch { throw new Wiring('--repo is not a readable checkout'); }
+}
+
+function nextId(argv: string[]): number {
+  const args = parseArgs(argv, new Set(['--repo']), new Set(['--json']));
+  const holders = inventory(checkout(args));
+  const next = holders.reduce((highest, holder) => Math.max(highest, holder.number), 0) + 1;
+  if (next > MAX_HR) throw new Wiring('the HR id range is exhausted');
+  const seen = holders.map(({ number, where }) => ({ id: `HR-${number}`, where }));
+  if (args.has('--json')) console.log(JSON.stringify({ next: `HR-${next}`, seen }));
+  else {
+    console.log(`next: HR-${next}`);
+    for (const { id, where } of seen) console.log(`${id} at ${where}`);
+  }
+  return 0;
+}
+
+function renderClaim(repo: string, record: AnswerRecord, hr: number): string | undefined {
+  const stem = stemOf(record);
+  const path = `docs/${LINK_DIR}/${stem}.json`;
+  const holders = inventory(repo);
+  const isSameRecord = (holder: (typeof holders)[number]): boolean => {
+    if (holder.record !== stem || holder.own === false) return false;
+    try {
+      const copy = holder.revision !== undefined ? readBlob(repo, holder.revision, path) : readLocal(repo, path);
+      return isDeepStrictEqual(project(validate(JSON.parse(copy))), project(record));
+    } catch { return false; }
+  };
+  for (const holder of holders) {
+    if (holder.number === hr && !isSameRecord(holder)) return `HR-${hr} is held by ${holder.where}`;
+    if (holder.number !== hr && isSameRecord(holder)) {
+      return `record ${stem} keeps HR-${holder.number} at ${holder.where}`;
+    }
+  }
+  return undefined;
+}
+
 function render(argv: string[]): number {
-  const args = parseArgs(argv, new Set(['--record', '--hr', '--status', '--settles', '--settles-file', '--names-file']));
+  const args = parseArgs(argv, new Set(['--record', '--hr', '--status', '--settles', '--settles-file', '--names-file', '--repo']));
   const hr = hrNumber(need(args, '--hr'));
   const status = need(args, '--status');
   if (args.has('--settles') === args.has('--settles-file')) throw new Wiring('give exactly one of --settles and --settles-file');
@@ -248,6 +291,11 @@ function render(argv: string[]): number {
     const guard = spawnSync('bash', guardArgs, { input: [...introduced].join('\n'), encoding: 'utf8' });
     if (guard.error || (guard.status !== 0 && guard.status !== 1)) throw new Wiring(`HR-${hr}: the private-name guard could not run (exit ${guard.status}) over the coded references of record ${stemOf(record)}; nothing is printed`);
     if (guard.status !== 0) { console.log(`ruling-record: HR-${hr}: record ${stemOf(record)} would be rendered with a private repository coded from the registry; nothing is printed`); return 1; }
+  }
+  const conflict = renderClaim(checkout(args), record, hr);
+  if (conflict) {
+    console.error(`ruling-record: ${conflict}; no row rendered`);
+    return 1;
   }
   console.log(row);
   return 0;
@@ -422,13 +470,14 @@ function main(argv: string[]): number {
   try {
     switch (verb) {
       case 'export': return exportRecord(rest);
+      case 'next-id': return nextId(rest);
       case 'render': return render(rest);
       case 'check': return check(rest);
       case 'preanswer': return preanswer(rest);
-      default: throw new Wiring('usage: ruling_record.mts export|render|check|preanswer … (see the header)');
+      default: throw new Wiring('usage: ruling_record.mts export|next-id|render|check|preanswer … (see the header)');
     }
   } catch (e) {
-    if (!(e instanceof Wiring)) throw e;
+    if (!(e instanceof Wiring) && !(e instanceof InventoryError)) throw e;
     console.error(`ruling-record: ${e.message}`);
     return 2;
   }

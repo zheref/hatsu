@@ -5,7 +5,7 @@
 // export -> render -> check in a throwaway git repository, one coded render against this checkout's
 // nen/repos.json, and the check over the live roster. HR-368's cases (zheref/hatsu#506) move the stub registry under a landed row.
 import assert from 'node:assert/strict';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -13,11 +13,80 @@ import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('./ruling_record.mts', import.meta.url));
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-ruling-record-'));
+const scanRepo = join(scratch, 'inventory');
+const scanOrigin = join(scratch, 'inventory-origin.git');
+const ghBin = join(scratch, 'gh-bin');
+const ghData = join(scratch, 'gh-data');
+const scanSlug = 'fixture/hatsu';
+
+function git(args: string[], cwd = scanRepo): string {
+  const result = spawnSync('git', args, { cwd, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim();
+}
+
+function initInventory(): void {
+  mkdirSync(scanRepo);
+  mkdirSync(ghBin);
+  mkdirSync(ghData);
+  git(['init', '--bare', '-q', scanOrigin], scratch);
+  git(['init', '-q', '-b', 'main']);
+  git(['config', 'user.name', 'Ruling Fixture']);
+  git(['config', 'user.email', 'fixture@example.invalid']);
+  git(['config', `url.${scanOrigin}.insteadOf`, `https://github.com/${scanSlug}.git`]);
+  git(['remote', 'add', 'origin', `https://github.com/${scanSlug}.git`]);
+  mkdirSync(join(scanRepo, 'nen'));
+  writeFileSync(join(scanRepo, 'nen/workflow.json'), JSON.stringify({ branch: { base: 'main' } }));
+  roster(join(scanRepo, 'docs'), ['| <a id="hr-383"></a>**HR-383** | A base ruling |']);
+  git(['add', '.']);
+  git(['commit', '-qm', 'Base roster']);
+  git(['push', '-q', 'origin', 'main']);
+  git(['switch', '-qc', 'fixture/ruling']);
+  const gh = join(ghBin, 'gh');
+  writeFileSync(gh, `#!/bin/sh
+case "$*" in
+  "api search/issues?q=repo:${scanSlug}+is:pr+is:open")
+    case "${'$'}{GH_SCENARIO:-none}" in
+      credentials) exit 1 ;;
+      rate) exit 2 ;;
+      none) printf '%s\\n' '{"total_count":0,"incomplete_results":false}' ;;
+      incomplete) printf '%s\\n' '{"total_count":0,"incomplete_results":true}' ;;
+      *) printf '%s\\n' '{"total_count":1,"incomplete_results":false}' ;;
+    esac ;;
+  "pr list --repo ${scanSlug} --state open --limit 1000 --json number,headRefName,isCrossRepository,changedFiles,headRefOid,baseRefName,baseRefOid")
+    case "${'$'}{GH_SCENARIO:-none}" in
+      none|short-pulls) printf '%s\\n' '[]' ;;
+      head-drift|base-drift)
+        if [ -f "$GH_FIXTURE_DATA/$GH_SCENARIO.read" ]; then
+          rm "$GH_FIXTURE_DATA/$GH_SCENARIO.read"
+          cat "$GH_FIXTURE_DATA/$GH_SCENARIO.after.json"
+        else
+          touch "$GH_FIXTURE_DATA/$GH_SCENARIO.read"
+          cat "$GH_FIXTURE_DATA/$GH_SCENARIO.pulls.json"
+        fi ;;
+      *) cat "$GH_FIXTURE_DATA/${'$'}{GH_SCENARIO}.pulls.json" ;;
+    esac ;;
+  "api --paginate --slurp repos/${scanSlug}/pulls/572/files?per_page=100")
+    if [ "$GH_SCENARIO" = short-files ]; then printf '%s\\n' '[[]]'; else cat "$GH_FIXTURE_DATA/$GH_SCENARIO.files.json"; fi ;;
+  "pr diff 572 --repo ${scanSlug}")
+    cat "$GH_FIXTURE_DATA/$GH_SCENARIO.diff" ;;
+  *) exit 127 ;;
+esac
+`);
+  chmodSync(gh, 0o755);
+}
+
 let cases = 0;
 
 interface Run { status: number | null; stdout: string; stderr: string }
+function inventoryArgs(args: string[]): string[] {
+  return ['render', 'next-id'].includes(args[0] ?? '') ? [...args, '--repo', scanRepo] : args;
+}
+
+const inventoryEnv = { PATH: `${ghBin}:${process.env.PATH}`, GH_FIXTURE_DATA: ghData, GH_SCENARIO: 'none' };
+
 function run(args: string[], env: Record<string, string> = {}): Run {
-  const r = spawnSync(process.execPath, [script, ...args], { cwd: scratch, encoding: 'utf8', env: { ...process.env, ...env } });
+  const r = spawnSync(process.execPath, [script, ...inventoryArgs(args)], { cwd: scratch, encoding: 'utf8', env: { ...process.env, ...inventoryEnv, ...env } });
   return { status: r.status, stdout: String(r.stdout), stderr: String(r.stderr) };
 }
 function expect(name: string, r: Run, status: number, stdout: RegExp | null = null, stderr: RegExp | null = null): void {
@@ -80,6 +149,7 @@ writeFileSync(stub, `#!/bin/sh\nexec "${process.execPath}" "${stubJs}" "$@"\n`);
 chmodSync(stub, 0o755);
 
 try {
+  initInventory();
   const d1 = join(scratch, 'd1', 'ruling-records');
   const picked = recordFile(d1, base);
   const row = renderRow(picked, 'HR-334');
@@ -207,10 +277,11 @@ try {
     // script runs from a scratch root whose scripts/private_name_check.sh exits as told.
     const fake = join(scratch, 'fake-root');
     mkdirSync(join(fake, 'scripts'), { recursive: true });
-    writeFileSync(join(fake, 'scripts', 'ruling_record.mts'), readFileSync(script, 'utf8'));
+    copyFileSync(script, join(fake, 'scripts', 'ruling_record.mts'));
+    copyFileSync(fileURLToPath(new URL('./ruling_id_inventory.mts', import.meta.url)), join(fake, 'scripts', 'ruling_id_inventory.mts'));
     writeFileSync(join(fake, 'scripts', 'private_name_check.sh'), 'exit "${FAKE_GUARD_EXIT:-127}"\n');
     const fakeRun = (args: string[], env: Record<string, string>): Run => {
-      const r = spawnSync(process.execPath, [join(fake, 'scripts', 'ruling_record.mts'), ...args], { cwd: scratch, encoding: 'utf8', env: { ...process.env, ...env } });
+      const r = spawnSync(process.execPath, [join(fake, 'scripts', 'ruling_record.mts'), ...inventoryArgs(args)], { cwd: scratch, encoding: 'utf8', env: { ...process.env, ...inventoryEnv, ...env } });
       return { status: r.status, stdout: String(r.stdout), stderr: String(r.stderr) };
     };
     const rec = recordFile(join(scratch, 'refs'), { ...base, id: 'R-2026-10-23-16', question: 'hatsu #3?' });
@@ -350,6 +421,107 @@ try {
   }
   const live = fileURLToPath(new URL('../docs/ROSTER.md', import.meta.url));
   expect('the live roster matches every record it cites', run(['check', '--roster', live]), 0, /ruling-record: /);
+  {
+    const scan = (scenario: string) => run(['next-id', '--json'], { GH_SCENARIO: scenario });
+    const render = (hr: number, scenario = 'none', record = picked) => run(
+      ['render', '--record', record, '--hr', `HR-${hr}`, '--status', 'ruled', '--settles', 'what it settles'],
+      { GH_SCENARIO: scenario });
+    const rosterPath = join(scanRepo, 'docs/ROSTER.md');
+    const baseline = readFileSync(rosterPath, 'utf8');
+    const additions = [384, 385, 386, 387].map((n) => `+| <a id="hr-${n}"></a>**HR-${n}** | Added by a PR |`);
+    const header = ['diff --git a/docs/ROSTER.md b/docs/ROSTER.md', '--- a/docs/ROSTER.md', '+++ b/docs/ROSTER.md'];
+    const diff = (lines: string[]) => [...header, '@@ -0,0 +1,4 @@', ...lines, ''].join('\n');
+    const originalTip = git(['rev-parse', 'HEAD']);
+    const pr = {
+      number: 572, headRefName: 'someone-else', headRefOid: originalTip, isCrossRepository: false,
+      changedFiles: 1, baseRefName: 'main', baseRefOid: originalTip,
+    };
+    const changed = { filename: 'docs/ROSTER.md', status: 'modified', additions: 4, deletions: 0 };
+    for (const scenario of ['open', 'short-files', 'truncated', 'smuggled', 'fork', 'head-drift', 'base-drift']) {
+      writeFileSync(join(ghData, `${scenario}.pulls.json`), JSON.stringify([{ ...pr, isCrossRepository: scenario === 'fork' }]));
+      writeFileSync(join(ghData, `${scenario}.files.json`), JSON.stringify([[changed]]));
+      const body = scenario === 'truncated' ? diff(additions.slice(0, 3))
+        : scenario === 'smuggled' ? ['diff --git a/other b/other', '--- a/other', '+++ b/other', '@@ -0,0 +1,1 @@', '++++ b/docs/ROSTER.md', ''].join('\n')
+        : diff(additions);
+      writeFileSync(join(ghData, `${scenario}.diff`), body);
+    }
+    for (const [scenario, moved] of [
+      ['head-drift', { ...pr, headRefOid: 'a'.repeat(40) }],
+      ['base-drift', { ...pr, baseRefOid: 'b'.repeat(40) }],
+    ] as const) {
+      writeFileSync(join(ghData, `${scenario}.after.json`), JSON.stringify([moved]));
+      const drift = scan(scenario);
+      expect(`a PR ${scenario} during the diff read refuses allocation`, drift, 2, null, /PR #572 changed during the inventory/);
+      assert.equal(drift.stdout, '');
+    }
+    for (let round = 1; round <= 3; round += 1) {
+      const populated = scan('open');
+      expect(`open-PR allocation ${round}/3`, populated, 0, /"next":"HR-388"/);
+      assert.deepEqual(JSON.parse(populated.stdout).seen, [
+        { id: 'HR-383', where: 'base origin/main' },
+        ...[384, 385, 386, 387].map((n) => ({ id: `HR-${n}`, where: 'PR #572' })),
+      ]);
+      const collision = render(384, 'open');
+      expect(`open-PR collision ${round}/3`, collision, 1, null, /HR-384 is held by PR #572/);
+      assert.equal(collision.stdout, '');
+      expect(`empty-PR allocation ${round}/3`, scan('none'), 0, /"next":"HR-384"/);
+    }
+    expect('base collisions name the base', render(383), 1, null, /held by base origin\/main/);
+    expect('fork PRs are included', scan('fork'), 0, /"next":"HR-388"/);
+    for (const scenario of ['credentials', 'rate', 'incomplete', 'short-pulls', 'short-files', 'truncated', 'smuggled']) {
+      const unread = scan(scenario);
+      expect(`incomplete read refuses allocation (${scenario})`, unread, 2, null, /could not be read/);
+      assert.equal(unread.stdout, '');
+    }
+    expect('a render with an unread inventory prints no row', render(388, 'rate'), 2, /^$/, /open-PR inventory/);
+
+    // Advance the real origin after the checkout was cut. The stale local base is insufficient.
+    const originWriter = join(scratch, 'inventory-origin-writer');
+    git(['clone', '-q', '-b', 'main', scanOrigin, originWriter], scratch);
+    writeFileSync(join(originWriter, 'docs/ROSTER.md'), baseline + '| <a id="hr-390"></a>**HR-390** | Fresh base |\n');
+    git(['add', '.'], originWriter);
+    git(['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'Advance the base'], originWriter);
+    git(['push', '-q', 'origin', 'main'], originWriter);
+    expect('allocation uses the fresh origin tip', scan('none'), 0, /"next":"HR-391"/);
+    expect('the fresh base owns its newly landed id', render(390), 1, null, /held by base origin\/main/);
+
+    const canonical = recordFile(join(scanRepo, 'docs/ruling-records'), base);
+    const original = render(391, 'none', canonical);
+    expect('a free HR renders', original, 0, /\*\*HR-391\*\*/);
+    writeFileSync(rosterPath, baseline + original.stdout);
+    const local = render(391, 'none', canonical);
+    expect('a same-record worktree rerender succeeds', local, 0);
+    assert.equal(local.stdout, original.stdout);
+    expect('a same-record render keeps its id', render(392, 'none', canonical), 1, null, /keeps HR-391 at effort worktree/);
+    expect('a new record cannot take the worktree id', render(391, 'none', typed), 1, null, /held by effort worktree/);
+    expect('a second unlanded allocation advances past the worktree id', scan('none'), 0, /"next":"HR-392"/);
+    const impostor = recordFile(join(scratch, 'impostor'), { ...base, question: 'Another record using the same key?' });
+    expect('the record key alone cannot claim an existing row', render(391, 'none', impostor), 1, null, /held by effort worktree/);
+    git(['add', 'docs']);
+    writeFileSync(rosterPath, baseline);
+    const staged = scan('none');
+    expect('a staged-only row is still held', staged, 0, /"next":"HR-392"/);
+    assert.deepEqual(JSON.parse(staged.stdout).seen.at(-1), { id: 'HR-391', where: 'effort index' });
+    expect('a new record cannot take a staged-only id', render(391, 'none', typed), 1, null, /held by effort index/);
+    const stagedRerender = render(391, 'none', canonical);
+    expect('a same-record staged rerender succeeds', stagedRerender, 0);
+    assert.equal(stagedRerender.stdout, original.stdout);
+    writeFileSync(rosterPath, baseline + original.stdout);
+    git(['commit', '-qm', 'Record an effort ruling']);
+    const ownHead = git(['rev-parse', 'HEAD']);
+    const own = { ...pr, headRefName: 'fixture/ruling', headRefOid: ownHead };
+    const ownDiff = git(['diff', 'HEAD^', 'HEAD', '--', 'docs/ROSTER.md']) + '\n';
+    for (const [scenario, claimant] of [['own', own], ['same-name-fork', { ...own, isCrossRepository: true }], ['same-name-diverged', { ...own, headRefOid: 'f'.repeat(40) }]] as const) {
+      writeFileSync(join(ghData, `${scenario}.pulls.json`), JSON.stringify([claimant]));
+      writeFileSync(join(ghData, `${scenario}.files.json`), JSON.stringify([[{ ...changed, additions: 1 }]]));
+      writeFileSync(join(ghData, `${scenario}.diff`), ownDiff);
+    }
+    const published = render(391, 'own', canonical);
+    expect('an own PR holder allows a same-record rerender', published, 0);
+    assert.equal(published.stdout, original.stdout);
+    expect('a same-name fork still collides', render(391, 'same-name-fork', canonical), 1, null, /held by PR #572/);
+    expect('a same-name non-ancestor still collides', render(391, 'same-name-diverged', canonical), 1, null, /held by PR #572/);
+  }
   console.log(`ruling-record fixture: ${cases} cases passed`);
 } finally {
   rmSync(scratch, { recursive: true, force: true });

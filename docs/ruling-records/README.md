@@ -13,9 +13,11 @@ content its ROSTER row is rendered from.
 - **Written by `export` only**, which refuses a copy that differs and a record that names a private
   repository or holds a secret-shaped string; `check` does not detect a record and its row edited together
   by hand, so a reviewer compares the record with `nen stop answer show` in the clone that took it.
-- Each record is cited by exactly one ROSTER row, rendered by `node scripts/ruling_record.mts render`;
-  the `ruling-record` lane re-renders every citing row and reports a difference by HR id, and a record
-  no row cites is a finding ([`ROSTER.md`](../ROSTER.md) § *The ruling template*, step 3).
+- Each record is cited by exactly one ROSTER row. Use `ruling_record.mts next-id` to allocate a
+  new id and pass it to `ruling_record.mts render --hr`. A re-render keeps the record's existing id.
+  Both commands read the live base and open PRs. The offline `ruling-record` audit re-renders every
+  citing row, reports a difference by HR id, and flags an orphan record
+  ([`ROSTER.md`](../ROSTER.md) § *The ruling template*, step 3).
 - **A row has two inputs: its record and `nen/repos.json`.** `render` codes a `<repository> #N` in the
   question, an option or the picked label as `<owner>/<name>#N` when `nen repo resolve` names one
   repository, never the maintainer's typed words; the record keeps the words as shown. So `render` and
