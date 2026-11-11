@@ -168,8 +168,16 @@ source_marker_scan() {
       unreadable=1
       continue
     fi
-    hits="$(grep -nE -- "$SOURCE_MARKER_ERE" "$file" 2>/dev/null | cut -d: -f1 || true)"
+    # grep's own status, not cut's: 1 is a clean file, 2 a read that failed after the test above.
+    local grep_status=0
+    hits="$(grep -nE -- "$SOURCE_MARKER_ERE" "$file" 2>/dev/null)" || grep_status=$?
+    if [ "$grep_status" -gt 1 ]; then
+      echo "surface-mirror-check: $file cannot be read (grep exit $grep_status); a source the scan could not read is never clean (zheref/hatsu#531)." >&2
+      unreadable=1
+      continue
+    fi
     [ -n "$hits" ] || continue
+    hits="$(printf '%s\n' "$hits" | cut -d: -f1)"
     while IFS= read -r line; do
       echo "surface-mirror-check: refused: $file:$line carries a concrete generated marker (zheref/hatsu#531)." >&2
       refused=1

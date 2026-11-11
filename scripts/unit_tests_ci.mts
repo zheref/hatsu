@@ -95,7 +95,7 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // The skill-shape check judges the touched skills from the merge base of HATSU_BASE_SHA below (zheref/hatsu#502).
   ['skill_shape_check.mts', 'skill_shape_check_fixture.mts', 'skill-shape-guard'],
   // The placed-copy marker reader and the mirror source scan must run in CI (zheref/hatsu#531, BC-9).
-  ['surface_marker.sh', 'surface_bootstrap_fixture_check.sh', 'surface-bootstrap-guard'],
+  ['surface_bootstrap.sh', 'surface_bootstrap_fixture_check.sh', 'surface-bootstrap-guard'],
   ['surface_mirror_check.sh', 'surface_mirror_check_fixture.sh', 'surface-mirror-guard'],
 ];
 for (const [script, fixtures, lane] of gated) {

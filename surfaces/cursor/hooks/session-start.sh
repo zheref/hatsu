@@ -231,8 +231,9 @@ fi
 # `grep -r` never follows a symlink into the tree it points at -- POSIX sh has
 # no process substitution, so this reads find's newline-separated list with a
 # plain while/read rather than bash's `<(...)`. A name carrying a newline splits
-# there, so only a line that still lies under the surface directory is read: a
-# fragment never names a file outside it (Feitan, zheref/hatsu#531).
+# there, so only a line whose path text starts under the surface directory is
+# read; a symlink there is still followed, by design, as find -L follows it
+# (Feitan, zheref/hatsu#531).
 #
 # THE MARKER MUST NAME *THIS* SURFACE. Codex and Antigravity both place under
 # `.agents/`, so a marker naming `(surface: codex…)` sitting there is

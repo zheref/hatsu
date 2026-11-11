@@ -148,8 +148,11 @@ else
   run source-unreadable 2
   expect_in source-unreadable "$out" 'claude/skills/locked/SKILL.md cannot be read'
   [ -z "$calls" ] || fail "source-unreadable: nen was asked to check a tree whose source could not be read: $calls"
-  code=0; regen_out="$(NEN_BIN="$stub" bash "$script_dir/surface_mirror_regenerate.sh" "$tree" 2>&1)" || code=$?
+  unreadable_log="$fixture_root/regen-unreadable.log"; : > "$unreadable_log"
+  code=0; regen_out="$(NEN_BIN="$stub" STUB_GEN_LOG="$unreadable_log" bash "$script_dir/surface_mirror_regenerate.sh" "$tree" 2>&1)" || code=$?
   [ "$code" -eq 2 ] || fail "source-unreadable-regenerate: exit $code, expected 2: $regen_out"
+  expect_in source-unreadable-regenerate "$regen_out" 'claude/skills/locked/SKILL.md cannot be read'
+  [ ! -s "$unreadable_log" ] || fail "source-unreadable-regenerate: a tree with an unreadable source was generated: $(cat "$unreadable_log")"
 fi
 chmod 644 "$tree/claude/skills/locked/SKILL.md"
 rm -rf "$tree/claude/skills/locked"
