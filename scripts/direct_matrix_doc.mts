@@ -491,7 +491,7 @@ export function createMatrix(root: string, options: { today?: string; workflowRo
     const a = reference(aliases, alias, 'evidence.alias');
     if (a.reviewer) refuse(`evidence.alias: ${alias} is a reviewer, not an actionable pick`);
     const spelled = typed(alias);
-    if (!spelled) refuse(`models.${surfaces[a.surface!].modelsKey}.${a.tier}: a typed alias is required for ${alias}`);
+    if (spelled === '') refuse(`models.${surfaces[a.surface!].modelsKey}.${a.tier}: a typed alias is required for ${alias}`);
     const lp = snap.aliases[alias].listPrice; const task = taskCost(alias); const substitute = picks.inPool[alias];
     return { alias, surface: a.surface, typedAlias: spelled, snapshotAsOf: snap.asOf,
       price: lp ? { ...lp, line: `${price(alias)} · ${lp.unit} · snapshot ${lp.readOn} · ${lp.source}` } : null,
