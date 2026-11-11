@@ -585,6 +585,21 @@ test lanes. The CI runner clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixtu
 and fences fixture output. After this policy reaches `main`, a follow-up copies
 the exact template into `.github/workflows/` and verifies the first live push run.
 
+**Desk checks (HA#523).** The existing candidate `unit-tests-ci-guard` runs the
+desk's Vitest logic and canon drift tests as soon as the test declaration lands.
+The exact PR-only workflow at `templates/unit-tests-desk.yml` also installs
+Claude Code 2.1.317 from Anthropic's Linux x64 release, checks its digest and
+version, and asks the trusted dispatcher to run `desk-guard`. This lane runs the
+actual registration suite and captures the pure modules' line coverage. The
+registration module's line coverage remains unmeasured.
+
+After the policy and dispatcher land, copy the admitted desk workflow into
+`.github/workflows/unit-tests.yml` and verify the first eligible PR logs
+`unit-tests-ci: desk-guard` and the engine registration results. If the
+main-push workflow lands first, stage and admit the combined bytes before
+installing them so the push trigger stays in place. BH#26 tracks the BC-9
+toolchain repin.
+
 **2026-10-22. The canon prose lint, step one (HR-13).** `prose-ambiguity-check.yml` is registered in
 `PENDING_HOSTED_WORKFLOWS` and staged at `templates/prose-ambiguity-check.yml`, its guard step frozen
 (`CANON_LINT_FROZEN_GUARD`), and its node pinned by a frozen `actions/setup-node` step, the one setup

@@ -18,8 +18,8 @@ writeFileSync(join(repo, 'nen', 'contract.json'), '{}\n');
 writeFileSync(nen, '#!/bin/sh\nprintf "%s|%s|%s\\n" "$6" "${GH_TOKEN:-}" "${GITHUB_TOKEN:-}" >> "$HATSU_LANE_LOG"\n[ -z "${HATSU_PATH_LOG:-}" ] || printf "%s|%s|%s\\n" "$6" "${PATH%%:*}" "${NEN:-}" >> "$HATSU_PATH_LOG"\n[ -z "${HATSU_BASE_LOG:-}" ] || printf "%s|%s\\n" "$6" "${HATSU_BASE_SHA:-}" >> "$HATSU_BASE_LOG"\necho "::warning title=forged::from PR code"\n[ "$6" != "${HATSU_FAIL_LANE:-}" ]\n');
 chmodSync(nen, 0o755);
 
-function run(extraEnv: Record<string, string> = {}, nenPath = nen) {
-  return spawnSync(process.execPath, [runner, repo, nenPath], {
+function run(extraEnv: Record<string, string> = {}, nenPath = nen, ...args: string[]) {
+  return spawnSync(process.execPath, [runner, repo, nenPath, ...args], {
     encoding: 'utf8',
     env: { ...process.env, HATSU_LANE_LOG: log, GH_TOKEN: 'host-secret', GITHUB_TOKEN: 'host-token', ...extraEnv },
   });
@@ -31,6 +31,15 @@ try {
   let result = run();
   assert(result.status === 2 && result.stderr.includes('required fixture mechanical_conflicts_fixture.test.mts is missing'),
     'missing mechanical-conflicts fixture did not refuse');
+  result = run({}, nen, '--unrecognized');
+  assert(result.status === 2 && result.stderr.includes('optional --desk-guard mode'), 'an unknown dispatcher mode was accepted');
+
+  result = run({}, nen, '--desk-guard');
+  assert(result.status === 0 && result.stdout.startsWith('unit-tests-ci: desk-guard\n'), 'pinned desk workflow mode did not select the full lane');
+  assert(readFileSync(log, 'utf8') === 'desk-guard||\n', 'desk-only mode selected other lanes or leaked tokens');
+  result = run({ HATSU_FAIL_LANE: 'desk-guard' }, nen, '--desk-guard');
+  assert(result.status === 1 && result.stderr.includes('desk-guard failed'), 'a failed desk lane passed CI');
+  writeFileSync(log, '');
   writeFileSync(join(repo, 'scripts', 'mechanical_conflicts_fixture.test.mts'), '');
   result = run();
   assert(result.status === 0, `baseline refused: ${result.stderr}`);

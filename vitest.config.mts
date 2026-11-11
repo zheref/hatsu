@@ -9,8 +9,7 @@ import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    // hooks/desk's tests import the engine's own kit ('claude-code/testing') and run under
-    // `claude plugin test` on the desk-guard lane (scripts/desk_mod_test.sh), never under Vitest.
-    exclude: [...configDefaults.exclude, '**/.trusted/**', 'hooks/desk/**'],
+    // The registration suite imports Claude's engine kit. Vitest discovers desk/unit tests.
+    exclude: [...configDefaults.exclude, '**/.trusted/**', 'hooks/desk/tests/**'],
   },
 });

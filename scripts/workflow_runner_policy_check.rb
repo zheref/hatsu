@@ -88,11 +88,13 @@ BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 # main's trusted validator knows its exact shape when the second PR lands.
 PENDING_UNIT_TEST_WORKFLOWS = %w[].freeze
 REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
-# During the two-PR rollout, the installed PR-only workflow and the staged
-# PR/main-push workflow each keep their own exact, reviewed bytes.
+# Admit the installed PR-only shape and the staged desk and PR/main-push shapes by exact bytes.
 UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS = {
-  %w[pull_request] => "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94",
-  %w[pull_request push] => "66245a56a3752362b63595c08d465a2496aa40f0a011a25d932c5ac1542375ec"
+  %w[pull_request] => %w[
+    a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94
+    df359af449a2d5cdf980807fa4490486c004d83b953e6d82a9f4ccbc7a20250b
+  ].freeze,
+  %w[pull_request push] => %w[66245a56a3752362b63595c08d465a2496aa40f0a011a25d932c5ac1542375ec].freeze
 }.freeze
 
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
@@ -2440,8 +2442,8 @@ def validate_unit_tests_workflow(path)
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
-  digest = UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS[triggers.keys.sort]
-  fail_policy("#{path} must use pull_request, optionally with push to main") unless digest
+  digests = UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS[triggers.keys.sort]
+  fail_policy("#{path} must use pull_request, optionally with push to main") unless digests
   if triggers.key?("push")
     push = mapping(triggers.fetch("push"), "#{path} on.push")
     branches = sequence(push.fetch("branches") { fail_policy("#{path} push has no branches filter") }, "#{path} on.push.branches")
@@ -2454,7 +2456,7 @@ def validate_unit_tests_workflow(path)
   job = mapping(jobs.fetch("unit-tests"), "#{path} unit-tests")
   fail_policy("#{path} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
   fail_policy("#{path} has changed from the staged, reviewed read-only test job") unless
-    Digest::SHA256.file(path).hexdigest == digest
+    digests.include?(Digest::SHA256.file(path).hexdigest)
 end
 
 def validate_repo(root, announce: true)
@@ -2680,6 +2682,26 @@ def self_test(root)
       end
       File.write(installed, original_required)
     end
+    desk_template = File.join(root, "templates/unit-tests-desk.yml")
+    validate_unit_tests_workflow(desk_template)
+    desk_installed = File.join(tmp, ".github/workflows/unit-tests.yml")
+    original_desk_workflow = File.read(desk_installed)
+    staged_desk = File.read(desk_template)
+    File.write(desk_installed, staged_desk)
+    validate_repo(tmp, announce: false)
+    [
+      ["desk workflow runs the registration suite", " --desk-guard", " --desk-staging-guard"],
+      ["desk workflow pins Anthropic's exact Linux release", "/2.1.317/linux-x64/claude", "/latest/linux-x64/claude"],
+      ["desk workflow checks the CLI digest", "sha256sum --check --status", "true"],
+      ["desk workflow checks the CLI version", "grep -Fx '2.1.317 (Claude Code)'", "cat"],
+      ["desk workflow requires the trusted dispatcher", "node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts"],
+    ].each do |label, from, to|
+      File.write(desk_installed, fixture_sub(label, staged_desk, from, to, step: "Run focused machinery tests"))
+      expect_rejected(label, /changed from the staged, reviewed read-only test job/) do
+        validate_repo(tmp, announce: false)
+      end
+    end
+    File.write(desk_installed, original_desk_workflow)
     # Prove the staged shape is accepted before it is installed, and that a
     # pull-request checkout cannot substitute its own renderer for trusted code.
     matrix_workflow = File.join(tmp, ".github/workflows/surface-mirror-check.yml")

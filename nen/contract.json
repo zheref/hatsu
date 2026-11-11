@@ -432,7 +432,7 @@
       "desk-staging-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "Verify the staged desk plugin and its cleanup with an offline Claude stub. desk-guard still exercises the actual engine kit."
+        "$comment": "Verify the staged desk plugin and its cleanup with an offline Claude stub. desk-guard also exercises the actual engine kit."
       },
       "pr-sections-shell-guard": {
         "stack": "claude-code-plugin",
@@ -442,7 +442,7 @@
       "desk-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for the Hatsu desk, the Claude Code function-hook module at hooks/desk (hooks/hooks.json -> modules). scripts/desk_mod_test.sh stages the module and its tests into a scratch mod named hatsu and runs them under the engine's own kit with claude plugin test, since that command pointed at this repository would also load the Vitest fixtures under scripts/. Hermetic and offline: the canon path matrix (Build before anything is authored and Iterate after, every authored stage's paths with the blocked ones after the open ones, the maintainer's aka, mukai and tensho offered and never starred, no merge, kagutsuchi or mugetsu in any state), phase readings in both tenses, the stage an effort stands at (a ren turn's own report and bell never move it; Publish is drawn done only once the branch is pushed), worktree naming, and the chip drawing. Exit 1 on a failing test, 2 when the stage cannot be built."
+        "$comment": "Vitest owns the desk’s pure behavior and canon drift tests. The Claude kit runs the registration suite inside the function-hook host. Native Node replays the pure behavior cases for exact-source coverage."
       },
       "skill-shape-guard": {
         "stack": "claude-code-plugin",
@@ -721,9 +721,20 @@
                 "30000",
                 "scripts/claude_routine_permissions_fixture.test.mts"
               ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "hooks/desk/unit/logic.test.ts",
+                "hooks/desk/unit/canon.test.ts"
+              ]
             }
           ],
-          "$comment": "The trusted read-only unit-tests workflow already selects this candidate lane (BC-9). Check candidate workflow adapters and exercise the pinned Vitest fixtures for CI, release, coverage, and the Claude Code routine-write and permission-pack entry points. The separate claude-routine-permissions-guard lane supplies exact-source TypeScript coverage for local verification. Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "The trusted read-only unit-tests workflow already selects this candidate lane (BC-9). Check candidate workflow adapters and exercise the pinned Vitest fixtures for CI, release, coverage, the desk’s pure logic and canon drift, and the Claude Code routine-write and permission-pack entry points. The separate claude-routine-permissions-guard lane supplies exact-source TypeScript coverage for local verification. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {
@@ -2403,14 +2414,63 @@
       },
       "desk-guard": {
         "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/desk_mod_test.sh"
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/desk-guard', { recursive: true }); require('node:fs').rmSync('coverage/desk-guard/lcov.info', { force: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "hooks/desk/unit/logic.test.ts",
+                "hooks/desk/unit/canon.test.ts"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/desk_mod_test.sh"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-coverage-include=hooks/desk/actions.ts",
+                "--test-coverage-include=hooks/desk/chip.ts",
+                "--test-coverage-include=hooks/desk/naming.ts",
+                "--test-coverage-include=hooks/desk/stages.ts",
+                "--test-reporter=spec",
+                "--test-reporter-destination=stdout",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=coverage/desk-guard/lcov.info",
+                "hooks/desk/unit/logic.coverage.ts"
+              ]
+            }
           ],
-          "$comment": "Needs the claude CLI on PATH (claude plugin test); offline. Run when hooks/desk or scripts/desk_mod_test.sh changes. Not in scripts/unit_tests_ci.mts's gated list: the unit-tests runner has no claude CLI, a named gap tracked by zheref/hatsu#523."
+          "artifacts": [
+            "coverage/desk-guard/lcov.info"
+          ],
+          "$comment": "Run the pure Vitest cases, actual Claude registration tests, then exact-source coverage on Node 24. CI already runs the pure suite through unit-tests-ci-guard. Activate templates/unit-tests-desk.yml after the trusted workflow policy admits its bytes to run the full lane in CI (zheref/hatsu#523)."
         },
         "coverage": {
-          "unsupported": "hooks/desk uses the engine test kit (claude plugin test), which has no declared line-coverage tool (zheref/hatsu#523). The shell staging runner is measured independently by desk-staging-guard."
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const lines=fs.readFileSync('coverage/desk-guard/lcov.info','utf8').split('\\n');for(const file of [\"hooks/desk/actions.ts\", \"hooks/desk/chip.ts\", \"hooks/desk/naming.ts\", \"hooks/desk/stages.ts\"]){if(!lines.includes('SF:'+file))throw new Error('Missing exact-source LCOV for '+file)}"
+          ],
+          "artifacts": [
+            "coverage/desk-guard/lcov.info"
+          ],
+          "$comment": "Extraction only. The capture measures actions.ts, chip.ts, naming.ts and stages.ts. register.tsx runs under the actual Claude engine with no line coverage currently declared for that host. Prefer --from-capture for current-tree provenance."
         }
       },
       "skill-shape-guard": {
@@ -2450,6 +2510,33 @@
           "kind": "path",
           "value": "node_modules/vitest/vitest.mjs",
           "why": "Install locked dependencies with `npm ci --ignore-scripts` first. CI already performs that locked install before this lane; a bare worktree must perform it explicitly."
+        },
+        {
+          "kind": "path",
+          "value": "hooks/desk/unit/logic.test.ts",
+          "why": "Vitest must run the desk behavior suite."
+        },
+        {
+          "kind": "path",
+          "value": "hooks/desk/unit/canon.test.ts",
+          "why": "Vitest must run the desk canon drift suite."
+        }
+      ],
+      "desk-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with npm ci --ignore-scripts before the pure Vitest suite."
+        },
+        {
+          "kind": "path",
+          "value": "hooks/desk/unit/logic.test.ts",
+          "why": "Vitest must run the desk behavior suite."
+        },
+        {
+          "kind": "path",
+          "value": "hooks/desk/unit/canon.test.ts",
+          "why": "Vitest must run the desk canon drift suite."
         }
       ],
       "constitution-check": [

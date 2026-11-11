@@ -24,9 +24,8 @@ printf '%s\n' "$stage" > "$STAGE_RECORD"
 for path in "$DESK_SOURCE"/*.ts "$DESK_SOURCE"/*.tsx; do
   cmp -s "$path" "$stage/hooks/${path##*/}" || exit 93
 done
-for path in "$DESK_SOURCE"/tests/*.ts; do
-  cmp -s "$path" "$stage/hooks/tests/${path##*/}" || exit 94
-done
+[ "$(find "$stage" -type f \( -name '*.test.ts' -o -name '*.test.tsx' \))" = "$stage/hooks/tests/register.test.ts" ] || exit 94
+cmp -s "$DESK_SOURCE/tests/register.test.ts" "$stage/hooks/tests/register.test.ts" || exit 94
 jq -e '.name == "hatsu" and .types == "./hooks/state.d.ts"' "$stage/.claude-plugin/plugin.json" >/dev/null || exit 95
 jq -e '.modules == ["./register.tsx"]' "$stage/hooks/hooks.json" >/dev/null || exit 96
 [ ! -e "$stage/scripts" ] || exit 97
