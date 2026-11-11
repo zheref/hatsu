@@ -93,7 +93,7 @@ export function runDatedEvidenceFixture(): void {
   const data = realpathSync(mkdtempSync(join(tmpdir(), 'hatsu-direct-evidence-')));
   const paths = ['contracts/direct.registry.json', 'contracts/classify.taxonomy.json', 'nen/workflow.json', 'docs/DIRECT-MATRIX.md'];
   const originals = new Map(paths.map(p => [p, readFileSync(join(root, p))]));
-  type FixtureRegistry = { snapshot: { evidenceVersion?: unknown; aliases: Record<string, { listPrice: Record<string, unknown>; served: Record<string, unknown>; evidence?: string }>;
+  type FixtureRegistry = { snapshot: { evidenceVersion?: unknown; aliases: Record<string, { primary?: string; listPrice: Record<string, unknown>; served: Record<string, unknown>; evidence?: string }>;
     sources: Record<string, { costPerTask: Record<string, unknown> }> }; picks: { inPool: Record<string, string> }; routing: unknown;
     aliases: Record<string, Record<string, unknown>> };
   const activation = JSON.parse(readFileSync(join(scripts, 'fixtures/direct-evidence.activation.json'), 'utf8')) as FixtureRegistry;
@@ -171,6 +171,12 @@ export function runDatedEvidenceFixture(): void {
     assert.equal(explicitLegacy.render().page, legacyPage, 'explicit zero matches the default legacy format');
     assertDocumentedEntrySanitized(0);
     reset();
+    const solPriceNote = 'The 2026-10-05 Codex lookup served GPT-5.6 Sol, listed at $4 / $20 in that dated price snapshot';
+    edit(d => {
+      const solSnapshot = d.snapshot.aliases.EXECUTION_FRONTIER;
+      solSnapshot.primary = 'GPT-6.1 Sol';
+      solSnapshot.listPrice.note = solPriceNote;
+    });
     const current = createMatrix(data, { today: '2026-10-27' });
     assert.equal(current.evidenceEnabled, true, 'explicit evidenceVersion 1 enables dated evidence');
     assert.deepEqual(current.priceFindings(), []);
@@ -232,12 +238,14 @@ export function runDatedEvidenceFixture(): void {
     for (const [name, mutate, message] of rejects) { reset(); edit(mutate); assert.throws(() => createMatrix(data), message, name); }
     reset();
     const consumer = join(data, 'consumer'); mkdirSync(join(consumer, 'nen'), { recursive: true });
-    const workflow = JSON.parse(originals.get('nen/workflow.json')!.toString()) as { models: { antigravity: { deep: string } } };
-    workflow.models.antigravity.deep = 'fixture-pro'; writeFileSync(join(consumer, 'nen/workflow.json'), JSON.stringify(workflow));
+    const consumerWorkflow = join(consumer, 'nen/workflow.json');
+    const workflow = JSON.parse(originals.get('nen/workflow.json')!.toString()) as { models: Record<string, Record<string, string>> };
+    workflow.models.antigravity.deep = 'fixture-pro'; writeFileSync(consumerWorkflow, JSON.stringify(workflow));
     assert.match(createMatrix(data, { workflowRoot: consumer }).verdictEvidence('VISUAL_ORCHESTRATOR', null, 'VISUAL_MAX', 'max').primary.restart,
       /Model: fixture-pro/, 'registry evidence and the consumer workflow are separate inputs');
     const evidenceArgs = ['evidence', data, '--repo', consumer, '--primary', 'VISUAL_ORCHESTRATOR', '--fallback', 'SEMANTIC_FRONTIER',
       '--recommended', 'VISUAL_MAX', '--effort', 'max', '--product', 'Antigravity CLI'];
+    const runEvidence = () => spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), ...evidenceArgs], { encoding: 'utf8' });
     const now = new Date().toISOString().slice(0, 10);
     const successUntil = new Date(Date.parse(now) + 30 * 86400000).toISOString().slice(0, 10);
     const successFrom = new Date(Date.parse(successUntil) + 86400000).toISOString().slice(0, 10);
@@ -257,7 +265,7 @@ export function runDatedEvidenceFixture(): void {
     writeFileSync(scratchPagePath, createMatrix(data, { today: now }).render().page);
     const currentPage = run('--check');
     assert.equal(currentPage.status, 0, currentPage.stdout + currentPage.stderr);
-    const cli = spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), ...evidenceArgs], { encoding: 'utf8' });
+    const cli = runEvidence();
     assert.equal(cli.status, 0, cli.stdout + cli.stderr);
     const cliEvidence = JSON.parse(cli.stdout) as typeof verdict;
     assert.equal(cliEvidence.primary.restartWarning, verdict.primary.restartWarning);
@@ -266,6 +274,60 @@ export function runDatedEvidenceFixture(): void {
     assert.equal(cliEvidence.recommended.price?.next?.from, successFrom, 'the future scratch price transition stays contiguous');
     assert.throws(() => main([...evidenceArgs, '--product', 'duplicate']), /duplicate/);
     assert.throws(() => main(['evidence', data]), /required --repo/);
+    const alternateFlash = 'fixture-flash\n## Fixture heading';
+    const alternateModels = { ...workflow.models, antigravity: { ...workflow.models.antigravity, fast: alternateFlash } };
+    writeFileSync(consumerWorkflow, JSON.stringify({ models: alternateModels }));
+    const alternateCli = runEvidence();
+    assert.equal(alternateCli.status, 0, alternateCli.stdout + alternateCli.stderr);
+    const alternate = JSON.parse(alternateCli.stdout) as typeof verdict;
+    assert.equal(alternate.primary.inPool?.typedAlias, alternateFlash);
+    assert.equal(alternate.recommended.inPool?.typedAlias, alternateFlash);
+    assert.deepEqual({
+      solPrice: sol.primary.price?.line,
+      proSubstitute: alternate.primary.inPool?.line,
+      argonSubstitute: alternate.recommended.inPool?.line,
+    }, {
+      solPrice: 'GPT-6.1 Sol · $2 / $10 · USD per 1M tokens, standard tier, short context · snapshot 2026-10-05 · ' +
+        `https://developers.openai.com/api/docs/pricing · ${solPriceNote}`,
+      proSubstitute: 'in-pool: VISUAL_FALLBACK; quota-only substitute for VISUAL_ORCHESTRATOR, only after its own availability and quota are read',
+      argonSubstitute: 'in-pool: VISUAL_FALLBACK; quota-only substitute for VISUAL_MAX, only after its own availability and quota are read',
+    });
+    const picks = ['primary', 'fallback', 'recommended'] as const;
+    const { models } = workflow;
+    const unspelledCases: Array<[string, unknown, readonly (typeof picks[number])[]]> = [
+      ['missing fallback surface', { ...models, claude: undefined }, ['fallback']],
+      ['missing primary tier', { ...models, antigravity: { ...models.antigravity, deep: undefined } }, ['primary']],
+      ['missing recommended tier', { ...models, antigravity: { ...models.antigravity, frontier: undefined } }, ['recommended']],
+      ['missing models map', undefined, picks],
+    ];
+    for (const [name, partialModels, unspelled] of unspelledCases) {
+      writeFileSync(consumerWorkflow, JSON.stringify({ models: partialModels }));
+      const inProcess = createMatrix(data, { workflowRoot: consumer, today: now })
+        .verdictEvidence('VISUAL_ORCHESTRATOR', 'SEMANTIC_FRONTIER', 'VISUAL_MAX', 'max', 'Antigravity CLI');
+      // Compare the JSON fields the report exposes. Optional undefined fields are omitted by the CLI.
+      const partial = JSON.parse(JSON.stringify(inProcess)) as typeof verdict;
+      for (const pick of picks) {
+        const full = cliEvidence[pick];
+        assert.ok(full?.typedAlias);
+        const missing = unspelled.includes(pick);
+        const inPool = partialModels === undefined && full.inPool ? { ...full.inPool, typedAlias: null } : full.inPool;
+        assert.deepEqual(partial[pick], {
+          ...full, typedAlias: missing ? null : full.typedAlias,
+          restart: missing ? full.restart.replace(full.typedAlias, '<alias>') : full.restart, inPool,
+        }, `${name}: ${pick} retains its evidence`);
+      }
+      const report = runEvidence();
+      assert.equal(report.status, 0, `${name}: ${report.stdout}${report.stderr}`);
+      assert.deepEqual(JSON.parse(report.stdout), { ...cliEvidence, ...partial });
+    }
+    for (const invalid of ['', 42]) {
+      writeFileSync(consumerWorkflow, JSON.stringify({ models: { claude: { deep: invalid } } }));
+      const report = runEvidence();
+      assert.equal(report.status, 2, report.stdout + report.stderr);
+      assert.equal(report.stdout, '');
+      assert.match(report.stderr, /models\.claude\.deep/);
+    }
+    writeFileSync(consumerWorkflow, JSON.stringify(workflow));
     const yesterday = new Date(Date.parse(now) - 86400000).toISOString().slice(0, 10);
     reset();
     edit(d => {
@@ -288,7 +350,7 @@ export function runDatedEvidenceFixture(): void {
       assert.ok(findings[0]?.startsWith(diagnostic), expired.stderr);
     }
     assert.equal(run('--write').status, 1, 'an expired price cannot silently regenerate a plausible fresh page');
-    const expiredEvidence = spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), ...evidenceArgs], { encoding: 'utf8' });
+    const expiredEvidence = runEvidence();
     assert.equal(expiredEvidence.status, 1);
     assert.match(expiredEvidence.stdout, /expiredPriceEvidence/);
     assert.equal(JSON.parse(expiredEvidence.stdout).recommended.price.input, 2, 'the report retains the dated observation, never auto-promotes next');
