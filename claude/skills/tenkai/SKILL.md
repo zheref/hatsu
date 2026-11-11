@@ -406,9 +406,8 @@ could not see. There is no list to fall out of date now.
 
 **A pull request that introduces gate configuration absent from the actual trusted workflow/validator
 revision selected by the readiness event is a bootstrap PR.** Record the event and exact checkout
-ref: Hatsu's readiness workflow explicitly uses `github.event.pull_request.base.sha` for both of
-its events, while another frozen validator may use the default branch's head. Its PR-local gate can
-forecast the eventual result, but it cannot be the trusted verdict; a stacked PR base carrying the
+ref. Hatsu's Ruby readiness workflow explicitly checks out `github.event.pull_request.base.sha`.
+The portable workflow checks out the declared base branch (§ 5d below). A PR-local gate can forecast the eventual result, but it cannot be the trusted verdict; a stacked PR base carrying the
 configuration is not, by itself, proof of which revision the validator checked out. Follow
 [`docs/GATE-CONFIGURATION.md`](../../../docs/GATE-CONFIGURATION.md), *The two-step landing*: land the
 bootstrap step, then prove a follow-up after its event resolves to that trusted copy. Until that
@@ -418,25 +417,36 @@ also cites its tracked issue; an untracked deferral is unsettled and Mukai does 
 
 **Process repositories (`maintained_tools`) without a repository-owned Ruby guard** receive
 `scripts/readiness_workflow_policy.mts` and its rendered JSON admission with the readiness workflow
-([zheref/hatsu#361](https://github.com/zheref/hatsu/issues/361)). The job checks out the PR head as
-data in `.candidate` and runs the guard and reader from the separate trusted base checkout. The
-manifest selects the managed workflow and binds its repository slug, runner, permissions and frozen
-steps to the rendering. Other workflows remain under their repository's own policy. The Nen pin
-comes from the trusted process contract.
+([zheref/hatsu#361](https://github.com/zheref/hatsu/issues/361)). The job checks out the exact event
+head as data in `.candidate`. The guard, reader, manifest and Nen pin come from the separate
+`.trusted` checkout of the declared base (`nen/workflow.json` → `branch.base`, default `main`).
+Tenkai reads the same branch from the fetched `origin` ref when adopting. Stacked pull requests use
+that declared base for policy even when the event targets a topic branch. The manifest binds the
+managed workflow's repository, runner, permissions and steps to the rendering. Other workflows
+remain under their repository's own policy.
 
-Apply renders the reader, guard, manifest and workflow together. When a review event can run the
-new workflow before its trusted base carries those files, land the reader, guard and manifest first.
-The initial manifest admits the exact first workflow while the trusted base has no workflow.
-Once the workflow is active, changing it requires two steps. Apply
-prepares the manifest with the current and next workflow admissions and reports the workflow
-`staged`. Land the guard and manifest on the trusted base, fetch it and re-run apply for the
-workflow update. The guard retires the previous shape once the trusted workflow changes. Check the
-event's actual trusted base for stacked pull requests.
+GitHub loads the `pull_request_review` workflow definition from the PR merge ref. The digest detects
+candidate drift when the base-defined `pull_request_target` job reaches the guard. Execution of the
+review workflow definition itself is outside the in-job digest check.
+[GitHub Actions event reference](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_review)
 
-**Process repositories with a repository-owned Ruby guard** follow its existing registration
-sequence in § 5a and require a trusted Nen pin. **Products** keep optional Ruby enforcement and the
-rendered Nen fallback. Tenkai observes other privileged workflows (`pull_request_target`,
-`workflow_run`, `issue_comment` and `workflow_call`) in either kind. Their owners set their policy.
+Fresh apply renders the reader, guard, manifest and workflow together. Where a review event can run
+before the declared base carries the policy, land the reader, guard and manifest first. The initial
+manifest admits the exact first workflow while the base has no readiness workflow.
+
+An existing managed legacy workflow and later changes to a portable workflow use the same two steps.
+Apply prepares an admission for the active trusted workflow and the next rendering, and reports the
+workflow `staged`. Land the reader if needed, the guard and the manifest on the declared base, fetch
+it, then re-run apply for the workflow update. The guard retires the previous digest when the next
+workflow becomes active. After a repository rename or transfer, update `origin` and `nen/repos.json`
+to the new slug. Tenkai verifies the old workflow and its admission on the fetched base, then stages
+that transition under the new slug. CI requires the manifest to match the event repository throughout.
+
+**Process repositories with a repository-owned Ruby guard** use the registration sequence in § 5a
+and require a trusted Nen pin. An installed portable policy retains precedence when a repository
+later adds Ruby. **Products** keep optional Ruby enforcement and the rendered Nen fallback. Tenkai
+observes other privileged workflows (`pull_request_target`, `workflow_run`, `issue_comment` and
+`workflow_call`) in either kind. Their owners set their policy.
 
 **With no other reporting check, the verdict never reads ready.** Excluding the readiness check
 leaves an empty rollup, which Nen judges `not-ready: no checks reported`.

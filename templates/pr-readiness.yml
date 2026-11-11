@@ -12,7 +12,8 @@
 #   runner reason: @@RUNNER_REASON@@
 #
 # For a process repository without a Ruby guard, Tenkai derives a portable
-# variant from this template. Its trusted admission covers the rendered job.
+# variant from this template. Its trusted checkout uses the declared base
+# branch, and its admission covers the rendered job.
 #
 # THE FAILURE MODE THIS TEMPLATE EXISTS TO PREVENT. The workflow this is derived
 # from carried `if: github.repository == 'zheref/hatsu'` as a literal. Copied to

@@ -410,18 +410,30 @@ conjuncts, including `unevaluated` rows, and writes the verdict and failing deta
 its Python engine only relays the typed result, following BC-11.
 
 **zheref/hatsu#361.** Tenkai ships a portable guard with its readiness rendering for process
-repositories without a repository-owned Ruby policy. The rendered manifest binds the repository and
-managed workflow bytes. The guard reads it from the event's trusted base checkout and compares the
-selected workflow in the separate PR data checkout. Ordinary CI stays under the consumer's policy.
-The process Nen pin still comes from the trusted contract. Existing Ruby guards keep their own
-admission rules.
+repositories without a repository-owned Ruby policy. An installed portable policy takes precedence
+if the repository later adds a Ruby guard. The rendered manifest binds the repository and managed
+workflow bytes. The separate `.trusted` checkout reads the guard, manifest, reader, gates and Nen
+pin from the declared base branch. During apply, Tenkai reads the corresponding fetched `origin`
+ref. A stacked PR's target branch does not supply those files. The candidate checkout still uses
+the exact event head, and ordinary CI stays under the consumer's policy.
 
-The first apply renders all four files. Where a review can run the new workflow from the PR merge
-ref before its base has the reader and policy, land the reader, guard and manifest first. The
-single initial digest admits the first workflow against that policy-only base. For later changes,
-Tenkai stages the new admission in the manifest while preserving the live workflow. Land the policy first and fetch the trusted base
-before re-rendering the workflow. After the new workflow becomes the trusted version, the guard
-accepts its digest alone. A PR-supplied manifest cannot change the comparison.
+GitHub loads the `pull_request_review` workflow definition from the PR merge ref. The in-job digest
+check detects workflow drift when the base-defined `pull_request_target` run reaches it. Execution of
+the PR-merge-ref workflow definition is outside that check's enforcement boundary.
+[GitHub Actions event reference](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_review)
+
+Fresh apply renders all four files. Where a review can run before the declared base carries the
+reader and policy, land the reader, guard and manifest first. The initial digest admits the first
+workflow against that policy-only base. If the base already carries a managed legacy workflow, the
+first manifest records the legacy bytes as current and the portable rendering as next. Later changes
+use the same transition. Apply stages the workflow while preparing the policy. Land the policy on
+the declared base, fetch it, then re-run apply to update the workflow. The guard admits only the new
+digest once the new workflow becomes active. It reads admission from the declared base checkout.
+
+On rename or transfer, update the repository's `origin` and registry entry first. Tenkai derives the
+prior slug from the trusted workflow and verifies its admission before preparing the policy under
+the new slug. Follow the policy-first landing, then re-render the workflow. CI continues to require
+the manifest's slug to match the event repository.
 
 **2026-10-13. Every builder step is frozen, and no run carries an expression
 ([zheref/hatsu#190](https://github.com/zheref/hatsu/issues/190)).** `surface-mirror-regenerate.yml`
