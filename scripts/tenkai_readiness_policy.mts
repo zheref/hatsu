@@ -2,6 +2,7 @@
 import { spawnSync } from "node:child_process";
 import { closeSync, mkdirSync, openSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
+import { assertManagedRequiredJobContexts } from "./tenkai_required_job_contexts.mts";
 import { dirname, join } from "node:path";
 import {
   GUARD_MARKER, GUARD_PATH, POLICY_CONTRACT, POLICY_PATH, admittedDigests,
@@ -102,6 +103,7 @@ export function adoptPortableReadiness(
 ): Row | null {
   let lock: { path: string; descriptor: number } | undefined;
   try {
+    if (input.rendered !== null) assertManagedRequiredJobContexts(hatsuRoot, input.path, input.rendered);
     // An existing repository-owned Ruby policy keeps its registration and rendering.
     // A previously adopted portable policy remains in effect when a Ruby file is added.
     let localGuard = regularText(repo, GUARD_PATH);
@@ -190,6 +192,10 @@ export function adoptPortableReadiness(
     if (mode === "apply") {
       writeOwned(repo, GUARD_PATH, localGuard, guard);
       writeOwned(repo, POLICY_PATH, localPolicy, manifest);
+    }
+    if (mode === "diagnose" && existing !== undefined) {
+      try { assertManagedRequiredJobContexts(hatsuRoot, input.path, existing); }
+      catch (error) { return row("drift", (error as Error).message, "re-run Tenkai apply to restore the required job name"); }
     }
     if (staged) {
       return row("staged", "portable workflow policy must admit the next rendering on the trusted base first",

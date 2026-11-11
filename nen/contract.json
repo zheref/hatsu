@@ -2445,11 +2445,13 @@
         "version": ">=3.2.0",
         "probe": [
           "ruby",
-          "--version"
+          "-rpsych",
+          "-e",
+          "puts RUBY_VERSION"
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "Coverage only: a 5 on this row alone leaves every lane testable, uninstrumented (docs/PROCESS.md, Exit codes and refusals). Bashcov 4.0.0 requires Ruby 3.2 or newer (zheref/hatsu#148). Verify-only: select that Ruby yourself, then let nen install the pinned user-local gems below."
+        "why": "The Tenkai host uses Ruby with Psych to decode the managed workflow YAML for its required job context guard (zheref/hatsu#596). Bashcov 4.0.0 also requires Ruby 3.2 or newer (zheref/hatsu#148). Verify-only: select a Ruby with Psych; Nen can install the pinned user-local coverage gems below."
       },
       "bash": {
         "version": ">=5.0.0",

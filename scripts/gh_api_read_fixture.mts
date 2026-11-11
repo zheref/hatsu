@@ -34,6 +34,14 @@ try {
   if (privateRepos.join(' ') !== 'api --method GET user/repos?visibility=private&per_page=100 --paginate --jq .[].full_name') {
     throw new Error('private repository list lost GET, query, pagination or projection');
   }
+  const methods = run(['repo-merge-methods', 'zheref/hatsu'], true);
+  if (methods.join(' ') !== 'api --method GET repos/zheref/hatsu --jq {allow_merge_commit,allow_squash_merge,allow_rebase_merge}') {
+    throw new Error('repository merge methods must use the fixed GET and projection');
+  }
+  const protection = run(['branch-protection', 'zheref/hatsu', 'feature/read'], true);
+  if (protection.join(' ') !== 'api --method GET repos/zheref/hatsu/branches/feature%2Fread/protection --jq {required_linear_history: .required_linear_history.enabled}') {
+    throw new Error('branch protection must use the fixed GET and linear history projection');
+  }
   const branch = run(['branch-rules', 'zheref/hatsu', 'feature/read'], true);
   if (branch.join(' ') !== 'api --method GET repos/zheref/hatsu/rules/branches/feature%2Fread') {
     throw new Error('branch rules did not encode the branch in a fixed GET path');
@@ -80,6 +88,8 @@ try {
     ['private-repos', '-F', 'x=y'],
     ['branch-rules', 'zheref/hatsu', 'main', '--method', 'PATCH'],
     ['branch-rules', 'zheref/hatsu', '--method'],
+    ['repo-merge-methods', 'zheref/hatsu', '--method', 'PATCH'],
+    ['branch-protection', 'zheref/hatsu', 'main', '--method', 'DELETE'],
     ['issue-pr', 'zheref/hatsu', '1/pulls/1/merge'],
     ['issue-pr', 'zheref/hatsu', '0'],
     ['tag-ref', 'zheref/hatsu', '../pulls/1/merge'],

@@ -48,6 +48,9 @@ anything. Third-Hand is not in that boundary.
 
 ## 1. Invocation
 
+Before offering a human merge line, read § 5 from the installed Hatsu root for GitHub's
+merge state and the repository's allowed merge methods.
+
 **P1 — this run opens with `/ten en`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
 missing prerequisites under its own name; the phases this run calls skip theirs).
 
@@ -371,7 +374,7 @@ this is never futon's path.
 En never merges*, narrowed by § *Ruling of 2026-10-19 — recorded Futon delivery merges*); `futon` § 5, `kurapika.md`,
 the gate tables (ROSTER, README, WORKFLOW) and `nen/decisions.json` row `own-pr-merge` cite it. It
 supersedes ruling 3 of 2026-09-29. En's work is the drive: every finding fixed, every thread answered
-and resolved. **Every other PR ends at the merge prompt, after five checks in order, every verdict line printed**:
+and resolved. **Every other PR ends at the merge prompt, after the checks below in order, every verdict line printed**:
 
 1. **On `branch.base`** — the base read back (`gh pr view <N> --json baseRefName`); a stacked PR whose
    delivery just merged is retargeted through `nen pr retarget` first (getsuga § 3's mechanism,
@@ -394,6 +397,28 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
    `edit-body`; `retarget-pending` is check 1 failing (case (2)), `not-applicable` is case (3), quoted
    in the `0`'s place and still the prompt, and any other line is a finding to fix, never a prompt.
 5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
+6. **GitHub's merge gate** — read `gh pr view <N> --repo <owner/name> --json headRefOid,baseRefName,mergeStateStatus`.
+   If the head or base changed, refresh the gate reads. If GitHub reports `BLOCKED` despite a
+   ready Nen verdict, hold the merge prompt. Read `gh pr checks <N> --repo <owner/name> --required --json name,bucket,state,workflow`
+   and the applicable base rules via `node '<installed Hatsu root>/scripts/gh_api_read.mts' branch-rules <owner/name> <base>`.
+   Include classic protection through `required-checks <owner/name> <base>` on that same reader
+   when available. Compare configured contexts and sources with the PR's Checks and merge box
+   for the judged head. Quote the pending or missing check and expected source, or the blocking
+   rule identified by GitHub. If the reads cannot establish the cause, report the blocked state
+   and the missing evidence. The maintainer owns any correction to repository settings.
+
+Read `node '<installed Hatsu root>/scripts/gh_api_read.mts' repo-merge-methods <owner/name>` for the repository's three
+`allow_*_merge` settings. Intersect the enabled methods with each applicable pull-request
+rule's `allowed_merge_methods` from `branch-rules`. Read classic linear history via
+`node '<installed Hatsu root>/scripts/gh_api_read.mts' branch-protection <owner/name> <base>` too. Linear history in
+either source excludes merge commits. Honor an explicitly chosen method if allowed. Otherwise
+use the first allowed method in merge, squash, rebase order. Offer the CLI line only after both
+rule reads succeed or GitHub explicitly reports the base has no classic protection. Hold the line
+if a setting is unreadable, no method is allowed, or a merge queue applies. Name the missing
+setting, the conflict, or the queue and link the GitHub merge box. Cite the settings used for
+the chosen flag. See [GitHub repository settings](https://docs.github.com/en/rest/repos/repos#get-a-repository),
+[branch rules](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch), and
+[classic protection](https://docs.github.com/en/rest/branches/branch-protection#get-branch-protection).
 
 The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en** —
 in the chat message as a `bash` block (WORKFLOW § 4's hand-over rule), the picker carrying one short
@@ -403,10 +428,10 @@ never offers the act, which is what no agent may do for the merge phase
 (ROSTER § *Rulings of 2026-09-30 — En never merges*):
 
 ```bash
-gh pr merge <N> --repo <owner/name> --merge --match-head-commit <judged head>   # the maintainer's; never --admin, never --auto
+gh pr merge <N> --repo <owner/name> <allowed method flag> --match-head-commit <judged head>   # the maintainer's; never --admin, never --auto
 ```
 
-`--match-head-commit` makes GitHub refuse the line if the head moved after the verdict. The maintainer
+Substitute the observed `--merge`, `--squash` or `--rebase`. `--match-head-commit` makes GitHub refuse the line if the head moved after the verdict. The maintainer
 merges from the GitHub UI or from that line; en reads the state back only if asked. **The merge is not a
 review**: the review is the reviewers' rounds (§ 4) and hanten's before them; en never votes and never
 self-reviews.

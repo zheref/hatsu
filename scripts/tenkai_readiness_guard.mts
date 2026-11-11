@@ -5,6 +5,8 @@ import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, un
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import { adoptPortableReadiness, type RenderInputs } from "./tenkai_readiness_policy.mts";
+import { regularText } from "./readiness_workflow_policy.mts";
+import { assertManagedRequiredJobContexts } from "./tenkai_required_job_contexts.mts";
 
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
 type Row = { state: State; detail: string; action: string | null };
@@ -95,9 +97,23 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
   return row("satisfied", "the trusted reader and workflow policy are ready");
 }
 
+function workflowContext(repo: string, hatsuRoot: string): Row {
+  const workflow = ".github/workflows/pr-readiness.yml";
+  try {
+    const installed = regularText(repo, workflow);
+    if (installed !== undefined) {
+      try { assertManagedRequiredJobContexts(hatsuRoot, workflow, installed); }
+      catch (error) { return row("drift", (error as Error).message, "re-render from templates/pr-readiness.yml"); }
+    }
+  } catch (error) {
+    return row("blocked", (error as Error).message, "repair the workflow path before re-adopting");
+  }
+  return row("satisfied", "the readiness job matches its required context");
+}
+
 const [mode, repo, hatsuRoot] = process.argv.slice(2);
-if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate", "diagnose-workflow", "apply-workflow"].includes(mode)) {
-  throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate|diagnose-workflow|apply-workflow> <repo> <hatsu-root>");
+if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate", "workflow-context", "diagnose-workflow", "apply-workflow"].includes(mode)) {
+  throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate|workflow-context|diagnose-workflow|apply-workflow> <repo> <hatsu-root>");
 }
 if (mode === "diagnose-workflow" || mode === "apply-workflow") {
   const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
@@ -106,6 +122,7 @@ if (mode === "diagnose-workflow" || mode === "apply-workflow") {
   process.stdout.write(JSON.stringify(result) + "\n");
 } else {
   const result = mode === "apply" ? applyReader(repo, hatsuRoot)
-    : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);
+    : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot)
+    : mode === "workflow-context" ? workflowContext(repo, hatsuRoot) : readerState(repo, hatsuRoot);
   process.stdout.write(JSON.stringify(result) + "\n");
 }

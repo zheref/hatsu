@@ -3,7 +3,7 @@
 // gh option, request body, or GraphQL source.
 import { spawnSync } from 'node:child_process';
 
-const usage = 'usage: node scripts/gh_api_read.mts <private-repos|branch-rules|required-checks|issue-pr|pr-head|workflow-content|actions-timing|actions-caches|actions-artifacts|tag-ref|issue-edits> [arguments]';
+const usage = 'usage: node scripts/gh_api_read.mts <private-repos|repo-merge-methods|branch-rules|branch-protection|required-checks|issue-pr|pr-head|workflow-content|actions-timing|actions-caches|actions-artifacts|tag-ref|issue-edits> [arguments]';
 
 // A deleted fork reads headRepo null, which is never the base repository: callers treat it as a fork.
 export const PR_HEAD_PROJECTION = '{number,state,draft,title,head:.head.sha,headRef:.head.ref,headRepo:.head.repo.full_name,baseRef:.base.ref,baseRepo:.base.repo.full_name}';
@@ -46,10 +46,22 @@ export function readCommand(args: string[]): string[] {
     case 'private-repos':
       exact(values, 0);
       return ['api', '--method', 'GET', 'user/repos?visibility=private&per_page=100', '--paginate', '--jq', '.[].full_name'];
+    case 'repo-merge-methods': {
+      exact(values, 1);
+      const [owner, repo] = slug(values[0]);
+      return ['api', '--method', 'GET', `repos/${owner}/${repo}`, '--jq',
+        '{allow_merge_commit,allow_squash_merge,allow_rebase_merge}'];
+    }
     case 'branch-rules': {
       exact(values, 2);
       const [owner, repo] = slug(values[0]);
       return ['api', '--method', 'GET', `repos/${owner}/${repo}/rules/branches/${segment(values[1])}`];
+    }
+    case 'branch-protection': {
+      exact(values, 2);
+      const [owner, repo] = slug(values[0]);
+      return ['api', '--method', 'GET', `repos/${owner}/${repo}/branches/${segment(values[1])}/protection`, '--jq',
+        '{required_linear_history: .required_linear_history.enabled}'];
     }
     case 'required-checks': {
       exact(values, 2);

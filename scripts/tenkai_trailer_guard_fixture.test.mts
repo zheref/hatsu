@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { assertRequiredJobContexts } from './tenkai_required_job_contexts.mts';
 
 const source = resolve(import.meta.dirname, '..');
 const relative = '.github/workflows/forbidden-commit-trailers.yml';
@@ -13,8 +14,8 @@ const pin = '16ff11b07b69305cf6a420972ca3d3926b44be67';
 // and the checkout's Git depth. The publisher still verifies this digest.
 const helper = { stdout: readFileSync(join(source, 'scripts/fixtures/consumer-trailers/published-reader-v0.142.0.sh'), 'utf8') };
 function temp() { return mkdtempSync(join(tmpdir(), 'hatsu-trailers-')); }
-function run(repo: string, mode = 'diagnose') {
-  const result = spawnSync(process.execPath, [join(source, 'scripts/tenkai_trailer_guard.mts'), mode, repo, source], { encoding: 'utf8' });
+function run(repo: string, mode = 'diagnose', root = source) {
+  const result = spawnSync(process.execPath, [join(source, 'scripts/tenkai_trailer_guard.mts'), mode, repo, root], { encoding: 'utf8' });
   expect(result.status, result.stderr).toBe(0);
   return JSON.parse(result.stdout) as { state: string; detail: string };
 }
@@ -38,7 +39,7 @@ function commit(repo: string, message: string) {
 const yaml = spawnSync('ruby', ['-rpsych', '-rjson', '-e', 'puts Psych.load_file(ARGV[0]).to_json', join(source, 'templates/forbidden-commit-trailers.yml')], { encoding: 'utf8' });
 expect(yaml.status, yaml.stderr).toBe(0);
 const document = JSON.parse(yaml.stdout);
-const job = document.jobs['trailer-policy-runner'];
+const job = document.jobs['forbidden-commit-trailers'];
 const publisher = readFileSync(join(source, 'scripts/consumer_trailer_ci.mts'), 'utf8');
 const check = job.steps.at(-1).run as string;
 
@@ -50,7 +51,7 @@ test('workflow has one read-only job, exact base/head data, immutable verified r
   expect(Object.keys(document.on ?? document.true)).toEqual(['pull_request_target']);
   expect((document.on ?? document.true).pull_request_target.types).toEqual(['opened', 'synchronize', 'reopened', 'ready_for_review', 'edited']);
   expect(document.permissions).toEqual({ contents: 'read', checks: 'write' });
-  expect(Object.keys(document.jobs)).toEqual(['trailer-policy-runner']);
+  expect(Object.keys(document.jobs)).toEqual(['forbidden-commit-trailers']);
   expect(job['runs-on']).toBe('ubuntu-latest');
   expect(job.steps[0].with).toMatchObject({ ref: '${{ github.event.pull_request.base.sha }}', path: '.base', 'persist-credentials': false, 'fetch-depth': 0 });
   expect(job.steps).toHaveLength(3);
@@ -66,6 +67,27 @@ test('workflow has one read-only job, exact base/head data, immutable verified r
   expect(publisher).toContain('check.external_id !== external');
   expect(publisher).toContain('check.head_sha !== head');
 
+});
+
+test('adoption refuses a trailer template with no job named for its required context', () => {
+  const repo = temp();
+  const root = temp();
+  try {
+    policy(repo);
+    for (const directory of ['templates', 'scripts', 'contracts']) mkdirSync(join(root, directory));
+    for (const path of ['scripts/consumer_trailer_ci.mts', 'contracts/required-job-contexts.json']) {
+      copyFileSync(join(source, path), join(root, path));
+    }
+    writeFileSync(join(root, 'templates/forbidden-commit-trailers.yml'),
+      template.replace('  forbidden-commit-trailers:', '  trailer-policy-runner:'));
+    expect(run(repo, 'apply', root)).toMatchObject({
+      state: 'blocked',
+      detail: relative + ': required context "forbidden-commit-trailers" must equal one static workflow job name',
+    });
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test('adoption renders, detects drift, repairs and stays idempotent; preserves foreign files and refuses links', () => {
@@ -244,6 +266,23 @@ test('Tenkai apply relays the trailer item and renders a real consumer workflow'
     };
     expect(adopt().state).toBe('repaired');
     expect(readFileSync(join(repo, relative), 'utf8')).toBe(template);
+    const readiness = '.github/workflows/pr-readiness.yml';
+    const pr = '.github/workflows/pr.yml';
+    writeFileSync(join(repo, pr), 'name: PR\non: pull_request\njobs:\n  shu:\n    runs-on: ubuntu-latest\n  browser:\n    name: typecheck-and-e2e\n    runs-on: ubuntu-latest\n');
+    const required = {
+      [relative]: ['forbidden-commit-trailers'],
+      [readiness]: ['readiness'],
+      [pr]: ['shu', 'typecheck-and-e2e'],
+    };
+    for (const [workflow, contexts] of Object.entries(required)) {
+      const rendered = readFileSync(join(repo, workflow), 'utf8');
+      assertRequiredJobContexts(workflow, rendered, contexts);
+    }
+    const rendered = readFileSync(join(repo, pr), 'utf8');
+    expect(() => assertRequiredJobContexts(pr, rendered.replace('name: typecheck-and-e2e', 'name: browser'), required[pr]))
+      .toThrow(pr + ': required context "typecheck-and-e2e"');
+    expect(() => assertRequiredJobContexts(pr, rendered.replace('  shu:', '  lint:'), required[pr]))
+      .toThrow(pr + ': required context "shu"');
     expect(adopt().state).toBe('satisfied');
   } finally { rmSync(repo, { recursive: true, force: true }); }
 });
@@ -252,7 +291,7 @@ test('published check is bound to the exact head, GitHub Actions producer and th
   const result = exercise('clean');
   expect(result.status, result.text).toBe(0);
   expect(result.calls).toHaveLength(2);
-  expect(result.calls[0].body).toMatchObject({ name: 'forbidden-commit-trailers', head_sha: result.head, status: 'in_progress', external_id: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main:123:1' });
+  expect(result.calls[0].body).toMatchObject({ name: 'forbidden-commit-trailers verdict', head_sha: result.head, status: 'in_progress', external_id: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main:123:1' });
   expect(result.calls[1].args).toContain('repos/acme/widget/check-runs/17');
   expect(result.calls[1].body).toMatchObject({ status: 'completed', conclusion: 'success' });
   const forbidden = exercise('bad\n\nCo-Authored-By: assistant');

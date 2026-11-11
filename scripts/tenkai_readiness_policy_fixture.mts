@@ -108,6 +108,11 @@ try {
   check(!old.includes("TENKAI_GUARD_REQUIRED") && !old.includes("workflow_runner_policy_check.rb --self-test"),
     "the process workflow invokes its shipped guard");
   check(adopt("apply").state === "satisfied", "second apply is idempotent");
+  put(repo, workflowPath, old.replace("\n  readiness:\n", "\n  renamed:\n"));
+  const renamed = adopt("diagnose");
+  check(renamed.state === "drift" && renamed.detail.includes(workflowPath + ': required context "readiness"'),
+    "diagnose names the workflow and missing readiness job");
+  check(adopt("apply").state === "repaired", "Tenkai restores the readiness job name");
 
   freezeBase();
   copy([workflowPath, ordinaryPath], candidate);

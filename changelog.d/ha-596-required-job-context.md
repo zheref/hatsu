@@ -1,0 +1,1 @@
+Tenkai renders the required `forbidden-commit-trailers` context as an Actions job and validates its name and `readiness` against the rendered workflows. En reads allowed GitHub merge methods and diagnoses GitHub merge blocks before offering a merge command.
