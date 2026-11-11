@@ -9,7 +9,8 @@
 # (single line, quoted, folded, literal, continued, CRLF) against the 1024-character cap in source and
 # every mirror layout, with a duplicate key, invalid UTF-8 (checked exactly), a quoted key, a space before
 # the colon, an alias or anchor value and a BOM refused by name and an unlistable skill directory an
-# offender (zheref/hatsu#186). Offline, hermetic, writes only under mktemp.
+# offender (zheref/hatsu#186). Offline, writes only under mktemp, and reads the live checkout
+# for the no-argument root comparison.
 
 set -euo pipefail
 export LC_ALL=C
@@ -399,14 +400,17 @@ if [ "$(id -u)" -ne 0 ]; then
   chmod 755 "$form/surfaces/codex/zz"
 fi
 
-# The no-argument case traces the production script from another working directory.
-# Use the plain guard for the reference; the cases above already trace explicit-root runs.
-if ! explicit_root_out="$(sh "$guard" "$script_dir/.." 2>&1)"; then
-  fail "explicit guard checkout failed: $explicit_root_out"
-fi
+# Compare root selection independently of the live checkout's prose verdict.
+# Trace the no-argument call from another working directory and use the plain guard as reference.
+explicit_root_status=0
+explicit_root_out="$(sh "$guard" "$script_dir/.." 2>&1)" || explicit_root_status=$?
+case "$explicit_root_status" in
+  0|1) ;;
+  *) fail "explicit guard checkout exited $explicit_root_status: $explicit_root_out" ;;
+esac
 (
   cd "$clean"
-  run 0
+  run "$explicit_root_status"
   [ "$out" = "$explicit_root_out" ] || fail "no argument must select the executing guard's checkout: $out"
 )
 
