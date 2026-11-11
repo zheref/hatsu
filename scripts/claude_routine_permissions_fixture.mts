@@ -143,6 +143,8 @@ export function cases(test: Test) {
     }
     const oldSource = JSON.parse(readFileSync(sourcePath, 'utf8'));
     oldSource.allow.push({ exe: 'gh', args: 'api *' });
+    const duplicate = 'Bash(echo scratch-fixture-retired)';
+    oldSource.allow.push({ exe: 'echo', args: 'scratch-fixture-retired' });
     data(join(versions[0], 'contracts/permissions.json'), oldSource);
     mkdirSync(home);
     mkdirSync(join(repo, 'nen'), { recursive: true });
@@ -163,21 +165,39 @@ export function cases(test: Test) {
     } });
     const first = install(versions[0]);
     assert.equal(first.status, 0, output(first));
-    assert.ok(readSettings(settings).rules?.allow.includes(retired[0]));
+    const installed = JSON.parse(readFileSync(settings, 'utf8'));
+    assert.ok(installed.permissions.allow.includes(retired[0]));
+    assert.ok(installed.permissions.allow.includes(duplicate));
+    installed.permissions.allow.push(duplicate);
+    data(settings, installed);
     assert.equal(diagnose(), 'retired');
     const next = install(versions[1]);
     assert.equal(next.status, 0, output(next));
     assert.match(next.stdout, /removed retired pack row/);
     assert.match(next.stdout, /kept row with unknown ownership/);
+    assert.match(next.stdout, /kept row with unknown ownership permissions\.allow\[\d+\] \(Bash echo\)/);
     const upgraded = JSON.parse(readFileSync(settings, 'utf8'));
     assert.ok(!upgraded.permissions.allow.some((row: string) => row.includes(versions[0]) || row === retired[0]));
     assert.ok(upgraded.permissions.allow.some((row: string) => row.includes(versions[1])));
     for (const row of [...foreign, retired[1]]) assert.ok(upgraded.permissions.allow.includes(row), row);
+    assert.equal(upgraded.permissions.allow.filter((row: string) => row === duplicate).length, 2);
     assert.deepEqual(upgraded.other, { preserved: true });
     assert.ok(upgraded.$comment.startsWith('maintainer'));
     assert.equal(diagnose(), 'blocked');
-    assert.equal(install(versions[1]).status, 0);
+    const repeated = install(versions[1]);
+    assert.equal(repeated.status, 0, output(repeated));
+    assert.match(repeated.stdout, /kept row with unknown ownership permissions\.allow\[\d+\] \(Bash echo\)/);
+    assert.equal(diagnose(), 'blocked');
     assert.deepEqual(JSON.parse(readFileSync(settings, 'utf8')), upgraded);
+    // Dropping the unrelated historical rule and one duplicate does not prove who added the survivor.
+    upgraded.permissions.allow.splice(upgraded.permissions.allow.indexOf(duplicate), 1);
+    upgraded.permissions.allow.splice(upgraded.permissions.allow.indexOf(retired[1]), 1);
+    data(settings, upgraded);
+    assert.equal(diagnose(), 'blocked');
+    upgraded.permissions.allow.splice(upgraded.permissions.allow.indexOf(duplicate), 1);
+    data(settings, upgraded);
+    assert.equal(install(versions[1]).status, 0);
+    assert.equal(diagnose(), 'present');
     // An independently added row with exactly the same bytes as the owned legacy grant survives.
     const unowned = { permissions: { allow: [retired[0]] } };
     const current = checkoutPack(source, versions[1], 'fixture');
@@ -204,12 +224,15 @@ export function cases(test: Test) {
       `>out ${bare}`, `nen 2>out pr threads resolve --pr 1`, `echo <(${bare})`,
       `sh <<'EOF'\n${bare}\nEOF`, `cat <<EOF | bash\n${bare}\nEOF`,
       `cat <<EOF\n$(${bare})\nEOF`, `bash <<< '${bare}'`,
+      `bash -o pipefail <<'EOF'\n${bare}\nEOF`, `bash -euo pipefail <<'EOF'\n${bare}\nEOF`,
+      `bash -O extglob <<< '${bare}'`, `bash -o pipefail -s -- arg <<< '${bare}'`,
       `./${WRAPPER} nen pr threads resolve --pr 1`, `nen  pr threads resolve --pr 1`,
     ]) assert.match(checkRoutineWrite(command, source).refusal ?? '', /one plain Nen write call/, command);
     for (const command of [
       `${bare} --body-file 'a ; | && || & $(literal).md'`, `${bare} --body-file "a ; | && || &.md"`,
       `echo '${bare}; false'`, `command -v ${bare}`, `cat <<'EOF'\n$(${bare})\nEOF`, `cat <<'EOF'\n${bare}\nEOF`,
       `cat <<'EOF'; sh -c 'true'\n${bare}\nEOF`, 'nen pr threads list --pr 1 | head', 'git status && git diff',
+      `bash -o pipefail script.sh <<'EOF'\n${bare}\nEOF`, `bash -O extglob -- script.sh <<< '${bare}'`,
     ]) assert.equal(checkRoutineWrite(command, source).refusal, null, command);
     const skills = ['backlog-synthesis', 'file', 'hiraishin', 'kamui', 'mugetsu', 'sharingan', 'shibari', 'tensho'];
     const documents = [...skills.map((skill) => `claude/skills/${skill}/SKILL.md`), 'docs/WORKFLOW.md'];
@@ -284,7 +307,18 @@ export function cases(test: Test) {
     const check = (command: string, args = hook.args) => run(hook.command, args, cwd, env, payload(command));
     const wrapper = join(install, WRAPPER);
     const command = `${wrapper} --path ${bin} -- ${bare}`;
-    assert.equal(run('/bin/sh', ['-c', 'command -v nen'], cwd, env).status, 1);
+    // POSIX specifies a nonzero lookup miss, with no fixed exit code.
+    const lookup = ['-c', 'if command -v nen; then printf "%s\\n" nen-found; else printf "%s\\n" nen-missing; fi'];
+    const hostLookup = run('/bin/sh', lookup, cwd, env);
+    const sessionLookup = run('/bin/sh', lookup, cwd, { ...env, PATH: `${bin}${delimiter}${env.PATH}` });
+    for (const result of [hostLookup, sessionLookup]) {
+      assert.equal(result.error, undefined);
+      assert.equal(result.signal, null);
+      assert.equal(result.status, 0, output(result));
+      assert.equal(result.stderr, '');
+    }
+    assert.equal(hostLookup.stdout, 'nen-missing\n');
+    assert.equal(sessionLookup.stdout, `${join(bin, 'nen')}\nnen-found\n`);
     assert.ok(routineForms(source, install, true).some(({ rule }) => bashPattern(rule)?.test(command)));
     assert.equal(checkHookInput(JSON.parse(payload(command)), install), null);
     assert.equal(check(command).status, 0);
@@ -292,9 +326,18 @@ export function cases(test: Test) {
     const executed = run(wrapper, ['--path', bin, '--', ...bare.split(' ')], cwd, env);
     assert.equal(executed.status, 0, output(executed));
     assert.deepEqual(readFileSync(marker, 'utf8').trim().split('\n'), bare.split(' ').slice(1));
-    for (const noncanonical of [`timeout 5s ${bare}`, `>out ${bare}`, `bash <<'EOF'\n${bare}\nEOF`]) {
+    for (const noncanonical of [`timeout 5s ${bare}`, `>out ${bare}`, `bash -o pipefail <<'EOF'\n${bare}\nEOF`,
+      `bash -O extglob <<< '${bare}'`]) {
       assert.equal(check(noncanonical).status, 2, noncanonical);
     }
+    assert.equal(check(`bash -o pipefail script.sh <<'EOF'\n${bare}\nEOF`).status, 0);
+    const nonNen = `${wrapper} --path ${bin} -- /bin/sh -c 'printf harmless # -- nen pr open x'`;
+    assert.ok(routineForms(source, install, true).some(({ rule }) => rule.includes(' --path ') && bashPattern(rule)?.test(nonNen)));
+    for (const raw of [nonNen, `true && ${nonNen}`, `timeout 5s ${nonNen}`]) {
+      assert.match(check(raw).stderr, /one plain Nen write call/, raw);
+    }
+    assert.equal(check(`${wrapper} --path ${bin} -- nen --version`).status, 0);
+    assert.equal(check(`echo ${shellWord(nonNen)}`).status, 0);
     mkdirSync(join(cwd, 'scripts'));
     writeFileSync(join(cwd, WRAPPER), '#!/bin/sh\ntrue\n', { mode: 0o700 });
     assert.match(check(`./${WRAPPER} -- ${bare}`).stderr, /could not be verified/);

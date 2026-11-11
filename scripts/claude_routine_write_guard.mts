@@ -3,8 +3,8 @@ import { createHash } from 'node:crypto';
 import { accessSync, constants, lstatSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { object } from './claude_permissions.mts';
-import { permissionSource, shellWord, WRAPPER, type PermissionSource } from './claude_routine_permissions.mts';
+import { bashPattern, object } from './claude_permissions.mts';
+import { permissionSource, sessionRoutineRule, shellWord, WRAPPER, type PermissionSource } from './claude_routine_permissions.mts';
 
 const loneCall = 'Hatsu routine write: prepare the payload separately and run one plain Nen write call. Use bare nen, the verified gh_token_env.sh -- nen form, or Ten’s verified session binding with the installed wrapper.';
 type Scan = { parts: string[][]; complex: boolean };
@@ -156,11 +156,14 @@ const shellPrefix = /^(?:then|do|elif|if|while|until|!)$/;
 
 function shellReadsInput(words: string[]): boolean {
   if (!shell.test(basename(words[0] ?? ''))) return false;
-  for (const arg of words.slice(1)) {
-    if (arg === '--') continue;
-    if (!arg.startsWith('-')) return false;
-    if (/^-[a-z]*c[a-z]*$/.test(arg)) return false;
-    if (/^-[a-z]*s[a-z]*$/.test(arg)) return true;
+  let stdin = false;
+  for (let at = 1; at < words.length; at++) {
+    const arg = words[at];
+    if (arg === '--') return stdin || at === words.length - 1;
+    if (!arg.startsWith('-') && !arg.startsWith('+')) return stdin;
+    if (/^-[a-zA-Z]*c[a-zA-Z]*$/.test(arg)) return false;
+    if (/^-[a-zA-Z]*s[a-zA-Z]*$/.test(arg)) stdin = true;
+    if (/^(?:[+-][a-zA-Z]*[oO]|--(?:init-file|rcfile|emulate))$/.test(arg)) at++;
   }
   return true;
 }
@@ -213,10 +216,23 @@ function classify(words: string[], prefixes: string[][], depth: number): Command
   return null;
 }
 
-export function checkRoutineWrite(command: string, source: PermissionSource) {
+export function checkRoutineWrite(command: string, source: PermissionSource, installedWrapper?: string) {
   const prefixes = source.claude_routine_writes.map(({ prefix }) => prefix.split(' '));
   const scanned = scan(command.trim());
   const found = scanned.parts.map((part) => classify(part, prefixes, 0)).find(Boolean);
+  if (installedWrapper && !found?.session && command.includes(`${shellWord(installedWrapper)} --path `)) {
+    const invokesWrapper = scanned.parts.some((part) => {
+      const [exe, flag] = unwrap(part);
+      return exe === installedWrapper && flag === '--path';
+    });
+    const matchesSessionText = source.claude_routine_writes.some(({ prefix }) => {
+      const rule = bashPattern(sessionRoutineRule(prefix, installedWrapper))!;
+      // Claude can match an executable subcommand after a join or a host wrapper.
+      const subcommand = invokesWrapper && new RegExp(rule.source.slice(1), rule.flags).test(command);
+      return rule.test(command.trim()) || subcommand;
+    });
+    if (matchesSessionText) return { refusal: loneCall, wrapper: null, session: null };
+  }
   if (!found) return { refusal: null, wrapper: null, session: null };
   const wrapper = found.wrapper ?? null;
   const session = found.session ?? null;
@@ -273,12 +289,13 @@ export function checkHookInput(input: unknown, root: string): string | null {
   if (!object(input) || input.tool_name !== 'Bash' || !object(input.tool_input) ||
       typeof input.tool_input.command !== 'string') return null;
   const source = permissionSource(join(root, 'contracts/permissions.json'));
-  const { refusal, wrapper, session } = checkRoutineWrite(input.tool_input.command, source);
+  const installedWrapper = join(realpathSync(root), WRAPPER);
+  const { refusal, wrapper, session } = checkRoutineWrite(input.tool_input.command, source, installedWrapper);
   if (refusal) return refusal;
   if (wrapper && (typeof input.cwd !== 'string' || !verifyWrapper(wrapper, input.cwd, root))) {
     return 'Hatsu routine write: the requested token wrapper could not be verified against the installed Hatsu wrapper. Use the verified installed path or bare nen.';
   }
-  if (session && (wrapper !== join(realpathSync(root), WRAPPER) || !verifySession(session, root))) {
+  if (session && (wrapper !== installedWrapper || !verifySession(session, root))) {
     return 'Hatsu routine write: Ten’s private session bin or its pinned Nen binary could not be verified.';
   }
   return null;

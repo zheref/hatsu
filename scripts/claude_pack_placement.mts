@@ -27,16 +27,22 @@ function foreignName(kind: 'allow' | 'deny' | 'ask', row: string, index: number)
 }
 
 function ownedRows(comment: unknown) {
-  if (comment === undefined) return { comment: undefined, allow: [], deny: [] };
-  if (typeof comment !== 'string') throw new Error('settings $comment is not a string');
-  const marker = comment.lastIndexOf(OWNERSHIP);
-  if (marker < 0) return { comment, allow: [], deny: [] };
+  if (comment !== undefined && typeof comment !== 'string') throw new Error('settings $comment is not a string');
+  const marker = comment?.lastIndexOf(OWNERSHIP) ?? -1;
+  const empty = { allow: [] as string[], deny: [] as string[] };
+  if (comment === undefined || marker < 0) return { comment, ...empty, ambiguous: empty };
   const rows: unknown = JSON.parse(comment.slice(marker + OWNERSHIP.length));
   if (!object(rows)) throw new Error('invalid Hatsu checkout pack ownership');
+  const ambiguous = rows.ambiguous === undefined ? {} : rows.ambiguous;
+  if (!object(ambiguous)) throw new Error('invalid ambiguous Hatsu checkout pack ownership');
   return {
     comment: comment.slice(0, marker),
     allow: strings(rows.allow, 'owned allow'),
     deny: strings(rows.deny, 'owned deny'),
+    ambiguous: {
+      allow: strings(ambiguous.allow, 'ambiguous allow'),
+      deny: strings(ambiguous.deny, 'ambiguous deny'),
+    },
   };
 }
 
@@ -50,15 +56,18 @@ export function mergePack(current: unknown, pack: unknown, marker: string) {
   const retired: string[] = [];
   const retained: string[] = [];
   const unknown: string[] = [];
-  const nextOwned = { allow: [] as string[], deny: [] as string[] };
+  const nextOwned = { allow: [] as string[], deny: [] as string[], ambiguous: { allow: [] as string[], deny: [] as string[] } };
   const permissions = { ...existing, allow: [] as string[], deny: [] as string[] };
   for (const kind of ['allow', 'deny'] as const) {
     const counts = new Map<string, number>();
     for (const row of rules[kind]) counts.set(row, (counts.get(row) ?? 0) + 1);
     const expected = new Set(incoming[kind]);
     const previous = new Set(owned[kind]);
+    const previousAmbiguous = new Set(owned.ambiguous[kind]);
+    const ambiguousRows = new Set<string>();
     for (const [index, row] of rules[kind].entries()) {
-      const isOwned = previous.has(row) && counts.get(row) === 1;
+      const ambiguous = previousAmbiguous.has(row) || (previous.has(row) && counts.get(row) !== 1);
+      const isOwned = previous.has(row) && !ambiguous;
       const description = foreignName(kind, row, index);
       if (isOwned && !expected.has(row)) {
         retired.push(description);
@@ -69,7 +78,9 @@ export function mergePack(current: unknown, pack: unknown, marker: string) {
         nextOwned[kind].push(row);
       } else {
         retained.push(description);
-        if (!expected.has(row) && (previous.has(row) || (kind === 'allow' && unknownLegacyAllow(row)))) {
+        // Once duplicate entries obscure provenance, even one remaining copy is ambiguous.
+        if (ambiguous) ambiguousRows.add(row);
+        if (!expected.has(row) && (ambiguous || (kind === 'allow' && unknownLegacyAllow(row)))) {
           unknown.push(description);
         }
       }
@@ -80,6 +91,7 @@ export function mergePack(current: unknown, pack: unknown, marker: string) {
         nextOwned[kind].push(row);
       }
     }
+    nextOwned.ambiguous[kind] = [...ambiguousRows];
   }
   rules.ask.forEach((row, index) => retained.push(foreignName('ask', row, index)));
   return {

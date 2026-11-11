@@ -59,6 +59,10 @@ export function permissionSource(path: string): PermissionSource {
 const singleQuote = (text: string) => `'${text.replaceAll("'", "'\\''")}'`;
 export const shellWord = (text: string) => SAFE_WORD.test(text) ? text : singleQuote(text);
 
+export function sessionRoutineRule(prefix: string, installed: string): string {
+  return `Bash(${shellWord(installed)} --path * -- ${prefix} *)`;
+}
+
 function installedFile(root: string, relative: string): string {
   const expected = join(realpathSync(root), relative);
   if (realpathSync(expected) !== expected || !statSync(expected).isFile() || /[\x00-\x1f\x7f*()]/.test(expected)) {
@@ -78,7 +82,7 @@ export function routineForms(source: PermissionSource, root: string, withSession
   if (withSession) for (const entry of source.claude_routine_writes) {
     const absolute = shellWord(installed);
     forms.push({
-      rule: `Bash(${absolute} --path * -- ${entry.prefix} *)`,
+      rule: sessionRoutineRule(entry.prefix, installed),
       command: `${absolute} --path /tmp/hatsu-session/bin -- ${sampleCommand(entry.command)}`,
     });
   }
