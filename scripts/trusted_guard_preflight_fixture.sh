@@ -16,12 +16,16 @@ git -C "$checkout" checkout -q -B main FETCH_HEAD
 git -C "$checkout" update-ref refs/remotes/origin/main HEAD
 
 ruby "$preflight" --root "$checkout" --base-ref origin/main > "$fixture/pass.log" 2>&1
-grep -q 'every derived trusted guard passed' "$fixture/pass.log" \
+grep -q 'every runnable trusted guard passed' "$fixture/pass.log" \
   || { cat "$fixture/pass.log"; echo 'trusted-guard-preflight-fixture: known root did not pass' >&2; exit 1; }
-for guard in branch_authorship_check.sh canon_contracts_check.sh direct_matrix_ci_check.mts plugin_bump_check.sh private_name_check_fixture.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
+for guard in branch_authorship_check.sh canon_contracts_check.sh direct_matrix_ci_check.mts plugin_bump_api_retry.mts plugin_bump_check.sh private_name_check_fixture.sh prose_size_check.sh surface_link_check.sh surface_mirror_check.sh workflow_runner_policy_check.rb; do
   grep -q "  $guard: exit 0" "$fixture/pass.log" \
     || { cat "$fixture/pass.log"; echo "trusted-guard-preflight-fixture: $guard was not run" >&2; exit 1; }
 done
+
+grep -q '    changed files: 1' "$fixture/pass.log" \
+  || { cat "$fixture/pass.log"; echo 'trusted-guard-preflight-fixture: plugin-bump API helper did not report its verdict' >&2; exit 1; }
+ruby "$preflight" --root "$checkout" --check-adapters
 
 grep -q '  readiness_ci_verdict.mts: not run (' "$fixture/pass.log" \
   || { cat "$fixture/pass.log"; echo 'trusted-guard-preflight-fixture: the readiness verdict was not named as not run' >&2; exit 1; }
@@ -165,7 +169,7 @@ set +e
 ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon-silent > "$fixture/canon-silent.log" 2>&1
 code=$?
 set -e
-[ "$code" -eq 1 ] && grep -q 'prose_ambiguity_check.mts exited 0 without its verdict line' "$fixture/canon-silent.log" \
+[ "$code" -eq 1 ] && grep -q 'prose_ambiguity_check.mts: not run (exited 0 without its verdict line' "$fixture/canon-silent.log" \
   || { cat "$fixture/canon-silent.log"; echo "trusted-guard-preflight-fixture: a silent exit 0 from the lint was not refused (exit $code)" >&2; exit 1; }
 git -C "$checkout" reset -q --hard refs/remotes/origin/preflight-canon
 
@@ -177,6 +181,13 @@ cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
       - run: bash .trusted/scripts/unrecognized_guard.sh
 YAML
 printf '#!/bin/sh\nexit 0\n' > "$checkout/scripts/unrecognized_guard.sh"
+set +e
+ruby "$preflight" --root "$checkout" --check-adapters > "$fixture/candidate.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 2 ] && grep -q 'unrecognized_guard.sh: no local invocation' "$fixture/candidate.log" \
+  || { cat "$fixture/candidate.log"; echo 'trusted-guard-preflight-fixture: candidate adapter check did not name the gap' >&2; exit 1; }
+
 git -C "$checkout" add .github/workflows/plugin-bump-check.yml scripts/unrecognized_guard.sh
 git -C "$checkout" commit -qm 'fixture: add unknown trusted guard'
 git -C "$checkout" update-ref refs/remotes/origin/preflight-unknown HEAD
@@ -184,7 +195,16 @@ set +e
 ruby "$preflight" --root "$checkout" --base-ref origin/preflight-unknown > "$fixture/unknown.log" 2>&1
 code=$?
 set -e
-[ "$code" -eq 2 ] && grep -q 'no local invocation for trusted guard(s): unrecognized_guard.sh' "$fixture/unknown.log" \
-  || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: unknown trusted guard was not a wiring error' >&2; exit 1; }
+[ "$code" -eq 2 ] && grep -q '^  unrecognized_guard.sh: not run (no local invocation)$' "$fixture/unknown.log" \
+  || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: unknown trusted guard was not named as not run' >&2; exit 1; }
+ruby "$preflight" --root "$checkout" --base-ref origin/preflight-unknown --list \
+  | awk '/^  / { print $1 }' > "$fixture/derived.txt"
+awk '/^  [^ ]+: (exit |not run )/ { sub(/:$/, "", $1); print $1 }' "$fixture/unknown.log" > "$fixture/reported.txt"
+diff -u "$fixture/derived.txt" "$fixture/reported.txt" \
+  || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: each derived guard needs exactly one result' >&2; exit 1; }
+grep -q '^  workflow_runner_policy_check.rb: exit [01]$' "$fixture/unknown.log" \
+  && grep -q '^  plugin_bump_api_retry.mts: exit 0$' "$fixture/unknown.log" \
+  && ! grep -q 'every runnable trusted guard passed' "$fixture/unknown.log" \
+  || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: missing adapter stopped other guards or read green' >&2; exit 1; }
 
 echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the .mts canon lint derived and run green from inside the root with its red, no-rules and silent paths proven, unknown guard refusal, old guard regression cases)'
