@@ -139,6 +139,11 @@
         "cwd": ".",
         "$comment": "Hermetic fixture for the trusted CI test runner: verifies selected lanes, required fixtures (including the real-Nen mechanical-conflicts proof), failure propagation, token clearing, and workflow-command fencing."
       },
+      "unit-tests-dispatcher-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Local exact-source capture for the trusted aggregate CI dispatcher."
+      },
       "gh-api-read-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -439,6 +444,11 @@
         "cwd": ".",
         "$comment": "Measure the original PR-section checker and resolver shell entries together. pr-sections-guard keeps its independent native Node capture."
       },
+      "desk-registration-launcher-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Focused fixture for the base-owned desk registration launcher."
+      },
       "desk-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -467,7 +477,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, marketplace-snapshot-guard, fixture-output-guard, direct-matrix-shell-guard, desk-staging-guard, pr-sections-shell-guard, desk-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, marketplace-snapshot-guard, fixture-output-guard, direct-matrix-shell-guard, desk-staging-guard, pr-sections-shell-guard, desk-registration-launcher-guard, desk-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no application to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; its rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md) and the desk pane (hooks/desk), which Claude Code draws from the module's ui.render trees. The engine's test kit renders no tree to a surface, so the desk's screens are captured by hand on a PR, not by a ui-test run (zheref/hatsu#523)."
@@ -702,6 +712,7 @@
                 "--testTimeout",
                 "15000",
                 "scripts/unit_tests_ci_fixture.test.mts",
+                "scripts/desk_registration_ci_fixture.test.mts",
                 "scripts/trusted_guard_preflight_fixture.test.mts",
                 "scripts/release_changelog_fixture.test.mts",
                 "scripts/tenkai_release_guard_fixture.test.mts",
@@ -735,6 +746,47 @@
             }
           ],
           "$comment": "The trusted read-only unit-tests workflow already selects this candidate lane (BC-9). Check candidate workflow adapters and exercise the pinned Vitest fixtures for CI, release, coverage, the desk’s pure logic and canon drift, and the Claude Code routine-write and permission-pack entry points. The separate claude-routine-permissions-guard lane supplies exact-source TypeScript coverage for local verification. Install locked dependencies with npm ci --ignore-scripts first."
+        }
+      },
+      "unit-tests-dispatcher-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/unit-tests-dispatcher-guard', { recursive: true }); require('node:fs').rmSync('coverage/unit-tests-dispatcher-guard/lcov.info', { force: true })"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-coverage-include=scripts/unit_tests_ci.mts",
+                "--test-reporter=spec",
+                "--test-reporter-destination=stdout",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=coverage/unit-tests-dispatcher-guard/lcov.info",
+                "scripts/unit_tests_ci_fixture.coverage.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/unit-tests-dispatcher-guard/lcov.info"
+          ],
+          "$comment": "Replay the exact dispatcher cases from the authoritative Vitest fixture in unit-tests-ci-guard under Node 24 for local source coverage. No additional hosted job or fixture invocation."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const lines=fs.readFileSync('coverage/unit-tests-dispatcher-guard/lcov.info','utf8').split('\\n');if(!lines.includes('SF:scripts/unit_tests_ci.mts'))throw new Error('Missing exact-source dispatcher LCOV')"
+          ],
+          "artifacts": [
+            "coverage/unit-tests-dispatcher-guard/lcov.info"
+          ],
+          "$comment": "Extraction only. Prefer --from-capture for exact source provenance."
         }
       },
       "gh-api-read-guard": {
@@ -2412,6 +2464,57 @@
           "$comment": "Extraction only: checks the shell report and source hashes. Prefer --from-capture for Nen’s current-tree proof."
         }
       },
+      "desk-registration-launcher-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/desk-registration-launcher-guard', { recursive: true }); require('node:fs').rmSync('coverage/desk-registration-launcher-guard/lcov.info', { force: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "scripts/desk_registration_ci_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-coverage-include=scripts/desk_registration_ci.mts",
+                "--test-reporter=spec",
+                "--test-reporter-destination=stdout",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=coverage/desk-registration-launcher-guard/lcov.info",
+                "scripts/desk_registration_ci_fixture.coverage.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/desk-registration-launcher-guard/lcov.info"
+          ],
+          "$comment": "Vitest verifies the trusted launcher through an offline absolute test double. Node 24 replays the same cases solely for exact-source line coverage. The actual Claude host is verified separately."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const lines=fs.readFileSync('coverage/desk-registration-launcher-guard/lcov.info','utf8').split('\\n');if(!lines.includes('SF:scripts/desk_registration_ci.mts'))throw new Error('Missing exact-source launcher LCOV')"
+          ],
+          "artifacts": [
+            "coverage/desk-registration-launcher-guard/lcov.info"
+          ],
+          "$comment": "Extraction only. Prefer --from-capture for exact source provenance."
+        }
+      },
       "desk-guard": {
         "test": {
           "steps": [
@@ -2459,7 +2562,7 @@
           "artifacts": [
             "coverage/desk-guard/lcov.info"
           ],
-          "$comment": "Run the pure Vitest cases, actual Claude registration tests, then exact-source coverage on Node 24. CI already runs the pure suite through unit-tests-ci-guard. Activate templates/unit-tests-desk.yml after the trusted workflow policy admits its bytes to run the full lane in CI (zheref/hatsu#523)."
+          "$comment": "Run the pure Vitest cases, actual Claude registration tests, then exact-source coverage on Node 24. CI already runs the pure suite through unit-tests-ci-guard. Activate templates/unit-tests-desk.yml after policy admission to run the registration suite in a dedicated hosted job (zheref/hatsu#523). Coverage replay remains local."
         },
         "coverage": {
           "exe": "node",
@@ -2520,6 +2623,18 @@
           "kind": "path",
           "value": "hooks/desk/unit/canon.test.ts",
           "why": "Vitest must run the desk canon drift suite."
+        },
+        {
+          "kind": "path",
+          "value": "scripts/desk_registration_ci_fixture.test.mts",
+          "why": "Vitest must run the trusted launcher fixture."
+        }
+      ],
+      "desk-registration-launcher-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked test dependencies before running the launcher fixture."
         }
       ],
       "desk-guard": [

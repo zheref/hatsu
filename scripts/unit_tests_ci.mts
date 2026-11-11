@@ -7,13 +7,9 @@ import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 
-const [rootArg, nenArg, mode, ...extra] = process.argv.slice(2);
-const deskOnly = mode === '--desk-guard';
-if ((mode && !deskOnly) || extra.length) {
-  console.error('unit-tests-ci: expected only the optional --desk-guard mode');
-  process.exit(2);
-}
-if (!rootArg || !nenArg || !isAbsolute(rootArg) || !isAbsolute(nenArg)) {
+const args = process.argv.slice(2);
+const [rootArg, nenArg] = args;
+if (args.length !== 2 || !rootArg || !nenArg || !isAbsolute(rootArg) || !isAbsolute(nenArg)) {
   console.error('unit-tests-ci: expected absolute PR root and verified nen binary paths');
   process.exit(2);
 }
@@ -29,14 +25,13 @@ if (!existsSync(join(root, 'nen', 'contract.json'))) {
 }
 // The criteria lane holds Hatsu's wiring around `nen pr converge` (zheref/hatsu#413) and the HR-10
 // findings-schema invariants; it runs unconditionally, so deleting its fixture fails the lane, never drops it.
-// The staged workflow opts in only after installing and checking the pinned Claude CLI.
-const lanes = deskOnly ? ['desk-guard'] : ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack-guard', 'criteria'];
+const lanes = ['unit-tests-ci-guard', 'workflow-policy-guard', 'permissions-pack-guard', 'criteria'];
 // The mechanical declaration is data rather than a runtime script, so its real-Nen fixture is
 // required directly. Deleting it is a wiring refusal, never a smaller green CI selection (#415).
 const requiredFixtures: Array<[string, string]> = [
   ['mechanical_conflicts_fixture.test.mts', 'mechanical-conflicts-guard'],
 ];
-for (const [fixture, lane] of deskOnly ? [] : requiredFixtures) {
+for (const [fixture, lane] of requiredFixtures) {
   if (!existsSync(join(root, 'scripts', fixture))) {
     console.error(`unit-tests-ci: required fixture ${fixture} is missing`);
     process.exit(2);
@@ -107,7 +102,7 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // The skill-shape check judges the touched skills from the merge base of HATSU_BASE_SHA below (zheref/hatsu#502).
   ['skill_shape_check.mts', 'skill_shape_check_fixture.mts', 'skill-shape-guard'],
 ];
-for (const [script, fixtures, lane] of deskOnly ? [] : gated) {
+for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;
   for (const fixture of typeof fixtures === 'string' ? [fixtures] : fixtures) {
     if (!existsSync(join(root, 'scripts', fixture))) {

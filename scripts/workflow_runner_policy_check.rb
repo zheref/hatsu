@@ -92,7 +92,7 @@ REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
 UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS = {
   %w[pull_request] => %w[
     a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94
-    df359af449a2d5cdf980807fa4490486c004d83b953e6d82a9f4ccbc7a20250b
+    a020263c511db0406a700dce019987f7e8763271c1bb35cd3b0bdf4c5df96299
   ].freeze,
   %w[pull_request push] => %w[66245a56a3752362b63595c08d465a2496aa40f0a011a25d932c5ac1542375ec].freeze
 }.freeze
@@ -2452,9 +2452,12 @@ def validate_unit_tests_workflow(path)
   permissions = mapping(root.fetch("permissions") { fail_policy("#{path} has no permissions") }, "#{path} permissions")
   fail_policy("#{path} must have only contents: read") unless permissions.keys == ["contents"] && scalar(permissions["contents"]) == "read"
   jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs") }, "#{path} jobs")
-  fail_policy("#{path} must have only unit-tests job") unless jobs.keys == ["unit-tests"]
-  job = mapping(jobs.fetch("unit-tests"), "#{path} unit-tests")
-  fail_policy("#{path} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
+  fail_policy("#{path} must have the unit-tests job and only the admitted desk-registration job") unless
+    [%w[unit-tests], %w[desk-registration unit-tests]].include?(jobs.keys.sort)
+  jobs.each do |name, node|
+    job = mapping(node, "#{path} #{name}")
+    fail_policy("#{path} #{name} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
+  end
   fail_policy("#{path} has changed from the staged, reviewed read-only test job") unless
     digests.include?(Digest::SHA256.file(path).hexdigest)
 end
@@ -2690,13 +2693,13 @@ def self_test(root)
     File.write(desk_installed, staged_desk)
     validate_repo(tmp, announce: false)
     [
-      ["desk workflow runs the registration suite", " --desk-guard", " --desk-staging-guard"],
-      ["desk workflow pins Anthropic's exact Linux release", "/2.1.317/linux-x64/claude", "/latest/linux-x64/claude"],
-      ["desk workflow checks the CLI digest", "sha256sum --check --status", "true"],
-      ["desk workflow checks the CLI version", "grep -Fx '2.1.317 (Claude Code)'", "cat"],
-      ["desk workflow requires the trusted dispatcher", "node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts"],
-    ].each do |label, from, to|
-      File.write(desk_installed, fixture_sub(label, staged_desk, from, to, step: "Run focused machinery tests"))
+      ["desk workflow pins Anthropic's exact Linux release", "/2.1.317/linux-x64/claude", "/latest/linux-x64/claude", "Download and verify pinned Claude CLI"],
+      ["desk workflow checks the CLI digest", "sha256sum --check --status", "true", "Download and verify pinned Claude CLI"],
+      ["desk workflow uses the base-owned registration launcher", "node .trusted/scripts/desk_registration_ci.mts", "node candidate/scripts/desk_registration_ci.mts", "Run the trusted registration launcher"],
+      ["desk workflow runs the verified binary by absolute path", '"$RUNNER_TEMP/hatsu-claude/claude"', "claude", "Run the trusted registration launcher"],
+      ["desk workflow keeps the job independent", "timeout-minutes: 5", "timeout-minutes: 5\n    needs: unit-tests", nil],
+    ].each do |label, from, to, step|
+      File.write(desk_installed, fixture_sub(label, staged_desk, from, to, step: step))
       expect_rejected(label, /changed from the staged, reviewed read-only test job/) do
         validate_repo(tmp, announce: false)
       end

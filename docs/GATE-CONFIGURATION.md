@@ -585,18 +585,32 @@ test lanes. The CI runner clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixtu
 and fences fixture output. After this policy reaches `main`, a follow-up copies
 the exact template into `.github/workflows/` and verifies the first live push run.
 
-**Desk checks (HA#523).** The existing candidate `unit-tests-ci-guard` runs the
-desk's Vitest logic and canon drift tests as soon as the test declaration lands.
-The exact PR-only workflow at `templates/unit-tests-desk.yml` also installs
-Claude Code 2.1.317 from Anthropic's Linux x64 release, checks its digest and
-version, and asks the trusted dispatcher to run `desk-guard`. This lane runs the
-actual registration suite and captures the pure modules' line coverage. The
-registration module's line coverage remains unmeasured.
+**Desk checks (HA#523).** The candidate `unit-tests-ci-guard` runs desk
+Vitest and canon drift once in the existing aggregate job. The staged PR-only
+workflow adds a fresh, independent `desk-registration` job. Its base-owned
+TypeScript launcher checks the pinned Claude Code 2.1.317 version and starts the
+verified absolute binary from a clean directory with a separate config and a
+fixed environment. It stages only the candidate desk module and registration
+fixture. The registration job installs no candidate packages and runs no
+Vitest or coverage replay. Local `desk-guard` captures the pure modules'
+line coverage. Registration module line coverage remains unmeasured.
 
-After the policy and dispatcher land, copy the admitted desk workflow into
-`.github/workflows/unit-tests.yml` and verify the first eligible PR logs
-`unit-tests-ci: desk-guard` and the engine registration results. If the
-main-push workflow lands first, stage and admit the combined bytes before
+The aggregate retains its 10-minute cap. Registration has a 5-minute cap, so
+one eligible attempt has at most `10 + 5 = 15` configured runner-minutes across
+both jobs, up to 5 more than before activation. The provisional download
+allocation is 180 of registration's 300 seconds, leaving 120 seconds for
+checkout, Node setup, verification, CLI startup and tests at the download cap. Anthropic's 331,362,672-byte
+artifact needs about 1.84 MB/s of effective throughput to fit the allocation.
+Hosted duration and billed minutes are unmeasured. A failed registration job
+does not suppress the aggregate.
+
+After the admission lands, install `templates/unit-tests-desk.yml` and verify
+the first eligible PR completes both jobs. Record the reported download bytes
+and duration, the other registration steps' total time and the remaining
+headroom. Verify the reported size matches the pinned artifact, the download is within
+180 seconds, the remaining work is
+within its provisional 120 seconds and the engine reports the sole registration
+fixture. If the main-push workflow lands first, admit the combined bytes before
 installing them so the push trigger stays in place. BH#26 tracks the BC-9
 toolchain repin.
 

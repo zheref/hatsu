@@ -1,5 +1,5 @@
 # Focused machinery tests admitted by the trusted workflow policy.
-# Stage this exact workflow before installing it. The job uses a read-only token.
+# Stage this exact workflow before installing it. Both jobs use a read-only token.
 name: unit-tests
 
 on:
@@ -47,21 +47,47 @@ jobs:
         run: |
           set -euo pipefail
           sh .trusted/scripts/nen_global.sh --root .trusted --bin-dir "$RUNNER_TEMP/nen-bin" --rc none
-          # Anthropic's 2.1.317 manifest pins the Ubuntu x64 CLI bytes.
+          node .trusted/scripts/unit_tests_ci.mts "$PWD" "$RUNNER_TEMP/nen-bin/nen"
+
+  desk-registration:
+    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout trusted registration launcher
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .trusted
+          persist-credentials: false
+
+      - name: Checkout registration inputs
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+
+      - name: Set up Node for the registration launcher
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Download and verify pinned Claude CLI
+        shell: bash
+        run: |
+          set -euo pipefail
           claude_dir="$RUNNER_TEMP/hatsu-claude"
           mkdir -p "$claude_dir"
           curl --fail --silent --show-error --location --proto '=https' --max-time 180 \
+            --write-out 'Claude download: %{size_download} bytes in %{time_total} seconds\n' \
             https://downloads.claude.ai/claude-code-releases/2.1.317/linux-x64/claude \
             --output "$claude_dir/claude"
           printf '%s  %s\n' eb224419e344575faa4a1f39b290b649425a10cd5ee2ef1d003480cd9ae57eb0 "$claude_dir/claude" \
             | sha256sum --check --status
           chmod 0755 "$claude_dir/claude"
-          "$claude_dir/claude" --version | grep -Fx '2.1.317 (Claude Code)'
-          desk_log="$RUNNER_TEMP/hatsu-desk-ci.log"
-          status=0
-          PATH="$claude_dir:$PATH" DISABLE_AUTOUPDATER=1 CLAUDE_CONFIG_DIR="$RUNNER_TEMP/hatsu-claude-config" \
-            node .trusted/scripts/unit_tests_ci.mts "$PWD" "$RUNNER_TEMP/nen-bin/nen" --desk-guard > "$desk_log" || status=$?
-          cat "$desk_log"
-          test "$status" -eq 0
-          test "$(head -n 1 "$desk_log")" = 'unit-tests-ci: desk-guard'
-          node .trusted/scripts/unit_tests_ci.mts "$PWD" "$RUNNER_TEMP/nen-bin/nen"
+
+      - name: Run the trusted registration launcher
+        shell: bash
+        run: node .trusted/scripts/desk_registration_ci.mts "$PWD/candidate" "$RUNNER_TEMP/hatsu-claude/claude"
