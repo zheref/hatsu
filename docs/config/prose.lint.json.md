@@ -23,7 +23,7 @@ The baseline is a ratchet, not a truth: the findings the tree carried when the g
 | `emptyBaseline[]` | id[] | `PL-03`, `PL-04` | rules whose baseline must stay empty; a baseline row for one is refused at exit `2` | the baseline loader |
 | `rulingsFile` | string | `docs/ROSTER.md` | where an HR row's status is read | `PL-12` |
 | `declaredValues[]` | glob[] | `contracts/config-catalogue.json`, `nen/*.json` | the numbers a `nen …` flag value may match | `PL-09` |
-| `rules[]` | `{id, class, severity, summary, pattern?, …}` | `PL-01` … `PL-12`; `severity` `fail` or `advisory` | one rule each; a `fail` finding counts against the baseline, an `advisory` one is printed and never counted. **The ids are fixed**: each has one handler in the guard, and a rule whose class is not its handler's, an id with no handler, or a class missing a key its handler reads is refused at exit `2` | the guard |
+| `rules[]` | `{id, class, severity, summary, pattern?, …}` | `PL-01` … `PL-12`; `severity` `fail` or `advisory` | Nen validates ID syntax and uniqueness, then dispatches by class. A `fail` finding counts against the baseline. Advisory findings appear in JSON, with individual text lines under `--base`, and never count against the baseline | the guard |
 
 ### `contracts/prose.lint.baseline.json`
 

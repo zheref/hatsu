@@ -665,3 +665,14 @@ landing is two steps. Step one is the runner edit. Step two is the first `unit-t
 includes step one: its log must read `unit-tests-ci: config-values-guard`, and a non-draft probe pull
 request that breaks `scripts/config_values_examiner_fixture.ts` must turn the check red. HA#397 closes on
 that evidence, not on step one's merge.
+
+## Trusted preflight with a different Nen pin
+
+Hanten and Mukai run `ruby scripts/trusted_guard_preflight.rb --root <path> --base-ref <PR-base>`.
+When the archived workflow uses Nen canon lint, preflight checks the selected executable against the
+archived base contract's platform SHA-256. If your ordinary Nen binding uses a different build, set
+`HATSU_TRUSTED_BASE_NEN` to the absolute path of the base's pinned executable for this invocation.
+Use the existing Nen release cache or obtain the exact ref with `nen bootstrap` and a trusted
+bootstrap script. Preflight downloads nothing and leaves Ten's ordinary binding in place. It refuses a missing
+or mismatched base executable before the lint runs. CI's `--check-adapters` validates the candidate
+workflow, contracts and digest declaration without comparing the runner's base binary to the candidate pin.

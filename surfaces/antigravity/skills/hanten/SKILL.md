@@ -40,8 +40,8 @@ target's own `review.scopes`, over `<base>...HEAD`. Exit `1` (no `review` block)
 `review.scopes` and classification re-runs (`missing-configuration`), never a review skipped; exit `2` a
 malformed block or unresolvable base.
 **`unclaimed` paths are named**; Nobunaga's tier swap is WORKFLOW.md § 2 → `review`: say which tier ran.
-If the PR base tracks `scripts/trusted_guard_preflight.rb`, its absence here is G5. When present, run it
-with `--base-ref <PR-base>` before review; red names the two-step landing (docs/GATE-CONFIGURATION.md).
+A missing base-tracked `scripts/trusted_guard_preflight.rb` is G5. When present, run it
+with `--base-ref <PR-base>` before review (trusted preflight in docs/GATE-CONFIGURATION.md).
 
 **Paths cannot raise these; hanten raises them by content** (HA#73): a diff touching a `## 0.` section,
 **any table that routes control flow**, or its fall-through raises a **totality pass** on `architecture`

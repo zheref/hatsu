@@ -117,8 +117,9 @@ says which composite is holding it instead.
 
 Before step 8 opens the PR, a script tracked at the PR base but absent here is G5. When present, run
 `ruby scripts/trusted_guard_preflight.rb --root <path> --base-ref <PR-base>`.
-It runs the base branch's trusted guards against this tree; a red guard is the two-step landing in
-`docs/GATE-CONFIGURATION.md`, stopped before PR creation.
+It runs the base branch's trusted guards against this tree. For a different local Nen pin, use the
+exact base binary as described under trusted preflight in `docs/GATE-CONFIGURATION.md`. A guard-shape
+red stops before PR creation for the two-step landing.
 
 **A change that introduces gate configuration absent from the actual trusted workflow/validator
 revision selected by the readiness event is a bootstrap PR.** Record the event and exact checkout

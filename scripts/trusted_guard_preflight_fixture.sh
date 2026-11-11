@@ -164,16 +164,37 @@ set -e
   || { echo 'trusted-guard-preflight-fixture: the contracts copy was left under .nen/ after a wiring refusal' >&2; exit 1; }
 git -C "$checkout" reset -q --hard refs/remotes/origin/preflight-canon
 
+# A repin is valid candidate wiring even when hosted CI supplies the current base binary.
+base_nen="$(command -v nen)"
+ruby -rjson -e '
+  path = ARGV.fetch(0)
+  data = JSON.parse(File.read(path))
+  data.dig("dependency", "bootstrap", "sha256").transform_values! { "a" * 64 }
+  File.write(path, JSON.pretty_generate(data) + "\n")
+' "$checkout/nen/contract.json"
+NEN="$base_nen" ruby "$preflight" --root "$checkout" --check-adapters > "$fixture/candidate-repin.log" 2>&1 \
+  || { cat "$fixture/candidate-repin.log"; exit 1; }
+git -C "$checkout" checkout -q -- nen/contract.json
+
+# An ordinary newer bind can coexist with the exact base executable.
+newer_nen="$fixture/newer-nen"
+printf '#!/bin/sh\n[ "$1" = --version ] && { echo 0.30.99; exit 0; }\nexit 42\n' > "$newer_nen"
+chmod +x "$newer_nen"
+NEN="$newer_nen" HATSU_TRUSTED_BASE_NEN="$base_nen" \
+  ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/base-executable.log" 2>&1 \
+  && grep -q 'nen-canon-lint: exit 0' "$fixture/base-executable.log" \
+  || { cat "$fixture/base-executable.log"; exit 1; }
+
 # Reject a different local binary before executing it. The same file is used
 # for the silent-verdict case after its digest is pinned in the fixture base.
 silent_nen="$fixture/silent-nen"
 printf '#!/bin/sh\nexit 0\n' > "$silent_nen"
 chmod +x "$silent_nen"
 set +e
-NEN="$silent_nen" ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-wrong-bin.log" 2>&1
+NEN="$base_nen" HATSU_TRUSTED_BASE_NEN="$silent_nen" ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-wrong-bin.log" 2>&1
 code=$?
 set -e
-[ "$code" -eq 2 ] && grep -q 'installed Nen does not match the trusted' "$fixture/canon-wrong-bin.log" \
+[ "$code" -eq 2 ] && grep -q 'selected Nen does not match the trusted' "$fixture/canon-wrong-bin.log" \
   || { cat "$fixture/canon-wrong-bin.log"; echo 'trusted-guard-preflight-fixture: an unverified binary was not refused' >&2; exit 1; }
 ruby -rjson -rdigest -e '
   path, binary = ARGV
@@ -184,7 +205,7 @@ ruby -rjson -rdigest -e '
 git -C "$checkout" commit -qam 'fixture: pin a silent Nen'
 git -C "$checkout" update-ref refs/remotes/origin/preflight-canon-silent HEAD
 set +e
-NEN="$silent_nen" ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon-silent > "$fixture/canon-silent.log" 2>&1
+HATSU_TRUSTED_BASE_NEN="$silent_nen" ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon-silent > "$fixture/canon-silent.log" 2>&1
 code=$?
 set -e
 [ "$code" -eq 1 ] && grep -q 'nen-canon-lint: not run (exited 0 without its verdict line' "$fixture/canon-silent.log" \
@@ -226,4 +247,4 @@ grep -q '^  workflow_runner_policy_check.rb: exit [01]$' "$fixture/unknown.log" 
   && ! grep -q 'every runnable trusted guard passed' "$fixture/unknown.log" \
   || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: missing adapter stopped other guards or read green' >&2; exit 1; }
 
-echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the pinned Nen canon lint derived and run with clean, finding, missing rules, wrong binary and silent paths proven, unknown guard refusal, old guard regression cases)'
+echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the pinned Nen canon lint derived and run with clean, finding, candidate repin, separate base binary, missing rules, wrong binary and silent paths proven, unknown guard refusal, old guard regression cases)'

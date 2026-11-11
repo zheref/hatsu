@@ -71,7 +71,7 @@ def derive_guards(root)
   guards
 end
 
-def nen_canon_adapter(trusted, root)
+def nen_canon_adapter(trusted, root, wiring_only: false)
   workflow = File.join(trusted, '.github/workflows/prose-ambiguity-check.yml')
   data = Psych.safe_load(File.read(workflow, encoding: 'UTF-8'), aliases: false)
   step = data.dig('jobs', 'canon-lint', 'steps')&.find { |row| row['name'] == 'Canon prose lint' }
@@ -96,12 +96,21 @@ def nen_canon_adapter(trusted, root)
   digest = contract.dig('dependency', 'bootstrap', 'sha256', host)
   return [nil, "trusted revision has no valid Nen digest for #{host || RUBY_PLATFORM}"] unless digest.to_s.match?(/\A[0-9a-f]{64}\z/)
 
-  command = ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen'))
+  # CI runs this check on the candidate while its ordinary Nen comes from the PR base.
+  return [nil, nil] if wiring_only
+
+  base_binary = ENV['HATSU_TRUSTED_BASE_NEN']
+  if base_binary && !Pathname.new(base_binary).absolute?
+    return [nil, 'HATSU_TRUSTED_BASE_NEN must name an absolute executable path']
+  end
+  command = base_binary || ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen'))
   paths = command.include?(File::SEPARATOR) ? [command] : ENV.fetch('PATH', '').split(File::PATH_SEPARATOR).map { |dir| File.join(dir, command) }
   binary = paths.find { |path| File.file?(path) && File.executable?(path) }
-  return [nil, "no executable Nen at #{command}"] unless binary
+  return [nil, "no executable Nen at #{command}; set HATSU_TRUSTED_BASE_NEN to the exact PR-base binary"] unless binary
   binary = File.realpath(binary)
-  return [nil, "installed Nen does not match the trusted #{host} digest"] unless Digest::SHA256.file(binary).hexdigest == digest
+  unless Digest::SHA256.file(binary).hexdigest == digest
+    return [nil, "selected Nen does not match the trusted #{host} digest; set HATSU_TRUSTED_BASE_NEN to the exact PR-base binary"]
+  end
 
   [[binary, 'canon', 'lint', '--root', root, '--rules', rules, '--baseline', 'contracts/prose.lint.baseline.json',
     '--base-baseline', baseline, '--skill-paths', skill_paths], nil]
@@ -194,7 +203,7 @@ if check_adapters
   adapters = local_adapters(root, root, root)
   problems = derive_guards(root).keys.sort.map do |name|
     reason = if name == NEN_CANON_LINT
-               nen_canon_adapter(root, root).last
+               nen_canon_adapter(root, root, wiring_only: true).last
              else
                missing_script(root, name) || adapter_gap(name, adapters)
              end
