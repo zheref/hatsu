@@ -11,6 +11,7 @@ if [ -n "${HATSU_SHELL_COVERAGE_EXEC:-}" ]; then
 fi
 
 unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT
+unset GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_TEMPLATE_DIR
 export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
 scratch="$(mktemp -d "${TMPDIR:-/tmp}/hatsu-snapshot-fixture.XXXXXXXX")"
 trap 'rm -rf "$scratch"' EXIT
@@ -27,7 +28,10 @@ reject() {
 }
 
 mkdir -p "$repo/.claude-plugin" "$repo/claude/skills" "$scratch/not-plugin"
-git -C "$repo" init -q
+git -C "$repo" init -q --template=
+[ "$(git -C "$repo" rev-parse --git-path objects)" = .git/objects ] &&
+  [ -d "$repo/.git/objects" ] && [ ! -e "$repo/.git/hooks" ] ||
+  fail 'scratch Git must use its own object store and start without template hooks'
 printf '{"name":"hatsu"}\n' > "$repo/.claude-plugin/plugin.json"
 printf '#!/bin/sh\nexit 0\n' > "$repo/claude/skills/action"
 chmod +x "$repo/claude/skills/action"
