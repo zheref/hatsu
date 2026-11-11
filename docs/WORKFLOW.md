@@ -1071,8 +1071,7 @@ three steps come first, in order, and any of them failing posts nothing:
    not-scanned row is a **stop**, never a pass (as `docs/config/spec-repo.md` holds for an issue body).
 
 ```bash
-nen pr ledger post --target <owner/name> --pr <n> --effort <branch> --repo <checkout> \
-  [--findings <scratch>/findings.json --findings-schema <hatsu>/contracts/hanten-findings.schema.json] [--proof <path>]...
+nen pr ledger post --target <owner/name> --pr <n> --effort <branch> --repo <checkout> [--findings <scratch>/findings.json --findings-schema <hatsu>/contracts/hanten-findings.schema.json] [--proof <path>]...
 ```
 
 One marker-keyed comment per effort and login: `posted` the first time, `updated` in place after, `unchanged`
@@ -3070,11 +3069,9 @@ the guard's sentence quoted; **a throwaway helper script is never the
 workaround**: it puts unreviewed shell on the run's own authority, and where it re-creates a verb it
 is determinism drift.
 
-**A write gated by a check stays chained to it with `&&`**: `branch_authorship_check.sh … && nen wc
-squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170; the publish half held by `scripts/publish_gate_check.sh`,
-zheref/hatsu#188, the squash half by the prose) and `private_name_check.sh … && nen issue comment` (`mugetsu` § 7,
-`sharingan` § 7; `file` § 4 runs the guard before the plan as separate calls and lets nen's own refusal
-at write time gate the comment). Split,
+**Keep the branch-authorship check chained to squash or publish with `&&`.** This is
+`branch_authorship_check.sh … && nen wc squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170).
+`scripts/publish_gate_check.sh` holds the publish half (zheref/hatsu#188) and the prose holds the squash half. Split,
 the gate would rest on an agent reading an exit, the failure zheref/hatsu#188 was filed after. Never pipe
 `branch_authorship_check.sh`: a pipeline can return a downstream command's success after the guard
 fails. Its own exit is the gate. Whether the guard
@@ -3084,6 +3081,15 @@ gated push carried `$(mktemp -d)` and `$(git rev-parse …)`, shapes on record a
 2026-10-13** (ROSTER § *Rulings of 2026-10-13*, zheref/hatsu#218 (i)): the chain ships as
 `scripts/publish_gate.sh`, every link in its stated order, the skill block one plain call; lane
 `publish-gate-guard` proves each gate refuses the push.
+
+**Issue comments use two separate calls** (`file` § 4, `mugetsu` § 7, `sharingan` § 7). Read the
+private-name check's exit and stop unless it reports 0 or skipped. Then run the single comment
+call with File's ignore file. Nen runs its own private-name guard at write time and refuses before posting.
+
+```bash
+bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path>
+nen issue comment --target <owner/name> --issue <n> --body-file <path> --private-names-ignore-file <ignore-file>
+```
 
 **`GH_TOKEN` and `PATH`, set without a refused shape.** `nen` reads its token from `GH_TOKEN` only and
 never picks one up ambiently; a block hands it one as `"$hatsu_root/scripts/gh_token_env.sh" nen …`,

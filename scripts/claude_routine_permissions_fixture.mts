@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bashPattern, matchPermissions, permissionRules, readSettings, sampleCommand } from './claude_permissions.mts';
-import { CLAUDE_LOCAL, checkoutPack, diagnoseUser, permissionSource, readRegistry, registeredRepositories, routineForms, shellWord, userHook, userProposal, WRAPPER } from './claude_routine_permissions.mts';
+import { CLAUDE_LOCAL, checkoutPack, diagnoseUser, permissionSource, preflightUserHook, readRegistry, registeredRepositories, routineForms, shellWord, userHook, userProposal, WRAPPER } from './claude_routine_permissions.mts';
 import { diagnoseCheckoutPack, mergePack } from './claude_pack_placement.mts';
 import { checkHookInput, checkRoutineWrite, verifyWrapper } from './claude_routine_write_guard.mts';
 
@@ -212,19 +212,46 @@ export function cases(test: Test) {
       `cat <<'EOF'; sh -c 'true'\n${bare}\nEOF`, 'nen pr threads list --pr 1 | head', 'git status && git diff',
     ]) assert.equal(checkRoutineWrite(command, source).refusal, null, command);
     const skills = ['backlog-synthesis', 'file', 'hiraishin', 'kamui', 'mugetsu', 'sharingan', 'shibari', 'tensho'];
-    for (const skill of skills) {
-      const prose = readFileSync(join(root, 'claude/skills', skill, 'SKILL.md'), 'utf8');
-      const code = [...prose.matchAll(/^```bash\n([\s\S]*?)^```/gm)].flatMap((block) => block[1].trim().split('\n'));
-      const callLines = code.filter((line) => source.claude_routine_writes.some(({ prefix }) => line.trim().includes(`${prefix} `)));
-      assert.ok(callLines.length > 0, skill);
-      for (const line of callLines) {
-        assert.ok(!code[code.indexOf(line) - 1]?.endsWith('&&'), line);
-        const command = sampleCommand(line.replace('<installed-wrapper>', shellWord(join(root, WRAPPER)))).replace(/[[\]]/g, '');
-        assert.ok(routineForms(source, root).some(({ rule }) => bashPattern(rule)?.test(command)), line);
-        assert.equal(checkRoutineWrite(command, source).refusal, null, line);
+    const documents = [...skills.map((skill) => `claude/skills/${skill}/SKILL.md`), 'docs/WORKFLOW.md'];
+    for (const path of documents) {
+      const prose = readFileSync(join(root, path), 'utf8');
+      const found = new Set<string>();
+      for (const [, block] of prose.matchAll(/^```bash\n([\s\S]*?)^```/gm)) {
+        const lines = block.trim().split('\n');
+        for (const [index, line] of lines.entries()) {
+          const entry = source.claude_routine_writes.find(({ prefix }) => line.includes(`${prefix} `));
+          if (!entry) continue;
+          found.add(entry.prefix);
+          assert.ok(!lines[index - 1]?.endsWith('&&'), line);
+          const command = sampleCommand(line.replace('<installed-wrapper>', shellWord(join(root, WRAPPER)))).replace(/[[\]]/g, '');
+          assert.ok(routineForms(source, root).some(({ rule }) => bashPattern(rule)?.test(command)), line);
+          assert.equal(checkRoutineWrite(command, source).refusal, null, line);
+        }
+      }
+      assert.ok(found.size > 0, path);
+      if (path === 'docs/WORKFLOW.md') {
+        assert.ok(found.has('nen pr ledger post') && found.has('nen issue comment'), path);
+        assert.match(prose, /private_name_check\.sh" --target <owner\/name> <path>\nnen issue comment /);
+        assert.doesNotMatch(prose, /private_name_check\.sh[^\n]*&&\s*nen issue comment/);
+        assert.match(prose, /branch_authorship_check\.sh … && nen wc squash\|publish/);
       }
     }
   });
+
+  test('preflights the exact bound hook on supported POSIX hosts', () => fixture((dir) => {
+    const usable = preflightUserHook(root, source);
+    assert.ok('hook' in usable, JSON.stringify(usable));
+    assert.equal(usable.hook.command, '/bin/sh');
+    const unsupported = preflightUserHook(root, source, 'win32', () => assert.fail('native Windows must not bind this hook'));
+    assert.match(unsupported.problem ?? '', /unsupported paired hook host \(win32\)/);
+    const unreachableShell = preflightUserHook(root, source, process.platform,
+      () => ({ ...usable.hook, command: join(dir, 'missing-shell') }));
+    assert.match(unreachableShell.problem ?? '', /paired hook host preflight failed/);
+    const helperFailure = preflightUserHook(root, source, process.platform,
+      () => ({ ...usable.hook, args: ['-c', 'exit 2'] }));
+    assert.match(helperFailure.problem ?? '', /paired hook host preflight failed/);
+    assert.match(preflightUserHook(dir, source).problem ?? '', /paired hook host preflight failed/);
+  }));
 
   test('user hook checks Ten’s private session pin without the plugin or a host Nen', () => fixture((dir) => {
     const install = join(dir, 'installed');
@@ -284,7 +311,7 @@ export function cases(test: Test) {
     unavailable[3] = unavailable[5] = join(dir, 'missing-node');
     assert.equal(check(bare, unavailable).status, 2);
     writeFileSync(join(install, 'scripts/claude_permissions.mts'), 'tampered');
-    assert.match(check(bare).stderr, /approved checker binding changed/);
+    assert.match(check(bare).stderr, /approved checker binding is unavailable or changed.*independent terminal/);
   }));
 
   test('verifies the token wrapper before relying on its string rule', () => fixture((dir) => {
@@ -304,6 +331,78 @@ export function cases(test: Test) {
     assert.equal(checkHookInput(payload, root), null);
     assert.equal(checkHookInput({ ...payload, tool_name: 'Read' }, root), null);
     assert.equal(checkHookInput(null, root), null);
+  }));
+
+  test('recovers a stale paired proposal from an independent terminal', () => fixture((dir) => {
+    const old = join(dir, 'installed-previous');
+    const current = join(dir, 'installed-current');
+    const repo = join(dir, 'repo');
+    const config = join(dir, 'claude-config');
+    const bin = join(dir, 'bin');
+    const user = join(config, 'settings.json');
+    const checker = 'scripts/claude_routine_write_guard.mts';
+    for (const install of [old, current]) {
+      for (const file of [WRAPPER, checker, 'scripts/permissions_pack.sh', 'scripts/claude_permissions.mts',
+        'scripts/claude_routine_permissions.mts', 'scripts/claude_routine_permissions_cli.mts',
+        'contracts/permissions.json', 'nen/contract.json', 'nen/repos.json']) {
+        mkdirSync(dirname(join(install, file)), { recursive: true });
+        copyFileSync(join(root, file), join(install, file));
+      }
+    }
+    for (const path of [bin, config]) mkdirSync(path);
+    writeFileSync(join(bin, 'claude'), '#!/bin/sh\necho 2.1.295\n', { mode: 0o700 });
+    const env = { ...process.env, HOME: dir, CLAUDE_CONFIG_DIR: config, CLAUDE_PLUGIN_ROOT: '',
+      GH_TOKEN: '', GITHUB_TOKEN: '', PATH: [bin, process.env.PATH].join(delimiter),
+      GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null' };
+    assert.equal(run('git', ['init', '-q', repo], dir, env).status, 0);
+    const pack = (install: string, mode: string) => run('bash', [join(install, 'scripts/permissions_pack.sh'),
+      '--surface', 'claude-code', mode, '--target', repo], dir, env);
+    const oldRender = pack(old, '--render-user');
+    assert.equal(oldRender.status, 0, output(oldRender));
+    const prior: ReturnType<typeof userProposal> = JSON.parse(oldRender.stdout);
+    const unrelated = { matcher: 'Read', hooks: [{ type: 'command', command: 'echo scratch' }] };
+    const foreignRule = 'Bash(echo user-owned)';
+    const settings = { theme: 'dark', ...prior,
+      permissions: { allow: [...prior.permissions.allow, foreignRule], deny: ['Bash(echo forbidden)'] },
+      hooks: { PreToolUse: [...prior.hooks.PreToolUse, unrelated] },
+    };
+    data(user, settings);
+    const before = readFileSync(user);
+    const oldHook = prior.hooks.PreToolUse[0].hooks[0];
+    const payload = (command: string) => JSON.stringify({ tool_name: 'Bash', cwd: repo, tool_input: { command } });
+    rmSync(join(old, checker));
+    const blocked = run(oldHook.command, oldHook.args, repo, env, payload('echo inert'));
+    assert.equal(blocked.status, 2, output(blocked));
+    assert.match(blocked.stderr, /independent terminal/);
+    const unavailable = pack(old, '--check-user');
+    assert.equal(unavailable.status, 0, output(unavailable));
+    assert.match(unavailable.stdout, /paired hook host preflight failed.*Paired proposal unavailable/);
+    assert.equal(unavailable.stdout.trim().split('\n').length, 1);
+    const withheld = pack(old, '--render-user');
+    assert.equal(withheld.status, 2, output(withheld));
+    assert.equal(withheld.stdout, '');
+
+    const stale = pack(current, '--check-user');
+    assert.equal(stale.status, 0, output(stale));
+    assert.match(stale.stdout, /paired checker binding missing or stale.*independent terminal.*--render-user/);
+    const renewed = pack(current, '--render-user');
+    assert.equal(renewed.status, 0, output(renewed));
+    assert.deepEqual(readFileSync(user), before);
+    const replacement: ReturnType<typeof userProposal> = JSON.parse(renewed.stdout);
+    assert.ok(replacement.permissions.allow.some((rule) => rule.includes(current)));
+    assert.ok(replacement.permissions.allow.every((rule) => !rule.includes(old)));
+    // Simulate the maintainer replacing only the prior proposal in this scratch file.
+    const merged = { ...settings,
+      permissions: { ...settings.permissions, allow: [...replacement.permissions.allow, foreignRule] },
+      hooks: { PreToolUse: [...replacement.hooks.PreToolUse, unrelated] },
+    };
+    data(user, merged);
+    const ready = pack(current, '--check-user');
+    assert.match(ready.stdout, /routine user rows present.*paired checker binding present/);
+    assert.deepEqual(JSON.parse(readFileSync(user, 'utf8')), merged);
+    const refreshed = replacement.hooks.PreToolUse[0].hooks[0];
+    assert.equal(run(refreshed.command, refreshed.args, repo, env, payload(bare)).status, 0);
+    assert.equal(run(refreshed.command, refreshed.args, repo, env, payload(`${bare} | tail`)).status, 2);
   }));
 
   test('entry points are hermetic and observe repeated user-setting removal', () => fixture((dir) => {

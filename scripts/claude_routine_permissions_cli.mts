@@ -2,9 +2,8 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { readSettings } from './claude_permissions.mts';
-import { CLAUDE_LOCAL, diagnoseUser, permissionSource, readRegistry, registeredRepositories, releaseOptIn, shellWord, userProposal, userSettingsPath } from './claude_routine_permissions.mts';
-import { object } from './claude_permissions.mts';
+import { object, readSettings } from './claude_permissions.mts';
+import { CLAUDE_LOCAL, diagnoseUser, permissionSource, preflightUserHook, readRegistry, registeredRepositories, releaseOptIn, shellWord, userProposal, userSettingsPath } from './claude_routine_permissions.mts';
 
 function compatibleClaude(): boolean {
   const result = spawnSync('claude', ['--version'], { encoding: 'utf8', timeout: 3000 });
@@ -21,7 +20,7 @@ function publisherLane(checkout: string): unknown {
   return contract.project.verbs.plugin.release;
 }
 
-try {
+function main() {
   const [mode, root, target, ...rest] = process.argv.slice(2);
   if (!['render', 'check', 'render-release-opt-in'].includes(mode) || !root || !target || rest.length) {
     throw new Error('expected render|check|render-release-opt-in, Hatsu root and target checkout');
@@ -41,7 +40,17 @@ try {
     }
     console.error('Explicit publisher opt-in for this checkout. Each publication still requires Mugetsu’s recorded G3 go and preflight.');
     console.log(JSON.stringify(releaseOptIn(source, target), null, 2));
-  } else if (mode === 'render') {
+    return;
+  }
+
+  const readiness = preflightUserHook(root, source);
+  if ('problem' in readiness) {
+    if (mode === 'render') throw new Error(readiness.problem);
+    console.log(`Claude routine permissions: ${readiness.problem}. Paired proposal unavailable.`);
+    return;
+  }
+
+  if (mode === 'render') {
     if (!compatible) throw new Error(hostRequirement);
     const registry = readRegistry(join(root, 'nen/repos.json'));
     const nominations = join(target, 'nen/repos.json');
@@ -56,11 +65,11 @@ try {
       }
     }
     console.error('For a separately reviewed, path-specific Hatsu publisher rule, use --render-release-opt-in with the publisher checkout.');
-    console.log(JSON.stringify(userProposal(source, root, registry), null, 2));
+    console.log(JSON.stringify(userProposal(source, root, registry, readiness.hook), null, 2));
   } else {
     const user = readSettings(userSettingsPath());
     const project = [CLAUDE_LOCAL, '.claude/settings.json'].map((path) => readSettings(join(target, path)));
-    const result = diagnoseUser(source, root, user, project);
+    const result = diagnoseUser(source, root, user, project, readiness.hook);
     const count = result.missing?.length;
     const presence = result.user === 'unreadable' ? 'user settings unreadable' :
       count === 0 ? 'routine user rows present' : `${count} routine user rows missing`;
@@ -73,10 +82,14 @@ try {
       'visible deny/ask check uses exemplars only',
       'effective managed/session policy unknown',
       compatible ? '' : hostRequirement,
-      compatible && (count || count === undefined || !result.boundHook) ? `review proposal with ${proposal}` : '',
+      compatible && (count || count === undefined || !result.boundHook) ? `from an independent terminal, review the proposal with ${proposal}` : '',
     ].filter(Boolean);
     console.log(safe(`Claude routine permissions: ${presence} (${user.path}); ${notes.join('; ')}`));
   }
+}
+
+try {
+  main();
 } catch (error) {
   console.error(`Claude routine permissions: inspection unavailable (${error instanceof Error ? error.message : String(error)})`);
   process.exitCode = 2;

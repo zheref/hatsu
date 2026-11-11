@@ -133,12 +133,23 @@ reviewing it.
 
 The user hook checks a relative wrapper against the approved Hatsu script before a call can run.
 It works with the Hatsu plugin disabled. It binds the absolute Node executable, the checker and
-its inputs by SHA-256. Review a fresh proposal when an approved file or runtime changes. A changed
-or unavailable binding blocks Bash through this hook. The renderer requires the shell's Claude
-CLI to report version 2.1.295 or later for `onFailure: block`. Check the actual desktop session
-version and its hook status before approving. Workspace trust, managed hooks-only policy, and
-disabled hooks can keep this hook from running. Use these user rules only in sessions that load
-the paired hook. [Claude Code hook fields and failure handling](https://code.claude.com/docs/en/hooks#command-hook-fields)
+its inputs by SHA-256. The paired proposal supports macOS and Linux. Before rendering it, Hatsu
+runs the proposed hook on inert input to verify `/bin/sh`, `/usr/bin/openssl`, `/usr/bin/env` and the
+bound Node checker can start and return the expected refusal. Native Windows has no paired
+proposal. The shell's Claude CLI must also report 2.1.295 or later for `onFailure: block`. Check
+the actual desktop session version and its hook status before approving. Workspace trust,
+managed hooks-only policy, and disabled hooks can keep this hook from running. Use these user
+rules only in sessions that load the paired hook. [Claude Code hook fields and failure handling](https://code.claude.com/docs/en/hooks#command-hook-fields)
+
+If an approved file or runtime changes or disappears, the stale hook blocks Bash, including
+the check and renderer inside Claude. Open an independent terminal outside the Claude session
+and run the render command above from the current trusted Hatsu installation. Review the
+fragment against the same Claude user settings file, respecting `CLAUDE_CONFIG_DIR` if set.
+In one settings edit, replace the stale Hatsu `PreToolUse` handler (the
+`hatsu-routine-check` binding) and replace its obsolete version-bound allow rows with the new
+ones. Preserve unrelated rules, hooks, settings and `$defaults`. Confirm the refreshed binding
+with `--check-user` from the independent terminal, then verify that the active Claude session
+loads it. The checker remains blocking throughout recovery.
 
 The default fragment includes the release dry-run and the bounded delivery merge command. An
 optional Hatsu publisher rule is a separate review. It names one checkout, validates its origin

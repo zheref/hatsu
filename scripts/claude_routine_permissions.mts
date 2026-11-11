@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { constants, accessSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -125,11 +126,15 @@ const sha256 = (path: string) => createHash('sha256').update(readFileSync(path))
 // before starting Node, so neither PATH nor a changed checker can return allow.
 const verifyHook = `
 node=$1; entry=$2; shift 2
+unavailable() {
+  printf '%s\\n' 'Hatsu routine write: the approved checker binding is unavailable or changed. Review a fresh user proposal from an independent terminal.' >&2
+  exit 2
+}
 while [ "$#" -gt 0 ]; do
-  actual=$(/usr/bin/openssl dgst -sha256 "$1") || exit 2
+  actual=$(/usr/bin/openssl dgst -sha256 "$1") || unavailable
   case "$actual" in
     *" $2") ;;
-    *) printf '%s\\n' 'Hatsu routine write: the approved checker binding changed. Review the user proposal again.' >&2; exit 2 ;;
+    *) unavailable ;;
   esac
   shift 2
 done
@@ -150,7 +155,24 @@ export function userHook(root: string) {
   };
 }
 
-export function userProposal(source: PermissionSource, root: string, registry: unknown) {
+export function preflightUserHook(root: string, source: PermissionSource, platform = process.platform, bind = userHook) {
+  if (platform !== 'darwin' && platform !== 'linux') {
+    return { problem: `unsupported paired hook host (${platform}); use macOS or Linux` } as const;
+  }
+  try {
+    const hook = bind(root);
+    // The hook only parses this inert stdin payload. No shell command in the payload is executed.
+    const command = `${sampleCommand(source.claude_routine_writes[0].command)} | :`;
+    const input = JSON.stringify({ tool_name: 'Bash', cwd: root, tool_input: { command } });
+    const result = spawnSync(hook.command, hook.args, { cwd: root, input, encoding: 'utf8', timeout: hook.timeout * 1000 });
+    if (result.status === 2 && result.stderr.includes('one plain Nen write call')) return { hook } as const;
+  } catch {
+    // Binding failures and launch failures both withhold the proposal.
+  }
+  return { problem: 'paired hook host preflight failed; check /bin/sh, /usr/bin/openssl, /usr/bin/env and the trusted Hatsu Node binding' } as const;
+}
+
+export function userProposal(source: PermissionSource, root: string, registry: unknown, hook = userHook(root)) {
   const repositories = registeredRepositories(registry);
   return {
     permissions: {
@@ -158,7 +180,7 @@ export function userProposal(source: PermissionSource, root: string, registry: u
         ...source.claude_user_bounded_allow.filter((args) => args.endsWith(' --dry-run') || args.startsWith('pr merge '))
           .map((args) => `Bash(nen ${args})`)],
     },
-    hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [userHook(root)] }] },
+    hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [hook] }] },
     autoMode: {
       allow: ['$defaults', AUTO_ALLOW],
       environment: ['$defaults', ...repositories.map((repo) => `Trusted repo: github.com/${repo}`)],
@@ -174,12 +196,11 @@ export function releaseOptIn(source: PermissionSource, target: string) {
 
 export const userSettingsPath = () => resolve(process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude'), 'settings.json');
 
-export function diagnoseUser(source: PermissionSource, root: string, user: Settings, project: Settings[]) {
+export function diagnoseUser(source: PermissionSource, root: string, user: Settings, project: Settings[], expectedHook = userHook(root)) {
   const forms = routineForms(source, root, true);
   const present = user.state === 'read' ? new Set(user.rules.allow) : new Set<string>();
   const missing = user.state === 'unreadable' ? null : forms.filter(({ rule }) => !present.has(rule)).map(({ rule }) => rule);
   const overrides: string[] = [];
-  const expectedHook = userHook(root);
   const preToolUse = user.state === 'read' && object(user.document.hooks) ? user.document.hooks.PreToolUse : null;
   const boundHook = Array.isArray(preToolUse) && preToolUse.some((row) =>
     object(row) && row.matcher === 'Bash' && Array.isArray(row.hooks) && row.hooks.some((handler) =>
