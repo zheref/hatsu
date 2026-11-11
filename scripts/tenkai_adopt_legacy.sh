@@ -843,7 +843,7 @@ class GuardRegistration(Item):
     def detect(self, ctx):
         st = self.state_of(ctx)
         if st == "absent":
-            return self.row(SATISFIED, f"no {GUARD_PATH} in this repository — no two-PR ordering applies")
+            return self.row(SATISFIED, f"no {GUARD_PATH} in this repository. Ruby registration has no prerequisite PR")
         if st == "registered":
             return self.row(SATISFIED, "the guard already names pr-readiness.yml — the workflow may land next")
         return self.row(ROUTED,
@@ -1199,11 +1199,8 @@ class ReadinessWorkflow(Item):
                           f"trigger set — widening it is a maintainer ruling, not a template variation")
         if drifts:
             return self.row(DRIFT, "; ".join(drifts + notes), "re-render from templates/pr-readiness.yml")
-        context = readiness_guard(ctx, "workflow-context")
-        if context["state"] != SATISFIED:
-            return self.row(**context)
         detail = f"installed, gated to {ctx.slug}, runs-on {ctx.runner['runs_on']}"
-        return self.row(SATISFIED, "; ".join([detail] + notes))
+        return self.row(**readiness_guard(ctx, "workflow-context", "; ".join([detail] + notes)))
 
     def repair(self, ctx):
         cur = self.detect(ctx)

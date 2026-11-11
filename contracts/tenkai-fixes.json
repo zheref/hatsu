@@ -84,6 +84,22 @@
     },
     {
       "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["drift"],
+      "detail": "Tenkai did not render",
+      "edit": "{id} requires owner review before adoption. Tenkai preserves the workflow",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["staged"],
+      "detail": "portable workflow runner cannot be established",
+      "edit": "verify repository visibility before changing the portable workflow runner",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
       "states": ["staged"],
       "detail": "portable workflow policy needs the fetched trusted base",
       "edit": "fetch the declared origin base before applying a new portable workflow admission",

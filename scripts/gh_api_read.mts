@@ -3,7 +3,7 @@
 // gh option, request body, or GraphQL source.
 import { spawnSync } from 'node:child_process';
 
-const usage = 'usage: node scripts/gh_api_read.mts <private-repos|repo-merge-methods|branch-rules|branch-protection|required-checks|issue-pr|pr-head|workflow-content|actions-timing|actions-caches|actions-artifacts|tag-ref|issue-edits> [arguments]';
+const usage = 'usage: node scripts/gh_api_read.mts <private-repos|repo-merge-methods|branch-rules|branch-protection|pr-merge-queue|required-checks|issue-pr|pr-head|workflow-content|actions-timing|actions-caches|actions-artifacts|tag-ref|issue-edits> [arguments]';
 
 // A deleted fork reads headRepo null, which is never the base repository: callers treat it as a fork.
 export const PR_HEAD_PROJECTION = '{number,state,draft,title,head:.head.sha,headRef:.head.ref,headRepo:.head.repo.full_name,baseRef:.base.ref,baseRepo:.base.repo.full_name}';
@@ -55,13 +55,23 @@ export function readCommand(args: string[]): string[] {
     case 'branch-rules': {
       exact(values, 2);
       const [owner, repo] = slug(values[0]);
-      return ['api', '--method', 'GET', `repos/${owner}/${repo}/rules/branches/${segment(values[1])}`];
+      // The page-local jq filter emits one compact JSON array per page,
+      // including an empty page, with versions that predate --slurp.
+      return ['api', '--method', 'GET', `repos/${owner}/${repo}/rules/branches/${segment(values[1])}`,
+        '--paginate', '--jq', 'if type == "array" then @json else error("expected branch rules array") end'];
     }
     case 'branch-protection': {
       exact(values, 2);
       const [owner, repo] = slug(values[0]);
       return ['api', '--method', 'GET', `repos/${owner}/${repo}/branches/${segment(values[1])}/protection`, '--jq',
         '{required_linear_history: .required_linear_history.enabled}'];
+    }
+    case 'pr-merge-queue': {
+      exact(values, 2);
+      const [owner, repo] = slug(values[0]);
+      const number = positive(values[1]);
+      const query = 'query ReadMergeQueue($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){headRefOid baseRefName mergeQueue{id}}}}';
+      return ['api', 'graphql', '-f', `query=${query}`, '-f', `owner=${owner}`, '-f', `repo=${repo}`, '-F', `number=${number}`];
     }
     case 'required-checks': {
       exact(values, 2);
@@ -110,10 +120,28 @@ export function readCommand(args: string[]): string[] {
 }
 
 try {
-  const command = readCommand(process.argv.slice(2));
-  const result = spawnSync('gh', command, { stdio: 'inherit', shell: false });
-  if (result.error) throw result.error;
-  process.exitCode = result.status ?? 1;
+  const args = process.argv.slice(2);
+  const command = readCommand(args);
+  // Keep the published flat array. Buffer until gh confirms the full traversal
+  // succeeded, so an error on a later page cannot look like a complete read.
+  if (args[0] === 'branch-rules') {
+    const result = spawnSync('gh', command, { stdio: ['inherit', 'pipe', 'inherit'], shell: false,
+      encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 30_000 });
+    if (result.error) throw result.error;
+    if (result.status !== 0) process.exitCode = result.status ?? 1;
+    else {
+      const pages = result.stdout.trim().split('\n').map(line => JSON.parse(line));
+      if (!pages.every(page =>
+        Array.isArray(page) && page.every(rule => rule && typeof rule.type === 'string' && rule.type.length))) {
+        throw new Error('branch-rules returned an invalid page');
+      }
+      process.stdout.write(JSON.stringify(pages.flat()) + '\n');
+    }
+  } else {
+    const result = spawnSync('gh', command, { stdio: 'inherit', shell: false });
+    if (result.error) throw result.error;
+    process.exitCode = result.status ?? 1;
+  }
 } catch (error) {
   console.error(`gh-api-read: ${error instanceof Error ? error.message : String(error)}`);
   process.exitCode = 2;

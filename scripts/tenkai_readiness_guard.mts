@@ -97,7 +97,7 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
   return row("satisfied", "the trusted reader and workflow policy are ready");
 }
 
-function workflowContext(repo: string, hatsuRoot: string): Row {
+function workflowContext(repo: string, hatsuRoot: string, detail: string): Row {
   const workflow = ".github/workflows/pr-readiness.yml";
   try {
     const installed = regularText(repo, workflow);
@@ -108,7 +108,7 @@ function workflowContext(repo: string, hatsuRoot: string): Row {
   } catch (error) {
     return row("blocked", (error as Error).message, "repair the workflow path before re-adopting");
   }
-  return row("satisfied", "the readiness job matches its required context");
+  return row("satisfied", detail);
 }
 
 const [mode, repo, hatsuRoot] = process.argv.slice(2);
@@ -123,6 +123,7 @@ if (mode === "diagnose-workflow" || mode === "apply-workflow") {
 } else {
   const result = mode === "apply" ? applyReader(repo, hatsuRoot)
     : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot)
-    : mode === "workflow-context" ? workflowContext(repo, hatsuRoot) : readerState(repo, hatsuRoot);
+    : mode === "workflow-context" ? workflowContext(repo, hatsuRoot, JSON.parse(readFileSync(0, "utf8")))
+    : readerState(repo, hatsuRoot);
   process.stdout.write(JSON.stringify(result) + "\n");
 }

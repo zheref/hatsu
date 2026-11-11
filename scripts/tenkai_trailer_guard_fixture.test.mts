@@ -279,6 +279,8 @@ test('Tenkai apply relays the trailer item and renders a real consumer workflow'
       assertRequiredJobContexts(workflow, rendered, contexts);
     }
     const rendered = readFileSync(join(repo, pr), 'utf8');
+    expect(() => assertRequiredJobContexts(pr, rendered.replace('  browser:', '  "invalid job":'), required[pr]))
+      .toThrow(pr + ': required context "typecheck-and-e2e"');
     expect(() => assertRequiredJobContexts(pr, rendered.replace('name: typecheck-and-e2e', 'name: browser'), required[pr]))
       .toThrow(pr + ': required context "typecheck-and-e2e"');
     expect(() => assertRequiredJobContexts(pr, rendered.replace('  shu:', '  lint:'), required[pr]))
