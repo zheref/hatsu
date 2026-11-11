@@ -158,8 +158,10 @@ ALLOWED_JOB_GUARDS = {
 # written when the `git status --porcelain` check below runs, so it is
 # FORBIDDEN there instead — the second push queues behind the first rather
 # than racing it.
-CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml prose-ambiguity-check.yml].freeze
+CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml prose-size-check.yml prose-ambiguity-check.yml].freeze
 CANCEL_IN_PROGRESS_FORBIDDEN = %w[surface-mirror-regenerate.yml].freeze
+READINESS_CONCURRENCY_GROUP = 'pr-readiness-${{ github.event.pull_request.number }}'.freeze
+READINESS_RENDERED_QUEUE = 'max'.freeze
 
 # REGENERATE_PATHS is the exact `paths:` filter surface-mirror-regenerate.yml's
 # `push` trigger is held to — the ONLY place in either workflow a `paths:`
@@ -1394,7 +1396,7 @@ PR_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).freeze
   "CHECK_CREATION" => [CHECK_CREATION.keys, PR_WORKFLOWS],
   "BUILDER_TRIGGERS" => [BUILDER_TRIGGERS.keys, BUILDER_WORKFLOWS],
   "BUILDER_PERMISSIONS" => [BUILDER_PERMISSIONS.keys, BUILDER_WORKFLOWS],
-  "the two cancel-in-progress lists" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN, PRIVILEGED_WORKFLOWS]
+  "concurrency policies" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN + %w[pr-readiness.yml], PRIVILEGED_WORKFLOWS]
 }.each do |table, (have, want)|
   next if have.sort == want.sort
   abort "workflow-runner-policy: #{table} covers #{have.sort.join(", ")}, not #{want.sort.join(", ")}: a workflow's registration is incomplete"
@@ -1784,8 +1786,7 @@ end
 # `surface-mirror-regenerate.yml`'s own `cancel-in-progress: false` posture is
 # there to avoid on the builder side, and burns runner minutes needlessly on
 # the guard side. Whether `cancel-in-progress: true` is REQUIRED or FORBIDDEN
-# is per-workflow (see CANCEL_IN_PROGRESS_REQUIRED / _FORBIDDEN); a workflow in
-# neither list is not reachable here (every known workflow is in exactly one).
+# is per-workflow. Readiness has a separate policy selected with its frozen job form.
 def validate_concurrency(path, root)
   basename = File.basename(path)
   concurrency = mapping(root.fetch("concurrency") { fail_policy("#{path} has no concurrency block") }, "#{path} concurrency")
@@ -1798,6 +1799,19 @@ def validate_concurrency(path, root)
   elsif CANCEL_IN_PROGRESS_FORBIDDEN.include?(basename)
     fail_policy("#{path} concurrency must not set cancel-in-progress: true — it is a builder, not a PR guard, and cancelling it mid-run risks a half-written surfaces/ tree") if cancel == "true"
   end
+end
+
+def validate_readiness_concurrency(path, root, rendered:, require_queue:)
+  concurrency = mapping(root["concurrency"], "#{path} concurrency")
+  values = concurrency.transform_values { |value| scalar(value) }
+  legacy = { "group" => READINESS_CONCURRENCY_GROUP, "cancel-in-progress" => "true" }
+  queued = legacy.merge("cancel-in-progress" => "false", "queue" => READINESS_RENDERED_QUEUE)
+  literal = concurrency.values.all? { |node| node.plain && node.tag.nil? && node.anchor.nil? }
+  return if rendered && values == queued && literal
+  # A guard-first rollout still has to validate the installed cancelling workflow.
+  return if !require_queue && values == legacy && literal
+
+  fail_policy("#{path} readiness concurrency must use the exact per-PR queue for a new rendering or the installed legacy policy")
 end
 
 # --- validate_timeout PATH JOB_NAME JOB -------------------------------------
@@ -2033,7 +2047,7 @@ end
 
 # `hatsu`: the root holds templates/pr-readiness.yml, the source of tenkai's
 # rendered readiness form, so it is Hatsu's own repository.
-def validate_workflow(path, hatsu: false)
+def validate_workflow(path, hatsu: false, require_readiness_queue: false)
   document = Psych.parse_file(path)
   fail_policy("#{path} is empty or carries no YAML document") unless document && document.root
   reject_duplicate_keys(document.root, path)
@@ -2067,7 +2081,7 @@ def validate_workflow(path, hatsu: false)
   if targets_pr && scalar(mapping(root["permissions"], "#{path} permissions")["checks"]) != "write"
     fail_policy("#{path} needs only checks: write to publish the exact-head result")
   end
-  validate_concurrency(path, root)
+  validate_concurrency(path, root) unless File.basename(path) == "pr-readiness.yml"
 
   jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs mapping") }, "#{path} jobs")
   expected_job = EXPECTED_JOBS.fetch(File.basename(path)) { fail_policy("#{path} has no declared job policy") }
@@ -2117,6 +2131,7 @@ def validate_workflow(path, hatsu: false)
       # step is then compared against that form alone, so the two never mix.
       head_step = step_maps.find { |step| scalar(step["name"]) == READINESS_FROZEN_STEPS.keys.first }
       rendered = head_step && head_step.key?("uses") && scalar(head_step["uses"]) == READINESS_RENDERED_CHECKOUT
+      validate_readiness_concurrency(path, root, rendered: rendered, require_queue: require_readiness_queue)
       # Tenkai's rendering carries no digest step, and Hatsu's own repository
       # carries only its own form, so no pull request there can trade the
       # checked bootstrap for the consumer's (Feitan, hanten on #230).
@@ -3375,7 +3390,22 @@ def self_test(root)
                    .gsub("@@NEN_SCRIPT_SHA256@@", "a" * 64).gsub("@@NEN_BINARY_SHA256@@", "b" * 64)
         fail_policy("self-test: templates/pr-readiness.yml carries a placeholder this self-test does not fill") if text.include?("@@")
         File.write(readiness, text)
-        validate_repo(tmp, announce: false)
+        validate_workflow(readiness)
+        # During the guard-first rollout, the shipped template can still use
+        # the exact legacy policy. Exercise the next policy before it ships.
+        queued = text.sub("\n  cancel-in-progress: true\n", "\n  cancel-in-progress: false\n  queue: #{READINESS_RENDERED_QUEUE}\n")
+        File.write(readiness, queued)
+        validate_workflow(readiness, require_readiness_queue: true)
+        {
+          "legacy cancellation" => queued.sub("cancel-in-progress: false\n  queue: max", "cancel-in-progress: true"),
+          "single pending slot" => queued.sub("\n  queue: max\n", "\n  queue: single\n"),
+          "shared group" => queued.sub(READINESS_CONCURRENCY_GROUP, "all-readiness"),
+          "job-level override" => queued.sub("  readiness:\n", "  readiness:\n    concurrency: all-readiness\n")
+        }.each do |label, drift|
+          fixture_changed!(label, queued, drift)
+          File.write(readiness, drift)
+          expect_rejected("rendered readiness #{label}") { validate_workflow(readiness, require_readiness_queue: true) }
+        end
       end
     end
     File.write(readiness, readiness_original)
