@@ -568,12 +568,26 @@ preflight_bootstrap_destination() {
   fi
 }
 
+# Whether a destination that exists is someone else's, by its ownership kind: ONE reader per kind.
+# A case, never an `A && ! x || B && ! y` chain: `&&` and `||` bind left to right at equal
+# precedence, so an ungrouped chain ran the skill reader on a hook script too and let a hook script
+# another surface's marker names be replaced (zheref/hatsu#531). An unknown kind is not ours.
+not_ours() { # relative ownership
+  case "$2" in
+    override) ! is_ours_override ;;
+    hooks) ! is_ours_hooks ;;
+    hook_script) ! is_ours_hook_script "$1" ;;
+    skill) ! is_ours "$1" ;;
+    *) return 0 ;;
+  esac
+}
+
 preflight_destination() {
   local relative="$1" ownership="$2" destination="$target/$1"
   if is_tracked "$relative"; then
     fail_bootstrap_blocker "$relative"
   elif { [ -e "$destination" ] || [ -L "$destination" ]; } &&
-    { [ "$ownership" = "override" ] && ! is_ours_override || [ "$ownership" = "hooks" ] && ! is_ours_hooks || [ "$ownership" = "hook_script" ] && ! is_ours_hook_script "$relative" || [ "$ownership" = "skill" ] && ! is_ours "$relative"; }; then
+    not_ours "$relative" "$ownership"; then
     fail_bootstrap_blocker "$relative"
   fi
 }
@@ -1347,7 +1361,7 @@ elif [ "$surface" = "antigravity" ]; then
         fail_bootstrap_blocker "$relative"
         kept+=("$relative")
       elif { [ -e "$destination" ] || [ -L "$destination" ]; } &&
-        { [ "$ownership" = "hooks" ] && ! is_ours_hooks || [ "$ownership" = "hook_script" ] && ! is_ours_hook_script "$relative" || [ "$ownership" = "skill" ] && ! is_ours "$relative"; }; then
+        not_ours "$relative" "$ownership"; then
         fail_bootstrap_blocker "$relative"
         kept+=("$relative")
       else
