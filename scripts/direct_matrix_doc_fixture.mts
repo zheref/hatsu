@@ -93,7 +93,7 @@ export function runDatedEvidenceFixture(): void {
   const data = realpathSync(mkdtempSync(join(tmpdir(), 'hatsu-direct-evidence-')));
   const paths = ['contracts/direct.registry.json', 'contracts/classify.taxonomy.json', 'nen/workflow.json', 'docs/DIRECT-MATRIX.md'];
   const originals = new Map(paths.map(p => [p, readFileSync(join(root, p))]));
-  type FixtureRegistry = { snapshot: { evidenceVersion?: unknown; aliases: Record<string, { listPrice: Record<string, unknown>; served: Record<string, unknown>; evidence?: string }>;
+  type FixtureRegistry = { snapshot: { evidenceVersion?: unknown; aliases: Record<string, { primary?: string; listPrice: Record<string, unknown>; served: Record<string, unknown>; evidence?: string }>;
     sources: Record<string, { costPerTask: Record<string, unknown> }> }; picks: { inPool: Record<string, string> }; routing: unknown;
     aliases: Record<string, Record<string, unknown>> };
   const activation = JSON.parse(readFileSync(join(scripts, 'fixtures/direct-evidence.activation.json'), 'utf8')) as FixtureRegistry;
@@ -171,6 +171,12 @@ export function runDatedEvidenceFixture(): void {
     assert.equal(explicitLegacy.render().page, legacyPage, 'explicit zero matches the default legacy format');
     assertDocumentedEntrySanitized(0);
     reset();
+    const solPriceNote = 'The 2026-10-05 Codex lookup served GPT-5.6 Sol, listed at $4 / $20 in that dated price snapshot';
+    edit(d => {
+      const solSnapshot = d.snapshot.aliases.EXECUTION_FRONTIER;
+      solSnapshot.primary = 'GPT-6.1 Sol';
+      solSnapshot.listPrice.note = solPriceNote;
+    });
     const current = createMatrix(data, { today: '2026-10-27' });
     assert.equal(current.evidenceEnabled, true, 'explicit evidenceVersion 1 enables dated evidence');
     assert.deepEqual(current.priceFindings(), []);
@@ -268,6 +274,24 @@ export function runDatedEvidenceFixture(): void {
     assert.equal(cliEvidence.recommended.price?.next?.from, successFrom, 'the future scratch price transition stays contiguous');
     assert.throws(() => main([...evidenceArgs, '--product', 'duplicate']), /duplicate/);
     assert.throws(() => main(['evidence', data]), /required --repo/);
+    const alternateFlash = 'fixture-flash\n## Fixture heading';
+    const alternateModels = { ...workflow.models, antigravity: { ...workflow.models.antigravity, fast: alternateFlash } };
+    writeFileSync(consumerWorkflow, JSON.stringify({ models: alternateModels }));
+    const alternateCli = runEvidence();
+    assert.equal(alternateCli.status, 0, alternateCli.stdout + alternateCli.stderr);
+    const alternate = JSON.parse(alternateCli.stdout) as typeof verdict;
+    assert.equal(alternate.primary.inPool?.typedAlias, alternateFlash);
+    assert.equal(alternate.recommended.inPool?.typedAlias, alternateFlash);
+    assert.deepEqual({
+      solPrice: sol.primary.price?.line,
+      proSubstitute: alternate.primary.inPool?.line,
+      argonSubstitute: alternate.recommended.inPool?.line,
+    }, {
+      solPrice: 'GPT-6.1 Sol · $2 / $10 · USD per 1M tokens, standard tier, short context · snapshot 2026-10-05 · ' +
+        `https://developers.openai.com/api/docs/pricing · ${solPriceNote}`,
+      proSubstitute: 'in-pool: VISUAL_FALLBACK; quota-only substitute for VISUAL_ORCHESTRATOR, only after its own availability and quota are read',
+      argonSubstitute: 'in-pool: VISUAL_FALLBACK; quota-only substitute for VISUAL_MAX, only after its own availability and quota are read',
+    });
     const picks = ['primary', 'fallback', 'recommended'] as const;
     const { models } = workflow;
     const unspelledCases: Array<[string, unknown, readonly (typeof picks[number])[]]> = [
@@ -286,8 +310,7 @@ export function runDatedEvidenceFixture(): void {
         const full = cliEvidence[pick];
         assert.ok(full?.typedAlias);
         const missing = unspelled.includes(pick);
-        const inPool = partialModels === undefined && full.inPool ? { ...full.inPool, typedAlias: null,
-          line: full.inPool.line.replace(`(${full.inPool.typedAlias})`, '(unspelled)') } : full.inPool;
+        const inPool = partialModels === undefined && full.inPool ? { ...full.inPool, typedAlias: null } : full.inPool;
         assert.deepEqual(partial[pick], {
           ...full, typedAlias: missing ? null : full.typedAlias,
           restart: missing ? full.restart.replace(full.typedAlias, '<alias>') : full.restart, inPool,

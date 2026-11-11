@@ -492,13 +492,18 @@ export function createMatrix(root: string, options: { today?: string; workflowRo
     if (a.reviewer) refuse(`evidence.alias: ${alias} is a reviewer, not an actionable pick`);
     const spelled = typed(alias);
     if (spelled === '') refuse(`models.${surfaces[a.surface!].modelsKey}.${a.tier}: a typed alias is required for ${alias}`);
-    const lp = snap.aliases[alias].listPrice; const task = taskCost(alias); const substitute = picks.inPool[alias];
+    const snapshot = snap.aliases[alias];
+    const lp = snapshot.listPrice; const task = taskCost(alias); const substitute = picks.inPool[alias];
     return { alias, surface: a.surface, typedAlias: spelled, snapshotAsOf: snap.asOf,
-      price: lp ? { ...lp, line: `${price(alias)} · ${lp.unit} · snapshot ${lp.readOn} · ${lp.source}` } : null,
+      price: lp ? {
+        ...lp,
+        line: `${snapshot.primary} · ${price(alias)} · ${lp.unit} · snapshot ${lp.readOn} · ${lp.source}` +
+          (lp.note ? ` · ${lp.note}` : ''),
+      } : null,
       costPerTask: task ? { ...task, line: `$${general(task.value)} ${task.unit} · snapshot ${task.readOn} · basis: ${task.basis} · ${task.url}` } : null,
       served: servedRows(alias), restart: restart(alias, level), restartWarning: restartWarning(alias, product),
       inPool: substitute ? { alias: substitute, typedAlias: typed(substitute), surface: aliases[substitute].surface,
-        line: `in-pool: ${substitute} (${typed(substitute) ?? 'unspelled'}); quota-only substitute for ${alias}, only after its own availability and quota are read` } : null };
+        line: `in-pool: ${substitute}; quota-only substitute for ${alias}, only after its own availability and quota are read` } : null };
   }
   function verdictEvidence(primary: string, fallback: string | null, rec: string, level: string, product?: string) {
     if (!evidenceEnabled) refuse('snapshot.evidenceVersion: dated evidence is not activated; the trusted bootstrap must merge before the registry opts in');
