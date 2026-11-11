@@ -137,7 +137,9 @@ open questions; a flag, verb or path only under *Plan notes*.
 
 Every `nen` call below that reads GitHub runs through `scripts/gh_token_env.sh` — `nen` never picks a
 token up ambiently, unlike `gh` — never after `export GH_TOKEN=$(gh auth token)`
-([WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, zheref/hatsu#218):
+([WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, zheref/hatsu#218).
+For routine writes in Claude Code, use the wrapper's `-- nen` spelling and prepare payload files
+in a separate call. See [Claude permissions](../../../docs/surfaces/claude-code.md#5-permissions).
 
 ```bash
 "$hatsu_root/scripts/gh_token_env.sh" nen issue search --target <owner/name> --subject "<text>" \

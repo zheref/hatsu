@@ -394,6 +394,11 @@
         "cwd": ".",
         "$comment": "The focused lane for hooks/stop-bell.sh (zheref/hatsu#453): hermetic and offline under stub nen, osascript, afplay and uname, it proves one bell per per-gate marker that nen stop list names, each cleared by its own nen stop clear --gate/--effort and only that, stale and HATSU_ATTENTION=off markers consumed unrung, unreadable rows left alone, and the single-file fallbacks for a nen without stop list and for no nen at all."
       },
+      "claude-routine-permissions-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "HA571 Claude Code routine-write permission proposal, warm-up, placement, lone-call and idle checks. Uses hermetic repositories and a scratch HOME."
+      },
       "idle-permissions-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -2130,6 +2135,70 @@
             "scripts/stop_bell_fixture.mts"
           ],
           "$comment": "Hermetic hook fixture: stub nen/osascript/afplay/uname on PATH, a scratch git repository per case. Run when hooks/stop-bell.sh or its surface mirrors change. Since zheref/hatsu#516 it also proves the bounded rungs: a notifier that hangs or ignores TERM is stopped by its own PID at HATSU_BELL_DEADLINE=1 and the sound still plays once after it, a decoy named osascript that the hook did not start survives, a notifier that always hangs is tried once across three markers, both rungs hung across three markers at the default deadline finish under the 15-second hook timeout with every marker cleared, and a deadline outside 1 to 5 reads 5. The afplay expectations drop out, named, on a host without /System/Library/Sounds/Glass.aiff."
+        }
+      },
+      "claude-routine-permissions-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/claude-routine-permissions-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers",
+                "2",
+                "--testTimeout",
+                "30000",
+                "scripts/claude_routine_permissions_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/claude_permissions.mts",
+                "--test-coverage-include=scripts/claude_routine_permissions.mts",
+                "--test-coverage-include=scripts/claude_pack_placement.mts",
+                "--test-coverage-include=scripts/claude_routine_write_guard.mts",
+                "--test-coverage-include=scripts/claude_routine_permissions_cli.mts",
+                "--test-coverage-include=scripts/permissions_pack_claude_merge.mts",
+                "--test-coverage-include=scripts/permissions_pack_claude_render.mts",
+                "--test-coverage-include=scripts/idle_permissions_check.mts",
+                "--test-coverage-include=scripts/tenkai_adopt.ts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/claude-routine-permissions-guard/lcov.info",
+                "scripts/claude_routine_permissions_coverage.test.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/claude-routine-permissions-guard/lcov.info"
+          ],
+          "$comment": "Vitest tests the production functions and public commands under a scratch HOME, then the native Node runner captures exact-source LCOV over the same cases. Run with the locked test dependencies installed."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const lines=fs.readFileSync('coverage/claude-routine-permissions-guard/lcov.info','utf8').split('\\n');for(const file of [\"scripts/claude_permissions.mts\", \"scripts/claude_routine_permissions.mts\", \"scripts/claude_pack_placement.mts\", \"scripts/claude_routine_write_guard.mts\", \"scripts/claude_routine_permissions_cli.mts\", \"scripts/permissions_pack_claude_merge.mts\", \"scripts/permissions_pack_claude_render.mts\", \"scripts/idle_permissions_check.mts\", \"scripts/tenkai_adopt.ts\"]){if(!lines.includes('SF:'+file))throw new Error('Missing exact-source LCOV for '+file)}"
+          ],
+          "artifacts": [
+            "coverage/claude-routine-permissions-guard/lcov.info"
+          ],
+          "$comment": "Extraction only. Requires exact-source LCOV sections for the production modules rather than a Bash wrapper capture."
         }
       },
       "idle-permissions-guard": {

@@ -3,6 +3,20 @@
   "$comment": "The fix every outstanding hatsu:tenkai item names (zheref/hatsu#535). scripts/tenkai_fixes.ts reads this file from the Hatsu tree it ships in, before the engine writes anything: the first row whose `id` pattern matches the item's id (and whose `states`, `detail` and `action` filters hold) renders the item's `fix`. `{name}` fills from the patterns' named groups and from `{repo}`, `{root}`, `{slug}` (only a well-formed owner/name, else `<owner/name>`) and `{id}`, shell-quoted in `run` and `detect`; an unfilled `{name}` renders the item `unmapped`, never a half-filled command. A lane or verb group admits only [A-Za-z0-9_.-], so a target-controlled name never reaches a command. `each` names a group split on `,` that renders one `run` per element. `<token>` is a value the OWNER answers, single-quoted in place of the token, and appears only in an `owner` row's `run`, listed in `asks`: Tenkai never invents one. `fill` says who acts: `default` (the run writes only catalogue defaults or Hatsu-owned seeds, through apply or config_values.sh fill), `owner` (the run takes the owner's answer in its `asks` tokens), `edit` (tenkai section 6c's scoped edit of nen/contract.json or nen/workflow.json after the owner decides; `run` is empty, because `nen schema set` adds a member or swaps a scalar and never replaces a structure), `route` (the owner or the named tool makes this change and Tenkai never does: a file nen or the maintainer owns, a policy guard, a ledger; `run`, when present, takes no answer) and `unmapped` (the catch-all, the last row: a defect to file). docs/config/plugin-registries.md documents the keys.",
   "fixes": [
     {
+      "id": "^permissions/claude-code$",
+      "states": ["blocked"],
+      "edit": "Inspect .claude/settings.local.json and its directory, then re-run diagnosis",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --surface claude-code --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^permissions/claude-code$",
+      "states": ["missing", "drift"],
+      "run": ["bash {root}/scripts/permissions_pack.sh --surface claude-code --install --target {repo}"],
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --surface claude-code --repo {repo}",
+      "fill": "route"
+    },
+    {
       "id": "^",
       "detail": "not a git repository",
       "run": ["git -C {repo} init"],

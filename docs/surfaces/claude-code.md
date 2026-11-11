@@ -118,6 +118,34 @@ in every repository.
 | when they apply | after each teammate trusts the folder |
 | what the pack renders | `contracts/permissions.json` → `allow` and `deny` rows as `Bash(<exe> <args>)`, merged into `settings.local.json`, never the tracked `settings.json` |
 
+Ten checks the user rows on every Claude Code warm-up, including read-only runs. When the
+check points to a proposal, run the printed command and show its JSON to the maintainer:
+
+```sh
+<hatsu_root>/scripts/permissions_pack.sh --surface claude-code --render-user --target <checkout>
+```
+
+The command prints a fragment. The maintainer can review and add its entries to their existing
+user settings while preserving other settings and the built-in `$defaults` entries. The proposal
+lists trusted repositories from the plugin and target registries. Review those entries and the
+relative token-wrapper forms before approving. Relative Bash patterns match text in any checkout.
+The Claude hook checks the executed wrapper against the installed script when the plugin is active.
+That check cannot protect another session where the plugin is inactive.
+
+Write and review payload files first. Run `nen pr threads reply`, `resolve`, or `settle`, and the
+other catalogue writes as one plain call. Use bare `nen` or the verified token wrapper followed by
+`-- nen`. Keep pipes, redirects, substitutions, shell wrappers, and joined commands out of the
+call. The hook only refuses compound calls. Authorization for the repository, PR, or issue still
+comes from the skill and the maintainer.
+
+Claude Code describes narrow rules as resolved “before the classifier runs” by default. The
+documented exceptions include `autoMode.classifyAllShell` and per-command allowed domains.
+Ten reports visible deny/ask matches and a visible `classifyAllShell` setting. Managed settings
+and the active session's policy may affect what happens, so the check reports their effective
+state as unknown. Inspect the active session in `/permissions` before drawing a conclusion about
+classification. See [Auto mode configuration](https://code.claude.com/docs/en/auto-mode-config)
+and [Bash compound commands](https://code.claude.com/docs/en/permissions#compound-commands).
+
 ## 6. Rules
 
 Claude Code reads `CLAUDE.md` and the plugin's own files; Hatsu writes no rules file on this surface.

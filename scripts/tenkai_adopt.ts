@@ -7,9 +7,23 @@ import { catalogue } from './pr_sections.ts';
 import { history, readSections, summary } from './pr_sections_history.ts';
 import { declarationText, strictJson } from './config_values_refresh.ts';
 import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction } from './tenkai_fixes.ts';
+import { diagnoseCheckoutPack } from './claude_pack_placement.mts';
+import { permissionSource } from './claude_routine_permissions.mts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
+let surface: string | undefined;
+if (['diagnose', 'apply'].includes(args[0])) {
+  const index = args.indexOf('--surface');
+  if (index >= 0) {
+    surface = args[index + 1];
+    args.splice(index, 2);
+    if (!surface || !['claude-code', 'codex', 'cursor', 'antigravity'].includes(surface) || args.includes('--surface')) {
+      console.error('tenkai_adopt.sh: --surface needs one supported surface');
+      process.exit(2);
+    }
+  }
+}
 const mode = args[0];
 const plain = (value: unknown) => String(value).replace(/[\p{Cc}\p{Cf}]/gu, '');
 const options: Record<string, string> = {};
@@ -74,6 +88,21 @@ function run(): number {
     document.items.push({ id: 'pr.sections', title: 'PR-section catalogue freshness', owner: 'hatsu', action: finding ? `config_values.sh fill --refresh --repo ${quote(plain(repo))}` : null,
       ...(finding ?? { state: 'repaired', detail: 'pr.sections: refreshed unedited defaults and options; consumer-owned cells retained' }) });
   }
+  if (document.items.some((row: any) => ['nen/contract.json', 'nen/workflow.json'].includes(row.id))) {
+    let pack: { status: string; detail: string };
+    try {
+      pack = diagnoseCheckoutPack(permissionSource(join(dirname(here), 'contracts/permissions.json')), dirname(here), repo);
+    } catch {
+      pack = { status: 'blocked', detail: 'Claude checkout pack could not be inspected' };
+    }
+    const advisory = surface !== 'claude-code' && pack.status !== 'present';
+    const state = advisory ? 'advisory' : pack.status === 'present' ? 'satisfied' : pack.status === 'retired' ? 'drift' : pack.status;
+    document.items.push({
+      id: 'permissions/claude-code', title: 'Claude Code checkout permissions', owner: 'hatsu',
+      state, detail: pack.detail, packStatus: pack.status,
+      action: null,
+    });
+  }
   // HA#535: every outstanding row names its fix — run, edit, detect and who supplies the value.
   for (const row of document.items) {
     row.action = resolveAction(row.action, repo);
@@ -86,7 +115,7 @@ function run(): number {
     process.stdout.write(`repository: ${plain(document.repo)}\nslug:       ${plain(document.slug ?? '(unreadable)')}\n`);
     const runner = document.runner;
     process.stdout.write(`runner:     ${plain(runner.runs_on)} (fallback ${plain(runner.fallback)}) — ${plain(runner.reason)}\n\n`);
-    const glyph: Record<string, string> = { satisfied: 'ok  ', repaired: 'NEW ', missing: 'MISS', drift: 'DRIF', routed: 'ROUT', staged: 'STAG', blocked: 'BLOK' };
+    const glyph: Record<string, string> = { satisfied: 'ok  ', repaired: 'NEW ', missing: 'MISS', drift: 'DRIF', routed: 'ROUT', staged: 'STAG', blocked: 'BLOK', advisory: 'INFO' };
     for (const row of document.items) {
       process.stdout.write(`  ${glyph[row.state] ?? plain(row.state)}  ${plain(row.id)}\n        ${plain(row.detail)}\n`);
       if (row.action && !['satisfied', 'repaired'].includes(row.state)) process.stdout.write(`        → ${plain(row.action)}\n`);

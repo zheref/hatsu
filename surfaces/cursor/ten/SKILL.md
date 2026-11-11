@@ -45,15 +45,11 @@ nen --version  # dependency.version_probe
 nen shu tools --repo "$hatsu_root"  # HATSU's checkout, not the target
 ```
 
-A probe exiting `0` with a semver reads the `nen` row: `ok` → § 2's `nen_global.sh` runs,
-then § 2c; there its exit only feeds the predicate — `5` and `2` quoted in
-§ 4's `nen-global:` token, never § 3, no session bind. Every other
-row → § 2 — `WRONG` with a repin remedy (pin below floor: a `nen/contract.json`
-PR moving `bootstrap.sha256` too, GATE-CONFIGURATION;
-never an install), `WRONG` without one, `MISSING`, or the verb absent. Not found or
-unparseable: absent, § 2 too. Exit `5` per non-`ok` row (`BEHIND` `7`; coverage-only: PROCESS), never `1`. The
-range rule is the contract's; a pre-floor build prints no floor line — said, never
-inferred.
+With a valid semver and `ok`, run § 2's host linker then § 2c. Report its `5` or `2` in
+§ 4 without halting or binding a session. Other results, including an absent or unparseable
+probe, go to § 2. Below the floor, a GATE-CONFIGURATION PR repins `nen/contract.json`
+and `bootstrap.sha256`. Other non-`ok` rows exit `5` (`BEHIND` `7`; coverage-only: PROCESS).
+Quote the floor only if the binary reports one.
 
 ## 2 · Auto-install — host first, session as fallback
 
@@ -129,15 +125,11 @@ improvised (D10): that report is *correct*.
 
 ## 4 · Report, in one line
 
-**Every value is quoted from `nen shu tools`** (never inferred: PROCESS § *Reporting a phase*,
-*ten § 4*). A clear run reads
-`Nen <v> · floor <f> · satisfies <range> · host: reachable at <path> · warm-up clear`, beside it
-§ 2's `nen-global:` token (exit, summary line; `5`/`2` on § 1's `ok` route) and **which `nen` § 2
-bound** (host link or session bind), every route; an install adds `bootstrapped to <ref> (checksum
-verified)`, a pin below the floor `owes a repin to "<f>"`; § 2c's other verdicts end it `warm-up:
-unmet — host: installed, not reachable (<row>)`, `warm-up: host not read (<rc>, …)` or `host:
-opted out`; a failure reads `HALTED — G5`, code and name. Not run is reported not run. Then
-`ten <phase> · caught up: <steps> · stopped at: <step|none>`.
+Quote `nen shu tools` (PROCESS § *Reporting a phase*, *ten § 4*).
+`Nen <v> · floor <f> · satisfies <range> · host: reachable at <path> · warm-up clear`.
+Add § 2's `nen-global:` exit and summary, the host link or session bind, and any checksum-verified
+bootstrap ref or owed repin. Quote § 2c's non-clear verdict, or `HALTED — G5` with code and name.
+Report unrun checks as unrun. Add `ten <phase> · caught up: <steps> · stopped at: <step|none>`.
 
 ## 4b · Target/source guard
 
@@ -151,6 +143,15 @@ Eligible: `"$hatsu_root/scripts/hatsu_plugin_update.sh" --root "$hatsu_root" --a
 Quote skips (HA#67; README § *Shared rules the warm-up follows*), continue.
 
 ## 5 · Surfaces — what a target gets
+
+On every Claude Code warm-up, including read-only, run this read against § 4b's target:
+
+```sh
+<hatsu_root>/scripts/permissions_pack.sh --surface claude-code --check-user --target <target>
+```
+
+Quote its line. If rows are missing or unreadable, show the JSON from its render command for
+maintainer review. See [Claude permissions](../../../docs/surfaces/claude-code.md#5-permissions).
 
 Read-only/no-phase: **skip placement/provisioning**. Retain § 4b's target/root/cwd;
 failed isolation stops writes. Codex: `docs/surfaces/codex.md` § 5's write probe/recovery first.
