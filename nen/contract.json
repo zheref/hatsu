@@ -672,13 +672,14 @@
                 "--testTimeout",
                 "15000",
                 "scripts/unit_tests_ci_fixture.test.mts",
+                "scripts/trusted_guard_preflight_fixture.test.mts",
                 "scripts/release_changelog_fixture.test.mts",
                 "scripts/tenkai_release_guard_fixture.test.mts",
                 "scripts/shell_coverage_fixture.test.mts"
               ]
             }
           ],
-          "$comment": "The read-only PR unit-tests workflow always selects this lane. Check the candidate workflows for missing preflight adapters before running the pinned Vitest fixtures for the trusted CI test runner, release-changelog parser, Tenkai publisher adoption guard, and shell coverage. Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "The read-only PR unit-tests workflow always selects this lane. Check the candidate workflows for missing preflight adapters before running the pinned Vitest fixtures for the trusted CI test runner, trusted-preflight runtime and failure paths, release-changelog parser, Tenkai publisher adoption guard, and shell coverage. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {
