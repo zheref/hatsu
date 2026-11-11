@@ -55,7 +55,10 @@ export function readCommand(args: string[]): string[] {
     case 'branch-rules': {
       exact(values, 2);
       const [owner, repo] = slug(values[0]);
-      return ['api', '--method', 'GET', `repos/${owner}/${repo}/rules/branches/${segment(values[1])}`, '--paginate', '--slurp'];
+      // The page-local jq filter emits one compact JSON array per page,
+      // including an empty page, with versions that predate --slurp.
+      return ['api', '--method', 'GET', `repos/${owner}/${repo}/rules/branches/${segment(values[1])}`,
+        '--paginate', '--jq', 'if type == "array" then @json else error("expected branch rules array") end'];
     }
     case 'branch-protection': {
       exact(values, 2);
@@ -127,8 +130,8 @@ try {
     if (result.error) throw result.error;
     if (result.status !== 0) process.exitCode = result.status ?? 1;
     else {
-      const pages = JSON.parse(result.stdout);
-      if (!Array.isArray(pages) || !pages.length || !pages.every(page =>
+      const pages = result.stdout.trim().split('\n').map(line => JSON.parse(line));
+      if (!pages.every(page =>
         Array.isArray(page) && page.every(rule => rule && typeof rule.type === 'string' && rule.type.length))) {
         throw new Error('branch-rules returned an invalid page');
       }

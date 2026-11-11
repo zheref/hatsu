@@ -48,16 +48,27 @@ try {
     throw new Error('branch protection must use the fixed GET and linear history projection');
   }
   const branchArgs = ['branch-rules', 'zheref/hatsu', 'feature/read'];
-  const branch = run(branchArgs, true, '[[]]');
-  if (branch.join(' ') !== 'api --method GET repos/zheref/hatsu/rules/branches/feature%2Fread --paginate --slurp') {
-    throw new Error('branch rules did not encode the branch or request every page');
+  const branch = run(branchArgs, true, '[]\n');
+  const pageFilter = 'if type == "array" then @json else error("expected branch rules array") end';
+  if (branch.join(' ') !== 'api --method GET repos/zheref/hatsu/rules/branches/feature%2Fread --paginate --jq ' + pageFilter) {
+    throw new Error('branch rules must use the fixed GET and compact page filter supported by older gh');
   }
-  const rules = [{type: 'deletion'}, {type: 'pull_request', parameters: {allowed_merge_methods: ['squash']}}];
-  const complete = invoke(branchArgs, JSON.stringify([[rules[0]], [rules[1]]]));
+  const empty = invoke(branchArgs, '[]\n');
+  if (empty.status !== 0 || empty.stdout.trim() !== '[]') throw new Error('an empty page is a valid rules result');
+  const rules = [
+    {type: 'commit_message_pattern', parameters: {pattern: 'first\nsecond'}},
+    {type: 'pull_request', parameters: {allowed_merge_methods: ['squash']}},
+  ];
+  const complete = invoke(branchArgs, JSON.stringify([rules[0]]) + '\n' + JSON.stringify([rules[1]]) + '\n');
   if (complete.status !== 0 || complete.stdout.trim() !== JSON.stringify(rules)) {
-    throw new Error('branch rules lost a later page or changed the flat response');
+    throw new Error('branch rules lost a later page, an escaped newline or the flat response');
   }
-  for (const [response, status] of [['[[{"type":"deletion"}],{}]', '0'], ['[]', '0'], ['[[{"type":"deletion"}]]', '1']]) {
+  for (const [response, status] of [
+    ['[{"type":"deletion"}]\n{}\n', '0'],
+    ['[{"type":"deletion"}]\n[\n', '0'],
+    ['', '0'],
+    ['[{"type":"deletion"}]\n', '1'],
+  ]) {
     const incomplete = invoke(branchArgs, response, status);
     if (incomplete.status === 0 || incomplete.stdout !== '') throw new Error('an incomplete branch rules response escaped');
   }

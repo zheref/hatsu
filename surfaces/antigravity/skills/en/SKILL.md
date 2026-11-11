@@ -364,7 +364,7 @@ exception does not grant Futon itself a PR merge or change getsuga's release-uni
 
 **An off-base PR with failed ownership or another failed gate gets no merge prompt.** It reports
 the refusal, current base and Development guard line, then stops at the maintainer handoff.
-**A PR on `branch.base` in case (3)** — neither `branch.base` nor the PR's base is the default branch — **gets the prompt**:
+**A PR on `branch.base` in case (3)** — neither `branch.base` nor the PR's base is the default branch — **reaches the human handoff**:
 the guard's quoted `not-applicable` line stands in place of its `0` at check 4, because the merge is the
 maintainer's either way. It is the G2/G4 merge stop, never a G5 (ROSTER § *Rulings of 2026-09-30 — En
 never merges*, row *Closing keywords act only on the default branch*). Futon opens no PR into its integration branch (futon § 5 merges there locally), so
@@ -467,8 +467,9 @@ live, by 2026-09-10, at `v0.3.0`, exit `0` (`docs/ab/en.md` § 2.4):
 | <title> | <link>            | <status (gate)> | <one line>   | <session>      |
 ```
 
-**The merge prompt is the stop's `MERGE` ask**, for the run's own PR and another's alike: the PR's
-link, the gate it stands at, whose review it carries, the verdict quoted and the line above.
+Use the stop's `MERGE` ask for the human handoff on the run's own PR and another's alike. Give the
+PR link, the gate, whose review it carries, the quoted verdict and GitHub's gate result. Include
+the command above only when check 6 and method selection establish it.
 
 **It hands off once for this run**, with the check 2 verdict and GitHub's gate result, and rings once. A quiet observation rings nothing — a bell that rings
 every poll of a four-hour wait is a bell nobody hears.
