@@ -100,15 +100,6 @@ run 0 "$clean"
 assert_contains "$out" "prose ok: $total files within their ceilings" 'every dieted skill (rikugan among them), two agents, one rules file and its Antigravity mirror are counted; kurapika.md is not'
 assert_lacks "$out" 'kurapika' 'the exempt persona is never named'
 
-# --- no argument selects the executing guard's checkout, even from a different directory ---
-run 0 "$script_dir/.."
-explicit_root_out="$out"
-(
-  cd "$clean"
-  run 0
-  [ "$out" = "$explicit_root_out" ] || fail "no argument must select the executing guard's checkout: $out"
-)
-
 # The candidate root cannot supply the parser when the executing guard's own companion is missing.
 mkdir -p "$fixture_root/no-parser" "$clean/scripts"
 cp "$guard" "$fixture_root/no-parser/prose_size_check.sh"
@@ -407,6 +398,17 @@ if [ "$(id -u)" -ne 0 ]; then
   assert_contains "$out" 'UNLISTABLE  surfaces/codex/zz' 'an unlistable skill directory is an offender too'
   chmod 755 "$form/surfaces/codex/zz"
 fi
+
+# The no-argument case traces the production script from another working directory.
+# Use the plain guard for the reference; the cases above already trace explicit-root runs.
+if ! explicit_root_out="$(sh "$guard" "$script_dir/.." 2>&1)"; then
+  fail "explicit guard checkout failed: $explicit_root_out"
+fi
+(
+  cd "$clean"
+  run 0
+  [ "$out" = "$explicit_root_out" ] || fail "no argument must select the executing guard's checkout: $out"
+)
 
 bash "$script_dir/fixture_output_guard_fixture.sh"
 echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
