@@ -1096,6 +1096,9 @@ until then the two scripts above are the mechanism and are named as such. The ca
 `nen schema check` from nen `0.28` ([zheref/nen#474](https://github.com/zheref/nen/issues/474), the HA#449 repin), which
 also refuses a drifted restatement in the files `precedenceRestatedIn` names (`WORKFLOW.md`), by file and line; BC-11
 keeps the drift case out of `scripts/canon_contracts_check.sh`, frozen to fixes only, since the verb holds it.
+A verb that reads one file's generated surface marker ([zheref/nen#658](https://github.com/zheref/nen/issues/658))
+retires `scripts/surface_marker.sh`, the shell reader the bootstrap, the permission pack and the session-start
+hook source; it is BC-11 debt, frozen to fixes only until Hatsu repins to that build ([HR-392](ROSTER.md#hr-392)).
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 

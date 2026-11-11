@@ -162,7 +162,7 @@
       "surface-mirror-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/surface_mirror_check.sh, the generated-surface DRIFT guard surface-mirror-check runs from main under pull_request_target, following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a stub nen answers each check by surface, and it proves a clean tree passes with one check per surface, each handed its own --hooks-root, a drift fails at exit 1 and is never re-checked at another root, a refusal keeps its own exit code and is never read as drift, and a Cursor drift is checked once; and each surface's hooks root is written the same in the check, surface-mirror-regenerate.yml, docs/using/mirrors.md \u00a7 3 and surface_bootstrap.sh's placed-hooks sed (the workflow's copy drifted once). The next-root re-check zheref/hatsu#153 added for the Codex root's two-step landing was removed with its cases when zheref/hatsu#151 made that root current (docs/GATE-CONFIGURATION.md, 2026-09-30)."
+        "$comment": "The focused lane for scripts/surface_mirror_check.sh, the generated-surface DRIFT guard surface-mirror-check runs from main under pull_request_target, which also refuses, by file and line and before any check or regeneration, a mirrored source carrying a concrete generated-marker literal, on every source kind nen mirrors, and at exit 2 a source it cannot read (zheref/hatsu#531), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: a stub nen answers each check by surface, and it proves a clean tree passes with one check per surface, each handed its own --hooks-root, a drift fails at exit 1 and is never re-checked at another root, a refusal keeps its own exit code and is never read as drift, and a Cursor drift is checked once; and each surface's hooks root is written the same in the check, surface-mirror-regenerate.yml, docs/using/mirrors.md \u00a7 3 and surface_bootstrap.sh's placed-hooks sed (the workflow's copy drifted once). The next-root re-check zheref/hatsu#153 added for the Codex root's two-step landing was removed with its cases when zheref/hatsu#151 made that root current (docs/GATE-CONFIGURATION.md, 2026-09-30)."
       },
       "surface-link-guard": {
         "stack": "claude-code-plugin",
@@ -575,23 +575,12 @@
             "--target",
             "scripts/surface_bootstrap.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated. Through scripts/shell_coverage.mts, the fixture keeps its hook and shell descendants off Bashcov's shared trace descriptor and invokes only scripts/surface_bootstrap.sh through a short-lived traced wrapper; the helper retains only that exact source in coverage/surface-bootstrap-guard/lcov.info. Without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "A permanent, deterministic fixture for the surface placement script. Run it as `nen shu test --lane surface-bootstrap-guard --repo <hatsu>` when scripts/surface_bootstrap.sh, scripts/surface_marker.sh (the marker reader it, the permission pack and the session-start hook source; its own grammar rows run here under bash and a POSIX sh, zheref/hatsu#531) or its fixture changes; it reads the committed surfaces/ mirrors, so run it after they are regenerated. Through scripts/shell_coverage.mts, the fixture keeps its hook and shell descendants off Bashcov's shared trace descriptor and invokes only scripts/surface_bootstrap.sh through a short-lived traced wrapper; the helper retains only that exact source in coverage/surface-bootstrap-guard/lcov.info. Without Bashcov it runs once, uninstrumented, and says so.",
           "artifacts": [
             "coverage/surface-bootstrap-guard/lcov.info"
           ]
         },
-        "coverage": {
-          "exe": "node",
-          "argv": [
-            "scripts/shell_coverage.mts",
-            "--verify",
-            "surface-bootstrap-guard"
-          ],
-          "artifacts": [
-            "coverage/surface-bootstrap-guard/lcov.info"
-          ],
-          "$comment": "Extraction only: reads coverage/surface-bootstrap-guard/lcov.info, which this lane's test row wrote, verifies its exact-source provenance, and runs no fixture. Prefer --from-capture, where nen proves the capture is this tree's."
-        }
+        "coverage": {"unsupported": "The bootstrap lane passes, but at this fixture's size Bashcov usually captures nothing: it loses bytes of the trace and aborts on most runs (6 of 7 on zheref/hatsu#531's branch; the one capture read 83.4%; zheref/hatsu#599), so scripts/surface_bootstrap.sh is an unmeasured gap, never a clean zero, by the maintainer's ruling R-2026-11-11-09 on zheref/hatsu#531 until #599 restores the capture and this row returns to `node scripts/shell_coverage.mts --verify surface-bootstrap-guard`. scripts/surface_marker.sh is not measurable here either, for a structural reason: the reader turns its caller's xtrace off and its body is an awk program; its grammar rows run in this lane under bash and a POSIX sh, and that gap closes when zheref/nen#658 retires the reader (HR-392)."}
       },
       "nen-global-guard": {
         "test": {
@@ -637,7 +626,7 @@
             "bash",
             "scripts/permissions_pack_fixture_check.sh"
           ],
-          "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, its fixture, or the Codex placed-hooks rewrite changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/permissions-pack-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane permissions-pack-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "A permanent, deterministic fixture for the permission pack. Run it as `nen shu test --lane permissions-pack-guard --repo <hatsu>` when scripts/permissions_pack.sh, scripts/surface_marker.sh, its fixture, or the Codex placed-hooks rewrite changes. Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/permissions-pack-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane permissions-pack-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
           "artifacts": [
             "coverage/permissions-pack-guard/lcov.info"
           ]

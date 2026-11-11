@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-11-03",
+  "effortId": "opus-kurapika-ha-531-ownership-predicate-anchor",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#531 hanten C1 (Chrollo, BC-11): the new marker reader scripts/surface_marker.sh is a shell predicate, which BC-11 gives to TypeScript; HR-384 exempted only the bell scripts, on the same 'hook host has only nen, git, gh' grounds. How should this reader stand?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Exemption ⭐ (Recommended)",
+      "consequence": "The reader stays shell as a recorded BC-11 exemption beside HR-384: it runs inside the session-start hook where node is not guaranteed. A new HR row names it and its header cites the row."
+    },
+    {
+      "key": "B",
+      "label": "Own it to nen, freeze",
+      "consequence": "File a nen verb that reads one file's generated marker; the shell reader is frozen to fixes only until nen ships it and Hatsu repins (the HR-171 pattern). The PR ships with the freeze recorded."
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-11-11T02:35:47.201Z"
+}
