@@ -1,34 +1,42 @@
 # Focused machinery tests admitted by the trusted workflow policy.
-# The job executes pull-request code only under pull_request's read-only token.
+# Pull requests and pushes to main both run with a read-only token.
 name: unit-tests
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
 
 concurrency:
-  group: unit-tests-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  # A push group is unique to its commit so GitHub cannot replace an older queued run.
+  group: unit-tests-${{ github.event_name }}-${{ github.event_name == 'push' && github.sha || github.event.pull_request.number }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
   unit-tests:
-    if: ${{ github.repository == 'zheref/hatsu' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false }}
+    if: >-
+      ${{ github.repository == 'zheref/hatsu' &&
+          ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+           (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            github.event.pull_request.draft == false)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout PR head
+      - name: Checkout candidate revision
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'push' && github.sha || github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - name: Checkout trusted test runner
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ github.event_name == 'push' && github.sha || github.event.pull_request.base.sha }}
           path: .trusted
           persist-credentials: false
 

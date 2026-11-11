@@ -541,14 +541,23 @@ drift. Two `templates/` twins stay by design: `templates/pr-readiness.yml`, tenk
 every per-workflow table is checked at load to cover exactly the workflows it should.
 
 **Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
-`PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. It uses `pull_request`
-and only `contents: read`, because its fixtures execute the PR's code. The policy
-holds the staged YAML to one reviewed SHA-256 and also checks its trigger,
-permissions, and hosted runner; the installation PR copies that exact template.
-The workflow checks out the base revision for `nen_global.sh` and
-`unit_tests_ci.mts`, installs the contract-pinned Nen without editing the runner's
-shell profile, and invokes the PR's declared focused test lanes. The CI runner
-clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture and fences fixture output.
+`PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. The job uses
+only `contents: read` because its fixtures execute candidate code. The policy
+pins each admitted trigger set to its reviewed SHA-256 and checks permissions and
+the hosted runner. The validator checks the installed workflow and the self-test
+also validates the staged template as if installed.
+
+HA#585 stages the `push` trigger for `main` while the installed workflow keeps
+its PR-only trigger. The staged job keeps the same-repository, non-draft PR
+guard. It uses the exact PR head as the candidate and the base SHA for
+`nen_global.sh` and `unit_tests_ci.mts`. A push to `main` uses the pushed SHA
+for both checkouts. PR groups cancel superseded runs for the same PR. Push
+groups include the event and commit SHA so a later commit cannot evict an
+earlier commit's queued run. The job installs the contract-pinned Nen without
+editing the runner's shell profile and invokes the candidate's declared focused
+test lanes. The CI runner clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture
+and fences fixture output. After this policy reaches `main`, a follow-up copies
+the exact template into `.github/workflows/` and verifies the first live push run.
 
 **2026-10-22. The canon prose lint, step one (HR-13).** `prose-ambiguity-check.yml` is registered in
 `PENDING_HOSTED_WORKFLOWS` and staged at `templates/prose-ambiguity-check.yml`, its guard step frozen
