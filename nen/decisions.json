@@ -542,6 +542,41 @@
       ]
     },
     {
+      "id": "host-merge-protected-path",
+      "class": "human-gate",
+      "gate": "G5",
+      "preferred": [
+        {
+          "key": "A",
+          "label": "the maintainer makes the merge",
+          "command": "the maintainer runs the catch-up merge of the named protected paths outside the host's sandbox and says so; the run resumes at murasaki section 5 on the merged head",
+          "consequence": "the branch is caught up on the maintainer's own act; the run proves and publishes it as usual"
+        },
+        {
+          "key": "B",
+          "label": "hold the catch-up",
+          "command": "nothing is merged or pushed; a merge already on disk is left unpushed, with ao's abort line printed",
+          "consequence": "the branch stays behind its base and the PR is not Ready until the maintainer acts"
+        }
+      ],
+      "proposeIssue": false,
+      "why": "murasaki section 4 (zheref/hatsu#586; docs/ROSTER.md HR-393): when the host's base-branch merge is unavailable, a path of the incoming diff or of the set the catch-up wrote that the host's quoted refusal places in its protected set, or a failed or empty-while-behind read, stops the route; the merge is the maintainer's and is never made by hand or by another route. The protected set is the host's and not in the checkout, so the stop rests on the report's recorded judgement.",
+      "citedBy": [
+        "en",
+        "murasaki"
+      ]
+    },
+    {
+      "id": "merged-head-review-skip",
+      "class": "human-gate",
+      "gate": "G5",
+      "proposeIssue": false,
+      "why": "en section 3 (zheref/hatsu#583): after a catch-up that resolved a conflict of meaning, a review round on the merged head is owed before readiness; skipping it, or ruling the merge prompt's fixed disclosure line enough, is the maintainer's own typed words only. The run never offers it, so the row has no options: it is recorded with WORKFLOW section 4's typed-by-design reference option and --typed-file, and an idle run parks on it rather than answering it.",
+      "citedBy": [
+        "en"
+      ]
+    },
+    {
       "id": "unsettled-finding",
       "class": "human-gate",
       "gate": "G5",

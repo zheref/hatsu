@@ -42,7 +42,7 @@ The tokens are declared once per stack in `handbooks/stacks/<scenario>/rules/pla
 | Declaration | Where | Read by |
 |---|---|---|
 | the canon pin (`source`, `ref`) | `nen/repos.json` → `maintained_tools[].pinned`; exactly one pinned tool, or `--source` names which | `nen canon pin`; `limbo` § 2 step 2, § 4 |
-| the scenario of record | `nen/repos.json` → `consumers[].scenario` (this file's `scenario:` key may restate it) | `nen repo scenario`, `nen canon resolve --leaf rules` → the `--rules-dir`; `limbo` § 2 step 4 |
+| the scenario of record | `nen/repos.json` → `consumers[].scenario` (this file's `scenario:` key may restate it) | `nen repo scenario`; the mirror verbs' `<stack-dir>/<scenario>/<leaf>` resolution inside the canon checkout; `limbo` § 2 steps 4–5 |
 | the regenerate argv | `nen/workflow.json` → `iteration.canonMirror.command` (Hatsu's own key, preserved by `nen schema check`) | WORKFLOW's local verification gate step 2; `kokusen` § 3; `tenkai` § 6c (a consumer with bindings and no key is a routed gap) |
 | the files never mirrored | `--not-mirrored README.md,placeholders.md` on the call | `limbo` § 2 steps 5, 10 |
 

@@ -65,7 +65,7 @@ Read by `hatsu:kagutsuchi` § 1 (the maintainer's ruling of 2026-09-29, zheref/h
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `defaultTarget` | open | a key of `project.targets` marked `nonProduction: true`; **`null`**, and null is an answer | The destination an untargeted `hatsu:kagutsuchi` sends to. A typed target always overrides it and the report says which source the target came from (`typed` or `workflow.json → deploy.defaultTarget`). A default naming a store or the live environment is refused by `config_values.sh set` and by kagutsuchi; G3 (`hatsu:mugetsu`) is unchanged. `null` means the target is typed on each call (`missing-maintainer-choice`) | `hatsu:kagutsuchi` |
+| `defaultTarget` | open | a key of `project.targets` marked `nonProduction: true` whose `why` also reads non-production (HR-289); **`null`**, and null is an answer | The destination an untargeted `hatsu:kagutsuchi` sends to. A typed target always overrides it and the report says which source the target came from (`typed` or `workflow.json → deploy.defaultTarget`). A default naming a store or the live environment is refused by `config_values.sh set` and by kagutsuchi; G3 (`hatsu:mugetsu`) is unchanged. `null` means the target is typed on each call (`missing-maintainer-choice`) | `hatsu:kagutsuchi` |
 
 ### `reports`
 

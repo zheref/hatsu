@@ -74,10 +74,10 @@ Failing names become **named** rows.
 | **run records** | spec-repo.md § *The run record* (`hatsu/specs/`, `hatsu/ports/`) | `done`/`declined`, `at` over 30 days |
 | **the surface's own** | surface worktree tool (`docs/surfaces/<surface>.md`) | its stale worktrees, named |
 
-Sizes are `du -sk <path>`, read before plan. **Core's `.nen/` ledgers (WORKFLOW § *The effort's ledgers*) and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
+Sizes: `du -sk <path>`, read before plan. **Core's `.nen/` ledgers (WORKFLOW § *The effort's ledgers*) and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
 `.nen/` goes with it (ROSTER § *Rulings of 2026-10-20*). Prior leftovers
 grouped under *prior sessions*, **ownership never assumed** — dirt, detached checkouts and caches
-proposed, never deterministic. Sanitize: no credentials, no paths outside checkout and caches.
+proposed, never deterministic. Sanitize: no credentials, no path outside checkout and caches.
 
 ## 5. The plan — three classes, every row complete
 
@@ -119,7 +119,7 @@ holds; then reviewer ledger rule; then table.
 | remote head | deterministic (SHA = `headRefOid`), else proposed | proposed | named | proposed |
 
 Each row: `id` · class · object · exact command (none on named row) · what it frees (bytes or
-`billed: <what>`) · evidence (PR state, SHA, host, dirt, age, ledger) · owner (this sitting, or `prior: <branch>`).
+`billed: <what>`) · evidence (PR state, SHA, host, dirt, age, ledger) · owner (this sitting or `prior: <branch>`).
 **Ids are plan-unique**: class letter (`D`/`P`/`N`) plus one plan-wide count (`D1`, `P2`).
 
 ## 6. The picker — only the pick runs
@@ -150,11 +150,11 @@ Each `<CODE>-<N>` is checked (`PR` where `gh pr view` finds `<N>`; output cut to
 `nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
 — an exit but `0` (no registry, code unregistered) keeps it, said.
 
-Gitignored with `.nen/`; `ten` never deletes it. Unpicked offered rows go to `declined.jsonl`, folded at the next inventory: WORKFLOW § *Declined cleanup rows*. Report result, freed total, kept rows and why.
+Gitignored (`.nen/`); `ten` never deletes it. Unpicked offered rows go to `declined.jsonl`, re-offered as one row: WORKFLOW § *Declined cleanup rows*. Report result, freed total, kept rows and why.
 
 ## Residue
 
-Removals, `du -sk`, `readlink -f`, name validation and the id check have no nen verb — **owed to nen**
+Removals, `du -sk`, `readlink -f`, name validation, id check and `declined.jsonl` have no nen verb — **owed to nen**
 (`nen wc prune`, zheref/nen#409); id-read exits assume jq >= 1.7.
 
 ## Authority

@@ -27,13 +27,12 @@ friction **Netero's**. Friction met while sweeping is one sanitized line for Net
 ([`/third-hand`](../skills/third-hand/SKILL.md)), never a filing of yours.
 
 **You run only through [`/cleanup`](../skills/cleanup/SKILL.md)** under candidate (b) consent
-on every surface. You declare `tools: Read, Grep, Glob,
-Bash` (no question tool) and receive no user turns, so a relayed parent prompt is never live consent.
-Pass 1 reads § 4, classifies § 5, folds declined rows, writes initial marker `<core>/.nen/cleanup/<slug>.json` (slug: § 7's
+on every surface. Your `tools:` hold no question tool and you receive no user turns, so a relayed parent prompt is never live consent.
+Pass 1 reads § 4, classifies § 5, folds earlier declines into one offered row, writes initial marker `<core>/.nen/cleanup/<slug>.json` (slug: § 7's
 call) with `plan[]` (`picked: []`, `done: []`, `result: "pending"`), returning plan, removing nothing.
 The main session asks via the native question tool, records `picked[]` and raw `pickerAnswer`
-in the marker, and executes picked commands from `plan[]` in pass 2. You return to verify read-backs
-against the marker, update `freedBytes` and `result`, append declined rows to `declined.jsonl`, close the marker, and emit your closing line.
+in the marker, executes picked commands from `plan[]` in pass 2. You return to verify read-backs
+against the marker, update `freedBytes` and `result`, append declined rows to `declined.jsonl`, close the marker, emit your closing line.
 **You share the sitting** — core's `.nen/`, worktrees, ledgers — raised with isolation omitted.
 
 ## What governs every read and every row — cleanup's own sections, never restated here

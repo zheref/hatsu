@@ -853,7 +853,9 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
   **owed to nen** as `nen wc prune` (to file); the raise and the `.nen/cleanup/<slug>.json` marker are Hatsu's,
   as third-hand's are. The worktree-path admission is `scripts/cleanup_path_admit.ts`, interim until
-  `nen wc prune` owns it.
+  `nen wc prune` owns it. The `declined.jsonl` append at close and its fold at the next inventory
+  ([`WORKFLOW.md`](WORKFLOW.md) § *Declined cleanup rows*) are by-hand, owed with the inventory read
+  ([zheref/nen#409](https://github.com/zheref/nen/issues/409)).
 - **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
   on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
   `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until

@@ -115,8 +115,10 @@ publishes through `release` (§ 4). **By the maintainer's ruling of 2026-09-28**
 repository's **single** declared destination (a production one: a target marked `nonProduction: true` is
 kagutsuchi's, § 5b, and never counted), and the version it publishes is **the latest cut
 (getsuga release) tag that has no published release yet** — resolved at publish time, printed, and
-quoted beside the go in the report. Only **two or more declared destinations and none named** is a
-gap, asked as **free text** (`missing-maintainer-choice`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
+quoted beside the go in the report. **No declared production destination and none named** is
+refused, naming [`kagutsuchi`](../kagutsuchi/SKILL.md) for the non-production ones and the declaration
+PR that would add a production one; nothing is asked. Only **two or more declared production destinations
+and none named** is a gap, asked as **free text** (`missing-maintainer-choice`; [`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
 § 4 *The maintainer's word is never derived*): the declared keys listed for reference, none starred,
 none a picker option that publishes. **The go itself is never derived or defaulted.** **An undeclared
 target is refused**, naming the declaration PR that would add it — a `project.targets` entry at that
@@ -165,19 +167,20 @@ afterwards.
 
 Nothing below is optional and nothing below is reordered.
 
-1. **The go exists, is recorded (§ 3), and the destination resolves** — § 3, § 1: one of § 0's four forms — the typed
+1. **The go exists, and the destination resolves** — § 3, § 1: one of § 0's four forms — the typed
    invocation, the maintainer's own words, the advance go, or kazaana § 6's publish answer — and the destination named or the single declared one. Without a go, steps 2–4 still run, being read-only, so the preflight and the plan are printed, and
    the run stops before step 5; with several destinations and none named, P4's same-turn exception asks,
    and nothing past this step runs until the maintainer types it.
 2. **The tag is cut, and it resolves on `origin`** — § 3's second half: the one named, or the latest
    cut tag with no published release, printed. No cut tag at all is refused. **A named version that
-   already has a published release at the destination publishes nothing**: steps 3–5 are skipped and only
-   § 7's record is written (Residue 8's hand-run recovery). For a GitHub Release destination that is read
+   already has a published release at the destination publishes nothing**: steps 3–5 are skipped, save
+   step 4's record of the go, and only § 7's record is written (Residue 8's hand-run recovery). For a GitHub Release destination that is read
    with `gh release view <tag> --repo <owner/name>`, before any publication call (no nen verb reads it).
 3. **`nen release preflight` reads clean at the tagged commit** — § 4, and read its one inverted row
    carefully.
-4. **The plan is printed** — `nen shu release … --dry-run`, or
-   `nen shu deploy --target <name> --dry-run`, or both where the declaration publishes through both.
+4. **The plan is printed, then the go is recorded** — `nen shu release … --dry-run`, or
+   `nen shu deploy --target <name> --dry-run`, or both where the declaration publishes through both;
+   then § 3's record, the destination (step 1) and the tag (step 2) resolved, before anything is sent.
 5. **The publication runs, once** — § 5.
 6. **The report, and the record on the release PR carrying the go verbatim** — § 7.
 
@@ -213,7 +216,7 @@ answer is the maintainer's own word on a question naming the tag and the destina
 § 4 *Every picker answer is recorded* records a typed answer:
 
 ```bash
-nen stop answer --record <effort> --gate G3 --row release-go --who kurapika --question-file <q.md> --option "ref=typed by design (no option)::the typed words are the answer" --typed-file <go.txt>
+nen stop answer --record <effort> --gate G3 --row release-go --who kurapika --question-file <q.md> --option "ref=typed by design (no option)::the typed words are the answer" --typed-file <go.txt> --repo <path>
 ```
 
 `<go.txt>` holds the maintainer's line byte for byte (the invocation, their message or the futon
@@ -221,8 +224,11 @@ invocation carrying the advance go); `<q.md>` names the resolved tag and destina
 question was asked; `<effort>` is the release proposal's branch where one exists, else
 `inline-<ISO date-time>`. **Form (4)'s answer is already kazaana § 6's record**: cited by its id, never
 recorded twice. The id nen prints (`R-YYYY-MM-DD-nn`) goes into the report and § 7's comment beside the
-quote, which stays word for word. **A record that could not be written** (exit `1` or `2`) sends
-nothing: the run stops with nen's refusal quoted, the go kept for a re-run once the record writes.
+quote, which stays word for word. **The record is written once per go**, at § 2 step 4: a step that
+fails after it and is re-run within the same run cites the existing record, read with
+`nen stop answer show <effort> --repo <path>`, and never mints a second. **A record that could not be
+written** (exit `1` or `2`) sends nothing: the run stops with nen's refusal quoted; the go lapses with
+the run (§ 0), and a re-run needs a fresh go.
 `nen stop --notified --mark` writes the bell's marker and is not this record.
 
 ### The tag it means is getsuga's RELEASE tag, and no other species
@@ -261,7 +267,7 @@ prompted for and never proposed; the chain is the call.
   it, or one that cut nothing — **the latest cut tag with no published release**, resolved when this
   step runs (§ 1, ruling of 2026-09-28 (a)); either way the version is printed and quoted beside the
   go. The destination is the one the step names (`mugetsu@<target>`) or, with none, the repository's
-  **single** declared one; two or more declared and none named → asked as free text
+  **single** declared production one (none → refused, § 1); two or more declared and none named → asked as free text
   (`missing-maintainer-choice`), never picked.
 - **Single use.** One go, one target, once. It **lapses** if the run ends, halts or stops at a **G5**
   before this step is reached (a delivery PR's merge prompt, en § 5, is a G2 stop and lapses nothing), or if a getsuga step

@@ -325,7 +325,8 @@ ruling of 2026-09-29: *"rely on a default value from one of our configuration fi
 doesn't always require destination and it can be easily chained with other skills like futon"*).
 `defaultTarget` names the destination a `hatsu:kagutsuchi` invocation typed with **no target** sends to — **a typed target always overrides it, the report says which source the target came
 from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target
-marked `nonProduction: true`** (zheref/hatsu#579): a default naming a store or the live environment is refused, and **G3**
+marked `nonProduction: true` whose `why` also reads non-production** (zheref/hatsu#579; the flag is the
+split for every target, the `why` a second fail-closed check on the default only, [HR-289](ROSTER.md#hr-289)): a default naming a store or the live environment is refused, and **G3**
 (`mugetsu`) is unchanged. `nen shu deploy` is unchanged too — the skill always passes `--target`
 explicitly, so *nen never chooses where a build goes* stays true of nen; the choice lives here, in
 configuration the maintainer wrote. **`null`, or the key absent, is the ask**: an omitted target is
@@ -1434,23 +1435,6 @@ declaration; a maintainer-typed `hatsu:cleanup` is their own word and runs under
 no option starred): the affirmative answer is the maintainer's own go, form (4) of `mugetsu` § 0, quoted verbatim;
 neither offer ever names `aka`, `mukai`, the merge or `kagutsuchi`.
 
-**Declined cleanup rows are remembered, not re-proposed** (zheref/hatsu#584). When Shizuku closes a plan
-whose picker the maintainer answered ([`cleanup`](../claude/skills/cleanup/) § 3, step 3), every deterministic or
-proposed `plan[]` row the answer did not pick, whether left unticked under **A** or **B** or kept by **C**
-`none`, is appended to `<core>/.nen/cleanup/declined.jsonl`, one JSON line per row: `object` (the row's path,
-branch or ref, as the plan names it), `class` (`deterministic` or `proposed`), `bytes` (its `du -sk` reading
-in bytes, or its `billed:` text), `marker` (the plan's `<slug>`) and `at` (the close time, ISO 8601). A named
-row was never an option and is never declined; a plan closed `none-picked` on `ids-invalid`, or left
-`pending`, declines nothing, because no answer was given. **A later inventory folds them**: pass 1 reads the
-file, and once § 5 has classed a row, a row whose `object`, `class` and `bytes` all equal its latest line, and
-whose line is under 30 days old (the run-record age § 4 already uses), is left out of `plan[]` and counted
-in one summary line of the plan and the report, `declined earlier: <n> rows, <total bytes>, oldest
-<date>`, which is never an option. A row whose class or size changed, or whose line has aged out, returns
-as a full row, and a row declined again appends a new line. **`for all` reads no fold**: every declined row
-is listed in full. So a sitting that left nothing new writes its new rows plus that one line. The file is
-a record beside the markers, never a leftover (cleanup § 4), and only Shizuku's close appends to it; an
-unreadable file folds nothing and is named in the report, never read as empty.
-
 **The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
 destination is a go for *that* destination: `kagutsuchi`'s target is **typed, or the one the maintainer
 declared as `deploy.defaultTarget`** (§ 2; ruling 2026-09-29, zheref/hatsu#146 — before it, required
@@ -1760,6 +1744,39 @@ nothing restated:
 — or, where the value is the maintainer's word, *"typed, never picked (`missing-maintainer-choice`)"*,
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
+
+### Declined cleanup rows
+
+**Declined cleanup rows are remembered, and offered again as one row** (zheref/hatsu#584;
+[HR-210](ROSTER.md#hr-210)). When Shizuku closes a plan whose picker the maintainer answered
+([`cleanup`](../claude/skills/cleanup/) § 3, step 3), every deterministic or proposed `plan[]` row the answer
+did not pick, whether left unticked under **A** or **B** or kept by **C** `none`, is appended to
+`<core>/.nen/cleanup/declined.jsonl`, one JSON line per row: `contract` (`hatsu.cleanup.declined/v0.1`),
+`object` (the row's path, branch or ref, as the plan names it), `class` (`deterministic` or `proposed`),
+`bytes` (its `du -sk` reading in bytes), `marker` (the plan's `<slug>`) and `at` (the close time, ISO
+8601). A named row was never an option and is never declined; a plan closed `none-picked` on
+`ids-invalid`, or left `pending`, declines nothing, because no answer was given.
+
+**A later inventory folds them, and still offers them**: HR-210's prior leftovers are inventoried,
+classified and offered the same way. Pass 1 reads the file and, once cleanup § 5 has classed a row,
+folds it where its `object`, `class` and `bytes` all equal its latest line, that line is under 30 days
+old, and its `marker` is an earlier sitting's, read as a slug other than this plan's own: a same-sitting
+re-offer (cleanup § 2's `none-picked` or `partial` again) shows the rows it just declined in full. The
+folded rows become **one proposed `plan[]` row** with its own plan-unique id, its object `the <n> rows
+declined earlier (<total bytes>), oldest <date>`, its command the folded rows' own commands and its
+evidence each folded row's object and marker. Ticked under **B**, every folded row runs in cleanup § 5's
+order with the rest of the pick, each read back; **A** never includes it, its rows having been declined.
+That row is the summary, carried in `plan[]` and in the report like any other row, so the marker needs no
+key of its own. A row whose class or size changed, whose line has aged out or whose marker is this plan's
+returns as a full row, and a row declined again, folded or not, appends a new line. **`for all` reads no
+fold**: every declined row is listed in full. **The 30 days is the lead's reading**, borrowed from the
+run-record age cleanup § 4 uses; it gates no authority, since a folded row stays offered.
+
+The file is a record beside the markers, never a leftover (cleanup § 4), and only Shizuku's close appends
+to it. **An unreadable file or an unreadable line folds nothing**: every row is offered in full and the
+file is named in the report, never read as empty. The append and the fold are by-hand reads and writes
+with no nen verb, owed with the inventory read (zheref/nen#409; PROCESS § *Residue and owned
+dependencies*, `cleanup`).
 
 ### Batch delivery — every delivery Ready, or held and named
 
