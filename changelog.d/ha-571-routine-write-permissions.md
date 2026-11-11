@@ -1,1 +1,1 @@
-Show a render-only Claude Code user permission proposal for routine Nen writes, recheck it on every warm-up, refuse joined writes, and report checkout pack retirement and drift in Tenkai (HA#571).
+Render Claude Code user permission proposals with a paired routine-write checker, verify them on every warm-up, preserve Ten’s pinned session fallback, and report checkout pack ownership and drift in Tenkai (HA#571).

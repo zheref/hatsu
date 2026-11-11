@@ -154,11 +154,12 @@ not run at all — "found nothing" and "could not look" must never read the same
 here is itself a finding to report, not a clean empty search.
 
 **(a) Duplicates — amend, do not file.** Same problem, same scope, same lane. Comment on the
-existing issue with the new evidence:
+existing issue with the new evidence. Read the dry-run's exact command and bytes before posting.
+Use § 4's ignore file and send each line as its own call.
 
 ```bash
-nen issue comment --target <owner/name> --issue <n> --body-file <path> --private-names-ignore-file <file § 4's ignore file> --dry-run   # the exact gh call and the exact bytes
-nen issue comment --target <owner/name> --issue <n> --body-file <path> --private-names-ignore-file <file § 4's ignore file>             # post it
+nen issue comment --target <owner/name> --issue <n> --body-file <path> --private-names-ignore-file <ignore-file> --dry-run
+nen issue comment --target <owner/name> --issue <n> --body-file <path> --private-names-ignore-file <ignore-file>
 ```
 
 `nen issue comment` is new in nen `v0.2.0` and **retires the residue this port carried** (the A/B doc's
@@ -345,10 +346,11 @@ Applied **in the create call**, never as a follow-up edit — save the routing r
 comment, which `direct` § 7 writes once the issue has its number:
 
 ```bash
-nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
-  --title '<title>' --body-file <path> --label <a,b,...> --assignee <user> --private-names-ignore-file <file § 4's ignore file> \
-  [--forbid-family <a real, declared target stage-label family>]
+nen issue file --target <owner/name> --repo <checkout> --title '<title>' --body-file <path> --label <a,b,...> --assignee <user> --private-names-ignore-file <ignore-file> [--forbid-family <stage-label-family>]
 ```
+
+The checkout carries `nen/labels.json` or the supported `schemas/labels.json` fallback. Use § 4's ignore
+file and a stage-label family declared by the target.
 
 (**`--body-file` resolves against `--repo`'s root from nen `0.7`** — `zheref/nen#100`; through
 `v0.6.0` it was handed to `gh` unresolved and resolved against the process's cwd instead. An absolute

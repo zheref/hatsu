@@ -101,13 +101,13 @@ bash "$pack" --surface claude-code --install --target "$main" --hatsu-root "$hat
 node - "$claude_settings" <<'JS'
 const fs = require('node:fs');
 const allow = JSON.parse(fs.readFileSync(process.argv[2], 'utf8')).permissions.allow;
-if (allow.includes('Bash(gh api *)') || allow.includes('Bash(node */scripts/gh_api_read.mts *)') ||
+if (!allow.includes('Bash(gh api *)') || !allow.includes('Bash(node */scripts/gh_api_read.mts *)') ||
     !allow.includes("Bash(node '/tmp/retired-plugin/scripts/gh_api_read.mts' *)") ||
     !allow.includes('Bash(echo user-owned)')) {
-  throw new Error('Claude upgrade did not remove only the unsafe legacy API grant');
+  throw new Error('Claude upgrade did not preserve entries with unknown ownership');
 }
 JS
-echo "ok    Claude Code upgrade removes known retired rows and keeps foreign paths and user entries"
+echo "ok    Claude Code upgrade keeps ambiguous legacy rows, foreign paths and user entries"
 
 bash "$pack" --surface codex --install --target "$main" --hatsu-root "$hatsu_root" >/dev/null
 
@@ -182,7 +182,10 @@ echo "ok    a tracked .codex/config.toml is left alone"
 # checkout. Use only a scratch configuration directory for their fixtures.
 export HOME="$fixture_root/home"
 export CLAUDE_CONFIG_DIR="$HOME/.claude"
-mkdir -p "$CLAUDE_CONFIG_DIR"
+mkdir -p "$CLAUDE_CONFIG_DIR" "$fixture_root/cli"
+printf '#!/bin/sh\necho 2.1.295\n' > "$fixture_root/cli/claude"
+chmod 700 "$fixture_root/cli/claude"
+export PATH="$fixture_root/cli:$PATH"
 user_settings="$CLAUDE_CONFIG_DIR/settings.json"
 result="$fixture_root/pack-output"
 run_pack() {
@@ -204,9 +207,12 @@ grep -q 'choose exactly one' "$result" || fail "render and install were not mutu
 run_pack 0 --surface claude-code --check-user --target "$main"
 grep -q 'routine user rows missing' "$result" || fail "the missing settings check did not name the gap"
 [ ! -e "$user_settings" ] || fail "user check wrote settings"
-run_pack 0 --surface claude-code --render-user --target "$main"
+bash "$pack" --surface claude-code --render-user --target "$main" --hatsu-root "$hatsu_root" \
+  >"$result" 2>"$fixture_root/proposal-notes" || fail "the user proposal could not be rendered"
 jq -e '.permissions.allow | index("Bash(./scripts/gh_token_env.sh -- nen pr threads settle *)") != null' "$result" >/dev/null ||
   fail "the proposal omitted the narrow relative wrapper rule"
+jq -e '.hooks.PreToolUse[0].hooks[0].onFailure == "block"' "$result" >/dev/null ||
+  fail "the proposal omitted the paired blocking hook"
 [ ! -e "$user_settings" ] || fail "user render wrote settings"
 cp "$result" "$user_settings"
 run_pack 0 --surface claude-code --check-user --target "$main"

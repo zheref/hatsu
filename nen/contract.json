@@ -707,9 +707,23 @@
                 "scripts/tenkai_release_guard_fixture.test.mts",
                 "scripts/shell_coverage_fixture.test.mts"
               ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers",
+                "2",
+                "--testTimeout",
+                "30000",
+                "scripts/claude_routine_permissions_fixture.test.mts"
+              ]
             }
           ],
-          "$comment": "The read-only PR unit-tests workflow always selects this lane. Check the candidate workflows for missing preflight adapters before running the pinned Vitest fixtures for the trusted CI test runner, trusted-preflight runtime and failure paths, release-changelog parser, Tenkai publisher adoption guard, and shell coverage. Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "The trusted read-only unit-tests workflow already selects this candidate lane (BC-9). Check candidate workflow adapters and exercise the pinned Vitest fixtures for CI, release, coverage, and the Claude Code routine-write and permission-pack entry points. The separate claude-routine-permissions-guard lane supplies exact-source TypeScript coverage for local verification. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {

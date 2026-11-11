@@ -58,8 +58,8 @@
 #
 # THE CLAUDE CODE PATH MERGES rather than places: .claude/settings.local.json
 # is the user's own untracked file, so unrelated entries are preserved. #326
-# and #571 retire known obsolete grants on upgrade and report foreign rules by
-# their position and tool. A tracked settings file is refused. The codex and
+# and #571 retire obsolete grants with recorded ownership on upgrade and report
+# retained rules by their position and tool. A tracked settings file is refused. The codex and
 # cursor paths write whole files and therefore obey the marker rule.
 #
 # A GENERATOR THAT HAS NOT RUN YET IS NOT AN ERROR HERE. If `surfaces/<surface>/
@@ -73,11 +73,12 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-usage: scripts/permissions_pack.sh --surface claude-code|codex|cursor|antigravity (--render | --install --target <repository> [--plugin] | --render-user --target <repository> | --check-user --target <repository>) [--hatsu-root <path>]
+usage: scripts/permissions_pack.sh --surface claude-code|codex|cursor|antigravity (--render | --install --target <repository> [--plugin] | --render-user --target <repository> | --check-user --target <repository> | --render-release-opt-in --target <repository>) [--hatsu-root <path>]
 
 --render    Print the checkout pack for the surface to stdout.
 --render-user  Claude Code only. Print the proposed user settings fragment; write nothing.
 --check-user   Claude Code only. Read visible settings and report routine user row coverage.
+--render-release-opt-in  Claude Code only. Print an optional publisher rule for the named Hatsu checkout.
 --install   Place the pack into --target (merge for claude-code; write-if-absent-or-ours
             for codex and cursor), and exclude the written paths through info/exclude.
 --plugin    codex only, with --install: the Codex plugin serves the hooks, so .codex/hooks.json
@@ -98,6 +99,7 @@ while [ $# -gt 0 ]; do
     --install) choose_mode install; shift ;;
     --render-user) choose_mode render-user; shift ;;
     --check-user) choose_mode check-user; shift ;;
+    --render-release-opt-in) choose_mode render-release-opt-in; shift ;;
     --plugin) plugin=1; shift ;;
     --target) [ $# -ge 2 ] || { echo "--target needs a value" >&2; exit 2; }; target=$2; shift 2 ;;
     --hatsu-root) [ $# -ge 2 ] || { echo "--hatsu-root needs a value" >&2; exit 2; }; hatsu_root=$2; shift 2 ;;
@@ -120,7 +122,7 @@ source_file="$hatsu_root/contracts/permissions.json"
 [ -f "$source_file" ] || { echo "no permissions source at $source_file" >&2; exit 2; }
 
 case "$mode" in
-  render-user|check-user)
+  render-user|check-user|render-release-opt-in)
     [ "$surface" = claude-code ] && [ -n "$target" ] || {
       echo "--$mode requires --surface claude-code and --target <repository>" >&2; exit 2;
     }

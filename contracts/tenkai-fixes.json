@@ -5,7 +5,7 @@
     {
       "id": "^permissions/claude-code$",
       "states": ["blocked"],
-      "edit": "Inspect .claude/settings.local.json and its directory, then re-run diagnosis",
+      "edit": "Review the named settings problem with the maintainer. For tracked settings, update the file through its owning repository. For unknown rows, have the maintainer review the indicated permissions. Then run the detect command",
       "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --surface claude-code --repo {repo}",
       "fill": "route"
     },

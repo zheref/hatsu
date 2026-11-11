@@ -106,7 +106,7 @@ function run(): number {
   // HA#535: every outstanding row names its fix — run, edit, detect and who supplies the value.
   for (const row of document.items) {
     row.action = resolveAction(row.action, repo);
-    if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root: dirname(here), slug: document.slug });
+    if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root: dirname(here), slug: document.slug, surface });
   }
   document.outstanding = document.items.filter((row: any) => OUTSTANDING.includes(row.state)).length;
   document.guide = guide(document.items);
@@ -131,12 +131,14 @@ function run(): number {
       const list = (ids: string[]) => ids.length ? ids.map(plain).join(', ') : 'none';
       process.stdout.write(`\n${document.outstanding} item(s) outstanding. Re-run \`apply\` after settling the routed and staged ones.\n`);
       process.stdout.write(`\nguided fill — Tenkai writes only catalogue defaults and values the owner answered, never an invented one:\n`);
-      process.stdout.write(`  1. defaults (${defaults.length}), settling ${list(defaults)}:\n       bash ${plain(quote(join(dirname(here), 'scripts', 'tenkai_adopt.sh')))} apply --repo ${plain(quote(repo))}\n`);
+      const adopter = `bash ${plain(quote(join(dirname(here), 'scripts', 'tenkai_adopt.sh')))}`;
+      const scope = `${surface ? `--surface ${surface} ` : ''}--repo ${plain(quote(repo))}`;
+      process.stdout.write(`  1. defaults (${defaults.length}), settling ${list(defaults)}:\n       ${adopter} apply ${scope}\n`);
       process.stdout.write(`  2. owner answers (${owner.length}): ${list(owner.map((row: any) => row.id))} — ask each, then run its line with the answer single-quoted in place of its <token>\n`);
       process.stdout.write(`  3. Tenkai's edits (${edits.length}): ${list(edits)} — the owner decides, Tenkai edits nen/contract.json or nen/workflow.json (§ 6c), then detect\n`);
       process.stdout.write(`  4. routed to their owner (${routed.length}): ${list(routed)} — the owner or the named tool makes the change; Tenkai never does\n`);
       if (unmapped.length) process.stdout.write(`  5. unmapped (${unmapped.length}): ${list(unmapped)} — no catalogue row names a fix: a defect to file\n`);
-      process.stdout.write(`then re-run diagnose: the outstanding count goes down by every item that settled.\n`);
+      process.stdout.write(`then re-run ${adopter} diagnose ${scope}: the outstanding count goes down by every item that settled.\n`);
     } else process.stdout.write('\nevery item is satisfied — this repository is a working Hatsu consumer.\n');
   }
   process.stderr.write(result.stderr ?? '');

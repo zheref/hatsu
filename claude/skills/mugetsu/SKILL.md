@@ -457,13 +457,13 @@ One block, then stop:
   `session nen:` this binding, and row `host-nen-link`'s offer is the fallback by ten § 2c's predicate,
   verbatim: offered where the login shell reads installed, not reachable; never where it reads reachable; an opt-out skip is no offer (host: opted out), win32 is not read, and a removed-by-user rc entry withholds the PATH half of option A — taken on the maintainer's word. Applies to nen and nothing else.
 
-**The same quote goes onto the release PR or the tracking issue** — through the one verb that owns a
-caller-written comment, never a raw `gh`:
+**The same quote goes onto the release PR or the tracking issue** through `nen issue comment`.
+Run File § 4's private-name check first. When it reports 0 or skipped, post in a separate call
+using that section's ignore file.
 
 ```bash
-bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path> &&   # 0 or skipped, else no write (file § 4)
-  nen issue comment --target <owner/name> --issue <the release PR or issue number> --body-file <path> \
-    --private-names-ignore-file <file § 4's ignore file>
+bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path>
+nen issue comment --target <owner/name> --issue <n> --body-file <path> --private-names-ignore-file <ignore-file>
 ```
 
 A pull request **is** an issue to this verb, which is why there is no `nen pr comment` and none is

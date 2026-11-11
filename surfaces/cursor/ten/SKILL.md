@@ -31,8 +31,8 @@ values; **a `FAIL` on either stops this gate**.
 
 ## 0a · Adoption is Tenkai's; this skill VERIFIES
 
-Adoption: `tenkai`:
-`"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <target> --json`, read-only, no pipe.
+Run `"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --surface <surface> --repo <target> --json`
+alone, read-only. On Claude Code pass `claude-code`.
 **Report, never repair** findings in the inbox: `pr.sections` stale/missing counts and stamp/catalogue
 sha7s; current: none. Missing argument/value: ask/set inline
 (`missing-argument`, `missing-configuration`; 5b). **§ 3's halt and § 0's stops are refusals,
@@ -85,7 +85,8 @@ ln -sfn <verified> <d>/bin/nen  # only once every line above exited 0
 
 - **Each line is one call, its exit read before the next** (the refused `||`); the shell line
   only with nen absent; the verb line's `--script` required, `--source` shape-checked; `rc` quoted.
-- Later calls take `<d>/bin` as `gh_token_env.sh --path <d>/bin`; a `PATH=` prefix is unproven
+- For a routine write, use `<hatsu_root>/scripts/gh_token_env.sh --path <d>/bin -- nen <verb and arguments>`
+  on one line. Keep only the verified Nen link in the private `<d>/bin`. A `PATH=` prefix is unproven
   (`docs/ab/worktree-isolation.md`).
 - Publishing `nen` itself → the verb line for its tag
   (`mugetsu` § 7); the host link follows the repin (§ 4b, `bakuryuha`).
@@ -144,14 +145,14 @@ Quote skips (HA#67; README § *Shared rules the warm-up follows*), continue.
 
 ## 5 · Surfaces — what a target gets
 
-On every Claude Code warm-up, including read-only, run this read against § 4b's target:
+Every Claude Code warm-up, including read-only, checks § 4b's target:
 
 ```sh
 <hatsu_root>/scripts/permissions_pack.sh --surface claude-code --check-user --target <target>
 ```
 
-Quote its line. If rows are missing or unreadable, show the JSON from its render command for
-maintainer review. See [Claude permissions](../../../docs/surfaces/claude-code.md#5-permissions).
+Quote the result. Render any offered proposal for review. The maintainer applies rows and hook together.
+[Claude permissions](../../../docs/surfaces/claude-code.md#5-permissions).
 
 Read-only/no-phase: **skip placement/provisioning**. Retain § 4b's target/root/cwd;
 failed isolation stops writes. Codex: `docs/surfaces/codex.md` § 5's write probe/recovery first.

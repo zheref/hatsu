@@ -119,12 +119,13 @@ issue for the source **amended** through § 3(a), never filed twice), the plan s
 *conventions*' port-issue title.** The write:
 
 ```bash
-"$hatsu_root/scripts/gh_token_env.sh" nen issue file --target <owner/name> --repo <sibling checkout> --title-file <abs title.txt> --body-file <abs body.md> --label <a,b,c> --assignee <maintainer> --private-names-ignore-file <file § 4's ignore file> --json
+<installed-wrapper> -- nen issue file --target <owner/name> --repo <sibling checkout> --title-file <abs title.txt> --body-file <abs body.md> --label <a,b,c> --assignee <maintainer> --private-names-ignore-file <ignore-file> --json
 gh issue view <N> --repo <owner/name> --json title,body,labels
 ```
 
-The title is written to its file with the surface's file tool, never shell source. The second line is the **explicit read-back**. Each body is
-*conventions*' port issue body, never a link alone; **the source issue stays its own**, never closed or superseded.
+Use the verified absolute `gh_token_env.sh` and File § 4's ignore file. Write the title file with
+the file tool. Run the read-back separately. Use *conventions*' body with more than a link.
+Never close or supersede the source issue.
 
 ## 6. The record, and `resume`
 

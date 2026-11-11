@@ -96,7 +96,6 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // Self-contained proofs: the fixture is the script itself (zheref/hatsu#453, #444).
   ['stop_bell_fixture.mts', 'stop_bell_fixture.mts', 'stop-bell-guard'],
   ['resume_proof.mts', 'resume_proof.mts', 'resume-proof'],
-  ['claude_routine_permissions.mts', ['claude_routine_permissions_fixture.test.mts', 'claude_routine_permissions_coverage.test.mts'], 'claude-routine-permissions-guard'],
   ['idle_permissions_check.mts', 'idle_permissions_check_fixture.mts', 'idle-permissions-guard'],
   ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
   // The skill-shape check judges the touched skills from the merge base of HATSU_BASE_SHA below (zheref/hatsu#502).

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { constants, accessSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -65,14 +66,22 @@ function installedFile(root: string, relative: string): string {
   return expected;
 }
 
-export function routineForms(source: PermissionSource, root: string) {
+export function routineForms(source: PermissionSource, root: string, withSession = false) {
   const installed = installedFile(root, WRAPPER);
   accessSync(installed, constants.X_OK);
   const wrappers = ['', `./${WRAPPER} -- `, `${WRAPPER} -- `, `${shellWord(installed)} -- `];
-  return source.claude_routine_writes.flatMap((entry) => wrappers.map((wrapper) => ({
+  const forms = source.claude_routine_writes.flatMap((entry) => wrappers.map((wrapper) => ({
     rule: `Bash(${wrapper}${entry.prefix} *)`,
     command: `${wrapper}${sampleCommand(entry.command)}`,
   })));
+  if (withSession) for (const entry of source.claude_routine_writes) {
+    const absolute = shellWord(installed);
+    forms.push({
+      rule: `Bash(${absolute} --path * -- ${entry.prefix} *)`,
+      command: `${absolute} --path /tmp/hatsu-session/bin -- ${sampleCommand(entry.command)}`,
+    });
+  }
+  return forms;
 }
 
 export function checkoutPack(source: PermissionSource, root: string, marker: string) {
@@ -81,7 +90,8 @@ export function checkoutPack(source: PermissionSource, root: string, marker: str
     permissions: {
       allow: [...new Set([
         ...source.allow.map(({ exe, args }) => `Bash(${exe} ${args})`),
-        ...routineForms(source, root).map(({ rule }) => rule),
+        ...routineForms(source, root).filter(({ rule }) =>
+          !rule.startsWith(`Bash(./${WRAPPER} `) && !rule.startsWith(`Bash(${WRAPPER} `)).map(({ rule }) => rule),
         `Bash(node ${singleQuote(installedFile(root, API_READER))} *)`,
       ])],
       deny: source.deny.map(({ exe, args }) => `Bash(${exe} ${args})`),
@@ -106,13 +116,49 @@ export function registeredRepositories(registry: unknown): string[] {
   return [...repositories].sort();
 }
 
-export function userProposal(source: PermissionSource, root: string, registries: unknown[]) {
-  const repositories = [...new Set(registries.flatMap(registeredRepositories))].sort();
+const GUARD = 'scripts/claude_routine_write_guard.mts';
+const GUARD_FILES = [GUARD, 'scripts/claude_permissions.mts', 'scripts/claude_routine_permissions.mts',
+  WRAPPER, 'contracts/permissions.json', 'nen/contract.json'];
+const sha256 = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex');
+
+// Claude invokes /bin/sh directly with argv. The shell verifies the bytes
+// before starting Node, so neither PATH nor a changed checker can return allow.
+const verifyHook = `
+node=$1; entry=$2; shift 2
+while [ "$#" -gt 0 ]; do
+  actual=$(/usr/bin/openssl dgst -sha256 "$1") || exit 2
+  case "$actual" in
+    *" $2") ;;
+    *) printf '%s\\n' 'Hatsu routine write: the approved checker binding changed. Review the user proposal again.' >&2; exit 2 ;;
+  esac
+  shift 2
+done
+exec /usr/bin/env -u NODE_OPTIONS -u NODE_PATH "$node" "$entry"
+`;
+
+export function userHook(root: string) {
+  const runtime = realpathSync(process.execPath);
+  const bindings = [runtime, ...GUARD_FILES.map((file) => installedFile(root, file))];
+  return {
+    type: 'command',
+    command: '/bin/sh',
+    args: ['-c', verifyHook, 'hatsu-routine-check', runtime, installedFile(root, GUARD),
+      ...bindings.flatMap((path) => [path, sha256(path)])],
+    onFailure: 'block',
+    timeout: 10,
+    statusMessage: 'Checking Hatsu routine writes',
+  };
+}
+
+export function userProposal(source: PermissionSource, root: string, registry: unknown) {
+  const repositories = registeredRepositories(registry);
   return {
     permissions: {
-      allow: [...routineForms(source, root).map(({ rule }) => rule),
-        ...source.claude_user_bounded_allow.map((args) => `Bash(nen ${args})`)],
+      allow: [...routineForms(source, root, true).map(({ rule }) => rule),
+        ...source.claude_user_bounded_allow.filter((args) => args.endsWith(' --dry-run') || args.startsWith('pr merge '))
+          .map((args) => `Bash(nen ${args})`)],
     },
+    hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [userHook(root)] }] },
     autoMode: {
       allow: ['$defaults', AUTO_ALLOW],
       environment: ['$defaults', ...repositories.map((repo) => `Trusted repo: github.com/${repo}`)],
@@ -120,17 +166,31 @@ export function userProposal(source: PermissionSource, root: string, registries:
   };
 }
 
+export function releaseOptIn(source: PermissionSource, target: string) {
+  const row = source.claude_user_bounded_allow.find((args) => args === 'shu release --repo * --lane plugin');
+  if (!row || /[\x00-\x1f\x7f*()]/.test(target)) throw new Error('no safe Hatsu plugin publisher permission for that path');
+  return { permissions: { allow: [`Bash(nen ${row.replace('*', () => shellWord(target))})`] } };
+}
+
 export const userSettingsPath = () => resolve(process.env.CLAUDE_CONFIG_DIR || join(homedir(), '.claude'), 'settings.json');
 
 export function diagnoseUser(source: PermissionSource, root: string, user: Settings, project: Settings[]) {
-  const forms = routineForms(source, root);
+  const forms = routineForms(source, root, true);
   const present = user.state === 'read' ? new Set(user.rules.allow) : new Set<string>();
   const missing = user.state === 'unreadable' ? null : forms.filter(({ rule }) => !present.has(rule)).map(({ rule }) => rule);
   const overrides: string[] = [];
+  const expectedHook = userHook(root);
+  const preToolUse = user.state === 'read' && object(user.document.hooks) ? user.document.hooks.PreToolUse : null;
+  const boundHook = Array.isArray(preToolUse) && preToolUse.some((row) =>
+    object(row) && row.matcher === 'Bash' && Array.isArray(row.hooks) && row.hooks.some((handler) =>
+      object(handler) && handler.if === undefined && handler.async !== true &&
+      handler.command === expectedHook.command && handler.type === expectedHook.type &&
+      handler.onFailure === 'block' && JSON.stringify(handler.args) === JSON.stringify(expectedHook.args)));
   const userAutoMode = user.state === 'read' && object(user.document.autoMode) ? user.document.autoMode : {};
   if (userAutoMode.classifyAllShell === true) overrides.push('user autoMode.classifyAllShell');
   for (const settings of [user, ...project]) {
     if (settings.state !== 'read') continue;
+    if (settings.document.disableAllHooks === true) overrides.push(`disableAllHooks in ${settings.path}`);
     const verdicts = forms.map(({ command }) => matchPermissions(command, settings.rules).verdict);
     if (verdicts.includes('denied')) overrides.push(`deny in ${settings.path}`);
     if (verdicts.includes('asks')) overrides.push(`ask in ${settings.path}`);
@@ -138,6 +198,7 @@ export function diagnoseUser(source: PermissionSource, root: string, user: Setti
   return {
     user: user.state,
     missing,
+    boundHook,
     overrides,
     unreadable: [user, ...project].filter((settings) => settings.state === 'unreadable').map(({ path }) => path),
     effective: 'unknown' as const,
