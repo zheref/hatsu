@@ -1,0 +1,1 @@
+- Record the actual Claude Code `v0.152.0` publication for #156: the maintainer's exact picker go, the declared release plan, and the successful bare `nen shu release` result on HA-PR-#509. Preserve the earlier scratch permission-pack proof, add acceptance-criterion coverage, and mark classifier internals unreported (plugin `0.166.2`).
