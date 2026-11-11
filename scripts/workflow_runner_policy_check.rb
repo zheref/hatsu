@@ -88,7 +88,12 @@ BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 # main's trusted validator knows its exact shape when the second PR lands.
 PENDING_UNIT_TEST_WORKFLOWS = %w[].freeze
 REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
-UNIT_TESTS_WORKFLOW_SHA256 = "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94".freeze
+# During the two-PR rollout, the installed PR-only workflow and the staged
+# PR/main-push workflow each keep their own exact, reviewed bytes.
+UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS = {
+  %w[pull_request] => "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94",
+  %w[pull_request push] => "66245a56a3752362b63595c08d465a2496aa40f0a011a25d932c5ac1542375ec"
+}.freeze
 
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
 # refuses any `.github/workflows/*.yml` whose basename is in neither list,
@@ -2420,7 +2425,13 @@ def validate_unit_tests_workflow(path)
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
-  fail_policy("#{path} must use only pull_request") unless triggers.keys == ["pull_request"]
+  digest = UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS[triggers.keys.sort]
+  fail_policy("#{path} must use pull_request, optionally with push to main") unless digest
+  if triggers.key?("push")
+    push = mapping(triggers.fetch("push"), "#{path} on.push")
+    branches = sequence(push.fetch("branches") { fail_policy("#{path} push has no branches filter") }, "#{path} on.push.branches")
+    fail_policy("#{path} push must target only main") unless push.keys == ["branches"] && branches == ["main"]
+  end
   permissions = mapping(root.fetch("permissions") { fail_policy("#{path} has no permissions") }, "#{path} permissions")
   fail_policy("#{path} must have only contents: read") unless permissions.keys == ["contents"] && scalar(permissions["contents"]) == "read"
   jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs") }, "#{path} jobs")
@@ -2428,7 +2439,7 @@ def validate_unit_tests_workflow(path)
   job = mapping(jobs.fetch("unit-tests"), "#{path} unit-tests")
   fail_policy("#{path} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
   fail_policy("#{path} has changed from the staged, reviewed read-only test job") unless
-    Digest::SHA256.file(path).hexdigest == UNIT_TESTS_WORKFLOW_SHA256
+    Digest::SHA256.file(path).hexdigest == digest
 end
 
 def validate_repo(root, announce: true)
@@ -2694,16 +2705,37 @@ def self_test(root)
       fail_policy("self-test: staged #{name} is missing") unless File.file?(staged)
       installed = File.join(tmp, ".github/workflows", name)
       original_installed = File.file?(installed) ? File.read(installed) : nil
-      FileUtils.cp(staged, installed) unless original_installed
+      # The repository validation above has already checked the installed form.
+      # Always exercise the staged form as an installed file, even during rollout.
+      FileUtils.cp(staged, installed)
       validate_repo(tmp, announce: false)
-      original_unit_tests = File.read(installed)
-      File.write(installed, original_unit_tests.sub("contents: read", "contents: write"))
-      expect_rejected("unit-tests must stay read-only", /must have only contents: read/) do
-        validate_repo(tmp, announce: false)
-      end
-      File.write(installed, original_unit_tests.sub("node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts"))
-      expect_rejected("unit-tests runner cannot come from PR", /changed from the staged/) do
-        validate_repo(tmp, announce: false)
+      staged_workflow = File.read(installed)
+      changed_shape = /changed from the staged, reviewed read-only test job/
+      cases = [
+        ["unit-tests must stay read-only", "contents: read", "contents: write", nil, /must have only contents: read/],
+        ["unit-tests runner cannot come from PR", "node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts",
+         "Run focused machinery tests", changed_shape],
+        ["unit-tests rejects privileged events", "  pull_request:", "  pull_request_target:", nil, /must use pull_request/],
+        ["unit-tests push must be limited to main", "branches: [main]", "branches: ['**']", nil, /push must target only main/],
+        ["unit-tests excludes fork PRs", "github.event.pull_request.head.repo.full_name == github.repository &&", "true &&",
+         nil, changed_shape],
+        ["unit-tests excludes draft PRs", "github.event.pull_request.draft == false", "github.event.pull_request.draft == true",
+         nil, changed_shape],
+        ["unit-tests candidate must be the event's commit", "github.sha || github.event.pull_request.head.sha", "github.ref",
+         "Checkout candidate revision", changed_shape],
+        ["unit-tests must use the base for the trusted runner on PRs", "github.event.pull_request.base.sha", "github.event.pull_request.head.sha",
+         "Checkout trusted test runner", changed_shape],
+        ["unit-tests must use the pushed SHA for the trusted runner on main", "github.sha || github.event.pull_request.base.sha", "github.ref",
+         "Checkout trusted test runner", changed_shape],
+        ["unit-tests must separate PR and push groups", "unit-tests-${{ github.event_name }}-", "unit-tests-", nil, changed_shape],
+        ["unit-tests must keep a group per pushed commit", "github.sha || github.event.pull_request.number",
+         "github.ref || github.event.pull_request.number", nil, changed_shape],
+        ["unit-tests cannot cancel a running main job", "cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
+         "cancel-in-progress: true", nil, changed_shape]
+      ]
+      cases.each do |label, from, to, step, reason|
+        File.write(installed, fixture_sub(label, staged_workflow, from, to, step: step))
+        expect_rejected(label, reason) { validate_repo(tmp, announce: false) }
       end
       if original_installed
         File.write(installed, original_installed)
