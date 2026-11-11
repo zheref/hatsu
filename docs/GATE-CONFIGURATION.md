@@ -409,6 +409,20 @@ conjuncts, including `unevaluated` rows, and writes the verdict and failing deta
 `scripts/tenkai_readiness_guard.mts` owns Tenkai's reader installation and prerequisite decisions;
 its Python engine only relays the typed result, following BC-11.
 
+**zheref/hatsu#361.** Tenkai ships a portable guard with its readiness rendering for process
+repositories without a repository-owned Ruby policy. The rendered manifest binds the repository and
+managed workflow bytes. The guard reads it from the event's trusted base checkout and compares the
+selected workflow in the separate PR data checkout. Ordinary CI stays under the consumer's policy.
+The process Nen pin still comes from the trusted contract. Existing Ruby guards keep their own
+admission rules.
+
+The first apply renders all four files. Where a review can run the new workflow from the PR merge
+ref before its base has the reader and policy, land the reader, guard and manifest first. The
+single initial digest admits the first workflow against that policy-only base. For later changes,
+Tenkai stages the new admission in the manifest while preserving the live workflow. Land the policy first and fetch the trusted base
+before re-rendering the workflow. After the new workflow becomes the trusted version, the guard
+accepts its digest alone. A PR-supplied manifest cannot change the comparison.
+
 **2026-10-13. Every builder step is frozen, and no run carries an expression
 ([zheref/hatsu#190](https://github.com/zheref/hatsu/issues/190)).** `surface-mirror-regenerate.yml`
 holds `contents: write`, and its only push guard was lexical: `git -C . push origin

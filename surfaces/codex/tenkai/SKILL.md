@@ -183,9 +183,9 @@ either operation.
 | `nen/colors.yml` | **Hatsu** | Rendered from `templates/colors.yml` — see § 4, and the reason nen cannot do it |
 | `Reports/`, `.nen/` | **Hatsu** | Created **and** git-ignored. Both halves: an unignored `Reports/` puts a rendered HTML report into somebody's next commit |
 | the `commit-msg` trailer hook | **nen** | **Routed** to `nen scaffold init` — § 6. Tenkai writes no hook |
-| the policy-guard registration | **Hatsu** | **Routed**, and it gates the item below — § 5a |
+| repository-owned Ruby guard registration | **Hatsu** | **Routed** before rendering a workflow that the Ruby policy must admit — § 5a |
 | `scripts/readiness_ci_verdict.mts` | **Hatsu** | Copied into the consumer before the readiness workflow is rendered. `scripts/tenkai_readiness_guard.mts` owns the adoption decisions (BC-11); a symlink or hand-written reader is never overwritten |
-| `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner — § 5. **A file Tenkai did not render is never overwritten** |
+| `.github/workflows/pr-readiness.yml` | **Hatsu** | Rendered with this repository's slug and derived runner. Process repositories without a Ruby policy also receive the portable guard and admission manifest — § 5d. Tenkai preserves repository-owned files. |
 | `.github/workflows/forbidden-commit-trailers.yml` | **Hatsu** | Rendered with the trusted base check publisher, a published digest-verified reader, and exact-base policy; refuses forbidden keys over every PR commit. Existing workflow guards must admit the proposed rendering first. Required-check setup and consumer rollout: [AGENT-ATTRIBUTION.md](../../../docs/AGENT-ATTRIBUTION.md) |
 | other privileged workflows | **Hatsu** | **Observation only.** Named, never written — § 5d |
 | `scripts/release-publish.sh`, `scripts/release_changelog.mts` | **Hatsu** | Rendered together — **only in a process/system repository** — § 6a; product publishers are chosen by their owners |
@@ -347,10 +347,9 @@ comment, because there the comment is the property:
   drift too, and a quoted `uses:` scalar hides nothing. **A consumer adopts a bumped pin by
   re-rendering — `$tenkai apply` on the new plugin version — never by editing the rendering**;
   every earlier `@v7` rendering reads `drift` until it does.
-- a consumer workflow that assumes Hatsu's Ruby policy guard exists, or assumes the consumer
-  contract has a `dependency.pinned_ref`. The rendered product workflow treats the guard as
-  optional and uses Hatsu's trusted, pinned Nen ref when the consumer declares no dependency pin.
-  A process repository still requires its own guard and pin.
+- a readiness workflow with a missing or changed policy step or pin. Process repositories require a
+  trusted dependency pin and an admitted policy guard. A product without a repository guard can use
+  the rendered pin when its trusted contract lacks one.
 
 ### 5c · The two admitted triggers — required, and the set is closed
 
@@ -415,40 +414,30 @@ second step, `unevaluated` or a failed trusted-revision run is not Ready and mus
 Ready. Before adoption is complete, every deferred row in the Hanten body block
 also cites its tracked issue; an untracked deferral is unsettled and Mukai does not open the PR.
 
-**Tenkai installs a privileged, credentialed `pull_request_target` job and installs no policy
-guard.** `GuardRegistration` scoring a missing guard as *"no ordering constraint at all"* is true
-about the **ordering** and says nothing about **enforcement**: the byte-compared same-repository
-guard, the write-permission refusal and the trusted-data rules all live in
-`scripts/workflow_runner_policy_check.rb`, which Tenkai does not install.
+**Process repositories (`maintained_tools`) without a repository-owned Ruby guard** receive
+`scripts/readiness_workflow_policy.mts` and its rendered JSON admission with the readiness workflow
+([zheref/hatsu#361](https://github.com/zheref/hatsu/issues/361)). The job checks out the PR head as
+data in `.candidate` and runs the guard and reader from the separate trusted base checkout. The
+manifest selects the managed workflow and binds its repository slug, runner, permissions and frozen
+steps to the rendering. Other workflows remain under their repository's own policy. The Nen pin
+comes from the trusted process contract.
 
-**A process repository that carries its own copy of that validator takes the newer validator first.**
-The readiness template's verdict step is pinned to the event head and drops its own prior check by
-name (`--require-head "$EVENT_HEAD"`, `--exclude-check readiness`; zheref/hatsu#160), and its
-freshness step is gone. A trusted validator older than Hatsu 0.78.0 knows only the previous shape and
-refuses the re-rendered workflow. A validator from 0.78.0 through 0.81.x admits both renderings, so it
-is the safe first step: land it on that repository's base branch in its own PR, then re-render
-(`docs/GATE-CONFIGURATION.md`, the two-step landing). The validator this change ships admits only the
-new rendering, so landing it must be followed at once by the re-render, or every pull request between
-the two fails. A consumer with no validator of its own re-renders directly; `diagnose` reports an older
-rendering as drift and `apply` re-renders it. **With no other reporting check, the pinned verdict never
-reads ready:** excluding its only check leaves an empty rollup, which nen judges `not-ready: no checks
-reported` on every event — add a real CI check first.
+Apply renders the reader, guard, manifest and workflow together. When a review event can run the
+new workflow before its trusted base carries those files, land the reader, guard and manifest first.
+The initial manifest admits the exact first workflow while the trusted base has no workflow.
+Once the workflow is active, changing it requires two steps. Apply
+prepares the manifest with the current and next workflow admissions and reports the workflow
+`staged`. Land the guard and manifest on the trusted base, fetch it and re-run apply for the
+workflow update. The guard retires the previous shape once the trusted workflow changes. Check the
+event's actual trusted base for stacked pull requests.
 
-The rendered job checks for that file on its **trusted** checkout. A process repository fails
-if it is absent; a consumer emits a notice and continues under the rendered job's own guards.
-The Nen ref comes from the trusted contract when present, otherwise from the pinned Hatsu
-source used to render the consumer workflow. Neither value comes from the pull request head.
+**Process repositories with a repository-owned Ruby guard** follow its existing registration
+sequence in § 5a and require a trusted Nen pin. **Products** keep optional Ruby enforcement and the
+rendered Nen fallback. Tenkai observes other privileged workflows (`pull_request_target`,
+`workflow_run`, `issue_comment` and `workflow_call`) in either kind. Their owners set their policy.
 
-Two things follow, and neither is left implicit:
-
-- **§ 5's drift checks and the rendered job's own guards are the safety net** in a consumer with no guard of its own. That is why
-  they assert the inherited hardening — the trusted checkout's ref, `persist-credentials` on **every**
-  checkout step, no write scope beyond `checks`, no `${{ }}` inside a `run:` body, and the exact
-  trusted reader invocation and installed source.
-- **Every other privileged workflow in the repository is named** — `pull_request_target`,
-  `workflow_run`, `issue_comment`, `workflow_call` — as an **observation row that writes nothing**.
-  Installing the guard into a consumer is a separate, maintainer-owned change; this item exists so
-  the gap cannot be silent.
+**With no other reporting check, the verdict never reads ready.** Excluding the readiness check
+leaves an empty rollup, which Nen judges `not-ready: no checks reported`.
 
 ### 5a · The two-PR ordering — handled, never hit
 
@@ -463,7 +452,7 @@ Ruby guard; it **detects which half has landed** and sequences the plan:
 
 | Guard state | What Tenkai does |
 |---|---|
-| **no guard in the repository** | No ordering constraint. The workflow may land in one pull request |
+| **no Ruby guard in the repository** | The reader and, for a process repository, the portable policy follow the bootstrap and update sequence in § 5d |
 | **guard present, does not name the workflow** | The registration is `routed` and the workflow is **`staged`** — **`apply` does not write it.** Writing it now would fail every required check for one cause |
 | **guard present, names the workflow** | The workflow lands on the next `apply` |
 

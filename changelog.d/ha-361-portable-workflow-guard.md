@@ -1,0 +1,1 @@
+Ship a portable readiness policy for process repositories without a workflow guard. Tenkai derives the trusted admission from the rendered workflow and stages policy changes before workflow updates. Process consumers can re-adopt with `hatsu:tenkai apply`.

@@ -4,6 +4,7 @@
 import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
+import { adoptPortableReadiness, type RenderInputs } from "./tenkai_readiness_policy.mts";
 
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
 type Row = { state: State; detail: string; action: string | null };
@@ -95,9 +96,16 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
 }
 
 const [mode, repo, hatsuRoot] = process.argv.slice(2);
-if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate"].includes(mode)) {
-  throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate> <repo> <hatsu-root>");
+if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate", "diagnose-workflow", "apply-workflow"].includes(mode)) {
+  throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate|diagnose-workflow|apply-workflow> <repo> <hatsu-root>");
 }
-const result = mode === "apply" ? applyReader(repo, hatsuRoot)
-  : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);
-process.stdout.write(JSON.stringify(result) + "\n");
+if (mode === "diagnose-workflow" || mode === "apply-workflow") {
+  const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
+  const result = adoptPortableReadiness(repo, hatsuRoot, input, mode === "apply-workflow" ? "apply" : "diagnose",
+    readerState(repo, hatsuRoot).state === "satisfied");
+  process.stdout.write(JSON.stringify(result) + "\n");
+} else {
+  const result = mode === "apply" ? applyReader(repo, hatsuRoot)
+    : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);
+  process.stdout.write(JSON.stringify(result) + "\n");
+}

@@ -78,7 +78,24 @@
     },
     {
       "id": "^guard/registration$",
-      "edit": "scripts/workflow_runner_policy_check.rb → EXPECTED_JOBS, EXPECTED_TYPES and EXPECTED_STEPS, in its own pull request before the workflow; Tenkai never edits a policy guard",
+      "edit": "scripts/workflow_runner_policy_check.rb → EXPECTED_JOBS, EXPECTED_TYPES and EXPECTED_STEPS, in its own pull request before the workflow; Tenkai leaves repository-owned Ruby to its owner",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["staged"],
+      "detail": "portable workflow policy needs the fetched trusted base",
+      "edit": "fetch the declared origin base before applying a new portable workflow admission",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["staged"],
+      "detail": "portable workflow policy must admit",
+      "run": ["bash {root}/scripts/tenkai_adopt.sh apply --repo {repo}"],
+      "edit": "land the prepared portable guard and manifest on the trusted base, fetch it and re-run apply",
       "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
       "fill": "route"
     },

@@ -20,6 +20,14 @@ for (let at = 1; at < args.length; at++) {
 }
 function legacy(argv: string[]) { return spawnSync('bash', [join(here, 'tenkai_adopt_legacy.sh'), ...argv], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }); }
 function run(): number {
+  if (mode === '--self-test') {
+    const original = legacy(args);
+    process.stdout.write(original.stdout ?? '');
+    process.stderr.write(original.stderr ?? '');
+    if (original.status !== 0) return original.status ?? 2;
+    const portable = spawnSync(process.execPath, [join(here, 'tenkai_readiness_policy_fixture.mts')], { stdio: 'inherit' });
+    return portable.status ?? 2;
+  }
   if (!['diagnose', 'apply'].includes(mode) || !options['--repo']) {
     const result = legacy(args); process.stdout.write(result.stdout ?? ''); process.stderr.write(result.stderr ?? ''); return result.status ?? 2;
   }
