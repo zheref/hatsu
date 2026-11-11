@@ -493,6 +493,8 @@ try {
     expect('a same-record worktree rerender succeeds', local, 0);
     assert.equal(local.stdout, original.stdout);
     expect('a same-record render keeps its id', render(392, 'none', canonical), 1, null, /keeps HR-391 at effort worktree/);
+    expect('moving a record onto an occupied PR id names the requested holder',
+      render(384, 'open', canonical), 1, /^$/, /HR-384 is held by PR #572/);
     expect('a new record cannot take the worktree id', render(391, 'none', typed), 1, null, /held by effort worktree/);
     expect('a second unlanded allocation advances past the worktree id', scan('none'), 0, /"next":"HR-392"/);
     const impostor = recordFile(join(scratch, 'impostor'), { ...base, question: 'Another record using the same key?' });

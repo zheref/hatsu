@@ -261,12 +261,10 @@ function renderClaim(repo: string, record: AnswerRecord, hr: number): string | u
       return isDeepStrictEqual(project(validate(JSON.parse(copy))), project(record));
     } catch { return false; }
   };
-  for (const holder of holders) {
-    if (holder.number === hr && !isSameRecord(holder)) return `HR-${hr} is held by ${holder.where}`;
-    if (holder.number !== hr && isSameRecord(holder)) {
-      return `record ${stem} keeps HR-${holder.number} at ${holder.where}`;
-    }
-  }
+  const conflict = holders.find((holder) => holder.number === hr && !isSameRecord(holder));
+  if (conflict) return `HR-${hr} is held by ${conflict.where}`;
+  const existing = holders.find((holder) => holder.number !== hr && isSameRecord(holder));
+  if (existing) return `record ${stem} keeps HR-${existing.number} at ${existing.where}`;
   return undefined;
 }
 
