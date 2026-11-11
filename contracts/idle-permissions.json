@@ -1,6 +1,6 @@
 {
   "contract": "hatsu.idle-permissions/v0.1",
-  "$comment": "The commands an idle batch (HR-5; futon or kazaana typed with --idle) runs unattended: EXEMPLARS, one per command shape and one per nen verb family the batch calls (a rule like Bash(nen run:*) allows one family and not the next, so every family is listed by name), never every argv, each with the skill that runs it (zheref/hatsu#453 AC-3). It grants NOTHING: contracts/permissions.json is the one source of the packs, and a permission setting is the maintainer's alone. scripts/idle_permissions_check.mts reads the session's own Claude Code settings and lists every exemplar no allow rule matches (and any a deny rule matches), so the maintainer sees before the first claim which steps would prompt — and under --idle a prompt nobody answers is a harness refusal, row harness-denied (WORKFLOW § Idle batches rule 2). An auto-mode classifier refusal is not predictable from the files and is not listed; it parks as g5-harness-denied when it happens. Placeholders in angle brackets stand for any value.",
+  "$comment": "The commands an idle batch (HR-5; futon or kazaana typed with --idle) runs unattended: EXEMPLARS, one per command shape and one per nen verb family the batch calls (a rule like Bash(nen run:*) allows one family and not the next, so every family is listed by name), never every argv, each with the skill that runs it (zheref/hatsu#453 AC-3). It grants NOTHING: contracts/permissions.json is the one source of the packs, and a permission setting is the maintainer's alone. scripts/idle_permissions_check.mts reads the session's own Claude Code settings and lists every exemplar no allow rule matches (and any a deny rule matches), so the maintainer sees before the first claim which steps would prompt — and under --idle a prompt nobody answers is a harness refusal, row harness-denied (WORKFLOW § Idle batches rule 2). An auto-mode classifier refusal is not predictable from the files and is not listed; it parks as g5-harness-denied when it happens. The checker adds every routine Nen write from contracts/permissions.json to this shipped list; custom --needs lists are used as supplied. Placeholders in angle brackets stand for any value.",
   "needs": [
     {
       "command": "nen run start --id <run> --target <owner/name> --repo <checkout>",
@@ -83,10 +83,6 @@
       "by": "spiritual-message § 4"
     },
     {
-      "command": "nen pr open --target <owner/name> --base <base> --title-file <f> --body-file <f>",
-      "by": "shibari § 4"
-    },
-    {
       "command": "node <hatsu>/scripts/ledger_findings_prepare.mts --findings <record.json> --repo <checkout> --out <copy.json>",
       "by": "mukai § 2 step 8a (before nen pr ledger post; lane ledger-findings-guard)"
     },
@@ -95,20 +91,12 @@
       "by": "mukai § 2 step 8a (the pinned secret scan over the --dry-run --json slice, contracts/scans.json → secretScan; the verified binary's own path)"
     },
     {
-      "command": "nen pr ledger post --target <owner/name> --pr <n> --effort <branch>",
-      "by": "mukai § 2 step 8a"
-    },
-    {
       "command": "nen pr ready <n> --gh-repo <owner/name>",
       "by": "en § 4"
     },
     {
       "command": "nen pr converge <n> --target <owner/name>",
       "by": "en §§ 4–5, shibari § 4 (criterion coverage)"
-    },
-    {
-      "command": "nen pr request-reviews --target <owner/name> --pr <n>",
-      "by": "en, sharingan"
     },
     {
       "command": "nen pr merge <n> --delivery --requirements-from <f> --repo <checkout> --require-head <sha> --run",

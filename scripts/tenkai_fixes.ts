@@ -35,8 +35,16 @@ function fill(template: string, vars: Record<string, string>, shell: boolean): s
   });
 }
 
-export function fixFor(item: Item, rows: FixRow[], context: { repo: string; root: string; slug?: string | null }): Fix {
+export function fixFor(item: Item, rows: FixRow[], context: { repo: string; root: string; slug?: string | null; surface?: string }): Fix {
   const base = { repo: context.repo, root: context.root, slug: context.slug && SLUG.test(context.slug) ? context.slug : '<owner/name>', id: item.id };
+  const command = (template: string, vars: Record<string, string>) => {
+    const surface = context.surface;
+    const scoped = surface ? template.replace(
+      /^(bash \{root\}\/scripts\/tenkai_adopt\.sh (?:apply|diagnose))(?= --repo )/,
+      (_match, entry: string) => `${entry} --surface ${quote(surface)}`,
+    ) : template;
+    return fill(scoped, vars, true);
+  };
   for (const row of rows) {
     const id = new RegExp(row.id).exec(item.id);
     if (!id || (row.states && !row.states.includes(item.state))) continue;
@@ -46,15 +54,15 @@ export function fixFor(item: Item, rows: FixRow[], context: { repo: string; root
     const vars: Record<string, string> = { ...base, ...id.groups, ...detail?.groups, ...action?.groups };
     try {
       const values = row.each ? vars[row.each].split(',').map((value) => value.trim()).filter(Boolean) : [undefined];
-      const run = (row.run ?? []).flatMap((template) => values.map((value) => fill(template, value === undefined ? vars : { ...vars, [row.each!]: value }, true)));
+      const run = (row.run ?? []).flatMap((template) => values.map((value) => command(template, value === undefined ? vars : { ...vars, [row.each!]: value })));
       return { run, asks: row.asks ?? [], edit: row.edit ? fill(row.edit, vars, false) : null, guide: row.guide ? fill(row.guide, vars, false) : null,
-        detect: fill(row.detect, vars, true), fill: row.fill, rule: row.id };
+        detect: command(row.detect, vars), fill: row.fill, rule: row.id };
     } catch (error) {
       // A row that cannot render is a defect in the catalogue, reported as one rather than half-printed.
-      return { run: [], asks: [], edit: null, guide: null, detect: fill(rows.at(-1)!.detect, base, true), fill: 'unmapped', rule: row.id, defect: error instanceof Error ? error.message : String(error) };
+      return { run: [], asks: [], edit: null, guide: null, detect: command(rows.at(-1)!.detect, base), fill: 'unmapped', rule: row.id, defect: error instanceof Error ? error.message : String(error) };
     }
   }
-  return { run: [], asks: [], edit: null, guide: null, detect: fill(rows.at(-1)!.detect, base, true), fill: 'unmapped', rule: 'none', defect: 'no row matches' };
+  return { run: [], asks: [], edit: null, guide: null, detect: command(rows.at(-1)!.detect, base), fill: 'unmapped', rule: 'none', defect: 'no row matches' };
 }
 
 // The frozen engine prints `--repo <path>`, or the bare path; the report prints it once, quoted.

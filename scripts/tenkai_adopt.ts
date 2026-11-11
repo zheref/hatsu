@@ -7,9 +7,23 @@ import { catalogue } from './pr_sections.ts';
 import { history, readSections, summary } from './pr_sections_history.ts';
 import { declarationText, strictJson } from './config_values_refresh.ts';
 import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction } from './tenkai_fixes.ts';
+import { diagnoseCheckoutPack } from './claude_pack_placement.mts';
+import { permissionSource } from './claude_routine_permissions.mts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
+let surface: string | undefined;
+if (['diagnose', 'apply'].includes(args[0])) {
+  const index = args.indexOf('--surface');
+  if (index >= 0) {
+    surface = args[index + 1];
+    args.splice(index, 2);
+    if (!surface || !['claude-code', 'codex', 'cursor', 'antigravity'].includes(surface) || args.includes('--surface')) {
+      console.error('tenkai_adopt.sh: --surface needs one supported surface');
+      process.exit(2);
+    }
+  }
+}
 const mode = args[0];
 const plain = (value: unknown) => String(value).replace(/[\p{Cc}\p{Cf}]/gu, '');
 const options: Record<string, string> = {};
@@ -74,10 +88,25 @@ function run(): number {
     document.items.push({ id: 'pr.sections', title: 'PR-section catalogue freshness', owner: 'hatsu', action: finding ? `config_values.sh fill --refresh --repo ${quote(plain(repo))}` : null,
       ...(finding ?? { state: 'repaired', detail: 'pr.sections: refreshed unedited defaults and options; consumer-owned cells retained' }) });
   }
+  if (document.items.some((row: any) => ['nen/contract.json', 'nen/workflow.json'].includes(row.id))) {
+    let pack: { status: string; detail: string };
+    try {
+      pack = diagnoseCheckoutPack(permissionSource(join(dirname(here), 'contracts/permissions.json')), dirname(here), repo);
+    } catch {
+      pack = { status: 'blocked', detail: 'Claude checkout pack could not be inspected' };
+    }
+    const advisory = surface !== 'claude-code' && pack.status !== 'present';
+    const state = advisory ? 'advisory' : pack.status === 'present' ? 'satisfied' : pack.status === 'retired' ? 'drift' : pack.status;
+    document.items.push({
+      id: 'permissions/claude-code', title: 'Claude Code checkout permissions', owner: 'hatsu',
+      state, detail: pack.detail, packStatus: pack.status,
+      action: null,
+    });
+  }
   // HA#535: every outstanding row names its fix — run, edit, detect and who supplies the value.
   for (const row of document.items) {
     row.action = resolveAction(row.action, repo);
-    if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root: dirname(here), slug: document.slug });
+    if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root: dirname(here), slug: document.slug, surface });
   }
   document.outstanding = document.items.filter((row: any) => OUTSTANDING.includes(row.state)).length;
   document.guide = guide(document.items);
@@ -86,7 +115,7 @@ function run(): number {
     process.stdout.write(`repository: ${plain(document.repo)}\nslug:       ${plain(document.slug ?? '(unreadable)')}\n`);
     const runner = document.runner;
     process.stdout.write(`runner:     ${plain(runner.runs_on)} (fallback ${plain(runner.fallback)}) — ${plain(runner.reason)}\n\n`);
-    const glyph: Record<string, string> = { satisfied: 'ok  ', repaired: 'NEW ', missing: 'MISS', drift: 'DRIF', routed: 'ROUT', staged: 'STAG', blocked: 'BLOK' };
+    const glyph: Record<string, string> = { satisfied: 'ok  ', repaired: 'NEW ', missing: 'MISS', drift: 'DRIF', routed: 'ROUT', staged: 'STAG', blocked: 'BLOK', advisory: 'INFO' };
     for (const row of document.items) {
       process.stdout.write(`  ${glyph[row.state] ?? plain(row.state)}  ${plain(row.id)}\n        ${plain(row.detail)}\n`);
       if (row.action && !['satisfied', 'repaired'].includes(row.state)) process.stdout.write(`        → ${plain(row.action)}\n`);
@@ -102,12 +131,14 @@ function run(): number {
       const list = (ids: string[]) => ids.length ? ids.map(plain).join(', ') : 'none';
       process.stdout.write(`\n${document.outstanding} item(s) outstanding. Re-run \`apply\` after settling the routed and staged ones.\n`);
       process.stdout.write(`\nguided fill — Tenkai writes only catalogue defaults and values the owner answered, never an invented one:\n`);
-      process.stdout.write(`  1. defaults (${defaults.length}), settling ${list(defaults)}:\n       bash ${plain(quote(join(dirname(here), 'scripts', 'tenkai_adopt.sh')))} apply --repo ${plain(quote(repo))}\n`);
+      const adopter = `bash ${plain(quote(join(dirname(here), 'scripts', 'tenkai_adopt.sh')))}`;
+      const scope = `${surface ? `--surface ${surface} ` : ''}--repo ${plain(quote(repo))}`;
+      process.stdout.write(`  1. defaults (${defaults.length}), settling ${list(defaults)}:\n       ${adopter} apply ${scope}\n`);
       process.stdout.write(`  2. owner answers (${owner.length}): ${list(owner.map((row: any) => row.id))} — ask each, then run its line with the answer single-quoted in place of its <token>\n`);
       process.stdout.write(`  3. Tenkai's edits (${edits.length}): ${list(edits)} — the owner decides, Tenkai edits nen/contract.json or nen/workflow.json (§ 6c), then detect\n`);
       process.stdout.write(`  4. routed to their owner (${routed.length}): ${list(routed)} — the owner or the named tool makes the change; Tenkai never does\n`);
       if (unmapped.length) process.stdout.write(`  5. unmapped (${unmapped.length}): ${list(unmapped)} — no catalogue row names a fix: a defect to file\n`);
-      process.stdout.write(`then re-run diagnose: the outstanding count goes down by every item that settled.\n`);
+      process.stdout.write(`then re-run ${adopter} diagnose ${scope}: the outstanding count goes down by every item that settled.\n`);
     } else process.stdout.write('\nevery item is satisfied — this repository is a working Hatsu consumer.\n');
   }
   process.stderr.write(result.stderr ?? '');

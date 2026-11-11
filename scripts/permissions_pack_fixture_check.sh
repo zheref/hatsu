@@ -101,13 +101,13 @@ bash "$pack" --surface claude-code --install --target "$main" --hatsu-root "$hat
 node - "$claude_settings" <<'JS'
 const fs = require('node:fs');
 const allow = JSON.parse(fs.readFileSync(process.argv[2], 'utf8')).permissions.allow;
-if (allow.includes('Bash(gh api *)') || allow.includes('Bash(node */scripts/gh_api_read.mts *)') ||
-    allow.includes("Bash(node '/tmp/retired-plugin/scripts/gh_api_read.mts' *)") ||
+if (!allow.includes('Bash(gh api *)') || !allow.includes('Bash(node */scripts/gh_api_read.mts *)') ||
+    !allow.includes("Bash(node '/tmp/retired-plugin/scripts/gh_api_read.mts' *)") ||
     !allow.includes('Bash(echo user-owned)')) {
-  throw new Error('Claude upgrade did not remove only the unsafe legacy API grant');
+  throw new Error('Claude upgrade did not preserve entries with unknown ownership');
 }
 JS
-echo "ok    Claude Code upgrade removes the unsafe gh api wildcard and keeps unrelated user entries"
+echo "ok    Claude Code upgrade keeps ambiguous legacy rows, foreign paths and user entries"
 
 bash "$pack" --surface codex --install --target "$main" --hatsu-root "$hatsu_root" >/dev/null
 
@@ -177,5 +177,76 @@ bash "$pack" --surface codex --install --target "$main" --hatsu-root "$hatsu_roo
 tracked_after="$(cat "$placed")"
 [ "$tracked_before" = "$tracked_after" ] || fail "a TRACKED .codex/config.toml was overwritten"
 echo "ok    a tracked .codex/config.toml is left alone"
+
+# The user modes are render/read only, even if they are aimed at a valid
+# checkout. Use only a scratch configuration directory for their fixtures.
+export HOME="$fixture_root/home"
+export CLAUDE_CONFIG_DIR="$HOME/.claude"
+mkdir -p "$CLAUDE_CONFIG_DIR" "$fixture_root/cli"
+printf '#!/bin/sh\necho 2.1.295\n' > "$fixture_root/cli/claude"
+chmod 700 "$fixture_root/cli/claude"
+export PATH="$fixture_root/cli:$PATH"
+user_settings="$CLAUDE_CONFIG_DIR/settings.json"
+result="$fixture_root/pack-output"
+run_pack() {
+  local expected="$1" status=0
+  shift
+  bash "$pack" "$@" --hatsu-root "$hatsu_root" >"$result" 2>&1 || status=$?
+  [ "$status" = "$expected" ] || fail "pack exited $status, expected $expected: $(cat "$result")"
+}
+
+run_pack 0 --help
+grep -q -- '--render-user' "$result" || fail "help omitted the render-only user mode"
+run_pack 2 --bogus
+grep -q 'unknown argument' "$result" || fail "an unknown flag lacked its reason"
+run_pack 2 --surface cursor --check-user --target "$main"
+grep -q -- '--check-user requires --surface claude-code' "$result" || fail "non-Claude user check lacked its refusal"
+run_pack 2 --surface claude-code --render-user --install --target "$main"
+grep -q 'choose exactly one' "$result" || fail "render and install were not mutually exclusive"
+
+run_pack 0 --surface claude-code --check-user --target "$main"
+grep -q 'routine user rows missing' "$result" || fail "the missing settings check did not name the gap"
+[ ! -e "$user_settings" ] || fail "user check wrote settings"
+bash "$pack" --surface claude-code --render-user --target "$main" --hatsu-root "$hatsu_root" \
+  >"$result" 2>"$fixture_root/proposal-notes" || fail "the user proposal could not be rendered"
+jq -e '.permissions.allow | index("Bash(./scripts/gh_token_env.sh -- nen pr threads settle *)") != null' "$result" >/dev/null ||
+  fail "the proposal omitted the narrow relative wrapper rule"
+jq -e '.hooks.PreToolUse[0].hooks[0].onFailure == "block"' "$result" >/dev/null ||
+  fail "the proposal omitted the paired blocking hook"
+[ ! -e "$user_settings" ] || fail "user render wrote settings"
+cp "$result" "$user_settings"
+run_pack 0 --surface claude-code --check-user --target "$main"
+grep -q 'routine user rows present' "$result" || fail "the check did not recognize the user-approved rows"
+printf '%s\n' '{"permissions":{"deny":["Bash(nen pr open *)"]},"autoMode":{"classifyAllShell":true}}' > "$user_settings"
+cp "$user_settings" "$fixture_root/user-before.json"
+run_pack 0 --surface claude-code --check-user --target "$main"
+grep -q 'routine user rows missing.*classifyAllShell.*deny in' "$result" || fail "the check missed removed rows or a visible override"
+cmp -s "$user_settings" "$fixture_root/user-before.json" || fail "user diagnosis edited settings"
+echo "ok    user modes show the proposal, recheck removal, report an override, and keep settings read-only"
+
+run_pack 0 --surface cursor --render
+grep -q '# --- .cursor/hooks.json ---' "$result" || fail "Cursor render omitted its hook header"
+run_pack 0 --surface antigravity --render
+grep -q 'Nothing to write here' "$result" || fail "Antigravity render claimed to place an allowlist"
+run_pack 0 --surface cursor --install --target "$wt"
+[ -f "$wt/.cursor/cli.json" ] && [ -f "$wt/.cursor/hooks.json" ] || fail "Cursor scratch placement lost its pack files"
+
+nonconsumer="$fixture_root/nonconsumer"
+git init -q "$nonconsumer"
+run_pack 0 --surface claude-code --install --target "$nonconsumer"
+grep -q 'not a Hatsu consumer' "$result" || fail "unadopted repository was not named"
+[ ! -e "$nonconsumer/.claude" ] || fail "the installer wrote to an unadopted repository"
+
+mkdir -p "$wt/.claude"
+ln -s "$user_settings" "$wt/.claude/settings.local.json"
+run_pack 0 --surface claude-code --install --target "$wt"
+grep -q 'settings.local.json is a symlink' "$result" || fail "the symlink refusal was not named"
+cmp -s "$user_settings" "$fixture_root/user-before.json" || fail "the installer followed a settings symlink"
+rm "$wt/.claude/settings.local.json"
+printf '%s\n' '{not JSON' > "$wt/.claude/settings.local.json"
+run_pack 0 --surface claude-code --install --target "$wt"
+grep -q 'could not be read or parsed' "$result" || fail "the malformed file refusal was not named"
+[ "$(cat "$wt/.claude/settings.local.json")" = '{not JSON' ] || fail "the installer overwrote malformed settings"
+echo "ok    checkout placement reports symlink and malformed settings refusals"
 
 echo "permissions-pack-fixture: all assertions passed"
