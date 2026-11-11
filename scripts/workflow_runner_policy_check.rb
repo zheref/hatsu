@@ -3395,16 +3395,22 @@ def self_test(root)
         # the exact legacy policy. Exercise the next policy before it ships.
         queued = text.sub("\n  cancel-in-progress: true\n", "\n  cancel-in-progress: false\n  queue: #{READINESS_RENDERED_QUEUE}\n")
         File.write(readiness, queued)
+        validate_repo(tmp, announce: false)
         validate_workflow(readiness, require_readiness_queue: true)
+        queue_refusal = /pr-readiness\.yml readiness concurrency must use the exact per-PR queue/
         {
-          "legacy cancellation" => queued.sub("cancel-in-progress: false\n  queue: max", "cancel-in-progress: true"),
-          "single pending slot" => queued.sub("\n  queue: max\n", "\n  queue: single\n"),
-          "shared group" => queued.sub(READINESS_CONCURRENCY_GROUP, "all-readiness"),
-          "job-level override" => queued.sub("  readiness:\n", "  readiness:\n    concurrency: all-readiness\n")
-        }.each do |label, drift|
+          "single pending slot" => [queued.sub("\n  queue: max\n", "\n  queue: single\n"), queue_refusal],
+          "shared group" => [queued.sub(READINESS_CONCURRENCY_GROUP, "all-readiness"), queue_refusal],
+          "job-level override" => [queued.sub("  readiness:\n", "  readiness:\n    concurrency: all-readiness\n"),
+                                   /pr-readiness\.yml job readiness carries concurrency/]
+        }.each do |label, (drift, reason)|
           fixture_changed!(label, queued, drift)
           File.write(readiness, drift)
-          expect_rejected("rendered readiness #{label}") { validate_workflow(readiness, require_readiness_queue: true) }
+          expect_rejected("rendered readiness #{label}", reason) { validate_repo(tmp, announce: false) }
+        end
+        File.write(readiness, text)
+        expect_rejected("rendered readiness legacy cancellation", queue_refusal) do
+          validate_workflow(readiness, require_readiness_queue: true)
         end
       end
     end
