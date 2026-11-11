@@ -324,8 +324,9 @@ so a default target carries that flag as well as a non-production `why`; zheref/
 ruling of 2026-09-29: *"rely on a default value from one of our configuration files … so that it
 doesn't always require destination and it can be easily chained with other skills like futon"*).
 `defaultTarget` names the destination a `hatsu:kagutsuchi` invocation typed with **no target** sends to — **a typed target always overrides it, the report says which source the target came
-from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target whose
-`why` reads non-production**: a default naming a store or the live environment is refused, and **G3**
+from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target
+marked `nonProduction: true` whose `why` also reads non-production** (zheref/hatsu#579; the flag is the
+split for every target, the `why` a second fail-closed check on the default only, [HR-289](ROSTER.md#hr-289)): a default naming a store or the live environment is refused, and **G3**
 (`mugetsu`) is unchanged. `nen shu deploy` is unchanged too — the skill always passes `--target`
 explicitly, so *nen never chooses where a build goes* stays true of nen; the choice lives here, in
 configuration the maintainer wrote. **`null`, or the key absent, is the ask**: an omitted target is
@@ -1558,10 +1559,21 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   acted on as the maintainer's typed words. The maintainer kept HR-173 over re-asking every unmatched
   typed reply (2026-10-23, [HR-341](ROSTER.md#hr-341), record `R-2026-10-23-08` under effort `HA-IS-#450`; zheref/hatsu#443 AC-2).
 - **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
-  `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
-  candidates, none starred, go in the question file): record it with the one reference option
+  `port-drift`, `release-go` (mugetsu § 3) and `merged-head-review-skip` (en § 3) — are never re-asked
+  for being typed. `missing-maintainer-choice`, `release-go` and `merged-head-review-skip` have no options
+  (candidates, none starred, go in the question file): record each with the one reference option
   `--option "ref=typed by design (no option)::the typed words are the answer"` and `--typed-file`, so
   nen never reads a typed value as a pick; the row renders `none: typed by design`, capture class typed.
+- **A row the consumer's own matrix lacks.** nen checks `--row` against `--repo`'s own
+  `nen/decisions.json` only, never Hatsu's (nen `0.30.0`, `src/stop/answer.ts`): with no file the row is
+  recorded and said unchecked; with a file that lacks the row the call is refused at exit `2`
+  (`--row '<id>' is no row of <path>`). A consumer may carry its own matrix
+  ([`decisions.json.md`](config/decisions.json.md)), and a Hatsu row it has not copied (`release-go`,
+  `merged-head-review-skip` and `host-merge-protected-path` among them) does not cost the record: on that
+  refusal alone a `human-gate` row is recorded again with `--gate <its gate>` and no `--row`, its row id
+  written as the question file's first line and the turn page saying `row <id>: not in <path>`. An
+  `ask-once-per-run` row has no gate to record under, so it is *answer unrecorded* (*A record that could not be written*, below),
+  and the consumer's matrix owes the row. Any other refusal stays that bullet's.
 - **`direct-mismatch`'s record is `nen direct answer`** (direct § 6); `nen stop answer` records every
   other row.
 - **An idle pre-answer** (§ *Idle batches*, step 1) is recorded the same way and shows no picker:
@@ -1743,6 +1755,47 @@ nothing restated:
 — or, where the value is the maintainer's word, *"typed, never picked (`missing-maintainer-choice`)"*,
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
+
+### Declined cleanup rows
+
+**Declined cleanup rows are remembered, and offered again folded by class** (zheref/hatsu#584;
+[HR-210](ROSTER.md#hr-210)). When Shizuku closes a plan whose picker the maintainer answered
+([`cleanup`](../claude/skills/cleanup/) § 3, step 3), every deterministic or proposed `plan[]` row the answer
+did not pick, whether left unticked under **A** or **B** or kept by **C** `none`, is appended to
+`<core>/.nen/cleanup/declined.jsonl`, one JSON line per row: `contract` (`hatsu.cleanup.declined/v0.1`),
+`object` (the row's path, branch or ref, as the plan names it), `class` (`deterministic` or `proposed`),
+`bytes` (its `du -sk` reading in bytes), `marker` (the plan's `<slug>`), `at` (the close time, ISO
+8601) and `firstAt` (when the row was first declined: its latest line's `firstAt` where `object`,
+`class` and `bytes` equal that line, else this `at`; a line without one reads its `at`). A named row
+was never an option and is never declined, so it is never folded; a plan closed `none-picked` on
+`ids-invalid`, or left `pending`, declines nothing, because no answer was given.
+
+**A later inventory folds them, and still offers them, each in its own class**: HR-210's prior leftovers
+are inventoried, classified and offered the same way. **An earlier sitting is decided by time, never by
+the slug** (cleanup § 7's slug is per scope): the main session passes this sitting's start in Shizuku's
+prompt, the ISO time of the session's first turn as the session records it, and a line is an earlier
+sitting's when its `at` is before that start; a prompt carrying no start folds nothing. Pass 1 reads
+the file and, once cleanup § 5 has classed a row, folds it where its `object`, `class` and `bytes` all
+equal its latest line, that line is an earlier sitting's, and its `firstAt` is under 30 days old; a
+same-sitting re-offer (cleanup § 2's `none-picked` or `partial` again) shows the rows it just declined
+in full. **The folded rows become one bundle row per class, keeping the class**: a deterministic bundle
+with its own plan-unique `D` id, which **A** includes like any deterministic row, and a proposed bundle
+with its own `P` id, ticked under **B**. Each bundle's object reads `the <n> <class> rows declined
+earlier (<total bytes>), oldest <date>`, its command the folded rows' own commands and its evidence each
+folded row's object and marker; picked, every folded row runs in cleanup § 5's order with the rest of the
+pick, each read back. The bundles are the summary, carried in `plan[]` and in the report like any other
+row, so the marker needs no key of its own. A bundle left unpicked appends **one line per folded row**,
+its `firstAt` carried forward, never one summary line, so a row declined at every sitting still ages out
+30 days after its first decline. A row whose class or size changed, or whose `firstAt` has aged out,
+returns as a full row. **`for all` reads no fold**: every declined row is listed in full. **The 30 days
+is the lead's reading**, borrowed from the run-record age cleanup § 4 uses; it gates no authority, since
+a folded row stays offered in its class.
+
+The file is a record beside the markers, never a leftover (cleanup § 4), and only Shizuku's close appends
+to it. **An unreadable file or an unreadable line folds nothing**: every row is offered in full and the
+file is named in the report, never read as empty. The append and the fold are by-hand reads and writes
+with no nen verb, owed with the inventory read (zheref/nen#409; PROCESS § *Residue and owned
+dependencies*, `cleanup`).
 
 ### Batch delivery — every delivery Ready, or held and named
 
@@ -2945,8 +2998,16 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    check**. **A seat (exit `4`) is not red**: quote the declaration's reason and move on.
 2. **A consumer's canon mirror, where the delta touches `.claude/canon-values.yml`**
    (zheref/hatsu#111). Regenerate `.claude/rules/` with `nen/workflow.json` →
-   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`
-   (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
+   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`,
+   in the portable form that names no machine-local path, so it runs unchanged on another machine
+   (zheref/nen#294, zheref/hatsu#578): `["nen", "canon", "mirror", "generate", "--repo", ".",
+   "--canon-values", ".claude/canon-values.yml", "--stack-dir", "handbooks/stacks", "--leaf", "rules",
+   "--scenario", "<scenario>", "--not-mirrored", "README.md,placeholders.md"]`, `<scenario>` written as
+   the literal value `nen repo scenario --repo . --target <slug>` reports, since the mirror verbs read the
+   canon-values file's `scenario:` and never the registry (a value that differs from the registry's is
+   `hatsu:limbo`'s to report, § 2 step 4), nen resolving and verifying the canon checkout at the
+   pin from the consumer's registry (`checkout_env`, then `checkout`) and refusing at exit `2` where none
+   resolves (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
    `tenkai` names as the routed gap) — run locally, never the weekly cron and never a `workflow_dispatch`
    that can carry the branch into a PR against trunk — and read
    `git status --porcelain .claude/rules` after it. **A non-zero exit from the command is red** (row

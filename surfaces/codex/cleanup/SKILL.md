@@ -10,7 +10,7 @@ summary: "As Shizuku, clean up what a finished effort and prior sessions left lo
 # Cleanup — Shizuku's sweep, after the work has landed
 
 **Nature: Transmuter**; **Manipulator** for remote write (§ 5). Shizuku:
-[`claude/agents/shizuku.md`](../AGENTS.md#shizuku). Ruling 2026-10-13 ([`ROSTER.md`](../../../docs/ROSTER.md) 4–6).
+[`shizuku.md`](../AGENTS.md#shizuku). Ruling 2026-10-13 ([`ROSTER.md`](../../../docs/ROSTER.md) 4–6).
 
 ## 0. Standalone entry
 
@@ -34,8 +34,7 @@ asked inline (`missing-argument`).
 **Only when (1) every PR in the sitting's scope reads `MERGED` live** (unread: not; one the maintainer closed
 unmerged leaves the scope, HR-367) **and (2) the maintainer explicitly declared the sitting satisfied**, in their
 own words this sitting, quoted in question and report (HR-366, zheref/hatsu#480): never solicited, nothing else
-supplies it, so `--idle` never offers or runs it. Else no picker, no run, the missing one named; a later declaration in the maintainer's
-own words has the main session re-read every scoped PR live and ask once (WORKFLOW § *Two offers*). A typed
+supplies it, so `--idle` never offers or runs it. Else no picker, no run, the missing one named; a later declaration: WORKFLOW § *Two offers*. A typed
 `$cleanup` is § 1's. Required after a completed session (HR-209).
 **Who asks**: a composite's terminus (row `wrap-up` names each) or **the main session** after `en` § 8; **a delegate never**.
 Asked via surface picker: ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
@@ -48,7 +47,7 @@ A leftover found later is new scope.
 
 One delegate, **`cleanup · shizuku · <model alias>`**, on own pin (**no `model`**, `hanten` § 4), raised as
 third-hand § 3 raises Netero — **isolation omitted / `inherit`**; the
-prompt carries the absolute Hatsu root. No delegation: both passes in-session (PROCESS § *Surfaces and pickers*).
+prompt carries the absolute Hatsu root and sitting start. No delegation: both passes in-session (PROCESS § *Surfaces and pickers*).
 
 **Consent channel (candidate b)**, every surface: Shizuku asks nothing, a relayed prompt is no consent:
 1. **Pass 1 (inventory).** Shizuku reads § 4, classifies § 5, writes initial marker (§ 7) with `plan[]`,
@@ -58,7 +57,7 @@ prompt carries the absolute Hatsu root. No delegation: both passes in-session (P
 
 ## 4. What she inventories — this sitting, then prior leftovers
 
-**First read is `git fetch origin`**: merged is judged against the fetched base. Core is
+**First read is `git fetch origin`**: merged is judged on the fetched base. Core is
 `nen wc worktrees --repo <path> --json`'s `core`. **Every repo name is validated before it enters a
 command**, always after `--`, single-quoted; the admission script's header is the rule (`<branch.base>` from
 `nen/workflow.json`; the Hatsu root pasted absolute, § 3):
@@ -76,10 +75,10 @@ Failing names become **named** rows.
 | **run records** | spec-repo.md § *The run record* (`hatsu/specs/`, `hatsu/ports/`) | `done`/`declined`, `at` over 30 days |
 | **the surface's own** | surface worktree tool (`docs/surfaces/<surface>.md`) | its stale worktrees, named |
 
-Sizes are `du -sk <path>`, read before plan. **Core's `.nen/` ledgers (WORKFLOW § *The effort's ledgers*) and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
+Sizes: `du -sk <path>`, read before plan. **Core's `.nen/` ledgers (WORKFLOW § *The effort's ledgers*) and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
 `.nen/` goes with it (ROSTER § *Rulings of 2026-10-20*). Prior leftovers
 grouped under *prior sessions*, **ownership never assumed** — dirt, detached checkouts and caches
-proposed, never deterministic. Sanitize: no credentials, no paths outside checkout and caches.
+proposed, never deterministic. Sanitize: no credentials, no path beyond checkout and caches.
 
 ## 5. The plan — three classes, every row complete
 
@@ -121,7 +120,7 @@ holds; then reviewer ledger rule; then table.
 | remote head | deterministic (SHA = `headRefOid`), else proposed | proposed | named | proposed |
 
 Each row: `id` · class · object · exact command (none on named row) · what it frees (bytes or
-`billed: <what>`) · evidence (PR state, SHA, host, dirt, age, ledger) · owner (this sitting, or `prior: <branch>`).
+`billed: <what>`) · evidence (PR state, SHA, host, dirt, age, ledger) · owner (this sitting or `prior: <branch>`).
 **Ids are plan-unique**: class letter (`D`/`P`/`N`) plus one plan-wide count (`D1`, `P2`).
 
 ## 6. The picker — only the pick runs
@@ -131,11 +130,11 @@ Each row: `id` · class · object · exact command (none on named row) · what i
 — exit `1` or `5` (an id shared, missing or blank; not one plan array) stops before the question; on `5` the parse error named, on `1` shared ids from
 `jq -r -s '[.[0].plan[].id] | group_by(.)[] | select(length>1)[0]' '<marker>'`; main session re-raises
 pass 1 to re-mint (never renames) and reruns it. On a second stop main session records `pickerAnswer`
-`ids-invalid`, Shizuku closes `none-picked`, ids in the report. Any other exit (`2`, `127`) stops, host
-fact named, marker left `pending`. No deterministic or proposed row: no question;
+`ids-invalid`, Shizuku closes `none-picked`, ids in the report. Any other exit (`2`, `127`) stops: host
+fact named, marker `pending`. No deterministic or proposed row: no question;
 Shizuku closes `already-clean` (empty plan) or `none-proposed` (named only). Else one native
 picker question (third-hand § 6; row `cleanup-plan`): ⭐ **A** every deterministic row · **B** deterministic **and** ticked proposed rows
-(batches <= 3; Codex CLI: 1 per row) · **C** `none` (keep all; wins over other ticks). Main session records `picked[]` and raw `pickerAnswer` (`nen stop answer`), then runs picked rows in
+(batches <= 3; Codex CLI 1 per row) · **C** `none` (keep all; wins over other ticks). Main session records `picked[]` and raw `pickerAnswer` (`nen stop answer`), then runs picked rows in
 § 5's order, pushes first, each read back, bytes freed per row and total; a picked id naming no `plan[]` row or a named one is listed
 unmatched, `result` `partial`. Failing row reported with stderr, **never retried wider**; then § 3's close.
 
@@ -152,11 +151,11 @@ Each `<CODE>-<N>` is checked (`PR` where `gh pr view` finds `<N>`; output cut to
 `nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
 — an exit but `0` (no registry, code unregistered) keeps it, said.
 
-Gitignored with `.nen/`; `ten` never deletes it. Report result, freed total, kept rows and why.
+Gitignored (`.nen/`); `ten` never deletes it. Unpicked offered rows go to `declined.jsonl`, re-offered per class: WORKFLOW § *Declined cleanup rows*. Report result, freed total, kept rows, why.
 
 ## Residue
 
-Removals, `du -sk`, `readlink -f`, name validation and the id check have no nen verb — **owed to nen**
+Removals, `du -sk`, `readlink -f`, name validation, id check and `declined.jsonl` have no nen verb — **owed to nen**
 (`nen wc prune`, zheref/nen#409); id-read exits assume jq >= 1.7.
 
 ## Authority

@@ -183,7 +183,68 @@ the mechanical resolutions, the re-proved build. **This skill restates none of i
 
 **A semantic conflict is ao's G5, not murasaki's**, and murasaki neither retries past it nor
 re-renders it. Ao leaves the tree conflicted, shows both sides verbatim, prints the abort line and
-stops; this run ends there, having pushed nothing, and says so in one line. The answer resumes it.
+stops; this run ends there, having pushed nothing, and says so in one line. The answer resumes it,
+**and the merged head it leaves owes a review round before readiness**: the caller re-enters
+[`$hanten`](../hanten/SKILL.md) on that head on § 5's return, before kokusen, kotoamatsukami and
+byakugan (mukai: step 2 before steps 3–5), as [`$en`](../en/SKILL.md) § 3 states once
+(zheref/hatsu#583). A no-op, clean or mechanical catch-up owes no such round.
+
+**When the host's base-branch merge is unavailable** (zheref/hatsu#586,
+[HR-393](../../../docs/ROSTER.md#hr-393)). A surface whose host performs the catch-up merge itself may
+refuse it, its message telling the agent to tell the maintainer and not to merge sandbox-protected files
+by hand. **Murasaki never uses the host merge itself**: § 3's `nen wc catch-up` is the route whether the
+host merge is available or not, and only an unavailable host merge's refusal triggers the read below.
+**The host's protected set is not readable from the checkout** (HR-393): the check below is a
+judgement the report records, never a verb's exit code.
+
+1. **Derive the incoming diff**: note the pre-catch-up head (`git -C <path> rev-parse HEAD`; on a later
+   pass of this route, the **cleared head** of step 5 instead, never a merged head no comparison read), run
+   `git -C <path> fetch origin`, then `git -C <path> diff --no-renames --name-only HEAD...origin/<base>`,
+   which lists every path the base changed since the merge base, a rename under both its old and new
+   path, which is every path the merge can write. Git's default rename detection lists only the new
+   path, so a base commit moving a file out of a protected directory would read as none protected.
+   **The pre-catch-up head is carried across the run**, a conflict stop included, and step 4 reads
+   against it; on a rebase resume nen's `before` is not that head. **A failed read stops the route**:
+   a non-zero exit from the `rev-parse`, the fetch, either diff or the `rev-list` below (here or in
+   step 4) is the G5 of row `host-merge-protected-path` with git's stderr quoted, and an empty list
+   while the branch is behind its base (`git -C <path> rev-list --count HEAD..origin/<base>` above
+   `0`) is never read as none protected.
+2. **Compare it with the refusal, quoted**: a path is protected when the refusal names it, names a
+   directory it sits under, or names its kind; a path the judgement cannot place counts as protected.
+3. **No incoming path protected → the ordinary route**: ao's `nen wc catch-up` in this checkout (§ 3
+   step 1), unchanged; the typed run already authorises that merge, and its push stays § 6's.
+   **One or more protected → stop at G5** (row `host-merge-protected-path`, recorded as WORKFLOW § 4
+   *Every picker answer is recorded* says, `--gate G5 --row host-merge-protected-path`, or `--gate G5`
+   alone where the consumer's own matrix lacks the row, its *A row the consumer's own matrix lacks*): the merge is
+   handed to the maintainer naming each protected path, and is never made by hand or by any other route.
+4. **Read what the catch-up wrote, and compare again**: ao's catch-up fetches for itself, so a protected
+   commit can land between step 1's read and its merge. After ao returns and before § 6's push, list
+   the set the catch-up actually wrote with one form for every strategy (merge, fast-forward, rebase):
+   `git -C <path> diff --no-renames --name-only <pre-catch-up head> HEAD`, the head being step 1's
+   `rev-parse`; a `noOp` catch-up wrote nothing and the list is empty. Compare it with the quoted
+   refusal as in step 2. A protected path not in step 1's list is the same G5, and **the protected
+   write has already happened locally**: the catch-up committed it, so ao's abort line undoes nothing.
+   The merge is held committed and **unpushed**, and while the G5 stands nothing pushes from that branch,
+   § 6's push and an en or sharingan fix push included. The stop names the pre-catch-up head as the
+   return point with the line that restores it, `git -C <path> reset --keep <pre-catch-up head>`, run
+   only on the maintainer's pick of the row's option B, never by the agent otherwise.
+5. **The cleared head**: a step 4 that found no protected path clears `HEAD` as it then stands, and that
+   head is the route's baseline from here on.
+6. **The publish gate's re-probe is a catch-up too.** § 6's gate 1 (`scripts/publish_gate.sh`) runs
+   `nen wc catch-up` for real, not as a dry run: where the base moved after step 4 it merges, and the
+   chain stops at `noOp` false with `HEAD` past the proved one. On this route that merge is read at
+   once, before anything else runs on the branch: `git -C <path> diff --no-renames --name-only <cleared
+   head> HEAD`, compared with the quoted refusal as in step 2, a protected path the same G5 with the
+   cleared head as the return point, none clearing the new `HEAD` as step 5 does. A later pass of this route takes the cleared head as step 1's
+   pre-catch-up head, so its step 4 lists the gate's merge as well as its own; a merged `HEAD` is never
+   the baseline until a comparison has cleared it. The failed-read rule of step 1 holds here too.
+7. **The refusal's "tell the maintainer" is satisfied by one line in this run's report** quoting the
+   refusal and naming the route taken. On the ordinary route that line is all it asks: it does not by
+   itself stop the catch-up.
+
+**The report names the route and its evidence**: the refusal quoted, every diff command with its path
+list (step 1's, step 4's and, where the gate merged, step 6's), the cleared head, and the paths, if any, the judgement placed in the protected set, so a
+reviewer checks the choice without re-deriving it.
 
 **Ao never pushes** — its own hard limit — and being called from inside murasaki does not lend it
 one. § 6's push is murasaki's, made after ao has returned and said what it did.
@@ -343,6 +404,14 @@ the caller continues from; invoked alone, it is the end of the run.
 5. **RETIRED at nen `0.5`: `nen/workflow.json` is validated.** `nen schema check --repo <path>` carries
    an `ok  nen/workflow.json` row at the pinned build. § 2's keys are still read here; reading a file
    is not residue.
+6. **The incoming-diff reads for an unavailable host merge** (§ 4): `git -C <path> diff --no-renames
+   --name-only HEAD...origin/<base>` before the catch-up, and the written set after it
+   (`git -C <path> diff --no-renames --name-only <pre-catch-up head> HEAD`, every strategy, and the
+   same form from the cleared head after the publish gate's re-probe merged), with the
+   `rev-parse` and `rev-list --count` beside them, are raw reads, since no nen verb lists what a
+   catch-up would write or wrote, and the
+   protected-set comparison stays a recorded judgement because the set is the host's and is not in the
+   checkout ([HR-393](../../../docs/ROSTER.md#hr-393)).
 
 Each is run in the open and reported as by-hand, per the Nen-first rule's second half
 (`claude/agents/kurapika.md`): a missing verb is a finding, not a gap to route around silently.

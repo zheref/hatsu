@@ -60,13 +60,13 @@ never writes. A missing argument or configuration item is asked and set up inlin
 | 1 | Slug, role, gate — **`G2` for a consumer, `G4` for a canon repository**; the role decides (ROSTER HR-76, HR-77). No `.claude/canon-values.yml`: `canon mirror: not applicable`, stop | `nen repo classify --repo <path> --json` |
 | 2 | The pin: `source`, `ref` (`nen.canon.pin/v0.1`). Exit `1` — no `maintained_tools[].pinned`, several, or a non-tag — is `missing-configuration`: candidates listed, the tag **typed**, recorded, re-read | `nen canon pin --repo <path> --json` |
 | 3 | The canon checkout **at that tag**, re-verified by `describe --exact-match`; then the latest tag, for the *behind* line | [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 0 (residue 1–2) |
-| 4 | `--rules-dir`: the scenario the consumer's own registry records, `--always-load` read fresh off `handbooks/INDEX.md`. **A ports pair file is NOT mirrored at nen `0.22.0`**: `mirror generate`/`check` render the stack's rules leaf only and take no always-load set, so a pair file whose `to` is this scenario (`<workflow.port.rulingsDir>/<from>--<scenario>.md`) reaches no consumer mirror; a reviewer reads it live through [`bankai-handbooks`](../bankai-handbooks/SKILL.md) § 2 until zheref/nen#457 resolves and mirrors it (the limbo half of zheref/hatsu#354 criterion 5 is owed there, not met here) | `nen canon resolve --repo <path> --target <slug> --always-load <…> --stack-dir "$canon/handbooks/stacks" --leaf rules` |
-| 5 | The drift, per surface, per file — `ok / missing / extra / stale / hand-edited / foreign`; `mkdir -p "<path>/.nen"` first — own-path flags resolve against `--repo`, so an ENOENT here reads as exit `1`, the drift code (residue 5). Exit `0` is *current*; `1` is drift; `2` is the invocation or the declaration, never *current* | `nen canon mirror check --repo <path> --rules-dir <…> --canon-values .claude/canon-values.yml --not-mirrored README.md,placeholders.md --markdown-out .nen/canon-drift.md --json` |
+| 4 | The checkout at the pin, **portable** (zheref/nen#294), in nen's order: `--canon-checkout "$canon"` when passed, then the registry's `checkout_env`, then `checkout`; a present step that fails fails the run. Limbo passes `$canon` (step 3) only after `unresolvable`. Exit `0` → step 5, `resolvedFrom` quoted; `1` `unresolvable` → re-run passing it; any other `1` → stop, quoted; `2` → invocation or declaration. Then the scenario of record, `$scenario`: the mirror verbs read the YAML's `scenario:`, never the registry, so it is passed as `--scenario` to steps 5 and 10, a differing YAML value reported, never used; exit `1`/`2` is `missing-configuration`. A ports pair file is not mirrored (`docs/config/canon-values.yml.md` gap 7) | `nen canon checkout --repo <path> [--canon-checkout "$canon"] --json` · `nen repo scenario --repo <path> --target <slug>` |
+| 5 | The drift, per surface, per file — `ok / missing / extra / stale / hand-edited / foreign`. Exit `0` is *current*; `1` is drift; `2` is the invocation or the declaration, never *current* | `nen canon mirror check --repo <path> --stack-dir handbooks/stacks --leaf rules --scenario "$scenario" [--canon-checkout "$canon"] --canon-values .claude/canon-values.yml --not-mirrored README.md,placeholders.md --markdown-out .nen/canon-drift.md --json` |
 | 6 | **Report** (§ 5). `as check`, or *current* with no `to`: stop here, hand-back line | — |
 | 7 | **Gate on `hand-edited`** — § 3, before any write | row `hand-edited-canon-mirror` |
 | 8 | Branch off the fresh trunk, base proven, a dirty tree carried — **on `<path>`, like every step 8–12**: they pass `--repo <path>` (breath § 1: *"never the cwd default"*), so `for <other>` never touches the session's own checkout | [`/breath limbo-<ref>`](../breath/SKILL.md) |
-| 9 | Repin — only with `to <tag>` (§ 4). **Then steps 3–4 again, at the new tag**: checkout and `--rules-dir` both move, or step 10 stamps the new marker onto the old bytes and step 5 re-reads that stale dir as `drift: none` | residue 3, `nen schema check --repo <path>` |
-| 10 | `--dry-run`, then bare: `written / unchanged / deleted / foreign` per surface; then step 5 again — **`drift: none`, or a finding about the generator** | `nen canon mirror generate …` (same flags as 5, no `--markdown-out`) |
+| 9 | Repin — only with `to <tag>` (§ 4). **Then steps 3–4 again, at the new tag**: nen refuses a checkout off the pin (`off-pin`) rather than stamp the new marker onto old bytes | residue 3, `nen schema check --repo <path>` |
+| 10 | `--dry-run`, then bare: `written / unchanged / deleted / foreign` per surface; then step 5 again — **`drift: none`, or a finding about the generator** | `nen canon mirror generate --repo <path> --stack-dir handbooks/stacks --leaf rules --scenario "$scenario" [--canon-checkout "$canon"] --canon-values .claude/canon-values.yml --not-mirrored README.md,placeholders.md` |
 | 11 | Commit **on `<path>`**: `chore(canon): mirror <source>@<ref> into <surfaces>`, `Hatsu-Agent: kurapika`; a prose change reports `focused tests: not applicable` | [`/kokusen --type chore --scope canon`](../kokusen/SKILL.md) |
 | 12 | Publish, one PR at the gate step 1 named, reviewer requested, hand off | `nen wc publish --repo <path> --set-upstream` (`--dry-run` first) · `nen pr open --repo <path> --target <slug> --base <branch.base> --title-file/--body-file` · `nen pr request-reviews` · [`/en on <CODE>#<N>`](../en/SKILL.md) |
 
@@ -101,7 +101,7 @@ byte moves:**
 own authority**: which canon governs a repository decides which rules its reviewers cite, so it is the
 owner's decision, made visibly in one PR — why nen refuses a floating `--ref` at all. With `to <tag>`: the tag must resolve on the canon
 (`refs/tags/<tag>`, residue 3), `maintained_tools[].pinned` is edited, `nen schema check` re-reads it
-(`pinned tools: …@<tag>` on the `nen/repos.json` row), the checkout **and `--rules-dir`** are re-resolved (steps 3–4), and every surface
+(`pinned tools: …@<tag>` on the `nen/repos.json` row), the checkout is re-resolved (steps 3–4), and every surface
 regenerates with the new marker in the same commit — **a repin without the regenerate is what
 `check` reports as `stale` on every surface**, verified. A tag below the recorded pin is a downgrade,
 said. `generate --ref` is never used to render past the registry.
@@ -120,11 +120,9 @@ unchanged / deleted`; the second check's `drift:`; the commit, the push, the PR 
    `nen canon pin --write <tag>` is a nen request, filed.
 4. **The predecessor marker** — `head -1` against `<!-- GENERATED from bankai-core@`; nen knows its
    own marker only, by design.
-5. **`mkdir -p "<path>/.nen"`** — `--markdown-out` resolves against `--repo` and does not create its
-   parent: exit `1` + `ENOENT`, indistinguishable from drift. Filed.
-6. **`iteration.canonMirror.command`** (WORKFLOW § *The local verification gate*, step 2): nen
-   resolves the checkout itself (zheref/nen#294), unadopted here, so a canon-values edit's
-   regenerate is still this skill; adoption is zheref/hatsu#578.
+5. **RETIRED:** `--markdown-out` creates its parent (zheref/nen#292).
+6. **RETIRED:** the mirror verbs resolve the checkout at the pin (zheref/nen#294): steps 4–5's portable
+   form, `iteration.canonMirror.command`'s too (WORKFLOW § *The local verification gate*, step 2).
 
 ## Authority
 
