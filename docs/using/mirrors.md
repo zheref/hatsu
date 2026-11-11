@@ -63,9 +63,15 @@ recognised rather than debugged.
 `SEC-7`). Whether a placed copy is Hatsu's own, and so whether the warm-up may run an unattended
 full-surface install, is decided by `scripts/surface_marker.sh`, which the bootstrap, the permission pack
 and the session-start hook all source. It reads one line of a file, the position above, and accepts only
-the generated form on it, in either grammar; the surface name is compared, never matched. A page that
+the generated form on it, in either grammar; the surface name is compared, never matched. It also reads
+the retired Antigravity generator's marker, where that generator wrote it, which nen's own reader does not
+know; and it reads a JSON file at line 2 only, where nen parses the whole document and takes the key
+wherever it sits, so it is the stricter of the two there. A page that
 quotes a concrete marker anywhere else is no adoption and no ownership, and a marker naming another
-surface never authorises this one, under the `.agents/` that Codex and Antigravity share. The other half
+surface never authorises this one, under the `.agents/` that Codex and Antigravity share. Over the 258
+generated files under `surfaces/`, every reader's verdict is what it was before the change. The reader is
+frozen to fixes only until nen reads a marker itself ([HR-392](../ROSTER.md#hr-392),
+[zheref/nen#658](https://github.com/zheref/nen/issues/658)). The other half
 is the source: `scripts/surface_mirror_check.sh` and `scripts/surface_mirror_regenerate.sh` refuse, by file
 and line, a skill, persona, hook manifest, hook script, rules file, permission source or plugin manifest
 that carries a concrete marker literal, because that page is placed into every surface tree and an older
@@ -115,7 +121,9 @@ bash scripts/surface_mirror_regenerate.sh             # again, after the bump
 
 It runs one `nen surface mirror generate` per surface with exactly the flags and hooks roots
 `scripts/surface_mirror_check.sh` checks against, read from that script rather than copied, so the
-generation and the drift check are one table. A refusal exits with nen's code and generates nothing
+generation and the drift check are one table. Before it generates anything it runs the check's
+source scan and refuses at the same code, `1`, naming each file and line, a mirrored source that carries
+a concrete marker literal (§ 1). A refusal exits with nen's code and generates nothing
 after it. Each generate writes only the files whose bytes changed, deletes an orphan whose source is
 gone, and refuses at exit 2 to overwrite a file that does not carry the marker. nen is the generator;
 the script only calls it.
@@ -128,8 +136,8 @@ with the same flags for codex, cursor and antigravity, and writes nothing:
 | Exit | Meaning |
 |---|---|
 | `0` | every mirror is byte-identical to a fresh generation |
-| `1` | drift: `missing`, `extra`, `stale` (marked for another surface), `hand-edited`, listed per surface |
-| `2` | the `nen` on `PATH` has no `surface` verb, or a wiring defect; never silently passed |
+| `1` | drift: `missing`, `extra`, `stale` (marked for another surface), `hand-edited`, listed per surface; or a mirrored source carrying a concrete marker literal, refused by file and line before any surface is checked (§ 1) |
+| `2` | the `nen` on `PATH` has no `surface` verb, or a wiring defect (a mirrored source the scan cannot read among them); never silently passed |
 | `3` | no `nen` on `PATH` |
 
 **On Claude Code there is no mirror to check** (zheref/hatsu#106): the plugin is read in place from the

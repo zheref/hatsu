@@ -32,7 +32,8 @@
 #   1  a mirrored source carries a concrete generated-marker literal (the check's
 #      source_marker_scan, zheref/hatsu#531): refused by file and line, nothing generated
 #   2  wiring: a root that is not a Hatsu checkout, a manifest that is unreadable or carries no
-#      version, a nen with no `surface` verb, an unknown argument
+#      version, a mirrored source the scan cannot read, a nen with no `surface` verb, an unknown
+#      argument
 #   3  no `nen` on PATH (and NEN_BIN names nothing executable)
 #   any other non-zero is nen's own refusal for the surface named, and the surfaces after it are
 #   NOT generated (the ones before it are, and the drift check will say so)
@@ -69,7 +70,7 @@ regenerate() {
   manifest_ver="$(manifest_version "$MANIFEST_FILE")"
   [ -n "$manifest_ver" ] || die "$MANIFEST_FILE carries no readable version; the surface manifest it renders is never generated unversioned."
   # A source that would place a concrete marker is refused before it can be generated (#531).
-  source_marker_scan || exit 1
+  source_marker_scan || exit $?
 
   nen="$(nen_bin)"
   if [ "$dry" -eq 0 ]; then

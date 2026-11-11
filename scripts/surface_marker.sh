@@ -7,8 +7,17 @@
 # its bytes?", spelled three ways. The marker's text is also the form every document, comment and
 # changelog uses to DESCRIBE it, so a prose file that only quoted a concrete marker satisfied the
 # question, and the answer authorises an unattended full-surface install into a consumer's
-# workspace (Feitan, F5 on the pull request closing zheref/hatsu#530). This file asks the question
-# nen itself asks: does the file carry a marker AT THE POSITION THE GENERATOR WRITES ONE?
+# workspace (Feitan, F5 on the pull request closing zheref/hatsu#530). This file asks nen's own
+# question, does the file carry a marker AT THE POSITION THE GENERATOR WRITES ONE?, with two
+# differences, both deliberate: a JSON file is read at its line 2 only, where nen parses the whole
+# document and takes the marker key wherever it sits, so this reader is the stricter one there;
+# and the retired Antigravity generator's marker, which nen's reader does not know, is read too,
+# where that generator wrote it (below).
+#
+# FROZEN TO FIXES ONLY (HR-392, docs/ROSTER.md; BC-11 as HR-171 reads it). A shell predicate is
+# BC-11 debt: this file takes fixes and nothing new until nen ships a verb that reads one file's
+# generated marker (zheref/nen#658) and Hatsu repins to it, and then it retires, each reader
+# calling the verb.
 #
 # THE POSITION, read off nen's own `readMarker` (zheref/nen src/surface/mirror.ts). Exactly one
 # line of the file is ever looked at:

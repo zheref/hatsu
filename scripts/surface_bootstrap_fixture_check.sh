@@ -627,6 +627,48 @@ generated_skill codex "$stamped_adoption_fixture/.agents/skills/hatsu-adoption-m
 "$bootstrap" --surface codex --target "$stamped_adoption_fixture" --install-all >/dev/null
 [ -f "$stamped_adoption_fixture/.agents/skills/ten/SKILL.md" ] || fail "a genuine stamped codex marker was not read as codex's adoption (zheref/hatsu#531 AC-2)"
 
+# (5) SC-2 against the committed tree: every file under surfaces/ carries its own surface's marker
+#     where the generator writes it, so each reader's verdict on a placed copy is the one nen gave.
+sc2_count=0
+while IFS= read -r sc2_file; do
+  sc2_surface="${sc2_file#"$hatsu_root/surfaces/"}"
+  sc2_surface="${sc2_surface%%/*}"
+  sc2_got="$(bash -c '. "$1"; surface_marker_read "$2" || printf none' reader "$marker_reader" "$sc2_file" 2>&1)"
+  [ "$sc2_got" = "nen:$sc2_surface" ] || fail "SC-2: ${sc2_file#"$hatsu_root/"} reads '$sc2_got', expected 'nen:$sc2_surface' (zheref/hatsu#531)"
+  sc2_count=$((sc2_count + 1))
+done < <(find "$hatsu_root/surfaces" -type f)
+[ "$sc2_count" -gt 0 ] || fail "SC-2: no file under surfaces/ was read"
+echo "ok    SC-2: $sc2_count generated files under surfaces/ each read nen:<their surface>"
+
+# (6) The retired Antigravity marker is a hook script's ownership on antigravity ALONE (Nobunaga,
+#     QA-18; scripts/surface_bootstrap.sh is_ours_hook_script). (a) Under codex's .codex/hooks/ an
+#     untracked script carrying it on line 2 is someone else's: kept, unchanged, and named as kept.
+#     (b) The same script under antigravity's .agents/hooks/ is that generator's: replaced.
+legacy_hook_text="$(printf '#!/bin/sh\n# <!-- %s -->\necho old\n' "$legacy_text")"
+legacy_codex_fixture="$fixture_root/legacy-hook-codex"
+new_fixture "$legacy_codex_fixture"
+mark_adopted "$legacy_codex_fixture" codex
+mkdir -p "$legacy_codex_fixture/.codex/hooks"
+printf '%s\n' "$legacy_hook_text" > "$legacy_codex_fixture/.codex/hooks/stop-bell.sh"
+cp "$legacy_codex_fixture/.codex/hooks/stop-bell.sh" "$fixture_root/legacy-hook-before"
+legacy_codex_output="$("$bootstrap" --surface codex --target "$legacy_codex_fixture" --install-all 2>&1)" ||
+  fail "codex --install-all refused a target holding a retired-marker hook script: $legacy_codex_output"
+cmp -s "$fixture_root/legacy-hook-before" "$legacy_codex_fixture/.codex/hooks/stop-bell.sh" ||
+  fail "codex --install-all replaced an untracked .codex/hooks/stop-bell.sh carrying only the retired Antigravity marker (zheref/hatsu#531): $legacy_codex_output"
+case "$legacy_codex_output" in
+  *"kept existing"*".codex/hooks/stop-bell.sh"*) ;;
+  *) fail "codex --install-all did not name the retired-marker .codex/hooks/stop-bell.sh as kept: $legacy_codex_output" ;;
+esac
+legacy_antigravity_fixture="$fixture_root/legacy-hook-antigravity"
+new_fixture "$legacy_antigravity_fixture"
+mark_adopted "$legacy_antigravity_fixture" antigravity
+mkdir -p "$legacy_antigravity_fixture/.agents/hooks"
+printf '%s\n' "$legacy_hook_text" > "$legacy_antigravity_fixture/.agents/hooks/stop-bell.sh"
+legacy_antigravity_output="$("$bootstrap" --surface antigravity --target "$legacy_antigravity_fixture" --install-all 2>&1)" ||
+  fail "antigravity --install-all refused a target holding a retired-marker hook script: $legacy_antigravity_output"
+cmp -s "$hatsu_root/surfaces/antigravity/hooks/stop-bell.sh" "$legacy_antigravity_fixture/.agents/hooks/stop-bell.sh" ||
+  fail "antigravity --install-all did not replace an .agents/hooks/stop-bell.sh carrying the retired Antigravity marker (zheref/hatsu#531): $legacy_antigravity_output"
+
 antigravity_collision_fixture="$fixture_root/antigravity-collision"
 new_fixture "$antigravity_collision_fixture"
 mark_adopted "$antigravity_collision_fixture" antigravity
@@ -912,6 +954,18 @@ generated_skill codex "$hook_stamped_target/.agents/skills/hatsu-adoption-marker
 ( cd "$hook_stamped_target" && hook_env HATSU_PLUGIN_ROOT="$hatsu_root" "$hatsu_root/surfaces/codex/hooks/session-start.sh" >/dev/null 2>&1 )
 grep -q 'surface bootstrap: codex' "$hook_stamped_target/.nen/session-start.log" 2>/dev/null ||
   fail "the codex-marked session-start.sh did not refresh off a genuine stamped codex marker (zheref/hatsu#531 AC-2): $(cat "$hook_stamped_target/.nen/session-start.log" 2>/dev/null)"
+# A directory name carrying a newline splits find's list there, so its tail reads as a path of its
+# own. Here the tail is `./marked.md`, a file at the TARGET ROOT carrying a genuine codex marker; it
+# lies outside .agents/ and must never authorise the refresh (Feitan, F1 on zheref/hatsu#531).
+hook_newline_target="$fixture_root/hook-newline-name"
+new_fixture "$hook_newline_target"
+hook_newline_dir="$hook_newline_target/.agents/skills/notes"$'\n'"."
+mkdir -p "$hook_newline_dir"
+printf 'notes\n' > "$hook_newline_dir/marked.md"
+generated_skill codex "$hook_newline_target/marked.md"
+( cd "$hook_newline_target" && hook_env HATSU_PLUGIN_ROOT="$hatsu_root" "$hatsu_root/surfaces/codex/hooks/session-start.sh" >/dev/null 2>&1 )
+[ ! -e "$hook_newline_target/.nen/session-start.log" ] || fail "session-start.sh refreshed off a marked file at the target root named by the tail of a newline-split path (zheref/hatsu#531 F1): $(cat "$hook_newline_target/.nen/session-start.log")"
+[ ! -e "$hook_newline_target/.agents/skills/ten" ] || fail "session-start.sh placed ten off a newline-split path outside .agents/ (zheref/hatsu#531 F1)"
 
 # The v0.49.0 rename cases (Phinks P-1 and P-3, docs/ROSTER.md ruling 9):
 # these clone THIS checkout's committed HEAD and the last tree that still
