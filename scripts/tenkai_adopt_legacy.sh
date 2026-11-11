@@ -843,7 +843,7 @@ class GuardRegistration(Item):
     def detect(self, ctx):
         st = self.state_of(ctx)
         if st == "absent":
-            return self.row(SATISFIED, f"no {GUARD_PATH} in this repository — no two-PR ordering applies")
+            return self.row(SATISFIED, f"no {GUARD_PATH} in this repository. Ruby registration has no prerequisite PR")
         if st == "registered":
             return self.row(SATISFIED, "the guard already names pr-readiness.yml — the workflow may land next")
         return self.row(ROUTED,
