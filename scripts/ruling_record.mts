@@ -56,7 +56,7 @@ import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
-import { inventory, InventoryError, MAX_HR, readBlob, readLocal } from './ruling_id_inventory.mts';
+import { inventory, InventoryError, MAX_HR, readBlob, readIndexBlob, readLocal } from './ruling_id_inventory.mts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CONTRACT = 'nen.stop.answer/v0.1';
@@ -136,31 +136,34 @@ const em = (s: string): string => flat(s).replace(/\*/g, '\\*');
 // PL-05 reads inside them. An unknown token (nen exit 1) and `all` (every repository) are left as
 // written; any other nen reply is wiring. So a row is a function of its record AND nen/repos.json.
 const REF = /(?<![\w/.&#`\]-])([A-Za-z0-9][A-Za-z0-9._-]*) #(\d+)\b/g;
-const resolved = new Map<string, string | null>();
-const introduced = new Set<string>();
-function repoOf(token: string): string | null {
-  if (resolved.has(token)) return resolved.get(token) ?? null;
-  const r = spawnSync(nenBin(), ['repo', 'resolve', token, '--repo', ROOT, '--json'], { encoding: 'utf8' });
-  let repo: string | null = null;
-  if (r.status === 0) {
-    let repos: unknown;
-    try { repos = (JSON.parse(r.stdout) as { repos?: unknown }).repos; } catch (e) { throw new Wiring(`nen repo resolve ${token} --json did not parse: ${(e as Error).message}`); }
-    if (!Array.isArray(repos)) throw new Wiring(`nen repo resolve ${token} --json carries no repos[]`);
-    if (repos.length === 1) {
-      const one = (repos[0] as { repo?: unknown }).repo;
-      if (typeof one !== 'string' || !/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(one)) throw new Wiring(`nen repo resolve ${token} --json names no owner/name`);
-      repo = one;
-    }
-  } else if (r.status !== 1) throw new Wiring(`nen repo resolve ${token} could not run (${r.error?.message ?? `exit ${r.status}`}): ${String(r.stderr ?? '').trim()}`);
-  resolved.set(token, repo);
-  return repo;
+function referenceCoder(root: string) {
+  const resolved = new Map<string, string | null>();
+  const introduced = new Set<string>();
+  function repoOf(token: string): string | null {
+    if (resolved.has(token)) return resolved.get(token) ?? null;
+    const r = spawnSync(nenBin(), ['repo', 'resolve', token, '--repo', root, '--json'], { encoding: 'utf8' });
+    let repo: string | null = null;
+    if (r.status === 0) {
+      let repos: unknown;
+      try { repos = (JSON.parse(r.stdout) as { repos?: unknown }).repos; } catch (e) { throw new Wiring(`nen repo resolve ${token} --json did not parse: ${(e as Error).message}`); }
+      if (!Array.isArray(repos)) throw new Wiring(`nen repo resolve ${token} --json carries no repos[]`);
+      if (repos.length === 1) {
+        const one = (repos[0] as { repo?: unknown }).repo;
+        if (typeof one !== 'string' || !/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(one)) throw new Wiring(`nen repo resolve ${token} --json names no owner/name`);
+        repo = one;
+      }
+    } else if (r.status !== 1) throw new Wiring(`nen repo resolve ${token} could not run (${r.error?.message ?? `exit ${r.status}`}): ${String(r.stderr ?? '').trim()}`);
+    resolved.set(token, repo);
+    return repo;
+  }
+  const codeRefs = (s: string): string => s.replace(REF, (all, token: string, n: string) => {
+    const repo = repoOf(token);
+    if (!repo) return all;
+    introduced.add(repo);
+    return `${repo}#${n}`;
+  });
+  return { codeRefs, repoOf, introduced };
 }
-const codeRefs = (s: string): string => s.replace(REF, (all, token: string, n: string) => {
-  const repo = repoOf(token);
-  if (!repo) return all;
-  introduced.add(repo);
-  return `${repo}#${n}`;
-});
 // The status and what it settles are the lead's own markdown (links, code spans), never the record's
 // text: only a line break and an unescaped pipe, which would split the cell, are handled.
 const authored = (s: string): string => lines(s).replace(/\n/g, ' ').replace(/(?<!\\)\|/g, '\\|');
@@ -176,7 +179,7 @@ function preSource(r: AnswerRecord): string | null {
   return src?.startsWith('Source: ') ? src.slice('Source: '.length) : 'source unstated';
 }
 
-function cells(record: AnswerRecord, hr: number, coded: (s: string) => string = codeRefs): string[] {
+function cells(record: AnswerRecord, hr: number, coded: (s: string) => string): string[] {
   const options = isReference(record) ? 'none: typed by design'
     : record.options.map((o) => `(${o.key}) ${flat(coded(o.label))} — *${em(coded(o.consequence))}*`).join(' · ');
   const source = preSource(record);
@@ -254,17 +257,29 @@ function renderClaim(repo: string, record: AnswerRecord, hr: number): string | u
   const stem = stemOf(record);
   const path = `docs/${LINK_DIR}/${stem}.json`;
   const holders = inventory(repo);
-  const isSameRecord = (holder: (typeof holders)[number]): boolean => {
-    if (holder.record !== stem || holder.own === false) return false;
+  const identity = (holder: (typeof holders)[number]): 'same' | 'different' | 'unread' => {
+    if (holder.record !== stem || holder.own === false) return 'different';
     try {
-      const copy = holder.revision !== undefined ? readBlob(repo, holder.revision, path) : readLocal(repo, path);
-      return isDeepStrictEqual(project(validate(JSON.parse(copy))), project(record));
-    } catch { return false; }
+      const copy = holder.revision === '' ? readIndexBlob(repo, path) ?? readLocal(repo, path)
+        : holder.revision !== undefined ? readBlob(repo, holder.revision, path)
+        : readLocal(repo, path);
+      return isDeepStrictEqual(project(validate(JSON.parse(copy))), project(record)) ? 'same' : 'different';
+    } catch { return 'unread'; }
   };
-  const conflict = holders.find((holder) => holder.number === hr && !isSameRecord(holder));
-  if (conflict) return `HR-${hr} is held by ${conflict.where}`;
-  const existing = holders.find((holder) => holder.number !== hr && isSameRecord(holder));
-  if (existing) return `record ${stem} keeps HR-${existing.number} at ${existing.where}`;
+  let unread: (typeof holders)[number] | undefined;
+  for (const holder of holders) {
+    if (holder.number !== hr) continue;
+    const match = identity(holder);
+    if (match === 'different') return `HR-${hr} is held by ${holder.where}`;
+    if (match === 'unread') unread ??= holder;
+  }
+  for (const holder of holders) {
+    if (holder.number === hr) continue;
+    const match = identity(holder);
+    if (match === 'same') return `record ${stem} keeps HR-${holder.number} at ${holder.where}`;
+    if (match === 'unread') unread ??= holder;
+  }
+  if (unread) throw new Wiring(`cannot verify record ${stem} for HR-${unread.number} at ${unread.where}; no row rendered`);
   return undefined;
 }
 
@@ -279,8 +294,9 @@ function render(argv: string[]): number {
   let record: AnswerRecord;
   try { record = readRecord(need(args, '--record')); } catch (e) { if (e instanceof Wiring) throw e; throw new Wiring(`cannot read --record: ${(e as Error).message}`); }
   if (!STEM.test(stemOf(record))) throw new Wiring('the record\'s effort and id do not make a file stem');
-  introduced.clear();
-  const row = `| ${[...cells(record, hr), authored(status), authored(settles)].join(' | ')} |`;
+  const repo = checkout(args);
+  const { codeRefs, introduced } = referenceCoder(repo);
+  const row = `| ${[...cells(record, hr, codeRefs), authored(status), authored(settles)].join(' | ')} |`;
   // A coded slug is the registry's, not the record's (a product code names a repository the exported
   // text never held), so it passes the private-name guard before the row is printed for a public roster.
   // The guard prints an index, never the name; `check` writes nothing and does not run it.
@@ -290,7 +306,7 @@ function render(argv: string[]): number {
     if (guard.error || (guard.status !== 0 && guard.status !== 1)) throw new Wiring(`HR-${hr}: the private-name guard could not run (exit ${guard.status}) over the coded references of record ${stemOf(record)}; nothing is printed`);
     if (guard.status !== 0) { console.log(`ruling-record: HR-${hr}: record ${stemOf(record)} would be rendered with a private repository coded from the registry; nothing is printed`); return 1; }
   }
-  const conflict = renderClaim(checkout(args), record, hr);
+  const conflict = renderClaim(repo, record, hr);
   if (conflict) {
     console.error(`ruling-record: ${conflict}; no row rendered`);
     return 1;
@@ -307,7 +323,7 @@ const CELL_NAMES = ['HR id and record link', 'question', 'options', 'answer'];
 // stop leaves the old slug in the row). Every other character must match, so a hand edit of a slug or a
 // word (`zheref/evil#5` for `hatsu #5`) is a plain mismatch.
 const escRe = (t: string): string => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-function refsMoved(got: string, uncodedCell: string): boolean {
+function refsMoved(got: string, uncodedCell: string, repoOf: (token: string) => string | null): boolean {
   const words: string[] = [];
   let pattern = '';
   let last = 0;
@@ -340,6 +356,7 @@ function check(argv: string[]): number {
       files = readdirSync(records).filter((f) => f.endsWith('.json')).sort();
     } catch (e) { throw new Wiring(`cannot list ${records}: ${(e as Error).message}`); }
   }
+  const { codeRefs, repoOf } = referenceCoder(ROOT);
   let findings = 0;
   const cited = new Map<string, number>();
   const err = (line: number, msg: string): void => { findings += 1; console.log(`::error file=${roster},line=${line}::${ann(msg)}`); };
@@ -360,7 +377,7 @@ function check(argv: string[]): number {
       err(n, `${hr}: record ${id} is unreadable (${(e as Error).message}); the row cannot be checked`); return;
     }
     if (stemOf(record) !== id) { err(n, `${hr}: ${id}.json holds record ${stemOf(record)}; a collision of ids across clones is refused`); return; }
-    const want = cells(record, Number(bold));
+    const want = cells(record, Number(bold), codeRefs);
     const uncoded = cells(record, Number(bold), (t) => t);
     const got = splitRow(line);
     if (got.length < 6) { err(n, `${hr}: the row has ${got.length} cells, a ruling row has 6`); return; }
@@ -368,7 +385,7 @@ function check(argv: string[]): number {
       if (got[i] === want[i]) continue;
       // HR-368's remedy is named only where the row differs from the record in its coded references
       // alone (cells 1-3; a rename, a stop or a start in nen/repos.json); a hand-retyped cell is a plain mismatch.
-      const moved = i > 0 && refsMoved(got[i] ?? '', uncoded[i] ?? '');
+      const moved = i > 0 && refsMoved(got[i] ?? '', uncoded[i] ?? '', repoOf);
       err(n, `${hr}: the ${CELL_NAMES[i]} cell differs from record ${id}; ${moved ? 'if nen/repos.json changed, re-render it in this PR (HR-368); otherwise the cell was edited by hand: re-render it from the record' : 're-render it'}`);
     }
     if (!got[4] || !got[5]) err(n, `${hr}: the status and what-it-settles cells must be filled`);
