@@ -713,12 +713,34 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
+            "scripts/node_cli_coverage_fixture.mts",
+            "--capture",
+            "gh-api-read-guard",
+            "scripts/gh_api_read.mts",
+            "--",
+            "node",
             "node_modules/vitest/vitest.mjs",
             "run",
             "scripts/gh_api_read_fixture.test.mts",
             "scripts/provider_tag_commit_fixture.test.mts"
           ],
-          "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first. Native Node LCOV captures the exact TypeScript production sources executed by these CLI fixtures, including child processes.",
+          "artifacts": [
+            "coverage/gh-api-read-guard/cli/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/node_cli_coverage_fixture.mts",
+            "--verify",
+            "gh-api-read-guard",
+            "scripts/gh_api_read.mts"
+          ],
+          "artifacts": [
+            "coverage/gh-api-read-guard/cli/lcov.info"
+          ],
+          "$comment": "Extraction only. Verify the LCOV written by the declared test, with no fixture rerun. Nen owns artifact parsing and --from-capture provenance."
         }
       },
       "futon-effort-guard": {
@@ -974,6 +996,16 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
+            "scripts/node_cli_coverage_fixture.mts",
+            "--capture",
+            "tenkai-guard",
+            "--shell-source",
+            "scripts/tenkai_adopt.sh",
+            "scripts/tenkai_readiness_guard.mts",
+            "scripts/tenkai_readiness_policy.mts",
+            "scripts/tenkai_required_job_contexts.mts",
+            "--",
+            "node",
             "scripts/shell_coverage.mts",
             "--capture",
             "tenkai-guard",
@@ -981,22 +1013,28 @@
             "scripts/tenkai_adopt.sh",
             "--self-test"
           ],
-          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. The portable readiness fixture exercises the public adoption entry, trusted step and two-stage policy updates (zheref/hatsu#361). Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427). Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/tenkai-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane tenkai-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. The portable readiness fixture exercises the public adoption entry, trusted step and two-stage policy updates (zheref/hatsu#361). Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427). Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/tenkai-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane tenkai-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov the shell source is reported as unmeasured. Native Node LCOV captures the exact TypeScript production sources executed by these CLI fixtures, including child processes. The capture adds the shell report when Bashcov produces it, so Nen can read the TypeScript report with or without Bashcov.",
           "artifacts": [
-            "coverage/tenkai-guard/lcov.info"
+            "coverage/tenkai-guard/lcov.info",
+            "coverage/tenkai-guard/cli/lcov.info"
           ]
         },
         "coverage": {
           "exe": "node",
           "argv": [
-            "scripts/shell_coverage.mts",
+            "scripts/node_cli_coverage_fixture.mts",
             "--verify",
-            "tenkai-guard"
+            "tenkai-guard",
+            "--shell-source",
+            "scripts/tenkai_adopt.sh",
+            "scripts/tenkai_readiness_guard.mts",
+            "scripts/tenkai_readiness_policy.mts",
+            "scripts/tenkai_required_job_contexts.mts"
           ],
           "artifacts": [
-            "coverage/tenkai-guard/lcov.info"
+            "coverage/tenkai-guard/cli/lcov.info"
           ],
-          "$comment": "Extraction only: reads coverage/tenkai-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+          "$comment": "Extraction only. Verify the LCOV written by the declared test, with no fixture rerun. Nen owns artifact parsing and --from-capture provenance."
         }
       },
       "tenkai-fixes-guard": {
@@ -2039,6 +2077,13 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
+            "scripts/node_cli_coverage_fixture.mts",
+            "--capture",
+            "consumer-trailer-guard",
+            "scripts/tenkai_trailer_guard.mts",
+            "scripts/consumer_trailer_ci.mts",
+            "--",
+            "node",
             "node_modules/vitest/vitest.mjs",
             "run",
             "--maxWorkers",
@@ -2047,7 +2092,24 @@
             "15000",
             "scripts/tenkai_trailer_guard_fixture.test.mts"
           ],
-          "$comment": "Existing pinned Vitest framework; offline fixtures execute the rendered job against real Git histories and the published reader's exact bytes, plus adoption drift and actual guard admission."
+          "$comment": "Existing pinned Vitest framework; offline fixtures execute the rendered job against real Git histories and the published reader's exact bytes, plus adoption drift and actual guard admission. Native Node LCOV captures the exact TypeScript production sources executed by these CLI fixtures, including child processes.",
+          "artifacts": [
+            "coverage/consumer-trailer-guard/cli/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/node_cli_coverage_fixture.mts",
+            "--verify",
+            "consumer-trailer-guard",
+            "scripts/tenkai_trailer_guard.mts",
+            "scripts/consumer_trailer_ci.mts"
+          ],
+          "artifacts": [
+            "coverage/consumer-trailer-guard/cli/lcov.info"
+          ],
+          "$comment": "Extraction only. Verify the LCOV written by the declared test, with no fixture rerun. Nen owns artifact parsing and --from-capture provenance."
         }
       },
       "plugin-bump-api-retry-guard": {

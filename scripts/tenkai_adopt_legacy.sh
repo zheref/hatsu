@@ -1200,7 +1200,7 @@ class ReadinessWorkflow(Item):
         if drifts:
             return self.row(DRIFT, "; ".join(drifts + notes), "re-render from templates/pr-readiness.yml")
         detail = f"installed, gated to {ctx.slug}, runs-on {ctx.runner['runs_on']}"
-        return self.row(**readiness_guard(ctx, "workflow-context", "; ".join([detail] + notes)))
+        return self.row(SATISFIED, "; ".join([detail] + notes))
 
     def repair(self, ctx):
         cur = self.detect(ctx)

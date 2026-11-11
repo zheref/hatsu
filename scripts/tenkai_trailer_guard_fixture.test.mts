@@ -40,7 +40,8 @@ const yaml = spawnSync('ruby', ['-rpsych', '-rjson', '-e', 'puts Psych.load_file
 expect(yaml.status, yaml.stderr).toBe(0);
 const document = JSON.parse(yaml.stdout);
 const job = document.jobs['forbidden-commit-trailers'];
-const publisher = readFileSync(join(source, 'scripts/consumer_trailer_ci.mts'), 'utf8');
+const publisherSource = join(source, 'scripts/consumer_trailer_ci.mts');
+const publisher = readFileSync(publisherSource, 'utf8');
 const check = job.steps.at(-1).run as string;
 
 test('offline reader bytes match the immutable published artifact', () => {
@@ -160,6 +161,19 @@ function exercise(message: string, options: { corrupt?: boolean; baseKeys?: unkn
     commit(pr, 'clean final commit');
     if (options.advanceBase) { writeFileSync(join(base, 'base-only'), 'new base'); sha = commit(base, 'advance base after fork'); }
     mkdirSync(bin); mkdirSync(runner);
+    // The ordinary fixture executes the copied trusted checkout. During native
+    // coverage, verify those exact bytes and execute their repository path so
+    // LCOV identifies the production source, independent of the fixture's path.
+    if (process.env.HATSU_CLI_COVERAGE_COMMAND) {
+      writeFileSync(join(bin, 'node'), `#!/bin/sh
+if [ "$1" = .base/scripts/consumer_trailer_ci.mts ]; then
+  cmp -s "$1" "$HATSU_FIXTURE_PUBLISHER" || exit 97
+  shift
+  set -- "$HATSU_FIXTURE_PUBLISHER" "$@"
+fi
+exec "$HATSU_FIXTURE_NODE" "$@"
+`, { mode: 0o755 });
+    }
     const published = join(root, 'published.sh'); writeFileSync(published, options.corrupt ? 'exit 0\n' : helper.stdout);
     writeFileSync(join(bin, 'curl'), '#!/bin/sh\nwhile [ "$#" -gt 0 ]; do if [ "$1" = -o ]; then cp "$PUBLISHED_HELPER" "$2"; exit; fi; shift; done\nexit 2\n', { mode: 0o755 });
     const log = join(root, 'api.jsonl');
@@ -199,7 +213,7 @@ fs.writeFileSync(state, JSON.stringify(result));
 process.stdout.write(JSON.stringify(result));
 `, { mode: 0o755 });
     const head = git(pr, 'rev-parse', 'HEAD');
-    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_NAME: options.wrongName ? 'yes' : '', BAD_ID: options.badId === undefined ? '' : JSON.stringify(options.badId), WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '', WRONG_DETAILS: options.wrongDetails ?? '' } });
+    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, HATSU_FIXTURE_PUBLISHER: publisherSource, HATSU_FIXTURE_NODE: process.execPath, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_NAME: options.wrongName ? 'yes' : '', BAD_ID: options.badId === undefined ? '' : JSON.stringify(options.badId), WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '', WRONG_DETAILS: options.wrongDetails ?? '' } });
     // Both bases are already ancestors of this exact head. Retargeting must
     // rescan it against the destination policy rather than retain old success.
     if (destination) {

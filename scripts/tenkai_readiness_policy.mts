@@ -22,7 +22,8 @@ export type RenderInputs = {
 };
 
 const LEGACY_GUARD = "scripts/workflow_runner_policy_check.rb";
-const WORKFLOW_MARKER = "# pr-readiness.yml — RENDERED BY hatsu:tenkai.";
+const LEGACY_WORKFLOW_MARKER = "RENDERED BY hatsu:tenkai";
+const WORKFLOW_MARKER = "# pr-readiness.yml — " + LEGACY_WORKFLOW_MARKER + ".";
 const PORTABLE_MARKER = "# Workflow policy: Tenkai's portable guard";
 const HEAD_REF = "          ref: ${{ github.event.pull_request.head.sha }}\n";
 const TRUSTED_CHECKOUT = "      - name: Checkout guard code from the trusted workflow revision\n";
@@ -131,6 +132,42 @@ function writeOwned(repo: string, path: string, before: string | undefined, cont
     renameSync(temporary, target);
   } finally {
     if (fileInfo(temporary)) unlinkSync(temporary);
+  }
+}
+
+// The frozen adopter handles ordinary legacy readiness drift. Own only the
+// required-context defect here, after the same reader and Ruby policy gate.
+export function adoptLegacyRequiredContext(
+  repo: string, hatsuRoot: string, input: RenderInputs, mode: "diagnose" | "apply", gateReady: () => boolean,
+): Row | null {
+  if (!input.role || !input.repository || input.rendered === null || input.runnerLabelsRequired || !gateReady()) return null;
+  try {
+    const installed = regularText(repo, input.path);
+    if (installed === undefined) return null;
+    let contextError: string;
+    try {
+      assertManagedRequiredJobContexts(hatsuRoot, input.path, installed);
+      return null;
+    } catch (error) {
+      contextError = (error as Error).message;
+    }
+    if (mode === "diagnose") return row("drift", contextError, "re-render from templates/pr-readiness.yml");
+    if (!installed.includes(LEGACY_WORKFLOW_MARKER)) {
+      return row("drift", "a pr-readiness.yml is installed that Tenkai did not render — it will not be overwritten",
+        "review by hand, then delete it and re-run apply");
+    }
+    const live = installed.split(/\r?\n/).filter(line => !line.trimStart().startsWith("#")).join("\n");
+    const runner = input.runnerKnown ? undefined : live.match(/runs-on:[ \t]*(\[[^\r\n\]]*\]|\S+)/)?.[1];
+    const rendered = runner ? input.rendered
+      .replace(/^    runs-on: [^\n]+$/m, () => "    runs-on: " + runner)
+      .replace(/^#   runs-on      : [^\n]+$/m, () => "#   runs-on      : " + runner) : input.rendered;
+    if (runner) assertManagedRequiredJobContexts(hatsuRoot, input.path, rendered);
+    writeOwned(repo, input.path, installed, rendered);
+    const shown = runner ?? rendered.match(/^    runs-on: ([^\n]+)$/m)?.[1];
+    return row("repaired", "rendered for " + input.repository + ", runs-on " + shown +
+      (runner ? " (runner preserved — the probe could not answer)" : ""));
+  } catch (error) {
+    return row("blocked", (error as Error).message, "repair the workflow path before re-adopting");
   }
 }
 

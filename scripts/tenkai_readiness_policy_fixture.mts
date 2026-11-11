@@ -1,7 +1,7 @@
 // Exercise Tenkai's public adoption entry point and the step it actually renders.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { GUARD_PATH, POLICY_PATH, workflowDigest } from "./readiness_workflow_policy.mts";
@@ -58,6 +58,7 @@ function adopt(mode: "apply" | "diagnose", visibility: "public" | "private" | nu
   assert.ok(result.status === 0 || result.status === 1, result.stderr || String(result.error));
   const report = JSON.parse(result.stdout);
   const readiness = report.items.find((item: { id: string }) => item.id === workflowPath);
+  assert.equal(result.status, report.outstanding ? 1 : 0, "JSON exit follows the aggregate report");
   return { ...readiness, outstanding: report.outstanding, report };
 }
 function copy(paths: string[], destination: string) {
@@ -309,6 +310,48 @@ exit 1
   const legacy = text(repo, workflowPath);
   check(legacy.includes("TENKAI_GUARD_REQUIRED: true") && !existsSync(join(repo, GUARD_PATH)),
     "the prior process workflow expects the Ruby guard");
+  const wrongContext = legacy.replace("  readiness:\n", "  readiness:\n    name: other-readiness\n");
+  assert.notEqual(wrongContext, legacy, "the fixture must rename the reported job context");
+  const renamedLegacy = "# Local rendering note\n" + wrongContext;
+  const contextDiagnostic = workflowPath + ': required context "readiness"';
+  put(repo, workflowPath, renamedLegacy);
+  const legacyDrift = adopt("diagnose");
+  check(legacyDrift.state === "drift" && legacyDrift.detail.includes(contextDiagnostic) &&
+    text(repo, workflowPath) === renamedLegacy, "legacy required-context diagnosis is read-only: " + legacyDrift.detail);
+  const textReport = spawnSync("bash", [join(root, "scripts/tenkai_adopt.sh"), "diagnose", "--repo", repo,
+    "--visibility", "public", "--self-hosted", "0"], { encoding: "utf8", env, timeout: 30_000 });
+  check(textReport.status === 1 && textReport.stdout.includes("DRIF  " + workflowPath) &&
+    textReport.stdout.includes(contextDiagnostic), "the public text report keeps the readiness row and outstanding exit");
+  const reader = "scripts/readiness_ci_verdict.mts";
+  rmSync(join(repo, reader));
+  check(adopt("diagnose").state === "staged" && text(repo, workflowPath) === renamedLegacy,
+    "the reader gate stages an installed workflow with context drift");
+  check(adopt("apply").state === "repaired" && text(repo, workflowPath) === legacy,
+    "apply restores the required context after the reader is installed");
+  const repairedAt = statSync(join(repo, workflowPath)).mtimeMs;
+  check(adopt("apply").state === "satisfied" && text(repo, workflowPath) === legacy &&
+    statSync(join(repo, workflowPath)).mtimeMs === repairedAt, "a second apply leaves the legacy rendering untouched");
+
+  const privateRunner = "[self-hosted, Linux, X64, pool-ci]";
+  const privateWorkflow = renamedLegacy.replaceAll("ubuntu-latest", privateRunner);
+  put(repo, workflowPath, privateWorkflow);
+  const offline = adopt("apply", null);
+  check(offline.state === "repaired" && offline.detail.includes("runner preserved") &&
+    text(repo, workflowPath).includes("    runs-on: " + privateRunner) &&
+    text(repo, workflowPath).includes("  readiness:\n    if:"), "legacy context repair preserves an unreadable runner");
+
+  const ownerWorkflow = wrongContext.replace(/^# pr-readiness[^\n]+\n/, "# Owner workflow\n");
+  put(repo, workflowPath, ownerWorkflow);
+  check(adopt("apply").state === "drift" && text(repo, workflowPath) === ownerWorkflow,
+    "a context defect cannot authorize replacing an owner-maintained workflow");
+  const linked = join(sandbox, "linked-readiness.yml");
+  put(sandbox, "linked-readiness.yml", renamedLegacy);
+  rmSync(join(repo, workflowPath));
+  symlinkSync(linked, join(repo, workflowPath));
+  check(adopt("apply").state === "blocked" && readFileSync(linked, "utf8") === renamedLegacy,
+    "the required-context repair cannot follow a linked workflow");
+  rmSync(join(repo, workflowPath));
+  put(repo, workflowPath, legacy);
   rmSync(join(repo, customPath));
   freezeBase([workflowPath]);
   const migration = adopt("apply");
