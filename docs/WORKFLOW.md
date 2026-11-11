@@ -1559,8 +1559,9 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   acted on as the maintainer's typed words. The maintainer kept HR-173 over re-asking every unmatched
   typed reply (2026-10-23, [HR-341](ROSTER.md#hr-341), record `R-2026-10-23-08` under effort `HA-IS-#450`; zheref/hatsu#443 AC-2).
 - **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
-  `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
-  candidates, none starred, go in the question file): record it with the one reference option
+  `port-drift`, `release-go` (mugetsu § 3) and `merged-head-review-skip` (en § 3) — are never re-asked
+  for being typed. `missing-maintainer-choice`, `release-go` and `merged-head-review-skip` have no options
+  (candidates, none starred, go in the question file): record each with the one reference option
   `--option "ref=typed by design (no option)::the typed words are the answer"` and `--typed-file`, so
   nen never reads a typed value as a pick; the row renders `none: typed by design`, capture class typed.
 - **`direct-mismatch`'s record is `nen direct answer`** (direct § 6); `nen stop answer` records every
@@ -1747,30 +1748,38 @@ is not the file's own key.
 
 ### Declined cleanup rows
 
-**Declined cleanup rows are remembered, and offered again as one row** (zheref/hatsu#584;
+**Declined cleanup rows are remembered, and offered again folded by class** (zheref/hatsu#584;
 [HR-210](ROSTER.md#hr-210)). When Shizuku closes a plan whose picker the maintainer answered
 ([`cleanup`](../claude/skills/cleanup/) § 3, step 3), every deterministic or proposed `plan[]` row the answer
 did not pick, whether left unticked under **A** or **B** or kept by **C** `none`, is appended to
 `<core>/.nen/cleanup/declined.jsonl`, one JSON line per row: `contract` (`hatsu.cleanup.declined/v0.1`),
 `object` (the row's path, branch or ref, as the plan names it), `class` (`deterministic` or `proposed`),
-`bytes` (its `du -sk` reading in bytes), `marker` (the plan's `<slug>`) and `at` (the close time, ISO
-8601). A named row was never an option and is never declined; a plan closed `none-picked` on
+`bytes` (its `du -sk` reading in bytes), `marker` (the plan's `<slug>`), `at` (the close time, ISO
+8601) and `firstAt` (when the row was first declined: its latest line's `firstAt` where `object`,
+`class` and `bytes` equal that line, else this `at`; a line without one reads its `at`). A named row
+was never an option and is never declined, so it is never folded; a plan closed `none-picked` on
 `ids-invalid`, or left `pending`, declines nothing, because no answer was given.
 
-**A later inventory folds them, and still offers them**: HR-210's prior leftovers are inventoried,
-classified and offered the same way. Pass 1 reads the file and, once cleanup § 5 has classed a row,
-folds it where its `object`, `class` and `bytes` all equal its latest line, that line is under 30 days
-old, and its `marker` is an earlier sitting's, read as a slug other than this plan's own: a same-sitting
-re-offer (cleanup § 2's `none-picked` or `partial` again) shows the rows it just declined in full. The
-folded rows become **one proposed `plan[]` row** with its own plan-unique id, its object `the <n> rows
-declined earlier (<total bytes>), oldest <date>`, its command the folded rows' own commands and its
-evidence each folded row's object and marker. Ticked under **B**, every folded row runs in cleanup § 5's
-order with the rest of the pick, each read back; **A** never includes it, its rows having been declined.
-That row is the summary, carried in `plan[]` and in the report like any other row, so the marker needs no
-key of its own. A row whose class or size changed, whose line has aged out or whose marker is this plan's
-returns as a full row, and a row declined again, folded or not, appends a new line. **`for all` reads no
-fold**: every declined row is listed in full. **The 30 days is the lead's reading**, borrowed from the
-run-record age cleanup § 4 uses; it gates no authority, since a folded row stays offered.
+**A later inventory folds them, and still offers them, each in its own class**: HR-210's prior leftovers
+are inventoried, classified and offered the same way. **An earlier sitting is decided by time, never by
+the slug** (cleanup § 7's slug is per scope): the main session passes this sitting's start in Shizuku's
+prompt, the ISO time of the session's first turn as the session records it, and a line is an earlier
+sitting's when its `at` is before that start; a prompt carrying no start folds nothing. Pass 1 reads
+the file and, once cleanup § 5 has classed a row, folds it where its `object`, `class` and `bytes` all
+equal its latest line, that line is an earlier sitting's, and its `firstAt` is under 30 days old; a
+same-sitting re-offer (cleanup § 2's `none-picked` or `partial` again) shows the rows it just declined
+in full. **The folded rows become one bundle row per class, keeping the class**: a deterministic bundle
+with its own plan-unique `D` id, which **A** includes like any deterministic row, and a proposed bundle
+with its own `P` id, ticked under **B**. Each bundle's object reads `the <n> <class> rows declined
+earlier (<total bytes>), oldest <date>`, its command the folded rows' own commands and its evidence each
+folded row's object and marker; picked, every folded row runs in cleanup § 5's order with the rest of the
+pick, each read back. The bundles are the summary, carried in `plan[]` and in the report like any other
+row, so the marker needs no key of its own. A bundle left unpicked appends **one line per folded row**,
+its `firstAt` carried forward, never one summary line, so a row declined at every sitting still ages out
+30 days after its first decline. A row whose class or size changed, or whose `firstAt` has aged out,
+returns as a full row. **`for all` reads no fold**: every declined row is listed in full. **The 30 days
+is the lead's reading**, borrowed from the run-record age cleanup § 4 uses; it gates no authority, since
+a folded row stays offered in its class.
 
 The file is a record beside the markers, never a leftover (cleanup § 4), and only Shizuku's close appends
 to it. **An unreadable file or an unreadable line folds nothing**: every row is offered in full and the

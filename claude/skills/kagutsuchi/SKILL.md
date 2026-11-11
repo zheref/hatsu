@@ -34,8 +34,8 @@ authorization.** Two sources, **and the report says which** (§ 5). **Typed**: t
 never a near-match; not a declared key → **refused**, naming the declaration PR and the keys. **Omitted**: `nen/workflow.json` → `deploy.defaultTarget` ([`WORKFLOW.md`](../../../docs/WORKFLOW.md)
 § 2 → `deploy`; ruling 2026-09-29, HA#146), read in the checkout the send runs from (§ 3b), **one
 row per state** — `null`/absent → **asked as free text** (`missing-maintainer-choice`, recorded through `nen stop answer`), the keys
-listed, none starred; a declared key marked non-production whose `why` also reads so (§ 2) → the target;
-any other → **refused, never asked**; no declared key → **refused**, naming the declaration PR;
+listed, none starred; a declared key passing § 2's two checks → the target;
+a declared key failing either check → **refused, never asked**; no declared key → **refused**, naming the declaration PR;
 not a string → `missing-configuration` by pointer. **`--target` is always passed to `nen shu deploy`
 explicitly.** **A call is the stop** — no confirmation, no options: the plan (§ 3), the gate (§ 3a),
 a build only if owed (§ 3b), the report (§ 5).

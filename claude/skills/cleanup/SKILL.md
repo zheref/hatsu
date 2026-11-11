@@ -45,7 +45,7 @@ A leftover found later is new scope.
 
 One delegate, **`cleanup · shizuku · <model alias>`**, on own pin (**no `model`**, `hanten` § 4), raised as
 third-hand § 3 raises Netero — **isolation omitted / `inherit`**; the
-prompt carries the absolute Hatsu root. No delegation: both passes in-session (PROCESS § *Surfaces and pickers*).
+prompt carries the absolute Hatsu root and sitting start. No delegation: both passes in-session (PROCESS § *Surfaces and pickers*).
 
 **Consent channel (candidate b)**, every surface: Shizuku asks nothing, a relayed prompt is no consent:
 1. **Pass 1 (inventory).** Shizuku reads § 4, classifies § 5, writes initial marker (§ 7) with `plan[]`,
@@ -55,7 +55,7 @@ prompt carries the absolute Hatsu root. No delegation: both passes in-session (P
 
 ## 4. What she inventories — this sitting, then prior leftovers
 
-**First read is `git fetch origin`**: merged is judged against the fetched base. Core is
+**First read is `git fetch origin`**: merged is judged on the fetched base. Core is
 `nen wc worktrees --repo <path> --json`'s `core`. **Every repo name is validated before it enters a
 command**, always after `--`, single-quoted; the admission script's header is the rule (`<branch.base>` from
 `nen/workflow.json`; the Hatsu root pasted absolute, § 3):
@@ -76,7 +76,7 @@ Failing names become **named** rows.
 Sizes: `du -sk <path>`, read before plan. **Core's `.nen/` ledgers (WORKFLOW § *The effort's ledgers*) and the git common dir's `.nen/` and `hatsu/` are records, never leftovers**; a worktree's own
 `.nen/` goes with it (ROSTER § *Rulings of 2026-10-20*). Prior leftovers
 grouped under *prior sessions*, **ownership never assumed** — dirt, detached checkouts and caches
-proposed, never deterministic. Sanitize: no credentials, no path outside checkout and caches.
+proposed, never deterministic. Sanitize: no credentials, no path beyond checkout and caches.
 
 ## 5. The plan — three classes, every row complete
 
@@ -128,11 +128,11 @@ Each row: `id` · class · object · exact command (none on named row) · what i
 — exit `1` or `5` (an id shared, missing or blank; not one plan array) stops before the question; on `5` the parse error named, on `1` shared ids from
 `jq -r -s '[.[0].plan[].id] | group_by(.)[] | select(length>1)[0]' '<marker>'`; main session re-raises
 pass 1 to re-mint (never renames) and reruns it. On a second stop main session records `pickerAnswer`
-`ids-invalid`, Shizuku closes `none-picked`, ids in the report. Any other exit (`2`, `127`) stops, host
-fact named, marker left `pending`. No deterministic or proposed row: no question;
+`ids-invalid`, Shizuku closes `none-picked`, ids in the report. Any other exit (`2`, `127`) stops: host
+fact named, marker `pending`. No deterministic or proposed row: no question;
 Shizuku closes `already-clean` (empty plan) or `none-proposed` (named only). Else one native
 picker question (third-hand § 6; row `cleanup-plan`): ⭐ **A** every deterministic row · **B** deterministic **and** ticked proposed rows
-(batches <= 3; Codex CLI: 1 per row) · **C** `none` (keep all; wins over other ticks). Main session records `picked[]` and raw `pickerAnswer` (`nen stop answer`), then runs picked rows in
+(batches <= 3; Codex CLI 1 per row) · **C** `none` (keep all; wins over other ticks). Main session records `picked[]` and raw `pickerAnswer` (`nen stop answer`), then runs picked rows in
 § 5's order, pushes first, each read back, bytes freed per row and total; a picked id naming no `plan[]` row or a named one is listed
 unmatched, `result` `partial`. Failing row reported with stderr, **never retried wider**; then § 3's close.
 
@@ -149,7 +149,7 @@ Each `<CODE>-<N>` is checked (`PR` where `gh pr view` finds `<N>`; output cut to
 `nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
 — an exit but `0` (no registry, code unregistered) keeps it, said.
 
-Gitignored (`.nen/`); `ten` never deletes it. Unpicked offered rows go to `declined.jsonl`, re-offered as one row: WORKFLOW § *Declined cleanup rows*. Report result, freed total, kept rows and why.
+Gitignored (`.nen/`); `ten` never deletes it. Unpicked offered rows go to `declined.jsonl`, re-offered per class: WORKFLOW § *Declined cleanup rows*. Report result, freed total, kept rows, why.
 
 ## Residue
 

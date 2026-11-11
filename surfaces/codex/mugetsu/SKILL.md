@@ -113,10 +113,14 @@ $mugetsu [<target>]
 repository publishes through `deploy`, or the lane whose `release` row is the publication step where it
 publishes through `release` (§ 4). **By the maintainer's ruling of 2026-09-28** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*), naming it is
 **never mandatory, not even on a direct call**: with none typed, this skill publishes to the
-repository's **single** declared destination (a production one: a target marked `nonProduction: true` is
-kagutsuchi's, § 5b, and never counted), and the version it publishes is **the latest cut
+repository's **single** declared production destination, and the version it publishes is **the latest cut
 (getsuga release) tag that has no published release yet** — resolved at publish time, printed, and
-quoted beside the go in the report. **No declared production destination and none named** is
+quoted beside the go in the report. **The production destinations are counted failing closed**: every
+lane with a runnable `release` row, its publication step (a `release` lane carries no non-production word, so it
+always counts) plus every `project.targets` entry without `nonProduction: true`; a target marked
+`nonProduction: true` is kagutsuchi's (§ 5b) and never counted. Hatsu's own `targets: {}` publishes
+through its plugin lane's `release` row, a count of one, never a refusal. **No declared production
+destination and none named** is
 refused, naming [`kagutsuchi`](../kagutsuchi/SKILL.md) for the non-production ones and the declaration
 PR that would add a production one; nothing is asked. Only **two or more declared production destinations
 and none named** is a gap, asked as **free text** (`missing-maintainer-choice`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
@@ -169,8 +173,8 @@ afterwards.
 Nothing below is optional and nothing below is reordered.
 
 1. **The go exists, and the destination resolves** — § 3, § 1: one of § 0's four forms — the typed
-   invocation, the maintainer's own words, the advance go, or kazaana § 6's publish answer — and the destination named or the single declared one. Without a go, steps 2–4 still run, being read-only, so the preflight and the plan are printed, and
-   the run stops before step 5; with several destinations and none named, P4's same-turn exception asks,
+   invocation, the maintainer's own words, the advance go, or kazaana § 6's publish answer — and the destination named or the single declared production one; none → refused (§ 1). Without a go, steps 2–4 still run, writing nothing without a go, so the preflight and the plan are printed, and
+   the run stops before step 5; with several production destinations and none named, P4's same-turn exception asks,
    and nothing past this step runs until the maintainer types it.
 2. **The tag is cut, and it resolves on `origin`** — § 3's second half: the one named, or the latest
    cut tag with no published release, printed. No cut tag at all is refused. **A named version that
@@ -210,7 +214,7 @@ answer is the maintainer's own word on a question naming the tag and the destina
 | Part | Why |
 |---|---|
 | the maintainer's own **word to proceed** — their typed `$mugetsu [<target>]` is that word, by name (ROSTER's G3 row; ruling 2(a): *"Mugetsu should always default to latest unpublished cut tag. It should never be mandatory, not even when called directly"*, clarified 2026-09-30), or their own message saying to publish | not an agent's paraphrase of their intent — the one part that is never defaulted |
-| the **destination**, by the name the declaration gives it — **or the single declared one** (§ 1, ruling of 2026-09-28) | a go for one store is not a go for another; several declared and none named is the one ask |
+| the **destination**, by the name the declaration gives it — **or the single declared production one** (§ 1, ruling of 2026-09-28) | a go for one store is not a go for another; several declared production destinations and none named is the one ask |
 | the **version or tag** being published — **or the latest cut tag with no published release** (§ 1) | a go is for a build, not for a repository; the resolved tag is printed and quoted beside the go |
 
 **The go is recorded as data before anything is sent** (zheref/hatsu#579), the way [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
@@ -227,7 +231,9 @@ question was asked; `<effort>` is the release proposal's branch where one exists
 recorded twice. The id nen prints (`R-YYYY-MM-DD-nn`) goes into the report and § 7's comment beside the
 quote, which stays word for word. **The record is written once per go**, at § 2 step 4: a step that
 fails after it and is re-run within the same run cites the existing record, read with
-`nen stop answer show <effort> --repo <path>`, and never mints a second. **A record that could not be
+`nen stop answer show <effort> --repo <path>`, and never mints a second. That verb exits `0` even when
+it prints `no stop answers recorded`, so the record is read from its text, never its exit code: that
+line means no record exists, and the go is recorded as step 4 says. **A record that could not be
 written** (exit `1` or `2`) sends nothing: the run stops with nen's refusal quoted; the go lapses with
 the run (§ 0), and a re-run needs a fresh go.
 `nen stop --notified --mark` writes the bell's marker and is not this record.

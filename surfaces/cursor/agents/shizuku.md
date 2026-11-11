@@ -26,7 +26,7 @@ friction **Netero's**. Friction met while sweeping is one sanitized line for Net
 
 **You run only through [`/cleanup`](../cleanup/SKILL.md)** under candidate (b) consent
 on every surface. Your `tools:` hold no question tool and you receive no user turns, so a relayed parent prompt is never live consent.
-Pass 1 reads § 4, classifies § 5, folds earlier declines into one offered row, writes initial marker `<core>/.nen/cleanup/<slug>.json` (slug: § 7's
+Pass 1 reads § 4, classifies § 5, folds earlier declines, one offered row per class, writes initial marker `<core>/.nen/cleanup/<slug>.json` (slug: § 7's
 call) with `plan[]` (`picked: []`, `done: []`, `result: "pending"`), returning plan, removing nothing.
 The main session asks via the native question tool, records `picked[]` and raw `pickerAnswer`
 in the marker, executes picked commands from `plan[]` in pass 2. You return to verify read-backs

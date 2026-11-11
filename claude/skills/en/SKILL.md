@@ -261,11 +261,16 @@ on paths the merge left byte-identical. **What it does not carry** is the resolv
 whose cited lines the merge changed, and its settled verdict as a claim about the merged head; the
 delta pass reads those and hanten § 6 settles what it finds. **After a no-op, clean or mechanical
 catch-up, the settled round carries over unchanged**: nothing a person chose entered the tree, and
-what such a catch-up owes is the paragraph above's alone. **Skipping the merged head's round is the
+what such a catch-up owes is the paragraph above's alone. **A merge the maintainer made by hand** (row
+`host-merge-protected-path`, option A) is the third state: with no conflicted path it carries the
+settled round over as a clean catch-up does; where the maintainer resolved a conflict it owes the delta
+round on the merged head exactly as a conflict of meaning does, the paths they resolved named.
+**Skipping the merged head's round is the
 maintainer's ruling, never the run's**: the run never offers it, and without the maintainer's own
 words recorded through `nen stop answer` (row `merged-head-review-skip`, `--gate G5 --row
 merged-head-review-skip`, the typed-by-design reference option and `--typed-file`, as WORKFLOW § 4
-*Every picker answer is recorded* gives) the round is owed. Where they rule that disclosure on the
+*Every picker answer is recorded* gives, its `--question-file` naming the merge sha and saying no question
+was asked) the round is owed. Where they rule that disclosure on the
 prompt is enough, § 5's prompt carries this line, filled and otherwise word for word, in place of any
 hand-written residue:
 
@@ -411,9 +416,10 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
    is instead the **hanten prompt**, its conditions, the value's source refs and the Hatsu line
    (`aiReviewers: optional (base <sha>, default <sha>)`) all [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there;
    a `ready` that rests on nen's waiver of a declared bot's round is Ready only with hanten settled and Hatsu's own read not stricter (HR-333; PROCESS, the disagreement sentence).
-   **After a catch-up that resolved a conflict of meaning, settled means settled on the merged head**: § 3's
-   round there, or the ruled disclosure line § 3 gives, never a round settled before the merge; after a
-   no-op, clean or mechanical catch-up the settled round carries over unchanged (§ 3).
+   **After a catch-up that resolved a conflict of meaning, or a maintainer-made merge whose conflict was
+   resolved by hand, settled means settled on the merged head**: § 3's round there, or the ruled disclosure
+   line § 3 gives, never a round settled before the merge; after a no-op, clean or mechanical catch-up, or a
+   maintainer-made merge with no conflicted path, the settled round carries over unchanged (§ 3).
    **A CI reviewer lane** — its round, why it is never requested, its place in the quorum and when it is
    unavailable — is [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*, stated once there.
 3. **The body** — `nen pr body-check` satisfied against the live body.
