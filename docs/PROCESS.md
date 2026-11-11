@@ -971,10 +971,11 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   are owned by [zheref/nen#645](https://github.com/zheref/nen/issues/645).
 - **`great-hiker`.** The delta table assembled from `--json` output is owned by
   [zheref/nen#646](https://github.com/zheref/nen/issues/646); the schedule's dry step is unfiled.
-- **`limbo`.** Residue 6, the canon-values regenerate nen now resolves itself (zheref/nen#294), is owed
-  its adoption, [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578).
-- **`mugetsu`.** Residues 1 and 5 (the recorded go, the `nonProduction` field) are owed their adoption,
-  [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579); residue 4's post-cut preflight reading
+- **`limbo`.** Residues 5 and 6 are retired, adopted by [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578):
+  `--markdown-out` creates its parent (zheref/nen#292) and the mirror verbs resolve the canon checkout at
+  the pin (zheref/nen#294).
+- **`mugetsu`.** Residues 1 and 5 are retired, adopted by [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579):
+  the go is recorded through `nen stop answer`, and the production split reads `nonProduction`; residue 4's post-cut preflight reading
   is [zheref/nen#649](https://github.com/zheref/nen/issues/649); residue 6's GitHub Release state read
   is [zheref/nen#652](https://github.com/zheref/nen/issues/652); the per-run log is
   [zheref/nen#91](https://github.com/zheref/nen/issues/91).

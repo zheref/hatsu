@@ -324,8 +324,8 @@ so a default target carries that flag as well as a non-production `why`; zheref/
 ruling of 2026-09-29: *"rely on a default value from one of our configuration files … so that it
 doesn't always require destination and it can be easily chained with other skills like futon"*).
 `defaultTarget` names the destination a `hatsu:kagutsuchi` invocation typed with **no target** sends to — **a typed target always overrides it, the report says which source the target came
-from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target whose
-`why` reads non-production**: a default naming a store or the live environment is refused, and **G3**
+from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target
+marked `nonProduction: true`** (zheref/hatsu#579): a default naming a store or the live environment is refused, and **G3**
 (`mugetsu`) is unchanged. `nen shu deploy` is unchanged too — the skill always passes `--target`
 explicitly, so *nen never chooses where a build goes* stays true of nen; the choice lives here, in
 configuration the maintainer wrote. **`null`, or the key absent, is the ask**: an omitted target is
@@ -1433,6 +1433,23 @@ declaration; a maintainer-typed `hatsu:cleanup` is their own word and runs under
 § 6 asks once, after the tag it cut resolves on origin, whether `mugetsu` should publish it (row `publish-offer`,
 no option starred): the affirmative answer is the maintainer's own go, form (4) of `mugetsu` § 0, quoted verbatim;
 neither offer ever names `aka`, `mukai`, the merge or `kagutsuchi`.
+
+**Declined cleanup rows are remembered, not re-proposed** (zheref/hatsu#584). When Shizuku closes a plan
+whose picker the maintainer answered ([`cleanup`](../claude/skills/cleanup/) § 3, step 3), every deterministic or
+proposed `plan[]` row the answer did not pick, whether left unticked under **A** or **B** or kept by **C**
+`none`, is appended to `<core>/.nen/cleanup/declined.jsonl`, one JSON line per row: `object` (the row's path,
+branch or ref, as the plan names it), `class` (`deterministic` or `proposed`), `bytes` (its `du -sk` reading
+in bytes, or its `billed:` text), `marker` (the plan's `<slug>`) and `at` (the close time, ISO 8601). A named
+row was never an option and is never declined; a plan closed `none-picked` on `ids-invalid`, or left
+`pending`, declines nothing, because no answer was given. **A later inventory folds them**: pass 1 reads the
+file, and once § 5 has classed a row, a row whose `object`, `class` and `bytes` all equal its latest line, and
+whose line is under 30 days old (the run-record age § 4 already uses), is left out of `plan[]` and counted
+in one summary line of the plan and the report, `declined earlier: <n> rows, <total bytes>, oldest
+<date>`, which is never an option. A row whose class or size changed, or whose line has aged out, returns
+as a full row, and a row declined again appends a new line. **`for all` reads no fold**: every declined row
+is listed in full. So a sitting that left nothing new writes its new rows plus that one line. The file is
+a record beside the markers, never a leftover (cleanup § 4), and only Shizuku's close appends to it; an
+unreadable file folds nothing and is named in the report, never read as empty.
 
 **The per-target rule is the whole of the last two rows, and it is not a formality.** A go for one
 destination is a go for *that* destination: `kagutsuchi`'s target is **typed, or the one the maintainer
@@ -2945,8 +2962,13 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    check**. **A seat (exit `4`) is not red**: quote the declaration's reason and move on.
 2. **A consumer's canon mirror, where the delta touches `.claude/canon-values.yml`**
    (zheref/hatsu#111). Regenerate `.claude/rules/` with `nen/workflow.json` →
-   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`
-   (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
+   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`,
+   in the portable form that names no machine-local path, so it runs unchanged on another machine
+   (zheref/nen#294, zheref/hatsu#578): `["nen", "canon", "mirror", "generate", "--repo", ".",
+   "--canon-values", ".claude/canon-values.yml", "--stack-dir", "handbooks/stacks", "--leaf", "rules",
+   "--not-mirrored", "README.md,placeholders.md"]`, nen resolving and verifying the canon checkout at the
+   pin from the consumer's registry (`checkout_env`, then `checkout`) and refusing at exit `2` where none
+   resolves (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
    `tenkai` names as the routed gap) — run locally, never the weekly cron and never a `workflow_dispatch`
    that can carry the branch into a PR against trunk — and read
    `git status --porcelain .claude/rules` after it. **A non-zero exit from the command is red** (row

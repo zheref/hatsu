@@ -113,7 +113,8 @@ second publication needs a second go. Not a subagent's self-authorisation, at th
 repository publishes through `deploy`, or the lane whose `release` row is the publication step where it
 publishes through `release` (§ 4). **By the maintainer's ruling of 2026-09-28** ([`docs/ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-09-26/27/28*), naming it is
 **never mandatory, not even on a direct call**: with none typed, this skill publishes to the
-repository's **single** declared destination, and the version it publishes is **the latest cut
+repository's **single** declared destination (a production one: a target marked `nonProduction: true` is
+kagutsuchi's, § 5b, and never counted), and the version it publishes is **the latest cut
 (getsuga release) tag that has no published release yet** — resolved at publish time, printed, and
 quoted beside the go in the report. Only **two or more declared destinations and none named** is a
 gap, asked as **free text** (`missing-maintainer-choice`; [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
@@ -165,7 +166,7 @@ afterwards.
 
 Nothing below is optional and nothing below is reordered.
 
-1. **The go exists, and the destination resolves** — § 3, § 1: one of § 0's four forms — the typed
+1. **The go exists, is recorded (§ 3), and the destination resolves** — § 3, § 1: one of § 0's four forms — the typed
    invocation, the maintainer's own words, the advance go, or kazaana § 6's publish answer — and the destination named or the single declared one. Without a go, steps 2–4 still run, being read-only, so the preflight and the plan are printed, and
    the run stops before step 5; with several destinations and none named, P4's same-turn exception asks,
    and nothing past this step runs until the maintainer types it.
@@ -209,8 +210,21 @@ answer is the maintainer's own word on a question naming the tag and the destina
 | the **destination**, by the name the declaration gives it — **or the single declared one** (§ 1, ruling of 2026-09-28) | a go for one store is not a go for another; several declared and none named is the one ask |
 | the **version or tag** being published — **or the latest cut tag with no published release** (§ 1) | a go is for a build, not for a repository; the resolved tag is printed and quoted beside the go |
 
-Nothing in nen records this (§ Residue). `nen stop --notified --mark` writes the stop marker for the
-bell and is not a record of an authorization. The quote is the record.
+**The go is recorded as data before anything is sent** (zheref/hatsu#579), the way [`WORKFLOW.md`](../../../docs/WORKFLOW.md)
+§ 4 *Every picker answer is recorded* records a typed answer:
+
+```bash
+nen stop answer --record <effort> --gate G3 --row release-go --who kurapika --question-file <q.md> --option "ref=typed by design (no option)::the typed words are the answer" --typed-file <go.txt>
+```
+
+`<go.txt>` holds the maintainer's line byte for byte (the invocation, their message or the futon
+invocation carrying the advance go); `<q.md>` names the resolved tag and destination and says no
+question was asked; `<effort>` is the release proposal's branch where one exists, else
+`inline-<ISO date-time>`. **Form (4)'s answer is already kazaana § 6's record**: cited by its id, never
+recorded twice. The id nen prints (`R-YYYY-MM-DD-nn`) goes into the report and § 7's comment beside the
+quote, which stays word for word. **A record that could not be written** (exit `1` or `2`) sends
+nothing: the run stops with nen's refusal quoted, the go kept for a re-run once the record writes.
+`nen stop --notified --mark` writes the bell's marker and is not this record.
 
 ### The tag it means is getsuga's RELEASE tag, and no other species
 
@@ -381,6 +395,12 @@ The differences are the two that make it G3:
   comment.
 - **`kagutsuchi` refuses a production target and this skill is the one that does not.** The two
   skills are the same verb split by destination, and the split is the gate.
+- **The split is the declaration's machine-readable word, failing closed** (zheref/nen#300): a target
+  whose `project.targets.<name>.nonProduction` is `true` is [`kagutsuchi`](../kagutsuchi/SKILL.md)'s and
+  is refused here, naming that skill; one where it is absent or `false` is production and this skill's.
+  `nen schema check --repo <path>` validates the field as a boolean (a string `"true"` is a `FAIL` by
+  pointer), and a `FAIL` row stops the run before the plan. The `why` is quoted in the report, never
+  read as the flag.
 
 Verified live, by 2026-09-10, at nen `0.3.0` against the fixture (`docs/ab/mugetsu.md` § 2.6): the plan, the asserted
 `requiresEnv`, then `--run` spawning exactly the composed argv, exit `0`.
@@ -414,7 +434,7 @@ authorize a retry by another route; the host's refusal ends this go.
 
 One block, then stop:
 
-- **The go, quoted verbatim**, with who said it and when.
+- **The go, quoted verbatim**, with who said it and when, and its record's id (§ 3).
 - The **tag**, and that it resolves on `origin` (§ 4's inverted row is the evidence).
 - The **preflight table as printed**, whole, including the inverted row read as green.
 - The **plan's composed argv**, copied out of the `--dry-run` report, not re-typed.
@@ -486,11 +506,8 @@ version. The next go is the maintainer's.
 
 ## Residue
 
-1. **Nothing records the go as data here.** This skill writes "the maintainer authorised
-   `production` for `v1.2.0`" through no verb, and `.nen/last-stop.json` is a bell marker, not an
-   authorization ledger. The quote in § 7 is the record, written into the report and the comment;
-   adopting `nen stop answer`'s verbatim record for it is
-   [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579).
+1. **RETIRED: the go is recorded as data** through `nen stop answer --typed-file` (nen `0.26`, § 3),
+   adopted by [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579); § 7's quote stays beside it.
 2. **`nen shu release` has no `--run` gate** (§ 5a, verified live, by 2026-09-10 (`docs/ab/mugetsu.md` § 2.5)) — so the whole "show it before you
    do it" discipline on the publication verb is this skill's, unenforced by anything. The one
    mechanical helper is `--dry-run`, and typing it is a rule, not a guard.
@@ -501,12 +518,10 @@ version. The next go is the maintainer's.
    reading is the session's, off the rows, and the exit code alone is never the verdict. There is no
    `--expect-tag-exists` or post-cut mode at this pin; that reading is
    [zheref/nen#649](https://github.com/zheref/nen/issues/649).
-5. **Nothing this skill reads marks a destination as production.** `project.targets.<name>`'s
-   `nonProduction` word (zheref/nen#300) is unread here
-   ([`/kagutsuchi`](../kagutsuchi/SKILL.md) § Residue: *"Only a default is typed (§ 2 reads
-   every `why`)"*), so the split between that skill and
-   this one is read out of `why` prose; adopting the field is
-   [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579).
+5. **RETIRED: the production split reads `project.targets.<name>.nonProduction`** (zheref/nen#300,
+   validated by `nen schema check` from nen `0.21`; § 5b), here and in
+   [`/kagutsuchi`](../kagutsuchi/SKILL.md) § 2 alike, adopted by
+   [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579); no split is read out of `why` prose.
 6. **What state a failed publication left the destination in.** nen reports the tool's own exit code
    and never queries the far end. For a GitHub Release destination the state is readable, and its
    read is the session's `gh release view <tag> --repo <owner/name>` (§ 2 step 2's call), owned by

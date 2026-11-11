@@ -10,7 +10,7 @@ summary: "As Shizuku, clean up what a finished effort and prior sessions left lo
 # Cleanup — Shizuku's sweep, after the work has landed
 
 **Nature: Transmuter**; **Manipulator** for remote write (§ 5). Shizuku:
-[`claude/agents/shizuku.md`](../AGENTS.md#shizuku). Ruling 2026-10-13 ([`ROSTER.md`](../../../docs/ROSTER.md) 4–6).
+[`shizuku.md`](../AGENTS.md#shizuku). Ruling 2026-10-13 ([`ROSTER.md`](../../../docs/ROSTER.md) 4–6).
 
 ## 0. Standalone entry
 
@@ -34,8 +34,7 @@ asked inline (`missing-argument`).
 **Only when (1) every PR in the sitting's scope reads `MERGED` live** (unread: not; one the maintainer closed
 unmerged leaves the scope, HR-367) **and (2) the maintainer explicitly declared the sitting satisfied**, in their
 own words this sitting, quoted in question and report (HR-366, zheref/hatsu#480): never solicited, nothing else
-supplies it, so `--idle` never offers or runs it. Else no picker, no run, the missing one named; a later declaration in the maintainer's
-own words has the main session re-read every scoped PR live and ask once (WORKFLOW § *Two offers*). A typed
+supplies it, so `--idle` never offers or runs it. Else no picker, no run, the missing one named; a later declaration: WORKFLOW § *Two offers*. A typed
 `$cleanup` is § 1's. Required after a completed session (HR-209).
 **Who asks**: a composite's terminus (row `wrap-up` names each) or **the main session** after `en` § 8; **a delegate never**.
 Asked via surface picker: ⭐ **A** `cleanup` · **B** `cleanup` and `third-hand`
@@ -152,7 +151,7 @@ Each `<CODE>-<N>` is checked (`PR` where `gh pr view` finds `<N>`; output cut to
 `nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
 — an exit but `0` (no registry, code unregistered) keeps it, said.
 
-Gitignored with `.nen/`; `ten` never deletes it. Report result, freed total, kept rows and why.
+Gitignored with `.nen/`; `ten` never deletes it. Unpicked offered rows go to `declined.jsonl`, folded at the next inventory: WORKFLOW § *Declined cleanup rows*. Report result, freed total, kept rows and why.
 
 ## Residue
 

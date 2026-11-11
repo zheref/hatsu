@@ -92,13 +92,15 @@ nen canon mirror check --repo . --rules-dir <canon>/handbooks/stacks/swiftui-tca
 
 Exit `0` is current, `1` is drift, `2` is the invocation or the declaration, never current.
 
+`hatsu:limbo` runs the portable form (§ 2 steps 4 and 5): `--stack-dir handbooks/stacks --leaf rules` in place of `--rules-dir`, nen resolving and verifying the checkout at the pin from the consumer's registry (`checkout_env`, then `checkout`) or from `--canon-checkout <path>`, and naming how it resolved (zheref/nen#294). `--markdown-out` creates its parent directory (zheref/nen#292).
+
 ## When a skill needs a value that is not set
 
 - **The file is absent.** `hatsu:limbo` § 2 step 1: `canon mirror: not applicable`, stop. The gate's step 2 reports the same. Nothing creates the file unasked; `nen scaffold init --canon-values-path <path>` writes a template on the maintainer's call.
 - **No `surfaces:` key.** `check` exits `2` with the sentence above. `limbo` § 3 treats it as `missing-configuration` ([WORKFLOW § 4](../WORKFLOW.md)): recommends from what is on disk (`.claude/`, `AGENTS.md` or `.codex/`, `.cursor/`, `.agents/`), asks once through the picker, writes the key, re-runs the check. Never `--surfaces` from its own head, never all four.
 - **A token is unbound.** The generator fails closed (`zheref/bankai-handbooks`, `.claude/rules/03-tokens.md`); the missing binding is the consumer's to add, never a value guessed from the illustrative example.
 - **No pin, or a non-tag pin.** `nen canon pin` exits `1`; `limbo` § 2 step 2 asks for the tag, typed, and records it in `nen/repos.json`; a floating `--ref` is refused by nen.
-- **No `iteration.canonMirror.command`.** `tenkai` § 6c names the routed gap; until it is set the regenerate is a `hatsu:limbo` run (`limbo` § *Residue* 6; adopting the portable command nen now accepts is [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578)).
+- **No `iteration.canonMirror.command`.** `tenkai` § 6c names the routed gap; until it is set the regenerate is a `hatsu:limbo` run. The key's value is the portable argv WORKFLOW's local verification gate step 2 gives, `--stack-dir handbooks/stacks --leaf rules` in place of a machine-local `--rules-dir`, so it runs unchanged on any machine whose registry declares the canon checkout (zheref/nen#294, adopted by [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578)).
 - **A destination is hand-edited.** `G5` before any write: `nen/decisions.json` row `hand-edited-canon-mirror` carries the three remedies (file the rule upstream, move it to a file the mirror does not own, or `git rm` a predecessor generator's mirror).
 
 ## Known gaps

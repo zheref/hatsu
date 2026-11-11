@@ -187,15 +187,15 @@ Which host platforms may run which verbs. `*` is the default for every verb; a v
 
 ### `project.targets`
 
-Where builds are sent. One named destination per key; `why` states whether it is production or non-production, and `hatsu:kagutsuchi` reads it failing closed for every send; from nen `v0.21.0` the typed `nonProduction: true` is also required on a target named by `deploy.defaultTarget` (zheref/nen#300). Credentials are asserted, never handled: `requiresEnv` carries environment-variable **names** only, and nen checks each is set without reading it.
+Where builds are sent. One named destination per key; `nonProduction: true` marks a non-production destination, and it is what `hatsu:kagutsuchi` and `hatsu:mugetsu` read, failing closed, to split every send (zheref/nen#300, zheref/hatsu#579): absent or `false` is production, G3's. `why` states what the destination is, in prose that is quoted and never read as the flag; from nen `v0.21.0` `nen schema check` also requires the flag on a target named by `deploy.defaultTarget`. Credentials are asserted, never handled: `requiresEnv` carries environment-variable **names** only, and nen checks each is set without reading it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `targets` | external | `{}` when the repository sends nothing (Hatsu's own value, empty deliberately) | The declared destinations | `nen shu deploy --target`, `hatsu:kagutsuchi`, `hatsu:mugetsu`, `hatsu:getsuga` |
 | `targets.<name>.args` | string[] | appended to the `deploy` row's `argv` | What distinguishes this destination on the command line | `nen shu deploy` |
 | `targets.<name>.requiresEnv` | string[] | environment-variable **names** | The credentials the send needs set in the environment; a literal here is refused by `config_values.sh set` and flagged by `nen stage triage` | `nen shu deploy` (asserts each is set), `hatsu:kagutsuchi` § 5 |
-| `targets.<name>.why` | string | prose reading production or non-production | What the destination is and which gate reaches it (G3 for production) | `hatsu:kagutsuchi` § 1, `hatsu:mugetsu`, `config_values.sh set` (refuses a production target as `deploy.defaultTarget`) |
-| `targets.<name>.nonProduction` | boolean | optional; `true` marks the destination non-production; a non-boolean is refused by pointer | nen's typed mark; required on the target `deploy.defaultTarget` names (`nen schema check` FAILs it otherwise, nen `v0.21.0`) | `nen schema check`, `nen shu detect` (proposes `testflight` only so marked), `config_values.sh set` |
+| `targets.<name>.why` | string | prose reading production or non-production | What the destination is and which gate reaches it (G3 for production) | `hatsu:kagutsuchi` and `hatsu:mugetsu` (quoted, never the flag), `config_values.sh set` (refuses a production target as `deploy.defaultTarget`) |
+| `targets.<name>.nonProduction` | boolean | optional; `true` marks the destination non-production; a non-boolean is refused by pointer | nen's typed mark; required on the target `deploy.defaultTarget` names (`nen schema check` FAILs it otherwise, nen `v0.21.0`) | `nen schema check`, `nen shu detect` (proposes `testflight` only so marked), `config_values.sh set`, `hatsu:kagutsuchi` § 2 and `hatsu:mugetsu` § 5b (the split) |
 | `targets.<name>.unsupported` | string | the reason | A destination the repository names but cannot send to from here | `hatsu:kagutsuchi` (quotes it) |
 
 ### `project.launch`
