@@ -580,7 +580,7 @@
             "coverage/surface-bootstrap-guard/lcov.info"
           ]
         },
-        "coverage": {"unsupported": "The bootstrap lane passes, but at this fixture's size Bashcov captures nothing: it loses bytes of the trace and aborts on every run (zheref/hatsu#599), so scripts/surface_bootstrap.sh is an unmeasured gap, never a clean zero, by the maintainer's ruling R-2026-11-11-09 on zheref/hatsu#531 until #599 restores the capture and this row returns to `node scripts/shell_coverage.mts --verify surface-bootstrap-guard`. scripts/surface_marker.sh is not measurable here either, for a structural reason: the reader turns its caller's xtrace off and its body is an awk program; its grammar rows run in this lane under bash and a POSIX sh, and that gap closes when zheref/nen#658 retires the reader (HR-392)."}
+        "coverage": {"unsupported": "The bootstrap lane passes, but at this fixture's size Bashcov usually captures nothing: it loses bytes of the trace and aborts on most runs (6 of 7 on zheref/hatsu#531's branch; the one capture read 83.4%; zheref/hatsu#599), so scripts/surface_bootstrap.sh is an unmeasured gap, never a clean zero, by the maintainer's ruling R-2026-11-11-09 on zheref/hatsu#531 until #599 restores the capture and this row returns to `node scripts/shell_coverage.mts --verify surface-bootstrap-guard`. scripts/surface_marker.sh is not measurable here either, for a structural reason: the reader turns its caller's xtrace off and its body is an awk program; its grammar rows run in this lane under bash and a POSIX sh, and that gap closes when zheref/nen#658 retires the reader (HR-392)."}
       },
       "nen-global-guard": {
         "test": {
