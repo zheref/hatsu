@@ -270,7 +270,8 @@ maintainer's ruling, never the run's**: the run never offers it, and without the
 words recorded through `nen stop answer` (row `merged-head-review-skip`, `--gate G5 --row
 merged-head-review-skip`, the typed-by-design reference option and `--typed-file`, as WORKFLOW § 4
 *Every picker answer is recorded* gives, its `--question-file` naming the merge sha and saying no question
-was asked) the round is owed. Where they rule that disclosure on the
+was asked; in a consumer whose own matrix lacks the row, `--gate G5` alone, as § 4 *A row the consumer's
+own matrix lacks* says) the round is owed. Where they rule that disclosure on the
 prompt is enough, § 5's prompt carries this line, filled and otherwise word for word, in place of any
 hand-written residue:
 

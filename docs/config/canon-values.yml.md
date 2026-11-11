@@ -42,7 +42,7 @@ The tokens are declared once per stack in `handbooks/stacks/<scenario>/rules/pla
 | Declaration | Where | Read by |
 |---|---|---|
 | the canon pin (`source`, `ref`) | `nen/repos.json` → `maintained_tools[].pinned`; exactly one pinned tool, or `--source` names which | `nen canon pin`; `limbo` § 2 step 2, § 4 |
-| the scenario of record | `nen/repos.json` → `consumers[].scenario` (this file's `scenario:` key may restate it) | `nen repo scenario`; the mirror verbs' `<stack-dir>/<scenario>/<leaf>` resolution inside the canon checkout; `limbo` § 2 steps 4–5 |
+| the scenario of record | `nen/repos.json` → `consumers[].scenario` (this file's `scenario:` key may restate it) | `nen repo scenario`, passed to the mirror verbs as `--scenario` for their `<stack-dir>/<scenario>/<leaf>` resolution inside the canon checkout (they never read the registry themselves); `limbo` § 2 steps 4, 5 and 10 |
 | the regenerate argv | `nen/workflow.json` → `iteration.canonMirror.command` (Hatsu's own key, preserved by `nen schema check`) | WORKFLOW's local verification gate step 2; `kokusen` § 3; `tenkai` § 6c (a consumer with bindings and no key is a routed gap) |
 | the files never mirrored | `--not-mirrored README.md,placeholders.md` on the call | `limbo` § 2 steps 5, 10 |
 
@@ -92,7 +92,7 @@ nen canon mirror check --repo . --rules-dir <canon>/handbooks/stacks/swiftui-tca
 
 Exit `0` is current, `1` is drift, `2` is the invocation or the declaration, never current.
 
-`hatsu:limbo` runs the portable form (§ 2 steps 4 and 5): `--stack-dir handbooks/stacks --leaf rules` in place of `--rules-dir`, nen resolving and verifying the checkout at the pin from the consumer's registry (`checkout_env`, then `checkout`) or from `--canon-checkout <path>`, and naming how it resolved (zheref/nen#294). `--markdown-out` creates its parent directory (zheref/nen#292).
+`hatsu:limbo` runs the portable form (§ 2 steps 4, 5 and 10): `--stack-dir handbooks/stacks --leaf rules --scenario <the registry's scenario>` in place of `--rules-dir`, nen resolving and verifying the checkout at the pin from the consumer's registry (`checkout_env`, then `checkout`) or from `--canon-checkout <path>`, and naming how it resolved (zheref/nen#294). `--markdown-out` creates its parent directory (zheref/nen#292).
 
 ## When a skill needs a value that is not set
 
@@ -100,7 +100,7 @@ Exit `0` is current, `1` is drift, `2` is the invocation or the declaration, nev
 - **No `surfaces:` key.** `check` exits `2` with the sentence above. `limbo` § 3 treats it as `missing-configuration` ([WORKFLOW § 4](../WORKFLOW.md)): recommends from what is on disk (`.claude/`, `AGENTS.md` or `.codex/`, `.cursor/`, `.agents/`), asks once through the picker, writes the key, re-runs the check. Never `--surfaces` from its own head, never all four.
 - **A token is unbound.** The generator fails closed (`zheref/bankai-handbooks`, `.claude/rules/03-tokens.md`); the missing binding is the consumer's to add, never a value guessed from the illustrative example.
 - **No pin, or a non-tag pin.** `nen canon pin` exits `1`; `limbo` § 2 step 2 asks for the tag, typed, and records it in `nen/repos.json`; a floating `--ref` is refused by nen.
-- **No `iteration.canonMirror.command`.** `tenkai` § 6c names the routed gap; until it is set the regenerate is a `hatsu:limbo` run. The key's value is the portable argv WORKFLOW's local verification gate step 2 gives, `--stack-dir handbooks/stacks --leaf rules` in place of a machine-local `--rules-dir`, so it runs unchanged on any machine whose registry declares the canon checkout (zheref/nen#294, adopted by [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578)).
+- **No `iteration.canonMirror.command`.** `tenkai` § 6c names the routed gap; until it is set the regenerate is a `hatsu:limbo` run. The key's value is the portable argv WORKFLOW's local verification gate step 2 gives, `--stack-dir handbooks/stacks --leaf rules --scenario <the registry's scenario>` in place of a machine-local `--rules-dir`, so it runs unchanged on any machine whose registry declares the canon checkout (zheref/nen#294, adopted by [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578)).
 - **A destination is hand-edited.** `G5` before any write: `nen/decisions.json` row `hand-edited-canon-mirror` carries the three remedies (file the rule upstream, move it to a file the mirror does not own, or `git rm` a predecessor generator's mirror).
 
 ## Known gaps
@@ -109,10 +109,11 @@ What could not be confirmed from the sources available in this checkout and the 
 
 1. **The exact YAML shape of the token bindings.** `nen canon --help` says every `{{TOKEN}}` is *bound from --canon-values* and `zheref/bankai-handbooks` describes the file as *the `{{TOKEN}}` → value binding*, but neither names the key spelling (bare `TOKEN:` at the top level, a `values:` or `tokens:` map, braces kept or stripped, case sensitivity). The example above uses bare top-level keys as an illustration only.
 2. **The template `nen scaffold init --canon-values-path` writes.** Its contents were not read in this run.
-3. **Whether `scenario:` is required in the file** when `nen/repos.json` → `consumers[].scenario` already records it, or whether the two must agree. `nen canon --help` confirms only that `--scenario` overrides the key.
+3. **Whether `scenario:` is required in the file** when `nen/repos.json` → `consumers[].scenario` already records it. What is confirmed at nen `0.30.0`: `mirror generate` and `mirror check` take the scenario from `--scenario`, else this file's `scenario:` (`src/canon/command.ts`), and never read the registry, so a stale `scenario:` here would select another stack's rules. `hatsu:limbo` § 2 step 4 therefore reads the scenario of record with `nen repo scenario` and passes it as `--scenario`, reporting a differing `scenario:` here and never using it.
 4. **Whether an unbound token is a refusal at `check` as well as at `generate`.** The canon's `03-tokens.md` says the generator fails closed; the check's behaviour on an unbound token was not exercised in [`docs/ab/limbo.md`](../ab/limbo.md).
 5. **A per-surface override inside the file** (a surface-specific value or an excluded canon file). Nothing read suggests one exists; `--not-mirrored` is a flag, not a key.
 6. **The brief's phrasing *the rules locations*.** The locations are fixed per surface by nen (`nen canon --help`) and are not declared in this file; what the file declares is the surface list.
+7. **A ports pair file is not mirrored** (nen `0.22.0` onward, unchanged at `0.30.0`): the mirror verbs render the stack's rules leaf only, with no always-load set, so a pair file whose `to` is the consumer's scenario (`<workflow.port.rulingsDir>/<from>--<scenario>.md`) reaches no consumer mirror; a reviewer reads it live through [`bankai-handbooks`](../../claude/skills/bankai-handbooks/SKILL.md) § 2 until zheref/nen#457 resolves and mirrors it (the limbo half of zheref/hatsu#354 criterion 5 is owed there, not met in `hatsu:limbo`).
 
 ## Sources
 

@@ -231,7 +231,11 @@ quote, which stays word for word. **The record is written once per go**, at § 2
 fails after it and is re-run within the same run cites the existing record, read with
 `nen stop answer show <effort> --repo <path>`, and never mints a second. That verb exits `0` even when
 it prints `no stop answers recorded`, so the record is read from its text, never its exit code: that
-line means no record exists, and the go is recorded as step 4 says. **A record that could not be
+line means no record exists, and the go is recorded as step 4 says. **In a consumer whose own
+`nen/decisions.json` lacks `release-go`**, nen refuses `--row` at exit `2` (it checks only that file):
+the record is written again with `--gate G3` alone, the row named in `<q.md>`, as
+[`WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4 *A row the consumer's own matrix lacks* says, and that
+refusal stops nothing. **Any other record that could not be
 written** (exit `1` or `2`) sends nothing: the run stops with nen's refusal quoted; the go lapses with
 the run (§ 0), and a re-run needs a fresh go.
 `nen stop --notified --mark` writes the bell's marker and is not this record.

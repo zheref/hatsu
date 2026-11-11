@@ -1564,6 +1564,16 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   (candidates, none starred, go in the question file): record each with the one reference option
   `--option "ref=typed by design (no option)::the typed words are the answer"` and `--typed-file`, so
   nen never reads a typed value as a pick; the row renders `none: typed by design`, capture class typed.
+- **A row the consumer's own matrix lacks.** nen checks `--row` against `--repo`'s own
+  `nen/decisions.json` only, never Hatsu's (nen `0.30.0`, `src/stop/answer.ts`): with no file the row is
+  recorded and said unchecked; with a file that lacks the row the call is refused at exit `2`
+  (`--row '<id>' is no row of <path>`). A consumer may carry its own matrix
+  ([`decisions.json.md`](config/decisions.json.md)), and a Hatsu row it has not copied (`release-go`,
+  `merged-head-review-skip` and `host-merge-protected-path` among them) does not cost the record: on that
+  refusal alone a `human-gate` row is recorded again with `--gate <its gate>` and no `--row`, its row id
+  written as the question file's first line and the turn page saying `row <id>: not in <path>`. An
+  `ask-once-per-run` row has no gate to record under, so it is *answer unrecorded* (*A record that could not be written*, below),
+  and the consumer's matrix owes the row. Any other refusal stays that bullet's.
 - **`direct-mismatch`'s record is `nen direct answer`** (direct § 6); `nen stop answer` records every
   other row.
 - **An idle pre-answer** (§ *Idle batches*, step 1) is recorded the same way and shows no picker:
@@ -2992,7 +3002,10 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    in the portable form that names no machine-local path, so it runs unchanged on another machine
    (zheref/nen#294, zheref/hatsu#578): `["nen", "canon", "mirror", "generate", "--repo", ".",
    "--canon-values", ".claude/canon-values.yml", "--stack-dir", "handbooks/stacks", "--leaf", "rules",
-   "--not-mirrored", "README.md,placeholders.md"]`, nen resolving and verifying the canon checkout at the
+   "--scenario", "<scenario>", "--not-mirrored", "README.md,placeholders.md"]`, `<scenario>` written as
+   the literal value `nen repo scenario --repo . --target <slug>` reports, since the mirror verbs read the
+   canon-values file's `scenario:` and never the registry (a value that differs from the registry's is
+   `hatsu:limbo`'s to report, § 2 step 4), nen resolving and verifying the canon checkout at the
    pin from the consumer's registry (`checkout_env`, then `checkout`) and refusing at exit `2` where none
    resolves (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
    `tenkai` names as the routed gap) — run locally, never the weekly cron and never a `workflow_dispatch`
