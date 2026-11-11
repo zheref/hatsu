@@ -4059,9 +4059,11 @@ def self_test(root)
       Dir.mktmpdir("hatsu-prose-guard") do |dir|
         FileUtils.mkdir_p(File.join(dir, ".trusted/scripts"))
         FileUtils.cp(guard_script, File.join(dir, ".trusted/scripts/prose_size_check.sh"))
-        headroom_script = File.join(__dir__, "prose_headroom_warn.ts")
-        fail_policy("self-test: prose_headroom_warn.ts is not beside the prose guard") unless File.file?(headroom_script)
-        FileUtils.cp(headroom_script, File.join(dir, ".trusted/scripts/prose_headroom_warn.ts"))
+        %w[prose_desc.awk prose_headroom_warn.ts].each do |name|
+          companion = File.join(__dir__, name)
+          fail_policy("self-test: #{name} is not beside the prose guard") unless File.file?(companion)
+          FileUtils.cp(companion, File.join(dir, ".trusted/scripts", name))
+        end
         FileUtils.mkdir_p(File.join(dir, "claude/agents"))
         agent = File.join(dir, "claude/agents/scout.md")
         File.write(agent, "a scratch agent\n")

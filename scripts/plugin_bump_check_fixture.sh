@@ -59,6 +59,7 @@ printf '%s\n' 'scripts/cleanup_path_admit.ts' > "$fixture_root/changed-cleanup-p
 printf '%s\n' 'scripts/hatsu_surface_link.sh' > "$fixture_root/changed-surface-link.txt"
 printf '%s\n' 'scripts/surface_link_check.sh' > "$fixture_root/changed-link-guard.txt"
 printf '%s\n' 'scripts/prose_size_check.sh' > "$fixture_root/changed-prose-guard.txt"
+printf '%s\n' 'scripts/prose_desc.awk' > "$fixture_root/changed-prose-parser.txt"
 
 run_case() {
   local name="$1" expected_status="$2" changed="$3" head="$4" expected_text="$5" body="${6:-$fixture_root/body.md}"
@@ -135,6 +136,8 @@ run_case 'cleanup path admission implementation unchanged version' 1 "$fixture_r
 run_case 'surface link script unchanged version' 1 "$fixture_root/changed-surface-link.txt" "$fixture_root/head-unchanged.json" 'scripts/hatsu_surface_link.sh'
 run_case 'link guard script unchanged version' 1 "$fixture_root/changed-link-guard.txt" "$fixture_root/head-unchanged.json" 'scripts/surface_link_check.sh'
 run_case 'prose guard script unchanged version' 1 "$fixture_root/changed-prose-guard.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_size_check.sh'
+run_case 'prose description parser unchanged version' 1 "$fixture_root/changed-prose-parser.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_desc.awk'
+run_case 'prose description parser bumped version' 0 "$fixture_root/changed-prose-parser.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 run_case 'surface link script bumped version' 0 "$fixture_root/changed-surface-link.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 run_case 'updater script bumped version' 0 "$fixture_root/changed-updater.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 

@@ -100,6 +100,28 @@ run 0 "$clean"
 assert_contains "$out" "prose ok: $total files within their ceilings" 'every dieted skill (rikugan among them), two agents, one rules file and its Antigravity mirror are counted; kurapika.md is not'
 assert_lacks "$out" 'kurapika' 'the exempt persona is never named'
 
+# --- no argument selects the executing guard's checkout, even from a different directory ---
+run 0 "$script_dir/.."
+explicit_root_out="$out"
+(
+  cd "$clean"
+  run 0
+  [ "$out" = "$explicit_root_out" ] || fail "no argument must select the executing guard's checkout: $out"
+)
+
+# The candidate root cannot supply the parser when the executing guard's own companion is missing.
+mkdir -p "$fixture_root/no-parser" "$clean/scripts"
+cp "$guard" "$fixture_root/no-parser/prose_size_check.sh"
+printf '%s\n' 'BEGIN { exit }' > "$clean/scripts/prose_desc.awk"
+if out="$(sh "$fixture_root/no-parser/prose_size_check.sh" "$clean" 2>&1)"; then
+  fail "the guard accepted a missing companion: $out"
+else
+  code=$?
+fi
+[ "$code" -eq 2 ] || fail "a missing companion exited $code, expected 2: $out"
+missing_parser_dir="$(cd "$fixture_root/no-parser" && pwd -P)"
+assert_contains "$out" "cannot read description parser $missing_parser_dir/prose_desc.awk" 'the missing companion is named beside the executing guard'
+
 # --- --headroom: one row per file, smallest margin first, exit unchanged ---
 run 0 --headroom "$clean"
 assert_contains "$out" '  left file' 'the report carries its header, in the rows\x27 own widths'
@@ -175,6 +197,12 @@ head -c 60000 /dev/zero | LC_ALL=C tr '\0' '\277' > "$bad/claude/rules/hatsu.md"
 run 1 "$bad"
 assert_contains "$out" 'UNMEASURABLE  claude/rules/hatsu.md -- not valid UTF-8 (60000 bytes), not measured' 'raw continuation bytes are refused by name'
 assert_lacks "$out" 'prose ok' 'a file five times the ceiling never reads green'
+
+# The generated mirror gets the same refusal for invalid UTF-8.
+printf '\277' > "$mirror/surfaces/antigravity/rules/hatsu.md"
+run 1 "$mirror"
+assert_contains "$out" 'UNMEASURABLE  surfaces/antigravity/rules/hatsu.md -- not valid UTF-8 (1 bytes), not measured' 'an invalid Antigravity rule is refused by name'
+assert_lacks "$out" 'prose ok' 'an invalid Antigravity rule never reads green'
 
 # --- a dieted skill missing from disk is named, never skipped ---
 missing="$fixture_root/missing"
