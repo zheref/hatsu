@@ -2520,6 +2520,10 @@ cover Swift behavior, and its whole-suite apple row cannot substitute for scoped
 Do not proliferate permanent lanes per ad hoc selection or copied consumer scripts. The shared
 capability and its consumer adoption remain explicitly pending.
 
+When changing the Claude Code permission pack or routine-write hook, run
+`nen shu test --repo <hatsu_root> --lane claude-routine-permissions-guard`. The fixtures exercise
+the rendered proposal, Bash hook input and checkout placement with scratch settings.
+
 The maintainer named Copilot as the sole automated reviewer for Hatsu and Nen on 2026-09-12.
 Their `nen/gates.json` files require Copilot's completed round and explicitly select
 `approval_policy: review-round-only` with no separate approving-review requirement. The maintainer's
