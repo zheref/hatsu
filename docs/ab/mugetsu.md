@@ -364,7 +364,7 @@ proof remains the scratch-installation result above.
 
 | Criterion | Evidence |
 |---|---|
-| Declare and render the explicit `plugin` lane's plan and bare release forms | [`contracts/permissions.json`](../../contracts/permissions.json) contains both narrow forms and their Mugetsu / advance-go / #156 reasons; [`scripts/permissions_pack_fixture_check.sh`](../../scripts/permissions_pack_fixture_check.sh) exercises scratch installation. The 2026-10-18 record above reports its pass. |
+| Declare and render the explicit `plugin` lane's plan and bare release forms | [`contracts/permissions.json`](../../contracts/permissions.json) defines both forms and cites Mugetsu § 5a, the advance go ruling, and zheref/hatsu#156. [`scripts/permissions_pack_fixture_check.sh`](../../scripts/permissions_pack_fixture_check.sh) exercises scratch installation. The 2026-10-18 record above reports its pass. |
 | Preserve G3 handoff on a harness denial | [Mugetsu § 5a and § 6](../../claude/skills/mugetsu/SKILL.md) name the narrow rows, keep the printed plan and exact go, record `not published` through § 7's `nen issue comment`, and hand over the denied command without another publication route. |
 | Record local proof, then append the actual later Claude Code result | The 2026-10-18 record preserves the local proof; this section appends the exact picker exchange, dry-run plan, bare-command exit `0` and `published v0.152.0` result from HA-PR-#509. |
 | Add no explicit deploy or direct `gh release` grant | The two release rows cover only `nen shu release --repo * --lane plugin`, with and without `--dry-run`. The scratch fixture also checks that no explicit `nen shu deploy` or direct `gh release` row was added. This evidence update changes no permission row. |
