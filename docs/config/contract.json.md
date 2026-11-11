@@ -102,7 +102,7 @@ Every key of `project.lanes` in Hatsu's own file is named here, with the scripts
 | `redaction-guard` | test: `scripts/private_name_check_fixture.sh` |
 | `redaction-tree` | test: `scripts/private_name_check.sh` |
 | `prose-guard` | test: `scripts/prose_size_check_fixture.sh`, `scripts/prose_size_check.sh` |
-| `canon-lint` | test: `scripts/prose_ambiguity_check_fixture.mts` |
+| `prose-history-guard` | test: `scripts/prose_lint_history_fixture.test.mts` |
 | `tenkai-guard` | test: `scripts/tenkai_adopt.sh` |
 | `pr-composition-guard` | test: `scripts/pr_composition_check_fixture.sh` |
 | `report-markdown-guard` | test: `scripts/report_markdown_check_fixture.sh` |

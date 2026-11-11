@@ -47,7 +47,7 @@ Lane `skill-shape-guard` runs the hermetic fixture `scripts/skill_shape_check_fi
 |---|---|---|
 | The skill shape | `nen shu test --lane skill-shape-guard --repo <checkout>` | this page, § *What it decides* |
 | The decision coverage | the same lane: `scripts/canon_coverage_check.mts` runs inside it | [`decisions.json.md`](decisions.json.md), key `citedBy[]` |
-| The canon prose lint | `node scripts/prose_ambiguity_check.mts --root <checkout>`, its fixture lane `canon-lint` when the guard itself changed | [`prose.lint.json.md`](prose.lint.json.md) |
+| The canon prose lint | `nen canon lint --repo <checkout>` | [`prose.lint.json.md`](prose.lint.json.md) |
 
 All three are deterministic and read only the checkout, so a red row is fixed in the effort, never handed to a reviewer. The set is fixed rather than chosen per diff: any `SKILL.md` in the change set selects all three. Selecting lanes from a change set's paths is a Nen verb's job, owed by zheref/nen#500 (`nen shu test --changed`); until it ships, no shell in a skill computes the selection.
 

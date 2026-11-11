@@ -264,7 +264,7 @@ The **idle profile** (HR-5), read only by a `hatsu:futon` or `hatsu:kazaana` run
 
 ### `canon.lint`
 
-The canon prose lint's declared home (zheref/nen#481, nen 0.28; HR-13, HR-4). With the block declared, `nen canon lint --repo <path>` needs no flag: the rules contract, the shrink-only baseline and the paths the marker limit and PL-12 apply to are read from here, and `nen schema check` adds the row `nen/workflow.json#canon.lint`, validating the contract as `nen.prose-lint/v0.1` and the baseline's shape. The block is read only when `--rules` is absent: the CI form passes every value as a flag because its tree is the pull request's head (SEC-7). Hatsu's `.github/workflows/prose-ambiguity-check.yml` still runs `scripts/prose_ambiguity_check.mts`, whose findings agree with the verb's on this tree (docs/history/nen-repins.md § v0.28.0); moving the frozen step onto the verb is a two-step landing of its own (docs/GATE-CONFIGURATION.md, 2026-09-20).
+The canon prose lint's declared home (zheref/nen#481, nen 0.28; HR-13, HR-4). With the block declared, `nen canon lint --repo <path>` needs no flag: the rules contract, the shrink-only baseline and the paths the marker limit and PL-12 apply to are read from here, and `nen schema check` adds the row `nen/workflow.json#canon.lint`, validating the contract as `nen.prose-lint/v0.1` and the baseline's shape. The block is read only when `--rules` is absent: the CI form passes every value as a flag because its tree is the pull request's head (SEC-7). Hatsu's `.github/workflows/prose-ambiguity-check.yml` runs that form with the trusted bootstrap and verified binary.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|

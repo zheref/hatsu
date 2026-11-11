@@ -53,7 +53,7 @@
         "sha256": "abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70"
       },
       "sha256": {
-        "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified. CI reads linux-x64: the three workflows that bootstrap nen refuse a binary whose sha256 differs from main's copy of this key (zheref/hatsu#230), so a repin that leaves it behind fails every pull request after it closed.",
+        "$comment": "The release digests of the pinned binary, keyed by platform. They mirror pinned_ref_semantics and move with the pin; scripts/nen_global.sh refuses to link any binary whose sha256 differs, and a platform with no key here is never linked unverified. CI reads linux-x64: the workflows that verify the trusted binary digest refuse a binary whose sha256 differs from main's copy of this key (zheref/hatsu#230), so a repin that leaves it behind fails every pull request after it closed.",
         "darwin-arm64": "2eaa60a24b9cb69a688afd33a4b37254d1a715e4986e7f7968636166859e1c6b",
         "linux-x64": "91e8bc2b32fa589ba1bb01966a8b2f6c19e9e0a4f0ddbfd3446fc8e04c73da86",
         "windows-x64": "de8c3c9edd665e39b1dd1f32af236d3e4ff36e60485fd25d1953f4955f655de1"
@@ -189,11 +189,6 @@
         "cwd": ".",
         "$comment": "The focused lane for scripts/prose_size_check.sh, the prose-diet guard (zheref/hatsu#119), following the one-lane-per-executable-guard pattern. Its fixture runs offline: throwaway plugin-shaped trees prove a tree within every ceiling is exit 0 with kurapika.md exempt, --headroom prints one row per measured file smallest margin first with the plain run's exit code, exactly at the ceiling is within it and one byte over is named with size and ceiling, a rules file is measured in characters, a dieted skill missing from disk is named, an unknown flag or a non-Hatsu root is a wiring refusal at exit 2, and every skill's frontmatter description in source and mirrors is measured whole in the forms the generator writes (plain, quoted, folded, literal, continued, CRLF) against the 1024-character Agent Skills cap (zheref/hatsu#186); a duplicate key, invalid UTF-8 (checked exactly), a quoted key, a space before the colon, an alias or anchor value, a BOM before the frontmatter and an unlistable skill directory are each an offender by name, never skipped. One read-only live checkout probe compares output and exit status for the default and explicit roots, accepting either prose verdict. The live tree is judged on every pull request by prose-size-check.yml, which runs the trusted guard against the pull request's checkout (zheref/hatsu#135)."
       },
-      "canon-lint": {
-        "stack": "claude-code-plugin",
-        "cwd": ".",
-        "$comment": "The focused lane for scripts/prose_ambiguity_check.mts, the canon prose ratchet lint (HR-13, HR-4), following the one-lane-per-executable-guard pattern. Its TypeScript fixture is hermetic and offline: throwaway Hatsu-shaped roots prove every fail rule of contracts/prose.lint.json fires by id on a planted copy and stays silent on its clean twin, the advisory rules print and never count, CRLF, a heading inside a fence, folded frontmatter, a symlink leaving the root, a marker naming a human-gate row, an unparseable contract, an unreadable and a non-UTF-8 file each read as named (never green over the unread), the baseline admits, goes stale and refuses to grow under --base and never holds a PL-03 or PL-04 row, and the committed tree reads clean against contracts/prose.lint.baseline.json; --history (zheref/hatsu#448) is proved over built merge histories: merge and squash pull requests, skipped commits, a baseline-less tree, the ratchet's start on a merge and on a direct commit, history-start, scan-cap, and a shallow clone or baseline-less HEAD refused. Owed to `nen canon lint` (zheref/nen#481)."
-      },
       "tenkai-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -233,6 +228,11 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "The focused lane for the typed Direct matrix renderer, stable shell CLI and compatible evidence bootstrap (part of HA#341). snapshot.evidenceVersion defaults off: the live registry and generated page stay byte-compatible until this trusted renderer merges on main and a follow-up activates the data. Opted-in fixture metadata checks price steps/expiry, benchmark methods, legacy and structured served rows, product warnings, consumer tier spelling and quota-only substitutes beside the cross-provider fallback. The trusted CI-boundary fixture remains. Pinned Vitest runs with one worker, then the same exported cases replay under native Node only for exact-source LCOV. Routing invariants remain the fallback rule, model lines/escalations, no frontier primary, routed companions and sourced list prices. Canon data invariants belong to canon-contracts-guard and Nen."
+      },
+      "prose-history-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "The Git-only baseline history report used by the morning desk."
       },
       "workflow-policy-guard": {
         "stack": "claude-code-plugin",
@@ -467,7 +467,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, marketplace-snapshot-guard, fixture-output-guard, direct-matrix-shell-guard, desk-staging-guard, pr-sections-shell-guard, desk-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, prose-history-guard, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, marketplace-snapshot-guard, fixture-output-guard, direct-matrix-shell-guard, desk-staging-guard, pr-sections-shell-guard, desk-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no application to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; its rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md) and the desk pane (hooks/desk), which Claude Code draws from the module's ui.render trees. The engine's test kit renders no tree to a surface, so the desk's screens are captured by hand on a PR, not by a ui-test run (zheref/hatsu#523)."
@@ -703,6 +703,7 @@
                 "15000",
                 "scripts/unit_tests_ci_fixture.test.mts",
                 "scripts/trusted_guard_preflight_fixture.test.mts",
+            "scripts/prose_lint_history_fixture.test.mts",
                 "scripts/release_changelog_fixture.test.mts",
                 "scripts/tenkai_release_guard_fixture.test.mts",
                 "scripts/shell_coverage_fixture.test.mts"
@@ -723,7 +724,7 @@
               ]
             }
           ],
-          "$comment": "The trusted read-only unit-tests workflow already selects this candidate lane (BC-9). Check candidate workflow adapters and exercise the pinned Vitest fixtures for CI, release, coverage, and the Claude Code routine-write and permission-pack entry points. The separate claude-routine-permissions-guard lane supplies exact-source TypeScript coverage for local verification. Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "The trusted read-only unit-tests workflow already selects this candidate lane (BC-9). Check candidate workflow adapters and exercise the pinned Vitest fixtures for CI, release, coverage, Git baseline history, and the Claude Code routine-write and permission-pack entry points. The separate claude-routine-permissions-guard lane supplies exact-source TypeScript coverage for local verification. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {
@@ -974,17 +975,6 @@
             "coverage/prose-guard/lcov.info"
           ],
           "$comment": "Extraction only: reads coverage/prose-guard/lcov.info, which this lane's test row wrote, verifies its exact-source provenance, and runs no fixture. Prefer --from-capture, where nen proves the capture is this tree's."
-        }
-      },
-      "canon-lint": {
-        "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "scripts/prose_ambiguity_check_fixture.mts"
-          ],
-          "$comment": "A permanent, deterministic fixture for the canon prose lint. Run it as `nen shu test --lane canon-lint --repo <hatsu>` when scripts/prose_ambiguity_check.mts, its fixture, contracts/prose.lint.json or its baseline changes, and after any prose edit that may move a finding; run the guard itself (`node scripts/prose_ambiguity_check.mts --root . [--json]`) to read the findings."
         }
       },
       "tenkai-guard": {
@@ -1285,6 +1275,62 @@
             "coverage/direct-matrix-guard/lcov.info"
           ],
           "$comment": "Extraction only: verifies the nonempty LCOV written by the focused test row and runs no fixture. Nen owns parsing and --from-capture provenance."
+        }
+      },
+      "prose-history-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/prose-history-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "--testTimeout",
+                "15000",
+                "scripts/prose_lint_history_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/prose_lint_history.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/prose-history-guard/lcov.info",
+                "scripts/prose_lint_history_coverage.test.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/prose-history-guard/lcov.info"
+          ],
+          "$comment": "Vitest exercises the Git-based report, including merge and squash history, baseline-less commits, bounded walks, and the real CLI. Node 24 replays the same fixture for exact-source LCOV over scripts/prose_lint_history.mts. Install locked dependencies with npm ci --ignore-scripts."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/prose-history-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing prose history LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty prose history LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/prose-history-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the non-empty LCOV artifact written by this lane's test row and runs no fixture. Nen owns LCOV parsing and --from-capture provenance."
         }
       },
       "workflow-policy-guard": {
@@ -2498,7 +2544,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/prose_ambiguity_check_fixture.mts, scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; cleanup_path_admit and prose_ambiguity_check_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/scripts/tenkai_adopt.sh --self-test, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; cleanup_path_admit and prose_lint_history_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {
@@ -2512,7 +2558,7 @@
         ],
         "versionFrom": "first-semver-on-stdout",
         "installer": "verify-only",
-        "why": "The floor at which node strips TypeScript types natively, with the probe also requiring import.meta.main for fail-closed CLI entry detection (HA#417). Node 22.18 supports that metadata; Node 23 and 24.0\u201324.1 do not and are refused by the capability probe even though they exceed the numeric floor. Use a release exposing the capability, such as Node 22.18+ or 24.2+. The type-stripping floor remains the one which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_doc.mts and scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_ambiguity_check.mts with scripts/prose_ambiguity_check_fixture.mts (canon-lint) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding; the canon lint has none either, and its pull-request check pins node 24 through a frozen setup step instead. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
+        "why": "The floor at which node strips TypeScript types natively, with the probe also requiring import.meta.main for fail-closed CLI entry detection (HA#417). Node 22.18 supports that metadata; Node 23 and 24.0\u201324.1 do not and are refused by the capability probe even though they exceed the numeric floor. Use a release exposing the capability, such as Node 22.18+ or 24.2+. The type-stripping floor remains the one which scripts/cleanup_path_admit.ts (the cleanup-path-guard lane), scripts/direct_matrix_doc.mts and scripts/direct_matrix_ci_fixture_check.mts (direct-matrix-guard) scripts/futon_effort_record_fixture.mts (futon-effort-guard), the generated scripts/release_changelog.mts (release-guard), scripts/clause_id_guard.mts with scripts/clause_id_guard_fixture.mts (clause-guard), and scripts/prose_lint_history.mts (prose-history-guard) need: below it the cleanup shim refuses at exit 2, never 1; the clause guard has no shim, so there an exit 1 with no ::error:: line on stdout is this toolchain failure, never a finding. 23.0 to 23.5 pass this floor and lack the feature, and the shim refuses them by name. Verify-only: the user's own node install."
       },
       "claude": {
         "version": ">=2.0.0",

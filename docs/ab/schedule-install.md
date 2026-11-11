@@ -98,7 +98,7 @@ Local folder:    <hatsu>
 Worktree:        on (select Worktree in the Edit form after Create)
 Permission mode: Ask permissions (the default); never a bypass mode
 Model:           your Claude Code default
-Always allow:    nen report data · nen report render · nen pr ready · nen backlog · node scripts/prose_ambiguity_check.mts --root . --history 10 · git fetch · git status · git rev-parse · gh pr view|list · gh issue view|list
+Always allow:    nen report data · nen report render · nen pr ready · nen backlog · node scripts/prose_lint_history.mts --root . --history 10 · git fetch · git status · git rev-parse · gh pr view|list · gh issue view|list
 Never always:    nen issue file · nen issue edit-body · nen issue comment · gh issue create|edit|comment · gh pr create|edit|comment|merge · git commit · git push · Write · Edit · update_scheduled_task
 SKILL.md, as Desktop keeps it at ~/.claude/scheduled-tasks/hatsu-morning-desk/SKILL.md (the instructions box):
   | ---
@@ -112,13 +112,13 @@ SKILL.md, as Desktop keeps it at ~/.claude/scheduled-tasks/hatsu-morning-desk/SK
   |
   | If a hatsu:futon --idle run on zheref/hatsu ended since the previous desk, put its terminal state and its parked efforts above the fold; that run's own last report already links its register (futon section 10).
   |
-  | Run node scripts/prose_ambiguity_check.mts --root . --history 10 exactly and quote its last line beside the page's link: the baseline rows removed by the last ten merged prose pull requests (a pull request is a first-parent Merge pull request #N merge or a squash commit whose subject ends (#N), an integration branch's sub-PRs counting once through their delivery PR; prose commits naming no pull request are counted as skipped, never as pull requests), the walk's end when it is not complete, and the baseline's findings. A non-zero exit is reported as not run, never as none removed.
+  | Run node scripts/prose_lint_history.mts --root . --history 10 exactly and quote its last line beside the page's link: the baseline rows removed by the last ten merged prose pull requests (a pull request is a first-parent Merge pull request #N merge or a squash commit whose subject ends (#N), an integration branch's sub-PRs counting once through their delivery PR; prose commits naming no pull request are counted as skipped, never as pull requests), the walk's end when it is not complete, and the baseline's findings. A non-zero exit is reported as not run, never as none removed.
   |
   | End with the page's link and that line. Never a release step (HR-5).
 
 === ratchet-shrink ===
 not a task: runs in CI, .github/workflows/prose-ambiguity-check.yml job canon-lint
-when: every pull request (opened, synchronize, reopened, ready_for_review): scripts/prose_ambiguity_check.mts held against the trusted base revision's contracts/prose.lint.baseline.json prints `<n> removed over <base>` in its canon-lint summary line and `removedBaseline` in --json; the sum over the last ten merged prose pull requests is `--history 10`, quoted by morning-desk
+when: every pull request (opened, synchronize, reopened, ready_for_review): pinned nen canon lint holds the PR baseline against the trusted base baseline. The morning desk quotes the Git-based shrink total over the last ten merged prose pull requests
 ```
 
 ## 3a. The morning desk's ten-PR line, live
@@ -126,7 +126,7 @@ when: every pull request (opened, synchronize, reopened, ready_for_review): scri
 Run on 2026-10-25 at this branch's committed head `ecdc044cb` (commit `ecdc044cbba6cb308642b557361c03e3382aa3d6`), three commits over `main` `00881fc1d` (node `v24.16.0`, macOS), exit `0`. The two skipped prose commits are the branch's own `59aad8586` and `a62623973`, which edit canon prose and name no pull request; `ecdc044cb` edits none and is not read as prose. On the desk, at `origin/main`, the skipped count is `main`'s own.
 
 ```text
-$ node scripts/prose_ambiguity_check.mts --root <hatsu> --history 10
+$ node scripts/prose_lint_history.mts --root <hatsu> --history 10
 history · #479 · 00881fc1d · merge · 4 prose files · 0 removed
 history · #476 · a49a7d4a4 · merge · 8 prose files · 1 removed
 history · #467 · 6b0a04ecf · merge · 67 prose files · 3 removed

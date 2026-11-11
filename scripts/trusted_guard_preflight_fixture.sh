@@ -97,33 +97,37 @@ set -e
 [ "$code" -eq 1 ] && grep -q 'prose_size_check.sh: exit 1' "$fixture/alternate.log" \
   || { cat "$fixture/alternate.log"; echo 'trusted-guard-preflight-fixture: alternate base guard was not run' >&2; exit 1; }
 
-# A base workflow running the TypeScript canon lint is derived (.mts) and run through
-# its adapter, never refused as unknown and never skipped -- and it PASSES on the clean
-# trusted tree: the adapter hands the lint the trusted contracts from inside the root,
-# since the lint refuses a path outside it (exit 2, which this case once accepted).
-# The lint and its two contracts are the checkout's own at origin/main.
+# Use the installed lint step verbatim in a separate fixture base. The
+# unrelated guard adapters have already run above; this control exercises
+# the exact archived invocation and its whole-tree verdict in isolation.
 git -C "$checkout" reset -q --hard refs/remotes/origin/main
 git -C "$checkout" clean -q -fd
-for owned in scripts/prose_ambiguity_check.mts contracts/prose.lint.json contracts/prose.lint.baseline.json; do
-  [ -f "$checkout/$owned" ] || { echo "trusted-guard-preflight-fixture: origin/main has no $owned" >&2; exit 1; }
+cp "$source_root/claude/skills/cleanup/SKILL.md" "$checkout/claude/skills/cleanup/SKILL.md"
+cp "$source_root/docs/ROSTER.md" "$checkout/docs/ROSTER.md"
+# Retain the full repository data, but give the archived control only the
+# actual canon lint step and disable discovery of other jobs.
+fixture_workflow="$checkout/.github/workflows/prose-ambiguity-check.yml"
+ruby -rpsych -e '
+  source, target = ARGV
+  data = Psych.safe_load(File.read(source, encoding: "UTF-8"))
+  step = data.fetch("jobs").fetch("canon-lint").fetch("steps").find { |row| row["name"] == "Canon prose lint" }
+  abort "installed canon lint step missing" unless step
+  File.write(target, Psych.dump("on" => { "pull_request_target" => {} }, "jobs" => { "canon-lint" => { "steps" => [step] } }))
+' "$source_root/.github/workflows/prose-ambiguity-check.yml" "$fixture_workflow"
+for workflow in "$checkout"/.github/workflows/*.yml; do
+  # Keep cited paths in the fixture tree while excluding their jobs from discovery.
+  [ "$workflow" = "$fixture_workflow" ] || printf 'name: fixture-only\n' > "$workflow"
 done
-cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
-  fixture-canon-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - run: node .trusted/scripts/prose_ambiguity_check.mts --root "$PWD"
-YAML
 git -C "$checkout" add -A
 git -C "$checkout" commit -qm 'fixture: a base workflow running the canon lint'
 git -C "$checkout" update-ref refs/remotes/origin/preflight-canon HEAD
 ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon --list > "$fixture/canon-list.log" 2>&1 \
-  && grep -Eq '^  prose_ambiguity_check[.]mts [(][^)]*plugin-bump-check[.]yml([,)]|$)' "$fixture/canon-list.log" \
-  || { cat "$fixture/canon-list.log"; echo 'trusted-guard-preflight-fixture: the .mts canon lint was not derived' >&2; exit 1; }
-set +e
-ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-lint.log" 2>&1
-set -e
-grep -q '  prose_ambiguity_check.mts: exit 0' "$fixture/canon-lint.log" \
-  && grep -q '    canon-lint: [0-9]* files · 0 new · 0 stale · 0 grown' "$fixture/canon-lint.log" \
+  && grep -Fq '  nen-canon-lint (prose-ambiguity-check.yml)' "$fixture/canon-list.log" \
+  || { cat "$fixture/canon-list.log"; echo 'trusted-guard-preflight-fixture: the Nen canon lint was not derived' >&2; exit 1; }
+ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-lint.log" 2>&1 \
+  || { cat "$fixture/canon-lint.log"; exit 1; }
+grep -q '  nen-canon-lint: exit 0' "$fixture/canon-lint.log" \
+  && grep -q '    canon lint: [0-9]* files · 0 new · 0 stale · 0 grown' "$fixture/canon-lint.log" \
   && ! grep -q 'no local invocation' "$fixture/canon-lint.log" \
   || { cat "$fixture/canon-lint.log"; echo 'trusted-guard-preflight-fixture: the canon lint adapter did not run green with its verdict line' >&2; exit 1; }
 [ -z "$(find "$checkout/.nen" -maxdepth 1 -name 'trusted-guard-preflight-*' 2>/dev/null)" ] \
@@ -136,17 +140,17 @@ set +e
 ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-red-lint.log" 2>&1
 code=$?
 set -e
-[ "$code" -eq 1 ] && grep -q '  prose_ambiguity_check.mts: exit 1' "$fixture/canon-red-lint.log" \
+[ "$code" -eq 1 ] && grep -q '  nen-canon-lint: exit 1' "$fixture/canon-red-lint.log" \
   && grep -q 'docs/GATE-CONFIGURATION.md:[0-9]* · PL-01 · .*fixture step is done by hand' "$fixture/canon-red-lint.log" \
-  && grep -q 'canon-lint: [0-9]* files · 1 new · 0 stale · 0 grown' "$fixture/canon-red-lint.log" \
-  && grep -q 'prose_ambiguity_check.mts: fix the prose or remove the stale baseline row' "$fixture/canon-red-lint.log" \
+  && grep -q 'canon lint: [0-9]* files · 1 new · 0 stale · 0 grown' "$fixture/canon-red-lint.log" \
+  && grep -q 'nen-canon-lint: fix the prose or remove the stale baseline row' "$fixture/canon-red-lint.log" \
   || { cat "$fixture/canon-red-lint.log"; echo "trusted-guard-preflight-fixture: a planted finding did not redden the canon lint with the finding and its remedy named (exit $code)" >&2; exit 1; }
 [ -z "$(find "$checkout/.nen" -maxdepth 1 -name 'trusted-guard-preflight-*' 2>/dev/null)" ] \
   || { echo 'trusted-guard-preflight-fixture: the contracts copy was left under .nen/ after a red lint' >&2; exit 1; }
 git -C "$checkout" checkout -q -- docs/GATE-CONFIGURATION.md
 
 # A trusted base that derives the lint but lacks one of its contracts is a wiring refusal (exit 2),
-# named, and leaves no copy behind either: the copy loop runs inside the same begin/ensure.
+# named, and leaves no contract copy behind.
 git -C "$checkout" rm -q contracts/prose.lint.json
 git -C "$checkout" commit -qm 'fixture: a base deriving the canon lint without its rules'
 git -C "$checkout" update-ref refs/remotes/origin/preflight-canon-norules HEAD
@@ -160,20 +164,35 @@ set -e
   || { echo 'trusted-guard-preflight-fixture: the contracts copy was left under .nen/ after a wiring refusal' >&2; exit 1; }
 git -C "$checkout" reset -q --hard refs/remotes/origin/preflight-canon
 
-# A trusted lint that exits 0 without printing its verdict did not run; the preflight refuses it as
-# wiring, never a pass (the shape the symlinked temp dir once produced).
-printf 'process.exitCode = 0;\n' > "$checkout/scripts/prose_ambiguity_check.mts"
-git -C "$checkout" commit -qam 'fixture: a trusted lint that runs nothing'
-git -C "$checkout" update-ref refs/remotes/origin/preflight-canon-silent HEAD
+# Reject a different local binary before executing it. The same file is used
+# for the silent-verdict case after its digest is pinned in the fixture base.
+silent_nen="$fixture/silent-nen"
+printf '#!/bin/sh\nexit 0\n' > "$silent_nen"
+chmod +x "$silent_nen"
 set +e
-ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon-silent > "$fixture/canon-silent.log" 2>&1
+NEN="$silent_nen" ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon > "$fixture/canon-wrong-bin.log" 2>&1
 code=$?
 set -e
-[ "$code" -eq 1 ] && grep -q 'prose_ambiguity_check.mts: not run (exited 0 without its verdict line' "$fixture/canon-silent.log" \
+[ "$code" -eq 2 ] && grep -q 'installed Nen does not match the trusted' "$fixture/canon-wrong-bin.log" \
+  || { cat "$fixture/canon-wrong-bin.log"; echo 'trusted-guard-preflight-fixture: an unverified binary was not refused' >&2; exit 1; }
+ruby -rjson -rdigest -e '
+  path, binary = ARGV
+  data = JSON.parse(File.read(path))
+  data.dig("dependency", "bootstrap", "sha256").transform_values! { Digest::SHA256.file(binary).hexdigest }
+  File.write(path, JSON.pretty_generate(data) + "\n")
+' "$checkout/nen/contract.json" "$silent_nen"
+git -C "$checkout" commit -qam 'fixture: pin a silent Nen'
+git -C "$checkout" update-ref refs/remotes/origin/preflight-canon-silent HEAD
+set +e
+NEN="$silent_nen" ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon-silent > "$fixture/canon-silent.log" 2>&1
+code=$?
+set -e
+[ "$code" -eq 1 ] && grep -q 'nen-canon-lint: not run (exited 0 without its verdict line' "$fixture/canon-silent.log" \
   || { cat "$fixture/canon-silent.log"; echo "trusted-guard-preflight-fixture: a silent exit 0 from the lint was not refused (exit $code)" >&2; exit 1; }
 git -C "$checkout" reset -q --hard refs/remotes/origin/preflight-canon
 
 # Discover unknown scripts from the base workflow and refuse missing wiring.
+git -C "$checkout" reset -q --hard refs/remotes/origin/main
 cat >> "$checkout/.github/workflows/plugin-bump-check.yml" <<'YAML'
   fixture-unknown-guard:
     runs-on: ubuntu-latest
@@ -207,4 +226,4 @@ grep -q '^  workflow_runner_policy_check.rb: exit [01]$' "$fixture/unknown.log" 
   && ! grep -q 'every runnable trusted guard passed' "$fixture/unknown.log" \
   || { cat "$fixture/unknown.log"; echo 'trusted-guard-preflight-fixture: missing adapter stopped other guards or read green' >&2; exit 1; }
 
-echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the .mts canon lint derived and run green from inside the root with its red, no-rules and silent paths proven, unknown guard refusal, old guard regression cases)'
+echo 'trusted-guard-preflight-fixture: ok (canon pass/red, the pinned Nen canon lint derived and run with clean, finding, missing rules, wrong binary and silent paths proven, unknown guard refusal, old guard regression cases)'

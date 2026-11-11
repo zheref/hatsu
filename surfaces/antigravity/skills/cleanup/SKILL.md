@@ -31,7 +31,7 @@ asked inline (`missing-argument`).
 ## 2. When it runs — wrap-up, both prerequisites
 
 **Only when (1) every PR in the sitting's scope reads `MERGED` live** (unread: not; one the maintainer closed
-unmerged leaves the scope, HR-367) **and (2) the maintainer explicitly declared the sitting satisfied**, in their
+unmerged leaves scope, HR-367 (reading)) **and (2) the maintainer explicitly declared the sitting satisfied**, in their
 own words this sitting, quoted in question and report (HR-366, zheref/hatsu#480): never solicited, nothing else
 supplies it, so `--idle` never offers or runs it. Else no picker, no run, the missing one named; a later declaration in the maintainer's
 own words has the main session re-read every scoped PR live and ask once (WORKFLOW § *Two offers*). A typed

@@ -5,6 +5,9 @@ require 'open3'
 require 'tmpdir'
 require 'fileutils'
 require 'pathname'
+require 'digest'
+require 'json'
+require 'shellwords'
 
 # Every guard's output is UTF-8 (the lint's summary carries a middle dot). Under LANG unset or C --
 # macOS's default outside an interactive shell -- Ruby 2.6 tags Open3's strings US-ASCII and a
@@ -28,7 +31,14 @@ NOT_BEFORE_PR = {
   'readiness_ci_verdict.mts' => "formats the open PR's live nen pr ready verdict; there is no PR before creation"
 }.freeze
 
+NEN_CANON_LINT = 'nen-canon-lint'.freeze
+NEN_CANON_PREFIX = ['$NEN_BIN', 'canon', 'lint'].freeze
+NEN_CANON_ARGS = ['--root', '$PWD', '--rules', '$PWD/$rules',
+                  '--baseline', 'contracts/prose.lint.baseline.json',
+                  '--base-baseline', '$PWD/$base', '--skill-paths'].freeze
+
 VERDICT_LINES = {
+  NEN_CANON_LINT => /^canon lint: /,
   'prose_ambiguity_check.mts' => /^canon-lint: /,
   'plugin_bump_api_retry.mts' => /^changed files: 1$/
 }.freeze
@@ -45,15 +55,58 @@ def derive_guards(root)
       next unless job.is_a?(Hash)
       (job['steps'] || []).each do |step|
         next unless step.is_a?(Hash) && step['run'].is_a?(String)
-        step['run'].scan(%r{\.trusted/scripts/([A-Za-z0-9_.-]+\.(?:sh|rb|mts|ts))}) do |match|
+        run = step['run']
+        if File.basename(workflow) == 'prose-ambiguity-check.yml' && step['name'] == 'Canon prose lint' &&
+           run.include?('"$NEN_BIN" canon lint')
+          guards[NEN_CANON_LINT] = [File.basename(workflow)]
+        end
+        run.scan(%r{\.trusted/scripts/([A-Za-z0-9_.-]+\.(?:sh|rb|mts|ts))}) do |match|
           guards[match.first] ||= []
           guards[match.first] << File.basename(workflow)
         end
       end
     end
   end
-  fail_preflight('no trusted scripts derived from pull_request_target workflows') if guards.empty?
+  fail_preflight('no trusted guards derived from pull_request_target workflows') if guards.empty?
   guards
+end
+
+def nen_canon_adapter(trusted, root)
+  workflow = File.join(trusted, '.github/workflows/prose-ambiguity-check.yml')
+  data = Psych.safe_load(File.read(workflow, encoding: 'UTF-8'), aliases: false)
+  step = data.dig('jobs', 'canon-lint', 'steps')&.find { |row| row['name'] == 'Canon prose lint' }
+  line = step&.fetch('run', '')&.lines&.find { |text| text.start_with?('"$NEN_BIN" canon lint ') }
+  argv = Shellwords.split(line.to_s.split(' 2>&1 || code=', 2).first.to_s)
+  skill_paths = argv.last
+  unless argv[0...-1] == NEN_CANON_PREFIX + NEN_CANON_ARGS && skill_paths && !skill_paths.empty?
+    return [nil, 'trusted canon prose lint has an unsupported invocation']
+  end
+
+  rules, baseline = %w[prose.lint.json prose.lint.baseline.json].map do |name|
+    path = File.join(trusted, 'contracts', name)
+    return [nil, "trusted revision has no contracts/#{name} for the canon lint"] unless File.file?(path)
+    path
+  end
+  host = case RUBY_PLATFORM
+         when /arm64-darwin/, /aarch64-darwin/ then 'darwin-arm64'
+         when /x86_64-linux/ then 'linux-x64'
+         when /x64-mingw/, /x64-mswin/ then 'windows-x64'
+         end
+  contract = JSON.parse(File.read(File.join(trusted, 'nen/contract.json'), encoding: 'UTF-8'))
+  digest = contract.dig('dependency', 'bootstrap', 'sha256', host)
+  return [nil, "trusted revision has no valid Nen digest for #{host || RUBY_PLATFORM}"] unless digest.to_s.match?(/\A[0-9a-f]{64}\z/)
+
+  command = ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen'))
+  paths = command.include?(File::SEPARATOR) ? [command] : ENV.fetch('PATH', '').split(File::PATH_SEPARATOR).map { |dir| File.join(dir, command) }
+  binary = paths.find { |path| File.file?(path) && File.executable?(path) }
+  return [nil, "no executable Nen at #{command}"] unless binary
+  binary = File.realpath(binary)
+  return [nil, "installed Nen does not match the trusted #{host} digest"] unless Digest::SHA256.file(binary).hexdigest == digest
+
+  [[binary, 'canon', 'lint', '--root', root, '--rules', rules, '--baseline', 'contracts/prose.lint.baseline.json',
+    '--base-baseline', baseline, '--skill-paths', skill_paths], nil]
+rescue SystemCallError, JSON::ParserError, Psych::Exception, ArgumentError => error
+  [nil, "trusted Nen canon lint wiring: #{error.message}"]
 end
 
 def local_adapters(trusted, root, temporary, base_sha: nil, changed: nil, draft_body: nil, lint_contracts: nil)
@@ -75,8 +128,7 @@ def local_adapters(trusted, root, temporary, base_sha: nil, changed: nil, draft_
                                 File.join(root, '.claude-plugin/plugin.json'), draft_body],
     'canon_contracts_check.sh' => [{ 'NEN' => ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen')) },
                                    'bash', File.join(trusted, 'scripts/canon_contracts_check.sh'), '--root', root],
-    # The canon prose lint (HR-13): the trusted guard and rules over this tree, growth held
-    # against the trusted baseline, as prose-ambiguity-check.yml's frozen step runs it.
+    # A PR targeting a pre-migration branch still runs that revision's Node guard.
     'prose_ambiguity_check.mts' => ['node', File.join(trusted, 'scripts/prose_ambiguity_check.mts'), '--root', root,
                                      '--rules', File.join(lint_contracts.to_s, 'prose.lint.json'),
                                      '--base-baseline', File.join(lint_contracts.to_s, 'prose.lint.baseline.json')],
@@ -88,6 +140,7 @@ def local_adapters(trusted, root, temporary, base_sha: nil, changed: nil, draft_
 end
 
 def missing_script(root, name)
+  return if name == NEN_CANON_LINT
   "trusted workflow names absent scripts/#{name}" unless File.file?(File.join(root, 'scripts', name))
 end
 
@@ -140,7 +193,11 @@ if check_adapters
   fail_preflight('--check-adapters cannot be combined with --list') if list_only
   adapters = local_adapters(root, root, root)
   problems = derive_guards(root).keys.sort.map do |name|
-    reason = missing_script(root, name) || adapter_gap(name, adapters)
+    reason = if name == NEN_CANON_LINT
+               nen_canon_adapter(root, root).last
+             else
+               missing_script(root, name) || adapter_gap(name, adapters)
+             end
     "#{name}: #{reason}" if reason
   end.compact
   problems.each { |problem| warn "trusted-guard-preflight: #{problem}" }
@@ -204,6 +261,10 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
     write_plugin_bump_fixture(temporary, base_sha) if guards.key?('plugin_bump_api_retry.mts')
     adapters = local_adapters(trusted, root, temporary, base_sha: base_sha, changed: changed,
                               draft_body: draft_body, lint_contracts: lint_contracts)
+    if guards.key?(NEN_CANON_LINT)
+      adapter, unavailable[NEN_CANON_LINT] = nen_canon_adapter(trusted, root)
+      adapters[NEN_CANON_LINT] = adapter
+    end
     failed = []
     incomplete = false
     guards.keys.sort.each do |name|
@@ -244,6 +305,7 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
       # A finding-type guard's red is the author's own prose, not a guard-shape change: its remedy is
       # named instead of the two-step landing (Phinks, hanten round 2 on HA-PR-#420).
       finding_remedies = {
+        NEN_CANON_LINT => 'fix the prose or remove the stale baseline row (docs/config/prose.lint.json.md); the baseline never grows (HR-13)',
         'prose_ambiguity_check.mts' => 'fix the prose or remove the stale baseline row (docs/config/prose.lint.json.md); the baseline never grows (HR-13)'
       }
       shape = failed - finding_remedies.keys

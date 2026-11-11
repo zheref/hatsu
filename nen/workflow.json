@@ -343,7 +343,7 @@
         "claude/agents/*.md",
         "claude/rules/*.md"
       ],
-      "$comment": "The canon prose lint's declared home (zheref/nen#481, nen 0.28; HR-13, HR-4): nen canon lint --repo <hatsu> reads the rules contract, the shrink-only baseline and the paths the marker limit and PL-12 apply to from here, so a CI step, a skill and nen schema check read the same files. The CI form passes them as flags because its tree is the pull request's head (SEC-7): --rules <trusted> --baseline contracts/prose.lint.baseline.json --base-baseline <trusted> --skill-paths 'claude/skills/*/SKILL.md,claude/agents/*.md,claude/rules/*.md'. .github/workflows/prose-ambiguity-check.yml still runs scripts/prose_ambiguity_check.mts in its frozen form; moving it onto this verb is a two-step landing of its own (docs/GATE-CONFIGURATION.md, 2026-09-20)."
+      "$comment": "The canon prose lint's declared home (zheref/nen#481, nen 0.28; HR-13, HR-4): nen canon lint --repo <hatsu> reads the rules contract, the shrink-only baseline and the paths the marker limit and PL-12 apply to from here, so a CI step, a skill and nen schema check read the same files. The CI form passes them as flags because its tree is the pull request's head (SEC-7): --rules <trusted> --baseline contracts/prose.lint.baseline.json --base-baseline <trusted> --skill-paths 'claude/skills/*/SKILL.md,claude/agents/*.md,claude/rules/*.md'. .github/workflows/prose-ambiguity-check.yml runs that exact form with the trusted bootstrap and binary digest (zheref/hatsu#496)."
     }
   },
   "mukai": {

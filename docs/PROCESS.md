@@ -770,7 +770,7 @@ NN#448 is merged but does not replace the authorized interim scripts until a rel
 - **At most three per skill**, each with a ledger reference in its paragraph: an `OPEN-n` row in [`ROSTER.md`](ROSTER.md) or a `zheref/<repo>#N` issue.
 - **No default.** No run, agent or surface resolves a marker by a derived answer; the row's own stop applies until the maintainer rules.
 - **It closes in one commit**: the ruling lands in ROSTER citing the `OPEN-n` or the issue, and the marker is deleted in that same commit.
-- A to-do word or any other bracket is not a marker; `scripts/prose_ambiguity_check.mts` refuses it (`PL-11`).
+- A to-do word or any other bracket is not a marker; `nen canon lint` refuses it (`PL-11`).
 
 ## Residue and owned dependencies
 
@@ -795,11 +795,9 @@ pass files it through `hatsu:file` and replaces the word with the reference.
 whose section names none is said here too: `pr-state`, whose § 2 is `nen pr ready` run through
 `scripts/gh_token_env.sh`.
 
-- **The canon prose lint (lane `canon-lint`).** `scripts/prose_ambiguity_check.mts` is an interim
-  TypeScript verdict, frozen to fixes: `nen canon lint` (zheref/nen#481) shipped in nen `0.28` with its declared home
-  `canon.lint` (the HA#449 repin; parity with this guard checked there), and the frozen CI step moves onto it by a
-  two-step landing ([GATE-CONFIGURATION.md](GATE-CONFIGURATION.md), 2026-09-20); its citation resolver is still owed to
-  `nen ref resolve --citation` (zheref/nen#482); the guard retires at that flip. Its
+- **The canon prose lint.** `nen canon lint` reads the rules and shrink-only baseline
+  declared at `canon.lint`. The workflow and trusted preflight use the pinned
+  binary and trusted copies of the rules and base baseline. Its
   pull-request check, `canon-lint` from `.github/workflows/prose-ambiguity-check.yml`, is **advisory**:
   it sits in no ruleset and becomes required only after one tagged release of green runs with a
   shrinking baseline (HR-13), by the maintainer's own ruleset edit

@@ -8,12 +8,9 @@
 # `pull_request_target` workflow runs from the base branch's copy, so its first live run is the first
 # pull request opened after step two merged.
 #
-# scripts/prose_ambiguity_check.mts reads Hatsu's canon prose against contracts/prose.lint.json and
-# the shrink-only contracts/prose.lint.baseline.json; its own header names the rules and the exits.
-# The guard and the rules come from the trusted workflow revision; the PR checkout is only the root
-# it reads, and its baseline the PR's own (a PR that fixes a finding removes the row), held against
-# the trusted revision's copy by --base-baseline so it never grows. A finding outside the baseline, a
-# stale row or a grown row fails the check; a wiring refusal fails it too, never a pass.
+# The pinned Nen binary reads the PR checkout against the trusted rules and base
+# baseline. The PR supplies only the tree and its own shrink-only baseline.
+# Findings, stale or grown baseline rows, and wiring errors fail the check.
 #
 # The hardening is prose-size-check.yml's, step for step: the guard from the trusted revision, the
 # PR checkout as data, `persist-credentials: false` on both checkouts, the output fenced between
@@ -64,18 +61,9 @@ jobs:
       - name: Checkout guard code from the trusted workflow revision
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.base.sha }}
           path: .trusted
           persist-credentials: false
-
-      - name: Set up Node for the canon prose lint
-        # The guard is TypeScript run by node's type stripping (>= 22.18); pinned as
-        # unit-tests.yml pins it, so the runner image's node never decides the verdict. The action is
-        # pinned by full commit SHA (SEC-14): this job holds a checks: write token.
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '24'
-          package-manager-cache: false
 
       - name: Enforce workflow runner policy from trusted workflow revision
         shell: bash
@@ -83,24 +71,84 @@ jobs:
           set -euo pipefail
           ruby .trusted/scripts/workflow_runner_policy_check.rb --self-test "$PWD"
 
+      - name: Read the pinned nen ref from trusted nen/contract.json
+        id: pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$(jq -r '.dependency.pinned_ref // empty' .trusted/nen/contract.json)"
+          [ -n "$ref" ] || { echo "::error::nen/contract.json carries no dependency.pinned_ref."; exit 1; }
+          case "$ref" in
+            *..*|*//*) echo "::error::dependency.pinned_ref '$ref' is not a valid git ref (contains '..' or '//')."; exit 1 ;;
+          esac
+          if [[ ! "$ref" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$ ]]; then
+            echo "::error::dependency.pinned_ref is not a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}); refusing to use it in a URL or a shell."
+            exit 1
+          fi
+          script_sha="$(jq -j '.dependency.bootstrap.scriptSha256 // empty' .trusted/nen/contract.json 2>/dev/null && printf .)" || script_sha=""
+          script_sha="${script_sha%.}"
+          [[ "$script_sha" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::trusted bootstrap script digest must be 64 lowercase hex digits."; exit 1; }
+          echo "script_sha=$script_sha" >> "$GITHUB_OUTPUT"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "pinned nen ref: $ref"
+
+      - name: Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)
+        id: nen
+        env:
+          PINNED_REF: ${{ steps.pin.outputs.ref }}
+          SCRIPT_SHA256: ${{ steps.pin.outputs.script_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$PINNED_REF"
+          url="https://raw.githubusercontent.com/zheref/nen/${ref}/bootstrap/nen.sh"
+          curl -fsSL "$url" -o "${RUNNER_TEMP}/nen-bootstrap.sh"
+          [[ "$SCRIPT_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::trusted bootstrap script digest must be 64 lowercase hex digits."; exit 1; }
+          printf '%s  %s\n' "$SCRIPT_SHA256" "${RUNNER_TEMP}/nen-bootstrap.sh" | sha256sum -c -
+          bin="$(bash "${RUNNER_TEMP}/nen-bootstrap.sh" --ref "$ref")"
+          [ -x "$bin" ] || { echo "::error::bootstrap printed '$bin', which is not executable."; exit 1; }
+          echo "bin=$bin" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the nen binary against trusted nen/contract.json's sha256
+        env:
+          NEN_BIN: ${{ steps.nen.outputs.bin }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -f "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary to hash at '${NEN_BIN}'."; exit 1; }
+          [ -f .trusted/nen/contract.json ] || { echo "::error::no trusted nen/contract.json to read the expected sha256 from."; exit 1; }
+          observed="$(sha256sum "$NEN_BIN")" || { echo "::error::could not hash the bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
+          observed="${observed%% *}"
+          expected="$(jq -j '.dependency.bootstrap.sha256["linux-x64"] // empty' .trusted/nen/contract.json 2>/dev/null && printf .)" || expected=""
+          expected="${expected%.}"
+          if [[ ! "$expected" =~ ^[0-9a-f]{64}$ ]]; then
+            shown="${expected//[^0-9A-Za-z]/?}"
+            echo "::error::trusted nen/contract.json records no well-formed dependency.bootstrap.sha256[\"linux-x64\"]: expected 64 lowercase hex characters, found '${shown:0:80}'; observed ${observed}."
+            exit 1
+          fi
+          if [ "$observed" != "$expected" ]; then
+            echo "::error::the bootstrapped nen binary does not match trusted nen/contract.json: expected sha256 ${expected}, observed ${observed}."
+            exit 1
+          fi
+          echo "nen binary sha256 ${observed} matches trusted nen/contract.json (linux-x64)."
+          nen_version="$("$NEN_BIN" --version)" || { echo "::error::the bootstrapped nen binary matches its sha256 but does not run (--version failed)."; exit 1; }
+          echo "nen: ${nen_version} at $NEN_BIN"
+
       - name: Canon prose lint
-        # FROZEN (CANON_LINT_FROZEN_GUARD in scripts/workflow_runner_policy_check.rb):
-        # keys, shell and the run compared byte for byte; only `name` and these
-        # comments are free. The guard and its rules are the trusted revision's,
-        # the PR checkout only the root it reads. Exit 1 names each finding as
-        # `path:line · PL-nn · text`; exit 2 is wiring, never a pass.
+        env:
+          NEN_BIN: ${{ steps.nen.outputs.bin }}
         shell: bash
         run: |
           set -uo pipefail
-          guard=.trusted/scripts/prose_ambiguity_check.mts
+          [ -x "$NEN_BIN" ] || { echo "::error::no bootstrapped nen binary at '${NEN_BIN}'."; exit 1; }
           rules=.trusted/contracts/prose.lint.json
           base=.trusted/contracts/prose.lint.baseline.json
-          [ -f "$guard" ] && [ -f "$rules" ] && [ -f "$base" ] || { echo "::error::trusted workflow revision has no scripts/prose_ambiguity_check.mts, contracts/prose.lint.json or contracts/prose.lint.baseline.json"; exit 1; }
+          [ -f "$rules" ] && [ -f "$base" ] || { echo "::error::trusted canon prose rules or baseline is missing."; exit 1; }
           stop="stop_$(openssl rand -hex 16)" || stop=""
           [[ "$stop" =~ ^stop_[0-9a-f]{32}$ ]] || { echo "::error::could not draw a fresh token to fence the lint's output; nothing was read."; exit 1; }
           code=0
           echo "::stop-commands::${stop}"
-          node "$guard" --root "$PWD" --rules "$PWD/$rules" --base-baseline "$PWD/$base" 2>&1 || code=$?
+          "$NEN_BIN" canon lint --root "$PWD" --rules "$PWD/$rules" --baseline contracts/prose.lint.baseline.json --base-baseline "$PWD/$base" --skill-paths 'claude/skills/*/SKILL.md,claude/agents/*.md,claude/rules/*.md' 2>&1 || code=$?
           printf '\n::%s::\n' "$stop"
           case "$code" in
             0) echo "no canon prose finding outside the baseline." ;;
@@ -109,7 +157,7 @@ jobs:
               exit 1
               ;;
             *)
-              echo "::error::the canon prose lint could not run (exit ${code}), a wiring refusal: scripts/prose_ambiguity_check.mts's header names every cause. See its output above."
+              echo "::error::the canon prose lint could not run (exit ${code}), a wiring refusal. See its output above."
               exit 1
               ;;
           esac

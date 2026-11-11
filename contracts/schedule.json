@@ -130,7 +130,7 @@
         "Morning desk: row morning-desk of docs/config/schedule.md, ruling HR-354 (record R-2026-10-23-21). First run git fetch origin main, then git status --porcelain and git rev-parse HEAD origin/main: if the tree is not clean or HEAD is not origin/main's commit, stop and say which. No GitHub write: no label, no comment, no push, no merge; the page itself is written to the reports directory only.",
         "Run hatsu:rikugan for <repo> as register, each pull request's readiness quoted from nen pr ready, never judged by eye.",
         "If a hatsu:futon --idle run on <repo> ended since the previous desk, put its terminal state and its parked efforts above the fold; that run's own last report already links its register (futon section 10).",
-        "Run node scripts/prose_ambiguity_check.mts --root . --history 10 exactly and quote its last line beside the page's link: the baseline rows removed by the last ten merged prose pull requests (a pull request is a first-parent Merge pull request #N merge or a squash commit whose subject ends (#N), an integration branch's sub-PRs counting once through their delivery PR; prose commits naming no pull request are counted as skipped, never as pull requests), the walk's end when it is not complete, and the baseline's findings. A non-zero exit is reported as not run, never as none removed.",
+        "Run node scripts/prose_lint_history.mts --root . --history 10 exactly and quote its last line beside the page's link: the baseline rows removed by the last ten merged prose pull requests (a pull request is a first-parent Merge pull request #N merge or a squash commit whose subject ends (#N), an integration branch's sub-PRs counting once through their delivery PR; prose commits naming no pull request are counted as skipped, never as pull requests), the walk's end when it is not complete, and the baseline's findings. A non-zero exit is reported as not run, never as none removed.",
         "Run node scripts/release_lag_check.mts --root . exactly and quote its one line beside the page's link: how far Hatsu's own latest published release trails the plugin version on Hatsu's main (this checkout, whichever repository the register renders), read against docs/WORKFLOW.md section 4's release cadence (exit 0 in step or within it; exit 1 a cut is owed, or a release reads ahead of main). A non-zero exit other than 1 is reported as not run, never as in step. Quote the line only: acting on it is the maintainer's own call.",
         "End with the page's link and those two lines. Never a release step (HR-5)."
       ],
@@ -139,7 +139,7 @@
         "nen report render",
         "nen pr ready",
         "nen backlog",
-        "node scripts/prose_ambiguity_check.mts --root . --history 10",
+        "node scripts/prose_lint_history.mts --root . --history 10",
         "node scripts/release_lag_check.mts --root .",
         "git fetch",
         "git status",
@@ -153,8 +153,8 @@
       "kind": "ci",
       "workflow": ".github/workflows/prose-ambiguity-check.yml",
       "job": "canon-lint",
-      "reads": "every pull request (opened, synchronize, reopened, ready_for_review): scripts/prose_ambiguity_check.mts held against the trusted base revision's contracts/prose.lint.baseline.json prints `<n> removed over <base>` in its canon-lint summary line and `removedBaseline` in --json; the sum over the last ten merged prose pull requests is `--history 10`, quoted by morning-desk",
-      "description": "The prose ratchet: every pull request's canon-lint counts the baseline rows it removed; the morning desk quotes the last ten's sum.",
+      "reads": "every pull request (opened, synchronize, reopened, ready_for_review): pinned nen canon lint holds the PR baseline against the trusted base baseline. The morning desk quotes the Git-based shrink total over the last ten merged prose pull requests",
+      "description": "The prose ratchet guards the shrink-only baseline in CI. The morning desk reports the shrink over the last ten merged prose pull requests.",
       "cadence": "every pull request"
     }
   ],

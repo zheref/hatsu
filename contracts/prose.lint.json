@@ -1,7 +1,7 @@
 {
   "$schema": "nen.prose-lint/v0.1",
   "contract": "hatsu.prose-lint/v0.1",
-  "$comment": "The single home of the canon prose lint's rules (HR-13, HR-4; docs/config/prose.lint.json.md). scripts/prose_ambiguity_check.mts reads this file; rule ids are fixed, each with one handler whose class the guard checks at load (a renumbered or reclassed rule, or a class missing a key its handler reads, is refused at exit 2); no skill restates a pattern. A rule's severity is `fail` (counted against contracts/prose.lint.baseline.json, exit 1 when outside it) or `advisory` (printed, never counted, never baselined). The port of the verdict is owed to `nen canon lint` (zheref/nen#481); the citation resolver to `nen ref resolve --citation` (zheref/nen#482).",
+  "$comment": "The canon prose lint rules (HR-13, HR-4; docs/config/prose.lint.json.md). Nen dispatches each rule by its declared class. Fail findings count against contracts/prose.lint.baseline.json; advisory findings are never baselined.",
   "authority": "HR-13 (ratchet, PL-03 and PL-04 empty from day one; code fences and quoted maintainer words exempt) and HR-4 (the one marker shape) in docs/ROSTER.md. Where this file and a page describing it disagree, this file is right.",
   "paths": {
     "include": [

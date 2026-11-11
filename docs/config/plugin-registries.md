@@ -256,7 +256,7 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 ## `contracts/prose.lint.json` and `contracts/prose.lint.baseline.json`
 
-**Purpose.** The canon prose lint's rules, `PL-01` … `PL-12`, and the shrink-only baseline of the findings the tree carried when the guard landed ([HR-13](../ROSTER.md#hr-13)). Read by `scripts/prose_ambiguity_check.mts` (lane `canon-lint`); never by a consumer. Keys, the exemptions and who reads it: [`prose.lint.json.md`](prose.lint.json.md).
+**Purpose.** The canon prose lint's rules, `PL-01` … `PL-12`, and the shrink-only baseline of the findings the tree carried when the guard landed ([HR-13](../ROSTER.md#hr-13)). Read by `nen canon lint`; never by a consumer. Keys, the exemptions and who reads it: [`prose.lint.json.md`](prose.lint.json.md).
 
 ## `hooks/hooks.json`
 

@@ -199,7 +199,7 @@ export function run(argv: string[]): { code: number; out: string; err: string } 
   }
 }
 
-// Compared as REAL paths, the prose_ambiguity_check.mts precedent: invoked through a symlinked
+// Compared as REAL paths, the prose_lint_history.mts precedent: invoked through a symlinked
 // directory the unresolved argv path never equals the module URL, and a guard that then prints
 // nothing exits 0 -- a false pass, never a verdict.
 function samePath(x: string, y: string): boolean {

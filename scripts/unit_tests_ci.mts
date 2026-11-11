@@ -47,7 +47,6 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['constitution_check.mts', 'constitution_check_fixture.mts', 'constitution-check'],
   // Its live case calls `nen stop answer` from PATH (zheref/hatsu#443).
   ['ruling_record.mts', 'ruling_record_fixture.mts', 'ruling-record'],
-  ['prose_ambiguity_check.mts', 'prose_ambiguity_check_fixture.mts', 'canon-lint'],
   ['futon_effort_record.mts', 'futon_effort_record_fixture.mts', 'futon-effort-guard'],
   ['product_term_check.mts', 'product_term_check_fixture.sh', 'product-term-guard'],
   // Its last case runs --check-nen-pin on the PR checkout itself, so a repin that leaves
