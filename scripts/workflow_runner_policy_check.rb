@@ -4043,7 +4043,8 @@ def self_test(root)
       # never the pull request's tree. Within every ceiling it passes; a
       # dieted skill one byte over fails the step, its offender named inside
       # the fence (the row's own format is prose-guard's fixture's to hold); a
-      # token that is not fresh fails before anything is measured; a root that
+      # failing description parser names the unmeasurable skill inside the
+      # fence; a token that is not fresh fails before anything is measured; a root that
       # is no Hatsu checkout fails as wiring. Without the guard or its tools
       # these cases cannot run, a failure here, never a skip.
       guard_script = File.join(__dir__, "prose_size_check.sh")
@@ -4071,7 +4072,11 @@ def self_test(root)
           FileUtils.mkdir_p(File.join(dir, "claude/skills", skill))
           File.write(File.join(dir, "claude/skills", skill, "SKILL.md"), "a scratch skill\n")
         end
-        skill = File.join(dir, "claude/skills", dieted.first, "SKILL.md")
+        skill_relative = "claude/skills/#{dieted.first}/SKILL.md"
+        skill = File.join(dir, skill_relative)
+        skill_text = "---\nname: #{dieted.first}\ndescription: A scratch skill.\n---\n"
+        File.write(skill, skill_text)
+        parser = File.join(dir, ".trusted/scripts/prose_desc.awk")
         fence = /^::stop-commands::(stop_[0-9a-f]{32})\n.*^::\1::$/m
         stand_in = lambda do |name, body|
           bin = File.join(dir, name)
@@ -4086,9 +4091,12 @@ def self_test(root)
         [
           ["every file within its ceiling", -> {}, nil, 0, ["prose ok", "every measured file is within its prose ceiling."], ""],
           ["a dieted skill one byte over", -> { File.write(skill, "x" * (skill_max + 1)) }, nil, 1,
-           ["::error::a file is over its prose ceiling"], "claude/skills/#{dieted.first}/SKILL.md"],
-          ["an openssl that fails", -> { File.write(skill, "a scratch skill\n") }, failing, 1, ["::error::could not draw a fresh token"], nil],
+           ["::error::a file is over its prose ceiling"], skill_relative],
+          ["an openssl that fails", -> { File.write(skill, skill_text) }, failing, 1, ["::error::could not draw a fresh token"], nil],
           ["an openssl that prints nothing", -> {}, silent, 1, ["::error::could not draw a fresh token"], nil],
+          ["a readable description parser that exits nonzero", -> { File.write(parser, "BEGIN { exit 7 }\n") }, nil, 1,
+           ["::error::a file is over its prose ceiling, or could not be measured"],
+           "UNMEASURABLE  #{skill_relative} -- the description could not be measured"],
           ["a root that is no Hatsu checkout", -> { FileUtils.mv(File.join(dir, "claude/skills"), File.join(dir, "skills-moved")) }, nil, 1,
            ["::error::the prose guard could not run (exit 2), a wiring refusal"], ""]
         ].each do |label, arrange, path_first, want_status, want_text, fenced|
