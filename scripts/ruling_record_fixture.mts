@@ -582,6 +582,26 @@ export function runInventoryFixture(): void {
       scan('list-context'), 0, /"next":"HR-389"/);
     fixturePull('context-activation', pr, `${baseline}\n~~~\n${anchor(388)}\n~~~\n`, `${baseline}\n${anchor(388)}\n`);
     expect('removing fence lines makes an unchanged anchor a new holder', scan('context-activation'), 0, /"next":"HR-389"/);
+    const liveAnchor = `| ${anchor(384)} | A genuine holder after the fence. |`;
+    const literalAnchor = anchor(999999);
+    for (const [scenario, lines, hasExample] of [
+      ['overindented-fence-close', ['```', '    ```', '```', liveAnchor], false],
+      ['tabbed-fence-close', ['```', '\t```', literalAnchor, '   ```', liveAnchor], true],
+      ['deeper-quote-fence-close', ['> ~~~', '> > ~~~', `> ${literalAnchor}`, '> ~~~', `> ${liveAnchor}`], true],
+      ['quote-tab-fence-close', ['> ~~~', '>     ~~~', `> ${literalAnchor}`, '> \t~~~', `> ${liveAnchor}`], true],
+      ['list-relative-fence-close', ['1. ~~~', '       ~~~', `   ${literalAnchor}`, '   ~~~', `    ${liveAnchor}`], true],
+      ['list-quote-fence-close', ['1. ~~~', '   > ~~~', `   ${literalAnchor}`, '   ~~~', `    ${liveAnchor}`], true],
+    ] as const) {
+      fixturePull(scenario, pr, baseline, [baseline, ...lines, ''].join('\n'));
+      const next = scan(scenario);
+      expect(`a genuine anchor after the closer reserves HR-384 (${scenario})`, next, 0, /"next":"HR-385"/);
+      assert.deepEqual(JSON.parse(next.stdout).seen.filter(({ where }: { where: string }) => where === 'PR #572'),
+        [{ id: 'HR-384', where: 'PR #572' }]);
+      expect(`render names the real PR holder after the closer (${scenario})`,
+        render(384, scenario), 1, /^$/, /HR-384 is held by PR #572/);
+      if (hasExample) expect(`render ignores the fenced example holder (${scenario})`,
+        render(999999, scenario), 0, /\*\*HR-999999\*\*/);
+    }
     fixturePull('added-roster', pr, '', additions, 'added');
     expect('an added roster reads only the immutable head', scan('added-roster'), 0, /"next":"HR-388"/);
     fixturePull('removed-roster', pr, baseline, '', 'removed');

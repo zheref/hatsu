@@ -97,10 +97,10 @@ const FENCE = /^(?:(?:[-+*]|\d+[.)])[ \t]+)?(`{3,}|~{3,})(.*)$/;
 const BLOCK = /^\s*(?:$|[|>#]|[-+*] +|\d+[.)] +|`{3,}|~{3,})/;
 const LIST = /^(?:[-+*]|[0-9]{1,9}[.)])([ 	]{1,4})(?=\S)/;
 
-function indentWidth(prefix: string): number {
-  let columns = 0;
+function indentWidth(prefix: string, start = 0): number {
+  let columns = start;
   for (const character of prefix) columns += character === '\t' ? 4 - columns % 4 : 1;
-  return columns;
+  return columns - start;
 }
 
 
@@ -132,22 +132,33 @@ function visibleLines(text: string): string[] {
   let codeEnd: [number, number] | undefined;
   for (const [row, line] of lines.entries()) {
     const quote = /^((?: {0,3}> ?)*)/.exec(line)?.[1] ?? '';
-    const quoteDepth = [...quote].filter((character) => character === '>').length;
+    const quoteMarkers = [...quote.matchAll(/ {0,3}> ?/g)];
+    const quoteDepth = quoteMarkers.length;
     const body = line.slice(quote.length);
     const space = /^[ \t]*/.exec(body)?.[0] ?? '';
-    const indent = indentWidth(space);
+    const indent = indentWidth(space, quote.length);
     const blank = body.length === space.length;
+    if (fence && quoteDepth >= fence.quoteDepth) {
+      // Strip only the fence's opening quote container. Deeper quote marks are content.
+      const marker = quoteMarkers[fence.quoteDepth - 1];
+      const bodyStart = marker ? marker.index + marker[0].length : 0;
+      const fenceBody = line.slice(bodyStart);
+      const prefix = /^[ \t]*/.exec(fenceBody)?.[0] ?? '';
+      const relativeIndent = indentWidth(prefix, bodyStart) - fence.indent;
+      if (fenceBody.length === prefix.length || relativeIndent >= 0) {
+        if (quoteDepth === fence.quoteDepth && relativeIndent <= 3) {
+          const close = /^(`+|~+)[ \t]*$/.exec(fenceBody.slice(prefix.length))?.[1];
+          if (close?.[0] === fence.marker[0] && close.length >= fence.marker.length) fence = undefined;
+        }
+        continue;
+      }
+    }
+    fence = undefined;
     if (quoteContext !== quoteDepth) {
       quoteContext = quoteDepth;
       listColumns.length = 1;
       paragraph = false;
       indentedCode = false;
-    }
-    if (fence && (quoteDepth < fence.quoteDepth || (!blank && indent < fence.indent))) fence = undefined;
-    if (fence) {
-      const close = /^\s*(`+|~+)\s*$/.exec(body)?.[1];
-      if (close?.[0] === fence.marker[0] && close.length >= fence.marker.length) fence = undefined;
-      continue;
     }
     if (!comment && !codeEnd) {
       if (blank) {
@@ -164,7 +175,7 @@ function visibleLines(text: string): string[] {
         continue;
       }
       indentedCode = false;
-      if (item && indent - container < 4) listColumns.push(indent + indentWidth(item[0]));
+      if (item && indent - container < 4) listColumns.push(indent + indentWidth(item[0], quote.length + indent));
       const opening = indent - container < 4 ? FENCE.exec(body.slice(space.length)) : null;
       if (opening && (opening[1][0] !== '`' || !opening[2].includes('`'))) {
         fence = { quoteDepth, indent: listColumns.at(-1)!, marker: opening[1] };
