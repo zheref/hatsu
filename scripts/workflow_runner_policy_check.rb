@@ -3391,9 +3391,11 @@ def self_test(root)
         fail_policy("self-test: templates/pr-readiness.yml carries a placeholder this self-test does not fill") if text.include?("@@")
         File.write(readiness, text)
         validate_workflow(readiness)
-        # During the guard-first rollout, the shipped template can still use
-        # the exact legacy policy. Exercise the next policy before it ships.
-        queued = text.sub("\n  cancel-in-progress: true\n", "\n  cancel-in-progress: false\n  queue: #{READINESS_RENDERED_QUEUE}\n")
+        # The trusted self-test reads the candidate template, which can carry
+        # either policy during rollout. Derive both forms from that template.
+        legacy_concurrency = "\n  cancel-in-progress: true\n"
+        queued_concurrency = "\n  cancel-in-progress: false\n  queue: #{READINESS_RENDERED_QUEUE}\n"
+        queued = text.sub(legacy_concurrency, queued_concurrency)
         File.write(readiness, queued)
         validate_repo(tmp, announce: false)
         validate_workflow(readiness, require_readiness_queue: true)
@@ -3408,7 +3410,9 @@ def self_test(root)
           File.write(readiness, drift)
           expect_rejected("rendered readiness #{label}", reason) { validate_repo(tmp, announce: false) }
         end
-        File.write(readiness, text)
+        legacy = queued.sub(queued_concurrency, legacy_concurrency)
+        fixture_changed!("legacy cancellation", queued, legacy)
+        File.write(readiness, legacy)
         expect_rejected("rendered readiness legacy cancellation", queue_refusal) do
           validate_workflow(readiness, require_readiness_queue: true)
         end
