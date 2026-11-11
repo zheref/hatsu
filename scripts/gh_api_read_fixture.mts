@@ -11,15 +11,20 @@ const log = join(root, 'argv');
 const entry = join(import.meta.dirname, 'gh_api_read.mts');
 // A literal copy, not an import: importing the entrypoint would run its CLI. A drifted projection fails here.
 const PR_HEAD_PROJECTION = '{number,state,draft,title,head:.head.sha,headRef:.head.ref,headRepo:.head.repo.full_name,baseRef:.base.ref,baseRepo:.base.repo.full_name}';
-writeFileSync(gh, '#!/bin/sh\nprintf "%s\\n" "$@" > "$HATSU_GH_CAPTURE"\n');
+writeFileSync(gh, '#!/bin/sh\nprintf "%s\\n" "$@" > "$HATSU_GH_CAPTURE"\nprintf "%s" "$HATSU_GH_RESPONSE"\nexit "${HATSU_GH_EXIT:-0}"\n');
 chmodSync(gh, 0o755);
 
-function run(args: string[], accepted: boolean): string[] {
+function invoke(args: string[], response = '', status = '0') {
   rmSync(log, { force: true });
-  const result = spawnSync(process.execPath, [entry, ...args], {
+  return spawnSync(process.execPath, [entry, ...args], {
     encoding: 'utf8',
-    env: { ...process.env, PATH: `${root}${delimiter}${process.env.PATH ?? ''}`, HATSU_GH_CAPTURE: log },
+    env: { ...process.env, PATH: `${root}${delimiter}${process.env.PATH ?? ''}`, HATSU_GH_CAPTURE: log,
+      HATSU_GH_RESPONSE: response, HATSU_GH_EXIT: status },
   });
+}
+
+function run(args: string[], accepted: boolean, response = ''): string[] {
+  const result = invoke(args, response);
   if (accepted && (result.status !== 0 || !existsSync(log))) {
     throw new Error(`valid read rejected: ${args.join(' ')}: ${result.stderr}`);
   }
@@ -42,9 +47,26 @@ try {
   if (protection.join(' ') !== 'api --method GET repos/zheref/hatsu/branches/feature%2Fread/protection --jq {required_linear_history: .required_linear_history.enabled}') {
     throw new Error('branch protection must use the fixed GET and linear history projection');
   }
-  const branch = run(['branch-rules', 'zheref/hatsu', 'feature/read'], true);
-  if (branch.join(' ') !== 'api --method GET repos/zheref/hatsu/rules/branches/feature%2Fread') {
-    throw new Error('branch rules did not encode the branch in a fixed GET path');
+  const branchArgs = ['branch-rules', 'zheref/hatsu', 'feature/read'];
+  const branch = run(branchArgs, true, '[[]]');
+  if (branch.join(' ') !== 'api --method GET repos/zheref/hatsu/rules/branches/feature%2Fread --paginate --slurp') {
+    throw new Error('branch rules did not encode the branch or request every page');
+  }
+  const rules = [{type: 'deletion'}, {type: 'pull_request', parameters: {allowed_merge_methods: ['squash']}}];
+  const complete = invoke(branchArgs, JSON.stringify([[rules[0]], [rules[1]]]));
+  if (complete.status !== 0 || complete.stdout.trim() !== JSON.stringify(rules)) {
+    throw new Error('branch rules lost a later page or changed the flat response');
+  }
+  for (const [response, status] of [['[[{"type":"deletion"}],{}]', '0'], ['[]', '0'], ['[[{"type":"deletion"}]]', '1']]) {
+    const incomplete = invoke(branchArgs, response, status);
+    if (incomplete.status === 0 || incomplete.stdout !== '') throw new Error('an incomplete branch rules response escaped');
+  }
+  const queue = run(['pr-merge-queue', 'zheref/hatsu', '42'], true);
+  if (queue.slice(0, 3).join(' ') !== 'api graphql -f' ||
+      !queue[3].startsWith('query=query ReadMergeQueue(') || !queue[3].includes('headRefOid baseRefName mergeQueue{id}') ||
+      queue.slice(4).join(' ') !== '-f owner=zheref -f repo=hatsu -F number=42' ||
+      queue.some(part => /\bmutation\b/.test(part))) {
+    throw new Error('PR merge queue read must use the fixed, ref-pinned query');
   }
   const checks = run(['required-checks', 'zheref/hatsu', 'main'], true);
   if (checks.join(' ') !== 'api --method GET repos/zheref/hatsu/branches/main/protection/required_status_checks') {
@@ -90,6 +112,7 @@ try {
     ['branch-rules', 'zheref/hatsu', '--method'],
     ['repo-merge-methods', 'zheref/hatsu', '--method', 'PATCH'],
     ['branch-protection', 'zheref/hatsu', 'main', '--method', 'DELETE'],
+    ['pr-merge-queue', 'zheref/hatsu', '42', 'mutation'],
     ['issue-pr', 'zheref/hatsu', '1/pulls/1/merge'],
     ['issue-pr', 'zheref/hatsu', '0'],
     ['tag-ref', 'zheref/hatsu', '../pulls/1/merge'],

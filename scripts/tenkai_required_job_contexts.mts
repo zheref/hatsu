@@ -20,7 +20,7 @@ export function assertRequiredJobContexts(workflow: string, text: string, contex
   const jobs = Object.entries(document?.jobs ?? {});
   for (const context of contexts) {
     const matches = jobs.filter(([id, job]) =>
-      job !== null && typeof job === "object" && !Array.isArray(job) &&
+      /^[A-Za-z_][A-Za-z0-9_-]*$/.test(id) && job !== null && typeof job === "object" && !Array.isArray(job) &&
       (job.name === undefined ? id : job.name) === context);
     if (matches.length !== 1 || matches[0][1].strategy?.matrix !== undefined || matches[0][1].uses !== undefined) {
       throw new Error(workflow + ': required context "' + context + '" must equal one static workflow job name');
