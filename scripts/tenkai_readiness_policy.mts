@@ -1,6 +1,6 @@
-// Tenkai owns rendering and admission here. The legacy engine supplies its resolved inputs.
+// Tenkai owns rendering and admission here. The public adopter supplies its validated inputs.
 import { spawnSync } from "node:child_process";
-import { closeSync, mkdirSync, openSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { assertManagedRequiredJobContexts } from "./tenkai_required_job_contexts.mts";
 import { dirname, join } from "node:path";
@@ -11,9 +11,21 @@ import {
 } from "./readiness_workflow_policy.mts";
 
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
-type Row = { state: State; detail: string; action: string | null };
+export type ReadinessRow = { state: State; detail: string; action: string | null };
+export type ReadinessRole = "process" | "product" | null;
+export type ReadinessTemplate = { source: string; ref: string };
+export type AdoptionRunner = {
+  runs_on: string;
+  fallback: string;
+  reason: string;
+  labels_required: boolean;
+  derived_from: { visibility: string | null };
+};
+export const READINESS_WORKFLOW = ".github/workflows/pr-readiness.yml";
+export const DEFER_READINESS = "HATSU_TENKAI_DEFER_READINESS";
+export const DEFERRED_READINESS = "the public adopter is handling the readiness workflow";
 export type RenderInputs = {
-  role: string | null;
+  role: ReadinessRole;
   repository: string | null;
   path: string;
   rendered: string | null;
@@ -22,6 +34,7 @@ export type RenderInputs = {
 };
 
 const LEGACY_GUARD = "scripts/workflow_runner_policy_check.rb";
+const GUARD_PREFIX = "#!/usr/bin/env node\n" + GUARD_MARKER + "\n";
 const LEGACY_WORKFLOW_MARKER = "RENDERED BY hatsu:tenkai";
 const WORKFLOW_MARKER = "# pr-readiness.yml — " + LEGACY_WORKFLOW_MARKER + ".";
 const PORTABLE_MARKER = "# Workflow policy: Tenkai's portable guard";
@@ -39,8 +52,92 @@ const PORTABLE_STEP = [
   "",
 ].join("\n");
 
-function row(state: State, detail: string, action: string | null = null): Row {
+function row(state: State, detail: string, action: string | null = null): ReadinessRow {
   return { state, detail, action };
+}
+
+// Use the slug already validated by the frozen adopter. The registry has the
+// same maintained-tools precedence and accepts both entry shapes.
+export function adoptionRole(repo: string, repository: string | null): ReadinessRole {
+  if (!repository) return null;
+  try {
+    const registry = JSON.parse(readFileSync(join(repo, "nen/repos.json"), "utf8"));
+    const includes = (entries: unknown) => Array.isArray(entries) &&
+      entries.some(entry => entry === repository || entry?.repo === repository);
+    if (includes(registry?.maintained_tools)) return "process";
+    if (includes(registry?.consumers)) return "product";
+  } catch {
+    // The declaration item owns the unreadable registry.
+  }
+  return null;
+}
+
+function pinnedRef(hatsuRoot: string): string | null {
+  try {
+    const ref = JSON.parse(readFileSync(join(hatsuRoot, "nen/contract.json"), "utf8"))?.dependency?.pinned_ref;
+    if (typeof ref === "string" && /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.exec(ref)?.[0] === ref &&
+        !ref.includes("..") && !ref.includes("//")) return ref;
+  } catch {
+    // The readiness verdict names the missing or malformed pin.
+  }
+  return null;
+}
+
+export function readReadinessTemplate(hatsuRoot: string): ReadinessTemplate | null {
+  const ref = pinnedRef(hatsuRoot);
+  if (ref === null) return null;
+  const path = join(hatsuRoot, "templates/pr-readiness.yml");
+  try {
+    return { source: readFileSync(path, "utf8").replace(/\r\n?/g, "\n"), ref };
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT" || code === "ENOTDIR" || code === "EISDIR") {
+      throw new Error("no template at " + path + " — --hatsu-root must point at a Hatsu checkout or plugin root");
+    }
+    throw error;
+  }
+}
+
+export function readinessInputs(
+  template: ReadinessTemplate | null, role: ReadinessRole, repository: string | null, runner: AdoptionRunner,
+): RenderInputs {
+  const processRepository = role === "process";
+  const rendered = repository && template
+    ? template.source
+      .replaceAll("@@REPO_SLUG@@", () => repository)
+      .replaceAll("@@RUNS_ON@@", () => runner.runs_on)
+      .replaceAll("@@RUNNER_REASON@@", () => runner.reason)
+      .replaceAll("@@GUARD_REQUIRED@@", processRepository ? "true" : "false")
+      .replaceAll("@@PIN_FALLBACK_ALLOWED@@", processRepository ? "false" : "true")
+      .replaceAll("@@NEN_REF@@", () => template.ref)
+    : null;
+  return {
+    role, repository, path: READINESS_WORKFLOW, rendered,
+    runnerKnown: runner.derived_from.visibility !== null,
+    runnerLabelsRequired: runner.labels_required,
+  };
+}
+
+// Keep one route predicate for the public handoff and the portable writer.
+function portableTargets(repo: string, role: ReadinessRole) {
+  const localGuard = regularText(repo, GUARD_PATH);
+  const localPolicy = regularText(repo, POLICY_PATH);
+  const installed = localGuard?.startsWith(GUARD_PREFIX) || localPolicy !== undefined;
+  if (!installed && role !== "process") return null;
+  const legacy = fileInfo(join(repo, LEGACY_GUARD));
+  if (!installed && legacy) {
+    if (!legacy.isFile()) throw new Error(LEGACY_GUARD + " must be a regular file");
+    return null;
+  }
+  return { localGuard, localPolicy };
+}
+
+export function handlesPortableReadiness(repo: string, role: ReadinessRole): boolean {
+  try { return portableTargets(repo, role) !== null; }
+  catch {
+    // The portable verdict reports unsafe paths without falling through to a legacy write.
+    return true;
+  }
 }
 
 function isManagedWorkflow(text: string): boolean {
@@ -138,20 +235,26 @@ function writeOwned(repo: string, path: string, before: string | undefined, cont
 // The frozen adopter handles ordinary legacy readiness drift. Own only the
 // required-context defect here, after the same reader and Ruby policy gate.
 export function adoptLegacyRequiredContext(
-  repo: string, hatsuRoot: string, input: RenderInputs, mode: "diagnose" | "apply", gateReady: () => boolean,
-): Row | null {
-  if (!input.role || !input.repository || input.rendered === null || input.runnerLabelsRequired || !gateReady()) return null;
+  repo: string, hatsuRoot: string, input: RenderInputs, mode: "probe" | "diagnose" | "apply", gateReady?: () => boolean,
+): ReadinessRow | null {
+  const path = READINESS_WORKFLOW;
+  if (input.rendered !== null) {
+    try { assertManagedRequiredJobContexts(hatsuRoot, path, input.rendered); }
+    catch (error) { return row("blocked", (error as Error).message, "repair the readiness template and required job declaration"); }
+  }
+  if (!input.role || !input.repository || input.rendered === null || input.runnerLabelsRequired ||
+      (mode !== "probe" && !gateReady?.())) return null;
   try {
-    const installed = regularText(repo, input.path);
+    const installed = regularText(repo, path);
     if (installed === undefined) return null;
     let contextError: string;
     try {
-      assertManagedRequiredJobContexts(hatsuRoot, input.path, installed);
+      assertManagedRequiredJobContexts(hatsuRoot, path, installed);
       return null;
     } catch (error) {
       contextError = (error as Error).message;
     }
-    if (mode === "diagnose") return row("drift", contextError, "re-render from templates/pr-readiness.yml");
+    if (mode !== "apply") return row("drift", contextError, "re-render from templates/pr-readiness.yml");
     if (!installed.includes(LEGACY_WORKFLOW_MARKER)) {
       return row("drift", "a pr-readiness.yml is installed that Tenkai did not render — it will not be overwritten",
         "review by hand, then delete it and re-run apply");
@@ -161,8 +264,8 @@ export function adoptLegacyRequiredContext(
     const rendered = runner ? input.rendered
       .replace(/^    runs-on: [^\n]+$/m, () => "    runs-on: " + runner)
       .replace(/^#   runs-on      : [^\n]+$/m, () => "#   runs-on      : " + runner) : input.rendered;
-    if (runner) assertManagedRequiredJobContexts(hatsuRoot, input.path, rendered);
-    writeOwned(repo, input.path, installed, rendered);
+    if (runner) assertManagedRequiredJobContexts(hatsuRoot, path, rendered);
+    writeOwned(repo, path, installed, rendered);
     const shown = runner ?? rendered.match(/^    runs-on: ([^\n]+)$/m)?.[1];
     return row("repaired", "rendered for " + input.repository + ", runs-on " + shown +
       (runner ? " (runner preserved — the probe could not answer)" : ""));
@@ -173,22 +276,15 @@ export function adoptLegacyRequiredContext(
 
 export function adoptPortableReadiness(
   repo: string, hatsuRoot: string, input: RenderInputs, mode: "diagnose" | "apply", readerReady: boolean,
-): Row | null {
+): ReadinessRow | null {
   let lock: { path: string; descriptor: number } | undefined;
   try {
     if (input.rendered !== null) assertManagedRequiredJobContexts(hatsuRoot, input.path, input.rendered);
     // An existing repository-owned Ruby policy keeps its registration and rendering.
     // A previously adopted portable policy remains in effect when a Ruby file is added.
-    let localGuard = regularText(repo, GUARD_PATH);
-    let localPolicy = regularText(repo, POLICY_PATH);
-    const prefix = "#!/usr/bin/env node\n" + GUARD_MARKER + "\n";
-    const installed = localGuard?.startsWith(prefix) || localPolicy !== undefined;
-    if (!installed && input.role !== "process") return null;
-    const legacy = fileInfo(join(repo, LEGACY_GUARD));
-    if (!installed && legacy) {
-      if (!legacy.isFile()) throw new Error(LEGACY_GUARD + " must be a regular file");
-      return null;
-    }
+    const targets = portableTargets(repo, input.role);
+    if (!targets) return null;
+    let { localGuard, localPolicy } = targets;
     if (!input.role || !input.repository) {
       return row("blocked", "repository role or slug is unknown; the portable policy cannot be rendered",
         "record the role in nen/repos.json and resolve the repository slug");
@@ -220,11 +316,11 @@ export function adoptPortableReadiness(
       localPolicy = regularText(repo, POLICY_PATH);
     }
     const source = regularText(hatsuRoot, GUARD_PATH);
-    if (!source?.startsWith("#!/usr/bin/env node\n") || source.startsWith(prefix)) {
+    if (!source?.startsWith("#!/usr/bin/env node\n") || source.startsWith(GUARD_PREFIX)) {
       throw new Error("Hatsu's portable guard source is missing, linked or malformed");
     }
-    const guard = source.replace("#!/usr/bin/env node\n", prefix) + "\nrunPolicyCheck();\n";
-    if (localGuard !== undefined && !localGuard.startsWith(prefix)) {
+    const guard = source.replace("#!/usr/bin/env node\n", GUARD_PREFIX) + "\nrunPolicyCheck();\n";
+    if (localGuard !== undefined && !localGuard.startsWith(GUARD_PREFIX)) {
       throw new Error(GUARD_PATH + " belongs to the repository; review it before replacement");
     }
     const existing = regularText(repo, input.path);
@@ -250,7 +346,7 @@ export function adoptPortableReadiness(
     let policyRepository = input.repository;
     let allowed: string[] | undefined;
     if (trustedPolicy !== undefined) {
-      if (!trustedGuard?.startsWith(prefix)) {
+      if (!trustedGuard?.startsWith(GUARD_PREFIX)) {
         throw new Error("the trusted base does not carry Tenkai's portable guard");
       }
       const trusted = parseAdoptionPolicy(trustedPolicy, input.repository, priorRepository);
@@ -266,7 +362,7 @@ export function adoptPortableReadiness(
     const current = existing === undefined ? undefined : workflowDigest(existing);
     let priorRunner: string | undefined;
     if (!input.runnerKnown && (trustedWorkflow !== undefined || existing !== undefined)) {
-      const localAdmitted = current !== undefined && localGuard?.startsWith(prefix) &&
+      const localAdmitted = current !== undefined && localGuard?.startsWith(GUARD_PREFIX) &&
         (localAdmission?.current === current || allowed?.includes(current));
       priorRunner = existingRunner(trustedWorkflow ?? (localAdmitted ? existing : undefined));
       if (!priorRunner) {
