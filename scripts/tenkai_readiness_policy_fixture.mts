@@ -1,10 +1,10 @@
 // Exercise Tenkai's public adoption entry point and the step it actually renders.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, lstatSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
-import { GUARD_PATH, POLICY_PATH, workflowDigest } from "./readiness_workflow_policy.mts";
+import { GUARD_PATH, POLICY_PATH, verifyWorkflowPolicy, workflowDigest } from "./readiness_workflow_policy.mts";
 
 const root = resolve(import.meta.dirname, "..");
 const sandbox = realpathSync(mkdtempSync(join(tmpdir(), "hatsu-readiness-policy-")));
@@ -49,14 +49,17 @@ function git(...args: string[]) {
   assert.equal(result.status, 0, result.stderr);
   return result.stdout;
 }
-function adopt(mode: "apply" | "diagnose", visibility: "public" | "private" | null = "public", selfHosted = "0", runnerOnline = false) {
-  const visibilityArgs = visibility === null ? [] : ["--visibility", visibility];
-  const result = spawnSync("bash", [join(root, "scripts/tenkai_adopt.sh"), mode, "--repo", repo,
-    ...visibilityArgs, "--self-hosted", selfHosted, "--json"], {
+function command(args: string[], runnerOnline = false) {
+  return spawnSync("bash", [join(root, "scripts/tenkai_adopt.sh"), ...args], {
     encoding: "utf8", env: { ...env, TENKAI_FIXTURE_RUNNER: runnerOnline ? "online" : "offline" }, timeout: 30_000,
   });
+}
+function adopt(mode: "apply" | "diagnose", visibility: "public" | "private" | null = "public", selfHosted = "0", runnerOnline = false) {
+  const visibilityArgs = visibility === null ? [] : ["--visibility", visibility];
+  const result = command([mode, "--repo", repo, ...visibilityArgs, "--self-hosted", selfHosted, "--json"], runnerOnline);
   assert.ok(result.status === 0 || result.status === 1, result.stderr || String(result.error));
   const report = JSON.parse(result.stdout);
+  assert.equal(result.status, report.outstanding ? 1 : 0);
   const readiness = report.items.find((item: { id: string }) => item.id === workflowPath);
   return { ...readiness, outstanding: report.outstanding, report };
 }
@@ -132,10 +135,39 @@ exit 1
 
   check(!existsSync(join(repo, "scripts/workflow_runner_policy_check.rb")), "the fixture starts without Ruby");
   check(adopt("diagnose").state === "staged", "diagnose reports the missing trusted reader");
+  const textDiagnosis = command(["diagnose", "--repo", repo, "--visibility", "public", "--self-hosted", "0"]);
+  check(textDiagnosis.status === 1 && textDiagnosis.stdout.includes("STAG  " + workflowPath) &&
+    textDiagnosis.stdout.includes("trusted JSON reader must be installed") &&
+    !existsSync(join(repo, workflowPath)) && !existsSync(join(repo, GUARD_PATH)),
+  "text diagnosis reports the portable prerequisite without writing anything");
+  const refusedApply = command(["apply", "--repo", join(sandbox, "missing"), "--json"]);
+  check(refusedApply.status === 2 && refusedApply.stderr.includes("no such directory"),
+    "an invalid apply retains the frozen adopter's exit and diagnostic");
+  const alternateRoot = join(sandbox, "hatsu-without-readiness-template");
+  json(alternateRoot, "nen/contract.json", { dependency: shipped.dependency });
+  const refusedTemplate = command(["apply", "--repo", repo, "--hatsu-root", alternateRoot,
+    "--visibility", "public", "--self-hosted", "0", "--json"]);
+  check(refusedTemplate.status === 2 && refusedTemplate.stderr.includes("no template at") &&
+    !existsSync(join(repo, workflowPath)) && !existsSync(join(repo, "scripts/readiness_ci_verdict.mts")),
+  "a pinned Hatsu root with a missing template is refused before adoption writes");
+  const runnerPolicy = command(["runner-policy", "--visibility", "public", "--self-hosted", "0", "--json"]);
+  check(runnerPolicy.status === 0 && JSON.parse(runnerPolicy.stdout).runs_on === "ubuntu-latest",
+    "runner-policy still returns the frozen runner report");
   const initial = adopt("apply");
   check(initial.state === "repaired", JSON.stringify(initial));
   const diagnosed = adopt("diagnose");
   check(diagnosed.state === "satisfied" && diagnosed.outstanding === 0, JSON.stringify(diagnosed.report.items.filter((item: { state: string }) => item.state !== "satisfied")));
+  const satisfiedText = command(["diagnose", "--repo", repo, "--visibility", "public", "--self-hosted", "0"]);
+  check(satisfiedText.status === 0 && satisfiedText.stdout.includes("every item is satisfied"),
+    "the successful portable report stays successful in text output");
+  check(diagnosed.report.items.some((item: { id: string; detail: string }) =>
+    item.id === "guard/registration" && item.detail.includes("Ruby registration has no prerequisite PR")) &&
+    diagnosed.report.items.some((item: { id: string; detail: string }) =>
+      item.id === "workflows/privileged" && item.detail.includes("Other privileged workflows remain under repository-owned policy.")),
+  "public report distinguishes portable readiness from repository-owned Ruby policy");
+  json(repo, "nen/repos.json", { maintained_tools: [slug], consumers: [{ repo: slug }] });
+  check(adopt("diagnose").state === "satisfied", "the frozen registry's maintained-tool precedence and string entry survive the handoff");
+  json(repo, "nen/repos.json", { maintained_tools: [{ repo: slug }] });
   const old = text(repo, workflowPath);
   check(text(repo, ordinaryPath) === ordinary, "Tenkai preserves consumer-owned CI");
   const live = old.split("\n").filter((line) => line.trim() && !line.trimStart().startsWith("#"));
@@ -159,6 +191,10 @@ exit 1
   freezeBase();
   copy([workflowPath, ordinaryPath], candidate);
   check(runPolicy(old).status === 0, "rendered self-check passes beside ordinary CI");
+  equal(verifyWorkflowPolicy(trusted, candidate, slug), 1,
+    "the exact policy source verifies the same trusted and candidate trees as the rendered command");
+  assert.throws(() => verifyWorkflowPolicy(trusted, candidate, "fixture/another-repository"), /for this repository/);
+  assertions++;
   check(runPolicy(old, "fixture/another-repository").status === 1, "the trusted policy is repository-bound");
 
   // Apply and the rendered check both rely on the declared base for a stacked PR.
@@ -295,6 +331,7 @@ exit 1
   const customPath = "scripts/workflow_runner_policy_check.rb";
   const custom = "# Consumer-owned guard\nEXPECTED_JOBS = {}.freeze\n";
   put(repo, customPath, custom);
+  check(adopt("diagnose").state === "staged", "diagnose leaves the custom Ruby registration route with the frozen adopter");
   check(adopt("apply").state === "staged", "the custom guard still owns its two-PR registration");
   check(text(repo, customPath) === custom && !existsSync(join(repo, GUARD_PATH)) &&
     !existsSync(join(repo, workflowPath)), "Tenkai preserves the custom Ruby guard and stages the workflow");
@@ -351,6 +388,23 @@ exit 1
   const unreadable = adopt("apply", null);
   check(unreadable.state === "staged" && unreadable.fix?.fill === "route" && text(repo, workflowPath) === unadmitted &&
     text(repo, POLICY_PATH) === labelledPolicy, "unreadable visibility and an unadmitted local workflow stage runner selection");
+  const previousPolicy = text(repo, POLICY_PATH);
+  const outside = join(sandbox, "outside-readiness.yml");
+  put(sandbox, "outside-readiness.yml", "name: repository-owned workflow\n");
+  rmSync(join(repo, workflowPath));
+  symlinkSync(outside, join(repo, workflowPath));
+  const linked = adopt("apply");
+  check(linked.state === "blocked" && linked.detail.includes("must be a regular file") &&
+    lstatSync(join(repo, workflowPath)).isSymbolicLink() &&
+    text(sandbox, "outside-readiness.yml") === "name: repository-owned workflow\n" &&
+    text(repo, POLICY_PATH) === previousPolicy,
+  "an unsafe workflow path cannot fall back to the frozen writer or change the portable policy");
+  rmSync(join(repo, workflowPath));
+  json(repo, "nen/repos.json", []);
+  const unknownRole = adopt("apply");
+  check(unknownRole.state === "blocked" && unknownRole.detail.includes("repository role or slug is unknown") &&
+    !existsSync(join(repo, workflowPath)) && text(repo, POLICY_PATH) === previousPolicy,
+  "a malformed registry cannot authorize writes to an installed portable route");
 } finally {
   rmSync(sandbox, { recursive: true, force: true });
 }

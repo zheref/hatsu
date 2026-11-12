@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // #131: Tenkai's readiness-reader adoption decisions live in TypeScript (BC-11).
-// The older Python engine passes only a mode and two paths, then relays this row.
+// The frozen engine relays reader and gate rows. The public adopter owns the portable route.
 import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
-import { adoptPortableReadiness, type RenderInputs } from "./tenkai_readiness_policy.mts";
+import {
+  DEFER_READINESS, DEFERRED_READINESS, adoptPortableReadiness, type RenderInputs,
+} from "./tenkai_readiness_policy.mts";
 
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
 type Row = { state: State; detail: string; action: string | null };
@@ -78,6 +80,9 @@ function applyReader(repo: string, hatsuRoot: string): Row {
 }
 
 function workflowGate(repo: string, hatsuRoot: string): Row {
+  // The public CLI sets this only on its own frozen child. A matching request
+  // can defer a legacy write. It cannot admit a workflow or bypass the reader.
+  if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
   if (readerState(repo, hatsuRoot).state !== "satisfied") {
     return row("staged", "the trusted JSON reader must be installed before the workflow can call it",
       "install scripts/readiness_ci_verdict.mts first");
