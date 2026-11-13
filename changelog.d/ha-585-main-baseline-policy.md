@@ -1,1 +1,3 @@
 - Stage the trusted workflow policy for the main-branch unit-test baseline (HA#585, plugin `0.167.0`). The guard admits the installed PR-only workflow and one reviewed template with a separate run for each pushed main SHA. Activation and a live main run follow after the policy lands. The next repository-wide failure will measure whether the baseline eliminates sibling-branch sweeps.
+
+  The validator also admits the exact 20-minute forms for both trigger sets. The installed workflow and staged template retain 10 minutes until activation.

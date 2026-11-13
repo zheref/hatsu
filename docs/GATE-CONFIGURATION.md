@@ -569,9 +569,11 @@ every per-workflow table is checked at load to cover exactly the workflows it sh
 **Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
 `PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. The job uses
 only `contents: read` because its fixtures execute candidate code. The policy
-pins each admitted trigger set to its reviewed SHA-256 and checks permissions and
-the hosted runner. The validator checks the installed workflow and the self-test
-also validates the staged template as if installed.
+pins each admitted trigger set to a finite set of reviewed full-file SHA-256
+digests, currently one digest each for its 10-minute and 20-minute forms. It
+checks permissions and the hosted runner. The validator checks the installed
+workflow and the self-test also validates the staged template as if installed.
+Both files retain the 10-minute job bound until activation.
 
 HA#585 stages the `push` trigger for `main` while the installed workflow keeps
 its PR-only trigger. The staged job keeps the same-repository, non-draft PR
