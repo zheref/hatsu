@@ -5,7 +5,9 @@ import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, un
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import {
-  DEFER_READINESS, DEFERRED_READINESS, adoptPortableReadiness, type RenderInputs,
+  adoptionRole, adoptPortableReadiness, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness,
+  LEGACY_READINESS, READINESS_CONTEXT_CHANGED, readReadinessTemplate, registryText,
+  type LegacyReadiness, type RenderInputs,
 } from "./tenkai_readiness_policy.mts";
 
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
@@ -80,9 +82,23 @@ function applyReader(repo: string, hatsuRoot: string): Row {
 }
 
 function workflowGate(repo: string, hatsuRoot: string): Row {
-  // The public CLI sets this only on its own frozen child. A matching request
-  // can defer a legacy write. It cannot admit a workflow or bypass the reader.
+  // The public CLI sets these only on its frozen child. Deferral and legacy
+  // eligibility both run before the frozen workflow can consider a write.
   if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
+  const legacy = process.env[LEGACY_READINESS];
+  if (legacy) {
+    try {
+      const expected: LegacyReadiness = JSON.parse(legacy);
+      const current = adoptionRole(registryText(repo), expected.slug);
+      if (expected.repo !== repo || !current.role || current.role !== expected.role ||
+          current.digest !== expected.registry || handlesPortableReadiness(repo, current.role)) {
+        throw new Error(READINESS_CONTEXT_CHANGED);
+      }
+      readReadinessTemplate(hatsuRoot);
+    } catch (error) {
+      return row("blocked", (error as Error).message, "re-run diagnose with the current repository and Hatsu inputs");
+    }
+  }
   if (readerState(repo, hatsuRoot).state !== "satisfied") {
     return row("staged", "the trusted JSON reader must be installed before the workflow can call it",
       "install scripts/readiness_ci_verdict.mts first");

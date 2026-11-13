@@ -8,9 +8,9 @@ import { history, readSections, summary } from './pr_sections_history.ts';
 import { declarationText, strictJson } from './config_values_refresh.ts';
 import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction, type Fix, type Item } from './tenkai_fixes.ts';
 import {
-  adoptionRole, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness,
-  READINESS_WORKFLOW, readinessInputs, readReadinessTemplate, type AdoptionRunner, type ReadinessRole,
-  type ReadinessRow, type ReadinessTemplate,
+  adoptionRole, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness, LEGACY_READINESS,
+  READINESS_CONTEXT_CHANGED, READINESS_WORKFLOW, readinessInputs, readReadinessTemplate, registryText,
+  type AdoptionRunner, type LegacyReadiness, type ReadinessRole, type ReadinessRow, type ReadinessTemplate,
 } from './tenkai_readiness_policy.mts';
 
 type AdoptionItem = Item & { fix?: Fix };
@@ -34,10 +34,11 @@ for (let at = 1; at < args.length; at++) {
   if (args[at] === '--json') { json = true; continue; }
   if (args[at].startsWith('--') && at + 1 < args.length) options[args[at]] = args[++at];
 }
-function legacy(argv: string[], deferReadiness = '') {
+function legacy(argv: string[], repo = '', readiness?: LegacyReadiness) {
   return spawnSync('bash', [join(here, 'tenkai_adopt_legacy.sh'), ...argv], {
     encoding: 'utf8', maxBuffer: 16 * 1024 * 1024,
-    env: { ...process.env, [DEFER_READINESS]: deferReadiness },
+    env: { ...process.env, [DEFER_READINESS]: readiness ? '' : repo,
+      [LEGACY_READINESS]: readiness ? JSON.stringify(readiness) : '' },
   });
 }
 function relay(result: ReturnType<typeof legacy>): number {
@@ -54,16 +55,16 @@ function readinessRow(document: AdoptionReport): AdoptionItem {
   return readiness;
 }
 function hasHandoff(item: AdoptionItem, role: ReadinessRole): boolean {
-  return item.state === 'staged' && item.detail === DEFERRED_READINESS ||
-    role === null && item.state === 'blocked' &&
-    item.detail === 'repository role is unknown; the trusted guard and pin policy cannot be rendered safely';
+  return role
+    ? item.state === 'staged' && item.detail === DEFERRED_READINESS
+    : item.state === 'blocked' && item.detail === 'repository role is unknown; the trusted guard and pin policy cannot be rendered safely';
 }
 function applyPortable(
-  document: AdoptionReport, root: string, role: ReadinessRole, template: ReadinessTemplate | null,
+  document: AdoptionReport, root: string, role: ReadinessRole, registry: string | null, template: ReadinessTemplate | null,
   operation: 'apply' | 'diagnose',
 ): ReadinessRow {
   try {
-    const input = readinessInputs(template, role, document.slug, document.runner);
+    const input = readinessInputs(template, role, registry, document.slug, document.runner);
     const script = join(root, 'scripts', 'tenkai_readiness_guard.mts');
     const result = spawnSync(process.execPath, [script, operation + '-workflow', document.repo, root], {
       encoding: 'utf8', input: JSON.stringify(input), timeout: 60_000,
@@ -83,16 +84,17 @@ function applyPortable(
       action: 'review the portable readiness policy and re-run diagnose' };
   }
 }
-function updateWorkflowDetails(row: AdoptionItem) {
+function updateWorkflowDetails(row: AdoptionItem, portableState?: string) {
   if (row.id === 'guard/registration' &&
       row.detail === 'no scripts/workflow_runner_policy_check.rb in this repository — no two-PR ordering applies') {
     row.detail = 'no scripts/workflow_runner_policy_check.rb in this repository. Ruby registration has no prerequisite PR';
   }
-  if (row.id === 'workflows/privileged' && row.detail) {
-    row.detail = row.detail.replace(/^policy guard /, 'repository-owned Ruby policy guard ')
-      .replace(/\. Tenkai installs a privileged pull_request_target job and NO guard — this repository inherits no ongoing enforcement around it$/,
-        '. Other privileged workflows remain under repository-owned policy.');
-  }
+  if (row.id !== 'workflows/privileged' || !row.detail) return;
+  row.detail = row.detail.replace(/^policy guard /, 'repository-owned Ruby policy guard ');
+  if (portableState === undefined) return;
+  row.detail = row.detail.replace(/\. Tenkai installs a privileged pull_request_target job and NO guard — this repository inherits no ongoing enforcement around it$/,
+    '. Other privileged workflows remain under repository-owned policy.');
+  if (!['satisfied', 'repaired'].includes(portableState)) row.detail += '. Portable readiness admission is outstanding.';
 }
 
 function run(): number {
@@ -107,25 +109,38 @@ function run(): number {
   if (!['diagnose', 'apply'].includes(mode) || !options['--repo']) {
     return relay(legacy(args));
   }
-  const root = resolve(options['--hatsu-root'] ?? dirname(here));
+  const root = realpathSync(resolve(options['--hatsu-root'] ?? dirname(here)));
   // The engine resolves symlinks (Path.resolve), so the report matches its path, the real one.
   const given = resolve(options['--repo']);
   const repo = existsSync(given) ? realpathSync(given) : given;
   // HA#535: the fix catalogue is read and checked before anything can write, from this script's own tree.
   const fixes = fixRows(dirname(here));
-  // Read validated context before selecting a workflow or allowing refresh to write.
+  // Refuse unsafe registry paths before the frozen adopter can follow them.
+  const registry = registryText(repo);
   const parameters = [...args.slice(1), '--json'];
   const preview = legacy(['diagnose', ...parameters], repo);
   if (refused(preview)) return relay(preview);
   const observed: AdoptionReport = JSON.parse(preview.stdout);
   const observedReadiness = readinessRow(observed);
-  const role = adoptionRole(repo, observed.slug);
-  const portable = handlesPortableReadiness(repo, role);
+  let role: ReadinessRole = null;
+  let digest: string | null = null;
+  let routeFailure: ReadinessRow | undefined;
+  try {
+    ({ role, digest } = adoptionRole(registry, observed.slug));
+    if (registryText(repo) !== registry || !hasHandoff(observedReadiness, role)) {
+      throw new Error(READINESS_CONTEXT_CHANGED);
+    }
+  } catch (error) {
+    routeFailure = { state: 'blocked', detail: plain(error instanceof Error ? error.message : error),
+      action: 'verify the repository role in nen/repos.json and re-run diagnose' };
+  }
+  const portable = !routeFailure && handlesPortableReadiness(repo, role);
   // The frozen renderer refused a missing pinned template before any adoption writes.
   const template = observed.slug ? readReadinessTemplate(root) : null;
-  const deferred = observedReadiness.state === 'staged' && observedReadiness.detail === DEFERRED_READINESS;
-  // An unknown role stops the frozen workflow before it calls the gate.
-  const canDefer = hasHandoff(observedReadiness, role);
+  const legacyReadiness = !routeFailure && !portable && observed.slug && role && digest
+    ? { repo, slug: observed.slug, role, registry: digest } : undefined;
+  // Use the same validated identity on subsequent frozen passes.
+  const adoptedParameters = observed.slug ? [...parameters, '--slug', observed.slug] : parameters;
   let finding: any;
   let refreshed = false;
   try {
@@ -137,7 +152,7 @@ function run(): number {
       const reading = readSections(value, cat, history(root, cat));
       if (reading.status !== 'current') finding = { state: 'drift', detail: summary(reading), prSections: reading };
     }
-    if (mode === 'apply' && (!portable || canDefer)) {
+    if (mode === 'apply' && !routeFailure) {
       const fill = spawnSync('bash', [join(here, 'config_values.sh'), 'fill', '--refresh', '--repo', repo, '--hatsu-root', root, '--json'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
       if (fill.error || ![0, 1].includes(fill.status ?? 2) || !fill.stdout.trim()) throw new Error(plain(fill.stderr || fill.error?.message || 'PR-section refresh refused; nothing adopted'));
       JSON.parse(fill.stdout);
@@ -146,18 +161,18 @@ function run(): number {
     }
   } catch (error) { finding = { state: 'blocked', detail: plain(error instanceof Error ? error.message : error) }; }
   // A refused refresh never falls through to the mutating frozen adopter.
-  const applying = mode === 'apply' && finding?.state !== 'blocked' && (!portable || canDefer);
-  const result = applying ? legacy(['apply', ...parameters], portable ? repo : '')
-    : portable || !deferred ? preview : legacy(['diagnose', ...parameters]);
+  const applying = mode === 'apply' && finding?.state !== 'blocked' && !routeFailure;
+  const result = applying ? legacy(['apply', ...adoptedParameters], repo, legacyReadiness)
+    : legacyReadiness ? legacy(['diagnose', ...adoptedParameters], repo, legacyReadiness) : preview;
   if (refused(result)) return relay(result);
   const document: AdoptionReport = JSON.parse(result.stdout);
   document.mode = mode;
-  if (portable) {
-    const readiness = readinessRow(document);
+  const readiness = readinessRow(document);
+  if (routeFailure) Object.assign(readiness, routeFailure);
+  else if (portable) {
     // The frozen apply installs the reader before this operation can admit a workflow.
-    const sameContext = document.slug === observed.slug && adoptionRole(repo, document.slug) === role;
-    const verdict = canDefer && hasHandoff(readiness, role) && sameContext
-      ? applyPortable(document, root, role, template, applying ? 'apply' : 'diagnose')
+    const verdict = document.slug === observed.slug && hasHandoff(readiness, role)
+      ? applyPortable(document, root, role, digest, template, applying ? 'apply' : 'diagnose')
       : { state: 'blocked', detail: 'the portable readiness workflow handoff could not be verified',
           action: 'verify the Hatsu installation and repository identity, then re-run diagnose' };
     Object.assign(readiness, verdict);
@@ -168,7 +183,7 @@ function run(): number {
   }
   // HA#535: every outstanding row names its fix — run, edit, detect and who supplies the value.
   for (const row of document.items) {
-    updateWorkflowDetails(row);
+    updateWorkflowDetails(row, portable ? readiness.state : undefined);
     row.action = resolveAction(row.action, repo);
     if (OUTSTANDING.includes(row.state)) row.fix = fixFor(row, fixes, { repo, root: dirname(here), slug: document.slug });
   }

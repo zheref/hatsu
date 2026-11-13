@@ -19,6 +19,9 @@ const headExpression = "${{ github.event.pull_request.head.sha }}";
 const baseExpression = "${{ github.event.pull_request.base.sha }}";
 const workflowPath = ".github/workflows/pr-readiness.yml";
 const ordinaryPath = ".github/workflows/ordinary.yml";
+const registryPath = "nen/repos.json";
+const readerPath = "scripts/readiness_ci_verdict.mts";
+const rubyPath = "scripts/workflow_runner_policy_check.rb";
 const env = {
   ...process.env,
   GH_TOKEN: "", GITHUB_TOKEN: "", GITHUB_REPOSITORY: slug,
@@ -51,7 +54,8 @@ function git(...args: string[]) {
 }
 function command(args: string[], runnerOnline = false) {
   return spawnSync("bash", [join(root, "scripts/tenkai_adopt.sh"), ...args], {
-    encoding: "utf8", env: { ...env, TENKAI_FIXTURE_RUNNER: runnerOnline ? "online" : "offline" }, timeout: 30_000,
+    encoding: "utf8", env: { ...env, TENKAI_FIXTURE_RUNNER: runnerOnline ? "online" : "offline",
+      TENKAI_FIXTURE_RUBY: join(repo, rubyPath), TENKAI_FIXTURE_PROBE: join(sandbox, "probe-seen") }, timeout: 30_000,
   });
 }
 function adopt(mode: "apply" | "diagnose", visibility: "public" | "private" | null = "public", selfHosted = "0", runnerOnline = false) {
@@ -100,6 +104,13 @@ function runPolicy(workflow: string, repoSlug = slug) {
 
 try {
   put(sandbox, "bin/gh", `#!/bin/sh
+if [ "$1" = api ] && [ "$2" != --paginate ] && [ "$4" = .visibility ] && [ -f "$TENKAI_FIXTURE_RUBY" ]; then
+  if [ -f "$TENKAI_FIXTURE_PROBE" ]; then
+    rm "$TENKAI_FIXTURE_RUBY"
+  else
+    touch "$TENKAI_FIXTURE_PROBE"
+  fi
+fi
 if [ "$1" = api ] && [ "$2" = --paginate ] && [ "$TENKAI_FIXTURE_RUNNER" = online ]; then
   printf 'online\\tself-hosted,Linux,X64,pool-ci\\n'
   exit 0
@@ -150,6 +161,45 @@ exit 1
   check(refusedTemplate.status === 2 && refusedTemplate.stderr.includes("no template at") &&
     !existsSync(join(repo, workflowPath)) && !existsSync(join(repo, "scripts/readiness_ci_verdict.mts")),
   "a pinned Hatsu root with a missing template is refused before adoption writes");
+  const invalidTemplate = join(alternateRoot, "templates/pr-readiness.yml");
+  const noWrites = () => !existsSync(join(repo, workflowPath)) &&
+    !existsSync(join(repo, GUARD_PATH)) && !existsSync(join(repo, readerPath));
+  const assertRefusal = (mode: string, message: string, hatsuRoot = root) => {
+    const result = command([mode, "--repo", repo, "--hatsu-root", hatsuRoot,
+      "--visibility", "public", "--self-hosted", "0", "--json"]);
+    check(result.status === 2 && result.stderr.includes(message) && noWrites(),
+      mode + " refuses " + message + " before any adoption write: " + (result.stderr || result.error));
+  };
+  mkdirSync(dirname(invalidTemplate), { recursive: true });
+  const fifo = (path: string) => {
+    const result = spawnSync("mkfifo", [path], { encoding: "utf8", timeout: 5_000 });
+    assert.equal(result.status, 0, result.stderr);
+  };
+  fifo(invalidTemplate);
+  assertRefusal("diagnose", "templates/pr-readiness.yml must be a regular file", alternateRoot);
+  rmSync(invalidTemplate);
+  writeFileSync(invalidTemplate, Buffer.concat([readFileSync(join(root, "templates/pr-readiness.yml")), Buffer.from([255])]));
+  assertRefusal("apply", "templates/pr-readiness.yml must be UTF-8", alternateRoot);
+  rmSync(invalidTemplate);
+  symlinkSync(join(root, "templates/pr-readiness.yml"), invalidTemplate);
+  assertRefusal("apply", "templates/pr-readiness.yml must be a regular file", alternateRoot);
+
+  const registry = text(repo, registryPath);
+  put(repo, registryPath, '{"maintained_tools": ["' + slug + '"], "metadata": NaN}\n');
+  for (const mode of ["diagnose", "apply"] as const) {
+    const result = adopt(mode);
+    check(result.state === "blocked" && result.detail.includes("nen/repos.json must be strict JSON") &&
+      noWrites(), mode + " blocks a registry constant the frozen parser accepts");
+  }
+  rmSync(join(repo, registryPath));
+  fifo(join(repo, registryPath));
+  assertRefusal("apply", "nen/repos.json must be a regular file");
+  rmSync(join(repo, registryPath));
+  put(sandbox, "linked-registry.json", registry);
+  symlinkSync(join(sandbox, "linked-registry.json"), join(repo, registryPath));
+  assertRefusal("diagnose", "nen/repos.json must be a regular file");
+  rmSync(join(repo, registryPath));
+  put(repo, registryPath, registry);
   const runnerPolicy = command(["runner-policy", "--visibility", "public", "--self-hosted", "0", "--json"]);
   check(runnerPolicy.status === 0 && JSON.parse(runnerPolicy.stdout).runs_on === "ubuntu-latest",
     "runner-policy still returns the frozen runner report");
@@ -328,7 +378,7 @@ exit 1
   rmSync(join(repo, ordinaryPath));
   rmSync(join(candidate, ordinaryPath), { force: true });
   git("update-ref", "-d", trackedBase);
-  const customPath = "scripts/workflow_runner_policy_check.rb";
+  const customPath = rubyPath;
   const custom = "# Consumer-owned guard\nEXPECTED_JOBS = {}.freeze\n";
   put(repo, customPath, custom);
   check(adopt("diagnose").state === "staged", "diagnose leaves the custom Ruby registration route with the frozen adopter");
@@ -337,6 +387,12 @@ exit 1
     !existsSync(join(repo, workflowPath)), "Tenkai preserves the custom Ruby guard and stages the workflow");
   put(repo, customPath, ["EXPECTED_JOBS", "EXPECTED_TYPES", "EXPECTED_STEPS"].map((name) =>
     name + " = { 'pr-readiness.yml' => [] }.freeze\n").join(""));
+  const registered = text(repo, customPath);
+  const changedGuard = adopt("apply", null);
+  check(changedGuard.state === "blocked" && changedGuard.detail.includes("workflow policy changed during adoption") &&
+    !existsSync(join(repo, customPath)) && !existsSync(join(repo, workflowPath)) && !existsSync(join(repo, GUARD_PATH)),
+  "the legacy writer refuses when the Ruby guard disappears between preview and apply");
+  put(repo, customPath, registered);
   check(adopt("apply").state === "repaired", "the registered Ruby route renders a legacy workflow");
   const legacy = text(repo, workflowPath);
   check(legacy.includes("TENKAI_GUARD_REQUIRED: true") && !existsSync(join(repo, GUARD_PATH)),
@@ -402,9 +458,20 @@ exit 1
   rmSync(join(repo, workflowPath));
   json(repo, "nen/repos.json", []);
   const unknownRole = adopt("apply");
-  check(unknownRole.state === "blocked" && unknownRole.detail.includes("repository role or slug is unknown") &&
+  check(unknownRole.state === "blocked" && unknownRole.detail.includes("nen/repos.json must contain a JSON object") &&
     !existsSync(join(repo, workflowPath)) && text(repo, POLICY_PATH) === previousPolicy,
   "a malformed registry cannot authorize writes to an installed portable route");
+  rmSync(join(repo, GUARD_PATH));
+  rmSync(join(repo, POLICY_PATH));
+  json(repo, registryPath, { consumers: [{ repo: moved }] });
+  const product = adopt("apply");
+  check(product.state === "repaired" && text(repo, workflowPath).includes("TENKAI_GUARD_REQUIRED: false"),
+    "a product with no Ruby guard keeps its legacy rendering");
+  for (const report of [product.report, adopt("diagnose").report]) {
+    check(report.items.find((item: { id: string }) => item.id === "workflows/privileged")?.detail.includes(
+      "this repository inherits no ongoing enforcement around it"),
+    "legacy apply and diagnose disclose the absent readiness policy");
+  }
 } finally {
   rmSync(sandbox, { recursive: true, force: true });
 }

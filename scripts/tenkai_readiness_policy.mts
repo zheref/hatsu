@@ -1,13 +1,14 @@
 // Tenkai owns rendering and admission here. The public adopter supplies its validated inputs.
 import { spawnSync } from "node:child_process";
-import { closeSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { closeSync, constants, fstatSync, mkdirSync, openSync, readSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { createHash, randomUUID } from "node:crypto";
 import { dirname, join } from "node:path";
 import {
   GUARD_MARKER, GUARD_PATH, POLICY_CONTRACT, POLICY_PATH, admittedDigests,
   fileInfo, parsePolicy, policyText, regularText, workflowDigest,
   type Admission,
 } from "./readiness_workflow_policy.mts";
+import { strictJson } from "./config_values_refresh.ts";
 
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
 export type ReadinessRow = { state: State; detail: string; action: string | null };
@@ -23,6 +24,9 @@ export type AdoptionRunner = {
 export const READINESS_WORKFLOW = ".github/workflows/pr-readiness.yml";
 export const DEFER_READINESS = "HATSU_TENKAI_DEFER_READINESS";
 export const DEFERRED_READINESS = "the public adopter is handling the readiness workflow";
+export const LEGACY_READINESS = "HATSU_TENKAI_LEGACY_READINESS";
+export const READINESS_CONTEXT_CHANGED = "repository role or workflow policy changed during adoption";
+export type LegacyReadiness = { repo: string; slug: string; role: Exclude<ReadinessRole, null>; registry: string };
 export type RenderInputs = {
   role: ReadinessRole;
   repository: string | null;
@@ -30,9 +34,12 @@ export type RenderInputs = {
   rendered: string | null;
   runnerKnown: boolean;
   runnerLabelsRequired: boolean;
+  registry: string | null;
 };
 
 const LEGACY_GUARD = "scripts/workflow_runner_policy_check.rb";
+const REGISTRY = "nen/repos.json";
+const MAX_INPUT_BYTES = 2 * 1024 * 1024;
 const GUARD_PREFIX = "#!/usr/bin/env node\n" + GUARD_MARKER + "\n";
 const WORKFLOW_MARKER = "# pr-readiness.yml — RENDERED BY hatsu:tenkai.";
 const PORTABLE_MARKER = "# Workflow policy: Tenkai's portable guard";
@@ -54,25 +61,68 @@ function row(state: State, detail: string, action: string | null = null): Readin
   return { state, detail, action };
 }
 
-// Use the slug already validated by the frozen adopter. The registry has the
-// same maintained-tools precedence and accepts both entry shapes.
-export function adoptionRole(repo: string, repository: string | null): ReadinessRole {
-  if (!repository) return null;
+function inputText(root: string, relative: string): string | undefined {
+  const path = join(root, relative);
+  const parent = fileInfo(dirname(path));
+  if (!parent) return undefined;
+  if (!parent.isDirectory()) throw new Error(relative + " must have a regular, unlinked parent directory");
+  const before = fileInfo(path);
+  if (!before) return undefined;
+  if (!before.isFile()) throw new Error(relative + " must be a regular file");
+
+  const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {
-    const registry = JSON.parse(readFileSync(join(repo, "nen/repos.json"), "utf8"));
-    const includes = (entries: unknown) => Array.isArray(entries) &&
-      entries.some(entry => entry === repository || entry?.repo === repository);
-    if (includes(registry?.maintained_tools)) return "process";
-    if (includes(registry?.consumers)) return "product";
-  } catch {
-    // The declaration item owns the unreadable registry.
+    const opened = fstatSync(fd);
+    const currentParent = fileInfo(dirname(path));
+    if (!opened.isFile() || opened.dev !== before.dev || opened.ino !== before.ino ||
+        currentParent?.dev !== parent.dev || currentParent.ino !== parent.ino) {
+      throw new Error(relative + " changed while opening it");
+    }
+    if (opened.size > MAX_INPUT_BYTES) throw new Error(relative + " exceeds the 2 MiB input limit");
+    const bytes = Buffer.alloc(opened.size + 1);
+    let used = 0;
+    while (used < bytes.length) {
+      const count = readSync(fd, bytes, used, bytes.length - used, null);
+      if (count === 0) break;
+      used += count;
+    }
+    if (used !== opened.size) throw new Error(relative + " changed while reading it");
+    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes.subarray(0, used)); }
+    catch { throw new Error(relative + " must be UTF-8"); }
+  } finally {
+    closeSync(fd);
   }
-  return null;
+}
+
+export function registryText(repo: string): string | undefined {
+  return inputText(repo, REGISTRY);
+}
+
+// The frozen adopter validates the slug. Both readers use the same precedence
+// and accept string entries and objects carrying a repo field.
+export function adoptionRole(text: string | undefined, repository: string | null) {
+  if (text === undefined) return { role: null, digest: null };
+  let registry;
+  try {
+    registry = strictJson(text);
+  } catch {
+    throw new Error(REGISTRY + " must be strict JSON");
+  }
+  if (!registry || typeof registry !== "object" || Array.isArray(registry)) {
+    throw new Error(REGISTRY + " must contain a JSON object");
+  }
+  const includes = (entries: unknown) => Array.isArray(entries) &&
+    entries.some(entry => entry === repository || entry?.repo === repository);
+  let role: ReadinessRole = null;
+  if (repository && includes(registry.maintained_tools)) role = "process";
+  else if (repository && includes(registry.consumers)) role = "product";
+  return { role, digest: createHash("sha256").update(text).digest("hex") };
 }
 
 function pinnedRef(hatsuRoot: string): string | null {
   try {
-    const ref = JSON.parse(readFileSync(join(hatsuRoot, "nen/contract.json"), "utf8"))?.dependency?.pinned_ref;
+    const contract = inputText(hatsuRoot, "nen/contract.json");
+    const ref = contract === undefined ? undefined : JSON.parse(contract)?.dependency?.pinned_ref;
     if (typeof ref === "string" && /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.exec(ref)?.[0] === ref &&
         !ref.includes("..") && !ref.includes("//")) return ref;
   } catch {
@@ -84,20 +134,16 @@ function pinnedRef(hatsuRoot: string): string | null {
 export function readReadinessTemplate(hatsuRoot: string): ReadinessTemplate | null {
   const ref = pinnedRef(hatsuRoot);
   if (ref === null) return null;
-  const path = join(hatsuRoot, "templates/pr-readiness.yml");
-  try {
-    return { source: readFileSync(path, "utf8").replace(/\r\n?/g, "\n"), ref };
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === "ENOENT" || code === "ENOTDIR" || code === "EISDIR") {
-      throw new Error("no template at " + path + " — --hatsu-root must point at a Hatsu checkout or plugin root");
-    }
-    throw error;
+  const relative = "templates/pr-readiness.yml";
+  const source = inputText(hatsuRoot, relative);
+  if (source === undefined) {
+    throw new Error("no template at " + join(hatsuRoot, relative) + " — --hatsu-root must point at a Hatsu checkout or plugin root");
   }
+  return { source: source.replace(/\r\n?/g, "\n"), ref };
 }
 
 export function readinessInputs(
-  template: ReadinessTemplate | null, role: ReadinessRole, repository: string | null, runner: AdoptionRunner,
+  template: ReadinessTemplate | null, role: ReadinessRole, registry: string | null, repository: string | null, runner: AdoptionRunner,
 ): RenderInputs {
   const processRepository = role === "process";
   const rendered = repository && template
@@ -110,7 +156,7 @@ export function readinessInputs(
       .replaceAll("@@NEN_REF@@", () => template.ref)
     : null;
   return {
-    role, repository, path: READINESS_WORKFLOW, rendered,
+    role, registry, repository, path: READINESS_WORKFLOW, rendered,
     runnerKnown: runner.derived_from.visibility !== null,
     runnerLabelsRequired: runner.labels_required,
   };
@@ -122,10 +168,12 @@ function portableTargets(repo: string, role: ReadinessRole) {
   const localPolicy = regularText(repo, POLICY_PATH);
   const installed = localGuard?.startsWith(GUARD_PREFIX) || localPolicy !== undefined;
   if (!installed && role !== "process") return null;
-  const legacy = fileInfo(join(repo, LEGACY_GUARD));
-  if (!installed && legacy) {
-    if (!legacy.isFile()) throw new Error(LEGACY_GUARD + " must be a regular file");
-    return null;
+  if (!installed) {
+    const legacy = fileInfo(join(repo, LEGACY_GUARD));
+    if (legacy) {
+      if (!legacy.isFile()) throw new Error(LEGACY_GUARD + " must be a regular file");
+      return null;
+    }
   }
   return { localGuard, localPolicy };
 }
@@ -244,6 +292,8 @@ export function adoptPortableReadiness(
       return row("blocked", "repository role or slug is unknown; the portable policy cannot be rendered",
         "record the role in nen/repos.json and resolve the repository slug");
     }
+    const registry = adoptionRole(registryText(repo), input.repository);
+    if (registry.role !== input.role || registry.digest !== input.registry) throw new Error(READINESS_CONTEXT_CHANGED);
     if (!input.rendered) {
       return row("blocked", "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen",
         "repair Hatsu's nen/contract.json");
