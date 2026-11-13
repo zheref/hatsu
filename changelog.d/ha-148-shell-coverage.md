@@ -1,0 +1,1 @@
+- Measure the remaining six shell entry points on focused lanes (HA#148). The snapshot materializer, fixture output relay, Direct matrix wrapper, both PR-section wrappers and desk staging runner report exact-source shell coverage. The existing native Node reports stay available alongside the shell captures (plugin `0.166.3`).

@@ -187,7 +187,7 @@
       "prose-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/prose_size_check.sh, the prose-diet guard (zheref/hatsu#119), following the one-lane-per-executable-guard pattern. Its fixture is hermetic and offline: throwaway plugin-shaped trees prove a tree within every ceiling is exit 0 with kurapika.md exempt, --headroom prints one row per measured file smallest margin first with the plain run's exit code, exactly at the ceiling is within it and one byte over is named with size and ceiling, a rules file is measured in characters, a dieted skill missing from disk is named, an unknown flag or a non-Hatsu root is a wiring refusal at exit 2, and every skill's frontmatter description in source and mirrors is measured whole in the forms the generator writes (plain, quoted, folded, literal, continued, CRLF) against the 1024-character Agent Skills cap (zheref/hatsu#186); a duplicate key, invalid UTF-8 (checked exactly), a quoted key, a space before the colon, an alias or anchor value, a BOM before the frontmatter and an unlistable skill directory are each an offender by name, never skipped. The live tree is judged on every pull request by prose-size-check.yml, which runs the trusted guard against the pull request's checkout (zheref/hatsu#135)."
+        "$comment": "The focused lane for scripts/prose_size_check.sh, the prose-diet guard (zheref/hatsu#119), following the one-lane-per-executable-guard pattern. Its fixture runs offline: throwaway plugin-shaped trees prove a tree within every ceiling is exit 0 with kurapika.md exempt, --headroom prints one row per measured file smallest margin first with the plain run's exit code, exactly at the ceiling is within it and one byte over is named with size and ceiling, a rules file is measured in characters, a dieted skill missing from disk is named, an unknown flag or a non-Hatsu root is a wiring refusal at exit 2, and every skill's frontmatter description in source and mirrors is measured whole in the forms the generator writes (plain, quoted, folded, literal, continued, CRLF) against the 1024-character Agent Skills cap (zheref/hatsu#186); a duplicate key, invalid UTF-8 (checked exactly), a quoted key, a space before the colon, an alias or anchor value, a BOM before the frontmatter and an unlistable skill directory are each an offender by name, never skipped. One read-only live checkout probe compares output and exit status for the default and explicit roots, accepting either prose verdict. The live tree is judged on every pull request by prose-size-check.yml, which runs the trusted guard against the pull request's checkout (zheref/hatsu#135)."
       },
       "canon-lint": {
         "stack": "claude-code-plugin",
@@ -409,6 +409,31 @@
         "cwd": ".",
         "$comment": "The crash-and-resume proof's ledger half (zheref/hatsu#444): scripts/resume_proof.mts drives ren's and build's phase ledgers and the futon run manifest through an interruption after every phase begin and end, re-invokes under WORKFLOW's resume rule, and asserts convergence with the uninterrupted run (one entry per phase, one resumedAt on the interrupted one, a finished ledger byte-identical on re-invocation). It runs against the nen on PATH; it is a proof, not a general suite."
       },
+      "marketplace-snapshot-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Materialize a committed scratch plugin, verify its sidecar and reuse, and refuse altered snapshots or invalid inputs."
+      },
+      "fixture-output-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Preserve fixture stdout, stderr and status, and refuse capture and relay failures with their diagnostic."
+      },
+      "direct-matrix-shell-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Check the stable shell entry: flags and root, trusted sibling, Node version boundaries and sanitized Node environment. direct-matrix-guard retains its native renderer coverage."
+      },
+      "desk-staging-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Verify the staged desk plugin and its cleanup with an offline Claude stub. desk-guard still exercises the actual engine kit."
+      },
+      "pr-sections-shell-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Measure the original PR-section checker and resolver shell entries together. pr-sections-guard keeps its independent native Node capture."
+      },
       "desk-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
@@ -437,13 +462,13 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, desk-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, marketplace-snapshot-guard, fixture-output-guard, direct-matrix-shell-guard, desk-staging-guard, pr-sections-shell-guard, desk-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no application to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; its rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md) and the desk pane (hooks/desk), which Claude Code draws from the module's ui.render trees. The engine's test kit renders no tree to a surface, so the desk's screens are captured by hand on a PR, not by a ui-test run (zheref/hatsu#523)."
         },
         "coverage": {
-          "unsupported": "The plugin lane has no aggregate test run, so it has nothing to capture. The executable shell guards under scripts/ are measured on their focused fixture lanes: a measured lane's test row runs its fixture under the pinned Bashcov and writes coverage/<lane>/lcov.info, read with `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148); a lane Bashcov cannot measure yet seats its own coverage row with the reason. Most TypeScript guards under scripts/ still have no line-coverage declaration: an unmeasured gap, never a clean zero, and byakugan reports those files as `not measurable here`. The criteria and direct-matrix-guard lanes are the measured TypeScript exceptions: native Node replay writes exact-source LCOV for hanten_findings_check.mts, its reused clause_id_guard.mts parser, and direct_matrix_doc.mts. Neither the remaining gaps nor these exceptions move the 80/85/90 ladder in nen/workflow.json. Gyo is linting."
+          "unsupported": "The plugin lane has no aggregate capture or extraction row. For executable shell sources under scripts/, run their focused test lane with pinned Bashcov and read its LCOV through `nen shu coverage --lane <lane> --touched --base origin/<base> --from-capture` (zheref/hatsu#148). A focused lane that cannot capture names its own gap. The lane-less command selects plugin and has no percentage. Most TypeScript guards remain unmeasured; the focused lanes with native Node reports declare those artifacts separately. The 80/85/90 ladder is in nen/workflow.json."
         },
         "archive": {
           "unsupported": "A Claude Code plugin is distributed by git ref through a marketplace, never as a built package: `claude plugin marketplace add zheref/hatsu` reads the tree at a ref. There is no artifact to produce, so there is nothing for `archive` to name."
@@ -2140,6 +2165,159 @@
           "$comment": "Needs git and nen on PATH (nen phase begin --resume, nen run start|park); offline. Run when a composite's phase vocabulary, the resume rule in WORKFLOW \u00a7 The effort's ledgers, or the nen pin changes."
         }
       },
+      "marketplace-snapshot-guard": {
+        "test": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "marketplace-snapshot-guard",
+            "bash",
+            "scripts/codex_marketplace_snapshot_fixture.sh",
+            "--target",
+            "scripts/codex_marketplace_snapshot.sh"
+          ],
+          "artifacts": [
+            "coverage/marketplace-snapshot-guard/lcov.info"
+          ],
+          "$comment": "Runs the focused fixture once and measures the exact checked-in shell source with the pinned Bashcov. An uninstrumented run reports that it captured nothing."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "marketplace-snapshot-guard"
+          ],
+          "artifacts": [
+            "coverage/marketplace-snapshot-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: checks the shell report and source hashes. Prefer --from-capture for Nen’s current-tree proof."
+        }
+      },
+      "fixture-output-guard": {
+        "test": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "fixture-output-guard",
+            "bash",
+            "scripts/fixture_output_guard_fixture.sh",
+            "--target",
+            "scripts/fixture_output_guard.sh"
+          ],
+          "artifacts": [
+            "coverage/fixture-output-guard/lcov.info"
+          ],
+          "$comment": "Runs the focused fixture once and measures the exact checked-in shell source with the pinned Bashcov. An uninstrumented run reports that it captured nothing."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "fixture-output-guard"
+          ],
+          "artifacts": [
+            "coverage/fixture-output-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: checks the shell report and source hashes. Prefer --from-capture for Nen’s current-tree proof."
+        }
+      },
+      "direct-matrix-shell-guard": {
+        "test": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "direct-matrix-shell-guard",
+            "bash",
+            "scripts/direct_matrix_doc_shell_fixture.sh",
+            "--target",
+            "scripts/direct_matrix_doc.sh"
+          ],
+          "artifacts": [
+            "coverage/direct-matrix-shell-guard/lcov.info"
+          ],
+          "$comment": "Runs the focused fixture once and measures the exact checked-in shell source with the pinned Bashcov. An uninstrumented run reports that it captured nothing."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "direct-matrix-shell-guard"
+          ],
+          "artifacts": [
+            "coverage/direct-matrix-shell-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: checks the shell report and source hashes. Prefer --from-capture for Nen’s current-tree proof."
+        }
+      },
+      "desk-staging-guard": {
+        "test": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "desk-staging-guard",
+            "bash",
+            "scripts/desk_mod_test_fixture.sh",
+            "--target",
+            "scripts/desk_mod_test.sh"
+          ],
+          "artifacts": [
+            "coverage/desk-staging-guard/lcov.info"
+          ],
+          "$comment": "Runs the focused fixture once and measures the exact checked-in shell source with the pinned Bashcov. An uninstrumented run reports that it captured nothing."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "desk-staging-guard"
+          ],
+          "artifacts": [
+            "coverage/desk-staging-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: checks the shell report and source hashes. Prefer --from-capture for Nen’s current-tree proof."
+        }
+      },
+      "pr-sections-shell-guard": {
+        "test": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--capture",
+            "pr-sections-shell-guard",
+            "bash",
+            "scripts/pr_sections_fixture_check.sh",
+            "--target",
+            "scripts/pr_body_sections_check.sh",
+            "--target",
+            "scripts/pr_sections_resolve.sh",
+            "--shell-only"
+          ],
+          "artifacts": [
+            "coverage/pr-sections-shell-guard/lcov.info"
+          ],
+          "$comment": "Runs the existing shell companion in shell-only mode to measure both wrappers in one exact-source capture. The native pr-sections-guard lane is independent of Bashcov."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "pr-sections-shell-guard"
+          ],
+          "artifacts": [
+            "coverage/pr-sections-shell-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: checks the shell report and source hashes. Prefer --from-capture for Nen’s current-tree proof."
+        }
+      },
       "desk-guard": {
         "test": {
           "exe": "bash",
@@ -2149,7 +2327,7 @@
           "$comment": "Needs the claude CLI on PATH (claude plugin test); offline. Run when hooks/desk or scripts/desk_mod_test.sh changes. Not in scripts/unit_tests_ci.mts's gated list: the unit-tests runner has no claude CLI, a named gap tracked by zheref/hatsu#523."
         },
         "coverage": {
-          "unsupported": "No line-coverage tool is declared for the engine's test kit (claude plugin test), so hooks/desk is an unmeasured gap, never a clean zero; zheref/hatsu#523 tracks the capture."
+          "unsupported": "hooks/desk uses the engine test kit (claude plugin test), which has no declared line-coverage tool (zheref/hatsu#523). The shell staging runner is measured independently by desk-staging-guard."
         }
       },
       "skill-shape-guard": {

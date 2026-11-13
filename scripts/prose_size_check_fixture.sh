@@ -9,7 +9,8 @@
 # (single line, quoted, folded, literal, continued, CRLF) against the 1024-character cap in source and
 # every mirror layout, with a duplicate key, invalid UTF-8 (checked exactly), a quoted key, a space before
 # the colon, an alias or anchor value and a BOM refused by name and an unlistable skill directory an
-# offender (zheref/hatsu#186). Offline, hermetic, writes only under mktemp.
+# offender (zheref/hatsu#186). Offline, writes only under mktemp, and reads the live checkout
+# for the no-argument root comparison.
 
 set -euo pipefail
 export LC_ALL=C
@@ -100,6 +101,19 @@ run 0 "$clean"
 assert_contains "$out" "prose ok: $total files within their ceilings" 'every dieted skill (rikugan among them), two agents, one rules file and its Antigravity mirror are counted; kurapika.md is not'
 assert_lacks "$out" 'kurapika' 'the exempt persona is never named'
 
+# The candidate root cannot supply the parser when the executing guard's own companion is missing.
+mkdir -p "$fixture_root/no-parser" "$clean/scripts"
+cp "$guard" "$fixture_root/no-parser/prose_size_check.sh"
+printf '%s\n' 'BEGIN { exit }' > "$clean/scripts/prose_desc.awk"
+if out="$(sh "$fixture_root/no-parser/prose_size_check.sh" "$clean" 2>&1)"; then
+  fail "the guard accepted a missing companion: $out"
+else
+  code=$?
+fi
+[ "$code" -eq 2 ] || fail "a missing companion exited $code, expected 2: $out"
+missing_parser_dir="$(cd "$fixture_root/no-parser" && pwd -P)"
+assert_contains "$out" "cannot read description parser $missing_parser_dir/prose_desc.awk" 'the missing companion is named beside the executing guard'
+
 # --- --headroom: one row per file, smallest margin first, exit unchanged ---
 run 0 --headroom "$clean"
 assert_contains "$out" '  left file' 'the report carries its header, in the rows\x27 own widths'
@@ -175,6 +189,12 @@ head -c 60000 /dev/zero | LC_ALL=C tr '\0' '\277' > "$bad/claude/rules/hatsu.md"
 run 1 "$bad"
 assert_contains "$out" 'UNMEASURABLE  claude/rules/hatsu.md -- not valid UTF-8 (60000 bytes), not measured' 'raw continuation bytes are refused by name'
 assert_lacks "$out" 'prose ok' 'a file five times the ceiling never reads green'
+
+# The generated mirror gets the same refusal for invalid UTF-8.
+printf '\277' > "$mirror/surfaces/antigravity/rules/hatsu.md"
+run 1 "$mirror"
+assert_contains "$out" 'UNMEASURABLE  surfaces/antigravity/rules/hatsu.md -- not valid UTF-8 (1 bytes), not measured' 'an invalid Antigravity rule is refused by name'
+assert_lacks "$out" 'prose ok' 'an invalid Antigravity rule never reads green'
 
 # --- a dieted skill missing from disk is named, never skipped ---
 missing="$fixture_root/missing"
@@ -379,6 +399,20 @@ if [ "$(id -u)" -ne 0 ]; then
   assert_contains "$out" 'UNLISTABLE  surfaces/codex/zz' 'an unlistable skill directory is an offender too'
   chmod 755 "$form/surfaces/codex/zz"
 fi
+
+# Compare root selection independently of the live checkout's prose verdict.
+# Trace the no-argument call from another working directory and use the plain guard as reference.
+explicit_root_status=0
+explicit_root_out="$(sh "$guard" "$script_dir/.." 2>&1)" || explicit_root_status=$?
+case "$explicit_root_status" in
+  0|1) ;;
+  *) fail "explicit guard checkout exited $explicit_root_status: $explicit_root_out" ;;
+esac
+(
+  cd "$clean"
+  run "$explicit_root_status"
+  [ "$out" = "$explicit_root_out" ] || fail "no argument must select the executing guard's checkout: $out"
+)
 
 bash "$script_dir/fixture_output_guard_fixture.sh"
 echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"

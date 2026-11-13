@@ -88,7 +88,18 @@ BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 # main's trusted validator knows its exact shape when the second PR lands.
 PENDING_UNIT_TEST_WORKFLOWS = %w[].freeze
 REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
-UNIT_TESTS_WORKFLOW_SHA256 = "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94".freeze
+# Freeze both job bounds for each trigger set. Admit the 20-minute forms
+# here before either workflow file moves from the current 10-minute bound.
+UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS = {
+  %w[pull_request] => %w[
+    a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94
+    01af13953a2715c3822c741927faf969c6a0ebd27c3e8e2974af363229560f3f
+  ].freeze,
+  %w[pull_request push] => %w[
+    66245a56a3752362b63595c08d465a2496aa40f0a011a25d932c5ac1542375ec
+    593839dfd54a953ec2a6fbc13fb1b35ad984a9dd02d7f90529aaa0a7f95c8c98
+  ].freeze
+}.freeze
 
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
 # refuses any `.github/workflows/*.yml` whose basename is in neither list,
@@ -2420,7 +2431,13 @@ def validate_unit_tests_workflow(path)
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
-  fail_policy("#{path} must use only pull_request") unless triggers.keys == ["pull_request"]
+  digests = UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS[triggers.keys.sort]
+  fail_policy("#{path} must use pull_request, optionally with push to main") unless digests
+  if triggers.key?("push")
+    push = mapping(triggers.fetch("push"), "#{path} on.push")
+    branches = sequence(push.fetch("branches") { fail_policy("#{path} push has no branches filter") }, "#{path} on.push.branches")
+    fail_policy("#{path} push must target only main") unless push.keys == ["branches"] && branches == ["main"]
+  end
   permissions = mapping(root.fetch("permissions") { fail_policy("#{path} has no permissions") }, "#{path} permissions")
   fail_policy("#{path} must have only contents: read") unless permissions.keys == ["contents"] && scalar(permissions["contents"]) == "read"
   jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs") }, "#{path} jobs")
@@ -2428,7 +2445,7 @@ def validate_unit_tests_workflow(path)
   job = mapping(jobs.fetch("unit-tests"), "#{path} unit-tests")
   fail_policy("#{path} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
   fail_policy("#{path} has changed from the staged, reviewed read-only test job") unless
-    Digest::SHA256.file(path).hexdigest == UNIT_TESTS_WORKFLOW_SHA256
+    digests.include?(Digest::SHA256.file(path).hexdigest)
 end
 
 def validate_repo(root, announce: true)
@@ -2694,16 +2711,63 @@ def self_test(root)
       fail_policy("self-test: staged #{name} is missing") unless File.file?(staged)
       installed = File.join(tmp, ".github/workflows", name)
       original_installed = File.file?(installed) ? File.read(installed) : nil
-      FileUtils.cp(staged, installed) unless original_installed
+      # The repository validation above has already checked the installed form.
+      # Always exercise the staged form as an installed file, even during rollout.
+      FileUtils.cp(staged, installed)
       validate_repo(tmp, announce: false)
-      original_unit_tests = File.read(installed)
-      File.write(installed, original_unit_tests.sub("contents: read", "contents: write"))
-      expect_rejected("unit-tests must stay read-only", /must have only contents: read/) do
-        validate_repo(tmp, announce: false)
+      staged_workflow = File.read(installed)
+      changed_shape = /changed from the staged, reviewed read-only test job/
+      # Exercise both reviewed job bounds for every workflow form in the
+      # checkout, including after the follow-up installs the longer bound.
+      timeout_line = /^    timeout-minutes: (?:10|20)$/
+      [original_installed, staged_workflow].compact.uniq.each do |workflow|
+        fail_policy("self-test: expected one unit-tests job bound") unless workflow.scan(timeout_line).length == 1
+        [10, 20].each do |minutes|
+          reviewed = workflow.sub(timeout_line, "    timeout-minutes: #{minutes}")
+          File.write(installed, reviewed)
+          validate_unit_tests_workflow(installed)
+          bound_cases = [
+            ["other job bound", timeout_line, "    timeout-minutes: 11", changed_shape],
+            ["write permission", "contents: read", "contents: write", /must have only contents: read/],
+            ["additional permission", "contents: read", "contents: read\n  checks: read", /must have only contents: read/],
+            ["privileged trigger", "  pull_request:", "  pull_request_target:", /must use pull_request/],
+            ["changed PR trigger filter", "opened, synchronize", "synchronize", changed_shape]
+          ]
+          if workflow == staged_workflow
+            bound_cases << ["other push branch", "branches: [main]", "branches: ['**']", /push must target only main/]
+          end
+          bound_cases.each do |label, from, to, reason|
+            label = "unit-tests #{minutes}-minute form rejects #{label}"
+            File.write(installed, fixture_sub(label, reviewed, from, to))
+            expect_rejected(label, reason) { validate_unit_tests_workflow(installed) }
+          end
+        end
       end
-      File.write(installed, original_unit_tests.sub("node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts"))
-      expect_rejected("unit-tests runner cannot come from PR", /changed from the staged/) do
-        validate_repo(tmp, announce: false)
+      cases = [
+        ["unit-tests must stay read-only", "contents: read", "contents: write", nil, /must have only contents: read/],
+        ["unit-tests runner cannot come from PR", "node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts",
+         "Run focused machinery tests", changed_shape],
+        ["unit-tests rejects privileged events", "  pull_request:", "  pull_request_target:", nil, /must use pull_request/],
+        ["unit-tests push must be limited to main", "branches: [main]", "branches: ['**']", nil, /push must target only main/],
+        ["unit-tests excludes fork PRs", "github.event.pull_request.head.repo.full_name == github.repository &&", "true &&",
+         nil, changed_shape],
+        ["unit-tests excludes draft PRs", "github.event.pull_request.draft == false", "github.event.pull_request.draft == true",
+         nil, changed_shape],
+        ["unit-tests candidate must be the event's commit", "github.sha || github.event.pull_request.head.sha", "github.ref",
+         "Checkout candidate revision", changed_shape],
+        ["unit-tests must use the base for the trusted runner on PRs", "github.event.pull_request.base.sha", "github.event.pull_request.head.sha",
+         "Checkout trusted test runner", changed_shape],
+        ["unit-tests must use the pushed SHA for the trusted runner on main", "github.sha || github.event.pull_request.base.sha", "github.ref",
+         "Checkout trusted test runner", changed_shape],
+        ["unit-tests must separate PR and push groups", "unit-tests-${{ github.event_name }}-", "unit-tests-", nil, changed_shape],
+        ["unit-tests must keep a group per pushed commit", "github.sha || github.event.pull_request.number",
+         "github.ref || github.event.pull_request.number", nil, changed_shape],
+        ["unit-tests cannot cancel a running main job", "cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
+         "cancel-in-progress: true", nil, changed_shape]
+      ]
+      cases.each do |label, from, to, step, reason|
+        File.write(installed, fixture_sub(label, staged_workflow, from, to, step: step))
+        expect_rejected(label, reason) { validate_repo(tmp, announce: false) }
       end
       if original_installed
         File.write(installed, original_installed)
@@ -4011,7 +4075,8 @@ def self_test(root)
       # never the pull request's tree. Within every ceiling it passes; a
       # dieted skill one byte over fails the step, its offender named inside
       # the fence (the row's own format is prose-guard's fixture's to hold); a
-      # token that is not fresh fails before anything is measured; a root that
+      # failing description parser names the unmeasurable skill inside the
+      # fence; a token that is not fresh fails before anything is measured; a root that
       # is no Hatsu checkout fails as wiring. Without the guard or its tools
       # these cases cannot run, a failure here, never a skip.
       guard_script = File.join(__dir__, "prose_size_check.sh")
@@ -4027,9 +4092,11 @@ def self_test(root)
       Dir.mktmpdir("hatsu-prose-guard") do |dir|
         FileUtils.mkdir_p(File.join(dir, ".trusted/scripts"))
         FileUtils.cp(guard_script, File.join(dir, ".trusted/scripts/prose_size_check.sh"))
-        headroom_script = File.join(__dir__, "prose_headroom_warn.ts")
-        fail_policy("self-test: prose_headroom_warn.ts is not beside the prose guard") unless File.file?(headroom_script)
-        FileUtils.cp(headroom_script, File.join(dir, ".trusted/scripts/prose_headroom_warn.ts"))
+        %w[prose_desc.awk prose_headroom_warn.ts].each do |name|
+          companion = File.join(__dir__, name)
+          fail_policy("self-test: #{name} is not beside the prose guard") unless File.file?(companion)
+          FileUtils.cp(companion, File.join(dir, ".trusted/scripts", name))
+        end
         FileUtils.mkdir_p(File.join(dir, "claude/agents"))
         agent = File.join(dir, "claude/agents/scout.md")
         File.write(agent, "a scratch agent\n")
@@ -4037,7 +4104,11 @@ def self_test(root)
           FileUtils.mkdir_p(File.join(dir, "claude/skills", skill))
           File.write(File.join(dir, "claude/skills", skill, "SKILL.md"), "a scratch skill\n")
         end
-        skill = File.join(dir, "claude/skills", dieted.first, "SKILL.md")
+        skill_relative = "claude/skills/#{dieted.first}/SKILL.md"
+        skill = File.join(dir, skill_relative)
+        skill_text = "---\nname: #{dieted.first}\ndescription: A scratch skill.\n---\n"
+        File.write(skill, skill_text)
+        parser = File.join(dir, ".trusted/scripts/prose_desc.awk")
         fence = /^::stop-commands::(stop_[0-9a-f]{32})\n.*^::\1::$/m
         stand_in = lambda do |name, body|
           bin = File.join(dir, name)
@@ -4052,9 +4123,12 @@ def self_test(root)
         [
           ["every file within its ceiling", -> {}, nil, 0, ["prose ok", "every measured file is within its prose ceiling."], ""],
           ["a dieted skill one byte over", -> { File.write(skill, "x" * (skill_max + 1)) }, nil, 1,
-           ["::error::a file is over its prose ceiling"], "claude/skills/#{dieted.first}/SKILL.md"],
-          ["an openssl that fails", -> { File.write(skill, "a scratch skill\n") }, failing, 1, ["::error::could not draw a fresh token"], nil],
+           ["::error::a file is over its prose ceiling"], skill_relative],
+          ["an openssl that fails", -> { File.write(skill, skill_text) }, failing, 1, ["::error::could not draw a fresh token"], nil],
           ["an openssl that prints nothing", -> {}, silent, 1, ["::error::could not draw a fresh token"], nil],
+          ["a readable description parser that exits nonzero", -> { File.write(parser, "BEGIN { exit 7 }\n") }, nil, 1,
+           ["::error::a file is over its prose ceiling, or could not be measured"],
+           "UNMEASURABLE  #{skill_relative} -- the description could not be measured"],
           ["a root that is no Hatsu checkout", -> { FileUtils.mv(File.join(dir, "claude/skills"), File.join(dir, "skills-moved")) }, nil, 1,
            ["::error::the prose guard could not run (exit 2), a wiring refusal"], ""]
         ].each do |label, arrange, path_first, want_status, want_text, fenced|
