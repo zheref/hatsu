@@ -93,97 +93,164 @@ function escaped(line: string, at: number): boolean {
   return (at - start) % 2 === 1;
 }
 
-const FENCE = /^(?:(?:[-+*]|\d+[.)])[ \t]+)?(`{3,}|~{3,})(.*)$/;
-const BLOCK = /^\s*(?:$|[|>#]|[-+*] +|\d+[.)] +|`{3,}|~{3,})/;
-const LIST = /^(?:[-+*]|[0-9]{1,9}[.)])([ 	]{1,4})(?=\S)/;
+const FENCE = /^(`{3,}|~{3,})(.*)$/;
+const LIST = /^(?:[-+*]|[0-9]{1,9}[.)])(?=[ \t]|$)/;
+const BLOCK = /^(?:\||#{1,6}(?:[ \t]|$)|([-*_])(?:[ \t]*\1){2,}[ \t]*$)/;
 
-function indentWidth(prefix: string, start = 0): number {
-  let columns = start;
-  for (const character of prefix) columns += character === '\t' ? 4 - columns % 4 : 1;
-  return columns - start;
+type Container = { kind: 'quote' } | { kind: 'list'; indent: number };
+type InlineLine = { body: string; paragraph: number };
+
+function inlineLines(text: string): InlineLine[] {
+  const lines: InlineLine[] = [];
+  const containers: Container[] = [];
+  let paragraph = 0;
+  let inParagraph = false;
+  let indentedCode = false;
+  let fence: string | undefined;
+  let blockComment = false;
+
+  for (const raw of text.split(/\r?\n/)) {
+    let offset = 0;
+    let column = 0;
+    // A tab can straddle a container boundary. Keep its remaining columns as indentation.
+    let pending = 0;
+    const spaces = (): number => {
+      let end = column + pending;
+      for (let i = offset; raw[i] === ' ' || raw[i] === '\t'; i += 1) {
+        end += raw[i] === '\t' ? 4 - end % 4 : 1;
+      }
+      return end - column;
+    };
+    const advance = (width: number): void => {
+      const end = column + width;
+      while (column + pending < end) {
+        const character = raw[offset++];
+        pending += character === '\t' ? 4 - (column + pending) % 4 : 1;
+      }
+      pending -= width;
+      column = end;
+    };
+    const rest = (): string => raw.slice(offset).replace(/^[ \t]*/, '');
+    const blank = (): boolean => rest() === '';
+    const quote = (indent: number): boolean => {
+      if (indent > 3 || rest()[0] !== '>') return false;
+      advance(indent + 1);
+      if (spaces() > 0) advance(1);
+      return true;
+    };
+
+    let depth = 0;
+    for (const container of containers) {
+      const indent = spaces();
+      if (container.kind === 'quote') {
+        if (!quote(indent)) break;
+      } else if (!blank()) {
+        if (indent < container.indent) break;
+        advance(container.indent);
+      }
+      depth += 1;
+    }
+
+    if (blockComment && depth === containers.length) {
+      const close = raw.indexOf('-->', offset);
+      if (close >= 0) {
+        lines.push({ body: '\uFFFD' + raw.slice(close + 3), paragraph: ++paragraph });
+        blockComment = false;
+      }
+      continue;
+    }
+    blockComment = false;
+
+    if (fence && depth === containers.length) {
+      const close = /^(`+|~+)[ \t]*$/.exec(rest())?.[1];
+      if (spaces() <= 3 && close?.[0] === fence[0] && close.length >= fence.length) fence = undefined;
+      continue;
+    }
+    fence = undefined;
+
+    if (depth < containers.length) {
+      const body = rest();
+      // Markdown can omit continuation markers only for text continuing a paragraph.
+      const lazy = inParagraph && body && body[0] !== '>' && !LIST.test(body)
+        && !BLOCK.test(body) && !FENCE.test(body);
+      if (lazy) {
+        lines.push({ body, paragraph });
+        continue;
+      }
+      containers.length = depth;
+      inParagraph = false;
+      indentedCode = false;
+    }
+
+    while (!blank()) {
+      const indent = spaces();
+      if (quote(indent)) {
+        containers.push({ kind: 'quote' });
+      } else {
+        const body = rest();
+        const marker = indent <= 3 && !BLOCK.test(body) ? LIST.exec(body)?.[0] : undefined;
+        if (!marker) break;
+        advance(indent + marker.length);
+        const padding = spaces();
+        const width = padding >= 1 && padding <= 4 ? padding : 1;
+        if (padding > 0) advance(width);
+        containers.push({ kind: 'list', indent: indent + marker.length + width });
+      }
+      inParagraph = false;
+      indentedCode = false;
+    }
+
+    if (blank()) {
+      inParagraph = false;
+      continue;
+    }
+    const indent = spaces();
+    if (indent >= 4 && (indentedCode || !inParagraph)) {
+      indentedCode = true;
+      continue;
+    }
+    indentedCode = false;
+    const body = rest();
+    const opening = indent <= 3 ? FENCE.exec(body) : null;
+    if (opening && (opening[1][0] !== '`' || !opening[2].includes('`'))) {
+      fence = opening[1];
+      inParagraph = false;
+      continue;
+    }
+    if (indent <= 3 && body.startsWith('<!--') && !body.includes('-->')) {
+      blockComment = true;
+      inParagraph = false;
+      continue;
+    }
+    const standalone = BLOCK.test(body);
+    if (!inParagraph || standalone) paragraph += 1;
+    lines.push({ body, paragraph });
+    inParagraph = !standalone;
+  }
+  return lines;
 }
 
-
 function visibleLines(text: string): string[] {
-  const lines = text.split(/\r?\n/);
-  // A code span can cross a line break in a paragraph. Match complete delimiter runs
-  // once in reverse, with table rows and other block starts as paragraph boundaries.
+  const lines = inlineLines(text);
+  // Pair equal-length runs only within the same paragraph, including container continuations.
   const closes = new Map<string, [number, number]>();
   const next = new Map<number, [number, number]>();
+  let paragraph: number | undefined;
   for (let row = lines.length - 1; row >= 0; row -= 1) {
-    const line = lines[row];
-    const boundary = BLOCK.test(line);
-    if (boundary) next.clear();
-    for (const run of [...line.matchAll(/`+/g)].reverse()) {
+    const { body, paragraph: current } = lines[row];
+    if (paragraph !== current) next.clear();
+    paragraph = current;
+    for (const run of [...body.matchAll(/`+/g)].reverse()) {
       const end = next.get(run[0].length);
       if (end) closes.set(`${row}:${run.index}`, end);
       next.set(run[0].length, [row, run.index + run[0].length]);
     }
-    if (boundary) next.clear();
   }
 
   const visible: string[] = [];
   let comment = false;
-  let fence: { quoteDepth: number; indent: number; marker: string } | undefined;
-  let quoteContext = 0;
-  let paragraph = false;
-  let indentedCode = false;
-  const listColumns = [0];
   let codeEnd: [number, number] | undefined;
-  for (const [row, line] of lines.entries()) {
-    const quote = /^((?: {0,3}> ?)*)/.exec(line)?.[1] ?? '';
-    const quoteMarkers = [...quote.matchAll(/ {0,3}> ?/g)];
-    const quoteDepth = quoteMarkers.length;
-    const body = line.slice(quote.length);
-    const space = /^[ \t]*/.exec(body)?.[0] ?? '';
-    const indent = indentWidth(space, quote.length);
-    const blank = body.length === space.length;
-    if (fence && quoteDepth >= fence.quoteDepth) {
-      // Strip only the fence's opening quote container. Deeper quote marks are content.
-      const marker = quoteMarkers[fence.quoteDepth - 1];
-      const bodyStart = marker ? marker.index + marker[0].length : 0;
-      const fenceBody = line.slice(bodyStart);
-      const prefix = /^[ \t]*/.exec(fenceBody)?.[0] ?? '';
-      const relativeIndent = indentWidth(prefix, bodyStart) - fence.indent;
-      if (fenceBody.length === prefix.length || relativeIndent >= 0) {
-        if (quoteDepth === fence.quoteDepth && relativeIndent <= 3) {
-          const close = /^(`+|~+)[ \t]*$/.exec(fenceBody.slice(prefix.length))?.[1];
-          if (close?.[0] === fence.marker[0] && close.length >= fence.marker.length) fence = undefined;
-        }
-        continue;
-      }
-    }
-    fence = undefined;
-    if (quoteContext !== quoteDepth) {
-      quoteContext = quoteDepth;
-      listColumns.length = 1;
-      paragraph = false;
-      indentedCode = false;
-    }
-    if (!comment && !codeEnd) {
-      if (blank) {
-        paragraph = false;
-        continue;
-      }
-      const item = LIST.exec(body.slice(space.length));
-      while (listColumns.length > 1 && indent < listColumns.at(-1)! && (item || !paragraph || BLOCK.test(body))) {
-        listColumns.pop();
-      }
-      const container = listColumns.at(-1)!;
-      if (indent >= container + 4 && (indentedCode || !paragraph)) {
-        indentedCode = true;
-        continue;
-      }
-      indentedCode = false;
-      if (item && indent - container < 4) listColumns.push(indent + indentWidth(item[0], quote.length + indent));
-      const opening = indent - container < 4 ? FENCE.exec(body.slice(space.length)) : null;
-      if (opening && (opening[1][0] !== '`' || !opening[2].includes('`'))) {
-        fence = { quoteDepth, indent: listColumns.at(-1)!, marker: opening[1] };
-        paragraph = false;
-        continue;
-      }
-      paragraph = Boolean(item) || !BLOCK.test(body);
-    }
+  for (const [row, { body: line }] of lines.entries()) {
     if (codeEnd && row < codeEnd[0]) continue;
     let cursor = codeEnd?.[1] ?? 0;
     codeEnd = undefined;

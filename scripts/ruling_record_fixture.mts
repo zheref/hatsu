@@ -602,6 +602,30 @@ export function runInventoryFixture(): void {
       if (hasExample) expect(`render ignores the fenced example holder (${scenario})`,
         render(999999, scenario), 0, /\*\*HR-999999\*\*/);
     }
+    const containerCases = [
+      ['quoted-code-span', ['> A quoted code example starts ``', `> ${literalAnchor}`, '> `` and ends.'], false],
+      ['list-code-span', ['1. A list code example starts ``', `   ${literalAnchor}`, '   `` and ends.'], false],
+      ['list-quote-fence', ['1. > ~~~', `   > ${literalAnchor}`, '   > ~~~'], false],
+      ['quote-list-fence', ['> 1. ~~~', `>    ${literalAnchor}`, '>    ~~~'], false],
+      ['sibling-list-items', ['1. A list item starts ``', `2. ${anchor(384)} A live sibling item.`, '   ``'], true],
+      ['fence-in-comment', ['<!--', '~~~', '-->', '', `   ${anchor(384)} A live holder after the comment.`], true],
+      ['list-after-quote', ['1. A list item.', '   > Quoted context.', '', `    ${anchor(384)} A live list continuation.`], true],
+    ] as const;
+    const failures: unknown[] = [];
+    for (const [scenario, lines, live] of containerCases) {
+      fixturePull(scenario, pr, baseline, [baseline, ...lines, ''].join('\n'));
+      try {
+        expect(`allocation follows the Markdown container (${scenario})`, scan(scenario), 0,
+          live ? /"next":"HR-385"/ : /"next":"HR-384"/);
+        if (live) expect(`render refuses the live continuation (${scenario})`,
+          render(384, scenario), 1, /^$/, /HR-384 is held by PR #572/);
+        else expect(`render ignores the contained literal (${scenario})`,
+          render(999999, scenario), 0, /\*\*HR-999999\*\*/);
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    assert.equal(failures.length, 0, failures.join('\n'));
     fixturePull('added-roster', pr, '', additions, 'added');
     expect('an added roster reads only the immutable head', scan('added-roster'), 0, /"next":"HR-388"/);
     fixturePull('removed-roster', pr, baseline, '', 'removed');
