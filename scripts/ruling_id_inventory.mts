@@ -107,6 +107,7 @@ function inlineLines(text: string): InlineLine[] {
   let inParagraph = false;
   let indentedCode = false;
   let fence: string | undefined;
+  let blockComment = false;
 
   for (const raw of text.split(/\r?\n/)) {
     let offset = 0;
@@ -149,6 +150,16 @@ function inlineLines(text: string): InlineLine[] {
       }
       depth += 1;
     }
+
+    if (blockComment && depth === containers.length) {
+      const close = raw.indexOf('-->', offset);
+      if (close >= 0) {
+        lines.push({ body: '\uFFFD' + raw.slice(close + 3), paragraph: ++paragraph });
+        blockComment = false;
+      }
+      continue;
+    }
+    blockComment = false;
 
     if (fence && depth === containers.length) {
       const close = /^(`+|~+)[ \t]*$/.exec(rest())?.[1];
@@ -203,6 +214,11 @@ function inlineLines(text: string): InlineLine[] {
     const opening = indent <= 3 ? FENCE.exec(body) : null;
     if (opening && (opening[1][0] !== '`' || !opening[2].includes('`'))) {
       fence = opening[1];
+      inParagraph = false;
+      continue;
+    }
+    if (indent <= 3 && body.startsWith('<!--') && !body.includes('-->')) {
+      blockComment = true;
       inParagraph = false;
       continue;
     }

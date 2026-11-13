@@ -608,6 +608,7 @@ export function runInventoryFixture(): void {
       ['list-quote-fence', ['1. > ~~~', `   > ${literalAnchor}`, '   > ~~~'], false],
       ['quote-list-fence', ['> 1. ~~~', `>    ${literalAnchor}`, '>    ~~~'], false],
       ['sibling-list-items', ['1. A list item starts ``', `2. ${anchor(384)} A live sibling item.`, '   ``'], true],
+      ['fence-in-comment', ['<!--', '~~~', '-->', '', `   ${anchor(384)} A live holder after the comment.`], true],
       ['list-after-quote', ['1. A list item.', '   > Quoted context.', '', `    ${anchor(384)} A live list continuation.`], true],
     ] as const;
     const failures: unknown[] = [];
