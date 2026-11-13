@@ -89,9 +89,12 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 |---|---|---|---|---|
 | `$schema`, `contract` | string | `hatsu.direct-registry/v1`, `hatsu-direct-registry` | the shape | `nen direct registry` (the probe) |
 | `source` | object | `document`, `rulings[]`, `taxonomy`, `documentSha256`, `revision`, `readers` | provenance and the 2026-10-05 rebalance record | a reader |
-| `snapshot` | object | `asOf`, `aliases` (version, list price, served id), `sources` | the dated fallback when a live read fails; never the primary source of a version | `hatsu:direct` § 4 |
+| `snapshot` | object | `asOf`, `evidenceVersion` (absent or 0 legacy, 1 dated evidence), `aliases`, `sources` | dated versions, price steps, benchmark methods and served observations | `hatsu:direct` § 4, matrix renderer |
+| `snapshot.aliases.<a>.listPrice` | object | input/output, unit, source, `readOn`, optional paired `until` and `next: {input, output, from}` | inclusive expiry and the following day's rate | matrix renderer |
+| `snapshot.aliases.<a>.served.<surface>` | object or string | `{id, readOn, lag, quota}` or legacy text | dated served id and product lag, with separate quota evidence when recorded | matrix renderer |
+| `snapshot.sources.<s>.costPerTask` | object | `{value, unit, basis, url, readOn}` | benchmark evidence referenced by `snapshot.aliases.<a>.evidence` | matrix renderer |
 | `aliases` | map | twelve: `{provider, family, line, surface, tier, escalation, selection}` | what each alias resolves to; `line` is the `model/` label vocabulary; `tier` is a key of `nen/workflow.json` → `models` | `nen direct resolve`; `scripts/direct_matrix_doc.sh` |
-| `picks` | object | `primary`, `fallback`, `fallbackRule`, `recommended`, `tiers` | the three picks every cell yields and the invariant that the fallback sits on another provider or surface | `hatsu:direct` § 5; the matrix self-test |
+| `picks` | object | `primary`, `fallback`, `fallbackRule`, `recommended`, `tiers`, `inPool` | the three picks, with an optional same-pool alias for a quota-only outage beside the cross-provider or cross-surface fallback | `hatsu:direct` § 5 and the matrix self-test |
 | `companions` | object | `role` per companion job (`review`, `delivery-ops`) | jobs that ride the carrying effort | `nen direct resolve` |
 | `surfaces` | object | `claude-code`, `codex`, `cursor`, `antigravity` (restart line, interactive twin), `$nonActionable` | Hatsu's four actionable surfaces; placeholders filled only from the consumer's `models` block | `hatsu:direct` § 5 |
 | `nativeInteractive` | map by language | the IDE twin per language | the `interactive` equivalent a cell may name | the matrix page |
@@ -102,7 +105,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **Read by.** `hatsu:direct` (standalone, `backlog`, under `hatsu:build` § 2b, under `hatsu:file` § 5 on every new filing, and under `hatsu:ren`, where it is report-only), `nen direct resolve|registry`.
 
-**Rendered where.** `docs/DIRECT-MATRIX.md`, by `bash scripts/direct_matrix_doc.sh --write`; `--check` is the `direct-matrix-guard` lane and fails a stale page; `--verify` asks the verb about every printed claim.
+**Rendered where.** `docs/DIRECT-MATRIX.md`, by `bash scripts/direct_matrix_doc.sh --write`; The `direct-matrix-guard` lane exercises `--check` and `--self-test`, which refuse an expired stored step or a stale page. `--verify` checks the printed routing and effort against Nen.
 
 **May a consumer override it?** Not a cell, an alias or a rule. A consumer spells its tiers in its own `nen/workflow.json` → `models.<surface>.<tier>` (what the restart line tells you to type) and opts into the GitHub write with `direct.publish`; absent, or anything but the exact strings `label` or `label+comment`, reads `none` and is said.
 

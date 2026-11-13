@@ -1,5 +1,5 @@
 {
-  "$comment": "Historical HA#341 activation fixture only. The live registry stays in legacy mode until the compatible trusted renderer has merged on main. These 2026-10-05/19 observations test reporting, never refresh provider facts or change a routing cell.",
+  "$comment": "Historical HA#341 activation fixture. These dated observations exercise both report shapes, the price deadlines and quota-only alternatives in scratch data.",
   "snapshot": {
     "evidenceVersion": 1,
     "aliases": {
@@ -87,6 +87,11 @@
           }
         },
         "evidence": "snapshot.sources.artificialAnalysisArgon"
+      },
+      "MECHANICAL_EDITOR": {
+        "served": {
+          "cursor": "composer-2.5 (cursor-agent models, 2026-10-05)"
+        }
       }
     },
     "sources": {

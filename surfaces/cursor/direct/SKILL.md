@@ -71,11 +71,9 @@ In `liveLookup` order, read the surface lookup then the provider page; quote the
 URL and fetch date, the dial from `liveLookup.<provider>.effort`. If both fail, say **snapshot** with
 `snapshot.asOf`, using `effort.surfaceMap`. A version never enters a restart command.
 
-After § 3, read typed evidence (presentation residue). `enabled:false` keeps the legacy served text
-and five-axis report. `snapshot.evidenceVersion:1` opts in only in a follow-up after this compatible
-renderer merges on main; this bootstrap never activates the live registry. `--product`
-is the harness's product, e.g. `Antigravity CLI`
-or `Antigravity IDE`, omitted when unread; a surface name alone proves neither product's availability.
+After § 3, read the registry evidence for the resolved primary, effective fallback and derived
+recommendation. `snapshot.evidenceVersion: 1` enables the evidence lines. `enabled: false` keeps the
+legacy report. Pass `--product` when the harness names it, e.g. `Antigravity CLI` or `Antigravity IDE`.
 
 ```bash
 hatsu_root="${HATSU_PLUGIN_ROOT:-}"; [ -n "$hatsu_root" ] || hatsu_root='<the absolute path ten § 0 printed>'
@@ -85,12 +83,10 @@ node "$hatsu_root/scripts/direct_matrix_doc.mts" evidence "$hatsu_root" \
   --effort <level> [--product "<session-product>"]
 ```
 
-Each price keeps `readOn`, source and unit; `until` is inclusive and `next.from` starts the next
-step. Exit `1` names an expired price: retain the dated evidence and say **refresh required**; never
-auto-promote `next` or reorder cells. Exit `2`: report evidence unread, continue the verdict. Cost
-per task keeps value, unit, basis, URL and read date; `picks.$comment` states when comparable task
-costs decide a deep-tier tie and when list price is only a volume assumption. All routing changes
-remain registry PRs at G4 (`great-hiker`).
+`until` is inclusive and `next.from` starts the next step. Exit `1` keeps the dated verdict and
+marks each expired alias **refresh required**. Exit `2` leaves evidence unread and the verdict
+continues. `picks.$comment` gives the deep-tier cost basis. Price refreshes and routing changes
+land through registry PRs at G4 (`great-hiker`).
 
 ## 5. The verdict — three picks on five axes, each with its interactive twin
 
@@ -98,15 +94,14 @@ One row per **primary**, **fallback**, **recommended**: line/tier, surface/typed
 (source/date), effort dial; each with its interactive twin (surface app, `nativeInteractive` IDE or
 cell's own, control or *not settable*). When evidence is enabled, add three lines per pick:
 
-- **Price**: dated input/output price, source, unit and any `until`/`next` step; expired means refresh required.
-- **Cost per task**: value, method/basis, URL/date; absent or incomparable means **unestimated**, never list price relabelled as task cost.
-- **Served**: each row's id, read date, lag and quota. Legacy strings keep their text; separate lag/quota remain unread. Null quota means unread, never unlimited or exhausted.
+- **Price** uses `price.line` for the dated rate, source, unit and any step. An absent row is **unread**.
+- **Cost per task** uses `costPerTask.line` for the value, method, URL and date. An absent or incomparable estimate is **unestimated**.
+- **Served** uses `served[].line` together for that pick's id, read date, lag and quota. An empty set is **unread**. Legacy strings keep their text. Null quota means unread.
 
-Append `restartWarning`, when present, beside that pick's restart: **not served on <product> as of
-<date>**. It matches the lag's explicit `not served on <product>` to the session product;
-unobserved availability stays unobserved. Put every reported `inPool` beside the fallback row as
-**in-pool: <alias>**, naming the affected pick and quota-only scope; check its own availability and
-quota before use. Keep the required cross-provider fallback unchanged.
+Place `restartWarning` beside the pick's restart wherever quoted. The warning reads
+**not served on <product> as of <date>** for the matching session product. In the fallback row, keep
+the cross-pool pick and show each `inPool.line` as **in-pool: <alias>** with its affected pick and
+quota-only scope. Read the substitute's own availability and quota before use.
 
 Then the per-pair table (job/language/domain/primary/fallback/*companion*) and
 `domain <d> (rule <order>) · effort <level>: weight <w> + <adds>`. A reviewer fallback names its
