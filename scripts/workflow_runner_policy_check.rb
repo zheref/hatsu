@@ -88,11 +88,17 @@ BUILDER_WORKFLOWS = %w[surface-mirror-regenerate.yml].freeze
 # main's trusted validator knows its exact shape when the second PR lands.
 PENDING_UNIT_TEST_WORKFLOWS = %w[].freeze
 REQUIRED_UNIT_TEST_WORKFLOWS = %w[unit-tests.yml].freeze
-# During the two-PR rollout, the installed PR-only workflow and the staged
-# PR/main-push workflow each keep their own exact, reviewed bytes.
+# Freeze both job bounds for each trigger set. Admit the 20-minute forms
+# here before either workflow file moves from the current 10-minute bound.
 UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS = {
-  %w[pull_request] => "a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94",
-  %w[pull_request push] => "66245a56a3752362b63595c08d465a2496aa40f0a011a25d932c5ac1542375ec"
+  %w[pull_request] => %w[
+    a0dc82c96af76084f26e971584e905644d1808097fc430bedd33e46fee539d94
+    01af13953a2715c3822c741927faf969c6a0ebd27c3e8e2974af363229560f3f
+  ].freeze,
+  %w[pull_request push] => %w[
+    66245a56a3752362b63595c08d465a2496aa40f0a011a25d932c5ac1542375ec
+    593839dfd54a953ec2a6fbc13fb1b35ad984a9dd02d7f90529aaa0a7f95c8c98
+  ].freeze
 }.freeze
 
 # THE CLOSED SET OF WORKFLOWS THIS POLICY KNOWS ABOUT AT ALL. `validate_repo`
@@ -2425,8 +2431,8 @@ def validate_unit_tests_workflow(path)
   reject_duplicate_keys(document.root, path)
   root = mapping(document.root, path)
   triggers = mapping(root.fetch("on") { fail_policy("#{path} has no on mapping") }, "#{path} on")
-  digest = UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS[triggers.keys.sort]
-  fail_policy("#{path} must use pull_request, optionally with push to main") unless digest
+  digests = UNIT_TESTS_WORKFLOW_SHA256_BY_TRIGGERS[triggers.keys.sort]
+  fail_policy("#{path} must use pull_request, optionally with push to main") unless digests
   if triggers.key?("push")
     push = mapping(triggers.fetch("push"), "#{path} on.push")
     branches = sequence(push.fetch("branches") { fail_policy("#{path} push has no branches filter") }, "#{path} on.push.branches")
@@ -2439,7 +2445,7 @@ def validate_unit_tests_workflow(path)
   job = mapping(jobs.fetch("unit-tests"), "#{path} unit-tests")
   fail_policy("#{path} must use ubuntu-latest") unless scalar(job["runs-on"]) == HOSTED_RUNNER
   fail_policy("#{path} has changed from the staged, reviewed read-only test job") unless
-    Digest::SHA256.file(path).hexdigest == digest
+    digests.include?(Digest::SHA256.file(path).hexdigest)
 end
 
 def validate_repo(root, announce: true)
@@ -2711,6 +2717,32 @@ def self_test(root)
       validate_repo(tmp, announce: false)
       staged_workflow = File.read(installed)
       changed_shape = /changed from the staged, reviewed read-only test job/
+      # Exercise both reviewed job bounds for every workflow form in the
+      # checkout, including after the follow-up installs the longer bound.
+      timeout_line = /^    timeout-minutes: (?:10|20)$/
+      [original_installed, staged_workflow].compact.uniq.each do |workflow|
+        fail_policy("self-test: expected one unit-tests job bound") unless workflow.scan(timeout_line).length == 1
+        [10, 20].each do |minutes|
+          reviewed = workflow.sub(timeout_line, "    timeout-minutes: #{minutes}")
+          File.write(installed, reviewed)
+          validate_unit_tests_workflow(installed)
+          bound_cases = [
+            ["other job bound", timeout_line, "    timeout-minutes: 11", changed_shape],
+            ["write permission", "contents: read", "contents: write", /must have only contents: read/],
+            ["additional permission", "contents: read", "contents: read\n  checks: read", /must have only contents: read/],
+            ["privileged trigger", "  pull_request:", "  pull_request_target:", /must use pull_request/],
+            ["changed PR trigger filter", "opened, synchronize", "synchronize", changed_shape]
+          ]
+          if workflow == staged_workflow
+            bound_cases << ["other push branch", "branches: [main]", "branches: ['**']", /push must target only main/]
+          end
+          bound_cases.each do |label, from, to, reason|
+            label = "unit-tests #{minutes}-minute form rejects #{label}"
+            File.write(installed, fixture_sub(label, reviewed, from, to))
+            expect_rejected(label, reason) { validate_unit_tests_workflow(installed) }
+          end
+        end
+      end
       cases = [
         ["unit-tests must stay read-only", "contents: read", "contents: write", nil, /must have only contents: read/],
         ["unit-tests runner cannot come from PR", "node .trusted/scripts/unit_tests_ci.mts", "node scripts/unit_tests_ci.mts",
