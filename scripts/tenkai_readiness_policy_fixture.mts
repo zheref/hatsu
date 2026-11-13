@@ -1,7 +1,7 @@
 // Exercise Tenkai's public adoption entry point and the step it actually renders.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, lstatSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, lstatSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { GUARD_PATH, POLICY_PATH, verifyWorkflowPolicy, workflowDigest } from "./readiness_workflow_policy.mts";
@@ -52,15 +52,15 @@ function git(...args: string[]) {
   assert.equal(result.status, 0, result.stderr);
   return result.stdout;
 }
-function command(args: string[], runnerOnline = false) {
+function command(args: string[], runnerOnline = false, guardChanges = false) {
   return spawnSync("bash", [join(root, "scripts/tenkai_adopt.sh"), ...args], {
     encoding: "utf8", env: { ...env, TENKAI_FIXTURE_RUNNER: runnerOnline ? "online" : "offline",
-      TENKAI_FIXTURE_RUBY: join(repo, rubyPath), TENKAI_FIXTURE_PROBE: join(sandbox, "probe-seen") }, timeout: 30_000,
+      TENKAI_FIXTURE_RUBY: guardChanges ? join(repo, rubyPath) : "", TENKAI_FIXTURE_PROBE: join(sandbox, "probe-seen") }, timeout: 30_000,
   });
 }
-function adopt(mode: "apply" | "diagnose", visibility: "public" | "private" | null = "public", selfHosted = "0", runnerOnline = false) {
+function adopt(mode: "apply" | "diagnose", visibility: "public" | "private" | null = "public", selfHosted = "0", runnerOnline = false, guardChanges = false) {
   const visibilityArgs = visibility === null ? [] : ["--visibility", visibility];
-  const result = command([mode, "--repo", repo, ...visibilityArgs, "--self-hosted", selfHosted, "--json"], runnerOnline);
+  const result = command([mode, "--repo", repo, ...visibilityArgs, "--self-hosted", selfHosted, "--json"], runnerOnline, guardChanges);
   assert.ok(result.status === 0 || result.status === 1, result.stderr || String(result.error));
   const report = JSON.parse(result.stdout);
   assert.equal(result.status, report.outstanding ? 1 : 0);
@@ -388,7 +388,7 @@ exit 1
   put(repo, customPath, ["EXPECTED_JOBS", "EXPECTED_TYPES", "EXPECTED_STEPS"].map((name) =>
     name + " = { 'pr-readiness.yml' => [] }.freeze\n").join(""));
   const registered = text(repo, customPath);
-  const changedGuard = adopt("apply", null);
+  const changedGuard = adopt("apply", null, "0", false, true);
   check(changedGuard.state === "blocked" && changedGuard.detail.includes("workflow policy changed during adoption") &&
     !existsSync(join(repo, customPath)) && !existsSync(join(repo, workflowPath)) && !existsSync(join(repo, GUARD_PATH)),
   "the legacy writer refuses when the Ruby guard disappears between preview and apply");
@@ -472,6 +472,22 @@ exit 1
       "this repository inherits no ongoing enforcement around it"),
     "legacy apply and diagnose disclose the absent readiness policy");
   }
+
+  const linkedRoot = join(sandbox, "linked-hatsu-pin");
+  mkdirSync(linkedRoot);
+  cpSync(join(root, "contracts"), join(linkedRoot, "contracts"), { recursive: true });
+  for (const dir of ["scripts", "claude", "docs"]) symlinkSync(join(root, dir), join(linkedRoot, dir));
+  mkdirSync(join(linkedRoot, "nen"));
+  mkdirSync(join(linkedRoot, "templates"));
+  symlinkSync(join(root, "nen/contract.json"), join(linkedRoot, "nen/contract.json"));
+  symlinkSync(join(root, "templates/pr-readiness.yml"), join(linkedRoot, "templates/pr-readiness.yml"));
+  rmSync(join(repo, workflowPath));
+  const linkedApply = command(["apply", "--repo", repo, "--hatsu-root", linkedRoot,
+    "--visibility", "public", "--self-hosted", "0", "--json"]);
+  check(linkedApply.status === 1 &&
+    JSON.parse(linkedApply.stdout).items.find((item: { id: string }) => item.id === workflowPath)
+      .detail.includes("pinned_ref is absent or malformed") && !existsSync(join(repo, workflowPath)),
+  "a linked Hatsu pin cannot authorize the frozen renderer to follow a linked template");
 } finally {
   rmSync(sandbox, { recursive: true, force: true });
 }

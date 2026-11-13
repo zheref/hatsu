@@ -86,6 +86,7 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
   // eligibility both run before the frozen workflow can consider a write.
   if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
   const legacy = process.env[LEGACY_READINESS];
+  let requiresRuby = false;
   if (legacy) {
     try {
       const expected: LegacyReadiness = JSON.parse(legacy);
@@ -94,7 +95,11 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
           current.digest !== expected.registry || handlesPortableReadiness(repo, current.role)) {
         throw new Error(READINESS_CONTEXT_CHANGED);
       }
-      readReadinessTemplate(hatsuRoot);
+      requiresRuby = current.role === "process";
+      if (!readReadinessTemplate(hatsuRoot)) {
+        return row("blocked", "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen",
+          "repair Hatsu's nen/contract.json");
+      }
     } catch (error) {
       return row("blocked", (error as Error).message, "re-run diagnose with the current repository and Hatsu inputs");
     }
@@ -106,6 +111,9 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
   const guard = join(repo, GUARD);
   const info = stat(guard);
   if (info?.isSymbolicLink()) return row("staged", "the workflow guard is linked; its admission cannot be trusted");
+  if (requiresRuby && !info?.isFile()) {
+    return row("blocked", READINESS_CONTEXT_CHANGED, "re-run diagnose with the current workflow policy");
+  }
   if (info?.isFile()) {
     const live = readFileSync(guard, "utf8").split("\n").filter(line => !line.trimStart().startsWith("#")).join("\n");
     if (live.includes("READINESS_FROZEN_VERDICT") && !live.includes("READINESS_FROZEN_VERDICT_NEXT")) {
