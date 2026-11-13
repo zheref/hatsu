@@ -2,6 +2,7 @@
 import { spawnSync } from "node:child_process";
 import { closeSync, constants, fstatSync, mkdirSync, openSync, readSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
+import { assertManagedRequiredJobContexts, inspectReadinessJob } from "./tenkai_required_job_contexts.mts";
 import { dirname, join } from "node:path";
 import {
   GUARD_MARKER, GUARD_PATH, POLICY_CONTRACT, POLICY_PATH, admittedDigests,
@@ -35,6 +36,7 @@ export type RenderInputs = {
   runnerKnown: boolean;
   runnerLabelsRequired: boolean;
   registry: string | null;
+  templateDigest: string | null;
 };
 
 const LEGACY_GUARD = "scripts/workflow_runner_policy_check.rb";
@@ -42,6 +44,7 @@ const REGISTRY = "nen/repos.json";
 const MAX_INPUT_BYTES = 2 * 1024 * 1024;
 const GUARD_PREFIX = "#!/usr/bin/env node\n" + GUARD_MARKER + "\n";
 const WORKFLOW_MARKER = "# pr-readiness.yml — RENDERED BY hatsu:tenkai.";
+const LEGACY_WORKFLOW_BANNER = WORKFLOW_MARKER + " Do not hand-edit.";
 const PORTABLE_MARKER = "# Workflow policy: Tenkai's portable guard";
 const HEAD_REF = "          ref: ${{ github.event.pull_request.head.sha }}\n";
 const TRUSTED_CHECKOUT = "      - name: Checkout guard code from the trusted workflow revision\n";
@@ -142,6 +145,10 @@ export function readReadinessTemplate(hatsuRoot: string): ReadinessTemplate | nu
   return { source: source.replace(/\r\n?/g, "\n"), ref };
 }
 
+export function readinessTemplateDigest(template: ReadinessTemplate | null): string | null {
+  return template && createHash("sha256").update(JSON.stringify([template.ref, template.source])).digest("hex");
+}
+
 export function readinessInputs(
   template: ReadinessTemplate | null, role: ReadinessRole, registry: string | null, repository: string | null, runner: AdoptionRunner,
 ): RenderInputs {
@@ -156,7 +163,7 @@ export function readinessInputs(
       .replaceAll("@@NEN_REF@@", () => template.ref)
     : null;
   return {
-    role, registry, repository, path: READINESS_WORKFLOW, rendered,
+    role, registry, repository, path: READINESS_WORKFLOW, rendered, templateDigest: readinessTemplateDigest(template),
     runnerKnown: runner.derived_from.visibility !== null,
     runnerLabelsRequired: runner.labels_required,
   };
@@ -278,11 +285,52 @@ function writeOwned(repo: string, path: string, before: string | undefined, cont
   }
 }
 
+// The frozen adopter handles ordinary legacy readiness drift. Own only the
+// required-context defect here, after the same reader and Ruby policy gate.
+export function adoptLegacyRequiredContext(
+  repo: string, hatsuRoot: string, input: RenderInputs, mode: "probe" | "diagnose" | "apply",
+): ReadinessRow | null {
+  const path = READINESS_WORKFLOW;
+  if (input.rendered !== null) {
+    try { assertManagedRequiredJobContexts(hatsuRoot, path, input.rendered); }
+    catch (error) { return row("blocked", (error as Error).message, "repair the readiness template and required job declaration"); }
+  }
+  if (!input.role || !input.repository || input.rendered === null || input.runnerLabelsRequired) return null;
+  try {
+    const installed = regularText(repo, path);
+    if (installed === undefined) return null;
+    const { runner: installedRunner, diagnostic } = inspectReadinessJob(hatsuRoot, path, installed);
+    if (!diagnostic) return null;
+    const leadingComments = installed.match(/^(?:(?:#[^\r\n]*|[ \t]*)\r?\n)*/)?.[0] ?? "";
+    if (!leadingComments.split(/\r?\n/).includes(LEGACY_WORKFLOW_BANNER)) {
+      return row("drift", diagnostic + "; a pr-readiness.yml is installed that Tenkai did not render — it will not be overwritten",
+        "review by hand, then delete it and re-run apply");
+    }
+    const runner = input.runnerKnown ? undefined : installedRunner;
+    if (!input.runnerKnown && !runner) {
+      return row("staged", diagnostic + "; the existing readiness job runner cannot be preserved while repository visibility is unreadable",
+        "re-run apply when visibility is readable or pass the known repository visibility");
+    }
+    if (mode !== "apply") return row("drift", diagnostic, "re-render from templates/pr-readiness.yml");
+    const rendered = runner ? input.rendered
+      .replace(/^    runs-on: [^\n]+$/m, () => "    runs-on: " + runner)
+      .replace(/^#   runs-on      : [^\n]+$/m, () => "#   runs-on      : " + runner) : input.rendered;
+    if (runner) assertManagedRequiredJobContexts(hatsuRoot, path, rendered);
+    writeOwned(repo, path, installed, rendered);
+    const shown = runner ?? rendered.match(/^    runs-on: ([^\n]+)$/m)?.[1];
+    return row("repaired", "rendered for " + input.repository + ", runs-on " + shown +
+      (runner ? " (runner preserved — the probe could not answer)" : ""));
+  } catch (error) {
+    return row("blocked", (error as Error).message, "repair the workflow path before re-adopting");
+  }
+}
+
 export function adoptPortableReadiness(
   repo: string, hatsuRoot: string, input: RenderInputs, mode: "diagnose" | "apply", readerReady: boolean,
 ): ReadinessRow | null {
   let lock: { path: string; descriptor: number } | undefined;
   try {
+    if (input.rendered !== null) assertManagedRequiredJobContexts(hatsuRoot, input.path, input.rendered);
     // An existing repository-owned Ruby policy keeps its registration and rendering.
     // A previously adopted portable policy remains in effect when a Ruby file is added.
     const targets = portableTargets(repo, input.role);
@@ -364,6 +412,10 @@ export function adoptPortableReadiness(
     // Allow that only after the fetched policy has verified the active workflow.
     const localAdmission = localPolicy === undefined ? undefined :
       parseAdoptionPolicy(localPolicy, input.repository, allowed ? priorRepository : undefined).workflows[input.path];
+    const diagnostic = mode === "diagnose" && existing !== undefined
+      ? inspectReadinessJob(hatsuRoot, input.path, existing).diagnostic : undefined;
+    const staging = (detail: string, action: string) =>
+      row("staged", diagnostic ? detail + "; " + diagnostic : detail, action);
     const current = existing === undefined ? undefined : workflowDigest(existing);
     let priorRunner: string | undefined;
     if (!input.runnerKnown && (trustedWorkflow !== undefined || existing !== undefined)) {
@@ -371,7 +423,7 @@ export function adoptPortableReadiness(
         (localAdmission?.current === current || allowed?.includes(current));
       priorRunner = existingRunner(trustedWorkflow ?? (localAdmitted ? existing : undefined));
       if (!priorRunner) {
-        return row("staged", "portable workflow runner cannot be established while repository visibility is unreadable",
+        return staging("portable workflow runner cannot be established while repository visibility is unreadable",
           "re-run apply when visibility is readable or pass the known repository visibility");
       }
     }
@@ -381,7 +433,7 @@ export function adoptPortableReadiness(
     const requiresBase = current !== expected &&
       (current !== undefined || (localPolicy !== undefined && localAdmission?.current !== expected));
     if (!commit && requiresBase) {
-      return row("staged", "portable workflow policy needs the fetched trusted base before changing its admission",
+      return staging("portable workflow policy needs the fetched trusted base before changing its admission",
         "fetch the declared origin base, then re-run apply");
     }
     const trustedDigest = trustedWorkflow === undefined ? undefined : workflowDigest(trustedWorkflow);
@@ -398,9 +450,10 @@ export function adoptPortableReadiness(
       writeOwned(repo, POLICY_PATH, localPolicy, manifest);
     }
     if (staged) {
-      return row("staged", "portable workflow policy must admit the next rendering on the trusted base first" + slugDetail,
+      return staging("portable workflow policy must admit the next rendering on the trusted base first" + slugDetail,
         "apply to prepare the portable guard and manifest, land them alone on the trusted base, then fetch it and re-run apply");
     }
+    if (diagnostic) return row("drift", diagnostic, "re-run Tenkai apply to restore the required job name");
     if (current === expected && localGuard === guard && localPolicy === manifest) {
       return row("satisfied", "portable policy and rendered readiness workflow match for " + input.repository);
     }

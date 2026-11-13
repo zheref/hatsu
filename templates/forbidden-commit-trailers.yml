@@ -16,7 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  trailer-policy-runner:
+  # This job name is the required context. The API detail uses a separate name.
+  forbidden-commit-trailers:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

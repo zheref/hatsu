@@ -8,7 +8,7 @@ import { history, readSections, summary } from './pr_sections_history.ts';
 import { declarationText, strictJson } from './config_values_refresh.ts';
 import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction, type Fix, type Item } from './tenkai_fixes.ts';
 import {
-  adoptionRole, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness, LEGACY_READINESS,
+  adoptionRole, adoptLegacyRequiredContext, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness, LEGACY_READINESS,
   READINESS_CONTEXT_CHANGED, READINESS_WORKFLOW, readinessInputs, readReadinessTemplate, registryText,
   type AdoptionRunner, type LegacyReadiness, type ReadinessRole, type ReadinessRow, type ReadinessTemplate,
 } from './tenkai_readiness_policy.mts';
@@ -59,21 +59,26 @@ function hasHandoff(item: AdoptionItem, role: ReadinessRole): boolean {
     ? item.state === 'staged' && item.detail === DEFERRED_READINESS
     : item.state === 'blocked' && item.detail === 'repository role is unknown; the trusted guard and pin policy cannot be rendered safely';
 }
-function applyPortable(
+function applyReadiness(
   document: AdoptionReport, root: string, role: ReadinessRole, registry: string | null, template: ReadinessTemplate | null,
-  operation: 'apply' | 'diagnose',
-): ReadinessRow {
+  operation: 'apply' | 'diagnose', portable: boolean,
+): ReadinessRow | null {
   try {
     const input = readinessInputs(template, role, registry, document.slug, document.runner);
     const script = join(root, 'scripts', 'tenkai_readiness_guard.mts');
-    const result = spawnSync(process.execPath, [script, operation + '-workflow', document.repo, root], {
+    const route = portable ? '-workflow' : '-legacy-context';
+    const result = spawnSync(process.execPath, [script, operation + route, document.repo, root], {
       encoding: 'utf8', input: JSON.stringify(input), timeout: 60_000,
+      env: { ...process.env, [DEFER_READINESS]: '', [LEGACY_READINESS]: '' },
     });
     if (result.error || result.status !== 0) {
       throw new Error(plain((result.error?.message ?? result.stderr.trim()) || 'the readiness guard did not return a verdict'));
     }
     const verdict: ReadinessRow | null = JSON.parse(result.stdout);
-    if (verdict === null) throw new Error('the portable workflow route changed during adoption');
+    if (verdict === null) {
+      if (portable) throw new Error('the portable workflow route changed during adoption');
+      return null;
+    }
     if (!['satisfied', 'missing', 'drift', 'blocked', 'repaired', 'staged'].includes(verdict?.state) ||
         typeof verdict.detail !== 'string' || (verdict.action !== null && typeof verdict.action !== 'string')) {
       throw new Error('the readiness guard returned a malformed verdict');
@@ -81,7 +86,7 @@ function applyPortable(
     return verdict;
   } catch (error) {
     return { state: 'blocked', detail: plain(error instanceof Error ? error.message : error),
-      action: 'review the portable readiness policy and re-run diagnose' };
+      action: 'review the readiness policy and re-run diagnose' };
   }
 }
 function updateWorkflowDetails(row: AdoptionItem, portableState?: string) {
@@ -139,6 +144,9 @@ function run(): number {
   const template = observed.slug ? readReadinessTemplate(root) : null;
   const legacyReadiness = !routeFailure && !portable && observed.slug && role && digest
     ? { repo, slug: observed.slug, role, registry: digest } : undefined;
+  const legacyContext = legacyReadiness !== undefined && adoptLegacyRequiredContext(repo, root,
+    readinessInputs(template, role, digest, observed.slug, observed.runner), 'probe') !== null;
+  const frozenReadiness = legacyContext ? undefined : legacyReadiness;
   // Use the same validated identity on subsequent frozen passes.
   const adoptedParameters = observed.slug ? [...parameters, '--slug', observed.slug] : parameters;
   let finding: any;
@@ -162,20 +170,26 @@ function run(): number {
   } catch (error) { finding = { state: 'blocked', detail: plain(error instanceof Error ? error.message : error) }; }
   // A refused refresh never falls through to the mutating frozen adopter.
   const applying = mode === 'apply' && finding?.state !== 'blocked' && !routeFailure;
-  const result = applying ? legacy(['apply', ...adoptedParameters], repo, legacyReadiness)
-    : legacyReadiness ? legacy(['diagnose', ...adoptedParameters], repo, legacyReadiness) : preview;
+  const result = applying ? legacy(['apply', ...adoptedParameters], repo, frozenReadiness)
+    : frozenReadiness ? legacy(['diagnose', ...adoptedParameters], repo, frozenReadiness) : preview;
   if (refused(result)) return relay(result);
   const document: AdoptionReport = JSON.parse(result.stdout);
   document.mode = mode;
   const readiness = readinessRow(document);
   if (routeFailure) Object.assign(readiness, routeFailure);
-  else if (portable) {
+  else if (portable || legacyContext) {
     // The frozen apply installs the reader before this operation can admit a workflow.
     const verdict = document.slug === observed.slug && hasHandoff(readiness, role)
-      ? applyPortable(document, root, role, digest, template, applying ? 'apply' : 'diagnose')
-      : { state: 'blocked', detail: 'the portable readiness workflow handoff could not be verified',
+      ? applyReadiness(document, root, role, digest, template, applying ? 'apply' : 'diagnose', portable)
+      : { state: 'blocked', detail: 'the readiness workflow handoff could not be verified',
           action: 'verify the Hatsu installation and repository identity, then re-run diagnose' };
-    Object.assign(readiness, verdict);
+    if (verdict === null) {
+      const fallback = legacy(['diagnose', ...adoptedParameters], repo, legacyReadiness);
+      if (refused(fallback)) return relay(fallback);
+      Object.assign(readiness, readinessRow(JSON.parse(fallback.stdout)));
+    } else {
+      Object.assign(readiness, verdict);
+    }
   }
   if (finding || refreshed) {
     document.items.push({ id: 'pr.sections', title: 'PR-section catalogue freshness', owner: 'hatsu', action: finding ? `config_values.sh fill --refresh --repo ${quote(plain(repo))}` : null,

@@ -49,6 +49,9 @@ anything. Third-Hand is not in that boundary.
 
 ## 1. Invocation
 
+Before offering a human merge line, read § 5 from the installed Hatsu root for GitHub's
+merge state and the repository's allowed merge methods.
+
 **P1 — this run opens with `$ten en`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
 missing prerequisites under its own name; the phases this run calls skip theirs).
 
@@ -362,7 +365,7 @@ exception does not grant Futon itself a PR merge or change getsuga's release-uni
 
 **An off-base PR with failed ownership or another failed gate gets no merge prompt.** It reports
 the refusal, current base and Development guard line, then stops at the maintainer handoff.
-**A PR on `branch.base` in case (3)** — neither `branch.base` nor the PR's base is the default branch — **gets the prompt**:
+**A PR on `branch.base` in case (3)** — neither `branch.base` nor the PR's base is the default branch — **reaches the human handoff**:
 the guard's quoted `not-applicable` line stands in place of its `0` at check 4, because the merge is the
 maintainer's either way. It is the G2/G4 merge stop, never a G5 (ROSTER § *Rulings of 2026-09-30 — En
 never merges*, row *Closing keywords act only on the default branch*). Futon opens no PR into its integration branch (futon § 5 merges there locally), so
@@ -372,7 +375,7 @@ this is never futon's path.
 En never merges*, narrowed by § *Ruling of 2026-10-19 — recorded Futon delivery merges*); `futon` § 5, `kurapika.md`,
 the gate tables (ROSTER, README, WORKFLOW) and `nen/decisions.json` row `own-pr-merge` cite it. It
 supersedes ruling 3 of 2026-09-29. En's work is the drive: every finding fixed, every thread answered
-and resolved. **Every other PR ends at the merge prompt, after five checks in order, every verdict line printed**:
+and resolved. **Every other PR reaches the human gate after the checks below in order, with each verdict printed**:
 
 1. **On `branch.base`** — the base read back (`gh pr view <N> --json baseRefName`); a stacked PR whose
    delivery just merged is retargeted through `nen pr retarget` first (getsuga § 3's mechanism,
@@ -393,21 +396,59 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
 3. **The body** — `nen pr body-check` satisfied against the live body.
 4. **The Development links** — the guard's `0` quoted against the live PR, re-run after any
    `edit-body`; `retarget-pending` is check 1 failing (case (2)), `not-applicable` is case (3), quoted
-   in the `0`'s place and still the prompt, and any other line is a finding to fix, never a prompt.
-5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
+   in the `0`'s place at the human gate. Any other line is a finding to fix before that handoff.
+5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and any offered command names it.
+6. **GitHub's merge gate** — apply this check after every accepted check 2 route, including the
+   sixth stop and the hanten prompt. Read `gh pr view <N> --repo <owner/name> --json state,isDraft,headRefOid,baseRefName,mergeable,mergeStateStatus`.
+   Refresh the gate reads if the head or base changed. On the same open, non-draft PR, continue to
+   method selection only when `mergeable` is `MERGEABLE` and `mergeStateStatus` is `CLEAN` or
+   `HAS_HOOKS`. Report hooks when present. A closed, merged or draft PR gets its observed state.
+   `BEHIND` names the out-of-date head, `DIRTY` the conflict, and `UNSTABLE` the non-passing
+   checks. An unreadable, missing, unknown or conflicting result holds the command and names the
+   missing or contradictory evidence. Preserve the check 2 verdict in the handoff.
 
-The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en** —
-in the chat message as a `bash` block (WORKFLOW § 4's hand-over rule), the picker carrying one short
-question and short starred options (jutaisho § 4's shape).
+   For `BLOCKED`, read `gh pr checks <N> --repo <owner/name> --required --json name,bucket,state,workflow`
+   and `node '<installed Hatsu root>/scripts/gh_api_read.mts' branch-rules <owner/name> <base>`.
+   Include classic protection through `required-checks <owner/name> <base>` on that same reader
+   when available. Compare configured contexts and sources with the Checks tab and merge box
+   for the judged head. Quote the pending or missing check and expected source, or the blocking
+   rule identified by GitHub. If the cause cannot be established, report the blocked state and
+   the missing evidence. The maintainer owns corrections to repository settings.
+
+For method selection, read the following from the installed Hatsu root's `scripts/gh_api_read.mts`
+with Node. Each read needs to succeed independently.
+
+- `repo-merge-methods <owner/name>` gives the three boolean `allow_*_merge` settings.
+- `branch-rules <owner/name> <base>` gives every page of active rules. Intersect enabled methods
+  with each applicable pull-request rule's `allowed_merge_methods` and exclude merge commits when
+  an active rule requires linear history.
+- `branch-protection <owner/name> <base>` gives classic linear history. Require a boolean flag or
+  GitHub's explicit `Branch not protected` response. A generic 404 leaves protection unread.
+- `pr-merge-queue <owner/name> <N>` gives `data.repository.pullRequest` from a fixed GraphQL read.
+  Require a response without GraphQL errors, matching `headRefOid` and `baseRefName`, with an
+  explicit `mergeQueue: null`. A queue object or an active queue rule directs the maintainer to
+  GitHub's queue flow. A missing field or unreadable queue result holds the command.
+
+Honor an explicitly chosen allowed method. Otherwise use the first allowed method in merge,
+squash, rebase order. When a read fails, a restriction is unreadable, the intersection is
+empty, or the queue applies, name the reason in the human handoff and withhold the CLI line.
+See [GitHub merge states](https://docs.github.com/en/graphql/reference/pulls#mergestatestatus),
+[repository settings](https://docs.github.com/en/rest/repos/repos#get-a-repository),
+[branch rules](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch), and
+[classic protection](https://docs.github.com/en/rest/branches/branch-protection#get-branch-protection).
+
+The human handoff presents the PR link, the observed gate result, and the settings used for
+an allowed method. If the command is available, offer it in a `bash` block
+(WORKFLOW § 4's hand-over rule). The picker carries a short question and options in jutaisho § 4's shape.
 Its picker never carries the merge act; the maintainer merges outside the session (jutaisho § 4). So it
 never offers the act, which is what no agent may do for the merge phase
 (ROSTER § *Rulings of 2026-09-30 — En never merges*):
 
 ```bash
-gh pr merge <N> --repo <owner/name> --merge --match-head-commit <judged head>   # the maintainer's; never --admin, never --auto
+gh pr merge <N> --repo <owner/name> <allowed method flag> --match-head-commit <judged head>   # the maintainer's; never --admin, never --auto
 ```
 
-`--match-head-commit` makes GitHub refuse the line if the head moved after the verdict. The maintainer
+Substitute the observed `--merge`, `--squash` or `--rebase`. `--match-head-commit` makes GitHub refuse the line if the head moved after the verdict. The maintainer
 merges from the GitHub UI or from that line; en reads the state back only if asked. **The merge is not a
 review**: the review is the reviewers' rounds (§ 4) and hanten's before them; en never votes and never
 self-reviews.
@@ -427,11 +468,11 @@ live, by 2026-09-10, at `v0.3.0`, exit `0` (`docs/ab/en.md` § 2.4):
 | <title> | <link>            | <status (gate)> | <one line>   | <session>      |
 ```
 
-**The merge prompt is the stop's `MERGE` ask**, for the run's own PR and another's alike: the PR's
-link, the gate it stands at, whose review it carries, the verdict quoted and the line above.
+Use the stop's `MERGE` ask for the human handoff on the run's own PR and another's alike. Give the
+PR link, the gate, whose review it carries, the quoted verdict and GitHub's gate result. Include
+the command above only when check 6 and method selection establish it.
 
-**It prompts exactly once for this run — at Ready, or at § 6's sixth stop — and at
-no other time**, and rings once, with the prompt. A quiet observation rings nothing — a bell that rings
+**It hands off once for this run**, with the check 2 verdict and GitHub's gate result, and rings once. A quiet observation rings nothing — a bell that rings
 every poll of a four-hour wait is a bell nobody hears.
 
 ## 6. The observation hold — `nen watch until` on `nen pr ready`, and what a cycle is
