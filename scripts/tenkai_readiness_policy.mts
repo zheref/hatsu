@@ -378,6 +378,12 @@ export function adoptPortableReadiness(
 
     const rendered = render(input.rendered, base, priorRunner);
     const expected = workflowDigest(rendered);
+    const requiresBase = current !== expected &&
+      (current !== undefined || (localPolicy !== undefined && localAdmission?.current !== expected));
+    if (!commit && requiresBase) {
+      return row("staged", "portable workflow policy needs the fetched trusted base before changing its admission",
+        "fetch the declared origin base, then re-run apply");
+    }
     const trustedDigest = trustedWorkflow === undefined ? undefined : workflowDigest(trustedWorkflow);
     const admission: Admission = trustedDigest !== undefined && trustedDigest !== expected
       ? { current: trustedDigest, next: expected } : { current: expected };
@@ -386,11 +392,6 @@ export function adoptPortableReadiness(
     const staged = allowed
       ? policyRepository.toLowerCase() !== input.repository.toLowerCase() || !allowed.includes(expected)
       : admission.next !== undefined;
-    if (!commit && localPolicy !== undefined && localAdmission?.current !== expected && current !== expected) {
-      return row("staged", "portable workflow policy needs the fetched trusted base before changing its admission",
-        "fetch the declared origin base, then re-run apply");
-    }
-
     const manifest = policyText({ contract: POLICY_CONTRACT, repository: input.repository, workflows: { [input.path]: admission } });
     if (mode === "apply") {
       writeOwned(repo, GUARD_PATH, localGuard, guard);
