@@ -1,9 +1,10 @@
 import { test, expect, afterAll } from 'vitest';
-import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, truncateSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction, type FixRow } from './tenkai_fixes.ts';
+import { adoptionRole, readReadinessTemplate, registryText } from './tenkai_readiness_policy.mts';
 
 // HA#535: every outstanding Tenkai item names its fix, and a re-run after a fix shows the count going down.
 const source = resolve(import.meta.dirname, '..');
@@ -44,6 +45,61 @@ function tenkai(repo: string, mode: string, json = true, extra: string[] = []) {
   expect([0, 1], result.stderr).toContain(result.status);
   return json ? JSON.parse(result.stdout) : result.stdout;
 }
+
+test('readiness inputs distinguish absent declarations from unsafe or malformed files', () => {
+  const repo = temp();
+  const registry = join(repo, 'nen/repos.json');
+  mkdirSync(join(repo, 'nen'));
+  expect(adoptionRole(registryText(repo), 'acme/widget')).toEqual({ role: null, digest: null });
+  for (const input of ['{"metadata":NaN}', '{"consumers":[],"consumers":[]}', '[]']) {
+    writeFileSync(registry, input);
+    expect(() => adoptionRole(registryText(repo), 'acme/widget')).toThrow('nen/repos.json must');
+  }
+  writeFileSync(registry, Buffer.from([0xff]));
+  expect(() => registryText(repo)).toThrow('must be UTF-8');
+  truncateSync(registry, 2 * 1024 * 1024 + 1);
+  expect(() => registryText(repo)).toThrow('exceeds the 2 MiB input limit');
+  rmSync(registry);
+  expect(spawnSync('mkfifo', [registry], { timeout: 5_000 }).status).toBe(0);
+  expect(() => registryText(repo)).toThrow('must be a regular file');
+  rmSync(join(repo, 'nen'), { recursive: true });
+  symlinkSync(join(source, 'nen'), join(repo, 'nen'));
+  expect(() => registryText(repo)).toThrow('unlinked parent directory');
+
+  const templateRoot = temp();
+  mkdirSync(join(templateRoot, 'nen'));
+  mkdirSync(join(templateRoot, 'templates'));
+  writeFileSync(join(templateRoot, 'nen/contract.json'), '{"dependency":{"pinned_ref":"v1"}}');
+  const template = join(templateRoot, 'templates/pr-readiness.yml');
+  writeFileSync(template, 'name: readiness\r\n');
+  expect(readReadinessTemplate(templateRoot)).toEqual({ ref: 'v1', source: 'name: readiness\n' });
+  writeFileSync(template, Buffer.from([0xff]));
+  expect(() => readReadinessTemplate(templateRoot)).toThrow('must be UTF-8');
+});
+
+test('ordinary CLI coverage verification refuses changed source and report bytes', () => {
+  const repo = temp();
+  const helper = join(source, 'scripts/node_cli_coverage_fixture.mts');
+  const target = 'scripts/coverage_target.mts';
+  const original = 'export const answer = 42;\n';
+  mkdirSync(join(repo, 'scripts'));
+  writeFileSync(join(repo, target), original);
+  const run = (mode: string, ...args: string[]) => spawnSync(process.execPath,
+    [helper, mode, 'sample', target, ...args], { cwd: repo, encoding: 'utf8', timeout: 10_000 });
+  const captured = run('--capture', '--', process.execPath, target);
+  expect(captured.status, captured.stderr).toBe(0);
+  expect(run('--verify').status).toBe(0);
+  writeFileSync(join(repo, target), original + '// source changed\n');
+  const stale = run('--verify');
+  expect(stale.status).toBe(1);
+  expect(stale.stderr).toContain('LCOV source changed since capture');
+  writeFileSync(join(repo, target), original);
+  const report = join(repo, 'coverage/sample/cli/lcov.info');
+  writeFileSync(report, readFileSync(report, 'utf8') + '\n');
+  const changed = run('--verify');
+  expect(changed.status).toBe(1);
+  expect(changed.stderr).toContain('LCOV report changed since capture');
+});
 
 test('every catalogue row is well-formed, and only an owner row takes an answer', () => {
   expect(rows.at(-1)!.fill).toBe('unmapped');

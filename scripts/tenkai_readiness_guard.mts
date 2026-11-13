@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 // #131: Tenkai's readiness-reader adoption decisions live in TypeScript (BC-11).
-// The older Python engine passes only a mode and two paths, then relays this row.
+// The frozen engine relays reader and gate rows. The public adopter owns the portable route.
 import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
+import {
+  adoptionRole, adoptPortableReadiness, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness,
+  LEGACY_READINESS, READINESS_CONTEXT_CHANGED, readReadinessTemplate, registryText,
+  type LegacyReadiness, type RenderInputs,
+} from "./tenkai_readiness_policy.mts";
 
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
 type Row = { state: State; detail: string; action: string | null };
@@ -77,6 +82,28 @@ function applyReader(repo: string, hatsuRoot: string): Row {
 }
 
 function workflowGate(repo: string, hatsuRoot: string): Row {
+  // The public CLI sets these only on its frozen child. Deferral and legacy
+  // eligibility both run before the frozen workflow can consider a write.
+  if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
+  const legacy = process.env[LEGACY_READINESS];
+  let requiresRuby = false;
+  if (legacy) {
+    try {
+      const expected: LegacyReadiness = JSON.parse(legacy);
+      const current = adoptionRole(registryText(repo), expected.slug);
+      if (expected.repo !== repo || !current.role || current.role !== expected.role ||
+          current.digest !== expected.registry || handlesPortableReadiness(repo, current.role)) {
+        throw new Error(READINESS_CONTEXT_CHANGED);
+      }
+      requiresRuby = current.role === "process";
+      if (!readReadinessTemplate(hatsuRoot)) {
+        return row("blocked", "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen",
+          "repair Hatsu's nen/contract.json");
+      }
+    } catch (error) {
+      return row("blocked", (error as Error).message, "re-run diagnose with the current repository and Hatsu inputs");
+    }
+  }
   if (readerState(repo, hatsuRoot).state !== "satisfied") {
     return row("staged", "the trusted JSON reader must be installed before the workflow can call it",
       "install scripts/readiness_ci_verdict.mts first");
@@ -84,6 +111,9 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
   const guard = join(repo, GUARD);
   const info = stat(guard);
   if (info?.isSymbolicLink()) return row("staged", "the workflow guard is linked; its admission cannot be trusted");
+  if (requiresRuby && !info?.isFile()) {
+    return row("blocked", READINESS_CONTEXT_CHANGED, "re-run diagnose with the current workflow policy");
+  }
   if (info?.isFile()) {
     const live = readFileSync(guard, "utf8").split("\n").filter(line => !line.trimStart().startsWith("#")).join("\n");
     if (live.includes("READINESS_FROZEN_VERDICT") && !live.includes("READINESS_FROZEN_VERDICT_NEXT")) {
@@ -95,9 +125,16 @@ function workflowGate(repo: string, hatsuRoot: string): Row {
 }
 
 const [mode, repo, hatsuRoot] = process.argv.slice(2);
-if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate"].includes(mode)) {
-  throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate> <repo> <hatsu-root>");
+if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate", "diagnose-workflow", "apply-workflow"].includes(mode)) {
+  throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate|diagnose-workflow|apply-workflow> <repo> <hatsu-root>");
 }
-const result = mode === "apply" ? applyReader(repo, hatsuRoot)
-  : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);
-process.stdout.write(JSON.stringify(result) + "\n");
+if (mode === "diagnose-workflow" || mode === "apply-workflow") {
+  const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
+  const result = adoptPortableReadiness(repo, hatsuRoot, input, mode === "apply-workflow" ? "apply" : "diagnose",
+    readerState(repo, hatsuRoot).state === "satisfied");
+  process.stdout.write(JSON.stringify(result) + "\n");
+} else {
+  const result = mode === "apply" ? applyReader(repo, hatsuRoot)
+    : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);
+  process.stdout.write(JSON.stringify(result) + "\n");
+}
