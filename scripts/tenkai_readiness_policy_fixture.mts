@@ -52,9 +52,10 @@ function git(...args: string[]) {
   assert.equal(result.status, 0, result.stderr);
   return result.stdout;
 }
-function command(args: string[], runnerOnline = false, guardChanges = false) {
+function command(args: string[], runnerOnline = false, guardChanges = false, nextPin = "") {
   return spawnSync("bash", [join(root, "scripts/tenkai_adopt.sh"), ...args], {
     encoding: "utf8", env: { ...env, TENKAI_FIXTURE_RUNNER: runnerOnline ? "online" : "offline",
+      TENKAI_FIXTURE_NEXT_PIN: nextPin,
       TENKAI_FIXTURE_RUBY: guardChanges ? join(repo, rubyPath) : "", TENKAI_FIXTURE_PROBE: join(sandbox, "probe-seen") }, timeout: 30_000,
   });
 }
@@ -104,6 +105,13 @@ function runPolicy(workflow: string, repoSlug = slug) {
 
 try {
   put(sandbox, "bin/gh", `#!/bin/sh
+if [ "$1" = api ] && [ "$2" != --paginate ] && [ "$4" = .visibility ] && [ -f "$TENKAI_FIXTURE_NEXT_PIN" ]; then
+  if [ -f "$TENKAI_FIXTURE_PROBE" ]; then
+    mv "$TENKAI_FIXTURE_NEXT_PIN" "\${TENKAI_FIXTURE_NEXT_PIN%.next}"
+  else
+    touch "$TENKAI_FIXTURE_PROBE"
+  fi
+fi
 if [ "$1" = api ] && [ "$2" != --paginate ] && [ "$4" = .visibility ] && [ -f "$TENKAI_FIXTURE_RUBY" ]; then
   if [ -f "$TENKAI_FIXTURE_PROBE" ]; then
     rm "$TENKAI_FIXTURE_RUBY"
@@ -245,13 +253,26 @@ exit 1
   check(missingBase.state === "staged" && missingBase.detail.includes("fetched trusted base") &&
     text(repo, workflowPath) === localDrift && text(repo, POLICY_PATH) === initialPolicy,
   "local policy admission cannot authorize a workflow update before the base is fetched");
+  const renamedPortable = old.replace("\n  readiness:\n", "\n  renamed:\n");
+  put(repo, workflowPath, renamedPortable);
+  const contextMessage = workflowPath + ': required context "readiness"';
+  const missingContextBase = adopt("diagnose");
+  check(missingContextBase.state === "staged" && missingContextBase.detail.includes("fetched trusted base") &&
+    missingContextBase.detail.includes(contextMessage) && missingContextBase.fix.fill === "route" &&
+    adopt("apply").state === "staged" && text(repo, workflowPath) === renamedPortable && text(repo, POLICY_PATH) === initialPolicy,
+  "a missing base retains the portable context diagnosis and stages apply without writes");
+  const missingContextRunner = adopt("diagnose", null);
+  check(missingContextRunner.state === "staged" && missingContextRunner.detail.includes("runner cannot be established") &&
+    missingContextRunner.detail.includes(contextMessage) && text(repo, workflowPath) === renamedPortable,
+  "an unknown portable runner retains the required context diagnosis");
+
   rmSync(join(repo, workflowPath));
   check(adopt("apply").state === "repaired" && text(repo, workflowPath) === old &&
     text(repo, POLICY_PATH) === initialPolicy,
   "an absent workflow can resume the exact locally prepared bootstrap admission");
 
   freezeBase();
-  put(repo, workflowPath, old.replace("\n  readiness:\n", "\n  renamed:\n"));
+  put(repo, workflowPath, renamedPortable);
   const renamed = adopt("diagnose");
   check(renamed.state === "drift" && renamed.detail.includes(workflowPath + ': required context "readiness"'),
     "diagnose names the workflow and missing readiness job");
@@ -448,11 +469,29 @@ exit 1
     contractReadiness.detail.includes("required job context declaration is missing or malformed") &&
     text(repo, workflowPath) === renamedLegacy, "the public legacy route refuses an invalid trusted context declaration");
 
+  json(malformedRoot, "contracts/required-job-contexts.json", JSON.parse(text(root, "contracts/required-job-contexts.json")));
+  const priorPin = JSON.parse(text(malformedRoot, "nen/contract.json"));
+  const alternatePin = priorPin.dependency.pinned_ref === "v99.0.0" ? "v99.0.1" : "v99.0.0";
+  json(malformedRoot, "nen/contract.json.next", { ...priorPin, dependency: { ...priorPin.dependency, pinned_ref: alternatePin } });
+  rmSync(join(sandbox, "probe-seen"), { force: true });
+  const changedPin = command(["apply", "--repo", repo, "--hatsu-root", malformedRoot, "--self-hosted", "0", "--json"],
+    false, false, join(malformedRoot, "nen/contract.json.next"));
+  const pinReadiness = JSON.parse(changedPin.stdout).items.find((item: { id: string }) => item.id === workflowPath);
+  check(changedPin.status === 1 && pinReadiness.state === "blocked" && pinReadiness.detail.includes("Nen pin changed") &&
+    text(repo, workflowPath) === renamedLegacy, "a different valid pin during dispatch cannot authorize the older rendering");
+
   const registeredGuard = text(repo, customPath);
   put(repo, customPath, registeredGuard + "READINESS_FROZEN_VERDICT = 'current'\n");
   const stagedGuard = adopt("apply");
   check(stagedGuard.state === "staged" && stagedGuard.detail.includes("does not admit the JSON reader step") &&
     text(repo, workflowPath) === renamedLegacy, "legacy context apply preserves the frozen Ruby policy gate");
+  put(repo, customPath, "EXPECTED_JOBS = {}.freeze\n");
+  for (const mode of ["diagnose", "apply"] as const) {
+    const registration = adopt(mode);
+    check(registration.state === "staged" && registration.detail.includes("has not registered pr-readiness.yml") &&
+      registration.report.items.find((item: { id: string }) => item.id === "guard/registration").state === "routed" &&
+      text(repo, workflowPath) === renamedLegacy, mode + " preserves context drift until Ruby registration lands");
+  }
   put(repo, customPath, registeredGuard);
 
   rmSync(join(repo, readerPath));
@@ -479,10 +518,29 @@ exit 1
     text(repo, workflowPath).includes("    runs-on: " + privateRunner) &&
     text(repo, workflowPath).includes("  readiness:\n    if:"), "legacy context repair preserves an unreadable runner");
 
-  const ownerWorkflow = wrongContext.replace(/^# pr-readiness[^\n]+\n/, "# Owner workflow\n");
-  put(repo, workflowPath, ownerWorkflow);
-  check(adopt("apply").state === "drift" && text(repo, workflowPath) === ownerWorkflow,
-    "a context defect cannot authorize replacing an owner-maintained workflow");
+  for (const selector of ["\n      [self-hosted, Linux, X64, pool-ci]", "\n      - self-hosted\n      - Linux\n      - X64\n      - pool-ci"]) {
+    const renamedRunner = legacy.replace("  readiness:\n", "  earlier:\n    runs-on: ubuntu-latest\n    steps: []\n  renamed:\n")
+      .replace("    runs-on: ubuntu-latest\n    timeout", "    runs-on:" + selector + "\n    timeout");
+    assert.notEqual(renamedRunner, legacy);
+    put(repo, workflowPath, renamedRunner);
+    const result = adopt("apply", null);
+    check(result.state === "repaired" && result.detail.includes("runner preserved") &&
+      text(repo, workflowPath).includes("    runs-on: " + privateRunner), "preserve the renamed readiness job's multiline runner");
+  }
+  const uncertainRunner = renamedLegacy.replace(/^    runs-on: ubuntu-latest$/m, "    runs-on: ${{ matrix.os }}");
+  assert.notEqual(uncertainRunner, renamedLegacy);
+  put(repo, workflowPath, uncertainRunner);
+  const uncertain = adopt("apply", null);
+  check(uncertain.state === "staged" && uncertain.fix.fill === "route" && uncertain.detail.includes("runner cannot be preserved") &&
+    text(repo, workflowPath) === uncertainRunner, "unknown legacy runner stages without replacing the workflow");
+
+  const ownerWorkflow = wrongContext.replace(/^# pr-readiness[^\n]+\n/, "# Owner workflow quotes RENDERED BY hatsu:tenkai.\n");
+  for (const mode of ["diagnose", "apply"] as const) {
+    put(repo, workflowPath, ownerWorkflow);
+    const owner = adopt(mode);
+    check(owner.state === "drift" && owner.fix.fill === "route" && text(repo, workflowPath) === ownerWorkflow,
+      mode + " routes manual review when the provenance phrase is only quoted");
+  }
   const linkedLegacyTarget = join(sandbox, "linked-readiness.yml");
   put(sandbox, "linked-readiness.yml", renamedLegacy);
   rmSync(join(repo, workflowPath));
@@ -500,6 +558,12 @@ exit 1
     mode + " stages an existing legacy workflow until its declared base is fetched");
   }
   freezeBase([workflowPath]);
+  put(repo, workflowPath, wrongContext);
+  const pendingContext = adopt("diagnose");
+  check(pendingContext.state === "staged" && pendingContext.detail.includes("must admit the next rendering") &&
+    pendingContext.detail.includes(contextDiagnostic) && pendingContext.fix.fill === "route" &&
+    adopt("apply").state === "staged" && text(repo, workflowPath) === wrongContext, "context diagnosis preserves the policy-first staging instruction");
+  put(repo, workflowPath, legacy);
   const migration = adopt("apply");
   check(migration.state === "staged" && text(repo, workflowPath) === legacy,
     "legacy migration prepares policy while preserving the trusted workflow");

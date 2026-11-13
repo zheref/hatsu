@@ -6,7 +6,7 @@ import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import {
   adoptionRole, adoptLegacyRequiredContext, adoptPortableReadiness, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness,
-  LEGACY_READINESS, READINESS_CONTEXT_CHANGED, readReadinessTemplate, registryText,
+  LEGACY_READINESS, READINESS_CONTEXT_CHANGED, readReadinessTemplate, readinessTemplateDigest, registryText,
   type LegacyReadiness, type RenderInputs,
 } from "./tenkai_readiness_policy.mts";
 
@@ -81,7 +81,7 @@ function applyReader(repo: string, hatsuRoot: string): Row {
   return row("repaired", "trusted readiness JSON reader installed");
 }
 
-function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: LegacyReadiness): Row {
+function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: LegacyReadiness & { templateDigest: string | null }): Row {
   // The public CLI sets these only on its frozen child. Deferral and legacy
   // eligibility both run before the frozen workflow can consider a write.
   if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
@@ -96,9 +96,13 @@ function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: Legac
         throw new Error(READINESS_CONTEXT_CHANGED);
       }
       requiresRuby = current.role === "process";
-      if (!readReadinessTemplate(hatsuRoot)) {
+      const template = readReadinessTemplate(hatsuRoot);
+      if (!template) {
         return row("blocked", "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen",
           "repair Hatsu's nen/contract.json");
+      }
+      if (expectedReadiness && readinessTemplateDigest(template) !== expectedReadiness.templateDigest) {
+        throw new Error("Hatsu's readiness template or Nen pin changed during adoption");
       }
     } catch (error) {
       return row("blocked", (error as Error).message, "re-run diagnose with the current repository and Hatsu inputs");
@@ -120,6 +124,13 @@ function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: Legac
       return row("staged", "the current workflow guard does not admit the JSON reader step",
         "land the guard's exact next-step policy in its own PR before installing the workflow");
     }
+    // Match the frozen registration table slots when the public context repair owns the workflow.
+    if (expectedReadiness && ![/\bEXPECTED_JOBS\s*=[\s\S]*?pr-readiness\.yml/,
+      /\b(?:EXPECTED_TYPES|HARDENED_TYPES|BASE_TYPES)\s*=[\s\S]*?pr-readiness\.yml/,
+      /\bEXPECTED_STEPS\s*=[\s\S]*?pr-readiness\.yml/].every(pattern => pattern.test(live))) {
+      return row("staged", "the workflow policy guard has not registered pr-readiness.yml",
+        "land the guard registration first, then re-run apply");
+    }
   }
   return row("satisfied", "the trusted reader and workflow policy are ready");
 }
@@ -137,7 +148,7 @@ if (mode === "diagnose-workflow" || mode === "apply-workflow") {
 } else if (mode === "diagnose-legacy-context" || mode === "apply-legacy-context") {
   const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
   const gate = input.role && input.repository && input.registry
-    ? workflowGate(repo, hatsuRoot, { repo, role: input.role, slug: input.repository, registry: input.registry })
+    ? workflowGate(repo, hatsuRoot, { repo, role: input.role, slug: input.repository, registry: input.registry, templateDigest: input.templateDigest })
     : row("blocked", READINESS_CONTEXT_CHANGED, "re-run diagnose");
   const result = gate.state === "satisfied"
     ? adoptLegacyRequiredContext(repo, hatsuRoot, input, mode === "apply-legacy-context" ? "apply" : "diagnose")
