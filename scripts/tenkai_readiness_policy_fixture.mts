@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, lstatSync, readFileSync, realpathSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, dirname, join, resolve } from "node:path";
+import { assertRequiredJobContexts } from "./tenkai_required_job_contexts.mts";
 import { GUARD_PATH, POLICY_PATH, verifyWorkflowPolicy, workflowDigest } from "./readiness_workflow_policy.mts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -101,6 +102,26 @@ function runPolicy(workflow: string, repoSlug = slug) {
   return spawnSync("bash", ["-eo", "pipefail", "-c", step], {
     cwd: workspace, encoding: "utf8", env: { ...env, GITHUB_REPOSITORY: repoSlug }, timeout: 5_000,
   });
+}
+
+const nativeJob = (runner: string, steps: string) =>
+  "jobs:\n  readiness:\n    runs-on: " + runner + "\n    steps: " + steps;
+for (const [runner, steps] of [
+  ["[]", "[{ run: echo ok }]"],
+  ["{}", "[{ run: echo ok }]"],
+  ["{ group: 12 }", "[{ run: echo ok }]"],
+  ["ubuntu-latest", "[]"],
+  ["ubuntu-latest", "[false]"],
+  ["ubuntu-latest", '[{ run: " " }]'],
+  ["ubuntu-latest", "[{ run: echo ok, uses: actions/checkout@v4 }]"],
+]) {
+  assert.throws(() => assertRequiredJobContexts(workflowPath, nativeJob(runner, steps), ["readiness"]),
+    /needs a runner and executable workflow steps/);
+  assertions++;
+}
+for (const runner of ["{ group: pool-ci }", "{ labels: [self-hosted, linux] }", '"${{ inputs.runner }}"']) {
+  assertRequiredJobContexts(workflowPath, nativeJob(runner, "[{ uses: actions/checkout@v4 }]"), ["readiness"]);
+  assertions++;
 }
 
 try {

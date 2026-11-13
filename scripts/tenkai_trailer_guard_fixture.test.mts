@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -70,7 +70,11 @@ test('workflow has one read-only job, exact base/head data, immutable verified r
 
 });
 
-test('adoption refuses a trailer template with no job named for its required context', () => {
+test.each([
+  ['a mismatched job name', template.replace('  forbidden-commit-trailers:', '  trailer-policy-runner:'), 'must equal one static workflow job name'],
+  ['an empty job', 'jobs:\n  forbidden-commit-trailers: {}\n', 'needs a runner and executable workflow steps'],
+  ['a runner without steps', 'jobs:\n  forbidden-commit-trailers:\n    runs-on: ubuntu-latest\n', 'needs a runner and executable workflow steps'],
+])('adoption refuses a trailer template with %s', (_case, workflow, reason) => {
   const repo = temp();
   const root = temp();
   try {
@@ -80,11 +84,12 @@ test('adoption refuses a trailer template with no job named for its required con
       copyFileSync(join(source, path), join(root, path));
     }
     writeFileSync(join(root, 'templates/forbidden-commit-trailers.yml'),
-      template.replace('  forbidden-commit-trailers:', '  trailer-policy-runner:'));
+      workflow.startsWith('#') ? workflow : template.split('jobs:')[0] + workflow);
     expect(run(repo, 'apply', root)).toMatchObject({
       state: 'blocked',
-      detail: relative + ': required context "forbidden-commit-trailers" must equal one static workflow job name',
+      detail: relative + ': required context "forbidden-commit-trailers" ' + reason,
     });
+    expect(existsSync(join(repo, relative))).toBe(false);
   } finally {
     rmSync(repo, { recursive: true, force: true });
     rmSync(root, { recursive: true, force: true });
@@ -282,7 +287,7 @@ test('Tenkai apply relays the trailer item and renders a real consumer workflow'
     expect(readFileSync(join(repo, relative), 'utf8')).toBe(template);
     const readiness = '.github/workflows/pr-readiness.yml';
     const pr = '.github/workflows/pr.yml';
-    writeFileSync(join(repo, pr), 'name: PR\non: pull_request\njobs:\n  shu:\n    runs-on: ubuntu-latest\n  browser:\n    name: typecheck-and-e2e\n    runs-on: ubuntu-latest\n');
+    writeFileSync(join(repo, pr), 'name: PR\non: pull_request\njobs:\n  shu:\n    runs-on: ubuntu-latest\n    steps: [{ run: npm test }]\n  browser:\n    name: typecheck-and-e2e\n    runs-on: ubuntu-latest\n    steps: [{ run: npm test }]\n');
     const required = {
       [relative]: ['forbidden-commit-trailers'],
       [readiness]: ['readiness'],
@@ -302,6 +307,25 @@ test('Tenkai apply relays the trailer item and renders a real consumer workflow'
     expect(adopt().state).toBe('satisfied');
   } finally { rmSync(repo, { recursive: true, force: true }); }
 });
+
+test.each([
+  ['a missing runner', 'steps: [{ run: echo ok }]'],
+  ['an empty runner', 'runs-on: []\n    steps: [{ run: echo ok }]'],
+  ['a malformed runner map', 'runs-on: { group: 123 }\n    steps: [{ run: echo ok }]'],
+  ['an empty steps list', 'runs-on: ubuntu-latest\n    steps: []'],
+  ['a display-only step', 'runs-on: ubuntu-latest\n    steps: [{ name: Display only }]'],
+  ['a blank command', 'runs-on: ubuntu-latest\n    steps: [{ run: " " }]'],
+])('native context rejects %s', (_case, body) => {
+  expect(() => assertRequiredJobContexts(relative, 'jobs:\n  check:\n    ' + body, ['check']))
+    .toThrow(relative + ': required context "check" needs a runner and executable workflow steps');
+});
+
+test.each(['ubuntu-latest', '[self-hosted, linux]', '{ group: pool-ci, labels: linux }', '"${{ inputs.runner }}"'])(
+  'native context accepts runner %s with an action-only step', runner => {
+    expect(() => assertRequiredJobContexts(relative,
+      'jobs:\n  check:\n    runs-on: ' + runner + '\n    steps: [{ uses: actions/checkout@v4 }]', ['check'])).not.toThrow();
+  },
+);
 
 test('published check is bound to the exact head, GitHub Actions producer and this workflow run', () => {
   const result = exercise('clean');

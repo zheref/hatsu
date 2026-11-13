@@ -25,6 +25,27 @@ export function assertRequiredJobContexts(workflow: string, text: string, contex
   assertJobContexts(workflow, workflowJobs(workflow, text, contexts), contexts);
 }
 
+function nonemptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function runnerLabels(value: unknown): boolean {
+  return nonemptyString(value) || (Array.isArray(value) && value.length > 0 && value.every(nonemptyString));
+}
+
+function hasRunner(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return runnerLabels(value);
+  const { group, labels } = value as Record<string, unknown>;
+  return (group !== undefined || labels !== undefined) &&
+    (group === undefined || nonemptyString(group)) && (labels === undefined || runnerLabels(labels));
+}
+
+function executableStep(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const { run, uses } = value as Record<string, unknown>;
+  return run === undefined ? nonemptyString(uses) : uses === undefined && nonemptyString(run);
+}
+
 function assertJobContexts(workflow: string, decoded: Record<string, WorkflowJob>, contexts: readonly string[]) {
   const jobs = Object.entries(decoded);
   for (const context of contexts) {
@@ -33,6 +54,11 @@ function assertJobContexts(workflow: string, decoded: Record<string, WorkflowJob
       (job.name === undefined ? id : job.name) === context);
     if (matches.length !== 1 || matches[0][1].strategy?.matrix !== undefined || matches[0][1].uses !== undefined) {
       throw new Error(workflow + ': required context "' + context + '" must equal one static workflow job name');
+    }
+    const job = matches[0][1];
+    if (!hasRunner(job["runs-on"]) || !Array.isArray(job.steps) || job.steps.length === 0 ||
+        !job.steps.every(executableStep)) {
+      throw new Error(workflow + ': required context "' + context + '" needs a runner and executable workflow steps');
     }
   }
 }
