@@ -4,9 +4,10 @@ import { spawnSync } from "node:child_process";
 import { regularText } from "./readiness_workflow_policy.mts";
 
 const CONTRACT_PATH = "contracts/required-job-contexts.json";
-type WorkflowDocument = { jobs?: Record<string, { name?: unknown; strategy?: { matrix?: unknown }; uses?: unknown }> };
+type WorkflowJob = { name?: unknown; strategy?: { matrix?: unknown }; uses?: unknown; "runs-on"?: unknown; steps?: unknown };
+type WorkflowDocument = { jobs?: Record<string, WorkflowJob> };
 
-export function assertRequiredJobContexts(workflow: string, text: string, contexts: readonly string[]) {
+function workflowJobs(workflow: string, text: string, contexts: readonly string[]) {
   const decoded = spawnSync("ruby", ["-rpsych", "-rjson", "-e", "puts JSON.generate(Psych.safe_load(STDIN.read))"], {
     input: text, encoding: "utf8", timeout: 5_000, maxBuffer: 2 * 1024 * 1024,
   });
@@ -17,7 +18,36 @@ export function assertRequiredJobContexts(workflow: string, text: string, contex
     throw new Error(workflow + ": Ruby/Psych could not decode workflow jobs for required contexts " + contexts.join(", "));
   }
   const document: WorkflowDocument | null = JSON.parse(decoded.stdout);
-  const jobs = Object.entries(document?.jobs ?? {});
+  return document?.jobs ?? {};
+}
+
+export function assertRequiredJobContexts(workflow: string, text: string, contexts: readonly string[]) {
+  assertJobContexts(workflow, workflowJobs(workflow, text, contexts), contexts);
+}
+
+function nonemptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function runnerLabels(value: unknown): boolean {
+  return nonemptyString(value) || (Array.isArray(value) && value.length > 0 && value.every(nonemptyString));
+}
+
+function hasRunner(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return runnerLabels(value);
+  const { group, labels } = value as Record<string, unknown>;
+  return (group !== undefined || labels !== undefined) &&
+    (group === undefined || nonemptyString(group)) && (labels === undefined || runnerLabels(labels));
+}
+
+function executableStep(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const { run, uses } = value as Record<string, unknown>;
+  return run === undefined ? nonemptyString(uses) : uses === undefined && nonemptyString(run);
+}
+
+function assertJobContexts(workflow: string, decoded: Record<string, WorkflowJob>, contexts: readonly string[]) {
+  const jobs = Object.entries(decoded);
   for (const context of contexts) {
     const matches = jobs.filter(([id, job]) =>
       /^[A-Za-z_][A-Za-z0-9_-]*$/.test(id) && job !== null && typeof job === "object" && !Array.isArray(job) &&
@@ -25,10 +55,15 @@ export function assertRequiredJobContexts(workflow: string, text: string, contex
     if (matches.length !== 1 || matches[0][1].strategy?.matrix !== undefined || matches[0][1].uses !== undefined) {
       throw new Error(workflow + ': required context "' + context + '" must equal one static workflow job name');
     }
+    const job = matches[0][1];
+    if (!hasRunner(job["runs-on"]) || !Array.isArray(job.steps) || job.steps.length === 0 ||
+        !job.steps.every(executableStep)) {
+      throw new Error(workflow + ': required context "' + context + '" needs a runner and executable workflow steps');
+    }
   }
 }
 
-export function assertManagedRequiredJobContexts(root: string, workflow: string, text: string) {
+function requiredContexts(root: string, workflow: string): string[] {
   const source = regularText(root, CONTRACT_PATH);
   const contract = source === undefined ? null : JSON.parse(source);
   const contexts: unknown = contract?.workflows?.[workflow];
@@ -38,5 +73,33 @@ export function assertManagedRequiredJobContexts(root: string, workflow: string,
       new Set(contexts).size !== contexts.length) {
     throw new Error(workflow + ": required job context declaration is missing or malformed in " + CONTRACT_PATH);
   }
-  assertRequiredJobContexts(workflow, text, contexts);
+  return contexts;
+}
+
+export function assertManagedRequiredJobContexts(root: string, workflow: string, text: string) {
+  assertRequiredJobContexts(workflow, text, requiredContexts(root, workflow));
+}
+
+export function inspectReadinessJob(root: string, workflow: string, text: string) {
+  const contexts = requiredContexts(root, workflow);
+  let runner: string | undefined;
+  try {
+    const jobs = workflowJobs(workflow, text, contexts);
+    const readiness = Object.values(jobs).filter(job => job && Array.isArray(job.steps) &&
+      job.steps.some(step => step?.name === "Readiness verdict" && typeof step.run === "string" &&
+        step.run.split(/\r?\n/).some(line => line.trim() === "node .trusted/scripts/readiness_ci_verdict.mts")));
+    const selector = readiness.length === 1 ? readiness[0]["runs-on"] : undefined;
+    const safeLabel = (label: unknown): label is string =>
+      typeof label === "string" && /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(label);
+    const yamlLabel = (label: string) =>
+      /^(?:[0-9]|(?:yes|no|on|off|true|false|null|y|n)$)/i.test(label) ? JSON.stringify(label) : label;
+    if (safeLabel(selector) && selector !== "self-hosted") runner = yamlLabel(selector);
+    if (Array.isArray(selector) && selector.length > 1 && selector.every(safeLabel)) {
+      runner = "[" + selector.map(yamlLabel).join(", ") + "]";
+    }
+    assertJobContexts(workflow, jobs, contexts);
+    return { runner, diagnostic: undefined };
+  } catch (error) {
+    return { runner, diagnostic: (error as Error).message };
+  }
 }
