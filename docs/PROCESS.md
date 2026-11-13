@@ -845,8 +845,11 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   beside the private-name one (unfiled).
 - **Ruling record HR inventory.** `scripts/ruling_id_inventory.mts` reads the fresh base and counts
   the open PRs, changed files, and roster diff rows for `ruling_record.mts next-id` and `render`.
-  It refuses a changed PR head or base or a moved base tip observed during the read. The GitHub reads
-  follow the port-rule reservation precedent. They are temporary Hatsu-local
+  Git and GitHub must read the same repository. When a PR changes the roster, the inventory checks
+  its diff counts and reads the full roster at the merge base and head so fenced examples and
+  comments cannot claim an id. It refuses a moved PR head, PR base, or remote base tip observed
+  during the read. The counted GitHub reads follow the port-rule reservation precedent. The port-rule reader skips forks. The HR inventory
+  reads them because a fork PR can add a roster row. These reads are temporary Hatsu-local
   residue until the path-scoped next-id reader in [zheref/nen#456](https://github.com/zheref/nen/issues/456)
   ships. The inventory cannot coordinate unpublished parallel writers.
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry

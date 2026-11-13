@@ -5,9 +5,10 @@
 // export -> render -> check in a throwaway git repository, one coded render against this checkout's
 // nen/repos.json, and the check over the live roster. HR-368's cases (zheref/hatsu#506) move the stub registry under a landed row.
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -33,14 +34,14 @@ function initInventory(): void {
   git(['init', '-q', '-b', 'main']);
   git(['config', 'user.name', 'Ruling Fixture']);
   git(['config', 'user.email', 'fixture@example.invalid']);
-  git(['config', `url.${scanOrigin}.insteadOf`, `https://github.com/${scanSlug}.git`]);
   git(['remote', 'add', 'origin', `https://github.com/${scanSlug}.git`]);
   mkdirSync(join(scanRepo, 'nen'));
   writeFileSync(join(scanRepo, 'nen/workflow.json'), JSON.stringify({ branch: { base: 'main' } }));
+  copyFileSync(fileURLToPath(new URL('../nen/repos.json', import.meta.url)), join(scanRepo, 'nen/repos.json'));
   roster(join(scanRepo, 'docs'), ['| <a id="hr-383"></a>**HR-383** | A base ruling |']);
   git(['add', '.']);
   git(['commit', '-qm', 'Base roster']);
-  git(['push', '-q', 'origin', 'main']);
+  git(['push', '-q', scanOrigin, 'main']);
   git(['switch', '-qc', 'fixture/ruling']);
   const gh = join(ghBin, 'gh');
   writeFileSync(gh, `#!/bin/sh
@@ -70,10 +71,42 @@ case "$*" in
     if [ "$GH_SCENARIO" = short-files ]; then printf '%s\\n' '[[]]'; else cat "$GH_FIXTURE_DATA/$GH_SCENARIO.files.json"; fi ;;
   "pr diff 572 --repo ${scanSlug}")
     cat "$GH_FIXTURE_DATA/$GH_SCENARIO.diff" ;;
+  "api repos/${scanSlug}/compare/"*)
+    if [ "$GH_SCENARIO" = merge-base-unread ]; then exit 1; fi
+    base=$(cat "$GH_FIXTURE_DATA/$GH_SCENARIO.base-oid")
+    head=$(cat "$GH_FIXTURE_DATA/$GH_SCENARIO.head-oid")
+    [ "$2" = "repos/${scanSlug}/compare/$base...$head?per_page=1" ] && printf '%s\\n' "$base" ;;
+  "api repos/${scanSlug}/contents/docs/ROSTER.md?ref="*)
+    base=$(cat "$GH_FIXTURE_DATA/$GH_SCENARIO.base-oid")
+    head=$(cat "$GH_FIXTURE_DATA/$GH_SCENARIO.head-oid")
+    case "$2" in
+      "repos/${scanSlug}/contents/docs/ROSTER.md?ref=$base") cat "$GH_FIXTURE_DATA/$GH_SCENARIO.old.md" ;;
+      "repos/${scanSlug}/contents/docs/ROSTER.md?ref=$head") cat "$GH_FIXTURE_DATA/$GH_SCENARIO.new.md" ;;
+      *) exit 127 ;;
+    esac ;;
   *) exit 127 ;;
 esac
 `);
   chmodSync(gh, 0o755);
+  const gitShim = join(ghBin, 'git');
+  writeFileSync(gitShim, `#!/bin/sh
+case "$GIT_SCENARIO:$1:$2" in
+  'cat-failure:cat-file:--batch-check=%(objecttype)') exit 128 ;;
+  'cat-signal:cat-file:--batch-check=%(objecttype)') kill -TERM "$$" ;;
+  'ancestor-failure:merge-base:--is-ancestor') exit 128 ;;
+  'ancestor-signal:merge-base:--is-ancestor') kill -TERM "$$" ;;
+esac
+case "$1:$2:$3:$4" in
+  ls-remote:--exit-code:origin:*)
+    shift 3
+    set -- ls-remote --exit-code "$GIT_FIXTURE_ORIGIN" "$@" ;;
+  fetch:--no-tags:--no-write-fetch-head:origin)
+    shift 4
+    set -- fetch --no-tags --no-write-fetch-head "$GIT_FIXTURE_ORIGIN" "$@" ;;
+esac
+PATH="\${PATH#*:}" exec git "$@"
+`);
+  chmodSync(gitShim, 0o755);
 }
 
 let cases = 0;
@@ -83,7 +116,7 @@ function inventoryArgs(args: string[]): string[] {
   return ['render', 'next-id'].includes(args[0] ?? '') ? [...args, '--repo', scanRepo] : args;
 }
 
-const inventoryEnv = { PATH: `${ghBin}:${process.env.PATH}`, GH_FIXTURE_DATA: ghData, GH_SCENARIO: 'none' };
+const inventoryEnv = { PATH: `${ghBin}:${process.env.PATH}`, GH_FIXTURE_DATA: ghData, GH_SCENARIO: 'none', GIT_FIXTURE_ORIGIN: scanOrigin };
 
 function run(args: string[], env: Record<string, string> = {}): Run {
   const r = spawnSync(process.execPath, [script, ...inventoryArgs(args)], { cwd: scratch, encoding: 'utf8', env: { ...process.env, ...inventoryEnv, ...env } });
@@ -148,7 +181,7 @@ const stub = join(scratch, 'stub-nen');
 writeFileSync(stub, `#!/bin/sh\nexec "${process.execPath}" "${stubJs}" "$@"\n`);
 chmodSync(stub, 0o755);
 
-try {
+function runHistoricalFixture(): void {
   initInventory();
   const d1 = join(scratch, 'd1', 'ruling-records');
   const picked = recordFile(d1, base);
@@ -421,30 +454,160 @@ try {
   }
   const live = fileURLToPath(new URL('../docs/ROSTER.md', import.meta.url));
   expect('the live roster matches every record it cites', run(['check', '--roster', live]), 0, /ruling-record: /);
-  {
+
+  console.log(`ruling-record fixture: ${cases} cases passed`);
+}
+
+export function runInventoryFixture(): void {
+  try {
+    initInventory();
+    const picked = recordFile(join(scratch, 'picked'), base);
+    const typed = recordFile(join(scratch, 'typed'), { ...base, id: 'R-2026-10-23-02', kind: 'typed', pick: null, typed: 'Neither' });
     const scan = (scenario: string) => run(['next-id', '--json'], { GH_SCENARIO: scenario });
-    const render = (hr: number, scenario = 'none', record = picked) => run(
+    const render = (hr: number, scenario = 'none', record = picked, gitScenario = '') => run(
       ['render', '--record', record, '--hr', `HR-${hr}`, '--status', 'ruled', '--settles', 'what it settles'],
-      { GH_SCENARIO: scenario });
+      { GH_SCENARIO: scenario, GIT_SCENARIO: gitScenario });
+    for (const gitScenario of ['cat-failure', 'cat-signal']) {
+      expect(`an unexpected Git object probe failure refuses allocation (${gitScenario})`,
+        run(['next-id', '--json'], { GIT_SCENARIO: gitScenario }), 2, /^$/, /base origin\/main could not be read: git (?:exit 128|SIGTERM)/);
+    }
+    const configured = `https://github.com/${scanSlug}.git`;
+    for (const [destination, status] of [
+      [`git@github.com:${scanSlug}.git`, 0],
+      ['https://github.com/fixture/different.git', 2],
+      ['https://example.invalid/fixture/hatsu.git', 2],
+    ] as const) {
+      const key = `url.${destination}.insteadOf`;
+      git(['config', key, configured]);
+      const result = scan('none');
+      expect(`an origin URL rewrite to ${destination} exits ${status}`, result, status,
+        status === 0 ? /"next":"HR-384"/ : /^$/, status === 2 ? /expected one GitHub fetch URL with the configured repository identity/ : null);
+      git(['config', '--unset-all', key]);
+    }
+    git(['remote', 'set-url', '--add', 'origin', configured]);
+    expect('multiple origin fetch URLs refuse allocation', scan('none'), 2, /^$/, /expected one GitHub fetch URL/);
+    git(['config', '--unset-all', 'remote.origin.url']);
+    git(['config', 'remote.origin.url', configured]);
+
+    const registryPath = join(scanRepo, 'nen/repos.json');
+    const registry = readFileSync(registryPath, 'utf8');
+    const otherRegistry = JSON.parse(registry.replaceAll('"zheref/hatsu"', '"fixture-org/hatsu"'));
+    writeFileSync(registryPath, JSON.stringify(otherRegistry));
+    const names = join(scratch, 'names.txt');
+    writeFileSync(names, 'fixture-org/private-test-only\n');
+    const reference = recordFile(join(scratch, 'reference'), { ...base, question: 'hatsu #5?' });
+    const foreignRender = run(['render', '--record', reference, '--hr', 'HR-343', '--status', 'ruled',
+      '--settles', 'x', '--names-file', names]);
+    expect('the explicit checkout supplies its registry instead of the script checkout',
+      foreignRender, 0, /\| fixture-org\/hatsu#5\? \|/);
+    writeFileSync(registryPath, registry);
+
     const rosterPath = join(scanRepo, 'docs/ROSTER.md');
     const baseline = readFileSync(rosterPath, 'utf8');
-    const additions = [384, 385, 386, 387].map((n) => `+| <a id="hr-${n}"></a>**HR-${n}** | Added by a PR |`);
-    const header = ['diff --git a/docs/ROSTER.md b/docs/ROSTER.md', '--- a/docs/ROSTER.md', '+++ b/docs/ROSTER.md'];
-    const diff = (lines: string[]) => [...header, '@@ -0,0 +1,4 @@', ...lines, ''].join('\n');
+    const anchor = (id: number): string => `<a id="hr-${id}"></a>**HR-${id}**`;
+    const additions = [384, 385, 386, 387].map((n) => `| ${anchor(n)} | Added by a PR |\n`).join('');
     const originalTip = git(['rev-parse', 'HEAD']);
     const pr = {
-      number: 572, headRefName: 'someone-else', headRefOid: originalTip, isCrossRepository: false,
+      number: 572, headRefName: 'someone-else', headRefOid: 'c'.repeat(40), isCrossRepository: false,
       changedFiles: 1, baseRefName: 'main', baseRefOid: originalTip,
     };
-    const changed = { filename: 'docs/ROSTER.md', status: 'modified', additions: 4, deletions: 0 };
-    for (const scenario of ['open', 'short-files', 'truncated', 'smuggled', 'fork', 'head-drift', 'base-drift']) {
-      writeFileSync(join(ghData, `${scenario}.pulls.json`), JSON.stringify([{ ...pr, isCrossRepository: scenario === 'fork' }]));
-      writeFileSync(join(ghData, `${scenario}.files.json`), JSON.stringify([[changed]]));
-      const body = scenario === 'truncated' ? diff(additions.slice(0, 3))
-        : scenario === 'smuggled' ? ['diff --git a/other b/other', '--- a/other', '+++ b/other', '@@ -0,0 +1,1 @@', '++++ b/docs/ROSTER.md', ''].join('\n')
-        : diff(additions);
+    const fixturePull = (scenario: string, claimant: typeof pr, before: string, after: string,
+      status: 'added' | 'modified' | 'removed' = 'modified'): void => {
+      const oldPath = join(ghData, `${scenario}.old.md`);
+      const newPath = join(ghData, `${scenario}.new.md`);
+      writeFileSync(oldPath, before);
+      writeFileSync(newPath, after);
+      const raw = spawnSync('git', ['diff', '--no-index', '--no-color', '--no-ext-diff', '--unified=0', '--', oldPath, newPath],
+        { cwd: scratch, encoding: 'utf8' });
+      assert.equal(raw.status, 1, raw.stderr);
+      const hunks = raw.stdout.slice(raw.stdout.indexOf('@@ '));
+      assert.ok(hunks.startsWith('@@ '), 'the roster fixture needs a real hunk');
+      const hash = (text: string): string => createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0`).update(text).digest('hex');
+      const body = [
+        'diff --git a/docs/ROSTER.md b/docs/ROSTER.md',
+        `index ${status === 'added' ? '0'.repeat(40) : hash(before)}..${status === 'removed' ? '0'.repeat(40) : hash(after)} 100644`,
+        status === 'added' ? '--- /dev/null' : '--- a/docs/ROSTER.md',
+        status === 'removed' ? '+++ /dev/null' : '+++ b/docs/ROSTER.md', hunks,
+      ].join('\n');
+      const file = {
+        filename: 'docs/ROSTER.md', status,
+        additions: hunks.split('\n').filter((line) => line.startsWith('+')).length,
+        deletions: hunks.split('\n').filter((line) => line.startsWith('-')).length,
+      };
+      writeFileSync(join(ghData, `${scenario}.pulls.json`), JSON.stringify([claimant]));
+      writeFileSync(join(ghData, `${scenario}.files.json`), JSON.stringify([[file]]));
       writeFileSync(join(ghData, `${scenario}.diff`), body);
+      writeFileSync(join(ghData, `${scenario}.base-oid`), claimant.baseRefOid);
+      writeFileSync(join(ghData, `${scenario}.head-oid`), claimant.headRefOid);
+    };
+    for (const scenario of ['open', 'short-files', 'truncated', 'smuggled', 'fork', 'head-drift', 'base-drift', 'content-mismatch', 'merge-base-unread']) {
+      fixturePull(scenario, { ...pr, isCrossRepository: scenario === 'fork' }, baseline, baseline + additions);
     }
+    const truncate = join(ghData, 'truncated.diff');
+    writeFileSync(truncate, readFileSync(truncate, 'utf8').split('\n').slice(0, -2).join('\n') + '\n');
+    const smuggled = join(ghData, 'smuggled.diff');
+    writeFileSync(smuggled, readFileSync(smuggled, 'utf8').replace('diff --git a/docs/ROSTER.md b/docs/ROSTER.md', 'diff --git a/other b/other'));
+    writeFileSync(join(ghData, 'content-mismatch.new.md'), baseline);
+
+    const literalBefore = baseline + [
+      '', '~~~markdown', 'unchanged example', 'unchanged example', 'replace fence', '~~~',
+      '', '<!--', 'unchanged comment', 'unchanged comment', 'replace comment', '-->',
+      '', 'a code example begins ``', 'unchanged code', 'replace inline', '`` and ends here.',
+      '', '    replace indented', '\treplace tab',
+      '',
+    ].join('\n');
+    const literalAfter = literalBefore.replace('replace fence', anchor(999999))
+      .replace('replace comment', '<a id="hr-980"></a>**HR-981**')
+      .replace('replace inline', anchor(999998))
+      .replace('replace indented', anchor(999997))
+      .replace('replace tab', anchor(999996));
+    const genuine = [
+      `${anchor(384)} A paragraph ruling.`,
+      `1. ${anchor(385)} A list ruling.`,
+      `| A table cell | ${anchor(386)} and ${anchor(387)} are both live. |`,
+      '',
+    ].join('\n');
+    fixturePull('literal-context', { ...pr, isCrossRepository: true }, literalBefore, literalAfter + genuine);
+    const visible = scan('literal-context');
+    expect('a fork reserves genuine paragraph, list and inline table anchors, including two on a line',
+      visible, 0, /"next":"HR-388"/);
+    assert.deepEqual(JSON.parse(visible.stdout).seen.filter(({ where }: { where: string }) => where === 'PR #572')
+      .map(({ id }: { id: string }) => id), ['HR-384', 'HR-385', 'HR-386', 'HR-387']);
+    const listContext = [
+      '', '1. A list item.', '', `    ${anchor(388)} A genuine list continuation.`,
+      '', `       ${anchor(999999)} An indented example inside the list.`, '',
+    ].join('\n');
+    fixturePull('list-context', pr, baseline, baseline + listContext);
+    expect('list continuation anchors are live while a deeper indented example is literal',
+      scan('list-context'), 0, /"next":"HR-389"/);
+    fixturePull('context-activation', pr, `${baseline}\n~~~\n${anchor(388)}\n~~~\n`, `${baseline}\n${anchor(388)}\n`);
+    expect('removing fence lines makes an unchanged anchor a new holder', scan('context-activation'), 0, /"next":"HR-389"/);
+    const liveAnchor = `| ${anchor(384)} | A genuine holder after the fence. |`;
+    const literalAnchor = anchor(999999);
+    for (const [scenario, lines, hasExample] of [
+      ['overindented-fence-close', ['```', '    ```', '```', liveAnchor], false],
+      ['tabbed-fence-close', ['```', '\t```', literalAnchor, '   ```', liveAnchor], true],
+      ['deeper-quote-fence-close', ['> ~~~', '> > ~~~', `> ${literalAnchor}`, '> ~~~', `> ${liveAnchor}`], true],
+      ['quote-tab-fence-close', ['> ~~~', '>     ~~~', `> ${literalAnchor}`, '> \t~~~', `> ${liveAnchor}`], true],
+      ['list-relative-fence-close', ['1. ~~~', '       ~~~', `   ${literalAnchor}`, '   ~~~', `    ${liveAnchor}`], true],
+      ['list-quote-fence-close', ['1. ~~~', '   > ~~~', `   ${literalAnchor}`, '   ~~~', `    ${liveAnchor}`], true],
+    ] as const) {
+      fixturePull(scenario, pr, baseline, [baseline, ...lines, ''].join('\n'));
+      const next = scan(scenario);
+      expect(`a genuine anchor after the closer reserves HR-384 (${scenario})`, next, 0, /"next":"HR-385"/);
+      assert.deepEqual(JSON.parse(next.stdout).seen.filter(({ where }: { where: string }) => where === 'PR #572'),
+        [{ id: 'HR-384', where: 'PR #572' }]);
+      expect(`render names the real PR holder after the closer (${scenario})`,
+        render(384, scenario), 1, /^$/, /HR-384 is held by PR #572/);
+      if (hasExample) expect(`render ignores the fenced example holder (${scenario})`,
+        render(999999, scenario), 0, /\*\*HR-999999\*\*/);
+    }
+    fixturePull('added-roster', pr, '', additions, 'added');
+    expect('an added roster reads only the immutable head', scan('added-roster'), 0, /"next":"HR-388"/);
+    fixturePull('removed-roster', pr, baseline, '', 'removed');
+    expect('a removed roster adds no holder and keeps the live base holder', scan('removed-roster'), 0, /"next":"HR-384"/);
+    fixturePull('malformed-anchor', pr, baseline, baseline + '<a id="hr-980"></a>**HR-981**\n');
+    expect('a malformed live anchor fails closed', scan('malformed-anchor'), 2, /^$/, /a ruling anchor and its HR id disagree/);
     for (const [scenario, moved] of [
       ['head-drift', { ...pr, headRefOid: 'a'.repeat(40) }],
       ['base-drift', { ...pr, baseRefOid: 'b'.repeat(40) }],
@@ -468,7 +631,7 @@ try {
     }
     expect('base collisions name the base', render(383), 1, null, /held by base origin\/main/);
     expect('fork PRs are included', scan('fork'), 0, /"next":"HR-388"/);
-    for (const scenario of ['credentials', 'rate', 'incomplete', 'short-pulls', 'short-files', 'truncated', 'smuggled']) {
+    for (const scenario of ['credentials', 'rate', 'incomplete', 'short-pulls', 'short-files', 'truncated', 'smuggled', 'content-mismatch', 'merge-base-unread']) {
       const unread = scan(scenario);
       expect(`incomplete read refuses allocation (${scenario})`, unread, 2, null, /could not be read/);
       assert.equal(unread.stdout, '');
@@ -499,7 +662,10 @@ try {
     expect('a second unlanded allocation advances past the worktree id', scan('none'), 0, /"next":"HR-392"/);
     const impostor = recordFile(join(scratch, 'impostor'), { ...base, question: 'Another record using the same key?' });
     expect('the record key alone cannot claim an existing row', render(391, 'none', impostor), 1, null, /held by effort worktree/);
-    git(['add', 'docs']);
+    git(['add', '--', 'docs/ROSTER.md']);
+    const splitRerender = render(391, 'none', canonical);
+    expect('a staged roster and an unstaged export rerender at the existing id', splitRerender, 0);
+    assert.equal(splitRerender.stdout, original.stdout);
     writeFileSync(rosterPath, baseline);
     const staged = scan('none');
     expect('a staged-only row is still held', staged, 0, /"next":"HR-392"/);
@@ -508,23 +674,50 @@ try {
     const stagedRerender = render(391, 'none', canonical);
     expect('a same-record staged rerender succeeds', stagedRerender, 0);
     assert.equal(stagedRerender.stdout, original.stdout);
+    expect('a staged-only roster keeps its id with an unstaged export',
+      render(392, 'none', canonical), 1, /^$/, /keeps HR-391 at effort index/);
+    rmSync(canonical);
+    for (const id of [391, 392]) {
+      expect(`an unread staged record blocks HR-${id}`, render(id, 'none', picked),
+        2, /^$/, /cannot verify record .* for HR-391 at effort index/);
+    }
+    recordFile(join(scanRepo, 'docs/ruling-records'), base);
+    writeFileSync(canonical, 'invalid staged JSON');
+    git(['add', '--', 'docs/ruling-records']);
+    recordFile(join(scanRepo, 'docs/ruling-records'), base);
+    expect('an invalid staged record cannot borrow its working copy', render(391, 'none', canonical),
+      2, /^$/, /cannot verify record .* for HR-391 at effort index/);
+    git(['add', '--', 'docs/ruling-records']);
     writeFileSync(rosterPath, baseline + original.stdout);
     git(['commit', '-qm', 'Record an effort ruling']);
     const ownHead = git(['rev-parse', 'HEAD']);
     const own = { ...pr, headRefName: 'fixture/ruling', headRefOid: ownHead };
-    const ownDiff = git(['diff', 'HEAD^', 'HEAD', '--', 'docs/ROSTER.md']) + '\n';
-    for (const [scenario, claimant] of [['own', own], ['same-name-fork', { ...own, isCrossRepository: true }], ['same-name-diverged', { ...own, headRefOid: 'f'.repeat(40) }]] as const) {
-      writeFileSync(join(ghData, `${scenario}.pulls.json`), JSON.stringify([claimant]));
-      writeFileSync(join(ghData, `${scenario}.files.json`), JSON.stringify([[{ ...changed, additions: 1 }]]));
-      writeFileSync(join(ghData, `${scenario}.diff`), ownDiff);
+    const divergentHead = git(['rev-parse', 'HEAD'], originWriter);
+    const claimants = [
+      ['own', own],
+      ['same-name-fork', { ...own, isCrossRepository: true }],
+      ['same-name-diverged', { ...own, headRefOid: divergentHead }],
+      ['same-name-absent', { ...own, headRefOid: 'f'.repeat(40) }],
+    ] as const;
+    for (const [scenario, claimant] of claimants) {
+      fixturePull(scenario, claimant, baseline, baseline + original.stdout);
     }
     const published = render(391, 'own', canonical);
     expect('an own PR holder allows a same-record rerender', published, 0);
     assert.equal(published.stdout, original.stdout);
     expect('a same-name fork still collides', render(391, 'same-name-fork', canonical), 1, null, /held by PR #572/);
     expect('a same-name non-ancestor still collides', render(391, 'same-name-diverged', canonical), 1, null, /held by PR #572/);
+    expect('a same-name PR with no local head still collides', render(391, 'same-name-absent', canonical), 1, null, /held by PR #572/);
+    for (const gitScenario of ['ancestor-failure', 'ancestor-signal']) {
+      expect(`an unexpected Git ancestry probe failure refuses render (${gitScenario})`,
+        render(391, 'own', canonical, gitScenario), 2, /^$/, /PR #572 head ancestry could not be read: git (?:exit 128|SIGTERM)/);
+    }
+    console.log(`ruling-record inventory fixture: ${cases} cases passed`);
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
   }
-  console.log(`ruling-record fixture: ${cases} cases passed`);
-} finally {
-  rmSync(scratch, { recursive: true, force: true });
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try { runHistoricalFixture(); } finally { rmSync(scratch, { recursive: true, force: true }); }
 }

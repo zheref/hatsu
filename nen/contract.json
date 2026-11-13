@@ -347,7 +347,7 @@
       "ruling-record": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The focused lane for scripts/ruling_record.mts (zheref/hatsu#443; SDD plan wave 1, ruling capture): the Hatsu half on top of nen 0.26.0's nen stop answer, which records every picker answer. The script exports a record through nen stop answer show --json into docs/ruling-records/, renders a ROSTER ruling row from it after checking the live HR holders, inventories the next HR id through scripts/ruling_id_inventory.mts, checks every ROSTER line citing a record cell by cell by HR id (orphan, twice-cited and unreadable records are findings), and composes an idle pre-answer as one nen stop answer --record call. Its fixture is hermetic for its synthetic rosters, records and stub nen (render of a pick, a typed reply with a line break and a pipe, a typed reply nen matched to a label, a backticked label; refused records, --hr and settles forms; every check finding and wiring refusal; export copied, idempotent, conflicting, absent, unreadable and unparseable; pre-answer argv, human-gate and unstarred refusals, a nen refusal passed through; an idle pre-answer labelled pre-answered, a typed-by-design row, markup escaped, a repository-named #N coded through the stub's repo resolve in the question, a code span, the options and the picked label but never typed words, an unknown word and all left as written, a coded private slug refused unnamed, a typed reply matched to a label left uncoded in the answer cell, an unparseable, a repos-less, a slugless and a failed resolve reply refused as wiring, a private-name guard exit other than 0 or 1 refused as wiring in render and export, a landed coded row failed by HR id after a registry rename, a reference that stops resolving, one that becomes ambiguous and one that newly resolves, and passing once re-rendered with its record and typed words unchanged, a hand-retyped row naming no registry cause (HR-368), a record keyed <effort>--<R-id> and a collision refused, a newer contract at exit 2, annotation-safe file names and parse failures, export projecting nen's keys and refusing a private name or a secret shape), then runs the REAL nen (NEN, else PATH) through record, export, render and check in a throwaway git repository, a typed-by-design record included, renders one coded reference against this checkout's nen/repos.json, and checks the live roster. A local Git origin and stub gh exercise three runs of each HA-588 success case, a fresh base, worktree and own-PR idempotence, a staged-only holder, foreign holders, PR head and base drift, and incomplete reads. Run it as `nen shu test --lane ruling-record --repo <hatsu>` when either script, the fixture, docs/ruling-records/, nen/repos.json (a row renders from its record and the registry) or a ROSTER row citing a record changes. It is not a general suite."
+        "$comment": "The focused lane for scripts/ruling_record.mts (zheref/hatsu#443; SDD plan wave 1, ruling capture): the Hatsu half on top of nen 0.26.0's nen stop answer, which records every picker answer. The script exports a record through nen stop answer show --json into docs/ruling-records/, renders a ROSTER ruling row from it after checking the live HR holders, inventories the next HR id through scripts/ruling_id_inventory.mts, checks every ROSTER line citing a record cell by cell by HR id (orphan, twice-cited and unreadable records are findings), and composes an idle pre-answer as one nen stop answer --record call. Its fixture is hermetic for its synthetic rosters, records and stub nen (render of a pick, a typed reply with a line break and a pipe, a typed reply nen matched to a label, a backticked label; refused records, --hr and settles forms; every check finding and wiring refusal; export copied, idempotent, conflicting, absent, unreadable and unparseable; pre-answer argv, human-gate and unstarred refusals, a nen refusal passed through; an idle pre-answer labelled pre-answered, a typed-by-design row, markup escaped, a repository-named #N coded through the stub's repo resolve in the question, a code span, the options and the picked label but never typed words, an unknown word and all left as written, a coded private slug refused unnamed, a typed reply matched to a label left uncoded in the answer cell, an unparseable, a repos-less, a slugless and a failed resolve reply refused as wiring, a private-name guard exit other than 0 or 1 refused as wiring in render and export, a landed coded row failed by HR id after a registry rename, a reference that stops resolving, one that becomes ambiguous and one that newly resolves, and passing once re-rendered with its record and typed words unchanged, a hand-retyped row naming no registry cause (HR-368), a record keyed <effort>--<R-id> and a collision refused, a newer contract at exit 2, annotation-safe file names and parse failures, export projecting nen's keys and refusing a private name or a secret shape), then runs the REAL nen (NEN, else PATH) through record, export, render and check in a throwaway git repository, a typed-by-design record included, renders one coded reference against this checkout's nen/repos.json, and checks the live roster. The pinned Vitest suite uses a local Git origin and stub gh to exercise three runs of each HA-588 success case, a fresh base, worktree and own-PR idempotence, a staged-only holder, foreign holders, PR head and base drift, failed Git probes, effective origin identity, immutable roster mismatch, and fenced, commented, inline, and indented examples. Run it as `nen shu test --lane ruling-record --repo <hatsu>` when either script, the fixture, docs/ruling-records/, nen/repos.json (a row renders from its record and the registry) or a ROSTER row citing a record changes. It is not a general suite."
       },
       "product-term-guard": {
         "stack": "claude-code-plugin",
@@ -713,12 +713,34 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
+            "scripts/node_cli_coverage_fixture.mts",
+            "--capture",
+            "gh-api-read-guard",
+            "scripts/gh_api_read.mts",
+            "--",
+            "node",
             "node_modules/vitest/vitest.mjs",
             "run",
             "scripts/gh_api_read_fixture.test.mts",
             "scripts/provider_tag_commit_fixture.test.mts"
           ],
-          "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "Pinned Vitest fixtures: fixed GitHub API reads work and hostile arguments are rejected before any gh invocation; a provider release tag peels to its commit, annotated or lightweight (scripts/provider_tag_commit.mts, kuchiyose section 2, HA#331). Install locked dependencies with npm ci --ignore-scripts first. Native Node LCOV captures the exact TypeScript production sources executed by these CLI fixtures, including child processes.",
+          "artifacts": [
+            "coverage/gh-api-read-guard/cli/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/node_cli_coverage_fixture.mts",
+            "--verify",
+            "gh-api-read-guard",
+            "scripts/gh_api_read.mts"
+          ],
+          "artifacts": [
+            "coverage/gh-api-read-guard/cli/lcov.info"
+          ],
+          "$comment": "Extraction only. Verify the LCOV written by the declared test, with no fixture rerun. Nen owns artifact parsing and --from-capture provenance."
         }
       },
       "futon-effort-guard": {
@@ -974,6 +996,18 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
+            "scripts/node_cli_coverage_fixture.mts",
+            "--capture",
+            "tenkai-guard",
+            "--shell-source",
+            "scripts/tenkai_adopt.sh",
+            "scripts/readiness_workflow_policy.mts",
+            "scripts/tenkai_adopt.ts",
+            "scripts/tenkai_readiness_guard.mts",
+            "scripts/tenkai_readiness_policy.mts",
+            "scripts/tenkai_required_job_contexts.mts",
+            "--",
+            "node",
             "scripts/shell_coverage.mts",
             "--capture",
             "tenkai-guard",
@@ -981,22 +1015,30 @@
             "scripts/tenkai_adopt.sh",
             "--self-test"
           ],
-          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. The portable readiness fixture exercises the public adoption entry, trusted step and two-stage policy updates (zheref/hatsu#361). Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427). Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/tenkai-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane tenkai-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired, the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. The portable readiness fixture exercises the public adoption entry, trusted step and two-stage policy updates (zheref/hatsu#361). Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427). Native Node LCOV captures the five exact TypeScript production sources exercised by these CLI fixtures, including child processes. The lane still captures its shell entry under pinned Bashcov when available (zheref/hatsu#148); the combined report includes that source only when Bashcov produced it. The shell wrapper is unmeasured otherwise.",
           "artifacts": [
-            "coverage/tenkai-guard/lcov.info"
+            "coverage/tenkai-guard/lcov.info",
+            "coverage/tenkai-guard/cli/lcov.info"
           ]
         },
         "coverage": {
           "exe": "node",
           "argv": [
-            "scripts/shell_coverage.mts",
+            "scripts/node_cli_coverage_fixture.mts",
             "--verify",
-            "tenkai-guard"
+            "tenkai-guard",
+            "--shell-source",
+            "scripts/tenkai_adopt.sh",
+            "scripts/readiness_workflow_policy.mts",
+            "scripts/tenkai_adopt.ts",
+            "scripts/tenkai_readiness_guard.mts",
+            "scripts/tenkai_readiness_policy.mts",
+            "scripts/tenkai_required_job_contexts.mts"
           ],
           "artifacts": [
-            "coverage/tenkai-guard/lcov.info"
+            "coverage/tenkai-guard/cli/lcov.info"
           ],
-          "$comment": "Extraction only: reads coverage/tenkai-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+          "$comment": "Extraction only. Verify the exact-source LCOV written by the declared test, with no fixture rerun. Nen owns artifact parsing and --from-capture provenance."
         }
       },
       "tenkai-fixes-guard": {
@@ -1927,13 +1969,59 @@
       },
       "ruling-record": {
         "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "scripts/ruling_record_fixture.mts"
+          "steps": [
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "scripts/ruling_record_inventory_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/ruling-record', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/ruling_record.mts",
+                "--test-coverage-include=scripts/ruling_id_inventory.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/ruling-record/lcov.info",
+                "scripts/ruling_record_inventory_coverage.test.mts"
+              ]
+            }
           ],
-          "$comment": "Hermetic ruling-record fixture, one live nen stop answer round trip (requires nen 0.26.0 or later as NEN or on PATH, and git), plus one check of the live docs/ROSTER.md against docs/ruling-records/."
+          "artifacts": [
+            "coverage/ruling-record/lcov.info"
+          ],
+          "$comment": "Authoritative worker-one Vitest runs the HR inventory and render cases. A native Node replay runs the historical CLI cases with real Nen and the live roster, and replays the Vitest fixture against the CLI for exact-source LCOV. Requires pinned Nen and Vitest."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs'),path=require('node:path');const sources=new Set(fs.readFileSync('coverage/ruling-record/lcov.info','utf8').split(/\\r?\\n/).filter(line=>line.startsWith('SF:')).map(line=>path.resolve(line.slice(3))));for(const file of ['ruling_record.mts','ruling_id_inventory.mts']){if(!sources.has(path.resolve('scripts',file)))throw new Error('Missing ruling-record LCOV source '+file)}"
+          ],
+          "artifacts": [
+            "coverage/ruling-record/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies both actual source paths are present in the focused lane capture. Nen owns LCOV parsing and capture provenance."
         }
       },
       "product-term-guard": {
@@ -2039,6 +2127,13 @@
           "argv": [
             "scripts/fixture_output_guard.sh",
             "node",
+            "scripts/node_cli_coverage_fixture.mts",
+            "--capture",
+            "consumer-trailer-guard",
+            "scripts/tenkai_trailer_guard.mts",
+            "scripts/consumer_trailer_ci.mts",
+            "--",
+            "node",
             "node_modules/vitest/vitest.mjs",
             "run",
             "--maxWorkers",
@@ -2047,7 +2142,24 @@
             "15000",
             "scripts/tenkai_trailer_guard_fixture.test.mts"
           ],
-          "$comment": "Existing pinned Vitest framework; offline fixtures execute the rendered job against real Git histories and the published reader's exact bytes, plus adoption drift and actual guard admission."
+          "$comment": "Existing pinned Vitest framework; offline fixtures execute the rendered job against real Git histories and the published reader's exact bytes, plus adoption drift and actual guard admission. Native Node LCOV captures the exact TypeScript production sources executed by these CLI fixtures, including child processes.",
+          "artifacts": [
+            "coverage/consumer-trailer-guard/cli/lcov.info"
+          ]
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/node_cli_coverage_fixture.mts",
+            "--verify",
+            "consumer-trailer-guard",
+            "scripts/tenkai_trailer_guard.mts",
+            "scripts/consumer_trailer_ci.mts"
+          ],
+          "artifacts": [
+            "coverage/consumer-trailer-guard/cli/lcov.info"
+          ],
+          "$comment": "Extraction only. Verify the LCOV written by the declared test, with no fixture rerun. Nen owns artifact parsing and --from-capture provenance."
         }
       },
       "plugin-bump-api-retry-guard": {
