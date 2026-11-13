@@ -237,13 +237,26 @@ exit 1
   check(!old.includes("TENKAI_GUARD_REQUIRED") && !old.includes("workflow_runner_policy_check.rb --self-test"),
     "the process workflow invokes its shipped guard");
   check(adopt("apply").state === "satisfied", "second apply is idempotent");
+  const initialPolicy = text(repo, POLICY_PATH);
+  const localDrift = old.replace("timeout-minutes: 15", "timeout-minutes: 16");
+  assert.notEqual(localDrift, old);
+  put(repo, workflowPath, localDrift);
+  const missingBase = adopt("apply");
+  check(missingBase.state === "staged" && missingBase.detail.includes("fetched trusted base") &&
+    text(repo, workflowPath) === localDrift && text(repo, POLICY_PATH) === initialPolicy,
+  "local policy admission cannot authorize a workflow update before the base is fetched");
+  rmSync(join(repo, workflowPath));
+  check(adopt("apply").state === "repaired" && text(repo, workflowPath) === old &&
+    text(repo, POLICY_PATH) === initialPolicy,
+  "an absent workflow can resume the exact locally prepared bootstrap admission");
+
+  freezeBase();
   put(repo, workflowPath, old.replace("\n  readiness:\n", "\n  renamed:\n"));
   const renamed = adopt("diagnose");
   check(renamed.state === "drift" && renamed.detail.includes(workflowPath + ': required context "readiness"'),
     "diagnose names the workflow and missing readiness job");
   check(adopt("apply").state === "repaired", "Tenkai restores the readiness job name");
 
-  freezeBase();
   copy([workflowPath, ordinaryPath], candidate);
   check(runPolicy(old).status === 0, "rendered self-check passes beside ordinary CI");
   equal(verifyWorkflowPolicy(trusted, candidate, slug), 1,
@@ -479,6 +492,13 @@ exit 1
   rmSync(join(repo, workflowPath));
   put(repo, workflowPath, legacy);
   rmSync(join(repo, customPath));
+  for (const mode of ["diagnose", "apply"] as const) {
+    const missingBase = adopt(mode);
+    check(missingBase.state === "staged" && missingBase.detail.includes("fetched trusted base") &&
+      missingBase.fix.fill === "route" && text(repo, workflowPath) === legacy &&
+      !existsSync(join(repo, POLICY_PATH)) && !existsSync(join(repo, GUARD_PATH)),
+    mode + " stages an existing legacy workflow until its declared base is fetched");
+  }
   freezeBase([workflowPath]);
   const migration = adopt("apply");
   check(migration.state === "staged" && text(repo, workflowPath) === legacy,
