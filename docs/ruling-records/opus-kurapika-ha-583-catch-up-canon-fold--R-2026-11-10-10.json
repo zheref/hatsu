@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-10-10",
+  "effortId": "opus-kurapika-ha-583-catch-up-canon-fold",
+  "n": 1,
+  "gate": "G5",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#586 OQ-1: when the host's base-branch merge (sync_with_base_branch) is unavailable, is the protected-path set readable from the checkout, or only from the host's refusal text?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Only the refusal text ⭐ (Recommended)",
+      "consequence": "The host's protected set is not in the checkout, so the check stays a judgement the report records, quoting the refusal; murasaki and en name that route. Recorded as an HR row."
+    },
+    {
+      "key": "B",
+      "label": "Readable from the checkout",
+      "consequence": "The set can be read locally, so the check becomes a verb with an exit code; the nen half is filed and #586 waits for it."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-10T04:41:00.579Z"
+}
