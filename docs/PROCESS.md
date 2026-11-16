@@ -832,7 +832,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   The `swift` row's OSV route
   (`contracts/scans.json` → `dependencyAudit.swift`) has no owner at all: no nen verb carries out its
   `$comment`, and it is owed to the same verb.
-- **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
+- **`kido`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
   `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are

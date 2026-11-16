@@ -198,7 +198,7 @@ The **advance-go gate**: which repository kinds a typed `hatsu:futon ... then <s
 
 ### `port`
 
-The porting keys (`zheref/hatsu#354`): `handbooksRepo`, the canon handbooks repository a port ruling lands in (default `zheref/bankai-handbooks`), and `rulingsDir`, the directory of its ports family (default `handbooks/ports`, one directed pair file per scenario pair plus `INDEX.md`). Read by `bankai-rule`, `limbo` and `bankai-handbooks` (and the port composites `hiraishin` and `kamui`, zheref/hatsu#357 and zheref/hatsu#356, shipped, reach them through `bankai-rule`); both have defaults, so an unset consumer reads them through `config_values.sh need --skill bankai-rule`. Domain `port` in the catalogue.
+The porting keys (`zheref/hatsu#354`): `handbooksRepo`, the canon handbooks repository a port ruling lands in (default `zheref/bankai-handbooks`), and `rulingsDir`, the directory of its ports family (default `handbooks/ports`, one directed pair file per scenario pair plus `INDEX.md`). Read by `kido`, `limbo` and `bankai-handbooks` (and the port composites `hiraishin` and `kamui`, zheref/hatsu#357 and zheref/hatsu#356, shipped, reach them through `kido`); both have defaults, so an unset consumer reads them through `config_values.sh need --skill kido`. Domain `port` in the catalogue.
 
 ### `aiReviewers`
 
@@ -244,7 +244,7 @@ Self-hosted GitHub Actions runner naming and pools, provisioned by `hatsu:jusshi
 
 ### `port.specKit`
 
-Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356) and `hatsu:dowsing-chain` §§ 1, 4 ([`spec-repo.md`](spec-repo.md)); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
+Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356) and `hatsu:dowsing-chain` §§ 1, 4 ([`spec-repo.md`](spec-repo.md)); the epic's other `port.*` keys land with `kido` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|

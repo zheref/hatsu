@@ -250,7 +250,7 @@ fi
 #                       this installed-root helper before readiness; a stale copy
 #                       can accept a mismatched or stale effort.
 #   scripts/product_term_check.sh, scripts/private_name_named.txt
-#                     — bankai-rule runs the product-term guard from the installed
+#                     — kido runs the product-term guard from the installed
 #                       root, whose shim executes product_term_check.mts; file reads
 #                       the named public-repository list into its redaction ignore
 #                       file. Stale copies enforce stale code or data.
@@ -259,7 +259,7 @@ fi
 #                       installed-root reader; a stale copy can compare a tag object
 #                       instead of the commit it names.
 #   scripts/port_rule_reserve.sh
-#                     — bankai-rule reserves and re-checks ruling ids through this
+#                     — kido reserves and re-checks ruling ids through this
 #                       installed-root helper; a stale copy can admit a duplicate.
 #   scripts/idle_permissions_check.mts
 #                     — the idle batch's permission list (zheref/hatsu#453), run from

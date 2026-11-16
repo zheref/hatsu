@@ -2,7 +2,7 @@
 # port_rule_reserve.sh — the next free port-ruling id, reserved against every place a row can be,
 # and (--check) the duplicate-id pass a run makes at every catch-up and before its gate.
 #
-# hatsu:bankai-rule § 3 (zheref/hatsu#355; the ruling of 2026-10-20, "reserve against open PRs",
+# hatsu:kido § 3 (zheref/hatsu#355; the ruling of 2026-10-20, "reserve against open PRs",
 # read with the round-2 settlement that a rulings PR opens only at a port run's end): a ruling's
 # id is the next number free in the RULINGS DIRECTORY at FOUR places, read together from the RUN'S
 # OWN RULINGS WORKTREE (--worktree: the checkout the branch is authored in, never the clone root) —
@@ -80,7 +80,7 @@
 # serves every blob of every place and ONE awk judges every line of every file, so the process count is
 # the number of places plus two, whatever the number of pair files, and the work is linear in rows.
 # Duplicates are found once, after collection, by one awk over the seen lines. Lane port-rule-guard holds
-# a 3000-row scaling case to a 30 s bound (docs/ab/bankai-rule.md § 2 carries the benchmark).
+# a 3000-row scaling case to a 30 s bound (docs/ab/kido.md § 2 carries the benchmark).
 #
 # RESIDUE, NAMED. The open-PR reads are `gh pr list`, `gh api --paginate repos/<t>/pulls/<n>/files`,
 # `gh pr diff` and `gh api search/issues`: harness shell for a GitHub read, until zheref/nen#456
@@ -372,7 +372,7 @@ else
 fi
 if [ "$pairs_ship" = 1 ] && [ "$(git -C "$clone" cat-file -t "$tipref:$pair" 2>/dev/null)" != blob ]; then
   pname="${pair##*/}"; pname="${pname%.md}"
-  echo "port_rule_reserve: pair $(printable "$pname") has no pair file $(printable "$pair") at the tip $tipref; at handbooks $htag (>= v0.13.0) every directed pair of product stacks ships its file (CON-13 as amended, zheref/bankai-handbooks#21), so bankai-rule appends rows and never creates one -- refusing, nothing is reserved" >&2
+  echo "port_rule_reserve: pair $(printable "$pname") has no pair file $(printable "$pair") at the tip $tipref; at handbooks $htag (>= v0.13.0) every directed pair of product stacks ships its file (CON-13 as amended, zheref/bankai-handbooks#21), so kido appends rows and never creates one -- refusing, nothing is reserved" >&2
   exit 2
 fi
 plan_reset

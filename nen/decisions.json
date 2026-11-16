@@ -294,7 +294,6 @@
         "bakuryuha",
         "bankai-handbooks",
         "bankai-quality",
-        "bankai-rule",
         "black-voice",
         "build",
         "byakugan",
@@ -316,6 +315,7 @@
         "kage-bunshin",
         "kamui",
         "kazaana",
+        "kido",
         "kokusen",
         "kotoamatsukami",
         "kuchiyose",
@@ -380,7 +380,6 @@
         "bakuryuha",
         "bankai-handbooks",
         "bankai-quality",
-        "bankai-rule",
         "black-voice",
         "build",
         "byakugan",
@@ -401,6 +400,7 @@
         "kage-bunshin",
         "kagutsuchi",
         "kamui",
+        "kido",
         "kokusen",
         "kotoamatsukami",
         "limbo",
@@ -795,40 +795,40 @@
     {
       "id": "port-drift",
       "class": "ask-once-per-run",
-      "default": "ask once per run, every unmapped row of the port batched into ONE picker call -- three questions a call, a fourth row opens a second call in the same run, never a question per row (the maintainer's ruling of 2026-10-19/20, zheref/hatsu#354: 'Ask once, record ruling'); each question names the source rule or concept and the target stack; the answer binds the current port the moment it is given and becomes one row with a reserved id in the ports pair file through hatsu:bankai-rule sections 3-4 (asked by the port composites hatsu:hiraishin and hatsu:kamui), on the run's rulings branch. Before asking, the spec's private '## Platform decisions' section is read (docs/config/ports.md, Product-level divergence): a row already answering the concept for the same platform is cited, never asked; a concept no entry of ports.md's mirror-versus-map list names is 'unclassifiable' and asked here, never classified by the agent. Option A is starred ONLY when its equivalent is quoted from an existing pair row or an explicit handbook cross-reference, its source line shown; an agent-derived equivalent is listed unstarred with its source line and C is starred. The star is set per ask, never statically: no option of this row carries 'recommended'. The pair row's rationale is the picked label or the maintainer's typed words verbatim, byte-equal to the answer, and never names a product, screen, business rule or object id; its redraft is the technology-level restatement, shown before/after in the plan before kokusen; words naming a product go, under a composite with a spec folder, to the spec's '## Platform decisions' row in the same run with the handling label as the rationale, and are otherwise refused from the pair file with a technology-level restatement asked (hatsu:bankai-rule section 1)",
+      "default": "ask once per run, every unmapped row of the port batched into ONE picker call -- three questions a call, a fourth row opens a second call in the same run, never a question per row (the maintainer's ruling of 2026-10-19/20, zheref/hatsu#354: 'Ask once, record ruling'); each question names the source rule or concept and the target stack; the answer binds the current port the moment it is given and becomes one row with a reserved id in the ports pair file through hatsu:kido sections 3-4 (asked by the port composites hatsu:hiraishin and hatsu:kamui), on the run's rulings branch. Before asking, the spec's private '## Platform decisions' section is read (docs/config/ports.md, Product-level divergence): a row already answering the concept for the same platform is cited, never asked; a concept no entry of ports.md's mirror-versus-map list names is 'unclassifiable' and asked here, never classified by the agent. Option A is starred ONLY when its equivalent is quoted from an existing pair row or an explicit handbook cross-reference, its source line shown; an agent-derived equivalent is listed unstarred with its source line and C is starred. The star is set per ask, never statically: no option of this row carries 'recommended'. The pair row's rationale is the picked label or the maintainer's typed words verbatim, byte-equal to the answer, and never names a product, screen, business rule or object id; its redraft is the technology-level restatement, shown before/after in the plan before kokusen; words naming a product go, under a composite with a spec folder, to the spec's '## Platform decisions' row in the same run with the handling label as the rationale, and are otherwise refused from the pair file with a technology-level restatement asked (hatsu:kido section 1)",
       "preferred": [
         {
           "key": "A",
           "label": "map to <equivalent> (source line shown)",
-          "command": "hatsu:bankai-rule <from> to <to> ruling <source> maps to <the equivalent> -- shown with its source line; starred only when quoted from an existing pair row or an explicit handbook cross-reference",
+          "command": "hatsu:kido <from> to <to> ruling <source> maps to <the equivalent> -- shown with its source line; starred only when quoted from an existing pair row or an explicit handbook cross-reference",
           "consequence": "an equivalence row, handling map; the port implements the equivalent"
         },
         {
           "key": "B",
           "label": "mirror",
-          "command": "hatsu:bankai-rule <from> to <to> ruling <source> mirrors as-is",
+          "command": "hatsu:kido <from> to <to> ruling <source> mirrors as-is",
           "consequence": "an equivalence row, handling mirror; the port carries the source rule unchanged"
         },
         {
           "key": "C",
           "label": "drop with note",
-          "command": "hatsu:bankai-rule <from> to <to> ruling <source> dropped: <why, technology-level>",
+          "command": "hatsu:kido <from> to <to> ruling <source> dropped: <why, technology-level>",
           "consequence": "a drift row; the port leaves it out and the PR says so"
         },
         {
           "key": "D",
           "label": "target-only addition",
-          "command": "hatsu:bankai-rule <from> to <to> ruling target adds <concept>",
+          "command": "hatsu:kido <from> to <to> ruling target adds <concept>",
           "consequence": "a drift row; the port adds what the target stack needs and the source never had"
         }
       ],
       "proposeIssue": false,
-      "why": "Ruling 2026-10-19/20 (zheref/hatsu#354, 'When a source change has no target equivalent?' -> 'Ask once, record ruling'; the challenge settlement 'port-drift per row' -> one batched picker call per run): a drift is the maintainer's decision, asked once and recorded as canon so the next port never asks it again; four handlings and no fifth (bankai-rule section 4). SDD plan 2026-10-22 (porting-drift): a pre-starred agent-derived equivalent became append-only canon on one tap, and one rationale field held both the maintainer's words and the agent's redraft -- so the star is earned by a quoted source, and the row keeps both side by side.",
+      "why": "Ruling 2026-10-19/20 (zheref/hatsu#354, 'When a source change has no target equivalent?' -> 'Ask once, record ruling'; the challenge settlement 'port-drift per row' -> one batched picker call per run): a drift is the maintainer's decision, asked once and recorded as canon so the next port never asks it again; four handlings and no fifth (kido section 4). SDD plan 2026-10-22 (porting-drift): a pre-starred agent-derived equivalent became append-only canon on one tap, and one rationale field held both the maintainer's words and the agent's redraft -- so the star is earned by a quoted source, and the row keeps both side by side.",
       "citedBy": [
-        "bankai-rule",
         "dowsing-chain",
         "hiraishin",
-        "kamui"
+        "kamui",
+        "kido"
       ]
     },
     {

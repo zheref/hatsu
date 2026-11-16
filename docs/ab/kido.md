@@ -1,10 +1,15 @@
-# A/B evidence — `bankai-rule` (new skill, zheref/hatsu#355)
+# A/B evidence — `kido` (new skill, zheref/hatsu#355)
 
-`claude/skills/bankai-rule/SKILL.md`: the port-rulings clerk of the cross-platform porting epic
+`claude/skills/kido/SKILL.md`: the port-rulings clerk of the cross-platform porting epic
 (zheref/hatsu#354, child 1): one ruling per row with a stable id in a directed pair file of
 `zheref/bankai-handbooks`' `handbooks/ports/` family, ids reserved against open PRs, one rulings PR
 per port run at G4. **A new skill, so there is no "old mechanics" column**; what this record
 establishes is what nen `0.22.0` does and does not do for it, each verified live on 2026-10-20.
+
+**Renamed on 2026-11-16** ([HR-394](../ROSTER.md#hr-394)): the skill shipped as `bankai-rule`, and every
+transcript below was taken under that name. The name is the only token that differs. § 1's five
+`nen parse` probes and § 6's `config_values.sh need` read were re-run as `kido` at nen `0.30.0` on
+that date, with the same output and exits.
 
 ## 1. The grammar — enumerated slots, the ruling split off before the parse
 
@@ -18,35 +23,35 @@ in the set) and is refused by the skill's own rule — a pair is directed — wh
 express.
 
 ```
-$ nen parse bankai-rule --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to compose-uzf-v2'
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to compose-uzf-v2'
 from: swiftui-tca-uzf-v2
 to: compose-uzf-v2
 exit 0
 
-$ nen parse bankai-rule --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to flutter-uzf-v1'
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to flutter-uzf-v1'
 nen parse: <to> is one of swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery (case-insensitively), and 'flutter-uzf-v1' is none of them. It is resolved, never guessed at: the closest match is not the answer.
 
 Corrected line:
-  bankai-rule swiftui-tca-uzf-v2 to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
+  kido swiftui-tca-uzf-v2 to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
 exit 2
 
-$ nen parse bankai-rule --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 ruling x'
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 ruling x'
 nen parse: <from> is one of swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery (case-insensitively), and 'swiftui-tca-uzf-v2 ruling x' is none of them. It is resolved, never guessed at: the closest match is not the answer.
 nen parse: <to> is required and the line does not supply it.
 
 Corrected line:
-  bankai-rule <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
+  kido <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
 exit 2
 
-$ nen parse bankai-rule --grammar '<from:…> to <to:…>' --line ''
+$ nen parse kido --grammar '<from:…> to <to:…>' --line ''
 nen parse: <to> is required and the line does not supply it.
 nen parse: <from> is required and the line does not supply it.
 
 Corrected line:
-  bankai-rule <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
+  kido <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
 exit 2
 
-$ nen parse bankai-rule --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to swiftui-tca-uzf-v2'
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to swiftui-tca-uzf-v2'
 from: swiftui-tca-uzf-v2
 to: swiftui-tca-uzf-v2
 exit 0
@@ -56,7 +61,7 @@ nen parse: <from> is one of swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 |
 nen parse: <to> is one of swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery (case-insensitively), and 'a Hilt-injected repository call; the' is none of them. It is resolved, never guessed at: the closest match is not the answer.
 
 Corrected line:
-  bankai-rule <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> ruling is map
+  kido <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> ruling is map
 exit 2
 
 $ the skill's split: head = 'swiftui-tca-uzf-v2 to compose-uzf-v2', ruling = the remainder after the FIRST whole-word ruling
@@ -92,7 +97,7 @@ spaces is counted, any other `PT-<digits>` first cell or another prefix's `[A-Z]
 exit 3; a row in a fenced example is counted too, a safe over-count. **Headers** (T3): a `<!--` line
 naming `prefix:` or `numbering:` (keys in any case, at any indent, in a file or in an open PR's added
 lines) must read exactly one `prefix: PT · numbering: global`, `global` followed by whitespace, `)`,
-`·` or `-->`, else exit 3; **a headerless file is counted.** **Telling the exits apart** (bankai-rule
+`·` or `-->`, else exit 3; **a headerless file is counted.** **Telling the exits apart** (kido
 § 3): a non-zero exit reserves nothing; among exit 3s, a `--check` duplicate is the one whose lines
 read `also at`, every other exit 3 a refusal of a shape. Local heads (T4): a remote unset or `.` is
 read; `refs/pull/*` and a remote whose URL is not origin's are skipped, reported by count and reason.
@@ -255,8 +260,8 @@ port — porting between sibling repositories: where port rulings live and which
   DFLT  nen/workflow.json → port.rulingsDir
         absent — its readers apply the default "handbooks/ports"; fill writes it
 2 value(s) outstanding — `fill` writes the defaults and annotations; the ASK rows are the maintainer's answers (docs/WORKFLOW.md § 4).
-$ config_values.sh need --repo <fixture consumer without the port keys> --skill bankai-rule
-bankai-rule: every value it needs is set.
+$ config_values.sh need --repo <fixture consumer without the port keys> --skill kido
+kido: every value it needs is set.
 exit 0
 $ config_values.sh diagnose --repo <fixture consumer with the port keys> --domain port
 port — porting between sibling repositories: where port rulings live and which handbooks repository carries them
@@ -265,8 +270,8 @@ port — porting between sibling repositories: where port rulings live and which
   ok    nen/workflow.json → port.rulingsDir
         "docs/ports"
 every settable value is written out and every needed one is set.
-$ config_values.sh need --repo <fixture consumer with the port keys> --skill bankai-rule
-bankai-rule: every value it needs is set.
+$ config_values.sh need --repo <fixture consumer with the port keys> --skill kido
+kido: every value it needs is set.
 exit 0
 ```
 
@@ -285,7 +290,7 @@ exit 0
 **Run: 2026-10-22 (UTC), nen `0.24.0` at `/Users/zheref/.local/bin/nen`, host `darwin` (arm64), from the
 working tree of `fable/kurapika/port-term-guard` over base `4baf46d65` — the head this PR lands, since the
 guard and the `--dry-run` token do not exist at the base.** The SDD assessment's wave 3 (*porting closes the
-loop*, zheref/hatsu#354) owes one real dry run per port skill; **this is bankai-rule's, and a stale one is a
+loop*, zheref/hatsu#354) owes one real dry run per port skill; **this is kido's, and a stale one is a
 finding** — the date is part of the record. `--dry-run` joined the grammar in this same change (§ 1: the
 line's last token only, the bare form included; §§ 1–2 read, § 3 and § 4's guards in a scratch clone under
 the session's scratch directory, nothing written outside it). Inputs: the consumer fixture
@@ -338,7 +343,7 @@ inputs Chrollo's totality pass found unrouted on the first draft, and a trailing
 ```
 $ line="swiftui-tca-uzf-v2 to compose-uzf-v2 ruling the OrderReview sheet becomes a ModalBottomSheet --dry-run"
 dry=1 head=[swiftui-tca-uzf-v2 to compose-uzf-v2] ruling=[the OrderReview sheet becomes a ModalBottomSheet]
-$ nen parse bankai-rule --grammar "<from:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery> to <to:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery>" --line="$head"
+$ nen parse kido --grammar "<from:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery> to <to:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery>" --line="$head"
 from: swiftui-tca-uzf-v2
 to: compose-uzf-v2
 exit=0
@@ -357,7 +362,7 @@ dry=0 head=[] ruling=[]
 
 $ line="swiftui-tca-uzf-v2 to compose-uzf-v2 --dry-run "
 dry=1 head=[swiftui-tca-uzf-v2 to compose-uzf-v2] ruling=[]
-$ nen parse bankai-rule --grammar "<from:…> to <to:…>" --line="$head"
+$ nen parse kido --grammar "<from:…> to <to:…>" --line="$head"
 from: swiftui-tca-uzf-v2
 to: compose-uzf-v2
 exit=0
@@ -370,8 +375,8 @@ not from the skill. Every input lands on one row of § 1's table, the two modifi
 ### § 2 — what the run reads
 
 ```
-$ bash scripts/config_values.sh need --repo scripts/fixtures/port-family/with-family --skill bankai-rule
-bankai-rule: every value it needs is set.
+$ bash scripts/config_values.sh need --repo scripts/fixtures/port-family/with-family --skill kido
+kido: every value it needs is set.
 exit=0
 
 $ nen canon pin --repo scripts/fixtures/port-family/with-family --source zheref/bankai-handbooks
@@ -433,7 +438,7 @@ row is redrafted technology-level and said back; under a composite with a spec f
 `spec.md § ## Platform decisions` and the picked label (`map`) would be the `rationale`. The index `#2` is
 the list's second entry in `LC_ALL=C` order (`Gold Tier`, then `OrderReview`) and never the term. **With no
 list the guard refuses, never passes** — on this machine the maintainer's file does not exist, so a live
-`bankai-rule` run stops at `missing-configuration` until it is written. The redraft, re-run to `0`:
+`kido` run stops at `missing-configuration` until it is written. The redraft, re-run to `0`:
 
 ```
 $ printf '| PT-1 | SwiftUI .sheet | ModalBottomSheet | map | map | a SwiftUI sheet presentation becomes a Compose ModalBottomSheet; the business rule it carries is unchanged | 2026-10-22 | |\n' > <scratch>/row2.md
@@ -488,11 +493,11 @@ runs in `unit-tests.yml` through `scripts/unit_tests_ci.mts` once this lands (BC
 
 ### Findings against the binary and the fixtures
 
-1. **The fixture consumer pins no handbooks repository**, so a live `bankai-rule` run on it stops at § 2
+1. **The fixture consumer pins no handbooks repository**, so a live `kido` run on it stops at § 2
    (`nen canon pin` exit `1`, quoted above). The fixture was built for `kamui`'s family read, not for a
    rulings run; the dry run says so rather than pinning one. Adding a `pinned` row to the fixture is a
    fixture decision, not this record's.
-2. **No product-term list exists on this machine**, so every live `bankai-rule` write is refused at
+2. **No product-term list exists on this machine**, so every live `kido` write is refused at
    `missing-configuration` until the maintainer writes
    `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/product-terms`. That is the design (ports.md § *The product-term
    guard*): the guard never reads green over a list it does not have, and a session never writes the file.

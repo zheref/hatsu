@@ -3,7 +3,7 @@
 `claude/skills/hiraishin/SKILL.md`: one PR merged into its repository's base, ported to one sibling of the
 same product family — spec first where the family declares a spec repository (kamui's spec step, a **G2**
 wait), then a port brief mapping every concept to its target equivalent, each unmapped row ruled once
-through `bankai-rule`'s `port-drift`, then the port issue filed on the target and `hatsu:build` run on it.
+through `kido`'s `port-drift`, then the port issue filed on the target and `hatsu:build` run on it.
 **This file is the dated dry run** the SDD assessment's wave 3 (*porting closes the loop*, zheref/hatsu#354)
 owes: `--dry-run` over the offline fixtures, every command and its output as they ran. **A stale dry run is a
 finding** — the date is part of the record.
@@ -152,7 +152,7 @@ directory and shown; nothing else is written.
 
 ### § 6 — drift, listed unasked
 
-One batch per run through `bankai-rule` § 5 (`port-drift`, `ask-once-per-run`, three questions a call). The
+One batch per run through `kido` § 5 (`port-drift`, `ask-once-per-run`, three questions a call). The
 dry run **lists** the questions and asks none: *a list longer than one page, on `compose-uzf-v2`* — **A** `map
 to <equivalent>` (no existing pair row quotes one, so not starred) · **B** `mirror` · **C** `drop with note` ⭐ ·
 **D** `target-only addition`. The `map: gesture` row cites the handbook rule on both sides on a live run (the
