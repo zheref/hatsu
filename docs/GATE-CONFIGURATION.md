@@ -659,7 +659,8 @@ a listed skill twice or reuses a name, and a plan that does not account for ever
 **Step two landed (zheref/hatsu#354, Hatsu 0.169.0).** The diet list holds `kido`, the skill's directory
 is `claude/skills/kido/`, and the pair, `scripts/prose_diet_names.ts`, the plan read, the paired branch
 of the diet loop, the `node` check, the next names on the headroom call, the header's clause, the
-fixture's next-name, malformed-row and unfinished-plan cases, the helper's copy in the policy self-test
-and its entries in `scripts/plugin_bump_check.sh` and `CONTRIBUTING.md` are gone. `NOTAFILE` stays, with
+fixture's next-name, malformed-row and unfinished-plan cases, the helper's copy in the policy self-test,
+its entries in `scripts/plugin_bump_check.sh` and `CONTRIBUTING.md` and its case in
+`scripts/plugin_bump_check_fixture.sh` are gone. `NOTAFILE` stays, with
 its fixture cases at a listed name: a directory, and a FIFO under `--headroom`. The next rename of a
 diet-list skill brings the pair back the same way, from HA-PR-#613's diff.

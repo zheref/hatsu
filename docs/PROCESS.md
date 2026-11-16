@@ -1105,6 +1105,8 @@ hook source; it is BC-11 debt, frozen to fixes only until Hatsu repins to that b
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
 
+**The handbooks repository still names the port-rulings skill by its old name** (an owned dependency, zheref/bankai-handbooks#27): `CON-13`, the handbook indexes and the pair-file markers at the pinned tag say `hatsu:bankai-rule`, the skill [HR-394](ROSTER.md#hr-394) renamed `kido`. It retires in two steps that are not Hatsu's to take alone: that repository's amendment at its own G4 with a tag, then Hatsu's repin to that tag. Until both land, [`config/ports.md`](config/ports.md) § *Shared conventions* holds the reading.
+
 ## History
 
 Retired mechanics the skills used to carry, kept so a reader of an old transcript can place them.

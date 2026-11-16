@@ -152,7 +152,7 @@ directory and shown; nothing else is written.
 
 ### § 6 — drift, listed unasked
 
-One batch per run through `kido` § 5 (`port-drift`, `ask-once-per-run`, three questions a call). The
+One batch per run through `bankai-rule` § 5 (`port-drift`, `ask-once-per-run`, three questions a call). The
 dry run **lists** the questions and asks none: *a list longer than one page, on `compose-uzf-v2`* — **A** `map
 to <equivalent>` (no existing pair row quotes one, so not starred) · **B** `mirror` · **C** `drop with note` ⭐ ·
 **D** `target-only addition`. The `map: gesture` row cites the handbook rule on both sides on a live run (the
