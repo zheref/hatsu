@@ -8,7 +8,7 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the thirty-one dieted skills                      <= 12288 bytes
+#   the thirty-two dieted skills                      <= 12288 bytes
 #   every claude/rules/*.md, and the generated      <= 12000 characters (Antigravity's own documented
 #   surfaces/antigravity/rules/*.md mirror
 #                                                     rules-file limit, docs/surfaces/antigravity.md --
@@ -54,7 +54,10 @@
 # exit 0  every file is within its ceiling
 # exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling or outside the root, each named
 # exit 2  the repository root does not look like a Hatsu checkout, an unknown flag, an empty root
-#         argument, more than one root argument, or no perl to check UTF-8 with
+#         argument, more than one root argument, no perl to check UTF-8 with, or, while
+#         DIET_NEXT_NAMES holds a row, no node to read it with or a row that is not <listed>:<next>,
+#         renames a skill the diet list does not hold, names a listed skill twice, or gives a next
+#         name the list or another pair already holds (scripts/prose_diet_names.ts)
 
 set -eu
 
@@ -70,12 +73,16 @@ DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath
 hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time bankai-rule kamui hiraishin dowsing-chain kuchiyose kage-bunshin senkaimon"
 
 # DIET_NEXT_NAMES (zheref/hatsu#354): a diet-list skill that is being renamed, as `<listed>:<next>`
-# pairs. CI runs THIS file from the trusted base against the pull request's tree, so a PR that renames
-# a listed skill is judged by a list that still holds the old name (docs/GATE-CONFIGURATION.md section 6,
-# the two-step landing). Step one, this row: where the listed directory is absent and the next one is on
-# disk, the next one holds the same ceiling and the run says so; both on disk are both measured; neither
-# is still MISSING. Step two, the rename's own PR: the list takes the next name and the row is deleted.
-# `bankai-rule` becomes `kido` by the maintainer's ruling of 2026-11-16.
+# pairs. CI runs THIS file from the trusted workflow revision (main's head) against the pull request's
+# tree, so a PR that renames a listed skill is judged by a list that still holds the old name
+# (docs/GATE-CONFIGURATION.md section 6, the two-step landing). Step one, this row: where the listed
+# SKILL.md is absent and the next name's is on disk, the next one holds the same ceiling and the run
+# says so; both on disk are both measured; neither is still MISSING. scripts/prose_diet_names.ts reads
+# the rows and the tree and decides (BC-11). Step two, the rename's own PR, cut from or caught up onto
+# a main that carries this: the list takes the next name and the row, the helper, this branch of the
+# diet loop and their fixture cases are deleted (a kept row beside the new name is exit 2 there).
+# `bankai-rule` becomes `kido` by the maintainer's word of 2026-11-16 on zheref/hatsu#354; the ruling's
+# row lands in docs/ROSTER.md with step two.
 DIET_NEXT_NAMES="bankai-rule:kido"
 
 usage_error() { echo "prose_size_check.sh: $1" >&2; exit 2; }
@@ -105,6 +112,20 @@ root="$(cd -P -- "$root" && pwd -P)"
 
 command -v perl >/dev/null 2>&1 || usage_error "no perl on PATH -- UTF-8 validity is checked exactly, never guessed"
 
+# A renamed diet entry: which names are measured, what is said and what is MISSING is a verdict over
+# the pair rows and the tree, so TypeScript reaches it (BC-11) and the diet loop below only carries it
+# out. Read here, before anything is measured, so a wiring refusal never follows lines that read as
+# measurements. The two lists are words, never patterns: no glob may expand against the tree judged.
+diet_plan=""
+next_names=""
+if [ -n "$DIET_NEXT_NAMES" ]; then
+  command -v node >/dev/null 2>&1 || usage_error "no node on PATH -- DIET_NEXT_NAMES is read by scripts/prose_diet_names.ts"
+  set -f
+  diet_plan="$(node "$(dirname -- "$0")/prose_diet_names.ts" "$root" $DIETED_SKILLS -- $DIET_NEXT_NAMES)" || exit 2
+  next_names="$(printf '%s ' $DIET_NEXT_NAMES | sed 's/[^ ]*://g')"
+  set +f
+fi
+
 size_of() { wc -c <"$1" | tr -d ' '; }
 # valid_utf8: 0 when stdin is entirely valid UTF-8 -- Encode's strict decoder refuses any stray, truncated,
 # overlong or surrogate sequence. Not iconv: macOS's refuses a valid character straddling its 1024-byte buffer.
@@ -132,7 +153,13 @@ listable() {
 admit() {
   f="$1"; rel="${f#"$root"/}"
   if [ -L "$f" ] && [ ! -e "$f" ]; then offend "DANGLING  $rel -- a symlink to nothing where a file is expected"; return 1; fi
-  [ -f "$f" ] || return 1
+  if [ ! -f "$f" ]; then
+    # An entry that exists and is not a regular file -- a directory, a FIFO, a link to either -- is an
+    # offender by name: only a truly absent entry (an unmatched glob's literal) is the caller's case.
+    # It used to return silently, and the diet loop then skipped it as already offended (SEC-7).
+    if [ -e "$f" ] || [ -L "$f" ]; then offend "NOTAFILE  $rel -- not a regular file, not measured"; fi
+    return 1
+  fi
   if [ -L "$f" ]; then
     # Every hop, never one readlink: a symlink to an in-root symlink that leaves the root is outside too
     # (Feitan, hanten on #135). perl is already required; Cwd::realpath resolves the whole chain.
@@ -172,51 +199,33 @@ if listable "$root/claude/agents"; then
   done
 fi
 
-# A next-name pair is two skill directory names and nothing else: a malformed row is wiring, never a
-# pair silently skipped (a `/` or `..` in one would measure a path the list never named).
-next_names=""
-for pair in $DIET_NEXT_NAMES; do
-  printf '%s\n' "$pair" | grep -Eq '^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$' \
-    || usage_error "DIET_NEXT_NAMES holds '$pair', not <listed>:<next> in skill-name characters"
-  case " $DIETED_SKILLS " in
-    *" ${pair%%:*} "*) ;;
-    *) usage_error "DIET_NEXT_NAMES renames '${pair%%:*}', which is not on the diet list" ;;
-  esac
-  next_names="$next_names ${pair#*:}"
-done
-
-# next_name_for <listed>: the next name DIET_NEXT_NAMES gives a listed skill, or nothing.
-next_name_for() {
-  for pair in $DIET_NEXT_NAMES; do
-    if [ "${pair%%:*}" = "$1" ]; then printf '%s' "${pair#*:}"; return 0; fi
-  done
-  return 0
-}
-on_disk() { [ -e "$1" ] || [ -L "$1" ]; }
-
 diet_offended="|"
-for s in $DIETED_SKILLS; do
-  next="$(next_name_for "$s")"
-  names=""
-  if on_disk "$root/claude/skills/$s/SKILL.md"; then names="$s"; fi
-  if [ -n "$next" ] && on_disk "$root/claude/skills/$next/SKILL.md"; then
-    [ -n "$names" ] || echo "NEXT-NAME  claude/skills/$s/SKILL.md is absent; its next name claude/skills/$next/SKILL.md holds its ceiling (DIET_NEXT_NAMES)"
-    names="$names $next"
-  fi
-  if [ -z "$names" ]; then
-    if [ -n "$next" ]; then
-      offend "MISSING  claude/skills/$s/SKILL.md -- named on the diet list and not on disk (nor is its next name, claude/skills/$next/SKILL.md)"
-    else
+# diet_measure <name>: admit and measure one dieted skill's SKILL.md.
+diet_measure() {
+  f="$root/claude/skills/$1/SKILL.md"
+  admit "$f" || { diet_offended="$diet_offended${f#"$root"/}|"; return 0; }
+  measure "${f#"$root"/}" "$(size_of "$f" 2>/dev/null || true)" "$SKILL_MAX" bytes
+}
+if [ -n "$DIET_NEXT_NAMES" ]; then
+  while IFS="$(printf '\t')" read -r step detail; do
+    case "$step" in
+      M) diet_measure "$detail" ;;
+      N) echo "$detail" ;;
+      O) offend "$detail" ;;
+    esac
+  done <<DIET_PLAN
+$diet_plan
+DIET_PLAN
+else
+  for s in $DIETED_SKILLS; do
+    f="$root/claude/skills/$s/SKILL.md"
+    if [ ! -e "$f" ] && [ ! -L "$f" ]; then
       offend "MISSING  claude/skills/$s/SKILL.md -- named on the diet list and not on disk"
+      continue
     fi
-    continue
-  fi
-  for name in $names; do
-    f="$root/claude/skills/$name/SKILL.md"
-    admit "$f" || { diet_offended="$diet_offended${f#"$root"/}|"; continue; }
-    measure "${f#"$root"/}" "$(size_of "$f" 2>/dev/null || true)" "$SKILL_MAX" bytes
+    diet_measure "$s"
   done
-done
+fi
 
 if [ -d "$root/claude/rules" ] && listable "$root/claude/rules"; then
   for f in "$root"/claude/rules/*.md; do
