@@ -250,6 +250,22 @@ for pair in $NEXT_PAIRS; do
   run 1 "$outside"
   assert_contains "$out" "OUTSIDE  claude/skills/$next/SKILL.md -- resolves to a path outside the root, not measured" 'a next-name directory that leaves the root is never measured'
   assert_lacks "$out" 'prose ok' 'and never reads green'
+
+  # A FIFO at the next name under --headroom, the mode CI always runs: the headroom helper sizes a path
+  # by stat and never opens it, so the guard returns its exit 1 where a read blocked for ever (Copilot,
+  # on HA-PR-#613). The alarm turns a regression into a failed case, never a hung lane.
+  fifo="$fixture_root/fifo-$listed"
+  make_root "$fifo"
+  rm -r "$fifo/claude/skills/$listed"
+  mkdir -p "$fifo/claude/skills/$next"
+  mkfifo "$fifo/claude/skills/$next/SKILL.md"
+  set +e
+  out="$(perl -e 'alarm shift; exec @ARGV' 30 "${guard_command[@]}" --headroom "$fifo" 2>&1)"
+  code=$?
+  set -e
+  [ "$code" -eq 1 ] || fail "a FIFO at the next name under --headroom exited $code, expected 1 (142 is the alarm: the guard hung): $out"
+  assert_contains "$out" "NOTAFILE  claude/skills/$next/SKILL.md -- not a regular file, not measured" 'a FIFO at the next name is an offender under --headroom'
+  assert_lacks "$out" 'prose ok' 'and never reads green'
 done
 
 # --- a listed name that is not a regular file is an offender too (the same silent skip, older than the pairs) ---
