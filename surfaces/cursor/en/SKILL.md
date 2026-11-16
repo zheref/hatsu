@@ -216,7 +216,7 @@ Past the maximum the run ends at not-ready with the board. Neither is a G5. `nen
 |---|---|---|---|
 | 1 | **landing report** | [`/spiritual-message`](../spiritual-message/SKILL.md) `as landing` | once, at the start — 00–07 plus **08 PR body** and **09 Readiness**. If this En was started by mukai (`autoEn`) or typed from its offer in the same sitting with no newer human request, **00** still answers that mukai request |
 | 2 | **drive** | [`/sharingan`](../sharingan/SKILL.md) | first blocking condition, threads, checks, the confirmation pass |
-| 3 | **catch up** | [`/murasaki`](../murasaki/SKILL.md) | **only when the branch is behind its PR's base** (`baseRefName`, § 2); a typed composite's handoff passes through (aka § 0, second carve-out; HR-20) |
+| 3 | **catch up** | [`/murasaki`](../murasaki/SKILL.md) | **only when the branch is behind its PR's base** (`baseRefName`, § 2); a typed composite's handoff passes through (aka § 0, second carve-out; HR-20); where the host's base-branch merge is unavailable, murasaki § 4's route, never a stop on that alone (HR-393); a protected path is its G5, row `host-merge-protected-path` |
 | 4 | **drive again** | [`/sharingan`](../sharingan/SKILL.md) | after step 3 moved the tree underneath it |
 | 5 | **observe** | this file, § 6 | while CI or a reviewer round is pending; each poll runs `nen wake verify` in dry-run (no `--run`), and `--run` only when a swallowed run is found; rebuild the current-head snapshot on every change, returning to steps 2–4 when action is needed |
 | 6 | **resolve the gate** | this file, § 5; the human handoff rings through [`/jutaisho`](../jutaisho/SKILL.md)'s four parts | **after verified Ready or § 6's sixth stop**: a PR on `branch.base` gets the human merge bell; every off-base PR first checks Futon ownership, then either takes the bounded Ready delivery merge or reports the refusal and current base to the maintainer, with no merge bell; under `getsuga` § 3, return the verdict to getsuga |
@@ -249,6 +249,37 @@ and [`/byakugan`](../byakugan/SKILL.md), then call murasaki again. It may push o
 that catch-up is a no-op; if it changed any path, this paragraph repeats rather than handing a
 stale tree to readiness. That is the same owner map [`/sharingan`](../sharingan/SKILL.md)
 § 5 already names when Kurapika authored the PR; En does not invent a fourth suite.
+
+**A catch-up that resolved a conflict of meaning reopens review** (zheref/hatsu#583). Where step 3's
+catch-up stopped at [`/ao`](../ao/SKILL.md) § 6 and resumed on the maintainer's pick, the merged
+head is a changed tree for review as well as for tests: the hunk a person chose is new code no
+reviewer has read. Before the readiness verdict is handed to the maintainer,
+[`/hanten`](../hanten/SKILL.md) runs on that head on murasaki § 5's return, before kokusen,
+kotoamatsukami and byakugan (mukai: step 2 before steps 3–5): each applicable
+reviewer's bounded delta pass (hanten § 2b, row `delta`), from its last reviewed head to the merge
+commit, both named, under the effort's remaining budget and never a fresh one; a scope the effort never
+raised gets its first pass there. **What an earlier settled round carries over** is its dispositions
+on paths the merge left byte-identical. **What it does not carry** is the resolved hunks, any finding
+whose cited lines the merge changed, and its settled verdict as a claim about the merged head; the
+delta pass reads those and hanten § 6 settles what it finds. **After a no-op, clean or mechanical
+catch-up, the settled round carries over unchanged**: nothing a person chose entered the tree, and
+what such a catch-up owes is the paragraph above's alone. **A merge the maintainer made by hand** (row
+`host-merge-protected-path`, option A) is the third state: with no conflicted path it carries the
+settled round over as a clean catch-up does; where the maintainer resolved a conflict it owes the delta
+round on the merged head exactly as a conflict of meaning does, the paths they resolved named.
+**Skipping the merged head's round is the
+maintainer's ruling, never the run's**: the run never offers it, and without the maintainer's own
+words recorded through `nen stop answer` (row `merged-head-review-skip`, `--gate G5 --row
+merged-head-review-skip`, the typed-by-design reference option and `--typed-file`, as WORKFLOW § 4
+*Every picker answer is recorded* gives, its `--question-file` naming the merge sha and saying no question
+was asked; in a consumer whose own matrix lacks the row, `--gate G5` alone, as § 4 *A row the consumer's
+own matrix lacks* says) the round is owed. Where they rule that disclosure on the
+prompt is enough, § 5's prompt carries this line, filled and otherwise word for word, in place of any
+hand-written residue:
+
+```text
+Unreviewed resolution: <path>[, <path>…] at <merge sha>, resolved on the maintainer's pick (<R-id>); no review round ran on the merged head (<R-id of the ruling>).
+```
 
 ## 4. Readiness is never en's claim
 
@@ -388,6 +419,10 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
    is instead the **hanten prompt**, its conditions, the value's source refs and the Hatsu line
    (`aiReviewers: optional (base <sha>, default <sha>)`) all [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there;
    a `ready` that rests on nen's waiver of a declared bot's round is Ready only with hanten settled and Hatsu's own read not stricter (HR-333; PROCESS, the disagreement sentence).
+   **After a catch-up that resolved a conflict of meaning, or a maintainer-made merge whose conflict was
+   resolved by hand, settled means settled on the merged head**: § 3's round there, or the ruled disclosure
+   line § 3 gives, never a round settled before the merge; after a no-op, clean or mechanical catch-up, or a
+   maintainer-made merge with no conflicted path, the settled round carries over unchanged (§ 3).
    **A CI reviewer lane** — its round, why it is never requested, its place in the quorum and when it is
    unavailable — is [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*, stated once there.
 3. **The body** — `nen pr body-check` satisfied against the live body.
