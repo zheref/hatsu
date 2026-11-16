@@ -17,7 +17,7 @@ import { dirname, join, resolve as resolvePath } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { compareBody, normalize, type DeliveryDocument } from "./pr_delivery.ts";
+import { compareBody, DELIVERY_SUMMARY, normalize, type DeliveryDocument } from "./pr_delivery.ts";
 
 const ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const ENGINE = join(ROOT, "scripts/pr_delivery.ts");
@@ -278,6 +278,16 @@ test("Nen alone renders Markdown and the semantic guard names missing, duplicate
   const driveBelow = rendered.replace(`${drive}\n\n`, "").replace("</details>", `</details>\n\n${drive}`);
   assert.match(compareBody(`${driveBelow}\n# Changes`, rendered).join("\n"), /Drive must be the first line/);
   assert.match(compareBody(`${rendered.trimEnd()}\n\nstray note\n# Changes`, rendered).join("\n"), /closing <\/details>, nothing after it/);
+  // hanten P2: a heading glued to </details> is swallowed; C3: the template's summary is the guard's.
+  assert.match(compareBody(`${rendered.trimEnd()}\n# Changes`, rendered).join("\n"), /blank line before the next heading/);
+  assert.equal(rendered.split("\n")[4], DELIVERY_SUMMARY);
+  // Nobunaga: the moved header and table window each refuse by name.
+  assert.match(compareBody(`${rendered.replace("| Role | Surface |", "| Role | Runtime |")}\n# Changes`, rendered).join("\n"), /table header differs/);
+  assert.match(compareBody(`${rendered.replace("\n\n</details>", "\nstray\n\n</details>")}\n# Changes`, rendered).join("\n"), /non-row content inside its table/);
+  // hanten F1: an HTML comment on the free lines around Drive would hide the whole ledger.
+  assert.match(compareBody(`${rendered.replace("## 📬 Delivery\n\n", "## 📬 Delivery\n<!--\n")}\n# Changes`, rendered).join("\n"), /content outside its canonical lines/);
+  assert.match(compareBody(`${rendered.replace(`${drive}\n\n`, `${drive}\n<!--\n`)}\n# Changes`, rendered).join("\n"), /content outside its canonical lines/);
+  assert.match(compareBody(`${rendered.replace(`${dataRows[0]}\n`, `${dataRows[0]}\n\n`)}\n# Changes`, rendered).join("\n"), /non-row content inside its table/);
 });
 
 test("CLI writes mode 0600 and refuses output and input symlinks", () => {

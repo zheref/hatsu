@@ -446,6 +446,12 @@ function deliveryBlock(markdownBody: string): string {
   for (let index = first + 1; index < lines.length; index++) if (/^ {0,3}#{1,2}(?:[ \t]+|$)/.test(lines[index] as string)) { end = index; break; }
   return lines.slice(first, end).join("\n").trimEnd();
 }
+function blankBeforeNextHeading(markdownBody: string): boolean {
+  const lines = markdownBody.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").split("\n");
+  const first = lines.findIndex((line): boolean => line.trim() !== "");
+  for (let index = first + 1; index < lines.length; index++) if (/^ {0,3}#{1,2}(?:[ \t]+|$)/.test(lines[index] as string)) return (lines[index - 1] as string).trim() === "";
+  return true;
+}
 function renderedRows(block: string): string[] {
   return block.split("\n").filter((line): boolean => /^\| .* \|$/.test(line) && !/^\| Role \|/.test(line) && !/^\|---/.test(line));
 }
@@ -467,11 +473,14 @@ function shapeFindings(block: string): string[] {
     if (!/^\*Drive:\* gate forecast: (?:G2|G4|unread — [^;]+); next: (?:hatsu:en on [A-Z]{2,3}-PR-#\d+|unread — [^;]+); readiness is nen pr ready's verdict$/.test(lines[at] as string)) findings.push("Drive must name a Nen-derived gate or explicit unread, an exact PR ref or explicit unread, and nen pr ready's verdict");
     if (at !== 2) findings.push("Drive must be the first line under the Delivery heading, above the collapsed ledger");
   }
+  // Every line outside the rows is fixed: a free line 1 or 3 could open an HTML comment that hides
+  // the collapsed ledger while the guard still passed (hanten F1, SEC-7).
+  if (lines[1] !== "" || lines[3] !== "") findings.push("Delivery carries content outside its canonical lines");
   if (lines[4] !== DELIVERY_SUMMARY || lines[5] !== "") findings.push("Delivery ledger must open with the canonical collapsed <details> summary and a blank line");
   if (lines[6] !== "| Role | Surface | Model | Dial | Session | Source |" || lines[7] !== "|---|---|---|---|---|---|") findings.push("Delivery table header differs from the canonical six-column form");
   const close = lines.lastIndexOf("</details>");
   if (close < 0 || lines.slice(close + 1).some((line): boolean => line.trim() !== "")) findings.push("Delivery must end with the ledger's closing </details>, nothing after it");
-  else if (close < 8 || lines.slice(8, close).some((line): boolean => line.trim() !== "" && !/^\| .* \|$/.test(line))) findings.push("Delivery carries non-row content inside its table");
+  else if (close < 9 || lines[close - 1] !== "" || lines.slice(8, close - 1).some((line): boolean => !/^\| .* \|$/.test(line))) findings.push("Delivery carries non-row content inside its table");
   return findings;
 }
 export function compareBody(body: string, expected: string): string[] {
@@ -480,6 +489,8 @@ export function compareBody(body: string, expected: string): string[] {
   let expectedBlock: string;
   try { actualBlock = deliveryBlock(body); }
   catch (error) { return [error instanceof Error ? error.message : String(error)]; }
+  // A heading glued to </details> is swallowed by the HTML block on GitHub (hanten P2, QA-16).
+  if (!blankBeforeNextHeading(body)) findings.push("Delivery must be followed by a blank line before the next heading");
   try { expectedBlock = deliveryBlock(expected); }
   catch (error) { return [`rendered expectation is invalid: ${error instanceof Error ? error.message : String(error)}`]; }
   findings.push(...shapeFindings(actualBlock));
