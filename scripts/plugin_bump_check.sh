@@ -181,6 +181,12 @@ fi
 #                       recreates the first-run failure this guard exists to
 #                       prevent, so this one runtime script is covered; the
 #                       fixture check beside it is test-only and is not.
+#   scripts/surface_marker.sh
+#                     — the one reader of a placed copy's generated marker
+#                       (zheref/hatsu#531), sourced by the session-start hook,
+#                       scripts/surface_bootstrap.sh and scripts/permissions_pack.sh
+#                       on every installed copy; a stale copy judges ownership and
+#                       adoption by the old rule.
 #   scripts/branch_authorship_check.sh
 #                     — the authorship gate (zheref/hatsu#170), run from
 #                       `$hatsu_root/scripts/` at hanten § 4's return and before
@@ -386,6 +392,7 @@ PLUGIN_SURFACE_GLOBS=(
   'templates/*'
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
+  'scripts/surface_marker.sh'
   'scripts/nen_global.sh'
   'scripts/branch_authorship_check.sh'
   'scripts/hatsu_plugin_update.sh'
