@@ -641,12 +641,17 @@ absent and the next name's is on disk, the next one holds the same ceiling and t
 `NEXT-NAME` line; both on disk are both measured, and neither is still `MISSING`. Its first pair is
 `bankai-rule:kido`, the maintainer's word of 2026-11-16 on zheref/hatsu#354, whose ruling row lands in
 `docs/ROSTER.md` with step two. Step two is the rename's own pull request, opened once `main` carries
-step one and caught up onto it: its list takes `kido`, and the pair, the helper, the paired branch of
-the diet loop and their fixture cases (`scripts/prose_size_check_fixture.sh`, lane `prose-guard`) are
-deleted there. Git merges the two edits of the list without a conflict, so the deletion is by hand; a
-kept pair beside the new name is exit `2` in that branch's own `prose-guard` lane (*renames
-'bankai-rule', which is not on the diet list*), which pull-request CI does not run. Two refusals land
-with step one and stay: an entry that exists where a measured file is expected and is not a regular
-file is an offender by name (`NOTAFILE`, where it used to be skipped in silence), and, while a pair is
-held, a row that is malformed, renames an unlisted skill, names a listed skill twice or reuses a name is
-exit `2` before anything is measured.
+step one and caught up onto it: its list takes `kido`, and everything the pair brought is deleted there
+by hand: the pair, the helper, the plan read and the paired branch of the diet loop, the `node` check,
+the next names on the headroom call, the header's `DIET_NEXT_NAMES` clause, the fixture cases
+(`scripts/prose_size_check_fixture.sh`, lane `prose-guard`), the helper's copy in
+`scripts/workflow_runner_policy_check.rb`'s self-test, and its entries in `scripts/plugin_bump_check.sh`
+and `CONTRIBUTING.md`. Git merges the two edits of the list without a conflict, so nothing prompts the
+deletion; a kept pair beside the new name is exit `2` in that branch's own `prose-guard` lane (*renames
+'bankai-rule', which is not on the diet list*), and a helper deleted while the self-test still copies it
+fails `workflow-policy-guard`. Pull-request CI runs neither lane against the branch's own copy, so step
+two runs both before it opens. One refusal lands with step one and stays: an entry that exists where a
+measured file is expected and is not a regular file is an offender by name (`NOTAFILE`, where it used to
+be skipped in silence). While the pair is held, a row that is malformed, renames an unlisted skill, names
+a listed skill twice or reuses a name, and a plan that does not account for every listed skill, are exit
+`2` before or instead of a clean verdict.

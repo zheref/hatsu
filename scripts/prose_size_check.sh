@@ -41,7 +41,8 @@
 # A measured dieted skill with under 512 bytes left also prints WARN without changing the verdict.
 #
 # Every measured file must be a regular file whose real path stays under the root: a symlink, or a
-# chain of them, that leaves the root, a dangling symlink where a file is expected, a file that cannot be read, a directory
+# chain of them, that leaves the root, a dangling symlink where a file is expected, an entry there that is
+# not a regular file (a directory, a FIFO), a file that cannot be read, a directory
 # that cannot be listed and a rules file that is not valid UTF-8 are each an OFFENDER by name (the run
 # never reads green over a file it did not measure, and never measures a path the tree pointed outside
 # itself -- SEC-7; QA-16/QA-18, zheref/hatsu#119's review).
@@ -52,12 +53,14 @@
 # decision to hold it at 12 KB from then on.
 #
 # exit 0  every file is within its ceiling
-# exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling or outside the root, each named
+# exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling, not a
+#         regular file or outside the root, each named
 # exit 2  the repository root does not look like a Hatsu checkout, an unknown flag, an empty root
 #         argument, more than one root argument, no perl to check UTF-8 with, or, while
-#         DIET_NEXT_NAMES holds a row, no node to read it with or a row that is not <listed>:<next>,
+#         DIET_NEXT_NAMES holds a row: no node that can run scripts/prose_diet_names.ts, a plan from
+#         it that does not account for every listed skill, or a row that is not <listed>:<next>,
 #         renames a skill the diet list does not hold, names a listed skill twice, or gives a next
-#         name the list or another pair already holds (scripts/prose_diet_names.ts)
+#         name the list or another pair already holds
 
 set -eu
 
@@ -79,8 +82,11 @@ hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message s
 # SKILL.md is absent and the next name's is on disk, the next one holds the same ceiling and the run
 # says so; both on disk are both measured; neither is still MISSING. scripts/prose_diet_names.ts reads
 # the rows and the tree and decides (BC-11). Step two, the rename's own PR, cut from or caught up onto
-# a main that carries this: the list takes the next name and the row, the helper, this branch of the
-# diet loop and their fixture cases are deleted (a kept row beside the new name is exit 2 there).
+# a main that carries this: the list takes the next name, and everything this row brought is deleted
+# by hand -- the row, the helper, the plan read and the paired branch of the diet loop, the node check,
+# `$next_names` on the headroom call, the header's DIET_NEXT_NAMES clause, the fixture's cases, the
+# helper's copy in scripts/workflow_runner_policy_check.rb's self-test and its entries in
+# scripts/plugin_bump_check.sh and CONTRIBUTING.md (a kept row beside the new name is exit 2 there).
 # `bankai-rule` becomes `kido` by the maintainer's word of 2026-11-16 on zheref/hatsu#354; the ruling's
 # row lands in docs/ROSTER.md with step two.
 DIET_NEXT_NAMES="bankai-rule:kido"
@@ -123,6 +129,7 @@ if [ -n "$DIET_NEXT_NAMES" ]; then
   set -f
   diet_plan="$(node "$(dirname -- "$0")/prose_diet_names.ts" "$root" $DIETED_SKILLS -- $DIET_NEXT_NAMES)" || exit 2
   next_names="$(printf '%s ' $DIET_NEXT_NAMES | sed 's/[^ ]*://g')"
+  diet_listed="$(printf '%s\n' $DIETED_SKILLS | wc -l | tr -d ' ')"
   set +f
 fi
 
@@ -207,15 +214,23 @@ diet_measure() {
   measure "${f#"$root"/}" "$(size_of "$f" 2>/dev/null || true)" "$SKILL_MAX" bytes
 }
 if [ -n "$DIET_NEXT_NAMES" ]; then
+  # The plan ends with `E <n>`, the count of listed skills it accounted for: a plan that is empty, cut
+  # short or carries a step this guard does not know is wiring, never a green run with nothing measured.
+  diet_planned=""
   while IFS="$(printf '\t')" read -r step detail; do
     case "$step" in
       M) diet_measure "$detail" ;;
       N) echo "$detail" ;;
       O) offend "$detail" ;;
+      E) diet_planned="$detail" ;;
+      '') ;;
+      *) usage_error "scripts/prose_diet_names.ts printed a plan step this guard does not know: '$step'" ;;
     esac
   done <<DIET_PLAN
 $diet_plan
 DIET_PLAN
+  [ "$diet_planned" = "$diet_listed" ] \
+    || usage_error "scripts/prose_diet_names.ts accounted for '${diet_planned:-no}' of the $diet_listed diet-list skills; nothing is read as measured"
 else
   for s in $DIETED_SKILLS; do
     f="$root/claude/skills/$s/SKILL.md"
@@ -359,5 +374,5 @@ if [ "$offenders" -eq 0 ]; then
   echo "prose ok: $checked files within their ceilings (agents $AGENT_MAX, dieted skills $SKILL_MAX, rules $RULES_MAX chars); $described skill descriptions within the $DESC_MAX-character cap"
   exit 0
 fi
-echo "prose_size_check.sh: $offenders offence(s): a file over its ceiling or a description over the cap, or a path unreadable, unlistable, unmeasurable, dangling or outside the root" >&2
+echo "prose_size_check.sh: $offenders offence(s): a file over its ceiling or a description over the cap, or a path unreadable, unlistable, unmeasurable, dangling, not a regular file or outside the root" >&2
 exit 1

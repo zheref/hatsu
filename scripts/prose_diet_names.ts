@@ -11,6 +11,8 @@
 //   M <name>   measure claude/skills/<name>/SKILL.md under the skill ceiling
 //   N <text>   say <text> (a renamed entry is never silent)
 //   O <text>   an offence, counted by the guard
+//   E <n>      the last line: how many listed skills the plan accounted for, which the guard holds
+//              against its own list so an empty or truncated plan is never read as a clean run
 // "On disk" is the guard's own reading: the entry exists, or is a symlink even to nothing, so a
 // dangling link reaches `admit` and is named there instead of reading as absent.
 //
@@ -83,7 +85,8 @@ function main(args: readonly string[]): number {
     if (!NAME.test(skill)) throw new Wiring(`DIETED_SKILLS holds '${skill}', not a skill name`);
   }
   const lines = plan(root, listed, readPairs(listed, args.slice(cut + 1)));
-  if (lines.length > 0) process.stdout.write(`${lines.join('\n')}\n`);
+  lines.push(`E\t${listed.length}`);
+  process.stdout.write(`${lines.join('\n')}\n`);
   return 0;
 }
 

@@ -264,13 +264,20 @@ assert_lacks "$out" 'prose ok' 'it never reads green'
 # --- a malformed DIET_NEXT_NAMES row is wiring (exit 2), refused by scripts/prose_diet_names.ts before
 #     anything is measured. The row lives in the guard, so these run a scratch copy of it (and of the
 #     helper beside it) with the row rewritten, under plain sh: the coverage wrapper traces the real guard only. ---
+# They run on a root whose agent is one byte over its ceiling: a refusal that came after measuring
+# would print that OVER row, so the order is asserted on a tree where it can fail.
+overagent="$fixture_root/overagent"
+make_root "$overagent"
+bytes "$overagent/claude/agents/chrollo.md" 6145
+run 1 "$overagent"
+assert_contains "$out" 'OVER  claude/agents/chrollo.md  6145 > 6144 bytes' 'the over-ceiling agent is measured when the row is well formed'
 wiring() {
   local row="$1" needle="$2" message="$3" copy="$fixture_root/guard-wiring.sh"
   sed "s|^DIET_NEXT_NAMES=.*|DIET_NEXT_NAMES=\"$row\"|" "$guard" > "$copy"
   cp "$script_dir/prose_diet_names.ts" "$fixture_root/prose_diet_names.ts"
   grep -q "^DIET_NEXT_NAMES=\"$row\"\$" "$copy" || fail "the scratch guard did not take the row '$row'"
   set +e
-  out="$(sh "$copy" "$clean" 2>&1)"
+  out="$(sh "$copy" "$overagent" 2>&1)"
   code=$?
   set -e
   [ "$code" -eq 2 ] || fail "DIET_NEXT_NAMES='$row' exited $code, expected 2: $out"
@@ -278,6 +285,27 @@ wiring() {
   assert_lacks "$out" 'prose ok' 'a wiring refusal never reads green'
   case "$out" in *OVER*|*MISSING*|*'/12288'*) fail "a wiring refusal followed lines that read as measurements: $out" ;; esac
 }
+# A helper that prints nothing, stops short or prints a step the guard does not know is wiring too
+# (Feitan and Chrollo, hanten on this change): the guard never reads an unfinished plan as a clean run.
+stub_helper() {
+  local body="$1" needle="$2" message="$3" copy="$fixture_root/guard-stub.sh"
+  cp "$guard" "$copy"
+  printf '%s\n' "$body" > "$fixture_root/prose_diet_names.ts"
+  set +e
+  out="$(sh "$copy" "$overagent" 2>&1)"
+  code=$?
+  set -e
+  [ "$code" -eq 2 ] || fail "a helper that is '$body' exited $code, expected 2: $out"
+  assert_contains "$out" "$needle" "$message"
+  assert_lacks "$out" 'prose ok' 'an unfinished plan never reads green'
+}
+# (a refused plan is refused where the plan is carried out, after the agents are measured: the OVER row
+# above it is expected there, and the exit is 2 all the same)
+stub_helper 'process.exitCode = 0;' "accounted for 'no' of the" 'an empty plan is refused'
+stub_helper 'process.stdout.write("M\tfuton\n");' "accounted for 'no' of the" 'a plan with no closing count is refused'
+stub_helper 'process.stdout.write("M\tfuton\nE\t1\n");' "accounted for '1' of the" 'a plan that counts fewer skills than the list is refused'
+stub_helper 'process.stdout.write("Z\tfuton\n");' "a plan step this guard does not know: 'Z'" 'an unknown plan step is refused'
+stub_helper 'throw new TypeError("boom");' 'TypeError' 'a helper that crashes is exit 2, never a pass'
 wiring 'futon' "holds 'futon', not <listed>:<next>" 'a row with no next name is refused'
 wiring 'futon:Futon2' "holds 'futon:Futon2', not <listed>:<next>" 'a pair outside skill-name characters is refused'
 wiring 'futon:../x' "holds 'futon:../x', not <listed>:<next>" 'a pair that would leave the skills directory is refused'
@@ -317,7 +345,7 @@ ln -s "$fixture_root/outside.md" "$escape/claude/agents/zz.md"
 run 1 --headroom "$escape"
 assert_contains "$out" 'OUTSIDE  claude/agents/zz.md -- resolves to a path outside the root, not measured' 'a symlink leaving the root is an offender, never measured'
 assert_lacks "$out" 'claude/agents/zz.md  ' 'the escaped path has no report row'
-assert_contains "$out" 'unreadable, unlistable, unmeasurable, dangling or outside the root' 'the verdict names the class'
+assert_contains "$out" 'unreadable, unlistable, unmeasurable, dangling, not a regular file or outside the root' 'the verdict names the class'
 chain="$fixture_root/chain"
 make_root "$chain"
 printf '%s\n' 'outside' > "$fixture_root/outside-chain.md"
@@ -485,4 +513,4 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 bash "$script_dir/fixture_output_guard_fixture.sh"
-echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, a renamed entry's next name (alone, over, beside the listed one, absent, dangling, a directory, a link to one, a link out of the root), a non-regular file at a listed name, eight malformed pair rows, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
+echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, a renamed entry's next name (alone, over, beside the listed one, absent, dangling, a directory, a link to one, a link out of the root), a non-regular file at a listed name, eight malformed pair rows, five unfinished or unknown plans, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
