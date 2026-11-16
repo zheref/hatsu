@@ -630,3 +630,14 @@ landing is two steps. Step one is the runner edit. Step two is the first `unit-t
 includes step one: its log must read `unit-tests-ci: config-values-guard`, and a non-draft probe pull
 request that breaks `scripts/config_values_examiner_fixture.ts` must turn the check red. HA#397 closes on
 that evidence, not on step one's merge.
+
+**2026-11-16. Renaming a skill on the diet list is the same two-step landing (zheref/hatsu#354).**
+`prose-size-check.yml` runs `scripts/prose_size_check.sh` from the trusted base against the pull
+request's tree, and that copy's `DIETED_SKILLS` still holds the old name, so a pull request that renames
+a listed skill reads `MISSING  claude/skills/<old>/SKILL.md` whatever its own copy says. Step one, this
+change: `DIET_NEXT_NAMES` holds `<listed>:<next>` pairs, and where the listed directory is absent and
+the next one is on disk, the next one holds the same ceiling and the run prints a `NEXT-NAME` line; both
+on disk are both measured, and neither is still `MISSING`. Its first pair is `bankai-rule:kido`, the
+maintainer's rename of 2026-11-16. Step two is the rename's own pull request, opened once `main` carries
+step one: its list takes `kido`, and the pair, the next-name read and their fixture cases
+(`scripts/prose_size_check_fixture.sh`, lane `prose-guard`) are deleted there.

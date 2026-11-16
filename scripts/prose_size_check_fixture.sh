@@ -183,6 +183,48 @@ rm "$missing/claude/skills/futon/SKILL.md"
 run 1 "$missing"
 assert_contains "$out" 'MISSING  claude/skills/futon/SKILL.md -- named on the diet list and not on disk' 'the missing skill is named'
 
+# --- a renamed diet entry (DIET_NEXT_NAMES, zheref/hatsu#354): the pairs are read out of the guard, as the
+#     list is, so these cases follow the row and are deleted with it at step two ---
+NEXT_PAIRS="$(sed -n 's/^DIET_NEXT_NAMES="\(.*\)"$/\1/p' "$guard")"
+[ -n "$NEXT_PAIRS" ] || fail "could not read a DIET_NEXT_NAMES pair from $guard"
+for pair in $NEXT_PAIRS; do
+  listed="${pair%%:*}"; next="${pair#*:}"
+  renamed="$fixture_root/renamed-$listed"
+  make_root "$renamed"
+  mv "$renamed/claude/skills/$listed" "$renamed/claude/skills/$next"
+  run 0 "$renamed"
+  assert_contains "$out" "NEXT-NAME  claude/skills/$listed/SKILL.md is absent; its next name claude/skills/$next/SKILL.md holds its ceiling (DIET_NEXT_NAMES)" 'a renamed skill is said, never silent'
+  assert_contains "$out" "prose ok: $total files within their ceilings" 'the renamed skill is counted once, under its next name'
+  assert_lacks "$out" 'MISSING' 'the listed name is not missing while its next name is on disk'
+  bytes "$renamed/claude/skills/$next/SKILL.md" 12289
+  run 1 "$renamed"
+  assert_contains "$out" "OVER  claude/skills/$next/SKILL.md  12289 > 12288 bytes" 'the next name holds the listed name\x27s ceiling'
+  both="$fixture_root/both-$listed"
+  make_root "$both"
+  bytes "$both/claude/skills/$next/SKILL.md" 12289
+  run 1 "$both"
+  assert_contains "$out" "OVER  claude/skills/$next/SKILL.md  12289 > 12288 bytes" 'with both names on disk the next one is measured too'
+  assert_lacks "$out" 'NEXT-NAME' 'nothing is said to be renamed while the listed name is on disk'
+  bytes "$both/claude/skills/$next/SKILL.md" 100
+  run 0 "$both"
+  assert_contains "$out" "prose ok: $((total + 1)) files within their ceilings" 'both names are counted'
+  neither="$fixture_root/neither-$listed"
+  make_root "$neither"
+  rm -r "$neither/claude/skills/$listed"
+  run 1 "$neither"
+  assert_contains "$out" "MISSING  claude/skills/$listed/SKILL.md -- named on the diet list and not on disk (nor is its next name, claude/skills/$next/SKILL.md)" 'neither name on disk is still a missing diet entry'
+  dangling="$fixture_root/dangling-$listed"
+  make_root "$dangling"
+  rm -r "$dangling/claude/skills/$listed"
+  mkdir -p "$dangling/claude/skills/$next"
+  ln -s nowhere.md "$dangling/claude/skills/$next/SKILL.md"
+  run 1 "$dangling"
+  assert_contains "$out" "DANGLING  claude/skills/$next/SKILL.md" 'a next name that is a dangling symlink is an offender, never a pass'
+  bytes "$renamed/claude/skills/$next/SKILL.md" 12000
+  run 0 --headroom "$renamed"
+  assert_contains "$out" "WARN  claude/skills/$next/SKILL.md has 288 bytes headroom" 'the headroom warning reads the next name too'
+done
+
 # --- wiring refusals: an unknown flag, a root that is not a Hatsu checkout, an empty or doubled root ---
 run 2 --bogus "$clean"
 assert_contains "$out" 'unknown flag --bogus (known: --headroom, -- ends the flags)' 'an unknown flag is refused by name'
@@ -381,4 +423,4 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 bash "$script_dir/fixture_output_guard_fixture.sh"
-echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
+echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, a renamed entry's next name (alone, over, beside the listed one, absent, dangling), the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"

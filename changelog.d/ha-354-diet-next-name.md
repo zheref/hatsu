@@ -1,0 +1,1 @@
+- The prose-size guard accepts a renamed diet-list skill under its next name: `DIET_NEXT_NAMES` pairs a listed skill with the name it is becoming, so the trusted copy on `main` can judge the pull request that renames it. Step one of the two-step landing for `bankai-rule` → `kido` (zheref/hatsu#354).
