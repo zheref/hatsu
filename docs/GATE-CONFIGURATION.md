@@ -641,8 +641,8 @@ absent and the next name's is on disk, the next one holds the same ceiling and t
 `NEXT-NAME` line; both on disk are both measured, and neither is still `MISSING`. Its first pair is
 `bankai-rule:kido`, the maintainer's word of 2026-11-16 on zheref/hatsu#354, whose ruling row lands in
 `docs/ROSTER.md` with step two. Step two is the rename's own pull request, opened once `main` carries
-step one and caught up onto it: its list takes `kido`, and everything the pair brought is deleted there
-by hand: the pair, the helper, the plan read and the paired branch of the diet loop, the `node` check,
+step one and caught up onto it: its list takes `kido`, and everything the pair brought is deleted in
+that pull request's own diff: the pair, the helper, the plan read and the paired branch of the diet loop, the `node` check,
 the next names on the headroom call, the header's `DIET_NEXT_NAMES` clause, the fixture cases
 (`scripts/prose_size_check_fixture.sh`, lane `prose-guard`), the helper's copy in
 `scripts/workflow_runner_policy_check.rb`'s self-test, and its entries in `scripts/plugin_bump_check.sh`
