@@ -1,0 +1,2 @@
+- The prose-size guard accepts a renamed diet-list skill under its next name: `DIET_NEXT_NAMES` pairs a listed skill with the name it is becoming (read by `scripts/prose_diet_names.ts`), so the trusted copy on `main` can judge the pull request that renames it. Step one of the two-step landing for `bankai-rule` → `kido` (zheref/hatsu#354).
+- The guard now names an entry that exists where a measured file is expected and is not a regular file (`NOTAFILE`) instead of skipping it in silence, and refuses a malformed pair row at exit 2 before anything is measured.

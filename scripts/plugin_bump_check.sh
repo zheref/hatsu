@@ -181,6 +181,12 @@ fi
 #                       recreates the first-run failure this guard exists to
 #                       prevent, so this one runtime script is covered; the
 #                       fixture check beside it is test-only and is not.
+#   scripts/surface_marker.sh
+#                     — the one reader of a placed copy's generated marker
+#                       (zheref/hatsu#531), sourced by the session-start hook,
+#                       scripts/surface_bootstrap.sh and scripts/permissions_pack.sh
+#                       on every installed copy; a stale copy judges ownership and
+#                       adoption by the old rule.
 #   scripts/branch_authorship_check.sh
 #                     — the authorship gate (zheref/hatsu#170), run from
 #                       `$hatsu_root/scripts/` at hanten § 4's return and before
@@ -333,10 +339,12 @@ fi
 #                       whether the served copy is the source (zheref/hatsu#122), and
 #                       surface_mirror_check.sh --installed calls it; a stale copy would
 #                       misjudge the cache. Its fixture beside it is test-only.
-#   scripts/prose_size_check.sh
+#   scripts/prose_size_check.sh, scripts/prose_headroom_warn.ts
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
-#                       included; a stale copy judges a review by old rules.
+#                       included; a stale copy judges a review by old rules. The
+#                       guard executes the TypeScript helper beside it for the
+#                       headroom warning under --headroom.
 #
 #   scripts/hanten_findings_check.mts, scripts/clause_id_guard.mts
 #                     — hanten section 6 runs the findings checker from the installed
@@ -386,6 +394,7 @@ PLUGIN_SURFACE_GLOBS=(
   'templates/*'
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
+  'scripts/surface_marker.sh'
   'scripts/nen_global.sh'
   'scripts/branch_authorship_check.sh'
   'scripts/hatsu_plugin_update.sh'
@@ -399,6 +408,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_surface_link.sh'
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
+  'scripts/prose_headroom_warn.ts'
   'scripts/canon_contracts_check.sh'
   'scripts/publish_gate.sh'
   'scripts/private_name_check.sh'
