@@ -452,19 +452,26 @@ function renderedRows(block: string): string[] {
 function driveLines(block: string): string[] {
   return block.split("\n").filter((line): boolean => line.startsWith("*Drive:*"));
 }
+// The canonical shape (templates/pr-delivery.md): heading, the one Drive line a maintainer acts on,
+// then the six-column table collapsed in a <details> block so a long ledger costs no vertical space
+// until it is opened. GitHub renders the table inside <details> only with the blank lines kept.
+export const DELIVERY_SUMMARY = "<details><summary>Delivery ledger — surface, model, dial and session per role</summary>";
 function shapeFindings(block: string): string[] {
   const lines = block.split("\n");
   const findings: string[] = [];
   if (lines[0] !== "## 📬 Delivery") findings.push("Delivery heading must use the canonical rendered form");
-  if (lines[2] !== "| Role | Surface | Model | Dial | Session | Source |" || lines[3] !== "|---|---|---|---|---|---|") findings.push("Delivery table header differs from the canonical six-column form");
   const driveIndexes = lines.flatMap((line, index): number[] => line.startsWith("*Drive:*") ? [index] : []);
   if (driveIndexes.length !== 1) findings.push("Delivery must carry exactly one Drive line");
   else {
     const at = driveIndexes[0] as number;
     if (!/^\*Drive:\* gate forecast: (?:G2|G4|unread — [^;]+); next: (?:hatsu:en on [A-Z]{2,3}-PR-#\d+|unread — [^;]+); readiness is nen pr ready's verdict$/.test(lines[at] as string)) findings.push("Drive must name a Nen-derived gate or explicit unread, an exact PR ref or explicit unread, and nen pr ready's verdict");
-    if (lines.slice(at + 1).some((line): boolean => line.trim() !== "")) findings.push("Delivery carries content after Drive");
-    if (lines.slice(4, at).some((line): boolean => line.trim() !== "" && !/^\| .* \|$/.test(line))) findings.push("Delivery carries non-row content inside its table");
+    if (at !== 2) findings.push("Drive must be the first line under the Delivery heading, above the collapsed ledger");
   }
+  if (lines[4] !== DELIVERY_SUMMARY || lines[5] !== "") findings.push("Delivery ledger must open with the canonical collapsed <details> summary and a blank line");
+  if (lines[6] !== "| Role | Surface | Model | Dial | Session | Source |" || lines[7] !== "|---|---|---|---|---|---|") findings.push("Delivery table header differs from the canonical six-column form");
+  const close = lines.lastIndexOf("</details>");
+  if (close < 0 || lines.slice(close + 1).some((line): boolean => line.trim() !== "")) findings.push("Delivery must end with the ledger's closing </details>, nothing after it");
+  else if (close < 8 || lines.slice(8, close).some((line): boolean => line.trim() !== "" && !/^\| .* \|$/.test(line))) findings.push("Delivery carries non-row content inside its table");
   return findings;
 }
 export function compareBody(body: string, expected: string): string[] {

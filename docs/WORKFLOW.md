@@ -644,7 +644,9 @@ persona from a runtime alias or stamp a default persona blindly. Existing commit
 are historical and are not rewritten.
 
 The first heading of every PR body is `## Delivery`, reporting surface, recorded model and alias,
-effort dial and session from the effort's ledgers. This reverses only the PR-body half of the
+effort dial and session from the effort's ledgers. Its *Drive* line sits directly under the heading and
+the per-role table is collapsed in a `<details>` block (closed by default), so a long ledger costs a
+reviewer one line until they open it (`templates/pr-delivery.md`; `scripts/pr_delivery.ts` enforces it). This reverses only the PR-body half of the
 2026-09-12 ruling (maintainer ruling 2026-10-19); `CON-51(c)` and commit messages stay as above.
 The final heading is [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
 of each actual participant's canonical Hatsu persona, role/contribution, and evidence. Runtime

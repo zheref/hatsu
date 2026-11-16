@@ -265,9 +265,19 @@ test("Nen alone renders Markdown and the semantic guard names missing, duplicate
   assert.match(compareBody(`${missing}\n# Changes`, rendered).join("\n"), /missing ledger row/);
   const duplicate = rendered.replace(`${dataRows[0]}\n`, `${dataRows[0]}\n${dataRows[0]}\n`);
   assert.match(compareBody(`${duplicate}\n# Changes`, rendered).join("\n"), /extra or duplicate/);
-  const extra = rendered.replace("\n*Drive:*", "\n| foreign | codex | exact: fake · alias: sol | high | fake | fixture |\n\n*Drive:*");
+  const extra = rendered.replace("\n\n</details>", "\n| foreign | codex | exact: fake · alias: sol | high | fake | fixture |\n\n</details>");
   assert.match(compareBody(`${extra}\n# Changes`, rendered).join("\n"), /extra or duplicate/);
   assert.match(compareBody(`${rendered.replace("*Drive:*", "*Drive:* changed ")}\n# Changes`, rendered).join("\n"), /Drive must name/);
+  // The ledger is collapsed under the Drive line (maintainer request 2026-11-16): an expanded
+  // table, a Drive line moved below it, or content after </details> is refused by name.
+  assert.match(rendered, /\n\n\*Drive:\* [^\n]+\n\n<details><summary>[^\n]+<\/summary>\n\n\| Role \|/);
+  assert.match(rendered, /\|\n\n<\/details>\n?$/);
+  const expanded = rendered.replace(/<details><summary>[^\n]+<\/summary>\n\n/, "").replace("\n</details>", "");
+  assert.match(compareBody(`${expanded}\n# Changes`, rendered).join("\n"), /canonical collapsed <details> summary/);
+  const drive = (/^\*Drive:\* .*$/m.exec(rendered) as RegExpExecArray)[0];
+  const driveBelow = rendered.replace(`${drive}\n\n`, "").replace("</details>", `</details>\n\n${drive}`);
+  assert.match(compareBody(`${driveBelow}\n# Changes`, rendered).join("\n"), /Drive must be the first line/);
+  assert.match(compareBody(`${rendered.trimEnd()}\n\nstray note\n# Changes`, rendered).join("\n"), /closing <\/details>, nothing after it/);
 });
 
 test("CLI writes mode 0600 and refuses output and input symlinks", () => {
