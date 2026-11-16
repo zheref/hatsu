@@ -24,45 +24,18 @@ def command!(*argv)
   out
 end
 
-root = Dir.pwd
-base = 'origin/main'
-body = nil
-list_only = false
-until ARGV.empty?
-  flag = ARGV.shift
-  case flag
-  when '--root', '--base-ref', '--body'
-    fail_preflight("#{flag} needs a value") if ARGV.empty?
-    value = ARGV.shift
-    case flag
-    when '--root' then root = value
-    when '--base-ref' then base = value
-    when '--body' then body = value
-    end
-  when '--list' then list_only = true
-  else fail_preflight("unknown argument #{flag}")
-  end
-end
-root = File.realpath(root)
-fail_preflight('root must be a Git checkout') unless command!('git', '-C', root, 'rev-parse', '--show-toplevel').strip == root
-fail_preflight('base ref must name an origin branch (the intended PR base)') unless base.match?(%r{\Aorigin/[A-Za-z0-9][A-Za-z0-9._/-]*\z})
-branch = base.delete_prefix('origin/')
-fail_preflight('base ref is not a valid branch') unless system('git', 'check-ref-format', '--branch', branch, out: File::NULL, err: File::NULL)
-base_sha = command!('git', '-C', root, 'rev-parse', '--verify', "#{base}^{commit}").strip
+NOT_BEFORE_PR = {
+  'readiness_ci_verdict.mts' => "formats the open PR's live nen pr ready verdict; there is no PR before creation"
+}.freeze
 
-Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
-  # The real path, never the symlinked one mktmpdir hands back (/var -> /private/var on macOS): a
-  # TypeScript guard whose entry guard compares its argv path with its resolved module URL runs
-  # NOTHING and exits 0 when the two spellings differ -- a false pass, found by the fixture's
-  # red-lint case. Every trusted script below is invoked by this path.
-  temporary = File.realpath(temporary)
-  archive = File.join(temporary, 'trusted.tar')
-  File.binwrite(archive, command!('git', '-C', root, 'archive', '--format=tar', base_sha))
-  trusted = File.join(temporary, 'trusted')
-  Dir.mkdir(trusted)
-  command!('tar', '-xf', archive, '-C', trusted)
-  workflows = Dir[File.join(trusted, '.github', 'workflows', '*.{yml,yaml}')].sort
-  fail_preflight("#{base_sha} has no workflows to inspect") if workflows.empty?
+VERDICT_LINES = {
+  'prose_ambiguity_check.mts' => /^canon-lint: /,
+  'plugin_bump_api_retry.mts' => /^changed files: 1$/
+}.freeze
+
+def derive_guards(root)
+  workflows = Dir[File.join(root, '.github', 'workflows', '*.{yml,yaml}')].sort
+  fail_preflight('no workflows to inspect') if workflows.empty?
   guards = {}
   workflows.each do |workflow|
     data = Psych.safe_load(File.read(workflow, encoding: 'UTF-8'), aliases: false)
@@ -80,12 +53,123 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
     end
   end
   fail_preflight('no trusted scripts derived from pull_request_target workflows') if guards.empty?
-  guards.each_key do |name|
-    fail_preflight("trusted workflow names absent scripts/#{name}") unless File.file?(File.join(trusted, 'scripts', name))
+  guards
+end
+
+def local_adapters(trusted, root, temporary, base_sha: nil, changed: nil, draft_body: nil, lint_contracts: nil)
+  {
+    'workflow_runner_policy_check.rb' => ['ruby', File.join(trusted, 'scripts/workflow_runner_policy_check.rb'), '--self-test', root],
+    'surface_mirror_check.sh' => ['bash', File.join(trusted, 'scripts/surface_mirror_check.sh'), root],
+    'surface_link_check.sh' => ['bash', File.join(trusted, 'scripts/surface_link_check.sh'), root],
+    'prose_size_check.sh' => ['bash', File.join(trusted, 'scripts/prose_size_check.sh'), root],
+    'private_name_check_fixture.sh' => ['bash', File.join(trusted, 'scripts/private_name_check_fixture.sh')],
+    'plugin_bump_api_retry.mts' => [
+      { 'GH_TOKEN' => 'fixture-token', 'GITHUB_TOKEN' => '', 'NODE_OPTIONS' => nil },
+      'node', '--import', File.join(temporary, 'plugin-bump-fetch.mjs'),
+      File.join(trusted, 'scripts/plugin_bump_api_retry.mts'), '--repo', 'fixture/hatsu',
+      '--pr', '1', '--base-sha', base_sha, '--changed-files', File.join(temporary, 'api-changed-files.txt'),
+      '--base-manifest', File.join(temporary, 'api-base-manifest.json')
+    ],
+    'plugin_bump_check.sh' => ['bash', File.join(trusted, 'scripts/plugin_bump_check.sh'), changed,
+                                File.join(trusted, '.claude-plugin/plugin.json'),
+                                File.join(root, '.claude-plugin/plugin.json'), draft_body],
+    'canon_contracts_check.sh' => [{ 'NEN' => ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen')) },
+                                   'bash', File.join(trusted, 'scripts/canon_contracts_check.sh'), '--root', root],
+    # The canon prose lint (HR-13): the trusted guard and rules over this tree, growth held
+    # against the trusted baseline, as prose-ambiguity-check.yml's frozen step runs it.
+    'prose_ambiguity_check.mts' => ['node', File.join(trusted, 'scripts/prose_ambiguity_check.mts'), '--root', root,
+                                     '--rules', File.join(lint_contracts.to_s, 'prose.lint.json'),
+                                     '--base-baseline', File.join(lint_contracts.to_s, 'prose.lint.baseline.json')],
+    'direct_matrix_ci_check.mts' => ['node', File.join(trusted, 'scripts/direct_matrix_ci_check.mts'), root],
+    'branch_authorship_check.sh' => ['sh', File.join(trusted, 'scripts/branch_authorship_check.sh'),
+                                      '--repo', root, '--base', base_sha,
+                                      '--forbid-trailers-from', File.join(trusted, 'nen/workflow.json'), '--forbidden-only']
+  }
+end
+
+def missing_script(root, name)
+  "trusted workflow names absent scripts/#{name}" unless File.file?(File.join(root, 'scripts', name))
+end
+
+def adapter_gap(name, adapters)
+  'no local invocation' unless adapters.key?(name) || NOT_BEFORE_PR.key?(name)
+end
+
+# Exercise the archived API reader's actual CLI with fixed responses and throwaway outputs.
+# No PR or credentials are needed. The shell guard still receives Git-derived inputs.
+def write_plugin_bump_fixture(temporary, base_sha)
+  File.write(File.join(temporary, 'plugin-bump-fetch.mjs'), <<~JS)
+    const api = 'https://api.github.com/repos/fixture/hatsu';
+    const base = '#{base_sha}';
+    const replies = new Map([
+      [`${api}/commits/${base}`, { sha: base }],
+      [`${api}/pulls/1/files?per_page=100&page=1`, [{ filename: 'README.md' }]],
+      [`${api}/contents/.claude-plugin/plugin.json?ref=${base}`, { version: '0.1.0' }],
+    ]);
+    globalThis.fetch = async (input) => {
+      if (!replies.has(input)) throw new Error('unexpected plugin-bump fixture request');
+      return Response.json(replies.get(input));
+    };
+  JS
+end
+
+root = Dir.pwd
+base = 'origin/main'
+body = nil
+list_only = false
+check_adapters = false
+until ARGV.empty?
+  flag = ARGV.shift
+  case flag
+  when '--root', '--base-ref', '--body'
+    fail_preflight("#{flag} needs a value") if ARGV.empty?
+    value = ARGV.shift
+    case flag
+    when '--root' then root = value
+    when '--base-ref' then base = value
+    when '--body' then body = value
+    end
+  when '--list' then list_only = true
+  when '--check-adapters' then check_adapters = true
+  else fail_preflight("unknown argument #{flag}")
   end
-  puts "trusted-guard-preflight: base #{base_sha}; guards derived from pull_request_target workflows:"
-  guards.sort.each { |name, sources| puts "  #{name} (#{sources.uniq.sort.join(', ')})" }
-  exit 0 if list_only
+end
+root = File.realpath(root)
+fail_preflight('root must be a Git checkout') unless command!('git', '-C', root, 'rev-parse', '--show-toplevel').strip == root
+if check_adapters
+  fail_preflight('--check-adapters cannot be combined with --list') if list_only
+  adapters = local_adapters(root, root, root)
+  problems = derive_guards(root).keys.sort.map do |name|
+    reason = missing_script(root, name) || adapter_gap(name, adapters)
+    "#{name}: #{reason}" if reason
+  end.compact
+  problems.each { |problem| warn "trusted-guard-preflight: #{problem}" }
+  exit 2 unless problems.empty?
+  puts 'trusted-guard-preflight: all candidate workflow guards have a local invocation or a PR-only reason'
+  exit 0
+end
+fail_preflight('base ref must name an origin branch (the intended PR base)') unless base.match?(%r{\Aorigin/[A-Za-z0-9][A-Za-z0-9._/-]*\z})
+branch = base.delete_prefix('origin/')
+fail_preflight('base ref is not a valid branch') unless system('git', 'check-ref-format', '--branch', branch, out: File::NULL, err: File::NULL)
+base_sha = command!('git', '-C', root, 'rev-parse', '--verify', "#{base}^{commit}").strip
+
+Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
+  # The real path, never the symlinked one mktmpdir hands back (/var -> /private/var on macOS): a
+  # TypeScript guard whose entry guard compares its argv path with its resolved module URL runs
+  # NOTHING and exits 0 when the two spellings differ -- a false pass, found by the fixture's
+  # red-lint case. Every trusted script below is invoked by this path.
+  temporary = File.realpath(temporary)
+  archive = File.join(temporary, 'trusted.tar')
+  File.binwrite(archive, command!('git', '-C', root, 'archive', '--format=tar', base_sha))
+  trusted = File.join(temporary, 'trusted')
+  Dir.mkdir(trusted)
+  command!('tar', '-xf', archive, '-C', trusted)
+  guards = derive_guards(trusted)
+  puts "trusted-guard-preflight: base #{base_sha}; guards derived from pull_request_target workflows"
+  if list_only
+    guards.sort.each { |name, sources| puts "  #{name} (#{sources.uniq.sort.join(', ')})" }
+    exit 0
+  end
 
   changed = File.join(temporary, 'changed-files.txt')
   # --no-renames preserves BOTH ends of a move. The trusted plugin-bump job
@@ -103,59 +187,53 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
   # the trusted contracts are copied under <root>/.nen/ -- git-ignored, and outside the lint's own
   # walk -- for this run only, and removed with it (the ensure below).
   lint_contracts = nil
+  unavailable = {}
   begin
     if guards.key?('prose_ambiguity_check.mts')
       FileUtils.mkdir_p(File.join(root, '.nen'))
       lint_contracts = Dir.mktmpdir('trusted-guard-preflight-', File.join(root, '.nen'))
       %w[prose.lint.json prose.lint.baseline.json].each do |name|
         source = File.join(trusted, 'contracts', name)
-        fail_preflight("trusted revision has no contracts/#{name} for the canon lint") unless File.file?(source)
+        unless File.file?(source)
+          unavailable['prose_ambiguity_check.mts'] = "trusted revision has no contracts/#{name} for the canon lint"
+          break
+        end
         FileUtils.cp(source, File.join(lint_contracts, name))
       end
     end
-    adapters = {
-      'workflow_runner_policy_check.rb' => ['ruby', File.join(trusted, 'scripts/workflow_runner_policy_check.rb'), '--self-test', root],
-      'surface_mirror_check.sh' => ['bash', File.join(trusted, 'scripts/surface_mirror_check.sh'), root],
-      'surface_link_check.sh' => ['bash', File.join(trusted, 'scripts/surface_link_check.sh'), root],
-      'prose_size_check.sh' => ['bash', File.join(trusted, 'scripts/prose_size_check.sh'), root],
-      'private_name_check_fixture.sh' => ['bash', File.join(trusted, 'scripts/private_name_check_fixture.sh')],
-      'plugin_bump_check.sh' => ['bash', File.join(trusted, 'scripts/plugin_bump_check.sh'), changed,
-                                  File.join(trusted, '.claude-plugin/plugin.json'),
-                                  File.join(root, '.claude-plugin/plugin.json'), draft_body],
-      'canon_contracts_check.sh' => [{ 'NEN' => ENV.fetch('NEN', ENV.fetch('NEN_BIN', 'nen')) },
-                                     'bash', File.join(trusted, 'scripts/canon_contracts_check.sh'), '--root', root],
-      # The canon prose lint (HR-13): the trusted guard and rules over this tree, growth held
-      # against the trusted baseline, as prose-ambiguity-check.yml's frozen step runs it.
-      'prose_ambiguity_check.mts' => ['node', File.join(trusted, 'scripts/prose_ambiguity_check.mts'), '--root', root,
-                                       '--rules', File.join(lint_contracts.to_s, 'prose.lint.json'),
-                                       '--base-baseline', File.join(lint_contracts.to_s, 'prose.lint.baseline.json')],
-      'direct_matrix_ci_check.mts' => ['node', File.join(trusted, 'scripts/direct_matrix_ci_check.mts'), root],
-      'branch_authorship_check.sh' => ['sh', File.join(trusted, 'scripts/branch_authorship_check.sh'),
-                                        '--repo', root, '--base', base_sha,
-                                        '--forbid-trailers-from', File.join(trusted, 'nen/workflow.json'), '--forbidden-only']
-    }
-    # Derived, and named as not run: each reads what only exists once the PR is open.
-    not_before_pr = {
-      'readiness_ci_verdict.mts' => "formats the open PR's live nen pr ready verdict; there is no PR before creation"
-    }
-    unknown = guards.keys - adapters.keys - not_before_pr.keys
-    fail_preflight("no local invocation for trusted guard(s): #{unknown.sort.join(', ')}") unless unknown.empty?
+    write_plugin_bump_fixture(temporary, base_sha) if guards.key?('plugin_bump_api_retry.mts')
+    adapters = local_adapters(trusted, root, temporary, base_sha: base_sha, changed: changed,
+                              draft_body: draft_body, lint_contracts: lint_contracts)
     failed = []
-    (guards.keys & not_before_pr.keys).sort.each { |name| puts "  #{name}: not run (#{not_before_pr.fetch(name)})" }
-    (guards.keys - not_before_pr.keys).sort.each do |name|
-      output, errors, status = Open3.capture3(*adapters.fetch(name))
-      puts "  #{name}: exit #{status.exitstatus}"
-      # A verdict guard's exit 0 counts only with its verdict line: a guard whose entry guard did
-      # not match its argv path exits 0 having run nothing, and that read as green once (Feitan,
-      # hanten round 2 on HA-PR-#420). The lint's line is its own; another guard's is added here
-      # when that guard joins the list.
-      verdict_lines = { 'prose_ambiguity_check.mts' => /^canon-lint: / }
-      silent = status.success? && verdict_lines.key?(name) && !output.match?(verdict_lines.fetch(name))
-      if status.success? && !silent
-        puts "    #{output.lines.map(&:strip).reject(&:empty?).last}" unless output.empty?
-      elsif silent
-        warn "trusted-guard-preflight: #{name} exited 0 without its verdict line (#{verdict_lines.fetch(name).source}): it did not run, a wiring failure, never a pass"
+    incomplete = false
+    guards.keys.sort.each do |name|
+      problem = missing_script(trusted, name) || adapter_gap(name, adapters) || unavailable[name]
+      reason = problem || NOT_BEFORE_PR[name]
+      if reason
+        puts "  #{name}: not run (#{reason})"
+        incomplete = true if problem
+        next
+      end
+
+      begin
+        output, errors, status = Open3.capture3(*adapters.fetch(name))
+      rescue Errno::ENOENT, Errno::EACCES => error
+        puts "  #{name}: not run (#{error.message})"
+        incomplete = true
+        next
+      end
+
+      # An entry point that misses its argv path can exit 0 without running anything.
+      verdict = VERDICT_LINES[name]
+      if status.success? && verdict && !output.match?(verdict)
+        puts "  #{name}: not run (exited 0 without its verdict line #{verdict.source})"
         failed << name
+        next
+      end
+
+      puts "  #{name}: exit #{status.exitstatus || "signal #{status.termsig}"}"
+      if status.success?
+        puts "    #{output.lines.map(&:strip).reject(&:empty?).last}" unless output.empty?
       else
         puts output unless output.empty?
         warn errors unless errors.empty?
@@ -175,9 +253,13 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
       unless shape.empty?
         warn "trusted-guard-preflight: #{shape.join(', ')}: use the two-step landing in docs/GATE-CONFIGURATION.md § 6 (2026-09-20 and 2026-09-30 rulings): land a guard that accepts both shapes first, then change its input in a follow-up PR."
       end
-      exit 1
     end
-    puts 'trusted-guard-preflight: every derived trusted guard passed'
+    if incomplete
+      warn 'trusted-guard-preflight: incomplete local wiring; see the not-run results above'
+      exit 2
+    end
+    exit 1 unless failed.empty?
+    puts 'trusted-guard-preflight: every runnable trusted guard passed'
   ensure
     FileUtils.rm_rf(lint_contracts) if lint_contracts
   end
