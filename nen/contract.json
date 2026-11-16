@@ -657,20 +657,29 @@
       },
       "unit-tests-ci-guard": {
         "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "node_modules/vitest/vitest.mjs",
-            "run",
-            "--testTimeout",
-            "15000",
-            "scripts/unit_tests_ci_fixture.test.mts",
-            "scripts/release_changelog_fixture.test.mts",
-            "scripts/tenkai_release_guard_fixture.test.mts",
-            "scripts/shell_coverage_fixture.test.mts"
+          "steps": [
+            {
+              "exe": "ruby",
+              "argv": ["scripts/trusted_guard_preflight.rb", "--check-adapters", "--root", "."]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--testTimeout",
+                "15000",
+                "scripts/unit_tests_ci_fixture.test.mts",
+                "scripts/trusted_guard_preflight_fixture.test.mts",
+                "scripts/release_changelog_fixture.test.mts",
+                "scripts/tenkai_release_guard_fixture.test.mts",
+                "scripts/shell_coverage_fixture.test.mts"
+              ]
+            }
           ],
-          "$comment": "Pinned Vitest fixtures for the trusted CI test runner (including its required mechanical-conflicts fixture selection), release-changelog parser, and Tenkai publisher adoption guard. Install locked dependencies with npm ci --ignore-scripts first."
+          "$comment": "The read-only PR unit-tests workflow always selects this lane. Check the candidate workflows for missing preflight adapters before running the pinned Vitest fixtures for the trusted CI test runner, trusted-preflight runtime and failure paths, release-changelog parser, Tenkai publisher adoption guard, and shell coverage. Install locked dependencies with npm ci --ignore-scripts first."
         }
       },
       "gh-api-read-guard": {
