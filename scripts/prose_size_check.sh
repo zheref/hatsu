@@ -8,7 +8,7 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the thirty-one dieted skills                      <= 12288 bytes
+#   the thirty-two dieted skills                      <= 12288 bytes
 #   every claude/rules/*.md, and the generated      <= 12000 characters (Antigravity's own documented
 #   surfaces/antigravity/rules/*.md mirror
 #                                                     rules-file limit, docs/surfaces/antigravity.md --
@@ -41,7 +41,8 @@
 # A measured dieted skill with under 512 bytes left also prints WARN without changing the verdict.
 #
 # Every measured file must be a regular file whose real path stays under the root: a symlink, or a
-# chain of them, that leaves the root, a dangling symlink where a file is expected, a file that cannot be read, a directory
+# chain of them, that leaves the root, a dangling symlink where a file is expected, an entry there that is
+# not a regular file (a directory, a FIFO), a file that cannot be read, a directory
 # that cannot be listed and a rules file that is not valid UTF-8 are each an OFFENDER by name (the run
 # never reads green over a file it did not measure, and never measures a path the tree pointed outside
 # itself -- SEC-7; QA-16/QA-18, zheref/hatsu#119's review).
@@ -52,9 +53,14 @@
 # decision to hold it at 12 KB from then on.
 #
 # exit 0  every file is within its ceiling
-# exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling or outside the root, each named
+# exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling, not a
+#         regular file or outside the root, each named
 # exit 2  the repository root does not look like a Hatsu checkout, an unknown flag, an empty root
-#         argument, more than one root argument, or no perl to check UTF-8 with
+#         argument, more than one root argument, no perl to check UTF-8 with, or, while
+#         DIET_NEXT_NAMES holds a row: no node that can run scripts/prose_diet_names.ts, a plan from
+#         it that does not account for every listed skill, or a row that is not <listed>:<next>,
+#         renames a skill the diet list does not hold, names a listed skill twice, or gives a next
+#         name the list or another pair already holds
 
 set -eu
 
@@ -68,6 +74,22 @@ DESC_MAX=1024
 # under the ceiling rather than reduced to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build classify direct futon great-hiker
 hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time bankai-rule kamui hiraishin dowsing-chain kuchiyose kage-bunshin senkaimon"
+
+# DIET_NEXT_NAMES (zheref/hatsu#354): a diet-list skill that is being renamed, as `<listed>:<next>`
+# pairs. CI runs THIS file from the trusted workflow revision (main's head) against the pull request's
+# tree, so a PR that renames a listed skill is judged by a list that still holds the old name
+# (docs/GATE-CONFIGURATION.md section 6, the two-step landing). Step one, this row: where the listed
+# SKILL.md is absent and the next name's is on disk, the next one holds the same ceiling and the run
+# says so; both on disk are both measured; neither is still MISSING. scripts/prose_diet_names.ts reads
+# the rows and the tree and decides (BC-11). Step two, the rename's own PR, cut from or caught up onto
+# a main that carries this: the list takes the next name, and everything this row brought is deleted
+# by hand -- the row, the helper, the plan read and the paired branch of the diet loop, the node check,
+# `$next_names` on the headroom call, the header's DIET_NEXT_NAMES clause, the fixture's cases, the
+# helper's copy in scripts/workflow_runner_policy_check.rb's self-test and its entries in
+# scripts/plugin_bump_check.sh and CONTRIBUTING.md (a kept row beside the new name is exit 2 there).
+# `bankai-rule` becomes `kido` by the maintainer's word of 2026-11-16 on zheref/hatsu#354; the ruling's
+# row lands in docs/ROSTER.md with step two.
+DIET_NEXT_NAMES="bankai-rule:kido"
 
 usage_error() { echo "prose_size_check.sh: $1" >&2; exit 2; }
 
@@ -96,6 +118,21 @@ root="$(cd -P -- "$root" && pwd -P)"
 
 command -v perl >/dev/null 2>&1 || usage_error "no perl on PATH -- UTF-8 validity is checked exactly, never guessed"
 
+# A renamed diet entry: which names are measured, what is said and what is MISSING is a verdict over
+# the pair rows and the tree, so TypeScript reaches it (BC-11) and the diet loop below only carries it
+# out. Read here, before anything is measured, so a wiring refusal never follows lines that read as
+# measurements. The two lists are words, never patterns: no glob may expand against the tree judged.
+diet_plan=""
+next_names=""
+if [ -n "$DIET_NEXT_NAMES" ]; then
+  command -v node >/dev/null 2>&1 || usage_error "no node on PATH -- DIET_NEXT_NAMES is read by scripts/prose_diet_names.ts"
+  set -f
+  diet_plan="$(node "$(dirname -- "$0")/prose_diet_names.ts" "$root" $DIETED_SKILLS -- $DIET_NEXT_NAMES)" || exit 2
+  next_names="$(printf '%s ' $DIET_NEXT_NAMES | sed 's/[^ ]*://g')"
+  diet_listed="$(printf '%s\n' $DIETED_SKILLS | wc -l | tr -d ' ')"
+  set +f
+fi
+
 size_of() { wc -c <"$1" | tr -d ' '; }
 # valid_utf8: 0 when stdin is entirely valid UTF-8 -- Encode's strict decoder refuses any stray, truncated,
 # overlong or surrogate sequence. Not iconv: macOS's refuses a valid character straddling its 1024-byte buffer.
@@ -123,7 +160,13 @@ listable() {
 admit() {
   f="$1"; rel="${f#"$root"/}"
   if [ -L "$f" ] && [ ! -e "$f" ]; then offend "DANGLING  $rel -- a symlink to nothing where a file is expected"; return 1; fi
-  [ -f "$f" ] || return 1
+  if [ ! -f "$f" ]; then
+    # An entry that exists and is not a regular file -- a directory, a FIFO, a link to either -- is an
+    # offender by name: only a truly absent entry (an unmatched glob's literal) is the caller's case.
+    # It used to return silently, and the diet loop then skipped it as already offended (SEC-7).
+    if [ -e "$f" ] || [ -L "$f" ]; then offend "NOTAFILE  $rel -- not a regular file, not measured"; fi
+    return 1
+  fi
   if [ -L "$f" ]; then
     # Every hop, never one readlink: a symlink to an in-root symlink that leaves the root is outside too
     # (Feitan, hanten on #135). perl is already required; Cwd::realpath resolves the whole chain.
@@ -164,15 +207,40 @@ if listable "$root/claude/agents"; then
 fi
 
 diet_offended="|"
-for s in $DIETED_SKILLS; do
-  f="$root/claude/skills/$s/SKILL.md"
-  if [ ! -e "$f" ] && [ ! -L "$f" ]; then
-    offend "MISSING  claude/skills/$s/SKILL.md -- named on the diet list and not on disk"
-    continue
-  fi
-  admit "$f" || { diet_offended="$diet_offended${f#"$root"/}|"; continue; }
+# diet_measure <name>: admit and measure one dieted skill's SKILL.md.
+diet_measure() {
+  f="$root/claude/skills/$1/SKILL.md"
+  admit "$f" || { diet_offended="$diet_offended${f#"$root"/}|"; return 0; }
   measure "${f#"$root"/}" "$(size_of "$f" 2>/dev/null || true)" "$SKILL_MAX" bytes
-done
+}
+if [ -n "$DIET_NEXT_NAMES" ]; then
+  # The plan ends with `E <n>`, the count of listed skills it accounted for: a plan that is empty, cut
+  # short or carries a step this guard does not know is wiring, never a green run with nothing measured.
+  diet_planned=""
+  while IFS="$(printf '\t')" read -r step detail; do
+    case "$step" in
+      M) diet_measure "$detail" ;;
+      N) echo "$detail" ;;
+      O) offend "$detail" ;;
+      E) diet_planned="$detail" ;;
+      '') ;;
+      *) usage_error "scripts/prose_diet_names.ts printed a plan step this guard does not know: '$step'" ;;
+    esac
+  done <<DIET_PLAN
+$diet_plan
+DIET_PLAN
+  [ "$diet_planned" = "$diet_listed" ] \
+    || usage_error "scripts/prose_diet_names.ts accounted for '${diet_planned:-no}' of the $diet_listed diet-list skills; nothing is read as measured"
+else
+  for s in $DIETED_SKILLS; do
+    f="$root/claude/skills/$s/SKILL.md"
+    if [ ! -e "$f" ] && [ ! -L "$f" ]; then
+      offend "MISSING  claude/skills/$s/SKILL.md -- named on the diet list and not on disk"
+      continue
+    fi
+    diet_measure "$s"
+  done
+fi
 
 if [ -d "$root/claude/rules" ] && listable "$root/claude/rules"; then
   for f in "$root"/claude/rules/*.md; do
@@ -299,12 +367,12 @@ if [ "$headroom" -eq 1 ]; then
   printf '%s' "$rows" | sort -n
   # TypeScript owns the 512-byte warning predicate (BC-11); this shell only
   # hands it the diet's existing list and the measured root.
-  node "$(dirname -- "$0")/prose_headroom_warn.ts" "$root" "$SKILL_MAX" $DIETED_SKILLS
+  node "$(dirname -- "$0")/prose_headroom_warn.ts" "$root" "$SKILL_MAX" $DIETED_SKILLS $next_names
 fi
 
 if [ "$offenders" -eq 0 ]; then
   echo "prose ok: $checked files within their ceilings (agents $AGENT_MAX, dieted skills $SKILL_MAX, rules $RULES_MAX chars); $described skill descriptions within the $DESC_MAX-character cap"
   exit 0
 fi
-echo "prose_size_check.sh: $offenders offence(s): a file over its ceiling or a description over the cap, or a path unreadable, unlistable, unmeasurable, dangling or outside the root" >&2
+echo "prose_size_check.sh: $offenders offence(s): a file over its ceiling or a description over the cap, or a path unreadable, unlistable, unmeasurable, dangling, not a regular file or outside the root" >&2
 exit 1

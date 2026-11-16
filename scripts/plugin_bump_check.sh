@@ -339,10 +339,15 @@ fi
 #                       whether the served copy is the source (zheref/hatsu#122), and
 #                       surface_mirror_check.sh --installed calls it; a stale copy would
 #                       misjudge the cache. Its fixture beside it is test-only.
-#   scripts/prose_size_check.sh
+#   scripts/prose_size_check.sh, scripts/prose_headroom_warn.ts,
+#   scripts/prose_diet_names.ts
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
-#                       included; a stale copy judges a review by old rules.
+#                       included; a stale copy judges a review by old rules. The
+#                       guard executes the two TypeScript helpers beside it: the
+#                       headroom warning under --headroom, and the diet-name read
+#                       while DIET_NEXT_NAMES holds a row (zheref/hatsu#354; that
+#                       helper and its entry here are deleted at step two).
 #
 #   scripts/hanten_findings_check.mts, scripts/clause_id_guard.mts
 #                     — hanten section 6 runs the findings checker from the installed
@@ -406,6 +411,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_surface_link.sh'
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
+  'scripts/prose_headroom_warn.ts'
+  'scripts/prose_diet_names.ts'
   'scripts/canon_contracts_check.sh'
   'scripts/publish_gate.sh'
   'scripts/private_name_check.sh'
