@@ -39,7 +39,7 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/send_freshness_check.sh`, `scripts/cleanup_path_admit.sh`,
 `scripts/cleanup_path_admit.ts`, `scripts/hatsu_surface_link.sh`,
 `scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/prose_headroom_warn.ts`,
-`scripts/prose_diet_names.ts`, `scripts/canon_contracts_check.sh`,
+`scripts/canon_contracts_check.sh`,
 `scripts/publish_gate.sh`, `scripts/private_name_check.sh`,
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`,

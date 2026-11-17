@@ -60,7 +60,6 @@ printf '%s\n' 'scripts/hatsu_surface_link.sh' > "$fixture_root/changed-surface-l
 printf '%s\n' 'scripts/surface_link_check.sh' > "$fixture_root/changed-link-guard.txt"
 printf '%s\n' 'scripts/prose_size_check.sh' > "$fixture_root/changed-prose-guard.txt"
 printf '%s\n' 'scripts/prose_headroom_warn.ts' > "$fixture_root/changed-prose-headroom.txt"
-printf '%s\n' 'scripts/prose_diet_names.ts' > "$fixture_root/changed-prose-diet-names.txt"
 printf '%s\n' 'scripts/surface_marker.sh' > "$fixture_root/changed-marker-reader.txt"
 
 run_case() {
@@ -139,7 +138,6 @@ run_case 'surface link script unchanged version' 1 "$fixture_root/changed-surfac
 run_case 'link guard script unchanged version' 1 "$fixture_root/changed-link-guard.txt" "$fixture_root/head-unchanged.json" 'scripts/surface_link_check.sh'
 run_case 'prose guard script unchanged version' 1 "$fixture_root/changed-prose-guard.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_size_check.sh'
 run_case 'prose guard headroom helper unchanged version' 1 "$fixture_root/changed-prose-headroom.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_headroom_warn.ts'
-run_case 'prose guard diet-name helper unchanged version' 1 "$fixture_root/changed-prose-diet-names.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_diet_names.ts'
 # The marker reader the hook, the bootstrap and the permission pack source on every installed copy (zheref/hatsu#531).
 run_case 'marker reader unchanged version' 1 "$fixture_root/changed-marker-reader.txt" "$fixture_root/head-unchanged.json" 'scripts/surface_marker.sh'
 run_case 'marker reader bumped version' 0 "$fixture_root/changed-marker-reader.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'

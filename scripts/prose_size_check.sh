@@ -56,11 +56,7 @@
 # exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling, not a
 #         regular file or outside the root, each named
 # exit 2  the repository root does not look like a Hatsu checkout, an unknown flag, an empty root
-#         argument, more than one root argument, no perl to check UTF-8 with, or, while
-#         DIET_NEXT_NAMES holds a row: no node that can run scripts/prose_diet_names.ts, a plan from
-#         it that does not account for every listed skill, or a row that is not <listed>:<next>,
-#         renames a skill the diet list does not hold, names a listed skill twice, or gives a next
-#         name the list or another pair already holds
+#         argument, more than one root argument, or no perl to check UTF-8 with
 
 set -eu
 
@@ -70,26 +66,10 @@ RULES_MAX=12000
 DESC_MAX=1024
 
 # The thirty-two: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
-# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), bankai-rule (v0.125.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), kage-bunshin (v0.156.0), senkaimon (v0.165.0), which were authored
+# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), kido (v0.125.0, as bankai-rule until v0.169.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), kage-bunshin (v0.156.0), senkaimon (v0.165.0), which were authored
 # under the ceiling rather than reduced to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build classify direct futon great-hiker
-hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time bankai-rule kamui hiraishin dowsing-chain kuchiyose kage-bunshin senkaimon"
-
-# DIET_NEXT_NAMES (zheref/hatsu#354): a diet-list skill that is being renamed, as `<listed>:<next>`
-# pairs. CI runs THIS file from the trusted workflow revision (main's head) against the pull request's
-# tree, so a PR that renames a listed skill is judged by a list that still holds the old name
-# (docs/GATE-CONFIGURATION.md section 6, the two-step landing). Step one, this row: where the listed
-# SKILL.md is absent and the next name's is on disk, the next one holds the same ceiling and the run
-# says so; both on disk are both measured; neither is still MISSING. scripts/prose_diet_names.ts reads
-# the rows and the tree and decides (BC-11). Step two, the rename's own PR, cut from or caught up onto
-# a main that carries this: the list takes the next name, and everything this row brought is deleted
-# by hand -- the row, the helper, the plan read and the paired branch of the diet loop, the node check,
-# `$next_names` on the headroom call, the header's DIET_NEXT_NAMES clause, the fixture's cases, the
-# helper's copy in scripts/workflow_runner_policy_check.rb's self-test and its entries in
-# scripts/plugin_bump_check.sh and CONTRIBUTING.md (a kept row beside the new name is exit 2 there).
-# `bankai-rule` becomes `kido` by the maintainer's word of 2026-11-16 on zheref/hatsu#354; the ruling's
-# row lands in docs/ROSTER.md with step two.
-DIET_NEXT_NAMES="bankai-rule:kido"
+hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time kido kamui hiraishin dowsing-chain kuchiyose kage-bunshin senkaimon"
 
 usage_error() { echo "prose_size_check.sh: $1" >&2; exit 2; }
 
@@ -117,21 +97,6 @@ fi
 root="$(cd -P -- "$root" && pwd -P)"
 
 command -v perl >/dev/null 2>&1 || usage_error "no perl on PATH -- UTF-8 validity is checked exactly, never guessed"
-
-# A renamed diet entry: which names are measured, what is said and what is MISSING is a verdict over
-# the pair rows and the tree, so TypeScript reaches it (BC-11) and the diet loop below only carries it
-# out. Read here, before anything is measured, so a wiring refusal never follows lines that read as
-# measurements. The two lists are words, never patterns: no glob may expand against the tree judged.
-diet_plan=""
-next_names=""
-if [ -n "$DIET_NEXT_NAMES" ]; then
-  command -v node >/dev/null 2>&1 || usage_error "no node on PATH -- DIET_NEXT_NAMES is read by scripts/prose_diet_names.ts"
-  set -f
-  diet_plan="$(node "$(dirname -- "$0")/prose_diet_names.ts" "$root" $DIETED_SKILLS -- $DIET_NEXT_NAMES)" || exit 2
-  next_names="$(printf '%s ' $DIET_NEXT_NAMES | sed 's/[^ ]*://g')"
-  diet_listed="$(printf '%s\n' $DIETED_SKILLS | wc -l | tr -d ' ')"
-  set +f
-fi
 
 size_of() { wc -c <"$1" | tr -d ' '; }
 # valid_utf8: 0 when stdin is entirely valid UTF-8 -- Encode's strict decoder refuses any stray, truncated,
@@ -207,40 +172,15 @@ if listable "$root/claude/agents"; then
 fi
 
 diet_offended="|"
-# diet_measure <name>: admit and measure one dieted skill's SKILL.md.
-diet_measure() {
-  f="$root/claude/skills/$1/SKILL.md"
-  admit "$f" || { diet_offended="$diet_offended${f#"$root"/}|"; return 0; }
+for s in $DIETED_SKILLS; do
+  f="$root/claude/skills/$s/SKILL.md"
+  if [ ! -e "$f" ] && [ ! -L "$f" ]; then
+    offend "MISSING  claude/skills/$s/SKILL.md -- named on the diet list and not on disk"
+    continue
+  fi
+  admit "$f" || { diet_offended="$diet_offended${f#"$root"/}|"; continue; }
   measure "${f#"$root"/}" "$(size_of "$f" 2>/dev/null || true)" "$SKILL_MAX" bytes
-}
-if [ -n "$DIET_NEXT_NAMES" ]; then
-  # The plan ends with `E <n>`, the count of listed skills it accounted for: a plan that is empty, cut
-  # short or carries a step this guard does not know is wiring, never a green run with nothing measured.
-  diet_planned=""
-  while IFS="$(printf '\t')" read -r step detail; do
-    case "$step" in
-      M) diet_measure "$detail" ;;
-      N) echo "$detail" ;;
-      O) offend "$detail" ;;
-      E) diet_planned="$detail" ;;
-      '') ;;
-      *) usage_error "scripts/prose_diet_names.ts printed a plan step this guard does not know: '$step'" ;;
-    esac
-  done <<DIET_PLAN
-$diet_plan
-DIET_PLAN
-  [ "$diet_planned" = "$diet_listed" ] \
-    || usage_error "scripts/prose_diet_names.ts accounted for '${diet_planned:-no}' of the $diet_listed diet-list skills; nothing is read as measured"
-else
-  for s in $DIETED_SKILLS; do
-    f="$root/claude/skills/$s/SKILL.md"
-    if [ ! -e "$f" ] && [ ! -L "$f" ]; then
-      offend "MISSING  claude/skills/$s/SKILL.md -- named on the diet list and not on disk"
-      continue
-    fi
-    diet_measure "$s"
-  done
-fi
+done
 
 if [ -d "$root/claude/rules" ] && listable "$root/claude/rules"; then
   for f in "$root"/claude/rules/*.md; do
@@ -367,7 +307,7 @@ if [ "$headroom" -eq 1 ]; then
   printf '%s' "$rows" | sort -n
   # TypeScript owns the 512-byte warning predicate (BC-11); this shell only
   # hands it the diet's existing list and the measured root.
-  node "$(dirname -- "$0")/prose_headroom_warn.ts" "$root" "$SKILL_MAX" $DIETED_SKILLS $next_names
+  node "$(dirname -- "$0")/prose_headroom_warn.ts" "$root" "$SKILL_MAX" $DIETED_SKILLS
 fi
 
 if [ "$offenders" -eq 0 ]; then

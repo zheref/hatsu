@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Prove scripts/prose_size_check.sh (zheref/hatsu#119): a tree within every ceiling is exit 0; one file
 # over is exit 1 naming the file, its size and its ceiling; a dieted skill missing from disk is named;
-# a renamed diet entry (DIET_NEXT_NAMES, zheref/hatsu#354; deleted with the row at step two) is measured
-# under its next name, alone or beside the listed one, and a malformed pair row is exit 2; an entry
-# that exists and is not a regular file is an offender by name;
+# an entry that exists and is not a regular file is an offender by name, under --headroom too;
 # kurapika.md is exempt; a rules file is measured in characters; --headroom prints one row per measured
 # file, smallest margin first, with the same exit code as the plain run; an unknown flag, an empty root,
 # a second root and a root that is not a Hatsu checkout are wiring refusals at exit 2; a symlink that
@@ -186,89 +184,7 @@ rm "$missing/claude/skills/futon/SKILL.md"
 run 1 "$missing"
 assert_contains "$out" 'MISSING  claude/skills/futon/SKILL.md -- named on the diet list and not on disk' 'the missing skill is named'
 
-# --- a renamed diet entry (DIET_NEXT_NAMES, zheref/hatsu#354): the pairs are read out of the guard, as the
-#     list is, so these cases follow the row and are deleted with it at step two ---
-NEXT_PAIRS="$(sed -n 's/^DIET_NEXT_NAMES="\(.*\)"$/\1/p' "$guard")"
-[ -n "$NEXT_PAIRS" ] || fail "could not read a DIET_NEXT_NAMES pair from $guard"
-for pair in $NEXT_PAIRS; do
-  listed="${pair%%:*}"; next="${pair#*:}"
-  renamed="$fixture_root/renamed-$listed"
-  make_root "$renamed"
-  mv "$renamed/claude/skills/$listed" "$renamed/claude/skills/$next"
-  run 0 "$renamed"
-  assert_contains "$out" "NEXT-NAME  claude/skills/$listed/SKILL.md is absent; its next name claude/skills/$next/SKILL.md holds its ceiling (DIET_NEXT_NAMES)" 'a renamed skill is said, never silent'
-  assert_contains "$out" "prose ok: $total files within their ceilings" 'the renamed skill is counted once, under its next name'
-  assert_lacks "$out" 'MISSING' 'the listed name is not missing while its next name is on disk'
-  bytes "$renamed/claude/skills/$next/SKILL.md" 12289
-  run 1 "$renamed"
-  assert_contains "$out" "OVER  claude/skills/$next/SKILL.md  12289 > 12288 bytes" 'the next name holds the listed name\x27s ceiling'
-  both="$fixture_root/both-$listed"
-  make_root "$both"
-  bytes "$both/claude/skills/$next/SKILL.md" 12289
-  run 1 "$both"
-  assert_contains "$out" "OVER  claude/skills/$next/SKILL.md  12289 > 12288 bytes" 'with both names on disk the next one is measured too'
-  assert_lacks "$out" 'NEXT-NAME' 'nothing is said to be renamed while the listed name is on disk'
-  bytes "$both/claude/skills/$next/SKILL.md" 100
-  run 0 "$both"
-  assert_contains "$out" "prose ok: $((total + 1)) files within their ceilings" 'both names are counted'
-  neither="$fixture_root/neither-$listed"
-  make_root "$neither"
-  rm -r "$neither/claude/skills/$listed"
-  run 1 "$neither"
-  assert_contains "$out" "MISSING  claude/skills/$listed/SKILL.md -- named on the diet list and not on disk (nor is its next name, claude/skills/$next/SKILL.md)" 'neither name on disk is still a missing diet entry'
-  dangling="$fixture_root/dangling-$listed"
-  make_root "$dangling"
-  rm -r "$dangling/claude/skills/$listed"
-  mkdir -p "$dangling/claude/skills/$next"
-  ln -s nowhere.md "$dangling/claude/skills/$next/SKILL.md"
-  run 1 "$dangling"
-  assert_contains "$out" "DANGLING  claude/skills/$next/SKILL.md" 'a next name that is a dangling symlink is an offender, never a pass'
-  bytes "$renamed/claude/skills/$next/SKILL.md" 12000
-  run 0 --headroom "$renamed"
-  assert_contains "$out" "WARN  claude/skills/$next/SKILL.md has 288 bytes headroom" 'the headroom warning reads the next name too'
-  # An entry at the next name that is not a regular file never reads green (Feitan, hanten on this change).
-  asdir="$fixture_root/asdir-$listed"
-  make_root "$asdir"
-  rm -r "$asdir/claude/skills/$listed"
-  mkdir -p "$asdir/claude/skills/$next/SKILL.md"
-  bytes "$asdir/claude/skills/$next/SKILL.md/big.md" 20000
-  run 1 "$asdir"
-  assert_contains "$out" "NOTAFILE  claude/skills/$next/SKILL.md -- not a regular file, not measured" 'a directory at the next name is an offender'
-  assert_lacks "$out" 'prose ok' 'a directory at the next name never reads green'
-  linkdir="$fixture_root/linkdir-$listed"
-  make_root "$linkdir"
-  rm -r "$linkdir/claude/skills/$listed"
-  mkdir -p "$linkdir/claude/skills/$next"
-  ln -s ../futon "$linkdir/claude/skills/$next/SKILL.md"
-  run 1 "$linkdir"
-  assert_contains "$out" "NOTAFILE  claude/skills/$next/SKILL.md -- not a regular file, not measured" 'a symlink to an in-root directory at the next name is an offender'
-  outside="$fixture_root/outside-$listed"
-  make_root "$outside"
-  rm -r "$outside/claude/skills/$listed"
-  bytes "$fixture_root/elsewhere-$listed/SKILL.md" 20000
-  ln -s "$fixture_root/elsewhere-$listed" "$outside/claude/skills/$next"
-  run 1 "$outside"
-  assert_contains "$out" "OUTSIDE  claude/skills/$next/SKILL.md -- resolves to a path outside the root, not measured" 'a next-name directory that leaves the root is never measured'
-  assert_lacks "$out" 'prose ok' 'and never reads green'
-
-  # A FIFO at the next name under --headroom, the mode CI always runs: the headroom helper sizes a path
-  # by stat and never opens it, so the guard returns its exit 1 where a read blocked for ever (Copilot,
-  # on HA-PR-#613). The alarm turns a regression into a failed case, never a hung lane.
-  fifo="$fixture_root/fifo-$listed"
-  make_root "$fifo"
-  rm -r "$fifo/claude/skills/$listed"
-  mkdir -p "$fifo/claude/skills/$next"
-  mkfifo "$fifo/claude/skills/$next/SKILL.md"
-  set +e
-  out="$(perl -e 'alarm shift; exec @ARGV' 30 "${guard_command[@]}" --headroom "$fifo" 2>&1)"
-  code=$?
-  set -e
-  [ "$code" -eq 1 ] || fail "a FIFO at the next name under --headroom exited $code, expected 1 (142 is the alarm: the guard hung): $out"
-  assert_contains "$out" "NOTAFILE  claude/skills/$next/SKILL.md -- not a regular file, not measured" 'a FIFO at the next name is an offender under --headroom'
-  assert_lacks "$out" 'prose ok' 'and never reads green'
-done
-
-# --- a listed name that is not a regular file is an offender too (the same silent skip, older than the pairs) ---
+# --- a listed name that is not a regular file is an offender, never a silent skip (zheref/hatsu#354) ---
 notafile="$fixture_root/notafile"
 make_root "$notafile"
 rm "$notafile/claude/skills/futon/SKILL.md"
@@ -276,60 +192,21 @@ mkdir "$notafile/claude/skills/futon/SKILL.md"
 run 1 "$notafile"
 assert_contains "$out" 'NOTAFILE  claude/skills/futon/SKILL.md -- not a regular file, not measured' 'a directory where a listed SKILL.md is expected is named'
 assert_lacks "$out" 'prose ok' 'it never reads green'
+# A FIFO there under --headroom, the mode CI always runs: the headroom helper sizes a path by stat and
+# never opens it, so the guard returns its exit 1 where a read blocked for ever (Copilot, HA-PR-#613).
+# The alarm turns a regression into a failed case, never a hung lane.
+fifo="$fixture_root/fifo"
+make_root "$fifo"
+rm "$fifo/claude/skills/futon/SKILL.md"
+mkfifo "$fifo/claude/skills/futon/SKILL.md"
+set +e
+out="$(perl -e 'alarm shift; exec @ARGV' 30 "${guard_command[@]}" --headroom "$fifo" 2>&1)"
+code=$?
+set -e
+[ "$code" -eq 1 ] || fail "a FIFO at a listed SKILL.md under --headroom exited $code, expected 1 (142 is the alarm: the guard hung): $out"
+assert_contains "$out" 'NOTAFILE  claude/skills/futon/SKILL.md -- not a regular file, not measured' 'a FIFO at a listed name is an offender under --headroom'
+assert_lacks "$out" 'prose ok' 'and never reads green'
 
-# --- a malformed DIET_NEXT_NAMES row is wiring (exit 2), refused by scripts/prose_diet_names.ts before
-#     anything is measured. The row lives in the guard, so these run a scratch copy of it (and of the
-#     helper beside it) with the row rewritten, under plain sh: the coverage wrapper traces the real guard only. ---
-# They run on a root whose agent is one byte over its ceiling: a refusal that came after measuring
-# would print that OVER row, so the order is asserted on a tree where it can fail.
-overagent="$fixture_root/overagent"
-make_root "$overagent"
-bytes "$overagent/claude/agents/chrollo.md" 6145
-run 1 "$overagent"
-assert_contains "$out" 'OVER  claude/agents/chrollo.md  6145 > 6144 bytes' 'the over-ceiling agent is measured when the row is well formed'
-wiring() {
-  local row="$1" needle="$2" message="$3" copy="$fixture_root/guard-wiring.sh"
-  sed "s|^DIET_NEXT_NAMES=.*|DIET_NEXT_NAMES=\"$row\"|" "$guard" > "$copy"
-  cp "$script_dir/prose_diet_names.ts" "$fixture_root/prose_diet_names.ts"
-  grep -q "^DIET_NEXT_NAMES=\"$row\"\$" "$copy" || fail "the scratch guard did not take the row '$row'"
-  set +e
-  out="$(sh "$copy" "$overagent" 2>&1)"
-  code=$?
-  set -e
-  [ "$code" -eq 2 ] || fail "DIET_NEXT_NAMES='$row' exited $code, expected 2: $out"
-  assert_contains "$out" "$needle" "$message"
-  assert_lacks "$out" 'prose ok' 'a wiring refusal never reads green'
-  case "$out" in *OVER*|*MISSING*|*'/12288'*) fail "a wiring refusal followed lines that read as measurements: $out" ;; esac
-}
-# A helper that prints nothing, stops short or prints a step the guard does not know is wiring too
-# (Feitan and Chrollo, hanten on this change): the guard never reads an unfinished plan as a clean run.
-stub_helper() {
-  local body="$1" needle="$2" message="$3" copy="$fixture_root/guard-stub.sh"
-  cp "$guard" "$copy"
-  printf '%s\n' "$body" > "$fixture_root/prose_diet_names.ts"
-  set +e
-  out="$(sh "$copy" "$overagent" 2>&1)"
-  code=$?
-  set -e
-  [ "$code" -eq 2 ] || fail "a helper that is '$body' exited $code, expected 2: $out"
-  assert_contains "$out" "$needle" "$message"
-  assert_lacks "$out" 'prose ok' 'an unfinished plan never reads green'
-}
-# (a refused plan is refused where the plan is carried out, after the agents are measured: the OVER row
-# above it is expected there, and the exit is 2 all the same)
-stub_helper 'process.exitCode = 0;' "accounted for 'no' of the" 'an empty plan is refused'
-stub_helper 'process.stdout.write("M\tfuton\n");' "accounted for 'no' of the" 'a plan with no closing count is refused'
-stub_helper 'process.stdout.write("M\tfuton\nE\t1\n");' "accounted for '1' of the" 'a plan that counts fewer skills than the list is refused'
-stub_helper 'process.stdout.write("Z\tfuton\n");' "a plan step this guard does not know: 'Z'" 'an unknown plan step is refused'
-stub_helper 'throw new TypeError("boom");' 'TypeError' 'a helper that crashes is exit 2, never a pass'
-wiring 'futon' "holds 'futon', not <listed>:<next>" 'a row with no next name is refused'
-wiring 'futon:Futon2' "holds 'futon:Futon2', not <listed>:<next>" 'a pair outside skill-name characters is refused'
-wiring 'futon:../x' "holds 'futon:../x', not <listed>:<next>" 'a pair that would leave the skills directory is refused'
-wiring 'nosuch:other' "renames 'nosuch', which is not on the diet list" 'a pair for an unlisted skill is refused'
-wiring 'futon:futon' "the next name 'futon', which the diet list or another pair already holds" 'a pair renaming a skill to itself is refused'
-wiring 'futon:hanten' "the next name 'hanten', which the diet list or another pair already holds" 'a next name already on the list is refused'
-wiring 'futon:newer futon:newest' "names 'futon' twice; one next name per listed skill" 'a listed skill with two next names is refused'
-wiring 'futon:newer breath:newer' "the next name 'newer', which the diet list or another pair already holds" 'two pairs sharing a next name are refused'
 
 # --- wiring refusals: an unknown flag, a root that is not a Hatsu checkout, an empty or doubled root ---
 run 2 --bogus "$clean"
@@ -529,4 +406,4 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 bash "$script_dir/fixture_output_guard_fixture.sh"
-echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, a renamed entry's next name (alone, over, beside the listed one, absent, dangling, a directory, a link to one, a link out of the root), a non-regular file at a listed name, eight malformed pair rows, five unfinished or unknown plans, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
+echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, a non-regular file at a listed name (a directory, a FIFO under --headroom), the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"

@@ -256,7 +256,7 @@ fi
 #                       this installed-root helper before readiness; a stale copy
 #                       can accept a mismatched or stale effort.
 #   scripts/product_term_check.sh, scripts/private_name_named.txt
-#                     — bankai-rule runs the product-term guard from the installed
+#                     — kido runs the product-term guard from the installed
 #                       root, whose shim executes product_term_check.mts; file reads
 #                       the named public-repository list into its redaction ignore
 #                       file. Stale copies enforce stale code or data.
@@ -265,7 +265,7 @@ fi
 #                       installed-root reader; a stale copy can compare a tag object
 #                       instead of the commit it names.
 #   scripts/port_rule_reserve.sh
-#                     — bankai-rule reserves and re-checks ruling ids through this
+#                     — kido reserves and re-checks ruling ids through this
 #                       installed-root helper; a stale copy can admit a duplicate.
 #   scripts/idle_permissions_check.mts
 #                     — the idle batch's permission list (zheref/hatsu#453), run from
@@ -339,15 +339,12 @@ fi
 #                       whether the served copy is the source (zheref/hatsu#122), and
 #                       surface_mirror_check.sh --installed calls it; a stale copy would
 #                       misjudge the cache. Its fixture beside it is test-only.
-#   scripts/prose_size_check.sh, scripts/prose_headroom_warn.ts,
-#   scripts/prose_diet_names.ts
+#   scripts/prose_size_check.sh, scripts/prose_headroom_warn.ts
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
 #                       included; a stale copy judges a review by old rules. The
-#                       guard executes the two TypeScript helpers beside it: the
-#                       headroom warning under --headroom, and the diet-name read
-#                       while DIET_NEXT_NAMES holds a row (zheref/hatsu#354; that
-#                       helper and its entry here are deleted at step two).
+#                       guard executes the TypeScript helper beside it for the
+#                       headroom warning under --headroom.
 #
 #   scripts/hanten_findings_check.mts, scripts/clause_id_guard.mts
 #                     — hanten section 6 runs the findings checker from the installed
@@ -412,7 +409,6 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
   'scripts/prose_headroom_warn.ts'
-  'scripts/prose_diet_names.ts'
   'scripts/canon_contracts_check.sh'
   'scripts/publish_gate.sh'
   'scripts/private_name_check.sh'

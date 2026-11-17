@@ -122,7 +122,7 @@ next-wave` from epics whose mode label the maintainer applied; then [`futon`](..
 `recapture <family>`: § 2 again at each tip; `nen spec diff`, `converge`, `parity`. Ids never
 renumber; a moved range gets `[STALE @ <sha>]`, a reversal a `supersedes` line; `[x] delivered` only through a
 Development link; new behaviour appended as a Convergence phase. A merged FR the code contradicts is row
-`spec-conflict` (G5). Technology gaps go to [`bankai-rule`](../bankai-rule/SKILL.md)'s `port-drift`, one call;
+`spec-conflict` (G5). Technology gaps go to [`kido`](../kido/SKILL.md)'s `port-drift`, one call;
 gaps are row `spec-converge-filing`. A clean recapture is byte-identical, said. One PR at G2.
 
 ## 11. The desk, the record, resume

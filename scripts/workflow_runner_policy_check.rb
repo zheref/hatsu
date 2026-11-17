@@ -4030,12 +4030,6 @@ def self_test(root)
         headroom_script = File.join(__dir__, "prose_headroom_warn.ts")
         fail_policy("self-test: prose_headroom_warn.ts is not beside the prose guard") unless File.file?(headroom_script)
         FileUtils.cp(headroom_script, File.join(dir, ".trusted/scripts/prose_headroom_warn.ts"))
-        # While DIET_NEXT_NAMES holds a row the guard reads the diet through prose_diet_names.ts
-        # (zheref/hatsu#354); without it beside the guard every case below is a wiring refusal. Deleted
-        # with the helper at step two of that landing (docs/GATE-CONFIGURATION.md section 6).
-        diet_names_script = File.join(__dir__, "prose_diet_names.ts")
-        fail_policy("self-test: prose_diet_names.ts is not beside the prose guard") unless File.file?(diet_names_script)
-        FileUtils.cp(diet_names_script, File.join(dir, ".trusted/scripts/prose_diet_names.ts"))
         FileUtils.mkdir_p(File.join(dir, "claude/agents"))
         agent = File.join(dir, "claude/agents/scout.md")
         File.write(agent, "a scratch agent\n")

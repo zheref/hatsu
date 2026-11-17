@@ -832,7 +832,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   The `swift` row's OSV route
   (`contracts/scans.json` → `dependencyAudit.swift`) has no owner at all: no nen verb carries out its
   `$comment`, and it is owed to the same verb.
-- **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
+- **`kido`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
   `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
@@ -1104,6 +1104,8 @@ retires `scripts/surface_marker.sh`, the shell reader the bootstrap, the permiss
 hook source; it is BC-11 debt, frozen to fixes only until Hatsu repins to that build ([HR-392](ROSTER.md#hr-392)).
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
+
+**The handbooks repository still names the port-rulings skill by its old name** (an owned dependency, zheref/bankai-handbooks#27): `CON-13`, the handbook indexes and the pair-file markers at the pinned tag say `hatsu:bankai-rule`, the skill [HR-394](ROSTER.md#hr-394) renamed `kido`. It retires in two steps that are not Hatsu's to take alone: that repository's amendment at its own G4 with a tag, then Hatsu's repin to that tag. Until both land, [`config/ports.md`](config/ports.md) § *Shared conventions* holds the reading.
 
 ## History
 
