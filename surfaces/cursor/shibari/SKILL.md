@@ -79,7 +79,7 @@ under `<path>/.nen/reports/` (0700/0600). Run `node "$hatsu_root/scripts/pr_deli
 --out <normalized.json> --repo <path> [--gate-forecast <G2|G4>]`; the optional gate token comes
 only from `nen gate derive`'s first line. Render with `nen report render --template
 "$hatsu_root/templates/pr-delivery.md" --data <normalized.json> --out <repo-local-delivery.md> --repo <path>`;
-paste the block, typing no cell.
+paste the block, typing no cell (Drive shown, ledger collapsed).
 WORKFLOW § *The effort's ledgers* owns model provenance, the public Source cell and what stays local.
 After opening, rerun report data with the actual PR (`--target <owner/name> --prs <n>`), normalize with the same derived
 gate, render, edit the PR body and read it back. Drive names `/en on <CODE>#<N>` and states

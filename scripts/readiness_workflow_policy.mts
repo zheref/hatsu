@@ -103,7 +103,7 @@ export function admittedDigests(admission: Admission, trusted: string | undefine
   return admission.next ? [active, admission.next] : [active];
 }
 
-function verify(trusted: string, candidate: string, repository: string): number {
+export function verifyWorkflowPolicy(trusted: string, candidate: string, repository: string): number {
   const policy = parsePolicy(regularText(trusted, POLICY_PATH), repository);
   for (const [path, admission] of Object.entries(policy.workflows)) {
     const allowed = admittedDigests(admission, regularText(trusted, path));
@@ -122,7 +122,7 @@ export function runPolicyCheck() {
     if (mode !== "--self-test" || !root || extra.length || !process.env.GITHUB_REPOSITORY) {
       throw new Error("usage: GITHUB_REPOSITORY=owner/name node " + GUARD_PATH + " --self-test <candidate-root>");
     }
-    const count = verify(dirname(dirname(entry)), resolve(root), process.env.GITHUB_REPOSITORY);
+    const count = verifyWorkflowPolicy(dirname(dirname(entry)), resolve(root), process.env.GITHUB_REPOSITORY);
     process.stdout.write("readiness-workflow-policy: " + count + " rendered workflow(s) match the trusted admission\n");
   } catch (error) {
     process.stderr.write("readiness-workflow-policy: " + (error as Error).message.replace(/[\p{Cc}\p{Cf}]/gu, " ") + "\n");

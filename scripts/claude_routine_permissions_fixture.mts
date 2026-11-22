@@ -385,8 +385,9 @@ export function cases(test: Test) {
     const user = join(config, 'settings.json');
     const checker = 'scripts/claude_routine_write_guard.mts';
     for (const install of [old, current]) {
-      for (const file of [WRAPPER, checker, 'scripts/permissions_pack.sh', 'scripts/claude_permissions.mts',
-        'scripts/claude_routine_permissions.mts', 'scripts/claude_routine_permissions_cli.mts',
+      for (const file of [WRAPPER, checker, 'scripts/permissions_pack.sh', 'scripts/surface_marker.sh',
+        'scripts/claude_permissions.mts', 'scripts/claude_routine_permissions.mts',
+        'scripts/claude_routine_permissions_cli.mts',
         'contracts/permissions.json', 'nen/contract.json', 'nen/repos.json']) {
         mkdirSync(dirname(join(install, file)), { recursive: true });
         copyFileSync(join(root, file), join(install, file));

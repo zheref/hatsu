@@ -569,9 +569,11 @@ every per-workflow table is checked at load to cover exactly the workflows it sh
 **Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
 `PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. The job uses
 only `contents: read` because its fixtures execute candidate code. The policy
-pins each admitted trigger set to its reviewed SHA-256 and checks permissions and
-the hosted runner. The validator checks the installed workflow and the self-test
-also validates the staged template as if installed.
+pins each admitted trigger set to a finite set of reviewed full-file SHA-256
+digests, currently one digest each for its 10-minute and 20-minute forms. It
+checks permissions and the hosted runner. The validator checks the installed
+workflow and the self-test also validates the staged template as if installed.
+Both files retain the 10-minute job bound until activation.
 
 HA#585 stages the `push` trigger for `main` while the installed workflow keeps
 its PR-only trigger. The staged job keeps the same-repository, non-draft PR
@@ -665,3 +667,37 @@ landing is two steps. Step one is the runner edit. Step two is the first `unit-t
 includes step one: its log must read `unit-tests-ci: config-values-guard`, and a non-draft probe pull
 request that breaks `scripts/config_values_examiner_fixture.ts` must turn the check red. HA#397 closes on
 that evidence, not on step one's merge.
+
+**2026-11-16. Renaming a skill on the diet list is the same two-step landing (zheref/hatsu#354).**
+`prose-size-check.yml` runs `scripts/prose_size_check.sh` from the trusted workflow revision (`main`'s
+head) against the pull request's tree, and that copy's `DIETED_SKILLS` still holds the old name, so a
+pull request that renames a listed skill reads `MISSING  claude/skills/<old>/SKILL.md` whatever its own
+copy says. Step one, this change: `DIET_NEXT_NAMES` holds `<listed>:<next>` pairs, read by
+`scripts/prose_diet_names.ts` (the verdict is TypeScript's, `BC-11`). Where the listed `SKILL.md` is
+absent and the next name's is on disk, the next one holds the same ceiling and the run prints a
+`NEXT-NAME` line; both on disk are both measured, and neither is still `MISSING`. Its first pair is
+`bankai-rule:kido`, the maintainer's word of 2026-11-16 on zheref/hatsu#354, whose ruling row lands in
+`docs/ROSTER.md` with step two. Step two is the rename's own pull request, opened once `main` carries
+step one and caught up onto it: its list takes `kido`, and everything the pair brought is deleted in
+that pull request's own diff: the pair, the helper, the plan read and the paired branch of the diet loop, the `node` check,
+the next names on the headroom call, the header's `DIET_NEXT_NAMES` clause, the fixture cases
+(`scripts/prose_size_check_fixture.sh`, lane `prose-guard`), the helper's copy in
+`scripts/workflow_runner_policy_check.rb`'s self-test, and its entries in `scripts/plugin_bump_check.sh`
+and `CONTRIBUTING.md`. Git merges the two edits of the list without a conflict, so nothing prompts the
+deletion; a kept pair beside the new name is exit `2` in that branch's own `prose-guard` lane (*renames
+'bankai-rule', which is not on the diet list*), and a helper deleted while the self-test still copies it
+fails `workflow-policy-guard`. Pull-request CI runs neither lane against the branch's own copy, so step
+two runs both before it opens. One refusal lands with step one and stays: an entry that exists where a
+measured file is expected and is not a regular file is an offender by name (`NOTAFILE`, where it used to
+be skipped in silence). While the pair is held, a row that is malformed, renames an unlisted skill, names
+a listed skill twice or reuses a name, and a plan that does not account for every listed skill, are exit
+`2` before or instead of a clean verdict.
+
+**Step two landed (zheref/hatsu#354, Hatsu 0.169.0).** The diet list holds `kido`, the skill's directory
+is `claude/skills/kido/`, and the pair, `scripts/prose_diet_names.ts`, the plan read, the paired branch
+of the diet loop, the `node` check, the next names on the headroom call, the header's clause, the
+fixture's next-name, malformed-row and unfinished-plan cases, the helper's copy in the policy self-test,
+its entries in `scripts/plugin_bump_check.sh` and `CONTRIBUTING.md` and its case in
+`scripts/plugin_bump_check_fixture.sh` are gone. `NOTAFILE` stays, with
+its fixture cases at a listed name: a directory, and a FIFO under `--headroom`. The next rename of a
+diet-list skill brings the pair back the same way, from HA-PR-#613's diff.

@@ -1,6 +1,6 @@
 ---
 name: hiraishin
-description: Port one PR merged into its repository's base to one sibling repository of the same product family — spec first where the family declares a spec repository (kamui's spec step, a G2 wait, resumable), then a port brief mapping every concept to its target equivalent with each unmapped row ruled once through bankai-rule's port-drift, then the port issue filed on the target and hatsu:build run on it to a CON-32-ready PR. Use when the maintainer invokes hatsu:hiraishin <CODE>-PR-#<N> [to <CODE>] [--dry-run] or hatsu:hiraishin resume <run-id>, or asks to port a merged PR to a sibling platform. The typed call is the G1 for the port issue and the go for its build. Refuses a PR not merged into its base, a cyclic or unported-prerequisite chain, an ungoverned repository; an all-drop brief stops at nothing to port. Never merges, never ports several PRs or targets in one call.
+description: Port one PR merged into its repository's base to one sibling repository of the same product family — spec first where the family declares a spec repository (kamui's spec step, a G2 wait, resumable), then a port brief mapping every concept to its target equivalent with each unmapped row ruled once through kido's port-drift, then the port issue filed on the target and hatsu:build run on it to a CON-32-ready PR. Use when the maintainer invokes hatsu:hiraishin <CODE>-PR-#<N> [to <CODE>] [--dry-run] or hatsu:hiraishin resume <run-id>, or asks to port a merged PR to a sibling platform. The typed call is the G1 for the port issue and the go for its build. Refuses a PR not merged into its base, a cyclic or unported-prerequisite chain, an ungoverned repository; an all-drop brief stops at nothing to port. Never merges, never ports several PRs or targets in one call.
 ---
 
 **Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
@@ -95,7 +95,7 @@ In the session's scratch directory, **shown before any write**:
 | Concept (feature · screen · reducer · lane), its source files | Target equivalent | Ruling | Handling |
 |---|---|---|---|
 
-**Handling** is `bankai-rule`'s (HA#355), **citing its entry** in ports.md § *Mirror versus map*
+**Handling** is `kido`'s (HA#355), **citing its entry** in ports.md § *Mirror versus map*
 (`map: gesture`; a `map` cites the handbook rule on both sides, the pair file in `--always-load` until
 nen resolves pairs, zheref/nen#457); a concept no entry names is `unclassifiable`, asked in § 6. **Ruling**: a ports id,
 `<pair> PT-<n> (branch <ref>, unmerged)`, a `## Platform decisions` row cited (ports.md), or
@@ -104,7 +104,7 @@ nen resolves pairs, zheref/nen#457); a concept no entry names is `unclassifiable
 ## 6. Drift — each row asked once
 
 Every `unmapped` or `unclassifiable` row goes in **one batch** per run through
-[`bankai-rule`](../bankai-rule/SKILL.md)'s `port-drift` (`ask-once-per-run`;
+[`kido`](../kido/SKILL.md)'s `port-drift` (`ask-once-per-run`;
 its shape: three a picker call, further calls for more rows), each answer binding at once, recorded (`nen stop answer`, WORKFLOW § 4) and in
 the pair file and, in the same run, the spec's `## Platform decisions` and `port-ledger.md` on hiraishin's
 amendment PR, its `PR` cell filled at the build's end, sequencing per ports.md (HR-6); on the no-spec route
@@ -141,7 +141,7 @@ PR at the target's **G2**, *Associated issues* naming the port issue (closing) a
 § *The convergence table at readiness*: a row whose state is not `current` is not ready, quoted; an
 uncomputed table reads *could not read*, never converged); **hiraishin holds build's phase 6** (the wrap-up, asked once cleanup § 2's prerequisites hold; en § 8's `rikugan` renders as
 usual), a build's end read as *conventions* say. **The rulings PR opens once, at the run's end**, through
-`bankai-rule` and `mukai`, never draft — whenever a ruling was recorded, drops included; none recorded, none
+`kido` and `mukai`, never draft — whenever a ruling was recorded, drops included; none recorded, none
 opened. The landing report names it, the citations it replaces, Hatsu's repin and the target's pin
 follow-up; release is the target's `getsuga`/`mugetsu`.
 
@@ -156,13 +156,13 @@ Recorded, dated: `docs/ab/hiraishin.md`.
 
 The concept cut, the mapping and the prerequisite read are judgement; the file list is `gh api`. **Owed
 to nen**: a file-fed title (NN#444), a dangling clause refused (NN#366), `families[]` and the `spec` role
-(NN#453), `watch until --until merged` (NN#454), pair resolution (`bankai-rule`'s, HA#355). **PR-body
+(NN#453), `watch until --until merged` (NN#454), pair resolution (`kido`'s, HA#355). **PR-body
 evidence comes from `scripts/fixtures/port-family/`**, never a private product's objects.
 
 ## Authority
 
 - **Permitted:** the reads; the record; kamui's §§ 2–4 by name; the `port-drift` batch and its spec
-  amendment PR (ports.md); § 7's filing or amend; `build` on the port issue; the rulings PR through `bankai-rule`.
+  amendment PR (ports.md); § 7's filing or amend; `build` on the port issue; the rulings PR through `kido`.
 - **Not permitted:** any merge; a draft PR; a G1 mode or stage label; a second source or target; the
   spec engine or `port-drift` reimplemented; a phase's contract changed.
 

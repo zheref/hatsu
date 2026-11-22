@@ -169,7 +169,7 @@ is the opposite case: the guard reads it from the committed named list, as an ex
 - **Product terms in a public pair file:** [`scripts/product_term_check.mts`](../scripts/product_term_check.mts), behind the shim
   `product_term_check.sh`, is the sibling guard for the words the private-name guard does not know — a product, a screen, a business
   rule, an object id — in `zheref/bankai-handbooks`' `handbooks/ports/*.md`, which
-  [`hatsu:bankai-rule`](../claude/skills/bankai-rule/SKILL.md) § 4 writes and runs it on before any write. It
+  [`hatsu:kido`](../claude/skills/kido/SKILL.md) § 4 writes and runs it on before any write. It
   reads the maintainer's term list at `${XDG_CONFIG_HOME:-$HOME/.config}/hatsu/product-terms`, beside the
   ignore file and under the same rule — on the maintainer's machine, never in a tree, written only by the
   maintainer — and **refuses with no list** (`missing-configuration`) rather than passing; an object reference in a

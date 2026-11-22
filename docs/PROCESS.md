@@ -312,7 +312,7 @@ confirm at G4:
 | `readiness[]`, `prBody[]` | `[]` on `turn` and `turn-fast`; on `landing` one row each — `nen pr ready`'s verdict verbatim, [`shibari`](../claude/skills/shibari/SKILL.md)'s body |
 | `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `false` and `[]` unless the last human request was `mukai` (En's first `landing` included when mukai started En in the same sitting and no newer human request came) — the boolean the [`report-examples`](../templates/report-examples/) carry. *New canon* |
 | `captures[]`, `evidenceUnavailable` | `[]` and `""` when no evidence is owed or it is present; the reason when owed evidence is missing |
-| `launch` | a `ren` turn: the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) recorded this turn, verbatim — the command it ran, or its reason line (`no launch target declared; skipped`, § 1; the profile deferral, § 1a; `core launch deferred; explicit maintainer call required`, § 3). A `landing` (launch is never a mukai step), or any turn amaterasu did not run in: the line of the last amaterasu call on this effort; with none, `no launch target declared; skipped` where `project.launch` declares no target, else `no launch in this session`. Never `""`. *New canon*: the landing and no-call cases (`no launch in this session` survives only in [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) |
+| `launch` | a `ren` turn: the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) recorded this turn, verbatim — the command it ran, or its reason line (`no launch target declared; skipped`, § 1; the profile deferral, § 1a; `core launch deferred; explicit maintainer call required`, § 3). An explicit § 3b worktree preview records its selected-worktree command with `coreSwaps: 0`. A `landing` (launch is never a mukai step), or any turn amaterasu did not run in: the line of the last amaterasu call on this effort; with none, `no launch target declared; skipped` where `project.launch` declares no target, else `no launch in this session`. Never `""`. *New canon*: the landing and no-call cases (`no launch in this session` survives only in [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) |
 | `footerNote` | `""`; or the failed `nen ref format` resolution (§ *Publishing a report*); or, with `repo` `null`, the missing repo and why (above). *New canon*: the missing-repo clause |
 
 **The remainder is judgement, and is all the caller writes**: `title` ([`WORKFLOW.md`](WORKFLOW.md)
@@ -840,7 +840,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   The `swift` row's OSV route
   (`contracts/scans.json` → `dependencyAudit.swift`) has no owner at all: no nen verb carries out its
   `$comment`, and it is owed to the same verb.
-- **`bankai-rule`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
+- **`kido`.** The invocation's `ruling` tail is split off at its first whole-word `ruling` in shell
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
   `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
@@ -851,8 +851,11 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   beside the private-name one (unfiled).
 - **Ruling record HR inventory.** `scripts/ruling_id_inventory.mts` reads the fresh base and counts
   the open PRs, changed files, and roster diff rows for `ruling_record.mts next-id` and `render`.
-  It refuses a changed PR head or base or a moved base tip observed during the read. The GitHub reads
-  follow the port-rule reservation precedent. They are temporary Hatsu-local
+  Git and GitHub must read the same repository. When a PR changes the roster, the inventory checks
+  its diff counts and reads the full roster at the merge base and head so fenced examples and
+  comments cannot claim an id. It refuses a moved PR head, PR base, or remote base tip observed
+  during the read. The counted GitHub reads follow the port-rule reservation precedent. The port-rule reader skips forks. The HR inventory
+  reads them because a fork PR can add a roster row. These reads are temporary Hatsu-local
   residue until the path-scoped next-id reader in [zheref/nen#456](https://github.com/zheref/nen/issues/456)
   ships. The inventory cannot coordinate unpublished parallel writers.
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
@@ -867,7 +870,9 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   prune origin`, `rm <reports.dir>/current.html`, `du -sk` and the `readlink` of the host links have no nen verb:
   **owed to nen** as `nen wc prune` (to file); the raise and the `.nen/cleanup/<slug>.json` marker are Hatsu's,
   as third-hand's are. The worktree-path admission is `scripts/cleanup_path_admit.ts`, interim until
-  `nen wc prune` owns it.
+  `nen wc prune` owns it. The `declined.jsonl` append at close and its fold at the next inventory
+  ([`WORKFLOW.md`](WORKFLOW.md) § *Declined cleanup rows*) are by-hand, owed with the inventory read
+  ([zheref/nen#409](https://github.com/zheref/nen/issues/409)).
 - **`spiritual-message` and `rikugan` — the Markdown report** (zheref/hatsu#215). Three owed dependencies
   on `zheref/nen`, not yet filed, named for Netero's harvest. **(a) Render-time Markdown escaping** in
   `nen report render`, per output language, so a value is as inert in the Markdown twin as in the HTML; until
@@ -977,18 +982,20 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   `bankai-quality` runs too, since `nen bootstrap` fetches only nen itself (unfiled).
 - **`amaterasu`.** § 3a's delegation, purpose and report wording are a ruled boundary
   ([HR-390](ROSTER.md#hr-390)); § 3a's third condition, that no other session holds the app, is owned
-  by [zheref/nen#536](https://github.com/zheref/nen/issues/536); record discovery is
-  [zheref/nen#204](https://github.com/zheref/nen/issues/204).
+  by [zheref/nen#536](https://github.com/zheref/nen/issues/536) and complemented locally for § 3b
+  selected-worktree previews by `scripts/amaterasu_preview.mts` (`.nen/amaterasu/sessions.json`); record
+  discovery is [zheref/nen#204](https://github.com/zheref/nen/issues/204).
 - **`bankai-quality` § 4.** The comparison against QA-13's absolute ceilings, which a zero baseline
   leaves to the session, is owned by [zheref/nen#651](https://github.com/zheref/nen/issues/651).
 - **`byakugan`.** The touched set's exclusions, read from the repository's own coverage configuration,
   are owned by [zheref/nen#645](https://github.com/zheref/nen/issues/645).
 - **`great-hiker`.** The delta table assembled from `--json` output is owned by
   [zheref/nen#646](https://github.com/zheref/nen/issues/646); the schedule's dry step is unfiled.
-- **`limbo`.** Residue 6, the canon-values regenerate nen now resolves itself (zheref/nen#294), is owed
-  its adoption, [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578).
-- **`mugetsu`.** Residues 1 and 5 (the recorded go, the `nonProduction` field) are owed their adoption,
-  [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579); residue 4's post-cut preflight reading
+- **`limbo`.** Residues 5 and 6 are retired, adopted by [zheref/hatsu#578](https://github.com/zheref/hatsu/issues/578):
+  `--markdown-out` creates its parent (zheref/nen#292) and the mirror verbs resolve the canon checkout at
+  the pin (zheref/nen#294).
+- **`mugetsu`.** Residues 1 and 5 are retired, adopted by [zheref/hatsu#579](https://github.com/zheref/hatsu/issues/579):
+  the go is recorded through `nen stop answer`, and the production split reads `nonProduction`; residue 4's post-cut preflight reading
   is [zheref/nen#649](https://github.com/zheref/nen/issues/649); residue 6's GitHub Release state read
   is [zheref/nen#652](https://github.com/zheref/nen/issues/652); the per-run log is
   [zheref/nen#91](https://github.com/zheref/nen/issues/91).
@@ -1110,8 +1117,13 @@ until then the two scripts above are the mechanism and are named as such. The ca
 `nen schema check` from nen `0.28` ([zheref/nen#474](https://github.com/zheref/nen/issues/474), the HA#449 repin), which
 also refuses a drifted restatement in the files `precedenceRestatedIn` names (`WORKFLOW.md`), by file and line; BC-11
 keeps the drift case out of `scripts/canon_contracts_check.sh`, frozen to fixes only, since the verb holds it.
+A verb that reads one file's generated surface marker ([zheref/nen#658](https://github.com/zheref/nen/issues/658))
+retires `scripts/surface_marker.sh`, the shell reader the bootstrap, the permission pack and the session-start
+hook source; it is BC-11 debt, frozen to fixes only until Hatsu repins to that build ([HR-392](ROSTER.md#hr-392)).
 
 **RETIRED at nen `0.19`:** `nen commit write` and `nen wc squash` read back the trailers of the commit they wrote, and exit `3` with `injected[]` ([zheref/nen#273](https://github.com/zheref/nen/issues/273), closed by zheref/nen#357). kokusen § 5 and aka § 4 map that exit. aka § 7's step-0 read of the whole outgoing range stays, because a clean catch-up merge is written by `nen wc catch-up`, which reads no trailers back (zheref/nen#357 covers `commit write` and `wc squash` only).
+
+**The handbooks repository still names the port-rulings skill by its old name** (an owned dependency, zheref/bankai-handbooks#27): `CON-13`, the handbook indexes and the pair-file markers at the pinned tag say `hatsu:bankai-rule`, the skill [HR-394](ROSTER.md#hr-394) renamed `kido`. It retires in two steps that are not Hatsu's to take alone: that repository's amendment at its own G4 with a tag, then Hatsu's repin to that tag. Until both land, [`config/ports.md`](config/ports.md) § *Shared conventions* holds the reading.
 
 ## History
 

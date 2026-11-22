@@ -1,1 +1,0 @@
-- Run the trusted plugin-bump API reader offline before opening a pull request. Report missing adapters alongside other guard results and fail the PR test lane when a workflow adds an unhandled trusted guard (zheref/hatsu#525).

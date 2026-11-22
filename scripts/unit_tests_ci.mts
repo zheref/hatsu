@@ -100,6 +100,10 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
   // The skill-shape check judges the touched skills from the merge base of HATSU_BASE_SHA below (zheref/hatsu#502).
   ['skill_shape_check.mts', 'skill_shape_check_fixture.mts', 'skill-shape-guard'],
+  ['amaterasu_preview.mts', ['amaterasu_preview_fixture.test.mts', 'amaterasu_preview_coverage.test.mts'], 'amaterasu-preview-guard'],
+  // The placed-copy marker reader and the mirror source scan must run in CI (zheref/hatsu#531, BC-9).
+  ['surface_bootstrap.sh', 'surface_bootstrap_fixture_check.sh', 'surface-bootstrap-guard'],
+  ['surface_mirror_check.sh', 'surface_mirror_check_fixture.sh', 'surface-mirror-guard'],
 ];
 for (const [script, fixtures, lane] of gated) {
   if (!existsSync(join(root, 'scripts', script))) continue;

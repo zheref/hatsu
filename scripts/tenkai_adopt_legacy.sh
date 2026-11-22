@@ -843,7 +843,7 @@ class GuardRegistration(Item):
     def detect(self, ctx):
         st = self.state_of(ctx)
         if st == "absent":
-            return self.row(SATISFIED, f"no {GUARD_PATH} in this repository. Ruby registration has no prerequisite PR")
+            return self.row(SATISFIED, f"no {GUARD_PATH} in this repository — no two-PR ordering applies")
         if st == "registered":
             return self.row(SATISFIED, "the guard already names pr-readiness.yml — the workflow may land next")
         return self.row(ROUTED,
@@ -874,11 +874,11 @@ class ReadinessReader(Item):
         return self.row(**readiness_guard(ctx, "apply"))
 
 
-def readiness_guard(ctx, mode, inputs=None):
+def readiness_guard(ctx, mode):
     """Transport only; the source, path and guard decisions are TypeScript's."""
     script = ctx.hatsu_root / "scripts" / "tenkai_readiness_guard.mts"
     out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root)],
-                         input=json.dumps(inputs), capture_output=True, text=True, timeout=60)
+                         capture_output=True, text=True, timeout=60)
     if out.returncode != 0:
         raise RuntimeError(f"tenkai_readiness_guard.mts {mode} exited {out.returncode}: {out.stderr.strip()}")
     return json.loads(out.stdout)
@@ -1200,7 +1200,7 @@ class ReadinessWorkflow(Item):
         if drifts:
             return self.row(DRIFT, "; ".join(drifts + notes), "re-render from templates/pr-readiness.yml")
         detail = f"installed, gated to {ctx.slug}, runs-on {ctx.runner['runs_on']}"
-        return self.row(**readiness_guard(ctx, "workflow-context", "; ".join([detail] + notes)))
+        return self.row(SATISFIED, "; ".join([detail] + notes))
 
     def repair(self, ctx):
         cur = self.detect(ctx)
@@ -1237,25 +1237,6 @@ class ReadinessWorkflow(Item):
         shown = keep or ctx.runner["runs_on"]
         note = " (runner preserved — the probe could not answer)" if keep else ""
         return self.row(REPAIRED, f"rendered for {ctx.slug}, runs-on {shown}{note}")
-
-
-class AdoptedReadinessWorkflow(ReadinessWorkflow):
-    """Transport only; the portable workflow and its admission are TypeScript's."""
-
-    def _portable(self, ctx, mode):
-        result = readiness_guard(ctx, mode + "-workflow", {
-            "role": ctx.role, "repository": ctx.slug, "path": self.id,
-            "rendered": self.render(ctx) if ctx.slug and ctx.nen_ref() else None,
-            "runnerKnown": ctx.visibility is not None,
-            "runnerLabelsRequired": ctx.runner.get("labels_required", False),
-        })
-        return self.row(**result) if result is not None else None
-
-    def detect(self, ctx):
-        return self._portable(ctx, "diagnose") or super().detect(ctx)
-
-    def repair(self, ctx):
-        return self._portable(ctx, "apply") or super().repair(ctx)
 
 
 class ReleasePublisher(Item):
@@ -1696,7 +1677,22 @@ def product_workflow_items(ctx):
 
 
 class PrivilegedWorkflows(Item):
-    """Read-only observation of privileged workflows outside Tenkai's rendering."""
+    """Read-only. Names every OTHER privileged workflow, and the enforcement gap.
+
+    Tenkai installs a `pull_request_target` job — privileged, credentialed — and
+    installs NO policy guard. In a consumer with no
+    `scripts/workflow_runner_policy_check.rb`, `GuardRegistration` scores `absent`
+    as "no ordering constraint", which is true about the ORDERING and says nothing
+    about enforcement: the byte-compared same-repo guard, the write-permission
+    refusal and the trusted-data rules all live in that script. So the net effect
+    of an adoption run on a fresh repository was one new privileged workflow and
+    zero new enforcement around it.
+
+    This item does not close that gap — installing the guard is a separate,
+    maintainer-owned change. It refuses to let the gap be SILENT: the other
+    privileged workflows are named, and § 5 of the skill states what is not
+    inherited.
+    """
 
     PRIVILEGED = ("pull_request_target", "workflow_run", "issue_comment", "workflow_call")
 
@@ -1717,11 +1713,12 @@ class PrivilegedWorkflows(Item):
             if hit:
                 others.append(f"{f.name} ({', '.join(hit)})")
         guard = "present" if (ctx.repo / GUARD_PATH).is_file() else "ABSENT"
-        detail = (f"repository-owned Ruby policy guard {guard}; "
+        detail = (f"policy guard {guard}; "
                   + (f"other privileged workflows: {'; '.join(others)}" if others
                      else "no other privileged workflow"))
         if guard == "ABSENT":
-            detail += ". Other privileged workflows remain under repository-owned policy."
+            detail += ". Tenkai installs a privileged pull_request_target job and NO guard — "
+            detail += "this repository inherits no ongoing enforcement around it"
         return self.row(SATISFIED, detail)
 
     def repair(self, ctx):
@@ -1837,7 +1834,7 @@ class ConfigValues(Item):
         return after if after["state"] != SATISFIED else self.row(REPAIRED, before["detail"] + " — written")
 
 
-def items(ctx, readiness_workflow):
+def items(ctx):
     out = [NenDeclaration(path, what) for path, what in NEN_DECLARATIONS]
     out.append(ColorsFile())
     out.append(IgnoredDir("dirs/reports", "Reports", "where the retained final Rikugan report is written"))
@@ -1846,7 +1843,7 @@ def items(ctx, readiness_workflow):
     out.append(NenCommitMsgHook())
     out.append(GuardRegistration())
     out.append(ReadinessReader())
-    out.append(readiness_workflow)
+    out.append(ReadinessWorkflow())
     out.append(TrailerWorkflow())
     out.append(ReleasePublisher())
     review_scopes = ReviewScopes()
@@ -1871,14 +1868,14 @@ GLYPH = {SATISFIED: "ok  ", REPAIRED: "NEW ", MISSING: "MISS", DRIFT: "DRIF",
          ROUTED: "ROUT", STAGED: "STAG", BLOCKED: "BLOK"}
 
 
-def run(mode, ctx, readiness_workflow=None):
+def run(mode, ctx):
     def guarded(it):
         # one item's raise is that item's BLOCKED row, never the whole report's (QA-16: the tool keeps reporting)
         try:
             return it.repair(ctx) if mode == "apply" else it.detect(ctx)
         except Exception as e:  # noqa: BLE001 -- named, not hidden
             return it.row(BLOCKED, f"{type(e).__name__}: {e} -- this item could not be read; the rest of the report stands", None)
-    rows = [guarded(it) for it in items(ctx, readiness_workflow or ReadinessWorkflow())]
+    rows = [guarded(it) for it in items(ctx)]
     return {"contract": CONTRACT, "mode": mode, "repo": str(ctx.repo), "slug": ctx.slug,
             "runner": ctx.runner, "items": rows,
             "outstanding": sum(1 for r in rows if r["state"] in OUTSTANDING)}
@@ -3223,7 +3220,7 @@ def main(argv):
 
     ctx = Ctx(repo, hatsu_root, opts.get("slug"), vis, sh, probe=True,
               runner_labels=opts.get("runner-labels"))
-    res = run(cmd, ctx, AdoptedReadinessWorkflow())
+    res = run(cmd, ctx)
     report(res, as_json)
     raise SystemExit(1 if res["outstanding"] else 0)
 

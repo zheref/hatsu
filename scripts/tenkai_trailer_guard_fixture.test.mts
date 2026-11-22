@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -40,7 +40,8 @@ const yaml = spawnSync('ruby', ['-rpsych', '-rjson', '-e', 'puts Psych.load_file
 expect(yaml.status, yaml.stderr).toBe(0);
 const document = JSON.parse(yaml.stdout);
 const job = document.jobs['forbidden-commit-trailers'];
-const publisher = readFileSync(join(source, 'scripts/consumer_trailer_ci.mts'), 'utf8');
+const publisherSource = join(source, 'scripts/consumer_trailer_ci.mts');
+const publisher = readFileSync(publisherSource, 'utf8');
 const check = job.steps.at(-1).run as string;
 
 test('offline reader bytes match the immutable published artifact', () => {
@@ -69,7 +70,11 @@ test('workflow has one read-only job, exact base/head data, immutable verified r
 
 });
 
-test('adoption refuses a trailer template with no job named for its required context', () => {
+test.each([
+  ['a mismatched job name', template.replace('  forbidden-commit-trailers:', '  trailer-policy-runner:'), 'must equal one static workflow job name'],
+  ['an empty job', 'jobs:\n  forbidden-commit-trailers: {}\n', 'needs a runner and executable workflow steps'],
+  ['a runner without steps', 'jobs:\n  forbidden-commit-trailers:\n    runs-on: ubuntu-latest\n', 'needs a runner and executable workflow steps'],
+])('adoption refuses a trailer template with %s', (_case, workflow, reason) => {
   const repo = temp();
   const root = temp();
   try {
@@ -79,11 +84,12 @@ test('adoption refuses a trailer template with no job named for its required con
       copyFileSync(join(source, path), join(root, path));
     }
     writeFileSync(join(root, 'templates/forbidden-commit-trailers.yml'),
-      template.replace('  forbidden-commit-trailers:', '  trailer-policy-runner:'));
+      workflow.startsWith('#') ? workflow : template.split('jobs:')[0] + workflow);
     expect(run(repo, 'apply', root)).toMatchObject({
       state: 'blocked',
-      detail: relative + ': required context "forbidden-commit-trailers" must equal one static workflow job name',
+      detail: relative + ': required context "forbidden-commit-trailers" ' + reason,
     });
+    expect(existsSync(join(repo, relative))).toBe(false);
   } finally {
     rmSync(repo, { recursive: true, force: true });
     rmSync(root, { recursive: true, force: true });
@@ -160,6 +166,19 @@ function exercise(message: string, options: { corrupt?: boolean; baseKeys?: unkn
     commit(pr, 'clean final commit');
     if (options.advanceBase) { writeFileSync(join(base, 'base-only'), 'new base'); sha = commit(base, 'advance base after fork'); }
     mkdirSync(bin); mkdirSync(runner);
+    // The ordinary fixture executes the copied trusted checkout. During native
+    // coverage, verify those exact bytes and execute their repository path so
+    // LCOV identifies the production source, independent of the fixture's path.
+    if (process.env.HATSU_CLI_COVERAGE_COMMAND) {
+      writeFileSync(join(bin, 'node'), `#!/bin/sh
+if [ "$1" = .base/scripts/consumer_trailer_ci.mts ]; then
+  cmp -s "$1" "$HATSU_FIXTURE_PUBLISHER" || exit 97
+  shift
+  set -- "$HATSU_FIXTURE_PUBLISHER" "$@"
+fi
+exec "$HATSU_FIXTURE_NODE" "$@"
+`, { mode: 0o755 });
+    }
     const published = join(root, 'published.sh'); writeFileSync(published, options.corrupt ? 'exit 0\n' : helper.stdout);
     writeFileSync(join(bin, 'curl'), '#!/bin/sh\nwhile [ "$#" -gt 0 ]; do if [ "$1" = -o ]; then cp "$PUBLISHED_HELPER" "$2"; exit; fi; shift; done\nexit 2\n', { mode: 0o755 });
     const log = join(root, 'api.jsonl');
@@ -199,7 +218,7 @@ fs.writeFileSync(state, JSON.stringify(result));
 process.stdout.write(JSON.stringify(result));
 `, { mode: 0o755 });
     const head = git(pr, 'rev-parse', 'HEAD');
-    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_NAME: options.wrongName ? 'yes' : '', BAD_ID: options.badId === undefined ? '' : JSON.stringify(options.badId), WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '', WRONG_DETAILS: options.wrongDetails ?? '' } });
+    const invoke = (baseSha: string, attempt = '1') => spawnSync('bash', ['-c', check], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, BASE_SHA: baseSha, RUNNER_TEMP: runner, PUBLISHED_HELPER: published, HATSU_FIXTURE_PUBLISHER: publisherSource, HATSU_FIXTURE_NODE: process.execPath, PR_NUMBER: '7', REAL_GIT: realGit, GIT_FIXTURE_PR: pr, GH_TOKEN: 'trusted-test-token', GITHUB_TOKEN: '', HEAD_SHA: head, GITHUB_REPOSITORY: 'acme/widget', GITHUB_RUN_ID: '123', GITHUB_RUN_ATTEMPT: attempt, GITHUB_WORKFLOW_REF: 'acme/widget/.github/workflows/forbidden-commit-trailers.yml@refs/heads/main', API_LOG: log, PRODUCER: options.producer ?? '', WRONG_HEAD: options.wrongHead ? 'yes' : '', WRONG_EXTERNAL: options.wrongExternal ? 'yes' : '', WRONG_NAME: options.wrongName ? 'yes' : '', BAD_ID: options.badId === undefined ? '' : JSON.stringify(options.badId), WRONG_ID: options.wrongId ? 'yes' : '', FAIL_PATCH: options.failPatch ? 'yes' : '', WRONG_DETAILS: options.wrongDetails ?? '' } });
     // Both bases are already ancestors of this exact head. Retargeting must
     // rescan it against the destination policy rather than retain old success.
     if (destination) {
@@ -268,7 +287,7 @@ test('Tenkai apply relays the trailer item and renders a real consumer workflow'
     expect(readFileSync(join(repo, relative), 'utf8')).toBe(template);
     const readiness = '.github/workflows/pr-readiness.yml';
     const pr = '.github/workflows/pr.yml';
-    writeFileSync(join(repo, pr), 'name: PR\non: pull_request\njobs:\n  shu:\n    runs-on: ubuntu-latest\n  browser:\n    name: typecheck-and-e2e\n    runs-on: ubuntu-latest\n');
+    writeFileSync(join(repo, pr), 'name: PR\non: pull_request\njobs:\n  shu:\n    runs-on: ubuntu-latest\n    steps: [{ run: npm test }]\n  browser:\n    name: typecheck-and-e2e\n    runs-on: ubuntu-latest\n    steps: [{ run: npm test }]\n');
     const required = {
       [relative]: ['forbidden-commit-trailers'],
       [readiness]: ['readiness'],
@@ -288,6 +307,25 @@ test('Tenkai apply relays the trailer item and renders a real consumer workflow'
     expect(adopt().state).toBe('satisfied');
   } finally { rmSync(repo, { recursive: true, force: true }); }
 });
+
+test.each([
+  ['a missing runner', 'steps: [{ run: echo ok }]'],
+  ['an empty runner', 'runs-on: []\n    steps: [{ run: echo ok }]'],
+  ['a malformed runner map', 'runs-on: { group: 123 }\n    steps: [{ run: echo ok }]'],
+  ['an empty steps list', 'runs-on: ubuntu-latest\n    steps: []'],
+  ['a display-only step', 'runs-on: ubuntu-latest\n    steps: [{ name: Display only }]'],
+  ['a blank command', 'runs-on: ubuntu-latest\n    steps: [{ run: " " }]'],
+])('native context rejects %s', (_case, body) => {
+  expect(() => assertRequiredJobContexts(relative, 'jobs:\n  check:\n    ' + body, ['check']))
+    .toThrow(relative + ': required context "check" needs a runner and executable workflow steps');
+});
+
+test.each(['ubuntu-latest', '[self-hosted, linux]', '{ group: pool-ci, labels: linux }', '"${{ inputs.runner }}"'])(
+  'native context accepts runner %s with an action-only step', runner => {
+    expect(() => assertRequiredJobContexts(relative,
+      'jobs:\n  check:\n    runs-on: ' + runner + '\n    steps: [{ uses: actions/checkout@v4 }]', ['check'])).not.toThrow();
+  },
+);
 
 test('published check is bound to the exact head, GitHub Actions producer and this workflow run', () => {
   const result = exercise('clean');

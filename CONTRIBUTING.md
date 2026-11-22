@@ -33,12 +33,12 @@ surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `cont
 `docs/DISCOVERY.md`, `docs/LAUNCH-MIGRATION.md`, `docs/AGENT-ATTRIBUTION.md`, `docs/STANDALONE-ENTRY.md`,
 `docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/using/README.md`, `docs/using/mirrors.md`,
 `docs/PUBLIC-REDACTION.md`) and every
-runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/nen_global.sh`,
+runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/surface_marker.sh`, `scripts/nen_global.sh`,
 `scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
 `scripts/send_freshness_check.sh`, `scripts/cleanup_path_admit.sh`,
 `scripts/cleanup_path_admit.ts`, `scripts/hatsu_surface_link.sh`,
-`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/prose_desc.awk`,
+`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/prose_desc.awk`, `scripts/prose_headroom_warn.ts`,
 `scripts/canon_contracts_check.sh`,
 `scripts/publish_gate.sh`, `scripts/private_name_check.sh`,
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
@@ -55,7 +55,8 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/direct_matrix_doc.sh`, `scripts/direct_matrix_doc.mts`, `scripts/tenkai_adopt.ts`,
 `scripts/tenkai_adopt_legacy.sh`, `scripts/tenkai_trailer_guard.mts`, `scripts/consumer_trailer_ci.mts`,
 `scripts/pr_sections_history.ts`, `scripts/config_values_refresh.ts`,
-`scripts/idle_permissions_check.mts`, `scripts/ledger_findings_prepare.mts`)
+`scripts/idle_permissions_check.mts`, `scripts/ledger_findings_prepare.mts`,
+`scripts/amaterasu_preview.mts`)
 — the one list is `PLUGIN_SURFACE_GLOBS` in the
 script, from which the refusal message is generated; this paragraph is a copy of it — everything an
 installed runtime reads, the generated Codex and Cursor mirrors included: the warm-up reads plugin resources

@@ -60,6 +60,8 @@ printf '%s\n' 'scripts/hatsu_surface_link.sh' > "$fixture_root/changed-surface-l
 printf '%s\n' 'scripts/surface_link_check.sh' > "$fixture_root/changed-link-guard.txt"
 printf '%s\n' 'scripts/prose_size_check.sh' > "$fixture_root/changed-prose-guard.txt"
 printf '%s\n' 'scripts/prose_desc.awk' > "$fixture_root/changed-prose-parser.txt"
+printf '%s\n' 'scripts/prose_headroom_warn.ts' > "$fixture_root/changed-prose-headroom.txt"
+printf '%s\n' 'scripts/surface_marker.sh' > "$fixture_root/changed-marker-reader.txt"
 
 run_case() {
   local name="$1" expected_status="$2" changed="$3" head="$4" expected_text="$5" body="${6:-$fixture_root/body.md}"
@@ -87,7 +89,8 @@ run_case() {
 for runtime_path in scripts/tenkai_adopt.ts scripts/tenkai_adopt_legacy.sh \
   scripts/pr_sections_history.ts scripts/config_values_refresh.ts \
   scripts/tenkai_trailer_guard.mts scripts/consumer_trailer_ci.mts \
-  scripts/direct_matrix_doc.sh scripts/direct_matrix_doc.mts; do
+  scripts/direct_matrix_doc.sh scripts/direct_matrix_doc.mts \
+  scripts/amaterasu_preview.mts; do
   printf '%s\n' "$runtime_path" > "$fixture_root/changed-composed-runtime.txt"
   run_case "$runtime_path unchanged version refuses" 1 "$fixture_root/changed-composed-runtime.txt" "$fixture_root/head-unchanged.json" "$runtime_path"
   run_case "$runtime_path bumped version passes" 0 "$fixture_root/changed-composed-runtime.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
@@ -138,6 +141,10 @@ run_case 'link guard script unchanged version' 1 "$fixture_root/changed-link-gua
 run_case 'prose guard script unchanged version' 1 "$fixture_root/changed-prose-guard.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_size_check.sh'
 run_case 'prose description parser unchanged version' 1 "$fixture_root/changed-prose-parser.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_desc.awk'
 run_case 'prose description parser bumped version' 0 "$fixture_root/changed-prose-parser.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
+run_case 'prose guard headroom helper unchanged version' 1 "$fixture_root/changed-prose-headroom.txt" "$fixture_root/head-unchanged.json" 'scripts/prose_headroom_warn.ts'
+# The marker reader the hook, the bootstrap and the permission pack source on every installed copy (zheref/hatsu#531).
+run_case 'marker reader unchanged version' 1 "$fixture_root/changed-marker-reader.txt" "$fixture_root/head-unchanged.json" 'scripts/surface_marker.sh'
+run_case 'marker reader bumped version' 0 "$fixture_root/changed-marker-reader.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 run_case 'surface link script bumped version' 0 "$fixture_root/changed-surface-link.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 run_case 'updater script bumped version' 0 "$fixture_root/changed-updater.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
 

@@ -1,10 +1,15 @@
-# A/B evidence — `bankai-rule` (new skill, zheref/hatsu#355)
+# A/B evidence — `kido` (new skill as `bankai-rule`, zheref/hatsu#355)
 
-`claude/skills/bankai-rule/SKILL.md`: the port-rulings clerk of the cross-platform porting epic
+`claude/skills/kido/SKILL.md`: the port-rulings clerk of the cross-platform porting epic
 (zheref/hatsu#354, child 1): one ruling per row with a stable id in a directed pair file of
 `zheref/bankai-handbooks`' `handbooks/ports/` family, ids reserved against open PRs, one rulings PR
 per port run at G4. **A new skill, so there is no "old mechanics" column**; what this record
 establishes is what nen `0.22.0` does and does not do for it, each verified live on 2026-10-20.
+
+**Renamed on 2026-11-16** ([HR-394](../ROSTER.md#hr-394)): the skill shipped as `bankai-rule`. Every
+dated transcript and note below is as it was taken, under that name ([HR-298](../ROSTER.md#hr-298):
+*dated transcripts stay as written*); only this page's title, its path and the skill's path above are
+live references. § 7 is the re-run under `kido`.
 
 ## 1. The grammar — enumerated slots, the ruling split off before the parse
 
@@ -502,3 +507,60 @@ runs in `unit-tests.yml` through `scripts/unit_tests_ci.mts` once this lands (BC
 4. **The first draft of this guard was shell with embedded perl.** Hanten read it as a BC-11 breach (HR-171:
    a three-way verdict is TypeScript's) and it was ported to `scripts/product_term_check.mts` behind the
    `.sh` shim before this PR opened; the lane's argv did not change. The owed nen verb is unfiled.
+
+## 7. The re-run under the new name: 2026-11-16, nen `0.30.0`
+
+The rename changes one token, the label `nen parse` and `config_values.sh` are handed. § 1's five
+probes, § 6's parse of the split head and § 6's `need` read, run again as `kido` at `2e12d3b6f`:
+
+```
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to compose-uzf-v2'
+from: swiftui-tca-uzf-v2
+to: compose-uzf-v2
+exit 0
+
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to flutter-uzf-v1'
+nen parse: <to> is one of swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery (case-insensitively), and 'flutter-uzf-v1' is none of them. It is resolved, never guessed at: the closest match is not the answer.
+
+Corrected line:
+  kido swiftui-tca-uzf-v2 to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
+exit 2
+
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 ruling x'
+nen parse: <from> is one of swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery (case-insensitively), and 'swiftui-tca-uzf-v2 ruling x' is none of them. It is resolved, never guessed at: the closest match is not the answer.
+nen parse: <to> is required and the line does not supply it.
+
+Corrected line:
+  kido <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
+exit 2
+
+$ nen parse kido --grammar '<from:…> to <to:…>' --line ''
+nen parse: <to> is required and the line does not supply it.
+nen parse: <from> is required and the line does not supply it.
+
+Corrected line:
+  kido <from: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery> to <to: swiftui-tca-uzf-v2 | compose-uzf-v2 | react-uzf-v1 | bankai-machinery>
+exit 2
+
+$ nen parse kido --grammar '<from:…> to <to:…>' --line 'swiftui-tca-uzf-v2 to swiftui-tca-uzf-v2'
+from: swiftui-tca-uzf-v2
+to: swiftui-tca-uzf-v2
+exit 0
+
+$ head="swiftui-tca-uzf-v2 to compose-uzf-v2"
+$ nen parse kido --grammar "<from:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery> to <to:swiftui-tca-uzf-v2|compose-uzf-v2|react-uzf-v1|bankai-machinery>" --line="$head"
+from: swiftui-tca-uzf-v2
+to: compose-uzf-v2
+exit=0
+
+$ bash scripts/config_values.sh need --repo scripts/fixtures/port-family/with-family --skill kido
+kido: every value it needs is set.
+exit 0
+
+$ bash scripts/config_values.sh need --repo scripts/fixtures/port-family/with-family --skill bankai-rule
+config_values.sh: no skill 'bankai-rule' under <the catalogue's scratch copy>/claude/skills — a typo would read clean
+exit 2
+```
+
+The outputs are §§ 1 and 6's with the label changed and nothing else. The old label is no longer a
+skill the catalogue knows, which is the last transcript's exit `2`.
