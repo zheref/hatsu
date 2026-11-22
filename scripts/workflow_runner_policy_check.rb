@@ -153,8 +153,9 @@ ALLOWED_JOB_GUARDS = {
 # written when the `git status --porcelain` check below runs, so it is
 # FORBIDDEN there instead — the second push queues behind the first rather
 # than racing it.
-CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml pr-readiness.yml prose-size-check.yml prose-ambiguity-check.yml].freeze
+CANCEL_IN_PROGRESS_REQUIRED = %w[plugin-bump-check.yml surface-mirror-check.yml prose-size-check.yml prose-ambiguity-check.yml].freeze
 CANCEL_IN_PROGRESS_FORBIDDEN = %w[surface-mirror-regenerate.yml].freeze
+READINESS_CONCURRENCY_GROUP = 'pr-readiness-${{ github.event.pull_request.number }}'.freeze
 
 # REGENERATE_PATHS is the exact `paths:` filter surface-mirror-regenerate.yml's
 # `push` trigger is held to — the ONLY place in either workflow a `paths:`
@@ -1243,6 +1244,51 @@ DRIFT_FROZEN_GUARD = {
     esac
   DRIFT_RUN
 }.freeze
+# Step one of zheref/hatsu#597 admits the updated exit-1 and exit-2 annotations
+# beside DRIFT_FROZEN_GUARD before .github/workflows/surface-mirror-check.yml
+# installs them. Exit 1 now covers source concrete-marker refusals alongside
+# drift (with the placeholder remedy), and exit 2 names unreadable mirrored
+# sources alongside a missing verb or nen refusal.
+DRIFT_FROZEN_GUARD_NEXT = DRIFT_FROZEN_GUARD.merge(
+  "run" => DRIFT_FROZEN_GUARD.fetch("run")
+    .sub(
+      <<~'OLD_TWO'.strip.gsub(/^/, "  "),
+        2)
+          # Unreachable at a pin that carries the verb, and kept as a FAILURE
+          # rather than deleted. Through v0.4.0 this branch was a loud skip,
+          # because the pinned nen predated `nen surface`. From v0.5.0 onward the
+          # verb is in the pinned binary, so this exit means the pin or the
+          # bootstrap is wrong — a thing to report, never to pass through.
+          echo "::error title=surface-mirror-check could not run::The bootstrapped nen (${PINNED_REF}) has no 'surface mirror' verb, so surfaces/codex and surfaces/cursor were NOT checked. At this pin that is a defect in the pin or the bootstrap, not a condition to skip past: nen/contract.json's dependency.pinned_ref is expected to name a nen carrying the verb. See docs/SURFACES.md § 4."
+          exit 1
+          ;;
+      OLD_TWO
+      <<~'NEW_TWO'.strip.gsub(/^/, "  ")
+        2)
+          # Exit 2 is a mirrored source the scan could not read (a wiring
+          # defect, zheref/hatsu#531), a pinned nen without the 'surface mirror'
+          # verb, or a refusal from nen itself — never a condition to skip past.
+          echo "::error title=surface-mirror-check could not run::surface_mirror_check.sh could not complete (exit 2): either a mirrored source could not be read (wiring defect), the bootstrapped nen (${PINNED_REF}) lacks 'surface mirror' (pin/bootstrap defect), or nen refused the invocation, so surfaces/codex, surfaces/cursor and surfaces/antigravity were NOT checked. See the guard output above and docs/SURFACES.md § 4."
+          exit 1
+          ;;
+      NEW_TWO
+    )
+    .sub(
+      <<~'OLD_OTHER'.strip.gsub(/^/, "  "),
+        *)
+          echo "::error::surfaces/ has drifted from claude/skills + claude/agents. Regenerate with 'nen surface mirror generate' (both surfaces) and commit the result — see the guard output above and docs/SURFACES.md § 3."
+          exit "$code"
+          ;;
+      OLD_OTHER
+      <<~'NEW_OTHER'.strip.gsub(/^/, "  ")
+        *)
+          echo "::error::surface_mirror_check.sh failed (exit ${code}): either a mirrored source carries a concrete generated marker (source refusal — describe the marker only with a placeholder such as '(surface: <s>)' in claude/ or hooks/, because regenerating is also refused there) or surfaces/ has drifted from claude/skills + claude/agents (regenerate all three surfaces — see scripts/surface_mirror_regenerate.sh and commit). See the guard output above and docs/SURFACES.md § 3."
+          exit "$code"
+          ;;
+      NEW_OTHER
+    )
+).freeze
+raise "workflow-runner-policy: DRIFT_FROZEN_GUARD_NEXT did not rewrite DRIFT_FROZEN_GUARD" if DRIFT_FROZEN_GUARD_NEXT == DRIFT_FROZEN_GUARD
 CANON_CONTRACTS_STEP = "Canon data contracts check"
 CANON_CONTRACTS_AFTER = "Surface-mirror drift check"
 CANON_CONTRACTS_FROZEN = {
@@ -1377,8 +1423,9 @@ BUILDER_PERMISSIONS = {
 
 # EVERY PER-WORKFLOW TABLE COVERS EXACTLY THE WORKFLOWS IT SHOULD (Chrollo,
 # hanten on #135). A registration that misses one table -- a workflow in
-# neither cancel-in-progress list, which validate_concurrency would accept in
-# silence -- stops this script at load, before it judges anything.
+# neither cancel-in-progress list nor readiness concurrency policy, which
+# validate_concurrency would accept in silence -- stops this script at load,
+# before it judges anything.
 PR_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).freeze
 {
   "EXPECTED_JOBS" => [EXPECTED_JOBS.keys, PRIVILEGED_WORKFLOWS],
@@ -1389,7 +1436,7 @@ PR_WORKFLOWS = (PORTABLE_HOSTED_WORKFLOWS + PENDING_HOSTED_WORKFLOWS).freeze
   "CHECK_CREATION" => [CHECK_CREATION.keys, PR_WORKFLOWS],
   "BUILDER_TRIGGERS" => [BUILDER_TRIGGERS.keys, BUILDER_WORKFLOWS],
   "BUILDER_PERMISSIONS" => [BUILDER_PERMISSIONS.keys, BUILDER_WORKFLOWS],
-  "the two cancel-in-progress lists" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN, PRIVILEGED_WORKFLOWS]
+  "concurrency policies" => [CANCEL_IN_PROGRESS_REQUIRED + CANCEL_IN_PROGRESS_FORBIDDEN + ["pr-readiness.yml"], PRIVILEGED_WORKFLOWS]
 }.each do |table, (have, want)|
   next if have.sort == want.sort
   abort "workflow-runner-policy: #{table} covers #{have.sort.join(", ")}, not #{want.sort.join(", ")}: a workflow's registration is incomplete"
@@ -1779,8 +1826,9 @@ end
 # `surface-mirror-regenerate.yml`'s own `cancel-in-progress: false` posture is
 # there to avoid on the builder side, and burns runner minutes needlessly on
 # the guard side. Whether `cancel-in-progress: true` is REQUIRED or FORBIDDEN
-# is per-workflow (see CANCEL_IN_PROGRESS_REQUIRED / _FORBIDDEN); a workflow in
-# neither list is not reachable here (every known workflow is in exactly one).
+# is per-workflow (see CANCEL_IN_PROGRESS_REQUIRED / _FORBIDDEN); `pr-readiness.yml`
+# has its own per-PR non-cancelling concurrency policy in
+# validate_readiness_concurrency.
 def validate_concurrency(path, root)
   basename = File.basename(path)
   concurrency = mapping(root.fetch("concurrency") { fail_policy("#{path} has no concurrency block") }, "#{path} concurrency")
@@ -1792,6 +1840,46 @@ def validate_concurrency(path, root)
     fail_policy("#{path} concurrency must set cancel-in-progress: true") unless cancel == "true"
   elsif CANCEL_IN_PROGRESS_FORBIDDEN.include?(basename)
     fail_policy("#{path} concurrency must not set cancel-in-progress: true — it is a builder, not a PR guard, and cancelling it mid-run risks a half-written surfaces/ tree") if cancel == "true"
+  end
+end
+
+# --- validate_readiness_concurrency PATH ROOT REQUIRE_NON_CANCELLING: ---------
+# pr-readiness.yml runs a PR check whose `review_requested` event frequently
+# follows `opened` on the same head commit (zheref/hatsu#594). Cancelling
+# in-progress runs drops the `opened` check run into `cancelled`; setting
+# `cancel-in-progress: false` on a per-PR group preserves the active evaluation
+# when review events arrive instead of cancelling it.
+#
+# During Step 1 of zheref/hatsu#594, legacy `cancel-in-progress: true` and
+# non-cancelling `cancel-in-progress: false` are both admitted unless
+# `require_non_cancelling: true`; the per-PR group and absence of job-level
+# `concurrency` overrides are always enforced, and unexpected concurrency keys
+# such as `queue:` are always rejected (GitHub Actions only admits `group` and
+# `cancel-in-progress`).
+def validate_readiness_concurrency(path, root, require_non_cancelling: false)
+  concurrency = mapping(root.fetch("concurrency") { fail_policy("#{path} has no concurrency block") }, "#{path} concurrency")
+  group = scalar(concurrency.fetch("group") { fail_policy("#{path} concurrency must declare a group") })
+  extra = concurrency.keys - %w[group cancel-in-progress]
+  fail_policy("#{path} concurrency has unexpected keys #{extra.inspect}") unless extra.empty?
+  unless group == READINESS_CONCURRENCY_GROUP
+    fail_policy("#{path} readiness concurrency group must be #{READINESS_CONCURRENCY_GROUP.inspect} (per-PR isolation; got #{group.inspect})")
+  end
+  if root["jobs"]
+    jobs = mapping(root["jobs"], "#{path} jobs")
+    jobs.each do |job_name, job_node|
+      job = mapping(job_node, "#{path} job #{job_name}")
+      if job.key?("concurrency")
+        fail_policy("#{path} job #{job_name} must not override workflow readiness concurrency")
+      end
+    end
+  end
+  cancel = concurrency.key?("cancel-in-progress") ? scalar(concurrency["cancel-in-progress"]) : nil
+  if require_non_cancelling
+    unless cancel == "false"
+      fail_policy("#{path} readiness concurrency must set cancel-in-progress: false (zheref/hatsu#594)")
+    end
+  elsif !%w[true false].include?(cancel)
+    fail_policy("#{path} readiness concurrency cancel-in-progress must be true or false (got #{cancel.inspect})")
   end
 end
 
@@ -2028,7 +2116,7 @@ end
 
 # `hatsu`: the root holds templates/pr-readiness.yml, the source of tenkai's
 # rendered readiness form, so it is Hatsu's own repository.
-def validate_workflow(path, hatsu: false)
+def validate_workflow(path, hatsu: false, require_non_cancelling_readiness: false)
   document = Psych.parse_file(path)
   fail_policy("#{path} is empty or carries no YAML document") unless document && document.root
   reject_duplicate_keys(document.root, path)
@@ -2062,7 +2150,7 @@ def validate_workflow(path, hatsu: false)
   if targets_pr && scalar(mapping(root["permissions"], "#{path} permissions")["checks"]) != "write"
     fail_policy("#{path} needs only checks: write to publish the exact-head result")
   end
-  validate_concurrency(path, root)
+  validate_concurrency(path, root) unless File.basename(path) == "pr-readiness.yml"
 
   jobs = mapping(root.fetch("jobs") { fail_policy("#{path} has no jobs mapping") }, "#{path} jobs")
   expected_job = EXPECTED_JOBS.fetch(File.basename(path)) { fail_policy("#{path} has no declared job policy") }
@@ -2112,6 +2200,7 @@ def validate_workflow(path, hatsu: false)
       # step is then compared against that form alone, so the two never mix.
       head_step = step_maps.find { |step| scalar(step["name"]) == READINESS_FROZEN_STEPS.keys.first }
       rendered = head_step && head_step.key?("uses") && scalar(head_step["uses"]) == READINESS_RENDERED_CHECKOUT
+      validate_readiness_concurrency(path, root, require_non_cancelling: require_non_cancelling_readiness)
       # Tenkai's rendering carries no digest step, and Hatsu's own repository
       # carries only its own form, so no pull request there can trade the
       # checked bootstrap for the consumer's (Feitan, hanten on #230).
@@ -2151,7 +2240,7 @@ def validate_workflow(path, hatsu: false)
       end
     end
     if File.basename(path) == "surface-mirror-check.yml"
-      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == DRIFT_STEP }, DRIFT_FROZEN_GUARD, "#{path} #{DRIFT_STEP.inspect}")
+      require_frozen_step(step_maps.find { |step| scalar(step["name"]) == DRIFT_STEP }, [DRIFT_FROZEN_GUARD, DRIFT_FROZEN_GUARD_NEXT], "#{path} #{DRIFT_STEP.inspect}")
     end
     if File.basename(path) == PROSE_WORKFLOW
       require_frozen_step(step_maps.find { |step| scalar(step["name"]) == PROSE_GUARD_STEP }, PROSE_FROZEN_GUARD,
@@ -2820,16 +2909,67 @@ def self_test(root)
     expect_rejected("comment-only workflow file", /empty or carries no YAML document/) { validate_repo(tmp) }
     File.write(plugin, original)
     File.write(extra, "name: first\nname: second\non:\n  pull_request_target:\njobs: {}\n")
-    # The drift step's live form is the frozen form (zheref/hatsu#289 item 2) and a tampered body is refused.
+    # The drift step's live form is one of the admitted forms (zheref/hatsu#289 item 2, #597 step 1) and a tampered body is refused.
     live_surface = Psych.parse_file(File.join(root, ".github/workflows/surface-mirror-check.yml"))
     live_steps = mapping(mapping(mapping(live_surface.root, "surface").fetch("jobs"), "jobs").fetch("surface-mirror-check"), "surface-mirror-check").fetch("steps")
     live_drift = live_steps.children.map { |s| mapping(s, "self-test step") }.find { |s| scalar(s["name"]) == DRIFT_STEP }
-    require_frozen_step(live_drift, DRIFT_FROZEN_GUARD, "self-test live drift step")
+    require_frozen_step(live_drift, [DRIFT_FROZEN_GUARD, DRIFT_FROZEN_GUARD_NEXT], "self-test live drift step")
     FileUtils.rm(extra)
     surface = File.join(tmp, ".github/workflows/surface-mirror-check.yml")
     surface_original = File.read(surface)
     hostile.call("drift step tampered against its frozen form", surface, surface_original, "          code=0\n", "          code=1\n", step: DRIFT_STEP)
+    prev_drift_run = DRIFT_FROZEN_GUARD.fetch("run").gsub(/^(?=.)/, "          ")
+    next_drift_run = DRIFT_FROZEN_GUARD_NEXT.fetch("run").gsub(/^(?=.)/, "          ")
+    if surface_original.include?(next_drift_run)
+      surface_next = surface_original
+      surface_prev = surface_original.sub(next_drift_run, prev_drift_run)
+    elsif surface_original.include?(prev_drift_run)
+      surface_prev = surface_original
+      surface_next = surface_original.sub(prev_drift_run, next_drift_run)
+    else
+      fail_policy("self-test: surface-mirror-check.yml carries neither DRIFT_FROZEN_GUARD nor DRIFT_FROZEN_GUARD_NEXT")
+    end
+    fixture_changed!("DRIFT_FROZEN_GUARD_NEXT vs DRIFT_FROZEN_GUARD", surface_prev, surface_next)
+    File.write(surface, surface_prev)
+    validate_repo(tmp, announce: false)
+    File.write(surface, surface_next)
+    validate_repo(tmp, announce: false)
+    hostile.call("drift next step with exit-1 placeholder remedy removed", surface, surface_next,
+                 "with a placeholder such as '(surface: <s>)' in claude/ or hooks/", "with a placeholder in claude/ or hooks/", step: DRIFT_STEP)
+    hostile.call("drift next step with exit-2 unreadable-source clause removed", surface, surface_next,
+                 "either a mirrored source could not be read (wiring defect), ", "", step: DRIFT_STEP)
     File.write(surface, surface_original)
+    # Runtime bash verification of DRIFT_FROZEN_GUARD_NEXT (HA#597 AC-1..AC-3): exit 0, 1, 2, 3
+    # plus stop-commands fencing over forged stdout and stderr workflow commands.
+    Dir.mktmpdir("hatsu-drift-guard-next") do |dir|
+      FileUtils.mkdir_p(File.join(dir, ".trusted/scripts"))
+      drift_stub = File.join(dir, ".trusted/scripts/surface_mirror_check.sh")
+      link_stub = File.join(dir, ".trusted/scripts/surface_link_check.sh")
+      File.write(drift_stub, "#!/bin/sh\nprintf '%s\\n' \"${TEST_DRIFT_OUT:-stub drift exit ${TEST_DRIFT_EXIT}}\"\nif [ -n \"${TEST_DRIFT_ERR:-}\" ]; then printf '%s\\n' \"${TEST_DRIFT_ERR}\" >&2; fi\nexit \"${TEST_DRIFT_EXIT}\"\n")
+      File.write(link_stub, "#!/bin/sh\nexit 0\n")
+      {
+        "0" => [true, ["surfaces/ matches a fresh generation.", "every relative link under surfaces/ resolves."]],
+        "1" => [false, ["concrete generated marker", "(surface: <s>)", "surfaces/ has drifted"]],
+        "2" => [false, ["mirrored source could not be read (wiring defect)", "v0.30.0", "refused the invocation"]],
+        "3" => [false, ["no nen binary reached the check step"]]
+      }.each do |code, (want_ok, phrases)|
+        env = {
+          "PATH" => ENV.fetch("PATH"),
+          "PINNED_REF" => "v0.30.0",
+          "NEN_BIN" => "/bin/true",
+          "TEST_DRIFT_EXIT" => code,
+          "TEST_DRIFT_OUT" => "::warning::forged-stdout-#{code}",
+          "TEST_DRIFT_ERR" => "::error::forged-stderr-#{code}"
+        }
+        out, status = Open3.capture2e(env, "bash", "--noprofile", "--norc", "-eo", "pipefail", "-c",
+                                     DRIFT_FROZEN_GUARD_NEXT.fetch("run"), chdir: dir, unsetenv_others: true)
+        fence = out.match(/^::stop-commands::(stop_[0-9a-f]{32})\n(.*?)\n::\1::$/m)
+        fenced = fence && fence[2].include?("::warning::forged-stdout-#{code}") && fence[2].include?("::error::forged-stderr-#{code}")
+        if status.success? != want_ok || !fenced || phrases.any? { |phrase| !out.include?(phrase) }
+          fail_policy("self-test: DRIFT_FROZEN_GUARD_NEXT exit #{code} produced unexpected result (ok=#{status.success?}, fenced=#{!!fenced}):\n#{out}")
+        end
+      end
+    end
     # The digest step's closing echo is fatal in every workflow (zheref/hatsu#289 item 3, both steps landed): the
     # old non-fatal echo is refused as a shape change, in each workflow that carries the step.
     old_echo = "          echo \"nen: $(\"$NEN_BIN\" --version) at $NEN_BIN\"\n"
@@ -2837,8 +2977,8 @@ def self_test(root)
     NEN_DIGEST_STEPS.each_key do |name|
       file = File.join(tmp, ".github/workflows/#{name}")
       text = File.read(file)
-      # #496 registers the next canon form before the live workflow carries it.
-      next if name == CANON_LINT_WORKFLOW && !text.include?("      - name: #{NEN_DIGEST_STEP}\n")
+      # #496 registers the next canon form before the live workflow carries it; Tenkai's rendered pr-readiness omits it.
+      next if (name == CANON_LINT_WORKFLOW || name == "pr-readiness.yml") && !text.include?("      - name: #{NEN_DIGEST_STEP}\n")
       fail_policy("self-test: #{name} does not carry the fatal digest echo") unless text.include?(fatal_echo)
       File.write(file, text.sub(fatal_echo, old_echo))
       expect_rejected("digest step with the non-fatal --version echo (#{name})", /#{Regexp.escape(NEN_DIGEST_STEPS.fetch(name).first)}" run must be exactly the frozen form/) { validate_repo(tmp) }
@@ -2848,7 +2988,7 @@ def self_test(root)
     # The list branch itself: a later form passes silently; two failing forms refuse with the last one named.
     passing = live_drift
     expect_rejected("an empty form list", /admits no form/) { require_frozen_step(passing, [], "self-test empty list") }
-    require_frozen_step(passing, [DRIFT_FROZEN_GUARD.merge("shell" => "sh"), DRIFT_FROZEN_GUARD], "self-test second form passes")
+    require_frozen_step(passing, [DRIFT_FROZEN_GUARD.merge("shell" => "sh"), DRIFT_FROZEN_GUARD, DRIFT_FROZEN_GUARD_NEXT], "self-test second form passes")
     expect_rejected("two failing forms", /shell must be/) { require_frozen_step(passing, [DRIFT_FROZEN_GUARD.merge("run" => "x"), DRIFT_FROZEN_GUARD.merge("shell" => "sh")], "self-test two failing forms") }
 
     # THE SUBSTRING BYPASS, covered by fixture because a text match is not a data
@@ -3282,6 +3422,60 @@ def self_test(root)
     File.write(readiness, rendered_next)
     validate_repo(tmp, announce: false)
     File.write(readiness, rendered_process)
+
+    # --- pr-readiness.yml: non-cancelling per-PR concurrency (zheref/hatsu#594 step 1) ---
+    if readiness_prefix.include?("  cancel-in-progress: false\n")
+      non_cancelling_prefix = readiness_prefix
+      legacy_prefix = readiness_prefix.sub("  cancel-in-progress: false\n", "  cancel-in-progress: true\n")
+    else
+      legacy_prefix = readiness_prefix
+      non_cancelling_prefix = readiness_prefix.sub("  cancel-in-progress: true\n", "  cancel-in-progress: false\n")
+    end
+    fail_policy("self-test: could not build non-cancelling/legacy readiness headers from readiness_prefix") if non_cancelling_prefix == legacy_prefix
+    non_cancelling_frozen = non_cancelling_prefix + readiness_earlier + render_step(READINESS_VERDICT_STEP, READINESS_FROZEN_VERDICT) + "\n" + render_step(READINESS_PUBLISH_STEP, READINESS_FROZEN_PUBLISH)
+    legacy_frozen = legacy_prefix + readiness_earlier + render_step(READINESS_VERDICT_STEP, READINESS_FROZEN_VERDICT) + "\n" + render_step(READINESS_PUBLISH_STEP, READINESS_FROZEN_PUBLISH)
+    File.write(readiness, non_cancelling_frozen)
+    validate_workflow(readiness, hatsu: true, require_non_cancelling_readiness: true)
+    non_cancelling_rendered = non_cancelling_prefix + READINESS_INTEGRITY_STEPS.map do |name, frozen|
+      fill = { "TENKAI_GUARD_REQUIRED" => "true", "TENKAI_PIN_FALLBACK_ALLOWED" => "false", "TENKAI_FALLBACK_REF" => "v0.18.2", "TENKAI_FALLBACK_SCRIPT_SHA256" => "a" * 64, "TENKAI_FALLBACK_BINARY_SHA256" => "b" * 64 }
+      concrete = (frozen.is_a?(Array) ? frozen.first : frozen).transform_values do |value|
+        value.is_a?(Hash) ? value.to_h { |key, val| [key, val.is_a?(Regexp) ? fill.fetch(key) : val] } : value
+      end
+      render_step(name, concrete)
+    end.join("\n")
+    File.write(readiness, non_cancelling_rendered)
+    validate_workflow(readiness, hatsu: false, require_non_cancelling_readiness: true)
+    {
+      "non-cancelling readiness missing concurrency block" =>
+        [non_cancelling_rendered, non_cancelling_rendered.sub(/^concurrency:\n  group: .*\n  cancel-in-progress: false\n/, "")],
+      "non-cancelling readiness omitting cancel-in-progress" =>
+        [non_cancelling_rendered, non_cancelling_rendered.sub("  cancel-in-progress: false\n", "")],
+      "non-cancelling readiness with invalid queue: max concurrency key" =>
+        [non_cancelling_rendered, non_cancelling_rendered.sub("  cancel-in-progress: false\n", "  cancel-in-progress: false\n  queue: max\n")],
+      "non-cancelling readiness with shared concurrency group" =>
+        [non_cancelling_rendered, non_cancelling_rendered.sub("  group: #{READINESS_CONCURRENCY_GROUP}\n", "  group: pr-readiness-shared\n")],
+      "non-cancelling readiness with job-level concurrency override" =>
+        [non_cancelling_rendered, non_cancelling_rendered.sub("    runs-on: ubuntu-latest\n", "    concurrency:\n      group: override\n    runs-on: ubuntu-latest\n")]
+    }.each do |label, (base, text)|
+      fixture_changed!(label, base, text)
+      File.write(readiness, text)
+      expect_rejected(label) { validate_workflow(readiness, hatsu: false, require_non_cancelling_readiness: true) }
+    end
+    {
+      "legacy readiness with shared concurrency group" =>
+        [legacy_frozen, legacy_frozen.sub("  group: #{READINESS_CONCURRENCY_GROUP}\n", "  group: pr-readiness-shared\n")],
+      "legacy readiness with job-level concurrency override" =>
+        [legacy_frozen, legacy_frozen.sub("    runs-on: ubuntu-latest\n", "    concurrency:\n      group: override\n    runs-on: ubuntu-latest\n")]
+    }.each do |label, (base, text)|
+      fixture_changed!(label, base, text)
+      File.write(readiness, text)
+      expect_rejected(label) { validate_workflow(readiness, hatsu: true) }
+    end
+    File.write(readiness, legacy_frozen)
+    expect_rejected("legacy cancel-in-progress: true refused when require_non_cancelling_readiness is true") do
+      validate_workflow(readiness, hatsu: true, require_non_cancelling_readiness: true)
+    end
+    File.write(readiness, rendered_process)
     File.write(readiness, rendered_with.call(guard: "false", fallback: "true"))
     validate_repo(tmp, announce: false)
     policy_name = "Enforce workflow runner policy from trusted workflow revision"
@@ -3335,15 +3529,21 @@ def self_test(root)
     # template cannot drift apart without this failing.
     template = File.join(root, "templates/pr-readiness.yml")
     if File.file?(template)
+      template_source = File.read(template)
       TENKAI_RENDERED_PAIRS.each do |guard, fallback|
-        text = File.read(template)
+        text = template_source
                    .gsub("@@REPO_SLUG@@", "zheref/hatsu").gsub("@@RUNS_ON@@", HOSTED_RUNNER)
                    .gsub("@@RUNNER_REASON@@", "self-test").gsub("@@GUARD_REQUIRED@@", guard)
                    .gsub("@@PIN_FALLBACK_ALLOWED@@", fallback).gsub("@@NEN_REF@@", "v0.18.2")
                    .gsub("@@NEN_SCRIPT_SHA256@@", "a" * 64).gsub("@@NEN_BINARY_SHA256@@", "b" * 64)
         fail_policy("self-test: templates/pr-readiness.yml carries a placeholder this self-test does not fill") if text.include?("@@")
+        template_root = mapping(Psych.parse(text)&.root, "templates/pr-readiness.yml")
+        template_concurrency = mapping(template_root["concurrency"], "templates/pr-readiness.yml concurrency")
         File.write(readiness, text)
         validate_repo(tmp, announce: false)
+        if scalar(template_concurrency["cancel-in-progress"]) == "false"
+          validate_workflow(readiness, hatsu: false, require_non_cancelling_readiness: true)
+        end
       end
     end
     File.write(readiness, readiness_original)
@@ -4216,7 +4416,33 @@ def self_test(root)
             end
           end
         end
-        puts "workflow-runner-policy: full --self-test entrypoints passed for Node and Nen canon lint"
+        Dir.mktmpdir("hatsu-non-cancelling-readiness-entrypoint") do |entry_root|
+          FileUtils.mkdir_p(File.join(entry_root, ".github/workflows"))
+          FileUtils.cp_r(File.join(root, "templates"), entry_root)
+          Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each do |path|
+            FileUtils.cp(path, File.join(entry_root, ".github/workflows"))
+          end
+          FileUtils.mkdir_p(File.join(entry_root, "scripts"))
+          FileUtils.cp(File.join(root, "scripts/readiness_ci_verdict.mts"), File.join(entry_root, "scripts"))
+          File.write(File.join(entry_root, ".github/workflows/pr-readiness.yml"), non_cancelling_frozen)
+          out, status = Open3.capture2e({ "HATSU_POLICY_CANON_ENTRYPOINT_CHILD" => "1" },
+                                       RbConfig.ruby, File.expand_path(__FILE__), "--self-test", entry_root)
+          workflow_count = Dir.glob(File.join(entry_root, ".github/workflows/*.{yml,yaml}")).length
+          unless status.success? && out.include?("negative fixtures passed") && out.include?("#{workflow_count} workflows structurally valid")
+            fail_policy("self-test: full --self-test entrypoint with non-cancelling Hatsu readiness exited #{status.exitstatus}:\n#{out}")
+          end
+        end
+        Dir.mktmpdir("hatsu-non-cancelling-consumer-readiness") do |consumer_root|
+          FileUtils.mkdir_p(File.join(consumer_root, ".github/workflows"))
+          Dir.glob(File.join(root, ".github/workflows/*.{yml,yaml}")).each do |path|
+            FileUtils.cp(path, File.join(consumer_root, ".github/workflows"))
+          end
+          consumer_readiness = File.join(consumer_root, ".github/workflows/pr-readiness.yml")
+          File.write(consumer_readiness, non_cancelling_rendered)
+          validate_repo(consumer_root, announce: false)
+          validate_workflow(consumer_readiness, hatsu: false, require_non_cancelling_readiness: true)
+        end
+        puts "workflow-runner-policy: full --self-test entrypoints passed for Node, Nen canon lint, and non-cancelling readiness"
       end
     end
 
