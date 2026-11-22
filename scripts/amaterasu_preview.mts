@@ -74,6 +74,7 @@ export interface PreviewResult {
   steps: StepCommand[];
   conflicts: ConflictDetail[];
   fallbackFrom?: string;
+  coreSwapStatus?: string;
   stdout: string;
   stderr: string;
   error?: string;
@@ -429,19 +430,23 @@ function isValidSessionEntry(item: unknown): item is SessionEntry {
 }
 
 function readLockOwner(lockDir: string): LockOwner | null {
-  const ownerFile = join(lockDir, 'owner.json');
-  const st = lstatOrNull(ownerFile);
-  if (!st || st.isSymbolicLink() || !st.isFile()) return null;
-  const parsed = safeJsonParse<Partial<LockOwner>>(readFileSync(ownerFile, 'utf8'));
-  if (
-    !parsed ||
-    typeof parsed.token !== 'string' ||
-    typeof parsed.pid !== 'number' ||
-    typeof parsed.createdAt !== 'number'
-  ) {
+  try {
+    const ownerFile = join(lockDir, 'owner.json');
+    const st = lstatOrNull(ownerFile);
+    if (!st || st.isSymbolicLink() || !st.isFile()) return null;
+    const parsed = safeJsonParse<Partial<LockOwner>>(readFileSync(ownerFile, 'utf8'));
+    if (
+      !parsed ||
+      typeof parsed.token !== 'string' ||
+      typeof parsed.pid !== 'number' ||
+      typeof parsed.createdAt !== 'number'
+    ) {
+      return null;
+    }
+    return { token: parsed.token, pid: parsed.pid, createdAt: parsed.createdAt };
+  } catch {
     return null;
   }
-  return { token: parsed.token, pid: parsed.pid, createdAt: parsed.createdAt };
 }
 
 function tryReclaimStaleLock(lockDir: string): boolean {
@@ -494,7 +499,7 @@ function withSessionLedger<T>(
   const lockDir = `${ledgerPath}.lock`;
   assertNotSymlink(lockDir, 'sessions.json.lock');
   const lockToken = randomUUID();
-  const deadline = Date.now() + LOCK_WAIT_MS;
+  const deadline = performance.now() + LOCK_WAIT_MS;
 
   while (true) {
     try {
@@ -512,17 +517,24 @@ function withSessionLedger<T>(
     } catch (err) {
       if (err instanceof PreviewFatalError) throw err;
       const code = (err as NodeJS.ErrnoException).code;
-      if (code !== 'EEXIST') {
-        throw new PreviewFatalError(2, `failed to acquire amaterasu session lock at ${lockDir}: ${String(err)}`);
-      }
-      if (tryReclaimStaleLock(lockDir)) {
-        if (Date.now() > deadline) {
+      if (code === 'ENOENT' || code === 'ENOTDIR') {
+        if (performance.now() > deadline) {
           throw new PreviewFatalError(2, `timed out waiting for amaterasu session lock at ${lockDir}`);
         }
         sleepSync(10);
         continue;
       }
-      if (Date.now() > deadline) {
+      if (code !== 'EEXIST') {
+        throw new PreviewFatalError(2, `failed to acquire amaterasu session lock at ${lockDir}: ${String(err)}`);
+      }
+      if (tryReclaimStaleLock(lockDir)) {
+        if (performance.now() > deadline) {
+          throw new PreviewFatalError(2, `timed out waiting for amaterasu session lock at ${lockDir}`);
+        }
+        sleepSync(10);
+        continue;
+      }
+      if (performance.now() > deadline) {
         throw new PreviewFatalError(2, `timed out waiting for amaterasu session lock at ${lockDir}`);
       }
       sleepSync(20);
@@ -580,7 +592,7 @@ function readContractAndWorkflow(checkoutRoot: string): {
   workflowFallbackTarget: string | null;
 } {
   const contractPath = join(checkoutRoot, 'nen', 'contract.json');
-  if (!existsSync(contractPath)) {
+  if (!lstatOrNull(contractPath)) {
     throw new PreviewFatalError(2, `missing declaration: ${contractPath}`);
   }
   const contract = readStrictJsonFile<LaunchContract>(contractPath, 'nen/contract.json');
@@ -588,7 +600,7 @@ function readContractAndWorkflow(checkoutRoot: string): {
   let workflowDefaultTarget: string | null = null;
   let workflowFallbackTarget: string | null = null;
   const workflowPath = join(checkoutRoot, 'nen', 'workflow.json');
-  if (existsSync(workflowPath)) {
+  if (lstatOrNull(workflowPath)) {
     const wf = readStrictJsonFile<WorkflowLaunchConfig>(workflowPath, 'nen/workflow.json');
     if (wf?.launch && typeof wf.launch.default === 'string' && wf.launch.default.length > 0) {
       workflowDefaultTarget = wf.launch.default;
@@ -673,16 +685,22 @@ function extractSteps(dryJson: DryRunJson | null, fallbackCwd: string): StepComm
 function looksLikeDisconnectedDeviceRefusal(stderr: string, stdout: string, targetSpec: LaunchTargetSpec): boolean {
   if (!targetSpec.device) return false;
   const combined = `${stderr}\n${stdout}`.toLowerCase();
-  if (combined.includes('readywhen')) return false;
+  if (
+    combined.includes('readywhen') ||
+    combined.includes('could not be started') ||
+    combined.includes('command not found') ||
+    combined.includes('not executable') ||
+    combined.includes('on path')
+  ) {
+    return false;
+  }
   return (
     combined.includes('not among the probe') ||
-    combined.includes('not found') ||
     combined.includes('no device') ||
     combined.includes('not connected') ||
     combined.includes('did not match') ||
     combined.includes('no matching') ||
-    combined.includes('resolve') ||
-    combined.includes('absent')
+    /\bdevice\b[^\n]*(?:not found|absent)/.test(combined)
   );
 }
 
@@ -917,7 +935,7 @@ async function runAmaterasuPreviewInner(opts: PreviewOptions): Promise<{ exitCod
   if (opts.automatic && isWorktree) {
     const coreContractPath = join(coreRoot, 'nen', 'contract.json');
     let coreTargetSpec: LaunchTargetSpec | undefined;
-    if (existsSync(coreContractPath)) {
+    if (lstatOrNull(coreContractPath)) {
       const coreContract = readStrictJsonFile<LaunchContract>(coreContractPath, 'core nen/contract.json');
       const coreLaunch = coreContract.project?.launch;
       if (coreLaunch && Object.hasOwn(coreLaunch, targetName)) {
@@ -1020,12 +1038,52 @@ async function runAmaterasuPreviewInner(opts: PreviewOptions): Promise<{ exitCod
     const liveArgs = ['shu', verb, '--repo', selectedRoot, '--target', targetName];
     const verbatimCommand = formatCommand(opts.nen, liveArgs);
 
-    // Under --dry-run, render plan cleanly without acquiring locks or running live port probes.
+    // Separate port precondition conflicts from non-resource errors and preserve nen exits 3/4/5.
+    const portConflicts: ConflictDetail[] = [];
+    let hasNonPortPreconditionFailure = false;
+    for (const pre of dryJson?.preconditions ?? []) {
+      if (pre.satisfied !== false) continue;
+      if (pre.kind === 'port') {
+        portConflicts.push({
+          resource: `port ${String(pre.value)}`,
+          reason: `precondition expect '${String(pre.expect ?? 'free')}' not satisfied`,
+        });
+      } else {
+        hasNonPortPreconditionFailure = true;
+      }
+    }
+
+    // Under --dry-run, render plan cleanly even if runtime ports are busy, while still preserving structural/host/seat refusals.
     if (opts.dryRun) {
+      const onlyBusyPortPlan =
+        dryRes.status === 2 && portConflicts.length > 0 && !hasNonPortPreconditionFailure && steps.length > 0;
+      if (dryRes.status === 0 || onlyBusyPortPlan) {
+        return {
+          exitCode: 0,
+          output: baseResult({
+            status: 'dry-run plan ready',
+            executed: false,
+            dryRun: true,
+            checkout: selectedRoot,
+            branch,
+            uncommittedPaths,
+            coreCheckout: coreRoot,
+            coreBranch,
+            target: targetName,
+            lane: resolvedLane,
+            verb,
+            command: verbatimCommand,
+            steps,
+            fallbackFrom,
+            stdout: dryRes.stdout,
+            stderr: dryRes.stderr.trim(),
+          }),
+        };
+      }
       return {
-        exitCode: 0,
+        exitCode: dryRes.status,
         output: baseResult({
-          status: 'dry-run plan ready',
+          status: 'error',
           executed: false,
           dryRun: true,
           checkout: selectedRoot,
@@ -1041,20 +1099,9 @@ async function runAmaterasuPreviewInner(opts: PreviewOptions): Promise<{ exitCod
           fallbackFrom,
           stdout: dryRes.stdout,
           stderr: dryRes.stderr.trim(),
+          error: dryRes.stderr.trim() || dryRes.stdout.trim() || `nen shu ${verb} --dry-run failed with exit ${dryRes.status}`,
         }),
       };
-    }
-
-    // Separate port precondition conflicts from non-resource errors and preserve nen exits 3/4/5.
-    const portConflicts: ConflictDetail[] = [];
-    for (const pre of dryJson?.preconditions ?? []) {
-      if (pre.satisfied !== false) continue;
-      if (pre.kind === 'port') {
-        portConflicts.push({
-          resource: `port ${String(pre.value)}`,
-          reason: `precondition expect '${String(pre.expect ?? 'free')}' not satisfied`,
-        });
-      }
     }
 
     if (portConflicts.length > 0) {
@@ -1109,6 +1156,7 @@ async function runAmaterasuPreviewInner(opts: PreviewOptions): Promise<{ exitCod
     }
 
     // Amaterasu § 3: check swap status before launching when running in core checkout.
+    let coreSwapStatus: string | undefined;
     if (!isWorktree) {
       const swapRes = runNenSync(opts.nen, ['wc', 'swap', '--status', '--repo', coreRoot]);
       if (swapRes.status !== 0) {
@@ -1135,6 +1183,7 @@ async function runAmaterasuPreviewInner(opts: PreviewOptions): Promise<{ exitCod
           }),
         };
       }
+      coreSwapStatus = swapRes.stdout.trim() || undefined;
     }
 
     const { ports: declaredPorts, invalidPort } = collectDeclaredFreePorts(contract, resolvedLane, dryJson);
@@ -1398,6 +1447,7 @@ async function runAmaterasuPreviewInner(opts: PreviewOptions): Promise<{ exitCod
         command: verbatimCommand,
         steps,
         fallbackFrom,
+        coreSwapStatus,
         stdout: runRes.stdout,
         stderr: [fallbackDiagnostic, runRes.stderr.trim()].filter(Boolean).join('\n'),
       }),
@@ -1443,6 +1493,9 @@ export function renderHuman(result: PreviewResult): string {
   ];
   if (result.fallbackFrom) {
     lines.push(`fallback: ${clean(result.fallbackFrom)} device absent -> ${clean(result.target ?? '')}`);
+  }
+  if (result.coreSwapStatus) {
+    lines.push(`core-swap-status: ${clean(result.coreSwapStatus)}`);
   }
   if (result.target) lines.push(`target: ${clean(result.target)} (${clean(result.verb ?? 'none')} on ${clean(result.lane ?? 'default')})`);
   if (result.command) lines.push(`command: ${clean(result.command)}`);

@@ -518,7 +518,75 @@ export const amaterasuPreviewCases: AmaterasuCase[] = [
         mustGit(coreDir, ['worktree', 'add', '-b', 'feature/gone', deadWt, 'main']);
         rmSync(deadWt, { recursive: true, force: true });
 
-        // Out-of-range port precondition returns structured exit 2 error without uncaught throw
+        // --dry-run preserves non-zero nen exits (4 unsupported seat, 3 excluded host, 2 path precondition)
+        const hostExcluded = process.platform === 'linux' ? 'win32' : 'linux';
+        writeJson(join(wtDir, 'nen', 'contract.json'), {
+          $schema: 'nen.contract/v0.1',
+          project: {
+            lanes: {
+              seated: { stack: 'static-html', cwd: '.' },
+              otherhost: { stack: 'static-html', cwd: '.' },
+              missingf: { stack: 'static-html', cwd: '.' },
+              iosmiss: { stack: 'ios', cwd: '.' },
+              web: { stack: 'static-html', cwd: '.' },
+            },
+            defaultLane: 'web',
+            hosts: { '*': ['darwin', 'linux', 'win32'], dev: [hostExcluded] },
+            preconditions: { missingf: [{ kind: 'path', value: 'absent.txt', why: 'needed' }] },
+            verbs: {
+              seated: { run: { unsupported: 'seat' } },
+              otherhost: { dev: { exe: 'node', argv: ['-e', 'console.log(1)'] } },
+              missingf: { run: { exe: 'node', argv: ['-e', 'console.log(1)'] } },
+              iosmiss: { run: { exe: 'definitely-nonexistent-binary-ha617', argv: ['--version'] } },
+              web: { run: { exe: 'node', argv: ['-e', 'console.log(1)'] } },
+            },
+            launch: {
+              seated: { lane: 'seated', verb: 'run' },
+              otherhost: { lane: 'otherhost', verb: 'dev' },
+              missingf: { lane: 'missingf', verb: 'run' },
+              iosmiss: { lane: 'iosmiss', verb: 'run', device: { name: 'Preview Phone 16', kind: 'simulator' } },
+              web: { lane: 'web', verb: 'run' },
+            },
+          },
+        });
+        assert.equal((await runAmaterasuPreview({ repo: wtDir, target: 'seated', automatic: false, dryRun: true, json: true, nen: NEN, quiet: true })).exitCode, 4);
+        assert.equal((await runAmaterasuPreview({ repo: wtDir, target: 'otherhost', automatic: false, dryRun: true, json: true, nen: NEN, quiet: true })).exitCode, 3);
+        assert.equal((await runAmaterasuPreview({ repo: wtDir, target: 'missingf', automatic: false, dryRun: true, json: true, nen: NEN, quiet: true })).exitCode, 2);
+
+        // Missing CLI tool (exit 5) must NOT trigger device fallback to workflow.launch.fallback
+        writeJson(join(wtDir, 'nen', 'workflow.json'), {
+          $schema: 'nen.workflow/v0.1',
+          branch: { base: 'main', template: '{model}/{persona}/{descriptor}' },
+          launch: { default: 'iosmiss', fallback: 'web' },
+        });
+        const missBinRes = await runAmaterasuPreview({
+          repo: wtDir,
+          automatic: false,
+          dryRun: false,
+          json: true,
+          nen: NEN,
+          quiet: true,
+        });
+        assert.equal(missBinRes.exitCode, 5);
+        assert.equal(missBinRes.output.fallbackFrom, undefined);
+
+        // Dangling symlink in nen/workflow.json and core/nen/contract.json must fail closed at exit 2
+        const wfPath = join(wtDir, 'nen', 'workflow.json');
+        rmSync(wfPath, { force: true });
+        symlinkSync(join(rootTmp, 'does-not-exist-wf.json'), wfPath);
+        assert.equal((await runAmaterasuPreview({ repo: wtDir, target: 'web', automatic: false, dryRun: true, json: true, nen: NEN, quiet: true })).exitCode, 2);
+        rmSync(wfPath, { force: true });
+        writeJson(wfPath, { $schema: 'nen.workflow/v0.1', launch: { default: null } });
+
+        const coreContractPath = join(coreDir, 'nen', 'contract.json');
+        const coreContractBackup = readFileSync(coreContractPath, 'utf8');
+        rmSync(coreContractPath, { force: true });
+        symlinkSync(join(rootTmp, 'does-not-exist-core.json'), coreContractPath);
+        assert.equal((await runAmaterasuPreview({ repo: wtDir, target: 'web', automatic: true, dryRun: false, json: true, nen: NEN, quiet: true })).exitCode, 2);
+        rmSync(coreContractPath, { force: true });
+        writeFileSync(coreContractPath, coreContractBackup, 'utf8');
+
+        // Out-of-range port precondition returns structured exit 1 from nen schema check without uncaught throw
         writeJson(join(wtDir, 'nen', 'contract.json'), {
           $schema: 'nen.contract/v0.1',
           project: {
