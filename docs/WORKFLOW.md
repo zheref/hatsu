@@ -298,6 +298,18 @@ cannot be parsed) seats its
 instrumentation, and `require` exits `2` without a capture or on a `0`-coverage abort. The TypeScript guards have no line-coverage tool
 declared yet (the `plugin` lane's `coverage` seat). The ladder above is unchanged.
 
+| Shell source | Focused coverage lane |
+|---|---|
+| `scripts/codex_marketplace_snapshot.sh` | `marketplace-snapshot-guard` |
+| `scripts/fixture_output_guard.sh` | `fixture-output-guard` |
+| `scripts/direct_matrix_doc.sh` | `direct-matrix-shell-guard` |
+| `scripts/pr_body_sections_check.sh` and `scripts/pr_sections_resolve.sh` | `pr-sections-shell-guard` |
+| `scripts/desk_mod_test.sh` | `desk-staging-guard` |
+
+The `plugin` lane has no aggregate coverage report. Specify the lane that measures the source.
+The native Node reports in `direct-matrix-guard` and `pr-sections-guard` remain available independently
+of Bashcov. The `desk-guard` lane runs the actual desk module tests.
+
 ### `launch`
 
 ```json

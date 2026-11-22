@@ -343,7 +343,7 @@ fi
 #                       whether the served copy is the source (zheref/hatsu#122), and
 #                       surface_mirror_check.sh --installed calls it; a stale copy would
 #                       misjudge the cache. Its fixture beside it is test-only.
-#   scripts/prose_size_check.sh, scripts/prose_headroom_warn.ts
+#   scripts/prose_size_check.sh, scripts/prose_desc.awk, scripts/prose_headroom_warn.ts
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
 #                       included; a stale copy judges a review by old rules. The
@@ -412,6 +412,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/hatsu_surface_link.sh'
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
+  'scripts/prose_desc.awk'
   'scripts/prose_headroom_warn.ts'
   'scripts/canon_contracts_check.sh'
   'scripts/publish_gate.sh'
