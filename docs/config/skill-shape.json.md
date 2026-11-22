@@ -39,7 +39,20 @@ Lane `skill-shape-guard` runs the hermetic fixture `scripts/skill_shape_check_fi
 - **The base.** The live read judges touched skills from the merge base of `HATSU_BASE_SHA`, the base revision the runner hands every lane. It is fetched into a shallow checkout, with the history unshallowed, when absent. Without `HATSU_BASE_SHA` the read falls back to `origin/main`.
 - **Red, every time.** A live finding exits `1`, and the lane is red. A read that could not run is `NOT CHECKED`, exit `2`, and red too. Whether the check is *required* is the branch protection's question, as for `canon-lint` ([`docs/GATE-CONFIGURATION.md`](../GATE-CONFIGURATION.md)).
 
+## Before review
+
+**This list is the one declaration of the guards a change set that edits a `claude/skills/*/SKILL.md` passes in its effort checkout before [`hanten`](../../claude/skills/hanten/SKILL.md) is raised** ([`build`](../../claude/skills/build/SKILL.md) § 4, phase 1; zheref/hatsu#563). Each guard's rules live on the page its row cites; none is restated here.
+
+| Guard | The local run | Its rules |
+|---|---|---|
+| The skill shape | `nen shu test --lane skill-shape-guard --repo <checkout>` | this page, § *What it decides* |
+| The decision coverage | the same lane: `scripts/canon_coverage_check.mts` runs inside it | [`decisions.json.md`](decisions.json.md), key `citedBy[]` |
+| The canon prose lint | `node scripts/prose_ambiguity_check.mts --root <checkout>`, its fixture lane `canon-lint` when the guard itself changed | [`prose.lint.json.md`](prose.lint.json.md) |
+
+All three are deterministic and read only the checkout, so a red row is fixed in the effort, never handed to a reviewer. The set is fixed rather than chosen per diff: any `SKILL.md` in the change set selects all three. Selecting lanes from a change set's paths is a Nen verb's job, owed by zheref/nen#500 (`nen shu test --changed`); until it ships, no shell in a skill computes the selection.
+
 ## Sources
 
 - zheref/hatsu#502 (SDD plan wave 4; assessment findings B6 and C6).
+- zheref/hatsu#563 (the pre-review guard set, § *Before review*).
 - [`docs/PROCESS.md`](../PROCESS.md) § *The skill shape*.

@@ -70,7 +70,7 @@ was touched; the session's impression of it does not.
 ```bash
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --prs <n,...> --issues <n,...> --register <desk> --json  # an object scope
 nen report data --repo <path> --base origin/<branch.base> --target <owner/name> --backlog --register <desk> --json                       # a repository scope
-nen pr ready --repo <path> --pr <N> [--explain]  # per PR, quoted verbatim
+"$hatsu_root/scripts/gh_token_env.sh" nen pr ready --target <owner/name> --pr <N> [--explain]  # per PR, verbatim
 nen pr converge --target <owner/name> --pr <N> --catalogue "$hatsu_root/contracts/issue-sections.json"  # HR-11, quoted
 ```
 

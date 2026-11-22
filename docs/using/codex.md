@@ -77,7 +77,7 @@ That warm-up refreshes the complete surface every session. What it places in **y
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **61**, the sixty plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
+| `<repo>/.agents/skills/<name>/` | one `cp -R` per mirrored skill directory — **62**, the sixty-one plus `ten` itself — from `$HATSU_PLUGIN_ROOT/surfaces/codex/`, **re-copied every session** so a target is at most one warm-up behind the plugin |
 | `<repo>/AGENTS.override.md` | **untracked**, written whole: your own `AGENTS.md` verbatim first, then the personas between a `BEGIN`/`END hatsu personas` marker pair |
 
 **Copies, not symlinks, and the reason is what Codex advertises.** Codex lists a skill under its
@@ -114,7 +114,7 @@ scripts/surface_mirror_check.sh
 [`scripts/hatsu_plugin_update.sh`](../../scripts/hatsu_plugin_update.sh) `--auto` against `$HATSU_PLUGIN_ROOT`
 before it refreshes the target. A checkout on `main` fast-forwards; a checkout detached at a `vX.Y.Z` tag
 moves to the newest release tag; an authoring branch and a dirty tree are skipped, never discarded.
-To do the same by hand:
+To do the same yourself:
 
 ```sh
 "$HATSU_PLUGIN_ROOT/scripts/hatsu_plugin_update.sh" --channel trunk     # origin/main, ff-only
@@ -170,7 +170,7 @@ for a given job, are in [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md); the live i
 |---|---|---|
 | the Hatsu plugin, a copy of the committed snapshot per version | `scripts/hatsu_plugin_update.sh --codex`: fast-forward the source checkout, create a clean snapshot, move the marketplace registration and re-add the plugin | running sessions refresh skills and hooks; personas at the next run; trust a changed hook in `/hooks` |
 
-`$hatsu:bakuryuha` does all of that and ends with the one thing left to type. By hand:
+`$hatsu:bakuryuha` does all of that and ends with the one thing left to type. To do it yourself:
 
 ```sh
 "$HATSU_PLUGIN_ROOT/scripts/hatsu_surface_link.sh" --surface codex --root "$HATSU_PLUGIN_ROOT"

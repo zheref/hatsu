@@ -143,9 +143,27 @@ test("every one of 24 cells resolves and every one of 39 taxonomy jobs is owned 
 test("family folding counts distinct jobs, uses precedence for ties, and refuses unknown jobs", () => {
   assert.equal(fold(cat, []), "build");
   assert.equal(fold(cat, ["release", "machinery"]), "release");
+  // HR-386 and HR-387: the observability job folds into build, so its PR carries the improves ladder
+  // and keeps product evidence; it loses rollout and release-unit.
+  assert.equal(fold(cat, ["observability"]), "build");
+  assert.ok(resolution("product", ["observability"], []).ids.includes("improves"));
+  const observed = resolution("product", ["observability"], ["evidence"]).ids;
+  assert.ok(observed.includes("evidence") && !observed.includes("rollout") && !observed.includes("release-unit"));
   assert.equal(fold(cat, ["schema", "machinery", "prose-authoring"]), "maintain");
-  assert.equal(fold(cat, ["review", "review", "documentation"]), "verify");
+  assert.equal(fold(cat, ["unit-tests", "unit-tests", "documentation"]), "verify");
   assert.throws((): string => fold(cat, ["imaginary"]), /no unique declared family/);
+});
+
+test("a companion job never decides the family beside another job, as hatsu:direct reads it", () => {
+  assert.deepEqual([...cat.companions].sort(), ["delivery-ops", "review"]);
+  assert.equal(fold(cat, ["implementation", "delivery-ops"]), "build");
+  assert.equal(fold(cat, ["bug-fix", "delivery-ops"]), "fix");
+  assert.equal(fold(cat, ["observability", "delivery-ops"]), "build");
+  assert.equal(fold(cat, ["review", "documentation"]), "canon");
+  assert.equal(fold(cat, ["delivery-ops"]), "release");
+  assert.equal(fold(cat, ["review"]), "verify");
+  assert.equal(fold(cat, ["review", "delivery-ops"]), "release");
+  assert.throws((): string => fold(cat, ["imaginary", "delivery-ops"]), /no unique declared family/);
 });
 
 test("run facts admit only conditional readers while Delivery stays an always-first preamble", () => {
@@ -701,6 +719,18 @@ test("HA#503 AC-3: the prose checklist resolves on no cell without the canon-pro
     assert.deepEqual(prose.ids, resolution(kind, cat.families[family], []).ids, `${cell}: a footer row never moves a reader`);
   }
   assert.equal(cat.footer.find((row): boolean => row.id === "prose")?.when, "canon-prose");
+});
+
+test("HR-377/HR-383: the improves template and the definitions table carry the catalogue's aspects, in order", () => {
+  const aspects = (JSON.parse(readFileSync(join(HATSU_ROOT, "contracts/pr-sections.json"), "utf8")) as { aspects: string[] }).aspects;
+  assert.equal(aspects.length, 13, "the catalogue carries thirteen aspects");
+  const template = readFileSync(join(HATSU_ROOT, "templates/pr-body/improves.md"), "utf8");
+  const rows = template.split("\n").filter((line): boolean => / \| ➖ \| \|$/.test(line)).map((line): string => line.split("|")[1].trim());
+  assert.deepEqual(rows, aspects, "templates/pr-body/improves.md rows");
+  const doc = readFileSync(join(HATSU_ROOT, "docs/PR-SECTIONS.md"), "utf8");
+  const table = doc.slice(doc.indexOf("| Aspect | Moves when the change alters… |")).split("\n\n")[0];
+  const defined = table.split("\n").slice(2).map((line): string => line.split("|")[1].trim());
+  assert.deepEqual(defined, aspects, "docs/PR-SECTIONS.md § Write for the decision definitions");
 });
 
 test("HA#503 AC-1/AC-2: exactly one PRS row per letter, answered by Chrollo with a verdict and the line read", () => {

@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-05",
+  "effortId": "claude-kurapika-improves-aspects",
+  "n": 2,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "What should Predictability mean on a PR?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Foreseeable behaviour (Recommended)",
+      "consequence": "the same inputs give the same result, and what a step will do is stated (plan, dry run, refusal) before it acts"
+    },
+    {
+      "key": "B",
+      "label": "Determinism only",
+      "consequence": "the same inputs give the same output; says nothing about telling the maintainer in advance"
+    },
+    {
+      "key": "C",
+      "label": "Delivery forecast",
+      "consequence": "how well the effort time and cost can be estimated in advance"
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-10-27T23:31:29.263Z"
+}

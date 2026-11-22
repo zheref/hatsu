@@ -61,7 +61,9 @@ composite, reviewer and resumed run. It grants standing authority to file or fol
 without another filing prompt, after Nen reconciliation and inspection of candidate issues and
 open PRs. Unchanged evidence produces no write. New ownership is linked, not silently implemented.
 Reports distinguish created, updated, folded, unchanged and pending; a real blocker is still a
-blocker, but a discovery does not replace the original task.
+blocker, but a discovery does not replace the original task. A blocker that stops the run is captured
+**before** any wrap-up offer, never deferred to `third-hand` (DISCOVERY § *A blocker found while
+executing*, zheref/hatsu#508).
 
 The tool repositories now carry `nen/repos.json` for verified repository identity and
 `nen/labels.json` for their existing GitHub labels. These are issue-routing/filing metadata, in
@@ -69,7 +71,7 @@ addition to the two execution/policy configuration files below. They do not asse
 or invent a stage taxonomy. `nen issue file` validates the target's labels; optional unrelated
 color/gate schema failures are not reported as failed issue creation. Consumer metadata remains
 owned and validated in its own checkout. See [LAUNCH-MIGRATION.md](LAUNCH-MIGRATION.md) for the
-Nen #204 dependency, temporary workaround removal and the release hold covering Hatsu #49.
+zheref/nen#204 dependency, temporary workaround removal and the release hold covering zheref/hatsu#49.
 
 ---
 
@@ -104,7 +106,7 @@ There are two execution/policy configuration files, and the split is not stylist
 
 > **The nen DEPENDENCY is the third block of the first file, and its two version values move
 > independently.** At the v0.24.0 repin `dependency.minimum` read `0.24` and `dependency.pinned_ref` read
-> `v0.24.0` (`0.26` / `v0.26.0` since HA-PR-#422, `0.28` / `v0.28.0` since the HA#449 repin): the first is the capability minimum, the second is the build its
+> `v0.24.0` (every later move is a row of [`docs/history/nen-repins.md`](history/nen-repins.md), and the contract alone carries the current values): the first is the capability minimum, the second is the build its
 > bootstrap installs. That repin adopted NN#437's
 > phase/usage dials, session ledger and report data `sessions[]`; older Nen cannot supply them. **The range `minimum`
 > stands for is nen's answer, not a document's** — the binary ships `COMPATIBLE_MINOR_FLOOR`, the lowest
@@ -322,8 +324,9 @@ so a default target carries that flag as well as a non-production `why`; zheref/
 ruling of 2026-09-29: *"rely on a default value from one of our configuration files … so that it
 doesn't always require destination and it can be easily chained with other skills like futon"*).
 `defaultTarget` names the destination a `hatsu:kagutsuchi` invocation typed with **no target** sends to — **a typed target always overrides it, the report says which source the target came
-from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target whose
-`why` reads non-production**: a default naming a store or the live environment is refused, and **G3**
+from** (`typed` or `workflow.json → deploy.defaultTarget`), and it is honoured **only for a target
+marked `nonProduction: true` whose `why` also reads non-production** (zheref/hatsu#579; the flag is the
+split for every target, the `why` a second fail-closed check on the default only, [HR-289](ROSTER.md#hr-289)): a default naming a store or the live environment is refused, and **G3**
 (`mugetsu`) is unchanged. `nen shu deploy` is unchanged too — the skill always passes `--target`
 explicitly, so *nen never chooses where a build goes* stays true of nen; the choice lives here, in
 configuration the maintainer wrote. **`null`, or the key absent, is the ask**: an omitted target is
@@ -494,7 +497,7 @@ conflict waiting to be resolved by coin toss.
 
 | Key | Default | Read by |
 |---|---|---|
-| `handbooksRepo` | `zheref/bankai-handbooks` | [`bankai-rule`](../claude/skills/bankai-rule/) § 2 (and the port composites `hiraishin`, `kamui` — zheref/hatsu#357, #356, not yet shipped): the canon handbooks repository a port ruling lands in — read at the consumer's pinned tag (`nen/repos.json` → `pinned`), authored in a separate clone at the cache path, never the canon checkout (zheref/hatsu#354, *Checkouts*). The estate's canonical home (`CON-13`); the value must be the consumer's own pinned `maintained_tools` row (`nen canon pin --source`), read at the base tip, so rulings and the matrix come from one home — a value with no pinned row is `missing-configuration` |
+| `handbooksRepo` | `zheref/bankai-handbooks` | [`kido`](../claude/skills/kido/) § 2 (and the port composites `hiraishin`, `kamui` — zheref/hatsu#357, zheref/hatsu#356, shipped at `v0.126.0`): the canon handbooks repository a port ruling lands in — read at the consumer's pinned tag (`nen/repos.json` → `pinned`), authored in a separate clone at the cache path, never the canon checkout (zheref/hatsu#354, *Checkouts*). The estate's canonical home (`CON-13`); the value must be the consumer's own pinned `maintained_tools` row (`nen canon pin --source`), read at the base tip, so rulings and the matrix come from one home — a value with no pinned row is `missing-configuration` |
 | `rulingsDir` | `handbooks/ports` | the same skills, [`limbo`](../claude/skills/limbo/) step 4 and [`bankai-handbooks`](../claude/skills/bankai-handbooks/) § 2: the directory holding the ports family — one directed pair file `<from>--<to>.md` per scenario pair, rendered from `templates/ports/pair.md`, and its `INDEX.md`. A pair file is passed to `nen canon resolve --always-load` beside the always-load set until zheref/nen#457 resolves it as a port handbook. `nen schema check` tolerates the block; the domain is the catalogue's ninth, `port` (zheref/hatsu#354 criterion 4) |
 
 ### `aiReviewers`
@@ -513,7 +516,7 @@ conflict waiting to be resolved by coin toss.
 "port": { "specKit": { "pin": "v1.2.2", "layout": "specs/{nnn}-{slug}" } }
 ```
 
-Read in a product family's **spec repository** (role `spec`, [`config/repos.json.md`](config/repos.json.md) § `families[]`); `nen schema check` tolerates the block. Both catalogue rows apply only where a `port` block exists (`when`), so `fill` never writes them into an unrelated repository. The epic's `handbooksRepo` and `rulingsDir` land with `bankai-rule` (zheref/hatsu#355).
+Read in a product family's **spec repository** (role `spec`, [`config/repos.json.md`](config/repos.json.md) § `families[]`); `nen schema check` tolerates the block. Both catalogue rows apply only where a `port` block exists (`when`), so `fill` never writes them into an unrelated repository. The epic's `handbooksRepo` and `rulingsDir` land with `kido` (zheref/hatsu#355).
 
 | Key | Default | Read by |
 |---|---|---|
@@ -641,7 +644,10 @@ persona from a runtime alias or stamp a default persona blindly. Existing commit
 are historical and are not rewritten.
 
 The first heading of every PR body is `## Delivery`, reporting surface, recorded model and alias,
-effort dial and session from the effort's ledgers. This reverses only the PR-body half of the
+effort dial and session from the effort's ledgers. Its *Drive* line sits directly under the heading and
+the per-role table is collapsed in a `<details>` block (closed by default), so a long ledger costs a
+reviewer one line until they open it (maintainer request 2026-11-16; `templates/pr-delivery.md`,
+enforced by `scripts/pr_delivery.ts`). This reverses only the PR-body half of the
 2026-09-12 ruling (maintainer ruling 2026-10-19); `CON-51(c)` and commit messages stay as above.
 The final heading is [`## Agent attribution`](AGENT-ATTRIBUTION.md): a ledger
 of each actual participant's canonical Hatsu persona, role/contribution, and evidence. Runtime
@@ -718,7 +724,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 > attribution claim, so it is not folded into `allowedAttributionTrailers`; absent (`null`) by default, it
 > makes the second requirement optional where `--run-trailer` used to be mandatory. **`--marker-env` is the
 > only flag `nen scaffold init` still requires unconditionally**, and its missing-flag refusal names it and
-> says what the other two default to — verified live at nen `0.7.0`, exit `2`
+> says what the other two default to — verified live, by 2026-10-22, at nen `0.7.0`, exit `2`
 > (`docs/ab/kokusen.md` § *Retired at nen 0.6*).
 >
 > **A policy whose `allowedAttributionTrailers` does not admit the resolved key generates a hook whose
@@ -728,7 +734,7 @@ grep -n '"attributeCommitsToAgent": *false' ~/.cursor/cli-config.json   # no out
 > unchanged policy is byte-stable. **Hatsu's own policy admits both keys**, so a hook generated here would
 > require whichever one `--agent-trailer` named; this repository carries no such hook, and layers (a) and
 > (c) are what it actually has.
-| **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the keys it admits, verified live against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
+| **(c)** **`nen commit format --repo`** and **`nen wc squash`** refusing a trailer not on the allow-list | nen | **YES** — exit `2` naming the file and the keys it admits, verified live, by 2026-09-10, against this checkout (`docs/ab/aka.md` § *Retired at nen 0.5*.2) |
 
 So **at nen `0.7.0` layer (c) is installed everywhere the invocation carries `--repo`, and only
 layer (b) stays target-dependent**: a repository scaffolded with the hook has a refusal that fires on
@@ -778,7 +784,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees` |
+| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees`. **A verified sixth-stop handoff also frees the slot** ([HR-372](ROSTER.md#hr-372), zheref/hatsu#522, amending HR-353): a delivery at PROCESS's *The sixth stop* — `nen pr ready --json` failing exactly `["rounds-owed"]` with (a)–(e) holding, its `judgedHead` equal to the PR's live `headRefOid`, and `en` § 5's merge prompt shown at that same head (its stop marker) — frees its local slot while its verdict stays **not-ready** and its merge stays the maintainer's. The release is bound to that head: a push, a new failing row or a moved head re-holds the slot. A delivery with a failing check, a repair hold, or a handoff missing any of those three facts keeps its slot. nen's slot reader at the pin reads `ready` from `nen pr ready` alone (from 0.30 it also holds a slot for a claimed effort in the manifest's `claims[]`, which no Hatsu writer records yet), so futon reads `--from-run` as above, then releases each such delivery in its report, naming the PR, the head and the quoted verdict — never by typing a field into an efforts file. The cap of 7 and the one-heavy-workload rule (§ *Host workload budget*) do not change |
 
 ### `idle`
 
@@ -807,9 +813,9 @@ listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age a
 
 | Key | Default | Read by |
 |---|---|---|
-| `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` where it stars none (`missing-maintainer-choice`, `port-drift`, `intake-challenger`, `port-siblings`, `spec-slice`, `spec-clarify`, `spec-dispatch`), `publish-offer`, `wrap-up` and `cleanup-plan` `refuse` — the ruling of 2026-10-23 above, which lifts the holds of 2026-10-22 on `harness-attribution-switch`, `host-nen-link` and the starred `spec-*` rows, and [HR-366](ROSTER.md#hr-366) (2026-10-26) for the two cleanup rows | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name takes the same resolution (starred → `default`, else `hold`; `publish-offer`, `wrap-up` and `cleanup-plan` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer`, `wrap-up` and `cleanup-plan` are always `refuse` (HR-5; [HR-366](ROSTER.md#hr-366)); `missing-maintainer-choice` is at most `hold` (the 2026-09-23 ruling: that choice is never derived); `default` is refused on any row whose `preferred` stars no option. An act a `default` leads to that the harness refuses parks as `g5-harness-denied`, never retried another way. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the ownership record's `idle.source`, the resolutions as nen's manifest's `idleAnswers`, which `start` refuses unless nen stored exactly the map it sent |
+| `decisions` | one entry per `ask-once-per-run` row of `nen/decisions.json`: `default` where the row stars an option, `hold` where it stars none (`missing-maintainer-choice`, `port-drift`, `intake-challenger`, `port-siblings`, `spec-slice`, `spec-clarify`, `spec-dispatch`), `publish-offer`, `wrap-up` and `cleanup-plan` `refuse` — the ruling of 2026-10-23 above, which lifts the holds of 2026-10-22 on `harness-attribution-switch`, `host-nen-link` and the starred `spec-*` rows, and [HR-366](ROSTER.md#hr-366) (2026-10-26) for the two cleanup rows | `futon` § 12, `kazaana` § 1. `default` takes the row's starred option and records it; `hold` parks the effort as `parked:<row>`; `refuse` ends that step unrun and parks it. A row the map does not name takes the same resolution (starred → `default`, else `hold`; `publish-offer`, `wrap-up` and `cleanup-plan` `refuse`). **A floor no file lifts**, enforced by `start` at exit 1: `publish-offer`, `wrap-up` and `cleanup-plan` are always `refuse` (HR-5; [HR-366](ROSTER.md#hr-366)); `missing-maintainer-choice` is at most `hold` (the 2026-09-23 ruling: that choice is never derived); `review-queue-authorize` is at most `hold` although it stars an option, since an unattended core swap and launch is never defaulted (zheref/hatsu#577's reading, the maintainer's at its G4; no `start` check enforces it yet); `default` is refused on any row whose `preferred` stars no option. An act a `default` leads to that the harness refuses parks as `g5-harness-denied`, never retried another way. Read from the **committed** `nen/workflow.json` of the remote default branch only (`origin/HEAD`, else `gh repo view`'s `defaultBranchRef`; SEC-15), never `HEAD` or a ref `HEAD`'s commit names, never the working tree; a default branch with no `nen/workflow.json` refuses `start` (exit 1, reason printed); the commit is recorded as the ownership record's `idle.source`, the resolutions as nen's manifest's `idleAnswers`, which `start` refuses unless nen stored exactly the map it sent |
 | `terminal` | `ready-at-prompt-or-integration` | `futon` § 12: under the ruling of 2026-10-23 every effort is merged into the run's **non-main integration branch** (futon § 5's shape, always, never a picker) and the integration PR stands Ready at the maintainer's merge prompt; `ready-at-prompt` stops short of the integration merge. **Never `main`** (only the maintainer merges there), never `getsuga` or `mugetsu` |
-| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum, read from the usage home § *The effort's ledgers* names by nen version: at nen 0.28 (the pin) every effort's ledger shares the git common directory, which `--repo` reaches from any checkout, so the sum is readable from one worktree; whether the token bound is then **enforced** or stays **advisory** (reported, never summed by hand, as it was while each worktree held its own ledger below the pin and `tokensUnread` was the answer) is a ruling owed, not read here — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
+| `budget` → `minutes` · `tokens` | `480` · `4000000` | `futon` § 12 before each claim, through `nen run budget --id <run id> --max-minutes <m> --max-tokens <t> --repo <checkout> --json` (the two values `start` prints from the committed profile; nen's own default reads `--repo`'s working tree, which SEC-15 forbids here): minutes are **wall-clock run age** since the manifest's `startedAt`, one meaning, never summed effort minutes (`effortMinutes` is information) — the **enforced** bound: at `remaining.minutes` `0` no effort is claimed and the rest park as `budget`. **The exit rows**: `0` → read `remaining.minutes`; `1` with a readable report whose `verdict` is `unevaluated` → still read `remaining.minutes`, the tokens reported advisory; `1` with no readable report (the run or `nen/workflow.json` unread) → **hold every claim**, a G5 named `g5-budget-unread`; `2` → wiring, the step stops and is reported. `tokens` is the usage ledgers' sum, read from the usage home § *The effort's ledgers* names by nen version: from nen 0.28 every effort's ledger shares the git common directory, which `--repo` reaches from any checkout, so the sum is readable from one worktree; whether the token bound is then **enforced** or stays **advisory** (reported, never summed by hand, as it was while each worktree held its own ledger below the pin and `tokensUnread` was the answer) is a ruling owed, not read here — and `--claim`, which refuses on an unread token sum, is not passed (zheref/hatsu#423's finding) |
 
 ### `models`
 
@@ -869,7 +875,7 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 | `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
 | `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**; Hanten **omits** `isolation` — `isolation: "worktree"` would isolate the *plugin's* repository, not the target | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers and all builder efforts) or `"inherit"` (Third-Hand's Netero, En's Illumi), `Model: "pro"` |
-| **isolation** | lead/delegated authors bind separate target worktrees via the Claude guide's adapter; Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4); **only on an OBSERVED refusal of that `worktree add`** by the harness's isolation guard (never pre-empted), the reviewer reads the effort checkout read-only at the printed HEAD, disclosed ([`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies*, row (a), #218) | app authoring uses its exposed worktree tools and returned workspace path (Codex guide § *Authoring checkout adapter*); in-session spawn **shares the parent**, so delegated authors need independently provisioned paths; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | native Worktree mode or the Cursor guide's explicit fallback; a branch alone is insufficient — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core remains untouched unless the ORIGINAL effort prompt explicitly authorizes core authoring |
+| **isolation** | lead/delegated authors bind separate target worktrees via the Claude guide's adapter; Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4); **only on an OBSERVED refusal of that `worktree add`** by the harness's isolation guard (never pre-empted), the reviewer reads the effort checkout read-only at the printed HEAD, disclosed ([`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies*, row (a), zheref/hatsu#218) | app authoring uses its exposed worktree tools and returned workspace path (Codex guide § *Authoring checkout adapter*); in-session spawn **shares the parent**, so delegated authors need independently provisioned paths; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | native Worktree mode or the Cursor guide's explicit fallback; a branch alone is insufficient — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core remains untouched unless the ORIGINAL effort prompt explicitly authorizes core authoring |
 
 Every worktree Hatsu makes, on every surface, lives under `<core>/.nen/worktrees/<surface>/` — § *Where
 worktrees live*, the ruling of 2026-09-30.
@@ -952,7 +958,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 
 ### The effort's ledgers — phases, usage and sessions
 
-**Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, #100, #321).
+**Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, zheref/hatsu#100, zheref/hatsu#321).
 Three ledgers per effort, keyed by the **branch** — `--effort <branch>`,
 never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
@@ -996,7 +1002,7 @@ Keep report data, normalized data and rendered fragment under the private repo-l
 **Where each record lives, by nen version — stated once, here** (zheref/nen#509, zheref/nen#513; read by every
 page that names a home, `idle.budget` included):
 
-| Record | nen 0.26, older than the pin | nen 0.28, the pin |
+| Record | nen 0.26, older than the pin | nen 0.28 and later, the pin |
 |---|---|---|
 | phases, usage, sessions, the direct record | `<checkout>/.nen/{phases,usage,sessions,direct}/` — one per worktree | `<git common dir>/.nen/{phases,usage,sessions,direct}/` — one per repository, shared by every worktree, untouched by `git worktree remove` and `git clean`; an older checkout copy is read in place and moved by the next write, through 0.28 |
 | stop markers | `<checkout>/.nen/last-stop.json` (marker contract `v0.1`/`v0.2`), one, overwritten | the same file **and**, with `--effort`, `<git common dir>/.nen/marks/<effort>/<gate>.json` (`v0.3`), one per gate and effort; outside git `<checkout>/.nen/marks/` |
@@ -1007,6 +1013,35 @@ A record named `<home>/…` below is that row's directory for the nen that runs.
 `spiritual-message` § 4); without it every effort of the repository is read. `stop --mark --effort` is
 refused by 0.26, a binary older than the pin (`unknown option`), so a stop passes `--effort` only where `nen stop --help` lists it
 (jutaisho § 3); `hooks/stop-bell.sh` rings either form.
+
+**Provenance is checked when each hanten round returns, never first at publish** (zheref/hatsu#542).
+After a returned round's `nen review ledger record` and `nen usage record` ([`hanten`](../claude/skills/hanten/SKILL.md)
+§§ 2b, 4), and before hanten hands control back, the author runs the publish-time check early, in the
+authoring worktree:
+
+```bash
+nen report data --repo <path> --base origin/<branch.base> --effort <branch> --json
+node "$hatsu_root/scripts/pr_delivery.ts" normalize --data <report-data.json> --out <normalized.json> --repo <path>
+nen session show --effort <branch> --repo <path> --json
+nen phase show --effort <branch> --repo <path> --json
+nen review ledger show --repo <path> --branch <branch> [--pr <N>] --json
+```
+
+The first output is saved under `<path>/.nen/reports/` as shibari saves it; before a PR exists the
+normalized next step reads `unread — report data carries no unique PR`, which is expected. **It passes**
+only when all five hold: normalize exits `0` (every usage row's source in hanten § 4's grammar, the
+Delivery rows readable — a persona of the Hatsu plugin's own `claude/agents/*.md` is read in any letter case and rendered
+lowercase, one off that roster refused on a usage row, [HR-376](ROSTER.md#hr-376)); the session ledger has a row for this session, or none where the surface exposes neither title nor id
+(rendered `unread` as above); the phase ledger has an open
+entry; the cycle ledger shows one `ran` record per reviewer pass this effort raised and returned, a delta
+pass included (`nen review ledger record` has no delta outcome at 0.28; the delta is named in the usage source);
+and **every such pass has its usage row**, its source naming that persona in hanten § 4's grammar — a
+skipped `nen usage record` leaves no row for normalize to refuse, so this fifth condition is what catches it. **Any other result stops the run** before the next phase, the failing row
+named. **A generated ledger is never edited by hand** — no inline script, editor or `jq` rewrite of any
+file under `<git common dir>/.nen/` or `.nen/hanten/`: a missing row is recorded now through its verb with
+a `--note`/`--source` saying it was recorded late; a malformed row has no superseding verb at the pin,
+so the run stops as a **G5** naming the row and its correct form, and the malformed row stays as
+written.
 
 **The durable slice — the ledgers on the pull request** (zheref/hatsu#445; nen > 0.26.0, zheref/nen#516 and zheref/nen#518).
 The ledgers above live on one machine; the slice is the copy a morning review, a second machine or a fresh
@@ -1433,7 +1468,7 @@ next cut. A tag cut and not yet published is named as such; its publication is [
 more: an owed cut is still `getsuga` on the maintainer's own call and its publication still `mugetsu` on their go,
 and no scheduler or composite cuts or publishes because the line reads owed ([HR-5](ROSTER.md#hr-5)).
 
-**A port ruling's PR is a canon PR** ([`bankai-rule`](../claude/skills/bankai-rule/) § 6, zheref/hatsu#354): it opens once per port run on the handbooks repository and ends at `en` § 5's prompt as **G4**, the maintainer's merge, like every PR into a canon repository.
+**A port ruling's PR is a canon PR** ([`kido`](../claude/skills/kido/) § 6, zheref/hatsu#354): it opens once per port run on the handbooks repository and ends at `en` § 5's prompt as **G4**, the maintainer's merge, like every PR into a canon repository.
 
 **More things only the maintainer calls — and none is one of the five.**
 
@@ -1471,7 +1506,7 @@ phase stops on:**
 5. **a `sharingan` escalation** — a PR that will not reach Ready. **An exhausted reviewer is not one**: a met round quorum fulfils its round, and at the sixth stop — every quorum member unavailable, its predicate stated once in `docs/PROCESS.md` § *Reviewer rounds and review threads*, *The sixth stop* — the PR goes to `en` § 5's merge prompt on hanten's rounds, the not-ready verdict quoted verbatim (ruling 2026-10-11, *prompt on hanten*), and under `aiReviewers: optional | off` whenever `rounds-owed` is the only failing row — `nen/decisions.json` rows `reviewer-exhausted` and `ai-reviewers`, `docs/PROCESS.md` § *Reviewer rounds and review threads*
 6. **an on-device act** — a trust prompt, a security setting, a UAC consent, a Login Items approval, a password
    typed into an elevated window (row `on-device-act`; ruling of 2026-10-17, zheref/hatsu#290 q1, reversing
-   2026-10-13's #176): the act is printed with where the operation resumes, and the run stops at the gate until the
+   2026-10-13's zheref/hatsu#176): the act is printed with where the operation resumes, and the run stops at the gate until the
    maintainer has done it. A skill *raises* such a prompt only through a launch the harness itself asks the
    maintainer to approve — that permission prompt, showing the exact string, is the advance consent, and the
    launch is itself raised at this stop, naming it ([`jusshin`](../claude/skills/jusshin/SKILL.md) § 5's
@@ -1527,10 +1562,21 @@ nen stop answer --record <effort> --row <row-id> --who kurapika --question-file 
   acted on as the maintainer's typed words. The maintainer kept HR-173 over re-asking every unmatched
   typed reply (2026-10-23, [HR-341](ROSTER.md#hr-341), record `R-2026-10-23-08` under effort `HA-IS-#450`; zheref/hatsu#443 AC-2).
 - **Rows typed by design** — `missing-maintainer-choice`, `missing-argument`, `missing-configuration`,
-  `port-drift` — are never re-asked for being typed. `missing-maintainer-choice` has no options (its
-  candidates, none starred, go in the question file): record it with the one reference option
+  `port-drift`, `release-go` (mugetsu § 3) and `merged-head-review-skip` (en § 3) — are never re-asked
+  for being typed. `missing-maintainer-choice`, `release-go` and `merged-head-review-skip` have no options
+  (candidates, none starred, go in the question file): record each with the one reference option
   `--option "ref=typed by design (no option)::the typed words are the answer"` and `--typed-file`, so
   nen never reads a typed value as a pick; the row renders `none: typed by design`, capture class typed.
+- **A row the consumer's own matrix lacks.** nen checks `--row` against `--repo`'s own
+  `nen/decisions.json` only, never Hatsu's (nen `0.30.0`, `src/stop/answer.ts`): with no file the row is
+  recorded and said unchecked; with a file that lacks the row the call is refused at exit `2`
+  (`--row '<id>' is no row of <path>`). A consumer may carry its own matrix
+  ([`decisions.json.md`](config/decisions.json.md)), and a Hatsu row it has not copied (`release-go`,
+  `merged-head-review-skip` and `host-merge-protected-path` among them) does not cost the record: on that
+  refusal alone a `human-gate` row is recorded again with `--gate <its gate>` and no `--row`, its row id
+  written as the question file's first line and the turn page saying `row <id>: not in <path>`. An
+  `ask-once-per-run` row has no gate to record under, so it is *answer unrecorded* (*A record that could not be written*, below),
+  and the consumer's matrix owes the row. Any other refusal stays that bullet's.
 - **`direct-mismatch`'s record is `nen direct answer`** (direct § 6); `nen stop answer` records every
   other row.
 - **An idle pre-answer** (§ *Idle batches*, step 1) is recorded the same way and shows no picker:
@@ -1713,6 +1759,47 @@ nothing restated:
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
 
+### Declined cleanup rows
+
+**Declined cleanup rows are remembered, and offered again folded by class** (zheref/hatsu#584;
+[HR-210](ROSTER.md#hr-210)). When Shizuku closes a plan whose picker the maintainer answered
+([`cleanup`](../claude/skills/cleanup/) § 3, step 3), every deterministic or proposed `plan[]` row the answer
+did not pick, whether left unticked under **A** or **B** or kept by **C** `none`, is appended to
+`<core>/.nen/cleanup/declined.jsonl`, one JSON line per row: `contract` (`hatsu.cleanup.declined/v0.1`),
+`object` (the row's path, branch or ref, as the plan names it), `class` (`deterministic` or `proposed`),
+`bytes` (its `du -sk` reading in bytes), `marker` (the plan's `<slug>`), `at` (the close time, ISO
+8601) and `firstAt` (when the row was first declined: its latest line's `firstAt` where `object`,
+`class` and `bytes` equal that line, else this `at`; a line without one reads its `at`). A named row
+was never an option and is never declined, so it is never folded; a plan closed `none-picked` on
+`ids-invalid`, or left `pending`, declines nothing, because no answer was given.
+
+**A later inventory folds them, and still offers them, each in its own class**: HR-210's prior leftovers
+are inventoried, classified and offered the same way. **An earlier sitting is decided by time, never by
+the slug** (cleanup § 7's slug is per scope): the main session passes this sitting's start in Shizuku's
+prompt, the ISO time of the session's first turn as the session records it, and a line is an earlier
+sitting's when its `at` is before that start; a prompt carrying no start folds nothing. Pass 1 reads
+the file and, once cleanup § 5 has classed a row, folds it where its `object`, `class` and `bytes` all
+equal its latest line, that line is an earlier sitting's, and its `firstAt` is under 30 days old; a
+same-sitting re-offer (cleanup § 2's `none-picked` or `partial` again) shows the rows it just declined
+in full. **The folded rows become one bundle row per class, keeping the class**: a deterministic bundle
+with its own plan-unique `D` id, which **A** includes like any deterministic row, and a proposed bundle
+with its own `P` id, ticked under **B**. Each bundle's object reads `the <n> <class> rows declined
+earlier (<total bytes>), oldest <date>`, its command the folded rows' own commands and its evidence each
+folded row's object and marker; picked, every folded row runs in cleanup § 5's order with the rest of the
+pick, each read back. The bundles are the summary, carried in `plan[]` and in the report like any other
+row, so the marker needs no key of its own. A bundle left unpicked appends **one line per folded row**,
+its `firstAt` carried forward, never one summary line, so a row declined at every sitting still ages out
+30 days after its first decline. A row whose class or size changed, or whose `firstAt` has aged out,
+returns as a full row. **`for all` reads no fold**: every declined row is listed in full. **The 30 days
+is the lead's reading**, borrowed from the run-record age cleanup § 4 uses; it gates no authority, since
+a folded row stays offered in its class.
+
+The file is a record beside the markers, never a leftover (cleanup § 4), and only Shizuku's close appends
+to it. **An unreadable file or an unreadable line folds nothing**: every row is offered in full and the
+file is named in the report, never read as empty. The append and the fold are by-hand reads and writes
+with no nen verb, owed with the inventory read (zheref/nen#409; PROCESS § *Residue and owned
+dependencies*, `cleanup`).
+
 ### Batch delivery — every delivery Ready, or held and named
 
 **The maintainer's instruction of 2026-10-25** (zheref/hatsu#488): every Futon-based work batch drives all
@@ -1748,7 +1835,9 @@ merge, the `then` gate (futon § 8), release authority and cleanup's own eligibi
    ceiling, en § 6); `held-handback` (en § 6's observation errors, a draft or a retarget, en § 5's ownership or
    gate refusal); `held-stranded` (the child of a closed stacked PR, waiting on the maintainer to retarget or
    close it, § *Stacked pull requests* rule 5 — and a child GitHub itself closed when its base branch was
-   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw, is `held-stranded`, never `closed`).
+   deleted, the PR timeline's `base_ref_deleted` then `closed`, read raw and paginated, is `held-stranded`, never `closed`,
+   **only where `en` § 6's base-deletion row cannot run** — its head branch gone or its deleted base unmerged; with the head on origin and the
+   deleted base merged it is driven through that row's successor PR, `driving` again, zheref/hatsu#495).
    A session that actually ended mid-run (en § 7) holds nothing: the resume (rule 5) finds each delivery
    `driving` again. nen `0.28`'s parks are append-only, so **a later state wins over a park**: a delivery
    `nen run verify` reads `merged` or `closed` after its `held-*` park is that state, never held. Under `--idle`, an effort's park (§ *Idle batches* rules
@@ -1871,7 +1960,7 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    effort worktree of this run (`nen wc worktrees`) whose branch no `nen run verify` row names, one object
    `{"id": "<CODE>#<N>", "plane": "local", "prOpen": false, "ready": false, "prompted": false, "merged":
    <its branch is an ancestor of the integration branch>}`; the run claims only while the two `local.occupied`
-   sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs only and refuses `--efforts` beside it:
+   sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs and, from 0.30, the manifest's `claims[]`, refusing `--efforts` beside it; no Hatsu writer records `claims[]` yet, so the claimed efforts are summed here and that addend drops once a writer records them:
    a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
    its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
    (back-pressure) and park as `parked:budget` only when the minutes elapse. **The merge no longer caps the night at seven**:
@@ -1919,7 +2008,9 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
    `legendRows` (`backlog-board` § 3), one row per decision.
 
 9. **Nothing blocks a batch; an open question is skipped and brought to the final briefing** — [HR-335](ROSTER.md#hr-335)
-   (typed, record `R-2026-10-23-02`; its words are the row's, not restated here).
+   (typed, record `R-2026-10-23-02`; its words are the row's, not restated here). `build` § 2's amendment offer
+   for a shape miss (zheref/hatsu#546) is **not asked inside a batch**: the miss is stated in that delivery's PR
+   body, and under `--idle` recorded as a decision taken for the maintainer (rule 8).
 
    Applied, attended or `--idle`: futon § 2's shape check (`docs/config/plugin-registries.md`, *The check*)
    **skips** an issue whose `nen issue questions` reads `counts.open` above `0` — parked in the run record by
@@ -1954,10 +2045,10 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
   exit `2` (a settings file unreadable) is reported as *not checked*, never as *all allowed*.
 - **A harness refusal is row `harness-denied`**, a `human-gate` G5 (rule 2's harness denial): the refused
   command quoted verbatim, the stop marked for the effort (`nen stop … --mark`, with `--effort <branch>`,
-  nen 0.28 the pin), the effort parked as `g5-harness-denied`, and the run moves on — never retried, rephrased, split or
+  from nen 0.28), the effort parked as `g5-harness-denied`, and the run moves on — never retried, rephrased, split or
   routed through another tool.
   The decisions list (the PR body's and the final brief's) names each one.
-- **One marker per gate, one bell per gate** (nen 0.28, the pin). Every stop marks with `--effort <branch>`, so seven
+- **One marker per gate, one bell per gate** (from nen 0.28). Every stop marks with `--effort <branch>`, so seven
   efforts at seven prompts leave seven markers under `<git common dir>/.nen/marks/`; `hooks/stop-bell.sh`
   rings each through `nen stop list` **whatever its age** (an orchestrator's turn spans hours, and the hook
   fires at its end) and clears each with `nen stop clear --gate <g> --effort <branch>`, and a cleared gate
@@ -2097,7 +2188,7 @@ not in the session:
 The body follows [PR-SECTIONS.md](PR-SECTIONS.md), resolving the catalogue's kind × family cell
 from the repository classification, issue jobs, consumer `pr.sections` and Mukai's run facts. It
 opens with the ledger-rendered Delivery preamble, then consumer effect and cost in **What this changes for you**; tables and diagrams carry
-the decision. Non-release rows carry the eleven-aspect improves ladder; release rows follow the
+the decision. Non-release rows carry the thirteen-aspect improves ladder; release rows follow the
 written matrix, per the clarification of 2026-10-20. The one `verify` id uses product **How to verify**,
 library **How a consumer verifies**, or process **What the guards prove**; the latter two are the
 `CON-17(b)` observable proxy, without a handbook amendment. There are at most seven reader sections;
@@ -2194,7 +2285,7 @@ is verified; a watchdog bounds it at about 50 s even where no `timeout` exists.
 
 | Hook | Event | What it does |
 |---|---|---|
-| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** once per unrung stop marker — every per-gate marker `nen stop list` names (nen 0.28, the pin; whatever its age), else the single `.nen/last-stop.json` within ten minutes (a binary below the pin) — and clears each it rang with `nen stop clear` (§ *The effort's ledgers*, the homes) |
+| [`stop-bell.sh`](../hooks/stop-bell.sh) | `Stop` | rings `notifications` rungs **2 and 3** once per unrung stop marker — every per-gate marker `nen stop list` names (from nen 0.28; whatever its age), else the single `.nen/last-stop.json` within ten minutes (a binary below the pin) — and clears each it rang with `nen stop clear` (§ *The effort's ledgers*, the homes). **Its switch, `HATSU_BELL_DEADLINE`**: whole seconds, 1 to 5, default 5 (any other value reads 5), the deadline each rung's tool gets; a rung that timed out is skipped for the rest of that run, and no rung starts past a 12-second budget from the hook's start, so the bell ends inside the hook's 15-second timeout (`hooks/hooks.json`) with time left for `nen stop clear`. The hook and `scripts/bell_notify.sh` stay shell, a BC-11 exemption ([HR-384](ROSTER.md#hr-384)) |
 | [`guard-base-branch.sh`](../hooks/guard-base-branch.sh) | `PreToolUse`, matcher `Bash` | exits `2` — blocking the tool call — on a raw `git` commit or push while the branch equals `branch.base`; the skills commit and push through `nen commit write` and `nen wc publish`, and the latter refuses the trunk itself at exit `2` |
 
 **Every surface has all three hooks once its hook file was placed.** `hooks/hooks.json` is Claude Code's
@@ -2237,7 +2328,7 @@ subcommand the option walk could not establish for any other reason; and a shell
 be read on a line that carries a write token. The policy it compares against comes from the checkout the branch
 came from — for a bare `--git-dir` aimed at a linked worktree, that worktree's own `nen/workflow.json`, not the
 primary checkout's. The script's own header carries the fifty-seven cases this was
-verified against, and [`ab/guard-base-branch.md`](ab/guard-base-branch.md) carries the transcripts.
+verified against (by 2026-09-10), and [`ab/guard-base-branch.md`](ab/guard-base-branch.md) carries the transcripts.
 
 **The stop marker** is `hatsu.stop-marker/v0.1`, written by `jutaisho` and read by the hook:
 
@@ -2277,7 +2368,7 @@ deliberate exception is the guard's two closed forms above.
 `--no-verify` does not reach either of them: a harness hook is not a git hook.
 
 **`hooks/hooks.json` is the plugin's default hook location and is discovered automatically — so
-`.claude-plugin/plugin.json` must NOT also carry a `hooks` key pointing at it.** Verified live against Claude
+`.claude-plugin/plugin.json` must NOT also carry a `hooks` key pointing at it.** Verified live, by 2026-10-22, against Claude
 Code `2.1.263`: a manifest key that resolves to the already-loaded default file is skipped as a duplicate,
 logged as an internal error, and marks that plugin's hook load *failed* — visible only under `--debug`, and
 **not caught by `claude plugin validate --strict`**, which passes either way. The manifest key exists for
@@ -2296,7 +2387,7 @@ named by that repository's `nen/workflow.json`.) **The name they
 spell it with is `$hatsu_root`, never `$CLAUDE_PLUGIN_ROOT` on its own**, because a skill body is mirrored
 verbatim onto Codex and Cursor ([`docs/SURFACES.md`](SURFACES.md)) and `$CLAUDE_PLUGIN_ROOT` is Claude
 Code's alone: **the harness exports it while a skill is running, and it is EMPTY in an ordinary tool-call
-shell and inside a subagent** — verified live — and on the two other surfaces it is usually unset or, exported
+shell and inside a subagent** — verified live, by 2026-09-10 — and on the two other surfaces it is usually unset or, exported
 from a shell profile, names a different plugin (`docs/surfaces/evidence/surfaces.md` § 8, F3). `$hatsu_root` is the
 resolution [`ten`](../claude/skills/ten/SKILL.md) § 0 runs on every surface,
 each candidate accepted only if it is a Hatsu checkout, the winner canonicalised to an absolute path and
@@ -2316,7 +2407,7 @@ prints is what every later block takes:
 | **`$HATSU_PLUGIN_ROOT`** | the environment the session was started with — the form that works on all three surfaces, and the one to prefer |
 | the path the run was handed | `$ten <path>` on Codex, `/ten <path>` on Cursor (`docs/SURFACES.md` § 1's invocation row), or whoever raised the run |
 | **`$CLAUDE_PLUGIN_ROOT`**, when set | Claude Code's own — the installed plugin directory, which changes on every update and is never a literal. Inside a Hatsu skill invocation on Claude Code it passes the identity check on the first comparison |
-| **none of the three** | the root is reported unresolved, never guessed — `NOT INSTALLED` in the warm-up, `--reviewers` by hand in `sharingan` § 4. The prelude reads three candidates and no fourth. On Claude Code alone, a caller can obtain the path it hands in (row 2) from the surface's own registry: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`** (verified live: the `--json` flag exists and `installPath` is the plugin root); neither other surface has one |
+| **none of the three** | the root is reported unresolved, never guessed — `NOT INSTALLED` in the warm-up, `--reviewers` by hand in `sharingan` § 4. The prelude reads three candidates and no fourth. On Claude Code alone, a caller can obtain the path it hands in (row 2) from the surface's own registry: `claude plugin list --json` → the entry whose `id` is `hatsu@hatsu`, field **`installPath`** (verified live, by 2026-09-29, `docs/surfaces/evidence/surfaces.md` § 10.1: the `--json` flag exists and `installPath` is the plugin root); neither other surface has one |
 
 **Never substitute a bare relative path.** `--gates` in particular resolves a relative path against
 `--repo`'s root since nen `v0.2.0`, never the cwd, so `contracts/reference.gates.json` looks for a file
@@ -2335,7 +2426,7 @@ report verbs (`spiritual-message`), `--no-push` and `conflicts[]` on `pr cascade
 in `commit format` (`kokusen`), `nen/workflow.json` validation and `notifications.turn` (`breath`,
 `jutaisho`), `stop --mark`, `surface mirror generate|check`, step `stdoutTo`, precondition `port` and
 `repo resolve`'s exit-`2` no-registry refusal — all of them are verbs in the pinned binary, each verified
-live and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5*.
+live, by 2026-09-10, and recorded in the matching `docs/ab/<skill>.md` under *Retired at nen 0.5*.
 
 **What is still residue, and why:**
 
@@ -2368,8 +2459,8 @@ procedure to write down. The rule that held while the other four had no file sti
 **a phase boundary is the governance, not the file** — name the phase and stop there whether or not
 something has been written for it.
 **`v0.133.0` adds `dowsing-chain`**: a product family's sibling repositories captured into one private, living `github/spec-kit` canon in the family's spec repository — the constitution merged first, one folder per capability in waves at **G2**, every statement cited to code at a sha or marked, one clarify sitting per run, the intake examiners' uncounted challenge; `dispatch` files only what its never-starred picker names (each filing through `file` § 4's confirmation), `wave` builds filed marker-free issues on the typed call, `recapture` appends a convergence diff; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/specs/<run-id>.json` ([`config/spec-repo.md`](config/spec-repo.md); HR-12, HR-16; the nen spec verbs, zheref/nen#493, need a nen past `0.26.0`).
-**`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule`, the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic #354).
-**`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic #354).
+**`v0.126.0` adds `hiraishin`**: one PR merged into its source's base ported to one sibling — the precondition read and its refusals, `kamui` §§ 2–4 (its setup, spec step and **G2** wait) where a spec repository is declared, a port brief with one row per concept, one batched `port-drift` call per run through `bankai-rule` (now `kido`, [HR-394](ROSTER.md#hr-394)), the port issue filed on the typed call (its G1) and built, an all-drop brief stopping at *nothing to port*; resumable from its own record in `ports.md`'s schema (zheref/hatsu#357, epic zheref/hatsu#354).
+**`v0.125.0` adds `kamui`**: one issue or shipped PR written once as a product family's `github/spec-kit` set (pinned `v1.2.2`, § 2 → `port`) in its spec repository at **G2**, nothing built before that merge, a never-starred sibling picker (row `port-siblings`) whose answer is the G1 for one port issue per pick, and a start picker running the picks as `build` one after another; resumable from `${XDG_STATE_HOME:-$HOME/.local/state}/hatsu/ports/<run-id>.json` ([`config/ports.md`](config/ports.md)) (zheref/hatsu#356, epic zheref/hatsu#354).
 **`v0.116.0` adds `emperor-time`**: the Specialist's product-intake ceremony with its own entry — `direct` on the idea, interview rounds to a decision-complete brief (Hisoka for a Design Direction), adversarial challenge rounds by a raised persona (ROSTER **OPEN-4**, asked once per run until ruled, never the frontier tier), `file` § 3's reconciliation, `nen idea file` on one confirmation, `build` offered and never started. **`v0.108.0` adds `kazaana` and `cleanup`** (ruling 2026-10-13): kazaana is `futon <repo>@model/<line> then getsuga` with
 parallel delegates on `direct`'s primary pick, a release proposal never the maintainer's to merge, and the
 publish offer; cleanup is Shizuku's sweep, required after a completed session, offered beside an optional
@@ -2468,7 +2559,7 @@ secret and ruleset steps are printed for the maintainer, never performed ([`docs
 
 ## Focused selection adoption and reviewer identities
 
-[Nen #207](https://github.com/zheref/nen/issues/207) tracks a reusable declared test-selection
+[zheref/nen#207](https://github.com/zheref/nen/issues/207) tracks a reusable declared test-selection
 mapping. Nen 0.8.0 has no selector passthrough. A static focused lane with real runner identifiers
 and separate artifacts is the current supported path; `<product-repo-A>`'s apple-device Python tests do not
 cover Swift behavior, and its whole-suite apple row cannot substitute for scoped execution.
@@ -2708,7 +2799,19 @@ does not establish isolation. Read-only observers may share a checkout; Hanten's
 their separate-checkout protocol, save one exception: on an **observed** refusal of the reviewer's
 `git worktree add` by the harness's isolation guard — never pre-empted — the reviewer reads the
 effort checkout read-only and discloses it ([`hanten`](../claude/skills/hanten/SKILL.md) § 4;
-§ *Writing a skill block*, row (a), #218; ROSTER § *Rulings of 2026-10-13*, the #218 (ii) row).
+§ *Writing a skill block*, row (a), zheref/hatsu#218; ROSTER § *Rulings of 2026-10-13*, the zheref/hatsu#218 (ii) row).
+
+**A harness-worktree session authors in its own worktree** ([HR-374](ROSTER.md#hr-374), zheref/hatsu#544,
+extending this ruling): when the session already runs in a worktree its harness created (Claude Code's
+`.claude/worktrees/<name>`) and the harness's isolation hook **observably** refuses a Write or Edit under
+`<core>/.nen/worktrees/<surface>/<name>` — never pre-empted, as [HR-193](ROSTER.md#hr-193) reads the
+reviewer's refusal — the effort is authored in that harness worktree, on the canon
+`{model}/{persona}/{descriptor}` branch cut there (`git switch -c <branch> origin/<branch.base>`; the
+harness's own `worktree-<name>` branch is never the effort's). **That harness worktree is the effort
+checkout**: ledgers, phase and session records, hanten's printed refs, the durable slice and cleanup read
+it as such, and the effort report quotes the refusal once. A `git worktree add` the hook admits (hanten
+§ 4's reviewer checkouts) is unaffected. [`build`](../claude/skills/build/SKILL.md) § 3 and
+[`ren`](../claude/skills/ren/SKILL.md) step 1 cite this paragraph.
 
 **The sole core-authoring waiver is the maintainer's explicit instruction in the ORIGINAL effort
 prompt to work in core.** Quote that instruction with the bound path in the effort report. A
@@ -2797,9 +2900,11 @@ checkout.** `.nen/` is already ignored — Hatsu's own `.gitignore`, and in a co
 `dirs/nen-state` row — so the directory needs no new ignore rule. The names in use: `hanten-<persona>`
 ([`hanten`](../claude/skills/hanten/SKILL.md) § 4's reviewer), `prove-<n>` (the stash-and-restore
 shape's proof, below), the effort's branch slug for a lead-session effort (rule 6 of
-[`claude/rules/hatsu.md`](../claude/rules/hatsu.md)), and kagutsuchi's fixed `.nen/worktrees/kagutsuchi`
-(§ 3b, `nen wc worktree --name kagutsuchi`) — the one purpose-named path with no surface segment, kept
-because the native verb's idempotence is built on the path being fixed.
+[`claude/rules/hatsu.md`](../claude/rules/hatsu.md)), kagutsuchi's fixed `.nen/worktrees/kagutsuchi`
+(§ 3b, `nen wc worktree --name kagutsuchi`) and senkaimon's `.nen/worktrees/senkaimon-<surface>` (§ 4,
+`nen wc worktree --name senkaimon-<surface>`) — the two purpose-named paths with no surface directory,
+kept because the native verb takes one segment and its idempotence is built on the path being fixed;
+senkaimon's carries the surface in its name, so two surfaces never share one review worktree.
 
 ### Per surface — the harness's own worktrees, and what Hatsu does
 
@@ -2896,8 +3001,16 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    check**. **A seat (exit `4`) is not red**: quote the declaration's reason and move on.
 2. **A consumer's canon mirror, where the delta touches `.claude/canon-values.yml`**
    (zheref/hatsu#111). Regenerate `.claude/rules/` with `nen/workflow.json` →
-   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`
-   (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
+   `iteration.canonMirror.command` — an argv array, Hatsu's own key, preserved by `nen schema check`,
+   in the portable form that names no machine-local path, so it runs unchanged on another machine
+   (zheref/nen#294, zheref/hatsu#578): `["nen", "canon", "mirror", "generate", "--repo", ".",
+   "--canon-values", ".claude/canon-values.yml", "--stack-dir", "handbooks/stacks", "--leaf", "rules",
+   "--scenario", "<scenario>", "--not-mirrored", "README.md,placeholders.md"]`, `<scenario>` written as
+   the literal value `nen repo scenario --repo . --target <slug>` reports, since the mirror verbs read the
+   canon-values file's `scenario:` and never the registry (a value that differs from the registry's is
+   `hatsu:limbo`'s to report, § 2 step 4), nen resolving and verifying the canon checkout at the
+   pin from the consumer's registry (`checkout_env`, then `checkout`) and refusing at exit `2` where none
+   resolves (the README or `iteration.$comment` only while zheref/nen#262 is open and the key is absent, which
    `tenkai` names as the routed gap) — run locally, never the weekly cron and never a `workflow_dispatch`
    that can carry the branch into a PR against trunk — and read
    `git status --porcelain .claude/rules` after it. **A non-zero exit from the command is red** (row
@@ -2939,6 +3052,53 @@ loop, never inherited from the warm-up, never skipped because the last run was g
    `must-move` means the work belongs on a branch first — [`breath`](../claude/skills/breath/SKILL.md)'s
    job. The commit phase commits on a branch or it does not commit.
 
+## The scratch lane — proving a handbook rule's commands (zheref/hatsu#558)
+
+A build whose change writes or changes a handbook or stack rule that **names commands** (a scaffold, an
+install, a test or run command, a toolchain floor) proves those commands by running them, never by
+reading the vendor's docs alone: a docs-only reading once passed a toolchain floor the host's own run
+refused, and missed commands the docs had silently changed (zheref/bankai-handbooks#23, the HA#534
+build). The lane is fixed so the run can be allowed ahead of time and read afterwards.
+
+1. **Where it runs: a scratch project away from every checkout.** A fresh directory from `mktemp -d`,
+   outside the effort worktree, core and every repository `nen/repos.json` names; the rule's own
+   scaffold command creates the project inside it, and every later command takes that project as its
+   working directory or target. Nothing in the effort checkout is a command's working directory, and
+   nothing the scratch run writes is committed. The directory is the run's own: the run removes it
+   (`rm -rf <the mktemp path>`, named in step 2's plan) on every exit, a mid-run refusal included, and its
+   report names the path and the removal.
+2. **The permission it needs, named before the run.** Hatsu's permission pack carries no row for the
+   scratch lane: `contracts/permissions.json` is scoped to the session's repository, its worktrees and
+   its associated repositories, and a package runner there executes code it downloads, so the lane
+   stays outside it and keeps prompting until the maintainer allows it. The build's plan therefore
+   lists, before the first scratch command, each command (the directory's removal included) and the
+   narrowest Claude Code rule that allows it, as `Bash(<exe> <args>)`, pinned where the rule pins a version — the HA#534 build's two
+   were a package-runner scaffold and its install, `Bash(npx create-expo-app@<version> *)` and
+   `Bash(npm install *)`. The maintainer allows them once, ahead of the run, in the
+   `.claude/settings.local.json` of their core checkout; a permission setting is the maintainer's
+   alone, so the build only names the rule. It is the same `Bash(<exe> <args>)` rule shape the pack
+   renders for zheref/hatsu#154 and zheref/hatsu#156 (`en`'s merge, `mugetsu`'s publication), but not a
+   pack row: the lane is outside the pack's scope (`contracts/permissions.json` → `$comment`), so the
+   build names a per-plan rule. The rule has no root scoping (a Claude Code allow rule has no root
+   syntax), so the permission does not enforce *away from every checkout*; step 1's `mktemp -d` does. A
+   command the permission layer refuses mid-run is not retried or routed around: its row reads not
+   run, the refusal its reason.
+3. **The verify row says what ran.** The PR's verify section carries one row per command the rule
+   names: **ran**, with its exit code, or **not run**, with the reason. A rule criterion is covered only
+   by commands that ran green; one whose commands did not all run reads `partial` or `missing` in its
+   Criterion / Coverage / Evidence row ([`PR-SECTIONS.md`](PR-SECTIONS.md) § *Write for the decision*,
+   the verify kinds), never `satisfied`.
+4. **The host it ran on.** Where a host fact can fail the rule's stated baseline (an operating system,
+   a toolchain such as Xcode, Node or a JDK), the row names the version the command executed on, read
+   from the tool itself (`sw_vers -productVersion`, `xcodebuild -version`, `node --version`), beside
+   the minimum the docs state; the docs' minimum alone is not evidence.
+5. **Account-bound commands are recorded, never covered.** A command that needs an account, a store,
+   a signing identity or a paid service cannot run on a scratch project: its row reads not run,
+   reason `account-bound`, and the criterion it would prove is never marked covered on it.
+
+The lane is prose and a plan: no Nen verb runs it (out of zheref/hatsu#558's scope; a verb, if wanted,
+is its own Nen issue), and no host fix (a CocoaPods or platform install) is the build's to make.
+
 ## Writing a skill block — one plain command or a shipped script (ruling of 2026-10-13)
 
 **Stated here once** (zheref/hatsu#218 (iii), the maintainer's ruling of 2026-10-13 — ROSTER § *Rulings
@@ -2965,14 +3125,14 @@ is determinism drift.
 
 **A write gated by a check stays chained to it with `&&`**: `branch_authorship_check.sh … && nen wc
 squash|publish` in `aka` §§ 4, 7 (zheref/hatsu#170; the publish half held by `scripts/publish_gate_check.sh`,
-#188, the squash half by the prose) and `private_name_check.sh … && nen issue comment` (`mugetsu` § 7,
+zheref/hatsu#188, the squash half by the prose) and `private_name_check.sh … && nen issue comment` (`mugetsu` § 7,
 `sharingan` § 7; `file` § 4 runs the guard before the plan as separate calls and lets nen's own refusal
 at write time gate the comment). Split,
-the gate would rest on an agent reading an exit, the failure #188 was filed after. Never pipe
+the gate would rest on an agent reading an exit, the failure zheref/hatsu#188 was filed after. Never pipe
 `branch_authorship_check.sh`: a pipeline can return a downstream command's success after the guard
 fails. Its own exit is the gate. Whether the guard
 accepts a bare `a && b` is not on record (shape 8's refused chains also carried `cd` and `;`); where
-it refuses one, the write is a named stop. **#188's own required chain is not bare**: `murasaki` § 6's
+it refuses one, the write is a named stop. **zheref/hatsu#188's own required chain is not bare**: `murasaki` § 6's
 gated push carried `$(mktemp -d)` and `$(git rev-parse …)`, shapes on record as refused. **Ruled
 2026-10-13** (ROSTER § *Rulings of 2026-10-13*, zheref/hatsu#218 (i)): the chain ships as
 `scripts/publish_gate.sh`, every link in its stated order, the skill block one plain call; lane
@@ -3038,7 +3198,7 @@ and why is the skill's to write, never nen's. **Always pass `--repo`**: the verb
 the working directory is a courtesy of where the command ran, not a contract. **The body is the literal
 `--body` value**, a multi-paragraph body one quoted argument with blank lines inside it, **never
 `--body "$(cat <file>)"`** (shape (2) of [PROCESS.md](PROCESS.md) § *Residue and owned dependencies*,
-#218); nen takes no body file yet.
+zheref/hatsu#218); nen takes no body file yet.
 
 **Attribution** follows § `commits` above: pass exactly the truthful canonical trailer —
 `Hatsu-Agent=<responsible-persona>` for Hatsu work, `Akatsuki-Agent=<responsible-persona>` only for
@@ -3103,6 +3263,14 @@ delegate owns is one it cannot see. Three hand-backs were lost that way in the 2
 (epic zheref/hatsu#454): a delegate left on a `gh pr checks --watch` or a `sleep` loop, the orchestrator
 reading the pull request itself hours later. The brief also carries § *Host workload budget*'s host
 block, word for word.
+
+**A brief carries the publication authority it hands over** (HR-20, zheref/hatsu#529): the five-fact
+record of [`aka`](../claude/skills/aka/SKILL.md) § 0 — the typed invocation quoted, any maintainer
+answer the push also stands on (a prerequisite's publication) quoted, the target repository, the
+delegate's own working branch and the scope line — and every later handoff (a maintenance delegate, `mukai`, `en`,
+`murasaki`) carries the same record, never one narrowed to a commit. A delegate that meets a blocker
+captures it through [DISCOVERY.md](DISCOVERY.md) § *A blocker found while executing* before it hands
+back held, never as wrap-up friction (zheref/hatsu#508).
 
 <!-- delegate-wait:begin -->
 - Never wait on `gh pr checks --watch`, an open `sleep` or poll loop, or a background job left running.
@@ -3208,7 +3376,10 @@ listing, and ⭐ wait for recovery or end the run. A retry needs both of these:
 - **Confirmed quiescence.** Every heavy call records its process group at launch: the shell call that
   runs the verb records `ps -o pgid= -p $$` before it. `$$` alone is the shell's process id, which is
   its group only where the shell leads one; a nested `sh -c` has its own `$$` and its parent's group,
-  so a group that differs from `$$`, or cannot be read, is no recorded id. With job control off the
+  so a group that differs from `$$`, or cannot be read, is no recorded id. **A read that fails before
+  the launch stops the launch**: the heavy verb never runs without its id, and a later successful read
+  is no evidence for a workload that already ran without one ([DISCOVERY.md](DISCOVERY.md) § *A blocker
+  found while executing*, zheref/hatsu#508). With job control off the
   shell's descendants carry the recorded id as their process group, orphans reparented to `1`
   included. A later call lists them with `ps -A -o pid,ppid,pgid,command`, keeping the rows whose
   `PGID` column is the recorded id; the same form runs on macOS (BSD `ps`) and Linux. Quiescence is
@@ -3240,7 +3411,7 @@ lanes (rule 3).
 - Heavy work is a test, build, coverage, UI/E2E, archive or dev/run launch, and a push that starts CI on this host; anything not named light (a read, other git, a `--dry-run`, a lint of the changed files, a prose check) is heavy.
 - Run heavy work only while this brief's `Heavy turn:` line grants it, one heavy workload at a time on this host, each runner at the worker count that line names.
 - A lane whose declaration cannot bound its workers runs only inside the turn, the gap named against zheref/nen#537, never with an improvised flag.
-- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`) beside its `$$`, and name both in your hand-back; a group that differs from `$$` is no recorded id.
+- Before each heavy launch, record your shell's process group (`ps -o pgid= -p $$`) beside its `$$`, and name both in your hand-back; a group that differs from `$$` is no recorded id, and a read that fails or prints nothing is none either: that launch does not run.
 - Without the turn, run light checks only, commit, publish only where the push starts no CI on this host, and hand back each heavy lane named as pending, never as green.
 - The turn ends at your hand-back; name in it every heavy lane you ran and every one you did not.
 - On an unresponsive host, a repeated subprocess timeout, a cancelled run or uncertain descendants: launch nothing heavy, retry nothing, hand back with what you saw.
@@ -3351,7 +3522,7 @@ which case it was**.
 files — the top of `CHANGELOG.md`, the plugin manifests' `version`, the generated mirrors, one shared
 skill — merge one at a time and break every sibling's base as they land: the second needs a catch-up
 merge, the third a conflict pass, and the human gate turns into a conflict-resolver loop
-(zheref/hatsu#219, <product-repo-C>#242's three PRs). **Overlap is sequenced, not raced**, and the sequence is a
+(zheref/hatsu#219, RC-IS-#242's three PRs on `<product-repo-C>`). **Overlap is sequenced, not raced**, and the sequence is a
 **stack**: one PR per issue, each branch cut from the previous effort's tip, each PR based on the
 previous effort's branch, merged **bottom-up** by the maintainer.
 
@@ -3373,11 +3544,12 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    tip, never from the trunk.
 3. **One mechanical commit per PR at stack time.** The bump (monotonic along the stack: patch for
    wording, minor for behaviour — CONTRIBUTING § *A change to a shipped surface needs a version bump*),
-   the `changelog.d/` fragment (CONTRIBUTING § *Changelog fragments*) and the stamp-only mirror churn
-   land on each branch after its content; a mirrored skill's own body change regenerates in the same
-   commit as its source (README). A catch-up over the previous PR's mechanical commit conflicts on the
-   manifests and the stamps — Hatsu declares no `mechanical` block — and is resolved by keeping the
-   branch's own manifests and regenerating the mirrors at its stamp, said.
+   the `changelog.d/` fragment (CONTRIBUTING § *Changelog fragments*) and the one generated surface
+   manifest the bump rewrites land on each branch after its content; a mirrored skill's own body change
+   regenerates in the same commit as its source (README). A catch-up over the previous PR's mechanical
+   commit conflicts on the manifests only — Hatsu declares no `mechanical` block — and is resolved by
+   keeping the branch's own and regenerating, said. Since HA#530 no marker carries the version, so the
+   252-file same-line conflict that rule was written around is gone.
 4. **The PRs.** Each PR's base is the previous effort's branch; only the bottom PR targets
    `branch.base`. Every PR is reviewed on its own (hanten per effort, its own budgets), carries its own
    `Closes #<N>` and Development link, and reads its guards against its stacked base. **A stacked PR is
@@ -3390,8 +3562,10 @@ previous effort's branch, merged **bottom-up** by the maintainer.
    lower PR's commits into the next diff). After each merge the run — or `hatsu:en <next>` — **retargets
    the next PR to `branch.base` first** (`nen pr retarget --base <branch.base>`, en § 5 check 1) **and only
    then deletes the merged head branch**: deleting it first closes the dependent PR (observed on HA-PR-#250
-   and #253, 2026-10-13: each timeline shows `base_ref_deleted` then `closed` within a second, against GitHub's
-   *Deleting and restoring branches in a pull request* page, which promises a retarget). A dependent PR above a
+   and HA-PR-#253, 2026-10-13: each timeline shows `base_ref_deleted` then `closed` within a second, against GitHub's
+   *Deleting and restoring branches in a pull request* page, which promises a retarget). A PR already closed that
+   way is recovered by en § 6's base-deletion row — a successor PR with its own slice — never by the
+   *closed unmerged* row (zheref/hatsu#495). A dependent PR above a
    change to a frozen workflow step reads red on CON-32(a) until that change is on `main`: the
    guard workflows run the TRUSTED validator at `main`'s head, not the PR's base; the push after the
    retarget runs it again at the new head (a close-and-reopen is the fallback where no push follows;

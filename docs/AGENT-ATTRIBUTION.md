@@ -35,9 +35,15 @@ published v0.142.0 commit `16ff11b07b69305cf6a420972ca3d3926b44be67`, SHA-256
 forbidden-trailer range verb; the released script already checks body lines, case-insensitive keys
 and every range commit, so this adoption reuses its reviewed implementation. The template verifies
 the digest before executing it. The trusted publisher creates a check on the event's exact PR head,
-then completes that returned check ID. It verifies the response's head SHA, `github-actions` producer,
-workflow-ref/run/attempt external identity, details URL and persisted conclusion; it never finds or
-trusts a check by name alone. API failure or identity mismatch cannot produce a successful job.
+then completes that returned check ID. It verifies the response's check ID, name, head SHA, `github-actions`
+producer, workflow-ref/run/attempt external identity and persisted conclusion; it never finds or
+trusts a check by name alone. The details URL is compared too: the requested run URL or the `/runs/<check id>` page GitHub
+substitutes on a `github-actions` check (zheref/hatsu#562) is accepted, and any other URL is refused. API failure or identity
+mismatch cannot produce a successful job. Whenever GitHub returned a usable check ID, a refusal or failure
+after creation still completes that check with `failure`, its summary linking the workflow run and, on a
+policy finding, its text listing the offending short SHAs (never commit text). A POST whose response is lost
+or carries no usable ID leaves nothing to address: the job fails, and that check stays in progress until a
+re-run supersedes it, because the publisher never looks a check up.
 
 Explicit publication follows GitHub's [check-run API](https://docs.github.com/en/rest/checks/runs#create-a-check-run),
 which identifies the target commit through `head_sha`. GitHub's [required-check troubleshooting](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks)
@@ -154,7 +160,7 @@ prints, without touching the working tree (aka § Residue).
   edits the message after `prepare-commit-msg` all skip layer (b). Each is `--no-verify` by another
   name, and each is refused.
 
-**No sanctioned strip step exists at the pin** (nen 0.28.0). The hook `nen scaffold init` writes
+**No sanctioned strip step exists at the pin** (nen 0.28.0; the v0.29.0 and v0.30.0 notes add none). The hook `nen scaffold init` writes
 refuses a listed key on every commit, and no nen verb removes a key a hook added. Whether nen should
 offer one, and on what terms, is zheref/nen#594, a design question for the maintainer. Until it is
 ruled and released, a cloud agent cannot commit in such a repository. The maintainer's ways forward

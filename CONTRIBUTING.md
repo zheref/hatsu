@@ -33,12 +33,13 @@ surface is `.claude-plugin/**`, `.codex-plugin/**`, `claude/**`, `nen/**`, `cont
 `docs/DISCOVERY.md`, `docs/LAUNCH-MIGRATION.md`, `docs/AGENT-ATTRIBUTION.md`, `docs/STANDALONE-ENTRY.md`,
 `docs/GATE-CONFIGURATION.md`, `docs/PROCESS.md`, `docs/SURFACES.md`, `docs/using/README.md`, `docs/using/mirrors.md`,
 `docs/PUBLIC-REDACTION.md`) and every
-runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/nen_global.sh`,
+runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scripts/surface_marker.sh`, `scripts/nen_global.sh`,
 `scripts/branch_authorship_check.sh`, `scripts/hatsu_plugin_update.sh`,
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
 `scripts/send_freshness_check.sh`, `scripts/cleanup_path_admit.sh`,
 `scripts/cleanup_path_admit.ts`, `scripts/hatsu_surface_link.sh`,
-`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/canon_contracts_check.sh`,
+`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/prose_headroom_warn.ts`,
+`scripts/canon_contracts_check.sh`,
 `scripts/publish_gate.sh`, `scripts/private_name_check.sh`,
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
 `scripts/report_time.sh`, `scripts/pr_body_evidence_check.sh`, `scripts/pr_development_link_check.sh`,
@@ -79,7 +80,7 @@ body is honoured only where no path in `PLUGIN_SURFACE_GLOBS` changed — where 
 anyway — and, when the version is not bumped, over a shipped path it is refused by name, the refusal
 listing the shipped paths the diff changes, because an installed copy reads every one of them and even
 wording there is a patch bump. Beside a bump the line is inert, and the pass line says it was ignored.
-**A bump beside mirrors still stamped with the old version fails by name** (zheref/hatsu#99): the guard reads the stamp off each `surfaces/<s>` marker and, when it lags the bumped manifest, prints the old and new stamps and the regeneration command, so the required check names the cause — the bump, fixed by a regeneration — where `surface-mirror-check` reports only the drift; the local catch before a PR opens is mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
+**A bump is also read against `.codex-plugin/plugin.json`**: Codex keys its own plugin-cache slot on that overlay's name and version, so one lagging or misnamed behind the bump fails by name. The guard no longer reads the mirrors' markers — a bump restamps none of them since HA#530, which retired both the stamp and the scan that explained its churn (zheref/hatsu#99) — so a mirror's correctness is `surface-mirror-check`'s byte comparison, caught locally before a PR opens by mukai's `scripts/surface_mirror_check.sh`. Recorded refuse/pass transcripts, including the retired scan's: [`docs/ab/plugin-bump-guard.md`](docs/ab/plugin-bump-guard.md).
 
 **The check is required on `main`** by the repository ruleset *main: plugin-bump guard required*
 (`enforcement: active`), so a failing `plugin-bump-check` blocks the merge. It runs through

@@ -78,21 +78,22 @@ row, never the rule.
 
 ```bash
 bash scripts/surface_mirror_regenerate.sh --dry-run   # the three generate lines, nothing written
-bash scripts/surface_mirror_regenerate.sh             # codex, cursor, antigravity at the manifest's stamp
+bash scripts/surface_mirror_regenerate.sh             # codex, cursor, antigravity
 ```
 
-One plain call (#218): the check's own flags per surface, a refusal exiting with nen's code and
+One plain call (HA#218): the check's own flags per surface, a refusal exiting with nen's code and
 generating nothing after it. `--models` renders the model map (Cursor's `inherit`, Codex's `[agents]` fragment), `--permissions`
-the permission pack, `--hooks` the hook rows, `--rules` the rules file (under the surface's limit), and `--stamp` the plugin version into the marker, so
-the installed-copy check can tell a stale copy from a drifted one. Then, in this order:
+the permission pack, `--hooks` the hook rows, `--rules` the rules file (under the surface's limit), and
+`--manifest` one surface's own plugin manifest. **No marker carries the plugin version** (HA#530).
+Then, in this order:
 
 1. `bash scripts/surface_mirror_check.sh`: one `nen surface mirror check` per surface; exit `1` names
    the class (`missing`, `extra`, `stale`, `hand-edited`), exit `2` means the nen on PATH is not the
    pin: [`ten`](../ten/SKILL.md) installs it (row `missing-tool`) and the check re-runs.
 2. For a consumer the request named whose copy is a WHOLE mirror (Antigravity's global plugin, a
    symlink into `surfaces/<s>`): `nen surface mirror check --surface <s> <the wrapper's flags> --installed
-   <that copy>`, a stale copy reported per path with its stamp. A placed skills-only copy and a
-   first-party install (Claude Code's link, the Codex plugin) are not whole mirrors (#106): `ten` and
+   <that copy>`, a differing copy named per path. A placed skills-only copy and a
+   first-party install (Claude Code's link, Codex's plugin) are not whole mirrors (HA#106): `ten` and
    [`bakuryuha`](../bakuryuha/SKILL.md) refresh them, never this skill.
 
 The regeneration lands in the **same commit** as the change that caused it.
@@ -102,7 +103,8 @@ The regeneration lands in the **same commit** as the change that caused it.
 Run `claude plugin validate . --strict` and `sh scripts/prose_size_check.sh`. Bump
 `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` to the same version strictly above the
 fresh base; a collision owes [`hatsu:ao`](../ao/SKILL.md) § 5's re-bump and same-effort fragment update.
-`scripts/plugin_bump_check.sh` refuses equal, lower or lagging versions. Run
+`scripts/plugin_bump_check.sh` refuses equal, lower or lagging versions. **Then regenerate again**
+(§ 4): a bump lands in a generated manifest. Run
 `agy plugin validate surfaces/antigravity` where `agy` is on PATH. Return a red check to the authoring
 subsession with its failing line (row `red-lint`, never a G5).
 
@@ -153,8 +155,8 @@ rule is waived is evidence to file, not a waiver.
 
 1. **The schedule** is [`schedule.md`](../../../docs/config/schedule.md)'s `drift-pass`, a Desktop task
    only the maintainer registers (HR-354); its dry step is the prompt's, no flag (unfiled).
-2. **The delta table is assembled by hand from `--json` output** until `nen surface mirror generate`
-   emits it as one document. Named here so the by-hand step is visible, never silent.
+2. **The delta table is assembled from `--json` output**; one per-surface document is
+   zheref/nen#646. Named so the step is visible, never silent.
 3. **`nen parse` carries no alternation**, so the two shapes are two parses (§ 1). One grammar for
    both is a nen request, not a Hatsu workaround.
 

@@ -33,7 +33,7 @@ place the permission pack in the bound target. `ten` § 4b first applies the tar
 Hatsu source; protected core/shared sources skip refresh, with the reason reported. Ordinary warm-up
 uses neither `--claude` nor `--codex`, which can redirect the updater to a shared source. On an explicit
 `hatsu:bakuryuha` call, `--claude` fast-forwards the linked checkout, names a shadowing `hatsu@hatsu`,
-and uses the #118 marketplace/cache path where applicable. An update reaches the running session only
+and uses the zheref/hatsu#118 marketplace/cache path where applicable. An update reaches the running session only
 through `/reload-plugins`, which the human types, or a new
 session; until then `hatsu:bakuryuha` § 6 follows the new skill bodies from the checkout, and hooks and
 personas stay the loaded version's (§ 9).

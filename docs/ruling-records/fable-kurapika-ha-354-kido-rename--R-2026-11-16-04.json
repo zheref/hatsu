@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-16-04",
+  "effortId": "fable/kurapika/ha-354-kido-rename",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HR-394 replaces HR-121's whole answer (the skill's name). Is that a MAJOR governance bump as the rule is written, or a MINOR by a new recorded reading?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "MAJOR: 2.0.0, as written ⭐",
+      "consequence": "HR-121 reads 'superseded by HR-394'; governance 2.0.0, the first whole-row replacement since ratification. No new rule."
+    },
+    {
+      "key": "B",
+      "label": "MINOR: record a reading",
+      "consequence": "New row HR-395: replacing a name-only row's value is a MINOR. Governance 1.85.0."
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-11-16T22:16:01.608Z"
+}

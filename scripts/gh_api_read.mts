@@ -3,7 +3,10 @@
 // gh option, request body, or GraphQL source.
 import { spawnSync } from 'node:child_process';
 
-const usage = 'usage: node scripts/gh_api_read.mts <private-repos|branch-rules|required-checks|issue-pr|workflow-content|actions-timing|actions-caches|actions-artifacts|tag-ref|issue-edits> [arguments]';
+const usage = 'usage: node scripts/gh_api_read.mts <private-repos|branch-rules|required-checks|issue-pr|pr-head|workflow-content|actions-timing|actions-caches|actions-artifacts|tag-ref|issue-edits> [arguments]';
+
+// A deleted fork reads headRepo null, which is never the base repository: callers treat it as a fork.
+export const PR_HEAD_PROJECTION = '{number,state,draft,title,head:.head.sha,headRef:.head.ref,headRepo:.head.repo.full_name,baseRef:.base.ref,baseRepo:.base.repo.full_name}';
 
 function fail(reason: string): never {
   throw new Error(`${reason}\n${usage}`);
@@ -57,6 +60,12 @@ export function readCommand(args: string[]): string[] {
       exact(values, 2);
       const [owner, repo] = slug(values[0]);
       return ['api', '--method', 'GET', `repos/${owner}/${repo}/issues/${positive(values[1])}`, '--jq', '.pull_request'];
+    }
+    case 'pr-head': {
+      // senkaimon § 3 (HA#577): the head a queue item is tested at, and whether it is a fork's.
+      exact(values, 2);
+      const [owner, repo] = slug(values[0]);
+      return ['api', '--method', 'GET', `repos/${owner}/${repo}/pulls/${positive(values[1])}`, '--jq', PR_HEAD_PROJECTION];
     }
     case 'workflow-content': {
       exact(values, 2);

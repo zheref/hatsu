@@ -124,7 +124,7 @@ The run ends once every row is `ready+prompted`, `merged`, `held`, `blocked` or 
 Each PR's `nen pr ready` verdict is quoted verbatim; the stack plan is one line per stack, bottom-up. For
 every `held (open questions)` row the report **offers the surface's picker flow** over that issue's open
 rows (HR-335), started only on the answer. `nen usage record --effort <run id> --surface <s> --dial
-<level>` at this report; each clone's `build` keeps its own ledgers. Then **once, the wrap-up picker**,
+<level>` at this report; each clone's `build` keeps its own ledgers. Then, a blocker captured first (DISCOVERY § *A blocker found while executing*), **once, the wrap-up picker**,
 only when [`cleanup`](../cleanup/SKILL.md) § 2's prerequisites hold (row `wrap-up`). **Kage-bunshin never
 resumes itself**: re-invoke it with the rows still open; a clone's `build` resumes as build § 8 says.
 

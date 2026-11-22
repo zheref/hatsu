@@ -1142,3 +1142,23 @@ are canon assertions in that fixture plus the section's own rules; no live batch
 (reviewers drove real nen 0.28.0 on scratch repositories during hanten: a start for an unknown id writes a
 manifest, which is why resume refuses first). nen 0.28's `nen run append` does not refuse a `delivery` kind on an
 idle manifest (owed to nen, zheref/nen#544).
+
+## Dated verification, 2026-11-04 — the seven-effort capacity case under HR-372 (zheref/hatsu#522 SC-1)
+
+**Method.** A desk walk-through of WORKFLOW § 2 `monitor` (`localSlotFrees`) as amended by
+[HR-372](../ROSTER.md#hr-372), over the case zheref/hatsu#522 records (Nen GPT batch
+`bbac118b2b28bee35a7ae9914efef0ea`): nine deliveries, two merged by the maintainer, seven open. No
+batch was run and no count was altered.
+
+| Delivery state | Count | Reading | Slot |
+|---|---|---|---|
+| merged by the maintainer | 2 | done (futon § 5) | none held |
+| verified current-head sixth-stop handoff, native prompt shown at that head, verdict not-ready (`rounds-owed` only, (a)–(e) holding) | 4 | HR-372's release: bound to each judged head | **freed**, named in futon's report with PR, head and quoted verdict |
+| actual CI repair hold (a failing required check) | 3 | a failing check keeps its slot | **held** |
+
+**Result — exactly one.** `nen loop slots --from-run` at 0.28 still reads 7 occupied (it takes
+`ready` from `nen pr ready` alone); futon's report releases the four handoffs, so **3 of 7 local slots
+are held and 4 are free**. Any of the four whose head moves, or that gains another failing row,
+re-holds its slot at the next read. **SC-2:** no verdict is called Ready (all four stay not-ready and
+`held-gate`), no delivery is merged by the run, and the cap of 7 and the one-heavy-workload rule are
+unchanged — 0, 0 and 0.

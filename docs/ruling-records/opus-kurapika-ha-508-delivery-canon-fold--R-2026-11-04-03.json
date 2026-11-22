@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-04-03",
+  "effortId": "opus-kurapika-ha-508-delivery-canon-fold",
+  "n": 3,
+  "gate": "G5",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#544: a session in a harness worktree is refused writes under .nen/worktrees/. Where does it author?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Harness worktree ⭐ (Recommended)",
+      "consequence": "Author in the harness worktree on the canon branch name; that path is the effort checkout for ledgers and cleanup. Matches the #533/#535 precedent and this run's delegates. HR row extending the 2026-09-30 worktree ruling."
+    },
+    {
+      "key": "B",
+      "label": "G5 each time",
+      "consequence": "No fallback: the refusal stops the build and is handed to you."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-04T02:53:03.963Z"
+}

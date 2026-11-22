@@ -44,6 +44,8 @@ export interface Catalogue {
   readonly sections: readonly SectionRow[];
   readonly footer: readonly SectionRow[];
   readonly families: Readonly<Record<string, readonly string[]>>;
+  /** The taxonomy jobs marked `companion: true` (`$companion`): a phase of the effort, never its family. */
+  readonly companions: readonly string[];
   readonly precedence: readonly string[];
   readonly variants: Readonly<Record<string, readonly string[]>>;
 }
@@ -219,8 +221,10 @@ export function catalogue(root = ROOT): Catalogue {
   const known = jobAxis.keys.map((value): string => {
     const row = object(value, "taxonomy job must be an object");
     if (typeof row.key !== "string" || row.key.length === 0) throw new Error("taxonomy job key must be nonempty");
+    if (row.companion !== undefined && typeof row.companion !== "boolean") throw new Error(`taxonomy job ${row.key}: companion must be a boolean`);
     return row.key;
   });
+  const companions = (jobAxis.keys as unknown[]).map((value): JsonObject => value as JsonObject).filter((row): boolean => row.companion === true).map((row): string => row.key as string);
   if (jobs.length !== 39 || new Set(jobs).size !== jobs.length || !sameSet(jobs, known)) {
     const missing = known.filter((job): boolean => !jobs.includes(job)).sort();
     const unknown = jobs.filter((job): boolean => !known.includes(job)).sort();
@@ -242,7 +246,7 @@ export function catalogue(root = ROOT): Catalogue {
   if (preamble.length !== 1 || preamble[0]?.id !== "delivery") throw new Error("delivery must be the sole preamble block");
   if (footer.length === 0 || footer.at(-1)?.id !== "attribution") throw new Error("attribution must be the final footer");
   const documentSha256 = checkStamp(raw);
-  return { contract: "hatsu.pr-sections/v1", documentSha256, max: raw.max, proseBudget: raw.proseBudget, preamble, sections, footer, families, precedence, variants };
+  return { contract: "hatsu.pr-sections/v1", documentSha256, max: raw.max, proseBudget: raw.proseBudget, preamble, sections, footer, families, companions, precedence, variants };
 }
 
 export function defaults(cat: Catalogue): { max: number; variants: Catalogue["variants"]; $canon: { contract: string; sha256: string } } {
@@ -251,10 +255,17 @@ export function defaults(cat: Catalogue): { max: number; variants: Catalogue["va
 export function options(cat: Catalogue): Record<string, string> {
   return Object.fromEntries([...cat.preamble, ...cat.sections, ...cat.footer].map((row): [string, string] => [row.id, row.$comment]));
 }
+/**
+ * Most distinct jobs wins; a tie goes to the family first in `precedence`. A companion job (the
+ * taxonomy's `$companion`) is dropped whenever any other job is present, as hatsu:direct drops it, so
+ * a delivery-ops label never pulls a build or fix PR into `release`; a companion-only list folds as is.
+ */
 export function fold(cat: Catalogue, jobs: readonly string[]): string {
   if (jobs.length === 0) return "build";
+  const primary = jobs.filter((job): boolean => !cat.companions.includes(job));
+  const counted = primary.length > 0 ? primary : jobs;
   const counts = Object.fromEntries(cat.precedence.map((family): [string, number] => [family, 0]));
-  for (const job of new Set(jobs)) {
+  for (const job of new Set(counted)) {
     const matches = Object.entries(cat.families).filter(([, entries]): boolean => entries.includes(job)).map(([family]): string => family);
     if (matches.length !== 1) throw new Error(`job ${JSON.stringify(job)} has no unique declared family`);
     const family = matches[0] as string;

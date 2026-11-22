@@ -350,7 +350,7 @@ which still expects the old shape — and is refused no matter how the new shape
 agree with each other. Land the validator first, accepting the old shape and the new one; only once
 `main` trusts that validator can a follow-up PR flip the live workflow.
 
-**The trusted revision is `main`'s head, not the pull request's base** (observed on the 2026-10-13 stack; the rule is WORKFLOW § *Stacked pull requests* rule 5, cited here): a stacked PR above a frozen-step change reads red until that change merges; the next push after its retarget runs the validator at the new head, a close-and-reopen is the fallback where no push follows, and `gh run rerun` reuses the stale trusted revision. **Drift step (2026-10-17, #289 item 2):** `DRIFT_FROZEN_GUARD` holds the *Surface-mirror drift check* body and the live step is held to it — one landing, since the workflow itself did not change. **Digest step's `--version` echo (#289 item 3, a two-step landing):** step one admits the step's next form — the closing echo made fatal — beside the current one (the constants `NEN_DIGEST_FATAL` and `REGENERATE_NEN_DIGEST_FATAL` carried the next form and were retired at step two; `require_frozen_step` keeps its list branch, tested, for the next landing); step two (HA-PR-#303) flipped the three workflows' echo lines and narrowed the admission back to one form: the frozen digest body ends with the fatal echo and the old echo is refused as a shape change. Step one's self-test built its refused third form from whichever digest form the tree lacked, so a tree already carrying the fatal echo had the old form accepted and `main`'s copy refused HA-PR-#303 by its own self-test; the third form is now built from the fatal form, whichever the tree carries (HA-PR-#304, 0.112.1). The validator also refuses an empty workflow file with a policy line and refuses the PR-root script spellings its self-test names, the original pattern kept whole.
+**The trusted revision is `main`'s head, not the pull request's base** (observed on the 2026-10-13 stack; the rule is WORKFLOW § *Stacked pull requests* rule 5, cited here): a stacked PR above a frozen-step change reads red until that change merges; the next push after its retarget runs the validator at the new head, a close-and-reopen is the fallback where no push follows, and `gh run rerun` reuses the stale trusted revision. **Drift step (2026-10-17, zheref/hatsu#289 item 2):** `DRIFT_FROZEN_GUARD` holds the *Surface-mirror drift check* body and the live step is held to it — one landing, since the workflow itself did not change. **Digest step's `--version` echo (zheref/hatsu#289 item 3, a two-step landing):** step one admits the step's next form — the closing echo made fatal — beside the current one (the constants `NEN_DIGEST_FATAL` and `REGENERATE_NEN_DIGEST_FATAL` carried the next form and were retired at step two; `require_frozen_step` keeps its list branch, tested, for the next landing); step two (HA-PR-#303) flipped the three workflows' echo lines and narrowed the admission back to one form: the frozen digest body ends with the fatal echo and the old echo is refused as a shape change. Step one's self-test built its refused third form from whichever digest form the tree lacked, so a tree already carrying the fatal echo had the old form accepted and `main`'s copy refused HA-PR-#303 by its own self-test; the third form is now built from the fatal form, whichever the tree carries (HA-PR-#304, 0.112.1). The validator also refuses an empty workflow file with a policy line and refuses the PR-root script spellings its self-test names, the original pattern kept whole.
 
 **Step two landed (zheref/hatsu#93 follow-up, Hatsu 0.44.0).** `plugin-bump-check.yml`,
 `surface-mirror-check.yml` and `pr-readiness.yml` now carry the hardened shape: `ready_for_review`
@@ -395,14 +395,14 @@ outgrows the pipe buffer — it fails closed, Publish posting `readiness undeter
 `${explain%%$'\n'*}`; and splitting the verdict (read-only token) from Publish (the only step that
 needs `checks: write`) into two jobs changes `EXPECTED_JOBS` (hanten on step two, Phinks and Feitan).
 
-**2026-10-19, #131 policy stage.** `READINESS_FROZEN_VERDICT` also admits one next frozen form:
+**2026-10-19, zheref/hatsu#131 policy stage.** `READINESS_FROZEN_VERDICT` also admits one next frozen form:
 `node .trusted/scripts/readiness_ci_verdict.mts`. The trusted TypeScript reader pins the event head,
 passes the trusted gates path to `nen pr ready --json`, and takes its title, failing rows and judged
 head from that document. This stage leaves the live workflow and Tenkai template on their old form;
 the next PR changes them after this validator and reader reach the trusted base. The JSON form
 supersedes the first-line SIGPIPE repair above, while the separate-job permission question remains.
 
-**#131 installation stage.** The live workflow and Tenkai template now invoke that exact trusted
+**zheref/hatsu#131 installation stage.** The live workflow and Tenkai template now invoke that exact trusted
 reader. Tenkai places it in a consumer's `scripts/` before rendering the workflow and stages the
 workflow if a Hatsu-style guard has not admitted the JSON step yet. The reader validates Nen's six
 conjuncts, including `unevaluated` rows, and writes the verdict and failing details from JSON.
@@ -481,8 +481,8 @@ item 8); it stays in the three workflows until that lands and the step becomes g
 
 **2026-10-13. The prose-diet guard is a pull request check
 ([zheref/hatsu#135](https://github.com/zheref/hatsu/issues/135)), both steps landed.**
-`scripts/prose_size_check.sh` ran only by hand and in its focused lane, so a file over its ceiling
-reached `main` with #129. `prose-size-check.yml` runs the trusted revision's guard against every pull
+`scripts/prose_size_check.sh` ran only on a manual call and in its focused lane, so a file over its ceiling
+reached `main` with HA-PR-#129. `prose-size-check.yml` runs the trusted revision's guard against every pull
 request's checkout and fails the `prose-size-check` check on any offender, the guard's own `OVER` row
 naming the file, its size and its ceiling. It is a check of its own because `pr-readiness.yml`
 concludes `success` by construction. Its guard step is frozen (`PROSE_FROZEN_GUARD`) and refuses to
@@ -507,13 +507,13 @@ for the guard, the binary and openssl, so the exit mapping, the error lines and 
 runtime), so the pull request that installs it is judged by a validator already holding the body; step
 two added the step to the workflow and narrowed `EXPECTED_STEPS` to it, one shape admitted again. A
 canon-contract failure reads as a red `surface-mirror-check`, and a run red at the drift step never
-reaches it (a check of its own would be the #135 route).
+reaches it (a check of its own would be the zheref/hatsu#135 route).
 
 **2026-10-20. The redaction-guard fixture runs in CI
 ([zheref/hatsu#337](https://github.com/zheref/hatsu/issues/337)), both steps landed.**
 `scripts/private_name_check_fixture.sh`, the `redaction-guard` lane's hermetic fixture, ran only when a
 session ran that lane. It now runs as a `Redaction guard fixture` step of `surface-mirror-check.yml`,
-right before the finish step, landed the #223 way under the frozen-step rule. Step one taught the
+right before the finish step, landed the zheref/hatsu#223 way under the frozen-step rule. Step one taught the
 validator the step and admitted both shapes, with and without it (`ALLOWED_STEP_SHAPES`,
 `REDACTION_FIXTURE_STEP`), and froze its one form (`REDACTION_FIXTURE_FROZEN`: `set -euo pipefail`,
 then the trusted checkout's fixture; no env, no token, no `nen shu test --repo .`, no swallowed red;
@@ -523,14 +523,14 @@ reads no secret and no private list, so the step proves the base branch's guard 
 request into main) on the runner's Linux toolchain; it first runs live on the first pull request opened
 after it reaches that base. A pull request that breaks the guard is judged by the base's copy, so its
 red lands on the pull requests after it merges — the fix included, which is red by the same copy until
-the maintainer merges it past that red (the #230 trap; a dated `checks.excluded` entry is the other
+the maintainer merges it past that red (the zheref/hatsu#230 trap; a dated `checks.excluded` entry is the other
 route, GATE-CONFIGURATION § 3); the `redaction-guard` lane, run locally before the push, stays the
 check on the change itself. A run red at an earlier step never reaches the fixture step; the local lane
-is the reading then. The job skips a fork pull request (the same-repository guard) and a draft: #337's
+is the reading then. The job skips a fork pull request (the same-repository guard) and a draft: zheref/hatsu#337's
 "green" there is a skip, nothing runs.
 The tree check (`redaction-tree`) needs the live list and stays on the maintainer's machine.
 
-**The new-workflow rule.** A new pull-request workflow lands in two pull requests, the #80 order. The
+**The new-workflow rule.** A new pull-request workflow lands in two pull requests, the HA-PR-#80 order. The
 first registers it in `PENDING_HOSTED_WORKFLOWS` (known, judged wherever it sits, not yet required) and
 stages its file at `templates/<name>`, where the self-test judges it as if installed; the second
 installs it under `.github/workflows/` and moves it to `PORTABLE_HOSTED_WORKFLOWS`, which makes its
@@ -630,3 +630,37 @@ landing is two steps. Step one is the runner edit. Step two is the first `unit-t
 includes step one: its log must read `unit-tests-ci: config-values-guard`, and a non-draft probe pull
 request that breaks `scripts/config_values_examiner_fixture.ts` must turn the check red. HA#397 closes on
 that evidence, not on step one's merge.
+
+**2026-11-16. Renaming a skill on the diet list is the same two-step landing (zheref/hatsu#354).**
+`prose-size-check.yml` runs `scripts/prose_size_check.sh` from the trusted workflow revision (`main`'s
+head) against the pull request's tree, and that copy's `DIETED_SKILLS` still holds the old name, so a
+pull request that renames a listed skill reads `MISSING  claude/skills/<old>/SKILL.md` whatever its own
+copy says. Step one, this change: `DIET_NEXT_NAMES` holds `<listed>:<next>` pairs, read by
+`scripts/prose_diet_names.ts` (the verdict is TypeScript's, `BC-11`). Where the listed `SKILL.md` is
+absent and the next name's is on disk, the next one holds the same ceiling and the run prints a
+`NEXT-NAME` line; both on disk are both measured, and neither is still `MISSING`. Its first pair is
+`bankai-rule:kido`, the maintainer's word of 2026-11-16 on zheref/hatsu#354, whose ruling row lands in
+`docs/ROSTER.md` with step two. Step two is the rename's own pull request, opened once `main` carries
+step one and caught up onto it: its list takes `kido`, and everything the pair brought is deleted in
+that pull request's own diff: the pair, the helper, the plan read and the paired branch of the diet loop, the `node` check,
+the next names on the headroom call, the header's `DIET_NEXT_NAMES` clause, the fixture cases
+(`scripts/prose_size_check_fixture.sh`, lane `prose-guard`), the helper's copy in
+`scripts/workflow_runner_policy_check.rb`'s self-test, and its entries in `scripts/plugin_bump_check.sh`
+and `CONTRIBUTING.md`. Git merges the two edits of the list without a conflict, so nothing prompts the
+deletion; a kept pair beside the new name is exit `2` in that branch's own `prose-guard` lane (*renames
+'bankai-rule', which is not on the diet list*), and a helper deleted while the self-test still copies it
+fails `workflow-policy-guard`. Pull-request CI runs neither lane against the branch's own copy, so step
+two runs both before it opens. One refusal lands with step one and stays: an entry that exists where a
+measured file is expected and is not a regular file is an offender by name (`NOTAFILE`, where it used to
+be skipped in silence). While the pair is held, a row that is malformed, renames an unlisted skill, names
+a listed skill twice or reuses a name, and a plan that does not account for every listed skill, are exit
+`2` before or instead of a clean verdict.
+
+**Step two landed (zheref/hatsu#354, Hatsu 0.169.0).** The diet list holds `kido`, the skill's directory
+is `claude/skills/kido/`, and the pair, `scripts/prose_diet_names.ts`, the plan read, the paired branch
+of the diet loop, the `node` check, the next names on the headroom call, the header's clause, the
+fixture's next-name, malformed-row and unfinished-plan cases, the helper's copy in the policy self-test,
+its entries in `scripts/plugin_bump_check.sh` and `CONTRIBUTING.md` and its case in
+`scripts/plugin_bump_check_fixture.sh` are gone. `NOTAFILE` stays, with
+its fixture cases at a listed name: a directory, and a FIFO under `--headroom`. The next rename of a
+diet-list skill brings the pair back the same way, from HA-PR-#613's diff.

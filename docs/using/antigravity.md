@@ -44,10 +44,10 @@ from the next conversation; `/bakuryuha` fast-forwards it and ends with what to 
 
 The mirror follows the layout the Antigravity plugins page documents ([`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 1; the CLI reader is a named gap in its § 10):
 - `plugin.json` — Antigravity plugin manifest
-- 61 skills (sixty plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
+- 62 skills (sixty-one plus `ten`), each at `skills/<name>/SKILL.md`, invoked as `/<name>`
 - `rules/hatsu.md` — the identity rules file, under Antigravity's 12,000-character limit
 - `agents/<persona>.md` — every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include
-- `hooks.json` — native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) lifecycle hooks
+- `hooks.json` — native `PreToolUse` (trunk guard), `SessionStart` (nen binding and refresh) and `Stop` (bell) lifecycle hooks, in the named-definition format ([`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 4)
 
 In this mode, no files are written into your target repositories. Open any workspace in Antigravity or use the CLI (`agy`), and run `/ten`.
 
@@ -63,15 +63,16 @@ Open Antigravity in that repository and run `/ten`. The warm-up performs `--inst
 
 | | |
 |---|---|
-| `<repo>/.agents/skills/<name>/` | **61** mirrored skill directories — the sixty plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
+| `<repo>/.agents/skills/<name>/` | **62** mirrored skill directories — the sixty-one plus `ten` itself — copied from `surfaces/antigravity/skills/<name>/` |
 | `<repo>/.agents/agents/<persona>.md` | every persona — Kurapika, the twelve independents and the four intake examiners — plus the preamble include, copied from `surfaces/antigravity/agents/` |
 | `<repo>/.agents/rules/hatsu.md` | The identity rules file, under the 12,000-character limit a rules file has |
-| `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `PreInvocation` (refresh) and `Stop` (bell) hooks |
-| `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh` and `stop-bell.sh`) |
+| `<repo>/.agents/hooks.json` | Native `PreToolUse` (trunk guard), `SessionStart` (nen binding and refresh) and `Stop` (bell) hooks |
+| `<repo>/.agents/hooks/` | Self-contained hook scripts (`guard-base-branch.sh`, `session-start.sh` and `stop-bell.sh`) |
 
 Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is never modified.
 
 **Native Lifecycle Hooks:**
+- **Session Start (`SessionStart`)**: `hooks/session-start.sh` binds the pinned `nen`, then refreshes an adopted workspace's placed copy. Documented to fire once per conversation; not yet observed firing on a host ([`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 4).
 - **Trunk Protection (`PreToolUse`)**: `hooks/guard-base-branch.sh` intercepts shell commands before execution. It prevents accidental commits, rebases, or edits directly on `main` or other protected trunk branches without an isolated feature branch.
 - **Completion Bell (`Stop`)**: `hooks/stop-bell.sh` fires at turn completion to ring the local audio and notification bell when human review or decision is needed.
 
@@ -108,7 +109,7 @@ when this surface is the recommended one, is [`../DIRECT-MATRIX.md`](../DIRECT-M
 | workspace bootstrap (legacy): copies under `<repo>/.agents/` | fast-forward, then `/ten` re-copies | a new conversation |
 
 `/bakuryuha` makes the global link where `.agents/` copies stood, fast-forwards the checkout the link
-names, validates the plugin with `agy plugin validate`, and ends with what to open. By hand:
+names, validates the plugin with `agy plugin validate`, and ends with what to open. To do it yourself:
 
 ```sh
 mkdir -p ~/.gemini/config/plugins

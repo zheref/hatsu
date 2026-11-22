@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-04-02",
+  "effortId": "opus-kurapika-ha-508-delivery-canon-fold",
+  "n": 2,
+  "gate": "G5",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#543: the only red row is rounds-owed, and every quorum bot is unavailable (exit 9) or never creates a check at head. Where does the run end?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Sixth stop after a window ⭐ (Recommended)",
+      "consequence": "Checks settled at head plus two bounded watch windows with no round-check run counts as (c)'s 'no run'; then the sixth-stop handoff to you. Inside the window it still waits. PROCESS + en § 6, HR row."
+    },
+    {
+      "key": "B",
+      "label": "Named terminus",
+      "consequence": "A new named terminus (quorum-unavailable) hands the PR to you; it never reaches the sixth stop."
+    },
+    {
+      "key": "C",
+      "label": "Leave unruled",
+      "consequence": "Keep today's cap-reached terminus; #543 is delivered as documentation only."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-04T02:53:03.901Z"
+}

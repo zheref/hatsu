@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Focused, declared verification for scripts/port_rule_reserve.sh (hatsu:bankai-rule § 3).
+# Focused, declared verification for scripts/port_rule_reserve.sh (hatsu:kido § 3).
 # Requires Bash, git, mktemp and jq (to check --json output parses). No network: `gh` is a stub
 # this fixture writes onto PATH. Invoked only through `nen shu test --lane port-rule-guard --repo <hatsu>`.
 #

@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-10-01",
+  "effortId": "opus-kurapika-ha-577-pr-review-queue",
+  "n": 1,
+  "gate": null,
+  "row": "missing-maintainer-choice",
+  "who": "Kurapika",
+  "question": "What should the new PR review-queue skill be called? Your pick becomes hatsu:<name>, recorded in ROSTER beside hiraishin and kamui.\n",
+  "options": [
+    {
+      "key": "a",
+      "label": "hachimon",
+      "consequence": "Eight Gates, one opened at a time"
+    },
+    {
+      "key": "b",
+      "label": "senkaimon",
+      "consequence": "world-crossing gate into core and back"
+    },
+    {
+      "key": "c",
+      "label": "kagura",
+      "consequence": "sensing eye on the device"
+    }
+  ],
+  "kind": "picked",
+  "pick": "b",
+  "typed": null,
+  "answeredAt": "2026-11-10T00:36:30.664Z"
+}

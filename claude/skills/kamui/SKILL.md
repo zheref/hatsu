@@ -142,12 +142,12 @@ is the decision to start here, said once (*conventions*: a build's end). Picks r
 holds build's phase 6** (the wrap-up; en § 8's `rikugan` renders as usual): each build's merge prompt stays
 on § 8's register while the next starts; a build's G5 stops the chain (`next: start`, the rest recorded);
 any other end is recorded `stopped`, the chain continues. A behaviour with no target idiom is
-`port-drift` through `bankai-rule` § 5, after `## Platform decisions` is read; kamui owns each answer's
+`port-drift` through `kido` § 5, after `## Platform decisions` is read; kamui owns each answer's
 amendment PR and fills the ledger's `PR` cell at the build's end; sequencing per ports.md (HR-6); **a kamui run is one port run**.
 
 ## 8. Ending the run
 
-`bankai-rule` opens the run's one rulings PR where a `port-drift` ruling was recorded (#355); then
+`kido` opens the run's one rulings PR where a `port-drift` ruling was recorded (HA#355); then
 [`rikugan`](../rikugan/SKILL.md) `for <the spec and amendment PRs, every port issue and PR> as register`, each `nen pr
 ready` verdict quoted, **a port PR's beside its convergence table** (spec-repo.md § *The convergence
 table at readiness*); `next: done`; the wrap-up once (cleanup § 2's prerequisites; row `wrap-up`). Unpicked issues: named with their
@@ -159,7 +159,7 @@ ends, writing nothing (recorded, dated: `docs/ab/kamui.md`).
 ## Residue
 
 Judgement and prose: the spec text, the search reading, the record. Owed to nen, each cited above:
-zheref/nen#453, #454, #444, #450.
+NN#453, NN#454, NN#444, NN#450.
 
 ## Authority
 

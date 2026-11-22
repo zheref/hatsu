@@ -8,7 +8,7 @@
 # nothing measures is a limit that has already been exceeded, so this measures it.
 #
 #   every claude/agents/*.md except kurapika.md   <=  6144 bytes
-#   the thirty-one dieted skills                      <= 12288 bytes
+#   the thirty-two dieted skills                      <= 12288 bytes
 #   every claude/rules/*.md, and the generated      <= 12000 characters (Antigravity's own documented
 #   surfaces/antigravity/rules/*.md mirror
 #                                                     rules-file limit, docs/surfaces/antigravity.md --
@@ -41,7 +41,8 @@
 # A measured dieted skill with under 512 bytes left also prints WARN without changing the verdict.
 #
 # Every measured file must be a regular file whose real path stays under the root: a symlink, or a
-# chain of them, that leaves the root, a dangling symlink where a file is expected, a file that cannot be read, a directory
+# chain of them, that leaves the root, a dangling symlink where a file is expected, an entry there that is
+# not a regular file (a directory, a FIFO), a file that cannot be read, a directory
 # that cannot be listed and a rules file that is not valid UTF-8 are each an OFFENDER by name (the run
 # never reads green over a file it did not measure, and never measures a path the tree pointed outside
 # itself -- SEC-7; QA-16/QA-18, zheref/hatsu#119's review).
@@ -52,7 +53,8 @@
 # decision to hold it at 12 KB from then on.
 #
 # exit 0  every file is within its ceiling
-# exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling or outside the root, each named
+# exit 1  at least one is over (a description included), unreadable, unlistable, unmeasurable, dangling, not a
+#         regular file or outside the root, each named
 # exit 2  the repository root does not look like a Hatsu checkout, an unknown flag, an empty root
 #         argument, more than one root argument, or no perl to check UTF-8 with
 
@@ -63,11 +65,11 @@ SKILL_MAX=12288
 RULES_MAX=12000
 DESC_MAX=1024
 
-# The thirty-one: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
-# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), bankai-rule (v0.125.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), kage-bunshin (v0.156.0), which were authored
+# The thirty-two: fifteen from CHANGELOG v0.42.0 "The diet" plus black-voice, great-hiker, limbo,
+# bakuryuha, rikugan (new at v0.73.0), classify (v0.88.0), direct (v0.89.0), kazaana and cleanup (v0.108.0), emperor-time (v0.116.0), kido (v0.125.0, as bankai-rule until v0.169.0), kamui and hiraishin (v0.126.0), dowsing-chain (v0.133.0), kuchiyose (v0.140.0), kage-bunshin (v0.156.0), senkaimon (v0.165.0), which were authored
 # under the ceiling rather than reduced to it. scripts/prose_size_check_fixture.sh reads THIS list, so it is the only one.
 DIETED_SKILLS="amaterasu backlog-board backlog-loop bakuryuha black-voice breath build classify direct futon great-hiker
-hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time bankai-rule kamui hiraishin dowsing-chain kuchiyose kage-bunshin"
+hanten limbo ten jujutsu jutaisho kagutsuchi kokusen rikugan spiritual-message sharingan shibari kazaana cleanup emperor-time kido kamui hiraishin dowsing-chain kuchiyose kage-bunshin senkaimon"
 
 usage_error() { echo "prose_size_check.sh: $1" >&2; exit 2; }
 
@@ -123,7 +125,13 @@ listable() {
 admit() {
   f="$1"; rel="${f#"$root"/}"
   if [ -L "$f" ] && [ ! -e "$f" ]; then offend "DANGLING  $rel -- a symlink to nothing where a file is expected"; return 1; fi
-  [ -f "$f" ] || return 1
+  if [ ! -f "$f" ]; then
+    # An entry that exists and is not a regular file -- a directory, a FIFO, a link to either -- is an
+    # offender by name: only a truly absent entry (an unmatched glob's literal) is the caller's case.
+    # It used to return silently, and the diet loop then skipped it as already offended (SEC-7).
+    if [ -e "$f" ] || [ -L "$f" ]; then offend "NOTAFILE  $rel -- not a regular file, not measured"; fi
+    return 1
+  fi
   if [ -L "$f" ]; then
     # Every hop, never one readlink: a symlink to an in-root symlink that leaves the root is outside too
     # (Feitan, hanten on #135). perl is already required; Cwd::realpath resolves the whole chain.
@@ -306,5 +314,5 @@ if [ "$offenders" -eq 0 ]; then
   echo "prose ok: $checked files within their ceilings (agents $AGENT_MAX, dieted skills $SKILL_MAX, rules $RULES_MAX chars); $described skill descriptions within the $DESC_MAX-character cap"
   exit 0
 fi
-echo "prose_size_check.sh: $offenders offence(s): a file over its ceiling or a description over the cap, or a path unreadable, unlistable, unmeasurable, dangling or outside the root" >&2
+echo "prose_size_check.sh: $offenders offence(s): a file over its ceiling or a description over the cap, or a path unreadable, unlistable, unmeasurable, dangling, not a regular file or outside the root" >&2
 exit 1

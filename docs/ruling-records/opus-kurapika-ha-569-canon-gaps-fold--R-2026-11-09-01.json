@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-09-01",
+  "effortId": "opus-kurapika-ha-569-canon-gaps-fold",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#569: PL-11 reads the spec repo's marker vocabulary (OQ-/AS- markers named in code spans on two pages) as 5 malformed open questions. How do those rows clear?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Fenced definition block ⭐ (Recommended)",
+      "consequence": "Canon writes the marker vocabulary inside a fenced block, which HR-13 already exempts; no lint rule changes, the 5 rows leave the baseline. Recorded as an HR row."
+    },
+    {
+      "key": "B",
+      "label": "Lint exempts code spans",
+      "consequence": "PL-11 learns that a marker named inside a code span is not a question; a lint-rule change (and possibly a nen change), applying everywhere."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-09T23:52:17.855Z"
+}

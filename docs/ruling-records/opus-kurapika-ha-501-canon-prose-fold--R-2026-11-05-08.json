@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-05-08",
+  "effortId": "opus-kurapika-ha-501-canon-prose-fold",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#559 OQ-1: when one ladder aspect improves in one way and regresses in another, which glyph does the row get?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "⬇ with both halves ⭐ (Recommended)",
+      "consequence": "The conservative reading: the row shows ⬇ and its reason must name the gain and the loss. No new glyph; recorded as an HR row in the improves-ladder canon."
+    },
+    {
+      "key": "B",
+      "label": "A fourth mixed glyph",
+      "consequence": "A new glyph (e.g. ↕) means 'both ways'; the reason names both halves. Every ladder reader and renderer learns the new glyph."
+    }
+  ],
+  "kind": "picked",
+  "pick": "A",
+  "typed": null,
+  "answeredAt": "2026-11-05T12:22:16.258Z"
+}

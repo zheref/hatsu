@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-07-01",
+  "effortId": "opus-kurapika-ha-501-canon-prose-fold",
+  "n": 3,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HR-386: you picked moving the observability job out of the release family. Which family receives it?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "maintain ⭐ (Recommended)",
+      "consequence": "Gains the What-this-improves ladder; keeps the product rollout section; loses the release-unit section on every kind and the evidence section on product."
+    },
+    {
+      "key": "B",
+      "label": "build",
+      "consequence": "Gains the ladder; keeps the product evidence section; loses the rollout section and the release-unit section."
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-11-07T14:11:32.346Z"
+}

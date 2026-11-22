@@ -50,7 +50,7 @@ nen parse ren --grammar "<request> [--profile <profile:fast|standard|thorough>]"
 `profile: (clause absent)` means `profile.default` (§ 2a); the words "fast turn" or "thorough turn"
 inside the request are read as the same override.
 
-Verified live at `v0.3.0` (`docs/ab/ren.md` § 2.1): a request line parses to
+Verified live, by 2026-09-10, at `v0.3.0` (`docs/ab/ren.md` § 2.1): a request line parses to
 `request: <the whole line>` at exit `0`, and an empty line refuses at exit `2` — *"<request> is
 required and the line does not supply it"* — with the corrected line printed. **A turn with no
 request is never inferred from what the session was last doing — it is asked for as free text**:
@@ -67,7 +67,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
 
 | # | Step | The skill that owns it | Why it is here |
 |---|---|---|---|
-| 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **bind/re-verify isolation on every entry** under WORKFLOW § *Where worktrees live* before Ten catch-up or mutation; warm and prove a fresh branch once per new effort in that checkout. Explicit continuations reuse only the verified effort-owned worktree. A red base is a **G5** before authoring; so is a conflicting clause in its constitution check (breath § 4a), recorded on this step's ledger entry |
+| 1 | **warm up** | [`hatsu:breath`](../breath/SKILL.md) | **bind/re-verify isolation on every entry** under WORKFLOW § *Where worktrees live* before Ten catch-up or mutation; warm and prove a fresh branch once per new effort in that checkout — the session's own harness worktree on an observed hook refusal (HR-374). Explicit continuations reuse only the verified effort-owned worktree. A red base is a **G5** before authoring; so is a conflicting clause in its constitution check (breath § 4a), recorded on this step's ledger entry |
 | 2 | **author the change** | [`hatsu:rasengan`](../rasengan/SKILL.md) | write what the maintainer asked for, on the stack this repository declares: the edits, the tests beside them, the docs and changelog its conventions owe — with the declared `iteration.checks` run as the author's own feedback while the work is in front of them |
 | 3 | **verify and commit** | [`hatsu:kokusen`](../kokusen/SKILL.md) | every inexpensive `iteration.checks` verb and the declared focused tests over the **finished** tree, red refused; then triage, an ask on what is flagged, one shaped commit — local only |
 | 4 | **launch** | [`hatsu:amaterasu`](../amaterasu/SKILL.md) | an isolated effort reports the dry-run command and records `core launch deferred; explicit maintainer call required`, then continues **without asking**, even when serial. No target → `no launch target declared; skipped`. A core launch never moves authoring or delivery out of its bound worktree |
@@ -102,7 +102,7 @@ say so on the first one, so nobody is surprised by the report and the bell at th
   the maintainer to nothing.
 
 **The phases this composite calls SKIP their own `## 0. Standalone entry` sections.** [`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) is the
-contract for a phase typed by hand into an arbitrary checkout; a phase reached from here inherits P1–P4
+contract for a phase the maintainer types into an arbitrary checkout; a phase reached from here inherits P1–P4
 from this run — the warm-up, the orientation, the change set and every derived argument — and
 re-deriving them would produce a second answer to a question this composite already settled. Each phase
 says which composite is holding it instead.
@@ -166,8 +166,8 @@ so the six steps stay six entries ([HR-58](../../../docs/ROSTER.md#hr-58)). **Th
 <branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes]` from
 the surface's own cost readout, `--not-reported` on a surface that exposes none.
 
-**A resumed effort reads before it writes** (zheref/hatsu#444, zheref/hatsu#445; nen 0.28, the pin). An effort whose
-branch already has a phase ledger, or a PR, is a resume: first, where a PR exists, `nen pr ledger read
+**A resumed effort reads before it writes** (zheref/hatsu#444, zheref/hatsu#445; from nen 0.28). An effort whose
+branch already has a phase ledger, or a PR, is a resume: first, where a PR exists — **the open one**: a successor's number, never the PR a base deletion closed (en § 6) — `nen pr ledger read
 --target <owner/name> --pr <n> --effort <branch> --repo <checkout> --json`, adding `--restore` only where
 `nen phase show` finds no local ledger; then `nen phase show --effort <branch> --json`. WORKFLOW § *The
 effort's ledgers*, *The durable slice*, owns the verdicts and the one skip-line form; a skipped
@@ -293,7 +293,7 @@ exists to replace, and duplicating it is how the page stops being read.
 **One entry, and it is a boundary rather than a gap:**
 
 1. **The composition itself has no verb, and is not expected to get one.** nen owns operations, not
-   conversations (§ 4, verified live). Ren's ordering is prose because it is a *sequence of other
+   conversations (§ 4, verified live, by 2026-09-10 (`docs/ab/ren.md` §§2.2, 4.2)). Ren's ordering is prose because it is a *sequence of other
    skills*, each of which is verb-backed where a verb exists. **Every deterministic step inside a
    turn is a verb or a named residue in the skill that owns it** — `nen shu <check>` and
    `nen shu tools` (step 2's inner loop; the authoring itself is that skill's own named boundary),

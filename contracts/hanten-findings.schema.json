@@ -16,10 +16,19 @@
           "model": { "type": "string" },
           "used": { "type": "integer", "minimum": 0 },
           "max": { "type": "integer", "minimum": 0 },
-          "invocation": { "enum": ["ran", "delta", "skipped-exhausted"] },
+          "invocation": { "enum": ["ran", "delta", "skipped-exhausted", "not-raised"] },
           "adapted": { "type": "string", "minLength": 1 },
           "gap": { "type": "string", "minLength": 1 },
-          "scans": { "type": "array" }
+          "scans": { "type": "array" },
+          "scope": { "type": "string", "minLength": 1 },
+          "reviewed": { "enum": [true, false] }
+        },
+        "additionalProperties": false,
+        "if": { "properties": { "invocation": { "const": "not-raised" } } },
+        "then": {
+          "$comment": "hanten § 5's not-raised scope: a required review pass that could not be raised (hanten § 3's gap) or was raised and never returned, recorded with invocation not-raised, used 0, and gap naming the persona, the raising paths and why (zheref/hatsu#549 AC-3); never ran. It is this scope not reviewed, never a pass.",
+          "required": ["gap"],
+          "properties": { "used": { "const": 0 } }
         }
       }
     },

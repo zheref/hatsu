@@ -25,11 +25,11 @@ When one of these is edited inside a consumer, the edit is invisible: the skills
 
 **Rendered where.** `scripts/permissions_pack.sh --surface <s> (--render | --install --target <path>)`, run by the warm-up (`hatsu:ten` § 5) and by `hatsu:tenkai` § 2, never by a hook. Per surface: Claude Code `.claude/settings.local.json`, `permissions.allow` / `permissions.deny` as `Bash(<exe> <args>)`, rendered directly and **merged** into the user's own untracked file (never `.claude/settings.json`); Codex `.codex/config.toml` (`approval_policy`, `sandbox_mode`, `writable_roots`, `network_access`) and `.codex/hooks.json`, **copied** from the generated `surfaces/codex/`; Cursor `.cursor/cli.json` (`Shell(<exe> <args>)`, plus the tree-wide `Read(./**)` and `Write(./**)` rows) and `.cursor/hooks.json`, copied from `surfaces/cursor/`; Antigravity none, because no allowlist file exists and a per-persona `commandExecutionPolicy: auto` would approve arbitrary commands, so the pack there is the hooks the mirror places. Only a Hatsu consumer (a target carrying `nen/contract.json` or `nen/workflow.json`) gets a pack; every written path is excluded through `info/exclude`, never `.gitignore`.
 
-**May a consumer override it?** Not the contract. On Claude Code the consumer's own entries in `.claude/settings.local.json` are kept except obsolete API reader grants and the unsafe `Bash(gh api *)` grant, which #326 removes on upgrade. On Codex and Cursor a file without nen's generated marker is the consumer's and is left alone and named; a tracked destination is never touched. A generator that has not run (no `surfaces/<s>/config.toml`) places nothing rather than improvising the text.
+**May a consumer override it?** Not the contract. On Claude Code the consumer's own entries in `.claude/settings.local.json` are kept except obsolete API reader grants and the unsafe `Bash(gh api *)` grant, which zheref/hatsu#326 removes on upgrade. On Codex and Cursor a file without nen's generated marker is the consumer's and is left alone and named; a tracked destination is never touched. A generator that has not run (no `surfaces/<s>/config.toml`) places nothing rather than improvising the text.
 
 ### Read-only GitHub API access (#326)
 
-The installed Claude pack grants `node '<exact installed absolute Hatsu root>/scripts/gh_api_read.mts' *`. The caller substitutes the resolved root literally in the Bash command; leaving `$hatsu_root` in command text does not match. Cursor and Codex receive no Node grant from this row. The TypeScript entrypoint accepts named operations only; it builds fixed REST GET endpoints and one fixed GraphQL `query` with variables, then invokes `gh` without a shell. It rejects caller-supplied methods, endpoints, bodies, uploads, options and GraphQL documents before starting `gh`. Raw `gh api` has no pack grant. The separate `gh pr *` row is constrained by its `gh pr merge *` deny; #154's Nen-only delivery merge remains unchanged.
+The installed Claude pack grants `node '<exact installed absolute Hatsu root>/scripts/gh_api_read.mts' *`. The caller substitutes the resolved root literally in the Bash command; leaving `$hatsu_root` in command text does not match. Cursor and Codex receive no Node grant from this row. The TypeScript entrypoint accepts named operations only; it builds fixed REST GET endpoints and one fixed GraphQL `query` with variables, then invokes `gh` without a shell. It rejects caller-supplied methods, endpoints, bodies, uploads, options and GraphQL documents before starting `gh`. Raw `gh api` has no pack grant. The separate `gh pr *` row is constrained by its `gh pr merge *` deny; zheref/hatsu#154's Nen-only delivery merge remains unchanged.
 
 | Runtime read | Entrypoint operation | Why it is in the pack |
 |---|---|---|
@@ -37,6 +37,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `sharingan`: branch rules and protected branch required checks | `branch-rules`, `required-checks` | A missing required check vetoes readiness. |
 | `build`: issue's PR marker; `PROCESS`: workflow declaration at a ref | `issue-pr`, `workflow-content` | These are ordinary issue and configuration reads. |
 | `spiritual-message`: Actions run timing; `cleanup`: caches and artifacts | `actions-timing`, `actions-caches`, `actions-artifacts` | These are fixed REST GET paths. |
+| `senkaimon`: a PR's head SHA and its head and base repositories | `pr-head` | A fixed REST GET with a fixed projection. |
 | `file`: issue edit count | `issue-edits` | The only packed GraphQL form is a fixed query with typed variables. |
 
 `release-publish.sh` reads a tag ref through `gh api` internally, under the release command's separate authority; `tag-ref` is available for direct audit reads. `tenkai_adopt.sh`'s repository lookup is also internal to its script. `direct`'s marker lookup, `illumi`'s arbitrary GraphQL read, generic `izanami` observations and any undocumented endpoint still require an explicit surface permission prompt. CI's check-run POST/PATCH and cleanup DELETE run under workflow credentials, outside this pack. The helper does not accept raw GraphQL text, so a `mergePullRequest` mutation cannot be smuggled into its query.
@@ -57,7 +58,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/classify.taxonomy.json`
 
-**Purpose.** The two classification axes `hatsu:classify` applies: `lang/<key>` (five keys) and `job/<key>` (thirty-nine keys), each key carrying the source document's phases per domain, and the rule that derives the five domains at run time. nen hard-codes none of the names: the file is `--taxonomy` to the whole `nen classify` family. Full key lists are in [`labels.json.md`](labels.json.md).
+**Purpose.** The two classification axes `hatsu:classify` applies: `lang/<key>` (five keys) and `job/<key>` (thirty-nine keys), each key carrying the source document's phases per domain, and the rule that derives the five domains at run time; plus `families`, install-only label families `nen classify install` declares and nothing classifies on. nen hard-codes none of the names: the file is `--taxonomy` to the whole `nen classify` family. Full key lists are in [`labels.json.md`](labels.json.md).
 
 ### Keys
 
@@ -68,6 +69,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 | `source` | object | `document`, `rulings`, `readers[]` | where the vocabulary came from and who reads it | a reader |
 | `axes.lang` | object | `prefix: lang/`, `color`, `describe`, `keys[] {key, code, title, description}`, `companions[]`, `companionRule` | the language axis; `code: false` marks `prose`; companions are never labelled | `nen classify *`, `nen direct resolve` (counts only code languages) |
 | `axes.job` | object | `prefix: job/`, `color`, `describe`, `keys[] {key, title, description, companion?, phases per domain}` | the job axis; the first listed phase is the one `hatsu:direct` routes on | `nen classify *`, `nen direct resolve` |
+| `families.model` | object | `prefix: model/`, `color: 0e8a16`, `keys[] {key, title, description}` (`claude`, `gpt`, `gemini`, `grok`, `composer`) | `hatsu:direct`'s verdict labels, install-only: declared beside the axes, never classified on (zheref/hatsu#538) | `nen classify labels\|install\|status` (from Nen v0.30.0) |
 | `domains` | object | `keys[]`, `tablePrefix`, `firstMatchWins`, `inputs`, `rule[]`, `fallback` | the derivation of `feature`, `maintenance`, `parity`, `aigov`, `library` from repo kind and role, the issue's labels and jobs; never a label | `nen direct resolve`; `hatsu:direct` § 3 |
 | `classification` | object | `perAxisMinimum`, `gradedPer`, `undecidable`, `confidence`, `planRow`, `untrusted`, `signals` | the judgement discipline: high and medium applied, low listed, issue text treated as untrusted data | `hatsu:classify` § 3 |
 
@@ -75,7 +77,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 **Rendered where.** Into a consumer's `nen/labels.json` by `nen classify install --write` (the declaration), then onto GitHub by `--sync`; into [`docs/DIRECT-MATRIX.md`](../DIRECT-MATRIX.md) by `scripts/direct_matrix_doc.sh`.
 
-**May a consumer override it?** No. A consumer's `nen/labels.json` may carry any other label; a label wearing an axis prefix with a key the taxonomy lacks is `foreign`, listed and never touched. A third axis is refused by nen's contract (exactly `lang` and `job`).
+**May a consumer override it?** No. A consumer's `nen/labels.json` may carry any other label; a label wearing an axis prefix with a key the taxonomy lacks is `foreign`, listed and never touched. A third axis is refused by nen's contract (exactly `lang` and `job`); a label family that must be installed but never classified on goes in `families` instead.
 
 ## `contracts/direct.registry.json`
 
@@ -223,12 +225,13 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
+| `scopes[].invocation` | enum | `ran` · `delta` · `skipped-exhausted` · `not-raised` | how a scope's reviewer pass went; `not-raised` is hanten § 5's: a required pass that could not be raised (hanten § 3's gap) or was raised and never returned, and requires `gap` with `used` `0` — this scope not reviewed, never a pass (zheref/hatsu#549) | `hatsu:hanten` §§ 3, 5 |
 | `$defs.disposition.state` | enum | `fixed` · `pushed-back` · `deferred` | how a finding settled (hanten § 6) | `hatsu:hanten` § 6 |
 | `$defs.disposition.detail` | string | required and non-empty for `pushed-back` and `deferred` | the cited reason, or what outlives the branch | the same |
 | `$defs.disposition.tracked` | `<CODE>#<N>` or `<owner>/<name>#<N>` | required for `deferred` | the tracked item a deferral names | the same |
 | `$defs.finding` (rule `CON-{n}`) | conditional | severity `critical`; state `fixed` or `deferred` only | HR-10 as amended by HR-337: critical by shape, never pushed back; an `HR-{n}` rule is critical only on a ruled row, which `hanten` § 6 holds until the status-aware check [zheref/hatsu#466](https://github.com/zheref/hatsu/issues/466) lands | the same |
 
-**Validated by.** The `criteria` lane's fixture holds its structural invariants. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
+**Worked example.** [`contracts/hanten-findings.example.json`](../../contracts/hanten-findings.example.json) is a minimal record that passes `scripts/hanten_findings_check.mts` against the real ROSTER — one `ran` scope, one `not-raised` gap scope, a `fixed` and a `deferred` finding, one report; the checker prints every schema fault at once, one `::error` line each. **Validated by.** The `criteria` lane's fixture holds its structural invariants and fails if the shipped example stops passing. Registration with `nen schema check` is owed to nen, which validates only `nen/` declarations at the pin. **May a consumer override it?** No.
 
 ## `contracts/reference.gates.json`
 
@@ -265,7 +268,7 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 | `hooks.Stop[]` | the same shape, `timeout: 15` | `${CLAUDE_PLUGIN_ROOT}/hooks/stop-bell.sh` | rings the bell (an OS notification and a sound) once per stop marker `hatsu:jutaisho` drops — every per-gate marker `nen stop list` names (nen 0.27 on), else `.nen/last-stop.json` — and clears each it rang ([WORKFLOW § *The effort's ledgers*](../WORKFLOW.md#the-efforts-ledgers--phases-usage-and-sessions), the homes) | the harness; `jutaisho` § 3 |
 | `hooks.PreToolUse[]` | `{matcher: Bash, hooks: [...]}`, `timeout: 10` | `${CLAUDE_PLUGIN_ROOT}/hooks/guard-base-branch.sh` | refuses a `git commit` or `git push` while the directory git targets stands on `branch.base`; parses the command (wrappers, quoting, heredocs, `-C`, `--git-dir`) rather than matching a substring, and fails closed on the five forms it cannot read | the harness; `aka`, `murasaki` cite it as the first line |
 
-**Rendered where.** Per surface by `nen surface mirror generate --hooks hooks/hooks.json --hooks-root <root>`: Claude Code reads this file in place; Codex `surfaces/codex/hooks.json` (`SessionStart`, `Stop`, `PreToolUse` with `permissionDecision: deny`), named by `.codex-plugin/plugin.json` → `hooks`; Cursor `surfaces/cursor/.cursor/hooks.json` (`sessionStart`, `stop`, `beforeShellExecution` with `permission: deny`); Antigravity `surfaces/antigravity/hooks.json` (`PreInvocation`, `Stop`, `PreToolUse` on `run_command` with `decision: deny`). The roots are the ones `scripts/surface_mirror_check.sh` expects; any other reads `hand-edited: hooks.json` ([`docs/using/mirrors.md`](../using/mirrors.md) § 3).
+**Rendered where.** Per surface by `nen surface mirror generate --hooks hooks/hooks.json --hooks-root <root>`: Claude Code reads this file in place; Codex `surfaces/codex/hooks.json` (`SessionStart`, `Stop`, `PreToolUse` with `permissionDecision: deny`), named by `.codex-plugin/plugin.json` → `hooks`; Cursor `surfaces/cursor/.cursor/hooks.json` (`sessionStart`, `stop`, `beforeShellExecution` with `permission: deny`); Antigravity `surfaces/antigravity/hooks.json` (one named definition carrying `SessionStart`, `Stop`, `PreToolUse` on `run_command` with `decision: deny`; [`docs/surfaces/antigravity.md`](../surfaces/antigravity.md) § 4). The roots are the ones `scripts/surface_mirror_check.sh` expects; any other reads `hand-edited: hooks.json` ([`docs/using/mirrors.md`](../using/mirrors.md) § 3).
 
 **May a consumer override it?** Not the hooks. What tunes them lives in the consumer's `nen/workflow.json`: `notifications.rungs|sound|turn` for the bell, `branch.base` for the guard; `HATSU_NEN_GLOBAL=0|false|no|off` (or `~/.config/hatsu/nen-global` saying `off`) opts the host binding out. A placed `.codex/hooks.json`, `.cursor/hooks.json` or `.agents/hooks.json` is marker-owned and refreshed by the warm-up; the Codex plugin serves its own, so the pack removes a placement's copy.
 
@@ -278,12 +281,12 @@ nen issue body-check --ref <CODE>#<N> --target <owner/name> --requirements-from 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
 | `name`, `displayName` | string | `hatsu`, `Hatsu Agent Team` | the plugin identity | the host; `hatsu_root.sh` |
-| `version` | string | semver; the stamp every generated mirror carries | the version the cache is keyed on | the host; `plugin_bump_check.sh`; `nen surface mirror generate --manifest … --stamp` |
+| `version` | string | semver; the version Claude Code keys its cache on, rendered into one generated file | the version the cache is keyed on | the host; `plugin_bump_check.sh`; `nen surface mirror generate --manifest` |
 | `description`, `author{name,url}`, `repository`, `keywords[]` | strings, object, list | the public description; `zheref` and `https://github.com/zheref/hatsu` | the listing | the host |
 | `agents[]` | paths | `./claude/agents/<persona>.md`, twelve at the pinned build | the personas the host loads | the host; `plugin_bump_check.sh` (what counts as plugin-visible) |
 | `commands`, `skills` | paths | `./claude/commands/`, `./claude/skills/` | where the host reads commands and skills | the host |
 
-**Rendered where.** The version is stamped into every `surfaces/<s>` file and into Antigravity's generated `plugin.json`. **May a consumer override it?** No.
+**Rendered where.** Into Antigravity's generated `plugin.json` only (HA#530). Through 0.154.1 `--stamp` also wrote it into every one of the 252 `surfaces/<s>` files' markers, so a bump rewrote all 252; it is passed by nothing now. **May a consumer override it?** No.
 
 ## `.codex-plugin/plugin.json`
 

@@ -1,6 +1,6 @@
 ---
 name: jutaisho
-description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the stop marker the Stop hook reads (one per gate at nen 0.28, the pin), and the in-session fallback where no hook is installed. Use when hatsu:ren reaches its sixth step, when hatsu:en reaches Ready, or when the maintainer invokes hatsu:jutaisho [at <gate>]. An ordinary turn rings rung 1 only, a turn that did nothing rings nothing, and a genuine gate gets all four parts of § 4 — banner, report link, lettered options, one star save § 4's exceptions, the picker. Never prompts for hatsu:aka.
+description: Ring the bell at the end of a turn — the three escalation rungs from nen/workflow.json (a push notification through the surface, an OS notification, an audible cue), the stop marker the Stop hook reads (one per gate from nen 0.28), and the in-session fallback where no hook is installed. Use when hatsu:ren reaches its sixth step, when hatsu:en reaches Ready, or when the maintainer invokes hatsu:jutaisho [at <gate>]. An ordinary turn rings rung 1 only, a turn that did nothing rings nothing, and a genuine gate gets all four parts of § 4 — banner, report link, lettered options, one star save § 4's exceptions, the picker. Never prompts for hatsu:aka.
 ---
 
 # Jutaisho — the bell
@@ -85,7 +85,7 @@ nen stop --who Kurapika --gate <gate> --notified --mark [--effort <branch>] \
   --options <options.json> [--propose-issue <issue.json>] <efforts.md>
 ```
 
-`--effort` only where `nen stop --help` lists it (nen 0.28, the pin; WORKFLOW § *The effort's ledgers*, markers).
+`--effort` only where `nen stop --help` lists it (from nen 0.28; WORKFLOW § *The effort's ledgers*, markers).
 **The marker is nen's file** (one `options[]` entry `recommended`), **never
 hand-written** ([`PROCESS.md`](../../../docs/PROCESS.md) § *History*). `sound` and `rungs` are not in it — the hook reads them from
 `nen/workflow.json`; `nen stop clear` consumes one where there is no hook.
@@ -134,7 +134,7 @@ into `main`, the run's own included: its link and the `gh pr merge` line as a `b
 as its own `bash` block (CON-33(b)). The **picker** carries part 4 alone: a header of at most 12 characters (the
 gate id), one question of at most two sentences, three or four options (`port-siblings` and kamui's start picker page in fours, under three plus *none of them*), labels lettered, five words the target and eight the ceiling, ⭐ first, the consequence
 in the description line — never a verdict, link or command. Labels are the marker's (§ 1), shortened; the report keeps the long form. A free-text answer is the maintainer's word (HR-173, R-2026-10-23-08); recording every answer and the one re-ask
-are WORKFLOW § 4 *Every picker answer is recorded* (`nen stop answer`). Example: header `Merge #287`; *Merge #287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
+are WORKFLOW § 4 *Every picker answer is recorded* (`nen stop answer`). Example: header `Merge HA#287`; *Merge HA#287? The line is above.*; `A ⭐ Merge now` · `B Hold`.
 
 **Only a genuine stop interrupts** — the G5 stops [`docs/WORKFLOW.md`](../../../docs/WORKFLOW.md) § 4
 records (an open class), plus G1/G2/G3/G4 when one is genuinely due. Everything else is a turn bell.
@@ -147,9 +147,11 @@ read-stderr rules are [`docs/surfaces/README.md`](../../../docs/surfaces/README.
 Here: **the fallback is announced every time**, **an unfired rung is never rendered as fired**, **the marker
 is removed by the side that consumed it** (the hook, when it fired; the fallback, only where no hook
 file is placed), and **the stop still stands** whichever path rang, § 4's four parts being the real bell.
-**The fallback is one call**, `"$hatsu_root/scripts/bell_notify.sh" --title <t> --message <m>`, a fixed argv (#289). **Residue:** `osascript` and `afplay` inside it are harness shell, `[unknown]` to nen; the script prints each rung's stderr.
+**The fallback is one call**, `"$hatsu_root/scripts/bell_notify.sh" --title <t> --message <m>`, a fixed argv (zheref/hatsu#289).
 
-## Authority
+## Residue & Authority
+
+`osascript`/`afplay` in the fallback: harness shell, `[unknown]` to nen; one line per rung.
 
 **Permitted:** write the marker through `nen stop --mark`; run `nen stop` and `nen stop answer`; fire the
 workflow's declared rungs; ask through the surface's option picker. **Not permitted:** any git or

@@ -90,7 +90,7 @@ pool also carries `desktop` before `pool-<id>`. Nen `v0.21.0` requires that last
 label was declared is refused. Distinct pool labels prevent a same-arch desktop
 runner from silently taking service-pool jobs (Feitan, SEC-16); GitHub's default
 labels alone would admit any later registration unproven (zheref/hatsu#198 item 6,
-#204). Existing pools owe a declaration change, labels on their registered
+zheref/hatsu#204). Existing pools owe a declaration change, labels on their registered
 runners, and re-rendered preflight and readiness workflows. Whatever the target's
 visibility, the rendered preflight takes no `pull_request` event
 ([`templates/runner-preflight.yml`](../../../templates/runner-preflight.yml) § *FORK SAFETY*, held by
@@ -344,7 +344,8 @@ x 0`; **exclusion edit pending** — that PR at `<gate>`; **live** — *nothing 
 ## Residue
 
 1. **The elevated launch has no verb** — the consent is the harness's prompt and then UAC, by design.
-2. **The summary read** — the launch time noted and the newest `register-*.summary` after it, by hand.
+2. **The summary read** — the launch time noted and the newest `register-*.summary` after it, read in
+   the session: no verb reads it (zheref/nen#647).
 3. Removal and deregistration — owed, unfiled.
 4. The shared `_work/_actions` cache — owed, unfiled.
 5. Runner groups on organization accounts; `--ephemeral` supervisors — owed, unfiled.

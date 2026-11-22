@@ -1,0 +1,57 @@
+{
+  "scopes": [
+    {
+      "persona": "Nobunaga",
+      "tier": "deep",
+      "model": "opus",
+      "used": 1,
+      "max": 2,
+      "invocation": "ran",
+      "scans": []
+    },
+    {
+      "persona": "Chrollo",
+      "tier": "deep",
+      "model": "opus",
+      "used": 0,
+      "max": 1,
+      "invocation": "not-raised",
+      "gap": "architecture scope (hanten § 3 gap): persona not raisable on this surface; raising path docs/WORKFLOW.md; this scope was not reviewed"
+    }
+  ],
+  "findings": [
+    {
+      "id": "N1",
+      "scope": "code",
+      "persona": "Nobunaga",
+      "rule": "HA#549/AC-1",
+      "severity": "medium",
+      "path": "claude/skills/hanten/SKILL.md",
+      "line": 120,
+      "evidence": "the skill named the record's fields but no passing example",
+      "proposedFix": "ship a minimal valid record and point the skill at it",
+      "disposition": { "state": "fixed", "detail": "contracts/hanten-findings.example.json added" }
+    },
+    {
+      "id": "N2",
+      "scope": "code",
+      "persona": "Nobunaga",
+      "rule": "HA#549/AC-3",
+      "severity": "low",
+      "path": "contracts/hanten-findings.schema.json",
+      "line": 1,
+      "evidence": "the schema had no state for a pass that could not be raised",
+      "proposedFix": "record it as invocation not-raised with its gap",
+      "disposition": { "state": "deferred", "detail": "the reviewer scope itself is owed upstream", "tracked": "zheref/nen#561" }
+    }
+  ],
+  "reports": [
+    {
+      "scope": "code",
+      "persona": "Nobunaga",
+      "invocation": "ran",
+      "head": "0123456789abcdef0123456789abcdef01234567",
+      "path": "reports/hanten/nobunaga-round-1.md"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-10-27-11",
+  "effortId": "claude-kurapika-improves-aspects",
+  "n": 8,
+  "gate": "G4",
+  "row": null,
+  "who": "maintainer",
+  "question": "When an improves row has no evidence the repository or scope can give, what does the row say?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Up plus a named gap (Recommended)",
+      "consequence": "keep the up arrow and add a warning glyph naming what would prove it"
+    },
+    {
+      "key": "B",
+      "label": "Drop to unchanged",
+      "consequence": "no evidence means no claim"
+    },
+    {
+      "key": "C",
+      "label": "Up with reasoning",
+      "consequence": "a one-line argument is enough when evidence is not possible; today behaviour"
+    }
+  ],
+  "kind": "picked",
+  "pick": "C",
+  "typed": null,
+  "answeredAt": "2026-10-27T23:32:32.038Z"
+}

@@ -1,0 +1,26 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-05-09",
+  "effortId": "opus-kurapika-ha-501-canon-prose-fold",
+  "n": 2,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "HA#559 OQ-2: the observability job sits in the release family, which carries no ladder, so an observability PR never shows an Observability row. Fix?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Keep exemption, say why ⭐ (Recommended)",
+      "consequence": "Observability stays in the release family; the canon states in one place that this family skips the ladder and what that costs. No taxonomy change."
+    },
+    {
+      "key": "B",
+      "label": "Move the job out",
+      "consequence": "Observability moves to a family that carries the ladder, so its PRs show the Observability row. A taxonomy change; the job's family is re-ruled."
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-11-05T12:22:16.330Z"
+}

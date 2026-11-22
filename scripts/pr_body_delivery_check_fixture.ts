@@ -17,7 +17,7 @@ import { dirname, join, resolve as resolvePath } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { compareBody, normalize, type DeliveryDocument } from "./pr_delivery.ts";
+import { compareBody, DELIVERY_SUMMARY, normalize, type DeliveryDocument } from "./pr_delivery.ts";
 
 const ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const ENGINE = join(ROOT, "scripts/pr_delivery.ts");
@@ -172,6 +172,23 @@ test("reviewer spend attributes initial, numbered and bounded delta passes inclu
   assert.deepEqual(compareBody(`${body}\n# Changes\n`, body), []);
 });
 
+test("a rostered Hanten persona in any letter case renders lowercase; an unrostered one is refused (R-2026-11-04-06)", () => {
+  const sources = [["hanten § 4: Nobunaga, counters unavailable", "nobunaga"], ["hanten § 4: FEITAN round 2, counters unavailable", "feitan"],
+    ["hanten § 4: ChRoLLo delta since 3830f0e, counters unavailable", "chrollo"]];
+  const data = { ...report, phases: [], sessions: [], usage: sources.map(([source]) => ({
+    effort, recordedAt: "2026-10-20T10:01:00.000Z", surface: "codex", model: "sol", dial: "high", source,
+  })) };
+  const before = JSON.stringify(data);
+  assert.deepEqual(normalize(repo, data).deliveryRows.map((row) => row.role), sources.map(([, persona]) => `reviewer · ${persona}`));
+  assert.equal(JSON.stringify(data), before, "a mixed-case source is read, never rewritten");
+  for (const source of ["hanten § 4: Gyro, counters unavailable", "hanten § 4: gyro, counters unavailable", "hanten § 4: Review-Preamble, counters unavailable"]) {
+    assert.throws(() => normalize(repo, { ...report, usage: [{ ...report.usage[0], source }] }), /^Error: usage\[0\]\.source: unknown Hanten reviewer persona .*claude\/agents\/\*\.md$/, source);
+  }
+  // A phase note that merely reads like a reviewer source keeps its phase role, roster or not.
+  const noted = normalize(repo, { ...report, sessions: [], usage: [], phases: [{ ...report.phases[0], note: "hanten § 4: Returned, three findings" }] });
+  assert.ok(noted.deliveryRows.every((row) => !row.role.startsWith("reviewer")), "a phase note never becomes a reviewer row");
+});
+
 test("malformed Hanten usage refuses with the indexed record and expected source forms", () => {
   for (const source of [
     "hanten § 4: chrollo", "hanten § 4: chrollo,", "hanten § 4: chrollo,   ",
@@ -248,9 +265,29 @@ test("Nen alone renders Markdown and the semantic guard names missing, duplicate
   assert.match(compareBody(`${missing}\n# Changes`, rendered).join("\n"), /missing ledger row/);
   const duplicate = rendered.replace(`${dataRows[0]}\n`, `${dataRows[0]}\n${dataRows[0]}\n`);
   assert.match(compareBody(`${duplicate}\n# Changes`, rendered).join("\n"), /extra or duplicate/);
-  const extra = rendered.replace("\n*Drive:*", "\n| foreign | codex | exact: fake · alias: sol | high | fake | fixture |\n\n*Drive:*");
+  const extra = rendered.replace("\n\n</details>", "\n| foreign | codex | exact: fake · alias: sol | high | fake | fixture |\n\n</details>");
   assert.match(compareBody(`${extra}\n# Changes`, rendered).join("\n"), /extra or duplicate/);
   assert.match(compareBody(`${rendered.replace("*Drive:*", "*Drive:* changed ")}\n# Changes`, rendered).join("\n"), /Drive must name/);
+  // The ledger is collapsed under the Drive line (maintainer request 2026-11-16): an expanded
+  // table, a Drive line moved below it, or content after </details> is refused by name.
+  assert.match(rendered, /\n\n\*Drive:\* [^\n]+\n\n<details><summary>[^\n]+<\/summary>\n\n\| Role \|/);
+  assert.match(rendered, /\|\n\n<\/details>\n?$/);
+  const expanded = rendered.replace(/<details><summary>[^\n]+<\/summary>\n\n/, "").replace("\n</details>", "");
+  assert.match(compareBody(`${expanded}\n# Changes`, rendered).join("\n"), /canonical collapsed <details> summary/);
+  const drive = (/^\*Drive:\* .*$/m.exec(rendered) as RegExpExecArray)[0];
+  const driveBelow = rendered.replace(`${drive}\n\n`, "").replace("</details>", `</details>\n\n${drive}`);
+  assert.match(compareBody(`${driveBelow}\n# Changes`, rendered).join("\n"), /Drive must be the first line/);
+  assert.match(compareBody(`${rendered.trimEnd()}\n\nstray note\n# Changes`, rendered).join("\n"), /closing <\/details>, nothing after it/);
+  // hanten P2: a heading glued to </details> is swallowed; C3: the template's summary is the guard's.
+  assert.match(compareBody(`${rendered.trimEnd()}\n# Changes`, rendered).join("\n"), /blank line before the next heading/);
+  assert.equal(rendered.split("\n")[4], DELIVERY_SUMMARY);
+  // Nobunaga: the moved header and table window each refuse by name.
+  assert.match(compareBody(`${rendered.replace("| Role | Surface |", "| Role | Runtime |")}\n# Changes`, rendered).join("\n"), /table header differs/);
+  assert.match(compareBody(`${rendered.replace("\n\n</details>", "\nstray\n\n</details>")}\n# Changes`, rendered).join("\n"), /non-row content inside its table/);
+  // hanten F1: an HTML comment on the free lines around Drive would hide the whole ledger.
+  assert.match(compareBody(`${rendered.replace("## 📬 Delivery\n\n", "## 📬 Delivery\n<!--\n")}\n# Changes`, rendered).join("\n"), /content outside its canonical lines/);
+  assert.match(compareBody(`${rendered.replace(`${drive}\n\n`, `${drive}\n<!--\n`)}\n# Changes`, rendered).join("\n"), /content outside its canonical lines/);
+  assert.match(compareBody(`${rendered.replace(`${dataRows[0]}\n`, `${dataRows[0]}\n\n`)}\n# Changes`, rendered).join("\n"), /non-row content inside its table/);
 });
 
 test("CLI writes mode 0600 and refuses output and input symlinks", () => {
@@ -339,9 +376,19 @@ exec "$REAL_NEN" "$@"
   // ...and never stands in when the plugin's own is missing: a plugin root without it refuses.
   const bare = join(temp, "bare-plugin"); mkdirSync(join(bare, "scripts"), { recursive: true });
   for (const file of ["pr_body_delivery_check.sh", "pr_delivery.ts"]) writeFileSync(join(bare, "scripts", file), readFileSync(join(ROOT, "scripts", file)));
+  // The roster the reviewer rows are checked against (R-2026-11-04-06) is present, so the refusal is the template's alone.
+  mkdirSync(join(bare, "claude", "agents"), { recursive: true });
+  for (const persona of ["chrollo", "hisoka"]) writeFileSync(join(bare, "claude", "agents", `${persona}.md`), "");
   const noTemplate = run("bash", [join(bare, "scripts/pr_body_delivery_check.sh"), "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
   assert.equal(noTemplate.status, 2, `${noTemplate.stdout}${noTemplate.stderr}`);
   assert.match(noTemplate.stderr, /bare-plugin\/scripts\/\.\.\/templates\/pr-delivery\.md/);
+  // A plugin root with no roster refuses at the reviewer rows, naming the roster it could not read.
+  const rosterless = join(temp, "rosterless-plugin"); mkdirSync(join(rosterless, "scripts"), { recursive: true }); mkdirSync(join(rosterless, "templates"), { recursive: true });
+  for (const file of ["pr_body_delivery_check.sh", "pr_delivery.ts"]) writeFileSync(join(rosterless, "scripts", file), readFileSync(join(ROOT, "scripts", file)));
+  writeFileSync(join(rosterless, "templates", "pr-delivery.md"), readFileSync(TEMPLATE));
+  const noRoster = run("bash", [join(rosterless, "scripts/pr_body_delivery_check.sh"), "--body", body, "--repo", repo, "--base", "main", "--gate-forecast", "G4"], repo, env);
+  assert.equal(noRoster.status, 2, `${noRoster.stdout}${noRoster.stderr}`);
+  assert.match(noRoster.stderr, /cannot read the Hanten roster at .*rosterless-plugin\/claude\/agents/);
   rmSync(join(repo, "templates"), { recursive: true, force: true });
   // Through a symlinked plugin root (~/.claude/skills/hatsu is one), from a cwd outside the target.
   const linked = join(temp, "linked plugin root"); symlinkSync(ROOT, linked);

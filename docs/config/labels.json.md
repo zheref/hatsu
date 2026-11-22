@@ -1,12 +1,12 @@
 # `nen/labels.json` — the label vocabulary every filing and classification is checked against
 
-> **Lives in** the consumer repository · **Written by** `nen classify install --write` for the `lang/` and `job/` families, the maintainer by hand for every other label (the first Hatsu declaration was hand-written, byte-equal to what the verb writes); pushed to GitHub by `nen labels sync` and `nen classify install --sync` · **Validated by** the `nen/labels.json` row of `nen schema check --repo .` (the description length guard runs at schema load) · **Authority** [`contracts/classify.taxonomy.json`](../../contracts/classify.taxonomy.json) for the two classification families; this file for everything else
+> **Lives in** the consumer repository · **Written by** `nen classify install --write` for the `lang/` and `job/` axes and the install-only `model/` family, the maintainer by hand for every other label (the first Hatsu declaration was hand-written, byte-equal to what the verb writes); pushed to GitHub by `nen labels sync` and `nen classify install --sync` · **Validated by** the `nen/labels.json` row of `nen schema check --repo .` (the description length guard runs at schema load) · **Authority** [`contracts/classify.taxonomy.json`](../../contracts/classify.taxonomy.json) for the two classification axes and the `families` it declares; this file for everything else
 
 ## What it decides
 
 This file is the one source of truth for the repository's labels: `nen issue file` checks every label of a filing against it, `nen label apply --repo <checkout>` refuses a label it does not declare, and `hatsu:classify` proposes only keys in the taxonomy ∩ this declaration. `hatsu:file` validates its plan against it at every filing; `hatsu:direct` applies its opt-in `model/<line>` verdict only where the five `model/` labels are declared; `hatsu:futon` applies `bankai:stage/building` and a severity on issues in scope through `nen label apply`, which reads the taxonomy here; `hatsu:backlog-loop` and `hatsu:backlog-synthesis` read the severity family from it and nowhere else.
 
-When it is wrong the failures are of two kinds. A label declared here but never created on GitHub returns zero matches, so a severity precondition reports none open because nothing could match (tenkai § 4a: the declaration is the record, the provisioning is the gate). A label applied by hand that this file does not declare is invisible to every verb, and a stage, severity or gate family invented inside a filing is a `G4` canon decision made in the wrong place. The file asserts filing validation only: it never invents a stage, routing or gate taxonomy.
+When it is wrong the failures are of two kinds. A label declared here but never created on GitHub returns zero matches, so a severity precondition reports none open because nothing could match (tenkai § 4a: the declaration is the record, the provisioning is the gate). A label applied outside `nen label apply` that this file does not declare is invisible to every verb, and a stage, severity or gate family invented inside a filing is a `G4` canon decision made in the wrong place. The file asserts filing validation only: it never invents a stage, routing or gate taxonomy.
 
 ## Keys
 
@@ -96,7 +96,7 @@ The two axes of [`contracts/classify.taxonomy.json`](../../contracts/classify.ta
 
 ### The verdict family: `model/<line>`
 
-`hatsu:direct`'s opt-in verdict label (colour `0e8a16`), one per model line of [`contracts/direct.registry.json`](../../contracts/direct.registry.json) → `publish.label`. The value is the primary pick's line only, never a tier, version, surface or effort. Applied through `nen label apply`, never `nen classify` (whose contract carries exactly `lang` and `job`), and only where `nen/workflow.json` → `direct.publish` is `label` or `label+comment`.
+`hatsu:direct`'s opt-in verdict label (colour `0e8a16`), one per model line of [`contracts/direct.registry.json`](../../contracts/direct.registry.json) → `publish.label`. The value is the primary pick's line only, never a tier, version, surface or effort. Declared by `nen classify install --write` from the taxonomy's install-only `families.model` block (zheref/hatsu#538, Nen v0.30.0); applied through `nen label apply`, never `nen classify apply` (whose contract classifies on exactly `lang` and `job`), and only where `nen/workflow.json` → `direct.publish` is `label` or `label+comment`.
 
 | Key | Meaning |
 |---|---|
@@ -112,8 +112,8 @@ The two axes of [`contracts/classify.taxonomy.json`](../../contracts/classify.ta
 |---|---|---|
 | 1 | `nen classify install --taxonomy "$hatsu_root/contracts/classify.taxonomy.json" --repo <checkout>` | report only: present, `drift`, absent, `foreign`; exit `1` while anything is absent or stale |
 | 2 | the same with `--write` | rewrites this file so every taxonomy label is present; uncommitted, it lands through the consumer's own declaration PR |
-| 3 | `nen classify install … --sync --target <owner/name>` | creates or updates the taxonomy's labels on GitHub, and only those; refused at exit `1` while step 2 has not landed |
-| 4 | `nen labels sync --target <owner/name> --repo <checkout> [--dry-run]` | create-or-update every label here, including the `model/` family and the repository's own; one rejected description never aborts the run |
+| 3 | `nen classify install … --sync --target <owner/name>` | creates or updates the taxonomy's labels on GitHub, the `model/` family included, and only those; refused at exit `1` while step 2 has not landed |
+| 4 | `nen labels sync --target <owner/name> --repo <checkout> [--dry-run]` | create-or-update every label here, the repository's own included; one rejected description never aborts the run |
 | any | `nen labels rename --target <o/n> --map from=to` | renames in place, preserving every issue association |
 
 `--write` and `--sync` together are a usage error. A GitHub sync before the declaration lands is what `hatsu:classify` § *Hard limits* forbids.

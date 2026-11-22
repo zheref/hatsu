@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Prove scripts/prose_size_check.sh (zheref/hatsu#119): a tree within every ceiling is exit 0; one file
 # over is exit 1 naming the file, its size and its ceiling; a dieted skill missing from disk is named;
+# an entry that exists and is not a regular file is an offender by name, under --headroom too;
 # kurapika.md is exempt; a rules file is measured in characters; --headroom prints one row per measured
 # file, smallest margin first, with the same exit code as the plain run; an unknown flag, an empty root,
 # a second root and a root that is not a Hatsu checkout are wiring refusals at exit 2; a symlink that
@@ -183,6 +184,30 @@ rm "$missing/claude/skills/futon/SKILL.md"
 run 1 "$missing"
 assert_contains "$out" 'MISSING  claude/skills/futon/SKILL.md -- named on the diet list and not on disk' 'the missing skill is named'
 
+# --- a listed name that is not a regular file is an offender, never a silent skip (zheref/hatsu#354) ---
+notafile="$fixture_root/notafile"
+make_root "$notafile"
+rm "$notafile/claude/skills/futon/SKILL.md"
+mkdir "$notafile/claude/skills/futon/SKILL.md"
+run 1 "$notafile"
+assert_contains "$out" 'NOTAFILE  claude/skills/futon/SKILL.md -- not a regular file, not measured' 'a directory where a listed SKILL.md is expected is named'
+assert_lacks "$out" 'prose ok' 'it never reads green'
+# A FIFO there under --headroom, the mode CI always runs: the headroom helper sizes a path by stat and
+# never opens it, so the guard returns its exit 1 where a read blocked for ever (Copilot, HA-PR-#613).
+# The alarm turns a regression into a failed case, never a hung lane.
+fifo="$fixture_root/fifo"
+make_root "$fifo"
+rm "$fifo/claude/skills/futon/SKILL.md"
+mkfifo "$fifo/claude/skills/futon/SKILL.md"
+set +e
+out="$(perl -e 'alarm shift; exec @ARGV' 30 "${guard_command[@]}" --headroom "$fifo" 2>&1)"
+code=$?
+set -e
+[ "$code" -eq 1 ] || fail "a FIFO at a listed SKILL.md under --headroom exited $code, expected 1 (142 is the alarm: the guard hung): $out"
+assert_contains "$out" 'NOTAFILE  claude/skills/futon/SKILL.md -- not a regular file, not measured' 'a FIFO at a listed name is an offender under --headroom'
+assert_lacks "$out" 'prose ok' 'and never reads green'
+
+
 # --- wiring refusals: an unknown flag, a root that is not a Hatsu checkout, an empty or doubled root ---
 run 2 --bogus "$clean"
 assert_contains "$out" 'unknown flag --bogus (known: --headroom, -- ends the flags)' 'an unknown flag is refused by name'
@@ -213,7 +238,7 @@ ln -s "$fixture_root/outside.md" "$escape/claude/agents/zz.md"
 run 1 --headroom "$escape"
 assert_contains "$out" 'OUTSIDE  claude/agents/zz.md -- resolves to a path outside the root, not measured' 'a symlink leaving the root is an offender, never measured'
 assert_lacks "$out" 'claude/agents/zz.md  ' 'the escaped path has no report row'
-assert_contains "$out" 'unreadable, unlistable, unmeasurable, dangling or outside the root' 'the verdict names the class'
+assert_contains "$out" 'unreadable, unlistable, unmeasurable, dangling, not a regular file or outside the root' 'the verdict names the class'
 chain="$fixture_root/chain"
 make_root "$chain"
 printf '%s\n' 'outside' > "$fixture_root/outside-chain.md"
@@ -381,4 +406,4 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 bash "$script_dir/fixture_output_guard_fixture.sh"
-echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
+echo "prose-size-fixture: ok (clean, headroom report and its order, the ceiling edge, over by one, characters, invalid UTF-8, a missing diet entry, a non-regular file at a listed name (a directory, a FIFO under --headroom), the argument refusals, a symlink out, a chain of them out, a dangling one, an unlistable directory, an unreadable file, a description over the 1024-character cap in source and mirrors, block, folded, multi-line, quoted and CRLF descriptions measured whole with their chomping, invalid UTF-8 (exactly, a few stray bytes included) and duplicate keys refused, quoted keys, a space before the colon, aliases, anchors and a BOM refused by name, unlistable mirror directories, one finding per path)"
