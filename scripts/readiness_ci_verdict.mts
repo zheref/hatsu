@@ -2,12 +2,18 @@
 // Format a trusted nen pr ready JSON result for the advisory GitHub check (#131).
 // This runs from .trusted, never from the pull request checkout.
 import { randomBytes } from "node:crypto";
-import { appendFileSync, realpathSync } from "node:fs";
+import { appendFileSync, existsSync, lstatSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-type Result = { title: string; summary: string };
+export type Result = { title: string; summary: string };
+export type PluginVersionCheckResult =
+  | { status: "ok" }
+  | { status: "failed"; detail: string }
+  | { status: "superseded" }
+  | { status: "undetermined"; detail: string };
 type Conjunct = { id: string; clause: string; order: number; status: string; reason: string | null; missing: string | null };
 
 const SHA = /^[0-9a-f]{40}$/;
@@ -98,6 +104,107 @@ function writeOutput(path: string, result: Result): void {
   appendFileSync(path, `title<<${delimiter}\n${result.title}\n${delimiter}\nsummary<<${delimiter}\n${result.summary}\n${delimiter}\n`);
 }
 
+function sanitizePluginDiagnostic(stderrText: string): string {
+  const safeLines = stderrText
+    .split("\n")
+    .map((line) => line.replace(/[\u0000-\u001f\u007f-\u009f]/g, " ").trim())
+    .filter((line) =>
+      /^plugin\.json version /.test(line) ||
+      /^head version /.test(line) ||
+      /^- PR #[0-9]+/.test(line)
+    )
+    .slice(0, 5);
+  const joined = safeLines.join("; ");
+  return (joined || "plugin.json version failed freshness or collision check").slice(0, 320);
+}
+
+export function applyPluginVersionCheck(verdict: Result, check: PluginVersionCheckResult): Result {
+  if (check.status === "ok") return verdict;
+  if (check.status === "superseded") {
+    return {
+      title: "superseded",
+      summary: "The pull request head moved during plugin-version evaluation. This run asserts no readiness verdict.",
+    };
+  }
+  if (check.status === "undetermined") {
+    if (verdict.title === "superseded") return verdict;
+    const summary = [verdict.summary, `plugin-version check undetermined — ${check.detail}`].filter(Boolean).join("\n");
+    if (verdict.title === "not-ready") {
+      return { title: "not-ready", summary };
+    }
+    return {
+      title: "readiness undetermined",
+      summary,
+    };
+  }
+  if (verdict.title === "superseded" || verdict.title === "readiness undetermined") {
+    return verdict;
+  }
+  const summaryBody = verdict.summary.replace(/^Verdict: (ready|unevaluated)\n/, "Verdict: not-ready\n");
+  return {
+    title: "not-ready",
+    summary: `${summaryBody}\nplugin-version (HA#545): failed — ${check.detail}`,
+  };
+}
+
+export function runPluginVersionCheck(repo: string, pr: string, expectedHead: string): PluginVersionCheckResult {
+  const apiScript = resolve(".trusted/scripts/plugin_bump_api_retry.mts");
+  const bumpScript = resolve(".trusted/scripts/plugin_bump_check.sh");
+  const headManifest = resolve(".claude-plugin/plugin.json");
+  if (!existsSync(apiScript) || !existsSync(bumpScript)) {
+    return { status: "ok" };
+  }
+  const workDir = mkdtempSync(join(tmpdir(), "hatsu-readiness-bump-"));
+  try {
+    const changedFilesPath = join(workDir, "changed-files.txt");
+    const baseManifestPath = join(workDir, "base-plugin.json");
+    const apiRun = spawnSync(
+      process.execPath,
+      [
+        apiScript,
+        "--repo", repo,
+        "--pr", pr,
+        "--base-from-pr",
+        "--expected-head", expectedHead,
+        "--changed-files", changedFilesPath,
+        "--base-manifest", baseManifestPath,
+      ],
+      { encoding: "utf8", maxBuffer: 2 * 1024 * 1024, timeout: 60_000 },
+    );
+    if (apiRun.status === 8) return { status: "superseded" };
+    if (apiRun.error || apiRun.status !== 0) {
+      return { status: "undetermined", detail: "plugin-bump API inputs could not be verified" };
+    }
+    let manifestOk = false;
+    try {
+      const stat = lstatSync(headManifest);
+      manifestOk = stat.isFile() && !stat.isSymbolicLink();
+    } catch {
+      manifestOk = false;
+    }
+    if (!manifestOk) {
+      return { status: "failed", detail: ".claude-plugin/plugin.json is missing, a symlink, or not a regular file" };
+    }
+    const bumpRun = spawnSync(
+      "bash",
+      [bumpScript, "--version-only", changedFilesPath, baseManifestPath, headManifest],
+      {
+        encoding: "utf8",
+        maxBuffer: 2 * 1024 * 1024,
+        timeout: 30_000,
+        env: { ...process.env, GH_TOKEN: "", GITHUB_TOKEN: "" },
+      },
+    );
+    if (bumpRun.status === 0) return { status: "ok" };
+    if (bumpRun.status === 1) {
+      return { status: "failed", detail: sanitizePluginDiagnostic(bumpRun.stderr ?? "") };
+    }
+    return { status: "undetermined", detail: `plugin-bump check exited ${bumpRun.status ?? "unknown"}` };
+  } finally {
+    rmSync(workDir, { recursive: true, force: true });
+  }
+}
+
 function main(): void {
   const { NEN, REPO, PR, RUN_ID, EVENT_HEAD, GITHUB_OUTPUT } = process.env;
   if (!NEN || !REPO || !PR || !RUN_ID || !EVENT_HEAD || !GITHUB_OUTPUT || !SHA.test(EVENT_HEAD)) {
@@ -107,9 +214,12 @@ function main(): void {
     resolve(".trusted/nen/gates.json"), "--exclude-run", RUN_ID,
     "--exclude-check", "readiness", "--require-head", EVENT_HEAD];
   const run = spawnSync(NEN, args, { encoding: "utf8", maxBuffer: 2 * 1024 * 1024, timeout: 60_000 });
-  const result = run.error
+  let result = run.error
     ? { title: "readiness undetermined", summary: "Nen could not be executed to a usable result." }
     : formatVerdict(run.stdout, run.status ?? -1, EVENT_HEAD);
+  if (result.title !== "superseded" && result.title !== "readiness undetermined") {
+    result = applyPluginVersionCheck(result, runPluginVersionCheck(REPO, PR, EVENT_HEAD));
+  }
   writeOutput(GITHUB_OUTPUT, result);
   // The title is only Nen's validated verdict vocabulary; no PR-derived text enters logs.
   process.stdout.write(`readiness: ${result.title}\n`);
