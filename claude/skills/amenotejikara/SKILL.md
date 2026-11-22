@@ -18,7 +18,7 @@ which tree the **core checkout** holds.
 > **Show me every checkout. Put that one's work in front of Xcode. Put mine back when I say so.**
 
 Efforts run in worktrees; the maintainer builds and debugs from the **core** checkout, and
-[`amaterasu`](../amaterasu/SKILL.md) § 3 launches from nowhere else — a worktree build races the one
+[`amaterasu`](../amaterasu/SKILL.md) § 3 launches core/`ren` turns from nowhere else — an uncoordinated worktree build races the one
 they are looking at over one derived-data directory, bundle id and device, and a fresh worktree lacks
 the untracked local config the declaration's preconditions need. **So a worktree is never opened in
 the IDE; its tree is brought into core**, where the project path, derived data, signing and local
@@ -133,4 +133,4 @@ worktree's branch on `--take` / `return`; write the parked commit, its ref and t
   session it detaches.
 - **Never touches an ignored file**, and never improvises a swap with raw `git checkout` / `git stash` —
   nen's verb is the only way.
-- **Never opens a worktree in the IDE or launches from one** — that is amaterasu § 3's rule, kept.
+- **Never opens a worktree in the IDE or launches core/`ren` from one** — `amaterasu` § 3 stays intact, while explicit local previews without swaps follow `amaterasu` § 3b.
