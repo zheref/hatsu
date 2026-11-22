@@ -4,9 +4,9 @@ import { existsSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { catalogue } from './pr_sections.ts';
-import { history, readSections, summary } from './pr_sections_history.ts';
+import { history, readSections, summary, UnknownCatalogueError, unknownCatalogueReading } from './pr_sections_history.ts';
 import { declarationText, strictJson } from './config_values_refresh.ts';
-import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction, type Fix, type Item } from './tenkai_fixes.ts';
+import { adoptionNotices, fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction, type Fix, type Item } from './tenkai_fixes.ts';
 import {
   adoptionRole, adoptLegacyRequiredContext, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness, LEGACY_READINESS,
   READINESS_CONTEXT_CHANGED, READINESS_WORKFLOW, readinessInputs, readReadinessTemplate, registryText,
@@ -22,6 +22,7 @@ type AdoptionReport = {
   items: AdoptionItem[];
   outstanding: number;
   guide: ReturnType<typeof guide>;
+  notices?: ReturnType<typeof adoptionNotices>;
 };
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -167,7 +168,14 @@ function run(): number {
       refreshed = before !== declarationText(repo, 'nen/workflow.json');
       finding = undefined;
     }
-  } catch (error) { finding = { state: 'blocked', detail: plain(error instanceof Error ? error.message : error) }; }
+  } catch (error) {
+    if (error instanceof UnknownCatalogueError) {
+      const reading = unknownCatalogueReading(error);
+      finding = { state: 'blocked', detail: summary(reading), prSections: reading };
+    } else {
+      finding = { state: 'blocked', detail: plain(error instanceof Error ? error.message : error) };
+    }
+  }
   // A refused refresh never falls through to the mutating frozen adopter.
   const applying = mode === 'apply' && finding?.state !== 'blocked' && !routeFailure;
   const result = applying ? legacy(['apply', ...adoptedParameters], repo, frozenReadiness)
@@ -192,7 +200,10 @@ function run(): number {
     }
   }
   if (finding || refreshed) {
-    document.items.push({ id: 'pr.sections', title: 'PR-section catalogue freshness', owner: 'hatsu', action: finding ? `config_values.sh fill --refresh --repo ${quote(plain(repo))}` : null,
+    const action = finding?.prSections?.status === 'unknown-catalogue'
+      ? 'update the Hatsu plugin (hatsu:bakuryuha), then re-run diagnose'
+      : finding ? `config_values.sh fill --refresh --repo ${quote(plain(repo))}` : null;
+    document.items.push({ id: 'pr.sections', title: 'PR-section catalogue freshness', owner: 'hatsu', action,
       ...(finding ?? { state: 'repaired', detail: 'pr.sections: refreshed unedited defaults and options; consumer-owned cells retained' }) });
   }
   // HA#535: every outstanding row names its fix — run, edit, detect and who supplies the value.
@@ -203,6 +214,8 @@ function run(): number {
   }
   document.outstanding = document.items.filter(row => OUTSTANDING.includes(row.state)).length;
   document.guide = guide(document.items);
+  const notices = adoptionNotices(repo);
+  document.notices = notices;
   if (json) process.stdout.write(JSON.stringify(document, null, 2) + '\n');
   else {
     process.stdout.write(`repository: ${plain(document.repo)}\nslug:       ${plain(document.slug ?? '(unreadable)')}\n`);
@@ -231,6 +244,10 @@ function run(): number {
       if (unmapped.length) process.stdout.write(`  5. unmapped (${unmapped.length}): ${list(unmapped)} — no catalogue row names a fix: a defect to file\n`);
       process.stdout.write(`then re-run diagnose: the outstanding count goes down by every item that settled.\n`);
     } else process.stdout.write('\nevery item is satisfied — this repository is a working Hatsu consumer.\n');
+    if (notices.length) {
+      process.stdout.write('\nnon-blocking adoption notices:\n');
+      for (const notice of notices) process.stdout.write(`  - ${plain(notice.message)}\n`);
+    }
   }
   process.stderr.write(result.stderr ?? '');
   return document.outstanding ? 1 : 0;

@@ -85,6 +85,7 @@ test('diagnose reads all six cell states without changing a packaged source or c
   expect(legacy.status, legacy.stderr).toBe(0);
   const row = JSON.parse(legacy.stdout).values.find((row: any) => row.id === 'workflow.pr.sections');
   expect(row.detail).toMatch(/^pr.sections: unstamped/);
+  expect(row.detail).not.toContain('; process.build: unstamped');
   expect(row.detail.split('\n')).toHaveLength(1);
   expect(row.prSections.cells.find((cell: any) => cell.cell === 'process.build')).toMatchObject({ state: 'unstamped', matchesCurrent: false, ownership: 'unknown' });
 });
@@ -256,4 +257,91 @@ test('released Nen schema and actual resolver accept stamps and every dollar-pre
   expect(extra.status, extra.stderr).toBe(0); expect(JSON.parse(extra.stdout)).toEqual(JSON.parse(before.stdout));
   const schema = spawnSync(nen!, ['schema', 'check', '--repo', f.repo], { encoding: 'utf8' });
   expect(schema.stdout + schema.stderr).toMatch(/nen\/workflow\.json.*ok|ok.*nen\/workflow\.json/);
+});
+
+test('HA#560 AC-1/AC-2/AC-3/SC-1: an unknown or newer pr.sections stamp reports that row alone without aborting diagnose', () => {
+  const f = fixture();
+  symlinkSync(join(ROOT, 'scripts'), join(f.root, 'scripts'), 'dir');
+  const fullCatalogue = JSON.parse(readFileSync(join(ROOT, 'contracts/config-catalogue.json'), 'utf8'));
+  fullCatalogue.values = fullCatalogue.values.filter((row: any) =>
+    ['workflow.branch.base', 'workflow.branch.template', 'workflow.pr.sections', 'workflow.pr.sections.max'].includes(row.id));
+  writeFileSync(join(f.root, 'contracts/config-catalogue.json'), json(fullCatalogue));
+
+  const unknownSha = 'b'.repeat(64);
+  f.write({ ...f.value, $canon: { contract: f.current.contract, sha256: unknownSha } });
+  const before = text(f);
+
+  const diagJson = run(f, 'diagnose', '--json');
+  expect([0, 1], diagJson.stderr).toContain(diagJson.status);
+  const parsed = JSON.parse(diagJson.stdout);
+  expect(parsed.values.map((row: any) => row.id)).toEqual(
+    expect.arrayContaining(['workflow.branch.base', 'workflow.branch.template', 'workflow.pr.sections', 'workflow.pr.sections.max']),
+  );
+  const prRow = parsed.values.find((row: any) => row.id === 'workflow.pr.sections');
+  expect(prRow.state).not.toBe('blocked');
+  expect(prRow.detail).toMatch(/newer or unknown/i);
+  expect(prRow.detail).toMatch(/bakuryuha|update the Hatsu plugin/i);
+  expect(prRow.prSections).toMatchObject({
+    status: 'unknown-catalogue',
+    stampedSha: unknownSha,
+    stampedSha7: 'bbbbbbb',
+    catalogueSha: f.current.documentSha256,
+    catalogueSha7: f.current.documentSha256.slice(0, 7),
+    cells: [],
+  });
+  expect(parsed.values.find((row: any) => row.id === 'workflow.branch.base').state).toBe('default-unwritten');
+
+  const diagText = run(f, 'diagnose');
+  expect([0, 1], diagText.stderr).toContain(diagText.status);
+  expect(diagText.stdout).toContain('branch.base');
+  expect(diagText.stdout).toMatch(/newer or unknown/i);
+  expect(diagText.stdout).toMatch(/update the Hatsu plugin/i);
+  expect(text(f)).toBe(before);
+
+  const tenkaiScript = join(ROOT, 'scripts/tenkai_adopt.sh');
+  const tenkaiDiag = spawnSync('bash', [tenkaiScript, 'diagnose', '--repo', f.repo, '--hatsu-root', f.root, '--slug', 'fixture/consumer', '--visibility', 'public', '--self-hosted', '0', '--json'], { encoding: 'utf8' });
+  expect(tenkaiDiag.status, tenkaiDiag.stderr).toBe(1);
+  const inbox = JSON.parse(tenkaiDiag.stdout);
+  expect(inbox.items.find((row: any) => row.id === 'config/defaults').state).not.toBe('blocked');
+  expect(inbox.items.find((row: any) => row.id === 'config/needed')).toBeTruthy();
+  const sectionItem = inbox.items.find((row: any) => row.id === 'pr.sections');
+  expect(sectionItem).toMatchObject({
+    state: 'blocked',
+    prSections: { status: 'unknown-catalogue', stampedSha7: 'bbbbbbb' },
+    fix: { fill: 'route' },
+  });
+  expect(sectionItem.detail).toMatch(/newer or unknown/i);
+  expect(sectionItem.fix.edit).toMatch(/bakuryuha|update the installed Hatsu plugin/i);
+
+  // AC-3: refresh and apply write nothing.
+  expect(run(f, 'fill', '--refresh', '--json').status).toBe(2);
+  expect(text(f)).toBe(before);
+  const tenkaiApply = spawnSync('bash', [tenkaiScript, 'apply', '--repo', f.repo, '--hatsu-root', f.root, '--slug', 'fixture/consumer', '--visibility', 'public', '--self-hosted', '0', '--json'], { encoding: 'utf8' });
+  expect(tenkaiApply.status).toBe(1);
+  expect(JSON.parse(tenkaiApply.stdout).items.find((row: any) => row.id === 'pr.sections').state).toBe('blocked');
+  expect(text(f)).toBe(before);
+  expect(existsSync(join(f.repo, '.github'))).toBe(false);
+  expect(existsSync(join(f.repo, 'scripts'))).toBe(false);
+
+  // Phinks QA-16: newer stamp with raised cap (max: 8) and newer contract version (v2) still classifies unknown-catalogue,
+  // and malformed pr.sections leaves unrelated keys diagnosed cleanly.
+  f.write({ max: 8, variants: clone(f.previous.variants), $canon: { contract: 'hatsu.pr-sections/v2', sha256: unknownSha } });
+  const raisedCap = run(f, 'diagnose', '--json');
+  expect([0, 1], raisedCap.stderr).toContain(raisedCap.status);
+  const raisedParsed = JSON.parse(raisedCap.stdout);
+  expect(raisedParsed.values.find((row: any) => row.id === 'workflow.branch.base').state).toBe('default-unwritten');
+  expect(raisedParsed.values.find((row: any) => row.id === 'workflow.pr.sections').prSections.status).toBe('unknown-catalogue');
+
+  f.write('oops');
+  const malformedRow = run(f, 'diagnose', '--json');
+  expect([0, 1], malformedRow.stderr).toContain(malformedRow.status);
+  const malformedParsed = JSON.parse(malformedRow.stdout);
+  expect(malformedParsed.values.find((row: any) => row.id === 'workflow.branch.base').state).toBe('default-unwritten');
+  expect(malformedParsed.values.find((row: any) => row.id === 'workflow.pr.sections').detail).toMatch(/^pr\.sections: invalid/);
+
+  // Feitan SEC-7: Object.prototype property names (e.g. toString) are never mistaken for catalogued cells.
+  const protoVal: any = clone(f.value);
+  protoVal.variants.toString = ['changes', 'why', 'improves', 'verify'];
+  const protoReading = readSections(protoVal, catalogue(f.root), history(f.root, catalogue(f.root)));
+  expect(protoReading.cells.find((c: any) => c.cell === 'toString')).toMatchObject({ state: 'retired', ownership: 'consumer-owned' });
 });

@@ -99,6 +99,8 @@ nen repo resolve <CODE> --repo <path to the target repo's own checkout>
 nen ref format --code <CODE> --kind PR --number <N>
 ```
 
+**After warm-up (`/ten en`), relay `tenkai_adopt.sh diagnose --json`'s `notices[]` for `nen/gates.json` and `nen/decisions.json` on a consumer repository.** If either declaration is absent, print one short non-blocking notice per missing file naming it and its consequence (`nen/gates.json`: `nen pr ready` cannot read declared reviewers or approvers without explicit flags; `nen/decisions.json`: `nen stop answer` warns on recorded picker answers and no consumer decision overrides apply); a consumer declaring both sees no notice.
+
 **A closed or merged PR ends the run immediately** with what happened to it. There is nothing to
 land.
 
@@ -312,7 +314,7 @@ one-directional confirmation pass that may only veto. Read it there.
 
 Two things en relies on and does not re-derive:
 
-- **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
+- **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check --requirements-from <resolved-requirements.json>` (resolved from `contracts/pr-sections.json`) says every requirement is
   satisfied AND `nen pr converge`
   (`nen pr converge --target <owner/name> --pr <N> --catalogue "$hatsu_root/contracts/issue-sections.json"`, HR-11) exits `0`**, all
   deterministic, none re-derived by eye: converge's exit `1` is not ready, whatever it blocks on.
@@ -373,13 +375,15 @@ hold at the **same current full head SHA**:
    claim; title, branch name and session memory cannot replace it.
 2. `"$hatsu_root/scripts/gh_token_env.sh" nen pr ready <N> --gh-repo <owner/name> --require-head <SHA> --explain` exits `0` and says
    **Ready**. The reviewer sixth stop and exhausted bot limits do **not** qualify.
-3. `nen pr body-check` succeeds against the live body and the current
-   `contracts/pr-body.requirements.json` from this plugin root, and
+3. Resolve the PR's required sections from `contracts/pr-sections.json` (the single source of truth for
+   required sections) with `"$hatsu_root/scripts/pr_sections_resolve.sh"` (as [docs/PR-SECTIONS.md](../../../docs/PR-SECTIONS.md) § *Resolve the run*
+   specifies, writing `<resolved-requirements.json>`), then confirm `nen pr body-check --requirements-from <resolved-requirements.json>`
+   succeeds against the live body and
    `nen pr converge --target <owner/name> --pr <N> --catalogue "$hatsu_root/contracts/issue-sections.json"` exits `0` beside it, or is
    not applicable as § 4 reads it (HR-357, record R-2026-10-24-01; quote converge's `closingSource` in the
    register row). Otherwise converge's exit `1` is not ready, whatever it blocks on (HR-11). En still settles every
    finding and thread under § 4 before this gate.
-4. `nen pr merge <N> --delivery --requirements-from <absolute plugin-root contracts/pr-body.requirements.json> --repo <effort-worktree> --require-head <SHA>` returns a passing plan. Nen independently checks
+4. `nen pr merge <N> --delivery --requirements-from <resolved-requirements.json> --repo <effort-worktree> --require-head <SHA>` returns a passing plan. Nen independently checks
    the non-main, unprotected base, Ready, body, current head and author. Run the same command
    with `--run` only after those gates pass; then read GitHub's `mergedAt` and base back. Its
    exit `7` means authority was unconfirmed after merge and is an urgent G5 report, never success.
@@ -428,7 +432,7 @@ and resolved. **Every other PR reaches the human gate after the checks below in 
    maintainer-made merge with no conflicted path, the settled round carries over unchanged (§ 3).
    **A CI reviewer lane** — its round, why it is never requested, its place in the quorum and when it is
    unavailable — is [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*, stated once there.
-3. **The body** — `nen pr body-check` satisfied against the live body.
+3. **The body** — `nen pr body-check --requirements-from <resolved-requirements.json>` (resolved from `contracts/pr-sections.json`) satisfied against the live body.
 4. **The Development links** — the guard's `0` quoted against the live PR, re-run after any
    `edit-body`; `retarget-pending` is check 1 failing (case (2)), `not-applicable` is case (3), quoted
    in the `0`'s place at the human gate. Any other line is a finding to fix before that handoff.
