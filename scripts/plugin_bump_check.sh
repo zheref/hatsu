@@ -421,6 +421,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/tenkai_adopt.sh'
   'scripts/tenkai_adopt.ts'
   'scripts/tenkai_adopt_legacy.sh'
+  'scripts/tenkai_fixes.ts'
   'scripts/tenkai_trailer_guard.mts'
   'scripts/consumer_trailer_ci.mts'
   'scripts/pr_sections_history.ts'

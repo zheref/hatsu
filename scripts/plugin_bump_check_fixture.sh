@@ -87,6 +87,7 @@ run_case() {
 }
 
 for runtime_path in scripts/tenkai_adopt.ts scripts/tenkai_adopt_legacy.sh \
+  scripts/tenkai_fixes.ts \
   scripts/pr_sections_history.ts scripts/config_values_refresh.ts \
   scripts/tenkai_trailer_guard.mts scripts/consumer_trailer_ci.mts \
   scripts/direct_matrix_doc.sh scripts/direct_matrix_doc.mts \
