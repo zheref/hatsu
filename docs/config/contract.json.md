@@ -145,7 +145,7 @@ Every key of `project.lanes` in Hatsu's own file is named here, with the scripts
 | `ledger-findings-guard` | test: `scripts/ledger_findings_prepare_fixture.mts` |
 | `resume-proof` | test: `scripts/resume_proof.mts` |
 | `skill-shape-guard` | test: `scripts/skill_shape_check_fixture.mts` |
-| `amaterasu-preview-guard` | test: `scripts/amaterasu_preview_fixture.mts` |
+| `amaterasu-preview-guard` | test: `scripts/amaterasu_preview_fixture.test.mts`, `scripts/amaterasu_preview_coverage.test.mts` |
 
 ### `project.verbs`
 

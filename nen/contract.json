@@ -422,7 +422,7 @@
       "amaterasu-preview-guard": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "Hermetic fixture for scripts/amaterasu_preview.mts (zheref/hatsu#617): explicit local previews directly in a maintainer-selected worktree (committed content and uncommitted visible edits) with 0 core checkout swaps, both checkouts keeping original branches and edits, real occupied-port and concurrent-session resource conflict refusal leaving existing sessions intact, verbatim checkout/target/command reporting, and --automatic ren deferral invariance. Needs node, git and nen; offline, no network. Run as `nen shu test --lane amaterasu-preview-guard --repo <hatsu>` when scripts/amaterasu_preview.mts or its fixture changes. Not a general suite."
+        "$comment": "Hermetic Vitest and exact-source Node 24 LCOV coverage lane for scripts/amaterasu_preview.mts (zheref/hatsu#617): selected-worktree previews (committed + uncommitted edits, 0 core swaps, both checkouts keep branches & edits), real IPv4/IPv6 port & device/session conflict refusals leaving existing sessions intact, stale dead-PID lock reclamation, corrupt-ledger/workflow fail-closed, launch.fallback, nen wc swap --status, dry-run non-blocking plan, exit code preservation, and --automatic deferral invariance. Install locked dependencies with npm ci --ignore-scripts first. Run as `nen shu test --lane amaterasu-preview-guard --repo <hatsu>`."
       }
     },
     "defaultLane": "plugin",
@@ -2159,13 +2159,60 @@
       },
       "amaterasu-preview-guard": {
         "test": {
-          "exe": "bash",
-          "argv": [
-            "scripts/fixture_output_guard.sh",
-            "node",
-            "scripts/amaterasu_preview_fixture.mts"
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/amaterasu-preview-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "--testTimeout",
+                "30000",
+                "scripts/amaterasu_preview_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/amaterasu_preview.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/amaterasu-preview-guard/lcov.info",
+                "scripts/amaterasu_preview_coverage.test.mts"
+              ]
+            }
           ],
-          "$comment": "Hermetic fixture for scripts/amaterasu_preview.mts (zheref/hatsu#617): selected-worktree local preview (committed & uncommitted edits, 0 core swaps), real occupied port & device session conflicts, verbatim checkout/target/command output, and --automatic deferral invariance. Needs node, git and nen; offline, no network."
+          "artifacts": [
+            "coverage/amaterasu-preview-guard/lcov.info"
+          ],
+          "$comment": "The authoritative worker-one Vitest suite runs first (BC-9). A separate Node 24 test replays the shared cases in-process for exact-source LCOV over scripts/amaterasu_preview.mts (UZF-19). Install locked dependencies with npm ci --ignore-scripts first."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/amaterasu-preview-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing amaterasu-preview-guard LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty amaterasu-preview-guard LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/amaterasu-preview-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the nonempty LCOV artifact written by this lane's test row and runs no fixture (byakugan § 3). Nen owns LCOV parsing and --from-capture provenance."
         }
       }
     },
@@ -2187,6 +2234,13 @@
           "kind": "path",
           "value": "node_modules/vitest/vitest.mjs",
           "why": "Install locked dependencies with `npm ci --ignore-scripts` first. The new TypeScript bootstrap snippet suite runs under the existing pinned Vitest harness; no direct-node fallback is admitted."
+        }
+      ],
+      "amaterasu-preview-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first so the authoritative BC-9 Vitest fixture suite executes before exact-source Node 24 LCOV replay."
         }
       ],
       "unit-tests-ci-guard": [

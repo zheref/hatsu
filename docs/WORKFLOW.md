@@ -937,7 +937,7 @@ that names none; a turn names one with `hatsu:ren <request> --profile <p>` or th
 **A landing always runs thorough**, whatever the turns before it named: a profile lowers a turn, never
 the phase that publishes. Deferred to mukai means kotoamatsukami's impacted suites and byakugan's
 coverage at the landing; mukai has no launch step. An isolated effort's core launch remains deferred
-under every profile until `hatsu:amaterasu` is explicitly called by the maintainer. Every ren step is a
+under every profile until `hatsu:amaterasu` is explicitly called by the maintainer (core launch under § 3, or selected-worktree preview under § 3b). Every ren step is a
 ledger entry regardless of profile (§ *The effort's ledgers* below).
 `nen schema check` validates the key from `v0.13.0`; the `v0.12.0` pin preserves it as raw data and
 reports nothing about it (verified on 0.12.0, 2026-09-20).

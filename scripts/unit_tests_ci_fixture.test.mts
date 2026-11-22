@@ -264,11 +264,14 @@ try {
   result = run({ HATSU_FAIL_LANE: 'skill-shape-guard' });
   assert(result.status === 1 && result.stderr.includes('skill-shape-guard failed'), 'failing skill-shape lane was not red (HA502)');
 
-  // HA617: the explicit worktree preview helper must execute its fixture in CI.
+  // HA617: the explicit worktree preview helper must execute its Vitest and coverage fixtures in CI.
   writeFileSync(join(repo, 'scripts', 'amaterasu_preview.mts'), '');
   result = run();
   assert(result.status === 2 && result.stderr.includes('amaterasu_preview.mts has no required fixture'), 'missing amaterasu-preview fixture did not refuse');
-  writeFileSync(join(repo, 'scripts', 'amaterasu_preview_fixture.mts'), '');
+  writeFileSync(join(repo, 'scripts', 'amaterasu_preview_fixture.test.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('amaterasu_preview_coverage.test.mts'), 'missing amaterasu-preview coverage fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'amaterasu_preview_coverage.test.mts'), '');
   writeFileSync(log, '');
   result = run();
   assert(result.status === 0, `amaterasu-preview-guard refused: ${result.stderr}`);
