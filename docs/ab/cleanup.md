@@ -103,3 +103,20 @@ Negative cases, each expected to offer and run nothing (SC-2):
 
 The one positive path after a negative terminus: the maintainer's later message declares satisfaction; the main
 session re-reads every scoped PR live and asks once when all read `MERGED` (WORKFLOW § *Two offers*).
+
+---
+
+## Open-PR base precedence, pass-2 pre-delete re-read & merged-ahead evidence — 2026-11-22 (zheref/hatsu#616, zheref/hatsu#611)
+
+Cleanup §§ 4–6 and `claude/agents/shizuku.md` add **`base of open PR`** (one batched
+`gh pr list --repo <o/r> --state open --json number,baseRefName,headRefName --limit 1000` read) to § 5's
+Named facts win precedence (`named` across remote heads, local branches, and worktrees; never
+deterministic), require `base of open PR: <#N|none>` in 100% of remote-head row evidence, require
+`scripts/cleanup_plan_guard.mts pre-delete` immediately before any remote delete so a PR retargeted
+mid-run onto a scheduled branch blocks deletion and names the PR, and name every extra commit SHA
+plus where it landed whenever a merged branch tip is ahead of `headRefOid`.
+
+Hermetic fixture (`nen shu test --repo <hatsu> --lane cleanup-plan-guard`; Vitest 4/4 + Node 24
+LCOV capture `coverage/cleanup-plan-guard/lcov.info` >= 80%) proves a 2-PR stack with 0 open PRs
+closed, 100% remote-head base evidence, mid-run retarget blocking on a real bare origin, extra-commit
+destination attribution (`in PR #<N>`, `on origin/<base>`, `unlanded`), and non-base class parity.

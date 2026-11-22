@@ -60,13 +60,14 @@ OSV) and hands him the output. **A row that cannot run is not scanned, never cle
 
 ## 2b · Budgets — one effort, one ledger
 
-**A Hanten invocation is not a new review budget**: remediation, a resumed session, a later `ren` turn
-or `mukai` re-entering continue the same cycle. **An effort is a branch PLUS its pull request**
-(ROSTER ruling 9 R2) — keyed `<branch-slug>`, then `<branch-slug>-pr<N>`: a new PR number is a fresh
-ledger, budgets full. **Hanten opens the PR-keyed one itself, once** (`init … --pr <N>` before the first `decide`;
-present → never re-`init`, exit `2`); the branch-only ledger is then unread. **Each scope's maximum is its own `budget`, per effort, never per session or repo** (ruling 2026-09-28),
-counted by the ledger; **one persona, one budget** (his smallest): two of his scopes
-raised together are one raise.
+**One budget per effort**: remediation, resume, later `ren` turns or `mukai` re-entry share one cycle.
+**An effort is branch PLUS PR** (ROSTER ruling 9 R2) — keyed `<branch-slug>`, then `<branch-slug>-pr<N>`:
+a new PR number starts a fresh ledger, budgets full. **Hanten opens it once** (`init … --pr <N>`
+before `decide`; present → never re-`init`, exit `2`), ignoring the branch-only ledger. **Carrying-PR
+rule (`zheref/hatsu#611`)**: when [`en`](../en/SKILL.md) § 3/§ 6 carries work onto a successor PR,
+open and record Hanten's cycle ledger against `--pr <successor-N>` (`en_push_guard.mts ledger-target`),
+never the predecessor PR. **Each scope's `max` is its `budget`**, per effort; **one persona, one
+budget** (smallest): co-raised scopes share one raise.
 
 ```bash
 nen review ledger decide --repo <path> --branch <branch> [--pr <N>] --json \
@@ -87,33 +88,28 @@ gap**: the persona, the raising paths, **this scope not reviewed** — never a p
 
 ## 4. Raising a reviewer, and its cost
 
-Claude Code: parallel Agent reviewers, one per scope; `subagent_type` `hatsu:<persona>`,
-description **`hanten · <persona> · <model alias>`**, model `models.<surface>.<tier>` from scope
-(WORKFLOW § `models`; omit if persona-pinned), `isolation` **omitted**. Prompt: checkout, scope,
-base, raising paths, quoted closing issues, § 5's shape, **absolute** preamble path (ECONOMICS.md
-too for `economics`), *"do not request a worktree"*, the host block (WORKFLOW § *The host block a delegate brief carries*), `Heavy turn: withheld`, no wait block, ten § 2's pinned `nen: <path>` before every
-block: **no inherited `PATH`** (HA#107). Unresolvable: Nen checks **unread**; reviewer declares failures.
+Claude Code: parallel Agents, `subagent_type` `hatsu:<persona>`, **`hanten · <persona> · <model alias>`**,
+`models.<surface>.<tier>` (WORKFLOW § `models`; omit if pinned), `isolation` omitted. Prompt: checkout,
+scope, base, paths, closing issues, § 5 shape, absolute preamble path (ECONOMICS.md for `economics`),
+*"do not request a worktree"*, WORKFLOW host block, `Heavy turn: withheld`, no wait block, `nen: <path>`
+before every block (no inherited `PATH`; HA#107). Unresolvable: Nen unread, declared by reviewer.
 
 ```bash
 git -C <target repo> rev-parse HEAD refs/heads/<branch>   # quote both
 nen wc worktrees --repo <target repo> --json
-git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD   # one per persona
+git -C <target repo> worktree add --detach <core>/.nen/worktrees/<surface>/hanten-<persona> HEAD
 ```
 
-Observed worktree refusal (HA#218; ROSTER 2026-10-13): disclose **read-only** review at printed HEAD.
-**On return, compare both refs to printed SHAs; run
-`"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>`**,
-never piped. Moved ref or a commit in the range: G5, named, never built on (HA#170); `2`: quoted wiring stop.
-**Before raising, Hanten runs fixtures once per head** (HA#208): lanes mapped by changed paths
-(WORKFLOW § *The local verification gate* step 3; prose-only: `lanes: not applicable`),
-`nen shu test --repo <path> --lane <lane> --effort <branch>` inside `nen phase` (WORKFLOW § *The effort's ledgers*).
-Brief each lane's SHA, command, exit: `0` handed over; `1` red, carried; `3`/`4` `not run`,
-reason quoted; `2`/`5` wiring stop (kurapika.md). Reviewers rerun only a differing head, named;
-an omitted lane runs or is unread. Not-run is never clean (§ 2a).
-**Before returns**: scopes, personas, gaps, `used`/`max`, lanes.
-**On each return**, `nen usage record --effort <branch> --surface <s> --dial <level>
-[--model <reported-model>] --source "<source>"` with WORKFLOW's counts or `--not-reported` (HA#100).
-Sources (`<readout>` includes `counters unavailable`, never empty):
+Worktree refusal (HA#218; ROSTER 2026-10-13): **read-only** review at HEAD.
+**On return, check both SHAs and run `"$hatsu_root/scripts/branch_authorship_check.sh" --repo <path> --base <printed HEAD> --require-agent <responsible-persona>`**,
+unpiped; moved ref or foreign commit is G5 (HA#170; `2`: wiring stop).
+**Pre-run fixtures once per head** (HA#208): path-mapped lanes (WORKFLOW § *The local verification gate*;
+prose-only: `lanes: not applicable`), `nen shu test --repo <path> --lane <lane> --effort <branch>`
+inside `nen phase`. Brief SHA, command, exit (`0` pass; `1` red; `3`/`4` `not run`; `2`/`5` wiring stop,
+kurapika.md). Rerun only a differing head; omitted = unread (`§ 2a`). **Returns**: scopes, personas, gaps,
+`used`/`max`, lanes.
+**Usage**: `nen usage record --effort <branch> --surface <s> --dial <level> [--model <m>] --source "<source>"`
+with WORKFLOW counts or `--not-reported` (HA#100). `<readout>` includes `counters unavailable`, never empty:
 
 | Pass | Source |
 |---|---|

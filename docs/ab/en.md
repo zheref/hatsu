@@ -455,3 +455,19 @@ after the removal the next claim printed `iteration 4/20 -- … 16 remaining aft
 not `1/20`; the release printed `released en-HA-999 after 4/20 iteration(s): check done`. A ledger
 lost outright (the common dir's `.nen/` deleted) still reads as fresh: the refusal of a lost ledger
 is owed to nen (zheref/nen#487).
+
+---
+
+## Pre-push PR-state guard & carrying-PR ledgers — 2026-11-22 (zheref/hatsu#611)
+
+En § 3 and § 6 require every En push to first read live PR state through
+`scripts/en_push_guard.mts` (`nen pr fetch --target <owner/name> --pr <N> --json` — an existing
+Nen verb, no new verb required). `OPEN` allows push only when `headRef` matches the local branch;
+`MERGED`, `CLOSED`, or unread states refuse push (`pushAllowed: false`, 0 commits pushed to merged
+branches) and direct commits onto a fresh branch off `origin/<base>` and successor PR whose
+`hanten` (`--pr <successor-N>`) and `cleanup` ledgers follow the carrying PR (`hanten` § 2b).
+
+Hermetic fixture (`nen shu test --repo <hatsu> --lane en-push-guard`; Vitest 4/4 + Node 24 LCOV
+capture `coverage/en-push-guard/lcov.info` >= 80%) exercises `OPEN`, `MERGED`, `CLOSED`, mismatched
+branch, unread fail-closed exits (`nen pr fetch` errors, corrupt JSON, unknown state, symlinks,
+detached HEAD), and `ledger-target` successor PR keying against real throwaway git origins.

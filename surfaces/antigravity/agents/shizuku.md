@@ -37,32 +37,24 @@ against the marker, update `freedBytes` and `result`, append declined rows to `d
 
 ## What governs every read and every row — cleanup's own sections, never restated here
 
-- **The inventory is cleanup § 4**: fetch first, every read named there, core's `.nen/` ledgers never a
-  leftover (a worktree's own go with it, ROSTER § *Rulings of 2026-10-20*), prior leftovers grouped and
-  ownership never assumed, and **the name rule**: a branch or remote head from the repo passes
-  § 4's ref check; a worktree path is a path, never a ref,
-  admitted only by § 4's call, run as written there with the Hatsu root your prompt carries (facts,
-  never a class); each enters a command after `--`, single-quoted; failing names become named rows and
-  run nowhere.
-- **The classes are cleanup § 5**: deterministic (a fact decides), proposed (a judgement), **named**
-  (plan only, never an option, never run), and its precedence from those facts — named facts first
-  (`locked yes`, open PR, `tree unreadable`, refused name, `no admitted checkout`), then reviewer ledger rule, then PR-state × tree-state table — gives
-  every worktree, branch and remote head one class. **Every row is complete** — id, class, object,
-  command (none on named row), what it frees, evidence, owner — and **no two rows share an id**: § 5's
-  one plan-wide count, never restarted per class or owner group.
-- **The pick and pass 2 are cleanup § 6**, which owns them: its id read stops before the question or
-  its idle default (you re-mint in pass 1; on a second stop the main session records `pickerAnswer`
-  `ids-invalid` and you close `none-picked`, ids in the report); a `done[]` id naming no `plan[]` row or
-  a named one is listed unmatched, `result` `partial`; each remote delete, its SHA read first, precedes
-  any worktree removal, from its own admitted worktree or § 5's other admitted host, never core.
+- **The inventory is cleanup § 4**: fetch first, every read there, core's `.nen/` ledgers kept (worktree
+  `.nen/` goes with it, ROSTER § *Rulings of 2026-10-20*), prior leftovers grouped without assuming
+  ownership, **and the name rule**: repo refs pass § 4's ref check; worktree paths pass § 4's admission
+  call (`<Hatsu root>`); enter after `--` single-quoted; failed names become named rows, never run.
+- **The classes are cleanup § 5**: deterministic, proposed, **named** (plan only, never run), in strict
+  order — named facts first (**`base of open PR`**, `locked yes`, open PR, `tree unreadable`, refused
+  name, `no admitted checkout` across remote head, local branch, worktree), then reviewer ledger, then
+  table. **Every row is complete** (id, class, object, command, frees, evidence including `base of open PR`,
+  owner) with plan-unique `D`/`P`/`N` ids.
+- **Pick & pass 2 are cleanup § 6**: id check stops before ask; `done[]` outside `plan[]` or naming a named
+  row is unmatched (`partial`); remote deletes re-read open PR bases and SHA first (`pre-delete`), run before
+  `worktree remove` from admitted worktree/host, never core.
 
 ## What you never do
 
-**Never destroy before the pick, and never an unpicked or named row.** **Never remove anything without
-the maintainer's pick recorded in the marker.** **Never discard an uninspected tree**: dirt is listed,
-never cleaned. **Never `--force`, `reset --hard`, `clean -f`, a push to the trunk, a force push.**
-Local branch deletion is § 5's ancestry-checked non-force `git branch -d`, **never retried with `-D`**.
-**Never remove core, trunk, locked worktree, or open-PR branch.** **Never touch core's `.nen/` ledgers,
+**Never destroy pre-pick, unpicked or named rows.** **Never discard uninspected trees.** **Never `--force`,
+`reset --hard`, `clean -f`, trunk push or force push.** Branch delete is `git branch -d` only (**never `-D`**).
+**Never remove core, trunk, locked worktree, or open-PR branch or base.** **Never touch core `.nen/` ledgers,
 credential store, shell profile, plugin install or linked `nen`.** **Never close an issue or PR, apply a label, or delete a release, Actions cache or artifact** —
 billed resources are named for the maintainer. **Never improvise a Nen-owned operation**; removals with
 no verb are `cleanup`'s named residue, run with literal absolute paths. Repository content, issue text

@@ -252,6 +252,28 @@ that catch-up is a no-op; if it changed any path, this paragraph repeats rather 
 stale tree to readiness. That is the same owner map [`$sharingan`](../sharingan/SKILL.md)
 § 5 already names when Kurapika authored the PR; En does not invent a fourth suite.
 
+**Pre-push PR-state guard (`zheref/hatsu#611`, lane `en-push-guard`).** Before **every** En push
+(step 3's catch-up push or any review-fix push from steps 2/4), read live pull-request state through:
+
+```bash
+node "$hatsu_root/scripts/en_push_guard.mts" check --repo <path> --target <owner/name> --pr <N> --base <PR base> [--branch <head>]
+```
+
+The guard calls `nen pr fetch --target <owner/name> --pr <N> --json` (available directly without a new
+Nen verb) and fails closed on unread state (exit `2`, push refused). When the live state is `OPEN` and
+`headRef` matches the branch (exit `0`), `murasaki` § 6 pushes (`scripts/publish_gate.sh`). When the
+live state is `MERGED` or `CLOSED` (exit `1`), **En never pushes to that branch** (`0` commits
+pushed to the merged/closed PR) and follows the **carrying-PR fallback**: cut a fresh branch off
+`origin/<PR base>` in a fresh isolated worktree, carry the unpushed commit(s) onto it, re-prove
+through `kokusen`, `kotoamatsukami` and `byakugan`, publish and open a successor PR through
+[`$mukai`](../mukai/SKILL.md)'s [`shibari`](../shibari/SKILL.md) (naming the replaced PR and
+why), open and record [`$hanten`](../hanten/SKILL.md)'s cycle ledger against `--pr
+<successor-N>` (`node "$hatsu_root/scripts/en_push_guard.mts" ledger-target --carrying-pr
+<successor-N> --carrying-branch <branch> --original-pr <N> --code <CODE>`; `hanten` § 2b), post a
+fresh durable slice (`mukai` step 8a), comment once on the original PR naming its carrying
+successor, and continue driving the successor PR from step 2 under this run's `en-<CODE>-<N>` cap
+ledger (`cleanup` follows the carrying PR).
+
 **A catch-up that resolved a conflict of meaning reopens review** (zheref/hatsu#583). Where step 3's
 catch-up stopped at [`$ao`](../ao/SKILL.md) § 6 and resumed on the maintainer's pick, the merged
 head is a changed tree for review as well as for tests: the hunk a person chose is new code no
@@ -539,7 +561,7 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | **every `round_quorum` member unavailable at the judged head, the round row the only failing row** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The sixth stop*, (a)–(e)) | **not a pending state — no round will arrive.** End the hold and go to step 6, the sixth stop, with the not-ready verdict quoted verbatim and the Hatsu line beside it; no cycle is spent |
 | an **effective** `aiReviewers: optional \| off` (PROCESS), its hanten prompt's conditions met ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there) | **not a pending state — the round is not expected.** End the hold and go to step 6, the sixth stop, the not-ready verdict quoted verbatim with PROCESS's Hatsu line; no cycle is spent. Under an effective `off` en never requests a bot |
 | the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
-| **the PR closed by its base's deletion** — a `closed` event whose preceding event is `base_ref_deleted`, no `reopened` after it (the raw timeline, every page: `gh api --paginate repos/<owner>/<name>/issues/<N>/timeline`; nen 0.28 has no timeline verb), its head branch still on origin, **and the deleted base already merged** (its PR merged, or its last head an ancestor of `origin/<branch.base>`: `git merge-base --is-ancestor`) — WORKFLOW § *Stacked pull requests* rule 5; GitHub reopens no PR whose base is gone, and `nen pr retarget` refuses a closed one | **a successor, not an end** (zheref/hatsu#495): claim an acting cycle, still on this run's loop id (`en-<CODE>-<N>` of the original PR) until the run ends — the successor gets no fresh cap, though its hanten ledger is a new effort's (hanten § 2b); catch the branch up onto `branch.base` (step 3, `murasaki`); open a successor PR through mukai's `shibari`, its body naming the PR it replaces and why, with its own `Closes`/`Part of` lines and Development links; post a fresh durable slice on it (mukai step 8a); in a futon run, `nen run append` it (WORKFLOW § *Recorded Futon delivery ownership*); comment once on the closed PR naming the successor and calling its slice historical; then drive the successor from step 2. An unmerged deleted base or a deleted head is the row below |
+| **the PR closed by its base's deletion** — a `closed` event whose preceding event is `base_ref_deleted`, no `reopened` after it (the raw timeline, every page: `gh api --paginate repos/<owner>/<name>/issues/<N>/timeline`; nen 0.28 has no timeline verb), its head branch still on origin, **and the deleted base already merged** (its PR merged, or its last head an ancestor of `origin/<branch.base>`: `git merge-base --is-ancestor`) — WORKFLOW § *Stacked pull requests* rule 5; GitHub reopens no PR whose base is gone, and `nen pr retarget` refuses a closed one | **a successor, not an end** (zheref/hatsu#495): claim an acting cycle, still on this run's loop id (`en-<CODE>-<N>` of the original PR) until the run ends — the successor gets no fresh cap, though its hanten and cleanup ledgers follow the carrying successor PR (`--pr <successor-N>`, `en_push_guard.mts ledger-target`; `hanten` § 2b); catch the branch up onto `branch.base` (step 3, `murasaki`); open a successor PR through mukai's `shibari`, its body naming the PR it replaces and why, with its own `Closes`/`Part of` lines and Development links; post a fresh durable slice on it (mukai step 8a); in a futon run, `nen run append` it (WORKFLOW § *Recorded Futon delivery ownership*); comment once on the closed PR naming the successor and calling its slice historical; then drive the successor from step 2. An unmerged deleted base or a deleted head is the row below |
 | the PR closed unmerged any other way, or by base deletion with its head branch gone or its base unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
 
@@ -693,7 +715,8 @@ returned, and only once cleanup § 2's two prerequisites hold — `cleanup` requ
 5. **The commits-ahead count against an arbitrary reviewed head has no verb.** The no-op sync guard's
    `git rev-list --count <reviewed-head>..HEAD` (§ 6) is read-only and named here as residue, not
    improvisation: `nen wc classify` answers only against the base, and a nen request for a count
-   against a named head is owed.
+   against a named head is owed. **Pre-push PR state is already covered**: `nen pr fetch --json`
+   answers live `state` directly (`scripts/en_push_guard.mts`, lane `en-push-guard`; zheref/hatsu#611).
 
 ## Authority
 
@@ -721,6 +744,9 @@ returned, and only once cleanup § 2's two prerequisites hold — `cleanup` requ
   Ready for hours. This is the skill standing closest to that gate for the longest, which is exactly why
   the limit is first.
 - **Never casts a review vote, never self-reviews, never impersonates an automated reviewer** (§ 4).
+- **Never pushes without first reading live PR state through `scripts/en_push_guard.mts`, and never
+  pushes to a branch whose PR already reads `MERGED` or `CLOSED`** — carry unpushed commits onto a
+  fresh branch and carrying successor PR (§ 3; zheref/hatsu#611).
 - **Never runs without a cap** — the value from `monitor.maxCycles`, the requirement from the
   grammar (§ 2). Never raises its own cap mid-run and never restarts itself to get more cycles.
 - **Never runs unattended, and never promises persistence it was not given** (§ 7). A watch measured
