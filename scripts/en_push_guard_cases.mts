@@ -518,4 +518,73 @@ exit 2
       }
     },
   },
+  {
+    name: 'Round 3 K: the base-deletion successor carries the child WHOLE unlanded set with --carry-from base (fully pushed, and with one unpushed commit too)',
+    run: () => {
+      const { tmp, work, prHeadSha, unpushedSha } = setupRepoWithCarryCommits();
+      try {
+        const closedAt = (headSha: string) => () => ({
+          status: 0,
+          stdout: JSON.stringify({ state: 'CLOSED', pr: { headRef: 'pro/kurapika/feat-a', headSha, baseRef: 'pro/kurapika/parent' } }),
+          stderr: '',
+        });
+        const base = { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' };
+        // Child fully pushed (PR head = local tip): the HEAD-anchored set is empty (exit 4) ...
+        assert.equal(evaluateEnPushGuard(base, closedAt(unpushedSha)).exitCode, 4);
+        // ... but the base-deletion row's --carry-from base carries every commit not on origin/main.
+        const full = evaluateEnPushGuard({ ...base, carryFrom: 'base' }, closedAt(unpushedSha));
+        assert.equal(full.exitCode, 1);
+        assert.equal(full.result.anchorUsed, 'origin/main');
+        assert.deepEqual(full.result.carryCommits.map((c) => c.sha), [prHeadSha, unpushedSha]);
+        assert(full.result.fallback?.steps.some((s) => s.includes('2 unlanded commit(s)')));
+        // One commit unpushed too: still all of them, never only the unpushed one.
+        const mixed = evaluateEnPushGuard({ ...base, carryFrom: 'base' }, closedAt(prHeadSha));
+        assert.equal(mixed.exitCode, 1);
+        assert.deepEqual(mixed.result.carryCommits.map((c) => c.sha), [prHeadSha, unpushedSha]);
+        const headOnly = evaluateEnPushGuard(base, closedAt(prHeadSha));
+        assert.deepEqual(headOnly.result.carryCommits.map((c) => c.sha), [unpushedSha]);
+        // MERGED keeps the HEAD-anchored set whatever the flag; an unreadable base is unread.
+        const merged = evaluateEnPushGuard({ ...base, carryFrom: 'base' }, () => ({
+          status: 0,
+          stdout: JSON.stringify({ state: 'MERGED', pr: { headRef: 'pro/kurapika/feat-a', headSha: prHeadSha } }),
+          stderr: '',
+        }));
+        assert.equal(merged.result.anchorUsed, prHeadSha);
+        assert.deepEqual(merged.result.carryCommits.map((c) => c.sha), [unpushedSha]);
+        const noBase = evaluateEnPushGuard({ ...base, base: 'gone-base', carryFrom: 'base' }, closedAt(prHeadSha));
+        assert.equal(noBase.exitCode, 2);
+        assert.equal(noBase.result.status, 'unread-carry-list');
+        const parsed = parseCliArgs([
+          'check', '--repo', work, '--target', 'zheref/hatsu', '--pr', '611', '--base', 'main', '--carry-from', 'base',
+        ]);
+        assert.equal(parsed.subcommand === 'check' && parsed.opts.carryFrom, 'base');
+        assert.throws(
+          () => parseCliArgs(['check', '--repo', work, '--target', 'zheref/hatsu', '--pr', '1', '--base', 'main', '--carry-from', 'tip']),
+          (e) => e instanceof EnPushGuardError && e.exitCode === 2,
+        );
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'Round 3 Q (SEC-12): a credentialed URL in nen stderr is redacted in the guard result and its human text',
+    run: () => {
+      const { tmp, work } = setupRepoWithCarryCommits();
+      try {
+        const token = 'PLACEHOLDER_TOKEN_0000';
+        const res = evaluateEnPushGuard(
+          { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' },
+          () => ({ status: 1, stdout: '', stderr: `fatal: https://x-access-token:${token}@PART2@github.com/zheref/hatsu.git` }),
+        );
+        assert.equal(res.exitCode, 2);
+        const all = JSON.stringify(res.result) + renderHuman(res.result);
+        assert.equal(all.includes(token) || all.includes('PART2') || all.includes('x-access-token'), false);
+        assert(all.includes('//<redacted>@github.com'));
+        assert.equal(sanitizeText('a%2F%2Fu%3ATOK%40github.com'), 'a%2F%2F<redacted>%40github.com');
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
 ];

@@ -10,6 +10,8 @@
 // Carry set (MERGED/CLOSED): only the unpushed commits, the push En was about to make
 // (zheref/hatsu#611 AC-1): git log --no-merges <PR headSha>..HEAD --not origin/<base>.
 // A CLOSED PR with nothing unpushed is exit 4 (en § 6: closed unmerged, the run ends; HR-367).
+// `--carry-from base` (en § 6's base-deletion successor row only, with --base <branch.base>): the
+// child's WHOLE unlanded set, git log --no-merges origin/<base>..HEAD, pushed or not.
 // No readable anchor (headSha absent locally, origin/<base> missing) or a git failure is
 // "carry list unread" (exit 2), never "nothing to carry".
 //
@@ -20,7 +22,7 @@
 // then en § 3's stop.
 //
 // Usage:
-//   node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--require-head <sha>] [--nen <bin>] [--json]
+//   node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--require-head <sha>] [--carry-from head|base] [--nen <bin>] [--json]
 //   node scripts/en_push_guard.mts ledger-target --carrying-pr <N> --carrying-branch <branch> [--original-pr <M>] [--code <CODE>] [--json]
 //
 // Exit codes (check):
@@ -36,6 +38,8 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
+// SEC-12: one redaction rule for both guards (userinfo up to the last '@', percent-encoded too).
+import { redactCredentials } from './cleanup_plan_guard.mts';
 
 const SCRUB_GIT_ENV = [
   'GIT_DIR',
@@ -115,6 +119,7 @@ export interface CheckOptions {
   readonly base: string;
   readonly branch?: string;
   readonly requireHead?: string;
+  readonly carryFrom?: 'head' | 'base';
   readonly nen: string;
 }
 
@@ -142,7 +147,7 @@ export class EnPushGuardError extends Error {
 }
 
 export function sanitizeText(value: string): string {
-  return value
+  return redactCredentials(value)
     .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
     .replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, '')
     .replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, ' ')
@@ -273,8 +278,18 @@ export function collectCarryCommits(
   state: PrState,
   headSha: string | null,
   base: string,
+  carryFrom: 'head' | 'base' = 'head',
 ): { read: boolean; anchorUsed: string | null; commits: CarryCommit[]; error?: string } {
   const baseSha = readCommitRef(repo, `refs/remotes/origin/${base}`);
+  // en § 6's base-deletion successor only: the child's WHOLE unlanded set off origin/<branch.base>.
+  if (carryFrom === 'base' && state === 'CLOSED') {
+    if (!baseSha) return { read: false, anchorUsed: null, commits: [], error: `origin/${base} is not readable` };
+    const log = runGit(repo, ['log', '--no-merges', '--reverse', '--format=%H%x09%s', `${baseSha}..HEAD`]);
+    if (log.status !== 0) {
+      return { read: false, anchorUsed: `origin/${base}`, commits: [], error: `git log failed: ${sanitizeText(log.stderr)}` };
+    }
+    return { read: true, anchorUsed: `origin/${base}`, commits: parseLog(log.stdout) };
+  }
   const head = headSha && SHA_RE.test(headSha) ? readCommitRef(repo, headSha) : null;
   if (!head) {
     return { read: false, anchorUsed: null, commits: [], error: 'PR headSha is not a readable local commit' };
@@ -411,7 +426,7 @@ export function evaluateEnPushGuard(
 
   // MERGED or CLOSED: never push. The carry log runs even when merged at the pushed head: commits
   // made after that push are still unpushed.
-  const carry = collectCarryCommits(repo, parsed.state, parsed.headSha, opts.base);
+  const carry = collectCarryCommits(repo, parsed.state, parsed.headSha, opts.base, opts.carryFrom ?? 'head');
   if (!carry.read) {
     return make(2, {
       ...read,
@@ -426,7 +441,7 @@ export function evaluateEnPushGuard(
       status: 'nothing-to-carry',
       anchorUsed: carry.anchorUsed,
       carryListRead: true,
-      error: `PR #${opts.pr} is ${parsed.state}; carry list read, nothing unpushed past ${parsed.headSha!.slice(0, 8)} off origin/${opts.base} (en § 6 terminal row)`,
+      error: `PR #${opts.pr} is ${parsed.state}; carry list read, nothing to carry past ${(carry.anchorUsed ?? '').slice(0, 20)} off origin/${opts.base} (en § 6 terminal row)`,
     });
   }
   const shas = carry.commits.map((c) => c.sha.slice(0, 8)).join(', ');
@@ -443,7 +458,7 @@ export function evaluateEnPushGuard(
       steps: [
         `Refuse push to '${theBranch}' (PR #${opts.pr} is ${parsed.state}).`,
         `Cut a fresh isolated worktree and branch off origin/${opts.base}.`,
-        `Cherry-pick the ${carry.commits.length} unpushed commit(s) (${shas}) onto the new branch (a conflict is a stop handed back) and re-verify via kokusen, kotoamatsukami, and byakugan.`,
+        `Cherry-pick the ${carry.commits.length} ${opts.carryFrom === 'base' ? 'unlanded' : 'unpushed'} commit(s) (${shas}) onto the new branch (a conflict is a stop handed back) and re-verify via kokusen, kotoamatsukami, and byakugan.`,
         `Publish the new branch and open a successor PR via shibari referencing #${opts.pr}.`,
         `Raise hatsu:hanten on the successor PR; hanten § 2b keys its ledger to --pr <successor-N>.`,
       ],
@@ -513,6 +528,14 @@ export type ParsedCli =
   | { readonly subcommand: 'check'; readonly opts: CheckOptions; readonly json: boolean }
   | { readonly subcommand: 'ledger-target'; readonly opts: LedgerTargetOptions; readonly json: boolean };
 
+function parseCarryFrom(raw: string | undefined): 'head' | 'base' | undefined {
+  if (raw === undefined) return undefined;
+  if (raw !== 'head' && raw !== 'base') {
+    throw new EnPushGuardError(2, `--carry-from must be head or base, got ${JSON.stringify(sanitizeText(raw))}`);
+  }
+  return raw;
+}
+
 export function parseCliArgs(argv: string[]): ParsedCli {
   if (argv.length === 0 || argv[0] === '--help' || argv[0] === '-h') {
     return { subcommand: 'help' };
@@ -533,7 +556,7 @@ export function parseCliArgs(argv: string[]): ParsedCli {
     if (flag === '--help' || flag === '-h') {
       return { subcommand: 'help' };
     }
-    const allowedCheck = ['--repo', '--target', '--pr', '--base', '--branch', '--require-head', '--nen'];
+    const allowedCheck = ['--repo', '--target', '--pr', '--base', '--branch', '--require-head', '--carry-from', '--nen'];
     const allowedLedger = ['--carrying-pr', '--carrying-branch', '--original-pr', '--code'];
     const allowed = sub === 'check' ? allowedCheck : allowedLedger;
     if (!allowed.includes(flag)) {
@@ -568,6 +591,7 @@ export function parseCliArgs(argv: string[]): ParsedCli {
         base,
         branch: values.get('--branch'),
         requireHead: values.get('--require-head'),
+        carryFrom: parseCarryFrom(values.get('--carry-from')),
         nen: values.get('--nen') || process.env.NEN || 'nen',
       },
     };
@@ -624,7 +648,7 @@ export function renderHuman(result: EnPushCheckResult | LedgerTargetResult): str
 
 const USAGE = [
   'Usage:',
-  '  node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--require-head <sha>] [--nen <bin>] [--json]',
+  '  node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--require-head <sha>] [--carry-from head|base] [--nen <bin>] [--json]',
   '  node scripts/en_push_guard.mts ledger-target --carrying-pr <N> --carrying-branch <branch> [--original-pr <M>] [--code <CODE>] [--json]',
 ].join('\n');
 

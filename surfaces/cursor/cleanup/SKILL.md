@@ -99,15 +99,14 @@ records persona `ran` in sitting (carrying successor, en § 3: `<key>`
 
 **Remote-head rows** (never `<branch.base>`):
 `node '<Hatsu root>/scripts/cleanup_plan_guard.mts' pre-delete --repo '<host>' --target '<o/r>' --branch '<branch>' --expected-sha '<sha>' --base '<branch.base>'`
-(checks: its header rule 6; refused: nothing runs, reported), then at once
-`git -C '<host>' push origin --delete -- '<branch>'`,
+(checks: its header rule 6; refused: nothing runs, reported), then at once its printed
+`git -C '<host>' push origin --delete -- '<branch>'` (`env -u` form: rule 6),
 `<host>` literal: admitted own `<wt>` or other admitted path (`.ts` rule 6; never core; none → **named**,
 `no admitted checkout`). Push before `worktree remove`.
 
 **Proposed** (judgement; names what it destroys and why uncertain): dirty worktree (paths listed);
 merged-ahead branch (§ 4); `captures/`; build cache in kept worktree; prior reviewer checkout; unlinked
-below-pin cache (`rm -r -- "<abs>"`, `<ref>` `^v[0-9]+\.[0-9]+\.[0-9]+$`,
-`realpath != host link's readlink -f; never variable-built; another repo may pin it`); >30d run record
+below-pin cache (WORKFLOW § *Cleanup cache-binary row*); >30d run record
 (`rm --`; unreadable: named).
 
 **Named** (plan only, never an option; Hard limits): billed resources; surface worktrees; stale served copy.
@@ -138,9 +137,9 @@ fact named, marker `pending`. No D/P row: no ask; Shizuku closes `already-clean`
 `none-proposed` (named only). Else one picker (`third-hand` § 6; row `cleanup-plan`): ⭐ **A**
 deterministic · **B** deterministic + ticked proposed (`<=3`/batch; Codex CLI 1 per row) · **C** `none`
 (wins over ticks). Record `picked[]` and raw `pickerAnswer` (`nen stop answer`), then run picked rows in
-§ 5's order, pushes first, **each delete right after its `pre-delete` re-read**; a delete it skips (exit
-`1`, or `2` with the host fact) skips its `precededBy` worktree row too, both listed skipped, `result`
-`partial`. Each read back, bytes freed per row and total; a picked id naming no `plan[]` row or a named
+§ 5's order, pushes first, **each delete right after its `pre-delete` re-read**; a remote delete that does
+not run or does not succeed (`pre-delete` exit `1` or `2`, a failed push, or a remote row not picked)
+skips its `precededBy` worktree row, listed skipped, `result` `partial`. Each read back, bytes freed per row and total; a picked id naming no `plan[]` row or a named
 one is listed unmatched, `result` `partial`. Failing row reported with stderr, **never retried wider**;
 then § 3's close.
 

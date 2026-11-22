@@ -1770,6 +1770,13 @@ nothing restated:
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
 
+### Cleanup cache-binary row
+
+Moved out of [`cleanup`](../claude/skills/cleanup/SKILL.md) § 5 by reference, unchanged in meaning
+(zheref/hatsu#629's review, to hold that skill's size). The proposed row for an unlinked below-pin cache binary
+runs `rm -r -- "<abs>"`, `<ref>` `^v[0-9]+\.[0-9]+\.[0-9]+$`,
+`realpath != host link's readlink -f; never variable-built; another repo may pin it`.
+
 ### Cleanup marker slug check
 
 Moved out of [`cleanup`](../claude/skills/cleanup/SKILL.md) § 7 by reference, unchanged in meaning

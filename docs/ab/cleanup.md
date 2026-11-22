@@ -118,9 +118,9 @@ open PR's `headRefName` required, an open PR's base or head refused, the SHA re-
 delete at once (no lease; the race is named). A merged branch tip ahead of `headRefOid` names
 every extra commit and where it landed. `classify` or `pre-delete` exit `2` offers no row.
 
-Hermetic fixture (`nen shu test --repo <hatsu> --lane cleanup-plan-guard`; Vitest 12/12 + Node 24
+Hermetic fixture (`nen shu test --repo <hatsu> --lane cleanup-plan-guard`; Vitest 14/14 + Node 24
 LCOV capture `coverage/cleanup-plan-guard/lcov.info` >= 80%) proves a 2-PR stack with 0 open PRs
 closed, 100% remote-head base evidence, mid-run retarget blocking on a real bare origin, input and
 per-row validation, truncation, origin mismatch (fetch, divergent push URL, embedded credentials
-redacted), open-PR head refusal, the printed delete running, § 5 sequence parity, extra-commit destination attribution (`in PR #<N>`,
+redacted), open-PR head refusal, the printed delete running (its `env -u` prefix keeping an exported `GIT_DIR` off another origin), § 5 sequence parity, extra-commit destination attribution (`in PR #<N>`,
 `on origin/<base>`, `unlanded`), and non-base class parity.

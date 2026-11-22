@@ -468,8 +468,9 @@ ledger § 2b keys to `--pr <successor-N>`; `2` (unread) and `3` (open PR on anot
 back; `4` (nothing unpushed) is § 6's terminal row. A post-push `--require-head <sha>` re-read (one,
 paced) runs the same carry log, so anything past the PR's head is carried.
 
-Hermetic fixture (`nen shu test --repo <hatsu> --lane en-push-guard`; Vitest 7/7 + Node 24 LCOV
+Hermetic fixture (`nen shu test --repo <hatsu> --lane en-push-guard`; Vitest 9/9 + Node 24 LCOV
 capture `coverage/en-push-guard/lcov.info` >= 80%) exercises `OPEN`, `MERGED`, `CLOSED` (only the unpushed
 commit; nothing pending is exit `4`), a branch that merged `origin/main` after its PR merged, mismatched and missing heads,
 nothing-to-carry versus carry-list-unread, the post-push re-read, unread fail-closed exits, and
-`ledger-target` successor keying against real throwaway git origins.
+`ledger-target` successor keying, the base-deletion successor's `--carry-from base` whole set, and
+redaction of a credentialed URL in nen stderr, against real throwaway git origins.

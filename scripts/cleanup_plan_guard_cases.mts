@@ -17,6 +17,7 @@ import {
   normalizeGithubRemote,
   OPEN_PR_LIMIT,
   redactCredentials,
+  SCRUBBED_ENV_PREFIX,
   parseCliArgs,
   renderHuman,
 } from './cleanup_plan_guard.mts';
@@ -223,7 +224,7 @@ export const cleanupPlanGuardCases: CleanupPlanCase[] = [
         // AC-4: non-base rows retain existing classes
         assert.equal(rRemoteLate.class, 'deterministic');
         // Round 2 D: no lease (contracts/permissions.json denies push --force-with-lease*).
-        assert.equal(rRemoteLate.exactCommand, `git -C '${wtHost}' push origin --delete -- 'pro/kurapika/late-base'`);
+        assert.equal(rRemoteLate.exactCommand, `${SCRUBBED_ENV_PREFIX} git -C '${wtHost}' push origin --delete -- 'pro/kurapika/late-base'`);
         assert.equal(rWtLate.class, 'deterministic');
         // Finding 4: the effort worktree runs after its remote-head row, then remove, then -d.
         assert.equal(rWtLate.precededBy, rRemoteLate.id);
@@ -276,8 +277,8 @@ export const cleanupPlanGuardCases: CleanupPlanCase[] = [
         assert.equal(okPre.result.status, 'allow-delete');
         assert(renderHuman(okPre.result).includes('allow-delete (deleteAllowed: true)'));
         // Round 2 D: the plain delete, printed for running immediately after this re-read.
-        assert.equal(okPre.result.deleteCommand, `git -C '${wtHost}' push origin --delete -- 'pro/kurapika/late-base'`);
-        assert(renderHuman(okPre.result).includes('run: git -C'));
+        assert.equal(okPre.result.deleteCommand, `${SCRUBBED_ENV_PREFIX} git -C '${wtHost}' push origin --delete -- 'pro/kurapika/late-base'`);
+        assert(renderHuman(okPre.result).includes(`run: ${SCRUBBED_ENV_PREFIX} git -C`));
         assert.equal(JSON.stringify(okPre.result).includes('force-with-lease'), false);
 
         // Race: open PR #205 is retargeted onto pro/kurapika/late-base before picked delete runs -> exit 1!
@@ -888,8 +889,15 @@ printf '%s\\n' '[{"number":300,"baseRefName":"pro/kurapika/late-base","headRefNa
       const del = (remoteRow.exactCommand ?? '')
         .replace("'/core/.nen/worktrees/claude/par'", "'<host>'")
         .replaceAll('pro/kurapika/par', '<branch>');
-      assert.equal(del, "git -C '<host>' push origin --delete -- '<branch>'");
-      assert(skill.includes(del), `cleanup § 5 carries the delete word for word: ${del}`);
+      assert.equal(del, `${SCRUBBED_ENV_PREFIX} git -C '<host>' push origin --delete -- '<branch>'`);
+      const bare = del.slice(SCRUBBED_ENV_PREFIX.length + 1);
+      assert(skill.includes(bare), `cleanup § 5 quotes the delete's git tail word for word: ${bare}`);
+      // Round 3 S: the prefix is derived from the scrub list and names every variable.
+      for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_COMMON_DIR', 'GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES']) {
+        assert(SCRUBBED_ENV_PREFIX.includes(`-u ${k}`), k);
+      }
+      const header = readFileSync(GUARD_SCRIPT, 'utf8');
+      assert(header.includes('prefixed `env -u <each SCRUB_GIT_ENV name>`'));
     },
   },
   {
@@ -954,6 +962,16 @@ printf '%s\\n' '[{"number":300,"baseRefName":"pro/kurapika/late-base","headRefNa
         assert.equal(JSON.stringify(ghLeak.result).includes(token), false);
         assert(ghLeak.result.reason.includes('//<redacted>@github.com'));
         assert.equal(redactCredentials('see x-access-token:abc@github.com/o/r'), 'see <redacted>@github.com/o/r');
+        // Round 3 R: up to the LAST '@' before the host
+        const twoAt = redactCredentials('fatal: https://u:PLACEHOLDER@PART2@github.com/o/r.git');
+        assert.equal(twoAt, 'fatal: https://<redacted>@github.com/o/r.git');
+        assert.equal(twoAt.includes('PLACEHOLDER') || twoAt.includes('PART2'), false);
+        assert.equal(redactCredentials('u:PLACEHOLDER@PART2@github.com/o/r'), '<redacted>@github.com/o/r');
+        // Round 3 T: percent-encoded userinfo
+        const enc = redactCredentials('url=https%3A%2F%2Fx-access-token%3ATOK%40github.com%2Fo%2Fr.git');
+        assert.equal(enc, 'url=https%3A%2F%2F<redacted>%40github.com%2Fo%2Fr.git');
+        assert.equal(enc.includes('TOK') || enc.includes('x-access-token'), false);
+        assert.equal(redactCredentials('git@github.com:zheref/hatsu.git'), 'git@github.com:zheref/hatsu.git');
         assert.equal(hasEmbeddedCredentials('git@github.com:zheref/hatsu.git'), false);
         assert.equal(hasEmbeddedCredentials('https://u@github.com/zheref/hatsu.git'), true);
         assert.equal(hasEmbeddedCredentials('ssh://git:pw@github.com/zheref/hatsu.git'), true);
@@ -996,6 +1014,63 @@ printf '%s\\n' '[{"number":300,"baseRefName":"pro/kurapika/late-base","headRefNa
       });
       assert.equal(trunkPlan.rows[0].class, 'named');
       assert(trunkPlan.rows[0].namedFacts.includes('trunk develop'));
+    },
+  },
+  {
+    name: 'Round 3 S (SEC-7): the emitted delete ignores an exported GIT_DIR and lands only on the bound origin',
+    run: () => {
+      const { tmp, wtHost, lateSha } = setupStackFixtureRepo();
+      try {
+        // A second, unrelated repository that also carries the branch.
+        const otherBare = join(tmp, 'other.git');
+        const other = join(tmp, 'other');
+        mustGit(tmp, ['init', '--bare', otherBare]);
+        mustGit(tmp, ['clone', otherBare, other]);
+        mustGit(other, ['config', 'user.email', 'test@example.com']);
+        mustGit(other, ['config', 'user.name', 'Test User']);
+        writeFileSync(join(other, 'o.txt'), 'other\n', 'utf8');
+        mustGit(other, ['add', 'o.txt']);
+        mustGit(other, ['commit', '-m', 'other']);
+        mustGit(other, ['push', 'origin', 'HEAD:refs/heads/pro/kurapika/late-base']);
+        const pre = evaluatePreDelete(
+          { repo: wtHost, target: 'zheref/hatsu', branch: 'pro/kurapika/late-base', expectedSha: lateSha, base: 'main' },
+          OPEN_NONE,
+          GITHUB_ORIGIN,
+        );
+        assert.equal(pre.exitCode, 0);
+        const cmd = pre.result.deleteCommand!;
+        assert(cmd.startsWith(SCRUBBED_ENV_PREFIX));
+        const ran = spawnSync('sh', ['-c', cmd], {
+          encoding: 'utf8',
+          env: { ...process.env, GIT_DIR: join(other, '.git'), GIT_WORK_TREE: other },
+        });
+        assert.equal(ran.status, 0, ran.stderr);
+        const bound = spawnSync('git', ['--git-dir', join(tmp, 'origin.git'), 'show-ref', '--verify', '--quiet', 'refs/heads/pro/kurapika/late-base']);
+        assert.notEqual(bound.status, 0, 'the bound origin lost the branch');
+        const untouched = spawnSync('git', ['--git-dir', otherBare, 'show-ref', '--verify', '--quiet', 'refs/heads/pro/kurapika/late-base']);
+        assert.equal(untouched.status, 0, 'the GIT_DIR repository origin still carries it');
+        // Control: the bare `git -C` tail with GIT_DIR exported would have hit the other origin.
+        const control = spawnSync('sh', ['-c', cmd.slice(SCRUBBED_ENV_PREFIX.length + 1)], {
+          encoding: 'utf8',
+          env: { ...process.env, GIT_DIR: join(other, '.git'), GIT_WORK_TREE: other },
+        });
+        assert.equal(control.status, 0, control.stderr);
+        const hit = spawnSync('git', ['--git-dir', otherBare, 'show-ref', '--verify', '--quiet', 'refs/heads/pro/kurapika/late-base']);
+        assert.notEqual(hit.status, 0, 'without the prefix the delete lands on the GIT_DIR origin');
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'Round 3 P: with no per-row trunk and no --base, classify names the default trunk main',
+    run: () => {
+      const row = { kind: 'local-branch', branch: 'main', object: 'main', prState: 'NONE', owner: 'this sitting' };
+      const plan = classifyCleanupPlan({ openPrs: [], candidates: [row] });
+      assert.equal(plan.rows[0].class, 'named');
+      assert(plan.rows[0].namedFacts.includes('trunk main'));
+      const other = classifyCleanupPlan({ openPrs: [], base: 'develop', candidates: [row] });
+      assert.equal(other.rows[0].class, 'proposed');
     },
   },
 ];

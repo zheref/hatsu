@@ -28,13 +28,20 @@
 //      prints `git -C '<host>' push origin --delete -- '<branch>'`, run immediately. No lease: the
 //      permissions pack denies `push --force-with-lease*` (contracts/permissions.json), so a ref
 //      moved between this check and the delete is the one residual race, named, not closed.
+//      The printed delete is prefixed `env -u <each SCRUB_GIT_ENV name>` (derived from the list
+//      below, so the two cannot drift): an exported GIT_DIR (as inside a git hook) would otherwise
+//      send it to another repository's origin. cleanup § 5 quotes the bare `git -C` tail; this
+//      prefixed form is the one that runs.
 //   7. Nothing printed carries a raw remote URL: origins print as <owner>/<name> or
-//      `unparseable origin`, userinfo in any echoed text is `//<redacted>@`, and an origin with
-//      embedded credentials is refused with that host fact (SEC-12).
-//   8. Trunk: a row on `cand.trunk ?? --base` is named (`trunk <name>`); so is a remote head with no
-//      40-hex `tipSha` (`remote SHA unread`), since pre-delete needs it.
-//   9. Pass 2 (cleanup § 6): a remote-head delete that pre-delete skips (exit 1, or 2 with the host
-//      fact) also skips the worktree row whose `precededBy` names it; both listed skipped, `partial`.
+//      `unparseable origin`, userinfo in any echoed text is `//<redacted>@` (up to the last '@'
+//      before the host) or `%2F%2F<redacted>%40` when percent-encoded, and an origin with embedded
+//      credentials is refused with that host fact (SEC-12).
+//   8. Trunk: a row on `cand.trunk ?? --base` (default `main`) is named (`trunk <name>`); so is a
+//      remote head with no 40-hex `tipSha` (`remote SHA unread`), since pre-delete needs it.
+//   9. Pass 2 (cleanup § 6): a remote delete that does not run or does not succeed (pre-delete
+//      exit 1 or 2, a failed push, or its remote row not picked) skips the worktree row whose
+//      `precededBy` names it; both listed skipped, `result` `partial`. `precededBy` is set only
+//      when that remote-head row is in the plan; with no remote row the worktree row stands alone.
 //
 // Row evidence (cleanup § 5 "the header's list"): PR state, SHA, merged head, tree state and dirty
 // paths, reviewer ledger, `base of open PR: <#N|none>`, every named fact and missing read, and each
@@ -76,6 +83,7 @@ const SCRUB_GIT_ENV = [
   'GIT_OBJECT_DIRECTORY',
   'GIT_NAMESPACE',
   'GIT_PREFIX',
+  'GIT_ALTERNATE_OBJECT_DIRECTORIES',
 ] as const;
 
 const SLUG_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
@@ -209,8 +217,13 @@ export class CleanupPlanGuardError extends Error {
 }
 
 // SEC-12: userinfo in any URL-shaped text is never echoed.
+// Greedy to the LAST '@' before the host, so an '@' inside a password is covered too; the
+// percent-encoded form (`%2F%2F...%40`) is redacted the same way.
 export function redactCredentials(value: string): string {
-  return value.replace(/\/\/[^\s/@]+@/g, '//<redacted>@').replace(/(^|[\s(=,'"])[^\s/@:'"(]+:[^\s/@'"]+@/g, '$1<redacted>@');
+  return value
+    .replace(/\/\/[^\s/]*@/g, '//<redacted>@')
+    .replace(/%2F%2F(?:(?!%2F)[^\s/])*%40/gi, '%2F%2F<redacted>%40')
+    .replace(/(^|[\s(=,'"])[^\s/@:'"(]+:[^\s/'"]*@/g, '$1<redacted>@');
 }
 
 export function hasEmbeddedCredentials(url: string): boolean {
@@ -373,8 +386,10 @@ export function indexOpenPrHeads(openPrs: readonly OpenPrSummary[]): Map<string,
   return byHead;
 }
 
+export const SCRUBBED_ENV_PREFIX = `env ${SCRUB_GIT_ENV.map((k) => `-u ${k}`).join(' ')}`;
+
 export function remoteDeleteCommand(host: string, branch: string): string {
-  return `git -C ${shellQuoteSingle(host)} push origin --delete -- ${shellQuoteSingle(branch)}`;
+  return `${SCRUBBED_ENV_PREFIX} git -C ${shellQuoteSingle(host)} push origin --delete -- ${shellQuoteSingle(branch)}`;
 }
 
 function validatePrRefs(raw: unknown): PrCandidateRef[] {
@@ -577,7 +592,7 @@ export function classifyCleanupPlan(opts: {
     const openBasePrs = openBaseMap.get(cand.branch) ?? [];
     const namedFacts: string[] = [];
 
-    const trunk = cand.trunk ?? opts.base;
+    const trunk = cand.trunk ?? baseBranch;
     if (trunk && cand.branch === trunk) namedFacts.push(`trunk ${trunk}`);
     if (cand.locked) namedFacts.push(cand.lockedReason ? `locked yes: ${sanitizeText(cand.lockedReason)}` : 'locked yes');
     if (cand.prState === 'OPEN') namedFacts.push(cand.prNumber ? `open PR #${cand.prNumber}` : 'open PR');
