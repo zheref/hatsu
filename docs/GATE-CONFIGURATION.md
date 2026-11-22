@@ -573,7 +573,7 @@ pins each admitted trigger set to a finite set of reviewed full-file SHA-256
 digests, currently one digest each for its 10-minute and 20-minute forms. It
 checks permissions and the hosted runner. The validator checks the installed
 workflow and the self-test also validates the staged template as if installed.
-Both files retain the 10-minute job bound until activation.
+The installed workflow runs at the 20-minute bound; the staged template retains 10 minutes until activation.
 
 HA#585 stages the `push` trigger for `main` while the installed workflow keeps
 its PR-only trigger. The staged job keeps the same-repository, non-draft PR
