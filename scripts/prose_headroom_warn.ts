@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // #166: advisory headroom threshold for the already-declared dieted skills.
 // The shell guard keeps its established ceiling verdict and file diagnostics.
-import { readFileSync, realpathSync } from 'node:fs';
+import { realpathSync, statSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 
 const WARNING_HEADROOM = 512;
@@ -22,8 +22,14 @@ function main(args: string[]): number {
     try { actual = realpathSync(candidate); } catch { continue; }
     const rel = relative(root, actual);
     if (!rel || rel.startsWith('..') || isAbsolute(rel)) continue;
+    // The size is stat's, never a read: a FIFO or a directory at the path is the guard's NOTAFILE
+    // offence, and reading one would block or throw while the guard still owes its exit code.
     let bytes: number;
-    try { bytes = readFileSync(candidate).byteLength; } catch { continue; }
+    try {
+      const entry = statSync(actual);
+      if (!entry.isFile()) continue;
+      bytes = entry.size;
+    } catch { continue; }
     const left = ceiling - bytes;
     if (left >= 0 && left < WARNING_HEADROOM) {
       console.log(`WARN  ${path} has ${left} bytes headroom (under ${WARNING_HEADROOM}); shorten or move owned prose before the next edit`);

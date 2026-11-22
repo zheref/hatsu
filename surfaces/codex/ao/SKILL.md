@@ -311,6 +311,11 @@ report, and the question through the surface's own option picker. What this skil
 
 **The run ends there.** A G5 stop is not a thing to retry past; the answer resumes it.
 
+**A resolution made on that answer is new code no reviewer has read.** Ao commits it as § 5 says and
+its report names the merge commit and every path resolved on the pick; the caller owes a review round
+on the merged head before any readiness verdict, and what an earlier round carries over is
+[`$en`](../en/SKILL.md) § 3's, stated once there (zheref/hatsu#583). Ao itself reviews nothing.
+
 ## 7. Then hand it back — never pushed
 
 Ao finishes with a branch that is current and a working copy that is clean, **and nothing on the

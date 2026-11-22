@@ -266,7 +266,7 @@ own stack table at resolve time, never memorized:
 stack handbook and the **ports pair file** `<workflow.port.rulingsDir>/<from>--<to>.md` — read beside
 the target stack, never as a second stack: a source-stack id a pair row names is **cited, never loaded**
 (`CON-13` *Port rulings*; `stack-matrix.md` § *How resolution works*)
-([`bankai-rule`](../bankai-rule/SKILL.md) § 4; the family is in `zheref/bankai-handbooks` from
+([`kido`](../kido/SKILL.md) § 4; the family is in `zheref/bankai-handbooks` from
 `v0.11.0` — `handbooks/ports/INDEX.md` and the six directed pair files of the three product stacks, each
 with zero rulings at that tag, rows appended through that skill; prefix `PT`, one global counter: ROSTER §
 *Rulings of 2026-10-21 — the port rule prefix (HA#355)*). `nen canon resolve` at `0.24.0` returns always-load
@@ -279,7 +279,7 @@ exit `2` naming the pair and the tag**; **a present file whose two tables
 hold no `PT-` row — every pair at `v0.11.0` — reads `port rulings: none (file present, 0 rows)`** and is
 still appended, so a row added at a later tag is read without a prose change), **then append its path to
 `--always-load`** after the manifest's own rows. The verb **accepts and echoes** the path (it checks
-no file: `docs/ab/bankai-rule.md` § 3; the run of 2026-10-22 at `v0.11.0` is `docs/ab/bankai-handbooks.md`
+no file: `docs/ab/kido.md` § 3; the run of 2026-10-22 at `v0.11.0` is `docs/ab/bankai-handbooks.md`
 § *Repin to v0.11.0*), and the report prints the pair once, on its `port rulings:`
 line, not in `always load`. No consumer mirror carries a pair file at `0.24.0` ([`limbo`](../limbo/SKILL.md) step 4).
 

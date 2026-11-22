@@ -65,7 +65,7 @@ Read by `hatsu:kagutsuchi` § 1 (the maintainer's ruling of 2026-09-29, zheref/h
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
-| `defaultTarget` | open | a key of `project.targets` whose `why` reads non-production; **`null`**, and null is an answer | The destination an untargeted `hatsu:kagutsuchi` sends to. A typed target always overrides it and the report says which source the target came from (`typed` or `workflow.json → deploy.defaultTarget`). A default naming a store or the live environment is refused by `config_values.sh set` and by kagutsuchi; G3 (`hatsu:mugetsu`) is unchanged. `null` means the target is typed on each call (`missing-maintainer-choice`) | `hatsu:kagutsuchi` |
+| `defaultTarget` | open | a key of `project.targets` marked `nonProduction: true` whose `why` also reads non-production (HR-289); **`null`**, and null is an answer | The destination an untargeted `hatsu:kagutsuchi` sends to. A typed target always overrides it and the report says which source the target came from (`typed` or `workflow.json → deploy.defaultTarget`). A default naming a store or the live environment is refused by `config_values.sh set` and by kagutsuchi; G3 (`hatsu:mugetsu`) is unchanged. `null` means the target is typed on each call (`missing-maintainer-choice`) | `hatsu:kagutsuchi` |
 
 ### `reports`
 
@@ -198,7 +198,7 @@ The **advance-go gate**: which repository kinds a typed `hatsu:futon ... then <s
 
 ### `port`
 
-The porting keys (`zheref/hatsu#354`): `handbooksRepo`, the canon handbooks repository a port ruling lands in (default `zheref/bankai-handbooks`), and `rulingsDir`, the directory of its ports family (default `handbooks/ports`, one directed pair file per scenario pair plus `INDEX.md`). Read by `bankai-rule`, `limbo` and `bankai-handbooks` (and the port composites `hiraishin` and `kamui`, zheref/hatsu#357 and zheref/hatsu#356, shipped, reach them through `bankai-rule`); both have defaults, so an unset consumer reads them through `config_values.sh need --skill bankai-rule`. Domain `port` in the catalogue.
+The porting keys (`zheref/hatsu#354`): `handbooksRepo`, the canon handbooks repository a port ruling lands in (default `zheref/bankai-handbooks`), and `rulingsDir`, the directory of its ports family (default `handbooks/ports`, one directed pair file per scenario pair plus `INDEX.md`). Read by `kido`, `limbo` and `bankai-handbooks` (and the port composites `hiraishin` and `kamui`, zheref/hatsu#357 and zheref/hatsu#356, shipped, reach them through `kido`); both have defaults, so an unset consumer reads them through `config_values.sh need --skill kido`. Domain `port` in the catalogue.
 
 ### `aiReviewers`
 
@@ -244,7 +244,7 @@ Self-hosted GitHub Actions runner naming and pools, provisioned by `hatsu:jusshi
 
 ### `port.specKit`
 
-Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356) and `hatsu:dowsing-chain` §§ 1, 4 ([`spec-repo.md`](spec-repo.md)); the epic's other `port.*` keys land with `bankai-rule` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
+Read in a product family's **spec repository** (role `spec`, [`repos.json.md`](repos.json.md) § `families[]`) by `hatsu:kamui` § 2 (zheref/hatsu#356) and `hatsu:dowsing-chain` §§ 1, 4 ([`spec-repo.md`](spec-repo.md)); the epic's other `port.*` keys land with `kido` (zheref/hatsu#355). Both keys apply their default when absent, so neither blocks a run; both catalogue rows carry `when: nen/workflow.json#port`, so `fill` writes nothing into a repository without the block; `nen schema check` tolerates it.
 
 | Key | Type | Values · default | Represents | Read by |
 |---|---|---|---|---|
