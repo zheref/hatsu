@@ -127,7 +127,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/tenkai-fixes.json`
 
-**Purpose.** The fix every outstanding [`hatsu:tenkai`](../../claude/skills/tenkai/SKILL.md) item names ([zheref/hatsu#535](https://github.com/zheref/hatsu/issues/535)): what to run, which file and key to edit, which command reads the item again, and who supplies the value. `scripts/tenkai_fixes.ts` renders it into each outstanding row's `fix` block and the report's `guide`; lane `tenkai-fixes-guard` holds it.
+**Purpose.** The fix every outstanding [`hatsu:tenkai`](../../claude/skills/tenkai/SKILL.md) item names ([zheref/hatsu#535](https://github.com/zheref/hatsu/issues/535)): what to run, which file and key to edit, which command reads the item again, and who supplies the value. `scripts/tenkai_fixes.ts` renders it into each outstanding row's `fix` block and the report's `guide`, and also exposes `adoptionNotices()` for `scripts/tenkai_adopt.ts` to report non-blocking absent-declaration notices (`reports.sections`, `review.scopes.architecture`, `nen/gates.json`, `nen/decisions.json`); lane `tenkai-fixes-guard` holds it.
 
 ### Keys
 
@@ -173,7 +173,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/pr-composition.json` and `contracts/pr-body.requirements.json`
 
-**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the declared Nen home remains owed; docs/PROCESS.md records it): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads, derived from the default process × canon cell in [`contracts/pr-sections.json`](../../contracts/pr-sections.json); `pr-composition.json` holds the rest and says where that array comes from. A catalogue section declaring `content: true` (today `verify`, HR-11) derives a second row, `<id>-content`, carrying `content: true` (nen ignores the key): the heading followed, past blank lines and comments, by something other than the next heading, so an empty section fails both `nen pr body-check` and `scripts/pr_body_sections_check.sh`.
+**Purpose.** The inputs three nen verbs take on every pull request and nen ships none of (zheref/hatsu#171; the declared Nen home remains owed; docs/PROCESS.md records it): the body-check requirements, the gate-derive path sets and the changelog-fragment inputs, declared once so no run retypes them. `pr-body.requirements.json` is the bare `{name, pattern}` array `nen pr body-check --requirements-from` reads as a fixture default, derived from the unconditional rows of the default `process × canon` cell in [`contracts/pr-sections.json`](../../contracts/pr-sections.json) (conditional sections such as `across` are excluded unless resolved per run from `contracts/pr-sections.json`); `pr-composition.json` holds the rest and says where that array comes from. A catalogue section declaring `content: true` (today `verify`, HR-11) derives a second row, `<id>-content`, carrying `content: true` (nen ignores the key): the heading followed, past blank lines and comments, by something other than the next heading, so an empty section fails both `nen pr body-check` and `scripts/pr_body_sections_check.sh`.
 
 ### Keys (`pr-composition.json`)
 

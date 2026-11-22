@@ -142,6 +142,9 @@ node -e 'const fs=require("node:fs");const p=process.argv[1];const d=JSON.parse(
 run_case 'catalogue composition prepends Delivery before the default reader cell' 0 "$t" 'pr-composition ok'
 node -e 'const fs=require("node:fs");const p=process.argv[1];const d=JSON.parse(fs.readFileSync(p,"utf8"));d.shift();fs.writeFileSync(p,JSON.stringify(d)+"\n")' "$t/contracts/pr-body.requirements.json"
 run_case 'catalogue composition refuses requirements with the Delivery preamble dropped' 1 "$t" 'drifts from catalogue default process.canon'
+cp "$repo_root/contracts/pr-body.requirements.json" "$t/contracts/pr-body.requirements.json"
+node -e 'const fs=require("node:fs");const p=process.argv[1];const d=JSON.parse(fs.readFileSync(p,"utf8"));const at=d.findIndex(r=>r.name==="improves");d.splice(at+1,0,{name:"across",pattern:"^ {0,3}##[ \\t]+(?:[^A-Za-z0-9#\\r\\n]+[ \\t]*)?Across\\ repositories[ \\t]*$"});fs.writeFileSync(p,JSON.stringify(d)+"\n")' "$t/contracts/pr-body.requirements.json"
+run_case 'catalogue composition refuses conditional section across in flat requirements' 1 "$t" "conditional section 'across' must not appear unconditionally"
 
 # --- the declaration's own shape ------------------------------------------------------------------
 t="$(make_tree both-empty)"
