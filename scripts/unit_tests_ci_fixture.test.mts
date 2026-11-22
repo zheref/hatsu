@@ -139,9 +139,13 @@ try {
   assert(result.status === 1 && result.stderr.includes('report-time-guard failed'),
     'report-time fixture failure did not fail CI');
 
-  // The tenkai engine is its own fixture (--self-test), so its lane is selected by the script alone,
-  // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427).
+  // The tenkai engine requires both its own --self-test and the readiness checksum Vitest suite,
+  // with the verified nen's directory first on PATH and as NEN for its review-ledger cases (#427, #554).
   writeFileSync(join(repo, 'scripts', 'tenkai_adopt.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('readiness_checksum_fixture.test.mts'),
+    'missing readiness checksum fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'readiness_checksum_fixture.test.mts'), '');
   writeFileSync(log, '');
   const pathLog = join(dir, 'paths');
   result = run({ HATSU_PATH_LOG: pathLog, PATH: `/usr/bin:/bin` });

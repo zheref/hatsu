@@ -3175,6 +3175,21 @@ def self_test() -> int:
     row = NenDeclaration("nen/contract.json", "x").detect(ctx_for(d5))
     check("malformed JSON is BLOCKED, not silently rewritten", row["state"] == BLOCKED)
 
+    print("\nreadiness bootstrap — rendered checksum fixtures")
+    vitest_run = subprocess.run(
+        ["node", str(root / "node_modules" / "vitest" / "vitest.mjs"), "run",
+         "--root", str(root), "--testTimeout", "15000",
+         str(root / "scripts" / "readiness_checksum_fixture.test.mts")],
+        cwd=str(root), capture_output=True, text=True,
+    )
+    if vitest_run.stdout:
+        print(vitest_run.stdout, end="")
+    if vitest_run.stderr:
+        print(vitest_run.stderr, end="")
+    check("readiness bootstrap checksum vitest suite passes",
+          vitest_run.returncode == 0,
+          f"vitest exited {vitest_run.returncode}")
+
     print()
     if failures:
         print(f"tenkai_adopt --self-test: {len(failures)} FAILED: {', '.join(failures)}")

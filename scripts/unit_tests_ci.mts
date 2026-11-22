@@ -67,9 +67,9 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // HA148: the paired companion proves rendering and legacy --self-test forwarding.
   // Automatic selection starts after this trusted runner is adopted by the PR base.
   ['report_time.sh', 'report_time_fixture.sh', 'report-time-guard'],
-  // The tenkai engine's fixture is its own --self-test; its review-ledger cases call `nen review
-  // ledger` from PATH (zheref/hatsu#427).
-  ['tenkai_adopt.sh', 'tenkai_adopt.sh', 'tenkai-guard'],
+  // The tenkai engine's fixture is its own --self-test plus the rendered readiness checksum Vitest
+  // suite; its review-ledger cases call `nen review ledger` from PATH (zheref/hatsu#427, #554).
+  ['tenkai_adopt.sh', ['tenkai_adopt.sh', 'readiness_checksum_fixture.test.mts'], 'tenkai-guard'],
   // The fix every outstanding Tenkai item names, and the count going down after it (zheref/hatsu#535).
   ['tenkai_fixes.ts', ['tenkai_fixes_fixture.test.mts', 'tenkai_fixes_coverage.test.mts'], 'tenkai-fixes-guard'],
   // The spec-family fixture reads (zheref/hatsu#405): the script is its own fixture, as tenkai's is.
