@@ -181,6 +181,12 @@ fi
 #                       recreates the first-run failure this guard exists to
 #                       prevent, so this one runtime script is covered; the
 #                       fixture check beside it is test-only and is not.
+#   scripts/surface_marker.sh
+#                     — the one reader of a placed copy's generated marker
+#                       (zheref/hatsu#531), sourced by the session-start hook,
+#                       scripts/surface_bootstrap.sh and scripts/permissions_pack.sh
+#                       on every installed copy; a stale copy judges ownership and
+#                       adoption by the old rule.
 #   scripts/branch_authorship_check.sh
 #                     — the authorship gate (zheref/hatsu#170), run from
 #                       `$hatsu_root/scripts/` at hanten § 4's return and before
@@ -250,7 +256,7 @@ fi
 #                       this installed-root helper before readiness; a stale copy
 #                       can accept a mismatched or stale effort.
 #   scripts/product_term_check.sh, scripts/private_name_named.txt
-#                     — bankai-rule runs the product-term guard from the installed
+#                     — kido runs the product-term guard from the installed
 #                       root, whose shim executes product_term_check.mts; file reads
 #                       the named public-repository list into its redaction ignore
 #                       file. Stale copies enforce stale code or data.
@@ -259,7 +265,7 @@ fi
 #                       installed-root reader; a stale copy can compare a tag object
 #                       instead of the commit it names.
 #   scripts/port_rule_reserve.sh
-#                     — bankai-rule reserves and re-checks ruling ids through this
+#                     — kido reserves and re-checks ruling ids through this
 #                       installed-root helper; a stale copy can admit a duplicate.
 #   scripts/idle_permissions_check.mts
 #                     — the idle batch's permission list (zheref/hatsu#453), run from
@@ -333,10 +339,12 @@ fi
 #                       whether the served copy is the source (zheref/hatsu#122), and
 #                       surface_mirror_check.sh --installed calls it; a stale copy would
 #                       misjudge the cache. Its fixture beside it is test-only.
-#   scripts/prose_size_check.sh, scripts/prose_desc.awk
+#   scripts/prose_size_check.sh, scripts/prose_desc.awk, scripts/prose_headroom_warn.ts
 #                     — hanten § 2 runs the link guard and § 6 the prose guard
 #                       from `$hatsu_root/scripts/` in every review, consumers'
-#                       included; a stale copy judges a review by old rules.
+#                       included; a stale copy judges a review by old rules. The
+#                       guard executes the TypeScript helper beside it for the
+#                       headroom warning under --headroom.
 #
 #   scripts/hanten_findings_check.mts, scripts/clause_id_guard.mts
 #                     — hanten section 6 runs the findings checker from the installed
@@ -386,6 +394,7 @@ PLUGIN_SURFACE_GLOBS=(
   'templates/*'
   'surfaces/*'
   'scripts/surface_bootstrap.sh'
+  'scripts/surface_marker.sh'
   'scripts/nen_global.sh'
   'scripts/branch_authorship_check.sh'
   'scripts/hatsu_plugin_update.sh'
@@ -400,6 +409,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/surface_link_check.sh'
   'scripts/prose_size_check.sh'
   'scripts/prose_desc.awk'
+  'scripts/prose_headroom_warn.ts'
   'scripts/canon_contracts_check.sh'
   'scripts/publish_gate.sh'
   'scripts/private_name_check.sh'

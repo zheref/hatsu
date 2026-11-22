@@ -1,5 +1,5 @@
 #!/bin/sh
-# product_term_check.sh — forwarding shim for the product-term guard hatsu:bankai-rule § 4 runs on a
+# product_term_check.sh — forwarding shim for the product-term guard hatsu:kido § 4 runs on a
 # drafted pair row and on the pair file and INDEX before any write (zheref/hatsu#354, wave 3). The rule,
 # the CLI and the exit codes are product_term_check.mts's header (BC-11 / HR-171: a three-way verdict is
 # TypeScript's). A missing node, or one below the type-stripping floor, exits 2 here (never 1, the hit code).
