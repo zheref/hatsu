@@ -836,3 +836,57 @@ test("HA#503 AC-3: --scopes-from reads nen review scopes, and only a Markdown pa
     assert.equal(result.status, status, `${rows}\n${result.stdout}${result.stderr}`);
   }
 });
+
+test("HA#565 AC-1/AC-2/AC-4/SC-1/SC-2: flat requirements exclude conditional across and agree with resolver", (context) => {
+  const flatPath = join(HATSU_ROOT, "contracts/pr-body.requirements.json");
+  const flat = JSON.parse(readFileSync(flatPath, "utf8")) as Array<{ name: string; pattern: string }>;
+  const resolvedDefault = resolution("process", ["documentation"], []);
+  assert.deepEqual(flat, resolvedDefault.requirements, "SC-2: flat requirements match unconditional process.canon");
+  for (const row of [...cat.preamble, ...cat.sections, ...cat.footer]) {
+    if (row.when !== undefined) {
+      assert.ok(!flat.some((req) => req.name === row.id), `conditional section ${row.id} excluded from flat requirements`);
+    }
+  }
+  // AC-1 & AC-2: a process.build body with no policy hit passes both resolved and flat requirements identically.
+  const noHitBuild = resolution("process", ["machinery"], []);
+  assert.deepEqual(noHitBuild.requirements, flat);
+  const validBuildBody = body(noHitBuild, "process");
+  assert.deepEqual(check(cat, validBuildBody, flat, 7)[0], []);
+  assert.deepEqual(check(cat, validBuildBody, noHitBuild.requirements, 7)[0], []);
+
+  // AC-4: En § 5 names contracts/pr-sections.json as the single source of truth via pr_sections_resolve.sh.
+  const en = readFileSync(join(HATSU_ROOT, "claude/skills/en/SKILL.md"), "utf8");
+  const deliveryException = en.slice(en.indexOf("**Narrow exception, only for a Futon-owned stacked delivery PR**"), en.indexOf("If any gate fails or is unknown"));
+  assert.ok(deliveryException.includes("`contracts/pr-sections.json` (the single source of truth"), "en § 5 names contracts/pr-sections.json as single source of truth");
+  assert.ok(deliveryException.includes("pr_sections_resolve.sh"), "en § 5 resolves per-run requirements dynamically");
+  assert.ok(!deliveryException.includes("contracts/pr-body.requirements.json"), "en § 5 no longer hands static flat requirements to body-check or merge");
+
+  // SC-1: NN-PR-#596 shape (process.build + Decisions, no Across): passes without policy hit, and misses only `across` with --policy-hit.
+  const requirements = join(repo, "ha565-requirements.json");
+  const nn596Res = resolution("process", ["machinery"], ["decisions"]);
+  const nn596Body = join(repo, "nn596-body.md");
+  writeFileSync(nn596Body, body(nn596Res, "process"));
+  assert.equal(run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", "machinery", "--decisions", "--out", requirements]).status, 0);
+  assert.deepEqual(JSON.parse(readFileSync(requirements, "utf8")), nn596Res.requirements);
+  assert.equal(run("bash", [CHECKER, "--body", nn596Body, "--requirements", requirements, "--max", "7"]).status, 0);
+
+  assert.equal(run("bash", [RESOLVER, "--repo", repo, "--kind", "process", "--jobs", "machinery", "--decisions", "--policy-hit", "--out", requirements]).status, 0);
+  const withHit = JSON.parse(readFileSync(requirements, "utf8"));
+  const hitCheck = run("bash", [CHECKER, "--body", nn596Body, "--requirements", requirements, "--max", "7"]);
+  assert.equal(hitCheck.status, 1);
+  assert.match(hitCheck.stdout, /missing heading across/);
+  assert.ok(!/missing heading (?!across\b)/.test(hitCheck.stdout), `only across may be missing: ${hitCheck.stdout}`);
+
+  const nen = process.env.NEN || "nen";
+  const probe = spawnSync(nen, ["--version"], { encoding: "utf8" });
+  if (probe.error !== undefined || probe.status !== 0) { context.skip("nen is not installed: the body-check half is not run"); return; }
+  assert.equal(run(nen, ["pr", "body-check", "--body-from", nn596Body, "--requirements-from", flatPath]).status, 0);
+  const cleanBodyFile = join(repo, "clean-build.md");
+  writeFileSync(cleanBodyFile, validBuildBody);
+  assert.equal(run(nen, ["pr", "body-check", "--body-from", cleanBodyFile, "--requirements-from", flatPath]).status, 0);
+  assert.equal(run("bash", [CHECKER, "--body", cleanBodyFile, "--requirements", flatPath, "--max", "7"]).status, 0);
+  const withHitNen = run(nen, ["pr", "body-check", "--body-from", nn596Body, "--requirements-from", requirements]);
+  assert.equal(withHitNen.status, 1);
+  assert.ok(withHitNen.stdout.includes("across") || withHitNen.stderr.includes("across"));
+  assert.ok(withHit.some((r: { name: string }) => r.name === "across"));
+});
