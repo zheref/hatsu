@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { formatVerdict } from "./readiness_ci_verdict.mts";
+import { applyPluginVersionCheck, formatVerdict } from "./readiness_ci_verdict.mts";
 
 const head = "a".repeat(40);
 const specs = [
@@ -75,4 +75,137 @@ const importRun = spawnSync(process.execPath, ["--input-type=module", "-e",
   `process.argv[1] = "/path/that/does/not/exist"; await import(${JSON.stringify(readerUrl)});`],
   { encoding: "utf8" });
 assert.equal(importRun.status, 0, importRun.stderr);
-console.log("readiness-json: six-row contract, unevaluated rows, head pin, hostile text, and exact Nen argv passed");
+
+// applyPluginVersionCheck unit assertions (HA#545 AC-3)
+const readyVerdict = { title: "ready", summary: `Verdict: ready\nJudged head: ${head}` };
+assert.deepEqual(applyPluginVersionCheck(readyVerdict, { status: "ok" }), readyVerdict);
+const failedOnReady = applyPluginVersionCheck(readyVerdict, {
+  status: "failed",
+  detail: "head version 0.170.1 equals the current tip of main (0.170.1)",
+});
+assert.equal(failedOnReady.title, "not-ready");
+assert.match(failedOnReady.summary, /^Verdict: not-ready\n/);
+assert.match(failedOnReady.summary, /plugin-version \(HA#545\): failed — head version 0\.170\.1 equals the current tip of main/);
+assert.equal(
+  applyPluginVersionCheck(readyVerdict, { status: "superseded" }).title,
+  "superseded",
+);
+assert.equal(
+  applyPluginVersionCheck(readyVerdict, { status: "undetermined", detail: "network error" }).title,
+  "readiness undetermined",
+);
+const notReadyVerdict = { title: "not-ready", summary: `Verdict: not-ready\nJudged head: ${head}` };
+const preservedNotReady = applyPluginVersionCheck(notReadyVerdict, { status: "undetermined", detail: "network error" });
+assert.equal(preservedNotReady.title, "not-ready");
+assert.match(preservedNotReady.summary, /plugin-version check undetermined — network error/);
+
+// End-to-end HA#545 AC-3 check inside a Hatsu-like trusted checkout
+const e2eDir = mkdtempSync(join(tmpdir(), "hatsu-readiness-e2e-"));
+try {
+  mkdirSync(join(e2eDir, ".trusted/scripts"), { recursive: true });
+  mkdirSync(join(e2eDir, ".trusted/nen"), { recursive: true });
+  mkdirSync(join(e2eDir, ".claude-plugin"), { recursive: true });
+  writeFileSync(join(e2eDir, ".trusted/nen/gates.json"), "{}\n");
+  writeFileSync(join(e2eDir, ".claude-plugin/plugin.json"), JSON.stringify({ name: "hatsu", version: "0.170.1" }) + "\n");
+  copyFileSync(join(import.meta.dirname, "plugin_bump_api_retry.mts"), join(e2eDir, ".trusted/scripts/plugin_bump_api_retry.mts"));
+  copyFileSync(join(import.meta.dirname, "plugin_bump_check.sh"), join(e2eDir, ".trusted/scripts/plugin_bump_check.sh"));
+  chmodSync(join(e2eDir, ".trusted/scripts/plugin_bump_check.sh"), 0o755);
+
+  const readyBody = {
+    contract: "nen.pr.ready/v0.1",
+    verdict: "ready",
+    judgedHead: head,
+    failing: [],
+    conjuncts: rows.map(row => ({ ...row, status: "ready", reason: null, missing: null })),
+  };
+  const fakeReadyNen = join(e2eDir, "nen-ready");
+  writeFileSync(fakeReadyNen, `#!/bin/sh\ncat <<'JSON'\n${JSON.stringify(readyBody)}\nJSON\nexit 0\n`, { mode: 0o755 });
+
+  const mockFetchPath = join(e2eDir, "mock-fetch.mjs");
+  writeFileSync(mockFetchPath, `
+const head = ${JSON.stringify(head)};
+const tip = "e".repeat(40);
+globalThis.fetch = async (input) => {
+  const url = String(input);
+  const json = (status, data) => new Response(JSON.stringify(data), { status });
+  if (url.includes("/repos/zheref/hatsu/pulls/325/files")) {
+    return json(200, [{ filename: "claude/skills/ten/SKILL.md" }]);
+  }
+  if (url.includes("/repos/zheref/hatsu/pulls/610/files")) {
+    return json(200, [{ filename: "claude/skills/aka/SKILL.md" }]);
+  }
+  if (url.includes("/repos/zheref/hatsu/pulls/325")) {
+    return json(200, { base: { ref: "main" }, head: { sha: head } });
+  }
+  if (url.includes("/commits/main")) {
+    return json(200, { sha: tip });
+  }
+  if (url.includes("/contents/.claude-plugin/plugin.json")) {
+    if (url.includes("ref=" + "f".repeat(40))) {
+      return json(200, { version: "0.170.1" });
+    }
+    return json(200, { version: process.env.MOCK_BASE_VERSION ?? "0.170.0" });
+  }
+  if (url.includes("/pulls?state=open")) {
+    return json(200, JSON.parse(process.env.MOCK_OPEN_PRS ?? "[]"));
+  }
+  return json(404, { message: "unexpected url: " + url });
+};
+`);
+  const mockUrl = pathToFileURL(mockFetchPath).href;
+  const runE2e = (caseName: string, extraEnv: Record<string, string>) => {
+    const outFile = join(e2eDir, `out-${caseName}`);
+    const res = spawnSync(process.execPath, [join(import.meta.dirname, "readiness_ci_verdict.mts")], {
+      cwd: e2eDir,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        NODE_OPTIONS: `--import ${mockUrl}`,
+        NEN: fakeReadyNen,
+        REPO: "zheref/hatsu",
+        PR: "325",
+        RUN_ID: "456",
+        EVENT_HEAD: head,
+        GH_TOKEN: "fixture-token",
+        GITHUB_OUTPUT: outFile,
+        ...extraEnv,
+      },
+    });
+    assert.equal(res.status, 0, `${caseName}: ${res.stderr}`);
+    return { stdout: res.stdout, output: readFileSync(outFile, "utf8") };
+  };
+
+  const clean = runE2e("clean", { MOCK_BASE_VERSION: "0.170.0", MOCK_OPEN_PRS: "[]" });
+  assert.match(clean.stdout, /^readiness: ready\n$/);
+
+  const staleBase = runE2e("stale-base", { MOCK_BASE_VERSION: "0.170.1", MOCK_OPEN_PRS: "[]" });
+  assert.match(staleBase.stdout, /^readiness: not-ready\n$/);
+  assert.match(staleBase.output, /equals the current tip of main/);
+
+  const siblingHead = "f".repeat(40);
+  const collidingPr = JSON.stringify([{
+    number: 610,
+    head: { sha: siblingHead, repo: { full_name: "zheref/hatsu" } },
+  }]);
+  const collision = runE2e("collision", { MOCK_BASE_VERSION: "0.170.0", MOCK_OPEN_PRS: collidingPr });
+  assert.match(collision.stdout, /^readiness: not-ready\n$/);
+  assert.match(collision.output, /collides with another open PR/);
+  assert.match(collision.output, /PR #610/);
+
+  // Deleted or symlinked .claude-plugin/plugin.json in PR head must fail closed, never skip.
+  rmSync(join(e2eDir, ".claude-plugin/plugin.json"));
+  const missingManifest = runE2e("missing-manifest", { MOCK_BASE_VERSION: "0.170.0", MOCK_OPEN_PRS: "[]" });
+  assert.match(missingManifest.stdout, /^readiness: not-ready\n$/);
+  assert.match(missingManifest.output, /missing, a symlink, or not a regular file/);
+
+  const targetJson = join(e2eDir, "real-manifest.json");
+  writeFileSync(targetJson, JSON.stringify({ name: "hatsu", version: "0.170.9" }) + "\n");
+  symlinkSync(targetJson, join(e2eDir, ".claude-plugin/plugin.json"));
+  const linkedManifest = runE2e("symlink-manifest", { MOCK_BASE_VERSION: "0.170.0", MOCK_OPEN_PRS: "[]" });
+  assert.match(linkedManifest.stdout, /^readiness: not-ready\n$/);
+  assert.match(linkedManifest.output, /missing, a symlink, or not a regular file/);
+} finally {
+  rmSync(e2eDir, { recursive: true, force: true });
+}
+
+console.log("readiness-json: six-row contract, unevaluated rows, head pin, hostile text, HA#545 freshness/collision, and exact Nen argv passed");
