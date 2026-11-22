@@ -110,8 +110,8 @@
     {
       "id": "^\\.github/workflows/pr-readiness\\.yml$",
       "states": ["blocked"],
-      "detail": "pinned_ref",
-      "edit": "Hatsu's own nen/contract.json → dependency.pinned_ref, not this repository's; repin Hatsu",
+      "detail": "pinned_ref|bootstrap checksums",
+      "edit": "Hatsu's own nen/contract.json → dependency.pinned_ref and dependency.bootstrap (scriptSha256, sha256), not this repository's; repin or repair Hatsu",
       "detect": "nen schema check --repo {root}",
       "fill": "route"
     },

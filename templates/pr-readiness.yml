@@ -1,8 +1,9 @@
 # pr-readiness.yml — RENDERED BY hatsu:tenkai. Do not hand-edit.
 #
 # THIS FILE IS A RENDERING OF `templates/pr-readiness.yml` IN THE HATSU PLUGIN
-# ROOT, with two values substituted for this repository: the repository slug and
-# the runner label. Re-run `hatsu:tenkai` to bring it current; hand-edits are
+# ROOT, with repository-specific and pinned Nen contract values substituted
+# (repository slug, runner label, guard requirement, fallback policy, Nen ref,
+# and bootstrap script and linux-x64 binary SHA-256 digests). Re-run `hatsu:tenkai` to bring it current; hand-edits are
 # reported as drift by `scripts/tenkai_adopt.sh diagnose` and overwritten by
 # `apply`, which is what makes re-adoption safe rather than destructive.
 #

@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -9,7 +9,7 @@ const step = (id: string) => template.split(`        id: ${id}\n`)[1]!.split('\n
 const script = step('nen');
 const pinScript = step('pin');
 const digest = (text: string) => createHash('sha256').update(text).digest('hex');
-for (const kind of ['valid', 'script mismatch', 'binary mismatch', 'missing digest', 'fallback forbidden', 'trusted valid', 'trusted missing digest'] as const) {
+for (const kind of ['valid', 'script mismatch', 'binary mismatch', 'missing digest', 'fallback forbidden', 'trusted valid', 'trusted missing digest', 'trusted non-utf8'] as const) {
   test(`readiness bootstrap: ${kind}`, () => {
     const root = mkdtempSync(join(tmpdir(), 'readiness-integrity-'));
     try {
@@ -23,9 +23,10 @@ for (const kind of ['valid', 'script mismatch', 'binary mismatch', 'missing dige
       if (kind === 'binary mismatch') for (const key of Object.keys(integrity.sha256)) integrity.sha256[key as keyof typeof integrity.sha256] = '0'.repeat(64);
       if (kind.startsWith('trusted')) {
         mkdirSync(join(root, '.trusted', 'nen'), { recursive: true });
-        writeFileSync(join(root, '.trusted', 'nen', 'contract.json'), JSON.stringify({ dependency: { pinned_ref: 'v1', bootstrap: kind === 'trusted valid' ? integrity : {} } }));
+        if (kind === 'trusted non-utf8') writeFileSync(join(root, '.trusted', 'nen', 'contract.json'), Buffer.from([0xff, 0xfe, 0x7b]));
+        else writeFileSync(join(root, '.trusted', 'nen', 'contract.json'), JSON.stringify({ dependency: { pinned_ref: 'v1', bootstrap: kind === 'trusted valid' ? integrity : {} } }));
       }
-      const env = { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_ROOT: root, RUNNER_TEMP: join(root, 'tmp'), GITHUB_OUTPUT: join(root, 'pin-out'), TENKAI_FALLBACK_REF: 'v1', TENKAI_PIN_FALLBACK_ALLOWED: kind === 'fallback forbidden' ? 'false' : 'true', TENKAI_FALLBACK_SCRIPT_SHA256: kind === 'missing digest' || kind.startsWith('trusted') ? '' : integrity.scriptSha256, TENKAI_FALLBACK_BINARY_SHA256: kind === 'missing digest' || kind.startsWith('trusted') ? '' : integrity.sha256['linux-x64'] };
+      const env = { ...process.env, PATH: `${join(root, 'bin')}:${process.env.PATH}`, TEST_ROOT: root, RUNNER_TEMP: join(root, 'tmp'), GITHUB_OUTPUT: join(root, 'pin-out'), TENKAI_FALLBACK_REF: 'v1', TENKAI_PIN_FALLBACK_ALLOWED: kind === 'fallback forbidden' ? 'false' : 'true', TENKAI_FALLBACK_SCRIPT_SHA256: kind === 'missing digest' ? '' : integrity.scriptSha256, TENKAI_FALLBACK_BINARY_SHA256: kind === 'missing digest' ? '' : integrity.sha256['linux-x64'] };
       const pin = spawnSync('bash', ['-c', pinScript], { cwd: root, encoding: 'utf8', env });
       let result = pin;
       if (pin.status === 0) {
@@ -35,8 +36,9 @@ for (const kind of ['valid', 'script mismatch', 'binary mismatch', 'missing dige
       if ((kind === 'valid' || kind === 'trusted valid')) expect(result.status, result.stderr + result.stdout).toBe(0);
       else expect(result.status, result.stderr + result.stdout).not.toBe(0);
       if ((kind === 'valid' || kind === 'trusted valid')) expect(readFileSync(join(root, 'out'), 'utf8')).toContain(`bin=${root}/nen`);
+      else expect(existsSync(join(root, 'out')) ? readFileSync(join(root, 'out'), 'utf8') : '').toBe('');
       if (kind !== 'valid' && kind !== 'trusted valid') expect(spawnSync('test', ['-e', join(root, 'versioned')]).status).toBe(1);
-      if (kind === 'script mismatch' || kind === 'missing digest' || kind === 'fallback forbidden') expect(spawnSync('test', ['-e', join(root, 'executed')]).status).toBe(1);
+      if (kind !== 'valid' && kind !== 'trusted valid' && kind !== 'binary mismatch') expect(spawnSync('test', ['-e', join(root, 'executed')]).status).toBe(1);
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 }

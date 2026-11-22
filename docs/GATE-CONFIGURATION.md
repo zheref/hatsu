@@ -49,10 +49,13 @@ consumer workaround is a `pull_request_target` workflow that executes its guard 
 base/workflow revision and reads the event-selected PR head as data only. Preserve the trusted-base
 preflight and exact event-head checks when adopting it. The prepared readiness integrity form verifies its script
 against a reviewed trusted digest before Bash, then verifies the binary against the contract platform
-digest before execution. Under § 6, this preparer must land first; the tracked readiness template
-keeps its existing bytes until a separate activation PR after the preparer reaches `main`. That
-activation also needs a typed metadata reader and validated producer/pin binding; a template-only
-patch is design evidence, not executable adoption. [The dependency contract](NEN-CONTRACT.md#bootstrap-integrity-and-ownership)
+digest before execution. Under § 6, the preparer (`workflow_runner_policy_check.rb`'s
+`READINESS_INTEGRITY_*` forms) landed on `main` first; the template stage activates Tenkai's
+`templates/pr-readiness.yml` and `scripts/tenkai_adopt_legacy.sh` (`nen_integrity()`) rendering
+for script and `linux-x64` binary verification (`scripts/readiness_checksum_fixture.test.mts`).
+Widening beyond `linux-x64` (`darwin-arm64`, `windows-x64` pools) or rejecting zero-byte trusted
+contracts requires a subsequent two-step validator update (`workflow_runner_policy_check.rb` first).
+[The dependency contract](NEN-CONTRACT.md#bootstrap-integrity-and-ownership)
 records the pin ownership; producer binding is still a Nen dependency, not a policy implemented by
 `$`-prefixed comments or this workaround.
 

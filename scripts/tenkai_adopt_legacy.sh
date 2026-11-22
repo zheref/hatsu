@@ -959,7 +959,7 @@ class ReadinessWorkflow(Item):
         if readiness["state"] != SATISFIED:
             return self.row(**readiness)
         if ctx.nen_ref() is None or ctx.nen_integrity() is None:
-            return self.row(BLOCKED, "Hatsu's dependency pin or bootstrap checksums are absent or malformed; "
+            return self.row(BLOCKED, "Hatsu's dependency.pinned_ref or dependency.bootstrap checksums are absent or malformed; "
                             "the readiness workflow cannot bootstrap Nen", "repair Hatsu's nen/contract.json")
         # BEFORE the file check, so `repair`'s BLOCKED early-return stops the write
         # on a fresh repository too -- not only where a file already exists.
@@ -1066,10 +1066,11 @@ class ReadinessWorkflow(Item):
             blocks = re.split(r"\n(?=\s*- name:)", source)
             return next((block.strip() for block in blocks
                          if any(line.strip() == want for line in block.splitlines())), None)
-        for step_name, what in (("Readiness verdict", "the verdict step"),
+        for step_name, what in (("Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)", "the bootstrap step"),
+                                ("Readiness verdict", "the verdict step"),
                                 ("Publish the check on the exact PR head", "the Publish step")):
             if step_block(live, step_name) != step_block(expected_live, step_name):
-                drifts.append(f"{what} differs from Hatsu's current rendering — the JSON reader "
+                drifts.append(f"{what} differs from Hatsu's current rendering — the bootstrap verification and JSON reader "
                               f"must run from the trusted base checkout with the exact pinned environment")
         if step_block(live, "Confirm the verdict still describes the event head") is not None:
             drifts.append("the retired freshness step is still present; the pinned verdict replaces it "
@@ -2799,6 +2800,28 @@ def self_test() -> int:
     row = ReadinessWorkflow().detect(ctx_for(dprod))
     check("echo decoys cannot hide an unguarded trusted-contract read",
           row["state"] == DRIFT and "pin step" in row["detail"])
+    product_workflow_path.write_text(product_workflow.replace(
+        'printf \'%s  %s\\n\' "$BINARY_SHA256" "$bin" | sha256sum -c -',
+        '# stripped binary checksum verification'))
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("a consumer workflow with altered bootstrap verification is DRIFT",
+          row["state"] == DRIFT and "bootstrap step" in row["detail"])
+    check("apply restores altered bootstrap checksum verification",
+          ReadinessWorkflow().repair(ctx_for(dprod))["state"] == REPAIRED
+          and ReadinessWorkflow().detect(ctx_for(dprod))["state"] == SATISFIED)
+    missing_integrity_hatsu = fixture()
+    shutil.copytree(root / "nen", missing_integrity_hatsu / "nen", dirs_exist_ok=True)
+    (missing_integrity_hatsu / "scripts").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(root / "scripts" / "tenkai_readiness_guard.mts", missing_integrity_hatsu / "scripts" / "tenkai_readiness_guard.mts")
+    shutil.copy2(root / "scripts" / "readiness_ci_verdict.mts", missing_integrity_hatsu / "scripts" / "readiness_ci_verdict.mts")
+    bad_contract = json.loads((missing_integrity_hatsu / "nen" / "contract.json").read_text())
+    del bad_contract["dependency"]["bootstrap"]
+    (missing_integrity_hatsu / "nen" / "contract.json").write_text(json.dumps(bad_contract))
+    bad_integrity_ctx = Ctx(dprod, missing_integrity_hatsu, "acme/widget", None, 0, probe=False)
+    check("malformed or absent bootstrap checksums report nen_integrity None and BLOCKED",
+          bad_integrity_ctx.nen_integrity() is None
+          and ReadinessWorkflow().detect(bad_integrity_ctx)["state"] == BLOCKED
+          and "bootstrap checksums" in ReadinessWorkflow().detect(bad_integrity_ctx)["detail"])
     product_workflow_path.write_text(product_workflow)
     check("maintained_tools derives process", derive_role(dproc, "acme/widget") == ROLE_PROCESS)
     check("consumers derives product", derive_role(dprod, "acme/widget") == ROLE_PRODUCT)
@@ -3176,11 +3199,14 @@ def self_test() -> int:
     check("malformed JSON is BLOCKED, not silently rewritten", row["state"] == BLOCKED)
 
     print("\nreadiness bootstrap — rendered checksum fixtures")
+    vitest_env = {k: v for k, v in os.environ.items()
+                  if k not in ("PS4", "BASH_XTRACEFD", "SHELLOPTS",
+                               "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0", "GIT_CONFIG_COUNT")}
     vitest_run = subprocess.run(
         ["node", str(root / "node_modules" / "vitest" / "vitest.mjs"), "run",
-         "--root", str(root), "--testTimeout", "15000",
+         "--maxWorkers=1", "--root", str(root), "--testTimeout", "15000",
          str(root / "scripts" / "readiness_checksum_fixture.test.mts")],
-        cwd=str(root), capture_output=True, text=True,
+        cwd=str(root), env=vitest_env, capture_output=True, text=True,
     )
     if vitest_run.stdout:
         print(vitest_run.stdout, end="")

@@ -61,13 +61,15 @@ The fixture checks reviewed provenance against
 the ref, source path and script digest. Typed metadata extraction and producer binding for readiness
 activation remain deferred.
 The Cursor Cloud Build verifies the script before Bash and the binary against the independent
-contract platform digest before linking or executing it. Readiness integrity is a two-step landing
-under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). This
-preparer accepts both the existing rendered workflow and the proposed integrity form as separate
-exact shapes. The tracked readiness template remains unchanged; activating its script and binary
-checks requires a separate PR after the preparer reaches `main`, with a typed metadata reader and
-validated producer/pin binding. This preparer adds no unused digest reader to Tenkai. The prepared
-form is exercised synthetically, so those tests do not claim readiness activation is delivered.
+contract platform digest before linking or executing it. Readiness integrity lands in two stages
+under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). First,
+`scripts/workflow_runner_policy_check.rb` accepts both the older unverified readiness form and the
+pinned `linux-x64` checksum-verified `READINESS_INTEGRITY_*` form. Next, Tenkai's
+`templates/pr-readiness.yml` and `scripts/tenkai_adopt_legacy.sh` (`nen_integrity()`) render and
+verify `bootstrap.scriptSha256` and `bootstrap.sha256["linux-x64"]` before executing either
+artifact. Widening `templates/pr-readiness.yml` beyond `linux-x64` (`darwin-arm64`, `windows-x64`
+pools) or failing closed on zero-byte trusted contracts remains deferred to a separate two-step
+validator update (`workflow_runner_policy_check.rb` on `main` first).
 
 For the current pin, the script digest was computed from the exact `bootstrap/nen.sh` blob at
 reviewed Nen tag `v0.30.0`, commit `1e2217a2fa9735e99e9c83096fff57197361556d` (the bytes are unchanged since `v0.28.0`, so the digest did not move):
