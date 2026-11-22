@@ -1,29 +1,29 @@
 ---
-name: bankai-rule
-description: Record one port ruling — what a source stack's rule or concept becomes on a target stack (map · mirror · drop with note · target-only addition) — as a stable-id row in the ports pair file of zheref/bankai-handbooks and drive the rulings to a PR there at the G4 merge prompt. Use when the maintainer invokes hatsu:bankai-rule <from-scenario> to <to-scenario> [ruling <text>] [--dry-run], a bare hatsu:bankai-rule for the ruling the session is discussing, or when a port composite (hiraishin, kamui — zheref/hatsu#357, zheref/hatsu#356) answers port-drift. Technology-level rows, guarded against product terms before any write; global PT ids; one PR per port run; never merges.
+name: kido
+description: Record one port ruling — what a source stack's rule or concept becomes on a target stack (map · mirror · drop with note · target-only addition) — as a stable-id row in the ports pair file of zheref/bankai-handbooks and drive the rulings to a PR there at the G4 merge prompt. Use when the maintainer invokes hatsu:kido <from-scenario> to <to-scenario> [ruling <text>] [--dry-run], a bare hatsu:kido for the ruling the session is discussing, or when a port composite (hiraishin, kamui — zheref/hatsu#357, zheref/hatsu#356) answers port-drift. Technology-level rows, guarded against product terms before any write; global PT ids; one PR per port run; never merges.
 ---
 
 **Shared policy:** [`PROCESS.md`](../../../docs/PROCESS.md) § *Standalone entry*.
 
-# Bankai rule — a port ruling, recorded once
+# Kido — a port ruling, recorded once
 
 **Nature: Conjurer** — a ruling is canon (`CON-7`, `CON-13`), landed at **G4**; **Manipulator** for
 the GitHub reads and the PR. Chrollo reviews pair files, never authors them.
 
 `$hatsu_root` is ten § 0's path. Epic zheref/hatsu#354 (its rulings bind here); brief
-zheref/hatsu#355; probes `docs/ab/bankai-rule.md`.
+zheref/hatsu#355; probes `docs/ab/kido.md`. Formerly `bankai-rule` (HR-394).
 
 ## 0. Standalone entry
 
 Typed, or from a port composite at a `port-drift` answer (§ 5), which skips this.
-[`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md): **P1** `hatsu:ten bankai-rule`; **P1b**,
+[`STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md): **P1** `hatsu:ten kido`; **P1b**,
 **P3 declined**; **P2**; **P4** § 1; **P5**: no build, merge, canon-checkout write or mirror.
 
 ## 1. Invocation — the pair enumerated, the ruling split off before the parse
 
 ```
-hatsu:bankai-rule <from-scenario> to <to-scenario> [ruling <text>] [--dry-run]
-hatsu:bankai-rule [--dry-run]                         # the bare form
+hatsu:kido <from-scenario> to <to-scenario> [ruling <text>] [--dry-run]
+hatsu:kido [--dry-run]                         # the bare form
 ```
 
 ```bash
@@ -34,7 +34,7 @@ EOF
 line="${line%"${line##*[! ]}"}"   # trailing blanks dropped
 case "$line" in --dry-run) dry=1; line='' ;; *' --dry-run') dry=1; line="${line% --dry-run}" ;; *) dry=0 ;; esac   # the LAST token only
 case "$line" in ruling) head=''; ruling='' ;; 'ruling '*) head=''; ruling="${line#ruling }" ;; *) head="${line%% ruling *}"; [ "$head" = "$line" ] && ruling='' || ruling="${line#* ruling }" ;; esac   # split at the FIRST whole-word ruling
-[ -n "$head" ] && nen parse bankai-rule --grammar "<from:<ids off stack-matrix.md, |-joined>> to <to:<the same ids>>" --line="$head"
+[ -n "$head" ] && nen parse kido --grammar "<from:<ids off stack-matrix.md, |-joined>> to <to:<the same ids>>" --line="$head"
 ```
 
 Scenario ids come fresh off `handbooks/stack-matrix.md` at the pin ([`bankai-handbooks`](../bankai-handbooks/SKILL.md)
@@ -66,7 +66,7 @@ its head**, and **bounded**: `handbooksRepo` is the consumer's pinned `maintaine
 `[A-Za-z0-9_-][A-Za-z0-9._-]*`, no empty, `.` or `..` one.
 
 ```bash
-"$hatsu_root/scripts/config_values.sh" need --repo <consumer checkout> --skill bankai-rule   # ten § 6 step 5b
+"$hatsu_root/scripts/config_values.sh" need --repo <consumer checkout> --skill kido   # ten § 6 step 5b
 git -C <consumer checkout> show origin/<branch.base>:nen/workflow.json                       # the values are READ HERE
 ```
 

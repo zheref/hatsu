@@ -35,8 +35,8 @@ authorization.** Two sources, **and the report says which** (§ 5). **Typed**: t
 never a near-match; not a declared key → **refused**, naming the declaration PR and the keys. **Omitted**: `nen/workflow.json` → `deploy.defaultTarget` ([`WORKFLOW.md`](../../../../docs/WORKFLOW.md)
 § 2 → `deploy`; ruling 2026-09-29, HA#146), read in the checkout the send runs from (§ 3b), **one
 row per state** — `null`/absent → **asked as free text** (`missing-maintainer-choice`, recorded through `nen stop answer`), the keys
-listed, none starred; a declared key whose `why` reads non-production (§ 2) → the target; one whose
-`why` does not → **refused, never asked**; no declared key → **refused**, naming the declaration PR;
+listed, none starred; a declared key passing § 2's two checks → the target;
+a declared key failing either check → **refused, never asked**; no declared key → **refused**, naming the declaration PR;
 not a string → `missing-configuration` by pointer. **`--target` is always passed to `nen shu deploy`
 explicitly.** **A call is the stop** — no confirmation, no options: the plan (§ 3), the gate (§ 3a),
 a build only if owed (§ 3b), the report (§ 5).
@@ -53,16 +53,17 @@ a build only if owed (§ 3b), the report (§ 5).
 
 | Value | File → key |
 |---|---|
-| The destinations: what they append, require, and why | `nen/contract.json` → `project.targets.<name>` → `args`, `requiresEnv` (names, § 5), `why`, `unsupported` |
+| The destinations: what they append, require, and why | `nen/contract.json` → `project.targets.<name>` → `args`, `requiresEnv` (names, § 5), `why`, `unsupported`, `nonProduction` |
 | What `deploy` runs, and in which lane | `project.verbs.<lane>.deploy`; `project.defaultLane` or `--lane` |
 | Whether this host may, and what must be true first | `project.hosts`; `project.preconditions.<lane>` (asserted, never performed) |
 | Whether to tag what was sent, and with what name | `nen/workflow.json` → `tags.deploy.<target>`, `tags.identity.nameFrom` (§ 4a) |
 | The target when none is typed; the archive's commit | `deploy.defaultTarget` (§ 1); `nameFrom` line 2 (§ 3a) |
 | § 3b's trunk and copies | `branch.base`; `project.fromCore[]` (WORKFLOW § 3) — **read from core**; the rest from the worktree |
 
-**Non-production is the `why`, read failing closed** (a default also needs `nonProduction: true`, nen
-`0.21`): a `why` implying the destination **reaches end users** is [`mugetsu`](../mugetsu/SKILL.md)'s at
-**G3** (row `release-go`); **no `why`**, or one not clearly non-production, is refused.
+**Non-production is `nonProduction: true`, failing closed** (zheref/nen#300; `nen schema check`
+validates it): absent or `false` is production, [`mugetsu`](../mugetsu/SKILL.md)'s at **G3** (row
+`release-go`), refused here, typed or default; **a default's `why` must also read
+non-production** (HR-289), a second fail-closed check; else the `why` is quoted, never read as the flag.
 
 ## 3. The plan — printed always, before anything
 
@@ -166,7 +167,7 @@ report**, the upload in **01 Accomplished**, and **say nothing about what is nex
 
 ## Residue
 
-**Only a default is typed** (§ 2 reads every `why`), **exit `1` says nothing about the far end**, **nothing records the authorisation** (no
+**Exit `1` says nothing about the far end**, **nothing records the authorisation** (no
 per-run log, zheref/nen#91), and **§ 3a, § 3b and the default's choice are Hatsu's** — two scripts, and
 a key nen validates, never acts on; § 3b predates `nen wc worktree`; a per-stack default is nen's to add
 (PROCESS.md § *Residue and owned dependencies*).

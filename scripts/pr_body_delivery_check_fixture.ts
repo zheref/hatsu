@@ -17,7 +17,7 @@ import { dirname, join, resolve as resolvePath } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { compareBody, normalize, type DeliveryDocument } from "./pr_delivery.ts";
+import { compareBody, DELIVERY_SUMMARY, normalize, type DeliveryDocument } from "./pr_delivery.ts";
 
 const ROOT = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const ENGINE = join(ROOT, "scripts/pr_delivery.ts");
@@ -265,9 +265,29 @@ test("Nen alone renders Markdown and the semantic guard names missing, duplicate
   assert.match(compareBody(`${missing}\n# Changes`, rendered).join("\n"), /missing ledger row/);
   const duplicate = rendered.replace(`${dataRows[0]}\n`, `${dataRows[0]}\n${dataRows[0]}\n`);
   assert.match(compareBody(`${duplicate}\n# Changes`, rendered).join("\n"), /extra or duplicate/);
-  const extra = rendered.replace("\n*Drive:*", "\n| foreign | codex | exact: fake · alias: sol | high | fake | fixture |\n\n*Drive:*");
+  const extra = rendered.replace("\n\n</details>", "\n| foreign | codex | exact: fake · alias: sol | high | fake | fixture |\n\n</details>");
   assert.match(compareBody(`${extra}\n# Changes`, rendered).join("\n"), /extra or duplicate/);
   assert.match(compareBody(`${rendered.replace("*Drive:*", "*Drive:* changed ")}\n# Changes`, rendered).join("\n"), /Drive must name/);
+  // The ledger is collapsed under the Drive line (maintainer request 2026-11-16): an expanded
+  // table, a Drive line moved below it, or content after </details> is refused by name.
+  assert.match(rendered, /\n\n\*Drive:\* [^\n]+\n\n<details><summary>[^\n]+<\/summary>\n\n\| Role \|/);
+  assert.match(rendered, /\|\n\n<\/details>\n?$/);
+  const expanded = rendered.replace(/<details><summary>[^\n]+<\/summary>\n\n/, "").replace("\n</details>", "");
+  assert.match(compareBody(`${expanded}\n# Changes`, rendered).join("\n"), /canonical collapsed <details> summary/);
+  const drive = (/^\*Drive:\* .*$/m.exec(rendered) as RegExpExecArray)[0];
+  const driveBelow = rendered.replace(`${drive}\n\n`, "").replace("</details>", `</details>\n\n${drive}`);
+  assert.match(compareBody(`${driveBelow}\n# Changes`, rendered).join("\n"), /Drive must be the first line/);
+  assert.match(compareBody(`${rendered.trimEnd()}\n\nstray note\n# Changes`, rendered).join("\n"), /closing <\/details>, nothing after it/);
+  // hanten P2: a heading glued to </details> is swallowed; C3: the template's summary is the guard's.
+  assert.match(compareBody(`${rendered.trimEnd()}\n# Changes`, rendered).join("\n"), /blank line before the next heading/);
+  assert.equal(rendered.split("\n")[4], DELIVERY_SUMMARY);
+  // Nobunaga: the moved header and table window each refuse by name.
+  assert.match(compareBody(`${rendered.replace("| Role | Surface |", "| Role | Runtime |")}\n# Changes`, rendered).join("\n"), /table header differs/);
+  assert.match(compareBody(`${rendered.replace("\n\n</details>", "\nstray\n\n</details>")}\n# Changes`, rendered).join("\n"), /non-row content inside its table/);
+  // hanten F1: an HTML comment on the free lines around Drive would hide the whole ledger.
+  assert.match(compareBody(`${rendered.replace("## 📬 Delivery\n\n", "## 📬 Delivery\n<!--\n")}\n# Changes`, rendered).join("\n"), /content outside its canonical lines/);
+  assert.match(compareBody(`${rendered.replace(`${drive}\n\n`, `${drive}\n<!--\n`)}\n# Changes`, rendered).join("\n"), /content outside its canonical lines/);
+  assert.match(compareBody(`${rendered.replace(`${dataRows[0]}\n`, `${dataRows[0]}\n\n`)}\n# Changes`, rendered).join("\n"), /non-row content inside its table/);
 });
 
 test("CLI writes mode 0600 and refuses output and input symlinks", () => {

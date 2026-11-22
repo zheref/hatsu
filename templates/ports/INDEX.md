@@ -1,4 +1,4 @@
-<!-- Canonical source: zheref/bankai-handbooks · handbooks/ports/INDEX.md · rendered by hatsu:bankai-rule from templates/ports/INDEX.md -->
+<!-- Canonical source: zheref/bankai-handbooks · handbooks/ports/INDEX.md · rendered by hatsu:kido from templates/ports/INDEX.md -->
 
 # Port rulings — INDEX
 
