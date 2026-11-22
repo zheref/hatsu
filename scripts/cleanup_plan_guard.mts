@@ -20,12 +20,25 @@
 //   5. Merged branches whose tip is ahead of `headRefOid` are never `deterministic` and name
 //      each extra commit and where it landed (`on origin/<base>`, `in PR #<N> (<state>)`, or
 //      `unlanded`).
-//   6. Right before any `push origin --delete`, `pre-delete` binds --target to the checkout's
-//      `git remote get-url origin` (github.com https/ssh, case-insensitive; else exit 2), re-reads
-//      open PRs and the remote SHA, and refuses exit 1 (0 deletes run) when an open PR uses the
-//      branch as base or head, or the SHA drifted; any failed read is exit 2. The delete it emits
-//      carries the verified SHA as a lease:
-//      `git -C '<host>' push '--force-with-lease=refs/heads/<branch>:<sha>' origin --delete -- '<branch>'`.
+//   6. Right before any `push origin --delete`, `pre-delete` binds --target to every URL of
+//      `git remote get-url --all origin` AND `git remote get-url --push --all origin` (github.com
+//      https/ssh, case-insensitive; else exit 2), re-reads open PRs (each row must carry a
+//      non-empty headRefName) and the remote SHA, and refuses exit 1 (0 deletes run) when an open
+//      PR uses the branch as base or head, or the SHA drifted; any failed read is exit 2. It then
+//      prints `git -C '<host>' push origin --delete -- '<branch>'`, run immediately. No lease: the
+//      permissions pack denies `push --force-with-lease*` (contracts/permissions.json), so a ref
+//      moved between this check and the delete is the one residual race, named, not closed.
+//   7. Nothing printed carries a raw remote URL: origins print as <owner>/<name> or
+//      `unparseable origin`, userinfo in any echoed text is `//<redacted>@`, and an origin with
+//      embedded credentials is refused with that host fact (SEC-12).
+//   8. Trunk: a row on `cand.trunk ?? --base` is named (`trunk <name>`); so is a remote head with no
+//      40-hex `tipSha` (`remote SHA unread`), since pre-delete needs it.
+//   9. Pass 2 (cleanup § 6): a remote-head delete that pre-delete skips (exit 1, or 2 with the host
+//      fact) also skips the worktree row whose `precededBy` names it; both listed skipped, `partial`.
+//
+// Row evidence (cleanup § 5 "the header's list"): PR state, SHA, merged head, tree state and dirty
+// paths, reviewer ledger, `base of open PR: <#N|none>`, every named fact and missing read, and each
+// extra commit with where it landed; the caller adds host and age from cleanup § 4's reads.
 //
 // classify --input <json> schema (any other shape is exit 2):
 //   { "openPrs":    [ { "number": <int>, "baseRefName": "<branch>", "headRefName"?: "<branch>" } ],
@@ -37,7 +50,7 @@
 //                       "reviewerLedgerRan"?: <bool>, "tipSha"?, "mergedHeadSha"?, "trunk"?,
 //                       "admitted"?: <bool>, "refusedReason"?, "locked"?: <bool>, "lockedReason"?,
 //                       "treeState"?: "clean" | "dirty" | "unreadable", "dirtyPaths"?: [..],
-//                       "hostMissing"?: <bool>, "freesBytes"?: <int>, "extraCommits"?: [..] } ],
+//                       "hostMissing"?: <bool>, "freesBytes"?: <non-negative int>, "extraCommits"?: [..] } ],
 //     "prs"?:      [ { "number": <int>, "state": "OPEN" | "MERGED" | "CLOSED", "headRefOid"?: "<sha>" } ] }
 //   `openPrs` and `candidates` are required arrays (absent, null or non-array: exit 2).
 //
@@ -185,7 +198,7 @@ export interface GhRunOutput {
 }
 
 export type FetchOpenPrsFn = (ghBin: string, target: string) => GhRunOutput;
-export type ReadOriginFn = (repo: string) => GhRunOutput;
+export type ReadOriginFn = (repo: string, kind: 'fetch' | 'push') => GhRunOutput;
 
 export class CleanupPlanGuardError extends Error {
   readonly exitCode: number;
@@ -195,8 +208,18 @@ export class CleanupPlanGuardError extends Error {
   }
 }
 
+// SEC-12: userinfo in any URL-shaped text is never echoed.
+export function redactCredentials(value: string): string {
+  return value.replace(/\/\/[^\s/@]+@/g, '//<redacted>@').replace(/(^|[\s(=,'"])[^\s/@:'"(]+:[^\s/@'"]+@/g, '$1<redacted>@');
+}
+
+export function hasEmbeddedCredentials(url: string): boolean {
+  const u = url.trim();
+  return /^https?:\/\/[^/\s]*@/i.test(u) || /^[a-z][a-z0-9+.-]*:\/\/[^/@\s]*:[^/@\s]*@/i.test(u);
+}
+
 export function sanitizeText(value: string): string {
-  return value
+  return redactCredentials(value)
     .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
     .replace(/\x1b\][^\x07]*(?:\x07|\x1b\\)/g, '')
     .replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g, ' ')
@@ -264,8 +287,42 @@ export function defaultFetchOpenPrs(ghBin: string, target: string): GhRunOutput 
   return { status: res.status ?? 1, stdout: res.stdout ?? '', stderr: res.stderr ?? '' };
 }
 
-export function defaultReadOrigin(repo: string): GhRunOutput {
-  return runGit(repo, ['remote', 'get-url', 'origin']);
+export function defaultReadOrigin(repo: string, kind: 'fetch' | 'push'): GhRunOutput {
+  return runGit(repo, kind === 'push' ? ['remote', 'get-url', '--push', '--all', 'origin'] : ['remote', 'get-url', '--all', 'origin']);
+}
+
+// Every fetch and push URL of origin must normalise to --target; no raw URL is ever returned.
+export function checkOriginBinding(
+  repo: string,
+  target: string,
+  readOrigin: ReadOriginFn,
+): { ok: boolean; seen: string[]; credentials: boolean; unread: boolean } {
+  const seen: string[] = [];
+  let credentials = false;
+  let unread = false;
+  let ok = true;
+  for (const kind of ['fetch', 'push'] as const) {
+    let out: GhRunOutput;
+    try {
+      out = readOrigin(repo, kind);
+    } catch {
+      out = { status: 2, stdout: '', stderr: '' };
+    }
+    const urls = out.status === 0 ? out.stdout.split('\n').map((l) => l.trim()).filter(Boolean) : [];
+    if (urls.length === 0) {
+      unread = true;
+      ok = false;
+      continue;
+    }
+    for (const url of urls) {
+      if (hasEmbeddedCredentials(url)) credentials = true;
+      const slug = normalizeGithubRemote(url);
+      seen.push(`${kind} ${slug ?? 'unparseable origin'}`);
+      if (slug === null || slug !== target.toLowerCase()) ok = false;
+    }
+  }
+  if (credentials) ok = false;
+  return { ok, seen, credentials, unread };
 }
 
 // github.com https or ssh remote -> lowercased <owner>/<name>, else null.
@@ -280,7 +337,7 @@ export function normalizeGithubRemote(url: string): string | null {
 }
 
 // An open-PR list must be an array of fewer than OPEN_PR_LIMIT rows: a full page may be truncated.
-export function validateOpenPrList(raw: unknown, field = 'openPrs'): OpenPrSummary[] {
+export function validateOpenPrList(raw: unknown, field = 'openPrs', requireHead = false): OpenPrSummary[] {
   if (!Array.isArray(raw)) {
     throw new CleanupPlanGuardError(2, `${field} must be a JSON array (absent, null or non-array is unread)`);
   }
@@ -292,6 +349,15 @@ export function validateOpenPrList(raw: unknown, field = 'openPrs'): OpenPrSumma
   }
   const list = raw as OpenPrSummary[];
   indexOpenPrBases(list);
+  list.forEach((pr, i) => {
+    const head = (pr as { headRefName?: unknown }).headRefName;
+    if (requireHead ? typeof head !== 'string' || !head.trim() : head !== undefined && typeof head !== 'string') {
+      throw new CleanupPlanGuardError(
+        2,
+        `${field}[${i}].headRefName must be ${requireHead ? 'a non-empty string' : 'a string when given'}`,
+      );
+    }
+  });
   return list;
 }
 
@@ -307,8 +373,26 @@ export function indexOpenPrHeads(openPrs: readonly OpenPrSummary[]): Map<string,
   return byHead;
 }
 
-export function leasedDeleteCommand(host: string, branch: string, sha: string): string {
-  return `git -C ${shellQuoteSingle(host)} push ${shellQuoteSingle(`--force-with-lease=refs/heads/${branch}:${sha.toLowerCase()}`)} origin --delete -- ${shellQuoteSingle(branch)}`;
+export function remoteDeleteCommand(host: string, branch: string): string {
+  return `git -C ${shellQuoteSingle(host)} push origin --delete -- ${shellQuoteSingle(branch)}`;
+}
+
+function validatePrRefs(raw: unknown): PrCandidateRef[] {
+  if (!Array.isArray(raw)) throw new CleanupPlanGuardError(2, 'prs must be a JSON array when given');
+  raw.forEach((pr, i) => {
+    const r = pr as Record<string, unknown> | null;
+    if (
+      !r ||
+      typeof r !== 'object' ||
+      !Number.isSafeInteger(r.number) ||
+      (r.number as number) <= 0 ||
+      !['OPEN', 'MERGED', 'CLOSED'].includes(r.state as string) ||
+      (r.headRefOid !== undefined && (typeof r.headRefOid !== 'string' || !SHA_RE.test(r.headRefOid)))
+    ) {
+      throw new CleanupPlanGuardError(2, `prs[${i}] needs a positive number, state OPEN|MERGED|CLOSED and an optional 40-hex headRefOid`);
+    }
+  });
+  return raw as PrCandidateRef[];
 }
 
 function validateCandidate(raw: unknown, idx: number): CleanupPlanCandidate {
@@ -328,6 +412,9 @@ function validateCandidate(raw: unknown, idx: number): CleanupPlanCandidate {
   }
   if (c.treeState !== undefined && !(TREE_STATES as readonly unknown[]).includes(c.treeState)) {
     throw new CleanupPlanGuardError(2, `${at}.treeState must be one of ${TREE_STATES.join(' | ')}`);
+  }
+  if (c.freesBytes !== undefined && (!Number.isSafeInteger(c.freesBytes) || (c.freesBytes as number) < 0)) {
+    throw new CleanupPlanGuardError(2, `${at}.freesBytes must be a non-negative safe integer`);
   }
   if (typeof c.object !== 'string' || typeof c.owner !== 'string') {
     throw new CleanupPlanGuardError(2, `${at} must carry string object and owner`);
@@ -474,15 +561,12 @@ export function classifyCleanupPlan(opts: {
     throw new CleanupPlanGuardError(2, 'candidates must be a JSON array (absent, null or non-array is unread)');
   }
   const candidates = opts.candidates.map((c, i) => validateCandidate(c, i));
-  if (opts.prs !== undefined && !Array.isArray(opts.prs)) {
-    throw new CleanupPlanGuardError(2, 'prs must be a JSON array when given');
-  }
+  const prs = opts.prs === undefined ? [] : validatePrRefs(opts.prs);
   if (opts.base !== undefined && !isValidBranchName(opts.base)) {
     throw new CleanupPlanGuardError(2, '--base is not a valid branch name');
   }
   const repo = opts.repo ? resolveCanonicalRepo(opts.repo) : undefined;
   const baseBranch = opts.base ?? 'main';
-  const prs = opts.prs ?? [];
 
   const rows: ClassifiedPlanRow[] = [];
   let counts = { deterministic: 0, proposed: 0, named: 0 };
@@ -493,7 +577,8 @@ export function classifyCleanupPlan(opts: {
     const openBasePrs = openBaseMap.get(cand.branch) ?? [];
     const namedFacts: string[] = [];
 
-    if (cand.trunk && cand.branch === cand.trunk) namedFacts.push(`trunk ${cand.trunk}`);
+    const trunk = cand.trunk ?? opts.base;
+    if (trunk && cand.branch === trunk) namedFacts.push(`trunk ${trunk}`);
     if (cand.locked) namedFacts.push(cand.lockedReason ? `locked yes: ${sanitizeText(cand.lockedReason)}` : 'locked yes');
     if (cand.prState === 'OPEN') namedFacts.push(cand.prNumber ? `open PR #${cand.prNumber}` : 'open PR');
     if (openBasePrs.length > 0) namedFacts.push(formatOpenBaseEvidence(openBasePrs));
@@ -569,7 +654,7 @@ export function classifyCleanupPlan(opts: {
     } else {
       // remote-head
       const hostPath = cand.host ?? '<host>';
-      const delCmd = leasedDeleteCommand(hostPath, cand.branch, cand.tipSha!);
+      const delCmd = remoteDeleteCommand(hostPath, cand.branch);
       if (cand.prState === 'MERGED' && cand.tipSha && cand.mergedHeadSha && cand.tipSha === cand.mergedHeadSha && !isAheadOfMergedHead) {
         cls = 'deterministic';
         exactCommand = delCmd;
@@ -712,18 +797,17 @@ export function evaluatePreDelete(
   });
 
   // SEC-7: the checkout's origin must be the --target repository.
-  let originOut: GhRunOutput;
-  try {
-    originOut = readOrigin(repo);
-  } catch (err) {
-    originOut = { status: 2, stdout: '', stderr: (err as Error).message };
-  }
-  const originSlug = originOut.status === 0 ? normalizeGithubRemote(originOut.stdout) : null;
-  if (originSlug === null || originSlug !== opts.target.toLowerCase()) {
+  const binding = checkOriginBinding(repo, opts.target, readOrigin);
+  if (!binding.ok) {
+    const facts = [
+      binding.credentials ? 'origin carries embedded credentials' : null,
+      binding.unread ? 'origin URL unread' : null,
+      binding.seen.length > 0 ? `origin reads ${binding.seen.join(', ')}` : null,
+    ].filter(Boolean);
     return make(
       2,
       'origin-mismatch',
-      `refused: origin of ${sanitizeText(repo)} (${sanitizeText(originOut.stdout || originOut.stderr || 'unread')}) is not github.com/${opts.target}; delete did not run`,
+      `refused: ${facts.join('; ')}; every fetch and push URL must be github.com/${opts.target}; delete did not run`,
     );
   }
 
@@ -738,7 +822,7 @@ export function evaluatePreDelete(
   }
   let openPrs: OpenPrSummary[];
   try {
-    openPrs = validateOpenPrList(JSON.parse(ghOut.stdout) as unknown, 'open PR list');
+    openPrs = validateOpenPrList(JSON.parse(ghOut.stdout) as unknown, 'open PR list', true);
   } catch (err) {
     return make(2, 'unread-open-prs', `unread open PR list before delete (fail closed): ${sanitizeText((err as Error).message)}`);
   }
@@ -789,7 +873,7 @@ export function evaluatePreDelete(
     {
       deleteAllowed: true,
       remoteSha: opts.expectedSha,
-      deleteCommand: leasedDeleteCommand(repo, opts.branch, opts.expectedSha),
+      deleteCommand: remoteDeleteCommand(repo, opts.branch),
     },
   );
 }
@@ -989,7 +1073,7 @@ if (import.meta.main) {
       else console.error(output);
       process.exit(outcome.exitCode);
     }
-    const prs = parsed.opts.prsJsonFile ? readJsonFile<PrCandidateRef[]>(parsed.opts.prsJsonFile) : [];
+    const prs = parsed.opts.prsJsonFile ? validatePrRefs(readJsonFile<unknown>(parsed.opts.prsJsonFile)) : [];
     const res = inspectMergedAhead({
       repo: parsed.opts.repo,
       branchSha: parsed.opts.branchSha,

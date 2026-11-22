@@ -129,12 +129,26 @@ export const enPushGuardCases: EnPushGuardCase[] = [
         assert.equal(closedRes.result.status, 'carry-on-successor-pr');
         assert.equal(closedRes.result.pushAllowed, false);
         assert.equal(closedRes.result.prState, 'CLOSED');
-        // R1: CLOSED-unmerged anchors on origin/<base>, so the PR's own earlier commit is carried too.
-        assert.equal(closedRes.result.anchorUsed, 'origin/main');
-        assert.deepEqual(
-          closedRes.result.carryCommits.map((c) => c.sha),
-          [prHeadSha, unpushedSha],
+        // Round 2 F: CLOSED carries only the unpushed commit, anchored on the PR's last pushed head.
+        assert.equal(closedRes.exitCode, 1);
+        assert.equal(closedRes.result.anchorUsed, prHeadSha);
+        assert.deepEqual(closedRes.result.carryCommits.map((c) => c.sha), [unpushedSha]);
+        assert(closedRes.result.fallback?.steps.some((s) => s.includes('a conflict is a stop handed back')));
+        // Round 2 F: a CLOSED PR with nothing pending (local tip = its last pushed head) -> exit 4
+        const closedIdle = evaluateEnPushGuard(
+          { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' },
+          () => ({
+            status: 0,
+            stdout: JSON.stringify({
+              state: 'CLOSED',
+              pr: { number: 611, headRef: 'pro/kurapika/feat-a', headSha: unpushedSha, baseRef: 'main' },
+            }),
+            stderr: '',
+          }),
         );
+        assert.equal(closedIdle.exitCode, 4);
+        assert.equal(closedIdle.result.status, 'nothing-to-carry');
+        assert.equal(closedIdle.result.fallback, undefined);
 
         // R3: head branch mismatch on an OPEN PR is its own exit (3), a stop handed back
         const mismatch = evaluateEnPushGuard(
@@ -396,7 +410,7 @@ exit 2
         assert.deepEqual(carried, [firstSha, secondSha]);
         assert.equal(carried.includes(laterMainSha), false);
         assert(merged.result.carryCommits.every((c) => !c.subject.startsWith('Merge')));
-        assert(merged.result.fallback?.steps.some((s) => s.includes('not on origin/main')));
+        assert(merged.result.fallback?.steps.some((s) => s.includes('Cherry-pick the 2 unpushed commit(s)')));
         assert(merged.result.fallback?.steps.some((s) => s.includes('hanten § 2b keys its ledger to --pr <successor-N>')));
       } finally {
         rmSync(tmp, { recursive: true, force: true });
@@ -485,7 +499,12 @@ exit 2
         assert.equal(evaluateEnPushGuard(base, reply('OPEN', unpushedSha)).exitCode, 0);
         const lag = evaluateEnPushGuard(base, reply('OPEN', prHeadSha));
         assert.equal(lag.exitCode, 2);
-        assert.equal(lag.result.status, 'unread-pr-state');
+        assert.equal(lag.result.status, 'pushed-head-unobserved');
+        // Round 2 G: merged AT the pushed head while HEAD is ahead of it -> exit 1 naming what is past it
+        const ahead = evaluateEnPushGuard({ ...base, requireHead: prHeadSha }, reply('MERGED', prHeadSha));
+        assert.equal(ahead.exitCode, 1);
+        assert.equal(ahead.result.status, 'carry-on-successor-pr');
+        assert.deepEqual(ahead.result.carryCommits.map((c) => c.sha), [unpushedSha]);
         assert.throws(
           () => evaluateEnPushGuard({ ...base, requireHead: 'nope' }),
           (e) => e instanceof EnPushGuardError && e.exitCode === 2,

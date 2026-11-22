@@ -13,8 +13,10 @@ import {
   evaluatePreDelete,
   inspectMergedAhead,
   isValidBranchName,
+  hasEmbeddedCredentials,
   normalizeGithubRemote,
   OPEN_PR_LIMIT,
+  redactCredentials,
   parseCliArgs,
   renderHuman,
 } from './cleanup_plan_guard.mts';
@@ -220,11 +222,8 @@ export const cleanupPlanGuardCases: CleanupPlanCase[] = [
 
         // AC-4: non-base rows retain existing classes
         assert.equal(rRemoteLate.class, 'deterministic');
-        // Finding 8: the emitted delete carries the verified SHA as a lease.
-        assert.equal(
-          rRemoteLate.exactCommand,
-          `git -C '${wtHost}' push '--force-with-lease=refs/heads/pro/kurapika/late-base:${lateSha}' origin --delete -- 'pro/kurapika/late-base'`,
-        );
+        // Round 2 D: no lease (contracts/permissions.json denies push --force-with-lease*).
+        assert.equal(rRemoteLate.exactCommand, `git -C '${wtHost}' push origin --delete -- 'pro/kurapika/late-base'`);
         assert.equal(rWtLate.class, 'deterministic');
         // Finding 4: the effort worktree runs after its remote-head row, then remove, then -d.
         assert.equal(rWtLate.precededBy, rRemoteLate.id);
@@ -265,26 +264,21 @@ export const cleanupPlanGuardCases: CleanupPlanCase[] = [
             expectedSha: lateSha,
             base: 'main',
           },
-          () => ({ status: 0, stdout: JSON.stringify([{ number: 102, baseRefName: 'pro/kurapika/stack-a' }]), stderr: '' }),
+          () => ({
+            status: 0,
+            stdout: JSON.stringify([{ number: 102, baseRefName: 'pro/kurapika/stack-a', headRefName: 'pro/kurapika/stack-b' }]),
+            stderr: '',
+          }),
           GITHUB_ORIGIN,
         );
         assert.equal(okPre.exitCode, 0);
         assert.equal(okPre.result.deleteAllowed, true);
         assert.equal(okPre.result.status, 'allow-delete');
         assert(renderHuman(okPre.result).includes('allow-delete (deleteAllowed: true)'));
-        // Finding 8: the emitted delete carries the verified SHA as a lease; a stale lease refuses.
-        assert.equal(
-          okPre.result.deleteCommand,
-          `git -C '${wtHost}' push '--force-with-lease=refs/heads/pro/kurapika/late-base:${lateSha}' origin --delete -- 'pro/kurapika/late-base'`,
-        );
+        // Round 2 D: the plain delete, printed for running immediately after this re-read.
+        assert.equal(okPre.result.deleteCommand, `git -C '${wtHost}' push origin --delete -- 'pro/kurapika/late-base'`);
         assert(renderHuman(okPre.result).includes('run: git -C'));
-        const staleLease = spawnSync(
-          'git',
-          ['-C', wtHost, 'push', `--force-with-lease=refs/heads/pro/kurapika/late-base:${'1'.repeat(40)}`, 'origin', '--delete', '--', 'pro/kurapika/late-base'],
-          { encoding: 'utf8' },
-        );
-        assert.notEqual(staleLease.status, 0, 'a stale lease must refuse the delete');
-        assert(mustGit(core, ['ls-remote', '--heads', 'origin', 'refs/heads/pro/kurapika/late-base']).startsWith(lateSha));
+        assert.equal(JSON.stringify(okPre.result).includes('force-with-lease'), false);
 
         // Race: open PR #205 is retargeted onto pro/kurapika/late-base before picked delete runs -> exit 1!
         const blockedPre = evaluatePreDelete(
@@ -298,8 +292,8 @@ export const cleanupPlanGuardCases: CleanupPlanCase[] = [
           () => ({
             status: 0,
             stdout: JSON.stringify([
-              { number: 102, baseRefName: 'pro/kurapika/stack-a' },
-              { number: 205, baseRefName: 'pro/kurapika/late-base' },
+              { number: 102, baseRefName: 'pro/kurapika/stack-a', headRefName: 'pro/kurapika/stack-b' },
+              { number: 205, baseRefName: 'pro/kurapika/late-base', headRefName: 'pro/kurapika/child' },
             ]),
             stderr: '',
           }),
@@ -416,6 +410,36 @@ export const cleanupPlanGuardCases: CleanupPlanCase[] = [
           throw new Error('no git');
         });
         assert.equal(unreadOrigin.result.status, 'origin-mismatch');
+        // Round 2 B: a push URL that diverges from the fetch URL is refused (stub and real git)
+        const divergent = evaluatePreDelete(opts, OPEN_NONE, (_repo, kind) => ({
+          status: 0,
+          stdout: kind === 'push' ? 'git@github.com:someone-else/hatsu.git\n' : 'https://github.com/zheref/hatsu.git\n',
+          stderr: '',
+        }));
+        assert.equal(divergent.exitCode, 2);
+        assert.equal(divergent.result.status, 'origin-mismatch');
+        assert(divergent.result.reason.includes('push someone-else/hatsu'));
+        const pushRepo = join(tmp, 'push-diverge');
+        mustGit(tmp, ['clone', join(tmp, 'origin.git'), pushRepo]);
+        mustGit(pushRepo, ['remote', 'set-url', 'origin', 'https://github.com/zheref/hatsu.git']);
+        mustGit(pushRepo, ['remote', 'set-url', '--push', 'origin', 'https://github.com/elsewhere/hatsu.git']);
+        const realDivergent = evaluatePreDelete({ ...opts, repo: pushRepo }, OPEN_NONE);
+        assert.equal(realDivergent.exitCode, 2);
+        assert.equal(realDivergent.result.status, 'origin-mismatch');
+        assert(realDivergent.result.reason.includes('push elsewhere/hatsu'));
+        mustGit(pushRepo, ['config', '--unset-all', 'remote.origin.pushurl']);
+        assert.equal(evaluatePreDelete({ ...opts, repo: pushRepo }, () => ({
+          status: 0,
+          stdout: JSON.stringify([{ number: 7, baseRefName: 'pro/kurapika/late-base', headRefName: 'x' }]),
+          stderr: '',
+        })).result.status, 'refused-open-pr-base');
+
+        // Round 2 C: every open-PR row must carry a non-empty string headRefName
+        for (const row of [{ number: 9, baseRefName: 'main' }, { number: 9, baseRefName: 'main', headRefName: '' }, { number: 9, baseRefName: 'main', headRefName: 4 }]) {
+          const r = evaluatePreDelete(opts, () => ({ status: 0, stdout: JSON.stringify([row]), stderr: '' }), GITHUB_ORIGIN);
+          assert.equal(r.exitCode, 2, JSON.stringify(row));
+          assert.equal(r.result.status, 'unread-open-prs');
+        }
         assert.equal(evaluatePreDelete(opts, OPEN_NONE, () => ({ status: 0, stdout: 'ssh://git@github.com/ZHEREF/Hatsu', stderr: '' })).exitCode, 0);
         assert.equal(normalizeGithubRemote('https://github.com/Zheref/Hatsu.git'), 'zheref/hatsu');
         assert.equal(normalizeGithubRemote('git@github.com:zheref/hatsu.git'), 'zheref/hatsu');
@@ -449,13 +473,11 @@ export const cleanupPlanGuardCases: CleanupPlanCase[] = [
           (e) => e instanceof CleanupPlanGuardError && e.message.includes('trunk'),
         );
 
-        // The lease form with the verified SHA deletes on a real bare origin.
-        const leased = spawnSync(
-          'git',
-          ['-C', wtHost, 'push', `--force-with-lease=refs/heads/pro/kurapika/late-base:${lateSha}`, 'origin', '--delete', '--', 'pro/kurapika/late-base'],
-          { encoding: 'utf8' },
-        );
-        assert.equal(leased.status, 0, leased.stderr);
+        // The printed delete runs on a real bare origin.
+        const deleted = spawnSync('git', ['-C', wtHost, 'push', 'origin', '--delete', '--', 'pro/kurapika/late-base'], {
+          encoding: 'utf8',
+        });
+        assert.equal(deleted.status, 0, deleted.stderr);
         assert.equal(mustGit(core, ['ls-remote', '--heads', 'origin', 'refs/heads/pro/kurapika/late-base']), '');
       } finally {
         rmSync(tmp, { recursive: true, force: true });
@@ -863,11 +885,11 @@ printf '%s\\n' '[{"number":300,"baseRefName":"pro/kurapika/late-base","headRefNa
         .replaceAll("'origin/main'", "'origin/<branch.base>'");
       assert.equal(tail, "git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'");
       assert(skill.includes(tail), 'cleanup § 5 carries the classifier sequence word for word');
-      const lease = (remoteRow.exactCommand ?? '')
+      const del = (remoteRow.exactCommand ?? '')
         .replace("'/core/.nen/worktrees/claude/par'", "'<host>'")
-        .replaceAll('pro/kurapika/par', '<branch>')
-        .replace(sha, '<sha>');
-      assert(skill.includes(lease), `cleanup § 5 carries the leased delete word for word: ${lease}`);
+        .replaceAll('pro/kurapika/par', '<branch>');
+      assert.equal(del, "git -C '<host>' push origin --delete -- '<branch>'");
+      assert(skill.includes(del), `cleanup § 5 carries the delete word for word: ${del}`);
     },
   },
   {
@@ -886,6 +908,94 @@ printf '%s\\n' '[{"number":300,"baseRefName":"pro/kurapika/late-base","headRefNa
       assert.equal(noSha.rows[0].class, 'named');
       assert.equal(noSha.rows[0].exactCommand, null);
       assert(noSha.rows[0].evidence.includes('remote SHA unread'));
+    },
+  },
+  {
+    name: 'Round 2 A (SEC-12): an origin with embedded credentials is refused by name and no userinfo reaches text or --json',
+    run: () => {
+      const { tmp, wtHost, lateSha } = setupStackFixtureRepo();
+      try {
+        const token = 'PLACEHOLDER_TOKEN_0000';
+        const credRepo = join(tmp, 'cred');
+        mustGit(tmp, ['clone', join(tmp, 'origin.git'), credRepo]);
+        mustGit(credRepo, ['remote', 'set-url', 'origin', `https://x-access-token:${token}@github.com/zheref/hatsu.git`]);
+        const inProc = evaluatePreDelete(
+          { repo: credRepo, target: 'zheref/hatsu', branch: 'pro/kurapika/late-base', expectedSha: lateSha, base: 'main' },
+          OPEN_NONE,
+        );
+        assert.equal(inProc.exitCode, 2);
+        assert.equal(inProc.result.status, 'origin-mismatch');
+        assert(inProc.result.reason.includes('origin carries embedded credentials'));
+        const all = JSON.stringify(inProc.result) + renderHuman(inProc.result);
+        assert.equal(all.includes(token), false);
+        assert.equal(all.includes('x-access-token'), false);
+        for (const json of [true, false]) {
+          const cli = spawnSync(
+            'node',
+            [
+              GUARD_SCRIPT, 'pre-delete', '--repo', credRepo, '--target', 'zheref/hatsu', '--branch', 'pro/kurapika/late-base',
+              '--expected-sha', lateSha, '--base', 'main', ...(json ? ['--json'] : []),
+            ],
+            { encoding: 'utf8' },
+          );
+          assert.equal(cli.status, 2, cli.stderr);
+          const out = cli.stdout + cli.stderr;
+          assert(out.includes('origin carries embedded credentials'));
+          assert.equal(out.includes(token), false);
+          assert.equal(out.includes('x-access-token'), false);
+        }
+        // Echoed stderr is redacted too (e.g. an ls-remote or gh failure quoting the URL)
+        const ghLeak = evaluatePreDelete(
+          { repo: wtHost, target: 'zheref/hatsu', branch: 'pro/kurapika/late-base', expectedSha: lateSha, base: 'main' },
+          () => ({ status: 1, stdout: '', stderr: `fatal: https://x-access-token:${token}@github.com/zheref/hatsu.git refused` }),
+          GITHUB_ORIGIN,
+        );
+        assert.equal(ghLeak.exitCode, 2);
+        assert.equal(JSON.stringify(ghLeak.result).includes(token), false);
+        assert(ghLeak.result.reason.includes('//<redacted>@github.com'));
+        assert.equal(redactCredentials('see x-access-token:abc@github.com/o/r'), 'see <redacted>@github.com/o/r');
+        assert.equal(hasEmbeddedCredentials('git@github.com:zheref/hatsu.git'), false);
+        assert.equal(hasEmbeddedCredentials('https://u@github.com/zheref/hatsu.git'), true);
+        assert.equal(hasEmbeddedCredentials('ssh://git:pw@github.com/zheref/hatsu.git'), true);
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'Round 2 C and I: classify validates prs rows, freesBytes and open-PR headRefName, and names the --base trunk by default',
+    run: () => {
+      const isExit2 = (e: unknown) => e instanceof CleanupPlanGuardError && e.exitCode === 2;
+      const good = { kind: 'local-branch', branch: 'pro/kurapika/ok', object: 'pro/kurapika/ok', prState: 'MERGED', owner: 'this sitting' };
+      for (const prs of [
+        [{ number: 0, state: 'OPEN' }],
+        [{ number: 3, state: 'open' }],
+        [{ number: 3, state: 'OPEN', headRefOid: 'abc' }],
+        [null],
+        {},
+      ]) {
+        assert.throws(() => classifyCleanupPlan({ openPrs: [], candidates: [good], prs: prs as never }), isExit2, JSON.stringify(prs));
+      }
+      assert.equal(
+        classifyCleanupPlan({ openPrs: [], candidates: [good], prs: [{ number: 3, state: 'OPEN', headRefOid: 'c'.repeat(40) }] }).rows.length,
+        1,
+      );
+      for (const freesBytes of [-1, 1.5, '10', Number.MAX_SAFE_INTEGER + 2]) {
+        assert.throws(() => classifyCleanupPlan({ openPrs: [], candidates: [{ ...good, freesBytes }] }), isExit2, String(freesBytes));
+      }
+      assert.equal(classifyCleanupPlan({ openPrs: [], candidates: [{ ...good, freesBytes: 0 }] }).rows[0].freesBytes, 0);
+      assert.throws(
+        () => classifyCleanupPlan({ openPrs: [{ number: 1, baseRefName: 'main', headRefName: 7 }], candidates: [] }),
+        isExit2,
+      );
+      // I: with no per-row trunk, the --base value is the trunk and a row on it is named
+      const trunkPlan = classifyCleanupPlan({
+        openPrs: [],
+        base: 'develop',
+        candidates: [{ ...good, branch: 'develop', object: 'develop' }],
+      });
+      assert.equal(trunkPlan.rows[0].class, 'named');
+      assert(trunkPlan.rows[0].namedFacts.includes('trunk develop'));
     },
   },
 ];

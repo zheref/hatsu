@@ -7,14 +7,17 @@
 // Nen verb is required) BEFORE every En push, failing closed on unread/unknown states and
 // refusing any push onto a MERGED or CLOSED pull request (0 commits pushed to that branch).
 //
-// Carry set (MERGED/CLOSED): non-merge commits on HEAD not already on origin/<base>:
-//   MERGED: git log --no-merges <PR headSha>..HEAD --not origin/<base>
-//   CLOSED: git log --no-merges origin/<base>..HEAD   (the PR's earlier commits are not on base)
+// Carry set (MERGED/CLOSED): only the unpushed commits, the push En was about to make
+// (zheref/hatsu#611 AC-1): git log --no-merges <PR headSha>..HEAD --not origin/<base>.
+// A CLOSED PR with nothing unpushed is exit 4 (en § 6: closed unmerged, the run ends; HR-367).
 // No readable anchor (headSha absent locally, origin/<base> missing) or a git failure is
 // "carry list unread" (exit 2), never "nothing to carry".
 //
-// Post-push re-read (en § 3): re-run `check --require-head <pushed-sha>`; a PR that reads MERGED
-// at a headSha other than the pushed SHA strands the pushed commits -> exit 1 carry, naming them.
+// Post-push re-read (en § 3): re-run `check --require-head <pushed-sha>` once, paced. MERGED or
+// CLOSED runs the same carry log from the PR's headSha: exit 4 only when empty (merged at the
+// pushed head, nothing after it), else exit 1 naming the commits past that head. An OPEN PR whose
+// headSha is not yet the pushed SHA is `pushed-head-unobserved` (exit 2): one more paced re-read,
+// then en § 3's stop.
 //
 // Usage:
 //   node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--require-head <sha>] [--nen <bin>] [--json]
@@ -24,7 +27,7 @@
 //   0  OPEN, headRef matches the branch (pushAllowed: true); with --require-head, also headSha = it
 //   1  MERGED/CLOSED with >= 1 unpushed commit to carry (carry-on-successor-pr; en § 6 fallback rows)
 //   2  usage/validation error, symlinked/non-git repo, unreadable PR state, OPEN with missing headRef,
-//      carry list unread, or --require-head not yet observed on an OPEN PR (fail closed)
+//      carry list unread, or pushed-head-unobserved on an OPEN PR (fail closed)
 //   3  OPEN but headRef differs from the local branch (head-branch-mismatch): a stop handed back,
 //      never the successor fallback
 //   4  MERGED/CLOSED with nothing unpushed to carry (nothing-to-carry; en § 6 terminal rows)
@@ -71,6 +74,7 @@ export interface EnPushCheckResult {
     | 'nothing-to-carry'
     | 'head-branch-mismatch'
     | 'unread-pr-state'
+    | 'pushed-head-unobserved'
     | 'unread-carry-list';
   readonly pushAllowed: boolean;
   readonly repo: string;
@@ -261,9 +265,9 @@ function parseLog(stdout: string): CarryCommit[] {
   return commits;
 }
 
-// The carry set: non-merge commits on HEAD that origin/<base> does not already hold. MERGED anchors
-// on the PR's merged headSha; CLOSED (unmerged) anchors on origin/<base> alone, because the PR's own
-// earlier commits never reached base. OPEN lists what is unpushed past headSha (informational).
+// The carry set: the unpushed commits only. Non-merge commits on HEAD past the PR's last pushed
+// headSha that origin/<base> does not already hold, for MERGED and CLOSED alike (zheref/hatsu#611
+// AC-1: "En is about to push"). OPEN lists the same range, informational.
 export function collectCarryCommits(
   repo: string,
   state: PrState,
@@ -272,28 +276,19 @@ export function collectCarryCommits(
 ): { read: boolean; anchorUsed: string | null; commits: CarryCommit[]; error?: string } {
   const baseSha = readCommitRef(repo, `refs/remotes/origin/${base}`);
   const head = headSha && SHA_RE.test(headSha) ? readCommitRef(repo, headSha) : null;
-  let args: string[];
-  let anchorUsed: string;
-  if (state === 'CLOSED') {
-    if (!baseSha) return { read: false, anchorUsed: null, commits: [], error: `origin/${base} is not readable` };
-    anchorUsed = `origin/${base}`;
-    args = ['log', '--no-merges', '--reverse', '--format=%H%x09%s', `${baseSha}..HEAD`];
-  } else {
-    if (!head) {
-      return { read: false, anchorUsed: null, commits: [], error: 'PR headSha is not a readable local commit' };
-    }
-    if (state === 'MERGED' && !baseSha) {
-      return { read: false, anchorUsed: null, commits: [], error: `origin/${base} is not readable` };
-    }
-    anchorUsed = head;
-    args = ['log', '--no-merges', '--reverse', '--format=%H%x09%s', `${head}..HEAD`];
-    if (baseSha) args.push('--not', baseSha);
+  if (!head) {
+    return { read: false, anchorUsed: null, commits: [], error: 'PR headSha is not a readable local commit' };
   }
+  if (state !== 'OPEN' && !baseSha) {
+    return { read: false, anchorUsed: null, commits: [], error: `origin/${base} is not readable` };
+  }
+  const args = ['log', '--no-merges', '--reverse', '--format=%H%x09%s', `${head}..HEAD`];
+  if (baseSha) args.push('--not', baseSha);
   const log = runGit(repo, args);
   if (log.status !== 0) {
-    return { read: false, anchorUsed, commits: [], error: `git log failed: ${sanitizeText(log.stderr)}` };
+    return { read: false, anchorUsed: head, commits: [], error: `git log failed: ${sanitizeText(log.stderr)}` };
   }
-  return { read: true, anchorUsed, commits: parseLog(log.stdout) };
+  return { read: true, anchorUsed: head, commits: parseLog(log.stdout) };
 }
 
 export function evaluateEnPushGuard(
@@ -399,8 +394,8 @@ export function evaluateEnPushGuard(
     if (requireHead !== null && !pushedSeen) {
       return make(2, {
         ...read,
-        status: 'unread-pr-state',
-        error: `PR #${opts.pr} headSha ${parsed.headSha ?? 'missing'} is not the pushed ${requireHead.slice(0, 8)} yet; re-read`,
+        status: 'pushed-head-unobserved',
+        error: `PR #${opts.pr} headSha ${parsed.headSha ?? 'missing'} is not the pushed ${requireHead.slice(0, 8)} yet; one paced re-read, then en § 3's stop`,
       });
     }
     const carry = collectCarryCommits(repo, 'OPEN', parsed.headSha, opts.base);
@@ -414,15 +409,8 @@ export function evaluateEnPushGuard(
     });
   }
 
-  // MERGED or CLOSED: never push. Merged exactly at the pushed head strands nothing.
-  if (parsed.state === 'MERGED' && pushedSeen) {
-    return make(4, {
-      ...read,
-      status: 'nothing-to-carry',
-      carryListRead: true,
-      error: `PR #${opts.pr} merged at the pushed head ${requireHead!.slice(0, 8)}; nothing stranded`,
-    });
-  }
+  // MERGED or CLOSED: never push. The carry log runs even when merged at the pushed head: commits
+  // made after that push are still unpushed.
   const carry = collectCarryCommits(repo, parsed.state, parsed.headSha, opts.base);
   if (!carry.read) {
     return make(2, {
@@ -438,7 +426,7 @@ export function evaluateEnPushGuard(
       status: 'nothing-to-carry',
       anchorUsed: carry.anchorUsed,
       carryListRead: true,
-      error: `PR #${opts.pr} is ${parsed.state}; carry list read, nothing unpushed off origin/${opts.base} (en § 6 terminal row)`,
+      error: `PR #${opts.pr} is ${parsed.state}; carry list read, nothing unpushed past ${parsed.headSha!.slice(0, 8)} off origin/${opts.base} (en § 6 terminal row)`,
     });
   }
   const shas = carry.commits.map((c) => c.sha.slice(0, 8)).join(', ');
@@ -455,7 +443,7 @@ export function evaluateEnPushGuard(
       steps: [
         `Refuse push to '${theBranch}' (PR #${opts.pr} is ${parsed.state}).`,
         `Cut a fresh isolated worktree and branch off origin/${opts.base}.`,
-        `Carry ${carry.commits.length} commit(s) not on origin/${opts.base} (${shas}) onto the new branch and re-verify via kokusen, kotoamatsukami, and byakugan.`,
+        `Cherry-pick the ${carry.commits.length} unpushed commit(s) (${shas}) onto the new branch (a conflict is a stop handed back) and re-verify via kokusen, kotoamatsukami, and byakugan.`,
         `Publish the new branch and open a successor PR via shibari referencing #${opts.pr}.`,
         `Raise hatsu:hanten on the successor PR; hanten § 2b keys its ledger to --pr <successor-N>.`,
       ],

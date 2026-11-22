@@ -64,9 +64,9 @@ Failing names become **named** rows.
 
 | Class | Read | Leftover when |
 |---|---|---|
-| **worktrees** | `nen wc worktrees --repo <core> --json`; `git worktree list --porcelain` (`prunable`); admission; `nen wc classify --repo <wt>` | `<core>/.nen/worktrees/<surface>/` with PR merged/closed, or detached reachable from `origin/<branch.base>` (`merge-base --is-ancestor`) with release merged; `kind reviewer`; prunable |
-| **branches** | `git branch --merged origin/<branch.base>` (not trunk); `gh pr list --repo <o/r> --head <branch> --state all --json number,state,mergedAt,headRefOid`; one batched `gh pr list --repo <o/r> --state open --json number,baseRefName,headRefName --limit 1000` (1000 back: unread) | local branch merged/closed, or gone from origin; tip ahead of `headRefOid`: § 5 names extra commits, where each landed |
-| **remote heads** | `git ls-remote --heads origin` vs merged PR `headRefOid` and batched open PR `baseRefName` | head branch of merged PR origin still carries |
+| **worktrees** | `nen wc worktrees --repo <core> --json`; `git worktree list --porcelain` (`prunable`); admission; `nen wc classify --repo <wt>` | `<core>/.nen/worktrees/<surface>/` with PR merged/closed, or detached reachable from `origin/<branch.base>` (`merge-base --is-ancestor`) with release PR/tag merged; `kind reviewer`; prunable |
+| **branches** | `git branch --merged origin/<branch.base>` (not trunk); `gh pr list --repo <o/r> --head <branch> --state all --json number,state,mergedAt,headRefOid`; the guard header's one batched open-PR read (rule 1) | local branch merged/closed, or gone from origin; tip ahead of `headRefOid`: § 5 names extra commits, where each landed |
+| **remote heads** | `git ls-remote --heads origin` vs merged PR `headRefOid` and open PR `baseRefName` | head branch of merged PR origin still carries |
 | **transient reports** | `<reports.dir>/current.html`, `<reports.dir>/captures/` | `reports.retain: final-only` — `current.html` transient; merged `captures/` proposed |
 | **caches** | `~/.cache/nen/zheref_nen/<ref>/` vs `pinned_ref` and `readlink -f` (`~/.local/bin/nen`, `command -v nen`, surface links); `nen surface status`; build caches | unlinked below-pin binary; stale served copy; `DerivedData`, `.gradle`, `node_modules` |
 | **billed** | `nen runner inventory --json`; `gh release list`; `node '<Hatsu root>/scripts/gh_api_read.mts' actions-caches\|actions-artifacts <o/r>` | runners, releases, caches, artifacts, **plan only** |
@@ -76,40 +76,42 @@ Failing names become **named** rows.
 Sizes: `du -sk <path>` pre-plan. **Core's `.nen/` (WORKFLOW § *The effort's ledgers*) and git common
 dir's `.nen/`/`hatsu/` are records, never leftovers**; worktree `.nen/` goes with it
 (ROSTER § *Rulings of 2026-10-20*). Group prior leftovers without assuming ownership — dirt, detached
-trees and caches proposed, never deterministic. Sanitize paths, creds.
+trees and caches proposed, never deterministic. Sanitize: no credentials, no path beyond checkout and caches.
 
 ## 5. The plan — three classes, every row complete
 
 **§ 5 alone classes**, through
 `node '<Hatsu root>/scripts/cleanup_plan_guard.mts' classify --input '<plan-input.json>' --repo '<core>' --base '<branch.base>' --json`
-(input schema: its header): **clean** is `on-branch-clean` + admitted
-`tree clean`; unmatched = **proposed**. **Its or `pre-delete`'s exit `2`**: no row offered, marker `pending`,
-host fact named.
+(input schema, rules, evidence: header): **clean** is `on-branch-clean` + admitted `tree clean`; a
+worktree no row matches is **proposed**, owner unknown. **Its or `pre-delete`'s exit `2`**: no row
+offered, marker `pending`, host fact named.
 
 **Deterministic**: `git worktree prune`; `kind effort` clean merged worktree (tip not ahead, `admitted`,
 `locked no`), in order: its remote-head row (host `<wt>`), admission's exact `worktree remove`, then
 `git merge-base --is-ancestor -- '<branch>' 'origin/<branch.base>' && git branch -d -- '<branch>'`
-(stale trunk → proposed, **never `-D`**); `kind reviewer` checkout by ledger alone: `tree clean` **and**
-`.nen/hanten/<key>.cycle.json` records persona `ran` in sitting (carrying successor, en § 3: `<key>`
+(refused on stale local trunk: deterministic once core trunk is fast-forwarded, else proposed — **never
+`-D`**); `kind reviewer` checkout by ledger alone: `tree clean` **and** `.nen/hanten/<key>.cycle.json`
+records persona `ran` in sitting (carrying successor, en § 3: `<key>`
 `<successor-slug>-pr<successor-N>`, scope `for <CODE>#<successor-N>`);
 `git remote prune origin`; `rm -- <reports.dir>/current.html`.
 
 **Remote-head rows** (never `<branch.base>`):
 `node '<Hatsu root>/scripts/cleanup_plan_guard.mts' pre-delete --repo '<host>' --target '<o/r>' --branch '<branch>' --expected-sha '<sha>' --base '<branch.base>'`
-(origin `<o/r>`, no open PR base/head, SHA pass 1's; else nothing runs, reported), then
-`git -C '<host>' push '--force-with-lease=refs/heads/<branch>:<sha>' origin --delete -- '<branch>'`, `<host>` literal:
-admitted own `<wt>` or other admitted path (`.ts` rule 6; never core; none → **named**, `no admitted checkout`).
-Push before `worktree remove`.
+(checks: its header rule 6; refused: nothing runs, reported), then at once
+`git -C '<host>' push origin --delete -- '<branch>'`,
+`<host>` literal: admitted own `<wt>` or other admitted path (`.ts` rule 6; never core; none → **named**,
+`no admitted checkout`). Push before `worktree remove`.
 
 **Proposed** (judgement; names what it destroys and why uncertain): dirty worktree (paths listed);
-merged-ahead branch (§ 4); `captures/`; kept caches;
-prior reviewer checkout; unlinked below-pin cache (`rm -r -- "<abs>"`, `<ref>` `^v[0-9]+\.[0-9]+\.[0-9]+$`,
-`realpath != host link's readlink -f; never variable-built`); >30d run record (`rm --`; unreadable: named).
+merged-ahead branch (§ 4); `captures/`; build cache in kept worktree; prior reviewer checkout; unlinked
+below-pin cache (`rm -r -- "<abs>"`, `<ref>` `^v[0-9]+\.[0-9]+\.[0-9]+$`,
+`realpath != host link's readlink -f; never variable-built; another repo may pin it`); >30d run record
+(`rm --`; unreadable: named).
 
 **Named** (plan only, never an option; Hard limits): billed resources; surface worktrees; stale served copy.
 
-**Named facts win**: **`base of open PR`**, `locked yes`, open PR, `tree unreadable`, refused name or
-`no admitted checkout` is **`named`** for remote head, local branch and worktree;
+**Named facts win**: trunk, **`base of open PR`**, `locked yes`, open PR, `tree unreadable`, refused name,
+`no admitted checkout` or `remote SHA unread` is **`named`** for remote head, local branch and worktree;
 then reviewer ledger; then table (merged, tip ahead of `headRefOid`: `proposed`):
 
 | object · PR state | merged | closed unmerged | open | no PR |
@@ -120,8 +122,7 @@ then reviewer ledger; then table (merged, tip ahead of `headRefOid`: `proposed`)
 | remote head | deterministic (SHA = `headRefOid`), else proposed | proposed | named | proposed |
 
 Each row: `id` · class · object · command (`null` on `named`) · frees (`billed: <what>`) · evidence
-(PR state, SHA, `base of open PR: <#N|none>`, extra commits, host, dirt, age, ledger) ·
-owner (this sitting or `prior: <branch>`). **Plan-unique ids**: `D`/`P`/`N` + plan-wide count (`D1`, `P2`).
+(the header's list) · owner (this sitting or `prior: <branch>`). **Plan-unique ids**: `D`/`P`/`N` + plan-wide count (`D1`, `P2`).
 
 ## 6. The picker — only the pick runs
 
@@ -131,13 +132,15 @@ owner (this sitting or `prior: <branch>`). **Plan-unique ids**: `D`/`P`/`N` + pl
 `jq -r -s '[.[0].plan[].id] | group_by(.)[] | select(length>1)[0]' '<marker>'`; main session re-raises
 pass 1 to re-mint (never renames) and reruns it. On a second stop main session records `pickerAnswer`
 `ids-invalid`, Shizuku closes `none-picked`, ids in the report. Any other exit (`2`, `127`) stops: host
-fact named, marker `pending`. No D/P row: no ask, close `already-clean`/`none-proposed`. Else one picker
-(`third-hand` § 6; row `cleanup-plan`): ⭐ **A** deterministic · **B** deterministic + ticked proposed
-(`<=3`/batch; Codex 1) · **C** `none` (wins over ticks). Record `picked[]` and raw `pickerAnswer` (`nen stop answer`),
-then run picked rows in § 5's order, pushes first, **each delete right after its `pre-delete` re-read**
-(retargeted onto: skipped, PR named), each read back, bytes freed
-per row and total; a picked id naming no `plan[]` row or a named one is listed unmatched, `result`
-`partial`. Failing row reported with stderr, **never retried wider**; then § 3's close.
+fact named, marker `pending`. No D/P row: no ask; Shizuku closes `already-clean` (empty plan) or
+`none-proposed` (named only). Else one picker (`third-hand` § 6; row `cleanup-plan`): ⭐ **A**
+deterministic · **B** deterministic + ticked proposed (`<=3`/batch; Codex CLI 1 per row) · **C** `none`
+(wins over ticks). Record `picked[]` and raw `pickerAnswer` (`nen stop answer`), then run picked rows in
+§ 5's order, pushes first, **each delete right after its `pre-delete` re-read**; a delete it skips (exit
+`1`, or `2` with the host fact) skips its `precededBy` worktree row too, both listed skipped, `result`
+`partial`. Each read back, bytes freed per row and total; a picked id naming no `plan[]` row or a named
+one is listed unmatched, `result` `partial`. Failing row reported with stderr, **never retried wider**;
+then § 3's close.
 
 ## 7. The marker, and the report
 
@@ -148,9 +151,7 @@ Write `<core>/.nen/cleanup/<slug>.json`, contract `hatsu.cleanup.plan/v0.1`: `at
 - several efforts → `<composite>-<CODE>-<YYYY-MM-DD>`, the typed date; no number, or `for <branch>` → branch
   slug (`/` → `-`); `for all` → `all`
 
-Each `<CODE>-<N>` is checked (`PR` where `gh pr view` finds `<N>`; output cut to `<CODE>-<N>`) by:
-`nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
-— an exit but `0` (no registry, code unregistered) keeps it, said.
+Each `<CODE>-<N>` is checked as WORKFLOW § *Cleanup marker slug check* says.
 
 Gitignored (`.nen/`); `ten` never deletes it. Unpicked offered rows go to `declined.jsonl`, re-offered per class: WORKFLOW § *Declined cleanup rows*. Report result, freed total, kept rows, why.
 
