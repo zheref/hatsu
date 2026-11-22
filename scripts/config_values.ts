@@ -266,17 +266,23 @@ try {
           const value = parsed.pr?.sections;
           const sectionDomain = declaration.values.find((row: any) => row.id === 'workflow.pr.sections')?.domain;
           if (cat && value !== undefined && (!parsedArgs?.['--domain'] || parsedArgs['--domain'] === sectionDomain)) {
+            const entries = history(root, cat);
             let reading;
+            let detail: string;
             try {
-              reading = readSections(value, cat, history(root, cat));
+              reading = readSections(value, cat, entries);
+              detail = summary(reading) + (reading.status === 'unstamped' || reading.cells.length === 0 ? '' : '; ' + reading.cells.map(cell => `${cell.cell}: ${cell.state}${cell.retiredIds.length ? ' (retired ids: '+cell.retiredIds.join(', ')+')' : ''}`).join('; '));
             } catch (error) {
-              if (error instanceof UnknownCatalogueError) reading = unknownCatalogueReading(error);
-              else throw error;
+              if (error instanceof UnknownCatalogueError) {
+                reading = unknownCatalogueReading(error);
+                detail = summary(reading);
+              } else {
+                detail = `pr.sections: invalid — ${plain(error instanceof Error ? error.message : error)}`;
+              }
             }
-            const detail = summary(reading) + (reading.cells.length === 0 ? '' : '; ' + reading.cells.map(cell => `${cell.cell}: ${cell.state}${cell.retiredIds.length ? ' (retired ids: '+cell.retiredIds.join(', ')+')' : ''}`).join('; '));
             if (wantsJson) {
               const document = JSON.parse(output);
-              for (const row of document.values ?? []) if (row.id === 'workflow.pr.sections') { row.detail = detail; row.prSections = reading; }
+              for (const row of document.values ?? []) if (row.id === 'workflow.pr.sections') { row.detail = detail; if (reading) row.prSections = reading; }
               output = JSON.stringify(document,null,2)+'\n';
             } else output += plain(detail)+'\n';
           }

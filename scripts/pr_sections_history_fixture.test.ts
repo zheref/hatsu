@@ -85,6 +85,7 @@ test('diagnose reads all six cell states without changing a packaged source or c
   expect(legacy.status, legacy.stderr).toBe(0);
   const row = JSON.parse(legacy.stdout).values.find((row: any) => row.id === 'workflow.pr.sections');
   expect(row.detail).toMatch(/^pr.sections: unstamped/);
+  expect(row.detail).not.toContain('; process.build: unstamped');
   expect(row.detail.split('\n')).toHaveLength(1);
   expect(row.prSections.cells.find((cell: any) => cell.cell === 'process.build')).toMatchObject({ state: 'unstamped', matchesCurrent: false, ownership: 'unknown' });
 });
@@ -321,4 +322,26 @@ test('HA#560 AC-1/AC-2/AC-3/SC-1: an unknown or newer pr.sections stamp reports 
   expect(text(f)).toBe(before);
   expect(existsSync(join(f.repo, '.github'))).toBe(false);
   expect(existsSync(join(f.repo, 'scripts'))).toBe(false);
+
+  // Phinks QA-16: newer stamp with raised cap (max: 8) and newer contract version (v2) still classifies unknown-catalogue,
+  // and malformed pr.sections leaves unrelated keys diagnosed cleanly.
+  f.write({ max: 8, variants: clone(f.previous.variants), $canon: { contract: 'hatsu.pr-sections/v2', sha256: unknownSha } });
+  const raisedCap = run(f, 'diagnose', '--json');
+  expect([0, 1], raisedCap.stderr).toContain(raisedCap.status);
+  const raisedParsed = JSON.parse(raisedCap.stdout);
+  expect(raisedParsed.values.find((row: any) => row.id === 'workflow.branch.base').state).toBe('default-unwritten');
+  expect(raisedParsed.values.find((row: any) => row.id === 'workflow.pr.sections').prSections.status).toBe('unknown-catalogue');
+
+  f.write('oops');
+  const malformedRow = run(f, 'diagnose', '--json');
+  expect([0, 1], malformedRow.stderr).toContain(malformedRow.status);
+  const malformedParsed = JSON.parse(malformedRow.stdout);
+  expect(malformedParsed.values.find((row: any) => row.id === 'workflow.branch.base').state).toBe('default-unwritten');
+  expect(malformedParsed.values.find((row: any) => row.id === 'workflow.pr.sections').detail).toMatch(/^pr\.sections: invalid/);
+
+  // Feitan SEC-7: Object.prototype property names (e.g. toString) are never mistaken for catalogued cells.
+  const protoVal: any = clone(f.value);
+  protoVal.variants.toString = ['changes', 'why', 'improves', 'verify'];
+  const protoReading = readSections(protoVal, catalogue(f.root), history(f.root, catalogue(f.root)));
+  expect(protoReading.cells.find((c: any) => c.cell === 'toString')).toMatchObject({ state: 'retired', ownership: 'consumer-owned' });
 });

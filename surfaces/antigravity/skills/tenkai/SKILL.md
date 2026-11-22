@@ -706,7 +706,7 @@ differ (the `commits` trailer lists, `futon.advanceGo`); or structural and the r
 (`models`, `reports.sections`, the gates identity blocks). `reports.sections` is not filled by
 default — when it is absent, Tenkai emits a non-blocking adoption notice naming the absence, the
 consequence (the Rikugan final report cannot render), and what to declare (`reports.sections` for
-`turn`, `landing`, `final`, and `register` in `nen/workflow.json` per
+`turn`, `turn-fast`, `landing`, `final`, and `register` in `nen/workflow.json` per
 [docs/config/workflow.json.md](../../../../docs/config/workflow.json.md#reports)). When `review.scopes`
 has no `architecture` scope, Tenkai emits a non-blocking adoption notice naming the absence, the
 consequence (content-raised totality passes cannot run), and what to add (`architecture` scope in

@@ -94,7 +94,7 @@ nen repo resolve <CODE> --repo <path to the target repo's own checkout>
 nen ref format --code <CODE> --kind PR --number <N>
 ```
 
-**After warm-up (`hatsu:ten en`), check `nen/gates.json` and `nen/decisions.json` on a consumer repository.** If either file is absent, print one short non-blocking notice per missing file naming the missing declaration and its consequence (`nen/gates.json`: `nen pr ready` reads no declared reviewers or approvers without explicit flags; `nen/decisions.json`: `nen stop answer` warns on recorded picker answers and no consumer decision overrides apply); a consumer declaring both sees no notice.
+**After warm-up (`hatsu:ten en`), relay `tenkai_adopt.sh diagnose --json`'s `notices[]` for `nen/gates.json` and `nen/decisions.json` on a consumer repository.** If either declaration is absent, print one short non-blocking notice per missing file naming it and its consequence (`nen/gates.json`: `nen pr ready` cannot read declared reviewers or approvers without explicit flags; `nen/decisions.json`: `nen stop answer` warns on recorded picker answers and no consumer decision overrides apply); a consumer declaring both sees no notice.
 
 **A closed or merged PR ends the run immediately** with what happened to it. There is nothing to
 land.
@@ -309,7 +309,7 @@ one-directional confirmation pass that may only veto. Read it there.
 
 Two things en relies on and does not re-derive:
 
-- **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check` says every requirement is
+- **A PR is Ready iff `nen pr ready` says `ready` AND `nen pr body-check --requirements-from <resolved-requirements.json>` (resolved from `contracts/pr-sections.json`) says every requirement is
   satisfied AND `nen pr converge`
   (`nen pr converge --target <owner/name> --pr <N> --catalogue "$hatsu_root/contracts/issue-sections.json"`, HR-11) exits `0`**, all
   deterministic, none re-derived by eye: converge's exit `1` is not ready, whatever it blocks on.
@@ -427,7 +427,7 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
    maintainer-made merge with no conflicted path, the settled round carries over unchanged (§ 3).
    **A CI reviewer lane** — its round, why it is never requested, its place in the quorum and when it is
    unavailable — is [PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*, stated once there.
-3. **The body** — `nen pr body-check` satisfied against the live body.
+3. **The body** — `nen pr body-check --requirements-from <resolved-requirements.json>` (resolved from `contracts/pr-sections.json`) satisfied against the live body.
 4. **The Development links** — the guard's `0` quoted against the live PR, re-run after any
    `edit-body`; `retarget-pending` is check 1 failing (case (2)), `not-applicable` is case (3), quoted
    in the `0`'s place and still the prompt, and any other line is a finding to fix, never a prompt.

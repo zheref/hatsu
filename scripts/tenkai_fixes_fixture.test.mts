@@ -233,6 +233,7 @@ test('HA#605 AC-1..AC-5: non-blocking adoption notices flag missing declarations
   expect(noticeIds).toEqual(['reports.sections', 'review.scopes.architecture', 'nen/gates.json', 'nen/decisions.json']);
   const byId = Object.fromEntries(jsonReport.notices.map((n: any) => [n.id, n]));
   expect(byId['reports.sections'].message).toContain('Rikugan final report cannot render');
+  expect(byId['reports.sections'].message).toContain('turn-fast');
   expect(byId['reports.sections'].message).toContain('declare reports.sections');
   expect(byId['review.scopes.architecture'].message).toContain('content-raised totality passes cannot run');
   expect(byId['review.scopes.architecture'].message).toContain('architecture scope');
@@ -272,7 +273,7 @@ test('HA#605 AC-1..AC-5: non-blocking adoption notices flag missing declarations
   expect(catalogue).toContain('reports.sections — not filled by default and flagged as a non-blocking adoption notice when absent');
   expect(tenkaiSkill).toContain('reports.sections` is not filled by');
   expect(tenkaiSkill).toContain('non-blocking adoption notice');
-  expect(enSkill).toContain('check `nen/gates.json` and `nen/decisions.json`');
+  expect(enSkill).toContain("relay `tenkai_adopt.sh diagnose --json`'s `notices[]` for `nen/gates.json` and `nen/decisions.json`");
 
   // HA#560 unknown catalogue stamp row routes to plugin update.
   expect(fixFor({ id: 'pr.sections', state: 'blocked', detail: 'pr.sections: stamp bbbbbbb is newer or unknown to this plugin' }, rows,

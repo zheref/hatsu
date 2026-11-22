@@ -1,6 +1,9 @@
-/** HA#535: every outstanding Tenkai item names its fix, rendered from contracts/tenkai-fixes.json. */
+/**
+ * HA#535: every outstanding Tenkai item names its fix, rendered from contracts/tenkai-fixes.json.
+ * HA#605: also exposes `adoptionNotices` for non-blocking structural/governance declaration checks.
+ */
 import { lstatSync, readFileSync, realpathSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const FILLS = ['default', 'owner', 'edit', 'route', 'unmapped'] as const;
@@ -79,7 +82,8 @@ export function guide(items: (Item & { fix?: Fix })[]) {
 }
 
 function confinedText(repo: string, rel: string): { status: 'missing' | 'unreadable' | 'ok'; text?: string } {
-  let cursor = resolve(repo);
+  const root = resolve(repo);
+  let cursor = root;
   for (const part of rel.split('/')) {
     cursor = join(cursor, part);
     try {
@@ -89,11 +93,11 @@ function confinedText(repo: string, rel: string): { status: 'missing' | 'unreada
       return { status: 'unreadable' };
     }
   }
-  const info = lstatSync(cursor);
-  if (!info.isFile()) return { status: 'unreadable' };
-  const sub = relative(realpathSync(repo), realpathSync(cursor));
-  if (!sub || sub === '..' || sub.startsWith('../') || isAbsolute(sub)) return { status: 'unreadable' };
   try {
+    const info = lstatSync(cursor);
+    if (!info.isFile()) return { status: 'unreadable' };
+    const sub = relative(realpathSync(root), realpathSync(cursor));
+    if (!sub || sub === '..' || sub.startsWith(`..${sep}`) || sub.startsWith('../') || isAbsolute(sub)) return { status: 'unreadable' };
     return { status: 'ok', text: new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(cursor)) };
   } catch {
     return { status: 'unreadable' };
@@ -106,8 +110,15 @@ function notice(id: string, declaration: string, consequence: string, action: st
 
 /** HA#605: non-blocking notices for missing structural/governance declarations at Tenkai adoption. */
 export function adoptionNotices(repo: string): AdoptionNotice[] {
+  const root = resolve(repo);
+  try {
+    const rootInfo = lstatSync(root);
+    if (rootInfo.isSymbolicLink() || !rootInfo.isDirectory()) return [];
+  } catch {
+    return [];
+  }
   const notices: AdoptionNotice[] = [];
-  const workflowFile = confinedText(repo, 'nen/workflow.json');
+  const workflowFile = confinedText(root, 'nen/workflow.json');
   if (workflowFile.status === 'ok' && workflowFile.text !== undefined) {
     try {
       const workflow = JSON.parse(workflowFile.text);
@@ -120,7 +131,7 @@ export function adoptionNotices(repo: string): AdoptionNotice[] {
             'reports.sections',
             'nen/workflow.json → reports.sections',
             'the Rikugan final report cannot render',
-            'declare reports.sections (turn, landing, final and register blocks) in nen/workflow.json (docs/config/workflow.json.md)',
+            'declare reports.sections (turn, turn-fast, landing, final and register blocks) in nen/workflow.json (docs/config/workflow.json.md)',
           ));
         }
         const scopes = workflow.review?.scopes;
@@ -137,7 +148,7 @@ export function adoptionNotices(repo: string): AdoptionNotice[] {
       }
     } catch { /* unreadable JSON keeps its blocked nen/workflow.json row instead */ }
   }
-  if (confinedText(repo, 'nen/gates.json').status === 'missing') {
+  if (confinedText(root, 'nen/gates.json').status === 'missing') {
     notices.push(notice(
       'nen/gates.json',
       'nen/gates.json',
@@ -145,7 +156,7 @@ export function adoptionNotices(repo: string): AdoptionNotice[] {
       'declare nen/gates.json when configuring repository gates (docs/config/gates.json.md)',
     ));
   }
-  if (confinedText(repo, 'nen/decisions.json').status === 'missing') {
+  if (confinedText(root, 'nen/decisions.json').status === 'missing') {
     notices.push(notice(
       'nen/decisions.json',
       'nen/decisions.json',

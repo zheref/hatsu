@@ -61,10 +61,18 @@ test('adoptionNotices covers absent, partial, complete, unreadable and symlinked
     try {
       mkdirSync(join(linked, 'nen'));
       symlinkSync(join(root, 'nen/workflow.json'), join(linked, 'nen/workflow.json'));
-      writeFileSync(join(linked, 'nen/gates.json'), '{}\n');
-      writeFileSync(join(linked, 'nen/decisions.json'), '{}\n');
+      symlinkSync(join(root, 'nen/missing-gates.json'), join(linked, 'nen/gates.json'));
+      symlinkSync(join(root, 'nen/missing-decisions.json'), join(linked, 'nen/decisions.json'));
       assert.deepEqual(adoptionNotices(linked), []);
     } finally { rmSync(linked, { recursive: true, force: true }); }
+
+    // Nonexistent repo and symlinked nen/ directory return [] safely.
+    assert.deepEqual(adoptionNotices(join(root, 'does-not-exist')), []);
+    const linkDir = mkdtempSync(join(tmpdir(), 'hatsu-tenkai-notices-nendir-'));
+    try {
+      symlinkSync(join(root, 'nen'), join(linkDir, 'nen'));
+      assert.deepEqual(adoptionNotices(linkDir), []);
+    } finally { rmSync(linkDir, { recursive: true, force: true }); }
 
     writeFileSync(join(root, 'nen/workflow.json'), '{ bad json');
     assert.deepEqual(adoptionNotices(root).map((n) => n.id), ['nen/gates.json', 'nen/decisions.json']);

@@ -127,7 +127,7 @@ The installed Claude pack grants `node '<exact installed absolute Hatsu root>/sc
 
 ## `contracts/tenkai-fixes.json`
 
-**Purpose.** The fix every outstanding [`hatsu:tenkai`](../../claude/skills/tenkai/SKILL.md) item names ([zheref/hatsu#535](https://github.com/zheref/hatsu/issues/535)): what to run, which file and key to edit, which command reads the item again, and who supplies the value. `scripts/tenkai_fixes.ts` renders it into each outstanding row's `fix` block and the report's `guide`; lane `tenkai-fixes-guard` holds it.
+**Purpose.** The fix every outstanding [`hatsu:tenkai`](../../claude/skills/tenkai/SKILL.md) item names ([zheref/hatsu#535](https://github.com/zheref/hatsu/issues/535)): what to run, which file and key to edit, which command reads the item again, and who supplies the value. `scripts/tenkai_fixes.ts` renders it into each outstanding row's `fix` block and the report's `guide`, and also exposes `adoptionNotices()` for `scripts/tenkai_adopt.ts` to report non-blocking absent-declaration notices (`reports.sections`, `review.scopes.architecture`, `nen/gates.json`, `nen/decisions.json`); lane `tenkai-fixes-guard` holds it.
 
 ### Keys
 
