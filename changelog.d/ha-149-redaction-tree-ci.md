@@ -1,0 +1,3 @@
+### Fixed
+
+- **Wire `redaction-guard` into CI unit tests and redact newly private `<product-repo-F>` (`zheref/hatsu#149`).** `scripts/unit_tests_ci.mts` now selects `redaction-guard` whenever `scripts/private_name_check.sh` is present and refuses a missing `scripts/private_name_check_fixture.sh`, with failing and missing-fixture cases proven in `scripts/unit_tests_ci_fixture.test.mts`. `docs/PUBLIC-REDACTION.md` extends `<product-repo-A>` … `<product-repo-F>` and `RA` … `RF`, drops `<product-repo-F>` from the public-repositories list, and updates all remaining unredacted mentions across `claude/`, `docs/`, `contracts/prose.lint.baseline.json`, and generated `surfaces/` mirrors. Plugin 0.169.1.

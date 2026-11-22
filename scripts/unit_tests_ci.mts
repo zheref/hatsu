@@ -94,6 +94,8 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
   // The skill-shape check judges the touched skills from the merge base of HATSU_BASE_SHA below (zheref/hatsu#502).
   ['skill_shape_check.mts', 'skill_shape_check_fixture.mts', 'skill-shape-guard'],
+  // The redaction guard fixture proves bare-name, slug, case, named-list and exemption rules with a stub gh (zheref/hatsu#149, BC-9).
+  ['private_name_check.sh', 'private_name_check_fixture.sh', 'redaction-guard'],
   // The placed-copy marker reader and the mirror source scan must run in CI (zheref/hatsu#531, BC-9).
   ['surface_bootstrap.sh', 'surface_bootstrap_fixture_check.sh', 'surface-bootstrap-guard'],
   ['surface_mirror_check.sh', 'surface_mirror_check_fixture.sh', 'surface-mirror-guard'],

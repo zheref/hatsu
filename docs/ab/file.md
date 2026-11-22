@@ -184,7 +184,7 @@ $ nen repo resolve BC --repo <reference-repo checkout>
 $ nen repo resolve notarealtoken --repo <reference-repo checkout>
 nen repo: 'notarealtoken' does not name a repository in this registry (...\schemas\repos.json).
 It is matched exactly ... Codes: $comment (...), BC (<reference-repo>), BS (...), RA (...),
-RB (...), RC (...), KC (...). Repositories: <product-repo-A>, <product-repo-B>,
+RB (...), RC (...), RF (...). Repositories: <product-repo-A>, <product-repo-B>,
 <scaffold-repo>.                                # exit 1
 
 $ cd <reference-repo checkout> && nen repo resolve      # no token -- resolves cwd's own origin

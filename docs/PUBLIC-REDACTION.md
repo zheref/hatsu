@@ -18,12 +18,12 @@ is named by ruling** — `zheref/akatsuki-ai`, whose code stays private and whos
 | `<reference-repo>` | The frozen reference implementation this plugin succeeds — the predecessor system whose local plane Hatsu replaces, and whose backlog the seventeen skills were proven against. Private. Its handbooks, constitution and shared agent conventions were migrated on 2026-09-28 into the public `zheref/bankai-handbooks` (see *What is deliberately not redacted*), which is named directly; where `<reference-repo>` survives it means the frozen predecessor — its rulings, its backlog, its gates file, its transcripts — never where canon lives. |
 | `<migration-tracker>`, "the migration tracker (private)" | The repository tracking the Akatsuki migration, where the rewritten constitution and the ratified migration plan are decided. Private. |
 | `<ci-plane-repo>` | The repository of Akatsuki, the autonomous CI plane — its constitution, agent workflows and CI CLI; ruled a canon repository on 2026-09-19. Private. Named for its role; it is not asserted to be the same repository as `<migration-tracker>`. **Named since 2026-10-19**: it is `zheref/akatsuki-ai`, product code `AK` (§ *Named private repositories*). New text names it; the placeholder's existing uses stand and are not rewritten. |
-| `<product-repo-A>` … `<product-repo-E>` | Consuming product repositories in the same estate, in no meaningful order. Private. **One letter per repository, for good**: a letter already in the tree is read off its existing uses before a new repository is given one, and never reassigned. |
+| `<product-repo-A>` … `<product-repo-F>` | Consuming product repositories in the same estate, in no meaningful order. Private. **One letter per repository, for good**: a letter already in the tree is read off its existing uses before a new repository is given one, and never reassigned. |
 | `<scaffold-repo>` | The scaffolding repository the estate generates consumers from. Private. |
 | `<prefix>` | Stands in for a real repository-name prefix in an example about prefix matching. The example teaches the rule; the prefix itself named a private estate. |
-| `RA` … `RE` | Placeholder **product codes** for `<product-repo-A>` … `<product-repo-E>`, used wherever a registry row, refusal message or command example paired a code with one of those repositories. Their real codes shared a prefix with a public repository's code in the same registry, which reconstructed the family name. |
+| `RA` … `RF` | Placeholder **product codes** for `<product-repo-A>` … `<product-repo-F>`, used wherever a registry row, refusal message or command example paired a code with one of those repositories. Their real codes shared a prefix with a public repository's code in the same registry, which reconstructed the family name. |
 | `RR-IS-#<n>` / `RR-PR-#<n>`, `RA-IS-#<n>` / `RA-PR-#<n>`, … | Object ids that named a private repository by its product code. |
-| `fixture-family`, `fixture-owner/fixture-ios`, `fixture-owner/fixture-android`, `fixture-owner/fixture-web`, `fixture-owner/fixture-spec`; `FI`, `FA`, `FW`, `FS` | A **fictional** product family, slug-shaped so nen's verbs read it, and its codes, in `scripts/fixtures/port-family/` and the evidence `hatsu:kamui` pastes into a Hatsu PR (zheref/hatsu#356). They stand for **no** repository: never map a fixture code onto a placeheld letter (`<product-repo-A>` … `<product-repo-E>`); the fixture's platforms are fiction. **Offline only**: never passed to `gh` or any networked verb (`fixture-owner` is an unclaimed login). |
+| `fixture-family`, `fixture-owner/fixture-ios`, `fixture-owner/fixture-android`, `fixture-owner/fixture-web`, `fixture-owner/fixture-spec`; `FI`, `FA`, `FW`, `FS` | A **fictional** product family, slug-shaped so nen's verbs read it, and its codes, in `scripts/fixtures/port-family/` and the evidence `hatsu:kamui` pastes into a Hatsu PR (zheref/hatsu#356). They stand for **no** repository: never map a fixture code onto a placeheld letter (`<product-repo-A>` … `<product-repo-F>`); the fixture's platforms are fiction. **Offline only**: never passed to `gh` or any networked verb (`fixture-owner` is an unclaimed login). |
 | `<bundle-id>`, `<simulator-n>`, `<android-serial-n>`, `<udid-n>`, `<name>` | Inside transcripts: the app identifier and simulator names that tie the product family to a placeheld repository, a physical device's hardware serial or UDID, and a third party's name in a device name. Numbered where one transcript tells two devices apart, so it still proves what it proved. The maintainer's own name stays, as it does in every commit's authorship. |
 
 Placeholders composed with the existing path convention keep that convention: `<reference-repo checkout>`
@@ -33,7 +33,7 @@ means "a local checkout of the frozen reference implementation", exactly as `<ch
 ## The object-id rule, stated once
 
 **Object ids of *any* private repository take the placeholder-letter prefix** — `RR-` for
-`<reference-repo>`, `RA-` … `RE-` for `<product-repo-A>` … `<product-repo-E>` — in both
+`<reference-repo>`, `RA-` … `RF-` for `<product-repo-A>` … `<product-repo-F>` — in both
 directions, `-IS-` and `-PR-`. The **number is kept**: a bare number identifies nothing on its own,
 and the transcripts are evidence that must stay checkable against itself.
 
@@ -83,7 +83,7 @@ in the picker's free field when zheref/hatsu#329 asked how the CI repository sho
   repositories*), by the ruling of 2026-10-19, and no other.
 
 - **`bankai:` label namespaces** (`bankai:severity/high`, `bankai:wake/iterate`, …) and product codes
-  (`BC`, `BS`, `KC`, and the placeholder codes above). These are taxonomy read out of the target
+  (`BC`, `BS`, and the placeholder codes above). These are taxonomy read out of the target
   repository's own registry at run time, not repository names — a skill that could not say
   `bankai:epic` could not do its job.
 - **Clause and rule ids** — `CON-25`, `QA-15`, `UZF-26`, `SW-{n}` and the rest. They are the upstream
@@ -104,7 +104,7 @@ in the picker's free field when zheref/hatsu#329 asked how the CI repository sho
   name, and its `BC-` prefix is kept so existing citations stay valid.
 - **The plugin name "bankai"** where it means the predecessor plugin a reader may already have installed
   (the rollback paragraph in [`docs/using/claude-code.md`](using/claude-code.md) § 5).
-- **Public repositories** — `zheref/nen`, `zheref/kro-pwa`, this repository, and **`zheref/bankai-handbooks`**,
+- **Public repositories** — `zheref/nen`, this repository, and **`zheref/bankai-handbooks`**,
   the canon repository (public, MIT): the Bankai handbooks, `CONSTITUTION.md` (`CON-{n}`) and the shared
   agent conventions live there since 2026-09-28 (`CON-13`), it is named directly and never placeheld, and
   the tag Hatsu reads is pinned in `nen/repos.json` (`maintained_tools` → `pinned`). Readers can open every
@@ -165,7 +165,7 @@ is the opposite case: the guard reads it from the committed named list, as an ex
   GitHub Support request; never retitle it again) — the zheref/hatsu#149 sitting of 2026-10-14 found both.
 - **Tree content:** `bash scripts/private_name_check.sh --tree .`, run by the maintainer, reads every
   tracked and untracked-not-ignored file's contents, its path and a symlink's target, and counts what
-  it skips. **The tree reads clean on 2026-10-18 but for ordinary-word names** (HA-PR-#305, zheref/hatsu#289 item 10): three entries on the live list are English words used as words (`docs/DISCOVERY.md`, `docs/WORKFLOW.md`, the skills), and the ignore file carries them — the maintainer's, one `name` or `owner/name` per line, written by `bash scripts/private_name_check.sh --resolve <k>` read at a terminal, never by a session. The tree check is the `redaction-tree` lane (`nen shu test --lane redaction-tree --repo <hatsu>`), run on the maintainer's credentials with that ignore file: zheref/hatsu#149's criterion 2(b), landed. It is still not a CI step, because CI holds no private list. **Without the ignore file the lane is red by design**, and the guard says so — `no ignore file, so nothing ignored`, never `0 ignored` — so a session reports the refusal's mention count and its distinct-index count and hands the red lane to the maintainer — to run with the ignore file, or to resolve the indices at a terminal; a session never judges a refusal to be no leak, and never writes the file to turn the lane green.
+  it skips. **The tree reads clean on 2026-10-18 but for ordinary-word names** (HA-PR-#305, zheref/hatsu#289 item 10): four entries on the live list are English words used as words (`docs/DISCOVERY.md`, `docs/WORKFLOW.md`, `docs/history/nen-repins.md`, the skills), and the ignore file carries them — the maintainer's, one `name` or `owner/name` per line, written by `bash scripts/private_name_check.sh --resolve <k>` read at a terminal, never by a session. The tree check is the `redaction-tree` lane (`nen shu test --lane redaction-tree --repo <hatsu>`), run on the maintainer's credentials with that ignore file: zheref/hatsu#149's criterion 2(b), landed. Its hermetic fixture (`redaction-guard`) runs in both `.github/workflows/surface-mirror-check.yml` and `scripts/unit_tests_ci.mts` (`unit-tests.yml`). The live tree check is still not a CI step, because CI holds no private list. **Without the ignore file the lane is red by design**, and the guard says so — `no ignore file, so nothing ignored`, never `0 ignored` — so a session reports the refusal's mention count and its distinct-index count and hands the red lane to the maintainer — to run with the ignore file, or to resolve the indices at a terminal; a session never judges a refusal to be no leak, and never writes the file to turn the lane green.
 - **Product terms in a public pair file:** [`scripts/product_term_check.mts`](../scripts/product_term_check.mts), behind the shim
   `product_term_check.sh`, is the sibling guard for the words the private-name guard does not know — a product, a screen, a business
   rule, an object id — in `zheref/bankai-handbooks`' `handbooks/ports/*.md`, which

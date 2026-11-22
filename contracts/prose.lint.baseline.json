@@ -2894,36 +2894,6 @@
     {
       "path": "docs/ab/drive.md",
       "rule": "PL-05",
-      "text": "to (`<migration-tracker>#38`, `<product-repo-A>#509",
-      "count": 1
-    },
-    {
-      "path": "docs/ab/drive.md",
-      "rule": "PL-05",
-      "text": ">#38`, `<product-repo-A>#509`, `zheref/kro-pwa#86`,",
-      "count": 1
-    },
-    {
-      "path": "docs/ab/drive.md",
-      "rule": "PL-05",
-      "text": "a#86`, `<product-repo-B>#186`, `<scaffold-repo>#21`,",
-      "count": 1
-    },
-    {
-      "path": "docs/ab/drive.md",
-      "rule": "PL-05",
-      "text": ">#186`, `<scaffold-repo>#21`, `#23`, `<product-repo",
-      "count": 1
-    },
-    {
-      "path": "docs/ab/drive.md",
-      "rule": "PL-05",
-      "text": "`#23`, `<product-repo-D>#22`) — none carries a lone",
-      "count": 1
-    },
-    {
-      "path": "docs/ab/drive.md",
-      "rule": "PL-05",
       "text": "s own operational truth #3.",
       "count": 1
     },

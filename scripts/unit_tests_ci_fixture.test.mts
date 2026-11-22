@@ -264,6 +264,18 @@ try {
   result = run({ HATSU_FAIL_LANE: 'skill-shape-guard' });
   assert(result.status === 1 && result.stderr.includes('skill-shape-guard failed'), 'failing skill-shape lane was not red (HA502)');
 
+  // HA149: the redaction guard runs in CI with its fixture, refusing without it.
+  writeFileSync(join(repo, 'scripts', 'private_name_check.sh'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('private_name_check.sh has no required fixture'), 'missing redaction fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'private_name_check_fixture.sh'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `redaction-guard lane refused: ${result.stderr}`);
+  assert(readFileSync(log, 'utf8').includes('redaction-guard||'), 'redaction-guard lane not selected (#149)');
+  result = run({ HATSU_FAIL_LANE: 'redaction-guard' });
+  assert(result.status === 1 && result.stderr.includes('redaction-guard failed'), 'failing redaction-guard lane was not red (#149)');
+
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }
