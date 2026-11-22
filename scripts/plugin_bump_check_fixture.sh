@@ -503,3 +503,74 @@ run_case 'the refusal no longer offers an opt-out for a shipped path' 1 "$fixtur
   test "$(collision_git show main:changelog.d/344.md)" = '- v0.116.2: Feature 344.'
   printf '%s\n' 'three-branch recovery: losers land at 0.116.1 and 0.116.2; each original fragment follows its own bump'
 )
+
+# HA#545 AC-1 / AC-2 / AC-4: live base tip equal-version diagnostic, open-PR version collision,
+# non-shipped sibling filtering, --version-only flag, malformed sidecar, and hostile token filtering.
+cat > "$fixture_root/base.json.open-prs.json" <<'JSON'
+{"baseRef":"main","baseTipSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","openPrs":[{"number":610,"version":"0.16.1","files":["claude/skills/aka/SKILL.md"]},{"number":611,"version":"0.16.1","files":["README.md"]},{"number":612,"version":"0.16.2","files":["claude/skills/ten/SKILL.md"]}]}
+JSON
+
+run_case 'HA#545 AC-1 equal version names current tip of baseRef' 1 \
+  "$fixture_root/changed-discovery.txt" "$fixture_root/head-unchanged.json" \
+  'head version 0.16.0 equals the current tip of main (0.16.0)' "$fixture_root/body.md" "$fixture_root/base.json"
+
+run_case 'HA#545 AC-2 colliding open shipped PR refuses with PR number' 1 \
+  "$fixture_root/changed-discovery.txt" "$fixture_root/head-bumped.json" \
+  'collides with another open PR' "$fixture_root/body.md" "$fixture_root/base.json"
+
+run_case 'HA#545 AC-2 colliding open shipped PR names #610 only, not non-shipped #611' 1 \
+  "$fixture_root/changed-discovery.txt" "$fixture_root/head-bumped.json" \
+  'PR #610 (0.16.1)' "$fixture_root/body.md" "$fixture_root/base.json"
+
+coll_output="$(bash "$guard" "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/head-bumped.json" "$fixture_root/body.md" 2>&1 || true)"
+if grep -Fq -- 'PR #611' <<<"$coll_output"; then
+  printf '%s\n' "HA#545 AC-2 erroneously named non-shipped sibling PR #611: $coll_output" >&2
+  exit 1
+fi
+
+printf '%s\n' '{"version":"0.16.3"}' > "$fixture_root/head-distinct.json"
+run_case 'HA#545 AC-4 distinct version passes with no collision' 0 \
+  "$fixture_root/changed-discovery.txt" "$fixture_root/head-distinct.json" \
+  'plugin.json version bumped' "$fixture_root/body.md" "$fixture_root/base.json"
+
+# --version-only flag skips overlay & changelog while preserving open-PR & base checks.
+vonly_pass_out="$(bash "$guard" --version-only "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/head-distinct.json" 2>&1)"
+grep -Fq -- 'plugin.json version 0.16.3 strictly increases main' <<<"$vonly_pass_out"
+set +e
+vonly_fail_out="$(bash "$guard" --version-only "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/head-bumped.json" 2>&1)"
+vonly_fail_rc=$?
+set -e
+[ "$vonly_fail_rc" -eq 1 ]
+grep -Fq -- 'collides with another open PR' <<<"$vonly_fail_out"
+
+# Hostile baseRef / sibling version strings never inject raw control characters or newlines.
+cat > "$fixture_root/base.json.open-prs.json" <<'JSON'
+{"baseRef":"main\n::error::forged","baseTipSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","openPrs":[{"number":615,"version":"0.16.1","files":["claude/skills/aka/SKILL.md"]}]}
+JSON
+hostile_out="$(bash "$guard" "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/head-bumped.json" "$fixture_root/body.md" 2>&1 || true)"
+grep -Fq -- '<malformed>' <<<"$hostile_out"
+if grep -Fq -- '::error::forged' <<<"$hostile_out"; then
+  printf '%s\n' "HA#545 hostile baseRef leaked unredacted command: $hostile_out" >&2
+  exit 1
+fi
+
+# Malformed .open-prs.json fails closed with exit 2.
+printf '%s\n' '{not-json' > "$fixture_root/base.json.open-prs.json"
+set +e
+malformed_out="$(bash "$guard" "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/head-distinct.json" "$fixture_root/body.md" 2>&1)"
+malformed_rc=$?
+set -e
+[ "$malformed_rc" -eq 2 ]
+grep -Fq -- 'malformed or unreadable' <<<"$malformed_out"
+
+# .open-prs.json with newline in a .files[] entry fails schema validation with exit 2.
+cat > "$fixture_root/base.json.open-prs.json" <<'JSON'
+{"baseRef":"main","baseTipSha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","openPrs":[{"number":616,"version":"0.16.1","files":["claude/skills/aka\nSKILL.md"]}]}
+JSON
+set +e
+nl_files_out="$(bash "$guard" "$fixture_root/changed-discovery.txt" "$fixture_root/base.json" "$fixture_root/head-distinct.json" "$fixture_root/body.md" 2>&1)"
+nl_files_rc=$?
+set -e
+[ "$nl_files_rc" -eq 2 ]
+grep -Fq -- 'malformed or unreadable' <<<"$nl_files_out"
+rm -f "$fixture_root/base.json.open-prs.json"
