@@ -89,7 +89,8 @@ run_case() {
 for runtime_path in scripts/tenkai_adopt.ts scripts/tenkai_adopt_legacy.sh \
   scripts/pr_sections_history.ts scripts/config_values_refresh.ts \
   scripts/tenkai_trailer_guard.mts scripts/consumer_trailer_ci.mts \
-  scripts/direct_matrix_doc.sh scripts/direct_matrix_doc.mts; do
+  scripts/direct_matrix_doc.sh scripts/direct_matrix_doc.mts \
+  scripts/amaterasu_preview.mts; do
   printf '%s\n' "$runtime_path" > "$fixture_root/changed-composed-runtime.txt"
   run_case "$runtime_path unchanged version refuses" 1 "$fixture_root/changed-composed-runtime.txt" "$fixture_root/head-unchanged.json" "$runtime_path"
   run_case "$runtime_path bumped version passes" 0 "$fixture_root/changed-composed-runtime.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
