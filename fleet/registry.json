@@ -1,0 +1,27 @@
+{
+  "$comment": "bankai-fleet registry (zheref/hatsu#620): the one roster of every in-scope maintained zheref repository, with its stack and its owner, and nothing else. Pin values are NOT stored here: each consumer's own nen/ configuration holds its pins, and the tooling reads them live and reports drift. Inventory: Fuegoleon's section of the Engineering Hub, 2026-11-21 -- every maintained zheref repository minus the weekly-check exclusions Sergio ruled that day. `stack` is the scenario the repository declares in its own nen/repos.json where it declares one; else `bankai-machinery` for a Bankai process repository (bankai-scaffold), else the framework its tree shows. The stack vocabulary is fixed by the roster's validation (zheref/hatsu#620, child 2). `owner` is the guild member who owns the repository's work: Fuegoleon for the Bankai process and library repositories, Laxus for the products. The private repositories here are named by the maintainer's rulings HR-143 (akatsuki-ai) and HR-396 (the rest) (docs/ROSTER.md sections Rulings of 2026-10-19 and Rulings of 2026-11-22; docs/PUBLIC-REDACTION.md section Named private repositories). G4 canon: a change to this file needs Sergio's G4 (2026-11-21 ruling on zheref/hatsu#620, OQ-1).",
+  "version": 1,
+  "repositories": [
+    { "repo": "zheref/akatsuki-ai", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/AnteikuTV", "stack": "swift", "owner": "Laxus" },
+    { "repo": "zheref/bankai-handbooks", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/bankai-library", "stack": "swift-package", "owner": "Fuegoleon" },
+    { "repo": "zheref/bankai-scaffold", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/bankai-site", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/filo", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/GymKai", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/hatsu", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/instarti.us", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/kro-pwa", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/kro-spec", "stack": "spec-kit", "owner": "Laxus" },
+    { "repo": "zheref/KroAndroid", "stack": "compose-uzf-v2", "owner": "Laxus" },
+    { "repo": "zheref/KroApple", "stack": "swiftui-tca-uzf-v2", "owner": "Laxus" },
+    { "repo": "zheref/KroWindows", "stack": "csharp", "owner": "Laxus" },
+    { "repo": "zheref/Market", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/nen", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/SymbIOT", "stack": "react-native", "owner": "Laxus" },
+    { "repo": "zheref/ValleIA", "stack": "nextjs", "owner": "Laxus" },
+    { "repo": "zheref/zheref.io", "stack": "gatsby", "owner": "Laxus" },
+    { "repo": "zheref/Ztyle", "stack": "gatsby", "owner": "Laxus" }
+  ]
+}

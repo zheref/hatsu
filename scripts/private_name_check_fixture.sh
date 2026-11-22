@@ -329,7 +329,7 @@ for t in bash env sed sort grep awk tr head mktemp rm cat cp git dirname; do
 done
 PATH="$work/nogh" expect 2 "gh missing" "$work/bare.md"
 
-# --- the named list (ruling of 2026-10-19): a ruled-public name, by exact owner/name -------------
+# --- the named list (rulings HR-143, HR-396): a ruled-public name, by exact owner/name ----------
 printf '# a ruling\nacme/zz-secret\n' > "$work/named"
 expect 0 "named: the ruled repository passes" --names-file "$names" --named-file "$work/named" "$work/slug.md"
 has '1 named by ruling' "the named count is reported on ok"
@@ -374,10 +374,12 @@ mkdir -p "$work/bare-guard" && cp "$guard" "$work/bare-guard/private_name_check.
 out="$(HOME="$work/home" XDG_CONFIG_HOME="$work/home/.config" bash "$work/bare-guard/private_name_check.sh" --names-file "$work/ak-names" "$work/ak.md" 2>&1)"; rc=$?
 [ "$rc" -eq 1 ] && ok || bad "named: a missing default list names nothing -- exit $rc, wanted 1 -- $out"
 has '0 named by ruling' "the missing default is counted as none named"
-# The committed list is pinned: its entry set is exactly the ruled set (docs/ROSTER.md section Rulings
-# of 2026-10-19 -- the Akatsuki CI repository is named). A new line needs a ruling AND this edit.
+# The committed list is pinned: its entry set is exactly the ruled set (docs/ROSTER.md sections Rulings
+# of 2026-10-19 -- the Akatsuki CI repository is named, and Rulings of 2026-11-22 -- the fleet roster's
+# repositories are named, HR-396). A new line needs a ruling AND this edit.
 pinned="$(sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$here/private_name_named.txt" | tr '[:upper:]' '[:lower:]' | LC_ALL=C sort -u | tr '\n' ' ')"
-[ "$pinned" = "zheref/akatsuki-ai " ] && ok || bad "named: the committed list is not the ruled set (zheref/akatsuki-ai) -- read: '$pinned'"
+ruled_set='zheref/akatsuki-ai zheref/anteikutv zheref/bankai-scaffold zheref/filo zheref/gymkai zheref/instarti.us zheref/kro-pwa zheref/kro-spec zheref/kroandroid zheref/kroapple zheref/krowindows zheref/market zheref/symbiot zheref/valleia zheref/zheref.io '
+[ "$pinned" = "$ruled_set" ] && ok || bad "named: the committed list is not the ruled set (HR-143, HR-396) -- read: '$pinned'"
 
 # --- --resolve and --help ----------------------------------------------------------------------
 expect 2 "--resolve refuses a non-terminal" --names-file "$names" --resolve 1

@@ -1038,7 +1038,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   `v0.20.0` (zheref/nen#367, closing zheref/nen#329) `nen issue file`, `comment` and `edit-body` refuse too, at exit `4`,
   given the script's ignore file (`file` § 4). What nen does not guard yet — `issue consolidate-close`'s
   close comments and the `pr` writers (zheref/nen#363) — is the script's alone. The committed named
-  list (`scripts/private_name_named.txt`, the one name ruled public) reaches nen through `file` § 4's
+  list (`scripts/private_name_named.txt`, the names ruled public: HR-143, HR-396) reaches nen through `file` § 4's
   joined ignore file, because nen takes one; with it the script is BC-11 debt, frozen to fixes only, and
   it retires when a nen private-name verb also checks a tree (zheref/nen#441). And § 3's single-issue
   close (`gh issue close`), since `nen issue consolidate-close` takes two or more children and a parent

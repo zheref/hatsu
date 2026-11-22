@@ -1,0 +1,36 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-22-02",
+  "effortId": "claude/gildarts/ha620-fleet-registry",
+  "n": 1,
+  "gate": "G5",
+  "row": null,
+  "who": "Kurapika",
+  "question": "zheref/hatsu is public, and most in-scope repos are private. Where should the private rows of fleet/registry.json live?",
+  "options": [
+    {
+      "key": "A",
+      "label": "Public rows + local overlay ⭐",
+      "consequence": "Private rows in a git-ignored fleet/registry.local.json; no private name published"
+    },
+    {
+      "key": "B",
+      "label": "Name them publicly by ruling",
+      "consequence": "Each in-scope private repo joins scripts/private_name_named.txt, as akatsuki-ai did; names public, code not"
+    },
+    {
+      "key": "C",
+      "label": "Placeholders in public file",
+      "consequence": "<product-repo-A>-style rows plus a private key file"
+    },
+    {
+      "key": "D",
+      "label": "Move roster to akatsuki-ai",
+      "consequence": "Contradicts the issue's 'a file in hatsu'; #620 needs an amendment"
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-11-22T14:38:38.375Z"
+}
