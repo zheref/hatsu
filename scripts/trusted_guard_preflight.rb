@@ -103,8 +103,11 @@ def write_plugin_bump_fixture(temporary, base_sha)
     const base = '#{base_sha}';
     const replies = new Map([
       [`${api}/commits/${base}`, { sha: base }],
+      [`${api}/pulls/1`, { number: 1, base: { ref: 'main', sha: base }, head: { sha: base } }],
+      [`${api}/commits/main`, { sha: base }],
       [`${api}/pulls/1/files?per_page=100&page=1`, [{ filename: 'README.md' }]],
       [`${api}/contents/.claude-plugin/plugin.json?ref=${base}`, { version: '0.1.0' }],
+      [`${api}/pulls?state=open&base=main&per_page=100&page=1`, []],
     ]);
     globalThis.fetch = async (input) => {
       if (!replies.has(input)) throw new Error('unexpected plugin-bump fixture request');
