@@ -312,7 +312,7 @@ confirm at G4:
 | `readiness[]`, `prBody[]` | `[]` on `turn` and `turn-fast`; on `landing` one row each — `nen pr ready`'s verdict verbatim, [`shibari`](../claude/skills/shibari/SKILL.md)'s body |
 | `mukaiLastTurn`, `lastTurnCorrections[]`, `lastTurnCheckIssues[]`, `lastTurnStops[]` | `false` and `[]` unless the last human request was `mukai` (En's first `landing` included when mukai started En in the same sitting and no newer human request came) — the boolean the [`report-examples`](../templates/report-examples/) carry. *New canon* |
 | `captures[]`, `evidenceUnavailable` | `[]` and `""` when no evidence is owed or it is present; the reason when owed evidence is missing |
-| `launch` | a `ren` turn: the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) recorded this turn, verbatim — the command it ran, or its reason line (`no launch target declared; skipped`, § 1; the profile deferral, § 1a; `core launch deferred; explicit maintainer call required`, § 3). A `landing` (launch is never a mukai step), or any turn amaterasu did not run in: the line of the last amaterasu call on this effort; with none, `no launch target declared; skipped` where `project.launch` declares no target, else `no launch in this session`. Never `""`. *New canon*: the landing and no-call cases (`no launch in this session` survives only in [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) |
+| `launch` | a `ren` turn: the line [`amaterasu`](../claude/skills/amaterasu/SKILL.md) recorded this turn, verbatim — the command it ran, or its reason line (`no launch target declared; skipped`, § 1; the profile deferral, § 1a; `core launch deferred; explicit maintainer call required`, § 3). An explicit § 3b worktree preview records its selected-worktree command with `coreSwaps: 0`. A `landing` (launch is never a mukai step), or any turn amaterasu did not run in: the line of the last amaterasu call on this effort; with none, `no launch target declared; skipped` where `project.launch` declares no target, else `no launch in this session`. Never `""`. *New canon*: the landing and no-call cases (`no launch in this session` survives only in [`docs/history/v0.42.0-prose-diet.md`](history/v0.42.0-prose-diet.md)) |
 | `footerNote` | `""`; or the failed `nen ref format` resolution (§ *Publishing a report*); or, with `repo` `null`, the missing repo and why (above). *New canon*: the missing-repo clause |
 
 **The remainder is judgement, and is all the caller writes**: `title` ([`WORKFLOW.md`](WORKFLOW.md)
@@ -976,8 +976,9 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   `bankai-quality` runs too, since `nen bootstrap` fetches only nen itself (unfiled).
 - **`amaterasu`.** § 3a's delegation, purpose and report wording are a ruled boundary
   ([HR-390](ROSTER.md#hr-390)); § 3a's third condition, that no other session holds the app, is owned
-  by [zheref/nen#536](https://github.com/zheref/nen/issues/536); record discovery is
-  [zheref/nen#204](https://github.com/zheref/nen/issues/204).
+  by [zheref/nen#536](https://github.com/zheref/nen/issues/536) and complemented locally for § 3b
+  selected-worktree previews by `scripts/amaterasu_preview.mts` (`.nen/amaterasu/sessions.json`); record
+  discovery is [zheref/nen#204](https://github.com/zheref/nen/issues/204).
 - **`bankai-quality` § 4.** The comparison against QA-13's absolute ceilings, which a zero baseline
   leaves to the session, is owned by [zheref/nen#651](https://github.com/zheref/nen/issues/651).
 - **`byakugan`.** The touched set's exclusions, read from the repository's own coverage configuration,
