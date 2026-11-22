@@ -1,0 +1,3 @@
+### Changed
+
+- **The PR body's Delivery ledger is collapsed by default.** `templates/pr-delivery.md` keeps the `*Drive:*` line directly under `## 📬 Delivery` and wraps the per-role Role · Surface · Model · Dial · Session · Source table in a closed `<details>` block, so a long ledger takes one line until a maintainer opens it. `scripts/pr_delivery.ts check` enforces the new shape (Drive first, the canonical summary, the table inside, nothing after `</details>`) and its fixture covers each refusal. Bodies written before this change are not rewritten; the next Hatsu edit of a body re-renders the block. Plugin 0.169.0.

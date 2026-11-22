@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // product_term_check.mts — refuse text that names a product term in a public pair file (zheref/hatsu#354,
 // wave 3 of the SDD assessment: porting closes the loop). The rule, the CLI and the exit codes live here;
-// scripts/product_term_check.sh is the forwarding shim hatsu:bankai-rule § 4 and the fixture call.
+// scripts/product_term_check.sh is the forwarding shim hatsu:kido § 4 and the fixture call.
 //
-// docs/config/ports.md § *Product-level divergence* and claude/skills/bankai-rule/SKILL.md § 1 forbid a
+// docs/config/ports.md § *Product-level divergence* and claude/skills/kido/SKILL.md § 1 forbid a
 // product, screen, business-rule or object-id word in a pair file's `rationale` and `redraft`: a pair file
 // (zheref/bankai-handbooks handbooks/ports/*.md) is public and technology-level, and the product words
 // live in the private spec folder's `## Platform decisions`. Until now only the prose asked for it, and
