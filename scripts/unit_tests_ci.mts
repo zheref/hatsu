@@ -62,6 +62,12 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // HA341: the compatibility renderer's malformed-data and trusted-boundary fixtures must run in CI.
   ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
   ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
+  ['pr_sections_resolve.sh', 'pr_sections_fixture_check.sh', 'pr-sections-shell-guard'],
+  // HA148: the offline staging fixture stubs Claude; the real desk engine still has its own lane.
+  ['codex_marketplace_snapshot.sh', 'codex_marketplace_snapshot_fixture.sh', 'marketplace-snapshot-guard'],
+  ['fixture_output_guard.sh', 'fixture_output_guard_fixture.sh', 'fixture-output-guard'],
+  ['direct_matrix_doc.sh', 'direct_matrix_doc_shell_fixture.sh', 'direct-matrix-shell-guard'],
+  ['desk_mod_test.sh', 'desk_mod_test_fixture.sh', 'desk-staging-guard'],
   // A delegate's brief carries WORKFLOW § Delegate briefs' wait block word for word (zheref/hatsu#473).
   ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard'],
   // HA148: the paired companion proves rendering and legacy --self-test forwarding.
