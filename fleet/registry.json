@@ -1,0 +1,27 @@
+{
+  "$comment": "The bankai-fleet roster: repo, stack and owner only, no pins. Field rules, gate and naming: fleet/README.md (zheref/hatsu#620).",
+  "version": 1,
+  "repositories": [
+    { "repo": "zheref/akatsuki-ai", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/AnteikuTV", "stack": "swift", "owner": "Laxus" },
+    { "repo": "zheref/bankai-handbooks", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/bankai-library", "stack": "swift-package", "owner": "Fuegoleon" },
+    { "repo": "zheref/bankai-scaffold", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/bankai-site", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/filo", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/GymKai", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/hatsu", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/instarti.us", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/kro-pwa", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/kro-spec", "stack": "spec-kit", "owner": "Laxus" },
+    { "repo": "zheref/KroAndroid", "stack": "compose-uzf-v2", "owner": "Laxus" },
+    { "repo": "zheref/KroApple", "stack": "swiftui-tca-uzf-v2", "owner": "Laxus" },
+    { "repo": "zheref/KroWindows", "stack": "csharp", "owner": "Laxus" },
+    { "repo": "zheref/Market", "stack": "react-uzf-v1", "owner": "Laxus" },
+    { "repo": "zheref/nen", "stack": "bankai-machinery", "owner": "Fuegoleon" },
+    { "repo": "zheref/SymbIOT", "stack": "react-native", "owner": "Laxus" },
+    { "repo": "zheref/ValleIA", "stack": "nextjs", "owner": "Laxus" },
+    { "repo": "zheref/zheref.io", "stack": "gatsby", "owner": "Laxus" },
+    { "repo": "zheref/Ztyle", "stack": "gatsby", "owner": "Laxus" }
+  ]
+}

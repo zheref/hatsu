@@ -17,7 +17,7 @@
     "defaultFamily": "canon"
   },
   "gateDerive": {
-    "$comment": "nen gate derive --policy-paths / --process-paths, keyed by the canon repository (owner/name) whose own canon the sets are. A consumer repository is G2 by role and the verb is not run (docs/WORKFLOW.md section Gate derivation, step 1); a canon repository with no row here has no declared sets, which the run states and asks for (docs/WORKFLOW.md section 4, Ask, set up, continue) and never improvises. Each value is passed comma-joined, in the order written. Both nen/ and schemas/ stay listed: a prefix is taken literally, and an un-migrated target still edits a real schemas/*.json. contracts/ and templates/ are in zheref/hatsu's process set so this declaration, the requirements array and the template derive G4 as WORKFLOW.md did when it held the sets -- confirmed by the maintainer's ruling of 2026-10-13 (docs/ROSTER.md section Rulings of 2026-10-13; zheref/hatsu#171).",
+    "$comment": "nen gate derive --policy-paths / --process-paths, keyed by the canon repository (owner/name) whose own canon the sets are. A consumer repository is G2 by role and the verb is not run (docs/WORKFLOW.md section Gate derivation, step 1); a canon repository with no row here has no declared sets, which the run states and asks for (docs/WORKFLOW.md section 4, Ask, set up, continue) and never improvises. Each value is passed comma-joined, in the order written. Both nen/ and schemas/ stay listed: a prefix is taken literally, and an un-migrated target still edits a real schemas/*.json. contracts/ and templates/ are in zheref/hatsu's process set so this declaration, the requirements array and the template derive G4 as WORKFLOW.md did when it held the sets -- confirmed by the maintainer's ruling of 2026-10-13 (docs/ROSTER.md section Rulings of 2026-10-13; zheref/hatsu#171). fleet/ is in zheref/hatsu's process set so a roster-only change derives G4: fleet/registry.json is G4 canon by the 2026-11-22 answer to zheref/hatsu#620 OQ-1.",
     "zheref/hatsu": {
       "policyPaths": [
         "CONSTITUTION.md",
@@ -33,7 +33,8 @@
         "tests/",
         "docs/",
         "contracts/",
-        "templates/"
+        "templates/",
+        "fleet/"
       ]
     },
     "zheref/nen": {

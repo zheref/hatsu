@@ -66,9 +66,10 @@
 # without changing this script and its fixture. The one committed list is the ruled-public named list
 # below, which publishes only what its ruling already made public. --hatsu-root <path> (the fixture's only) names
 # another root for that check.
-# In tree, the one committed list (the maintainer's ruling of 2026-10-19, docs/ROSTER.md section
-# Rulings of 2026-10-19 -- the Akatsuki CI repository is named; docs/PUBLIC-REDACTION.md section Named
-# private repositories). It is the one exemption by name, data-only, and the fixture pins its entry set,
+# In tree, the one committed list (the maintainer's rulings of 2026-10-19 and 2026-11-22, docs/ROSTER.md
+# sections Rulings of 2026-10-19 -- the Akatsuki CI repository is named, and Rulings of 2026-11-22 -- the
+# fleet roster's repositories are named, HR-396; docs/PUBLIC-REDACTION.md section Named private
+# repositories). It is the one exemption by name, data-only, and the fixture pins its entry set,
 # so a line added without a ruling turns the redaction-guard lane red:
 #   - private_name_named.txt beside this script (--named-file <path>, the fixture's only, names
 #     another): private repositories whose NAME the maintainer has ruled public while their code stays

@@ -7,9 +7,11 @@ their layout and their issue numbers to readers who cannot open them.
 **The rule: no private repository is named anywhere in this repository's content.** Every URL, link,
 slug, path and object id that pointed into one has been replaced with a stable placeholder, and every
 link into one has been unlinked. The evidence itself is not deleted — a transcript that proved
-something still proves it; only the name it was proved against is redacted. **One private repository
-is named by ruling** — `zheref/akatsuki-ai`, whose code stays private and whose name is public
-(§ *Named private repositories*); every other private repository is still placeheld.
+something still proves it; only the name it was proved against is redacted. **Fifteen private
+repositories are named by ruling** — `zheref/akatsuki-ai` (2026-10-19) and the bankai-fleet roster's
+other fourteen private rows, [`fleet/registry.json`](../fleet/registry.json) (2026-11-22, HR-396) —
+whose code stays private and whose names are public (§ *Named private repositories*); every other
+private repository is still placeheld.
 
 ## The legend
 
@@ -47,7 +49,7 @@ number identifies nothing publicly, and the tracker cannot be opened to check it
 frozen reference implementation's own transcripts (`<reference-repo>#N`, `RR-PR-#916`) **stay** —
 they are the evidence's internal cross-references.
 
-## Named private repositories — the one exception
+## Named private repositories — the exceptions
 
 **The maintainer's ruling of 2026-10-19** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-10-19 — the Akatsuki CI repository is named*), typed
 in the picker's free field when zheref/hatsu#329 asked how the CI repository should be registered:
@@ -74,13 +76,39 @@ in the picker's free field when zheref/hatsu#329 asked how the CI repository sho
   `build` resolve `AK#<n>` here as they resolve `HA#<n>`. A text bound for `AK` itself is still a
   private target, and the guard skips it. zheref/hatsu#329's two other shapes, a git-ignored overlay
   and a committed placeholder row, are not built: for this repository the ruling removes the problem.
-- **Every other private repository is unchanged:** placeheld, never registered here. A second named
-  repository needs a second ruling and a second line.
+- **Every other private repository is unchanged:** placeheld, never registered here. Another named
+  repository needs its own ruling and its own line — as the fleet roster's did (below).
+
+### The bankai-fleet roster — the ruling of 2026-11-22
+
+**The maintainer's ruling of 2026-11-22** ([`ROSTER.md`](ROSTER.md) § *Rulings of 2026-11-22 — the
+fleet roster's repositories are named*, [HR-396](ROSTER.md#hr-396)), picked when zheref/hatsu#620
+asked where the private rows of the fleet roster should live in this public tree: option **(B)**,
+*Name them publicly by ruling*.
+
+- **What is named:** the other fourteen private repositories the roster [`fleet/registry.json`](../fleet/registry.json)
+  lists (fifteen with `zheref/akatsuki-ai`, already named above) — `zheref/AnteikuTV`, `zheref/bankai-scaffold`, `zheref/filo`, `zheref/GymKai`,
+  `zheref/instarti.us`, `zheref/kro-pwa`, `zheref/kro-spec`, `zheref/KroAndroid`, `zheref/KroApple`,
+  `zheref/KroWindows`, `zheref/Market`, `zheref/SymbIOT`, `zheref/ValleIA` and `zheref/zheref.io` —
+  their slugs and short names, in the roster, in this tree, and in a public issue or PR body — and,
+  in the roster only, each row's `stack` (a scenario id or framework name read from the repository)
+  and `owner` (a guild member). Nothing else read from their trees is public.
+- **What is not:** their contents, exactly as for `zheref/akatsuki-ai`. Nor does the ruling register
+  them here: none enters `nen/repos.json` or gets a product code from this ruling, and their object ids
+  keep the object-id rule until a ruling gives one a code.
+- **Where the exception lives:** the same committed list,
+  [`scripts/private_name_named.txt`](../scripts/private_name_named.txt), one exact `owner/name` per
+  line under its own comment; the `redaction-guard` fixture pins the widened set.
+- **What it leaves standing:** the placeholders already in the tree (`<product-repo-A>` …
+  `<product-repo-E>`, `<scaffold-repo>`, `RA` … `RE`) are not rewritten and are not mapped onto the
+  names: one letter per repository for good, and the old uses keep the meaning they had. Private
+  repositories the roster leaves out — its exclusions among them — stay placeheld.
 
 ## What is deliberately **not** redacted
 
-- **The named private repository** — `zheref/akatsuki-ai` and its code `AK` (§ *Named private
-  repositories*), by the ruling of 2026-10-19, and no other.
+- **The named private repositories** — `zheref/akatsuki-ai` and its code `AK`, by the ruling of
+  2026-10-19, and the fleet roster's other fourteen private repositories, by the ruling of 2026-11-22
+  (§ *Named private repositories*), and no other.
 
 - **`bankai:` label namespaces** (`bankai:severity/high`, `bankai:wake/iterate`, …) and product codes
   (`BC`, `BS`, `KC`, and the placeholder codes above). These are taxonomy read out of the target
@@ -104,7 +132,7 @@ in the picker's free field when zheref/hatsu#329 asked how the CI repository sho
   name, and its `BC-` prefix is kept so existing citations stay valid.
 - **The plugin name "bankai"** where it means the predecessor plugin a reader may already have installed
   (the rollback paragraph in [`docs/using/claude-code.md`](using/claude-code.md) § 5).
-- **Public repositories** — `zheref/nen`, `zheref/kro-pwa`, this repository, and **`zheref/bankai-handbooks`**,
+- **Public repositories** — `zheref/nen`, this repository, and **`zheref/bankai-handbooks`**,
   the canon repository (public, MIT): the Bankai handbooks, `CONSTITUTION.md` (`CON-{n}`) and the shared
   agent conventions live there since 2026-09-28 (`CON-13`), it is named directly and never placeheld, and
   the tag Hatsu reads is pinned in `nen/repos.json` (`maintained_tools` → `pinned`). Readers can open every
