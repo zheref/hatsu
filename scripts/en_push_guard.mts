@@ -11,7 +11,8 @@
 // (zheref/hatsu#611 AC-1): git log --no-merges <PR headSha>..HEAD --not origin/<base>.
 // A CLOSED PR with nothing unpushed is exit 4 (en § 6: closed unmerged, the run ends; HR-367).
 // `--carry-from base` (en § 6's base-deletion successor row only, with --base <branch.base>): the
-// child's WHOLE unlanded set, git log --no-merges origin/<base>..HEAD, pushed or not.
+// child's WHOLE unlanded set, git log --no-merges origin/<base>..HEAD, pushed or not. The closed PR's
+// last pushed headSha must be a readable ancestor of HEAD (git merge-base --is-ancestor), else exit 2.
 // No readable anchor (headSha absent locally, origin/<base> missing) or a git failure is
 // "carry list unread" (exit 2), never "nothing to carry".
 //
@@ -284,6 +285,14 @@ export function collectCarryCommits(
   // en § 6's base-deletion successor only: the child's WHOLE unlanded set off origin/<branch.base>.
   if (carryFrom === 'base' && state === 'CLOSED') {
     if (!baseSha) return { read: false, anchorUsed: null, commits: [], error: `origin/${base} is not readable` };
+    // The closed PR's last pushed head must be a readable commit this HEAD contains.
+    const last = headSha && SHA_RE.test(headSha) ? readCommitRef(repo, headSha) : null;
+    if (!last) {
+      return { read: false, anchorUsed: null, commits: [], error: 'PR headSha is not a readable local commit' };
+    }
+    if (runGit(repo, ['merge-base', '--is-ancestor', last, 'HEAD']).status !== 0) {
+      return { read: false, anchorUsed: null, commits: [], error: `PR headSha ${last.slice(0, 8)} is not an ancestor of HEAD` };
+    }
     const log = runGit(repo, ['log', '--no-merges', '--reverse', '--format=%H%x09%s', `${baseSha}..HEAD`]);
     if (log.status !== 0) {
       return { read: false, anchorUsed: `origin/${base}`, commits: [], error: `git log failed: ${sanitizeText(log.stderr)}` };
@@ -441,7 +450,7 @@ export function evaluateEnPushGuard(
       status: 'nothing-to-carry',
       anchorUsed: carry.anchorUsed,
       carryListRead: true,
-      error: `PR #${opts.pr} is ${parsed.state}; carry list read, nothing to carry past ${(carry.anchorUsed ?? '').slice(0, 20)} off origin/${opts.base} (en § 6 terminal row)`,
+      error: `PR #${opts.pr} is ${parsed.state}; carry list read, nothing to carry past ${carry.anchorUsed && SHA_RE.test(carry.anchorUsed) ? carry.anchorUsed.slice(0, 8) : (carry.anchorUsed ?? `origin/${opts.base}`)} off origin/${opts.base} (en § 6 terminal row)`,
     });
   }
   const shas = carry.commits.map((c) => c.sha.slice(0, 8)).join(', ');

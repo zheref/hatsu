@@ -587,4 +587,46 @@ exit 2
       }
     },
   },
+  {
+    name: 'Closing pass U and Y: --carry-from base needs the closed PR head to be a readable ancestor of HEAD (else exit 2); exit-4 anchors print in full or at 8',
+    run: () => {
+      const { tmp, work, prHeadSha, unpushedSha } = setupRepoWithCarryCommits();
+      try {
+        const closedAt = (headSha: string) => () => ({
+          status: 0,
+          stdout: JSON.stringify({ state: 'CLOSED', pr: { headRef: 'pro/kurapika/feat-a', headSha } }),
+          stderr: '',
+        });
+        const base = { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen', carryFrom: 'base' as const };
+        // A head this checkout holds but HEAD does not contain: a sibling commit off main.
+        mustGit(work, ['checkout', '-q', '-b', 'side', 'main']);
+        writeFileSync(join(work, 'side.txt'), 'side\n', 'utf8');
+        mustGit(work, ['add', 'side.txt']);
+        mustGit(work, ['commit', '-m', 'side']);
+        const sideSha = mustGit(work, ['rev-parse', 'HEAD']);
+        mustGit(work, ['checkout', '-q', 'pro/kurapika/feat-a']);
+        const notAncestor = evaluateEnPushGuard({ ...base, branch: 'pro/kurapika/feat-a' }, closedAt(sideSha));
+        assert.equal(notAncestor.exitCode, 2);
+        assert.equal(notAncestor.result.status, 'unread-carry-list');
+        assert(notAncestor.result.error?.includes('is not an ancestor of HEAD'));
+        const unreadable = evaluateEnPushGuard(base, closedAt('e'.repeat(40)));
+        assert.equal(unreadable.exitCode, 2);
+        const noHead = evaluateEnPushGuard(base, () => ({ status: 0, stdout: JSON.stringify({ state: 'CLOSED', pr: { headRef: 'pro/kurapika/feat-a' } }), stderr: '' }));
+        assert.equal(noHead.exitCode, 2);
+        assert.equal(evaluateEnPushGuard(base, closedAt(prHeadSha)).exitCode, 1);
+        // Y: a base-anchored exit 4 prints origin/<base> in full; a SHA anchor at 8 characters.
+        mustGit(work, ['push', '-q', 'origin', 'HEAD:main']);
+        mustGit(work, ['fetch', '-q', 'origin']);
+        const landed = evaluateEnPushGuard(base, closedAt(unpushedSha));
+        assert.equal(landed.exitCode, 4);
+        assert(landed.result.error?.includes('nothing to carry past origin/main off origin/main'));
+        const shaFour = evaluateEnPushGuard({ ...base, carryFrom: 'head' }, closedAt(unpushedSha));
+        assert.equal(shaFour.exitCode, 4);
+        assert(shaFour.result.error?.includes(`past ${unpushedSha.slice(0, 8)} off`));
+        assert.equal(shaFour.result.error?.includes(unpushedSha.slice(0, 9)), false);
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
 ];

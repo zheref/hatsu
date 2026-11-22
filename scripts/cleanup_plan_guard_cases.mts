@@ -1073,4 +1073,48 @@ printf '%s\\n' '[{"number":300,"baseRefName":"pro/kurapika/late-base","headRefNa
       assert.equal(other.rows[0].class, 'proposed');
     },
   },
+  {
+    name: 'Closing pass W: a named remote-head row names its dependent worktree (never deterministic) and sets no precededBy',
+    run: () => {
+      const wt = {
+        kind: 'worktree',
+        branch: 'pro/kurapika/w',
+        object: '/core/.nen/worktrees/claude/w',
+        worktreePath: '/core/.nen/worktrees/claude/w',
+        core: '/core',
+        worktreeKind: 'effort',
+        treeState: 'clean',
+        admitted: true,
+        locked: false,
+        prState: 'MERGED',
+        owner: 'this sitting',
+      };
+      // The remote row has no tipSha: named `remote SHA unread`.
+      const remote = { kind: 'remote-head', branch: 'pro/kurapika/w', object: 'origin/pro/kurapika/w', host: '/core/.nen/worktrees/claude/w', prState: 'MERGED', owner: 'this sitting' };
+      const plan = classifyCleanupPlan({ openPrs: [], base: 'main', candidates: [wt, remote] });
+      const [wtRow, remoteRow] = plan.rows;
+      assert.equal(remoteRow.class, 'named');
+      assert.equal(wtRow.class, 'named');
+      assert.equal(wtRow.id, 'N1');
+      assert.equal(wtRow.exactCommand, null);
+      assert.equal(wtRow.precededBy, null);
+      assert(wtRow.namedFacts.includes('remote head named: remote SHA unread'));
+      assert(wtRow.evidence.includes('remote head named: remote SHA unread'));
+      assert.deepEqual(plan.counts, { deterministic: 0, proposed: 0, named: 2 });
+      // A proposed remote row still sets precededBy on a deterministic worktree.
+      const sha = 'd'.repeat(40);
+      const proposed = classifyCleanupPlan({
+        openPrs: [],
+        base: 'main',
+        candidates: [wt, { ...remote, prState: 'CLOSED', tipSha: sha }],
+      });
+      assert.equal(proposed.rows[1].class, 'proposed');
+      assert.equal(proposed.rows[0].class, 'deterministic');
+      assert.equal(proposed.rows[0].precededBy, proposed.rows[1].id);
+      // A dirty (proposed) worktree behind a named remote row is named too.
+      const dirty = classifyCleanupPlan({ openPrs: [], base: 'main', candidates: [{ ...wt, treeState: 'dirty' }, remote] });
+      assert.equal(dirty.rows[0].class, 'named');
+      assert.deepEqual(dirty.counts, { deterministic: 0, proposed: 0, named: 2 });
+    },
+  },
 ];

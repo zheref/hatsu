@@ -41,7 +41,9 @@
 //   9. Pass 2 (cleanup § 6): a remote delete that does not run or does not succeed (pre-delete
 //      exit 1 or 2, a failed push, or its remote row not picked) skips the worktree row whose
 //      `precededBy` names it; both listed skipped, `result` `partial`. `precededBy` is set only
-//      when that remote-head row is in the plan; with no remote row the worktree row stands alone.
+//      from a deterministic or proposed remote-head row in the plan; with no remote row the
+//      worktree row stands alone. When that remote row is named, its effort worktree row is named
+//      too, with the fact `remote head named: <fact>`, never offered as deterministic.
 //
 // Row evidence (cleanup § 5 "the header's list"): PR state, SHA, merged head, tree state and dirty
 // paths, reviewer ledger, `base of open PR: <#N|none>`, every named fact and missing read, and each
@@ -586,6 +588,7 @@ export function classifyCleanupPlan(opts: {
   const rows: ClassifiedPlanRow[] = [];
   let counts = { deterministic: 0, proposed: 0, named: 0 };
   const remoteRowIds = new Map<string, string>();
+  const namedRemoteFacts = new Map<string, string>();
 
   candidates.forEach((cand, idx) => {
     const num = idx + 1;
@@ -681,7 +684,13 @@ export function classifyCleanupPlan(opts: {
 
     const prefix = cls === 'deterministic' ? 'D' : cls === 'proposed' ? 'P' : 'N';
     const id = `${prefix}${num}`;
-    if (cand.kind === 'remote-head' && !remoteRowIds.has(cand.branch)) remoteRowIds.set(cand.branch, id);
+    if (cand.kind === 'remote-head') {
+      if (cls === 'named') {
+        if (!namedRemoteFacts.has(cand.branch)) namedRemoteFacts.set(cand.branch, namedFacts.join(', '));
+      } else if (!remoteRowIds.has(cand.branch)) {
+        remoteRowIds.set(cand.branch, id);
+      }
+    }
     const precededBy = null;
     if (cls === 'deterministic') counts = { ...counts, deterministic: counts.deterministic + 1 };
     else if (cls === 'proposed') counts = { ...counts, proposed: counts.proposed + 1 };
@@ -739,12 +748,27 @@ export function classifyCleanupPlan(opts: {
     });
   });
 
-  // § 5's order: a deterministic effort worktree runs after its branch's remote-head row.
-  const ordered = rows.map((r, i) =>
-    r.kind === 'worktree' && r.class === 'deterministic' && candidates[i].worktreeKind !== 'reviewer'
-      ? { ...r, precededBy: remoteRowIds.get(candidates[i].branch) ?? null }
-      : r,
-  );
+  // § 5's order: a deterministic effort worktree runs after its branch's remote-head row, set only
+  // from a deterministic or proposed remote row. A named remote row names its dependent worktree.
+  const ordered = rows.map((r, i): ClassifiedPlanRow => {
+    const cand = candidates[i];
+    if (r.kind !== 'worktree' || cand.worktreeKind === 'reviewer' || r.class === 'named') return r;
+    const remoteFact = namedRemoteFacts.get(cand.branch);
+    if (remoteFact !== undefined) {
+      const fact = `remote head named: ${remoteFact}`;
+      counts = { ...counts, [r.class]: counts[r.class] - 1, named: counts.named + 1 };
+      return {
+        ...r,
+        id: `N${r.id.slice(1)}`,
+        class: 'named',
+        exactCommand: null,
+        namedFacts: [...r.namedFacts, fact],
+        evidence: `${r.evidence}; ${fact}`,
+        precededBy: null,
+      };
+    }
+    return r.class === 'deterministic' ? { ...r, precededBy: remoteRowIds.get(cand.branch) ?? null } : r;
+  });
   return {
     contract: 'hatsu.cleanup-plan-guard/v0.1',
     command: 'classify',
