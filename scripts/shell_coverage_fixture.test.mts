@@ -1,7 +1,7 @@
 // scripts/shell_coverage.mts's own fixtures (zheref/hatsu#148): hermetic temp repositories, a stub
 // `ruby` standing in for the pinned Bashcov, and the real helper. Runs in the unit-tests-ci-guard lane.
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, existsSync, mkdtempSync, mkdirSync, openSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -243,6 +243,7 @@ it('captures the declared fixture at the pinned version and verifies it without 
   expect(invocations).toMatch(/^1\.3\.2 4\.0\.0 --skip-uncovered --bash-path \S+fake-bash --root \S+ -- scripts\/fixture\.sh --self-test\n$/);
   // SimpleCov is activated at its pin before Bashcov, so Bashcov's '~> 1.1' cannot float to a newer one.
   expect(readFileSync(join(root, 'program'), 'utf8')).toMatch(/^gem 'simplecov', ARGV\.shift; gem 'bashcov', ARGV\.shift;/);
+  expect(readFileSync(join(root, 'program'), 'utf8')).toContain('~Fcntl::O_NONBLOCK');
   const verified = run(['--verify', 'sample']);
   expect(verified.status).toBe(0);
   expect(verified.stdout).toContain('no fixture ran');
@@ -317,12 +318,119 @@ it('fails red and keeps no report when the instrumented fixture fails', () => {
   expect(existsSync(report)).toBe(false);
 });
 
-it('keeps a passing fixture green but captures nothing when the trace is incomplete', () => {
-  const { run, report } = fixture();
-  const result = run(capture, { FAKE_ABORT: '1' });
-  expect(result.status).toBe(0);
-  expect(result.stderr).toContain("Bashcov's trace is incomplete; no coverage captured");
+it('keeps a passing fixture green and retains valid partial LCOV when trace aborts, or exits 2 under require if 0 coverage was captured', () => {
+  const { root, run, report } = fixture();
+  const abortMsg = 'bashcov: Encountered an error parsing Bash\'s output (expected integer for LINENO, got "bad-token"). Report this bug. Aborting early; coverage report will be incomplete.';
+  writeFileSync(join(root, 'bin/ruby'), `#!/usr/bin/env node
+const fs = require('node:fs');
+const path = require('node:path');
+const args = process.argv.slice(2);
+if (args[1].includes('cache_file')) {
+  for (let i = 2; i < args.length; i += 2) console.log(path.join(process.cwd(), 'gems', args[i] + '-' + args[i + 1] + '.gem'));
+  process.exit(0);
+}
+if (args.includes('--version')) { console.log('bashcov ' + args[3]); process.exit(0); }
+console.error(process.env.FAKE_ABORT_MSG || 'bashcov: warning: Aborting early; coverage report will be incomplete.');
+if (process.env.FAKE_FAIL) process.exit(3);
+if (!process.env.FAKE_NO_REPORT) {
+  const reported = (process.env.FAKE_SFS ?? process.env.FAKE_SF ?? process.cwd() + '/scripts/fixture.sh').split(',');
+  fs.writeFileSync(process.env.HATSU_COVERAGE_PATH, reported.map((source) => 'SF:' + source + '\\nDA:1,1\\nend_of_record\\n').join(''));
+}
+`);
+  const partial = run(capture, { FAKE_ABORT_MSG: abortMsg });
+  expect(partial.status).toBe(0);
+  expect(partial.stderr).toContain('expected integer for LINENO, got "bad-token"');
+  expect(partial.stderr).toContain('retained partial coverage');
+  expect(existsSync(report)).toBe(true);
+  const provenance = JSON.parse(readFileSync(join(root, 'coverage/sample/provenance.json'), 'utf8'));
+  expect(provenance.partial).toBe(true);
+  const verifiedPartial = run(['--verify', 'sample']);
+  expect(verifiedPartial.status).toBe(0);
+  expect(verifiedPartial.stdout).toContain('(partial capture)');
+
+  rmSync(report, { force: true });
+  const emptyAuto = run(capture, { FAKE_SF: 'unrelated.txt' });
+  expect(emptyAuto.status).toBe(0);
+  expect(emptyAuto.stderr).toContain('unmeasured');
   expect(existsSync(report)).toBe(false);
+
+  const emptyReq = run(capture, { FAKE_SF: 'unrelated.txt', HATSU_SHELL_COVERAGE: 'require' });
+  expect(emptyReq.status).toBe(2);
+  expect(emptyReq.stderr).toContain('unmeasured');
+  expect(existsSync(report)).toBe(false);
+
+  const noReportAuto = run(capture, { FAKE_NO_REPORT: '1' });
+  expect(noReportAuto.status).toBe(0);
+  expect(noReportAuto.stderr).toContain('unmeasured');
+  const noReportReq = run(capture, { FAKE_NO_REPORT: '1', HATSU_SHELL_COVERAGE: 'require' });
+  expect(noReportReq.status).toBe(2);
+  expect(noReportReq.stderr).toContain('unmeasured');
+
+  const nonzeroAbortReq = run(capture, { FAKE_FAIL: '1', HATSU_SHELL_COVERAGE: 'require' });
+  expect(nonzeroAbortReq.status).toBe(2);
+  expect(nonzeroAbortReq.stderr).toContain('re-running it uninstrumented');
+});
+
+it('retains partial multi-target coverage on trace abort instead of deleting it', () => {
+  const targets = ['scripts/first.sh', 'scripts/second.sh'];
+  const { run, report } = fixture('bash', 'echo fixture\n', targets);
+  const args = ['--capture', 'sample', 'bash', 'scripts/fixture.sh', ...targets.flatMap((target) => ['--target', target])];
+  const partial = run(args, { FAKE_ABORT: '1', FAKE_SF: targets[0] });
+  expect(partial.status, partial.stderr).toBe(0);
+  expect(partial.stderr).toContain('retained partial coverage');
+  expect(readFileSync(report, 'utf8')).toBe('SF:scripts/first.sh\nDA:1,1\nend_of_record\n');
+});
+
+it('fails non-zero without plain fallback when child stderr merely contains generic exception text', () => {
+  const { root, run, report } = fixture();
+  writeFileSync(join(root, 'bin/ruby'), `#!/usr/bin/env node
+const fs = require('node:fs');
+const path = require('node:path');
+const args = process.argv.slice(2);
+if (args[1].includes('cache_file')) {
+  for (let i = 2; i < args.length; i += 2) console.log(path.join(process.cwd(), 'gems', args[i] + '-' + args[i + 1] + '.gem'));
+  process.exit(0);
+}
+if (args.includes('--version')) { console.log('bashcov ' + args[3]); process.exit(0); }
+console.error('worker terminated with exception: boom');
+process.exit(3);
+`);
+  const result = run(capture);
+  expect(result.status).toBe(1);
+  expect(result.stderr).toContain('fixture failed under Bashcov');
+  expect(result.stderr).not.toContain('re-running it uninstrumented');
+  expect(existsSync(report)).toBe(false);
+});
+
+it('fails --verify cleanly with exit 2 when a recorded source path is replaced by a directory', () => {
+  const { root, run } = fixture();
+  expect(run(capture).status).toBe(0);
+  rmSync(join(root, 'scripts/fixture.sh'));
+  mkdirSync(join(root, 'scripts/fixture.sh'));
+  const verified = run(['--verify', 'sample']);
+  expect(verified.status).toBe(2);
+  expect(verified.stderr).toContain('is stale: scripts/fixture.sh changed since the capture');
+});
+
+it('treats benign bashcov deleted-cwd warnings as full captures without trace-incomplete status', () => {
+  const { root, run, report } = fixture();
+  writeFileSync(join(root, 'bin/ruby'), `#!/usr/bin/env node
+const fs = require('node:fs');
+const path = require('node:path');
+const args = process.argv.slice(2);
+if (args[1].includes('cache_file')) {
+  for (let i = 2; i < args.length; i += 2) console.log(path.join(process.cwd(), 'gems', args[i] + '-' + args[i + 1] + '.gem'));
+  process.exit(0);
+}
+if (args.includes('--version')) { console.log('bashcov ' + args[3]); process.exit(0); }
+console.error('bashcov: warning: . was executed but has been deleted since then - it will not be reported in coverage.');
+fs.writeFileSync(process.env.HATSU_COVERAGE_PATH, 'SF:' + process.cwd() + '/scripts/fixture.sh\\nDA:1,1\\nend_of_record\\n');
+`);
+  const result = run(capture);
+  expect(result.status, result.stderr).toBe(0);
+  expect(result.stdout).toContain('wrote coverage/sample/lcov.info for 1 script files');
+  expect(result.stderr).not.toContain('trace incomplete');
+  expect(existsSync(report)).toBe(true);
 });
 
 it('re-runs plain when an incomplete trace comes with a non-zero exit, and takes that exit', () => {
@@ -334,6 +442,139 @@ it('re-runs plain when an incomplete trace comes with a non-zero exit, and takes
   expect(existsSync(report)).toBe(false);
   writeFileSync(join(root, 'scripts/fixture.sh'), '#!/usr/bin/env bash\nexit 4\n');
   expect(run(capture, { FAKE_ABORT: '1', FAKE_FAIL: '1' }).status).toBe(4);
+});
+
+it.skipIf(!coverageBash)('isolates concurrent pipelines, >6KB commands, process substitutions, FD>2 closure, BASH_ENV isolation, and error cleanup (HA#599 AC-3)', () => {
+  const target = 'scripts/target.sh';
+  const { root, run } = fixture('bash', 'echo fixture\n', target);
+  const longArg = 'x'.repeat(6500);
+  const bashEnvProbe = join(root, 'bash-env-ran.log');
+  const bashEnvScript = join(root, 'evil-bash-env.sh');
+  writeFileSync(bashEnvScript, `echo BASH_ENV_EXECUTED >> ${JSON.stringify(bashEnvProbe)}\n`);
+  writeFileSync(join(root, target), `#!/usr/bin/env bash
+set -euo pipefail
+if { true >&3; } 2>/dev/null; then
+  printf 'parent fd 3 leaked into target child\\n' >&2
+  exit 99
+fi
+: "${longArg}"
+printf 'a\\nb\\nc\\n' | cat | wc -l >/dev/null
+while IFS= read -r line; do
+  [[ "$line" == "ok" ]]
+done < <(printf 'ok\\nok\\n')
+exit 7
+`);
+  writeFileSync(join(root, 'bin/ruby'), `#!/usr/bin/env node
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawn, spawnSync } = require('node:child_process');
+const args = process.argv.slice(2);
+if (args[1].includes('cache_file')) {
+  for (let i = 2; i < args.length; i += 2) console.log(path.join(process.cwd(), 'gems', args[i] + '-' + args[i + 1] + '.gem'));
+  process.exit(0);
+}
+if (args.includes('--version')) { console.log('bashcov ' + args[3]); process.exit(0); }
+const sharedTrace = path.join(process.cwd(), 'target-trace');
+const fd = fs.openSync(sharedTrace, 'a');
+const baseEnv = {
+  ...process.env,
+  HATSU_SHELL_COVERAGE_PS4: '+BASHCOV>TRACESEP\${LINENO-}TRACESEP\${BASH_SOURCE-}TRACESEP\${PWD-}TRACESEP\${OLDPWD-}TRACESEP',
+  HATSU_SHELL_COVERAGE_TRACE_FD: '3',
+  HATSU_SHELL_COVERAGE_BASH: process.env.FAKE_REAL_BASH,
+  BASH_ENV: process.env.FAKE_BASH_ENV,
+};
+const runOne = () => new Promise((resolve) => {
+  const child = spawn(process.env.HATSU_SHELL_COVERAGE_EXEC, [], { env: baseEnv, stdio: ['ignore', 'pipe', 'pipe', fd] });
+  let err = '';
+  child.stderr.on('data', (chunk) => { err += chunk; });
+  child.on('close', (status) => resolve({ status, err }));
+});
+Promise.all([runOne(), runOne()]).then(([r1, r2]) => {
+  fs.closeSync(fd);
+  const badFd = spawnSync(process.env.HATSU_SHELL_COVERAGE_EXEC, [], { encoding: 'utf8', env: { ...baseEnv, HATSU_SHELL_COVERAGE_TRACE_FD: 'abc' } });
+  const closedDrainFd = spawnSync(process.env.HATSU_SHELL_COVERAGE_EXEC, [], { encoding: 'utf8', env: { ...baseEnv, HATSU_SHELL_COVERAGE_TRACE_FD: '9' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  fs.writeFileSync('wrapper-exit', [r1.status, r2.status, badFd.status, closedDrainFd.status].join(','));
+  fs.writeFileSync('wrapper-errors', (r1.err + '\\n' + r2.err + '\\n' + badFd.stderr).trim());
+  const traceDirFiles = fs.readdirSync(path.dirname(process.env.HATSU_SHELL_COVERAGE_EXEC));
+  fs.writeFileSync('wrapper-leftovers', JSON.stringify(traceDirFiles.filter((f) => !f.startsWith('run-'))));
+  fs.writeFileSync(process.env.HATSU_COVERAGE_PATH, 'SF:' + process.cwd() + '/scripts/target.sh\\nDA:1,1\\nend_of_record\\n');
+  process.exit(0);
+});
+`);
+  const result = run(['--capture', 'sample', 'bash', 'scripts/fixture.sh', '--target', target], {
+    FAKE_REAL_BASH: coverageBash!,
+    FAKE_BASH_ENV: bashEnvScript,
+    BASH_ENV: bashEnvScript,
+  });
+  expect(result.status, result.stderr).toBe(0);
+  expect(readFileSync(join(root, 'wrapper-exit'), 'utf8')).toBe('7,7,1,1');
+  expect(JSON.parse(readFileSync(join(root, 'wrapper-leftovers'), 'utf8'))).toEqual([]);
+  expect(existsSync(bashEnvProbe)).toBe(false);
+  const trace = readFileSync(join(root, 'target-trace'), 'utf8');
+  expect(trace).toContain(longArg);
+  const bashcovLines = trace.split('\n').filter((line) => /^\++BASHCOV>/.test(line));
+  expect(bashcovLines.length).toBeGreaterThanOrEqual(16);
+  expect(bashcovLines.every((line) => line.split('TRACESEP').length >= 5)).toBe(true);
+});
+
+it.skipIf(!coverageBash)('forwards SIGTERM to a target trapping TERM, preserves its exit status, and cleans wrapper temp files', () => {
+  const target = 'scripts/target.sh';
+  const { root, run } = fixture('bash', 'echo fixture\n', target);
+  writeFileSync(join(root, target), `#!/usr/bin/env bash
+touch ready.flag
+on_term() {
+  echo "caught-term" >&2
+  kill "$kid" 2>/dev/null || true
+  exit 5
+}
+trap on_term TERM
+sleep 30 &
+kid=$!
+wait "$kid"
+`);
+  writeFileSync(join(root, 'bin/ruby'), `#!/usr/bin/env node
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawn } = require('node:child_process');
+const args = process.argv.slice(2);
+if (args[1].includes('cache_file')) {
+  for (let i = 2; i < args.length; i += 2) console.log(path.join(process.cwd(), 'gems', args[i] + '-' + args[i + 1] + '.gem'));
+  process.exit(0);
+}
+if (args.includes('--version')) { console.log('bashcov ' + args[3]); process.exit(0); }
+const child = spawn(process.env.HATSU_SHELL_COVERAGE_EXEC, [], {
+  env: {
+    ...process.env,
+    HATSU_SHELL_COVERAGE_PS4: '+BASHCOV>TRACESEP\${LINENO-}TRACESEP\${BASH_SOURCE-}TRACESEP\${PWD-}TRACESEP\${OLDPWD-}TRACESEP',
+    HATSU_SHELL_COVERAGE_TRACE_FD: '2',
+    HATSU_SHELL_COVERAGE_BASH: process.env.FAKE_REAL_BASH,
+  },
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
+let err = '';
+child.stderr.on('data', (chunk) => { err += chunk; });
+const timer = setInterval(() => {
+  if (fs.existsSync('ready.flag')) {
+    clearInterval(timer);
+    child.kill('SIGTERM');
+  }
+}, 20);
+child.on('close', (status) => {
+  clearInterval(timer);
+  const leftovers = fs.readdirSync(path.dirname(process.env.HATSU_SHELL_COVERAGE_EXEC)).filter((f) => !f.startsWith('run-'));
+  fs.writeFileSync('term-result', JSON.stringify({ status, err, leftovers }));
+  fs.writeFileSync(process.env.HATSU_COVERAGE_PATH, 'SF:' + process.cwd() + '/scripts/target.sh\\nDA:1,1\\nend_of_record\\n');
+  process.exit(0);
+});
+`);
+  const result = run(['--capture', 'sample', 'bash', 'scripts/fixture.sh', '--target', target], {
+    FAKE_REAL_BASH: coverageBash!,
+  });
+  expect(result.status, result.stderr).toBe(0);
+  const termResult = JSON.parse(readFileSync(join(root, 'term-result'), 'utf8'));
+  expect(termResult.status).toBe(5);
+  expect(termResult.err).toContain('caught-term');
+  expect(termResult.leftovers).toEqual([]);
 });
 
 it('runs uninstrumented without Bashcov, says so, removes a stale report, and keeps the fixture red', () => {

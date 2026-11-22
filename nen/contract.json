@@ -585,7 +585,18 @@
             "coverage/surface-bootstrap-guard/lcov.info"
           ]
         },
-        "coverage": {"unsupported": "The bootstrap lane passes, but at this fixture's size Bashcov usually captures nothing: it loses bytes of the trace and aborts on most runs (6 of 7 on zheref/hatsu#531's branch; the one capture read 83.4%; zheref/hatsu#599), so scripts/surface_bootstrap.sh is an unmeasured gap, never a clean zero, by the maintainer's ruling R-2026-11-11-09 on zheref/hatsu#531 until #599 restores the capture and this row returns to `node scripts/shell_coverage.mts --verify surface-bootstrap-guard`. scripts/surface_marker.sh is not measurable here either, for a structural reason: the reader turns its caller's xtrace off and its body is an awk program; its grammar rows run in this lane under bash and a POSIX sh, and that gap closes when zheref/nen#658 retires the reader (HR-392)."}
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "surface-bootstrap-guard"
+          ],
+          "$comment": "Reads and verifies the LCOV capture written by surface-bootstrap-guard without rerunning the fixture (zheref/hatsu#599). scripts/surface_bootstrap.sh is instrumented through scripts/shell_coverage.mts with an O_APPEND trace file per wrapper invocation so macOS 512-byte pipe atomicity never corrupts records. scripts/surface_marker.sh remains unmeasured here (it disables xtrace and embeds awk; covered structurally until zheref/nen#658 retires it per HR-392).",
+          "artifacts": [
+            "coverage/surface-bootstrap-guard/lcov.info"
+          ]
+        }
       },
       "nen-global-guard": {
         "test": {
@@ -674,6 +685,9 @@
             }
           ],
           "$comment": "The read-only PR unit-tests workflow always selects this lane. Check the candidate workflows for missing preflight adapters before running the pinned Vitest fixtures for the trusted CI test runner, trusted-preflight runtime and failure paths, release-changelog parser, Tenkai publisher adoption guard, and shell coverage. Install locked dependencies with npm ci --ignore-scripts first."
+        },
+        "coverage": {
+          "unsupported": "The Vitest guards in unit-tests-ci-guard (including scripts/shell_coverage.mts) spawn child node processes rather than running in-process under Node 24's --experimental-test-coverage replay, so this lane has no aggregate LCOV artifact yet. Per project.verbs.plugin.coverage.unsupported and docs/WORKFLOW.md section Coverage -- the ladder, touched scripts without a Node replay row stay an explicit unmeasured gap (`not measurable here`, never a clean zero) until an in-process replay step is added."
         }
       },
       "gh-api-read-guard": {
