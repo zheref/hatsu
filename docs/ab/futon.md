@@ -224,14 +224,14 @@ exit 2
 ### 1.10 Case-insensitivity
 
 ```
-$ nen parse futon --repo <reference-repo> "kp@HIGH+ then TAG"
+$ nen parse futon --repo <reference-repo> "ra@HIGH+ then TAG"
 nen: 'then tag' is refused against '<product-repo-A>' -- ... (same self-mismatch as 1.9's last row)
-  try: kp@high+
+  try: ra@high+
 exit 2
 ```
 The band and terminal both parsed correctly regardless of case (confirmed by the value echoed in
 the refusal, `tag`, and by the corrected line preserving `high+`) — the refusal fires on the same
-self-mismatch as § 1.9, not on casing. The corrected line preserves the caller's own casing (`kp`,
+self-mismatch as § 1.9, not on casing. The corrected line preserves the caller's own casing (`ra`,
 not `RA`).
 
 ### 1.11 `--json`

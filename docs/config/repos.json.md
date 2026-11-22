@@ -139,7 +139,7 @@ Illustrative, for a plain product repository that consumes the three public tool
 
 - [`../../nen/repos.json`](../../nen/repos.json): Hatsu's own registry and its `$comment`
 - [`../WORKFLOW.md`](../WORKFLOW.md) § *Repository kinds*, § 4 *Ask, set up, continue*, § *A target repository with no delivery-stage taxonomy*
-- [`../PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md): placeholder codes `RA`…`RE` and why a private consumer is never named in a public registry
+- [`../PUBLIC-REDACTION.md`](../PUBLIC-REDACTION.md): placeholder codes `RA`…`RF` and why a private consumer is never named in a public registry
 - [`../../claude/skills/tenkai/SKILL.md`](../../claude/skills/tenkai/SKILL.md) §§ 3, 4a, 6a, 6c · [`../../claude/skills/getsuga/SKILL.md`](../../claude/skills/getsuga/SKILL.md) §§ 3, 7 · [`../../claude/skills/bankai-handbooks/SKILL.md`](../../claude/skills/bankai-handbooks/SKILL.md) §§ 0–1 · [`../../claude/skills/bankai-quality/SKILL.md`](../../claude/skills/bankai-quality/SKILL.md) § 1 · [`../../claude/skills/limbo/SKILL.md`](../../claude/skills/limbo/SKILL.md) §§ 2, 4 · [`../../claude/skills/backlog-state/SKILL.md`](../../claude/skills/backlog-state/SKILL.md) § 2 · [`../../claude/skills/file/SKILL.md`](../../claude/skills/file/SKILL.md) § 1 · [`../../claude/skills/pr-state/SKILL.md`](../../claude/skills/pr-state/SKILL.md) § 1
 - [`../../scripts/tenkai_adopt.sh`](../../scripts/tenkai_adopt.sh): `NEN_DECLARATIONS`, `derive_role`
 - [`../ab/limbo.md`](../ab/limbo.md): the fixture registry and `nen canon pin`'s two answers
