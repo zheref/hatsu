@@ -30,7 +30,7 @@ A local checkpoint, branch publication and PR completion are separate outcomes. 
 |---|---|---|
 | `rasengan` | Author behavior and focused tests; use them and inexpensive iteration checks for feedback | Feedback is not the checkpoint verdict |
 | `kokusen` | Run declared iteration checks and applicable declared focused tests on the finished tree; commit locally | Full regression and coverage are not checkpoint gates |
-| `amaterasu` | Handle launch after the checkpoint; isolated turns report a command and defer core launch to an explicit maintainer call | Report build/install/launch or deferral separately; core swap never transfers authoring |
+| `amaterasu` | Handle launch after the checkpoint; isolated `ren` turns defer core launch, while explicit maintainer preview runs in the selected worktree (§ 3b) with 0 core swaps | Report build/install/launch or deferral separately; core swap never transfers authoring |
 | `aka` | Lint (`gyo`) before squash; squash only unpublished history; catch up; recheck changed-tree lint; push | No project-wide tests. Regression and coverage wait for mukai |
 | `mukai` / `kotoamatsukami` | Review, then run only the declared unit, UI and integration suites the change can affect | Selection is fail-closed; edits return through focused checkpoint and kotoamatsukami before publication |
 | `byakugan` | Capture and measure touched-file coverage independently of those suites | Extraction must not rerun tests; the G5 under `coverage.minimum` is this skill's |

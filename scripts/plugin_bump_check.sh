@@ -274,6 +274,10 @@ fi
 #   scripts/ledger_findings_prepare.mts
 #                     — mukai step 8a's findings copy for the public ledger slice:
 #                       the security hold and the relativised paths (HA-PR-#463).
+#   scripts/amaterasu_preview.mts
+#                     — executes explicit maintainer local previews directly in
+#                       a selected worktree with 0 core swaps and real resource
+#                       conflict detection (zheref/hatsu#617).
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -450,6 +454,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/direct_matrix_doc.mts'
   'scripts/idle_permissions_check.mts'
   'scripts/ledger_findings_prepare.mts'
+  'scripts/amaterasu_preview.mts'
   '.mcp.json'
 )
 

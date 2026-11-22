@@ -1,0 +1,1 @@
+- **Amaterasu**: allow explicit local previews directly from a maintainer-selected checkout or worktree via `scripts/amaterasu_preview.mts` and lane `amaterasu-preview-guard`, serving committed and uncommitted edits with zero core checkout swaps while keeping ordinary `ren` deferral and real resource-conflict protection intact (zheref/hatsu#617).
