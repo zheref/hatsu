@@ -1,6 +1,6 @@
 ---
 name: amaterasu
-description: Build and start the app for the declared launch target from the maintainer's core working directory — never from a worktree — and hand back the exact command that did it, copied verbatim out of the dry run. Runs as phase four of `ren`; invoke `hatsu:amaterasu [<target>]` by name to relaunch or switch targets. A disconnected device is reported by its declared name and falls back only to the declared simulator; a session in a worktree reports the command instead of running it.
+description: Build and launch the declared target — from core by default (`ren` turns in a worktree defer with the dry-run command) or directly in a maintainer-selected worktree on explicit preview (§ 3b). Never swaps core; reports checkout, target and verbatim command; refuses occupied resources without disturbing existing sessions.
 ---
 
 # Amaterasu — the app, running, on your machine
@@ -16,11 +16,7 @@ Phase four of `ren`, after [`kokusen`](../kokusen/SKILL.md); it never pushes or 
 
 ## 0. Standalone entry
 
-[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) (§ 4 for a composite's skip; plugin
-root per [PROCESS.md](../../../docs/PROCESS.md) § *Authority every phase shares*). Cold it adds **P1**
-and **P2**, read with § 3 — **whether this is a worktree**, a session in one **reporting the command
-rather than running it**. **The launch shows the tree on disk, not a commit**: name uncommitted
-paths.
+[`docs/STANDALONE-ENTRY.md`](../../../docs/STANDALONE-ENTRY.md) (§ 4 skip; plugin root per [PROCESS.md](../../../docs/PROCESS.md)). Cold adds **P1**–**P2**, read with § 3: a `ren` worktree turn reports without running, while explicit preview runs § 3b. **Launch reads disk, not commits**: name uncommitted paths.
 
 ## 1. Invocation
 
@@ -73,41 +69,15 @@ install/launch steps are a declaration gap even at exit `0`. **Record discovery 
 resolver's** ([nen#204](https://github.com/zheref/nen/issues/204)); a temporary normalizer stays
 **linked** with owner and removal condition; **no extraction key is added to an older binary.**
 
-## 3. The core working directory, never a worktree
+## 3. Core default for `ren`, § 3a validation, § 3b explicit worktree preview
 
-**A launch runs from the maintainer's own checkout and nowhere else** — not a `git worktree`, a
-subagent's copy or a temporary clone. From a worktree it is another tree's build racing theirs on
-one port, derived-data directory and bundle id; a fresh worktree **fails the
-declaration's own preconditions**, and **launching writes to a SHARED device**, so isolation buys
-nothing.
+**Ordinary and `ren` launches run from core** — never automatically from a `git worktree`, subagent copy or temporary clone, where uncoordinated builds race core on one port, derived-data directory or shared device.
 
-**nen will not stop you** (`cwd:` renders the worktree, silently), so the rule is this skill's.
-Resolve core with `nen wc worktrees --repo <bound effort path> --json`, but **never redirect an
-isolated Ren turn there to launch**, serial or parallel. Render § 4's command with **`--repo <core>
---target <name> --dry-run` only**, retaining the authoring cwd/binding. Never execute the bare
-launch, build or swap to obtain the plan. Label it `core launch deferred; explicit maintainer call
-required`; report any refusal/precondition verbatim, never invent argv or repair core. Core's
-declaration/tree may differ from this effort's: name that limit beside the exact plan. Continue
-report/bell without asking for approval. A plan is not a build or launch result.
+**In a worktree during `ren`:** resolve core with `nen wc worktrees --repo <bound effort path> --json` and render `--repo <core> --target <name> --dry-run` only, keeping authoring bound to the worktree. Label it `core launch deferred; explicit maintainer call required`; quote any refusal/precondition verbatim; note core's tree may differ; never swap or run core automatically, and continue report/bell without asking. Only an explicit maintainer `hatsu:amaterasu` call authorizes launching core, and `hatsu:amenotejikara` is a separate swap call ([`senkaimon`](../senkaimon/SKILL.md) § 3 authorizes both for its queue). An original-prompt core-authoring waiver alone does not authorize either action; after either call, authoring, parity and delivery remain in the bound effort checkout under WORKFLOW § *Where worktrees live*. Before a core launch, `nen wc swap --status --repo <core>`: name an active swap; exit `1`/`2` refuses.
 
-Only a maintainer's explicit `hatsu:amaterasu` call authorizes the core launch; if core needs the
-effort's tree, `hatsu:amenotejikara` is a separate explicit call. The one other such call is
-[`senkaimon`](../senkaimon/SKILL.md) § 3's answer: both, for the PRs its queue showed, that run
-only. An original-prompt core-authoring
-waiver alone does not authorize either action. After either call, authoring, parity and delivery
-remain in the bound effort checkout under WORKFLOW § *Where worktrees live*.
+**§ 3a · Validating a declaration under review** from a non-core checkout ([`jujutsu`](../jujutsu/SKILL.md) § 6). Only when **all four** hold: written delegation **names device and target**; purpose is **declaration review**, never `ren` or a composite; **no other session holds the app**; and **the report states verbatim** — *"validation launch from a non-core checkout: `<path>`; delegation names device `<name>` and target `<key>`; declaration PR `<url>`"*.
 
-**Then `nen wc swap --status --repo <core>`.** An active swap ([`amenotejikara`](../amenotejikara/SKILL.md))
-is **named** in the launch line — branch or commit, view or take — since core builds that tree. A status that does not answer (exit `1`/`2`) is **refused**: no launch on a
-half-swapped core.
-
-**§ 3a · The one sanctioned exception — validating a declaration** from a non-core checkout, since
-[`jujutsu`](../jujutsu/SKILL.md) § 6 hands off a declaration PR nothing has run. Only when **all
-four** hold: the maintainer's written delegation **names the device and the target**; the purpose is
-**a declaration under review**, never a turn's launch, `ren`'s phase four or a composite; **no other
-session holds the app**; and **the report says so, in these words** — *"validation launch from a non-core checkout: `<path>`; delegation names device `<name>` and
-target `<key>`; declaration PR `<url>`"* — each precondition read and stated in that report (§ 5's boundary and residue).
-**Everything outside those four is forbidden.**
+**§ 3b · Explicit local preview from a selected worktree (`zheref/hatsu#617`).** When the maintainer explicitly requests a local preview of a selected checkout/worktree, run `node "$hatsu_root/scripts/amaterasu_preview.mts" --repo <selected> [--target <name>]`. It launches directly from `<selected>` (committed and uncommitted files on disk) with **0 core swaps**, preserving both checkouts' branches and edits. `ren`/automatic turns never enter § 3b (`--automatic` retains § 3 deferral). Before launching, the helper checks `--dry-run --json` preconditions, loopback TCP ports (`127.0.0.1` and `::1`), and `<git-common-dir>/.nen/amaterasu/sessions.json`, refusing occupied ports, devices or active sessions by resource name and leaving the existing session intact. Results report checkout, target and verbatim command (`amaterasu-preview-guard`). Everything outside § 3a and § 3b is forbidden for non-core launches.
 
 ## 4. Resolving the device, the dry run, and the command you paste
 
@@ -145,26 +115,12 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
 
 ## 5. Residue
 
-**A boundary ([HR-390](../../../docs/ROSTER.md#hr-390)):** § 3a's delegation, purpose and report
-wording — the maintainer's written delegation and the session's read of it, which no verb owns.
-**§ 3a's third condition** (no other session holds the app) is residue owned by
-zheref/nen#536. **Reading device state with no `readyWhen`** is residue **with a fix**, lapsing when a
-jujutsu PR writes the rule. **No default target ever**, **no `--` passthrough** (an undeclared argv
-is an unreviewed one), and **nothing in nen stops a long-running child**.
+See [PROCESS.md § Residue](../../../docs/PROCESS.md#residue-and-owned-dependencies). **Boundary ([HR-390](../../../docs/ROSTER.md#hr-390)):** § 3a's delegation, purpose and report wording; **§ 3a's third condition** (no other session holds the app) is [zheref/nen#536](https://github.com/zheref/nen/issues/536), complemented locally for § 3b previews by `.nen/amaterasu/sessions.json`. **Record discovery** is [zheref/nen#204](https://github.com/zheref/nen/issues/204); **device state without `readyWhen`** lapses when `jujutsu` writes the rule. **No default target**, **no `--` passthrough**, and **nen stops no long-running child**.
 
 ## 6. Authority and hard limits
 
-- **Permitted:** run the lane's declared build/`dev` row from the core working directory, run a
-  declared device probe, run the declared `after` steps, hand back the exact command.
-- **Not permitted:** `nen shu deploy --run` in any form (**G3**, row `release-go`); any push, commit,
-  PR, label or release. **Not a gate event**: a disconnected
-  device with no declared fallback is a stop-and-say, and an unsupported host (`3`) is its one **G5**.
-- **Never launches from anything but the core working directory**, except under § 3a's four
-  conditions, said in its own words; **never from a parallel effort**; and **never reaches § 3a from a
-  composite**.
-- **Never falls back to a simulator for a present-but-unusable device**, to an undeclared device, or
-  silently; **never invents a target**, and **never asks when the declaration already answered** (§ 1).
-- **Never types a `shu` subcommand the target did not declare**, or drops `--target` to get past exit `2`.
-- **Never substitutes a plausible command for a declared one**, re-types the pasted command from
-  memory, or runs the bare lane verb for a target that declares `args`.
-- **Never claims the app is running** on a dry run or unread exit code.
+- **Permitted:** run declared `build`/`dev`/`run`, device probe and `after` steps in core (or selected worktree via § 3b / validated declaration via § 3a); return checkout, target and verbatim command.
+- **Not permitted:** `nen shu deploy --run` (**G3**, row `release-go`); push, commit, PR, label or release. **Not a gate**: disconnected device without fallback stops and reports; unsupported host (`3`) is the one **G5**.
+- **Never launches from anything but the core working directory**, except under § 3a's four conditions (verbatim report) or an explicit maintainer local preview under § 3b; **never from a parallel effort**; **never enters § 3a from a composite**; **never enters § 3b without an explicit maintainer preview request or automatically in `ren`**; and **never swaps core** during § 3b.
+- **Never falls back past a real resource conflict**, silently to a simulator, or to an undeclared device; **never invents a target**, or asks when declared (§ 1).
+- **Never types an undeclared `shu` subcommand**, drops `--target` past exit `2`, substitutes commands, re-types from memory, omits declared `args`, or claims running on a dry run or unread exit.

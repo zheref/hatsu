@@ -275,6 +275,20 @@ try {
   assert(readFileSync(log, 'utf8').includes('redaction-guard||'), 'redaction-guard lane not selected (#149)');
   result = run({ HATSU_FAIL_LANE: 'redaction-guard' });
   assert(result.status === 1 && result.stderr.includes('redaction-guard failed'), 'failing redaction-guard lane was not red (#149)');
+  // HA617: the explicit worktree preview helper must execute its Vitest and coverage fixtures in CI.
+  writeFileSync(join(repo, 'scripts', 'amaterasu_preview.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('amaterasu_preview.mts has no required fixture'), 'missing amaterasu-preview fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'amaterasu_preview_fixture.test.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('amaterasu_preview_coverage.test.mts'), 'missing amaterasu-preview coverage fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'amaterasu_preview_coverage.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `amaterasu-preview-guard refused: ${result.stderr}`);
+  assert(readFileSync(log, 'utf8').includes('amaterasu-preview-guard||'), 'amaterasu-preview-guard lane not selected (HA617)');
+  result = run({ HATSU_FAIL_LANE: 'amaterasu-preview-guard' });
+  assert(result.status === 1 && result.stderr.includes('amaterasu-preview-guard failed'), 'failing amaterasu-preview-guard was not red (HA617)');
 
 } finally {
   rmSync(dir, { recursive: true, force: true });
