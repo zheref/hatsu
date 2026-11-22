@@ -219,3 +219,62 @@ test('a re-run after each fix shows the outstanding count going down', () => {
   expect(final.items.find((row: any) => row.id === 'lane/nextjs/archive').state).toBe('satisfied');
   expect(final.outstanding).toBe(answered.outstanding - 1);
 });
+
+test('HA#605 AC-1..AC-5: non-blocking adoption notices flag missing declarations and stay silent when present', () => {
+  const missingRepo = scaffold();
+  // Review scopes present without architecture, no reports.sections, no nen/gates.json, no nen/decisions.json.
+  const wfPath = join(missingRepo, 'nen/workflow.json');
+  const wf = JSON.parse(readFileSync(wfPath, 'utf8'));
+  wf.review = { scopes: { code: { persona: 'nobunaga', tier: 'deep', budget: 2, paths: ['**'] } } };
+  writeFileSync(wfPath, JSON.stringify(wf, null, 2) + '\n');
+
+  const jsonReport = tenkai(missingRepo, 'diagnose');
+  const noticeIds = jsonReport.notices.map((n: any) => n.id);
+  expect(noticeIds).toEqual(['reports.sections', 'review.scopes.architecture', 'nen/gates.json', 'nen/decisions.json']);
+  const byId = Object.fromEntries(jsonReport.notices.map((n: any) => [n.id, n]));
+  expect(byId['reports.sections'].message).toContain('Rikugan final report cannot render');
+  expect(byId['reports.sections'].message).toContain('declare reports.sections');
+  expect(byId['review.scopes.architecture'].message).toContain('content-raised totality passes cannot run');
+  expect(byId['review.scopes.architecture'].message).toContain('architecture scope');
+  expect(byId['nen/gates.json'].message).toContain('nen pr ready');
+  expect(byId['nen/decisions.json'].message).toContain('nen stop answer');
+  // Non-blocking: outstanding and guide only count items[], never notices.
+  expect(jsonReport.outstanding).toBe(jsonReport.items.filter((row: any) => OUTSTANDING.includes(row.state)).length);
+
+  const textReport = tenkai(missingRepo, 'diagnose', false) as string;
+  expect(textReport).toContain('non-blocking adoption notices:');
+  expect(textReport).toContain('reports.sections');
+  expect(textReport).toContain('review.scopes.architecture');
+  expect(textReport).toContain('nen/gates.json');
+  expect(textReport).toContain('nen/decisions.json');
+
+  // AC-3 & AC-5: when all four declarations exist, notices are empty and text output omits the notices section.
+  const completeRepo = scaffold();
+  const fullWfPath = join(completeRepo, 'nen/workflow.json');
+  const fullWf = JSON.parse(readFileSync(fullWfPath, 'utf8'));
+  fullWf.reports = { sections: { turn: { template: 'spiritual-message', blocks: ['masthead'] }, final: { template: 'rikugan', blocks: ['masthead', 'register'] } } };
+  fullWf.review = { scopes: { architecture: { persona: 'chrollo', tier: 'deep', budget: 2, paths: ['docs/'] } } };
+  const beforeComplete = JSON.stringify(fullWf, null, 2) + '\n';
+  writeFileSync(fullWfPath, beforeComplete);
+  writeFileSync(join(completeRepo, 'nen/gates.json'), '{}\n');
+  writeFileSync(join(completeRepo, 'nen/decisions.json'), '{"rows":[]}\n');
+
+  const cleanJson = tenkai(completeRepo, 'diagnose');
+  expect(cleanJson.notices).toEqual([]);
+  const cleanText = tenkai(completeRepo, 'diagnose', false) as string;
+  expect(cleanText).not.toContain('non-blocking adoption notices:');
+  expect(readFileSync(fullWfPath, 'utf8')).toBe(beforeComplete);
+
+  // AC-4 & AC-5 prose parity: catalogue and skill prose agree once and En § 1 documents warm-up notices.
+  const catalogue = readFileSync(join(source, 'contracts/config-catalogue.json'), 'utf8');
+  const tenkaiSkill = readFileSync(join(source, 'claude/skills/tenkai/SKILL.md'), 'utf8');
+  const enSkill = readFileSync(join(source, 'claude/skills/en/SKILL.md'), 'utf8');
+  expect(catalogue).toContain('reports.sections — not filled by default and flagged as a non-blocking adoption notice when absent');
+  expect(tenkaiSkill).toContain('reports.sections` is not filled by');
+  expect(tenkaiSkill).toContain('non-blocking adoption notice');
+  expect(enSkill).toContain('check `nen/gates.json` and `nen/decisions.json`');
+
+  // HA#560 unknown catalogue stamp row routes to plugin update.
+  expect(fixFor({ id: 'pr.sections', state: 'blocked', detail: 'pr.sections: stamp bbbbbbb is newer or unknown to this plugin' }, rows,
+    { repo: '/tmp/r', root: source, slug: 'acme/widget' })).toMatchObject({ fill: 'route', edit: expect.stringMatching(/bakuryuha/) });
+});

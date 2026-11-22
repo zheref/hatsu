@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { isDeepStrictEqual } from 'node:util';
 import { catalogue, defaults, options } from './pr_sections.ts';
-import { history, readSections, summary, RefreshRefusal } from './pr_sections_history.ts';
+import { history, readSections, summary, RefreshRefusal, UnknownCatalogueError, unknownCatalogueReading } from './pr_sections_history.ts';
 import { strictJson, refreshFill } from './config_values_refresh.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -266,8 +266,14 @@ try {
           const value = parsed.pr?.sections;
           const sectionDomain = declaration.values.find((row: any) => row.id === 'workflow.pr.sections')?.domain;
           if (cat && value !== undefined && (!parsedArgs?.['--domain'] || parsedArgs['--domain'] === sectionDomain)) {
-            const reading = readSections(value, cat, history(root, cat));
-            const detail = summary(reading) + (reading.status === 'unstamped' ? '' : '; ' + reading.cells.map(cell => `${cell.cell}: ${cell.state}${cell.retiredIds.length ? ' (retired ids: '+cell.retiredIds.join(', ')+')' : ''}`).join('; '));
+            let reading;
+            try {
+              reading = readSections(value, cat, history(root, cat));
+            } catch (error) {
+              if (error instanceof UnknownCatalogueError) reading = unknownCatalogueReading(error);
+              else throw error;
+            }
+            const detail = summary(reading) + (reading.cells.length === 0 ? '' : '; ' + reading.cells.map(cell => `${cell.cell}: ${cell.state}${cell.retiredIds.length ? ' (retired ids: '+cell.retiredIds.join(', ')+')' : ''}`).join('; '));
             if (wantsJson) {
               const document = JSON.parse(output);
               for (const row of document.values ?? []) if (row.id === 'workflow.pr.sections') { row.detail = detail; row.prSections = reading; }

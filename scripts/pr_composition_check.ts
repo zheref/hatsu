@@ -42,9 +42,27 @@ try {
      history(root,cat);
      const ids=cat.variants[`${body.defaultKind}.${body.defaultFamily}`];
      if(!ids)throw new Error('unknown default kind/family');
-     const rows=[...cat.preamble,...ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)),...cat.footer.filter((r:any)=>!r.reserved&&r.when===undefined)];
+     const selected=ids.map((id:string)=>cat.sections.find((r:any)=>r.id===id)).filter(Boolean);
+     const rows=[
+       ...cat.preamble.filter((r:any)=>r.when===undefined),
+       ...selected.filter((r:any)=>r.when===undefined),
+       ...cat.footer.filter((r:any)=>!r.reserved&&r.when===undefined),
+     ];
      const expected=requirementsFor(rows,body.defaultKind);
-     if(!isDeepStrictEqual(load(body.file),expected))findings.push(`${body.file}: drifts from catalogue default ${body.defaultKind}.${body.defaultFamily}`);
+     const loaded=load(body.file);
+     const conditionalNames=new Set(
+       [...cat.preamble,...cat.sections,...cat.footer]
+         .filter((r:any)=>r.when!==undefined)
+         .flatMap((r:any)=>[r.id,...(r.content===true?[`${r.id}-content`]:[]),...(r.rows?[r.rows.name]:[])])
+     );
+     if(Array.isArray(loaded)) {
+       for(const entry of loaded) {
+         if(entry&&typeof entry.name==='string'&&conditionalNames.has(entry.name)) {
+           findings.push(`${body.file}: conditional section '${entry.name}' must not appear unconditionally in the flat requirements array`);
+         }
+       }
+     }
+     if(!isDeepStrictEqual(loaded,expected))findings.push(`${body.file}: drifts from catalogue default ${body.defaultKind}.${body.defaultFamily}`);
      for(const row of [...cat.preamble,...cat.sections,...cat.footer]) {
        const source=text(row.template);
        if(!source.includes(`<!-- block: ${row.id};`))findings.push(`${row.template}: missing block marker`);

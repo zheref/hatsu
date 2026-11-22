@@ -10,7 +10,7 @@
     "docs/PR-SECTIONS.md"
   ],
   "bodyRequirements": {
-    "$comment": "Derived from the catalogue, not a universal template. Runtime resolution uses the target kind, issue jobs and Mukai facts. This checked array is the process.canon default with a policy hit.",
+    "$comment": "Derived from the catalogue, not a universal template. Runtime resolution uses the target kind, issue jobs and Mukai facts. This checked array is the process.canon unconditional default (no conditional run facts); actual runs resolve per-run requirements from contracts/pr-sections.json.",
     "file": "contracts/pr-body.requirements.json",
     "catalogue": "contracts/pr-sections.json",
     "defaultKind": "process",

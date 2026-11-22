@@ -702,7 +702,19 @@ written snapshot would change behaviour is not in the catalogue, and its `$comme
 with the reason: derived at run time (`iteration.lane`, `reports.timeZone`); resolved from a Hatsu
 canon file only when absent (`round_policy`, sharingan § 6); also read by nen, whose own default may
 differ (the `commits` trailer lists, `futon.advanceGo`); or structural and the repository's own
-(`models`, `reports.sections`, the gates identity blocks). `check-catalogue` holds every default against the key
+(`models`, `reports.sections`, the gates identity blocks). `reports.sections` is not filled by
+default — when it is absent, Tenkai emits a non-blocking adoption notice naming the absence, the
+consequence (the Rikugan final report cannot render), and what to declare (`reports.sections` for
+`turn`, `landing`, `final`, and `register` in `nen/workflow.json` per
+[docs/config/workflow.json.md](../../../docs/config/workflow.json.md#reports)). When `review.scopes`
+has no `architecture` scope, Tenkai emits a non-blocking adoption notice naming the absence, the
+consequence (content-raised totality passes cannot run), and what to add (`architecture` scope in
+`nen/workflow.json` → `review.scopes`). When `nen/gates.json` or `nen/decisions.json` is absent,
+Tenkai emits one short non-blocking notice per missing declaration naming its absence and
+consequence (`nen/gates.json`: `nen pr ready` cannot read declared reviewers or approvers without
+explicit flags; `nen/decisions.json`: `nen stop answer` warns on recorded picker answers and no
+consumer decision overrides apply). When all four are already declared, Tenkai emits no notice and
+changes nothing. `check-catalogue` holds every default against the key
 tables in WORKFLOW § 2, so the two statements of one default cannot drift apart unnoticed.
 
 **PR-section refresh (HA#370; ruling 3's reading of 2026-10-25).** Plain `fill` leaves a present
@@ -710,7 +722,9 @@ tables in WORKFLOW § 2, so the two statements of one default cannot drift apart
 packaged catalogue history distinguish current defaults, stale defaults and consumer-owned cells;
 missing cells and retired ids are named. Only unedited defaults and missing cells advance; the cap
 and edited cells stay, with `$canon.owned` retaining ownership across stamps. An owned retired id or
-cell refuses at exit 1, naming it, before any write; unknown/malformed stamps refuse at exit 2.
+cell refuses at exit 1, naming it, before any write; an unknown or newer stamp is reported on
+`pr.sections` alone during diagnosis naming plugin update (`hatsu:bakuryuha`) while leaving all
+other declarations diagnosed, and refresh refuses at exit 2 without writing.
 Unstamped refresh reports unknown provenance and retains every existing cell as explicitly owned,
 adding missing cells and stamping current canon. Diagnosis reports counts and both sha7s
 through `tenkai_adopt.sh --json`, without repair; Ten prints the finding in its inbox. See
@@ -785,7 +799,9 @@ State, out loud, in this order:
    were unread or blocked on this host;
 7. the successor: **nothing**. Adoption is not a phase of the loop. A repository whose required
    checks Tenkai has proved is ready for [`hatsu:ren`](../ren/SKILL.md); otherwise name each
-   outstanding prerequisite without calling the workflow ready.
+   outstanding prerequisite without calling the workflow ready;
+8. any non-blocking adoption notices emitted by `tenkai_adopt.sh` (`reports.sections`,
+   `review.scopes.architecture`, `nen/gates.json`, `nen/decisions.json`), omitted when none apply.
 
 **An outstanding count above zero is a finding, not a failure**, and it is stated as one.
 
