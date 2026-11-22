@@ -92,6 +92,11 @@ try {
     ['release_lag_check.mts', 'release_lag_check_fixture.mts', 'release-lag-guard'],
     ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
     ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
+    ['pr_sections_resolve.sh', 'pr_sections_fixture_check.sh', 'pr-sections-shell-guard'],
+    ['codex_marketplace_snapshot.sh', 'codex_marketplace_snapshot_fixture.sh', 'marketplace-snapshot-guard'],
+    ['fixture_output_guard.sh', 'fixture_output_guard_fixture.sh', 'fixture-output-guard'],
+    ['direct_matrix_doc.sh', 'direct_matrix_doc_shell_fixture.sh', 'direct-matrix-shell-guard'],
+    ['desk_mod_test.sh', 'desk_mod_test_fixture.sh', 'desk-staging-guard'],
     ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard']]) {
     writeFileSync(join(repo, 'scripts', script), '');
     result = run();

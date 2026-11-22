@@ -38,7 +38,7 @@ runtime script an installed copy executes (`scripts/surface_bootstrap.sh`, `scri
 `scripts/hatsu_root.sh`, `scripts/surface_mirror_check.sh`, `scripts/permissions_pack.sh`, `scripts/dist_tag.sh`,
 `scripts/send_freshness_check.sh`, `scripts/cleanup_path_admit.sh`,
 `scripts/cleanup_path_admit.ts`, `scripts/hatsu_surface_link.sh`,
-`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/prose_headroom_warn.ts`,
+`scripts/surface_link_check.sh`, `scripts/prose_size_check.sh`, `scripts/prose_desc.awk`, `scripts/prose_headroom_warn.ts`,
 `scripts/canon_contracts_check.sh`,
 `scripts/publish_gate.sh`, `scripts/private_name_check.sh`,
 `scripts/bell_notify.sh`, `scripts/tenkai_adopt.sh`, `scripts/release-publish.sh`,
