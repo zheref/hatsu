@@ -3,7 +3,7 @@
 `claude/skills/hiraishin/SKILL.md`: one PR merged into its repository's base, ported to one sibling of the
 same product family — spec first where the family declares a spec repository (kamui's spec step, a **G2**
 wait), then a port brief mapping every concept to its target equivalent, each unmapped row ruled once
-through `bankai-rule`'s `port-drift`, then the port issue filed on the target and `hatsu:build` run on it.
+through `kido`'s `port-drift`, then the port issue filed on the target and `hatsu:build` run on it.
 **This file is the dated dry run** the SDD assessment's wave 3 (*porting closes the loop*, zheref/hatsu#354)
 owes: `--dry-run` over the offline fixtures, every command and its output as they ran. **A stale dry run is a
 finding** — the date is part of the record.
