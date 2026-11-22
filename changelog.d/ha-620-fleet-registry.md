@@ -1,6 +1,6 @@
 ### Added
 
-- **The bankai-fleet roster, `fleet/registry.json`.** One file lists every in-scope maintained zheref repository, 21 of them, with its stack and its owner, and nothing else. Pin values stay in each consumer's own `nen/` configuration, to be read live. The inventory is the one in Fuegoleon's Engineering Hub section of 2026-11-21: every maintained repository minus the exclusions ruled that day. The roster is G4 canon, so a change to it needs the maintainer's G4. Validation and the switch of repins and the weekly alignment review onto the roster are the epic's later children (zheref/hatsu#620). Plugin 0.173.0.
+- **The bankai-fleet roster, `fleet/registry.json`.** One file lists every in-scope maintained zheref repository, 21 of them, with its stack and its owner, and nothing else. Pin values stay in each consumer's own `nen/` configuration, to be read live. The inventory is the one in Fuegoleon's Engineering Hub section of 2026-11-21: every maintained repository minus the exclusions ruled that day. The roster is G4 canon, so a change to it needs the maintainer's G4; `fleet/` joins zheref/hatsu's process set in `contracts/pr-composition.json`, so `nen gate derive` derives G4 for a roster-only change. Validation and the switch of repins and the weekly alignment review onto the roster are the epic's later children (zheref/hatsu#620). Plugin 0.173.0.
 
 ### Changed
 

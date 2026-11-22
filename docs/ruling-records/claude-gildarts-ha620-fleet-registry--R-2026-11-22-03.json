@@ -1,8 +1,8 @@
 {
   "contract": "nen.stop.answer/v0.1",
-  "id": "R-2026-11-22-02",
+  "id": "R-2026-11-22-03",
   "effortId": "claude/gildarts/ha620-fleet-registry",
-  "n": 1,
+  "n": 2,
   "gate": "G5",
   "row": null,
   "who": "Kurapika",
@@ -26,11 +26,11 @@
     {
       "key": "D",
       "label": "Move roster to akatsuki-ai",
-      "consequence": "Contradicts the issue's 'a file in hatsu'; #620 needs an amendment"
+      "consequence": "Contradicts the issue's 'a file in hatsu'; zheref/hatsu#620 needs an amendment"
     }
   ],
   "kind": "picked",
   "pick": "B",
   "typed": null,
-  "answeredAt": "2026-11-22T14:38:38.375Z"
+  "answeredAt": "2026-11-22T14:48:32.094Z"
 }

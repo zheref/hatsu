@@ -272,6 +272,13 @@ derive_with 'the same set through --files-from derives G4' G4 'process surface (
 : > "$work/nen-files-empty.txt"
 derive_with 'an empty --files-from set answers G2, so the caller refuses it before deriving' G2 'across 0 changed files' --files-from "$work/nen-files-empty.txt"
 
+# --- zheref/hatsu's row: a roster-only change derives G4 (zheref/hatsu#620 OQ-1) --------------------
+row='.gateDerive["zheref/hatsu"]'
+jq -e "$row | type == \"object\"" "$repo_root/contracts/pr-composition.json" >/dev/null || { echo "contracts/pr-composition.json declares no gateDerive.zheref/hatsu row" >&2; exit 1; }
+nen_policy="$(jq -r "$row.policyPaths | join(\",\")" "$repo_root/contracts/pr-composition.json")" || { echo "zheref/hatsu row cases: jq could not read gateDerive.zheref/hatsu.policyPaths" >&2; exit 2; }
+nen_process="$(jq -r "$row.processPaths | join(\",\")" "$repo_root/contracts/pr-composition.json")" || { echo "zheref/hatsu row cases: jq could not read gateDerive.zheref/hatsu.processPaths" >&2; exit 2; }
+derive_case 'zheref/hatsu fleet roster alone derives G4' G4 'process surface (fleet/)' 'fleet/registry.json'
+
 # --- and the repository itself ----------------------------------------------------------------------
 run_case 'this repository: declaration, requirements, template and prose agree' 0 "$repo_root" 'pr-composition ok'
 

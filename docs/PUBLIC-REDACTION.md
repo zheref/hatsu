@@ -90,7 +90,9 @@ asked where the private rows of the fleet roster should live in this public tree
   lists (fifteen with `zheref/akatsuki-ai`, already named above) — `zheref/AnteikuTV`, `zheref/bankai-scaffold`, `zheref/filo`, `zheref/GymKai`,
   `zheref/instarti.us`, `zheref/kro-pwa`, `zheref/kro-spec`, `zheref/KroAndroid`, `zheref/KroApple`,
   `zheref/KroWindows`, `zheref/Market`, `zheref/SymbIOT`, `zheref/ValleIA` and `zheref/zheref.io` —
-  their slugs and short names, in the roster, in this tree, and in a public issue or PR body.
+  their slugs and short names, in the roster, in this tree, and in a public issue or PR body — and,
+  in the roster only, each row's `stack` (a scenario id or framework name read from the repository)
+  and `owner` (a guild member). Nothing else read from their trees is public.
 - **What is not:** their contents, exactly as for `zheref/akatsuki-ai`. Nor does the ruling register
   them here: none enters `nen/repos.json` or gets a product code from this ruling, and their object ids
   keep the object-id rule until a ruling gives one a code.
