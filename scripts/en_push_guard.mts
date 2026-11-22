@@ -1,22 +1,35 @@
 #!/usr/bin/env node
-// en_push_guard.mts — hatsu:en § 3 pre-push PR-state guard & carrying-PR ledger target
-// (zheref/hatsu#611).
+// en_push_guard.mts — hatsu:en § 3 pre-push PR-state guard & carrying-PR ledger key
+// (zheref/hatsu#611). A prose-ordered precondition of En's push: en § 3 runs it before every push;
+// murasaki / publish_gate.sh do not call it.
 //
 // Calls `nen pr fetch --target <owner/name> --pr <N> --json` (available at nen 0.30.0; no new
 // Nen verb is required) BEFORE every En push, failing closed on unread/unknown states and
-// refusing any push onto a MERGED or CLOSED pull request (0 commits pushed to merged branch).
-// When MERGED or CLOSED, emits the deterministic carrying-PR fallback and computes the successor
-// carrying PR's hanten cycle ledger target (--pr <successor-N>) and cleanup scope.
+// refusing any push onto a MERGED or CLOSED pull request (0 commits pushed to that branch).
+//
+// Carry set (MERGED/CLOSED): non-merge commits on HEAD not already on origin/<base>:
+//   MERGED: git log --no-merges <PR headSha>..HEAD --not origin/<base>
+//   CLOSED: git log --no-merges origin/<base>..HEAD   (the PR's earlier commits are not on base)
+// No readable anchor (headSha absent locally, origin/<base> missing) or a git failure is
+// "carry list unread" (exit 2), never "nothing to carry".
+//
+// Post-push re-read (en § 3): re-run `check --require-head <pushed-sha>`; a PR that reads MERGED
+// at a headSha other than the pushed SHA strands the pushed commits -> exit 1 carry, naming them.
 //
 // Usage:
-//   node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--nen <bin>] [--json]
+//   node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--require-head <sha>] [--nen <bin>] [--json]
 //   node scripts/en_push_guard.mts ledger-target --carrying-pr <N> --carrying-branch <branch> [--original-pr <M>] [--code <CODE>] [--json]
 //
-// Exit codes:
-//   0  check: PR state is OPEN and head branch matches (pushAllowed: true); ledger-target: valid successor target
-//   1  check: PR is MERGED/CLOSED (carry-on-successor-pr fallback) or head branch mismatch (pushAllowed: false);
-//      ledger-target: carrying PR matches predecessor PR (predecessor-pr-refused)
-//   2  usage/validation error, symlinked/non-git repo, or unreadable PR state (fail closed, pushAllowed: false)
+// Exit codes (check):
+//   0  OPEN, headRef matches the branch (pushAllowed: true); with --require-head, also headSha = it
+//   1  MERGED/CLOSED with >= 1 unpushed commit to carry (carry-on-successor-pr; en § 6 fallback rows)
+//   2  usage/validation error, symlinked/non-git repo, unreadable PR state, OPEN with missing headRef,
+//      carry list unread, or --require-head not yet observed on an OPEN PR (fail closed)
+//   3  OPEN but headRef differs from the local branch (head-branch-mismatch): a stop handed back,
+//      never the successor fallback
+//   4  MERGED/CLOSED with nothing unpushed to carry (nothing-to-carry; en § 6 terminal rows)
+// Exit codes (ledger-target): 0 successor key computed; 1 carrying PR equals the predecessor; 2 usage.
+// ledger-target computes the key and path only; hanten § 2b owns opening and recording the ledger.
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -52,7 +65,13 @@ export interface CarryFallbackPlan {
 export interface EnPushCheckResult {
   readonly contract: 'hatsu.en-push-guard/v0.1';
   readonly command: 'check';
-  readonly status: 'allow-push' | 'carry-on-successor-pr' | 'head-branch-mismatch' | 'unread-pr-state';
+  readonly status:
+    | 'allow-push'
+    | 'carry-on-successor-pr'
+    | 'nothing-to-carry'
+    | 'head-branch-mismatch'
+    | 'unread-pr-state'
+    | 'unread-carry-list';
   readonly pushAllowed: boolean;
   readonly repo: string;
   readonly target: string;
@@ -64,7 +83,9 @@ export interface EnPushCheckResult {
   readonly prHeadSha: string | null;
   readonly prBaseRef: string | null;
   readonly anchorUsed: string | null;
+  readonly carryListRead: boolean;
   readonly carryCommits: readonly CarryCommit[];
+  readonly requireHead: string | null;
   readonly fallback?: CarryFallbackPlan;
   readonly error?: string;
 }
@@ -79,8 +100,6 @@ export interface LedgerTargetResult {
   readonly branchSlug: string;
   readonly hantenLedgerKey: string;
   readonly hantenLedgerPath: string;
-  readonly hantenLedgerEnsureArgv: readonly string[];
-  readonly hantenLedgerRecordArgv: readonly string[];
   readonly cleanupScope: string;
   readonly error?: string;
 }
@@ -91,6 +110,7 @@ export interface CheckOptions {
   readonly pr: number;
   readonly base: string;
   readonly branch?: string;
+  readonly requireHead?: string;
   readonly nen: string;
 }
 
@@ -224,36 +244,56 @@ function parsePrStatePayload(stdout: string): {
   return { state: rawState, headRef, headSha, baseRef };
 }
 
-function collectCarryCommits(
-  repo: string,
-  headSha: string | null,
-  branch: string,
-  base: string,
-): { anchorUsed: string | null; commits: CarryCommit[] } {
-  const candidates: string[] = [];
-  if (headSha && SHA_RE.test(headSha)) {
-    const verifyHead = runGit(repo, ['cat-file', '-e', `${headSha}^{commit}`]);
-    if (verifyHead.status === 0) candidates.push(headSha);
-  }
-  for (const ref of [`refs/remotes/origin/${branch}`, `refs/remotes/origin/${base}`]) {
-    const res = runGit(repo, ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]);
-    if (res.status === 0 && res.stdout.trim()) candidates.push(res.stdout.trim());
-  }
-  const anchorUsed = candidates[0] ?? null;
-  if (!anchorUsed) return { anchorUsed: null, commits: [] };
-  const log = runGit(repo, ['log', '--reverse', '--format=%H%x09%s', `${anchorUsed}..HEAD`]);
-  if (log.status !== 0) return { anchorUsed, commits: [] };
+function readCommitRef(repo: string, ref: string): string | null {
+  const res = runGit(repo, ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`]);
+  const sha = res.stdout.trim();
+  return res.status === 0 && SHA_RE.test(sha) ? sha : null;
+}
+
+function parseLog(stdout: string): CarryCommit[] {
   const commits: CarryCommit[] = [];
-  for (const line of log.stdout.split('\n')) {
+  for (const line of stdout.split('\n')) {
     if (!line.trim()) continue;
     const tab = line.indexOf('\t');
     if (tab <= 0) continue;
-    commits.push({
-      sha: sanitizeText(line.slice(0, tab)),
-      subject: sanitizeText(line.slice(tab + 1)),
-    });
+    commits.push({ sha: sanitizeText(line.slice(0, tab)), subject: sanitizeText(line.slice(tab + 1)) });
   }
-  return { anchorUsed, commits };
+  return commits;
+}
+
+// The carry set: non-merge commits on HEAD that origin/<base> does not already hold. MERGED anchors
+// on the PR's merged headSha; CLOSED (unmerged) anchors on origin/<base> alone, because the PR's own
+// earlier commits never reached base. OPEN lists what is unpushed past headSha (informational).
+export function collectCarryCommits(
+  repo: string,
+  state: PrState,
+  headSha: string | null,
+  base: string,
+): { read: boolean; anchorUsed: string | null; commits: CarryCommit[]; error?: string } {
+  const baseSha = readCommitRef(repo, `refs/remotes/origin/${base}`);
+  const head = headSha && SHA_RE.test(headSha) ? readCommitRef(repo, headSha) : null;
+  let args: string[];
+  let anchorUsed: string;
+  if (state === 'CLOSED') {
+    if (!baseSha) return { read: false, anchorUsed: null, commits: [], error: `origin/${base} is not readable` };
+    anchorUsed = `origin/${base}`;
+    args = ['log', '--no-merges', '--reverse', '--format=%H%x09%s', `${baseSha}..HEAD`];
+  } else {
+    if (!head) {
+      return { read: false, anchorUsed: null, commits: [], error: 'PR headSha is not a readable local commit' };
+    }
+    if (state === 'MERGED' && !baseSha) {
+      return { read: false, anchorUsed: null, commits: [], error: `origin/${base} is not readable` };
+    }
+    anchorUsed = head;
+    args = ['log', '--no-merges', '--reverse', '--format=%H%x09%s', `${head}..HEAD`];
+    if (baseSha) args.push('--not', baseSha);
+  }
+  const log = runGit(repo, args);
+  if (log.status !== 0) {
+    return { read: false, anchorUsed, commits: [], error: `git log failed: ${sanitizeText(log.stderr)}` };
+  }
+  return { read: true, anchorUsed, commits: parseLog(log.stdout) };
 }
 
 export function evaluateEnPushGuard(
@@ -269,6 +309,10 @@ export function evaluateEnPushGuard(
   if (!isValidBranchName(opts.base)) {
     throw new EnPushGuardError(2, `--base is not a valid branch name: ${sanitizeText(opts.base)}`);
   }
+  if (opts.requireHead !== undefined && !SHA_RE.test(opts.requireHead)) {
+    throw new EnPushGuardError(2, `--require-head must be a 40-char hex SHA`);
+  }
+  const requireHead = opts.requireHead ? opts.requireHead.toLowerCase() : null;
 
   const repo = resolveCanonicalRepo(opts.repo);
   let branch = opts.branch;
@@ -282,171 +326,141 @@ export function evaluateEnPushGuard(
   if (!isValidBranchName(branch)) {
     throw new EnPushGuardError(2, `--branch is not a valid branch name: ${sanitizeText(branch)}`);
   }
+  const theBranch = branch;
+
+  const make = (
+    exitCode: number,
+    fields: Partial<EnPushCheckResult> & Pick<EnPushCheckResult, 'status'>,
+  ): { exitCode: number; result: EnPushCheckResult } => ({
+    exitCode,
+    result: {
+      contract: 'hatsu.en-push-guard/v0.1',
+      command: 'check',
+      pushAllowed: false,
+      repo,
+      target: opts.target,
+      prNumber: opts.pr,
+      prState: null,
+      branch: theBranch,
+      base: opts.base,
+      prHeadRef: null,
+      prHeadSha: null,
+      prBaseRef: null,
+      anchorUsed: null,
+      carryListRead: false,
+      carryCommits: [],
+      requireHead,
+      ...fields,
+    },
+  });
 
   let fetchOut: FetchPrOutput;
   try {
     fetchOut = fetchPr(opts.nen, opts.target, opts.pr);
   } catch (err) {
-    const msg = sanitizeText((err as Error).message);
-    return {
-      exitCode: 2,
-      result: {
-        contract: 'hatsu.en-push-guard/v0.1',
-        command: 'check',
-        status: 'unread-pr-state',
-        pushAllowed: false,
-        repo,
-        target: opts.target,
-        prNumber: opts.pr,
-        prState: null,
-        branch,
-        base: opts.base,
-        prHeadRef: null,
-        prHeadSha: null,
-        prBaseRef: null,
-        anchorUsed: null,
-        carryCommits: [],
-        error: `failed to read PR #${opts.pr} state before push: ${msg}`,
-      },
-    };
+    return make(2, {
+      status: 'unread-pr-state',
+      error: `failed to read PR #${opts.pr} state before push: ${sanitizeText((err as Error).message)}`,
+    });
   }
-
   if (fetchOut.status !== 0) {
     const detail = sanitizeText(fetchOut.stderr || fetchOut.stdout || `nen pr fetch exited ${fetchOut.status}`);
-    return {
-      exitCode: 2,
-      result: {
-        contract: 'hatsu.en-push-guard/v0.1',
-        command: 'check',
-        status: 'unread-pr-state',
-        pushAllowed: false,
-        repo,
-        target: opts.target,
-        prNumber: opts.pr,
-        prState: null,
-        branch,
-        base: opts.base,
-        prHeadRef: null,
-        prHeadSha: null,
-        prBaseRef: null,
-        anchorUsed: null,
-        carryCommits: [],
-        error: `failed to read PR #${opts.pr} state before push (fail closed): ${detail}`,
-      },
-    };
+    return make(2, {
+      status: 'unread-pr-state',
+      error: `failed to read PR #${opts.pr} state before push (fail closed): ${detail}`,
+    });
   }
-
   let parsed: ReturnType<typeof parsePrStatePayload>;
   try {
     parsed = parsePrStatePayload(fetchOut.stdout);
   } catch (err) {
-    const msg = sanitizeText((err as Error).message);
-    return {
-      exitCode: 2,
-      result: {
-        contract: 'hatsu.en-push-guard/v0.1',
-        command: 'check',
-        status: 'unread-pr-state',
-        pushAllowed: false,
-        repo,
-        target: opts.target,
-        prNumber: opts.pr,
-        prState: null,
-        branch,
-        base: opts.base,
-        prHeadRef: null,
-        prHeadSha: null,
-        prBaseRef: null,
-        anchorUsed: null,
-        carryCommits: [],
-        error: msg,
-      },
-    };
+    return make(2, { status: 'unread-pr-state', error: sanitizeText((err as Error).message) });
   }
 
-  const { anchorUsed, commits } = collectCarryCommits(repo, parsed.headSha, branch, opts.base);
+  const read = {
+    prState: parsed.state,
+    prHeadRef: parsed.headRef,
+    prHeadSha: parsed.headSha,
+    prBaseRef: parsed.baseRef,
+  };
+  const pushedSeen = requireHead !== null && parsed.headSha?.toLowerCase() === requireHead;
 
-  if (parsed.state === 'MERGED' || parsed.state === 'CLOSED') {
-    return {
-      exitCode: 1,
-      result: {
-        contract: 'hatsu.en-push-guard/v0.1',
-        command: 'check',
-        status: 'carry-on-successor-pr',
-        pushAllowed: false,
-        repo,
-        target: opts.target,
-        prNumber: opts.pr,
-        prState: parsed.state,
-        branch,
-        base: opts.base,
-        prHeadRef: parsed.headRef,
-        prHeadSha: parsed.headSha,
-        prBaseRef: parsed.baseRef,
-        anchorUsed,
-        carryCommits: commits,
-        fallback: {
-          action: 'carry-on-successor-pr',
-          targetBase: `origin/${opts.base}`,
-          reason: `PR #${opts.pr} is already ${parsed.state}; refusing push to '${branch}' so 0 commits land on the ${parsed.state.toLowerCase()} branch`,
-          steps: [
-            `Refuse push to '${branch}' (PR #${opts.pr} is ${parsed.state}).`,
-            `Cut a fresh isolated worktree and branch off origin/${opts.base}.`,
-            commits.length > 0
-              ? `Carry ${commits.length} unpushed commit(s) (${commits.map((c) => c.sha.slice(0, 8)).join(', ')}) onto the new branch and re-verify via kokusen, kotoamatsukami, and byakugan.`
-              : `No unpushed local commit remains ahead of origin/${opts.base}; verify whether anything still needs a successor branch.`,
-            `Publish the new branch and open a successor PR via shibari referencing #${opts.pr}.`,
-            `Record hanten's review-cycle ledger against --pr <successor-N> (hanten § 2b) and scope cleanup to that carrying PR.`,
-          ],
-        },
-      },
-    };
-  }
-
-  if (parsed.headRef && parsed.headRef !== branch) {
-    return {
-      exitCode: 1,
-      result: {
-        contract: 'hatsu.en-push-guard/v0.1',
-        command: 'check',
+  if (parsed.state === 'OPEN') {
+    if (!parsed.headRef) {
+      return make(2, { ...read, status: 'unread-pr-state', error: `PR #${opts.pr} reads OPEN with no headRef (fail closed)` });
+    }
+    if (parsed.headRef !== theBranch) {
+      return make(3, {
+        ...read,
         status: 'head-branch-mismatch',
-        pushAllowed: false,
-        repo,
-        target: opts.target,
-        prNumber: opts.pr,
-        prState: parsed.state,
-        branch,
-        base: opts.base,
-        prHeadRef: parsed.headRef,
-        prHeadSha: parsed.headSha,
-        prBaseRef: parsed.baseRef,
-        anchorUsed,
-        carryCommits: commits,
-        error: `local branch '${branch}' does not match PR #${opts.pr} headRef '${parsed.headRef}'`,
-      },
-    };
-  }
-
-  return {
-    exitCode: 0,
-    result: {
-      contract: 'hatsu.en-push-guard/v0.1',
-      command: 'check',
+        error: `local branch '${theBranch}' does not match PR #${opts.pr} headRef '${parsed.headRef}'; stop handed back`,
+      });
+    }
+    if (requireHead !== null && !pushedSeen) {
+      return make(2, {
+        ...read,
+        status: 'unread-pr-state',
+        error: `PR #${opts.pr} headSha ${parsed.headSha ?? 'missing'} is not the pushed ${requireHead.slice(0, 8)} yet; re-read`,
+      });
+    }
+    const carry = collectCarryCommits(repo, 'OPEN', parsed.headSha, opts.base);
+    return make(0, {
+      ...read,
       status: 'allow-push',
       pushAllowed: true,
-      repo,
-      target: opts.target,
-      prNumber: opts.pr,
-      prState: 'OPEN',
-      branch,
-      base: opts.base,
-      prHeadRef: parsed.headRef,
-      prHeadSha: parsed.headSha,
-      prBaseRef: parsed.baseRef,
-      anchorUsed,
-      carryCommits: commits,
+      anchorUsed: carry.anchorUsed,
+      carryListRead: carry.read,
+      carryCommits: carry.commits,
+    });
+  }
+
+  // MERGED or CLOSED: never push. Merged exactly at the pushed head strands nothing.
+  if (parsed.state === 'MERGED' && pushedSeen) {
+    return make(4, {
+      ...read,
+      status: 'nothing-to-carry',
+      carryListRead: true,
+      error: `PR #${opts.pr} merged at the pushed head ${requireHead!.slice(0, 8)}; nothing stranded`,
+    });
+  }
+  const carry = collectCarryCommits(repo, parsed.state, parsed.headSha, opts.base);
+  if (!carry.read) {
+    return make(2, {
+      ...read,
+      status: 'unread-carry-list',
+      anchorUsed: carry.anchorUsed,
+      error: `PR #${opts.pr} is ${parsed.state}; carry list unread (fail closed, push refused): ${carry.error}`,
+    });
+  }
+  if (carry.commits.length === 0) {
+    return make(4, {
+      ...read,
+      status: 'nothing-to-carry',
+      anchorUsed: carry.anchorUsed,
+      carryListRead: true,
+      error: `PR #${opts.pr} is ${parsed.state}; carry list read, nothing unpushed off origin/${opts.base} (en § 6 terminal row)`,
+    });
+  }
+  const shas = carry.commits.map((c) => c.sha.slice(0, 8)).join(', ');
+  return make(1, {
+    ...read,
+    status: 'carry-on-successor-pr',
+    anchorUsed: carry.anchorUsed,
+    carryListRead: true,
+    carryCommits: carry.commits,
+    fallback: {
+      action: 'carry-on-successor-pr',
+      targetBase: `origin/${opts.base}`,
+      reason: `PR #${opts.pr} is already ${parsed.state}; refusing push to '${theBranch}' so 0 commits land on the ${parsed.state.toLowerCase()} branch`,
+      steps: [
+        `Refuse push to '${theBranch}' (PR #${opts.pr} is ${parsed.state}).`,
+        `Cut a fresh isolated worktree and branch off origin/${opts.base}.`,
+        `Carry ${carry.commits.length} commit(s) not on origin/${opts.base} (${shas}) onto the new branch and re-verify via kokusen, kotoamatsukami, and byakugan.`,
+        `Publish the new branch and open a successor PR via shibari referencing #${opts.pr}.`,
+        `Raise hatsu:hanten on the successor PR; hanten § 2b keys its ledger to --pr <successor-N>.`,
+      ],
     },
-  };
+  });
 }
 
 export function resolveCarryingLedgerTarget(opts: LedgerTargetOptions): {
@@ -470,27 +484,6 @@ export function resolveCarryingLedgerTarget(opts: LedgerTargetOptions): {
   const hantenLedgerKey = `${branchSlug}-pr${opts.carryingPr}`;
   const hantenLedgerPath = `.nen/hanten/${hantenLedgerKey}.cycle.json`;
   const cleanupScope = opts.code ? `for ${opts.code}#${opts.carryingPr}` : `for ${opts.carryingBranch}`;
-  const hantenLedgerEnsureArgv = [
-    'review',
-    'ledger',
-    'ensure',
-    '--branch',
-    opts.carryingBranch,
-    '--pr',
-    String(opts.carryingPr),
-    '--json',
-  ];
-  const hantenLedgerRecordArgv = [
-    'review',
-    'ledger',
-    'record',
-    '--branch',
-    opts.carryingBranch,
-    '--pr',
-    String(opts.carryingPr),
-    '--json',
-  ];
-
   if (opts.originalPr !== undefined && opts.originalPr === opts.carryingPr) {
     return {
       exitCode: 1,
@@ -504,8 +497,6 @@ export function resolveCarryingLedgerTarget(opts: LedgerTargetOptions): {
         branchSlug,
         hantenLedgerKey,
         hantenLedgerPath,
-        hantenLedgerEnsureArgv,
-        hantenLedgerRecordArgv,
         cleanupScope,
         error: `carrying PR #${opts.carryingPr} must differ from merged/closed predecessor PR #${opts.originalPr}`,
       },
@@ -524,8 +515,6 @@ export function resolveCarryingLedgerTarget(opts: LedgerTargetOptions): {
       branchSlug,
       hantenLedgerKey,
       hantenLedgerPath,
-      hantenLedgerEnsureArgv,
-      hantenLedgerRecordArgv,
       cleanupScope,
     },
   };
@@ -556,7 +545,7 @@ export function parseCliArgs(argv: string[]): ParsedCli {
     if (flag === '--help' || flag === '-h') {
       return { subcommand: 'help' };
     }
-    const allowedCheck = ['--repo', '--target', '--pr', '--base', '--branch', '--nen'];
+    const allowedCheck = ['--repo', '--target', '--pr', '--base', '--branch', '--require-head', '--nen'];
     const allowedLedger = ['--carrying-pr', '--carrying-branch', '--original-pr', '--code'];
     const allowed = sub === 'check' ? allowedCheck : allowedLedger;
     if (!allowed.includes(flag)) {
@@ -590,6 +579,7 @@ export function parseCliArgs(argv: string[]): ParsedCli {
         pr: parsePositiveInt(prRaw, '--pr'),
         base,
         branch: values.get('--branch'),
+        requireHead: values.get('--require-head'),
         nen: values.get('--nen') || process.env.NEN || 'nen',
       },
     };
@@ -629,7 +619,9 @@ export function renderHuman(result: EnPushCheckResult | LedgerTargetResult): str
     `pr: ${result.target}#${result.prNumber} (${result.prState ?? 'UNREAD'})`,
     `branch: ${result.branch} -> base ${result.base}`,
   ];
-  if (result.carryCommits.length > 0) {
+  if (!result.carryListRead && result.prState !== null && result.prState !== 'OPEN') {
+    lines.push('carry list: unread');
+  } else if (result.carryCommits.length > 0) {
     lines.push(
       `carry commits (${result.carryCommits.length}): ${result.carryCommits.map((c) => `${c.sha.slice(0, 8)} ${c.subject}`).join('; ')}`,
     );
@@ -644,7 +636,7 @@ export function renderHuman(result: EnPushCheckResult | LedgerTargetResult): str
 
 const USAGE = [
   'Usage:',
-  '  node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--nen <bin>] [--json]',
+  '  node scripts/en_push_guard.mts check --repo <path> --target <owner/name> --pr <N> --base <branch.base> [--branch <name>] [--require-head <sha>] [--nen <bin>] [--json]',
   '  node scripts/en_push_guard.mts ledger-target --carrying-pr <N> --carrying-branch <branch> [--original-pr <M>] [--code <CODE>] [--json]',
 ].join('\n');
 

@@ -252,27 +252,45 @@ that catch-up is a no-op; if it changed any path, this paragraph repeats rather 
 stale tree to readiness. That is the same owner map [`$sharingan`](../sharingan/SKILL.md)
 § 5 already names when Kurapika authored the PR; En does not invent a fourth suite.
 
-**Pre-push PR-state guard (`zheref/hatsu#611`, lane `en-push-guard`).** Before **every** En push
-(step 3's catch-up push or any review-fix push from steps 2/4), read live pull-request state through:
+**Pre-push PR-state guard (`zheref/hatsu#611`, lane `en-push-guard`): a prose-ordered precondition of
+En's push.** `murasaki` and `scripts/publish_gate.sh` do not call it; this paragraph orders it. Before
+**every** En push (step 3's catch-up push or any review-fix push from steps 2/4), read live PR state:
 
 ```bash
 node "$hatsu_root/scripts/en_push_guard.mts" check --repo <path> --target <owner/name> --pr <N> --base <PR base> [--branch <head>]
 ```
 
-The guard calls `nen pr fetch --target <owner/name> --pr <N> --json` (available directly without a new
-Nen verb) and fails closed on unread state (exit `2`, push refused). When the live state is `OPEN` and
-`headRef` matches the branch (exit `0`), `murasaki` § 6 pushes (`scripts/publish_gate.sh`). When the
-live state is `MERGED` or `CLOSED` (exit `1`), **En never pushes to that branch** (`0` commits
-pushed to the merged/closed PR) and follows the **carrying-PR fallback**: cut a fresh branch off
-`origin/<PR base>` in a fresh isolated worktree, carry the unpushed commit(s) onto it, re-prove
-through `kokusen`, `kotoamatsukami` and `byakugan`, publish and open a successor PR through
-[`$mukai`](../mukai/SKILL.md)'s [`shibari`](../shibari/SKILL.md) (naming the replaced PR and
-why), open and record [`$hanten`](../hanten/SKILL.md)'s cycle ledger against `--pr
-<successor-N>` (`node "$hatsu_root/scripts/en_push_guard.mts" ledger-target --carrying-pr
-<successor-N> --carrying-branch <branch> --original-pr <N> --code <CODE>`; `hanten` § 2b), post a
-fresh durable slice (`mukai` step 8a), comment once on the original PR naming its carrying
-successor, and continue driving the successor PR from step 2 under this run's `en-<CODE>-<N>` cap
-ledger (`cleanup` follows the carrying PR).
+The guard reads `nen pr fetch --target <owner/name> --pr <N> --json` (an existing verb; no Nen filing)
+and En routes on its exit, never on its own reading:
+
+| Exit | Read | What En does |
+|---|---|---|
+| `0` | `OPEN`, `headRef` is the branch | `murasaki` § 6 pushes (`scripts/publish_gate.sh`) |
+| `1` | `MERGED` or `CLOSED`, commits to carry | **no push to that branch**; § 6's carrying rows |
+| `2` | unread: PR state, an `OPEN` PR with no `headRef`, or the carry list | no push; a stop handed back, the read named |
+| `3` | `OPEN`, `headRef` another branch | no push; **a stop handed back**, never the successor fallback |
+| `4` | `MERGED` or `CLOSED`, nothing unpushed | no push; § 6's terminal rows |
+
+**The carry set** is every non-merge commit on `HEAD` not already on `origin/<PR base>`: anchored at the
+merged `headSha` for `MERGED`, at `origin/<PR base>` itself for `CLOSED` (the PR's earlier commits never
+reached base). An unreadable anchor is exit `2`, never "nothing to carry".
+
+**The carrying-PR fallback** (exit `1`): cut a fresh branch off `origin/<PR base>` in a fresh isolated
+worktree, carry the guard's listed commits onto it, re-prove through `kokusen`, `kotoamatsukami` and
+`byakugan`, publish it and open a successor PR through [`$mukai`](../mukai/SKILL.md)'s
+[`shibari`](../shibari/SKILL.md) (naming the replaced PR and why), **raise
+[`$hanten`](../hanten/SKILL.md) on the successor PR; hanten § 2b keys its ledger to `--pr
+<successor-N>`** (`en_push_guard.mts ledger-target --carrying-pr <successor-N> --carrying-branch
+<branch>` prints that key and path, nothing more), post a fresh durable slice (`mukai` step 8a), comment
+once on the original PR naming its carrying successor, and drive the successor from step 2 under this
+run's `en-<CODE>-<N>` cap ledger.
+
+**After each En push, re-read**: the same `check` with `--require-head <pushed-sha>`. `0` confirms the
+pushed head on the open PR; `4` means it merged at the pushed SHA, nothing stranded; `1` means the PR
+reads `MERGED` (or `CLOSED`) at another head, so the pushed commits are stranded and the fallback carries
+them, the guard naming each; `2` (the pushed head not yet observed) re-reads within the same cycle.
+**Residual race, named:** a merge landing between the pre-push read and the push is caught by this
+re-read, never prevented. GitHub has no push conditioned on PR state.
 
 **A catch-up that resolved a conflict of meaning reopens review** (zheref/hatsu#583). Where step 3's
 catch-up stopped at [`$ao`](../ao/SKILL.md) § 6 and resumed on the maintainer's pick, the merged
@@ -560,9 +578,12 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | **an unmet `round_quorum` member with no round-check run at the judged head, the round row the only failing row, its window not yet passed** ([PROCESS.md](../../../docs/PROCESS.md), *The sixth stop*, (c)'s third observation; [HR-373](../../../docs/ROSTER.md#hr-373), zheref/hatsu#543) | **pending, a wait** — no cycle spent: run the two paced refresh windows (§ 6's block) at that head, quoting each with its head; a push restarts them. Still no run after both, it is that member's (c) observation and the row below decides |
 | **every `round_quorum` member unavailable at the judged head, the round row the only failing row** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The sixth stop*, (a)–(e)) | **not a pending state — no round will arrive.** End the hold and go to step 6, the sixth stop, with the not-ready verdict quoted verbatim and the Hatsu line beside it; no cycle is spent |
 | an **effective** `aiReviewers: optional \| off` (PROCESS), its hanten prompt's conditions met ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there) | **not a pending state — the round is not expected.** End the hold and go to step 6, the sixth stop, the not-ready verdict quoted verbatim with PROCESS's Hatsu line; no cycle is spent. Under an effective `off` en never requests a bot |
-| the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
-| **the PR closed by its base's deletion** — a `closed` event whose preceding event is `base_ref_deleted`, no `reopened` after it (the raw timeline, every page: `gh api --paginate repos/<owner>/<name>/issues/<N>/timeline`; nen 0.28 has no timeline verb), its head branch still on origin, **and the deleted base already merged** (its PR merged, or its last head an ancestor of `origin/<branch.base>`: `git merge-base --is-ancestor`) — WORKFLOW § *Stacked pull requests* rule 5; GitHub reopens no PR whose base is gone, and `nen pr retarget` refuses a closed one | **a successor, not an end** (zheref/hatsu#495): claim an acting cycle, still on this run's loop id (`en-<CODE>-<N>` of the original PR) until the run ends — the successor gets no fresh cap, though its hanten and cleanup ledgers follow the carrying successor PR (`--pr <successor-N>`, `en_push_guard.mts ledger-target`; `hanten` § 2b); catch the branch up onto `branch.base` (step 3, `murasaki`); open a successor PR through mukai's `shibari`, its body naming the PR it replaces and why, with its own `Closes`/`Part of` lines and Development links; post a fresh durable slice on it (mukai step 8a); in a futon run, `nen run append` it (WORKFLOW § *Recorded Futon delivery ownership*); comment once on the closed PR naming the successor and calling its slice historical; then drive the successor from step 2. An unmerged deleted base or a deleted head is the row below |
-| the PR closed unmerged any other way, or by base deletion with its head branch gone or its base unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
+| **the PR reads `MERGED` or `CLOSED`** | run § 3's guard `check` first, a push pending or not; exactly one of the next five rows applies, keyed on its exit |
+| **guard exit `1`** (commits to carry), except the base-deletion successor below | **the carrying-PR fallback** (§ 3): claim an acting cycle; never a push to the merged or closed branch |
+| **the PR closed by its base's deletion** — a `closed` event whose preceding event is `base_ref_deleted`, no `reopened` after it (the raw timeline, every page: `gh api --paginate repos/<owner>/<name>/issues/<N>/timeline`; nen 0.28 has no timeline verb), its head branch still on origin, **and the deleted base already merged** (its PR merged, or its last head an ancestor of `origin/<branch.base>`: `git merge-base --is-ancestor`) — WORKFLOW § *Stacked pull requests* rule 5; GitHub reopens no PR whose base is gone, and `nen pr retarget` refuses a closed one — with guard exit `1` when run with `--base <branch.base>` | **a successor, not an end** (zheref/hatsu#495), **through the guard's fallback** (§ 3), never a push to the closed PR's head branch: claim an acting cycle, still on this run's loop id (`en-<CODE>-<N>` of the original PR) until the run ends — the successor gets no fresh cap, though its hanten ledger is a new effort's (hanten § 2b); cut a fresh branch off `origin/<branch.base>` and carry the guard's commits onto it (§ 3's re-proof); open a successor PR through mukai's `shibari`, its body naming the PR it replaces and why, with its own `Closes`/`Part of` lines and Development links; post a fresh durable slice on it (mukai step 8a); in a futon run, `nen run append` it (WORKFLOW § *Recorded Futon delivery ownership*); comment once on the closed PR naming the successor and calling its slice historical; then drive the successor from step 2. An unmerged deleted base or a deleted head with commits to carry is the row above |
+| the PR merged before the gate handoff, **guard exit `4`** (nothing unpushed to carry) | end as a terminal external state, naming that readiness was not the run's observed terminus |
+| the PR closed unmerged, by its base's deletion or any other way, **guard exit `4`** (nothing unpushed to carry) | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
+| **guard exit `2` or `3`** on a `MERGED`/`CLOSED` read or before any push | no push; a stop handed back, naming the unread read or the head mismatch (§ 3) — never the successor fallback |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
 
 **Six stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
@@ -745,8 +766,9 @@ returned, and only once cleanup § 2's two prerequisites hold — `cleanup` requ
   the limit is first.
 - **Never casts a review vote, never self-reviews, never impersonates an automated reviewer** (§ 4).
 - **Never pushes without first reading live PR state through `scripts/en_push_guard.mts`, and never
-  pushes to a branch whose PR already reads `MERGED` or `CLOSED`** — carry unpushed commits onto a
-  fresh branch and carrying successor PR (§ 3; zheref/hatsu#611).
+  pushes to a branch whose PR already reads `MERGED` or `CLOSED`** — the base-deletion successor
+  included: unpushed commits ride a fresh branch off `origin/<base>` and a carrying successor PR
+  (§ 3, § 6; zheref/hatsu#611).
 - **Never runs without a cap** — the value from `monitor.maxCycles`, the requirement from the
   grammar (§ 2). Never raises its own cap mid-run and never restarts itself to get more cycles.
 - **Never runs unattended, and never promises persistence it was not given** (§ 7). A watch measured

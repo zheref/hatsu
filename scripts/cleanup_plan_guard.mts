@@ -3,31 +3,54 @@
 // merged-ahead extra-commit evidence, and pre-delete live re-read (zheref/hatsu#616, #611 AC-3).
 //
 // Rules enforced:
-//   1. Batched open-PR base read (`gh pr list --repo <owner/name> --state open --json
-//      number,baseRefName,headRefName --limit 1000`, one call per pass).
+//   1. Batched open-PR read (`gh pr list --repo <owner/name> --state open --json
+//      number,baseRefName,headRefName --limit 1000`, one call per pass). A list of >= 1000 rows
+//      may be truncated and is UNREAD (exit 2, no delete allowed), never a complete read.
 //   2. Named facts outrank cleanup § 5's table and reviewer-ledger rule across remote heads,
 //      local branches, and worktrees: `locked yes`, open PR, **`base of open PR`**,
-//      `tree unreadable`, refused name, and `no admitted checkout` are classed `named`
-//      (`command: null`, never deterministic, never offered for deletion).
+//      `tree unreadable`, refused name, `no admitted checkout` and `remote SHA unread` are classed
+//      `named` (`exactCommand: null`, never deterministic, never offered for deletion).
 //   3. 100% of `remote-head` rows record `base of open PR: #<N>[, ...]` or
 //      `base of open PR: none` in their evidence.
-//   4. Non-base branches preserve existing § 5 classes identically.
+//   4. Non-base branches keep cleanup § 5's classes. A worktree is deterministic only with
+//      `admitted: true` and an explicit `locked: false`; a missing read makes it proposed, named in
+//      evidence. A deterministic `kind effort` worktree carries § 5's sequence: its remote-head row
+//      first (`precededBy`), then `worktree remove`, then
+//      `git merge-base --is-ancestor -- '<branch>' 'origin/<base>' && git branch -d -- '<branch>'`.
 //   5. Merged branches whose tip is ahead of `headRefOid` are never `deterministic` and name
 //      each extra commit and where it landed (`on origin/<base>`, `in PR #<N> (<state>)`, or
 //      `unlanded`).
-//   6. Right before any `push origin --delete`, `pre-delete` live-re-reads open PR bases and
-//      remote SHA, refusing exit 1 (0 deletes run) if an open PR was retargeted onto the
-//      branch or SHA drifted, and failing closed exit 2 if any read fails.
+//   6. Right before any `push origin --delete`, `pre-delete` binds --target to the checkout's
+//      `git remote get-url origin` (github.com https/ssh, case-insensitive; else exit 2), re-reads
+//      open PRs and the remote SHA, and refuses exit 1 (0 deletes run) when an open PR uses the
+//      branch as base or head, or the SHA drifted; any failed read is exit 2. The delete it emits
+//      carries the verified SHA as a lease:
+//      `git -C '<host>' push '--force-with-lease=refs/heads/<branch>:<sha>' origin --delete -- '<branch>'`.
+//
+// classify --input <json> schema (any other shape is exit 2):
+//   { "openPrs":    [ { "number": <int>, "baseRefName": "<branch>", "headRefName"?: "<branch>" } ],
+//     "candidates": [ { "kind": "worktree" | "local-branch" | "remote-head",
+//                       "branch": "<branch name; no refs/ or origin/ prefix>",
+//                       "object": "<display>", "owner": "this sitting" | "prior: <branch>",
+//                       "prState": "MERGED" | "CLOSED" | "OPEN" | "NONE", "prNumber"?: <int>,
+//                       "core"?, "host"?, "worktreePath"?, "worktreeKind"?: "effort" | "reviewer",
+//                       "reviewerLedgerRan"?: <bool>, "tipSha"?, "mergedHeadSha"?, "trunk"?,
+//                       "admitted"?: <bool>, "refusedReason"?, "locked"?: <bool>, "lockedReason"?,
+//                       "treeState"?: "clean" | "dirty" | "unreadable", "dirtyPaths"?: [..],
+//                       "hostMissing"?: <bool>, "freesBytes"?: <int>, "extraCommits"?: [..] } ],
+//     "prs"?:      [ { "number": <int>, "state": "OPEN" | "MERGED" | "CLOSED", "headRefOid"?: "<sha>" } ] }
+//   `openPrs` and `candidates` are required arrays (absent, null or non-array: exit 2).
 //
 // Usage:
-//   node scripts/cleanup_plan_guard.mts classify --input <json> [--repo <path>] [--base <branch.base>] [--json]
-//   node scripts/cleanup_plan_guard.mts pre-delete --repo <host-wt> --target <owner/name> --branch <branch> --expected-sha <sha> [--base <trunk>] [--gh <bin>] [--json]
-//   node scripts/cleanup_plan_guard.mts merged-ahead --repo <path> --branch-sha <sha> --merged-sha <sha> --base <branch.base> [--prs-json <file>] [--json]
+//   node '<Hatsu root>/scripts/cleanup_plan_guard.mts' classify --input '<plan-input.json>' [--repo '<core>'] [--base '<branch.base>'] [--json]
+//   node '<Hatsu root>/scripts/cleanup_plan_guard.mts' pre-delete --repo '<host>' --target '<owner/name>' --branch '<branch>' --expected-sha '<sha>' --base '<branch.base>' [--gh <bin>] [--json]
+//   node '<Hatsu root>/scripts/cleanup_plan_guard.mts' merged-ahead --repo '<path>' --branch-sha <sha> --merged-sha <sha> --base '<branch.base>' [--prs-json <file>] [--json]
 //
 // Exit codes:
-//   0  classify succeeded; pre-delete allowed (not open PR base + exact remote SHA match); merged-ahead inspected
-//   1  pre-delete refused (`refused-open-pr-base` or `refused-sha-mismatch`, delete must NOT run)
-//   2  usage/validation error, symlinked/non-git repo, or unreadable open-PR / remote-SHA / input state
+//   0  classify succeeded; pre-delete allowed (origin bound, no open PR base/head, exact SHA); merged-ahead inspected
+//   1  pre-delete refused (`refused-open-pr-base`, `refused-open-pr-head` or `refused-sha-mismatch`; delete must NOT run)
+//   2  usage/validation error (a bad input row included), symlinked/non-git repo, origin not --target,
+//      or unreadable/truncated open-PR, remote-SHA or input state: cleanup § 5 offers no row
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -44,6 +67,10 @@ const SCRUB_GIT_ENV = [
 
 const SLUG_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const SHA_RE = /^[0-9a-f]{40}$/i;
+export const OPEN_PR_LIMIT = 1000;
+const KINDS = ['worktree', 'local-branch', 'remote-head'] as const;
+const PR_STATES = ['MERGED', 'CLOSED', 'OPEN', 'NONE'] as const;
+const TREE_STATES = ['clean', 'dirty', 'unreadable'] as const;
 
 export type CleanupClass = 'deterministic' | 'proposed' | 'named';
 export type ObjectKind = 'worktree' | 'local-branch' | 'remote-head';
@@ -107,6 +134,7 @@ export interface ClassifiedPlanRow {
   readonly namedFacts: readonly string[];
   readonly openBasePrs: readonly number[];
   readonly extraCommits: readonly ExtraCommitInfo[];
+  readonly precededBy: string | null;
 }
 
 export interface ClassifyResult {
@@ -119,14 +147,23 @@ export interface ClassifyResult {
 export interface PreDeleteResult {
   readonly contract: 'hatsu.cleanup-plan-guard/v0.1';
   readonly command: 'pre-delete';
-  readonly status: 'allow-delete' | 'refused-open-pr-base' | 'refused-sha-mismatch' | 'unread-open-prs' | 'unread-remote-sha';
+  readonly status:
+    | 'allow-delete'
+    | 'refused-open-pr-base'
+    | 'refused-open-pr-head'
+    | 'refused-sha-mismatch'
+    | 'origin-mismatch'
+    | 'unread-open-prs'
+    | 'unread-remote-sha';
   readonly deleteAllowed: boolean;
+  readonly deleteCommand: string | null;
   readonly repo: string;
   readonly target: string;
   readonly branch: string;
   readonly expectedSha: string;
   readonly remoteSha: string | null;
   readonly openBasePrs: readonly number[];
+  readonly openHeadPrs: readonly number[];
   readonly reason: string;
 }
 
@@ -148,6 +185,7 @@ export interface GhRunOutput {
 }
 
 export type FetchOpenPrsFn = (ghBin: string, target: string) => GhRunOutput;
+export type ReadOriginFn = (repo: string) => GhRunOutput;
 
 export class CleanupPlanGuardError extends Error {
   readonly exitCode: number;
@@ -177,8 +215,16 @@ function runGit(repo: string, args: string[]): { status: number; stdout: string;
   return { status: res.status ?? 1, stdout: res.stdout ?? '', stderr: res.stderr ?? '' };
 }
 
-function isValidBranchName(name: string): boolean {
-  if (!name || name.startsWith('-') || name.startsWith('refs/') || name.includes('@{') || name.includes('..')) {
+export function isValidBranchName(name: string): boolean {
+  if (
+    typeof name !== 'string' ||
+    !name ||
+    name.startsWith('-') ||
+    name.startsWith('refs/') ||
+    name.startsWith('origin/') ||
+    name.includes('@{') ||
+    name.includes('..')
+  ) {
     return false;
   }
   if (/[\s\x00-\x1f\x7f~^:?*[\]\\]/.test(name)) return false;
@@ -209,7 +255,7 @@ function resolveCanonicalRepo(repoArg: string): string {
 export function defaultFetchOpenPrs(ghBin: string, target: string): GhRunOutput {
   const res = spawnSync(
     ghBin,
-    ['pr', 'list', '--repo', target, '--state', 'open', '--json', 'number,baseRefName,headRefName', '--limit', '1000'],
+    ['pr', 'list', '--repo', target, '--state', 'open', '--json', 'number,baseRefName,headRefName', '--limit', String(OPEN_PR_LIMIT)],
     { encoding: 'utf8' },
   );
   if (res.error) {
@@ -218,10 +264,88 @@ export function defaultFetchOpenPrs(ghBin: string, target: string): GhRunOutput 
   return { status: res.status ?? 1, stdout: res.stdout ?? '', stderr: res.stderr ?? '' };
 }
 
+export function defaultReadOrigin(repo: string): GhRunOutput {
+  return runGit(repo, ['remote', 'get-url', 'origin']);
+}
+
+// github.com https or ssh remote -> lowercased <owner>/<name>, else null.
+export function normalizeGithubRemote(url: string): string | null {
+  const u = url.trim();
+  const m =
+    /^https:\/\/github\.com\/([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/i.exec(u) ??
+    /^(?:ssh:\/\/)?git@github\.com[:/]([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/i.exec(u);
+  if (!m) return null;
+  const slug = `${m[1]}/${m[2]}`;
+  return SLUG_RE.test(slug) ? slug.toLowerCase() : null;
+}
+
+// An open-PR list must be an array of fewer than OPEN_PR_LIMIT rows: a full page may be truncated.
+export function validateOpenPrList(raw: unknown, field = 'openPrs'): OpenPrSummary[] {
+  if (!Array.isArray(raw)) {
+    throw new CleanupPlanGuardError(2, `${field} must be a JSON array (absent, null or non-array is unread)`);
+  }
+  if (raw.length >= OPEN_PR_LIMIT) {
+    throw new CleanupPlanGuardError(
+      2,
+      `${field} returned ${raw.length} rows (>= --limit ${OPEN_PR_LIMIT}); the read may be truncated and is unread`,
+    );
+  }
+  const list = raw as OpenPrSummary[];
+  indexOpenPrBases(list);
+  return list;
+}
+
+export function indexOpenPrHeads(openPrs: readonly OpenPrSummary[]): Map<string, number[]> {
+  const byHead = new Map<string, number[]>();
+  for (const pr of openPrs) {
+    if (typeof pr.headRefName !== 'string' || !pr.headRefName) continue;
+    const existing = byHead.get(pr.headRefName) ?? [];
+    if (!existing.includes(pr.number)) existing.push(pr.number);
+    existing.sort((a, b) => a - b);
+    byHead.set(pr.headRefName, existing);
+  }
+  return byHead;
+}
+
+export function leasedDeleteCommand(host: string, branch: string, sha: string): string {
+  return `git -C ${shellQuoteSingle(host)} push ${shellQuoteSingle(`--force-with-lease=refs/heads/${branch}:${sha.toLowerCase()}`)} origin --delete -- ${shellQuoteSingle(branch)}`;
+}
+
+function validateCandidate(raw: unknown, idx: number): CleanupPlanCandidate {
+  const at = `candidates[${idx}]`;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new CleanupPlanGuardError(2, `${at} must be a JSON object`);
+  }
+  const c = raw as Record<string, unknown>;
+  if (!(KINDS as readonly unknown[]).includes(c.kind)) {
+    throw new CleanupPlanGuardError(2, `${at}.kind must be one of ${KINDS.join(' | ')}`);
+  }
+  if (!(PR_STATES as readonly unknown[]).includes(c.prState)) {
+    throw new CleanupPlanGuardError(2, `${at}.prState must be one of ${PR_STATES.join(' | ')}`);
+  }
+  if (typeof c.branch !== 'string' || !isValidBranchName(c.branch)) {
+    throw new CleanupPlanGuardError(2, `${at}.branch is not a valid short branch name (no refs/ or origin/ prefix)`);
+  }
+  if (c.treeState !== undefined && !(TREE_STATES as readonly unknown[]).includes(c.treeState)) {
+    throw new CleanupPlanGuardError(2, `${at}.treeState must be one of ${TREE_STATES.join(' | ')}`);
+  }
+  if (typeof c.object !== 'string' || typeof c.owner !== 'string') {
+    throw new CleanupPlanGuardError(2, `${at} must carry string object and owner`);
+  }
+  return raw as CleanupPlanCandidate;
+}
+
 export function indexOpenPrBases(openPrs: readonly OpenPrSummary[]): Map<string, number[]> {
   const byBase = new Map<string, number[]>();
   for (const pr of openPrs) {
-    if (!Number.isSafeInteger(pr.number) || pr.number <= 0 || typeof pr.baseRefName !== 'string' || !pr.baseRefName) {
+    if (
+      !pr ||
+      typeof pr !== 'object' ||
+      !Number.isSafeInteger(pr.number) ||
+      pr.number <= 0 ||
+      typeof pr.baseRefName !== 'string' ||
+      !pr.baseRefName
+    ) {
       throw new CleanupPlanGuardError(2, 'open PR list entry must carry positive number and non-empty baseRefName');
     }
     const existing = byBase.get(pr.baseRefName) ?? [];
@@ -339,21 +463,32 @@ export function inspectMergedAhead(opts: {
 }
 
 export function classifyCleanupPlan(opts: {
-  readonly openPrs: readonly OpenPrSummary[];
-  readonly candidates: readonly CleanupPlanCandidate[];
+  readonly openPrs: unknown;
+  readonly candidates: unknown;
   readonly repo?: string;
   readonly base?: string;
   readonly prs?: readonly PrCandidateRef[];
 }): ClassifyResult {
-  const openBaseMap = indexOpenPrBases(opts.openPrs);
+  const openBaseMap = indexOpenPrBases(validateOpenPrList(opts.openPrs));
+  if (!Array.isArray(opts.candidates)) {
+    throw new CleanupPlanGuardError(2, 'candidates must be a JSON array (absent, null or non-array is unread)');
+  }
+  const candidates = opts.candidates.map((c, i) => validateCandidate(c, i));
+  if (opts.prs !== undefined && !Array.isArray(opts.prs)) {
+    throw new CleanupPlanGuardError(2, 'prs must be a JSON array when given');
+  }
+  if (opts.base !== undefined && !isValidBranchName(opts.base)) {
+    throw new CleanupPlanGuardError(2, '--base is not a valid branch name');
+  }
   const repo = opts.repo ? resolveCanonicalRepo(opts.repo) : undefined;
   const baseBranch = opts.base ?? 'main';
   const prs = opts.prs ?? [];
 
   const rows: ClassifiedPlanRow[] = [];
   let counts = { deterministic: 0, proposed: 0, named: 0 };
+  const remoteRowIds = new Map<string, string>();
 
-  opts.candidates.forEach((cand, idx) => {
+  candidates.forEach((cand, idx) => {
     const num = idx + 1;
     const openBasePrs = openBaseMap.get(cand.branch) ?? [];
     const namedFacts: string[] = [];
@@ -365,6 +500,12 @@ export function classifyCleanupPlan(opts: {
     if (cand.treeState === 'unreadable') namedFacts.push('tree unreadable');
     if (cand.admitted === false) namedFacts.push(cand.refusedReason ? sanitizeText(cand.refusedReason) : 'refused name');
     if (cand.kind === 'remote-head' && cand.hostMissing) namedFacts.push('no admitted checkout');
+    if (cand.kind === 'remote-head' && !(cand.tipSha && SHA_RE.test(cand.tipSha))) namedFacts.push('remote SHA unread');
+    const missingReads: string[] = [];
+    if (cand.kind === 'worktree') {
+      if (cand.admitted !== true && cand.admitted !== false) missingReads.push('admission unread');
+      if (cand.locked !== true && cand.locked !== false) missingReads.push('locked unread');
+    }
 
     let extraCommits: ExtraCommitInfo[] = [...(cand.extraCommits ?? [])];
     const shaDiffersFromMerged =
@@ -400,18 +541,23 @@ export function classifyCleanupPlan(opts: {
     } else if (cand.kind === 'worktree') {
       const wtPath = cand.worktreePath ?? cand.object;
       const corePath = cand.core ?? '<core>';
-      const baseCmd = `git -C ${shellQuoteSingle(corePath)} worktree remove -- ${shellQuoteSingle(wtPath)}`;
+      const core = shellQuoteSingle(corePath);
+      const baseCmd = `git -C ${core} worktree remove -- ${shellQuoteSingle(wtPath)}`;
+      const readsOk = missingReads.length === 0 && cand.admitted === true && cand.locked === false;
       if (cand.worktreeKind === 'reviewer') {
-        if (cand.treeState === 'clean' && cand.reviewerLedgerRan === true) {
+        if (readsOk && cand.treeState === 'clean' && cand.reviewerLedgerRan === true) {
           cls = 'deterministic';
           exactCommand = baseCmd;
         } else {
           cls = 'proposed';
           exactCommand = baseCmd;
         }
-      } else if (cand.treeState === 'clean' && cand.prState === 'MERGED' && !isAheadOfMergedHead) {
+      } else if (readsOk && cand.treeState === 'clean' && cand.prState === 'MERGED' && !isAheadOfMergedHead) {
+        // cleanup § 5's deterministic `kind effort` sequence: remote-head row first, then remove, then -d.
         cls = 'deterministic';
-        exactCommand = baseCmd;
+        const br = shellQuoteSingle(cand.branch);
+        const trunkRef = shellQuoteSingle(`origin/${cand.trunk ?? baseBranch}`);
+        exactCommand = `${baseCmd} && git -C ${core} merge-base --is-ancestor -- ${br} ${trunkRef} && git -C ${core} branch -d -- ${br}`;
       } else {
         cls = 'proposed';
         exactCommand = baseCmd;
@@ -423,7 +569,7 @@ export function classifyCleanupPlan(opts: {
     } else {
       // remote-head
       const hostPath = cand.host ?? '<host>';
-      const delCmd = `git -C ${shellQuoteSingle(hostPath)} push origin --delete -- ${shellQuoteSingle(cand.branch)}`;
+      const delCmd = leasedDeleteCommand(hostPath, cand.branch, cand.tipSha!);
       if (cand.prState === 'MERGED' && cand.tipSha && cand.mergedHeadSha && cand.tipSha === cand.mergedHeadSha && !isAheadOfMergedHead) {
         cls = 'deterministic';
         exactCommand = delCmd;
@@ -435,6 +581,8 @@ export function classifyCleanupPlan(opts: {
 
     const prefix = cls === 'deterministic' ? 'D' : cls === 'proposed' ? 'P' : 'N';
     const id = `${prefix}${num}`;
+    if (cand.kind === 'remote-head' && !remoteRowIds.has(cand.branch)) remoteRowIds.set(cand.branch, id);
+    const precededBy = null;
     if (cls === 'deterministic') counts = { ...counts, deterministic: counts.deterministic + 1 };
     else if (cls === 'proposed') counts = { ...counts, proposed: counts.proposed + 1 };
     else counts = { ...counts, named: counts.named + 1 };
@@ -457,7 +605,7 @@ export function classifyCleanupPlan(opts: {
     if (cand.kind === 'remote-head' || openBasePrs.length > 0) {
       evidenceParts.push(formatOpenBaseEvidence(openBasePrs));
     }
-    for (const fact of namedFacts) {
+    for (const fact of [...namedFacts, ...missingReads]) {
       if (!evidenceParts.includes(fact)) evidenceParts.push(fact);
     }
     if (isAheadOfMergedHead) {
@@ -487,13 +635,20 @@ export function classifyCleanupPlan(opts: {
       namedFacts,
       openBasePrs,
       extraCommits,
+      precededBy,
     });
   });
 
+  // § 5's order: a deterministic effort worktree runs after its branch's remote-head row.
+  const ordered = rows.map((r, i) =>
+    r.kind === 'worktree' && r.class === 'deterministic' && candidates[i].worktreeKind !== 'reviewer'
+      ? { ...r, precededBy: remoteRowIds.get(candidates[i].branch) ?? null }
+      : r,
+  );
   return {
     contract: 'hatsu.cleanup-plan-guard/v0.1',
     command: 'classify',
-    rows,
+    rows: ordered,
     counts,
   };
 }
@@ -504,10 +659,11 @@ export function evaluatePreDelete(
     readonly target: string;
     readonly branch: string;
     readonly expectedSha: string;
-    readonly base?: string;
+    readonly base: string;
     readonly gh?: string;
   },
   fetchOpenPrs: FetchOpenPrsFn = defaultFetchOpenPrs,
+  readOrigin: ReadOriginFn = defaultReadOrigin,
 ): { exitCode: number; result: PreDeleteResult } {
   if (!SLUG_RE.test(opts.target)) {
     throw new CleanupPlanGuardError(2, `--target must be <owner/name>, got ${JSON.stringify(sanitizeText(opts.target))}`);
@@ -515,11 +671,13 @@ export function evaluatePreDelete(
   if (!isValidBranchName(opts.branch)) {
     throw new CleanupPlanGuardError(2, `--branch is not a valid branch name: ${sanitizeText(opts.branch)}`);
   }
-  const base = opts.base ?? 'main';
-  if (!isValidBranchName(base)) {
-    throw new CleanupPlanGuardError(2, `--base is not a valid branch name: ${sanitizeText(base)}`);
+  if (typeof opts.base !== 'string' || !opts.base) {
+    throw new CleanupPlanGuardError(2, '--base <branch.base> is required');
   }
-  if (opts.branch === base) {
+  if (!isValidBranchName(opts.base)) {
+    throw new CleanupPlanGuardError(2, `--base is not a valid branch name: ${sanitizeText(opts.base)}`);
+  }
+  if (opts.branch === opts.base) {
     throw new CleanupPlanGuardError(2, `refusing pre-delete against trunk branch '${opts.branch}'`);
   }
   if (!SHA_RE.test(opts.expectedSha)) {
@@ -528,114 +686,87 @@ export function evaluatePreDelete(
 
   const repo = resolveCanonicalRepo(opts.repo);
   const ghBin = opts.gh || 'gh';
+  const make = (
+    exitCode: number,
+    status: PreDeleteResult['status'],
+    reason: string,
+    extra: Partial<PreDeleteResult> = {},
+  ): { exitCode: number; result: PreDeleteResult } => ({
+    exitCode,
+    result: {
+      contract: 'hatsu.cleanup-plan-guard/v0.1',
+      command: 'pre-delete',
+      status,
+      deleteAllowed: false,
+      deleteCommand: null,
+      repo,
+      target: opts.target,
+      branch: opts.branch,
+      expectedSha: opts.expectedSha,
+      remoteSha: null,
+      openBasePrs: [],
+      openHeadPrs: [],
+      reason,
+      ...extra,
+    },
+  });
+
+  // SEC-7: the checkout's origin must be the --target repository.
+  let originOut: GhRunOutput;
+  try {
+    originOut = readOrigin(repo);
+  } catch (err) {
+    originOut = { status: 2, stdout: '', stderr: (err as Error).message };
+  }
+  const originSlug = originOut.status === 0 ? normalizeGithubRemote(originOut.stdout) : null;
+  if (originSlug === null || originSlug !== opts.target.toLowerCase()) {
+    return make(
+      2,
+      'origin-mismatch',
+      `refused: origin of ${sanitizeText(repo)} (${sanitizeText(originOut.stdout || originOut.stderr || 'unread')}) is not github.com/${opts.target}; delete did not run`,
+    );
+  }
 
   let ghOut: GhRunOutput;
   try {
     ghOut = fetchOpenPrs(ghBin, opts.target);
   } catch (err) {
-    return {
-      exitCode: 2,
-      result: {
-        contract: 'hatsu.cleanup-plan-guard/v0.1',
-        command: 'pre-delete',
-        status: 'unread-open-prs',
-        deleteAllowed: false,
-        repo,
-        target: opts.target,
-        branch: opts.branch,
-        expectedSha: opts.expectedSha,
-        remoteSha: null,
-        openBasePrs: [],
-        reason: `could not re-read open PR bases before delete (fail closed): ${sanitizeText((err as Error).message)}`,
-      },
-    };
+    return make(2, 'unread-open-prs', `could not re-read open PRs before delete (fail closed): ${sanitizeText((err as Error).message)}`);
   }
-
   if (ghOut.status !== 0) {
-    return {
-      exitCode: 2,
-      result: {
-        contract: 'hatsu.cleanup-plan-guard/v0.1',
-        command: 'pre-delete',
-        status: 'unread-open-prs',
-        deleteAllowed: false,
-        repo,
-        target: opts.target,
-        branch: opts.branch,
-        expectedSha: opts.expectedSha,
-        remoteSha: null,
-        openBasePrs: [],
-        reason: `could not re-read open PR bases before delete (fail closed): ${sanitizeText(ghOut.stderr || ghOut.stdout)}`,
-      },
-    };
+    return make(2, 'unread-open-prs', `could not re-read open PRs before delete (fail closed): ${sanitizeText(ghOut.stderr || ghOut.stdout)}`);
   }
-
   let openPrs: OpenPrSummary[];
   try {
-    const parsed = JSON.parse(ghOut.stdout) as unknown;
-    if (!Array.isArray(parsed)) throw new Error('expected JSON array of open PRs');
-    openPrs = parsed as OpenPrSummary[];
-    indexOpenPrBases(openPrs);
+    openPrs = validateOpenPrList(JSON.parse(ghOut.stdout) as unknown, 'open PR list');
   } catch (err) {
-    return {
-      exitCode: 2,
-      result: {
-        contract: 'hatsu.cleanup-plan-guard/v0.1',
-        command: 'pre-delete',
-        status: 'unread-open-prs',
-        deleteAllowed: false,
-        repo,
-        target: opts.target,
-        branch: opts.branch,
-        expectedSha: opts.expectedSha,
-        remoteSha: null,
-        openBasePrs: [],
-        reason: `malformed open PR list before delete (fail closed): ${sanitizeText((err as Error).message)}`,
-      },
-    };
+    return make(2, 'unread-open-prs', `unread open PR list before delete (fail closed): ${sanitizeText((err as Error).message)}`);
   }
 
   const matchingPrs = indexOpenPrBases(openPrs).get(opts.branch) ?? [];
   if (matchingPrs.length > 0) {
-    return {
-      exitCode: 1,
-      result: {
-        contract: 'hatsu.cleanup-plan-guard/v0.1',
-        command: 'pre-delete',
-        status: 'refused-open-pr-base',
-        deleteAllowed: false,
-        repo,
-        target: opts.target,
-        branch: opts.branch,
-        expectedSha: opts.expectedSha,
-        remoteSha: null,
-        openBasePrs: matchingPrs,
-        reason: `refused remote delete of '${opts.branch}': open PR ${matchingPrs.map((n) => `#${n}`).join(', ')} now targets it as baseRefName; delete did not run`,
-      },
-    };
+    return make(
+      1,
+      'refused-open-pr-base',
+      `refused remote delete of '${opts.branch}': open PR ${matchingPrs.map((n) => `#${n}`).join(', ')} now targets it as baseRefName; delete did not run`,
+      { openBasePrs: matchingPrs },
+    );
+  }
+  const headPrs = indexOpenPrHeads(openPrs).get(opts.branch) ?? [];
+  if (headPrs.length > 0) {
+    return make(
+      1,
+      'refused-open-pr-head',
+      `refused remote delete of '${opts.branch}': open PR ${headPrs.map((n) => `#${n}`).join(', ')} uses it as headRefName; delete did not run`,
+      { openHeadPrs: headPrs },
+    );
   }
 
   const ref = `refs/heads/${opts.branch}`;
   const lsRemote = runGit(repo, ['ls-remote', '--heads', 'origin', '--', ref]);
   if (lsRemote.status !== 0) {
-    return {
-      exitCode: 2,
-      result: {
-        contract: 'hatsu.cleanup-plan-guard/v0.1',
-        command: 'pre-delete',
-        status: 'unread-remote-sha',
-        deleteAllowed: false,
-        repo,
-        target: opts.target,
-        branch: opts.branch,
-        expectedSha: opts.expectedSha,
-        remoteSha: null,
-        openBasePrs: [],
-        reason: `git ls-remote failed before delete: ${sanitizeText(lsRemote.stderr)}`,
-      },
-    };
+    return make(2, 'unread-remote-sha', `git ls-remote failed before delete: ${sanitizeText(lsRemote.stderr)}`);
   }
-
   const lines = lsRemote.stdout
     .split('\n')
     .map((l) => l.trim())
@@ -643,40 +774,24 @@ export function evaluatePreDelete(
   const expectedLine = `${opts.expectedSha.toLowerCase()}\t${ref}`;
   if (lines.length !== 1 || lines[0].toLowerCase() !== expectedLine) {
     const actualSha = lines[0]?.split(/\s+/)[0] ?? 'absent';
-    return {
-      exitCode: 1,
-      result: {
-        contract: 'hatsu.cleanup-plan-guard/v0.1',
-        command: 'pre-delete',
-        status: 'refused-sha-mismatch',
-        deleteAllowed: false,
-        repo,
-        target: opts.target,
-        branch: opts.branch,
-        expectedSha: opts.expectedSha,
-        remoteSha: lines.length === 1 ? sanitizeText(actualSha) : null,
-        openBasePrs: [],
-        reason: `refused remote delete of '${opts.branch}': expected ${opts.expectedSha.slice(0, 8)}, saw ${sanitizeText(actualSha)}`,
-      },
-    };
+    return make(
+      1,
+      'refused-sha-mismatch',
+      `refused remote delete of '${opts.branch}': expected ${opts.expectedSha.slice(0, 8)}, saw ${sanitizeText(actualSha)}`,
+      { remoteSha: lines.length === 1 ? sanitizeText(actualSha) : null },
+    );
   }
 
-  return {
-    exitCode: 0,
-    result: {
-      contract: 'hatsu.cleanup-plan-guard/v0.1',
-      command: 'pre-delete',
-      status: 'allow-delete',
+  return make(
+    0,
+    'allow-delete',
+    `verified origin is ${opts.target}, '${opts.branch}' is the base or head of no open PR, and matches ${opts.expectedSha.slice(0, 8)}`,
+    {
       deleteAllowed: true,
-      repo,
-      target: opts.target,
-      branch: opts.branch,
-      expectedSha: opts.expectedSha,
       remoteSha: opts.expectedSha,
-      openBasePrs: [],
-      reason: `verified '${opts.branch}' is the base of no open PR and matches ${opts.expectedSha.slice(0, 8)}`,
+      deleteCommand: leasedDeleteCommand(repo, opts.branch, opts.expectedSha),
     },
-  };
+  );
 }
 
 export type ParsedCleanupCli =
@@ -765,8 +880,9 @@ export function parseCliArgs(argv: string[]): ParsedCleanupCli {
     const target = values.get('--target');
     const branch = values.get('--branch');
     const expectedSha = values.get('--expected-sha');
-    if (!repo || !target || !branch || !expectedSha) {
-      throw new CleanupPlanGuardError(2, 'pre-delete requires --repo, --target, --branch, and --expected-sha');
+    const base = values.get('--base');
+    if (!repo || !target || !branch || !expectedSha || !base) {
+      throw new CleanupPlanGuardError(2, 'pre-delete requires --repo, --target, --branch, --expected-sha, and --base');
     }
     return {
       subcommand: 'pre-delete',
@@ -776,7 +892,7 @@ export function parseCliArgs(argv: string[]): ParsedCleanupCli {
         target,
         branch,
         expectedSha,
-        base: values.get('--base'),
+        base,
         gh: values.get('--gh'),
       },
     };
@@ -813,11 +929,13 @@ export function renderHuman(result: ClassifyResult | PreDeleteResult | MergedAhe
     return lines.join('\n');
   }
   if (result.command === 'pre-delete') {
-    return [
+    const lines = [
       `cleanup-plan-guard: ${result.status} (deleteAllowed: ${String(result.deleteAllowed)})`,
       `branch: ${result.branch} (${result.target})`,
       `reason: ${result.reason}`,
-    ].join('\n');
+    ];
+    if (result.deleteCommand) lines.push(`run: ${result.deleteCommand}`);
+    return lines.join('\n');
   }
   return [
     `cleanup-plan-guard: merged-ahead (${result.aheadCount} extra commit(s))`,
@@ -835,9 +953,10 @@ function readJsonFile<T>(filePath: string): T {
 
 const USAGE = [
   'Usage:',
-  '  node scripts/cleanup_plan_guard.mts classify --input <json> [--repo <path>] [--base <branch.base>] [--json]',
-  '  node scripts/cleanup_plan_guard.mts pre-delete --repo <host-wt> --target <owner/name> --branch <branch> --expected-sha <sha> [--base <trunk>] [--gh <bin>] [--json]',
-  '  node scripts/cleanup_plan_guard.mts merged-ahead --repo <path> --branch-sha <sha> --merged-sha <sha> --base <branch.base> [--prs-json <file>] [--json]',
+  "  node '<Hatsu root>/scripts/cleanup_plan_guard.mts' classify --input '<plan-input.json>' [--repo '<core>'] [--base '<branch.base>'] [--json]",
+  "  node '<Hatsu root>/scripts/cleanup_plan_guard.mts' pre-delete --repo '<host>' --target '<owner/name>' --branch '<branch>' --expected-sha '<sha>' --base '<branch.base>' [--gh <bin>] [--json]",
+  "  node '<Hatsu root>/scripts/cleanup_plan_guard.mts' merged-ahead --repo '<path>' --branch-sha <sha> --merged-sha <sha> --base '<branch.base>' [--prs-json <file>] [--json]",
+  'Input schema and exit codes: this script\'s header.',
 ].join('\n');
 
 if (import.meta.main) {
@@ -848,15 +967,15 @@ if (import.meta.main) {
       process.exit(0);
     }
     if (parsed.subcommand === 'classify') {
-      const input = readJsonFile<{
-        openPrs: OpenPrSummary[];
-        candidates: CleanupPlanCandidate[];
-        prs?: PrCandidateRef[];
-      }>(parsed.inputFile);
+      const input = readJsonFile<unknown>(parsed.inputFile);
+      if (!input || typeof input !== 'object' || Array.isArray(input)) {
+        throw new CleanupPlanGuardError(2, 'classify --input must hold a JSON object (see the header schema)');
+      }
+      const fields = input as Record<string, unknown>;
       const res = classifyCleanupPlan({
-        openPrs: input.openPrs ?? [],
-        candidates: input.candidates ?? [],
-        prs: input.prs,
+        openPrs: fields.openPrs,
+        candidates: fields.candidates,
+        prs: fields.prs as PrCandidateRef[] | undefined,
         repo: parsed.repo,
         base: parsed.base,
       });

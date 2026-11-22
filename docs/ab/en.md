@@ -460,14 +460,16 @@ is owed to nen (zheref/nen#487).
 
 ## Pre-push PR-state guard & carrying-PR ledgers — 2026-11-22 (zheref/hatsu#611)
 
-En § 3 and § 6 require every En push to first read live PR state through
-`scripts/en_push_guard.mts` (`nen pr fetch --target <owner/name> --pr <N> --json` — an existing
-Nen verb, no new verb required). `OPEN` allows push only when `headRef` matches the local branch;
-`MERGED`, `CLOSED`, or unread states refuse push (`pushAllowed: false`, 0 commits pushed to merged
-branches) and direct commits onto a fresh branch off `origin/<base>` and successor PR whose
-`hanten` (`--pr <successor-N>`) and `cleanup` ledgers follow the carrying PR (`hanten` § 2b).
+En § 3 and § 6 make `scripts/en_push_guard.mts` a prose-ordered precondition of every En push
+(`nen pr fetch --target <owner/name> --pr <N> --json` — an existing Nen verb, no new verb required).
+Exit `0` (`OPEN`, matching `headRef`) pushes; `1` (`MERGED`/`CLOSED` with commits not on
+`origin/<base>`) carries them onto a fresh branch off `origin/<base>` and a successor PR, whose hanten
+ledger § 2b keys to `--pr <successor-N>`; `2` (unread) and `3` (open PR on another head) hand a stop
+back; `4` (nothing unpushed) is § 6's terminal row. A post-push `--require-head <sha>` re-read catches
+a merge that landed at another head.
 
-Hermetic fixture (`nen shu test --repo <hatsu> --lane en-push-guard`; Vitest 4/4 + Node 24 LCOV
-capture `coverage/en-push-guard/lcov.info` >= 80%) exercises `OPEN`, `MERGED`, `CLOSED`, mismatched
-branch, unread fail-closed exits (`nen pr fetch` errors, corrupt JSON, unknown state, symlinks,
-detached HEAD), and `ledger-target` successor PR keying against real throwaway git origins.
+Hermetic fixture (`nen shu test --repo <hatsu> --lane en-push-guard`; Vitest 7/7 + Node 24 LCOV
+capture `coverage/en-push-guard/lcov.info` >= 80%) exercises `OPEN`, `MERGED`, `CLOSED` (anchored on
+`origin/<base>`), a branch that merged `origin/main` after its PR merged, mismatched and missing heads,
+nothing-to-carry versus carry-list-unread, the post-push re-read, unread fail-closed exits, and
+`ledger-target` successor keying against real throwaway git origins.

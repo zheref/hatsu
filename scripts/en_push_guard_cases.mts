@@ -129,8 +129,14 @@ export const enPushGuardCases: EnPushGuardCase[] = [
         assert.equal(closedRes.result.status, 'carry-on-successor-pr');
         assert.equal(closedRes.result.pushAllowed, false);
         assert.equal(closedRes.result.prState, 'CLOSED');
+        // R1: CLOSED-unmerged anchors on origin/<base>, so the PR's own earlier commit is carried too.
+        assert.equal(closedRes.result.anchorUsed, 'origin/main');
+        assert.deepEqual(
+          closedRes.result.carryCommits.map((c) => c.sha),
+          [prHeadSha, unpushedSha],
+        );
 
-        // Head branch mismatch refuses push
+        // R3: head branch mismatch on an OPEN PR is its own exit (3), a stop handed back
         const mismatch = evaluateEnPushGuard(
           { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' },
           () => ({
@@ -142,9 +148,25 @@ export const enPushGuardCases: EnPushGuardCase[] = [
             stderr: '',
           }),
         );
-        assert.equal(mismatch.exitCode, 1);
+        assert.equal(mismatch.exitCode, 3);
         assert.equal(mismatch.result.status, 'head-branch-mismatch');
         assert.equal(mismatch.result.pushAllowed, false);
+        assert.equal(mismatch.result.fallback, undefined);
+
+        // R3: OPEN with a missing or empty headRef is unread (exit 2)
+        for (const headRef of [undefined, '', '   ']) {
+          const noHead = evaluateEnPushGuard(
+            { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' },
+            () => ({
+              status: 0,
+              stdout: JSON.stringify({ state: 'OPEN', pr: { number: 611, headRef, headSha: prHeadSha } }),
+              stderr: '',
+            }),
+          );
+          assert.equal(noHead.exitCode, 2);
+          assert.equal(noHead.result.status, 'unread-pr-state');
+          assert.equal(noHead.result.pushAllowed, false);
+        }
       } finally {
         rmSync(tmp, { recursive: true, force: true });
       }
@@ -164,16 +186,9 @@ export const enPushGuardCases: EnPushGuardCase[] = [
       assert.equal(ok.result.status, 'carrying-pr-ledger');
       assert.equal(ok.result.hantenLedgerKey, 'pro-kurapika-f5-carry-pr620');
       assert.equal(ok.result.hantenLedgerPath, '.nen/hanten/pro-kurapika-f5-carry-pr620.cycle.json');
-      assert.deepEqual(ok.result.hantenLedgerEnsureArgv, [
-        'review',
-        'ledger',
-        'ensure',
-        '--branch',
-        'pro/kurapika/f5-carry',
-        '--pr',
-        '620',
-        '--json',
-      ]);
+      // Finding 13: the key and path only; hanten § 2b owns opening and recording the ledger.
+      assert.equal('hantenLedgerEnsureArgv' in ok.result, false);
+      assert.equal('hantenLedgerRecordArgv' in ok.result, false);
       assert.equal(ok.result.cleanupScope, 'for HA#620');
       assert(renderHuman(ok.result).includes('.nen/hanten/pro-kurapika-f5-carry-pr620.cycle.json'));
 
@@ -338,6 +353,147 @@ exit 2
         assert.equal(cliLedger.status, 0, cliLedger.stderr);
         const ledgerJson = JSON.parse(cliLedger.stdout);
         assert.equal(ledgerJson.hantenLedgerPath, '.nen/hanten/pro-kurapika-feat-carry-pr620.cycle.json');
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'HA#611 finding 11: carry set excludes commits already on origin/<base> and merge commits after the branch merged origin/main post-merge',
+    run: () => {
+      const { tmp, work, prHeadSha } = setupRepoWithCarryCommits();
+      try {
+        // The PR merges on origin, main advances, and the local branch merges origin/main back in.
+        const other = join(tmp, 'other');
+        mustGit(tmp, ['clone', join(tmp, 'origin.git'), other]);
+        mustGit(other, ['config', 'user.email', 'test@example.com']);
+        mustGit(other, ['config', 'user.name', 'Test User']);
+        mustGit(other, ['checkout', 'main']);
+        mustGit(other, ['merge', '--no-ff', 'origin/pro/kurapika/feat-a', '-m', 'Merge PR #611']);
+        writeFileSync(join(other, 'later.txt'), 'later\n', 'utf8');
+        mustGit(other, ['add', 'later.txt']);
+        mustGit(other, ['commit', '-m', 'chore: later main commit']);
+        const laterMainSha = mustGit(other, ['rev-parse', 'HEAD']);
+        mustGit(other, ['push', 'origin', 'main']);
+        mustGit(work, ['fetch', 'origin']);
+        mustGit(work, ['merge', '--no-edit', 'origin/main']);
+        writeFileSync(join(work, 'fix2.txt'), 'second fix\n', 'utf8');
+        mustGit(work, ['add', 'fix2.txt']);
+        mustGit(work, ['commit', '-m', 'fix: second unpushed follow-up']);
+        const secondSha = mustGit(work, ['rev-parse', 'HEAD']);
+        const firstSha = mustGit(work, ['rev-parse', 'HEAD~1^1']);
+
+        const merged = evaluateEnPushGuard(
+          { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' },
+          () => ({
+            status: 0,
+            stdout: JSON.stringify({ state: 'MERGED', pr: { headRef: 'pro/kurapika/feat-a', headSha: prHeadSha } }),
+            stderr: '',
+          }),
+        );
+        assert.equal(merged.exitCode, 1);
+        const carried = merged.result.carryCommits.map((c) => c.sha);
+        assert.deepEqual(carried, [firstSha, secondSha]);
+        assert.equal(carried.includes(laterMainSha), false);
+        assert(merged.result.carryCommits.every((c) => !c.subject.startsWith('Merge')));
+        assert(merged.result.fallback?.steps.some((s) => s.includes('not on origin/main')));
+        assert(merged.result.fallback?.steps.some((s) => s.includes('hanten § 2b keys its ledger to --pr <successor-N>')));
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'HA#611 finding 12 and R1: nothing to carry (exit 4) is distinct from carry list unread (exit 2)',
+    run: () => {
+      const { tmp, work, unpushedSha } = setupRepoWithCarryCommits();
+      try {
+        // Merged at the local tip: nothing unpushed -> en § 6 terminal row, exit 4
+        const nothing = evaluateEnPushGuard(
+          { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' },
+          () => ({
+            status: 0,
+            stdout: JSON.stringify({ state: 'MERGED', pr: { headRef: 'pro/kurapika/feat-a', headSha: unpushedSha } }),
+            stderr: '',
+          }),
+        );
+        assert.equal(nothing.exitCode, 4);
+        assert.equal(nothing.result.status, 'nothing-to-carry');
+        assert.equal(nothing.result.carryListRead, true);
+        assert.equal(nothing.result.pushAllowed, false);
+        assert.equal(nothing.result.fallback, undefined);
+        assert(renderHuman(nothing.result).includes('nothing-to-carry'));
+
+        // MERGED with a headSha this checkout does not hold: no anchor -> unread, exit 2
+        const noAnchor = evaluateEnPushGuard(
+          { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen' },
+          () => ({
+            status: 0,
+            stdout: JSON.stringify({ state: 'MERGED', pr: { headRef: 'pro/kurapika/feat-a', headSha: 'a'.repeat(40) } }),
+            stderr: '',
+          }),
+        );
+        assert.equal(noAnchor.exitCode, 2);
+        assert.equal(noAnchor.result.status, 'unread-carry-list');
+        assert.equal(noAnchor.result.carryListRead, false);
+        assert(renderHuman(noAnchor.result).includes('carry list: unread'));
+
+        // CLOSED with origin/<base> missing: unread, exit 2
+        const noBase = evaluateEnPushGuard(
+          { repo: work, target: 'zheref/hatsu', pr: 611, base: 'gone-base', nen: 'nen' },
+          () => ({ status: 0, stdout: JSON.stringify({ state: 'CLOSED', pr: { headRef: 'pro/kurapika/feat-a' } }), stderr: '' }),
+        );
+        assert.equal(noBase.exitCode, 2);
+        assert.equal(noBase.result.status, 'unread-carry-list');
+
+        // MERGED with origin/<base> missing: unread, exit 2
+        const mergedNoBase = evaluateEnPushGuard(
+          { repo: work, target: 'zheref/hatsu', pr: 611, base: 'gone-base', nen: 'nen' },
+          () => ({
+            status: 0,
+            stdout: JSON.stringify({ state: 'MERGED', pr: { headRef: 'pro/kurapika/feat-a', headSha: unpushedSha } }),
+            stderr: '',
+          }),
+        );
+        assert.equal(mergedNoBase.exitCode, 2);
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    },
+  },
+  {
+    name: 'HA#611 SC-2 finding 15: post-push re-read with --require-head routes a merge at another head to the carrying fallback naming the stranded commit',
+    run: () => {
+      const { tmp, work, prHeadSha, unpushedSha } = setupRepoWithCarryCommits();
+      try {
+        const base = { repo: work, target: 'zheref/hatsu', pr: 611, base: 'main', nen: 'nen', requireHead: unpushedSha };
+        const reply = (state: string, headSha: string) => () => ({
+          status: 0,
+          stdout: JSON.stringify({ state, pr: { headRef: 'pro/kurapika/feat-a', headSha } }),
+          stderr: '',
+        });
+        // Merged at the pre-push head: the pushed commit is stranded -> carry, exit 1
+        const stranded = evaluateEnPushGuard(base, reply('MERGED', prHeadSha));
+        assert.equal(stranded.exitCode, 1);
+        assert.equal(stranded.result.requireHead, unpushedSha);
+        assert.deepEqual(stranded.result.carryCommits.map((c) => c.sha), [unpushedSha]);
+        // Merged at the pushed head: nothing stranded, exit 4
+        const landed = evaluateEnPushGuard(base, reply('MERGED', unpushedSha));
+        assert.equal(landed.exitCode, 4);
+        assert.equal(landed.result.status, 'nothing-to-carry');
+        // OPEN, head observed: exit 0; OPEN, head not yet observed: unread, exit 2
+        assert.equal(evaluateEnPushGuard(base, reply('OPEN', unpushedSha)).exitCode, 0);
+        const lag = evaluateEnPushGuard(base, reply('OPEN', prHeadSha));
+        assert.equal(lag.exitCode, 2);
+        assert.equal(lag.result.status, 'unread-pr-state');
+        assert.throws(
+          () => evaluateEnPushGuard({ ...base, requireHead: 'nope' }),
+          (e) => e instanceof EnPushGuardError && e.exitCode === 2,
+        );
+        const parsed = parseCliArgs([
+          'check', '--repo', work, '--target', 'zheref/hatsu', '--pr', '611', '--base', 'main', '--require-head', unpushedSha,
+        ]);
+        assert.equal(parsed.subcommand === 'check' && parsed.opts.requireHead, unpushedSha);
       } finally {
         rmSync(tmp, { recursive: true, force: true });
       }
