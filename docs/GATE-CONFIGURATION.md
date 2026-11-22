@@ -51,7 +51,7 @@ preflight and exact event-head checks when adopting it. The prepared readiness i
 against a reviewed trusted digest before Bash, then verifies the binary against the contract platform
 digest before execution. Under § 6, the preparer (`workflow_runner_policy_check.rb`'s
 `READINESS_INTEGRITY_*` forms) landed on `main` first; the template stage activates Tenkai's
-`templates/pr-readiness.yml` and `scripts/tenkai_adopt_legacy.sh` (`nen_integrity()`) rendering
+`templates/pr-readiness.yml`, `scripts/tenkai_readiness_guard.mts`, and `scripts/tenkai_adopt_legacy.sh` rendering
 for script and `linux-x64` binary verification (`scripts/readiness_checksum_fixture.test.mts`).
 Widening beyond `linux-x64` (`darwin-arm64`, `windows-x64` pools) or rejecting zero-byte trusted
 contracts requires a subsequent two-step validator update (`workflow_runner_policy_check.rb` first).

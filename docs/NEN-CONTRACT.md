@@ -65,8 +65,8 @@ contract platform digest before linking or executing it. Readiness integrity lan
 under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). First,
 `scripts/workflow_runner_policy_check.rb` accepts both the older unverified readiness form and the
 pinned `linux-x64` checksum-verified `READINESS_INTEGRITY_*` form. Next, Tenkai's
-`templates/pr-readiness.yml` and `scripts/tenkai_adopt_legacy.sh` (`nen_integrity()`) render and
-verify `bootstrap.scriptSha256` and `bootstrap.sha256["linux-x64"]` before executing either
+`templates/pr-readiness.yml`, `scripts/tenkai_readiness_guard.mts`, and `scripts/tenkai_adopt_legacy.sh`
+render and verify `bootstrap.scriptSha256` and `bootstrap.sha256["linux-x64"]` before executing either
 artifact. Widening `templates/pr-readiness.yml` beyond `linux-x64` (`darwin-arm64`, `windows-x64`
 pools) or failing closed on zero-byte trusted contracts remains deferred to a separate two-step
 validator update (`workflow_runner_policy_check.rb` on `main` first).

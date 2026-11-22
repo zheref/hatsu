@@ -942,25 +942,37 @@
             "--capture",
             "tenkai-guard",
             "bash",
-            "scripts/tenkai_adopt.sh",
-            "--self-test"
+            "scripts/tenkai_guard_fixture.sh"
           ],
-          "$comment": "The hatsu:tenkai engine's own fixtures -- hermetic and offline, but its review-ledger cases drive `nen review ledger`, and its self-test executes scripts/readiness_checksum_fixture.test.mts through locked Vitest (Node >= 22.18), so the pinned nen (>= dependency.minimum) must be first on PATH; a lower one stops with a named message (zheref/hatsu#216). It builds throwaway git repositories under a temp dir, proves the runner derivation at every input, idempotence across three applies, every drift direction detected AND repaired (including the checksum-verified Bootstrap step), the read-only guarantee by content hash over the whole tree including .git/hooks, the two-PR ordering staged rather than hit, and that a hostile slug, a missing slug, a non-git directory and somebody else's workflow are each refused. Every fixture is removed on every path. Run it as `nen shu test --lane tenkai-guard --repo <hatsu>` when scripts/tenkai_adopt.sh or templates/pr-readiness.yml changes (requires npm ci --ignore-scripts). unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts, which puts the workflow-installed nen first on PATH (zheref/hatsu#427). Through scripts/shell_coverage.mts the fixture runs under the pinned Bashcov where `nen shu tools` finds it and writes coverage/tenkai-guard/lcov.info, which the extraction-only coverage row reads (`nen shu coverage --lane tenkai-guard --touched --base origin/<base> --from-capture`; zheref/hatsu#148); without Bashcov it runs once, uninstrumented, and says so.",
+          "$comment": "The hatsu:tenkai engine's own fixtures plus TypeScript readiness-guard and rendered-checksum Vitest suites (BC-11): scripts/tenkai_guard_fixture.sh runs scripts/tenkai_adopt.sh --self-test under Bashcov where available (writing coverage/tenkai-guard/lcov.info; requires pinned nen >= dependency.minimum first on PATH for review-ledger cases, zheref/hatsu#216), then runs authoritative Vitest fixtures scripts/readiness_checksum_fixture.test.mts and scripts/tenkai_readiness_guard_fixture.test.mts (requires npm ci --ignore-scripts, jq, and sha256sum or shasum), and captures exact-source Node 24 LCOV for scripts/tenkai_readiness_guard.mts in coverage/tenkai-guard/node/lcov.info. unit-tests.yml runs it on same-repository, non-draft pull requests through scripts/unit_tests_ci.mts (zheref/hatsu#427, #554).",
           "artifacts": [
-            "coverage/tenkai-guard/lcov.info"
+            "coverage/tenkai-guard/lcov.info",
+            "coverage/tenkai-guard/node/lcov.info"
           ]
         },
         "coverage": {
-          "exe": "node",
-          "argv": [
-            "scripts/shell_coverage.mts",
-            "--verify",
-            "tenkai-guard"
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "scripts/shell_coverage.mts",
+                "--verify",
+                "tenkai-guard"
+              ]
+            },
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "const fs=require('node:fs');const path=require('node:path');const file='coverage/tenkai-guard/node/lcov.info';const stat=fs.statSync(file);if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty tenkai-guard Node LCOV capture');const sources=[...fs.readFileSync(file,'utf8').matchAll(/^SF:(.+)$/gm)].map(match=>path.resolve(match[1]));if(sources.length!==1||sources[0]!==path.resolve('scripts/tenkai_readiness_guard.mts'))throw new Error('tenkai-guard Node LCOV must name only scripts/tenkai_readiness_guard.mts')"
+              ]
+            }
           ],
           "artifacts": [
-            "coverage/tenkai-guard/lcov.info"
+            "coverage/tenkai-guard/lcov.info",
+            "coverage/tenkai-guard/node/lcov.info"
           ],
-          "$comment": "Extraction only: reads coverage/tenkai-guard/lcov.info, which this lane's test row wrote, and runs no fixture (byakugan section 3). Prefer --from-capture, where nen proves the capture is this tree's."
+          "$comment": "Extraction only: verifies coverage/tenkai-guard/lcov.info (shell) and coverage/tenkai-guard/node/lcov.info (Node LCOV over scripts/tenkai_readiness_guard.mts) written by this lane's test row and runs no fixture (byakugan section 3)."
         }
       },
       "tenkai-fixes-guard": {
@@ -2177,7 +2189,7 @@
         {
           "kind": "path",
           "value": "node_modules/vitest/vitest.mjs",
-          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. tenkai_adopt_legacy.sh --self-test executes scripts/readiness_checksum_fixture.test.mts under the existing pinned Vitest harness."
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first. scripts/readiness_checksum_fixture.test.mts and scripts/tenkai_readiness_guard_fixture.test.mts run under the existing pinned Vitest harness; native Node replay is supplemental LCOV over scripts/tenkai_readiness_guard.mts."
         }
       ],
       "unit-tests-ci-guard": [
@@ -2233,7 +2245,7 @@
         "darwin",
         "linux"
       ],
-      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/prose_ambiguity_check_fixture.mts, scripts/tenkai_adopt.sh --self-test with scripts/readiness_checksum_fixture.test.mts under Vitest/Node >= 22.18, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; cleanup_path_admit and prose_ambiguity_check_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
+      "$comment": "The plugin lane's lint runs through Claude Code on all three hosts. The focused test verb is narrower: the guard fixtures (scripts/plugin_bump_check_fixture.sh, scripts/hatsu_plugin_update_fixture_check.sh, scripts/hatsu_surface_link_fixture_check.sh, scripts/surface_bootstrap_fixture_check.sh, scripts/nen_global_fixture_check.sh, scripts/hatsu_root_fixture_check.sh, scripts/permissions_pack_fixture_check.sh, scripts/surface_mirror_check_fixture.sh, scripts/surface_link_check_fixture.sh, scripts/prose_size_check_fixture.sh, scripts/prose_ambiguity_check_fixture.mts, scripts/tenkai_adopt.sh --self-test with scripts/readiness_checksum_fixture.test.mts and scripts/tenkai_readiness_guard_fixture.test.mts under Vitest/Node >= 22.18, scripts/tenkai_readiness_guard_coverage.test.mts under Node >= 22.18, scripts/workflow_runner_policy_check.rb --self-test, scripts/release-publish.sh --self-test, scripts/dist_tag.sh --self-test, scripts/report_time.sh --self-test, scripts/pr_body_evidence_check.sh --self-test, scripts/pr_development_link_check.sh --self-test, scripts/send_freshness_check.sh --self-test, scripts/cleanup_path_admit.sh --self-test, scripts/runner_preflight_fixture_check.sh, scripts/private_name_check_fixture.sh, scripts/bell_notify_fixture.sh, scripts/port_rule_reserve_fixture.sh) use a POSIX shell, git and mktemp (runner_preflight also nen itself; private_name_check also perl with its core Encode and Unicode::Normalize; pr_development_link_check also bash, jq and perl with its core Encode; port_rule_reserve_fixture also bash and jq; readiness_checksum_fixture.test.mts also bash, jq and sha256sum or shasum; cleanup_path_admit and prose_ambiguity_check_fixture also node >= 22.18, the type-stripping floor its shim enforces at exit 2 and toolchain.node declares; workflow_runner_policy_check also ruby, with bash, jq, sha256sum, perl, openssl and awk for the frozen steps it runs) and are verified only on Darwin/Linux, not native Windows. The default plugin lane's test is unsupported, so this test allowlist applies only to those focused fixtures. The Stop bell in hooks/ is macOS-only, but a harness hook is not a nen verb and constrains no lane \u2014 it no-ops off Darwin rather than refusing."
     },
     "targets": {},
     "toolchain": {

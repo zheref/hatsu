@@ -19,6 +19,10 @@ for (const kind of ['valid', 'script mismatch', 'binary mismatch', 'missing dige
       const bootstrap = '#!/bin/sh\ntouch "$TEST_ROOT/executed"\nprintf "%s\\n" "$TEST_ROOT/nen"\n';
       writeFileSync(join(root, 'bootstrap'), bootstrap);
       writeFileSync(join(root, 'bin', 'curl'), '#!/bin/sh\nwhile [ "$1" != "-o" ]; do shift; done\ncp "$TEST_ROOT/bootstrap" "$2"\n', { mode: 0o755 });
+      // Linux's sha256sum is shasum's -c mode on a Darwin host lacking GNU sha256sum.
+      if (spawnSync('sh', ['-c', 'command -v sha256sum']).status !== 0) {
+        writeFileSync(join(root, 'bin', 'sha256sum'), '#!/bin/sh\nexec shasum -a 256 "$@"\n', { mode: 0o755 });
+      }
       const integrity = { scriptSha256: kind === 'script mismatch' ? '0'.repeat(64) : digest(bootstrap), sha256: { 'darwin-arm64': digest(binary), 'linux-x64': digest(binary), 'windows-x64': digest(binary) } };
       if (kind === 'binary mismatch') for (const key of Object.keys(integrity.sha256)) integrity.sha256[key as keyof typeof integrity.sha256] = '0'.repeat(64);
       if (kind.startsWith('trusted')) {

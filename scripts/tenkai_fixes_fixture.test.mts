@@ -76,7 +76,7 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
     { id: 'workflow/test-results', state: 'routed', detail: '', action: "make lane 'ios' write a Nen-readable test result" },
     { id: 'lane/ios/build', state: 'routed', detail: "iteration.checks requires 'build' on lane 'ios', but no command is declared", action: '' },
     { id: 'lane/ios/archive', state: 'routed', detail: 'declared unsupported: PROPOSED SEAT', action: '' },
-    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "Hatsu's dependency.pinned_ref or dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "Hatsu's dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen", action: '' },
   ];
   for (const item of items) {
     const fix = fixFor(item, rows, context);
@@ -91,8 +91,10 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
   expect(fixFor(items[8], rows, context).fill).toBe('route');
   expect(fixFor(items[10], rows, context).run).toEqual(['bash /opt/hatsu/scripts/config_values.sh set --repo \'/tmp/a repo\' --id workflow.review.scopes --value <answer-json>',
     'bash /opt/hatsu/scripts/config_values.sh set --repo \'/tmp/a repo\' --id contract.project.kind --value <answer-json>']);
+  expect(fixFor(items[6], rows, context)).toMatchObject({ fill: 'route', detect: 'nen schema check --repo /opt/hatsu' });
+  expect(fixFor(items[6], rows, context).edit).toContain('dependency.pinned_ref');
   expect(fixFor(items[13], rows, context)).toMatchObject({ fill: 'edit', run: [], detect: "nen schema check --repo '/tmp/a repo'" });
-  expect(fixFor(items[14], rows, context)).toMatchObject({ fill: 'route', detect: 'nen schema check --repo /opt/hatsu' });
+  expect(fixFor(items[14], rows, context)).toMatchObject({ fill: 'route', detect: "bash /opt/hatsu/scripts/tenkai_adopt.sh diagnose --repo '/tmp/a repo'" });
   expect(fixFor(items[14], rows, context).edit).toContain('dependency.bootstrap');
   // A target-controlled lane name never reaches a command: it falls to the catch-all instead.
   expect(fixFor({ id: 'lane/a\nb/build', state: 'routed', detail: 'no command is declared' }, rows, context).fill).toBe('unmapped');

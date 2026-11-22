@@ -558,25 +558,6 @@ class Ctx:
             return None
         return ref
 
-    def nen_integrity(self):
-        """Render only validated integrity data from the same pinned contract."""
-        try:
-            dep = json.loads((self.hatsu_root / "nen" / "contract.json").read_text())["dependency"]
-            data = dep["bootstrap"]
-            script = data["scriptSha256"]
-            binaries = data["sha256"]
-            if not isinstance(script, str) or not re.fullmatch(r"[a-f0-9]{64}", script):
-                return None
-            if not isinstance(binaries, dict) or "linux-x64" not in binaries:
-                return None
-            if any(not isinstance(k, str) or not re.fullmatch(r"[a-z0-9-]+", k)
-                   or not isinstance(v, str) or not re.fullmatch(r"[a-f0-9]{64}", v)
-                   for k, v in binaries.items() if k != "$comment"):
-                return None
-            return json.dumps({"scriptSha256": script, "sha256": {k: v for k, v in binaries.items() if k != "$comment"}}, separators=(",", ":"))
-        except (OSError, ValueError, KeyError, TypeError):
-            return None
-
 
 # --------------------------------------------------------------------------
 # Items
@@ -942,14 +923,15 @@ class ReadinessWorkflow(Item):
         # and then overwriting it is worse than either alone.
         runs_on = keep_runs_on or ctx.runner["runs_on"]
         process = ctx.role == ROLE_PROCESS
+        pins = readiness_guard(ctx, "bootstrap-pins")
         return (t.replace("@@REPO_SLUG@@", ctx.slug)
                  .replace("@@RUNS_ON@@", runs_on)
                  .replace("@@RUNNER_REASON@@", ctx.runner["reason"])
                  .replace("@@GUARD_REQUIRED@@", "true" if process else "false")
                  .replace("@@PIN_FALLBACK_ALLOWED@@", "false" if process else "true")
                  .replace("@@NEN_REF@@", ctx.nen_ref())
-                 .replace("@@NEN_SCRIPT_SHA256@@", json.loads(ctx.nen_integrity())["scriptSha256"])
-                 .replace("@@NEN_BINARY_SHA256@@", json.loads(ctx.nen_integrity())["sha256"]["linux-x64"]))
+                 .replace("@@NEN_SCRIPT_SHA256@@", pins["scriptSha256"])
+                 .replace("@@NEN_BINARY_SHA256@@", pins["binarySha256"]))
 
     def detect(self, ctx):
         if ctx.role is None:
@@ -958,8 +940,8 @@ class ReadinessWorkflow(Item):
         readiness = readiness_guard(ctx, "workflow-gate")
         if readiness["state"] != SATISFIED:
             return self.row(**readiness)
-        if ctx.nen_ref() is None or ctx.nen_integrity() is None:
-            return self.row(BLOCKED, "Hatsu's dependency.pinned_ref or dependency.bootstrap checksums are absent or malformed; "
+        if ctx.nen_ref() is None:
+            return self.row(BLOCKED, "Hatsu's dependency.pinned_ref is absent or malformed; "
                             "the readiness workflow cannot bootstrap Nen", "repair Hatsu's nen/contract.json")
         # BEFORE the file check, so `repair`'s BLOCKED early-return stops the write
         # on a fresh repository too -- not only where a file already exists.
@@ -2732,10 +2714,11 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as pin_tmp:
         pin_dir = Path(pin_tmp)
         output_path = pin_dir / "github-output.txt"
+        pins = readiness_guard(ctx_for(dprod), "bootstrap-pins")
         env = dict(os.environ, TENKAI_PIN_FALLBACK_ALLOWED="true",
                    TENKAI_FALLBACK_REF=ctx_for(dprod).nen_ref(),
-                   TENKAI_FALLBACK_SCRIPT_SHA256=json.loads(ctx_for(dprod).nen_integrity())["scriptSha256"],
-                   TENKAI_FALLBACK_BINARY_SHA256=json.loads(ctx_for(dprod).nen_integrity())["sha256"]["linux-x64"],
+                   TENKAI_FALLBACK_SCRIPT_SHA256=pins["scriptSha256"],
+                   TENKAI_FALLBACK_BINARY_SHA256=pins["binarySha256"],
                    GITHUB_OUTPUT=str(output_path))
         missing_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
                                      env=env, capture_output=True, text=True)
@@ -2809,19 +2792,6 @@ def self_test() -> int:
     check("apply restores altered bootstrap checksum verification",
           ReadinessWorkflow().repair(ctx_for(dprod))["state"] == REPAIRED
           and ReadinessWorkflow().detect(ctx_for(dprod))["state"] == SATISFIED)
-    missing_integrity_hatsu = fixture()
-    shutil.copytree(root / "nen", missing_integrity_hatsu / "nen", dirs_exist_ok=True)
-    (missing_integrity_hatsu / "scripts").mkdir(parents=True, exist_ok=True)
-    shutil.copy2(root / "scripts" / "tenkai_readiness_guard.mts", missing_integrity_hatsu / "scripts" / "tenkai_readiness_guard.mts")
-    shutil.copy2(root / "scripts" / "readiness_ci_verdict.mts", missing_integrity_hatsu / "scripts" / "readiness_ci_verdict.mts")
-    bad_contract = json.loads((missing_integrity_hatsu / "nen" / "contract.json").read_text())
-    del bad_contract["dependency"]["bootstrap"]
-    (missing_integrity_hatsu / "nen" / "contract.json").write_text(json.dumps(bad_contract))
-    bad_integrity_ctx = Ctx(dprod, missing_integrity_hatsu, "acme/widget", None, 0, probe=False)
-    check("malformed or absent bootstrap checksums report nen_integrity None and BLOCKED",
-          bad_integrity_ctx.nen_integrity() is None
-          and ReadinessWorkflow().detect(bad_integrity_ctx)["state"] == BLOCKED
-          and "bootstrap checksums" in ReadinessWorkflow().detect(bad_integrity_ctx)["detail"])
     product_workflow_path.write_text(product_workflow)
     check("maintained_tools derives process", derive_role(dproc, "acme/widget") == ROLE_PROCESS)
     check("consumers derives product", derive_role(dprod, "acme/widget") == ROLE_PRODUCT)
@@ -3197,24 +3167,6 @@ def self_test() -> int:
     (d5 / "nen" / "contract.json").write_text("{not json")
     row = NenDeclaration("nen/contract.json", "x").detect(ctx_for(d5))
     check("malformed JSON is BLOCKED, not silently rewritten", row["state"] == BLOCKED)
-
-    print("\nreadiness bootstrap — rendered checksum fixtures")
-    vitest_env = {k: v for k, v in os.environ.items()
-                  if k not in ("PS4", "BASH_XTRACEFD", "SHELLOPTS",
-                               "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0", "GIT_CONFIG_COUNT")}
-    vitest_run = subprocess.run(
-        ["node", str(root / "node_modules" / "vitest" / "vitest.mjs"), "run",
-         "--maxWorkers=1", "--root", str(root), "--testTimeout", "15000",
-         str(root / "scripts" / "readiness_checksum_fixture.test.mts")],
-        cwd=str(root), env=vitest_env, capture_output=True, text=True,
-    )
-    if vitest_run.stdout:
-        print(vitest_run.stdout, end="")
-    if vitest_run.stderr:
-        print(vitest_run.stderr, end="")
-    check("readiness bootstrap checksum vitest suite passes",
-          vitest_run.returncode == 0,
-          f"vitest exited {vitest_run.returncode}")
 
     print()
     if failures:
