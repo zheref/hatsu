@@ -45,13 +45,14 @@ A product family whose members run on different stacks has three port skills (ep
   issue.
 - `kido <from-scenario> to <to-scenario> [ruling <text>]`: records one port ruling in the ports pair file
   of `zheref/bankai-handbooks`, which merges at **G4**. The two composites call it for every unmapped
-  row, in one batched `port-drift` picker per run.
+  or unclassifiable row, in one batched `port-drift` picker per run.
 
-`kamui` and `hiraishin` need the family declared in each member's own `nen/repos.json` → `families[]`
-([`../config/repos.json.md`](../config/repos.json.md) § `families[]`). Hatsu's own registry never
-declares one. Run `--dry-run` first: it prints the plan, reports missing setup and writes nothing. The
-spelling follows the table above: `/hatsu:kamui` on Claude Code, `$hatsu:kamui` on Codex, `/kamui` on
-Cursor and Antigravity, and the same for the other two.
+`kamui` and `hiraishin` need the family declared under `families[]`, in each member's own
+`nen/repos.json` and in the spec repository's ([`../config/repos.json.md`](../config/repos.json.md) §
+`families[]`). Hatsu's own registry never declares one. Run `--dry-run` first: it prints the plan,
+reports missing setup and writes nothing outside a scratch directory. The spelling follows the table
+above: `/hatsu:kamui` on Claude Code, `$hatsu:kamui` on Codex, `/kamui` on Cursor and Antigravity, and
+the same for the other two.
 
 ## The four surfaces, compared
 
