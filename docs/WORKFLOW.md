@@ -1774,6 +1774,21 @@ nothing restated:
 and naming the owner that sets up a skill-specific item (a lane, a target, a registry entry) when it
 is not the file's own key.
 
+### Cleanup cache-binary row
+
+Moved out of [`cleanup`](../claude/skills/cleanup/SKILL.md) § 5 by reference, unchanged in meaning
+(zheref/hatsu#629's review, to hold that skill's size). The proposed row for an unlinked below-pin cache binary
+runs `rm -r -- "<abs>"`, `<ref>` `^v[0-9]+\.[0-9]+\.[0-9]+$`,
+`realpath != host link's readlink -f; never variable-built; another repo may pin it`.
+
+### Cleanup marker slug check
+
+Moved out of [`cleanup`](../claude/skills/cleanup/SKILL.md) § 7 by reference, unchanged in meaning
+(zheref/hatsu#616 round 2, to hold that skill's size). Each `<CODE>-<N>` in a cleanup marker's
+`<slug>` is checked (`PR` where `gh pr view` finds `<N>`; output cut to `<CODE>-<N>`) by:
+`nen ref format --repo '<core>' --code <CODE> --kind <IS|PR> --number <N> --no-glyphs`
+— an exit but `0` (no registry, code unregistered) keeps it, said.
+
 ### Declined cleanup rows
 
 **Declined cleanup rows are remembered, and offered again folded by class** (zheref/hatsu#584;
