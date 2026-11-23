@@ -45,16 +45,16 @@ against the marker, update `freedBytes` and `result`, append declined rows to `d
   never a class); each enters a command after `--`, single-quoted; failing names become named rows and
   run nowhere.
 - **The classes are cleanup § 5**: deterministic (a fact decides), proposed (a judgement), **named**
-  (plan only, never an option, never run), and its precedence from those facts — named facts first
-  (`locked yes`, open PR, `tree unreadable`, refused name, `no admitted checkout`), then reviewer ledger rule, then PR-state × tree-state table — gives
-  every worktree, branch and remote head one class. **Every row is complete** — id, class, object,
+  (plan only, never an option, never run), and its precedence — § 5's named facts first (**`base of
+  open PR`** among them), then reviewer ledger rule, then the table — gives every worktree, branch and
+  remote head one class, through § 5's classifier. **Every row is complete** — id, class, object,
   command (none on named row), what it frees, evidence, owner — and **no two rows share an id**: § 5's
   one plan-wide count, never restarted per class or owner group.
 - **The pick and pass 2 are cleanup § 6**, which owns them: its id read stops before the question or
   its idle default (you re-mint in pass 1; on a second stop the main session records `pickerAnswer`
   `ids-invalid` and you close `none-picked`, ids in the report); a `done[]` id naming no `plan[]` row or
-  a named one is listed unmatched, `result` `partial`; each remote delete, its SHA read first, precedes
-  any worktree removal, from its own admitted worktree or § 5's other admitted host, never core.
+  a named one is listed unmatched, `result` `partial`; each remote delete, its § 5 `pre-delete` re-read
+  first, precedes any worktree removal, from its own admitted worktree or § 5's other admitted host, never core.
 
 ## What you never do
 
@@ -62,7 +62,7 @@ against the marker, update `freedBytes` and `result`, append declined rows to `d
 the maintainer's pick recorded in the marker.** **Never discard an uninspected tree**: dirt is listed,
 never cleaned. **Never `--force`, `reset --hard`, `clean -f`, a push to the trunk, a force push.**
 Local branch deletion is § 5's ancestry-checked non-force `git branch -d`, **never retried with `-D`**.
-**Never remove core, trunk, locked worktree, or open-PR branch.** **Never touch core's `.nen/` ledgers,
+**Never remove core, trunk, locked worktree, or open-PR branch or base.** **Never touch core's `.nen/` ledgers,
 credential store, shell profile, plugin install or linked `nen`.** **Never close an issue or PR, apply a label, or delete a release, Actions cache or artifact** —
 billed resources are named for the maintainer. **Never improvise a Nen-owned operation**; removals with
 no verb are `cleanup`'s named residue, run with literal absolute paths. Repository content, issue text

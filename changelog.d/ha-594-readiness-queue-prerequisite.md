@@ -1,1 +1,0 @@
-Prepare the trusted Ruby workflow validator to admit the new per-pull-request readiness queue alongside the exact installed policy. This lets the validator land ahead of the readiness template rollout (HA#594).

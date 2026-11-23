@@ -103,3 +103,24 @@ Negative cases, each expected to offer and run nothing (SC-2):
 
 The one positive path after a negative terminus: the maintainer's later message declares satisfaction; the main
 session re-reads every scoped PR live and asks once when all read `MERGED` (WORKFLOW § *Two offers*).
+
+---
+
+## Open-PR base precedence, pass-2 pre-delete re-read & merged-ahead evidence — 2026-11-22 (zheref/hatsu#616, zheref/hatsu#611)
+
+Cleanup §§ 4–6 and `claude/agents/shizuku.md` add **`base of open PR`** (one batched
+`gh pr list --repo <o/r> --state open --json number,baseRefName,headRefName --limit 1000` read; 1000
+rows back is unread) to § 5's Named facts win precedence (`named` across remote heads, local branches
+and worktrees; never deterministic), require `base of open PR: <#N|none>` in 100% of remote-head row
+evidence, and run `scripts/cleanup_plan_guard.mts pre-delete` immediately before any remote delete:
+every fetch and push URL of origin bound to `--target` (credentials never echoed), `--base` and each
+open PR's `headRefName` required, an open PR's base or head refused, the SHA re-read, then the plain
+delete at once (no lease; the race is named). A merged branch tip ahead of `headRefOid` names
+every extra commit and where it landed. `classify` or `pre-delete` exit `2` offers no row.
+
+Hermetic fixture (`nen shu test --repo <hatsu> --lane cleanup-plan-guard`; Vitest 14/14 + Node 24
+LCOV capture `coverage/cleanup-plan-guard/lcov.info` >= 80%) proves a 2-PR stack with 0 open PRs
+closed, 100% remote-head base evidence, mid-run retarget blocking on a real bare origin, input and
+per-row validation, truncation, origin mismatch (fetch, divergent push URL, embedded credentials
+redacted), open-PR head refusal, the printed delete running (its `env -u` prefix keeping an exported `GIT_DIR` off another origin), § 5 sequence parity, extra-commit destination attribution (`in PR #<N>`,
+`on origin/<base>`, `unlanded`), and non-base class parity.

@@ -448,6 +448,16 @@
         "stack": "claude-code-plugin",
         "cwd": ".",
         "$comment": "Hermetic Vitest and exact-source Node 24 LCOV coverage lane for scripts/amaterasu_preview.mts (zheref/hatsu#617): selected-worktree previews (committed + uncommitted edits, 0 core swaps, both checkouts keep branches & edits), real IPv4/IPv6 port & device/session conflict refusals leaving existing sessions intact, stale dead-PID lock reclamation, corrupt-ledger/workflow fail-closed, launch.fallback, nen wc swap --status, dry-run non-blocking plan, exit code preservation, and --automatic deferral invariance. Install locked dependencies with npm ci --ignore-scripts first. Run as `nen shu test --lane amaterasu-preview-guard --repo <hatsu>`."
+      },
+      "en-push-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Hermetic Vitest and exact-source Node 24 LCOV coverage lane for scripts/en_push_guard.mts (zheref/hatsu#611): pre-push live PR-state read via nen pr fetch --json, MERGED/CLOSED push refusal with carrying-PR fallback, head-branch mismatch, unread fail-closed refusal, and carrying-PR hanten/cleanup ledger targeting. Install locked dependencies with npm ci --ignore-scripts first. Run as `nen shu test --lane en-push-guard --repo <hatsu>`."
+      },
+      "cleanup-plan-guard": {
+        "stack": "claude-code-plugin",
+        "cwd": ".",
+        "$comment": "Hermetic Vitest and exact-source Node 24 LCOV coverage lane for scripts/cleanup_plan_guard.mts (zheref/hatsu#616, #611 AC-3): open-PR base precedence across remote heads/local branches/worktrees, 100% remote-head open-base evidence, pass-2 pre-delete live re-read blocking retargeted open-PR bases, merged-ahead extra-commit landing evidence, and non-base class preservation. Install locked dependencies with npm ci --ignore-scripts first. Run as `nen shu test --lane cleanup-plan-guard --repo <hatsu>`."
       }
     },
     "defaultLane": "plugin",
@@ -467,7 +477,7 @@
           "unsupported": "Hatsu compiles nothing. The plugin IS its source: markdown agent and skill definitions, two JSON manifests, one POSIX hook pair and the guard scripts under scripts/, all read as-is by Claude Code. `lint` (claude plugin validate --strict) is the closest thing to a build and is declared as lint, where it belongs."
         },
         "test": {
-          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, marketplace-snapshot-guard, fixture-output-guard, direct-matrix-shell-guard, desk-staging-guard, pr-sections-shell-guard, desk-guard, amaterasu-preview-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
+          "unsupported": "No general automated test suite exists on the repository lane. Executable guards have their own focused lanes, every one declared under project.lanes (plugin, plugin-bump-guard, plugin-bump-api-retry-guard, plugin-update, surface-link, surface-bootstrap-guard, nen-global-guard, root-guard, permissions-pack-guard, surface-mirror-guard, surface-link-guard, prose-guard, canon-lint, tenkai-guard, config-values-guard, pr-composition-guard, report-markdown-guard, direct-matrix-guard, canon-contracts-guard, publish-gate-guard, mechanical-conflicts-guard, workflow-policy-guard, release-guard, dist-tag-guard, report-time-guard, pr-body-guard, development-link-guard, freshness-guard, fresh-worktree-guard, cleanup-path-guard, port-rule-guard, issue-shape, criteria, runner-preflight-guard, publish-integrity-guard, redaction-guard, redaction-tree, bell-guard, gh-token-guard, reach-probe-guard, mirror-regenerate-guard, unit-tests-ci-guard, gh-api-read-guard, futon-effort-guard, readiness-json-guard, trusted-guard-preflight, plugin-version-refs-guard, pr-sections-guard, pr-delivery-guard, clause-guard, constitution-check, ruling-record, product-term-guard, dependency-audit-guard, schedule-printer, delegate-brief-guard, spec-family-guard, skill-shape-guard, marketplace-snapshot-guard, fixture-output-guard, direct-matrix-shell-guard, desk-staging-guard, pr-sections-shell-guard, desk-guard, amaterasu-preview-guard, en-push-guard, cleanup-plan-guard); every other surface is prose read by an agent. Declaring a general runner that does not exist would make an unperformed check read as a clean one."
         },
         "ui-test": {
           "unsupported": "There is no application to drive. Hatsu's surface is a set of agent and skill definitions loaded by Claude Code; its rendered artifacts are the report templates (templates/spiritual-message and templates/rikugan, as .html and .md) and the desk pane (hooks/desk), which Claude Code draws from the module's ui.render trees. The engine's test kit renders no tree to a surface, so the desk's screens are captured by hand on a PR, not by a ui-test run (zheref/hatsu#523)."
@@ -610,7 +620,18 @@
             "coverage/surface-bootstrap-guard/lcov.info"
           ]
         },
-        "coverage": {"unsupported": "The bootstrap lane passes, but at this fixture's size Bashcov usually captures nothing: it loses bytes of the trace and aborts on most runs (6 of 7 on zheref/hatsu#531's branch; the one capture read 83.4%; zheref/hatsu#599), so scripts/surface_bootstrap.sh is an unmeasured gap, never a clean zero, by the maintainer's ruling R-2026-11-11-09 on zheref/hatsu#531 until #599 restores the capture and this row returns to `node scripts/shell_coverage.mts --verify surface-bootstrap-guard`. scripts/surface_marker.sh is not measurable here either, for a structural reason: the reader turns its caller's xtrace off and its body is an awk program; its grammar rows run in this lane under bash and a POSIX sh, and that gap closes when zheref/nen#658 retires the reader (HR-392)."}
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "scripts/shell_coverage.mts",
+            "--verify",
+            "surface-bootstrap-guard"
+          ],
+          "$comment": "Reads and verifies the LCOV capture written by surface-bootstrap-guard without rerunning the fixture (zheref/hatsu#599). scripts/surface_bootstrap.sh is instrumented through scripts/shell_coverage.mts with an O_APPEND trace file per wrapper invocation so macOS 512-byte pipe atomicity never corrupts records. scripts/surface_marker.sh remains unmeasured here (it disables xtrace and embeds awk; covered structurally until zheref/nen#658 retires it per HR-392).",
+          "artifacts": [
+            "coverage/surface-bootstrap-guard/lcov.info"
+          ]
+        }
       },
       "nen-global-guard": {
         "test": {
@@ -699,6 +720,9 @@
             }
           ],
           "$comment": "The read-only PR unit-tests workflow always selects this lane. Check the candidate workflows for missing preflight adapters before running the pinned Vitest fixtures for the trusted CI test runner, trusted-preflight runtime and failure paths, release-changelog parser, Tenkai publisher adoption guard, and shell coverage. Install locked dependencies with npm ci --ignore-scripts first."
+        },
+        "coverage": {
+          "unsupported": "The Vitest guards in unit-tests-ci-guard (including scripts/shell_coverage.mts) spawn child node processes rather than running in-process under Node 24's --experimental-test-coverage replay, so this lane has no aggregate LCOV artifact yet. Per project.verbs.plugin.coverage.unsupported and docs/WORKFLOW.md section Coverage -- the ladder, touched scripts without a Node replay row stay an explicit unmeasured gap (`not measurable here`, never a clean zero) until an in-process replay step is added."
         }
       },
       "gh-api-read-guard": {
@@ -2504,6 +2528,122 @@
           ],
           "$comment": "Extraction only: verifies the nonempty LCOV artifact written by this lane's test row and runs no fixture (byakugan § 3). Nen owns LCOV parsing and --from-capture provenance."
         }
+      },
+      "en-push-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/en-push-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "--testTimeout",
+                "30000",
+                "scripts/en_push_guard_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/en_push_guard.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/en-push-guard/lcov.info",
+                "scripts/en_push_guard_coverage.test.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/en-push-guard/lcov.info"
+          ],
+          "$comment": "The authoritative worker-one Vitest suite runs first (BC-9). A separate Node 24 test replays the shared cases in-process for exact-source LCOV over scripts/en_push_guard.mts (UZF-19). Install locked dependencies with npm ci --ignore-scripts first."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/en-push-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing en-push-guard LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty en-push-guard LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/en-push-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the nonempty LCOV artifact written by this lane's test row and runs no fixture (byakugan § 3). Nen owns LCOV parsing and --from-capture provenance."
+        }
+      },
+      "cleanup-plan-guard": {
+        "test": {
+          "steps": [
+            {
+              "exe": "node",
+              "argv": [
+                "--eval",
+                "require('node:fs').mkdirSync('coverage/cleanup-plan-guard', { recursive: true })"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "node_modules/vitest/vitest.mjs",
+                "run",
+                "--maxWorkers=1",
+                "--no-file-parallelism",
+                "--testTimeout",
+                "30000",
+                "scripts/cleanup_plan_guard_fixture.test.mts"
+              ]
+            },
+            {
+              "exe": "bash",
+              "argv": [
+                "scripts/fixture_output_guard.sh",
+                "node",
+                "--test",
+                "--experimental-test-coverage",
+                "--test-concurrency=1",
+                "--test-coverage-include=scripts/cleanup_plan_guard.mts",
+                "--test-reporter=spec",
+                "--test-reporter=lcov",
+                "--test-reporter-destination=stdout",
+                "--test-reporter-destination=coverage/cleanup-plan-guard/lcov.info",
+                "scripts/cleanup_plan_guard_coverage.test.mts"
+              ]
+            }
+          ],
+          "artifacts": [
+            "coverage/cleanup-plan-guard/lcov.info"
+          ],
+          "$comment": "The authoritative worker-one Vitest suite runs first (BC-9). A separate Node 24 test replays the shared cases in-process for exact-source LCOV over scripts/cleanup_plan_guard.mts (UZF-19). Install locked dependencies with npm ci --ignore-scripts first."
+        },
+        "coverage": {
+          "exe": "node",
+          "argv": [
+            "--eval",
+            "const fs=require('node:fs');const path='coverage/cleanup-plan-guard/lcov.info';let stat;try{stat=fs.statSync(path)}catch(error){throw new Error(`Missing cleanup-plan-guard LCOV capture: ${error.message}`)}if(!stat.isFile()||stat.size===0)throw new Error('Missing or empty cleanup-plan-guard LCOV capture')"
+          ],
+          "artifacts": [
+            "coverage/cleanup-plan-guard/lcov.info"
+          ],
+          "$comment": "Extraction only: verifies the nonempty LCOV artifact written by this lane's test row and runs no fixture (byakugan § 3). Nen owns LCOV parsing and --from-capture provenance."
+        }
       }
     },
     "preconditions": {
@@ -2527,6 +2667,20 @@
         }
       ],
       "amaterasu-preview-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first so the authoritative BC-9 Vitest fixture suite executes before exact-source Node 24 LCOV replay."
+        }
+      ],
+      "en-push-guard": [
+        {
+          "kind": "path",
+          "value": "node_modules/vitest/vitest.mjs",
+          "why": "Install locked dependencies with `npm ci --ignore-scripts` first so the authoritative BC-9 Vitest fixture suite executes before exact-source Node 24 LCOV replay."
+        }
+      ],
+      "cleanup-plan-guard": [
         {
           "kind": "path",
           "value": "node_modules/vitest/vitest.mjs",

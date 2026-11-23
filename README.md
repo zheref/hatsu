@@ -308,7 +308,7 @@ in [`claude/skills/<name>/SKILL.md`](claude/skills/); the longer index is
 | `kuchiyose` | a CI tier from the Akatsuki roster installed on an adopted consumer; the Apps, secrets and ruleset printed for you, never performed | `tenkai_adopt.sh diagnose` → catalogue at the pinned tag → picker → caller + `nen schema set --gate-change` + `config_values.sh set` → `mukai` → `verify` | you |
 | `great-hiker` | canon prose and machinery authored once and landed on every surface with that surface's capabilities | author → `nen surface mirror generate` × 3 → check → PR at G4; `evolve` → Netero-shaped issues | you |
 | `bankai-handbooks` · `bankai-quality` | resolvers: which handbooks and rule-id prefixes govern a repository, and which QA and performance tooling | read live from the canon checkout at the pinned tag | Chrollo, Feitan, Phinks, Uvogin, Shalnark |
-| `kido` | one port ruling — what a source stack's rule or concept becomes on the target (`mirror` · `map` · `drop with note` · `target-only addition`) — as a stable-id row in the ports pair file of `bankai-handbooks`, ids reserved against the tip, the run's branch, pushed rulings branches and open PRs, one rulings PR per port run at G4 | `nen parse` (enumerated pair) → `port_rule_reserve.sh` → the row from `templates/ports/` → `kokusen` in the run's worktree → `aka` → `mukai` → `en` | you; the port composites `hiraishin` and `kamui` (zheref/hatsu#357, #356, not yet shipped) at a `port-drift` answer |
+| `kido` | one port ruling — what a source stack's rule or concept becomes on the target (`mirror` · `map` · `drop with note` · `target-only addition`) — as a stable-id row in the ports pair file of `bankai-handbooks`, ids reserved against the tip, the run's branch, pushed rulings branches and open PRs, one rulings PR per port run at G4 | `nen parse` (enumerated pair) → `port_rule_reserve.sh` → the row from `templates/ports/` → `kokusen` in the run's worktree → `aka` → `mukai` → `en` | you; the port composites `hiraishin` and `kamui` (zheref/hatsu#357, #356) at a `port-drift` answer |
 
 <details>
 <summary><b>Who calls whom</b>: the composition graph</summary>
@@ -421,7 +421,7 @@ The long form, the verdict table and the host binding: [`docs/NEN-CONTRACT.md`](
 ```
 .claude-plugin/     plugin.json + marketplace.json: the manifest every surface installs from; `version` is the cache key
 .codex-plugin/      the Codex plugin overlay pointing at the same skills and generated hooks
-claude/             the one AUTHORED copy: skills/<name>/SKILL.md (59 + ten), agents/<persona>.md (12 + 4 examiners), commands/kurapika.md, rules/
+claude/             the one AUTHORED copy: skills/<name>/SKILL.md (61 + ten), agents/<persona>.md (13 + 4 examiners), commands/kurapika.md, rules/
 surfaces/           GENERATED mirrors for codex/, cursor/, antigravity/: never edited by hand (docs/using/mirrors.md)
 hooks/              the three harness hooks: session start (binds nen), stop bell, base-branch guard; POSIX sh, no jq
 nen/                this repository's own declarations: contract.json, workflow.json, gates.json, labels.json, repos.json, colors.yml, decisions.json
