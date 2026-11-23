@@ -296,6 +296,11 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
 
 ---
 
+**Porting between sibling repositories.** `/kamui` specs one issue or shipped PR for the whole product
+family, `/hiraishin` ports one merged PR to one sibling, and `/kido` records the port rulings both of
+them ask for. They are described in [the hub's *Porting work between sibling
+repositories*](README.md#porting-work-between-sibling-repositories); run each with `--dry-run` first.
+
 ## 4 · Maintenance
 
 **To update**, `/ten` runs [`scripts/hatsu_plugin_update.sh`](../../scripts/hatsu_plugin_update.sh)

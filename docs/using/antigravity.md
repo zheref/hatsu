@@ -101,6 +101,11 @@ plugin's `Stop` hook. Every turn that renders a report writes it as a **native a
 `models.antigravity` block maps `economy` to `flash`. Which model `hatsu:direct` recommends for a job, and
 when this surface is the recommended one, is [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md).
 
+**Porting between sibling repositories.** `/kamui` specs one issue or shipped PR for the whole product
+family, `/hiraishin` ports one merged PR to one sibling, and `/kido` records the port rulings both of
+them ask for. They are described in [the hub's *Porting work between sibling
+repositories*](README.md#porting-work-between-sibling-repositories); run each with `--dry-run` first.
+
 ## 4 · Maintenance
 
 | What is served | How it updates | Next, to use it |
