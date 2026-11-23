@@ -5,6 +5,7 @@ import { randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { assertManagedRequiredJobContexts } from './tenkai_required_job_contexts.mts';
 
 type Row = { state: string; detail: string; action: string | null };
 const READER = 'scripts/consumer_trailer_ci.mts';
@@ -76,6 +77,8 @@ function admission(repo: string, expected: string): Row | null {
 function inspect(repo: string, root: string): Row {
   const expected = source(root);
   if (!expected || !readerSource(root)) return row('blocked', 'Hatsu trailer workflow or trusted publisher source is missing, linked or malformed');
+  try { assertManagedRequiredJobContexts(root, REL, expected); }
+  catch (error) { return row('blocked', (error as Error).message, 'repair the Hatsu rendering'); }
   if (!safeParents(repo)) return row('blocked', 'workflow parent is not a regular directory');
   const target = join(repo, REL);
   const info = stat(target);
@@ -89,7 +92,11 @@ function inspect(repo: string, root: string): Row {
   if (!policy(repo)) return row('blocked', 'commits.forbiddenTrailers must be a non-empty array of plain keys', 'configure the consumer policy before adopting this workflow');
   const gate = admission(repo, expected);
   if (gate) return gate;
-  if (actual === expected && readerText === readerSource(root)) return row('satisfied', 'trailer workflow matches the pinned reader template');
+  if (actual === expected && readerText === readerSource(root)) return row('satisfied', 'the forbidden-commit-trailers job matches its required context');
+  if (actual !== null && actual !== expected) {
+    try { assertManagedRequiredJobContexts(root, REL, actual); }
+    catch (error) { return row('drift', (error as Error).message, 're-render the trailer workflow'); }
+  }
   return actual === null ? row('missing', 'consumer has no forbidden trailer job', 'render the trailer workflow')
     : row('drift', 'rendered trailer workflow differs from the current template', 're-render the trailer workflow');
 }
@@ -112,7 +119,7 @@ function apply(repo: string, root: string): Row {
   atomicWrite(readerPath, reader);
   if (!safeParents(repo) || (existsSync(target) ? readFileSync(target, 'utf8') : null) !== snapshot) return row('blocked', 'workflow changed before installation; re-run Tenkai');
   atomicWrite(target, expected);
-  return row('repaired', 'rendered forbidden-commit-trailers; make its check required after the adoption PR');
+  return row('repaired', 'rendered the forbidden-commit-trailers job; make that job required after the adoption PR');
 }
 const [mode, repo, root] = process.argv.slice(2);
 if (!repo || !root || !['diagnose', 'apply'].includes(mode)) throw new Error('usage: tenkai_trailer_guard.mts <diagnose|apply> <repo> <hatsu-root>');

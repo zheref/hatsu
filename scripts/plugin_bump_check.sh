@@ -278,6 +278,13 @@ fi
 #                     — executes explicit maintainer local previews directly in
 #                       a selected worktree with 0 core swaps and real resource
 #                       conflict detection (zheref/hatsu#617).
+#   scripts/en_push_guard.mts
+#                     — en § 3 pre-push live PR-state guard and carrying-PR
+#                       ledger target helper (zheref/hatsu#611).
+#   scripts/cleanup_plan_guard.mts
+#                     — cleanup §§ 4–6 open-PR base precedence, remote-head
+#                       open-base evidence, pass-2 pre-delete re-read, and
+#                       merged-ahead commit evidence (zheref/hatsu#616, #611).
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -457,6 +464,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/idle_permissions_check.mts'
   'scripts/ledger_findings_prepare.mts'
   'scripts/amaterasu_preview.mts'
+  'scripts/en_push_guard.mts'
+  'scripts/cleanup_plan_guard.mts'
   '.mcp.json'
 )
 

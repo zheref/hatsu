@@ -49,6 +49,9 @@ anything. Third-Hand is not in that boundary.
 
 ## 1. Invocation
 
+Before offering a human merge line, read § 5 from the installed Hatsu root for GitHub's
+merge state and the repository's allowed merge methods.
+
 **P1 — this run opens with `/ten en`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
 missing prerequisites under its own name; the phases this run calls skip theirs).
 
@@ -252,6 +255,53 @@ that catch-up is a no-op; if it changed any path, this paragraph repeats rather 
 stale tree to readiness. That is the same owner map [`/sharingan`](../sharingan/SKILL.md)
 § 5 already names when Kurapika authored the PR; En does not invent a fourth suite.
 
+**Pre-push PR-state guard (`zheref/hatsu#611`, lane `en-push-guard`): a prose-ordered precondition of
+En's push.** `murasaki` and `scripts/publish_gate.sh` do not call it; this paragraph orders it. Before
+**every** En push (step 3's catch-up push or any review-fix push from steps 2/4), read live PR state:
+
+```bash
+node "$hatsu_root/scripts/en_push_guard.mts" check --repo <path> --target <owner/name> --pr <N> --base <PR base> [--branch <head>]
+```
+
+`<PR base>` is the PR's `baseRef`, with **one exception**: when the PR's timeline shows
+`base_ref_deleted` (§ 6's base-deletion rows), pass `--base <branch.base>`, and on the successor row
+also `--carry-from base`, which carries the child's whole unlanded set rather than only the unpushed
+commits. The guard reads `nen pr fetch --target <owner/name> --pr <N> --json` (an existing verb; no Nen filing)
+and En routes on its exit, never on its own reading:
+
+| Exit | Read | What En does |
+|---|---|---|
+| `0` | `OPEN`, `headRef` is the branch | `murasaki` § 6 pushes (`scripts/publish_gate.sh`) |
+| `1` | `MERGED` or `CLOSED`, commits to carry | **no push to that branch**; § 6's carrying rows |
+| `2` | unread at the pre-push read, or still unread after the one bounded post-push re-read: PR state, an `OPEN` PR with no `headRef`, the carry list, or `pushed-head-unobserved` | no push; a stop handed back, the read named |
+| `3` | `OPEN`, `headRef` another branch | no push; **a stop handed back**, never the successor fallback |
+| `4` | `MERGED` or `CLOSED`, nothing unpushed | no push; § 6's terminal rows |
+
+**The carry set is the push En was about to make**: the non-merge commits on `HEAD` past the PR's last
+pushed `headSha` that `origin/<PR base>` does not already hold, for `MERGED` and `CLOSED` alike. A
+`CLOSED` PR therefore carries only when a push is pending; one closed deliberately with nothing unpushed
+is exit `4`, § 6's closed-unmerged row (HR-367). An unreadable anchor is exit `2`, never "nothing to
+carry".
+
+**The carrying-PR fallback** (exit `1`): cut a fresh branch off `origin/<PR base>` in a fresh isolated
+worktree, cherry-pick the guard's listed commits onto it (a conflict is a stop handed back), re-prove through `kokusen`, `kotoamatsukami` and
+`byakugan`, publish it and open a successor PR through [`/mukai`](../mukai/SKILL.md)'s
+[`shibari`](../shibari/SKILL.md) (naming the replaced PR and why), **raise
+[`/hanten`](../hanten/SKILL.md) on the successor PR; hanten § 2b keys its ledger to `--pr
+<successor-N>`** (`en_push_guard.mts ledger-target --carrying-pr <successor-N> --carrying-branch
+<branch>` prints that key and path, nothing more), post a fresh durable slice (`mukai` step 8a), comment
+once on the original PR naming its carrying successor, and drive the successor from step 2 under this
+run's `en-<CODE>-<N>` cap ledger.
+
+**After each En push, re-read**: the same `check` with `--require-head <pushed-sha>`. `0` confirms the
+pushed head on the open PR. On `MERGED` or `CLOSED` the guard runs the same carry log: `4` only when it
+is empty (merged at the pushed SHA, nothing after it); `1` names every commit past the PR's head — the
+pushed ones stranded by a merge at an earlier head, or local ones made since — and the fallback carries
+them. `2` with status `pushed-head-unobserved` gets **one** paced re-read (`monitor.pollSeconds`), then
+the table's exit-`2` stop.
+**Residual race, named:** a merge landing between the pre-push read and the push is caught by this
+re-read, never prevented. GitHub has no push conditioned on PR state.
+
 **A catch-up that resolved a conflict of meaning reopens review** (zheref/hatsu#583). Where step 3's
 catch-up stopped at [`/ao`](../ao/SKILL.md) § 6 and resumed on the maintainer's pick, the merged
 head is a changed tree for review as well as for tests: the hunk a person chose is new code no
@@ -397,7 +447,7 @@ exception does not grant Futon itself a PR merge or change getsuga's release-uni
 
 **An off-base PR with failed ownership or another failed gate gets no merge prompt.** It reports
 the refusal, current base and Development guard line, then stops at the maintainer handoff.
-**A PR on `branch.base` in case (3)** — neither `branch.base` nor the PR's base is the default branch — **gets the prompt**:
+**A PR on `branch.base` in case (3)** — neither `branch.base` nor the PR's base is the default branch — **reaches the human handoff**:
 the guard's quoted `not-applicable` line stands in place of its `0` at check 4, because the merge is the
 maintainer's either way. It is the G2/G4 merge stop, never a G5 (ROSTER § *Rulings of 2026-09-30 — En
 never merges*, row *Closing keywords act only on the default branch*). Futon opens no PR into its integration branch (futon § 5 merges there locally), so
@@ -407,7 +457,7 @@ this is never futon's path.
 En never merges*, narrowed by § *Ruling of 2026-10-19 — recorded Futon delivery merges*); `futon` § 5, `kurapika.md`,
 the gate tables (ROSTER, README, WORKFLOW) and `nen/decisions.json` row `own-pr-merge` cite it. It
 supersedes ruling 3 of 2026-09-29. En's work is the drive: every finding fixed, every thread answered
-and resolved. **Every other PR ends at the merge prompt, after five checks in order, every verdict line printed**:
+and resolved. **Every other PR reaches the human gate after the checks below in order, with each verdict printed**:
 
 1. **On `branch.base`** — the base read back (`gh pr view <N> --json baseRefName`); a stacked PR whose
    delivery just merged is retargeted through `nen pr retarget` first (getsuga § 3's mechanism,
@@ -432,21 +482,59 @@ and resolved. **Every other PR ends at the merge prompt, after five checks in or
 3. **The body** — `nen pr body-check --requirements-from <resolved-requirements.json>` (resolved from `contracts/pr-sections.json`) satisfied against the live body.
 4. **The Development links** — the guard's `0` quoted against the live PR, re-run after any
    `edit-body`; `retarget-pending` is check 1 failing (case (2)), `not-applicable` is case (3), quoted
-   in the `0`'s place and still the prompt, and any other line is a finding to fix, never a prompt.
-5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and the prompt's line names it.
+   in the `0`'s place at the human gate. Any other line is a finding to fix before that handoff.
+5. **The head pinned** — the commit `nen pr ready` judged is GitHub's head, and any offered command names it.
+6. **GitHub's merge gate** — apply this check after every accepted check 2 route, including the
+   sixth stop and the hanten prompt. Read `gh pr view <N> --repo <owner/name> --json state,isDraft,headRefOid,baseRefName,mergeable,mergeStateStatus`.
+   Refresh the gate reads if the head or base changed. On the same open, non-draft PR, continue to
+   method selection only when `mergeable` is `MERGEABLE` and `mergeStateStatus` is `CLEAN` or
+   `HAS_HOOKS`. Report hooks when present. A closed, merged or draft PR gets its observed state.
+   `BEHIND` names the out-of-date head, `DIRTY` the conflict, and `UNSTABLE` the non-passing
+   checks. An unreadable, missing, unknown or conflicting result holds the command and names the
+   missing or contradictory evidence. Preserve the check 2 verdict in the handoff.
 
-The prompt presents the PR's link and one line the maintainer may run, **offered and never run by en** —
-in the chat message as a `bash` block (WORKFLOW § 4's hand-over rule), the picker carrying one short
-question and short starred options (jutaisho § 4's shape).
+   For `BLOCKED`, read `gh pr checks <N> --repo <owner/name> --required --json name,bucket,state,workflow`
+   and `node '<installed Hatsu root>/scripts/gh_api_read.mts' branch-rules <owner/name> <base>`.
+   Include classic protection through `required-checks <owner/name> <base>` on that same reader
+   when available. Compare configured contexts and sources with the Checks tab and merge box
+   for the judged head. Quote the pending or missing check and expected source, or the blocking
+   rule identified by GitHub. If the cause cannot be established, report the blocked state and
+   the missing evidence. The maintainer owns corrections to repository settings.
+
+For method selection, read the following from the installed Hatsu root's `scripts/gh_api_read.mts`
+with Node. Each read needs to succeed independently.
+
+- `repo-merge-methods <owner/name>` gives the three boolean `allow_*_merge` settings.
+- `branch-rules <owner/name> <base>` gives every page of active rules. Intersect enabled methods
+  with each applicable pull-request rule's `allowed_merge_methods` and exclude merge commits when
+  an active rule requires linear history.
+- `branch-protection <owner/name> <base>` gives classic linear history. Require a boolean flag or
+  GitHub's explicit `Branch not protected` response. A generic 404 leaves protection unread.
+- `pr-merge-queue <owner/name> <N>` gives `data.repository.pullRequest` from a fixed GraphQL read.
+  Require a response without GraphQL errors, matching `headRefOid` and `baseRefName`, with an
+  explicit `mergeQueue: null`. A queue object or an active queue rule directs the maintainer to
+  GitHub's queue flow. A missing field or unreadable queue result holds the command.
+
+Honor an explicitly chosen allowed method. Otherwise use the first allowed method in merge,
+squash, rebase order. When a read fails, a restriction is unreadable, the intersection is
+empty, or the queue applies, name the reason in the human handoff and withhold the CLI line.
+See [GitHub merge states](https://docs.github.com/en/graphql/reference/pulls#mergestatestatus),
+[repository settings](https://docs.github.com/en/rest/repos/repos#get-a-repository),
+[branch rules](https://docs.github.com/en/rest/repos/rules#get-rules-for-a-branch), and
+[classic protection](https://docs.github.com/en/rest/branches/branch-protection#get-branch-protection).
+
+The human handoff presents the PR link, the observed gate result, and the settings used for
+an allowed method. If the command is available, offer it in a `bash` block
+(WORKFLOW § 4's hand-over rule). The picker carries a short question and options in jutaisho § 4's shape.
 Its picker never carries the merge act; the maintainer merges outside the session (jutaisho § 4). So it
 never offers the act, which is what no agent may do for the merge phase
 (ROSTER § *Rulings of 2026-09-30 — En never merges*):
 
 ```bash
-gh pr merge <N> --repo <owner/name> --merge --match-head-commit <judged head>   # the maintainer's; never --admin, never --auto
+gh pr merge <N> --repo <owner/name> <allowed method flag> --match-head-commit <judged head>   # the maintainer's; never --admin, never --auto
 ```
 
-`--match-head-commit` makes GitHub refuse the line if the head moved after the verdict. The maintainer
+Substitute the observed `--merge`, `--squash` or `--rebase`. `--match-head-commit` makes GitHub refuse the line if the head moved after the verdict. The maintainer
 merges from the GitHub UI or from that line; en reads the state back only if asked. **The merge is not a
 review**: the review is the reviewers' rounds (§ 4) and hanten's before them; en never votes and never
 self-reviews.
@@ -466,11 +554,11 @@ live, by 2026-09-10, at `v0.3.0`, exit `0` (`docs/ab/en.md` § 2.4):
 | <title> | <link>            | <status (gate)> | <one line>   | <session>      |
 ```
 
-**The merge prompt is the stop's `MERGE` ask**, for the run's own PR and another's alike: the PR's
-link, the gate it stands at, whose review it carries, the verdict quoted and the line above.
+Use the stop's `MERGE` ask for the human handoff on the run's own PR and another's alike. Give the
+PR link, the gate, whose review it carries, the quoted verdict and GitHub's gate result. Include
+the command above only when check 6 and method selection establish it.
 
-**It prompts exactly once for this run — at Ready, or at § 6's sixth stop — and at
-no other time**, and rings once, with the prompt. A quiet observation rings nothing — a bell that rings
+**It hands off once for this run**, with the check 2 verdict and GitHub's gate result, and rings once. A quiet observation rings nothing — a bell that rings
 every poll of a four-hour wait is a bell nobody hears.
 
 ## 6. The observation hold — `nen watch until` on `nen pr ready`, and what a cycle is
@@ -538,9 +626,14 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | **an unmet `round_quorum` member with no round-check run at the judged head, the round row the only failing row, its window not yet passed** ([PROCESS.md](../../../docs/PROCESS.md), *The sixth stop*, (c)'s third observation; [HR-373](../../../docs/ROSTER.md#hr-373), zheref/hatsu#543) | **pending, a wait** — no cycle spent: run the two paced refresh windows (§ 6's block) at that head, quoting each with its head; a push restarts them. Still no run after both, it is that member's (c) observation and the row below decides |
 | **every `round_quorum` member unavailable at the judged head, the round row the only failing row** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The sixth stop*, (a)–(e)) | **not a pending state — no round will arrive.** End the hold and go to step 6, the sixth stop, with the not-ready verdict quoted verbatim and the Hatsu line beside it; no cycle is spent |
 | an **effective** `aiReviewers: optional \| off` (PROCESS), its hanten prompt's conditions met ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there) | **not a pending state — the round is not expected.** End the hold and go to step 6, the sixth stop, the not-ready verdict quoted verbatim with PROCESS's Hatsu line; no cycle is spent. Under an effective `off` en never requests a bot |
-| the PR merged before the gate handoff | end as a terminal external state, naming that readiness was not the run's observed terminus |
-| **the PR closed by its base's deletion** — a `closed` event whose preceding event is `base_ref_deleted`, no `reopened` after it (the raw timeline, every page: `gh api --paginate repos/<owner>/<name>/issues/<N>/timeline`; nen 0.28 has no timeline verb), its head branch still on origin, **and the deleted base already merged** (its PR merged, or its last head an ancestor of `origin/<branch.base>`: `git merge-base --is-ancestor`) — WORKFLOW § *Stacked pull requests* rule 5; GitHub reopens no PR whose base is gone, and `nen pr retarget` refuses a closed one | **a successor, not an end** (zheref/hatsu#495): claim an acting cycle, still on this run's loop id (`en-<CODE>-<N>` of the original PR) until the run ends — the successor gets no fresh cap, though its hanten ledger is a new effort's (hanten § 2b); catch the branch up onto `branch.base` (step 3, `murasaki`); open a successor PR through mukai's `shibari`, its body naming the PR it replaces and why, with its own `Closes`/`Part of` lines and Development links; post a fresh durable slice on it (mukai step 8a); in a futon run, `nen run append` it (WORKFLOW § *Recorded Futon delivery ownership*); comment once on the closed PR naming the successor and calling its slice historical; then drive the successor from step 2. An unmerged deleted base or a deleted head is the row below |
-| the PR closed unmerged any other way, or by base deletion with its head branch gone or its base unmerged | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
+| **the PR reads `MERGED` or `CLOSED`** | En's own reads first: the timeline (`base_ref_deleted`) and, after one, whether the deleted base merged and whether the head branch is still on origin. **Any of them unread is a stop handed back naming that read — no push, no successor, as guard exit `2`**; `--base` cannot be chosen until the timeline read succeeds. Then § 3's guard `check`, `--base` the PR's `baseRef`, or after `base_ref_deleted` `--base <branch.base>` (with `--carry-from base` on the successor row below; the plain HEAD-anchored set on every other row); exactly one of the next seven rows applies |
+| **guard exit `0`**: the PR reads `OPEN` again (reopened between reads) | leave this block and continue as an `OPEN` PR (§ 3's push row) |
+| **guard exit `1`** (unpushed commits to carry), the PR not closed by its base's deletion | **the carrying-PR fallback** (§ 3): claim an acting cycle; never a push to the merged or closed branch |
+| **the PR closed by its base's deletion** — a `closed` event whose preceding event is `base_ref_deleted`, no `reopened` after it (the raw timeline, every page: `gh api --paginate repos/<owner>/<name>/issues/<N>/timeline`; nen 0.28 has no timeline verb), its head branch still on origin, **and the deleted base already merged** (its PR merged, or its last head an ancestor of `origin/<branch.base>`: `git merge-base --is-ancestor`) — WORKFLOW § *Stacked pull requests* rule 5; GitHub reopens no PR whose base is gone, and `nen pr retarget` refuses a closed one — guard run with `--base <branch.base> --carry-from base`, which lists the child's **whole** unlanded set (`--no-merges origin/<branch.base>..HEAD`, pushed or not) | **guard exit `1`: a successor, not an end** (zheref/hatsu#495), **through the guard's fallback** (§ 3), never a push to the closed PR's head branch: claim an acting cycle, still on this run's loop id (`en-<CODE>-<N>` of the original PR) until the run ends — the successor gets no fresh cap, though its hanten ledger is a new effort's (hanten § 2b); cut a fresh branch off `origin/<branch.base>` and cherry-pick all the guard's commits onto it (§ 3's re-proof). When the deleted base's PR merged by **squash**, the set replays the parent's already-landed changes, so a cherry-pick conflict or an empty pick there is a stop handed back naming the squash merge, never resolved by En; open a successor PR through mukai's `shibari`, its body naming the PR it replaces and why, with its own `Closes`/`Part of` lines and Development links; post a fresh durable slice on it (mukai step 8a); in a futon run, `nen run append` it (WORKFLOW § *Recorded Futon delivery ownership*); comment once on the closed PR naming the successor and calling its slice historical; then drive the successor from step 2. **Guard exit `4`** here means every child commit is already on `origin/<branch.base>`: the run ends, saying so, nothing to land |
+| the PR closed by its base's deletion with its **base unmerged or its head branch gone** — the guard still run, plain (HEAD-anchored), with `--base <branch.base>` | the run ends, saying so — GitHub reopens no PR whose base is gone, so there is nothing to land here; any unpushed commits the guard listed are named in the hand-back, never carried |
+| the PR merged before the gate handoff, **guard exit `4`** (nothing unpushed to carry) | end as a terminal external state, naming that readiness was not the run's observed terminus |
+| the PR closed unmerged any other way, **guard exit `4`** (nothing unpushed to carry) | the run ends, saying so — there is nothing to land, and reopening is the maintainer's call |
+| **guard exit `2` or `3`** (not the base-unmerged or head-gone row above): the pre-push read, or the bounded post-push re-read, still unread; or an `OPEN` PR on another head | no push; a stop handed back, naming the unread read or the head mismatch (§ 3) — never the successor fallback |
 | nothing changed | **one line, or no line.** Not a status screenful; `nen watch until` already prints one line per observation |
 
 **Six stops apply here**: the condition true (verified Ready); the **cap reached**, reported with what
@@ -693,7 +786,8 @@ returned, and only once cleanup § 2's two prerequisites hold — `cleanup` requ
 5. **The commits-ahead count against an arbitrary reviewed head has no verb.** The no-op sync guard's
    `git rev-list --count <reviewed-head>..HEAD` (§ 6) is read-only and named here as residue, not
    improvisation: `nen wc classify` answers only against the base, and a nen request for a count
-   against a named head is owed.
+   against a named head is owed. **Pre-push PR state is already covered**: `nen pr fetch --json`
+   answers live `state` directly (`scripts/en_push_guard.mts`, lane `en-push-guard`; zheref/hatsu#611).
 
 ## Authority
 
@@ -721,6 +815,10 @@ returned, and only once cleanup § 2's two prerequisites hold — `cleanup` requ
   Ready for hours. This is the skill standing closest to that gate for the longest, which is exactly why
   the limit is first.
 - **Never casts a review vote, never self-reviews, never impersonates an automated reviewer** (§ 4).
+- **Never pushes without first reading live PR state through `scripts/en_push_guard.mts`, and never
+  pushes to a branch whose PR already reads `MERGED` or `CLOSED`** — the base-deletion successor
+  included: unpushed commits ride a fresh branch off `origin/<base>` and a carrying successor PR
+  (§ 3, § 6; zheref/hatsu#611).
 - **Never runs without a cap** — the value from `monitor.maxCycles`, the requirement from the
   grammar (§ 2). Never raises its own cap mid-run and never restarts itself to get more cycles.
 - **Never runs unattended, and never promises persistence it was not given** (§ 7). A watch measured
