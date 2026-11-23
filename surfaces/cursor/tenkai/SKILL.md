@@ -38,6 +38,10 @@ Conjurer work in its own right.
 
 ---
 
+Tenkai verifies the job names in `contracts/required-job-contexts.json` when it reads or renders
+managed workflows. Each listed context equals its workflow job name. The Tenkai host uses Ruby
+with Psych for YAML decoding. The installed portable readiness guard runs with Node.
+
 ## 0. Standalone entry — when no composite is holding the run
 
 **Tenkai is normally typed by the maintainer, and that IS its wired position** — no composite owns

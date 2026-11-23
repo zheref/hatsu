@@ -1,0 +1,8 @@
+{
+  "contract": "hatsu.required-job-contexts/v1",
+  "$comment": "Each Tenkai-managed required context equals the reported job name in its rendered workflow. Additional consumer contexts are owned by their own workflows and settings.",
+  "workflows": {
+    ".github/workflows/forbidden-commit-trailers.yml": ["forbidden-commit-trailers"],
+    ".github/workflows/pr-readiness.yml": ["readiness"]
+  }
+}
