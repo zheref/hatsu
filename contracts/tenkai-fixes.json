@@ -93,8 +93,8 @@
     {
       "id": "^\\.github/workflows/pr-readiness\\.yml$",
       "states": ["staged"],
-      "detail": "portable workflow runner cannot be established",
-      "edit": "verify repository visibility before changing the portable workflow runner",
+      "detail": "portable workflow runner cannot be established|existing readiness job runner cannot be preserved",
+      "edit": "verify repository visibility before changing the readiness workflow runner",
       "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
       "fill": "route"
     },

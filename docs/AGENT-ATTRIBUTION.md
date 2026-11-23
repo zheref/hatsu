@@ -47,8 +47,13 @@ re-run supersedes it, because the publisher never looks a check up.
 
 Explicit publication follows GitHub's [check-run API](https://docs.github.com/en/rest/checks/runs#create-a-check-run),
 which identifies the target commit through `head_sha`. GitHub's [required-check troubleshooting](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks)
-requires the latest SHA and supports selecting the expected App. The `trailer-policy-runner` workflow
-job provides diagnostics; the required check is the explicitly published `forbidden-commit-trailers`.
+lists `pull_request_target` as an eligible event for native job checks, requires the current
+commit and supports selecting an expected App. The native job reports the required context
+`forbidden-commit-trailers`. Its separate Checks API run, `forbidden-commit-trailers verdict`, supplies
+exact-head details. GitHub also supports checks from external Apps. Tenkai validates its own
+required job names against [the rendered workflow contract](../contracts/required-job-contexts.json).
+That contract also records the exact `readiness` job name. The consumer owns its other required
+contexts and their workflow definitions.
 Cancellation or setup failure can prevent a replacement verdict; it does not invalidate an earlier
 check on the same head. This workflow does not implement a `merge_group` queue check.
 
@@ -71,8 +76,11 @@ or base publisher cannot publish a replacement verdict, so that earlier check ma
 Once the adoption PR has landed and the job has run successfully, the consumer maintainer adds
 `forbidden-commit-trailers` under **Settings → Rules → Rulesets → the protected base branch rule →
 Require status checks to pass → Add checks** (or the corresponding branch protection rule).
-Select the check with that exact name and bind its expected source to the **GitHub Actions** App and require the branch to be up to date.
-Tenkai installs the workflow; the maintainer owns the required-check rule. The advisory readiness
+Select the native job with that exact name, bind its expected source to the **GitHub Actions**
+App and require the branch to be up to date. Existing consumers re-render the workflow and
+publisher together. Use a fresh PR head to verify the required job in the merge box, since an
+older head can still carry the former same-named API run. Tenkai installs the workflow and the
+maintainer owns the required-check rule. The advisory readiness
 job does not replace this failing check. Set `includeCoAuthoredBy: false` as described in [WORKFLOW.md](WORKFLOW.md) to stop the Claude Code harness from injecting that trailer.
 
 Never report a consumer check as installed without reading that destination branch's workflow and publisher.

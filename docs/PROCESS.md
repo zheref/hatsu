@@ -91,12 +91,14 @@ on a machine nobody set up. Every `nen shu tools` row that is not satisfied repo
 relaying it keeps the code — and installs the tool where it can (`missing-tool`).
 
 **A `5` whose every unsatisfied row is a coverage-only row reads *unmeasured, still testable*.**
-A toolchain row whose `why` begins `Coverage only:` (in Hatsu: `ruby`, `bash`, `simplecov`, `bashcov`,
+A toolchain row whose `why` begins `Coverage only:` (in Hatsu: `bash`, `simplecov`, `bashcov`,
 `simplecov-lcov`, zheref/hatsu#148) is needed only to *measure* line coverage: without it every lane
 still runs its fixture, uninstrumented, and says so. So breath § 2c, ten § 1, bankai-quality and any
 other reader of `nen shu tools` keep the `5`, relay the remedy, and never report the host as unable
 to build or test. nen cannot scope a toolchain row to the lanes that need it yet, so the
-distinction is read off the row's `why`.
+distinction is read off the row's `why`. The Tenkai host requires Ruby with Psych to decode
+managed workflow YAML for the required job context guard. The installed portable guard runs
+with Node.
 
 **A refusal that is a gap is a question; a refusal that is a safety rule stays a refusal.** The list
 of what is not a gap is authored once, in [`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*; each

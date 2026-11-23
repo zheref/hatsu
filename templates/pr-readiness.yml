@@ -1,4 +1,5 @@
 # pr-readiness.yml — RENDERED BY hatsu:tenkai. Do not hand-edit.
+# The readiness job name matches the required context declared by Tenkai.
 #
 # THIS FILE IS A RENDERING OF `templates/pr-readiness.yml` IN THE HATSU PLUGIN
 # ROOT, with two values substituted for this repository: the repository slug and
