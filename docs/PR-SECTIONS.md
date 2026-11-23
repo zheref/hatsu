@@ -68,7 +68,10 @@ This explicit operation, also used by Tenkai adoption, updates unedited defaults
 the option list and stamp. It keeps the chosen cap and every owned cell, naming each retained cell;
 `$canon.owned` preserves that ownership through later stamps. Retired ids or cells in an owned cell
 refuse at exit 1 with names, before any write. Resolve those cells explicitly before retrying.
-Unknown or malformed stamps refuse at exit 2. An unstamped refresh says provenance is unknown,
+Unknown or malformed stamps refuse `fill --refresh` at exit 2 without writing; during diagnosis,
+a stamp unknown or newer than the reading plugin reports that `pr.sections` row as newer or unknown
+and names updating the Hatsu plugin (`hatsu:bakuryuha`) as the fix while still diagnosing every
+other declaration. An unstamped refresh says provenance is unknown,
 retains every existing cell as explicitly owned, adds missing cells and stamps the current catalogue.
 Those retained cells stay owned on later refreshes. Plain `fill` preserves the bytes of a present matrix.
 
