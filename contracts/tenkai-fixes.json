@@ -394,6 +394,15 @@
     {
       "id": "^pr\\.sections$",
       "states": ["blocked"],
+      "detail": "newer or unknown",
+      "edit": "update the installed Hatsu plugin (hatsu:bakuryuha) so it carries this pr.sections.$canon catalogue stamp",
+      "guide": "docs/PR-SECTIONS.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^pr\\.sections$",
+      "states": ["blocked"],
       "edit": "nen/workflow.json → pr.sections: the declaration must parse as strict JSON before Tenkai refreshes it",
       "guide": "docs/config/workflow.json.md",
       "detect": "nen schema check --repo {repo}",

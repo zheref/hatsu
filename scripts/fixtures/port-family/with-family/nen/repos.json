@@ -1,5 +1,5 @@
 {
-  "$comment": "Redacted fixture for hatsu:kamui (zheref/hatsu#356): one member's own registry (FI) declaring its product family; its own scenario rides on its consumers[] entry, read by nen repo scenario. Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the fixture-* row). families[] is tolerated, not modelled, by nen 0.22.0 (zheref/nen#453); docs/config/repos.json.md section families[] documents the shape. A real family is never declared in Hatsu's own nen/repos.json.",
+  "$comment": "Redacted fixture for hatsu:kamui (zheref/hatsu#356): one member's own registry (FI) declaring its product family; its own scenario rides on its consumers[] entry, read by nen repo scenario. Every name is a fixture placeholder standing for no real repository (docs/PUBLIC-REDACTION.md, the fixture-* row). families[] is validated by nen schema check at nen 0.30.0 (zheref/nen#453, closed); docs/config/repos.json.md section families[] documents the shape. A real family is never declared in Hatsu's own nen/repos.json.",
   "consumers": [
     {
       "repo": "fixture-owner/fixture-ios",

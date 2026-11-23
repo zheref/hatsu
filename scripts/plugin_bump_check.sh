@@ -278,6 +278,13 @@ fi
 #                     — executes explicit maintainer local previews directly in
 #                       a selected worktree with 0 core swaps and real resource
 #                       conflict detection (zheref/hatsu#617).
+#   scripts/en_push_guard.mts
+#                     — en § 3 pre-push live PR-state guard and carrying-PR
+#                       ledger target helper (zheref/hatsu#611).
+#   scripts/cleanup_plan_guard.mts
+#                     — cleanup §§ 4–6 open-PR base precedence, remote-head
+#                       open-base evidence, pass-2 pre-delete re-read, and
+#                       merged-ahead commit evidence (zheref/hatsu#616, #611).
 #   .mcp.json         — forward-proofing, same reasoning: an MCP server
 #                       declaration is read by the installed plugin at start-up.
 #   docs/SURFACES.md  — the authority on how personas and skills reach Codex,
@@ -421,6 +428,7 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/tenkai_adopt.sh'
   'scripts/tenkai_adopt.ts'
   'scripts/tenkai_adopt_legacy.sh'
+  'scripts/tenkai_fixes.ts'
   'scripts/tenkai_trailer_guard.mts'
   'scripts/consumer_trailer_ci.mts'
   'scripts/pr_sections_history.ts'
@@ -456,6 +464,8 @@ PLUGIN_SURFACE_GLOBS=(
   'scripts/idle_permissions_check.mts'
   'scripts/ledger_findings_prepare.mts'
   'scripts/amaterasu_preview.mts'
+  'scripts/en_push_guard.mts'
+  'scripts/cleanup_plan_guard.mts'
   '.mcp.json'
 )
 
@@ -802,12 +812,100 @@ pr_body_has_opt_out() {
     | grep -qiE '^[[:space:]]*(>[[:space:]]*|-[[:space:]]+)*no plugin bump:[[:space:]]*[^[:space:]]'
 }
 
+# --- versions_equal FIRST SECOND -----------------------------------------------
+# Returns 0 if FIRST and SECOND parse as valid semver (SemVer 2.0.0) and match
+# on (MAJOR, MINOR, PATCH, PRERELEASE). Ignoring build metadata follows SemVer
+# 2.0.0 clause 10. Malformed versions never match.
+versions_equal() {
+  local first_parts second_parts
+  first_parts="$(semver_parts "$1")" || return 1
+  second_parts="$(semver_parts "$2")" || return 1
+  local amaj amin apat apre bmaj bmin bpat bpre
+  IFS=' ' read -r amaj amin apat apre <<< "$first_parts"
+  IFS=' ' read -r bmaj bmin bpat bpre <<< "$second_parts"
+  [ "$amaj" = "$bmaj" ] && [ "$amin" = "$bmin" ] && [ "$apat" = "$bpat" ] && [ "$apre" = "$bpre" ]
+}
+
+# --- validate_open_prs_file OPEN_PRS_FILE ------------------------------------
+# Fails closed (returns 1) when an open-PR sidecar exists on disk/symlink but
+# is not a readable regular file matching the expected JSON schema.
+validate_open_prs_file() {
+  local file="$1"
+  [ -f "$file" ] && [ -r "$file" ] || return 1
+  jq -e '
+    type == "object" and
+    ((has("baseRef") | not) or (.baseRef | type == "string" and length > 0)) and
+    (.openPrs | type == "array") and
+    all(.openPrs[];
+      type == "object" and
+      (.number | type == "number" and . >= 1 and floor == .) and
+      (.version | type == "string") and
+      (.files | type == "array") and
+      all(.files[]; type == "string" and (test("[\u0001-\u001f\u007f]") | not) and (contains("\u0000") | not))
+    )
+  ' "$file" >/dev/null 2>&1
+}
+
+# --- open_prs_base_ref OPEN_PRS_FILE -----------------------------------------
+# Prints the recorded base branch name from OPEN_PRS_FILE, or "main" when absent.
+open_prs_base_ref() {
+  local file="$1"
+  if [ -f "$file" ] && [ -r "$file" ]; then
+    jq -r '.baseRef // "main"' "$file" 2>/dev/null || echo "main"
+  else
+    echo "main"
+  fi
+}
+
+# --- open_pr_version_collisions OPEN_PRS_FILE HEAD_VERSION -------------------
+# Reads OPEN_PRS_FILE and echoes one line per colliding open sibling PR whose
+# changed files touch a plugin-shipped surface and whose head manifest carries
+# the same version as HEAD_VERSION: "<number> <sanitized_version>".
+# Uses synchronous command substitutions + here-strings (never process
+# substitutions) so instrumented Bashcov tracing never spawns concurrent subshells.
+open_pr_version_collisions() {
+  local file="$1" head_version="$2" entries entry other_num other_ver files_list other_file has_shipped
+  [ -f "$file" ] || return 0
+  entries="$(jq -c '.openPrs[]' "$file")"
+  while IFS= read -r entry; do
+    [ -n "$entry" ] || continue
+    other_num="$(jq -r '.number' <<< "$entry")"
+    other_ver="$(jq -r '.version' <<< "$entry")"
+    versions_equal "$other_ver" "$head_version" || continue
+    has_shipped=0
+    files_list="$(jq -r '.files[]' <<< "$entry")"
+    while IFS= read -r other_file; do
+      [ -z "$other_file" ] && continue
+      if path_is_plugin_surface "$other_file"; then
+        has_shipped=1
+        break
+      fi
+    done <<< "$files_list"
+    if [ "$has_shipped" -eq 1 ]; then
+      printf '%s %s\n' "$other_num" "$(head_token "$other_ver")"
+    fi
+  done <<< "$entries"
+}
+
 if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
-  [ "$#" -eq 4 ] || {
-    echo "usage: $0 <changed-files-file> <base-plugin-json> <head-plugin-json> <pr-body-file>   # the head tree is dirname(<head-plugin-json>)/.." >&2
-    exit 2
-  }
-  changed_files="$1" base_plugin="$2" head_plugin="$3" pr_body="$4"
+  version_only=0
+  if [ "${1-}" = "--version-only" ]; then
+    version_only=1
+    shift
+  fi
+  if [ "$version_only" -eq 1 ]; then
+    [ "$#" -eq 3 ] || [ "$#" -eq 4 ] || {
+      echo "usage: $0 [--version-only] <changed-files-file> <base-plugin-json> <head-plugin-json> [pr-body-file]   # the head tree is dirname(<head-plugin-json>)/.." >&2
+      exit 2
+    }
+    changed_files="$1" base_plugin="$2" head_plugin="$3" pr_body="${4-}"
+  else
+    [ "$#" -eq 4 ] || {
+      echo "usage: $0 [--version-only] <changed-files-file> <base-plugin-json> <head-plugin-json> <pr-body-file>   # the head tree is dirname(<head-plugin-json>)/.." >&2
+      exit 2
+    }
+    changed_files="$1" base_plugin="$2" head_plugin="$3" pr_body="$4"
+  fi
 
   [ -f "$changed_files" ] || {
     echo "error: changed-files-file '$changed_files' does not exist — refusing to fail-open on a bad workflow wiring input" >&2
@@ -818,8 +916,22 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     exit 2
   }
 
+  open_prs_file="${base_plugin}.open-prs.json"
+  has_open_prs=0
+  if [ -e "$open_prs_file" ] || [ -L "$open_prs_file" ]; then
+    if ! validate_open_prs_file "$open_prs_file"; then
+      echo "error: open-prs metadata '$open_prs_file' is malformed or unreadable — refusing to fail-open on a bad workflow wiring input" >&2
+      exit 2
+    fi
+    has_open_prs=1
+  fi
+  base_ref_reported="main"
+  if [ "$has_open_prs" -eq 1 ]; then
+    base_ref_reported="$(head_token "$(open_prs_base_ref "$open_prs_file")")"
+  fi
+
   opt_out_declared=0
-  if pr_body_has_opt_out "$pr_body"; then opt_out_declared=1; fi
+  if [ -n "$pr_body" ] && pr_body_has_opt_out "$pr_body"; then opt_out_declared=1; fi
 
   if ! any_path_is_plugin_surface "$changed_files"; then
     if [ "$opt_out_declared" -eq 1 ]; then
@@ -831,6 +943,26 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   fi
 
   if version_bumped "$base_plugin" "$head_plugin"; then
+    head_version_now="$(plugin_version "$head_plugin")"
+    head_version_reported="$(head_token "$head_version_now")"
+    if [ "$has_open_prs" -eq 1 ]; then
+      collisions="$(open_pr_version_collisions "$open_prs_file" "$head_version_now")"
+      if [ -n "$collisions" ]; then
+        {
+          echo "plugin.json version ${head_version_reported} collides with another open PR targeting ${base_ref_reported} carrying the same new version on a plugin-shipped surface:"
+          while IFS=' ' read -r coll_num coll_ver; do
+            [ -n "$coll_num" ] || continue
+            echo "  - PR #${coll_num} (${coll_ver})"
+          done <<< "$collisions"
+          echo "Bump .claude-plugin/plugin.json (and .codex-plugin/plugin.json if present) to a strictly higher version so both open PRs do not claim ${head_version_reported}."
+        } >&2
+        exit 1
+      fi
+    fi
+    if [ "$version_only" -eq 1 ]; then
+      echo "plugin.json version ${head_version_reported} strictly increases ${base_ref_reported} and has no open-PR collision"
+      exit 0
+    fi
     # The bump is real. What the bump still makes worth reading is the CODEX OVERLAY: Codex keys
     # its own plugin-cache slot on .codex-plugin/plugin.json, so an overlay lagging this bump
     # leaves every Codex install on the old slot. The head tree is the directory the head manifest
@@ -844,7 +976,6 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     if [ "$(basename "$(dirname "$head_plugin")")" = ".claude-plugin" ]; then
       head_root="$(CDPATH= cd "$(dirname "$head_plugin")/.." 2>/dev/null && pwd -P)" || head_root=""
     fi
-    head_version_now="$(plugin_version "$head_plugin")"
     if [ -n "$head_root" ]; then
       set +e
       codex_overlay_problem="$(codex_overlay_check "$head_root" "$head_version_now")"
@@ -884,8 +1015,10 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     exit 0
   fi
 
-  base_version_reported="$(head_token "$(plugin_version "$base_plugin")")"
-  head_version_reported="$(head_token "$(plugin_version "$head_plugin")")"
+  base_version_raw="$(plugin_version "$base_plugin")"
+  head_version_raw="$(plugin_version "$head_plugin")"
+  base_version_reported="$(head_token "$base_version_raw")"
+  head_version_reported="$(head_token "$head_version_raw")"
   if [ "$opt_out_declared" -eq 1 ]; then
     {
       echo "plugin-bump opt-out refused: the \`no plugin bump:\` line is honoured only where no plugin-shipped path changed, and this diff changes:"
@@ -897,6 +1030,9 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
   {
     echo "plugin.json version is not a strict increase: base ${base_version_reported:-<none>} -> head ${head_version_reported:-<none>}"
     echo "a version that does not increase is how v0.40.0 went untagged"
+    if [ -n "$base_version_raw" ] && versions_equal "$base_version_raw" "$head_version_raw"; then
+      echo "head version ${head_version_reported} equals the current tip of ${base_ref_reported} (${base_version_reported}) — another PR likely merged ahead of this one"
+    fi
   } >&2
 
   # Generated FROM the array rather than transcribed: a hand-copied list

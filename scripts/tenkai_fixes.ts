@@ -1,6 +1,9 @@
-/** HA#535: every outstanding Tenkai item names its fix, rendered from contracts/tenkai-fixes.json. */
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+/**
+ * HA#535: every outstanding Tenkai item names its fix, rendered from contracts/tenkai-fixes.json.
+ * HA#605: also exposes `adoptionNotices` for non-blocking structural/governance declaration checks.
+ */
+import { lstatSync, readFileSync, realpathSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const FILLS = ['default', 'owner', 'edit', 'route', 'unmapped'] as const;
@@ -8,6 +11,7 @@ export type Fill = typeof FILLS[number];
 export type FixRow = { id: string; states?: string[]; detail?: string; action?: string; each?: string; run?: string[]; asks?: string[]; edit?: string; guide?: string; detect: string; fill: Fill };
 export type Fix = { run: string[]; asks: string[]; edit: string | null; guide: string | null; detect: string; fill: Fill; rule: string; defect?: string };
 export type Item = { id: string; state: string; detail?: string | null; action?: string | null };
+export type AdoptionNotice = { id: string; declaration: string; consequence: string; action: string; message: string };
 export const OUTSTANDING = ['missing', 'drift', 'routed', 'staged', 'blocked'];
 const SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 
@@ -83,4 +87,90 @@ export function guide(items: (Item & { fix?: Fix })[]) {
     routed: ids('route'),
     unmapped: ids('unmapped'),
   };
+}
+
+function confinedText(repo: string, rel: string): { status: 'missing' | 'unreadable' | 'ok'; text?: string } {
+  const root = resolve(repo);
+  let cursor = root;
+  for (const part of rel.split('/')) {
+    cursor = join(cursor, part);
+    try {
+      if (lstatSync(cursor).isSymbolicLink()) return { status: 'unreadable' };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { status: 'missing' };
+      return { status: 'unreadable' };
+    }
+  }
+  try {
+    const info = lstatSync(cursor);
+    if (!info.isFile()) return { status: 'unreadable' };
+    const sub = relative(realpathSync(root), realpathSync(cursor));
+    if (!sub || sub === '..' || sub.startsWith(`..${sep}`) || sub.startsWith('../') || isAbsolute(sub)) return { status: 'unreadable' };
+    return { status: 'ok', text: new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(cursor)) };
+  } catch {
+    return { status: 'unreadable' };
+  }
+}
+
+function notice(id: string, declaration: string, consequence: string, action: string): AdoptionNotice {
+  return { id, declaration, consequence, action, message: `notice (${declaration}): absent — ${consequence}; ${action}` };
+}
+
+/** HA#605: non-blocking notices for missing structural/governance declarations at Tenkai adoption. */
+export function adoptionNotices(repo: string): AdoptionNotice[] {
+  const root = resolve(repo);
+  try {
+    const rootInfo = lstatSync(root);
+    if (rootInfo.isSymbolicLink() || !rootInfo.isDirectory()) return [];
+  } catch {
+    return [];
+  }
+  const notices: AdoptionNotice[] = [];
+  const workflowFile = confinedText(root, 'nen/workflow.json');
+  if (workflowFile.status === 'ok' && workflowFile.text !== undefined) {
+    try {
+      const workflow = JSON.parse(workflowFile.text);
+      if (workflow && typeof workflow === 'object' && !Array.isArray(workflow)) {
+        const sections = workflow.reports?.sections;
+        const hasSections = sections && typeof sections === 'object' && !Array.isArray(sections)
+          && Object.keys(sections).some((key) => !key.startsWith('$'));
+        if (!hasSections) {
+          notices.push(notice(
+            'reports.sections',
+            'nen/workflow.json → reports.sections',
+            'the Rikugan final report cannot render',
+            'declare reports.sections (turn, turn-fast, landing, final and register blocks) in nen/workflow.json (docs/config/workflow.json.md)',
+          ));
+        }
+        const scopes = workflow.review?.scopes;
+        const hasArch = scopes && typeof scopes === 'object' && !Array.isArray(scopes)
+          && scopes.architecture && typeof scopes.architecture === 'object' && !Array.isArray(scopes.architecture);
+        if (!hasArch) {
+          notices.push(notice(
+            'review.scopes.architecture',
+            'nen/workflow.json → review.scopes.architecture',
+            'content-raised totality passes cannot run',
+            'add an architecture scope (persona chrollo, tier deep, paths) under review.scopes in nen/workflow.json (docs/config/workflow.json.md)',
+          ));
+        }
+      }
+    } catch { /* unreadable JSON keeps its blocked nen/workflow.json row instead */ }
+  }
+  if (confinedText(root, 'nen/gates.json').status === 'missing') {
+    notices.push(notice(
+      'nen/gates.json',
+      'nen/gates.json',
+      'nen pr ready cannot read declared reviewers or approvers without explicit flags',
+      'declare nen/gates.json when configuring repository gates (docs/config/gates.json.md)',
+    ));
+  }
+  if (confinedText(root, 'nen/decisions.json').status === 'missing') {
+    notices.push(notice(
+      'nen/decisions.json',
+      'nen/decisions.json',
+      'nen stop answer warns on recorded picker answers and no consumer decision overrides apply',
+      'declare nen/decisions.json if consumer decision defaults are needed (docs/config/decisions.json.md)',
+    ));
+  }
+  return notices;
 }

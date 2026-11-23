@@ -2,10 +2,10 @@
 // scripts/tenkai_fixes.ts. The authoritative cases are scripts/tenkai_fixes_fixture.test.mts (Vitest).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { fixFor, fixRows, guide, quote, resolveAction, type FixRow } from './tenkai_fixes.ts';
+import { adoptionNotices, fixFor, fixRows, guide, quote, resolveAction, type FixRow } from './tenkai_fixes.ts';
 
 const rows = fixRows(resolve(import.meta.dirname, '..'));
 const context = { repo: '/tmp/a repo', root: '/opt/hatsu', slug: 'acme/widget' };
@@ -43,5 +43,56 @@ test('a malformed catalogue is refused before any write', () => {
       writeFileSync(join(root, 'contracts/tenkai-fixes.json'), JSON.stringify({ fixes }));
       assert.throws(() => fixRows(root));
     }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('adoptionNotices covers absent, partial, complete, unreadable and symlinked declarations', () => {
+  const root = mkdtempSync(join(tmpdir(), 'hatsu-tenkai-notices-cov-'));
+  try {
+    // Missing workflow -> only missing nen/gates.json and nen/decisions.json.
+    assert.deepEqual(adoptionNotices(root).map((n) => n.id), ['nen/gates.json', 'nen/decisions.json']);
+
+    mkdirSync(join(root, 'nen'));
+    writeFileSync(join(root, 'nen/workflow.json'), JSON.stringify({ review: { scopes: { code: {} } } }));
+    assert.deepEqual(adoptionNotices(root).map((n) => n.id), ['reports.sections', 'review.scopes.architecture', 'nen/gates.json', 'nen/decisions.json']);
+
+    // Symlinked and unparseable workflow do not crash and refuse unsafe paths.
+    const linked = mkdtempSync(join(tmpdir(), 'hatsu-tenkai-notices-link-'));
+    try {
+      mkdirSync(join(linked, 'nen'));
+      symlinkSync(join(root, 'nen/workflow.json'), join(linked, 'nen/workflow.json'));
+      symlinkSync(join(root, 'nen/missing-gates.json'), join(linked, 'nen/gates.json'));
+      symlinkSync(join(root, 'nen/missing-decisions.json'), join(linked, 'nen/decisions.json'));
+      assert.deepEqual(adoptionNotices(linked), []);
+    } finally { rmSync(linked, { recursive: true, force: true }); }
+
+    // Nonexistent repo and symlinked nen/ directory return [] safely.
+    assert.deepEqual(adoptionNotices(join(root, 'does-not-exist')), []);
+    const linkDir = mkdtempSync(join(tmpdir(), 'hatsu-tenkai-notices-nendir-'));
+    try {
+      symlinkSync(join(root, 'nen'), join(linkDir, 'nen'));
+      assert.deepEqual(adoptionNotices(linkDir), []);
+    } finally { rmSync(linkDir, { recursive: true, force: true }); }
+
+    writeFileSync(join(root, 'nen/workflow.json'), '{ bad json');
+    assert.deepEqual(adoptionNotices(root).map((n) => n.id), ['nen/gates.json', 'nen/decisions.json']);
+
+    // Non-file workflow directory refuses cleanly.
+    const dirRepo = mkdtempSync(join(tmpdir(), 'hatsu-tenkai-notices-dir-'));
+    try {
+      mkdirSync(join(dirRepo, 'nen/workflow.json'), { recursive: true });
+      writeFileSync(join(dirRepo, 'nen/gates.json'), '{}\n');
+      writeFileSync(join(dirRepo, 'nen/decisions.json'), '{}\n');
+      assert.deepEqual(adoptionNotices(dirRepo), []);
+    } finally { rmSync(dirRepo, { recursive: true, force: true }); }
+
+    // Complete configuration yields zero notices.
+    writeFileSync(join(root, 'nen/workflow.json'), JSON.stringify({ reports: { sections: { turn: {} } }, review: { scopes: { architecture: {} } } }));
+    writeFileSync(join(root, 'nen/gates.json'), '{}\n');
+    writeFileSync(join(root, 'nen/decisions.json'), '{"rows":[]}\n');
+    assert.deepEqual(adoptionNotices(root), []);
+
+    // Unknown stamp fix row matches route.
+    assert.equal(fixFor({ id: 'pr.sections', state: 'blocked', detail: 'stamp bbbbbbb is newer or unknown' }, rows, context).fill, 'route');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

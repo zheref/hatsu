@@ -294,6 +294,11 @@ cd <repo> && cursor-agent -p --output-format text --model "$grok" -f "<prompt>"
    have a documented *Attribution* toggle, but it is documented for `Made with Cursor` only: turn it off,
    and if a `Co-authored-by` still reads back, that path stops on the same read-back before any push.
 
+**Porting between sibling repositories.** `/kamui` specs one issue or shipped PR for the whole product
+family, `/hiraishin` ports one merged PR to one sibling, and `/kido` records the port rulings both of
+them ask for. They are described in [the hub's *Porting work between sibling
+repositories*](README.md#porting-work-between-sibling-repositories); run each with `--dry-run` first.
+
 ---
 
 ## 4 · Maintenance
