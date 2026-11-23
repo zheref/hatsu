@@ -965,16 +965,23 @@ change after it lands, [HR-2](#hr-2)).
    the records) and which picks depart from the recommendation. A
    paraphrase is the lead's reading and says so; private names are placeheld per
    [`PUBLIC-REDACTION.md`](PUBLIC-REDACTION.md).
-3. **The ruling table**, one row per ruling: the HR id with its anchor, in the form every HR row
-   above carries, the question as asked (its three departures below), the options shown, the pick, the status and
-   what it settles. The status grammar is **How HR ids are read**, in § *Rulings of 2026-10-20 — the
-   SDD assessment sitting*, cited, never restated. **A row whose answer was recorded is rendered from
+3. **The ruling table**, one row per ruling. For a new row, run
+   `node scripts/ruling_record.mts next-id --repo <checkout>` in the ruling effort. Use its returned
+   HR id and retain its inventory of holders at the fresh base, in open PRs, and in the effort's own
+   committed, staged, or unstaged rows. Add the row to the effort's roster before allocating the next one. If a read fails,
+   stop the allocation and resolve the named failure. The inventory sees published PRs and local
+   rows. Parallel efforts can still choose the same id before either opens a PR.
+   The row has the HR id with its anchor, the question as asked (its three departures below), the
+   options shown, the pick, the status and what it settles. The status grammar is **How HR ids are
+   read**, in § *Rulings of 2026-10-20 — the SDD assessment sitting*. **A row whose answer was recorded is rendered from
    its record, never retyped** (zheref/hatsu#443; [`WORKFLOW.md`](WORKFLOW.md) § 4 *Every picker answer
    is recorded*): `node scripts/ruling_record.mts export --effort <branch> --id <R-id> --repo <checkout>`
    copies the record, read through `nen stop answer show`, into `docs/ruling-records/<effort>--<R-id>.json`
    after the private-name guard and a secret-shape pass; then
-   `node scripts/ruling_record.mts render --record docs/ruling-records/<effort>--<R-id>.json --hr HR-<n> --status <status> --settles-file <file>`
-   prints the row — the HR id with its anchor and the record's link, the question, every option with its
+   `node scripts/ruling_record.mts render --record docs/ruling-records/<effort>--<R-id>.json --hr HR-<n> --status <status> --settles-file <file> --repo <checkout>`
+   checks the id against the same live inventory before printing the row. A collision names the
+   holder and produces no row. When re-rendering the same record, pass its existing HR id.
+   The row carries the HR id with its anchor and the record's link, the question, every option with its
    consequence, and the answer with its capture class (`picked (K)`, `typed, word for word (K)`,
    `typed (verbatim)`, or `pre-answered (<source>)`, which settles no ruling). The status and what it settles stay the lead's words. The `ruling-record` lane
    (`nen shu test --lane ruling-record --repo <hatsu>`, run in `unit-tests.yml`) re-renders every row
