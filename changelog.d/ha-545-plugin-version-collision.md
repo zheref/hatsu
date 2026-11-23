@@ -1,0 +1,1 @@
+- **Plugin-bump and readiness collision guard**: compare against the live tip of `baseRef`, detect version collisions across open non-fork pull requests touching shipped surfaces in `plugin_bump_api_retry.mts` / `plugin_bump_check.sh`, and re-verify readiness-time version collisions in `readiness_ci_verdict.mts` (`0.175.2` patch, zheref/hatsu#545).

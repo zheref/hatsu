@@ -287,12 +287,16 @@ and refusals*). Without
 Bashcov the fixture still runs, once and uninstrumented, and says so, and `--from-capture` refuses for want
 of a capture: unmeasured, never a clean zero. A POSIX `sh` fixture runs under `sh` first, then
 instrumented. Only scripts the fixture executed in place are reported, so a script a fixture copies to a
-temporary root, or one another lane exercises, is `unmatched` here. A trace Bashcov cannot parse
-captures nothing; a run that also exited non-zero is re-run plain, and that run's exit decides. A lane
+temporary root, or one another lane exercises, is `unmatched` here. When Bashcov exits `0` after a trace
+parse abort, `scripts/shell_coverage.mts` retains any partial LCOV already written (marking `partial: true` in
+`provenance.json`); if `0` script files were captured, it reports `unmeasured`, deletes stale `lcov.info`,
+and exits `2` under `HATSU_SHELL_COVERAGE=require`. A parse abort with a non-zero exit re-runs plain, and
+that run's exit decides (with `require` exiting `2` even on a passing re-run). A lane
 whose fixture Bashcov cannot measure yet (its trace leaks into the output the fixture asserts on, or
 cannot be parsed) seats its
 `coverage` row with that reason instead. `HATSU_SHELL_COVERAGE=0` skips the
-instrumentation and `require` refuses without it. The ladder above is unchanged.
+instrumentation, and `require` exits `2` without a capture or on a `0`-coverage abort. The TypeScript guards have no line-coverage tool
+declared yet (the `plugin` lane's `coverage` seat). The ladder above is unchanged.
 
 | Shell source | Focused coverage lane |
 |---|---|
