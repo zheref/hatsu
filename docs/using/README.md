@@ -34,6 +34,26 @@ on it as one pull request and prints the App, secret and ruleset steps that are 
 follows the table above: `/hatsu:kuchiyose` on Claude Code, `$hatsu:kuchiyose` on Codex, `/kuchiyose`
 on Cursor and Antigravity.
 
+## Porting work between sibling repositories
+
+A product family whose members run on different stacks has three port skills (epic zheref/hatsu#354):
+
+- `kamui <CODE>-IS-#<N> | <CODE>-PR-#<N>`: writes one issue or one shipped PR into the family's spec
+  repository as a spec PR (merged at **G2**), then files one port issue on each sibling you pick.
+- `hiraishin <CODE>-PR-#<N> [to <CODE>]`: ports one merged PR to one sibling. The spec comes first where
+  the family has a spec repository. Then a port brief maps each concept, and `build` runs on the port
+  issue.
+- `kido <from-scenario> to <to-scenario> [ruling <text>]`: records one port ruling in the ports pair file
+  of `zheref/bankai-handbooks`, which merges at **G4**. The two composites call it for every unmapped
+  or unclassifiable row, in one batched `port-drift` picker per run.
+
+`kamui` and `hiraishin` need the family declared under `families[]`, in each member's own
+`nen/repos.json` and in the spec repository's ([`../config/repos.json.md`](../config/repos.json.md) §
+`families[]`). Hatsu's own registry never declares one. Run `--dry-run` first: it prints the plan,
+reports missing setup and writes nothing outside a scratch directory. The spelling follows the table
+above: `/hatsu:kamui` on Claude Code, `$hatsu:kamui` on Codex, `/kamui` on Cursor and Antigravity, and
+the same for the other two.
+
 ## The four surfaces, compared
 
 | | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |

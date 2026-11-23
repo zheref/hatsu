@@ -92,6 +92,11 @@ try {
     ['release_lag_check.mts', 'release_lag_check_fixture.mts', 'release-lag-guard'],
     ['direct_matrix_doc.mts', 'direct_matrix_doc_fixture.test.mts', 'direct-matrix-guard'],
     ['pr_sections.ts', 'pr_sections_fixture_check.ts', 'pr-sections-guard'],
+    ['pr_sections_resolve.sh', 'pr_sections_fixture_check.sh', 'pr-sections-shell-guard'],
+    ['codex_marketplace_snapshot.sh', 'codex_marketplace_snapshot_fixture.sh', 'marketplace-snapshot-guard'],
+    ['fixture_output_guard.sh', 'fixture_output_guard_fixture.sh', 'fixture-output-guard'],
+    ['direct_matrix_doc.sh', 'direct_matrix_doc_shell_fixture.sh', 'direct-matrix-shell-guard'],
+    ['desk_mod_test.sh', 'desk_mod_test_fixture.sh', 'desk-staging-guard'],
     ['delegate_brief_check.mts', 'delegate_brief_check_fixture.mts', 'delegate-brief-guard']]) {
     writeFileSync(join(repo, 'scripts', script), '');
     result = run();
@@ -289,6 +294,35 @@ try {
   assert(readFileSync(log, 'utf8').includes('amaterasu-preview-guard||'), 'amaterasu-preview-guard lane not selected (HA617)');
   result = run({ HATSU_FAIL_LANE: 'amaterasu-preview-guard' });
   assert(result.status === 1 && result.stderr.includes('amaterasu-preview-guard failed'), 'failing amaterasu-preview-guard was not red (HA617)');
+
+  // HA611 & HA616: En push guard and cleanup plan guard must execute their Vitest and coverage fixtures in CI.
+  writeFileSync(join(repo, 'scripts', 'en_push_guard.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('en_push_guard.mts has no required fixture'), 'missing en-push-guard fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'en_push_guard_fixture.test.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('en_push_guard_coverage.test.mts'), 'missing en-push-guard coverage fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'en_push_guard_coverage.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `en-push-guard refused: ${result.stderr}`);
+  assert(readFileSync(log, 'utf8').includes('en-push-guard||'), 'en-push-guard lane not selected (HA611)');
+  result = run({ HATSU_FAIL_LANE: 'en-push-guard' });
+  assert(result.status === 1 && result.stderr.includes('en-push-guard failed'), 'failing en-push-guard was not red (HA611)');
+
+  writeFileSync(join(repo, 'scripts', 'cleanup_plan_guard.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('cleanup_plan_guard.mts has no required fixture'), 'missing cleanup-plan-guard fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'cleanup_plan_guard_fixture.test.mts'), '');
+  result = run();
+  assert(result.status === 2 && result.stderr.includes('cleanup_plan_guard_coverage.test.mts'), 'missing cleanup-plan-guard coverage fixture did not refuse');
+  writeFileSync(join(repo, 'scripts', 'cleanup_plan_guard_coverage.test.mts'), '');
+  writeFileSync(log, '');
+  result = run();
+  assert(result.status === 0, `cleanup-plan-guard refused: ${result.stderr}`);
+  assert(readFileSync(log, 'utf8').includes('cleanup-plan-guard||'), 'cleanup-plan-guard lane not selected (HA616)');
+  result = run({ HATSU_FAIL_LANE: 'cleanup-plan-guard' });
+  assert(result.status === 1 && result.stderr.includes('cleanup-plan-guard failed'), 'failing cleanup-plan-guard was not red (HA616)');
 
 } finally {
   rmSync(dir, { recursive: true, force: true });

@@ -9,7 +9,8 @@ import { spawnSync } from 'node:child_process';
 
 const PIN = '16ff11b07b69305cf6a420972ca3d3926b44be67';
 const DIGEST = 'd7cbb1dd4c6d8d5ff472b96922c5f5d3eda7fdcd69ea8e485becbfe8629e0da8';
-const NAME = 'forbidden-commit-trailers';
+// This API check is advisory. GitHub reports the required context from the job.
+const NAME = 'forbidden-commit-trailers verdict';
 const dataEnv = { ...process.env, GH_TOKEN: '', GITHUB_TOKEN: '' };
 function required(name: string, pattern: RegExp): string {
   const value = process.env[name] ?? '';

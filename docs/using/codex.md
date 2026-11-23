@@ -164,6 +164,11 @@ so trust the repository first.
 for a given job, are in [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md); the live id is read from
 `codex debug models`, never remembered.
 
+**Porting between sibling repositories.** `$hatsu:kamui` specs one issue or shipped PR for the whole
+product family, `$hatsu:hiraishin` ports one merged PR to one sibling, and `$hatsu:kido` records the port
+rulings both of them ask for. They are described in [the hub's *Porting work between sibling
+repositories*](README.md#porting-work-between-sibling-repositories); run each with `--dry-run` first.
+
 ## 4 · Maintenance
 
 | What is served | How it updates | Next, to use it |

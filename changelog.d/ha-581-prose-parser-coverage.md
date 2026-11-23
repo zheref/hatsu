@@ -1,0 +1,1 @@
+Move the prose size guard’s description parser into its own AWK file so shell coverage measures the guard’s executable lines. Add fixture coverage for the default checkout and invalid UTF-8 in Antigravity rules.

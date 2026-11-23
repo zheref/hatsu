@@ -11,15 +11,20 @@ const log = join(root, 'argv');
 const entry = join(import.meta.dirname, 'gh_api_read.mts');
 // A literal copy, not an import: importing the entrypoint would run its CLI. A drifted projection fails here.
 const PR_HEAD_PROJECTION = '{number,state,draft,title,head:.head.sha,headRef:.head.ref,headRepo:.head.repo.full_name,baseRef:.base.ref,baseRepo:.base.repo.full_name}';
-writeFileSync(gh, '#!/bin/sh\nprintf "%s\\n" "$@" > "$HATSU_GH_CAPTURE"\n');
+writeFileSync(gh, '#!/bin/sh\nprintf "%s\\n" "$@" > "$HATSU_GH_CAPTURE"\nprintf "%s" "$HATSU_GH_RESPONSE"\nexit "${HATSU_GH_EXIT:-0}"\n');
 chmodSync(gh, 0o755);
 
-function run(args: string[], accepted: boolean): string[] {
+function invoke(args: string[], response = '', status = '0') {
   rmSync(log, { force: true });
-  const result = spawnSync(process.execPath, [entry, ...args], {
+  return spawnSync(process.execPath, [entry, ...args], {
     encoding: 'utf8',
-    env: { ...process.env, PATH: `${root}${delimiter}${process.env.PATH ?? ''}`, HATSU_GH_CAPTURE: log },
+    env: { ...process.env, PATH: `${root}${delimiter}${process.env.PATH ?? ''}`, HATSU_GH_CAPTURE: log,
+      HATSU_GH_RESPONSE: response, HATSU_GH_EXIT: status },
   });
+}
+
+function run(args: string[], accepted: boolean, response = ''): string[] {
+  const result = invoke(args, response);
   if (accepted && (result.status !== 0 || !existsSync(log))) {
     throw new Error(`valid read rejected: ${args.join(' ')}: ${result.stderr}`);
   }
@@ -34,9 +39,45 @@ try {
   if (privateRepos.join(' ') !== 'api --method GET user/repos?visibility=private&per_page=100 --paginate --jq .[].full_name') {
     throw new Error('private repository list lost GET, query, pagination or projection');
   }
-  const branch = run(['branch-rules', 'zheref/hatsu', 'feature/read'], true);
-  if (branch.join(' ') !== 'api --method GET repos/zheref/hatsu/rules/branches/feature%2Fread') {
-    throw new Error('branch rules did not encode the branch in a fixed GET path');
+  const methods = run(['repo-merge-methods', 'zheref/hatsu'], true);
+  if (methods.join(' ') !== 'api --method GET repos/zheref/hatsu --jq {allow_merge_commit,allow_squash_merge,allow_rebase_merge}') {
+    throw new Error('repository merge methods must use the fixed GET and projection');
+  }
+  const protection = run(['branch-protection', 'zheref/hatsu', 'feature/read'], true);
+  if (protection.join(' ') !== 'api --method GET repos/zheref/hatsu/branches/feature%2Fread/protection --jq {required_linear_history: .required_linear_history.enabled}') {
+    throw new Error('branch protection must use the fixed GET and linear history projection');
+  }
+  const branchArgs = ['branch-rules', 'zheref/hatsu', 'feature/read'];
+  const branch = run(branchArgs, true, '[]\n');
+  const pageFilter = 'if type == "array" then @json else error("expected branch rules array") end';
+  if (branch.join(' ') !== 'api --method GET repos/zheref/hatsu/rules/branches/feature%2Fread --paginate --jq ' + pageFilter) {
+    throw new Error('branch rules must use the fixed GET and compact page filter supported by older gh');
+  }
+  const empty = invoke(branchArgs, '[]\n');
+  if (empty.status !== 0 || empty.stdout.trim() !== '[]') throw new Error('an empty page is a valid rules result');
+  const rules = [
+    {type: 'commit_message_pattern', parameters: {pattern: 'first\nsecond'}},
+    {type: 'pull_request', parameters: {allowed_merge_methods: ['squash']}},
+  ];
+  const complete = invoke(branchArgs, JSON.stringify([rules[0]]) + '\n' + JSON.stringify([rules[1]]) + '\n');
+  if (complete.status !== 0 || complete.stdout.trim() !== JSON.stringify(rules)) {
+    throw new Error('branch rules lost a later page, an escaped newline or the flat response');
+  }
+  for (const [response, status] of [
+    ['[{"type":"deletion"}]\n{}\n', '0'],
+    ['[{"type":"deletion"}]\n[\n', '0'],
+    ['', '0'],
+    ['[{"type":"deletion"}]\n', '1'],
+  ]) {
+    const incomplete = invoke(branchArgs, response, status);
+    if (incomplete.status === 0 || incomplete.stdout !== '') throw new Error('an incomplete branch rules response escaped');
+  }
+  const queue = run(['pr-merge-queue', 'zheref/hatsu', '42'], true);
+  if (queue.slice(0, 3).join(' ') !== 'api graphql -f' ||
+      !queue[3].startsWith('query=query ReadMergeQueue(') || !queue[3].includes('headRefOid baseRefName mergeQueue{id}') ||
+      queue.slice(4).join(' ') !== '-f owner=zheref -f repo=hatsu -F number=42' ||
+      queue.some(part => /\bmutation\b/.test(part))) {
+    throw new Error('PR merge queue read must use the fixed, ref-pinned query');
   }
   const checks = run(['required-checks', 'zheref/hatsu', 'main'], true);
   if (checks.join(' ') !== 'api --method GET repos/zheref/hatsu/branches/main/protection/required_status_checks') {
@@ -80,6 +121,9 @@ try {
     ['private-repos', '-F', 'x=y'],
     ['branch-rules', 'zheref/hatsu', 'main', '--method', 'PATCH'],
     ['branch-rules', 'zheref/hatsu', '--method'],
+    ['repo-merge-methods', 'zheref/hatsu', '--method', 'PATCH'],
+    ['branch-protection', 'zheref/hatsu', 'main', '--method', 'DELETE'],
+    ['pr-merge-queue', 'zheref/hatsu', '42', 'mutation'],
     ['issue-pr', 'zheref/hatsu', '1/pulls/1/merge'],
     ['issue-pr', 'zheref/hatsu', '0'],
     ['tag-ref', 'zheref/hatsu', '../pulls/1/merge'],
