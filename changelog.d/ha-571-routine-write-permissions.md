@@ -1,0 +1,1 @@
+Render Claude Code user permission proposals with a paired routine-write checker, verify them on every warm-up, preserve Ten’s pinned session fallback, and report checkout pack ownership and drift in Tenkai (HA#571).

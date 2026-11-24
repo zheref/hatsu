@@ -372,6 +372,12 @@ cites a ruling-status row, and a path whose only authority is a reading asks onc
 
 ## Reviewer rounds and review threads
 
+On Claude Code, prepare and review the payload file in a separate tool call. Run each routine
+Nen write as a lone Bash call, with bare Nen or the verified Hatsu token wrapper and `-- nen`.
+The [Claude Code permission guide](surfaces/claude-code.md#5-permissions) describes the allowed
+spellings and the warm-up check.
+
+
 The **policy** — when a round is owed, the cap, never before [`hanten`](../claude/skills/hanten/SKILL.md)
 settles — is [`sharingan`](../claude/skills/sharingan/SKILL.md) § 6's. The **mechanics** every phase
 that requests a round or answers a thread shares (`shibari`, `sharingan`, `en`) are here.

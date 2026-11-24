@@ -6,7 +6,7 @@
 //
 // Reads every exemplar in contracts/idle-permissions.json (or --needs) and the Claude Code settings the
 // session loads — <checkout>/.claude/settings.local.json, <checkout>/.claude/settings.json and
-// ~/.claude/settings.json, or exactly the --settings files named — and reports each exemplar that no
+// the Claude user settings, or exactly the --settings files named — and reports each exemplar that no
 // `Bash(...)` allow rule matches, or that a `Bash(...)` deny or ask rule matches (both prompt or refuse). It READS and never writes:
 // a permission setting is the maintainer's alone. A settings file that is absent is named and skipped;
 // one that cannot be read or parsed is a wiring error, never "nothing allowed".
@@ -17,10 +17,11 @@
 // (`<...>`) in an exemplar stand for one word.
 //
 // exit 0  every exemplar is pre-allowed · exit 1  at least one is not (listed) · exit 2  wiring
-import { readFileSync, existsSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { type PermissionRules, matchPermissions, readSettings, sampleCommand } from './claude_permissions.mts';
+import { permissionSource, userSettingsPath } from './claude_routine_permissions.mts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 function wiring(message: string): never { console.error(`idle-permissions: ${message}`); process.exit(2); }
@@ -41,7 +42,7 @@ for (let i = 0; i < args.length; i++) {
   wiring(`unknown or incomplete argument '${flag}'`);
 }
 if (repo === null && settings.length === 0) wiring('--repo <checkout> or at least one --settings <file> is required');
-const files = settings.length > 0 ? settings : [join(repo as string, '.claude/settings.local.json'), join(repo as string, '.claude/settings.json'), join(homedir(), '.claude/settings.json')];
+const files = settings.length > 0 ? settings : [join(repo as string, '.claude/settings.local.json'), join(repo as string, '.claude/settings.json'), userSettingsPath()];
 
 type Need = { command: string; by: string };
 let needs: Need[];
@@ -53,50 +54,23 @@ try {
     if (typeof n?.command !== 'string' || n.command.trim() === '' || typeof n.by !== 'string') wiring(`${needsPath}: needs[${index}] must carry a command and a by`);
     return n;
   });
+  if (needsPath === join(ROOT, 'contracts/idle-permissions.json')) {
+    needs.push(...permissionSource(join(ROOT, 'contracts/permissions.json')).claude_routine_writes);
+  }
 } catch (error) { wiring(`${needsPath}: could not read (${(error as Error).message})`); }
 
-const allow: string[] = [];
-const deny: string[] = [];
-const ask: string[] = [];
-const read: Array<{ path: string; state: 'read' | 'absent' }> = [];
-for (const file of files) {
-  if (!existsSync(file)) { read.push({ path: file, state: 'absent' }); continue; }
-  let document: { permissions?: { allow?: unknown; deny?: unknown; ask?: unknown } };
-  try { document = JSON.parse(readFileSync(file, 'utf8')); } catch (error) { wiring(`${file}: could not read or parse (${(error as Error).message})`); }
-  const take = (list: unknown, into: string[], key: string): void => {
-    if (list === undefined) return;
-    if (!Array.isArray(list) || list.some((rule) => typeof rule !== 'string')) wiring(`${file}: permissions.${key} must be an array of strings`);
-    into.push(...(list as string[]));
-  };
-  take(document.permissions?.allow, allow, 'allow');
-  take(document.permissions?.deny, deny, 'deny');
-  take((document.permissions as { ask?: unknown } | undefined)?.ask, ask, 'ask');
-  read.push({ path: file, state: 'read' });
-}
-
-function bashPattern(rule: string): RegExp | null {
-  if (rule === 'Bash') return /^.*$/s;
-  const match = /^Bash\((.*)\)$/s.exec(rule);
-  if (match === null) return null;
-  let pattern = match[1] as string;
-  if (pattern.endsWith(':*')) pattern = `${pattern.slice(0, -2)}*`;
-  const escaped = pattern.split('*').map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('.*');
-  return new RegExp(`^${escaped}$`, 's');
-}
-const allowRx = allow.map((rule) => ({ rule, rx: bashPattern(rule) })).filter((r) => r.rx !== null);
-const denyRx = deny.map((rule) => ({ rule, rx: bashPattern(rule) })).filter((r) => r.rx !== null);
-const askRx = ask.map((rule) => ({ rule, rx: bashPattern(rule) })).filter((r) => r.rx !== null);
-const sample = (command: string): string => command.replace(/<[^>]+>/g, 'X');
-
-const rows = needs.map((need) => {
-  const command = sample(need.command);
-  const denied = denyRx.find((r) => (r.rx as RegExp).test(command))?.rule ?? null;
-  const asked = askRx.find((r) => (r.rx as RegExp).test(command))?.rule ?? null;
-  const allowed = allowRx.find((r) => (r.rx as RegExp).test(command))?.rule ?? null;
-  // Claude Code applies deny, then ask, then allow: an asked command prompts even where an allow matches.
-  const verdict = denied !== null ? 'denied' : asked !== null ? 'asks' : allowed !== null ? 'allowed' : 'not-pre-allowed';
-  return { command: need.command, by: need.by, verdict, rule: denied ?? asked ?? allowed };
+const rules: PermissionRules = { allow: [], deny: [], ask: [] };
+const read = files.map((path) => {
+  const settings = readSettings(path);
+  if (settings.state === 'unreadable') wiring(`${path}: could not read or parse settings`);
+  if (settings.state === 'read') {
+    for (const key of ['allow', 'deny', 'ask'] as const) rules[key].push(...settings.rules[key]);
+  }
+  return { path, state: settings.state };
 });
+const rows = needs.map((need) => ({
+  command: need.command, by: need.by, ...matchPermissions(sampleCommand(need.command), rules),
+}));
 const missing = rows.filter((row) => row.verdict !== 'allowed');
 
 if (json) console.log(JSON.stringify({ contract: 'hatsu.idle-permissions.check/v0.1', settings: read, rows, missing: missing.length }, null, 2));

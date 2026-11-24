@@ -304,10 +304,10 @@ parse` render and read the `<CODE>-<IS|PR>-#<N>` notation itself — verified li
 build`, `nen shu test`, `nen shu lint` (`--dry-run` once on a repository you have not built; exit `4` is
 a seat to quote, exit `5` sends you to `nen shu tools`, a repository with no declaration runs its own
 documented commands, said so — `claude/agents/kurapika.md` § *The `shu` verbs*). Request Copilot on
-open:
+open. Substitute the verified absolute path to Hatsu's `scripts/gh_token_env.sh`:
 
 ```bash
-"$hatsu_root/scripts/gh_token_env.sh" nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
+<installed-wrapper> -- nen pr request-reviews --target <owner/name> --pr <n> --add-bots BOT_kgDOCnlnWA
 ```
 
 Copilot is a **`Bot`**, so it goes through `--add-bots` with its node id, never `--add-reviewers

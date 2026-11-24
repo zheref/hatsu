@@ -113,8 +113,8 @@ edits consumer files. This is what [`/ten`](../ten/SKILL.md) § 0a calls.
 
 ```bash
 hatsu_root='<the absolute path ten § 0 printed>'    # explicit input, never assumed
-"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <path> [--slug <owner/name>] [--json]
-"$hatsu_root/scripts/tenkai_adopt.sh" apply    --repo <path> [--slug <owner/name>] [--json]
+"$hatsu_root/scripts/tenkai_adopt.sh" diagnose --repo <path> [--slug <owner/name>] [--surface <surface>] [--json]
+"$hatsu_root/scripts/tenkai_adopt.sh" apply    --repo <path> [--slug <owner/name>] [--surface <surface>] [--json]
 "$hatsu_root/scripts/tenkai_adopt.sh" runner-policy --visibility <public|private> --self-hosted <n>
 "$hatsu_root/scripts/tenkai_adopt.sh" --self-test
 ```
@@ -137,9 +137,12 @@ It renders `contracts/permissions.json` into the surface's own files (`.claude/s
 which has no allowlist file — its pack is the generated hooks, and a persona-wide `auto` policy is
 deliberately not emitted because it would approve arbitrary commands), excludes every written path through
 `info/exclude`, leaves a file it did not write alone and names it, and skips a target that carries no
-`nen/contract.json` or `nen/workflow.json`. Report its one line beside the engine's rows. **The engine's
-`diagnose` does not yet know this item** — it is placed by this step and by the warm-up, and the
-diagnose row for it is filed as a follow-up on the engine.
+`nen/contract.json` or `nen/workflow.json`. Report its placement and named retirement or retention beside the engine's rows. Tenkai reports
+`permissions/claude-code` as present, missing, carrying retired rows, or blocked. Pass
+`--surface claude-code` to include that row in the adoption outcome on Claude Code. On other
+surfaces it is advisory. The checkout installer repairs missing rows and retires rows it recorded
+placing. It preserves tracked settings and rows with unknown ownership. Follow the blocked row's
+maintainer remedy when either needs review. User-level approval remains with the maintainer.
 
 **The surface packs are items too, placed by one generator.** Off Claude Code a consumer carries, per
 surface, the hooks, the allowlists, the rules files and the `.codex/agents` fragments — everything
