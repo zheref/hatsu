@@ -118,6 +118,64 @@ in every repository.
 | when they apply | after each teammate trusts the folder |
 | what the pack renders | `contracts/permissions.json` → `allow` and `deny` rows as `Bash(<exe> <args>)`, merged into `settings.local.json`, never the tracked `settings.json` |
 
+Ten checks the user rows on every Claude Code warm-up, including read-only runs. When the
+check points to a proposal, run the printed command and show its JSON to the maintainer:
+
+```sh
+<hatsu_root>/scripts/permissions_pack.sh --surface claude-code --render-user --target <checkout>
+```
+
+The command prints a fragment for the maintainer to review. Add the routine rules and their
+`PreToolUse` hook together to user settings, preserving existing settings and `$defaults`. The
+trusted list comes from the resolved Hatsu installation's registry. Extra slugs from the target
+registry appear separately with their source. The maintainer can add a named nomination after
+reviewing it.
+
+The user hook checks a relative wrapper against the approved Hatsu script before a call can run.
+It works with the Hatsu plugin disabled. It binds the absolute Node executable, the checker and
+its inputs by SHA-256. The paired proposal supports macOS and Linux. Before rendering it, Hatsu
+runs the proposed hook on inert input to verify `/bin/sh`, `/usr/bin/openssl`, `/usr/bin/env` and the
+bound Node checker can start and return the expected refusal. Native Windows has no paired
+proposal. The shell's Claude CLI must also report 2.1.295 or later for `onFailure: block`. Check
+the actual desktop session version and its hook status before approving. Workspace trust,
+managed hooks-only policy, and disabled hooks can keep this hook from running. Use these user
+rules only in sessions that load the paired hook. [Claude Code hook fields and failure handling](https://code.claude.com/docs/en/hooks#command-hook-fields)
+
+If an approved file or runtime changes or disappears, the stale hook blocks Bash, including
+the check and renderer inside Claude. Open an independent terminal outside the Claude session
+and run the render command above from the current trusted Hatsu installation. Review the
+fragment against the same Claude user settings file, respecting `CLAUDE_CONFIG_DIR` if set.
+In one settings edit, replace the stale Hatsu `PreToolUse` handler (the
+`hatsu-routine-check` binding) and replace its obsolete version-bound allow rows with the new
+ones. Preserve unrelated rules, hooks, settings and `$defaults`. Confirm the refreshed binding
+with `--check-user` from the independent terminal, then verify that the active Claude session
+loads it. The checker remains blocking throughout recovery.
+
+The default fragment includes the release dry-run and the bounded delivery merge command. An
+optional Hatsu publisher rule is a separate review. It names one checkout, validates its origin
+and declared publisher at render time, and prints one exact-path permission. Checkout changes
+after rendering remain subject to Mugetsu's preflight. Each publication requires its own recorded G3 go.
+
+```sh
+<hatsu_root>/scripts/permissions_pack.sh --surface claude-code --render-release-opt-in --target <hatsu-publisher-checkout>
+```
+
+Write and review payload files first. Run `nen pr threads reply`, `resolve`, or `settle`, and the
+other catalogue writes as one plain call. Use bare `nen` or the verified token wrapper followed by
+`-- nen`. If Ten used its private session bind, invoke the installed wrapper with
+`--path <d>/bin -- nen`. The hook checks that the private bin contains just the pinned Nen link.
+Keep pipes, redirects, substitutions, shell wrappers, and joined commands out of the call.
+Authorization for the repository, PR, or issue comes from the skill and the maintainer.
+
+Claude Code describes narrow rules as resolved “before the classifier runs” by default. The
+documented exceptions include `autoMode.classifyAllShell` and per-command allowed domains.
+Ten tests visible deny/ask rules against the catalogue exemplars and reports visible
+`classifyAllShell` and `disableAllHooks` settings. Managed settings
+and the active session's policy may affect what happens, so the check reports their effective
+state as unknown. Inspect the active session in `/permissions` before drawing a conclusion about
+classification. See [Auto mode configuration](https://code.claude.com/docs/en/auto-mode-config)
+and [Bash compound commands](https://code.claude.com/docs/en/permissions#compound-commands).
+
 ## 6. Rules
 
 Claude Code reads `CLAUDE.md` and the plugin's own files; Hatsu writes no rules file on this surface.
