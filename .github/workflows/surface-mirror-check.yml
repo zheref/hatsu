@@ -333,12 +333,10 @@ jobs:
               echo "surfaces/ matches a fresh generation."
               ;;
             2)
-              # Unreachable at a pin that carries the verb, and kept as a FAILURE
-              # rather than deleted. Through v0.4.0 this branch was a loud skip,
-              # because the pinned nen predated `nen surface`. From v0.5.0 onward the
-              # verb is in the pinned binary, so this exit means the pin or the
-              # bootstrap is wrong — a thing to report, never to pass through.
-              echo "::error title=surface-mirror-check could not run::The bootstrapped nen (${PINNED_REF}) has no 'surface mirror' verb, so surfaces/codex and surfaces/cursor were NOT checked. At this pin that is a defect in the pin or the bootstrap, not a condition to skip past: nen/contract.json's dependency.pinned_ref is expected to name a nen carrying the verb. See docs/SURFACES.md § 4."
+              # Exit 2 is a mirrored source the scan could not read (a wiring
+              # defect, zheref/hatsu#531), a pinned nen without the 'surface mirror'
+              # verb, or a refusal from nen itself — never a condition to skip past.
+              echo "::error title=surface-mirror-check could not run::surface_mirror_check.sh could not complete (exit 2): either a mirrored source could not be read (wiring defect), the bootstrapped nen (${PINNED_REF}) lacks 'surface mirror' (pin/bootstrap defect), or nen refused the invocation, so surfaces/codex, surfaces/cursor and surfaces/antigravity were NOT checked. See the guard output above and docs/SURFACES.md § 4."
               exit 1
               ;;
             3)
@@ -346,7 +344,7 @@ jobs:
               exit 1
               ;;
             *)
-              echo "::error::surfaces/ has drifted from claude/skills + claude/agents. Regenerate with 'nen surface mirror generate' (both surfaces) and commit the result — see the guard output above and docs/SURFACES.md § 3."
+              echo "::error::surface_mirror_check.sh failed (exit ${code}): either a mirrored source carries a concrete generated marker (source refusal — describe the marker only with a placeholder such as '(surface: <s>)' in claude/ or hooks/, because regenerating is also refused there) or surfaces/ has drifted from claude/skills + claude/agents (regenerate all three surfaces — see scripts/surface_mirror_regenerate.sh and commit). See the guard output above and docs/SURFACES.md § 3."
               exit "$code"
               ;;
           esac
