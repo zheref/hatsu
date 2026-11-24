@@ -27,6 +27,22 @@ export function checkStamp(raw: unknown): string {
   return actual;
 }
 export interface Snapshot { max: number; variants: Record<string, string[]>; sections: Array<{ id: string }> }
+export class UnknownCatalogueError extends Error {
+  readonly stampedSha: string;
+  readonly stampedSha7: string;
+  readonly catalogueSha: string;
+  readonly catalogueSha7: string;
+  constructor(stampedSha: string, catalogueSha: string) {
+    const stampedSha7 = stampedSha.slice(0, 7);
+    const catalogueSha7 = catalogueSha.slice(0, 7);
+    super(`pr.sections.$canon: stamp ${stampedSha7} (${stampedSha}) is newer or unknown to this plugin (catalogue ${catalogueSha7}); update the Hatsu plugin (hatsu:bakuryuha) before refreshing; nothing refreshed`);
+    this.name = 'UnknownCatalogueError';
+    this.stampedSha = stampedSha;
+    this.stampedSha7 = stampedSha7;
+    this.catalogueSha = catalogueSha;
+    this.catalogueSha7 = catalogueSha7;
+  }
+}
 export function history(root: string, cat: Catalogue): Record<string, Snapshot> {
   const path = join(root, 'contracts/pr-sections.history.json');
   const info = lstatSync(path);
@@ -54,9 +70,16 @@ export function history(root: string, cat: Catalogue): Record<string, Snapshot> 
 export type CellState = 'current default' | 'stale default' | 'consumer-owned' | 'missing' | 'retired' | 'unstamped';
 export interface CellReading { cell: string; state: CellState; retiredIds: string[]; ownership?: 'default' | 'consumer-owned' | 'unknown'; matchesCurrent?: boolean }
 export interface Reading {
-  status: 'current' | 'stale' | 'unstamped'; stampedSha: string | null; catalogueSha: string;
+  status: 'current' | 'stale' | 'unstamped' | 'unknown-catalogue'; stampedSha: string | null; catalogueSha: string;
   stampedSha7: string | null; catalogueSha7: string; cells: CellReading[];
   counts: { currentDefault: number; staleDefault: number; consumerOwned: number; missing: number; retired: number; unstamped: number };
+}
+export function unknownCatalogueReading(error: UnknownCatalogueError): Reading {
+  return {
+    status: 'unknown-catalogue', stampedSha: error.stampedSha, catalogueSha: error.catalogueSha,
+    stampedSha7: error.stampedSha7, catalogueSha7: error.catalogueSha7, cells: [],
+    counts: { currentDefault: 0, staleDefault: 0, consumerOwned: 0, missing: 0, retired: 0, unstamped: 0 },
+  };
 }
 function validCell(value: unknown, cell: string): string[] {
   if (!Array.isArray(value) || value.some(id => typeof id !== 'string' || !id) || new Set(value).size !== value.length) throw new Error(`pr.sections.variants.${cell}: expected unique section ids`);
@@ -64,32 +87,41 @@ function validCell(value: unknown, cell: string): string[] {
 }
 export function readSections(value: unknown, cat: Catalogue, entries: Record<string, Snapshot>): Reading {
   const config = object(value, 'pr.sections');
-  if (config.max !== undefined && (!Number.isInteger(config.max) || config.max < 1 || config.max > cat.max)) throw new Error(`pr.sections.max must be from 1 through ${cat.max}`);
   const variants = config.variants === undefined ? {} : object(config.variants, 'pr.sections.variants');
   let stampedSha: string | null = null;
   let previous: Snapshot | undefined;
   let owned: string[] = [];
   if (Object.hasOwn(config, '$canon')) {
     const stamp = object(config.$canon, 'pr.sections.$canon');
-    if (stamp.contract !== CONTRACT || typeof stamp.sha256 !== 'string' || !HASH.test(stamp.sha256)) throw new Error('pr.sections.$canon: invalid contract or sha256; ownership is unknown');
+    if (typeof stamp.sha256 !== 'string' || !HASH.test(stamp.sha256)) {
+      throw new Error('pr.sections.$canon: invalid contract or sha256; ownership is unknown');
+    }
     stampedSha = stamp.sha256;
-    previous = entries[stampedSha];
-    if (!previous) throw new Error(`pr.sections.$canon: unknown catalogue ${stampedSha}; ownership is unknown; nothing refreshed`);
+    previous = Object.hasOwn(entries, stampedSha) ? entries[stampedSha] : undefined;
+    if (!previous) {
+      if (typeof stamp.contract === 'string' && /^hatsu\.pr-sections\/v\d+(?:\.\d+)*$/.test(stamp.contract)) {
+        throw new UnknownCatalogueError(stampedSha, cat.documentSha256);
+      }
+      throw new Error('pr.sections.$canon: invalid contract or sha256; ownership is unknown');
+    }
+    if (stamp.contract !== CONTRACT) throw new Error('pr.sections.$canon: invalid contract or sha256; ownership is unknown');
     if (stamp.owned !== undefined) {
       if (!Array.isArray(stamp.owned) || stamp.owned.some(cell => typeof cell !== 'string' || !Object.hasOwn(variants, cell)) || new Set(stamp.owned).size !== stamp.owned.length) throw new Error('pr.sections.$canon.owned: expected unique present cell names');
       owned = stamp.owned;
     }
   }
+  if (config.max !== undefined && (!Number.isInteger(config.max) || config.max < 1 || config.max > cat.max)) throw new Error(`pr.sections.max must be from 1 through ${cat.max}`);
   const knownIds = new Set(cat.sections.map(row => row.id));
   const cells: CellReading[] = [];
   for (const cell of new Set([...Object.keys(cat.variants), ...Object.keys(variants)])) {
     if (cell.startsWith('$')) continue;
     const present = Object.hasOwn(variants, cell);
-    const current = cat.variants[cell];
+    const current = Object.hasOwn(cat.variants, cell) ? cat.variants[cell] : undefined;
     if (!present) { cells.push({ cell, state: 'missing', retiredIds: [] }); continue; }
     const ids = validCell(variants[cell], cell);
     const retiredIds = ids.filter(id => !knownIds.has(id));
-    const ownership = previous ? !owned.includes(cell) && isDeepStrictEqual(ids, previous.variants[cell]) ? 'default' : 'consumer-owned' : 'unknown';
+    const previousIds = previous && Object.hasOwn(previous.variants, cell) ? previous.variants[cell] : undefined;
+    const ownership = previous ? !owned.includes(cell) && previousIds !== undefined && isDeepStrictEqual(ids, previousIds) ? 'default' : 'consumer-owned' : 'unknown';
     const state: CellState = !current ? 'retired' : !previous ? 'unstamped'
       : ownership === 'consumer-owned' ? 'consumer-owned' : isDeepStrictEqual(ids, current) ? 'current default' : 'stale default';
     cells.push({ cell, state, retiredIds, ownership, matchesCurrent: isDeepStrictEqual(ids, current) });
@@ -100,6 +132,7 @@ export function readSections(value: unknown, cat: Catalogue, entries: Record<str
   return { status, stampedSha, catalogueSha: cat.documentSha256, stampedSha7: stampedSha?.slice(0, 7) ?? null, catalogueSha7: cat.documentSha256.slice(0, 7), cells, counts };
 }
 export function summary(reading: Reading): string {
+  if (reading.status === 'unknown-catalogue') return `pr.sections: stamp ${reading.stampedSha7} is newer or unknown to this plugin (catalogue ${reading.catalogueSha7}); update the Hatsu plugin (hatsu:bakuryuha) to diagnose or refresh this block`;
   if (reading.status === 'unstamped') return `pr.sections: unstamped — compared with current catalogue; differing cells: ${reading.cells.filter(cell => cell.matchesCurrent === false).map(cell => cell.cell).join(', ') || 'none'}; ${reading.counts.missing} missing; ownership unknown; present cells retained`;
   return `pr.sections: ${reading.status} (${reading.counts.staleDefault} stale default cell(s), ${reading.counts.missing} missing; stamped ${reading.stampedSha7}, catalogue ${reading.catalogueSha7})`;
 }

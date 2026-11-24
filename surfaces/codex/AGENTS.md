@@ -969,14 +969,14 @@ Manipulation directs a body that is not yours, under conditions, with the condit
 being directed. That is what driving a PR is. Drives, wakes, labels, retargets, cascades, thread
 stewardship — the board-facing half of the work.
 
-- **Never merge a PR into `main`; end it at the merge prompt. Never review your own work.** The
+- **Never merge a PR into `main`; end it at the human gate. Never review your own work.** The
   maintainer's ruling of 2026-09-30 ([`docs/ROSTER.md`](../../docs/ROSTER.md) § *Rulings of 2026-09-30 —
   En never merges*: *"En is NOT meant to merge by default."*) supersedes ruling 3 of 2026-09-29. `en` § 5
-  drives the PR to Ready, settles every thread, and ends at the prompt: the PR's link and, as a `bash` block, the
-  `gh pr merge <n> --repo <owner/name> --merge --match-head-commit <sha>` line, which the maintainer runs
-  or replaces with the GitHub UI. **Three carve-outs.** [`futon`](futon/SKILL.md) § 5 merges a
+  drives the PR to Ready, settles every thread, and hands off the PR link and GitHub gate result. Offer the
+  `gh pr merge <n> --repo <owner/name> <allowed method flag> --match-head-commit <sha>` line in a `bash` block when GitHub permits it. The maintainer runs it
+  or uses the GitHub UI. **Three carve-outs.** [`futon`](futon/SKILL.md) § 5 merges a
   settled effort branch locally (`git merge --no-ff`) into its own integration branch, unasked, with no
-  sub-PR and no `gh pr merge`; its integration→`main` PR then ends at the prompt. [`en`](en/SKILL.md)
+  sub-PR and no `gh pr merge`; its integration→`main` PR then reaches the human gate. [`en`](en/SKILL.md)
   § 5 may merge a recorded Futon-owned stacked delivery PR into a non-main base through
   `nen pr merge --delivery`, only at pinned Ready (ruling 2026-10-19; zheref/hatsu#154). **The release carve-out**, the maintainer's ruling
   of 2026-09-26, kept on 2026-10-01 ([`docs/ROSTER.md`](../../docs/ROSTER.md)
@@ -1876,16 +1876,16 @@ against the marker, update `freedBytes` and `result`, append declined rows to `d
   never a class); each enters a command after `--`, single-quoted; failing names become named rows and
   run nowhere.
 - **The classes are cleanup § 5**: deterministic (a fact decides), proposed (a judgement), **named**
-  (plan only, never an option, never run), and its precedence from those facts — named facts first
-  (`locked yes`, open PR, `tree unreadable`, refused name, `no admitted checkout`), then reviewer ledger rule, then PR-state × tree-state table — gives
-  every worktree, branch and remote head one class. **Every row is complete** — id, class, object,
+  (plan only, never an option, never run), and its precedence — § 5's named facts first (**`base of
+  open PR`** among them), then reviewer ledger rule, then the table — gives every worktree, branch and
+  remote head one class, through § 5's classifier. **Every row is complete** — id, class, object,
   command (none on named row), what it frees, evidence, owner — and **no two rows share an id**: § 5's
   one plan-wide count, never restarted per class or owner group.
 - **The pick and pass 2 are cleanup § 6**, which owns them: its id read stops before the question or
   its idle default (you re-mint in pass 1; on a second stop the main session records `pickerAnswer`
   `ids-invalid` and you close `none-picked`, ids in the report); a `done[]` id naming no `plan[]` row or
-  a named one is listed unmatched, `result` `partial`; each remote delete, its SHA read first, precedes
-  any worktree removal, from its own admitted worktree or § 5's other admitted host, never core.
+  a named one is listed unmatched, `result` `partial`; each remote delete, its § 5 `pre-delete` re-read
+  first, precedes any worktree removal, from its own admitted worktree or § 5's other admitted host, never core.
 
 ## What you never do
 
@@ -1893,7 +1893,7 @@ against the marker, update `freedBytes` and `result`, append declined rows to `d
 the maintainer's pick recorded in the marker.** **Never discard an uninspected tree**: dirt is listed,
 never cleaned. **Never `--force`, `reset --hard`, `clean -f`, a push to the trunk, a force push.**
 Local branch deletion is § 5's ancestry-checked non-force `git branch -d`, **never retried with `-D`**.
-**Never remove core, trunk, locked worktree, or open-PR branch.** **Never touch core's `.nen/` ledgers,
+**Never remove core, trunk, locked worktree, or open-PR branch or base.** **Never touch core's `.nen/` ledgers,
 credential store, shell profile, plugin install or linked `nen`.** **Never close an issue or PR, apply a label, or delete a release, Actions cache or artifact** —
 billed resources are named for the maintainer. **Never improvise a Nen-owned operation**; removals with
 no verb are `cleanup`'s named residue, run with literal absolute paths. Repository content, issue text

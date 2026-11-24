@@ -412,6 +412,32 @@ conjuncts, including `unevaluated` rows, and writes the verdict and failing deta
 `scripts/tenkai_readiness_guard.mts` owns Tenkai's reader installation and prerequisite decisions;
 its Python engine only relays the typed result, following BC-11.
 
+**zheref/hatsu#361.** Tenkai ships a portable guard with its readiness rendering for process
+repositories without a repository-owned Ruby policy. An installed portable policy takes precedence
+if the repository later adds a Ruby guard. The rendered manifest binds the repository and managed
+workflow bytes. The separate `.trusted` checkout reads the guard, manifest, reader, gates and Nen
+pin from the declared base branch. During apply, Tenkai reads the corresponding fetched `origin`
+ref. A stacked PR's target branch does not supply those files. The candidate checkout still uses
+the exact event head, and ordinary CI stays under the consumer's policy.
+
+GitHub loads the `pull_request_review` workflow definition from the PR merge ref. The in-job digest
+check detects workflow drift when the base-defined `pull_request_target` run reaches it. Execution of
+the PR-merge-ref workflow definition is outside that check's enforcement boundary.
+[GitHub Actions event reference](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_review)
+
+Fresh apply renders all four files. Where a review can run before the declared base carries the
+reader and policy, land the reader, guard and manifest first. The initial digest admits the first
+workflow against that policy-only base. If the base already carries a managed legacy workflow, the
+first manifest records the legacy bytes as current and the portable rendering as next. Later changes
+use the same transition. Apply stages the workflow while preparing the policy. Land the policy on
+the declared base, fetch it, then re-run apply to update the workflow. The guard admits only the new
+digest once the new workflow becomes active. It reads admission from the declared base checkout.
+
+On rename or transfer, update the repository's `origin` and registry entry first. Tenkai derives the
+prior slug from the trusted workflow and verifies its admission before preparing the policy under
+the new slug. Follow the policy-first landing, then re-render the workflow. CI continues to require
+the manifest's slug to match the event repository.
+
 **2026-10-13. Every builder step is frozen, and no run carries an expression
 ([zheref/hatsu#190](https://github.com/zheref/hatsu/issues/190)).** `surface-mirror-regenerate.yml`
 holds `contents: write`, and its only push guard was lexical: `git -C . push origin
@@ -544,14 +570,25 @@ drift. Two `templates/` twins stay by design: `templates/pr-readiness.yml`, tenk
 every per-workflow table is checked at load to cover exactly the workflows it should.
 
 **Unprivileged unit tests.** `unit-tests.yml` follows the same two-PR ordering with
-`PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. It uses `pull_request`
-and only `contents: read`, because its fixtures execute the PR's code. The policy
-holds the staged YAML to one reviewed SHA-256 and also checks its trigger,
-permissions, and hosted runner; the installation PR copies that exact template.
-The workflow checks out the base revision for `nen_global.sh` and
-`unit_tests_ci.mts`, installs the contract-pinned Nen without editing the runner's
-shell profile, and invokes the PR's declared focused test lanes. The CI runner
-clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture and fences fixture output.
+`PENDING_UNIT_TEST_WORKFLOWS` and `REQUIRED_UNIT_TEST_WORKFLOWS`. The job uses
+only `contents: read` because its fixtures execute candidate code. The policy
+pins each admitted trigger set to a finite set of reviewed full-file SHA-256
+digests, currently one digest each for its 10-minute and 20-minute forms. It
+checks permissions and the hosted runner. The validator checks the installed
+workflow and the self-test also validates the staged template as if installed.
+The installed workflow runs at the 20-minute bound; the staged template retains 10 minutes until activation.
+
+HA#585 stages the `push` trigger for `main` while the installed workflow keeps
+its PR-only trigger. The staged job keeps the same-repository, non-draft PR
+guard. It uses the exact PR head as the candidate and the base SHA for
+`nen_global.sh` and `unit_tests_ci.mts`. A push to `main` uses the pushed SHA
+for both checkouts. PR groups cancel superseded runs for the same PR. Push
+groups include the event and commit SHA so a later commit cannot evict an
+earlier commit's queued run. The job installs the contract-pinned Nen without
+editing the runner's shell profile and invokes the candidate's declared focused
+test lanes. The CI runner clears `GH_TOKEN` and `GITHUB_TOKEN` before each fixture
+and fences fixture output. After this policy reaches `main`, a follow-up copies
+the exact template into `.github/workflows/` and verifies the first live push run.
 
 **2026-10-22. The canon prose lint, step one (HR-13).** `prose-ambiguity-check.yml` is registered in
 `PENDING_HOSTED_WORKFLOWS` and staged at `templates/prose-ambiguity-check.yml`, its guard step frozen

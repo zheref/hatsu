@@ -107,11 +107,11 @@ a fallback), above the picker. Row `review-verdict`, **no option starred** — t
 maintainer's: **Send to merge gate** · **Request revision** · **Defer** · **Stop**. Recorded through
 `nen stop answer`, the question carrying PR, head and target.
 
-- **Merge**: `pr-head` again, then [`en`](../en/SKILL.md) § 5's five checks as they stand — its verdict
+- **Merge**: `pr-head` again, then [`en`](../en/SKILL.md) § 5's checks as they stand — its verdict
   `"$hatsu_root/scripts/gh_token_env.sh" nen pr ready <N> --gh-repo <owner/name> --require-head <tested
   head> --explain` Ready, or its sixth stop or hanten prompt — the tested head pinned. Only with the head
   unmoved and those checks met does its prompt offer
-  `gh pr merge <N> --repo <owner/name> --merge --match-head-commit <tested head>`, **never run here**.
+  `gh pr merge <N> --repo <owner/name> <allowed method flag> --match-head-commit <tested head>`, **never run here**.
   Otherwise **pending**, the failing read quoted (off `branch.base`: en § 5 check 1, the base quoted),
   with **retry · defer · stop**; a PR no longer open is skipped, never pending.
 - **Revision**: the maintainer's feedback is taken as typed and written, with the PR, tested head and

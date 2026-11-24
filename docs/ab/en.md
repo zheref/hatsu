@@ -455,3 +455,22 @@ after the removal the next claim printed `iteration 4/20 -- … 16 remaining aft
 not `1/20`; the release printed `released en-HA-999 after 4/20 iteration(s): check done`. A ledger
 lost outright (the common dir's `.nen/` deleted) still reads as fresh: the refusal of a lost ledger
 is owed to nen (zheref/nen#487).
+
+---
+
+## Pre-push PR-state guard & carrying-PR ledgers — 2026-11-22 (zheref/hatsu#611)
+
+En § 3 and § 6 make `scripts/en_push_guard.mts` a prose-ordered precondition of every En push
+(`nen pr fetch --target <owner/name> --pr <N> --json` — an existing Nen verb, no new verb required).
+Exit `0` (`OPEN`, matching `headRef`) pushes; `1` (`MERGED`/`CLOSED` with unpushed commits past the
+PR's head and not on `origin/<base>`) carries them onto a fresh branch off `origin/<base>` and a successor PR, whose hanten
+ledger § 2b keys to `--pr <successor-N>`; `2` (unread) and `3` (open PR on another head) hand a stop
+back; `4` (nothing unpushed) is § 6's terminal row. A post-push `--require-head <sha>` re-read (one,
+paced) runs the same carry log, so anything past the PR's head is carried.
+
+Hermetic fixture (`nen shu test --repo <hatsu> --lane en-push-guard`; Vitest 9/9 + Node 24 LCOV
+capture `coverage/en-push-guard/lcov.info` >= 80%) exercises `OPEN`, `MERGED`, `CLOSED` (only the unpushed
+commit; nothing pending is exit `4`), a branch that merged `origin/main` after its PR merged, mismatched and missing heads,
+nothing-to-carry versus carry-list-unread, the post-push re-read, unread fail-closed exits, and
+`ledger-target` successor keying, the base-deletion successor's `--carry-from base` whole set, and
+redaction of a credentialed URL in nen stderr, against real throwaway git origins.

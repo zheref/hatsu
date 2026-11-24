@@ -16,13 +16,26 @@ function tempDir(prefix: string): string {
   return mkdtempSync(join(tmpdir(), prefix));
 }
 
+function guardClosure(): string[] {
+  const seen = new Set<string>();
+  const visit = (script: string) => {
+    if (seen.has(script)) return;
+    seen.add(script);
+    const text = readFileSync(join(root, 'scripts', script), 'utf8');
+    for (const match of text.matchAll(/\bfrom\s+['"]\.\/([A-Za-z0-9_.-]+\.m?ts)['"]/g)) visit(match[1]!);
+  };
+  visit('tenkai_readiness_guard.mts');
+  return [...seen];
+}
+
 function makeHatsu(base: string, contractOverride?: unknown): string {
   const hatsu = join(base, 'hatsu');
   mkdirSync(join(hatsu, 'nen'), { recursive: true });
   mkdirSync(join(hatsu, 'scripts'), { recursive: true });
   mkdirSync(join(hatsu, 'templates'), { recursive: true });
   copyFileSync(join(root, readerRel), join(hatsu, readerRel));
-  copyFileSync(join(root, 'scripts', 'tenkai_readiness_guard.mts'), join(hatsu, 'scripts', 'tenkai_readiness_guard.mts'));
+  // The frozen engine runs the guard from --hatsu-root, so copy it with its relative import closure.
+  for (const script of guardClosure()) copyFileSync(join(root, 'scripts', script), join(hatsu, 'scripts', script));
   copyFileSync(join(root, 'templates', 'pr-readiness.yml'), join(hatsu, 'templates', 'pr-readiness.yml'));
   writeFileSync(join(hatsu, 'nen', 'contract.json'),
     typeof contractOverride === 'string'

@@ -8,10 +8,11 @@ publication form. It also verifies the installed permissions equal the rendered 
 and that no explicit `nen shu deploy` or direct `gh release` rule was added. The fixture
 passed on this branch. This is a pack-rendering result, not a live Auto-mode decision.
 
-A live Claude Code publication through this pack is still **unverified**. It belongs to the
-next maintainer-authorized Getsuga→Mugetsu cut after this delivery reaches main; record the
-classifier's actual answer here when that run occurs. If Claude Code denies the command,
-Mugetsu § 6 records `not published`, the exact go and denied line on the release PR at G3.
+At this preparation stage, a live Claude Code publication through this pack was **unverified**.
+The later maintainer-authorized Getsuga→Mugetsu result is recorded in
+[the 2026-10-26 proof below](#2026-10-26--156-live-claude-code-publication).
+If Claude Code denies the command, Mugetsu § 6 records `not published`, the exact go and
+denied line on the release PR at G3.
 
 Anthropic's current [permission-mode documentation](https://code.claude.com/docs/en/permission-modes)
 says a narrow allow rule remains active in Auto mode, while broad execution rules can be
@@ -295,3 +296,75 @@ release just published (`nen bootstrap --ref v0.15.1 --source zheref/nen --scrip
 answered `cache hit … checksum verified`, the verified path on its last line). The report line names the
 version on `PATH`; a sitting that skips the step leaves no line. Not exercised against a fresh tag this
 sitting (hatsu's own cut is not nen's).
+
+## 2026-10-26 — #156 live Claude Code publication
+
+**Result: published `v0.152.0`.** This closes the pending live result in the 2026-10-18
+preparation record above. The source is the
+[publication record on HA-PR-#509](https://github.com/zheref/hatsu/pull/509#issuecomment-6430364885),
+posted at `2026-10-27T00:09:14Z` after the Claude Code run on 2026-10-26 at about 19:08
+America/Bogota. This evidence was appended on 2026-11-10 from that record; no publication
+command was executed for this documentation update.
+
+### The maintainer's go, verbatim
+
+Kazaana § 6's publish-offer question was asked through the Claude Code picker after the tag
+was cut, and the maintainer answered:
+
+> Q: "Publish v0.152.0 through hatsu:mugetsu to the GitHub Release (lane plugin's release row)?"
+> A: "A Publish"
+
+The affirmative answer is Mugetsu § 0 form (4)'s go. The release record says `nen stop answer`
+recorded row `publish-offer` for effort `fable/kurapika/release-v0.152.0`. The run began with
+the typed `hatsu:kazaana zheref/hatsu` on 2026-10-26, Futon run
+`fd8a4e50b7b33ec2a42b790e3213103e`; its `then getsuga` step cut the tag.
+
+### Tag and preflight
+
+The tag was `v0.152.0` at `2999c71de214e62d30c431a9f3036c22ac61275a`, the merge of
+HA-PR-#509. `nen tag cut --trunk main --push` pushed tag object `546bafd37`. The recorded
+preflight at that tagged commit printed:
+
+```text
+ok    RELEASE_HOLD -- not set
+ok    open critical issues -- none open
+ok    CON-36 live chores -- none live (issue open AND branch exists AND an open PR targets it or main)
+ok    changelog.d/ empty at cut point -- empty
+ok    CON-33(c) reconciled -- every merged PR has a CHANGELOG entry or fragment, but one, excused by the release-PR allowance -- #509 reconciled by the CON-33(c) release-PR allowance: the range ends at its merge 2999c71, which introduced the dated section v0.152.0 -- absent at the first parent e400e14, and introduced by no other merge on its branch
+FAIL  tag does not already exist -- 'v0.152.0' already exists -- re-tagging is never the fix
+```
+
+Only the post-cut tag row failed, proving the tag resolved on origin; Mugetsu § 4 reads that
+row as required at publication time. Every other row was `ok`.
+
+### Plan and execution
+
+The plan was `nen shu release --repo . --lane plugin --dry-run`. It printed
+`would run: bash scripts/release-publish.sh --repo .` on lane `plugin`; the
+`.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` preconditions were `ok`.
+
+The bare command then ran once under that go:
+
+| Observed field | Release record |
+|---|---|
+| Command | `nen shu release --repo . --lane plugin` |
+| Declared step | `bash scripts/release-publish.sh --repo .` |
+| Step result | exit `0`, `4349 ms` |
+| Nen result | exit `0` |
+| Publication output | `published v0.152.0 (derived): https://github.com/zheref/hatsu/releases/tag/v0.152.0` |
+| Destination | [GitHub Release `v0.152.0`](https://github.com/zheref/hatsu/releases/tag/v0.152.0) in `zheref/hatsu` |
+| Artifacts | none attached; the plugin is distributed by git ref |
+
+The observed Claude Code result was successful publication, with no harness denial reported.
+The source carries no classifier trace, permission-row match, classifier version or mode
+readout; those details remain **unreported**. The two narrow permission rows' rendered-pack
+proof remains the scratch-installation result above.
+
+### #156 acceptance-criterion coverage
+
+| Criterion | Evidence |
+|---|---|
+| Declare and render the explicit `plugin` lane's plan and bare release forms | [`contracts/permissions.json`](../../contracts/permissions.json) defines both forms and cites Mugetsu § 5a, the advance go ruling, and zheref/hatsu#156. [`scripts/permissions_pack_fixture_check.sh`](../../scripts/permissions_pack_fixture_check.sh) exercises scratch installation. The 2026-10-18 record above reports its pass. |
+| Preserve G3 handoff on a harness denial | [Mugetsu § 5a and § 6](../../claude/skills/mugetsu/SKILL.md) name the narrow rows, keep the printed plan and exact go, record `not published` through § 7's `nen issue comment`, and hand over the denied command without another publication route. |
+| Record local proof, then append the actual later Claude Code result | The 2026-10-18 record preserves the local proof; this section appends the exact picker exchange, dry-run plan, bare-command exit `0` and `published v0.152.0` result from HA-PR-#509. |
+| Add no explicit deploy or direct `gh release` grant | The two release rows cover only `nen shu release --repo * --lane plugin`, with and without `--dry-run`. The scratch fixture also checks that no explicit `nen shu deploy` or direct `gh release` row was added. This evidence update changes no permission row. |

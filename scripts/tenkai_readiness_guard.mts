@@ -1,20 +1,26 @@
 #!/usr/bin/env node
 // #131 & #554: Tenkai's readiness-reader, workflow-gate, and bootstrap-integrity decisions live in TypeScript (BC-11).
-// The older Python engine passes only a mode and two paths, then relays this row.
+// The frozen engine relays reader and gate rows. The public adopter owns the portable route.
 import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  adoptionRole, adoptLegacyRequiredContext, adoptPortableReadiness, bootstrapPins, DEFER_READINESS, DEFERRED_READINESS,
+  handlesPortableReadiness, LEGACY_READINESS, pinsBlocked, READINESS_CONTEXT_CHANGED, readReadinessTemplate,
+  readinessTemplateDigest, registryText,
+  type LegacyReadiness, type RenderInputs,
+} from "./tenkai_readiness_policy.mts";
+
+// #554's pin and checksum readers live with the renderer; the fixtures import them from here.
+export { bootstrapPins, readBootstrapIntegrity, readPinnedRef } from "./tenkai_readiness_policy.mts";
+export type { BootstrapPins } from "./tenkai_readiness_policy.mts";
 
 export type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
 export type Row = { state: State; detail: string; action: string | null };
-export type BootstrapPins = { ref: string; scriptSha256: string; binarySha256: string };
 const REL = "scripts/readiness_ci_verdict.mts";
 const GUARD = "scripts/workflow_runner_policy_check.rb";
 const MARKER = "// RENDERED BY hatsu:tenkai from scripts/readiness_ci_verdict.mts";
-const REF_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/;
-const SHA256_PATTERN = /^[a-f0-9]{64}$/;
-const PLATFORM_PATTERN = /^[a-z0-9-]+$/;
 
 function row(state: State, detail: string, action: string | null = null): Row {
   return { state, detail, action };
@@ -34,55 +40,6 @@ function sourceText(hatsuRoot: string): string | null {
   if (!info?.isFile() || info.isSymbolicLink()) return null;
   const text = readFileSync(source, "utf8");
   return text.startsWith("#!/usr/bin/env node\n") ? text : null;
-}
-
-function readDependency(hatsuRoot: string): Record<string, unknown> | null {
-  const contractPath = join(hatsuRoot, "nen", "contract.json");
-  const info = stat(contractPath);
-  if (!info?.isFile() || info.isSymbolicLink()) return null;
-  try {
-    const parsed = JSON.parse(readFileSync(contractPath, "utf8")) as Record<string, unknown>;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-    const dep = parsed.dependency;
-    if (!dep || typeof dep !== "object" || Array.isArray(dep)) return null;
-    return dep as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
-export function readPinnedRef(hatsuRoot: string): string | null {
-  const dep = readDependency(hatsuRoot);
-  if (!dep) return null;
-  const ref = dep.pinned_ref;
-  if (typeof ref !== "string" || !REF_PATTERN.test(ref) || ref.includes("..") || ref.includes("//")) return null;
-  return ref;
-}
-
-export function readBootstrapIntegrity(hatsuRoot: string): { scriptSha256: string; binarySha256: string } | null {
-  const dep = readDependency(hatsuRoot);
-  if (!dep) return null;
-  const data = dep.bootstrap;
-  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
-  const bootstrap = data as Record<string, unknown>;
-  const scriptSha256 = bootstrap.scriptSha256;
-  const binaries = bootstrap.sha256;
-  if (typeof scriptSha256 !== "string" || !SHA256_PATTERN.test(scriptSha256)) return null;
-  if (!binaries || typeof binaries !== "object" || Array.isArray(binaries)) return null;
-  const binaryMap = binaries as Record<string, unknown>;
-  if (!Object.hasOwn(binaryMap, "linux-x64")) return null;
-  for (const [key, value] of Object.entries(binaryMap)) {
-    if (key === "$comment") continue;
-    if (!PLATFORM_PATTERN.test(key) || typeof value !== "string" || !SHA256_PATTERN.test(value)) return null;
-  }
-  return { scriptSha256, binarySha256: binaryMap["linux-x64"] as string };
-}
-
-export function bootstrapPins(hatsuRoot: string): BootstrapPins | null {
-  const ref = readPinnedRef(hatsuRoot);
-  const integrity = readBootstrapIntegrity(hatsuRoot);
-  if (!ref || !integrity) return null;
-  return { ref, scriptSha256: integrity.scriptSha256, binarySha256: integrity.binarySha256 };
 }
 
 export function readerState(repo: string, hatsuRoot: string): Row {
@@ -130,7 +87,33 @@ export function applyReader(repo: string, hatsuRoot: string): Row {
   return row("repaired", "trusted readiness JSON reader installed");
 }
 
-export function workflowGate(repo: string, hatsuRoot: string): Row {
+export function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: LegacyReadiness & { templateDigest: string | null }): Row {
+  // The public CLI sets these only on its frozen child. Deferral and legacy
+  // eligibility both run before the frozen workflow can consider a write.
+  if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
+  const legacy = process.env[LEGACY_READINESS];
+  let requiresRuby = false;
+  if (legacy || expectedReadiness) {
+    try {
+      const expected: LegacyReadiness = expectedReadiness ?? JSON.parse(legacy);
+      const current = adoptionRole(registryText(repo), expected.slug);
+      if (expected.repo !== repo || !current.role || current.role !== expected.role ||
+          current.digest !== expected.registry || handlesPortableReadiness(repo, current.role)) {
+        throw new Error(READINESS_CONTEXT_CHANGED);
+      }
+      requiresRuby = current.role === "process";
+      const template = readReadinessTemplate(hatsuRoot);
+      if (!template) {
+        return pinsBlocked(hatsuRoot) ?? row("blocked", "Hatsu's readiness template or Nen pin changed during adoption",
+          "re-run diagnose with the current repository and Hatsu inputs");
+      }
+      if (expectedReadiness && readinessTemplateDigest(template) !== expectedReadiness.templateDigest) {
+        throw new Error("Hatsu's readiness template or Nen pin changed during adoption");
+      }
+    } catch (error) {
+      return row("blocked", (error as Error).message, "re-run diagnose with the current repository and Hatsu inputs");
+    }
+  }
   if (readerState(repo, hatsuRoot).state !== "satisfied") {
     return row("staged", "the trusted JSON reader must be installed before the workflow can call it",
       "install scripts/readiness_ci_verdict.mts first");
@@ -138,6 +121,9 @@ export function workflowGate(repo: string, hatsuRoot: string): Row {
   const guard = join(repo, GUARD);
   const info = stat(guard);
   if (info?.isSymbolicLink()) return row("staged", "the workflow guard is linked; its admission cannot be trusted");
+  if (requiresRuby && !info?.isFile()) {
+    return row("blocked", READINESS_CONTEXT_CHANGED, "re-run diagnose with the current workflow policy");
+  }
   if (info?.isFile()) {
     const live = readFileSync(guard, "utf8").split("\n").filter(line => !line.trimStart().startsWith("#")).join("\n");
     if (live.includes("READINESS_FROZEN_VERDICT") && !live.includes("READINESS_FROZEN_VERDICT_NEXT")) {
@@ -148,15 +134,17 @@ export function workflowGate(repo: string, hatsuRoot: string): Row {
       return row("staged", "the current workflow guard does not admit the checksum-verified bootstrap step",
         "land the guard's exact READINESS_INTEGRITY_PIN and READINESS_INTEGRITY_BOOTSTRAP policy in its own PR before installing the workflow");
     }
+    // Match the frozen registration table slots when the public context repair owns the workflow.
+    if (expectedReadiness && ![/\bEXPECTED_JOBS\s*=[\s\S]*?pr-readiness\.yml/,
+      /\b(?:EXPECTED_TYPES|HARDENED_TYPES|BASE_TYPES)\s*=[\s\S]*?pr-readiness\.yml/,
+      /\bEXPECTED_STEPS\s*=[\s\S]*?pr-readiness\.yml/].every(pattern => pattern.test(live))) {
+      return row("staged", "the workflow policy guard has not registered pr-readiness.yml",
+        "land the guard registration first, then re-run apply");
+    }
   }
-  if (!readPinnedRef(hatsuRoot)) {
-    return row("blocked", "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen",
-      "repair Hatsu's nen/contract.json");
-  }
-  if (!readBootstrapIntegrity(hatsuRoot)) {
-    return row("blocked", "Hatsu's dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen",
-      "repair Hatsu's nen/contract.json");
-  }
+  // #554: the frozen renderer substitutes both the pin and the bootstrap checksums; refuse before it can.
+  const pins = pinsBlocked(hatsuRoot);
+  if (pins) return pins;
   return row("satisfied", "the trusted reader and workflow policy are ready");
 }
 
@@ -168,10 +156,13 @@ function isEntrypoint(): boolean {
   }
 }
 
+const MODES = ["diagnose", "apply", "workflow-gate", "bootstrap-pins", "diagnose-workflow", "apply-workflow",
+  "diagnose-legacy-context", "apply-legacy-context"];
+
 if (isEntrypoint()) {
   const [mode, repo, hatsuRoot] = process.argv.slice(2);
-  if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate", "bootstrap-pins"].includes(mode ?? "")) {
-    throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate|bootstrap-pins> <repo> <hatsu-root>");
+  if (!repo || !hatsuRoot || !MODES.includes(mode ?? "")) {
+    throw new Error("usage: tenkai_readiness_guard.mts <" + MODES.join("|") + "> <repo> <hatsu-root>");
   }
   if (mode === "bootstrap-pins") {
     const pins = bootstrapPins(hatsuRoot);
@@ -180,6 +171,20 @@ if (isEntrypoint()) {
       process.exit(1);
     }
     process.stdout.write(JSON.stringify(pins) + "\n");
+  } else if (mode === "diagnose-workflow" || mode === "apply-workflow") {
+    const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
+    const result = adoptPortableReadiness(repo, hatsuRoot, input, mode === "apply-workflow" ? "apply" : "diagnose",
+      readerState(repo, hatsuRoot).state === "satisfied");
+    process.stdout.write(JSON.stringify(result) + "\n");
+  } else if (mode === "diagnose-legacy-context" || mode === "apply-legacy-context") {
+    const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
+    const gate = input.role && input.repository && input.registry
+      ? workflowGate(repo, hatsuRoot, { repo, role: input.role, slug: input.repository, registry: input.registry, templateDigest: input.templateDigest })
+      : row("blocked", READINESS_CONTEXT_CHANGED, "re-run diagnose");
+    const result = gate.state === "satisfied"
+      ? adoptLegacyRequiredContext(repo, hatsuRoot, input, mode === "apply-legacy-context" ? "apply" : "diagnose")
+      : gate;
+    process.stdout.write(JSON.stringify(result) + "\n");
   } else {
     const result = mode === "apply" ? applyReader(repo, hatsuRoot)
       : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);

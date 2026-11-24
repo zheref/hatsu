@@ -91,12 +91,14 @@ on a machine nobody set up. Every `nen shu tools` row that is not satisfied repo
 relaying it keeps the code — and installs the tool where it can (`missing-tool`).
 
 **A `5` whose every unsatisfied row is a coverage-only row reads *unmeasured, still testable*.**
-A toolchain row whose `why` begins `Coverage only:` (in Hatsu: `ruby`, `bash`, `simplecov`, `bashcov`,
+A toolchain row whose `why` begins `Coverage only:` (in Hatsu: `bash`, `simplecov`, `bashcov`,
 `simplecov-lcov`, zheref/hatsu#148) is needed only to *measure* line coverage: without it every lane
 still runs its fixture, uninstrumented, and says so. So breath § 2c, ten § 1, bankai-quality and any
 other reader of `nen shu tools` keep the `5`, relay the remedy, and never report the host as unable
 to build or test. nen cannot scope a toolchain row to the lanes that need it yet, so the
-distinction is read off the row's `why`.
+distinction is read off the row's `why`. The Tenkai host requires Ruby with Psych to decode
+managed workflow YAML for the required job context guard. The installed portable guard runs
+with Node.
 
 **A refusal that is a gap is a question; a refusal that is a safety rule stays a refusal.** The list
 of what is not a gap is authored once, in [`WORKFLOW.md`](WORKFLOW.md) § 4 *What is not a gap*; each
@@ -841,6 +843,15 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   carve-out); the `--dry-run` strip before that split is the same first-anchored clause (zheref/nen#458); the
   product-term guard (`scripts/product_term_check.mts` behind its shim, BC-11) is a three-way verdict **owed to nen**
   beside the private-name one (unfiled).
+- **Ruling record HR inventory.** `scripts/ruling_id_inventory.mts` reads the fresh base and counts
+  the open PRs, changed files, and roster diff rows for `ruling_record.mts next-id` and `render`.
+  Git and GitHub must read the same repository. When a PR changes the roster, the inventory checks
+  its diff counts and reads the full roster at the merge base and head so fenced examples and
+  comments cannot claim an id. It refuses a moved PR head, PR base, or remote base tip observed
+  during the read. The counted GitHub reads follow the port-rule reservation precedent. The port-rule reader skips forks. The HR inventory
+  reads them because a fork PR can add a roster row. These reads are temporary Hatsu-local
+  residue until the path-scoped next-id reader in [zheref/nen#456](https://github.com/zheref/nen/issues/456)
+  ships. The inventory cannot coordinate unpublished parallel writers.
 - **`kazaana`.** The surface → `model/` line is read from `contracts/direct.registry.json` itself: `nen direct registry
   --json` validates the file but prints no `line` (**owed to nen**, to file); raising a delegate has none (third-hand's
   class), and a Claude Code raise carries no effort dial; the overlap read that decides a stack has none

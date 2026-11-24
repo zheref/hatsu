@@ -96,6 +96,11 @@ role, never on the frontier tier where your own conversation lives, save the one
 recommends for a piece of work, on which surface and at what effort, is
 [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md).
 
+**Porting between sibling repositories.** `/hatsu:kamui` specs one issue or shipped PR for the whole
+product family, `/hatsu:hiraishin` ports one merged PR to one sibling, and `/hatsu:kido` records the port
+rulings both of them ask for. They are described in [the hub's *Porting work between sibling
+repositories*](README.md#porting-work-between-sibling-repositories); run each with `--dry-run` first.
+
 ## 4 · Maintenance
 
 **To update**, type `/hatsu:bakuryuha` in any session: it fast-forwards the checkout, re-proves the
