@@ -874,10 +874,10 @@ class ReadinessReader(Item):
         return self.row(**readiness_guard(ctx, "apply"))
 
 
-def readiness_guard(ctx, mode):
+def readiness_guard(ctx, mode, *extra):
     """Transport only; the source, path and guard decisions are TypeScript's."""
     script = ctx.hatsu_root / "scripts" / "tenkai_readiness_guard.mts"
-    out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root)],
+    out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root), *extra],
                          capture_output=True, text=True, timeout=60)
     if out.returncode != 0:
         raise RuntimeError(f"tenkai_readiness_guard.mts {mode} exited {out.returncode}: {out.stderr.strip()}")
@@ -923,12 +923,25 @@ class ReadinessWorkflow(Item):
         # and then overwriting it is worse than either alone.
         runs_on = keep_runs_on or ctx.runner["runs_on"]
         process = ctx.role == ROLE_PROCESS
+        pins = readiness_guard(ctx, "bootstrap-pins")
         return (t.replace("@@REPO_SLUG@@", ctx.slug)
                  .replace("@@RUNS_ON@@", runs_on)
                  .replace("@@RUNNER_REASON@@", ctx.runner["reason"])
                  .replace("@@GUARD_REQUIRED@@", "true" if process else "false")
                  .replace("@@PIN_FALLBACK_ALLOWED@@", "false" if process else "true")
-                 .replace("@@NEN_REF@@", ctx.nen_ref()))
+                 .replace("@@NEN_REF@@", ctx.nen_ref())
+                 .replace("@@NEN_SCRIPT_SHA256@@", pins["scriptSha256"])
+                 .replace("@@NEN_BINARY_SHA256@@", pins["binarySha256"]))
+
+    def kept_runner(self, ctx):
+        """The installed rendering's runner, which `repair` keeps when the probe could not answer."""
+        p = ctx.repo / WORKFLOW_PATH
+        if ctx.visibility is not None or not p.is_file() or self.MARKER not in p.read_text():
+            return None
+        m = re.search(r"runs-on:\s*(\[[^\]]*\]|\S+)",
+                      "\n".join(l for l in p.read_text().splitlines()
+                                if not l.lstrip().startswith("#")))
+        return m.group(1) if m else None
 
     def detect(self, ctx):
         if ctx.role is None:
@@ -950,6 +963,13 @@ class ReadinessWorkflow(Item):
                             "repository's own data, which Tenkai does not invent",
                             "declare one pool in nen/workflow.json with its pool-<id> label, "
                             "or pass --runner-labels for one declared pool")
+        # THE CHECKSUM CHECK IS LINUX-ONLY: the rendering verifies the linux-x64 binary
+        # alone, so any other readiness runner fails on every PR. TypeScript decides; this relays,
+        # before the file check, so `repair`'s BLOCKED early return stops the write here too.
+        kept = self.kept_runner(ctx)
+        runner = readiness_guard(ctx, "readiness-runner", kept or ctx.runner["runs_on"], *(["kept"] if kept else []))
+        if runner["state"] != SATISFIED:
+            return self.row(**runner)
         p = ctx.repo / WORKFLOW_PATH
         gate = GuardRegistration.state_of(ctx)
         if not p.is_file():
@@ -1045,10 +1065,11 @@ class ReadinessWorkflow(Item):
             blocks = re.split(r"\n(?=\s*- name:)", source)
             return next((block.strip() for block in blocks
                          if any(line.strip() == want for line in block.splitlines())), None)
-        for step_name, what in (("Readiness verdict", "the verdict step"),
+        for step_name, what in (("Bootstrap nen at the trusted pinned ref (checksum-verified, two steps, never a pipe)", "the bootstrap step"),
+                                ("Readiness verdict", "the verdict step"),
                                 ("Publish the check on the exact PR head", "the Publish step")):
             if step_block(live, step_name) != step_block(expected_live, step_name):
-                drifts.append(f"{what} differs from Hatsu's current rendering — the JSON reader "
+                drifts.append(f"{what} differs from Hatsu's current rendering — the bootstrap verification and JSON reader "
                               f"must run from the trusted base checkout with the exact pinned environment")
         if step_block(live, "Confirm the verdict still describes the event head") is not None:
             drifts.append("the retired freshness step is still present; the pinned verdict replaces it "
@@ -1226,12 +1247,7 @@ class ReadinessWorkflow(Item):
                             "a pr-readiness.yml is installed that Tenkai did not render — "
                             "it will not be overwritten",
                             "review by hand, then delete it and re-run apply")
-        keep = None
-        if ctx.visibility is None and p.is_file():
-            m = re.search(r"runs-on:\s*(\[[^\]]*\]|\S+)",
-                          "\n".join(l for l in p.read_text().splitlines()
-                                    if not l.lstrip().startswith("#")))
-            keep = m.group(1) if m else None
+        keep = self.kept_runner(ctx)
         p.parent.mkdir(parents=True, exist_ok=True)
         _atomic_write(p, self.render(ctx, keep_runs_on=keep))
         shown = keep or ctx.runner["runs_on"]
@@ -2614,15 +2630,35 @@ def self_test() -> int:
     # U3c -- a PRIVATE consumer with declared self-hosted labels (zheref/hatsu#199: <product-repo-E>'s pool,
     # whose Actions policy requires full-length SHA pins): the rendering carries the SHA pin on BOTH
     # checkouts and the labelled runs-on, and diagnoses satisfied -- nothing is left to hand-edit.
+    # The checksum check is Linux-only, so only a Linux X64 pool can carry it.
     dsh = fixture()
-    sh_ctx = ctx_for(dsh, vis="private", sh=5, labels="[self-hosted, Windows, X64, pool-windows-x64]")
+    sh_ctx = ctx_for(dsh, vis="private", sh=5, labels="[self-hosted, Linux, X64, pool-linux-x64]")
     run("apply", sh_ctx)
     wsh = (dsh / WORKFLOW_PATH).read_text()
     check("a private self-hosted rendering pins both checkouts by SHA with the exact tag (zheref/hatsu#199)",
           wsh.count("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1") == 2
-          and "actions/checkout@v7" not in wsh and "runs-on: [self-hosted, Windows, X64, pool-windows-x64]" in wsh)
+          and "actions/checkout@v7" not in wsh and "runs-on: [self-hosted, Linux, X64, pool-linux-x64]" in wsh)
     check("that rendering diagnoses satisfied -- no hand edit left for a SHA-pinning consumer",
           ReadinessWorkflow().detect(sh_ctx)["state"] == SATISFIED)
+    # A pool the linux-x64 checksum check cannot pass is BLOCKED at diagnose and apply, never written.
+    for pool in ("[self-hosted, Windows, X64, pool-windows-x64]", "[self-hosted, macOS, ARM64, pool-mac]",
+                 "[self-hosted, Linux, ARM64, pool-arm]"):
+        dno = fixture()
+        no_ctx = ctx_for(dno, vis="private", sh=5, labels=pool)
+        row = ReadinessWorkflow().detect(no_ctx)
+        check(f"a {pool} readiness pool is BLOCKED as Linux-only",
+              row["state"] == BLOCKED and "Linux-only (linux-x64)" in row["detail"] and pool in row["detail"]
+              and row["action"] is not None)
+        check(f"apply on the {pool} pool writes no workflow",
+              ReadinessWorkflow().repair(no_ctx)["state"] == BLOCKED and not (dno / WORKFLOW_PATH).exists())
+    # An unread probe keeps the installed runner, so a kept non-Linux runner is BLOCKED too.
+    (dsh / WORKFLOW_PATH).write_text(wsh.replace("[self-hosted, Linux, X64, pool-linux-x64]",
+                                                 "[self-hosted, macOS, ARM64, pool-mac]"))
+    unread_ctx = Ctx(dsh, root, "acme/widget", None, 0, probe=False)
+    row = ReadinessWorkflow().repair(unread_ctx)
+    check("a kept macOS runner under an unread probe is BLOCKED, not re-rendered",
+          row["state"] == BLOCKED and "Linux-only" in row["detail"]
+          and "pool-mac" in (dsh / WORKFLOW_PATH).read_text())
 
     # U4 -- a JOB-level permissions block overrides the workflow-level one
     row = mut2(lambda t: t.replace("    runs-on:", "    permissions:\n      contents: write\n    runs-on:", 1))
@@ -2710,14 +2746,19 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as pin_tmp:
         pin_dir = Path(pin_tmp)
         output_path = pin_dir / "github-output.txt"
+        pins = readiness_guard(ctx_for(dprod), "bootstrap-pins")
         env = dict(os.environ, TENKAI_PIN_FALLBACK_ALLOWED="true",
                    TENKAI_FALLBACK_REF=ctx_for(dprod).nen_ref(),
+                   TENKAI_FALLBACK_SCRIPT_SHA256=pins["scriptSha256"],
+                   TENKAI_FALLBACK_BINARY_SHA256=pins["binarySha256"],
                    GITHUB_OUTPUT=str(output_path))
         missing_pin = subprocess.run(["bash", "-c", pin_script], cwd=pin_dir,
                                      env=env, capture_output=True, text=True)
         check("consumer pin step executes fallback when trusted contract is absent",
               missing_pin.returncode == 0
-              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
+              and output_path.read_text().splitlines() == [f"ref={ctx_for(dprod).nen_ref()}",
+                  "script_sha=" + env["TENKAI_FALLBACK_SCRIPT_SHA256"],
+                  "binary_sha=" + env["TENKAI_FALLBACK_BINARY_SHA256"]])
         (pin_dir / ".trusted" / "nen").mkdir(parents=True)
         (pin_dir / ".trusted" / "nen" / "contract.json").write_text("{bad json")
         output_path.write_text("")
@@ -2744,7 +2785,9 @@ def self_test() -> int:
                                      env=env, capture_output=True, text=True)
         check("a valid consumer contract may omit dependency and use the fallback",
               omitted_pin.returncode == 0
-              and output_path.read_text().strip() == f"ref={ctx_for(dprod).nen_ref()}")
+              and output_path.read_text().splitlines() == [f"ref={ctx_for(dprod).nen_ref()}",
+                  "script_sha=" + env["TENKAI_FALLBACK_SCRIPT_SHA256"],
+                  "binary_sha=" + env["TENKAI_FALLBACK_BINARY_SHA256"]])
     product_workflow_path = dprod / WORKFLOW_PATH
     product_workflow_path.write_text(product_workflow.replace(
         "TENKAI_GUARD_REQUIRED: false", "TENKAI_GUARD_REQUIRED: true"))
@@ -2772,6 +2815,15 @@ def self_test() -> int:
     row = ReadinessWorkflow().detect(ctx_for(dprod))
     check("echo decoys cannot hide an unguarded trusted-contract read",
           row["state"] == DRIFT and "pin step" in row["detail"])
+    product_workflow_path.write_text(product_workflow.replace(
+        'printf \'%s  %s\\n\' "$BINARY_SHA256" "$bin" | sha256sum -c -',
+        '# stripped binary checksum verification'))
+    row = ReadinessWorkflow().detect(ctx_for(dprod))
+    check("a consumer workflow with altered bootstrap verification is DRIFT",
+          row["state"] == DRIFT and "bootstrap step" in row["detail"])
+    check("apply restores altered bootstrap checksum verification",
+          ReadinessWorkflow().repair(ctx_for(dprod))["state"] == REPAIRED
+          and ReadinessWorkflow().detect(ctx_for(dprod))["state"] == SATISFIED)
     product_workflow_path.write_text(product_workflow)
     check("maintained_tools derives process", derive_role(dproc, "acme/widget") == ROLE_PROCESS)
     check("consumers derives product", derive_role(dprod, "acme/widget") == ROLE_PRODUCT)

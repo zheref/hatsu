@@ -4,7 +4,9 @@ import { tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction, type FixRow } from './tenkai_fixes.ts';
-import { adoptionRole, readReadinessTemplate, registryText } from './tenkai_readiness_policy.mts';
+import {
+  adoptionRole, CONSUMER_BAD_REF, CONSUMER_UNREADABLE, PROCESS_NO_PIN, readinessRunnerBlocked, readReadinessTemplate, registryText,
+} from './tenkai_readiness_policy.mts';
 
 // HA#535: every outstanding Tenkai item names its fix, and a re-run after a fix shows the count going down.
 const source = resolve(import.meta.dirname, '..');
@@ -69,10 +71,16 @@ test('readiness inputs distinguish absent declarations from unsafe or malformed 
   const templateRoot = temp();
   mkdirSync(join(templateRoot, 'nen'));
   mkdirSync(join(templateRoot, 'templates'));
+  // #554: a template renders only with the pin AND the linux-x64 bootstrap checksums.
   writeFileSync(join(templateRoot, 'nen/contract.json'), '{"dependency":{"pinned_ref":"v1"}}');
   const template = join(templateRoot, 'templates/pr-readiness.yml');
   writeFileSync(template, 'name: readiness\r\n');
-  expect(readReadinessTemplate(templateRoot)).toEqual({ ref: 'v1', source: 'name: readiness\n' });
+  expect(readReadinessTemplate(templateRoot)).toBeNull();
+  const scriptSha256 = 'a'.repeat(64);
+  const binarySha256 = 'b'.repeat(64);
+  writeFileSync(join(templateRoot, 'nen/contract.json'), JSON.stringify({ dependency: { pinned_ref: 'v1',
+    bootstrap: { scriptSha256, sha256: { 'linux-x64': binarySha256 } } } }));
+  expect(readReadinessTemplate(templateRoot)).toEqual({ ref: 'v1', scriptSha256, binarySha256, source: 'name: readiness\n' });
   writeFileSync(template, Buffer.from([0xff]));
   expect(() => readReadinessTemplate(templateRoot)).toThrow('must be UTF-8');
 });
@@ -132,6 +140,14 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
     { id: 'workflow/test-results', state: 'routed', detail: '', action: "make lane 'ios' write a Nen-readable test result" },
     { id: 'lane/ios/build', state: 'routed', detail: "iteration.checks requires 'build' on lane 'ios', but no command is declared", action: '' },
     { id: 'lane/ios/archive', state: 'routed', detail: 'declared unsupported: PROPOSED SEAT', action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "Hatsu's dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "the readiness checksum check is Linux-only (linux-x64): this repository's readiness pool [self-hosted, macOS, ARM64, pool-mac] cannot pass it; use a self-hosted Linux X64 pool or hosted ubuntu-latest", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "this repository's nen/contract.json pins v0.30.0 but carries no valid dependency.bootstrap scriptSha256 / sha256[\"linux-x64\"]; the rendered readiness workflow exits before Nen bootstraps", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: readinessRunnerBlocked('[self-hosted, macOS, ARM64, pool-mac]', true)!.detail, action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: CONSUMER_UNREADABLE, action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "this repository's nen/contract.json dependency must be a JSON object; the rendered readiness workflow exits before Nen bootstraps", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: CONSUMER_BAD_REF, action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: PROCESS_NO_PIN, action: '' },
   ];
   for (const item of items) {
     const fix = fixFor(item, rows, context);
@@ -146,7 +162,28 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
   expect(fixFor(items[8], rows, context).fill).toBe('route');
   expect(fixFor(items[10], rows, context).run).toEqual(['bash /opt/hatsu/scripts/config_values.sh set --repo \'/tmp/a repo\' --id workflow.review.scopes --value <answer-json>',
     'bash /opt/hatsu/scripts/config_values.sh set --repo \'/tmp/a repo\' --id contract.project.kind --value <answer-json>']);
+  expect(fixFor(items[6], rows, context)).toMatchObject({ fill: 'route', detect: 'nen schema check --repo /opt/hatsu' });
+  expect(fixFor(items[6], rows, context).edit).toContain('dependency.pinned_ref');
   expect(fixFor(items[13], rows, context)).toMatchObject({ fill: 'edit', run: [], detect: "nen schema check --repo '/tmp/a repo'" });
+  expect(fixFor(items[14], rows, context)).toMatchObject({ fill: 'route', detect: "bash /opt/hatsu/scripts/tenkai_adopt.sh diagnose --repo '/tmp/a repo'" });
+  expect(fixFor(items[14], rows, context).edit).toContain('dependency.bootstrap');
+  // #554 Linux-only ruling: a non-Linux readiness pool and a consumer pin without its own digests name their own edits.
+  expect(fixFor(items[15], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/workflow.json.md' });
+  expect(fixFor(items[15], rows, context).edit).toContain('[self-hosted, Linux, X64, pool-<id>]');
+  expect(fixFor(items[16], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/contract.json.md' });
+  expect(fixFor(items[16], rows, context).edit).toContain('sha256["linux-x64"]');
+  // #554 round 2: a kept runner routes to the visibility step, not to a pool edit it cannot use.
+  expect(fixFor(items[17], rows, context)).toMatchObject({ fill: 'route', run: [] });
+  expect(fixFor(items[17], rows, context).edit).toContain('--visibility <public|private> --self-hosted <n>');
+  // QA-18: each consumer-contract refusal maps to its own row, ahead of Hatsu's own pinned_ref row.
+  for (const index of [18, 19]) {
+    expect(fixFor(items[index], rows, context)).toMatchObject({ fill: 'route', guide: 'docs/config/contract.json.md' });
+    expect(fixFor(items[index], rows, context).edit).toContain("this repository's nen/contract.json: one regular");
+  }
+  expect(fixFor(items[20], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/contract.json.md' });
+  expect(fixFor(items[20], rows, context).edit).toContain('dependency.pinned_ref: a plain git ref');
+  expect(fixFor(items[21], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/contract.json.md' });
+  expect(fixFor(items[21], rows, context).edit).toContain('no fallback to Hatsu');
   // A target-controlled lane name never reaches a command: it falls to the catch-all instead.
   expect(fixFor({ id: 'lane/a\nb/build', state: 'routed', detail: 'no command is declared' }, rows, context).fill).toBe('unmapped');
   expect(fixFor({ id: "lane/x';touch y'/build", state: 'routed', detail: 'no command is declared' }, rows, context).fill).toBe('unmapped');

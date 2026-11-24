@@ -138,6 +138,59 @@
       "fill": "route"
     },
     {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "is kept because repository visibility is unread",
+      "edit": "repository visibility: re-run diagnose where gh can read it, or pass --visibility <public|private> --self-hosted <n>, so Tenkai re-derives the readiness runner as hosted ubuntu-latest or a declared [self-hosted, Linux, X64, pool-<id>] pool; a pool declared while visibility stays unread cannot replace the kept runner",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "readiness checksum check is Linux-only",
+      "edit": "nen/workflow.json → runners.pools: one [self-hosted, Linux, X64, pool-<id>] pool for readiness (or none, for hosted ubuntu-latest: a public repository, or a private one with no registered self-hosted runners); the rendered check verifies only the linux-x64 Nen binary, so a macOS, Windows or Linux ARM64 pool cannot pass it",
+      "guide": "docs/config/workflow.json.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "edit"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "this repository's nen/contract\\.json pins .* but carries no valid dependency\\.bootstrap",
+      "edit": "nen/contract.json → dependency.bootstrap.scriptSha256 and dependency.bootstrap.sha256[\"linux-x64\"], the reviewed digests for this repository's own dependency.pinned_ref (or drop its pinned_ref to use Hatsu's rendered fallback)",
+      "guide": "docs/config/contract.json.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "edit"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "this repository's nen/contract\\.json (is unreadable or not JSON|root must be a JSON object|dependency must be a JSON object)",
+      "edit": "this repository's nen/contract.json: one regular, unlinked, readable UTF-8 JSON object under 2 MiB whose dependency, when present, is an object; the rendered pin step refuses anything else before Nen bootstraps",
+      "guide": "docs/config/contract.json.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "this repository's nen/contract\\.json dependency\\.pinned_ref must be a non-empty plain ref",
+      "edit": "nen/contract.json → dependency.pinned_ref: a plain git ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}, no '..' or '//'), or remove it (a product then uses Hatsu's rendered fallback)",
+      "guide": "docs/config/contract.json.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "edit"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "this process repository's nen/contract\\.json carries no dependency\\.pinned_ref",
+      "edit": "nen/contract.json → dependency.pinned_ref with its reviewed dependency.bootstrap.scriptSha256 and dependency.bootstrap.sha256[\"linux-x64\"]; a process repository's readiness workflow has no fallback to Hatsu's pin",
+      "guide": "docs/config/contract.json.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "edit"
+    },
+    {
       "id": "^(\\.github/workflows/pr-readiness\\.yml|scripts/release-publish\\.sh|release/row)$",
       "states": ["blocked"],
       "detail": "role",
@@ -158,8 +211,16 @@
       "id": "^\\.github/workflows/pr-readiness\\.yml$",
       "states": ["blocked"],
       "detail": "pinned_ref",
-      "edit": "Hatsu's own nen/contract.json → dependency.pinned_ref, not this repository's; repin Hatsu",
+      "edit": "Hatsu's own nen/contract.json → dependency.pinned_ref, not this repository's; repin or repair Hatsu",
       "detect": "nen schema check --repo {root}",
+      "fill": "route"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "bootstrap checksums",
+      "edit": "Hatsu's own nen/contract.json → dependency.bootstrap (scriptSha256, sha256), not this repository's; repin or repair Hatsu",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
       "fill": "route"
     },
     {

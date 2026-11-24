@@ -58,16 +58,24 @@ preserves these raw keys; its typed bootstrap schema validates the URL and sourc
 A green `nen schema check` therefore does not establish digest policy. Hatsu's host binder
 rejects a missing or malformed script pin and checks downloaded bytes before Bash runs.
 The fixture checks reviewed provenance against
-the ref, source path and script digest. Typed metadata extraction and producer binding for readiness
-activation remain deferred.
+the ref, source path and script digest. Readiness activation reads the script and `linux-x64`
+digests through Tenkai's typed reader (`scripts/tenkai_readiness_policy.mts`); producer binding
+remains deferred.
 The Cursor Cloud Build verifies the script before Bash and the binary against the independent
-contract platform digest before linking or executing it. Readiness integrity is a two-step landing
-under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). This
-preparer accepts both the existing rendered workflow and the proposed integrity form as separate
-exact shapes. The tracked readiness template remains unchanged; activating its script and binary
-checks requires a separate PR after the preparer reaches `main`, with a typed metadata reader and
-validated producer/pin binding. This preparer adds no unused digest reader to Tenkai. The prepared
-form is exercised synthetically, so those tests do not claim readiness activation is delivered.
+contract platform digest before linking or executing it. Readiness integrity lands in two stages
+under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). First,
+`scripts/workflow_runner_policy_check.rb` accepts both the older unverified readiness form and the
+pinned `linux-x64` checksum-verified `READINESS_INTEGRITY_*` form. Next, Tenkai renders
+`templates/pr-readiness.yml` to verify `bootstrap.scriptSha256` and `bootstrap.sha256["linux-x64"]`
+before executing either artifact. `scripts/tenkai_readiness_policy.mts` reads both digests and renders
+the portable and legacy-context forms, `scripts/tenkai_adopt_legacy.sh` renders the legacy form, and
+`scripts/tenkai_readiness_guard.mts` is the CLI and gate the engine calls. **The readiness check is
+Linux-only, by the maintainer's ruling of 2026-11-23 ([HR-399](ROSTER.md#hr-399))**: the rendered workflow pins and
+verifies the `linux-x64` binary digest alone, and no `darwin-arm64` or `windows-x64` digest is rendered
+or awaited. A runner other than hosted `ubuntu-latest` or a self-hosted Linux X64 pool cannot pass it,
+a Linux ARM64 pool included, so Tenkai blocks adoption on such a pool rather than reporting it
+satisfied. Failing closed on zero-byte trusted contracts is a separate matter, still deferred to a
+two-step validator update (`workflow_runner_policy_check.rb` on `main` first).
 
 For the current pin, the script digest was computed from the exact `bootstrap/nen.sh` blob at
 reviewed Nen tag `v0.30.0`, commit `1e2217a2fa9735e99e9c83096fff57197361556d` (the bytes are unchanged since `v0.28.0`, so the digest did not move):

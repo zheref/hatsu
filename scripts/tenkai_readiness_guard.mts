@@ -1,17 +1,19 @@
 #!/usr/bin/env node
-// #131: Tenkai's readiness-reader adoption decisions live in TypeScript (BC-11).
+// #131 & #554: Tenkai's readiness-reader, workflow-gate, and bootstrap-integrity decisions live in TypeScript (BC-11).
 // The frozen engine relays reader and gate rows. The public adopter owns the portable route.
-import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { closeSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
-  adoptionRole, adoptLegacyRequiredContext, adoptPortableReadiness, DEFER_READINESS, DEFERRED_READINESS, handlesPortableReadiness,
-  LEGACY_READINESS, READINESS_CONTEXT_CHANGED, readReadinessTemplate, readinessTemplateDigest, registryText,
+  adoptionRole, adoptLegacyRequiredContext, adoptPortableReadiness, bootstrapPins, consumerPinsBlocked, DEFER_READINESS,
+  DEFERRED_READINESS, handlesPortableReadiness, LEGACY_READINESS, pinsBlocked, READINESS_CONTEXT_CHANGED,
+  readinessRunnerBlocked, readReadinessTemplate, readinessTemplateDigest, registryText,
   type LegacyReadiness, type RenderInputs,
 } from "./tenkai_readiness_policy.mts";
 
-type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
-type Row = { state: State; detail: string; action: string | null };
+export type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
+export type Row = { state: State; detail: string; action: string | null };
 const REL = "scripts/readiness_ci_verdict.mts";
 const GUARD = "scripts/workflow_runner_policy_check.rb";
 const MARKER = "// RENDERED BY hatsu:tenkai from scripts/readiness_ci_verdict.mts";
@@ -36,7 +38,7 @@ function sourceText(hatsuRoot: string): string | null {
   return text.startsWith("#!/usr/bin/env node\n") ? text : null;
 }
 
-function readerState(repo: string, hatsuRoot: string): Row {
+export function readerState(repo: string, hatsuRoot: string): Row {
   const source = sourceText(hatsuRoot);
   if (source === null) return row("blocked", "Hatsu's trusted readiness reader is missing, linked or malformed", "repair the Hatsu installation");
   const parent = join(repo, "scripts");
@@ -48,7 +50,7 @@ function readerState(repo: string, hatsuRoot: string): Row {
   const targetInfo = stat(target);
   if (targetInfo?.isSymbolicLink()) return row("blocked", "reader path is a symlink; Tenkai will not follow it");
   if (!targetInfo) return row("missing", "trusted reader is not installed", "copy Hatsu's reader before installing the workflow");
-  if (!targetInfo.isFile()) return row("blocked", "reader path is not a regular file");
+  if (!targetInfo.isFile()) return row("blocked", "reader path is a regular directory or special file; expected a file");
   const actual = readFileSync(target, "utf8");
   const expected = source.replace("#!/usr/bin/env node\n", `#!/usr/bin/env node\n${MARKER}\n`);
   if (actual === source) return row("satisfied", "the exact Hatsu source reader is already installed");
@@ -57,7 +59,7 @@ function readerState(repo: string, hatsuRoot: string): Row {
   return row("drift", "Tenkai's trusted reader differs from Hatsu's current source", "reinstall the reader");
 }
 
-function applyReader(repo: string, hatsuRoot: string): Row {
+export function applyReader(repo: string, hatsuRoot: string): Row {
   const before = readerState(repo, hatsuRoot);
   if (before.state !== "missing" && before.state !== "drift") return before;
   const parent = join(repo, "scripts");
@@ -81,12 +83,13 @@ function applyReader(repo: string, hatsuRoot: string): Row {
   return row("repaired", "trusted readiness JSON reader installed");
 }
 
-function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: LegacyReadiness & { templateDigest: string | null }): Row {
+export function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: LegacyReadiness & { templateDigest: string | null }): Row {
   // The public CLI sets these only on its frozen child. Deferral and legacy
   // eligibility both run before the frozen workflow can consider a write.
   if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
   const legacy = process.env[LEGACY_READINESS];
   let requiresRuby = false;
+  let role: LegacyReadiness["role"] | null = null;
   if (legacy || expectedReadiness) {
     try {
       const expected: LegacyReadiness = expectedReadiness ?? JSON.parse(legacy);
@@ -95,11 +98,12 @@ function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: Legac
           current.digest !== expected.registry || handlesPortableReadiness(repo, current.role)) {
         throw new Error(READINESS_CONTEXT_CHANGED);
       }
+      role = current.role;
       requiresRuby = current.role === "process";
       const template = readReadinessTemplate(hatsuRoot);
       if (!template) {
-        return row("blocked", "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen",
-          "repair Hatsu's nen/contract.json");
+        return pinsBlocked(hatsuRoot) ?? row("blocked", "Hatsu's readiness template or Nen pin changed during adoption",
+          "re-run diagnose with the current repository and Hatsu inputs");
       }
       if (expectedReadiness && readinessTemplateDigest(template) !== expectedReadiness.templateDigest) {
         throw new Error("Hatsu's readiness template or Nen pin changed during adoption");
@@ -124,6 +128,10 @@ function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: Legac
       return row("staged", "the current workflow guard does not admit the JSON reader step",
         "land the guard's exact next-step policy in its own PR before installing the workflow");
     }
+    if (live.includes("READINESS_RENDERED_STEPS") && !live.includes("READINESS_INTEGRITY_STEPS")) {
+      return row("staged", "the current workflow guard does not admit the checksum-verified bootstrap step",
+        "land the guard's exact READINESS_INTEGRITY_PIN and READINESS_INTEGRITY_BOOTSTRAP policy in its own PR before installing the workflow");
+    }
     // Match the frozen registration table slots when the public context repair owns the workflow.
     if (expectedReadiness && ![/\bEXPECTED_JOBS\s*=[\s\S]*?pr-readiness\.yml/,
       /\b(?:EXPECTED_TYPES|HARDENED_TYPES|BASE_TYPES)\s*=[\s\S]*?pr-readiness\.yml/,
@@ -132,30 +140,58 @@ function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?: Legac
         "land the guard registration first, then re-run apply");
     }
   }
+  // #554: the frozen renderer substitutes both the pin and the bootstrap checksums; refuse before it can.
+  // A bare call (no adoption context) has no role, so it cannot judge the per-role fallback.
+  const pins = pinsBlocked(hatsuRoot) ?? consumerPinsBlocked(repo, role);
+  if (pins) return pins;
   return row("satisfied", "the trusted reader and workflow policy are ready");
 }
 
-const [mode, repo, hatsuRoot] = process.argv.slice(2);
-if (!repo || !hatsuRoot || !["diagnose", "apply", "workflow-gate", "diagnose-workflow", "apply-workflow",
-  "diagnose-legacy-context", "apply-legacy-context"].includes(mode)) {
-  throw new Error("usage: tenkai_readiness_guard.mts <diagnose|apply|workflow-gate|diagnose-workflow|apply-workflow|diagnose-legacy-context|apply-legacy-context> <repo> <hatsu-root>");
+function isEntrypoint(): boolean {
+  try {
+    return Boolean(process.argv[1]) && realpathSync(resolve(process.argv[1]!)) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
 }
-if (mode === "diagnose-workflow" || mode === "apply-workflow") {
-  const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
-  const result = adoptPortableReadiness(repo, hatsuRoot, input, mode === "apply-workflow" ? "apply" : "diagnose",
-    readerState(repo, hatsuRoot).state === "satisfied");
-  process.stdout.write(JSON.stringify(result) + "\n");
-} else if (mode === "diagnose-legacy-context" || mode === "apply-legacy-context") {
-  const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
-  const gate = input.role && input.repository && input.registry
-    ? workflowGate(repo, hatsuRoot, { repo, role: input.role, slug: input.repository, registry: input.registry, templateDigest: input.templateDigest })
-    : row("blocked", READINESS_CONTEXT_CHANGED, "re-run diagnose");
-  const result = gate.state === "satisfied"
-    ? adoptLegacyRequiredContext(repo, hatsuRoot, input, mode === "apply-legacy-context" ? "apply" : "diagnose")
-    : gate;
-  process.stdout.write(JSON.stringify(result) + "\n");
-} else {
-  const result = mode === "apply" ? applyReader(repo, hatsuRoot)
-    : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);
-  process.stdout.write(JSON.stringify(result) + "\n");
+
+const MODES = ["diagnose", "apply", "workflow-gate", "bootstrap-pins", "readiness-runner", "diagnose-workflow", "apply-workflow",
+  "diagnose-legacy-context", "apply-legacy-context"];
+
+if (isEntrypoint()) {
+  const [mode, repo, hatsuRoot, runner, kept] = process.argv.slice(2);
+  if (!repo || !hatsuRoot || !MODES.includes(mode ?? "")) {
+    throw new Error("usage: tenkai_readiness_guard.mts <" + MODES.join("|") + "> <repo> <hatsu-root> [<runs-on> [kept], readiness-runner only]");
+  }
+  if (mode === "bootstrap-pins") {
+    const pins = bootstrapPins(hatsuRoot);
+    if (!pins) {
+      console.error("Hatsu's dependency.pinned_ref or dependency.bootstrap checksums are absent or malformed");
+      process.exit(1);
+    }
+    process.stdout.write(JSON.stringify(pins) + "\n");
+  } else if (mode === "readiness-runner") {
+    // The frozen engine relays the runner its legacy rendering would use, and `kept` when that is
+    // the installed runner preserved under an unread visibility.
+    process.stdout.write(JSON.stringify(readinessRunnerBlocked(runner, kept === "kept") ??
+      row("satisfied", "the readiness runner is linux-x64")) + "\n");
+  } else if (mode === "diagnose-workflow" || mode === "apply-workflow") {
+    const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
+    const result = adoptPortableReadiness(repo, hatsuRoot, input, mode === "apply-workflow" ? "apply" : "diagnose",
+      readerState(repo, hatsuRoot).state === "satisfied");
+    process.stdout.write(JSON.stringify(result) + "\n");
+  } else if (mode === "diagnose-legacy-context" || mode === "apply-legacy-context") {
+    const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
+    const gate = input.role && input.repository && input.registry
+      ? workflowGate(repo, hatsuRoot, { repo, role: input.role, slug: input.repository, registry: input.registry, templateDigest: input.templateDigest })
+      : row("blocked", READINESS_CONTEXT_CHANGED, "re-run diagnose");
+    const result = gate.state === "satisfied"
+      ? adoptLegacyRequiredContext(repo, hatsuRoot, input, mode === "apply-legacy-context" ? "apply" : "diagnose")
+      : gate;
+    process.stdout.write(JSON.stringify(result) + "\n");
+  } else {
+    const result = mode === "apply" ? applyReader(repo, hatsuRoot)
+      : mode === "workflow-gate" ? workflowGate(repo, hatsuRoot) : readerState(repo, hatsuRoot);
+    process.stdout.write(JSON.stringify(result) + "\n");
+  }
 }

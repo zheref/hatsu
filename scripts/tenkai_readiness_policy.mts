@@ -14,7 +14,9 @@ import { strictJson } from "./config_values_refresh.ts";
 type State = "satisfied" | "missing" | "drift" | "blocked" | "repaired" | "staged";
 export type ReadinessRow = { state: State; detail: string; action: string | null };
 export type ReadinessRole = "process" | "product" | null;
-export type ReadinessTemplate = { source: string; ref: string };
+export type BootstrapIntegrity = { scriptSha256: string; binarySha256: string };
+export type BootstrapPins = { ref: string } & BootstrapIntegrity;
+export type ReadinessTemplate = { source: string } & BootstrapPins;
 export type AdoptionRunner = {
   runs_on: string;
   fallback: string;
@@ -122,31 +124,156 @@ export function adoptionRole(text: string | undefined, repository: string | null
   return { role, digest: createHash("sha256").update(text).digest("hex") };
 }
 
-function pinnedRef(hatsuRoot: string): string | null {
+const REF_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/;
+const SHA256_PATTERN = /^[a-f0-9]{64}$/;
+export const PIN_ABSENT = "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen";
+export const BOOTSTRAP_ABSENT = "Hatsu's dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen";
+
+type JsonObject = Record<string, unknown>;
+const isObject = (value: unknown): value is JsonObject => !!value && typeof value === "object" && !Array.isArray(value);
+// The rendered pin step's whole ref rule: its pattern, then no '..' and no '//'.
+const plainRef = (ref: unknown): ref is string =>
+  typeof ref === "string" && REF_PATTERN.test(ref) && !ref.includes("..") && !ref.includes("//");
+
+function dependency(hatsuRoot: string): JsonObject | null {
   try {
     const contract = inputText(hatsuRoot, "nen/contract.json");
-    const ref = contract === undefined ? undefined : JSON.parse(contract)?.dependency?.pinned_ref;
-    if (typeof ref === "string" && /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.exec(ref)?.[0] === ref &&
-        !ref.includes("..") && !ref.includes("//")) return ref;
+    const dep = contract === undefined ? undefined : JSON.parse(contract)?.dependency;
+    if (isObject(dep)) return dep;
   } catch {
     // The readiness verdict names the missing or malformed pin.
   }
   return null;
 }
 
+export function readPinnedRef(hatsuRoot: string): string | null {
+  const ref = dependency(hatsuRoot)?.pinned_ref;
+  return plainRef(ref) ? ref : null;
+}
+
+// #554: the rendered workflow verifies the bootstrap script and the linux-x64 binary
+// (the readiness job's only runner platform) against Hatsu's own dependency.bootstrap.
+// Linux-only by the maintainer's ruling of 2026-11-23 (HR-399): only scriptSha256 and the
+// linux-x64 digest are read; other platform keys are neither validated nor awaited here.
+function integrity(dep: JsonObject | null | undefined): BootstrapIntegrity | null {
+  const data = dep?.bootstrap;
+  if (!isObject(data)) return null;
+  const { scriptSha256, sha256: binaries } = data;
+  if (typeof scriptSha256 !== "string" || !SHA256_PATTERN.test(scriptSha256)) return null;
+  if (!isObject(binaries)) return null;
+  const binarySha256 = Object.hasOwn(binaries, "linux-x64") ? binaries["linux-x64"] : undefined;
+  if (typeof binarySha256 !== "string" || !SHA256_PATTERN.test(binarySha256)) return null;
+  return { scriptSha256, binarySha256 };
+}
+
+export function readBootstrapIntegrity(root: string): BootstrapIntegrity | null {
+  return integrity(dependency(root));
+}
+
+export function bootstrapPins(hatsuRoot: string): BootstrapPins | null {
+  const ref = readPinnedRef(hatsuRoot);
+  const integrity = readBootstrapIntegrity(hatsuRoot);
+  return ref && integrity ? { ref, ...integrity } : null;
+}
+
+// The blocked row for a Hatsu contract that cannot render a verified bootstrap, or null when it can.
+export function pinsBlocked(hatsuRoot: string): ReadinessRow | null {
+  if (!readPinnedRef(hatsuRoot)) return row("blocked", PIN_ABSENT, "repair Hatsu's nen/contract.json");
+  if (!readBootstrapIntegrity(hatsuRoot)) return row("blocked", BOOTSTRAP_ABSENT, "repair Hatsu's nen/contract.json");
+  return null;
+}
+
+const CONSUMER_CONTRACT = "this repository's nen/contract.json";
+const PIN_STEP_EXITS = "; the rendered readiness workflow exits before Nen bootstraps";
+export const CONSUMER_UNREADABLE = CONSUMER_CONTRACT + " is unreadable or not JSON" + PIN_STEP_EXITS;
+export const CONSUMER_BAD_REF = CONSUMER_CONTRACT +
+  " dependency.pinned_ref must be a non-empty plain ref ([A-Za-z0-9][A-Za-z0-9._/-]{0,99}, no '..' or '//')" + PIN_STEP_EXITS;
+export const PROCESS_NO_PIN = "this process repository's nen/contract.json carries no dependency.pinned_ref; " +
+  "the rendered readiness workflow gives a process repository no fallback to Hatsu's pin and exits before Nen bootstraps";
+
+// The rendered pin step's whole predicate over this repository's own trusted nen/contract.json
+// (templates/pr-readiness.yml, "Read the pinned nen ref"), read from the raw bytes, never through
+// dependency()'s catch-all. An absent contract, dependency or pinned_ref (null reads as absent) takes
+// the rendered fallback to Hatsu's pin, which a product has and a process repository does not
+// (TENKAI_PIN_FALLBACK_ALLOWED). A present pinned_ref must pass the step's ref rule and carry that
+// same contract's script and linux-x64 digests. Every state the step refuses is BLOCKED here;
+// Tenkai additionally refuses a contract its bounded reader cannot read (a link, over 2 MiB, not UTF-8).
+export function consumerPinsBlocked(repo: string, role: ReadinessRole = null): ReadinessRow | null {
+  let text: string | undefined;
+  let contract: unknown;
+  try {
+    text = inputText(repo, "nen/contract.json");
+    if (text !== undefined) contract = JSON.parse(text);
+  } catch {
+    return row("blocked", CONSUMER_UNREADABLE,
+      "make this repository's nen/contract.json one regular, unlinked, readable UTF-8 JSON file under 2 MiB, then re-run diagnose");
+  }
+  let dep: JsonObject | undefined;
+  if (text !== undefined) {
+    if (!isObject(contract)) {
+      return row("blocked", CONSUMER_CONTRACT + " root must be a JSON object" + PIN_STEP_EXITS,
+        "make this repository's nen/contract.json a JSON object, then re-run diagnose");
+    }
+    if (Object.hasOwn(contract, "dependency") && !isObject(contract.dependency)) {
+      return row("blocked", CONSUMER_CONTRACT + " dependency must be a JSON object" + PIN_STEP_EXITS,
+        "make dependency in this repository's nen/contract.json a JSON object, or remove it, then re-run diagnose");
+    }
+    dep = contract.dependency as JsonObject | undefined;
+  }
+  const ref = dep && Object.hasOwn(dep, "pinned_ref") ? dep.pinned_ref : undefined;
+  if (ref !== undefined && ref !== null && !plainRef(ref)) {
+    return row("blocked", CONSUMER_BAD_REF,
+      "repair the ref: set dependency.pinned_ref in this repository's nen/contract.json to a plain git ref" +
+      (role === "process" ? " with its reviewed digests" : ", or remove it to use Hatsu's rendered fallback"));
+  }
+  if (typeof ref !== "string") {
+    return role === "process" ? row("blocked", PROCESS_NO_PIN,
+      'add dependency.pinned_ref and its reviewed dependency.bootstrap.scriptSha256 and dependency.bootstrap.sha256["linux-x64"] to this repository\'s nen/contract.json') : null;
+  }
+  if (integrity(dep)) return null;
+  return row("blocked", CONSUMER_CONTRACT + " pins " + ref +
+    ' but carries no valid dependency.bootstrap scriptSha256 / sha256["linux-x64"]' + PIN_STEP_EXITS,
+    'add the digests: dependency.bootstrap.scriptSha256 and dependency.bootstrap.sha256["linux-x64"] (64 lowercase hex, the reviewed digests for ' +
+    ref + ") in this repository's nen/contract.json" + (role === "process" ? "" : ", or drop its dependency.pinned_ref"));
+}
+
+// The readiness checksum check verifies the linux-x64 binary alone (#554), so the job may
+// run only on hosted ubuntu-latest or a self-hosted Linux X64 pool; anything else fails every PR.
+const LINUX_X64_POOL = /^\[self-hosted, *Linux, *X64, *pool-[A-Za-z0-9][A-Za-z0-9._-]*\]$/;
+export const LINUX_ONLY = "the readiness checksum check is Linux-only (linux-x64)";
+export const KEPT_RUNNER = "is kept because repository visibility is unread";
+// `kept`: the runner is the installed rendering's, preserved because the visibility probe could not
+// answer. Declaring a pool cannot move it then; only a readable (or passed) visibility re-derives it.
+export function readinessRunnerBlocked(runner: string | undefined, kept = false): ReadinessRow | null {
+  if (runner === "ubuntu-latest" || (runner !== undefined && LINUX_X64_POOL.test(runner))) return null;
+  const shown = runner !== undefined && /^[A-Za-z0-9[\], ._-]{1,200}$/.test(runner) ? runner : "(an unreadable selector)";
+  if (kept) {
+    return row("blocked", LINUX_ONLY + ": the installed readiness runner " + shown + " " + KEPT_RUNNER + ", and it cannot pass it",
+      "re-run diagnose where gh can read the repository's visibility, or pass --visibility <public|private> --self-hosted <n>, " +
+      "so Tenkai re-derives the runner as hosted ubuntu-latest or a declared [self-hosted, Linux, X64, pool-<id>] pool");
+  }
+  return row("blocked", LINUX_ONLY + ": this repository's readiness pool " + shown +
+    " cannot pass it; use a self-hosted Linux X64 pool or hosted ubuntu-latest",
+    "declare one [self-hosted, Linux, X64, pool-<id>] pool in nen/workflow.json runners.pools (or pass --runner-labels for it), then re-run diagnose");
+}
+
+function renderedRunner(text: string): string | undefined {
+  return text.match(/^    runs-on: ([^\r\n]+)\r?$/m)?.[1];
+}
+
 export function readReadinessTemplate(hatsuRoot: string): ReadinessTemplate | null {
-  const ref = pinnedRef(hatsuRoot);
-  if (ref === null) return null;
+  const pins = bootstrapPins(hatsuRoot);
+  if (pins === null) return null;
   const relative = "templates/pr-readiness.yml";
   const source = inputText(hatsuRoot, relative);
   if (source === undefined) {
     throw new Error("no template at " + join(hatsuRoot, relative) + " — --hatsu-root must point at a Hatsu checkout or plugin root");
   }
-  return { source: source.replace(/\r\n?/g, "\n"), ref };
+  return { source: source.replace(/\r\n?/g, "\n"), ...pins };
 }
 
 export function readinessTemplateDigest(template: ReadinessTemplate | null): string | null {
-  return template && createHash("sha256").update(JSON.stringify([template.ref, template.source])).digest("hex");
+  return template && createHash("sha256").update(JSON.stringify([template.ref, template.scriptSha256, template.binarySha256, template.source])).digest("hex");
 }
 
 export function readinessInputs(
@@ -161,6 +288,8 @@ export function readinessInputs(
       .replaceAll("@@GUARD_REQUIRED@@", processRepository ? "true" : "false")
       .replaceAll("@@PIN_FALLBACK_ALLOWED@@", processRepository ? "false" : "true")
       .replaceAll("@@NEN_REF@@", () => template.ref)
+      .replaceAll("@@NEN_SCRIPT_SHA256@@", () => template.scriptSha256)
+      .replaceAll("@@NEN_BINARY_SHA256@@", () => template.binarySha256)
     : null;
   return {
     role, registry, repository, path: READINESS_WORKFLOW, rendered, templateDigest: readinessTemplateDigest(template),
@@ -296,6 +425,10 @@ export function adoptLegacyRequiredContext(
     catch (error) { return row("blocked", (error as Error).message, "repair the readiness template and required job declaration"); }
   }
   if (!input.role || !input.repository || input.rendered === null || input.runnerLabelsRequired) return null;
+  if (input.rendered.includes("@@")) {
+    return row("blocked", "the rendered readiness workflow still carries an unfilled @@ placeholder",
+      "repair the readiness template and Hatsu's nen/contract.json");
+  }
   try {
     const installed = regularText(repo, path);
     if (installed === undefined) return null;
@@ -311,6 +444,8 @@ export function adoptLegacyRequiredContext(
       return row("staged", diagnostic + "; the existing readiness job runner cannot be preserved while repository visibility is unreadable",
         "re-run apply when visibility is readable or pass the known repository visibility");
     }
+    const linuxOnly = readinessRunnerBlocked(runner ?? renderedRunner(input.rendered), runner !== undefined);
+    if (linuxOnly) return linuxOnly;
     if (mode !== "apply") return row("drift", diagnostic, "re-render from templates/pr-readiness.yml");
     const rendered = runner ? input.rendered
       .replace(/^    runs-on: [^\n]+$/m, () => "    runs-on: " + runner)
@@ -343,9 +478,11 @@ export function adoptPortableReadiness(
     const registry = adoptionRole(registryText(repo), input.repository);
     if (registry.role !== input.role || registry.digest !== input.registry) throw new Error(READINESS_CONTEXT_CHANGED);
     if (!input.rendered) {
-      return row("blocked", "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen",
-        "repair Hatsu's nen/contract.json");
+      return pinsBlocked(hatsuRoot) ?? row("blocked", "Hatsu's readiness template or Nen pin changed during adoption",
+        "re-run diagnose with the current repository and Hatsu inputs");
     }
+    const consumerPins = consumerPinsBlocked(repo, input.role);
+    if (consumerPins) return consumerPins;
     if (input.runnerLabelsRequired) {
       return row("blocked", "the self-hosted runner needs the pool's declared labels",
         "declare one pool in nen/workflow.json or pass --runner-labels");
@@ -427,6 +564,8 @@ export function adoptPortableReadiness(
           "re-run apply when visibility is readable or pass the known repository visibility");
       }
     }
+    const linuxOnly = readinessRunnerBlocked(priorRunner ?? renderedRunner(input.rendered), priorRunner !== undefined);
+    if (linuxOnly) return linuxOnly;
 
     const rendered = render(input.rendered, base, priorRunner);
     const expected = workflowDigest(rendered);
