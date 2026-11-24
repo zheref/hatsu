@@ -67,8 +67,10 @@ under [Gate configuration § 6](GATE-CONFIGURATION.md#6-adoption). First,
 pinned `linux-x64` checksum-verified `READINESS_INTEGRITY_*` form. Next, Tenkai's
 `templates/pr-readiness.yml`, `scripts/tenkai_readiness_guard.mts`, and `scripts/tenkai_adopt_legacy.sh`
 render and verify `bootstrap.scriptSha256` and `bootstrap.sha256["linux-x64"]` before executing either
-artifact. Widening `templates/pr-readiness.yml` beyond `linux-x64` (`darwin-arm64`, `windows-x64`
-pools) or failing closed on zero-byte trusted contracts remains deferred to a separate two-step
+artifact. **The readiness check is Linux-only, by the maintainer's ruling of 2026-11-23**: the rendered
+workflow pins and verifies the `linux-x64` binary digest alone, no `darwin-arm64` or `windows-x64`
+digest is rendered or awaited, and a macOS or Windows readiness runner fails closed at the bootstrap
+step. Failing closed on zero-byte trusted contracts is a separate matter, still deferred to a two-step
 validator update (`workflow_runner_policy_check.rb` on `main` first).
 
 For the current pin, the script digest was computed from the exact `bootstrap/nen.sh` blob at

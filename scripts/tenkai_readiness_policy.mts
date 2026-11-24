@@ -150,6 +150,7 @@ export function readPinnedRef(hatsuRoot: string): string | null {
 
 // #554: the rendered workflow verifies the bootstrap script and the linux-x64 binary
 // (the readiness job's only runner platform) against Hatsu's own dependency.bootstrap.
+// Linux-only by the maintainer's ruling of 2026-11-23: no darwin/windows digest is read or awaited.
 export function readBootstrapIntegrity(hatsuRoot: string): BootstrapIntegrity | null {
   const data = dependency(hatsuRoot)?.bootstrap;
   if (!data || typeof data !== "object" || Array.isArray(data)) return null;
