@@ -902,7 +902,7 @@ resume record.
 
 ## Dated verification, 2026-11-23 — crash-and-resume (zheref/hatsu#444)
 
-**Settled by ruling, not by a ledger** ([HR-397](../ROSTER.md#hr-397), which settles the 2026-10-23 finding
+**Settled by ruling, not by a ledger** ([HR-400](../ROSTER.md#hr-400), which settles the 2026-10-23 finding
 above). getsuga keeps no phase ledger and has no row in `scripts/resume_proof.mts`: its resume record is its
 GitHub state, read before any write (getsuga § *Composition*). Re-invoked with the same line, it reads the
 tag and the release-proposal PR for the version, the PR matched by exact title, head branch and author. An

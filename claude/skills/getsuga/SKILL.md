@@ -66,7 +66,7 @@ of them lives* once the lattice is the map.
   reason, and § 8 already names it as a *Never*. A futon chain that lists one **after** getsuga runs
   it as its own later step on the advance go (mugetsu § 3), once this skill has cut the tag.
 
-**Its resume record is its GitHub state** ([HR-397](../../../docs/ROSTER.md#hr-397)): getsuga keeps no
+**Its resume record is its GitHub state** ([HR-400](../../../docs/ROSTER.md#hr-400)): getsuga keeps no
 phase ledger. Re-invoked with the same line, it reads what it already published before any write: the tag
 (`git ls-remote --tags origin <vX.Y.Z>`) and the release-proposal PR, matched by **title equality, never a
 free-text hit**, and by its head and author:
@@ -789,7 +789,7 @@ the steps above already state; each item cites its issue or the literal `unfiled
   recorded or repinned: re-run, it **may open a second repin PR in a consumer and append a second `nen
   fanout record` entry**. The resumed run names that risk before § 7 and lists each consumer's open repin
   PRs by head branch (§ *Composition*); it adds no skipping of its own. Not idempotent until such a read
-  exists ([HR-397](../../../docs/ROSTER.md#hr-397)) — `unfiled`.
+  exists ([HR-400](../../../docs/ROSTER.md#hr-400)) — `unfiled`.
 - **The raced cut point — an owned dependency, not residue.** No public verb compares the merge SHA's
   release state with § 3a's recorded judged head (§ 4); the missing predicate is zheref/nen#572
   ([NN-IS-#572](https://github.com/zheref/nen/issues/572)), and until it ships the raced case is held

@@ -53,7 +53,7 @@ The run id's pattern, outside the table so its alternation reads as written (`gr
 
 ## The phase ledger — one entry per step, the resume read first
 
-**Both skills record one phase ledger entry per top-level step of their protocol** ([HR-397](../ROSTER.md#hr-397); [WORKFLOW](../WORKFLOW.md) § *The effort's ledgers* owns the mechanism), each naming its own vocabulary (kamui § 6, hiraishin § 3). The key is the **run id**, a port run having no branch of its own; each build, and the spec PR's `ren`, keep their own branch's ledger. **A `--dry-run` writes no entry.** The ledger lives in **the invoking checkout's** repository (`<git common dir>/.nen/phases/<run-id>.json`, shared by its worktrees): the checkout the skill was typed in, never a sibling's, the target's or the spec repository's.
+**Both skills record one phase ledger entry per top-level step of their protocol** ([HR-400](../ROSTER.md#hr-400); [WORKFLOW](../WORKFLOW.md) § *The effort's ledgers* owns the mechanism), each naming its own vocabulary (kamui § 6, hiraishin § 3). The key is the **run id**, a port run having no branch of its own; each build, and the spec PR's `ren`, keep their own branch's ledger. **A `--dry-run` writes no entry.** The ledger lives in **the invoking checkout's** repository (`<git common dir>/.nen/phases/<run-id>.json`, shared by its worktrees): the checkout the skill was typed in, never a sibling's, the target's or the spec repository's.
 
 ```bash
 nen phase begin --effort <run-id> --phase <step> --surface <s> [--model <reported-model>] --dial <level> --repo <the invoking checkout>

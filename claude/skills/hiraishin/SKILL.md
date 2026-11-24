@@ -77,7 +77,7 @@ Ordinals are ports.md's (one record per target). **`resume`** runs ports.md's ch
 takes no `--dry-run` and continues at the recomputed step; a `kamui` record is refused, naming
 `hatsu:kamui resume <id>`.
 
-ports.md § *The phase ledger* (HR-397), one entry per step, read first on resume: `precondition` ·
+ports.md § *The phase ledger* (HR-400), one entry per step, read first on resume: `precondition` ·
 `spec` (kamui §§ 2–4 inside) · `brief` · `drift` · `issue` · `build`.
 
 ## 4. Spec first, where a spec repository is configured

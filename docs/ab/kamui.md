@@ -233,7 +233,7 @@ resume record.
 
 ## Dated verification, 2026-11-23 — crash-and-resume (zheref/hatsu#444)
 
-**`kamui` joins the proof** ([HR-397](../ROSTER.md#hr-397), which settles the 2026-10-23 finding above). kamui § 6
+**`kamui` joins the proof** ([HR-400](../ROSTER.md#hr-400), which settles the 2026-10-23 finding above). kamui § 6
 records one phase ledger entry per top-level step, keyed by the run id: `setup` (§ 2) · `spec` (§ 3) · `wait` (§ 4) · `siblings` (§ 5) · `start` (§ 7) · `ending` (§ 8). The proof's row uses the
 run id `kamui-fi-is-7-20261123`, the shape ports.md § *The run record* states.
 

@@ -301,7 +301,7 @@ resume record.
 
 ## Dated verification, 2026-11-23 — crash-and-resume (zheref/hatsu#444)
 
-**`hiraishin` joins the proof** ([HR-397](../ROSTER.md#hr-397), which settles the 2026-10-23 finding above). hiraishin § 3
+**`hiraishin` joins the proof** ([HR-400](../ROSTER.md#hr-400), which settles the 2026-10-23 finding above). hiraishin § 3
 records one phase ledger entry per top-level step, keyed by the run id: `precondition` (§ 2) · `spec` (§ 4, kamui §§ 2–4 inside it) · `brief` (§ 5) · `drift` (§ 6) · `issue` (§ 7) · `build` (§ 8). The proof's row uses the
 run id `hiraishin-fi-pr-42-20261123`, the shape ports.md § *The run record* states.
 

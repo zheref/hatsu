@@ -30,7 +30,7 @@
 // WHAT IT DOES NOT PROVE. The publishing steps (a PR, a comment, a label) need GitHub: they are proved
 // live in the docs/ab sections against a real pull request (`nen pr open` → `existing`, `nen pr ledger
 // post` → `unchanged`). getsuga keeps no ledger: its resume record is its GitHub state, the tag and the
-// release-proposal PR, read before any write (HR-397), so it has no row here and its docs/ab section
+// release-proposal PR, read before any write (HR-400), so it has no row here and its docs/ab section
 // records what it reads.
 //
 // exit 0  every case converged · exit 1  a case diverged, each named · exit 2  wiring (no nen, a bad
@@ -55,7 +55,7 @@ for (let i = 0; i < args.length; i++) {
 
 // The phase vocabulary each composite records, read from its own skill: ren § 2a (one entry per step of
 // § 2's table), build § 4 (its four phases; mukai runs inside build's `pr` phase and records none of its
-// own), kamui § 6 and hiraishin § 3 (one entry per top-level step, HR-397; kamui's §§ 2–4 run inside
+// own), kamui § 6 and hiraishin § 3 (one entry per top-level step, HR-400; kamui's §§ 2–4 run inside
 // hiraishin's `spec` and record none of their own). The effort is the key each skill names: the branch
 // for ren and build (WORKFLOW § The effort's ledgers), the run id for a port run, which has no branch
 // (docs/config/ports.md § The run record's pattern). A composite not listed here writes no phase ledger
@@ -276,7 +276,7 @@ type UsageLedger = { entries: UsageEntry[] };
 
 // hiraishin's no-spec route (*spec step: none configured*): docs/config/ports.md § The phase ledger
 // writes `spec` all the same, begun with a note and ended at exit 0, so the run keeps its six entries and
-// a re-invocation skips it like any finished phase (HR-397).
+// a re-invocation skips it like any finished phase (HR-400).
 {
   EFFORT = COMPOSITES.hiraishin!.effort;
   const phases = COMPOSITES.hiraishin!.phases;

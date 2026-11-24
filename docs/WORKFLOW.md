@@ -1006,7 +1006,7 @@ marker, else it is `unread`; the configured reviewer tier does not prove which a
 `phase.note` may carry model provenance, never a dial or session value.
 **Every skill that runs a phase wraps its own phases, and every skill that spends records at the moment
 it spends** — never a transcription at the end of a sitting. Who writes what: `ren` § 2 (every step; usage
-at step 5), `build` § 4 (its own steps; usage at every § 7 report), `kamui` § 6 and `hiraishin` § 3 (each step, keyed by the run id, a port run having no branch of its own; [HR-397](ROSTER.md#hr-397)), `hanten` § 4 (one usage entry per
+at step 5), `build` § 4 (its own steps; usage at every § 7 report), `kamui` § 6 and `hiraishin` § 3 (each step, keyed by the run id, a port run having no branch of its own; [HR-400](ROSTER.md#hr-400)), `hanten` § 4 (one usage entry per
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
 **A resumed session's spend is an entry of its own** ([HR-398](ROSTER.md#hr-398)): the session that resumes an
 effort records its usage at the same call site with `--note "resumed session"`, beside the earlier session's

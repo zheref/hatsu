@@ -131,7 +131,7 @@ Never close or supersede the source issue.
 ## 6. The record, and `resume`
 
 ports.md § *The run record*, `caller: kamui`, written per step boundary; § *The phase ledger*
-(HR-397), one entry per step: `setup` · `spec` · `wait` · `siblings` · `start` · `ending` (§§ 2–5, 7–8);
+(HR-400), one entry per step: `setup` · `spec` · `wait` · `siblings` · `start` · `ending` (§§ 2–5, 7–8);
 none in hiraishin. `resume <run-id>` runs ports.md's checks — a `caller: hiraishin` record **refused**,
 **the step recomputed from live state**, the ledger read first — and continues in any checkout.
 
