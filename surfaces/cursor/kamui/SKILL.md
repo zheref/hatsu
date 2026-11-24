@@ -130,11 +130,10 @@ The title is written to its file with the surface's file tool, never shell sourc
 
 ## 6. The record, and `resume`
 
-ports.md § *The run record*, `caller: kamui`, written at each step boundary, and § *The phase ledger*
-(HR-397), one entry per step: `setup` · `spec` · `wait` · `siblings` · `start` · `ending`; none under
-hiraishin.
-`resume <run-id>` runs ports.md's checks — a `caller: hiraishin` record **refused**, **the step recomputed
-from live state**, the ledger read first — and continues from any checkout.
+ports.md § *The run record*, `caller: kamui`, written per step boundary; § *The phase ledger*
+(HR-397), one entry per step: `setup` · `spec` · `wait` · `siblings` · `start` · `ending` (§§ 2–5, 7–8);
+none in hiraishin. `resume <run-id>` runs ports.md's checks — a `caller: hiraishin` record **refused**,
+**the step recomputed from live state**, the ledger read first — and continues in any checkout.
 
 ## 7. The start picker — multi-pick, sequential here
 

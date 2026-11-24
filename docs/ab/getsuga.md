@@ -905,22 +905,36 @@ resume record.
 **Settled by ruling, not by a ledger** ([HR-397](../ROSTER.md#hr-397), which settles the 2026-10-23 finding
 above). getsuga keeps no phase ledger and has no row in `scripts/resume_proof.mts`: its resume record is its
 GitHub state, read before any write (getsuga § *Composition*). Re-invoked with the same line, it reads the
-tag and the release-proposal PR for the version; an open proposal is continued at § 3a, never opened twice;
-a merged one goes to § 4; a tag already on origin is § 2's *Tag does not already exist* row, the cut named as
-done and never re-cut. The two reads, live and read-only on 2026-11-23 against `zheref/hatsu`:
+tag and the release-proposal PR for the version, the PR matched by exact title, head branch and author. An
+open proposal is never opened twice and **never merged by the resumed session**: § 3's record died with the
+first session, so it is handed to the declaration gate, named. A merged one goes to § 4 only where its merge
+commit carries nothing but the proposal's last head, else it holds at G5 as the raced-cut case. A tag already
+on origin is § 2's *Tag does not already exist* row, the cut named as done and never re-cut. **§ 7's re-run
+is not idempotent** (getsuga § Residue, *the fan-out on a resume*): it may open a second repin PR in a
+consumer and append a second `nen fanout record` entry, so the resumed run names that risk and lists each
+consumer's open repin PRs before § 7. The reads, live and read-only on 2026-11-23 against `zheref/hatsu`:
 
 ```text
 $ git ls-remote --tags origin 'v0.168.0*'
 506f268da9938945dcb16b7e7f71b4f6ff21ec87	refs/tags/v0.168.0
 2b62f77b3c0feb81c4b0590c3002bb1cb089f0c7	refs/tags/v0.168.0^{}
-$ gh pr list --repo zheref/hatsu --state all --search 'v0.168.0 in:title' --json number,state,title
-[{"number":612,"state":"MERGED","title":"chore(release): propose v0.168.0"}]
+$ gh pr list --repo zheref/hatsu --state all --search 'in:title "propose v0.168.0"' --json number,state,title,headRefName,author \
+    --jq '.[] | select(.title == "chore(release): propose v0.168.0")'
+{"author":{"id":"MDQ6VXNlcjExNzcwMDA=","is_bot":false,"login":"zheref","name":"Sergio Daniel L."},"headRefName":"opus/kurapika/release-v0.168.0","number":612,"state":"MERGED","title":"chore(release): propose v0.168.0"}
+$ gh api user --jq .login
+zheref
+$ gh pr view 612 --repo zheref/hatsu --json mergeCommit,headRefOid --jq '{merge: .mergeCommit.oid, head: .headRefOid}'
+{"head":"929cbfcfbdb2651edbabce68bdd4ec18939015dd","merge":"2b62f77b3c0feb81c4b0590c3002bb1cb089f0c7"}
+$ git diff --quiet 929cbfcfbdb2651edbabce68bdd4ec18939015dd 2b62f77b3c0feb81c4b0590c3002bb1cb089f0c7; echo $?
+0
 $ git ls-remote --tags origin v0.175.12 | wc -l
        0
-$ gh pr list --repo zheref/hatsu --state all --search 'v0.175.12 in:title' --json number,state,title
-[]
+$ gh pr list --repo zheref/hatsu --state all --search 'in:title "propose v0.175.12"' --json number,state,title,headRefName,author \
+    --jq '.[] | select(.title == "chore(release): propose v0.175.12")'
 ```
 
-A resumed `v0.168.0` run reads the cut as done and § 7 as the only step left; a `v0.175.12` run reads nothing
+HA-PR-#612 matches on all three (title, a head ending `/release-v0.168.0`, the authenticated login), and its merge
+commit carries nothing but its last head. A resumed `v0.168.0` run reads the cut as done and § 7 as the only
+step left; a `v0.175.12` run reads nothing
 published and starts at § 2. **Not proved here**: a live getsuga session killed between § 3a's merge and § 4's
 cut and re-invoked; `nen tag cut`'s own refusal of an existing name is § 2.5 above.

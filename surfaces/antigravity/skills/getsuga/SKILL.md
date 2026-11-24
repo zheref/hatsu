@@ -84,12 +84,19 @@ reported, and is never continued. Then:
 - **An open proposal** is never opened a second time and **never merged by the resumed session**: § 3's
   record (the PR number, its head SHA, `<preflightTip>`) died with the first session, so § 3a falls back to
   the declaration gate, the PR named.
-- **A merged proposal** goes to § 4.
+- **A merged proposal**: § 3a's judged head died with the first session too, so the resumed run reads the
+  merge commit against the proposal's last head (`gh pr view <N> --json mergeCommit,headRefOid`, then
+  `git diff --quiet <headRefOid> <mergeCommit>`). Exit `0`, the merge carrying nothing but that head,
+  continues at § 4 as before; anything else is the raced-cut case and **holds at G5**, named with both
+  SHAs, never resolved from a record that no longer exists (§ 4).
 - **A tag already on origin** is § 2's *Tag does not already exist* row on a resume: the cut is named as
   done, never re-cut, and the run continues at § 7.
 
-So the tag and the proposal are never published twice. § 7's re-run is **not idempotent yet** (§ Residue,
-*the fan-out on a resume*), and the resumed run says so before § 7 (`docs/ab/getsuga.md`).
+So the tag and the proposal are never published twice. **§ 7 is not idempotent yet** (§ Residue, *the
+fan-out on a resume*): a re-run may open a **second repin PR** in a consumer and append a **second `nen
+fanout record` entry**. Before § 7 the resumed run says so and lists each affected consumer's open PRs whose
+head branch names `<newTag>` (`gh pr list --repo <consumer> --state open --json number,headRefName`), so the
+maintainer sees them; it skips nothing on its own (`docs/ab/getsuga.md`).
 
 ---
 
@@ -780,7 +787,9 @@ the steps above already state; each item cites its issue or the literal `unfiled
   (§ 3a) — `unfiled`.
 - **The fan-out on a resume.** `nen fanout` has `compute` and `record` (which appends) and no verb that
   reads the fan-out ledger back at 0.30.0, so a resumed § 7 cannot tell which consumers it already
-  recorded or repinned: re-run, it may record a consumer twice. It is not idempotent until such a read
+  recorded or repinned: re-run, it **may open a second repin PR in a consumer and append a second `nen
+  fanout record` entry**. The resumed run names that risk before § 7 and lists each consumer's open repin
+  PRs by head branch (§ *Composition*); it adds no skipping of its own. Not idempotent until such a read
   exists ([HR-397](../../../../docs/ROSTER.md#hr-397)) — `unfiled`.
 - **The raced cut point — an owned dependency, not residue.** No public verb compares the merge SHA's
   release state with § 3a's recorded judged head (§ 4); the missing predicate is zheref/nen#572
