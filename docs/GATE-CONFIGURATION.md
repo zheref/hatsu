@@ -51,11 +51,15 @@ preflight and exact event-head checks when adopting it. The prepared readiness i
 against a reviewed trusted digest before Bash, then verifies the binary against the contract platform
 digest before execution. Under § 6, the preparer (`workflow_runner_policy_check.rb`'s
 `READINESS_INTEGRITY_*` forms) landed on `main` first; the template stage activates Tenkai's
-`templates/pr-readiness.yml`, `scripts/tenkai_readiness_guard.mts`, and `scripts/tenkai_adopt_legacy.sh` rendering
-for script and `linux-x64` binary verification (`scripts/readiness_checksum_fixture.test.mts`).
-The readiness check is Linux-only (the maintainer's ruling of 2026-11-23): readiness runs on Linux
-runners, and a macOS or Windows pool fails closed. Rejecting zero-byte trusted contracts is separate
-and needs a later two-step validator update (`workflow_runner_policy_check.rb` first).
+`templates/pr-readiness.yml` rendering for script and `linux-x64` binary verification
+(`scripts/readiness_checksum_fixture.test.mts`). `scripts/tenkai_readiness_policy.mts` reads the
+digests and renders the portable and legacy-context forms, `scripts/tenkai_adopt_legacy.sh` the legacy
+form; `scripts/tenkai_readiness_guard.mts` is the CLI and gate.
+The readiness check is Linux-only, by the maintainer's ruling of 2026-11-23 ([HR-399](ROSTER.md#hr-399)): it passes
+only on hosted `ubuntu-latest` or a self-hosted Linux X64 pool. A macOS, Windows or Linux ARM64 pool
+cannot pass it, so Tenkai blocks adoption on one rather than reporting it satisfied. Rejecting
+zero-byte trusted contracts is separate and needs a later two-step validator update
+(`workflow_runner_policy_check.rb` first).
 [The dependency contract](NEN-CONTRACT.md#bootstrap-integrity-and-ownership)
 records the pin ownership; producer binding is still a Nen dependency, not a policy implemented by
 `$`-prefixed comments or this workaround.

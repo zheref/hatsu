@@ -131,8 +131,7 @@ test('tenkai_readiness_guard stages outdated workflow policy guards and blocks m
       {},
       { scriptSha256: 'bad', sha256: { 'linux-x64': validSha } },
       { scriptSha256: validSha, sha256: { 'darwin-arm64': validSha } },
-      { scriptSha256: validSha, sha256: { 'linux-x64': validSha, 'BAD_KEY': validSha } },
-      { scriptSha256: validSha, sha256: { 'linux-x64': validSha, 'windows-x64': 'UPPER' + '0'.repeat(59) } },
+      { scriptSha256: validSha, sha256: { 'linux-x64': 'UPPER' + '0'.repeat(59) } },
     ]) {
       const badHatsu = makeHatsu(tempDir('hatsu-bad-boot-'), {
         dependency: { pinned_ref: 'v0.30.0', ...(badBootstrap !== undefined ? { bootstrap: badBootstrap } : {}) },
@@ -144,6 +143,62 @@ test('tenkai_readiness_guard stages outdated workflow policy guards and blocks m
         expect(runGuard('bootstrap-pins', repo, badHatsu).status).toBe(1);
       } finally { rmSync(dirname(badHatsu), { recursive: true, force: true }); }
     }
+
+    // #554 Linux-only ruling: only scriptSha256 and linux-x64 are read, so a bad non-Linux key never blocks Linux readiness.
+    for (const otherKeys of [{ 'BAD_KEY': validSha }, { 'windows-x64': 'UPPER' + '0'.repeat(59) }, { 'darwin-arm64': 7 }]) {
+      const okHatsu = makeHatsu(tempDir('hatsu-other-keys-'), {
+        dependency: { pinned_ref: 'v0.30.0', bootstrap: { scriptSha256: validSha, sha256: { 'linux-x64': 'b'.repeat(64), ...otherKeys } } },
+      });
+      try {
+        expect(JSON.parse(runGuard('workflow-gate', repo, okHatsu).stdout).state).toBe('satisfied');
+        expect(JSON.parse(runGuard('bootstrap-pins', repo, okHatsu).stdout))
+          .toEqual({ ref: 'v0.30.0', scriptSha256: validSha, binarySha256: 'b'.repeat(64) });
+      } finally { rmSync(dirname(okHatsu), { recursive: true, force: true }); }
+    }
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
+});
+
+test('a consumer contract that pins its own Nen must carry its own linux-x64 bootstrap digests', () => {
+  const work = tempDir('tenkai-consumer-pin-');
+  try {
+    const hatsu = makeHatsu(work);
+    const repo = makeConsumer(work, 'acme/widget', true);
+    const consumerContract = join(repo, 'nen', 'contract.json');
+    const gate = () => JSON.parse(runGuard('workflow-gate', repo, hatsu).stdout);
+
+    // No contract, no dependency, or a null pin keeps the rendered fallback to Hatsu's digests.
+    expect(gate().state).toBe('satisfied');
+    for (const contract of [{}, { dependency: {} }, { dependency: { pinned_ref: null } }, { dependency: { pinned_ref: '' } }]) {
+      writeFileSync(consumerContract, JSON.stringify(contract));
+      expect(gate().state, JSON.stringify(contract)).toBe('satisfied');
+    }
+    // A pin with valid script and linux-x64 digests passes; other platform keys are not read.
+    const valid = { scriptSha256: 'c'.repeat(64), sha256: { 'linux-x64': 'd'.repeat(64), 'darwin-arm64': 'bad' } };
+    writeFileSync(consumerContract, JSON.stringify({ dependency: { pinned_ref: 'v9.9.9', bootstrap: valid } }));
+    expect(gate().state).toBe('satisfied');
+    // A pin without them is blocked by name, since the rendered pin step would exit 4 with no fallback.
+    for (const bootstrap of [undefined, {}, { scriptSha256: 'c'.repeat(64) }, { scriptSha256: 'c'.repeat(64), sha256: { 'linux-x64': 'D'.repeat(64) } },
+      { scriptSha256: 'short', sha256: { 'linux-x64': 'd'.repeat(64) } }]) {
+      writeFileSync(consumerContract, JSON.stringify({ dependency: { pinned_ref: 'v9.9.9', ...(bootstrap ? { bootstrap } : {}) } }));
+      const row = gate();
+      expect(row.state, JSON.stringify(bootstrap)).toBe('blocked');
+      expect(row.detail).toContain("this repository's nen/contract.json pins v9.9.9 but carries no valid dependency.bootstrap scriptSha256 / sha256[\"linux-x64\"]");
+      expect(row.action).toContain('dependency.bootstrap.scriptSha256');
+    }
+    writeFileSync(consumerContract, JSON.stringify({ dependency: { pinned_ref: 'bad ref;$(x)' } }));
+    expect(gate().detail).toContain('pins a malformed ref but');
+
+    // The public entry relays the frozen engine's row, mapped to its fix; no workflow is rendered.
+    writeFileSync(consumerContract, JSON.stringify({ dependency: { pinned_ref: 'v9.9.9' } }));
+    const run = spawnSync('bash', [adoptScript, 'diagnose', '--repo', repo, '--hatsu-root', root, '--visibility', 'public', '--self-hosted', '0', '--json'], { encoding: 'utf8' });
+    expect([0, 1]).toContain(run.status);
+    const item = JSON.parse(run.stdout).items.find((entry: any) => entry.id === '.github/workflows/pr-readiness.yml');
+    expect(item.state).toBe('blocked');
+    expect(item.detail).toContain('pins v9.9.9 but carries no valid dependency.bootstrap');
+    expect(item.fix).toMatchObject({ fill: 'edit', guide: 'docs/config/contract.json.md' });
+    expect(spawnSync('test', ['-e', join(repo, '.github', 'workflows', 'pr-readiness.yml')]).status).toBe(1);
   } finally {
     rmSync(work, { recursive: true, force: true });
   }

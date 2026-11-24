@@ -874,10 +874,10 @@ class ReadinessReader(Item):
         return self.row(**readiness_guard(ctx, "apply"))
 
 
-def readiness_guard(ctx, mode):
+def readiness_guard(ctx, mode, *extra):
     """Transport only; the source, path and guard decisions are TypeScript's."""
     script = ctx.hatsu_root / "scripts" / "tenkai_readiness_guard.mts"
-    out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root)],
+    out = subprocess.run(["node", str(script), mode, str(ctx.repo), str(ctx.hatsu_root), *extra],
                          capture_output=True, text=True, timeout=60)
     if out.returncode != 0:
         raise RuntimeError(f"tenkai_readiness_guard.mts {mode} exited {out.returncode}: {out.stderr.strip()}")
@@ -933,6 +933,16 @@ class ReadinessWorkflow(Item):
                  .replace("@@NEN_SCRIPT_SHA256@@", pins["scriptSha256"])
                  .replace("@@NEN_BINARY_SHA256@@", pins["binarySha256"]))
 
+    def kept_runner(self, ctx):
+        """The installed rendering's runner, which `repair` keeps when the probe could not answer."""
+        p = ctx.repo / WORKFLOW_PATH
+        if ctx.visibility is not None or not p.is_file() or self.MARKER not in p.read_text():
+            return None
+        m = re.search(r"runs-on:\s*(\[[^\]]*\]|\S+)",
+                      "\n".join(l for l in p.read_text().splitlines()
+                                if not l.lstrip().startswith("#")))
+        return m.group(1) if m else None
+
     def detect(self, ctx):
         if ctx.role is None:
             return self.row(BLOCKED, "repository role is unknown; the trusted guard and pin policy "
@@ -953,6 +963,12 @@ class ReadinessWorkflow(Item):
                             "repository's own data, which Tenkai does not invent",
                             "declare one pool in nen/workflow.json with its pool-<id> label, "
                             "or pass --runner-labels for one declared pool")
+        # THE CHECKSUM CHECK IS LINUX-ONLY: the rendering verifies the linux-x64 binary
+        # alone, so any other readiness runner fails on every PR. TypeScript decides; this relays,
+        # before the file check, so `repair`'s BLOCKED early return stops the write here too.
+        runner = readiness_guard(ctx, "readiness-runner", self.kept_runner(ctx) or ctx.runner["runs_on"])
+        if runner["state"] != SATISFIED:
+            return self.row(**runner)
         p = ctx.repo / WORKFLOW_PATH
         gate = GuardRegistration.state_of(ctx)
         if not p.is_file():
@@ -1230,12 +1246,7 @@ class ReadinessWorkflow(Item):
                             "a pr-readiness.yml is installed that Tenkai did not render — "
                             "it will not be overwritten",
                             "review by hand, then delete it and re-run apply")
-        keep = None
-        if ctx.visibility is None and p.is_file():
-            m = re.search(r"runs-on:\s*(\[[^\]]*\]|\S+)",
-                          "\n".join(l for l in p.read_text().splitlines()
-                                    if not l.lstrip().startswith("#")))
-            keep = m.group(1) if m else None
+        keep = self.kept_runner(ctx)
         p.parent.mkdir(parents=True, exist_ok=True)
         _atomic_write(p, self.render(ctx, keep_runs_on=keep))
         shown = keep or ctx.runner["runs_on"]
@@ -2618,15 +2629,35 @@ def self_test() -> int:
     # U3c -- a PRIVATE consumer with declared self-hosted labels (zheref/hatsu#199: <product-repo-E>'s pool,
     # whose Actions policy requires full-length SHA pins): the rendering carries the SHA pin on BOTH
     # checkouts and the labelled runs-on, and diagnoses satisfied -- nothing is left to hand-edit.
+    # The checksum check is Linux-only, so only a Linux X64 pool can carry it.
     dsh = fixture()
-    sh_ctx = ctx_for(dsh, vis="private", sh=5, labels="[self-hosted, Windows, X64, pool-windows-x64]")
+    sh_ctx = ctx_for(dsh, vis="private", sh=5, labels="[self-hosted, Linux, X64, pool-linux-x64]")
     run("apply", sh_ctx)
     wsh = (dsh / WORKFLOW_PATH).read_text()
     check("a private self-hosted rendering pins both checkouts by SHA with the exact tag (zheref/hatsu#199)",
           wsh.count("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1") == 2
-          and "actions/checkout@v7" not in wsh and "runs-on: [self-hosted, Windows, X64, pool-windows-x64]" in wsh)
+          and "actions/checkout@v7" not in wsh and "runs-on: [self-hosted, Linux, X64, pool-linux-x64]" in wsh)
     check("that rendering diagnoses satisfied -- no hand edit left for a SHA-pinning consumer",
           ReadinessWorkflow().detect(sh_ctx)["state"] == SATISFIED)
+    # A pool the linux-x64 checksum check cannot pass is BLOCKED at diagnose and apply, never written.
+    for pool in ("[self-hosted, Windows, X64, pool-windows-x64]", "[self-hosted, macOS, ARM64, pool-mac]",
+                 "[self-hosted, Linux, ARM64, pool-arm]"):
+        dno = fixture()
+        no_ctx = ctx_for(dno, vis="private", sh=5, labels=pool)
+        row = ReadinessWorkflow().detect(no_ctx)
+        check(f"a {pool} readiness pool is BLOCKED as Linux-only",
+              row["state"] == BLOCKED and "Linux-only (linux-x64)" in row["detail"] and pool in row["detail"]
+              and row["action"] is not None)
+        check(f"apply on the {pool} pool writes no workflow",
+              ReadinessWorkflow().repair(no_ctx)["state"] == BLOCKED and not (dno / WORKFLOW_PATH).exists())
+    # An unread probe keeps the installed runner, so a kept non-Linux runner is BLOCKED too.
+    (dsh / WORKFLOW_PATH).write_text(wsh.replace("[self-hosted, Linux, X64, pool-linux-x64]",
+                                                 "[self-hosted, macOS, ARM64, pool-mac]"))
+    unread_ctx = Ctx(dsh, root, "acme/widget", None, 0, probe=False)
+    row = ReadinessWorkflow().repair(unread_ctx)
+    check("a kept macOS runner under an unread probe is BLOCKED, not re-rendered",
+          row["state"] == BLOCKED and "Linux-only" in row["detail"]
+          and "pool-mac" in (dsh / WORKFLOW_PATH).read_text())
 
     # U4 -- a JOB-level permissions block overrides the workflow-level one
     row = mut2(lambda t: t.replace("    runs-on:", "    permissions:\n      contents: write\n    runs-on:", 1))

@@ -124,6 +124,24 @@
       "fill": "route"
     },
     {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "readiness checksum check is Linux-only",
+      "edit": "nen/workflow.json → runners.pools: one [self-hosted, Linux, X64, pool-<id>] pool for readiness (or none, for hosted ubuntu-latest); the rendered check verifies only the linux-x64 Nen binary, so a macOS, Windows or Linux ARM64 pool cannot pass it",
+      "guide": "docs/config/workflow.json.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "edit"
+    },
+    {
+      "id": "^\\.github/workflows/pr-readiness\\.yml$",
+      "states": ["blocked"],
+      "detail": "this repository's nen/contract\\.json pins .* but carries no valid dependency\\.bootstrap",
+      "edit": "nen/contract.json → dependency.bootstrap.scriptSha256 and dependency.bootstrap.sha256[\"linux-x64\"], the reviewed digests for this repository's own dependency.pinned_ref (or drop its pinned_ref to use Hatsu's rendered fallback)",
+      "guide": "docs/config/contract.json.md",
+      "detect": "bash {root}/scripts/tenkai_adopt.sh diagnose --repo {repo}",
+      "fill": "edit"
+    },
+    {
       "id": "^(\\.github/workflows/pr-readiness\\.yml|scripts/release-publish\\.sh|release/row)$",
       "states": ["blocked"],
       "detail": "role",

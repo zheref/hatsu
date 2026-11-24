@@ -74,7 +74,7 @@ const gated: Array<[string, string | readonly string[], string]> = [
   // Automatic selection starts after this trusted runner is adopted by the PR base.
   ['report_time.sh', 'report_time_fixture.sh', 'report-time-guard'],
   // The tenkai engine requires its own --self-test, the rendered readiness checksum Vitest suite, and
-  // the TypeScript readiness-guard Vitest/LCOV fixtures, with the verified nen first on PATH and NEN (#427, #554).
+  // the TypeScript readiness-guard Vitest and node:test fixtures, with the verified nen first on PATH and NEN (#427, #554).
   ['tenkai_adopt.sh', ['tenkai_adopt.sh', 'tenkai_guard_fixture.sh', 'readiness_checksum_fixture.test.mts', 'tenkai_readiness_guard_fixture.test.mts', 'tenkai_readiness_guard_coverage.test.mts'], 'tenkai-guard'],
   // The fix every outstanding Tenkai item names, and the count going down after it (zheref/hatsu#535).
   ['tenkai_fixes.ts', ['tenkai_fixes_fixture.test.mts', 'tenkai_fixes_coverage.test.mts'], 'tenkai-fixes-guard'],

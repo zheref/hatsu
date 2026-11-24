@@ -139,6 +139,8 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
     { id: 'lane/ios/build', state: 'routed', detail: "iteration.checks requires 'build' on lane 'ios', but no command is declared", action: '' },
     { id: 'lane/ios/archive', state: 'routed', detail: 'declared unsupported: PROPOSED SEAT', action: '' },
     { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "Hatsu's dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "the readiness checksum check is Linux-only (linux-x64): this repository's readiness pool [self-hosted, macOS, ARM64, pool-mac] cannot pass it; use a self-hosted Linux X64 pool or hosted ubuntu-latest", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "this repository's nen/contract.json pins v0.30.0 but carries no valid dependency.bootstrap scriptSha256 / sha256[\"linux-x64\"]; the rendered readiness workflow exits before Nen bootstraps", action: '' },
   ];
   for (const item of items) {
     const fix = fixFor(item, rows, context);
@@ -158,6 +160,11 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
   expect(fixFor(items[13], rows, context)).toMatchObject({ fill: 'edit', run: [], detect: "nen schema check --repo '/tmp/a repo'" });
   expect(fixFor(items[14], rows, context)).toMatchObject({ fill: 'route', detect: "bash /opt/hatsu/scripts/tenkai_adopt.sh diagnose --repo '/tmp/a repo'" });
   expect(fixFor(items[14], rows, context).edit).toContain('dependency.bootstrap');
+  // #554 Linux-only ruling: a non-Linux readiness pool and a consumer pin without its own digests name their own edits.
+  expect(fixFor(items[15], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/workflow.json.md' });
+  expect(fixFor(items[15], rows, context).edit).toContain('[self-hosted, Linux, X64, pool-<id>]');
+  expect(fixFor(items[16], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/contract.json.md' });
+  expect(fixFor(items[16], rows, context).edit).toContain('sha256["linux-x64"]');
   // A target-controlled lane name never reaches a command: it falls to the catch-all instead.
   expect(fixFor({ id: 'lane/a\nb/build', state: 'routed', detail: 'no command is declared' }, rows, context).fill).toBe('unmapped');
   expect(fixFor({ id: "lane/x';touch y'/build", state: 'routed', detail: 'no command is declared' }, rows, context).fill).toBe('unmapped');

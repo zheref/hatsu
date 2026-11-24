@@ -126,7 +126,6 @@ export function adoptionRole(text: string | undefined, repository: string | null
 
 const REF_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
-const PLATFORM_PATTERN = /^[a-z0-9-]+$/;
 export const PIN_ABSENT = "Hatsu's dependency.pinned_ref is absent or malformed; the readiness workflow cannot bootstrap Nen";
 export const BOOTSTRAP_ABSENT = "Hatsu's dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen";
 
@@ -150,20 +149,17 @@ export function readPinnedRef(hatsuRoot: string): string | null {
 
 // #554: the rendered workflow verifies the bootstrap script and the linux-x64 binary
 // (the readiness job's only runner platform) against Hatsu's own dependency.bootstrap.
-// Linux-only by the maintainer's ruling of 2026-11-23: no darwin/windows digest is read or awaited.
-export function readBootstrapIntegrity(hatsuRoot: string): BootstrapIntegrity | null {
-  const data = dependency(hatsuRoot)?.bootstrap;
+// Linux-only by the maintainer's ruling of 2026-11-23 (HR-399): only scriptSha256 and the
+// linux-x64 digest are read; other platform keys are neither validated nor awaited here.
+export function readBootstrapIntegrity(root: string): BootstrapIntegrity | null {
+  const data = dependency(root)?.bootstrap;
   if (!data || typeof data !== "object" || Array.isArray(data)) return null;
   const { scriptSha256, sha256: binaries } = data as Record<string, unknown>;
   if (typeof scriptSha256 !== "string" || !SHA256_PATTERN.test(scriptSha256)) return null;
   if (!binaries || typeof binaries !== "object" || Array.isArray(binaries)) return null;
-  const binaryMap = binaries as Record<string, unknown>;
-  if (!Object.hasOwn(binaryMap, "linux-x64")) return null;
-  for (const [key, value] of Object.entries(binaryMap)) {
-    if (key === "$comment") continue;
-    if (!PLATFORM_PATTERN.test(key) || typeof value !== "string" || !SHA256_PATTERN.test(value)) return null;
-  }
-  return { scriptSha256, binarySha256: binaryMap["linux-x64"] as string };
+  const binarySha256 = Object.hasOwn(binaries, "linux-x64") ? (binaries as Record<string, unknown>)["linux-x64"] : undefined;
+  if (typeof binarySha256 !== "string" || !SHA256_PATTERN.test(binarySha256)) return null;
+  return { scriptSha256, binarySha256 };
 }
 
 export function bootstrapPins(hatsuRoot: string): BootstrapPins | null {
@@ -177,6 +173,35 @@ export function pinsBlocked(hatsuRoot: string): ReadinessRow | null {
   if (!readPinnedRef(hatsuRoot)) return row("blocked", PIN_ABSENT, "repair Hatsu's nen/contract.json");
   if (!readBootstrapIntegrity(hatsuRoot)) return row("blocked", BOOTSTRAP_ABSENT, "repair Hatsu's nen/contract.json");
   return null;
+}
+
+// The rendered pin step reads this repository's own trusted nen/contract.json first: a non-empty
+// dependency.pinned_ref there makes it require that same contract's script and linux-x64 digests,
+// with no fallback to Hatsu's. A repository with no pinned_ref keeps the rendered fallback.
+export function consumerPinsBlocked(repo: string): ReadinessRow | null {
+  const ref = dependency(repo)?.pinned_ref;
+  if (typeof ref !== "string" || ref === "" || readBootstrapIntegrity(repo)) return null;
+  const shown = REF_PATTERN.test(ref) ? ref : "a malformed ref";
+  return row("blocked", "this repository's nen/contract.json pins " + shown +
+    ' but carries no valid dependency.bootstrap scriptSha256 / sha256["linux-x64"]; the rendered readiness workflow exits before Nen bootstraps',
+    'add dependency.bootstrap.scriptSha256 and dependency.bootstrap.sha256["linux-x64"] (64 lowercase hex, the reviewed digests for ' +
+    shown + ") to this repository's nen/contract.json, or drop its dependency.pinned_ref");
+}
+
+// The readiness checksum check verifies the linux-x64 binary alone (#554), so the job may
+// run only on hosted ubuntu-latest or a self-hosted Linux X64 pool; anything else fails every PR.
+const LINUX_X64_POOL = /^\[self-hosted, *Linux, *X64, *pool-[A-Za-z0-9][A-Za-z0-9._-]*\]$/;
+export const LINUX_ONLY = "the readiness checksum check is Linux-only (linux-x64)";
+export function readinessRunnerBlocked(runner: string | undefined): ReadinessRow | null {
+  if (runner === "ubuntu-latest" || (runner !== undefined && LINUX_X64_POOL.test(runner))) return null;
+  const shown = runner !== undefined && /^[A-Za-z0-9[\], ._-]{1,200}$/.test(runner) ? runner : "(an unreadable selector)";
+  return row("blocked", LINUX_ONLY + ": this repository's readiness pool " + shown +
+    " cannot pass it; use a self-hosted Linux X64 pool or hosted ubuntu-latest",
+    "declare one [self-hosted, Linux, X64, pool-<id>] pool in nen/workflow.json runners.pools (or pass --runner-labels for it), then re-run diagnose");
+}
+
+function renderedRunner(text: string): string | undefined {
+  return text.match(/^    runs-on: ([^\r\n]+)\r?$/m)?.[1];
 }
 
 export function readReadinessTemplate(hatsuRoot: string): ReadinessTemplate | null {
@@ -362,6 +387,8 @@ export function adoptLegacyRequiredContext(
       return row("staged", diagnostic + "; the existing readiness job runner cannot be preserved while repository visibility is unreadable",
         "re-run apply when visibility is readable or pass the known repository visibility");
     }
+    const linuxOnly = readinessRunnerBlocked(runner ?? renderedRunner(input.rendered));
+    if (linuxOnly) return linuxOnly;
     if (mode !== "apply") return row("drift", diagnostic, "re-render from templates/pr-readiness.yml");
     const rendered = runner ? input.rendered
       .replace(/^    runs-on: [^\n]+$/m, () => "    runs-on: " + runner)
@@ -397,6 +424,8 @@ export function adoptPortableReadiness(
       return pinsBlocked(hatsuRoot) ?? row("blocked", "Hatsu's readiness template or Nen pin changed during adoption",
         "re-run diagnose with the current repository and Hatsu inputs");
     }
+    const consumerPins = consumerPinsBlocked(repo);
+    if (consumerPins) return consumerPins;
     if (input.runnerLabelsRequired) {
       return row("blocked", "the self-hosted runner needs the pool's declared labels",
         "declare one pool in nen/workflow.json or pass --runner-labels");
@@ -478,6 +507,8 @@ export function adoptPortableReadiness(
           "re-run apply when visibility is readable or pass the known repository visibility");
       }
     }
+    const linuxOnly = readinessRunnerBlocked(priorRunner ?? renderedRunner(input.rendered));
+    if (linuxOnly) return linuxOnly;
 
     const rendered = render(input.rendered, base, priorRunner);
     const expected = workflowDigest(rendered);

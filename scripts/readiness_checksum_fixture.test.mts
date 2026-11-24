@@ -23,7 +23,8 @@ for (const kind of ['valid', 'script mismatch', 'binary mismatch', 'missing dige
       if (spawnSync('sh', ['-c', 'command -v sha256sum']).status !== 0) {
         writeFileSync(join(root, 'bin', 'sha256sum'), '#!/bin/sh\nexec shasum -a 256 "$@"\n', { mode: 0o755 });
       }
-      const integrity = { scriptSha256: kind === 'script mismatch' ? '0'.repeat(64) : digest(bootstrap), sha256: { 'darwin-arm64': digest(binary), 'linux-x64': digest(binary), 'windows-x64': digest(binary) } };
+      // Distinct platform digests: a rendering that read any key but linux-x64 would fail the binary check.
+      const integrity = { scriptSha256: kind === 'script mismatch' ? '0'.repeat(64) : digest(bootstrap), sha256: { 'darwin-arm64': digest('darwin ' + binary), 'linux-x64': digest(binary), 'windows-x64': digest('windows ' + binary) } };
       if (kind === 'binary mismatch') for (const key of Object.keys(integrity.sha256)) integrity.sha256[key as keyof typeof integrity.sha256] = '0'.repeat(64);
       if (kind.startsWith('trusted')) {
         mkdirSync(join(root, '.trusted', 'nen'), { recursive: true });
@@ -35,6 +36,7 @@ for (const kind of ['valid', 'script mismatch', 'binary mismatch', 'missing dige
       let result = pin;
       if (pin.status === 0) {
         const output = Object.fromEntries(readFileSync(join(root, 'pin-out'), 'utf8').trim().split('\n').map(line => line.split('=')));
+        if (kind !== 'binary mismatch') expect(output.binary_sha).toBe(digest(binary));
         result = spawnSync('bash', ['-c', script], { cwd: root, encoding: 'utf8', env: { ...env, GITHUB_OUTPUT: join(root, 'out'), PINNED_REF: output.ref!, SCRIPT_SHA256: output.script_sha!, BINARY_SHA256: output.binary_sha! } });
       }
       if ((kind === 'valid' || kind === 'trusted valid')) expect(result.status, result.stderr + result.stdout).toBe(0);

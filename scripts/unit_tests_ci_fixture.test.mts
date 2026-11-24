@@ -145,7 +145,7 @@ try {
     'report-time fixture failure did not fail CI');
 
   // The tenkai engine requires its own --self-test, the readiness checksum Vitest suite, and the
-  // readiness-guard Vitest/LCOV fixtures, with the verified nen first on PATH and NEN (#427, #554).
+  // readiness-guard Vitest and node:test fixtures, with the verified nen first on PATH and NEN (#427, #554).
   writeFileSync(join(repo, 'scripts', 'tenkai_adopt.sh'), '');
   result = run();
   assert(result.status === 2 && result.stderr.includes('tenkai_guard_fixture.sh'),
