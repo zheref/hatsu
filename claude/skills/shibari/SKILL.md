@@ -113,13 +113,13 @@ nen spec coverage --issue-body <abs issue.md> --pr-body <abs path> [--test-repor
 "$hatsu_root/scripts/pr_development_link_check.sh" --body <abs path> --target <owner/name>
 nen changelog fragment-required --repo <path> --spec-paths <specPaths> --fragment-dir <fragmentDir> \
   --head-changelog <headChangelog> --files-from <abs list> [--body-from <abs path>]
-nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> \
-  [--head <branch>] [--dry-run] [--json]  # title-file: the one commit's subject
+nen pr open --target <owner/name> --base <branch.base> --title-file <abs> --body-file <abs> [--head <branch>] [--dry-run] [--json]
 nen pr edit-body --target <owner/name> --pr <n> --body-file <abs path> [--dry-run] [--json]
 "$hatsu_root/scripts/pr_development_link_check.sh" --pr <owner/name#n> --base <branch.base>
 nen pr converge --target <owner/name> --pr <n> --catalogue "$hatsu_root/contracts/issue-sections.json" --json  # HR-11
 ```
 
+- The title file holds the one commit's subject.
 - **HEAD must equal `origin/<branch>`**; else stop and name which is ahead. `pr open` exits `2` for
   an unpushed head, `0` adopting this head's open PR, else `1`; open once, never as draft
   (ROSTER, 2026-10-04).

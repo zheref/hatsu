@@ -234,14 +234,12 @@ comment`, each `--close-comment-map` text, the `nen issue edit-body` file) passe
 [`/file`](../file/SKILL.md) § 5's own discipline exactly:
 
 ```bash
-nen issue file --target <owner/name> --repo <path to a checkout carrying nen/labels.json — or schemas/labels.json under the fallback nen keeps until v0.4.0> \
-  --title "<title>" --body-file <path> --private-names-ignore-file <file § 4's ignore file> \
-  --label <severity>,<lane-union>,<kind> --assignee <human> \
-  --forbid-family <the target repo's stage-label family>
+nen issue file --target <owner/name> --repo <checkout> --title "<title>" --body-file <path> --private-names-ignore-file <ignore-file> --label <severity>,<lane-union>,<kind> --assignee <human> --forbid-family <stage-label-family>
 ```
 
-(`--repo` names the checkout whose `nen/labels.json`
-validates the labels; `--body-file` resolves against `--repo`'s root from nen `0.20`, so pass an absolute path.)
+Use § 4's ignore file and the target's stage-label family. The checkout's `nen/labels.json` or the
+supported `schemas/labels.json` fallback validates the labels. Pass an absolute body path because
+`--body-file` resolves against `--repo`'s root from Nen `0.20`.
 
 Body carries: the merged problem statement; every member's acceptance criteria, attributed; the
 shape (one PR, or a chore with its legs); the convergence rationale (§ 3's signal, quoted); and the

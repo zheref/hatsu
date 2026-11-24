@@ -115,23 +115,24 @@ rulings PR first where any ruling was recorded, then `done`, no issue filed.
 
 ## 7. The port issue — file §§ 3–5 by name
 
-[`file`](../file/SKILL.md) § 3's searches, § 4's redaction and plan, § 5's labels, `classify`,
-`direct`. **An open port issue for the source is amended** (§ 3(a); § 2 read the rest).
-**The typed call is the G1** under file § 4's composite clause (HA#355), the plan still shown. Visibility re-read before the write (*conventions*).
+Follow [`file`](../file/SKILL.md) §§ 3–5 for searches, redaction, plan and labels, then `classify`
+and `direct`. Amend an open port issue for the source (§ 3(a), with § 2's reads).
+The typed call supplies G1 under File § 4 (HA#355). Show the plan and re-read visibility before writing.
 
-- **Title**: *conventions*' port-issue title, data: a newline refused, every `'` typed `'\''`, the escaped
-  argument shown in the plan (zheref/nen#444). **Body**: *conventions*' port issue body (a link alone
-  refused), the brief, the SEC-15 line, the source PR a **cross-reference**, never a Development link.
-- **Labels**: file § 5's, plus `job/parity`, `job/implementation`, the target's `lang/<key>`, kind
-  `enhancement`; `direct`'s `model/<line>` under the target's `direct.publish`; the criteria and routing comments
-  under their keys (file § 5).
+- **Title**: use *conventions*' port title. Refuse newlines, escape each `'` as `'\''`, and show the
+  escaped argument in the plan (zheref/nen#444).
+- **Body**: use *conventions*' body with the brief and SEC-15 line. Refuse a bare link. Cite the
+  source PR only as a cross-reference.
+- **Labels**: File § 5's, plus `job/parity`, `job/implementation`, the target's `lang/<key>` and kind
+  `enhancement`. Apply `model/<line>` under `direct.publish`. Post criteria and routing under their File § 5 keys.
 
 ```bash
-"$hatsu_root/scripts/gh_token_env.sh" nen issue file --target <owner/name> --repo <target checkout> --title '<escaped title>' --body-file <absolute brief.md> --label <a,b,…> --assignee <user> --private-names-ignore-file <file § 4's ignore file> --json
+<installed-wrapper> -- nen issue file --target <owner/name> --repo <target checkout> --title '<escaped title>' --body-file <absolute brief.md> --label <a,b,…> --assignee <user> --private-names-ignore-file <ignore-file> --json
 gh issue view <n> --repo <owner/name> --json title,body,labels
 ```
 
-The read-back is **explicit**, quoted; an amend quotes its comment.
+Use the verified absolute `gh_token_env.sh` and File § 4's ignore file. Run and quote the read-back
+separately. For an amend, quote its comment.
 
 ## 8. Build, then the rulings PR
 
