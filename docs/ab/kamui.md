@@ -230,3 +230,43 @@ HA-PR-#463 (`nen pr open` → `existing`, `docs/ab/mukai.md`, 2026-10-23). The l
 (`node scripts/resume_proof.mts`) covers ren, build and the futon manifest only. Owed: either `kamui` wraps its
 steps in `nen phase begin|end --effort <branch>` and joins the proof, or a ruling that its GitHub state is its
 resume record.
+
+## Dated verification, 2026-11-23 — crash-and-resume (zheref/hatsu#444)
+
+**`kamui` joins the proof** ([HR-397](../ROSTER.md#hr-397), which settles the 2026-10-23 finding above). kamui § 6
+records one phase ledger entry per top-level step, keyed by the run id: `setup` (§ 2) · `spec` (§ 3) · `wait` (§ 4) · `siblings` (§ 5) · `start` (§ 7) · `ending` (§ 8). The proof's row uses the
+run id `kamui-fi-is-7-20261123`, the shape ports.md § *The run record* states.
+
+Run: 2026-11-23, host `darwin` (arm64), nen `0.30.0` on PATH, base `df53f76be`, in the effort
+`opus/kurapika/ha444-resume-kamui-hiraishin`. Command, reproducible: `nen shu test --repo <hatsu> --lane resume-proof`
+(`node scripts/resume_proof.mts`), which printed `resume-proof: 76/76 converged` at exit `0`. Each case runs in a
+throwaway `git init` repository; nothing touched a primary checkout or GitHub. The method is `docs/ab/ren.md`
+§ *Dated verification, 2026-10-23*: recorded once uninterrupted, then killed after each `nen phase end` and
+after each `nen phase begin`, re-invoked under ren § 2a's rule, compared with the clock elided; a finished
+ledger re-invoked is byte-identical; a phase ended non-zero is refused by name, the ledger bytes unchanged.
+
+```text
+converged kamui                finished, re-invoked                 ledger bytes unchanged; 6 skipped
+converged kamui                killed after-end setup               1 skipped, spec begun
+converged kamui                killed mid-phase setup               0 skipped, setup resumed
+converged kamui                killed after-end spec                2 skipped, wait begun
+converged kamui                killed mid-phase spec                1 skipped, spec resumed
+converged kamui                killed after-end wait                3 skipped, siblings begun
+converged kamui                killed mid-phase wait                2 skipped, wait resumed
+converged kamui                killed after-end siblings            4 skipped, start begun
+converged kamui                killed mid-phase siblings            3 skipped, siblings resumed
+converged kamui                killed after-end start               5 skipped, ending begun
+converged kamui                killed mid-phase start               4 skipped, start resumed
+converged kamui                killed after-end ending              6 skipped, nothing left to run
+converged kamui                killed mid-phase ending              5 skipped, ending resumed
+converged kamui                killed after failed setup            0 skipped, setup refused by name, ledger bytes unchanged
+converged kamui                killed after failed spec             1 skipped, spec refused by name, ledger bytes unchanged
+converged kamui                killed after failed wait             2 skipped, wait refused by name, ledger bytes unchanged
+converged kamui                killed after failed siblings         3 skipped, siblings refused by name, ledger bytes unchanged
+converged kamui                killed after failed start            4 skipped, start refused by name, ledger bytes unchanged
+converged kamui                killed after failed ending           5 skipped, ending refused by name, ledger bytes unchanged
+```
+
+**Not proved here.** A live session killed mid-run and re-invoked: the proof drives the ledger verbs the
+resume rule reads, not a running model following it. The publishing steps keep their own reads (the
+search before a filing, `nen pr open` → `existing`), proved live in `docs/ab/mukai.md` (2026-10-23).

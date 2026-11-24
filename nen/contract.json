@@ -407,7 +407,7 @@
       "resume-proof": {
         "stack": "claude-code-plugin",
         "cwd": ".",
-        "$comment": "The crash-and-resume proof's ledger half (zheref/hatsu#444): scripts/resume_proof.mts drives ren's and build's phase ledgers and the futon run manifest through an interruption after every phase begin and end, re-invokes under WORKFLOW's resume rule, and asserts convergence with the uninterrupted run (one entry per phase, one resumedAt on the interrupted one, a finished ledger byte-identical on re-invocation). It runs against the nen on PATH; it is a proof, not a general suite."
+        "$comment": "The crash-and-resume proof's ledger half (zheref/hatsu#444): scripts/resume_proof.mts drives the phase ledgers of ren, build, kamui and hiraishin and the futon run manifest through an interruption after every phase begin and end, re-invokes under WORKFLOW's resume rule, and asserts convergence with the uninterrupted run (one entry per phase, one resumedAt on the interrupted one, a finished ledger byte-identical on re-invocation); a resumed session records its own usage entry beside the first, unchanged (HR-398). It runs against the nen on PATH; it is a proof, not a general suite."
       },
       "marketplace-snapshot-guard": {
         "stack": "claude-code-plugin",

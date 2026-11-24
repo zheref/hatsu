@@ -51,6 +51,25 @@ The run id's pattern, outside the table so its alternation reads as written (`gr
 
 **Modes and retention.** `hatsu/ports/` is created `0700` and every record and the checkouts file are written `0600` (they hold private repository slugs, local paths and object ids, never a token); a record is never removed by a port run — `hatsu:cleanup` offers `done`/`declined` records older than 30 days as proposed rows, naming each. A slug that is exactly `.` or `..` is refused with the pattern. No `fixture-owner/` slug (`PUBLIC-REDACTION.md`'s legend) ever reaches a networked command: the fixtures are offline inputs to `nen parse`, `nen schema check` and `config_values.sh` only.
 
+## The phase ledger — one entry per step, the resume read first
+
+**Both skills record one phase ledger entry per top-level step of their protocol** ([HR-397](../ROSTER.md#hr-397); [WORKFLOW](../WORKFLOW.md) § *The effort's ledgers* owns the mechanism), each naming its own vocabulary (kamui § 6, hiraishin § 3). The key is the **run id**, a port run having no branch of its own; each build, and the spec PR's `ren`, keep their own branch's ledger. **A `--dry-run` writes no entry.**
+
+```bash
+nen phase begin --effort <run-id> --phase <step> --surface <s> [--model <reported-model>] --dial <level>
+nen phase end   --effort <run-id> --phase <step> --exit <code>
+```
+
+| Case | What the skill does |
+|---|---|
+| A stop ends the session with its step still owed (`next` `setup` or `wait`) | that phase stays **open**, so the resume continues it |
+| The spec PR reads `CLOSED` (*spec declined*) | the step holding the wait ends at exit `1` |
+| **`resume <run-id>`**, after the checks of § *The run record* | `nen phase show --effort <run-id> --json` before any write, then per phase in order [`ren`](../../claude/skills/ren/SKILL.md) § 2a's rule: ended at exit `0` → **skipped and named**; open → `nen phase begin --resume`; ended non-zero → `refused <phase>: ended at exit <n>`, nothing written |
+| The ledger and the step recomputed from live state disagree | live state leads, said |
+| A resume from a checkout holding no ledger (the ledger is the invoking checkout's, WORKFLOW's *where each record lives*) | the recomputed step alone, said |
+
+The proof is lane `resume-proof` (`scripts/resume_proof.mts`), recorded in [`docs/ab/kamui.md`](../ab/kamui.md) and [`docs/ab/hiraishin.md`](../ab/hiraishin.md).
+
 ## Shared conventions — stated once, cited by both skills
 
 | Convention | Rule |

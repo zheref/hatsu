@@ -66,6 +66,13 @@ of them lives* once the lattice is the map.
   reason, and § 8 already names it as a *Never*. A futon chain that lists one **after** getsuga runs
   it as its own later step on the advance go (mugetsu § 3), once this skill has cut the tag.
 
+**Its resume record is its GitHub state** ([HR-397](../../../docs/ROSTER.md#hr-397)): getsuga keeps no
+phase ledger. Re-invoked with the same line, it reads what it already published before any write: the tag
+(`git ls-remote --tags origin <vX.Y.Z>`) and the release-proposal PR for that version, open or merged. An
+open proposal is continued at § 3a, never opened a second time; a merged one goes to § 4; a tag already on
+origin is § 2's *Tag does not already exist* row, the cut named as done and never re-cut, § 7 the only step
+left. So nothing publishes twice (`docs/ab/getsuga.md`).
+
 ---
 
 ## 1. Invocation

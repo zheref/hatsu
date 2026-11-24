@@ -298,3 +298,43 @@ HA-PR-#463 (`nen pr open` → `existing`, `docs/ab/mukai.md`, 2026-10-23). The l
 (`node scripts/resume_proof.mts`) covers ren, build and the futon manifest only. Owed: either `hiraishin` wraps its
 steps in `nen phase begin|end --effort <branch>` and joins the proof, or a ruling that its GitHub state is its
 resume record.
+
+## Dated verification, 2026-11-23 — crash-and-resume (zheref/hatsu#444)
+
+**`hiraishin` joins the proof** ([HR-397](../ROSTER.md#hr-397), which settles the 2026-10-23 finding above). hiraishin § 3
+records one phase ledger entry per top-level step, keyed by the run id: `precondition` (§ 2) · `spec` (§ 4, kamui §§ 2–4 inside it) · `brief` (§ 5) · `drift` (§ 6) · `issue` (§ 7) · `build` (§ 8). The proof's row uses the
+run id `hiraishin-fi-pr-42-20261123`, the shape ports.md § *The run record* states.
+
+Run: 2026-11-23, host `darwin` (arm64), nen `0.30.0` on PATH, base `df53f76be`, in the effort
+`opus/kurapika/ha444-resume-kamui-hiraishin`. Command, reproducible: `nen shu test --repo <hatsu> --lane resume-proof`
+(`node scripts/resume_proof.mts`), which printed `resume-proof: 76/76 converged` at exit `0`. Each case runs in a
+throwaway `git init` repository; nothing touched a primary checkout or GitHub. The method is `docs/ab/ren.md`
+§ *Dated verification, 2026-10-23*: recorded once uninterrupted, then killed after each `nen phase end` and
+after each `nen phase begin`, re-invoked under ren § 2a's rule, compared with the clock elided; a finished
+ledger re-invoked is byte-identical; a phase ended non-zero is refused by name, the ledger bytes unchanged.
+
+```text
+converged hiraishin            finished, re-invoked                 ledger bytes unchanged; 6 skipped
+converged hiraishin            killed after-end precondition        1 skipped, spec begun
+converged hiraishin            killed mid-phase precondition        0 skipped, precondition resumed
+converged hiraishin            killed after-end spec                2 skipped, brief begun
+converged hiraishin            killed mid-phase spec                1 skipped, spec resumed
+converged hiraishin            killed after-end brief               3 skipped, drift begun
+converged hiraishin            killed mid-phase brief               2 skipped, brief resumed
+converged hiraishin            killed after-end drift               4 skipped, issue begun
+converged hiraishin            killed mid-phase drift               3 skipped, drift resumed
+converged hiraishin            killed after-end issue               5 skipped, build begun
+converged hiraishin            killed mid-phase issue               4 skipped, issue resumed
+converged hiraishin            killed after-end build               6 skipped, nothing left to run
+converged hiraishin            killed mid-phase build               5 skipped, build resumed
+converged hiraishin            killed after failed precondition     0 skipped, precondition refused by name, ledger bytes unchanged
+converged hiraishin            killed after failed spec             1 skipped, spec refused by name, ledger bytes unchanged
+converged hiraishin            killed after failed brief            2 skipped, brief refused by name, ledger bytes unchanged
+converged hiraishin            killed after failed drift            3 skipped, drift refused by name, ledger bytes unchanged
+converged hiraishin            killed after failed issue            4 skipped, issue refused by name, ledger bytes unchanged
+converged hiraishin            killed after failed build            5 skipped, build refused by name, ledger bytes unchanged
+```
+
+**Not proved here.** A live session killed mid-run and re-invoked: the proof drives the ledger verbs the
+resume rule reads, not a running model following it. The publishing steps keep their own reads (the
+search before a filing, `nen pr open` → `existing`), proved live in `docs/ab/mukai.md` (2026-10-23).

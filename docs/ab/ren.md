@@ -281,3 +281,18 @@ local ledger that extends the slice as ahead, not disagreeing.
 **Not proved here.** A live session killed mid-composite and re-invoked: the proof drives the ledger verbs
 the composite's resume rule reads, not a running model following the rule. The live publish half is in
 `docs/ab/mukai.md` and `docs/ab/ren.md` (2026-10-23, HA-PR-#463).
+
+## Dated verification, 2026-11-23 — a resumed session's own usage entry (zheref/hatsu#444)
+
+[HR-398](../ROSTER.md#hr-398): a resumed session records its own usage entry and the usage ledger is never
+compared with an uninterrupted run's; only the steps and the published objects are. Run: 2026-11-23, host
+`darwin` (arm64), nen `0.30.0`, `nen shu test --repo <hatsu> --lane resume-proof`, `resume-proof: 76/76
+converged` at exit `0`. The case: the uninterrupted run records one entry inside `spiritual-message` (§ 2a's
+step 5); the interrupted run dies after that entry and before the step's `nen phase end`, and the restarted
+session resumes the open step (`nen phase begin --resume`) and records its own entry with `--note "resumed
+session"`. Asserted: one entry uninterrupted; two resumed, the first unchanged and the second marked; the phase
+projection equal to the uninterrupted run's.
+
+```text
+converged ren                  a resumed session's own usage        uninterrupted 1 entry; resumed 2, the first unchanged, the second marked; projection equal
+```

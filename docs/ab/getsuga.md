@@ -899,3 +899,28 @@ HA-PR-#463 (`nen pr open` → `existing`, `docs/ab/mukai.md`, 2026-10-23). The l
 (`node scripts/resume_proof.mts`) covers ren, build and the futon manifest only. Owed: either `getsuga` wraps its
 steps in `nen phase begin|end --effort <branch>` and joins the proof, or a ruling that its GitHub state is its
 resume record.
+
+## Dated verification, 2026-11-23 — crash-and-resume (zheref/hatsu#444)
+
+**Settled by ruling, not by a ledger** ([HR-397](../ROSTER.md#hr-397), which settles the 2026-10-23 finding
+above). getsuga keeps no phase ledger and has no row in `scripts/resume_proof.mts`: its resume record is its
+GitHub state, read before any write (getsuga § *Composition*). Re-invoked with the same line, it reads the
+tag and the release-proposal PR for the version; an open proposal is continued at § 3a, never opened twice;
+a merged one goes to § 4; a tag already on origin is § 2's *Tag does not already exist* row, the cut named as
+done and never re-cut. The two reads, live and read-only on 2026-11-23 against `zheref/hatsu`:
+
+```text
+$ git ls-remote --tags origin 'v0.168.0*'
+506f268da9938945dcb16b7e7f71b4f6ff21ec87	refs/tags/v0.168.0
+2b62f77b3c0feb81c4b0590c3002bb1cb089f0c7	refs/tags/v0.168.0^{}
+$ gh pr list --repo zheref/hatsu --state all --search 'v0.168.0 in:title' --json number,state,title
+[{"number":612,"state":"MERGED","title":"chore(release): propose v0.168.0"}]
+$ git ls-remote --tags origin v0.175.12 | wc -l
+       0
+$ gh pr list --repo zheref/hatsu --state all --search 'v0.175.12 in:title' --json number,state,title
+[]
+```
+
+A resumed `v0.168.0` run reads the cut as done and § 7 as the only step left; a `v0.175.12` run reads nothing
+published and starts at § 2. **Not proved here**: a live getsuga session killed between § 3a's merge and § 4's
+cut and re-invoked; `nen tag cut`'s own refusal of an existing name is § 2.5 above.

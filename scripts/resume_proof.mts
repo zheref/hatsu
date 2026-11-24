@@ -18,7 +18,10 @@
 //   * a phase that ended non-zero is refused by name on resume, never begun a second time (one entry).
 // The futon run manifest (futon and kazaana, which composes it) is proved the same way: a re-`start`
 // with the same idle answers is `existing`, a re-`park` is `unchanged`, and the manifest's bytes do not
-// move. Instants are the only thing two runs cannot share, so they are the only thing elided. That case
+// move. A resumed session's spend is proved apart (HR-398): the session killed after its usage entry and
+// before the reporting phase's end records an entry of its own on resume, the first one unchanged, while
+// the phase projection still equals the uninterrupted run's — the usage ledger is never compared with an
+// uninterrupted run's, only the steps are. Instants are the only thing two runs cannot share, so they are the only thing elided. That case
 // reads the verb's `--json` ANSWER rather than its prose — `outcome` and `path` as fields — and how it
 // reads it is proved too, on a payload: every other key is ignored, and an answer missing a field is
 // refused by name with a bounded, path-free excerpt instead of read as a path that is then missing
@@ -26,8 +29,9 @@
 //
 // WHAT IT DOES NOT PROVE. The publishing steps (a PR, a comment, a label) need GitHub: they are proved
 // live in the docs/ab sections against a real pull request (`nen pr open` → `existing`, `nen pr ledger
-// post` → `unchanged`). A composite that writes no ledger of its own (getsuga, kamui, hiraishin) has
-// nothing here to resume from; its section records that as the finding it is.
+// post` → `unchanged`). getsuga keeps no ledger: its resume record is its GitHub state, the tag and the
+// release-proposal PR, read before any write (HR-397), so it has no row here and its docs/ab section
+// records what it reads.
 //
 // exit 0  every case converged · exit 1  a case diverged, each named · exit 2  wiring (no nen, a bad
 // flag, no writable temp root)
@@ -51,10 +55,17 @@ for (let i = 0; i < args.length; i++) {
 
 // The phase vocabulary each composite records, read from its own skill: ren § 2a (one entry per step of
 // § 2's table), build § 4 (its four phases; mukai runs inside build's `pr` phase and records none of its
-// own). A composite not listed here writes no phase ledger (the docs/ab sections say which).
-const COMPOSITES: Record<string, { source: string; phases: string[] }> = {
-  ren: { source: 'claude/skills/ren/SKILL.md § 2a', phases: ['breath', 'rasengan', 'kokusen', 'amaterasu', 'spiritual-message', 'jutaisho'] },
-  build: { source: 'claude/skills/build/SKILL.md § 4', phases: ['author', 'publish', 'pr', 'readiness'] },
+// own), kamui § 6 and hiraishin § 3 (one entry per top-level step, HR-397; kamui's §§ 2–4 run inside
+// hiraishin's `spec` and record none of their own). The effort is the key each skill names: the branch
+// for ren and build (WORKFLOW § The effort's ledgers), the run id for a port run, which has no branch
+// (docs/config/ports.md § The run record's pattern). A composite not listed here writes no phase ledger
+// (the docs/ab sections say which).
+const BRANCH = 'opus/kurapika/resume-proof';
+const COMPOSITES: Record<string, { source: string; effort: string; phases: string[] }> = {
+  ren: { source: 'claude/skills/ren/SKILL.md § 2a', effort: BRANCH, phases: ['breath', 'rasengan', 'kokusen', 'amaterasu', 'spiritual-message', 'jutaisho'] },
+  build: { source: 'claude/skills/build/SKILL.md § 4', effort: BRANCH, phases: ['author', 'publish', 'pr', 'readiness'] },
+  kamui: { source: 'claude/skills/kamui/SKILL.md § 6', effort: 'kamui-fi-is-7-20261123', phases: ['setup', 'spec', 'wait', 'siblings', 'start', 'ending'] },
+  hiraishin: { source: 'claude/skills/hiraishin/SKILL.md § 3', effort: 'hiraishin-fi-pr-42-20261123', phases: ['precondition', 'spec', 'brief', 'drift', 'issue', 'build'] },
 };
 
 function call(repo: string, argv: string[]): { status: number; out: string; stdout: string } {
@@ -121,8 +132,8 @@ function freshRepo(): string {
   if (init.status !== 0) { console.error('resume-proof: git init failed'); process.exit(2); }
   return repo;
 }
-// Hatsu keys the phase ledger by the branch (WORKFLOW § The effort's ledgers).
-const EFFORT = 'opus/kurapika/resume-proof';
+// The effort in play: each composite's own key (COMPOSITES above), set before its cases run.
+let EFFORT = BRANCH;
 function show(repo: string): Ledger {
   return JSON.parse(must(repo, ['phase', 'show', '--effort', EFFORT, '--repo', repo, '--json'])) as Ledger;
 }
@@ -136,8 +147,9 @@ function project(ledger: Ledger): string {
 const begin = (repo: string, phase: string, resume = false): string[] => ['phase', 'begin', '--effort', EFFORT, '--phase', phase, ...(resume ? ['--resume'] : []), '--surface', 'claude-code', '--dial', 'medium', '--repo', repo];
 const end = (repo: string, phase: string): string[] => ['phase', 'end', '--effort', EFFORT, '--phase', phase, '--exit', '0', '--repo', repo];
 
-// The resume rule, as a composite re-invoked with the same line applies it.
-function resume(repo: string, phases: string[]): string[] {
+// The resume rule, as a composite re-invoked with the same line applies it. `during` is what the
+// restarted session does inside a phase it runs (the usage case records its own entry there).
+function resume(repo: string, phases: string[], during?: (phase: string) => void): string[] {
   const said: string[] = [];
   // Read once, as the composite does at its entry; what it then writes is its own.
   const recorded = (() => { try { return show(repo).phases; } catch { return []; } })();
@@ -151,13 +163,15 @@ function resume(repo: string, phases: string[]): string[] {
     if (!open && failed !== undefined) { said.push(`refused ${phase}: ended at exit ${failed.exitCode}`); return said; }
     must(repo, begin(repo, phase, open));
     said.push(open ? `resumed ${phase}` : `began ${phase}`);
+    during?.(phase);
     must(repo, end(repo, phase));
   }
   return said;
 }
 
 const results: Array<{ composite: string; case: string; verdict: 'converged' | 'diverged'; detail: string }> = [];
-for (const [name, { phases }] of Object.entries(COMPOSITES)) {
+for (const [name, { effort, phases }] of Object.entries(COMPOSITES)) {
+  EFFORT = effort;
   const clean = freshRepo();
   for (const phase of phases) { must(clean, begin(clean, phase)); must(clean, end(clean, phase)); }
   const reference = project(show(clean));
@@ -195,7 +209,8 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
 }
 
 // A phase that ended non-zero: the resume refuses by name and the ledger does not move (one entry).
-for (const [name, { phases }] of Object.entries(COMPOSITES)) {
+for (const [name, { effort, phases }] of Object.entries(COMPOSITES)) {
+  EFFORT = effort;
   for (let k = 0; k < phases.length; k++) {
     const repo = freshRepo();
     let ok = true; let detail = '';
@@ -215,8 +230,53 @@ for (const [name, { phases }] of Object.entries(COMPOSITES)) {
   }
 }
 
+// A resumed session's spend is an entry of its own (HR-398). ren records usage at its reporting step
+// (§ 2a, step 5); the uninterrupted run leaves one entry. The interrupted run dies after that entry and
+// before the step's end; the restarted session resumes the open step and records its own entry, marked
+// `--note "resumed session"`. The first entry must be unchanged, the second the restarted session's, and
+// the phase projection equal to the uninterrupted run's: the steps are compared, the spend is not.
+type UsageEntry = { note: string | null; source: string | null };
+type UsageLedger = { entries: UsageEntry[] };
+{
+  EFFORT = COMPOSITES.ren!.effort;
+  const phases = COMPOSITES.ren!.phases;
+  const reporting = 'spiritual-message';
+  const usage = (repo: string, resumed: boolean): string[] => ['usage', 'record', '--effort', EFFORT, '--surface', 'claude-code', '--dial', 'medium', '--input', resumed ? '50' : '100', '--output', resumed ? '5' : '10', '--source', 'resume-proof: the reporting step', ...(resumed ? ['--note', 'resumed session'] : []), '--repo', repo];
+  const ledger = (repo: string): UsageLedger => JSON.parse(must(repo, ['usage', 'show', '--effort', EFFORT, '--repo', repo, '--json'])) as UsageLedger;
+  let ok = true; let detail = '';
+  const clean = freshRepo();
+  const repo = freshRepo();
+  try {
+    for (const phase of phases) { must(clean, begin(clean, phase)); if (phase === reporting) must(clean, usage(clean, false)); must(clean, end(clean, phase)); }
+    const reference = project(show(clean));
+    const uninterrupted = ledger(clean).entries;
+    for (const phase of phases.slice(0, phases.indexOf(reporting))) { must(repo, begin(repo, phase)); must(repo, end(repo, phase)); }
+    must(repo, begin(repo, reporting));
+    must(repo, usage(repo, false));
+    const first = JSON.stringify(ledger(repo).entries[0]);
+    // ← the session dies here, after its usage entry and before the step's end; the same line again.
+    const said = resume(repo, phases, (phase) => { if (phase === reporting) must(repo, usage(repo, true)); });
+    const entries = ledger(repo).entries;
+    const checks: Array<[string, boolean]> = [
+      ['the uninterrupted run left one entry', uninterrupted.length === 1],
+      [`${reporting} was resumed`, said.includes(`resumed ${reporting}`)],
+      ['the resumed run left two entries', entries.length === 2],
+      ['the first entry unchanged', JSON.stringify(entries[0]) === first],
+      ['the second marked resumed session', entries[1]?.note === 'resumed session' && entries[0]?.note === null],
+      ['the phase projection equals the uninterrupted run', project(show(repo)) === reference],
+    ];
+    const failed = checks.find((check) => !check[1]);
+    ok = failed === undefined;
+    detail = failed ? `${failed[0]} is FALSE (${entries.length} entries; ${said.join('; ')})` : 'uninterrupted 1 entry; resumed 2, the first unchanged, the second marked; projection equal';
+  } catch (error) { ok = false; detail = (error as Error).message; }
+  results.push({ composite: 'ren', case: 'a resumed session\'s own usage', verdict: ok ? 'converged' : 'diverged', detail });
+  rmSync(clean, { recursive: true, force: true });
+  rmSync(repo, { recursive: true, force: true });
+}
+
 // begin --resume while another phase is open: refused, exit 2.
 {
+  EFFORT = BRANCH;
   const repo = freshRepo();
   must(repo, begin(repo, 'author'));
   const refused = call(repo, begin(repo, 'publish', true));
