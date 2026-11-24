@@ -93,7 +93,7 @@ export function runDatedEvidenceFixture(): void {
   const data = realpathSync(mkdtempSync(join(tmpdir(), 'hatsu-direct-evidence-')));
   const paths = ['contracts/direct.registry.json', 'contracts/classify.taxonomy.json', 'nen/workflow.json', 'docs/DIRECT-MATRIX.md'];
   const originals = new Map(paths.map(p => [p, readFileSync(join(root, p))]));
-  type FixtureRegistry = { snapshot: { evidenceVersion?: unknown; aliases: Record<string, { listPrice: Record<string, unknown>; served: Record<string, unknown>; evidence?: string }>;
+  type FixtureRegistry = { snapshot: { evidenceVersion?: unknown; aliases: Record<string, { primary?: string; listPrice: Record<string, unknown>; served: Record<string, unknown>; evidence?: string }>;
     sources: Record<string, { costPerTask: Record<string, unknown> }> }; picks: { inPool: Record<string, string> }; routing: unknown;
     aliases: Record<string, Record<string, unknown>> };
   const activation = JSON.parse(readFileSync(join(scripts, 'fixtures/direct-evidence.activation.json'), 'utf8')) as FixtureRegistry;
@@ -148,9 +148,17 @@ export function runDatedEvidenceFixture(): void {
       assert.ok(!existsSync(marker), `documented entry must block inherited preloads with evidenceVersion ${version}`);
     }
     reset(false);
+    assert.equal(createMatrix(data).evidenceEnabled, true, 'the committed registry activates dated evidence');
+    edit(d => {
+      delete d.snapshot.evidenceVersion;
+      d.snapshot.aliases.MECHANICAL_EDITOR.served = activation.snapshot.aliases.MECHANICAL_EDITOR.served;
+    });
     const inactive = createMatrix(data, { today: '2026-10-27' });
     assert.equal(inactive.evidenceEnabled, false, 'absent evidenceVersion defaults to legacy behavior');
-    assert.equal(inactive.render().page, originals.get('docs/DIRECT-MATRIX.md')!.toString(), 'bootstrap preserves the live page byte for byte');
+    const legacyPage = inactive.render().page;
+    assert.match(legacyPage, /^\| Alias \| Surface \| Served id \|$/m, 'legacy matrix keeps its served table');
+    assert.match(legacyPage, /composer-2\.5 \(cursor-agent models/, 'legacy served text remains readable');
+    assert.doesNotMatch(legacyPage, /Cost per task \(dated benchmark observations/, 'legacy matrix keeps its original price format');
     assert.throws(() => inactive.verdictEvidence('VISUAL_MAX', null, 'VISUAL_MAX', 'max'), /not activated/);
     const inactiveCli = spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), 'evidence', data, '--repo', data,
       '--primary', 'VISUAL_ORCHESTRATOR', '--fallback', 'SEMANTIC_FRONTIER', '--recommended', 'VISUAL_MAX', '--effort', 'max'], { encoding: 'utf8' });
@@ -160,9 +168,15 @@ export function runDatedEvidenceFixture(): void {
     edit(d => { d.snapshot.evidenceVersion = 0; });
     const explicitLegacy = createMatrix(data, { today: '2026-10-27' });
     assert.equal(explicitLegacy.evidenceEnabled, false, 'explicit evidenceVersion 0 keeps legacy behavior');
-    assert.equal(explicitLegacy.render().page, originals.get('docs/DIRECT-MATRIX.md')!.toString(), 'explicit legacy mode preserves the live page byte for byte');
+    assert.equal(explicitLegacy.render().page, legacyPage, 'explicit zero matches the default legacy format');
     assertDocumentedEntrySanitized(0);
     reset();
+    const solPriceNote = 'The 2026-10-05 Codex lookup served GPT-5.6 Sol, listed at $4 / $20 in that dated price snapshot';
+    edit(d => {
+      const solSnapshot = d.snapshot.aliases.EXECUTION_FRONTIER;
+      solSnapshot.primary = 'GPT-6.1 Sol';
+      solSnapshot.listPrice.note = solPriceNote;
+    });
     const current = createMatrix(data, { today: '2026-10-27' });
     assert.equal(current.evidenceEnabled, true, 'explicit evidenceVersion 1 enables dated evidence');
     assert.deepEqual(current.priceFindings(), []);
@@ -202,7 +216,10 @@ export function runDatedEvidenceFixture(): void {
     assert.throws(() => current.verdictEvidence('VISUAL_MAX', null, 'VISUAL_MAX', 'ultra'), /unknown level/);
     assert.deepEqual(createMatrix(data, { today: '2026-11-30' }).priceFindings(), [], 'until includes its own date');
     assert.match(createMatrix(data, { today: '2026-12-01' }).priceFindings().join('\n'), /VISUAL_MAX.*2026-11-30/);
-    assert.equal(createMatrix(data, { today: '2027-01-01' }).priceFindings().length, 2, 'both dated price steps eventually expire');
+    assert.equal(createMatrix(data, { today: '2026-12-31' }).priceFindings().length, 1, 'Flash includes its own until date');
+    const afterFlash = createMatrix(data, { today: '2027-01-01' }).priceFindings();
+    assert.equal(afterFlash.length, 2, 'both dated price steps eventually expire');
+    assert.match(afterFlash.join('\n'), /VISUAL_FALLBACK.*2026-12-31/);
     const rejects: Array<[string, (d: FixtureRegistry) => void, RegExp]> = [
       ['unknown evidence version', d => { d.snapshot.evidenceVersion = 2; }, /snapshot.evidenceVersion/],
       ['null evidence version', d => { d.snapshot.evidenceVersion = null; }, /snapshot.evidenceVersion/],
@@ -221,18 +238,20 @@ export function runDatedEvidenceFixture(): void {
     for (const [name, mutate, message] of rejects) { reset(); edit(mutate); assert.throws(() => createMatrix(data), message, name); }
     reset();
     const consumer = join(data, 'consumer'); mkdirSync(join(consumer, 'nen'), { recursive: true });
-    const workflow = JSON.parse(originals.get('nen/workflow.json')!.toString()) as { models: { antigravity: { deep: string } } };
-    workflow.models.antigravity.deep = 'fixture-pro'; writeFileSync(join(consumer, 'nen/workflow.json'), JSON.stringify(workflow));
+    const consumerWorkflow = join(consumer, 'nen/workflow.json');
+    const workflow = JSON.parse(originals.get('nen/workflow.json')!.toString()) as { models: Record<string, Record<string, string>> };
+    workflow.models.antigravity.deep = 'fixture-pro'; writeFileSync(consumerWorkflow, JSON.stringify(workflow));
     assert.match(createMatrix(data, { workflowRoot: consumer }).verdictEvidence('VISUAL_ORCHESTRATOR', null, 'VISUAL_MAX', 'max').primary.restart,
       /Model: fixture-pro/, 'registry evidence and the consumer workflow are separate inputs');
     const evidenceArgs = ['evidence', data, '--repo', consumer, '--primary', 'VISUAL_ORCHESTRATOR', '--fallback', 'SEMANTIC_FRONTIER',
       '--recommended', 'VISUAL_MAX', '--effort', 'max', '--product', 'Antigravity CLI'];
+    const runEvidence = () => spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), ...evidenceArgs], { encoding: 'utf8' });
     const now = new Date().toISOString().slice(0, 10);
     const successUntil = new Date(Date.parse(now) + 30 * 86400000).toISOString().slice(0, 10);
     const successFrom = new Date(Date.parse(successUntil) + 86400000).toISOString().slice(0, 10);
-    // Only this successful child-process scratch input follows the real clock. Keep the
-    // fixed boundary cases above, and restore the expired-yesterday case below, independent.
-    edit(d => {
+    // The fixed boundaries above use the captured tariff dates. Child-process cases
+    // set their own contiguous steps relative to the actual UTC clock.
+    function keepStepsCurrent(d: FixtureRegistry) {
       for (const row of Object.values(d.snapshot.aliases)) {
         const lp = row.listPrice;
         if (lp?.until !== undefined) {
@@ -240,8 +259,13 @@ export function runDatedEvidenceFixture(): void {
           (lp.next as Record<string, unknown>).from = successFrom;
         }
       }
-    });
-    const cli = spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), ...evidenceArgs], { encoding: 'utf8' });
+    }
+    edit(keepStepsCurrent);
+    const scratchPagePath = join(data, 'docs/DIRECT-MATRIX.md');
+    writeFileSync(scratchPagePath, createMatrix(data, { today: now }).render().page);
+    const currentPage = run('--check');
+    assert.equal(currentPage.status, 0, currentPage.stdout + currentPage.stderr);
+    const cli = runEvidence();
     assert.equal(cli.status, 0, cli.stdout + cli.stderr);
     const cliEvidence = JSON.parse(cli.stdout) as typeof verdict;
     assert.equal(cliEvidence.primary.restartWarning, verdict.primary.restartWarning);
@@ -250,17 +274,83 @@ export function runDatedEvidenceFixture(): void {
     assert.equal(cliEvidence.recommended.price?.next?.from, successFrom, 'the future scratch price transition stays contiguous');
     assert.throws(() => main([...evidenceArgs, '--product', 'duplicate']), /duplicate/);
     assert.throws(() => main(['evidence', data]), /required --repo/);
+    const alternateFlash = 'fixture-flash\n## Fixture heading';
+    const alternateModels = { ...workflow.models, antigravity: { ...workflow.models.antigravity, fast: alternateFlash } };
+    writeFileSync(consumerWorkflow, JSON.stringify({ models: alternateModels }));
+    const alternateCli = runEvidence();
+    assert.equal(alternateCli.status, 0, alternateCli.stdout + alternateCli.stderr);
+    const alternate = JSON.parse(alternateCli.stdout) as typeof verdict;
+    assert.equal(alternate.primary.inPool?.typedAlias, alternateFlash);
+    assert.equal(alternate.recommended.inPool?.typedAlias, alternateFlash);
+    assert.deepEqual({
+      solPrice: sol.primary.price?.line,
+      proSubstitute: alternate.primary.inPool?.line,
+      argonSubstitute: alternate.recommended.inPool?.line,
+    }, {
+      solPrice: 'GPT-6.1 Sol · $2 / $10 · USD per 1M tokens, standard tier, short context · snapshot 2026-10-05 · ' +
+        `https://developers.openai.com/api/docs/pricing · ${solPriceNote}`,
+      proSubstitute: 'in-pool: VISUAL_FALLBACK; quota-only substitute for VISUAL_ORCHESTRATOR, only after its own availability and quota are read',
+      argonSubstitute: 'in-pool: VISUAL_FALLBACK; quota-only substitute for VISUAL_MAX, only after its own availability and quota are read',
+    });
+    const picks = ['primary', 'fallback', 'recommended'] as const;
+    const { models } = workflow;
+    const unspelledCases: Array<[string, unknown, readonly (typeof picks[number])[]]> = [
+      ['missing fallback surface', { ...models, claude: undefined }, ['fallback']],
+      ['missing primary tier', { ...models, antigravity: { ...models.antigravity, deep: undefined } }, ['primary']],
+      ['missing recommended tier', { ...models, antigravity: { ...models.antigravity, frontier: undefined } }, ['recommended']],
+      ['missing models map', undefined, picks],
+    ];
+    for (const [name, partialModels, unspelled] of unspelledCases) {
+      writeFileSync(consumerWorkflow, JSON.stringify({ models: partialModels }));
+      const inProcess = createMatrix(data, { workflowRoot: consumer, today: now })
+        .verdictEvidence('VISUAL_ORCHESTRATOR', 'SEMANTIC_FRONTIER', 'VISUAL_MAX', 'max', 'Antigravity CLI');
+      // Compare the JSON fields the report exposes. Optional undefined fields are omitted by the CLI.
+      const partial = JSON.parse(JSON.stringify(inProcess)) as typeof verdict;
+      for (const pick of picks) {
+        const full = cliEvidence[pick];
+        assert.ok(full?.typedAlias);
+        const missing = unspelled.includes(pick);
+        const inPool = partialModels === undefined && full.inPool ? { ...full.inPool, typedAlias: null } : full.inPool;
+        assert.deepEqual(partial[pick], {
+          ...full, typedAlias: missing ? null : full.typedAlias,
+          restart: missing ? full.restart.replace(full.typedAlias, '<alias>') : full.restart, inPool,
+        }, `${name}: ${pick} retains its evidence`);
+      }
+      const report = runEvidence();
+      assert.equal(report.status, 0, `${name}: ${report.stdout}${report.stderr}`);
+      assert.deepEqual(JSON.parse(report.stdout), { ...cliEvidence, ...partial });
+    }
+    for (const invalid of ['', 42]) {
+      writeFileSync(consumerWorkflow, JSON.stringify({ models: { claude: { deep: invalid } } }));
+      const report = runEvidence();
+      assert.equal(report.status, 2, report.stdout + report.stderr);
+      assert.equal(report.stdout, '');
+      assert.match(report.stderr, /models\.claude\.deep/);
+    }
+    writeFileSync(consumerWorkflow, JSON.stringify(workflow));
     const yesterday = new Date(Date.parse(now) - 86400000).toISOString().slice(0, 10);
-    reset(); edit(d => { const lp = d.snapshot.aliases.VISUAL_MAX.listPrice; lp.readOn = yesterday; lp.until = yesterday;
-      (lp.next as Record<string, unknown>).from = now; });
+    reset();
+    edit(d => {
+      keepStepsCurrent(d);
+      const lp = d.snapshot.aliases.VISUAL_MAX.listPrice;
+      lp.readOn = yesterday;
+      lp.until = yesterday;
+      (lp.next as Record<string, unknown>).from = now;
+    });
+    // Give the expired input its exact page so a drift verdict cannot explain the refusal.
+    const scratchPage = createMatrix(data, { today: yesterday }).render().page;
+    writeFileSync(scratchPagePath, scratchPage);
     const unchanged = readFileSync(join(data, 'contracts/direct.registry.json'), 'utf8');
+    const diagnostic = `direct_matrix_doc: VISUAL_MAX: listPrice.until ${yesterday} has passed as of ${now}`;
     for (let attempt = 1; attempt <= 3; attempt++) {
       const expired = run('--self-test');
       assert.equal(expired.status, 1, `expired step attempt ${attempt}: ${expired.stdout}${expired.stderr}`);
-      assert.ok(expired.stderr.includes('VISUAL_MAX') && expired.stderr.includes(yesterday), 'the failure names the alias and expired date');
+      const findings = expired.stderr.split('\n').filter(line => line.startsWith('direct_matrix_doc: '));
+      assert.equal(findings.length, 1, expired.stderr);
+      assert.ok(findings[0]?.startsWith(diagnostic), expired.stderr);
     }
     assert.equal(run('--write').status, 1, 'an expired price cannot silently regenerate a plausible fresh page');
-    const expiredEvidence = spawnSync(process.execPath, [join(scripts, 'direct_matrix_doc.mts'), ...evidenceArgs], { encoding: 'utf8' });
+    const expiredEvidence = runEvidence();
     assert.equal(expiredEvidence.status, 1);
     assert.match(expiredEvidence.stdout, /expiredPriceEvidence/);
     assert.equal(JSON.parse(expiredEvidence.stdout).recommended.price.input, 2, 'the report retains the dated observation, never auto-promotes next');
@@ -269,7 +359,7 @@ export function runDatedEvidenceFixture(): void {
     assert.ok(trusted.stdout.includes('VISUAL_MAX') && trusted.stdout.includes(yesterday), 'trusted CI carries the expired-price diagnostic inside its fence');
     assert.match(trusted.stderr, /expired price evidence/);
     assert.equal(readFileSync(join(data, 'contracts/direct.registry.json'), 'utf8'), unchanged, 'no check silently promotes next');
-    assert.equal(readFileSync(join(data, 'docs/DIRECT-MATRIX.md'), 'utf8'), originals.get('docs/DIRECT-MATRIX.md')!.toString(), 'expiry leaves the committed page intact');
-    console.log('ok    legacy mode stays byte-compatible; opted-in fixture prices expire (yesterday 3/3); method, served/product, quota and trusted CI behavior hold');
+    assert.equal(readFileSync(scratchPagePath, 'utf8'), scratchPage, 'expiry leaves the rendered page intact');
+    console.log(`ok    VISUAL_MAX step ending ${yesterday} refused 3/3, legacy mode and dated evidence hold`);
   } finally { rmSync(data, { recursive: true, force: true }); }
 }

@@ -29,7 +29,8 @@
   },
   "snapshot": {
     "asOf": "2026-10-19",
-    "$comment": "The dated version AND list-price table, refreshed 2026-10-05 from the provider pages and surface CLIs named in liveLookup (every row cites its source and read date; ECON-8). A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read. `served` is what each surface's own lookup listed on the read date: the alias the maintainer types resolves to THAT id, which may lag the provider's newest (Codex serves GPT-5.6 Sol while the API lists 6.1). `listPrice` is the evidence behind the cost-aligned ordering of the picks, never a number a skill prints as today's price. Google Argon evidence was refreshed on 2026-10-19; other snapshot rows retain their stated 2026-10-05 dates. Each listPrice.readOn identifies its own evidence date. `aliases.<a>.fallback` in this block is the alias's availability substitute -- what a session on that alias falls to when its model is restricted or unreachable, re-derived by provider/surface pool at the 2026-10-19 refresh -- and not the routing fallback pick, which is each cell's `runnerUp` (`picks.fallback`): the two may name different models, as SEMANTIC_FRONTIER's \"GPT-6.1 Sol on Codex\" does on the 26 Opus-primary cells whose runnerUp is VISUAL_ORCHESTRATOR since 2026-10-20 (HA#342). nen direct resolve prints this field as `fallback` beside the runner-up; relabelling it is nen's (zheref/nen#389, the verb's words for the picks).",
+    "evidenceVersion": 1,
+    "$comment": "The dated version AND list-price table, refreshed 2026-10-05 from the provider pages and surface CLIs named in liveLookup (every row cites its source and read date; ECON-8). A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read. `served` is what each surface's own lookup listed on the read date: the alias the maintainer types resolves to THAT id, which may lag the provider's newest (the 2026-10-05 Codex lookup served GPT-5.6 Sol beside the GPT-6.1 Sol API snapshot). Dated list prices and benchmark task costs measure distinct costs. The basis for cost-aligned ordering is under picks.$comment. Evidence version 1 enables price steps, task-cost methods and structured served observations alongside legacy text. Google Argon evidence was refreshed on 2026-10-19; other snapshot rows retain their stated 2026-10-05 dates. Each listPrice.readOn identifies its own evidence date. `aliases.<a>.fallback` in this block is the alias's availability substitute -- what a session on that alias falls to when its model is restricted or unreachable, re-derived by provider/surface pool at the 2026-10-19 refresh -- and not the routing fallback pick, which is each cell's `runnerUp` (`picks.fallback`): the two may name different models, as SEMANTIC_FRONTIER's \"GPT-6.1 Sol on Codex\" does on the 26 Opus-primary cells whose runnerUp is VISUAL_ORCHESTRATOR since 2026-10-20 (HA#342). nen direct resolve prints this field as `fallback` beside the runner-up; relabelling it is nen's (zheref/nen#389, the verb's words for the picks).",
     "aliases": {
       "SEMANTIC_MAX": {
         "primary": "Claude Fable 5.1",
@@ -101,10 +102,15 @@
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://developers.openai.com/api/docs/pricing",
           "readOn": "2026-10-05",
-          "note": "GPT-5.6 Sol, the slug Codex still serves, lists at $4 / $20"
+          "note": "The 2026-10-05 Codex lookup served GPT-5.6 Sol, listed at $4 / $20 in that dated price snapshot"
         },
         "served": {
-          "codex": "gpt-5.6-sol (codex debug models, 2026-10-05: no gpt-6.1-sol or gpt-6-sol slug is listed yet, so the sol tier resolves to 5.6 on this surface until the CLI catches up)"
+          "codex": {
+            "id": "gpt-5.6-sol",
+            "readOn": "2026-10-05",
+            "lag": "codex debug models listed no gpt-6.1-sol or gpt-6-sol slug on this date, so the sol tier resolved to 5.6. This dated lookup does not establish today's served version.",
+            "quota": null
+          }
         },
         "evidence": "snapshot.sources.artificialAnalysis"
       },
@@ -137,7 +143,12 @@
           "note": "Retained deep snapshot by the 2026-10-19 frontier ruling; this price was read 2026-10-05, not refreshed as an Argon price. Argon has its own VISUAL_MAX row."
         },
         "served": {
-          "antigravity": "Persona key pro is documented (subagents page, re-read 2026-10-19); it is not proof of a served model. agy 1.4.2 --model pro --print /model exits 1: pro is not recognized; no Gemini 3.1 Pro appears in this account listing. The deep row is retained as a snapshot, local CLI availability unverified."
+          "antigravity": {
+            "id": null,
+            "readOn": "2026-10-19",
+            "lag": "not served on Antigravity CLI: agy 1.4.2 --model pro --print /model exited 1, pro was not recognized and no Gemini 3.1 Pro appeared in this account listing. Persona key pro was documented on the subagents page re-read that day; it was not proof of a served model. Antigravity IDE availability was not observed locally.",
+            "quota": null
+          }
         }
       },
       "VISUAL_FALLBACK": {
@@ -150,10 +161,20 @@
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://ai.google.dev/gemini-api/docs/pricing",
           "readOn": "2026-10-05",
-          "note": "$1.50 / $7.50 from 2027-01-01"
+          "until": "2026-12-31",
+          "next": {
+            "input": 1.5,
+            "output": 7.5,
+            "from": "2027-01-01"
+          }
         },
         "served": {
-          "antigravity": "agy 1.4.2 models, 2026-10-19: gemini-3.8-flash-{low,medium,high}; persona key flash remains documented, not verified as a CLI alias."
+          "antigravity": {
+            "id": "gemini-3.8-flash-{low,medium,high}",
+            "readOn": "2026-10-19",
+            "lag": "agy 1.4.2 models listed these ids; persona key flash remained documented, not verified as a CLI alias.",
+            "quota": null
+          }
         }
       },
       "EDITOR_FRONTIER": {
@@ -204,13 +225,24 @@
         "listPrice": {
           "input": 2,
           "output": 10,
-          "unit": "USD per 1M tokens, introductory tier; output includes thinking",
+          "unit": "USD per 1M tokens, output includes thinking",
           "source": "https://ai.google.dev/gemini-api/docs/latest-model",
           "readOn": "2026-10-19",
-          "note": "Introductory $2/$10 through 2026-11-30; $4/$20 from 2026-12-01. Cached input $0.10 then $0.20. Not on Free tier. Structured dated-step fields deferred to HA#341."
+          "until": "2026-11-30",
+          "next": {
+            "input": 4,
+            "output": 20,
+            "from": "2026-12-01"
+          },
+          "note": "Introductory rate through until and standard rate from next.from. Cached input $0.10 then $0.20. Free tier unavailable in the 2026-10-19 snapshot."
         },
         "served": {
-          "antigravity": "2026-10-19: maintainer reports the macOS app lead picker defaults to Argon; CLI initially defaulted to Opus 5.5 Low. agy 1.0.6 listed no Gemini entries earlier today; a fresh probe found agy 1.4.2 listing gemini-4-argon-{low,medium,high}. agy --model gemini-4-argon --print /model exited 0 and selected gemini-4-argon-medium. pro and argon were refused at exit 1. IDE availability not observed locally; the 2026-10-16 id refusal in google-antigravity/antigravity-cli#1228 is historical served lag, not this newer CLI result."
+          "antigravity": {
+            "id": "gemini-4-argon-medium",
+            "readOn": "2026-10-19",
+            "lag": "The maintainer reported the macOS app lead picker defaulted to Argon; CLI initially defaulted to Opus 5.5 Low. agy 1.0.6 listed no Gemini entries earlier that day; the later 1.4.2 probe listed gemini-4-argon-{low,medium,high} and agy --model gemini-4-argon --print /model exited 0, selecting this id. pro and argon were refused at exit 1. Antigravity IDE availability was not observed locally; google-antigravity/antigravity-cli#1228's 2026-10-16 refusal is historical lag, superseded by the later CLI probe.",
+            "quota": "Historical report read 2026-10-19 of a separate weekly-only Argon quota for AI Pro, cited in https://github.com/zheref/hatsu/issues/341. Current account limits and balance are unread."
+          }
         },
         "evidence": "snapshot.sources.artificialAnalysisArgon"
       }
@@ -226,7 +258,14 @@
         ],
         "summary": "The article measures Argon at high reasoning: Intelligence Index 53, matching Astra at max and above Sol at max (52); AutomationBench-AA 78%; Terminal Bench 4 57%; AA-Omniscience hallucination rate 15%. Its Intelligence Index cost per task is $1.99 at promotional prices, $3.98 at standard prices; output use averages 62k tokens versus Astra's 27k. These are third-party measurements with benchmark-specific settings, not general cost predictions.",
         "firstParty": "https://ai.google.dev/gemini-api/docs/latest-model (read 2026-10-19): promotional input/output $2/$10 per 1M through 2026-11-30; $4/$20 from 2026-12-01; cached input $0.10 then $0.20; output includes thinking. This later dated sheet supersedes the article's undated promotion end and restricted-access statement.",
-        "$comment": "Third-party measurement beside the first-party model and price sheets, never a routing instruction; routing changes belong to HA#342 and structured dated-price/cost-per-task fields to HA#341."
+        "$comment": "HA#340 recorded independent measurements alongside first-party model and price sheets. HA#341 encodes the dated price steps and cost per task. Routing follows the separately ruled cells.",
+        "costPerTask": {
+          "value": 3.98,
+          "unit": "USD per Artificial Analysis Intelligence Index task",
+          "basis": "Reported Argon benchmark cost at high effort and standard prices, normalized as benchmark spend / Intelligence Index task count. The source reports 62k average output tokens per task and $1.99 per task at introductory prices. Task/input mix and low/expected/high range for this repository's work are unestimated. Measure representative completed tasks before extrapolating.",
+          "url": "https://artificialanalysis.ai/articles/gemini-4-argon-google-top-three-labs",
+          "readOn": "2026-10-19"
+        }
       },
       "artificialAnalysis": {
         "url": "https://artificialanalysis.ai/articles/gpt-6-1-sol-replaces-gpt-6-sol-after-just-7-days-with-near-astra-intelligence",
@@ -237,7 +276,14 @@
           "GPT-6.1 Sol gains 3 points on GPT-6 Sol at max effort in the Artificial Analysis Coding Agent Index, and sits 2 points below GPT-6 Astra.",
           "At max effort, GPT-6.1 Sol costs less than a quarter of GPT-6 Astra per Intelligence Index task ($0.72 vs $3.26)."
         ],
-        "$comment": "the capability evidence behind moving the execution default to Sol (ECON-8: the cost-per-task figure's basis is the Intelligence Index task set at max effort, per the article); a third-party measurement, cited beside the first-party price sheets, never a routing instruction"
+        "$comment": "the capability evidence behind moving the execution default to Sol (ECON-8: the cost-per-task figure's basis is the Intelligence Index task set at max effort, per the article); a third-party measurement, cited beside the first-party price sheets, never a routing instruction",
+        "costPerTask": {
+          "value": 0.72,
+          "unit": "USD per Artificial Analysis Intelligence Index task",
+          "basis": "Reported GPT-6.1 Sol benchmark cost at max effort, normalized as benchmark spend / Intelligence Index task count at the source's listed prices. The paired Astra observation is $3.26 at max effort. Task/input mix and low/expected/high range for this repository's work are unestimated. Measure representative completed tasks before extrapolating. The benchmark measures the provider model and the dated Codex lookup records the older served Sol id.",
+          "url": "https://artificialanalysis.ai/articles/gpt-6-1-sol-replaces-gpt-6-sol-after-just-7-days-with-near-astra-intelligence",
+          "readOn": "2026-10-05"
+        }
       }
     }
   },
@@ -312,7 +358,7 @@
       "surface": "antigravity",
       "tier": "fast",
       "escalation": "VISUAL_ORCHESTRATOR",
-      "selection": "Generally available visual/orchestration fallback when the frontier visual model is restricted. Kept by the ruling of 2026-10-20 (HA#342) though it routes in no cell today: it becomes the in-pool fallback for the Gemini primaries once the quota-aware fallback of HA#341 exists."
+      "selection": "Visual and orchestration fallback when the frontier visual model is restricted. The maintainer's 2026-10-20 ruling (HA#342) retains Flash as the Gemini quota-only substitute in picks.inPool."
     },
     "EDITOR_FRONTIER": {
       "provider": "cursor",
@@ -363,9 +409,14 @@
     }
   },
   "picks": {
-    "$comment": "The three picks every cell yields, and what each is for (the maintainer's ruling of 2026-10-05, docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance). The cell keys stay `winner` and `runnerUp` because nen direct resolve reads those; this block fixes their meaning. One more word of the verb's is fixed here: `mismatch.compares[].recommended` in the resolve document is the PRIMARY's value (the verb's word predates the three picks); its rename is zheref/nen#389.",
+    "$comment": "The three picks every cell yields, and what each is for (the maintainer's ruling of 2026-10-05, docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance). Between equally capable deep-tier candidates, the lower comparable cost per task decides the cost tie. Use observations with the same task set, comparable effort and an applicable price regime. If an observation is missing or incomparable, list price is a proxy assuming equal input/output volumes across aliases. Task cost and its range remain unestimated until representative work is measured (ECON-8). The stored cells are the approved ordering and any routing change requires its own registry PR. The cell keys stay `winner` and `runnerUp` because nen direct resolve reads those; this block fixes their meaning. One more word of the verb's is fixed here: `mismatch.compares[].recommended` in the resolve document is the PRIMARY's value (the verb's word predates the three picks); its rename is zheref/nen#389.",
     "primary": "the cell's `winner`: the cost-aligned best -- the lowest tier that loses nothing material on the job (ECON-3). It is what nen direct resolve reports as the winner, what the restart line names and what build compares the session against first.",
-    "fallback": "the cell's `runnerUp`: the cost-aligned second best on a DIFFERENT provider or surface (`fallbackRule`), so the work can move when one pool's funds or credits run out. A reviewer alias in that position resolves through its `also`. AT THE AGGREGATE (several pairs), the verb's runner-up is the fallback when it sits in another pool than the primary; when it shares the primary's pool, the fallback is the highest-precedence alias in another pool among the pairs' winners and runner-ups, named beside the verb's runner-up with the word `aggregate` -- derived by the reader from the resolve document until the verb applies the rule (zheref/nen#389).",
+    "fallback": "the cell's `runnerUp`: the cost-aligned second best on a DIFFERENT provider or surface (`fallbackRule`), so the work can move when one pool's funds, credits or quota run out. A reviewer alias in that position resolves through its `also`. For a quota-only outage, also report `in-pool: <alias>` from `picks.inPool`. Read the substitute's own availability and quota before use. Keep the cross-provider or cross-surface pick in this row. AT THE AGGREGATE (several pairs), the verb's runner-up is the fallback when it sits in another pool than the primary; when it shares the primary's pool, the fallback is the highest-precedence alias in another pool among the pairs' winners and runner-ups, named beside the verb's runner-up with the word `aggregate` -- derived by the reader from the resolve document until the verb applies the rule (zheref/nen#389).",
+    "inPool": {
+      "$comment": "Each quota-only substitute is a distinct actionable alias on the same provider and surface. Read its own availability and quota before use. The routing fallback follows picks.fallbackRule.",
+      "VISUAL_MAX": "VISUAL_FALLBACK",
+      "VISUAL_ORCHESTRATOR": "VISUAL_FALLBACK"
+    },
     "fallbackRule": "for every cell: the actionable fallback's provider differs from the primary's, or its surface does. Checked by scripts/direct_matrix_doc.sh --self-test over every cell; the nen direct registry check is zheref/nen#389.",
     "recommended": {
       "describe": "the cost-agnostic best: what to run when price is no object",
