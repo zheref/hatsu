@@ -10,6 +10,58 @@
   "$comment_removed_gh_auth_token": "REMOVED (Feitan F1, 2026-09-20): the shared allow list used to carry {exe: gh, args: 'auth token'}. Every verb that needs GH_TOKEN reads it out of gh's OWN credential store at call time (gh api/pr/issue/run/label all resolve auth internally) -- nothing in this codebase pipes 'gh auth token' output anywhere it needs to be. Allowing the bare command meant a session could run it and have the live OAuth token printed straight into the transcript, which is a credential leak an allowlist exists to prevent, not to grant.",
   "$comment_removed_gh_api": "REMOVED (#154, Feitan SEC-9, 2026-10-19): gh api * permitted PUT pulls/<N>/merge and GraphQL mergePullRequest, bypassing Nen's bounded delivery guard. #326 restores named, audited reads through scripts/gh_api_read.mts only; do not restore a wildcard gh api grant.",
   "claude_code_api_reader": "scripts/gh_api_read.mts",
+  "claude_routine_writes": [
+    {
+      "prefix": "nen pr threads reply",
+      "command": "nen pr threads reply --target <owner/name> --pr <n> --thread <id> --body-file <file>",
+      "by": "en, sharingan"
+    },
+    {
+      "prefix": "nen pr threads resolve",
+      "command": "nen pr threads resolve --target <owner/name> --pr <n> --thread <id>",
+      "by": "en, sharingan"
+    },
+    {
+      "prefix": "nen pr threads settle",
+      "command": "nen pr threads settle --target <owner/name> --pr <n> --from <file>",
+      "by": "en, sharingan"
+    },
+    {
+      "prefix": "nen pr open",
+      "command": "nen pr open --target <owner/name> --base <base> --title-file <file> --body-file <file>",
+      "by": "shibari § 4"
+    },
+    {
+      "prefix": "nen pr edit-body",
+      "command": "nen pr edit-body --target <owner/name> --pr <n> --body-file <file>",
+      "by": "shibari § 4, en"
+    },
+    {
+      "prefix": "nen pr request-reviews",
+      "command": "nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <names>",
+      "by": "en, sharingan"
+    },
+    {
+      "prefix": "nen issue comment",
+      "command": "nen issue comment --target <owner/name> --issue <n> --body-file <file>",
+      "by": "file § 4, sharingan"
+    },
+    {
+      "prefix": "nen pr ledger post",
+      "command": "nen pr ledger post --target <owner/name> --pr <n> --effort <branch>",
+      "by": "mukai § 2 step 8a"
+    },
+    {
+      "prefix": "nen issue file",
+      "command": "nen issue file --target <owner/name> --repo <checkout> --title-file <file> --body-file <file>",
+      "by": "file"
+    }
+  ],
+  "claude_user_bounded_allow": [
+    "shu release --repo * --lane plugin --dry-run",
+    "shu release --repo * --lane plugin",
+    "pr merge * --delivery --requirements-from * --repo * --require-head * --run"
+  ],
   "allow": [
     {
       "exe": "nen",

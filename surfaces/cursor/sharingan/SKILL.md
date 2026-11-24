@@ -140,31 +140,28 @@ unavailable member; **every member unavailable** is the sixth stop, its predicat
 *The sixth stop* (ruling 2026-10-11). **A CI lane is never requested** (PROCESS,
 *Event-driven reviewer lanes*). **The merge is the maintainer's**.
 
-**Round completeness, thread hygiene (`nen pr threads list|reply|resolve`) and the Copilot request
-(`nen pr request-reviews --add-bots <node id>`, verified by `nen pr ready`, never REST) are
-[PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads*** — a reply names a
-commit only once it is on the PR's head chain (zheref/hatsu#139).
-
-Screenshots **re-render the whole *Evidence* table**, checked first
-([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*).
+Follow [PROCESS](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* for completeness,
+`nen pr threads list|reply|resolve` and Copilot. Request Copilot only with `nen pr request-reviews --add-bots <node id>`,
+verify with `nen pr ready`, and cite only commits on the PR's head chain (HA#139).
+Check screenshots, then re-render the whole *Evidence* table ([WORKFLOW](../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*).
 
 ## 7. The other channels, and the escalation ladder
 
+After the private-name check reports 0 or skipped, post separately with File § 4's ignore file.
+
 ```bash
-bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path> &&
-  nen issue comment --target <owner/name> --issue <N> --body-file <path> --private-names-ignore-file <file § 4's>
+bash "$hatsu_root/scripts/private_name_check.sh" --target <owner/name> <path>
+nen issue comment --target <owner/name> --issue <N> --body-file <path> --private-names-ignore-file <ignore-file>
 nen pr cascade-main --repo <path> [--trunk main]  # conflicted: merge only
 nen wake fire   --repo-slug <owner/name> --ref <CODE>-PR-#<N> --label <the wake label the target's nen/labels.json declares> --run
 nen wake verify --repo-slug <owner/name> --now <ISO> --author-pattern <regex>
 nen pr staleness --wakes-from <log> --last-activity <ISO> --now <ISO> --ready
 ```
 
-- **Kurapika authored it**: fix it, verify through the phase owners ([`kokusen`](../kokusen/SKILL.md),
-  then `kotoamatsukami` and `byakugan`, never bypassed), push — a new epoch: record the head SHA, wait
-  for the context and round owed there.
-- **Conflicted**: `cascade-main` pushes a clean merge and reports a conflict unresolved (row
-  `stale-base`; one of meaning is `semantic-conflict`'s G5). A conflicted PR gets *no checks at all* —
-  "clean", not "broken" — and a wake is a no-op on it.
+- **Kurapika authored it**: fix, verify through [`kokusen`](../kokusen/SKILL.md), `kotoamatsukami`
+  and `byakugan`, then push. Record the new head and wait for its owed context and round.
+- **Conflicted**: `cascade-main` pushes clean merges and reports unresolved conflicts (`stale-base`).
+  A semantic conflict stops at G5 (`semantic-conflict`). Conflicted PRs get no checks and wakes do nothing.
 - **A legacy CI agent authored it** (a `<!-- bankai agent=… -->` stamp): fire the wake **alone**, never
   with a comment (one concurrency group); no wake label declared is a G5 naming the gap. Without `--run`, `wake verify` is read-only.
 - **The ladder (that legacy row only), `mergeable_state` first**: one verified wake, a second if it produced no commit, each
