@@ -40,7 +40,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-type Entry = { phase: string; endedAt: string | null; exitCode: number | null; steps: unknown[]; resumedAt?: string[] };
+type Entry = { phase: string; endedAt: string | null; exitCode: number | null; steps: unknown[]; resumedAt?: string[]; note?: string | null };
 type Ledger = { phases: Entry[] };
 
 const args = process.argv.slice(2);
@@ -271,6 +271,37 @@ type UsageLedger = { entries: UsageEntry[] };
   } catch (error) { ok = false; detail = (error as Error).message; }
   results.push({ composite: 'ren', case: 'a resumed session\'s own usage', verdict: ok ? 'converged' : 'diverged', detail });
   rmSync(clean, { recursive: true, force: true });
+  rmSync(repo, { recursive: true, force: true });
+}
+
+// hiraishin's no-spec route (*spec step: none configured*): docs/config/ports.md § The phase ledger
+// writes `spec` all the same, begun with a note and ended at exit 0, so the run keeps its six entries and
+// a re-invocation skips it like any finished phase (HR-397).
+{
+  EFFORT = COMPOSITES.hiraishin!.effort;
+  const phases = COMPOSITES.hiraishin!.phases;
+  const repo = freshRepo();
+  let ok = true; let detail = '';
+  try {
+    for (const phase of phases) {
+      must(repo, [...begin(repo, phase), ...(phase === 'spec' ? ['--note', 'no spec repository'] : [])]);
+      must(repo, end(repo, phase));
+    }
+    const ledger = show(repo).phases;
+    const spec = ledger.find((e) => e.phase === 'spec');
+    const before = ledgerBytes(repo);
+    const said = resume(repo, phases);
+    const checks: Array<[string, boolean]> = [
+      ['six entries', ledger.length === phases.length],
+      ['spec ended at exit 0', spec?.endedAt !== null && spec?.exitCode === 0],
+      ['spec carries its note', spec?.note === 'no spec repository'],
+      ['a re-invocation skips all six, bytes unchanged', said.every((x) => x.startsWith('skipped')) && said.length === phases.length && ledgerBytes(repo) === before],
+    ];
+    const failed = checks.find((check) => !check[1]);
+    ok = failed === undefined;
+    detail = failed ? `${failed[0]} is FALSE` : 'six entries, spec noted and ended at exit 0, re-invocation 6 skipped';
+  } catch (error) { ok = false; detail = (error as Error).message; }
+  results.push({ composite: 'hiraishin', case: 'the no-spec route', verdict: ok ? 'converged' : 'diverged', detail });
   rmSync(repo, { recursive: true, force: true });
 }
 

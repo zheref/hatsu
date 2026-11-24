@@ -53,16 +53,18 @@ The run id's pattern, outside the table so its alternation reads as written (`gr
 
 ## The phase ledger — one entry per step, the resume read first
 
-**Both skills record one phase ledger entry per top-level step of their protocol** ([HR-397](../ROSTER.md#hr-397); [WORKFLOW](../WORKFLOW.md) § *The effort's ledgers* owns the mechanism), each naming its own vocabulary (kamui § 6, hiraishin § 3). The key is the **run id**, a port run having no branch of its own; each build, and the spec PR's `ren`, keep their own branch's ledger. **A `--dry-run` writes no entry.**
+**Both skills record one phase ledger entry per top-level step of their protocol** ([HR-397](../ROSTER.md#hr-397); [WORKFLOW](../WORKFLOW.md) § *The effort's ledgers* owns the mechanism), each naming its own vocabulary (kamui § 6, hiraishin § 3). The key is the **run id**, a port run having no branch of its own; each build, and the spec PR's `ren`, keep their own branch's ledger. **A `--dry-run` writes no entry.** The ledger lives in **the invoking checkout's** repository (`<git common dir>/.nen/phases/<run-id>.json`, shared by its worktrees): the checkout the skill was typed in, never a sibling's, the target's or the spec repository's.
 
 ```bash
-nen phase begin --effort <run-id> --phase <step> --surface <s> [--model <reported-model>] --dial <level>
-nen phase end   --effort <run-id> --phase <step> --exit <code>
+nen phase begin --effort <run-id> --phase <step> --surface <s> [--model <reported-model>] --dial <level> --repo <the invoking checkout>
+nen phase end   --effort <run-id> --phase <step> --exit <code> --repo <the invoking checkout>
 ```
 
 | Case | What the skill does |
 |---|---|
-| A stop ends the session with its step still owed (`next` `setup` or `wait`) | that phase stays **open**, so the resume continues it |
+| A stop ends the session with its step still owed | **the phase holding that `next`** stays **open**, so the resume continues it. kamui: `setup` → `setup`, `wait` → `wait`, `start` (a build's G5 stopping the chain, § 7) → `start`. hiraishin: `setup` (§ 2's unported prerequisite) → `precondition`, `wait` → `spec` |
+| hiraishin calls kamui §§ 2–4 | kamui writes **no entry of its own**; hiraishin's `spec` phase holds them |
+| hiraishin's no-spec route (*spec step: none configured*) | `spec` is still written: begun with `--note "no spec repository"` and ended at exit `0`, so the run keeps its six entries |
 | The spec PR reads `CLOSED` (*spec declined*) | the step holding the wait ends at exit `1` |
 | **`resume <run-id>`**, after the checks of § *The run record* | `nen phase show --effort <run-id> --json` before any write, then per phase in order [`ren`](../../claude/skills/ren/SKILL.md) § 2a's rule: ended at exit `0` → **skipped and named**; open → `nen phase begin --resume`; ended non-zero → `refused <phase>: ended at exit <n>`, nothing written |
 | The ledger and the step recomputed from live state disagree | live state leads, said |

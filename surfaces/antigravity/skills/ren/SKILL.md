@@ -164,7 +164,7 @@ step included. **Step 1's `end` carries breath § 4a's record as its `--note`**,
 note step 1 began with, because `end --note` replaces it (the script's `--begin-note`; WORKFLOW
 § *The constitution check*, steps 3, 5 and 6, owns the forms). The check is not an entry of its own,
 so the six steps stay six entries ([HR-58](../../../../docs/ROSTER.md#hr-58)). **The usage entry is recorded at step 5**: `nen usage record --effort
-<branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes]` from
+<branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes] [--note "<text>"]` from
 the surface's own cost readout, `--not-reported` on a surface that exposes none. **A resumed session records
 its own entry** (`--note "resumed session"`), never editing or merging the earlier one; a resume equals an
 uninterrupted run on its steps and published objects only ([HR-398](../../../../docs/ROSTER.md#hr-398)).

@@ -974,7 +974,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 ### The effort's ledgers — phases, usage and sessions
 
 **Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, zheref/hatsu#100, zheref/hatsu#321).
-Three ledgers per effort, keyed by the **branch** — `--effort <branch>`,
+Three ledgers per effort, keyed by the **branch**, or for a port run its run id ([`ports.md`](config/ports.md) § *The phase ledger*) — `--effort <branch>`,
 never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
 ```bash

@@ -307,7 +307,7 @@ run id `hiraishin-fi-pr-42-20261123`, the shape ports.md § *The run record* sta
 
 Run: 2026-11-23, host `darwin` (arm64), nen `0.30.0` on PATH, base `df53f76be`, in the effort
 `opus/kurapika/ha444-resume-kamui-hiraishin`. Command, reproducible: `nen shu test --repo <hatsu> --lane resume-proof`
-(`node scripts/resume_proof.mts`), which printed `resume-proof: 76/76 converged` at exit `0`. Each case runs in a
+(`node scripts/resume_proof.mts`), which printed `resume-proof: 77/77 converged` at exit `0`. Each case runs in a
 throwaway `git init` repository; nothing touched a primary checkout or GitHub. The method is `docs/ab/ren.md`
 § *Dated verification, 2026-10-23*: recorded once uninterrupted, then killed after each `nen phase end` and
 after each `nen phase begin`, re-invoked under ren § 2a's rule, compared with the clock elided; a finished
@@ -333,7 +333,12 @@ converged hiraishin            killed after failed brief            2 skipped, b
 converged hiraishin            killed after failed drift            3 skipped, drift refused by name, ledger bytes unchanged
 converged hiraishin            killed after failed issue            4 skipped, issue refused by name, ledger bytes unchanged
 converged hiraishin            killed after failed build            5 skipped, build refused by name, ledger bytes unchanged
+converged hiraishin            the no-spec route                    six entries, spec noted and ended at exit 0, re-invocation 6 skipped
 ```
+
+The last row is the no-spec route (*spec step: none configured*): `spec` is still written, begun with
+`--note "no spec repository"` and ended at exit `0` (ports.md § *The phase ledger*), so the run keeps its six
+entries.
 
 **Not proved here.** A live session killed mid-run and re-invoked: the proof drives the ledger verbs the
 resume rule reads, not a running model following it. The publishing steps keep their own reads (the

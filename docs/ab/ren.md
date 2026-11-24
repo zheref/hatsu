@@ -286,7 +286,7 @@ the composite's resume rule reads, not a running model following the rule. The l
 
 [HR-398](../ROSTER.md#hr-398): a resumed session records its own usage entry and the usage ledger is never
 compared with an uninterrupted run's; only the steps and the published objects are. Run: 2026-11-23, host
-`darwin` (arm64), nen `0.30.0`, `nen shu test --repo <hatsu> --lane resume-proof`, `resume-proof: 76/76
+`darwin` (arm64), nen `0.30.0`, `nen shu test --repo <hatsu> --lane resume-proof`, `resume-proof: 77/77
 converged` at exit `0`. The case: the uninterrupted run records one entry inside `spiritual-message` (§ 2a's
 step 5); the interrupted run dies after that entry and before the step's `nen phase end`, and the restarted
 session resumes the open step (`nen phase begin --resume`) and records its own entry with `--note "resumed

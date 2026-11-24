@@ -70,10 +70,27 @@ of them lives* once the lattice is the map.
 
 **Its resume record is its GitHub state** ([HR-397](../../../docs/ROSTER.md#hr-397)): getsuga keeps no
 phase ledger. Re-invoked with the same line, it reads what it already published before any write: the tag
-(`git ls-remote --tags origin <vX.Y.Z>`) and the release-proposal PR for that version, open or merged. An
-open proposal is continued at § 3a, never opened a second time; a merged one goes to § 4; a tag already on
-origin is § 2's *Tag does not already exist* row, the cut named as done and never re-cut, § 7 the only step
-left. So nothing publishes twice (`docs/ab/getsuga.md`).
+(`git ls-remote --tags origin <vX.Y.Z>`) and the release-proposal PR, matched by **title equality, never a
+free-text hit**, and by its head and author:
+
+```bash
+gh pr list --repo <owner/name> --state all --search 'in:title "propose <vX.Y.Z>"' --json number,state,title,headRefName,author \
+  --jq '.[] | select(.title == "chore(release): propose <vX.Y.Z>")'
+```
+
+The match must also carry a head branch ending `/release-<vX.Y.Z>` (`branch.template`) and the
+authenticated login as author (`gh api user --jq .login`); a PR failing either is not this skill's, is
+reported, and is never continued. Then:
+
+- **An open proposal** is never opened a second time and **never merged by the resumed session**: § 3's
+  record (the PR number, its head SHA, `<preflightTip>`) died with the first session, so § 3a falls back to
+  the declaration gate, the PR named.
+- **A merged proposal** goes to § 4.
+- **A tag already on origin** is § 2's *Tag does not already exist* row on a resume: the cut is named as
+  done, never re-cut, and the run continues at § 7.
+
+So the tag and the proposal are never published twice. § 7's re-run is **not idempotent yet** (§ Residue,
+*the fan-out on a resume*), and the resumed run says so before § 7 (`docs/ab/getsuga.md`).
 
 ---
 
@@ -239,7 +256,7 @@ every row the table used to check by separate hand-run command now comes back in
 | `CON-36` live chores | **Hold**, unless none has partial scope on `main` — and that reading is a `G5` ask for the maintainer, never your call (§ 5) |
 | `changelog.d/` empty at the cut point | Collate — § 3 (`nen/decisions.json` row `release-precondition-red`: reconciled in the same chunk, never a stop) |
 | `CON-33(c)` reconciled | Back-fill — § 3 |
-| Tag does not already exist | Stop. Re-tagging is never the fix |
+| Tag does not already exist | Stop. Re-tagging is never the fix. **On a resume** (§ *Composition*, the resume record): the cut is named as done and the run continues at § 7 |
 
 **Check the cut point, not the tip.** `--range`'s second half and `--changelog` must both name the
 **cut point**, not `main`'s current tip — `main` moves while a release is assembled (RR-IS-#683 has
@@ -762,6 +779,10 @@ the steps above already state; each item cites its issue or the literal `unfiled
 - **The reads around the proposal.** The base read-back `gh pr view <N> --json baseRefName` is named
   residue (§ 3), and a release PR's live body is read directly because `nen pr fetch` returns none
   (§ 3a) — `unfiled`.
+- **The fan-out on a resume.** `nen fanout` has `compute` and `record` (which appends) and no verb that
+  reads the fan-out ledger back at 0.30.0, so a resumed § 7 cannot tell which consumers it already
+  recorded or repinned: re-run, it may record a consumer twice. It is not idempotent until such a read
+  exists ([HR-397](../../../docs/ROSTER.md#hr-397)) — `unfiled`.
 - **The raced cut point — an owned dependency, not residue.** No public verb compares the merge SHA's
   release state with § 3a's recorded judged head (§ 4); the missing predicate is zheref/nen#572
   ([NN-IS-#572](https://github.com/zheref/nen/issues/572)), and until it ships the raced case is held
