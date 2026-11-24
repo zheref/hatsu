@@ -966,7 +966,8 @@ class ReadinessWorkflow(Item):
         # THE CHECKSUM CHECK IS LINUX-ONLY: the rendering verifies the linux-x64 binary
         # alone, so any other readiness runner fails on every PR. TypeScript decides; this relays,
         # before the file check, so `repair`'s BLOCKED early return stops the write here too.
-        runner = readiness_guard(ctx, "readiness-runner", self.kept_runner(ctx) or ctx.runner["runs_on"])
+        kept = self.kept_runner(ctx)
+        runner = readiness_guard(ctx, "readiness-runner", kept or ctx.runner["runs_on"], *(["kept"] if kept else []))
         if runner["state"] != SATISFIED:
             return self.row(**runner)
         p = ctx.repo / WORKFLOW_PATH

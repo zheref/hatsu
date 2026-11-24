@@ -89,6 +89,7 @@ export function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?
   if (process.env[DEFER_READINESS] === repo) return row("staged", DEFERRED_READINESS);
   const legacy = process.env[LEGACY_READINESS];
   let requiresRuby = false;
+  let role: LegacyReadiness["role"] | null = null;
   if (legacy || expectedReadiness) {
     try {
       const expected: LegacyReadiness = expectedReadiness ?? JSON.parse(legacy);
@@ -97,6 +98,7 @@ export function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?
           current.digest !== expected.registry || handlesPortableReadiness(repo, current.role)) {
         throw new Error(READINESS_CONTEXT_CHANGED);
       }
+      role = current.role;
       requiresRuby = current.role === "process";
       const template = readReadinessTemplate(hatsuRoot);
       if (!template) {
@@ -139,7 +141,8 @@ export function workflowGate(repo: string, hatsuRoot: string, expectedReadiness?
     }
   }
   // #554: the frozen renderer substitutes both the pin and the bootstrap checksums; refuse before it can.
-  const pins = pinsBlocked(hatsuRoot) ?? consumerPinsBlocked(repo);
+  // A bare call (no adoption context) has no role, so it cannot judge the per-role fallback.
+  const pins = pinsBlocked(hatsuRoot) ?? consumerPinsBlocked(repo, role);
   if (pins) return pins;
   return row("satisfied", "the trusted reader and workflow policy are ready");
 }
@@ -156,9 +159,9 @@ const MODES = ["diagnose", "apply", "workflow-gate", "bootstrap-pins", "readines
   "diagnose-legacy-context", "apply-legacy-context"];
 
 if (isEntrypoint()) {
-  const [mode, repo, hatsuRoot, runner] = process.argv.slice(2);
+  const [mode, repo, hatsuRoot, runner, kept] = process.argv.slice(2);
   if (!repo || !hatsuRoot || !MODES.includes(mode ?? "")) {
-    throw new Error("usage: tenkai_readiness_guard.mts <" + MODES.join("|") + "> <repo> <hatsu-root> [<runs-on>, readiness-runner only]");
+    throw new Error("usage: tenkai_readiness_guard.mts <" + MODES.join("|") + "> <repo> <hatsu-root> [<runs-on> [kept], readiness-runner only]");
   }
   if (mode === "bootstrap-pins") {
     const pins = bootstrapPins(hatsuRoot);
@@ -168,8 +171,10 @@ if (isEntrypoint()) {
     }
     process.stdout.write(JSON.stringify(pins) + "\n");
   } else if (mode === "readiness-runner") {
-    // The frozen engine relays the runner its legacy rendering would use.
-    process.stdout.write(JSON.stringify(readinessRunnerBlocked(runner) ?? row("satisfied", "the readiness runner is linux-x64")) + "\n");
+    // The frozen engine relays the runner its legacy rendering would use, and `kept` when that is
+    // the installed runner preserved under an unread visibility.
+    process.stdout.write(JSON.stringify(readinessRunnerBlocked(runner, kept === "kept") ??
+      row("satisfied", "the readiness runner is linux-x64")) + "\n");
   } else if (mode === "diagnose-workflow" || mode === "apply-workflow") {
     const input: RenderInputs = JSON.parse(readFileSync(0, "utf8"));
     const result = adoptPortableReadiness(repo, hatsuRoot, input, mode === "apply-workflow" ? "apply" : "diagnose",

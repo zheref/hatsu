@@ -4,7 +4,9 @@ import { tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fixFor, fixRows, guide, OUTSTANDING, quote, resolveAction, type FixRow } from './tenkai_fixes.ts';
-import { adoptionRole, readReadinessTemplate, registryText } from './tenkai_readiness_policy.mts';
+import {
+  adoptionRole, CONSUMER_BAD_REF, CONSUMER_UNREADABLE, PROCESS_NO_PIN, readinessRunnerBlocked, readReadinessTemplate, registryText,
+} from './tenkai_readiness_policy.mts';
 
 // HA#535: every outstanding Tenkai item names its fix, and a re-run after a fix shows the count going down.
 const source = resolve(import.meta.dirname, '..');
@@ -141,6 +143,11 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
     { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "Hatsu's dependency.bootstrap checksums are absent or malformed; the readiness workflow cannot bootstrap Nen", action: '' },
     { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "the readiness checksum check is Linux-only (linux-x64): this repository's readiness pool [self-hosted, macOS, ARM64, pool-mac] cannot pass it; use a self-hosted Linux X64 pool or hosted ubuntu-latest", action: '' },
     { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "this repository's nen/contract.json pins v0.30.0 but carries no valid dependency.bootstrap scriptSha256 / sha256[\"linux-x64\"]; the rendered readiness workflow exits before Nen bootstraps", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: readinessRunnerBlocked('[self-hosted, macOS, ARM64, pool-mac]', true)!.detail, action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: CONSUMER_UNREADABLE, action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: "this repository's nen/contract.json dependency must be a JSON object; the rendered readiness workflow exits before Nen bootstraps", action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: CONSUMER_BAD_REF, action: '' },
+    { id: '.github/workflows/pr-readiness.yml', state: 'blocked', detail: PROCESS_NO_PIN, action: '' },
   ];
   for (const item of items) {
     const fix = fixFor(item, rows, context);
@@ -165,6 +172,18 @@ test('engine strings map to a named fix; an unrenderable or unmatched item is un
   expect(fixFor(items[15], rows, context).edit).toContain('[self-hosted, Linux, X64, pool-<id>]');
   expect(fixFor(items[16], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/contract.json.md' });
   expect(fixFor(items[16], rows, context).edit).toContain('sha256["linux-x64"]');
+  // #554 round 2: a kept runner routes to the visibility step, not to a pool edit it cannot use.
+  expect(fixFor(items[17], rows, context)).toMatchObject({ fill: 'route', run: [] });
+  expect(fixFor(items[17], rows, context).edit).toContain('--visibility <public|private> --self-hosted <n>');
+  // QA-18: each consumer-contract refusal maps to its own row, ahead of Hatsu's own pinned_ref row.
+  for (const index of [18, 19]) {
+    expect(fixFor(items[index], rows, context)).toMatchObject({ fill: 'route', guide: 'docs/config/contract.json.md' });
+    expect(fixFor(items[index], rows, context).edit).toContain("this repository's nen/contract.json: one regular");
+  }
+  expect(fixFor(items[20], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/contract.json.md' });
+  expect(fixFor(items[20], rows, context).edit).toContain('dependency.pinned_ref: a plain git ref');
+  expect(fixFor(items[21], rows, context)).toMatchObject({ fill: 'edit', run: [], guide: 'docs/config/contract.json.md' });
+  expect(fixFor(items[21], rows, context).edit).toContain('no fallback to Hatsu');
   // A target-controlled lane name never reaches a command: it falls to the catch-all instead.
   expect(fixFor({ id: 'lane/a\nb/build', state: 'routed', detail: 'no command is declared' }, rows, context).fill).toBe('unmapped');
   expect(fixFor({ id: "lane/x';touch y'/build", state: 'routed', detail: 'no command is declared' }, rows, context).fill).toBe('unmapped');
