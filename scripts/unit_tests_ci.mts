@@ -100,6 +100,8 @@ const gated: Array<[string, string | readonly string[], string]> = [
   ['ledger_findings_prepare.mts', 'ledger_findings_prepare_fixture.mts', 'ledger-findings-guard'],
   // The skill-shape check judges the touched skills from the merge base of HATSU_BASE_SHA below (zheref/hatsu#502).
   ['skill_shape_check.mts', 'skill_shape_check_fixture.mts', 'skill-shape-guard'],
+  // The redaction guard fixture proves bare-name, slug, case, named-list and exemption rules with a stub gh (zheref/hatsu#149, BC-9).
+  ['private_name_check.sh', 'private_name_check_fixture.sh', 'redaction-guard'],
   ['amaterasu_preview.mts', ['amaterasu_preview_fixture.test.mts', 'amaterasu_preview_coverage.test.mts'], 'amaterasu-preview-guard'],
   ['en_push_guard.mts', ['en_push_guard_fixture.test.mts', 'en_push_guard_coverage.test.mts'], 'en-push-guard'],
   ['cleanup_plan_guard.mts', ['cleanup_plan_guard_fixture.test.mts', 'cleanup_plan_guard_coverage.test.mts'], 'cleanup-plan-guard'],

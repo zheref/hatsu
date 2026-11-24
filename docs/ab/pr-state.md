@@ -290,7 +290,7 @@ command above stands in for.
   (RR-IS-#681 and its antecedents) and is kept
   verbatim as the skill's motivating record. **The old skill's four repo-code examples (`BC`, `BS`,
   `RA`, `RB`) were not carried over** — they are dropped, not kept, in this port; the registry now also
-  lists `RC`, `KC` and the taxonomy's own `$comment` (§ 4's third finding), which is exactly why this
+  lists `RC`, `RF` and the taxonomy's own `$comment` (§ 4's third finding), which is exactly why this
   skill's own instruction is to resolve codes from the live file at run time rather than repeat any
   fixed list from memory, this doc's included.
 
@@ -323,7 +323,7 @@ command above stands in for.
 3. **The unknown-product-code refusal lists `$comment` as if it were a valid product code.** Verified
    live: `nen pr ready BC92 --repo <reference-repo checkout> --gates <path>` (an unparseable code from the
    no-`#` bug above, finding 1) refuses with `'BC92' is not a product code in the target repository's
-   registry. Known codes: $comment, BC, BS, KC, RA, RB, RC.` — `$comment` is `schemas/repos.json`'s own
+   registry. Known codes: $comment, BC, BS, RF, RA, RB, RC.` — `$comment` is `schemas/repos.json`'s own
    documentation key, not a `product_codes` entry, and should not be enumerated alongside the real ones
    in a message whose whole purpose is to name the valid choices.
 

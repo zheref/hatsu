@@ -163,11 +163,11 @@ repo: <reference-repo>
 band: medium -> medium
 terminal: (none -- build-only)
 ```
-The same refusal reproduces for `KC` (`kro-pwa`), which `schemas/repos.json` records under
+The same refusal reproduces for `RF` (`<product-repo-F>`), which `schemas/repos.json` records under
 `pending_onboarding`, not `consumers`:
 ```
-$ nen parse futon --repo <reference-repo> "KC@high"
-nen: 'KC' resolves to 'zheref/kro-pwa' in this registry's own product_codes, but no owner is
+$ nen parse futon --repo <reference-repo> "RF@high"
+nen: 'RF' resolves to '<product-repo-F>' in this registry's own product_codes, but no owner is
 recorded for it (it names no consumer) ...
 exit 2
 ```
@@ -209,7 +209,7 @@ nen: 'then release' is not a recognized terminal. Only 'then tag' and 'then tag+
 exit 2
 
 $ nen parse futon --repo <reference-repo> "ZZ@high"
-nen: 'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, RA, RB, RC, KC)
+nen: 'ZZ' does not resolve against this registry's product_codes ($comment, BC, BS, RA, RB, RC, RF)
 or its consumers. Resolving it to a near match would point a mutating run at the wrong backlog.
 exit 2
 
@@ -224,14 +224,14 @@ exit 2
 ### 1.10 Case-insensitivity
 
 ```
-$ nen parse futon --repo <reference-repo> "kp@HIGH+ then TAG"
+$ nen parse futon --repo <reference-repo> "ra@HIGH+ then TAG"
 nen: 'then tag' is refused against '<product-repo-A>' -- ... (same self-mismatch as 1.9's last row)
-  try: kp@high+
+  try: ra@high+
 exit 2
 ```
 The band and terminal both parsed correctly regardless of case (confirmed by the value echoed in
 the refusal, `tag`, and by the corrected line preserving `high+`) — the refusal fires on the same
-self-mismatch as § 1.9, not on casing. The corrected line preserves the caller's own casing (`kp`,
+self-mismatch as § 1.9, not on casing. The corrected line preserves the caller's own casing (`ra`,
 not `RA`).
 
 ### 1.11 `--json`

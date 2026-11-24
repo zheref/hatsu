@@ -161,8 +161,8 @@ nen pr: could not fetch zheref/hatsu#14 reviews: gh: Unprocessable Entity (HTTP 
 
 **A live target reproducing the schema-validation shape today was not found.** Checked, at
 `2026-09-02T02:28:17Z`, every other currently-open PR this session has read access to
-(`<migration-tracker>#38`, `<product-repo-A>#509`, `zheref/kro-pwa#86`, `<product-repo-B>#186`,
-`<scaffold-repo>#21`, `#23`, `<product-repo-D>#22`) — none carries a lone `PENDING` review;
+(the migration tracker (private), `RA-PR-#509`, `RF-PR-#86`, `RB-PR-#186`,
+`BS-PR-#21`, `BS-PR-#23`, `RD-PR-#22`) — none carries a lone `PENDING` review;
 each has either zero, or two or more, reviews. The bug class stays documented on the strength of the
 original live reproduction (both transcripts above are genuine, not fabricated) and the reviewer's
 independent one; **neither still reproduces today**, and that absence is itself consistent with the
