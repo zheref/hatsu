@@ -10,7 +10,7 @@ summary: Port one PR merged into its
 # Hiraishin — one merged PR, ported to one sibling
 
 **Nature: Specialist** for the brief (§§ 5–6), **Manipulator** for the filing (§ 7); `build` § 2 names
-the port's own. Epic [HA#354](https://github.com/zheref/hatsu/issues/354)'s rulings and settlements bind.
+the port's own. Epic HA#354's rulings and settlements bind.
 
 > **Name a merged PR; I bring its business logic and domain UX to the sibling intact, in the sibling's
 > own architecture and idiom, every difference ruled once and recorded.**
@@ -43,7 +43,7 @@ is discussing, stated back first; none derivable → `missing-argument`, typed. 
 `2`: `missing-argument`, the verb's line quoted; an `IS` is kamui's (`/kamui <obj>`). **The conventions
 both porting skills share** are [`ports.md`](../../../docs/config/ports.md) § *Shared conventions*, cited
 below as *conventions*, never restated. **Target**: the checkout's `origin`, or `to
-<CODE>`; equal to the source, refused. Both checkouts: [`ports.md`](../../../docs/config/ports.md) § *The checkouts file*. **Either
+<CODE>`; equal to the source, refused. Both checkouts: ports.md § *The checkouts file*. **Either
 repository ungoverned** (`nen canon resolve`, no scenario): `handbook-question (CON-37)`.
 
 ## 2. The precondition — merged into the source's base, read
@@ -72,12 +72,15 @@ the state (*conventions*' PR-source read; *merged into `<base>`* covers integrat
 
 ## 3. The run record
 
-**[`ports.md`](../../../docs/config/ports.md) § *The run record*, cited, never redefined**: `caller`
+**ports.md § *The run record*, cited, never redefined**: `caller`
 `hiraishin`, its `runId` shape, one `targets[]` entry; hiraishin's `next`: `setup` (§ 2) · `spec` · `wait`
 (§ 4) · `start` (§§ 5–8) · `done` · `declined`; `family`, `specRepo` and `specPr` null on the no-spec route.
 Ordinals are ports.md's (one record per target). **`resume`** runs ports.md's checks before any read,
 takes no `--dry-run` and continues at the recomputed step; a `kamui` record is refused, naming
 `/kamui resume <id>`.
+
+ports.md § *The phase ledger* (HR-400), one entry per step, read first on resume: `precondition` ·
+`spec` (kamui §§ 2–4 inside) · `brief` · `drift` · `issue` · `build`.
 
 ## 4. Spec first, where a spec repository is configured
 

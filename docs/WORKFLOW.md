@@ -974,7 +974,7 @@ substitution in the title.** Never silently honoured, never silently dropped.
 ### The effort's ledgers — phases, usage and sessions
 
 **Stated once, here; the skills cite it and add only what is theirs** (zheref/hatsu#93, zheref/hatsu#100, zheref/hatsu#321).
-Three ledgers per effort, keyed by the **branch** — `--effort <branch>`,
+Three ledgers per effort, keyed by the **branch**, or for a port run its run id ([`ports.md`](config/ports.md) § *The phase ledger*) — `--effort <branch>`,
 never the PR-keyed hanten cycle ledger — carry phases, usage and reported session identities:
 
 ```bash
@@ -1006,8 +1006,13 @@ marker, else it is `unread`; the configured reviewer tier does not prove which a
 `phase.note` may carry model provenance, never a dial or session value.
 **Every skill that runs a phase wraps its own phases, and every skill that spends records at the moment
 it spends** — never a transcription at the end of a sitting. Who writes what: `ren` § 2 (every step; usage
-at step 5), `build` § 4 (its own steps; usage at every § 7 report), `hanten` § 4 (one usage entry per
+at step 5), `build` § 4 (its own steps; usage at every § 7 report), `kamui` § 6 and `hiraishin` § 3 (each step, keyed by the run id, a port run having no branch of its own; [HR-400](ROSTER.md#hr-400)), `hanten` § 4 (one usage entry per
 reviewer, as each returns), `spiritual-message` § 4 and `backlog-board` § 3 (usage before a render).
+**A resumed session's spend is an entry of its own** ([HR-398](ROSTER.md#hr-398)): the session that resumes an
+effort records its usage at the same call site with `--note "resumed session"`, beside the earlier session's
+entry, never editing, merging or replacing it. Resume equality is judged on the steps (the phase ledger,
+its clock elided) and the published objects (no second PR, comment or label) only; the usage ledger of a
+resumed run is never compared with an uninterrupted run's (the proof's usage case, `scripts/resume_proof.mts`).
 `nen report data` merges them as `phases[]`, `usage[]` and `sessions[]` for Delivery rendering.
 Public Source cells contain only `kind[index]`, ledger timestamp and phase where present;
 free-form `phase.note`, `usage.source` and `session.source` stay local as classification evidence.

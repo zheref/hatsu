@@ -25,7 +25,7 @@ surfaced, never acted on.
 
 Typed — its wired position. **P1** `/ten kamui`; **P1b and P3 declined** (a source object; each
 repository's `breath` runs inside `ren`); **P2**; **P4** § 1; **P5**: no merge, no repository
-creation, no build before the spec merge. `hiraishin` (zheref/hatsu#357) calls §§ 2–4 and § 6's record
+creation, no build before the spec merge. `hiraishin` calls §§ 2–4 and § 6's record
 and holds § 0 for them.
 
 ## 1. Invocation — two templates, chosen by the literal first token
@@ -34,8 +34,8 @@ and holds § 0 for them.
 /kamui <CODE>-IS-#<N> [--dry-run]
 /kamui <CODE>-PR-#<N> [--dry-run]
 /kamui resume <run-id>
-nen parse kamui --grammar "<head>#<n> [--dry-run]" --line '<the arguments>'   # first token is not resume
-nen parse kamui --grammar "resume <run_id>" --line '<the arguments>'          # first token is resume
+nen parse kamui --grammar "<head>#<n> [--dry-run]" --line '<the arguments>'
+nen parse kamui --grammar "resume <run_id>" --line '<the arguments>'
 nen ref parse '<head>#<n>' --repo <checkout>
 nen repo resolve <CODE> --repo <checkout>
 ```
@@ -87,7 +87,7 @@ citing `CON-{n}`, never overriding it. `<nnn>`: `nen spec number`. **Every sente
 held by `nen spec check` and `cite-check` (§ *The verbs that read it*); the header cites the source and
 its linked objects; verbatim source text only as fenced source data; platform sections where platforms
 differ. Every file passes `private_name_check.sh`. The PR runs
-[`ren`](../ren/SKILL.md) → [`aka`](../aka/SKILL.md) → [`mukai`](../mukai/SKILL.md) → [`en`](../en/SKILL.md)
+[`ren`](../ren/SKILL.md) → `aka` → `mukai` → `en`
 in the spec checkout's worktree — Nobunaga, and Hisoka where the spec names a rendered surface — to the
 **G2 merge prompt** (row `merge`). A folder on `origin/<base>` already current opens no PR: `specFolder`
 recorded, **the caller's next step** (§ 5 here; hiraishin's § 5 there).
@@ -130,9 +130,10 @@ Never close or supersede the source issue.
 
 ## 6. The record, and `resume`
 
-ports.md § *The run record*, `caller: kamui`, written at each step boundary. `resume <run-id>` runs
-ports.md's checks — a `caller: hiraishin` record **refused**, **the step recomputed from live state** — and
-continues from any checkout.
+ports.md § *The run record*, `caller: kamui`, written per step boundary; § *The phase ledger*
+(HR-400), one entry per step: `setup` · `spec` · `wait` · `siblings` · `start` · `ending` (§§ 2–5, 7–8);
+none in hiraishin. `resume <run-id>` runs ports.md's checks — a `caller: hiraishin` record **refused**,
+**the step recomputed from live state**, the ledger read first — and continues in any checkout.
 
 ## 7. The start picker — multi-pick, sequential here
 
@@ -140,7 +141,7 @@ Every port issue filed or amended **and the source issue where open**, each `obj
 primary (line · surface)`; **the item whose primary is this surface is starred** — none when no item's is,
 or when several are (unruled, asked at G4); paged in fours, recorded (`nen stop answer`, WORKFLOW § 4); none → § 8. An off-surface pick
 is the decision to start here, said once (*conventions*: a build's end). Picks run as
-[`/build`](../build/SKILL.md) one after another, **visibility re-read** before each start; **kamui
+`/build` one after another, **visibility re-read** before each start; **kamui
 holds build's phase 6** (the wrap-up; en § 8's `rikugan` renders as usual): each build's merge prompt stays
 on § 8's register while the next starts; a build's G5 stops the chain (`next: start`, the rest recorded);
 any other end is recorded `stopped`, the chain continues. A behaviour with no target idiom is
