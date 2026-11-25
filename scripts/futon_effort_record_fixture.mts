@@ -59,6 +59,8 @@ if(a[0]==='parse'&&a[1]==='futon'){ const line=a[4]||'';
   if(/(^|\\s)--dry-run(\\s|$)/.test(line)) process.exit(3);
   const idle=/(^|\\s)--idle(\\s|$)/.test(line); const then=(line.match(/(?:^|\\s)then\\s+(.*)$/)||[])[1]||null;
   console.log(JSON.stringify(e.FAKE_NO_IDLE?{repo:'zheref/hatsu',label:'model/gpt',band:null}:{repo:'zheref/hatsu',label:e.FAKE_BAND?null:'model/gpt',band:e.FAKE_BAND||null,idle,then})); }
+else if(a[0]==='repo'&&a[1]==='classify') console.log(JSON.stringify({target:e.FAKE_CLASSIFY_TARGET||'zheref/hatsu',defaultGate:e.FAKE_GATE||'G4'}));
+else if(a[0]==='loop'&&a[1]==='slots'){ console.log(JSON.stringify({local:{occupied:1},facts:['sixth-stop: verified']})); process.exit(Number(e.FAKE_SLOTS_EXIT||0)); }
 else if(a[0]==='run'&&a[1]==='start'){
   if(e.FAKE_NEN_START==='refuse'){ console.error('nen run: refused'); process.exit(1); }
   const at=(f)=>a[a.indexOf(f)+1]; const answers=a.includes('--idle-answers')?JSON.parse(at('--idle-answers')):null;
@@ -81,6 +83,25 @@ else process.exit(2);
   expectStatus(started, 0, 'run start');
   const runId = /run ([0-9a-f]{32}) recorded/.exec(String(started.stdout))?.[1];
   assert.ok(runId, 'start returns a run id');
+  const slots = (env: Record<string, string> = {}) => execute(process.execPath,
+    [script, 'slots', '--repo', root, '--run', runId], env);
+  for (const gate of ['G4', 'G2']) {
+    const result = slots({ FAKE_GATE: gate });
+    expectStatus(result, 0, `${gate} slot read`);
+    assert.deepEqual(JSON.parse(String(result.stdout)), { local: { occupied: 1 }, facts: ['sixth-stop: verified'] });
+    const calls = readFileSync(nenLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line) as string[]);
+    const call = calls.filter((args) => args[0] === 'loop' && args[1] === 'slots').at(-1)!;
+    assert.equal(call[call.indexOf('--prompt-gate') + 1], gate);
+    assert.equal(call[call.indexOf('--from-run') + 1], runId);
+    assert.equal(call[call.indexOf('--local-cap') + 1], '7');
+  }
+  for (const code of [1, 2]) expectStatus(slots({ FAKE_SLOTS_EXIT: String(code) }), code, 'nen refusal preserved');
+  for (const env of [{ FAKE_GATE: 'G5' }, { FAKE_CLASSIFY_TARGET: 'other/repo' }]) {
+    const before = readFileSync(nenLog, 'utf8').split('\n').filter((line) => line.includes('"loop","slots"')).length;
+    expectStatus(slots(env), 1, 'unproven gate or target holds');
+    assert.equal(readFileSync(nenLog, 'utf8').split('\n').filter((line) => line.includes('"loop","slots"')).length, before);
+  }
+
   const bind = ['--run', runId, '--issue', '154',
     '--base', 'stack', '--head', 'gpt/kurapika/feature', '--sha', 'a'.repeat(40)];
   expectStatus(call('bind', bind), 0, 'initial bind');

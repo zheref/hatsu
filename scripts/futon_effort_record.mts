@@ -8,7 +8,7 @@
 // branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD names, never the
 // working tree; a default branch with no nen/workflow.json refuses the start, and the commit read is
 // recorded in idle.source.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -359,14 +359,31 @@ function main(argv: string[]): void {
   const allowed: { [verb: string]: string[] } = {
     start: ['--repo', '--invocation'], resume: ['--repo', '--run', '--invocation'], integrate: ['--repo', '--run', '--branch'], end: ['--repo', '--run'],
     bind: ['--repo', '--pr', '--run', '--issue', '--base', '--head', '--sha'],
-    verify: ['--repo', '--pr'], profile: ['--repo', '--run'], predict: ['--repo', '--run', '--issue', '--row'] };
+    verify: ['--repo', '--pr'], profile: ['--repo', '--run'], slots: ['--repo', '--run'], predict: ['--repo', '--run', '--issue', '--row'] };
   if (!command || !Object.hasOwn(allowed, command))
     fail(['append', 'park', 'status'].includes(command ?? '')
       ? `${command} is retired: the run manifest is nen's (nen run ${command === 'status' ? 'verify' : command}; zheref/hatsu#423)`
-      : 'usage: futon_effort_record.mts start|resume|integrate|end|bind|verify|profile|predict --repo ROOT [flags]');
+      : 'usage: futon_effort_record.mts start|resume|integrate|end|bind|verify|profile|slots|predict --repo ROOT [flags]');
   const args = flags(argv);
   checkKeys(args, allowed[command]);
   const root = realpathSync(requireFlag(args, '--repo'));
+  if (command === 'slots') {
+    const runId = requireFlag(args, '--run');
+    const record = readRun(runPath(root, runId, false));
+    if (record.contract !== 'hatsu.futon.run/v0.3')
+      fail('slots requires a run with a nen manifest');
+    const classified = json<{ target: string; defaultGate: string }>('nen', ['repo', 'classify', '--repo', root, '--json'], root);
+    if (classified.target !== record.repo || !['G2', 'G4'].includes(classified.defaultGate))
+      fail('slots requires the recorded repository and a classified G2 or G4 prompt gate');
+    // Nen alone checks durable receipts, sixth-stop evidence, moved heads and repair holds.
+    // Preserve its JSON and exit status; never free another slot in Hatsu's report.
+    const result = spawnSync('nen', ['loop', 'slots', '--from-run', runId, '--target', record.repo,
+      '--prompt-gate', classified.defaultGate, '--ci-cap', '2', '--local-cap', '7', '--repo', root, '--json'],
+    { cwd: root, stdio: 'inherit' });
+    if (result.error || result.signal || result.status === null) fail('nen loop slots did not complete');
+    process.exitCode = result.status;
+    return;
+  }
   if (command === 'profile') {
     const runId = requireFlag(args, '--run');
     const run = readRun(runPath(root, runId, false));

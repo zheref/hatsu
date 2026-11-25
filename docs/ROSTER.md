@@ -220,7 +220,7 @@ evidence · proposed fix** — and an unsettled finding is a **G5**, raised by `
 **Correction, 2026-09-19: the finding shape has grown, and this ruling's four fields are no longer all
 of it.** It is six — `rule`, `severity`, `path`, `line`, `evidence`, `proposedFix` — the location split
 out so a finding that names none is recorded as a note, and `severity` gained **`nit`** under `low`.
-The shape lives in [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) § 4 and
+The shape lives in [`docs/personas/_review-preamble.md`](personas/_review-preamble.md) § 4 and
 [`hanten`](../claude/skills/hanten/SKILL.md) § 5; nothing else about this ruling changed.
 
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate and when. Two

@@ -86,6 +86,10 @@ run_case() {
   printf '%s: exit %s\n' "$name" "$actual_status"
 }
 
+printf '%s\n' 'docs/personas/kurapika.md' > "$fixture_root/changed-persona-protocol.txt"
+run_case 'persona protocol unchanged version refuses' 1 "$fixture_root/changed-persona-protocol.txt" "$fixture_root/head-unchanged.json" 'docs/personas/**'
+run_case 'persona protocol bumped version passes' 0 "$fixture_root/changed-persona-protocol.txt" "$fixture_root/head-bumped.json" 'plugin.json version bumped'
+
 for runtime_path in scripts/tenkai_adopt.ts scripts/tenkai_adopt_legacy.sh \
   scripts/tenkai_fixes.ts \
   scripts/pr_sections_history.ts scripts/config_values_refresh.ts \

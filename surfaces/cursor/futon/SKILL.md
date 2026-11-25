@@ -15,9 +15,6 @@ summary: Work one severity band or
 Per issue, futon is [`build`](../build/SKILL.md) → [`tensho`](../tensho/SKILL.md) →
 [`en`](../en/SKILL.md), cut short by an integration branch (§ 5).
 
-Futon is a **scoped, terminated [`backlog-loop`](../backlog-loop/SKILL.md)**: a **selector**, an
-**explicit `then`**, and **who is behind every PR**.
-
 > **No CI plane** (WORKFLOW § *Building an issue with no CI plane*): **Kurapika builds every issue.**
 
 ## 1. Invocation
@@ -96,14 +93,16 @@ Before En, bind and verify each stacked delivery PR, refreshed on head changes
 ## 6. Two concurrency budgets, counted separately
 
 ```bash
-nen loop slots --from-run <run id> --target <owner/name> --ci-cap 2 --local-cap 7 --repo <target checkout> --json
+node "$hatsu_root/scripts/futon_effort_record.mts" slots --run <run id> --repo <target checkout>
 nen loop slots --efforts <abs path> --ci-cap 2 --local-cap 7 --repo <target checkout> --json
 ```
 
 Summed: the manifest's delivery PRs and claimed efforts without one (WORKFLOW § *Idle batches* rule 4; the host's budget is § *Host workload budget*, apart).
 
 **CI** (legacy-CI only) frees at PR-open; **local** frees at **`ready+prompted`**
-or a verified sixth-stop handoff (HR-372; nen counts it, futon's report frees). **`--local-cap 7` is always passed**; omitted, exit `2`.
+or a verified sixth-stop handoff (HR-372; nen verifies the evidence and counts the release). The adapter always passes `--local-cap 7`.
+`slots` passes the classified G2/G4 as `--prompt-gate`; en records `--prompt-shown` after
+the prompt. Markers never release slots; unread evidence holds them.
 **Never traded**: a full local budget is backpressure.
 
 ## 7. Authority — the CON-25 delegation

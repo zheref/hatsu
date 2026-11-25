@@ -556,6 +556,29 @@ Use the stop's `MERGE` ask for the human handoff on the run's own PR and another
 PR link, the gate, whose review it carries, the quoted verdict and GitHub's gate result. Include
 the command above only when check 6 and method selection establish it.
 
+**After the prompt has actually been shown**, record its durable receipt with the run manifest's
+exact effort id, PR, judged full head and resolved gate (never infer it from the attention marker):
+
+```bash
+nen stop --prompt-shown --effort <id> --pr <N> --head <judged sha> --gate <G2|G4> --repo <checkout> --json
+```
+
+For § 6's sixth stop, then record its separate evidence:
+
+```bash
+nen stop --sixth-stop-from <evidence.json> --target <owner/name> --effort <id> --pr <N> --head <judged sha> --gate <G2|G4> --repo <checkout> --json
+```
+
+The evidence document has `requests` and `windows` arrays. Each request is
+`{reviewer, head, exitCode: 9, result}` with that call's complete `request-reviews --json` result.
+Each required window is the complete head-pinned `watch until --pr --until ready --require-head
+<judged sha> --require-base-gates --json` result, with two observations and no caller gate overrides;
+retain `intervalMs` and `sixthStopObservations`. Supply both paced windows for an absent round check;
+when none is needed, `windows` is empty. Preserve additive JSON fields. Nen validates this evidence;
+a refusal holds the slot and is reported, never reinterpreted as Ready. A later repair uses
+`nen stop --repair-hold` with the same target, effort, PR, head and gate. A receipt alone does not
+prove a sixth stop, and no receipt is recorded before the prompt is shown.
+
 **It hands off once for this run**, with the check 2 verdict and GitHub's gate result, and rings once. A quiet observation rings nothing — a bell that rings
 every poll of a four-hour wait is a bell nobody hears.
 

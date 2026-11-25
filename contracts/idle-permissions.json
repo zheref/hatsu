@@ -19,7 +19,27 @@
       "by": "build § 2 (issue questions|body-check)"
     },
     {
-      "command": "nen loop slots --from-run <run> --target <owner/name> --repo <checkout>",
+      "command": "node <hatsu-root>/scripts/futon_effort_record.mts slots --run <run> --repo <checkout>",
+      "by": "futon § 6; kazaana § 3"
+    },
+    {
+      "command": "nen loop slots --from-run <run> --target <owner/name> --prompt-gate G2 --ci-cap 2 --local-cap 7 --repo <checkout>",
+      "by": "futon § 6 (consumer gate)"
+    },
+    {
+      "command": "nen stop --prompt-shown --effort <id> --pr <n> --head <sha> --gate G4 --repo <checkout> --json",
+      "by": "en § 5 (G2 for a consumer)"
+    },
+    {
+      "command": "nen stop --sixth-stop-from <evidence.json> --target <owner/name> --effort <id> --pr <n> --head <sha> --gate G4 --repo <checkout> --json",
+      "by": "en § 5 (G2 for a consumer)"
+    },
+    {
+      "command": "nen stop --repair-hold --target <owner/name> --effort <id> --pr <n> --head <sha> --gate G4 --repo <checkout> --json",
+      "by": "en § 5 (G2 for a consumer)"
+    },
+    {
+      "command": "nen loop slots --from-run <run> --target <owner/name> --prompt-gate G4 --ci-cap 2 --local-cap 7 --repo <checkout>",
       "by": "futon § 6"
     },
     {

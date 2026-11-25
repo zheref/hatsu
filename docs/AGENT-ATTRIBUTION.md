@@ -168,13 +168,12 @@ prints, without touching the working tree (aka § Residue).
   edits the message after `prepare-commit-msg` all skip layer (b). Each is `--no-verify` by another
   name, and each is refused.
 
-**No sanctioned strip step exists at the pin** (nen 0.28.0; the v0.29.0 and v0.30.0 notes add none). The hook `nen scaffold init` writes
-refuses a listed key on every commit, and no nen verb removes a key a hook added. Whether nen should
-offer one, and on what terms, is zheref/nen#594, a design question for the maintainer. Until it is
-ruled and released, a cloud agent cannot commit in such a repository. The maintainer's ways forward
-are option B (a surface whose harness appends nothing), starting the cloud agent from a service
-account (Cursor documents that such agents get no trailer; that choice is the maintainer's, not a
-setting a skill applies), or leaving the effort stopped.
+**Nen 0.31 provides an opt-in hook strip** (`commits.stripInjected`, zheref/nen#594).
+Hatsu does not opt in or regenerate hooks in this repin, so the refusal paths above still apply.
+Where a consumer already opted in, `nen commit write` and `nen wc squash` exit `4` after a
+commit whose hook stripped an injected key; report `stripped[]` and never retry that commit.
+Exit `3` wins when a refused key remains. The configured list may contain only forbidden keys;
+no caller strips a composed message or sets the verb's internal environment variables by hand.
 
 ## Pull request provenance
 

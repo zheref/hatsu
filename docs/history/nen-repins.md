@@ -47,6 +47,7 @@ adoption narrative in the contract.
 | `v0.26.0` | 0.26 | 0.26 | 2026-10-22 | `333117c7c` | HA-PR-#422 | [§ v0.26.0](#v0260) |
 | `v0.28.0` | 0.28 | 0.28 | 2026-10-25 | `5141c8ee3` | HA-PR-#485 | [§ v0.28.0](#v0280) |
 | `v0.30.0` | 0.30 | 0.30 | 2026-11-05 | `e5a88dc59` | HA-PR-#568 | [§ v0.30.0](#v0300) |
+| `v0.31.0` | 0.31 | 0.31 | 2026-11-25 | this repin commit | this delivery PR | [§ v0.31.0](#v0310) |
 
 One move had no pin: the minimum rose to 0.16 at `a228b0855` (2026-09-29, `hatsu:limbo`) with
 `pinned_ref` unchanged at `v0.16.0`.
@@ -60,6 +61,49 @@ feature and the floor, as 0.19 was at the v0.19.0 repin, 0.20 at the v0.20.0 rep
 direct families), 0.21 at the v0.21.0 repin (the floor and nen's gates keys), 0.22 at the v0.22.0 repin
 (v0.22.0 moved the floor to 0.22 and Hatsu adopted the list slots and backlog filters), 0.24 at the
 v0.24.0 repin, 0.26 at the v0.26.0 repin (the floor and `nen review ledger`), 0.28 at the v0.28.0 repin (the floor, nen canon lint and the spec family) and 0.30 at the v0.30.0 repin (the floor alone: no new verb).
+
+
+## v0.31.0
+
+This repin raises minimum and floor to 0.31 and uses the published
+[Nen v0.31.0 release](https://github.com/zheref/nen/releases/tag/v0.31.0).
+On 2026-11-25 its three platform digests were read from the attached `SHA256SUMS`;
+the downloaded darwin-arm64 asset passed verification and printed `0.31.0`.
+Tag target: `a9b41c756d0b7e090c79df8d389bd95a2d8d7a3a`. Its `bootstrap/nen.sh`
+SHA-256 remains `abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70`.
+The contract, provenance and Cursor Cloud install example move together. Both plugins move
+to 0.177.0: a minor because the bootstrapped dependency and caller behavior change.
+
+### Breaking / consumer notes absorbed
+
+| Nen note | Hatsu caller and adoption |
+|---|---|
+| Floor 0.31 | `ten` reads minimum 0.31 and bootstrap ref v0.31.0 from the contract; the previous 0.30 pin is refused by the new binary. |
+| zheref/nen#622: attention markers no longer release slots | `en` § 5 records `nen stop --prompt-shown` after showing the prompt, with the manifest effort id, PR, judged full head and G2/G4. Futon § 6 and Kazaana § 3 call `futon_effort_record.mts slots`, which classifies the target and passes `--prompt-gate` to `nen loop slots --from-run`. The idle permission exemplars and WORKFLOW rules describe the same path. |
+| zheref/nen#655: sixth-stop handoff | En preserves `request-reviews --json` results and head-pinned, base-gated watch windows, then records `--sixth-stop-from` after the prompt receipt. Nen verifies `nen.stop.sixth-stop/v0.1` and releases the slot while readiness remains `not-ready`. Missing evidence, moved heads, another failed readiness row and `--repair-hold` hold it. Futon never releases a slot by subtracting from the report. |
+| zheref/nen#655: additive JSON | Searches of scripts/fixtures and en, sharingan, shibari, tensho, jujisho, limbo and ren found no whole-document exact-equality reader of `request-reviews` or `watch until`. Preserve `repo`, `pr`, `requestHead`, `exitCode`, resolved `unrecordedBots[].login`, `intervalMs` and `sixthStopObservations` in evidence; do not project them away. |
+| zheref/nen#643: Expo detection | Hatsu is not an Expo application. `okiro` § 4 consumes detection after setup/prebuild in consumer repositories, including Expo; it already accepts the exact approved proposal and withholds absent seats. `senkei` and `dowsing-chain` inventory proposals and withheld rows without asserting fixed commands. No caller assumes those five rows exist, so no code change is required. |
+| zheref/nen#596: dry-run suffixes | No script/fixture compares `labels sync` or `classify install --sync` output by exact equality. Classify/Tenkai show the verb's output; `(was: color …)` and `(was: description "…")` are retained. The default-branch refusal's `nen labels sync … --ref <branch>` advice is passed through. |
+| zheref/nen#641: 32,768-byte Codex limit | The published binary refused the original 152,769-byte appendix at exit 2, naming Illumi and byte 32768. Authored `claude/agents/*.md` now retain routing metadata and mandatory links to the full protocols in `docs/personas/*.md`; the generator reads those entries. Regeneration with 0.31.0 produces an appendix below the limit, preserving every protocol outside the automatically loaded appendix. Placed copies resolve protocols from the installed root and stop if unreadable. |
+| zheref/nen#678: stored delta rows | The pin permits reading ledgers containing `outcome: "delta"`. This PR does not adopt delta writes. Do not write them until this pin is on main and every Hatsu runner has bootstrapped 0.31.0; older nen refuses such ledgers as inconsistent history. |
+
+### Other reached consumer boundaries
+
+Nen's released commit/squash change (zheref/nen#594) adds exit 4 and `stripped[]`.
+Kokusen, Aka, WORKFLOW and AGENT-ATTRIBUTION treat it as committed and never retry it;
+exit 3 still wins if a refused key remains. This repin does not enable the opt-in or edit hooks.
+The added schema delivery-prefix row is advisory; schema checks do not compare the complete
+checks array. Hatsu's current prefix warning is recorded, with no gate-policy edit here.
+
+### Mirror binary choice
+
+HA-PR-#568 rejected regenerating with the incoming binary because trusted CI used the base pin.
+Here the explicit acceptance check requires the published 0.31.0 binary for generation and check:
+retaining an oversized appendix until after merge would leave every subsequent generation refused.
+No CI workflow or guard is changed. The source split is compatible with the previous generator;
+both pins' mirror checks are compared before publication. The bankai-handbooks v0.12.0 pin stays
+outside this repin. Akatsuki-ai, bankai-handbooks and kro-spec still owe their own repin work.
+
 
 ## v0.30.0
 

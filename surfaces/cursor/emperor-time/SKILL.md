@@ -10,7 +10,7 @@ summary: Take one raw product idea
 # Emperor Time — the Specialist's intake ceremony
 
 **Nature: Specialist** — the kept Product-Owner canon of
-[`claude/agents/kurapika.md`](../agents/kurapika.md) § *Specialist*; **Manipulator** named for the
+[`docs/personas/kurapika.md`](../../../docs/personas/kurapika.md) § *Specialist*; **Manipulator** named for the
 GitHub reads of § 5 and the writes of § 6. One condition, stated in advance: **nothing is filed before
 the maintainer's own word.**
 
