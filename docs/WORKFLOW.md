@@ -801,7 +801,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `ready+prompted` | Fixed by [HR-353](ROSTER.md#hr-353), amended by [HR-372](ROSTER.md#hr-372). Futon § 6 uses `futon_effort_record.mts slots`, which reads the target's classified G2/G4 and passes `--prompt-gate` to `nen loop slots --from-run`. En § 5 records `nen stop --prompt-shown` only after showing the prompt, bound to the manifest effort id, PR and judged head. An attention marker is not evidence. Nen 0.31 releases a Ready delivery with that receipt, or a verified `nen.stop.sixth-stop/v0.1` handoff while readiness remains `not-ready`. Missing evidence, a moved head, another failed row or a repair hold keeps the slot occupied; Hatsu never subtracts a slot from nen's report. Claimed efforts without a PR hold until local integration, counted separately as in Idle batches rule 4. `start` refuses a configured rule other than `ready+prompted`. |
+| `localSlotFrees` | `ready+prompted` | Fixed by [HR-353](ROSTER.md#hr-353), amended by [HR-372](ROSTER.md#hr-372). Futon § 6 uses `futon_effort_record.mts slots`, which derives each PR's G2/G4 from its changed paths under *Gate derivation*, calls `nen loop slots --from-run --prompt-gate` once per group and selects that group's Nen decisions. En § 5 records `nen stop --prompt-shown` only after showing the prompt, bound to the manifest effort id, PR and judged head. An attention marker is not evidence. Nen 0.31 releases a Ready delivery with that receipt, or a verified `nen.stop.sixth-stop/v0.1` handoff while readiness remains `not-ready`. Missing evidence, a moved head, another failed row or a repair hold keeps the slot occupied; Hatsu counts only Nen's selected holding entries, with unlinked claims counted once and unread claims retaining their hold. Claimed efforts without a PR hold until local integration, counted separately as in Idle batches rule 4. `start` refuses a configured rule other than `ready+prompted`. |
 
 ### `idle`
 
@@ -1415,14 +1415,17 @@ no answers). A refused or non-`started` nen start, or a manifest storing other `
 refuses `start` (exit 1), so no record names a run nen never opened; a record that cannot be written names
 nen's manifest path as the orphan. `bind` refuses a dry run and an idle one, and `verify` refuses a claim on either (§ *Batch delivery* rule 4). After **every** PR the run opens — delivery, integration or release,
 **whatever its base**, `main` included — `nen run append --id <run id> --pr <N> --kind delivery|integration|release
-[--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>` records it from the live PR (a re-append refreshes base
+[--issue <CODE>#<N>] --effort <bound effort id> --repo <checkout>` records it from the live PR (a re-append refreshes base
 and head; a PR opened before the run, or under another kind or issue, is refused). `nen run park --id <run id>
 --issue <CODE>#<N> --row <row>` records a parked effort; `nen run verify --id <run id> --target <owner/name>
 --repo <checkout> [--json]` reads every recorded PR live and prints the parked rows: futon § 8's `then` gate,
 kazaana § 5 and the register read every PR this run authored from it, never from memory. A v0.1 or v0.2 run
 (opened before this change) has no nen manifest: `verify` exits non-zero and the gate is **held**, never met by an
 empty set; `profile` prints its record with `manifest: absent`. The record's `append`, `park` and `status` are
-retired and refuse by name.
+retired and refuse by name. Every delivery append must carry its bound effort id: a null effort
+cannot match a prompt receipt. Recover a legacy null row only by proving the existing effort binding
+and re-appending the same PR, kind and issue with that id; Nen fills null but rejects a different
+non-null effort. If the binding cannot be proven, hold the slot and report the missing evidence.
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
@@ -1433,7 +1436,7 @@ node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
 node "$hatsu_root/scripts/futon_effort_record.mts" predict --repo <checkout> --run <dry id> --issue <CODE>#<N> --row <row>
-nen run append --id <id> --pr <N> --kind delivery|integration|release [--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>
+nen run append --id <id> --pr <N> --kind delivery|integration|release [--issue <CODE>#<N>] --effort <bound effort id> --repo <checkout>
 nen run park   --id <id> --issue <CODE>#<N> --row <row | budget | needs-clarification | residue-<skill> | g5-<class>> --repo <checkout>
 nen run verify --id <id> --target <owner/name> --repo <checkout> --json
 ```
@@ -3554,7 +3557,7 @@ authored (row `missing-focused-route`) — neither is a stop.
 listing every path, refuses a name that already exists locally or on `origin`, requires `--repo`, and
 has **no `--tests` on the initial warm-up**. **`nen shu tools` exit `5` names the fix per tool**:
 install or resolve through the surface's own catalogue probe (row `missing-tool`), never with
-elevation and never at an unpinned version. **Exit codes are `claude/agents/kurapika.md` § *The `shu`
+elevation and never at an unpinned version. **Exit codes are `docs/personas/kurapika.md` § *The `shu`
 verbs*'**; **`4`** is a seat whose reason is quoted, after which the repository's own documented
 command is run and said so, a declaration change landing as its own PR at the declaration gate (**G4**
 in a canon repository, **G2** in a consumer one, ruling 2026-09-18); **`3`** is a **G5** naming the

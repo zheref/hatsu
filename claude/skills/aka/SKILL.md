@@ -156,7 +156,7 @@ A missing argument or configuration item is asked for and set up inline (`missin
 default above that covers the key is used and stated, never asked about. **§ 4's refusals are not gaps**:
 rewriting published history, a forbidden trailer and a push of the trunk still refuse, never guessed past.
 
-> **Declared change from `claude/agents/kurapika.md` § *How you work* — named, not slipped in.**
+> **Declared change from `docs/personas/kurapika.md` § *How you work* — named, not slipped in.**
 > The agent definition today reads *"No AI attribution beyond the trailers the maintainer's own
 > harness mandates — today `Co-Authored-By:` and `Claude-Session:` … you neither add attribution of
 > your own nor strip theirs"*, and records that the final rule is a constitutional question left

@@ -100,7 +100,7 @@ assertion excerpt plus the screenshot or recording the runner produced. **`not-t
 capability** (no device, no runner, no driver, no scenario row) and **is never rendered as a pass**. A
 criterion that was not attempted was not validated, and the row says so.
 
-**A `fail` becomes a finding in hanten's fixed shape** (`claude/agents/_review-preamble.md` § 4): `rule` is
+**A `fail` becomes a finding in hanten's fixed shape** (`docs/personas/_review-preamble.md` § 4): `rule` is
 the criterion cited by its source — issue and criterion, or the PR's "verify" — `evidence` is the
 failing run, `proposedFix` is what would satisfy the criterion. **Shalnark files nothing and fixes
 nothing**; the findings come back here.

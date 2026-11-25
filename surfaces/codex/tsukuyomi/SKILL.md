@@ -200,7 +200,7 @@ code** and the top-level `exitCode` is nen's. Verified live, by 2026-09-10, on a
 in `steps[0].exitCode` and nen's own `exitCode` is `1`, with the runner's stdout and stderr relayed
 as it finished (`docs/ab/tsukuyomi.md` § 2.3).
 
-**Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs* is the authority):
+**Reactions, by exit code** (`docs/personas/kurapika.md` § *The `shu` verbs* is the authority):
 
 | Exit | Fact | Reaction |
 |---|---|---|

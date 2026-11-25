@@ -111,7 +111,7 @@ nen shu warmup --repo <path> --branch <rendered name> --from <branch.base | the 
 - **`--discard` is never breath's flag** (§ 6). **A repository with no declaration still warms** (the git half, exit `0`); a
   `project` block is proposed at the declaration gate.
 
-**Exit codes are `claude/agents/kurapika.md` § *The `shu` verbs*'**; only what differs here:
+**Exit codes are `docs/personas/kurapika.md` § *The `shu` verbs*'**; only what differs here:
 
 | | |
 |---|---|

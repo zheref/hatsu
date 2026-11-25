@@ -105,7 +105,7 @@ nen shu <verb> --repo <core working directory> --target <name> [--lane <lane>]
   contradicting `project.launch.<name>.lane` is exit `2` naming both**.
 - `dev`/`run` are **long-running**: `--json` without `--dry-run` is exit `2`, and **the launch is never
   backgrounded** to free the terminal — say the app is running and what holds it.
-- **Exit codes** per `claude/agents/kurapika.md` § *The `shu` verbs*; here `1` is a declared step
+- **Exit codes** per `docs/personas/kurapika.md` § *The `shu` verbs*; here `1` is a declared step
   failing — **say which: build, install or launch** — hand authored-code failures to
   [`rasengan`](../rasengan/SKILL.md), a failed install or launch being incomplete delivery; `3` an
   excluded host, a **G5**, never retried; `4` a real seat, quoted, then the repository's documented

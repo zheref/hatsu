@@ -245,7 +245,7 @@ nen shu lint  --repo <path> [--lane <lane>]
 ```
 
 Never the tool's own command line typed from memory — that is the standing transmutation
-(`claude/agents/kurapika.md` § Transmuter), and a remembered command line is how a build that passes
+(`docs/personas/kurapika.md` § Transmuter), and a remembered command line is how a build that passes
 here fails in CI.
 
 **The dry run, once, on a repository you have not built:**
@@ -287,7 +287,7 @@ where the path *lands*, never whether a link was involved.
 
 ## 6. The exit table — one reaction per code
 
-`claude/agents/kurapika.md` § *The `shu` verbs* is the authority; this is what rasengan does with each
+`docs/personas/kurapika.md` § *The `shu` verbs* is the authority; this is what rasengan does with each
 inside its own loop. [`/kokusen`](../kokusen/SKILL.md) § 3 reads the same table at the gate, and
 differs in exactly one row — a `1` there ends the commit rather than the edit.
 

@@ -1,6 +1,6 @@
 ---
 name: sharingan
-description: Drive one open PR to CON-32 readiness at its human gate, then stop there. Use when the maintainer invokes hatsu:sharingan <CODE>#<PR> to <G2|G4>, or asks to get a PR ready, unstick a PR, or take it to the merge gate; hatsu:en composes it as its second and fourth steps. Names the first blocker, settles threads, requests the owed round, and decides readiness with `nen pr ready`. It never merges, self-reviews, or votes.
+description: Drive one open PR to CON-32 readiness and stop at its human gate. Use for hatsu:sharingan <CODE>#<PR> to <G2|G4> or a request to ready or unstick a PR. En composes it. Settle findings and owed rounds; decide with nen pr ready. Never merge or vote.
 ---
 
 # Sharingan — one PR, to the doorstep of its gate
@@ -132,7 +132,8 @@ git diff --stat <reviewed-head>..HEAD
 ends the run** — M requested, or N resolved with the verdict still not-ready (a round owed at head that
 no bound lets the run request is an impossible condition, not one to poll) — not-ready,
 `--explain` quoted, the board, never a question, never a G5, never a ceiling raised in-session.
-Each request records `headRefOid`, read just before it, with its `--json` verbatim. **Exit `9`**
+Preserve Shibari's original one-bot request records and relay them unchanged to En;
+never request again to replace an exit-9 result. Each request records `headRefOid`, read just before it, with its `--json` verbatim. **Exit `9`**
 (`unrecordedBots`, nen#277) is never retried or counted as requested. A met quorum excuses an
 unavailable member; **every member unavailable** is the sixth stop, its predicate stated once in PROCESS,
 *The sixth stop* (ruling 2026-10-11). **A CI lane is never requested** (PROCESS,

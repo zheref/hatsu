@@ -92,7 +92,7 @@ maintainer's line that exits `2`, or names no PR where the session holds none, i
 offer the session's open PRs in the picker and resume on the answer, never the end of the run.
 
 Resolve the code once, up front, and keep the slug for every later call — never re-derive it a
-second way (`claude/agents/kurapika.md` § *How you work*):
+second way (`docs/personas/kurapika.md` § *How you work*):
 
 ```bash
 nen repo resolve <CODE> --repo <path to the target repo's own checkout>
@@ -559,13 +559,17 @@ PR link, the gate, whose review it carries, the quoted verdict and GitHub's gate
 the command above only when check 6 and method selection establish it.
 
 **After the prompt has actually been shown**, record its durable receipt with the run manifest's
-exact effort id, PR, judged full head and resolved gate (never infer it from the attention marker):
+exact effort id, PR, judged full head and the gate derived for this PR's changed paths
+(WORKFLOW § *Gate derivation*, including both rename sides; never `repo classify.defaultGate`) (never infer it from the attention marker):
 
 ```bash
 nen stop --prompt-shown --effort <id> --pr <N> --head <judged sha> --gate <G2|G4> --repo <checkout> --json
 ```
 
-For § 6's sixth stop, then record its separate evidence:
+For standalone En with no Futon manifest, use the effort id bound by Breath; do not invent a run.
+A governed delivery must first have its matching non-null manifest effort (WORKFLOW § *Recorded Futon delivery ownership*).
+
+Only for § 6's required-policy sixth stop, conditions (a)–(e), then record its separate evidence:
 
 ```bash
 nen stop --sixth-stop-from <evidence.json> --target <owner/name> --effort <id> --pr <N> --head <judged sha> --gate <G2|G4> --repo <checkout> --json
@@ -578,7 +582,9 @@ Each required window is the complete head-pinned `watch until --pr --until ready
 retain `intervalMs` and `sixthStopObservations`. Supply both paced windows for an absent round check;
 when none is needed, `windows` is empty. Preserve additive JSON fields. Nen validates this evidence;
 a refusal holds the slot and is reported, never reinterpreted as Ready. A later repair uses
-`nen stop --repair-hold` with the same target, effort, PR, head and gate. A receipt alone does not
+`nen stop --repair-hold` with the same target, effort, PR, head and gate; that hold invalidates same-head release and
+cannot be cleared by re-recording evidence. Optional/off hanten prompts do not satisfy this
+required-policy evidence route: record the shown prompt, but claim no sixth-stop slot release. A receipt alone does not
 prove a sixth stop, and no receipt is recorded before the prompt is shown.
 
 **It hands off once for this run**, with the check 2 verdict and GitHub's gate result, and rings once. A quiet observation rings nothing — a bell that rings
@@ -597,6 +603,18 @@ Each refresh window has exactly two observations: the first establishes the wind
 "$hatsu_root/scripts/gh_token_env.sh" nen watch until --pr <CODE>#<N> --until ready --repo <path> <identity flags> \
   --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000>   # one paced refresh window; no exclusion flag
 ```
+
+For required-policy sixth-stop evidence, use this dedicated window instead of the generic block:
+
+```bash
+"$hatsu_root/scripts/gh_token_env.sh" nen watch until --pr <CODE>#<N> --until ready --repo <path> \
+  --require-head <judged full sha> --require-base-gates --json \
+  --max-iterations 2 --interval-ms <monitor.pollSeconds × 1000> > <window.json>
+```
+
+Retain the complete JSON and exit status of each completed window. No `--gates`, `--reviewers`,
+`--approvers` or exclusion override is permitted on this evidence producer. An absent round check
+requires two such paced windows at the same head; a changed head restarts the evidence.
 
 **`--pr` is `nen pr ready`'s own in-process read** (zheref/nen#264), so the watched verdict and the
 quoted one never disagree, and no command string is handed over (shapes (3) and (b) of
@@ -646,7 +664,7 @@ en acts, and the `<n>/<cap>` the verb prints is the number the report carries.
 | the PR becomes Ready (§ 4's three cases, the PR's own base first: (1) a PR into the default branch, with the Development guard's `0`; (2) with its `retarget-pending` line quoted; (3) with its `not-applicable` line quoted — neither line a veto) | step 6: on `branch.base`, ring the human merge gate; every off-base PR checks § 5's Futon record first and either takes the bounded Ready merge or reports the exact ownership/gate refusal at its current base, without an automatic merge |
 | **`checks-green` failing only on a CI reviewer lane's check still in flight at head** (a red check at the same head is the red-check row) ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *Event-driven reviewer lanes*) | **pending, not Ready** — a wait: the push already re-ran the lane, so nothing is requested of it and no cycle is spent; observe until the check concludes, then re-decide. Past PROCESS's lane stall bound (same paragraph) it is a named impossible condition — the hold ends not-ready, the check's state quoted |
 | **a round owed at head to a member of a met `round_quorum` that cannot post it** — exhausted credits, no run at head, a run that completed without a round ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *One bot reviewer suffices*); **except a CI reviewer lane whose check is still in flight**, which is the row above | **not a pending state** — nen fulfils it (zheref/nen#361) and the verdict reads it so; nothing is requested of that member and no cycle is spent |
-| **an unmet `round_quorum` member with no round-check run at the judged head, the round row the only failing row, its window not yet passed** ([PROCESS.md](../../../docs/PROCESS.md), *The sixth stop*, (c)'s third observation; [HR-373](../../../docs/ROSTER.md#hr-373), zheref/hatsu#543) | **pending, a wait** — no cycle spent: run the two paced refresh windows (§ 6's block) at that head, quoting each with its head; a push restarts them. Still no run after both, it is that member's (c) observation and the row below decides |
+| **an unmet `round_quorum` member with no round-check run at the judged head, the round row the only failing row, its window not yet passed** ([PROCESS.md](../../../docs/PROCESS.md), *The sixth stop*, (c)'s third observation; [HR-373](../../../docs/ROSTER.md#hr-373), zheref/hatsu#543) | **pending, a wait** — no cycle spent: run the two dedicated sixth-stop evidence windows (§ 6) at that head, quoting each with its head; a push restarts them. Still no run after both, it is that member's (c) observation and the row below decides |
 | **every `round_quorum` member unavailable at the judged head, the round row the only failing row** ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *The sixth stop*, (a)–(e)) | **not a pending state — no round will arrive.** End the hold and go to step 6, the sixth stop, with the not-ready verdict quoted verbatim and the Hatsu line beside it; no cycle is spent |
 | an **effective** `aiReviewers: optional \| off` (PROCESS), its hanten prompt's conditions met ([PROCESS.md § *Reviewer rounds and review threads*](../../../docs/PROCESS.md), *AI reviewers per consumer*, stated once there) | **not a pending state — the round is not expected.** End the hold and go to step 6, the sixth stop, the not-ready verdict quoted verbatim with PROCESS's Hatsu line; no cycle is spent. Under an effective `off` en never requests a bot |
 | **the PR reads `MERGED` or `CLOSED`** | En's own reads first: the timeline (`base_ref_deleted`) and, after one, whether the deleted base merged and whether the head branch is still on origin. **Any of them unread is a stop handed back naming that read — no push, no successor, as guard exit `2`**; `--base` cannot be chosen until the timeline read succeeds. Then § 3's guard `check`, `--base` the PR's `baseRef`, or after `base_ref_deleted` `--base <branch.base>` (with `--carry-from base` on the successor row below; the plain HEAD-anchored set on every other row); exactly one of the next seven rows applies |

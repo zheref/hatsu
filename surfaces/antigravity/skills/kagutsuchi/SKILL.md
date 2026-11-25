@@ -141,7 +141,7 @@ re-cut. **A tag refusal never unsends anything.**
 
 ## 5. The refusals, credentials, and the report
 
-Codes per `claude/agents/kurapika.md` § *The `shu` verbs*; **a seat beats a typo**.
+Codes per `docs/personas/kurapika.md` § *The `shu` verbs*; **a seat beats a typo**.
 
 | Exit | Fact | Reaction |
 |---|---|---|

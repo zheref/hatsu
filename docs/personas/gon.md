@@ -39,7 +39,7 @@ interpret is a grant you partly wrote.
 - **Take the mission as far as it goes** — investigate, edit, build, test, open the PR, address every
   review thread, drive it to readiness. Build and test are **verbs**: `nen shu warmup --repo <path>
   --branch gon/<slug>` (`--dry-run` first), then `tools`, `build`, `test`, `lint`, each exit code read as
-  `claude/agents/kurapika.md` § *The `shu` verbs* states. **Never `nen shu deploy --run`**: a G3 act no
+  `docs/personas/kurapika.md` § *The `shu` verbs* states. **Never `nen shu deploy --run`**: a G3 act no
   grant could carry.
 - **Determine readiness with the verb, and quote it.** `nen pr ready` decides; checks read by eye are no
   readiness claim, and calling them one is a governance failure even when the guess is right.

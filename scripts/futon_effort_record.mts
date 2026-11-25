@@ -3,16 +3,17 @@
 // record (invocation, selector, start time, dry flag, the resolved idle profile) and one claim per stacked
 // delivery PR, under the Git common directory, outside every PR-controlled tree. The run MANIFEST -- every
 // PR the run opened and every parked effort, with the pre-answered rows (HR-5) -- is nen's alone:
-// `start` opens it through `nen run start` with the same id, and nothing here appends, parks or reads it
+// `start` opens it through `nen run start` with the same id, and nothing here appends or parks it (slots reads it)
 // (zheref/hatsu#423). The idle profile is read from the COMMITTED nen/workflow.json of the remote default
 // branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD names, never the
 // working tree; a default branch with no nen/workflow.json refuses the start, and the commit read is
 // recorded in idle.source.
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
+import { slots } from './futon_slots.mts';
 
 type Record = {
   contract: 'hatsu.futon.effort/v0.1';
@@ -372,16 +373,7 @@ function main(argv: string[]): void {
     const record = readRun(runPath(root, runId, false));
     if (record.contract !== 'hatsu.futon.run/v0.3')
       fail('slots requires a run with a nen manifest');
-    const classified = json<{ target: string; defaultGate: string }>('nen', ['repo', 'classify', '--repo', root, '--json'], root);
-    if (classified.target !== record.repo || !['G2', 'G4'].includes(classified.defaultGate))
-      fail('slots requires the recorded repository and a classified G2 or G4 prompt gate');
-    // Nen alone checks durable receipts, sixth-stop evidence, moved heads and repair holds.
-    // Preserve its JSON and exit status; never free another slot in Hatsu's report.
-    const result = spawnSync('nen', ['loop', 'slots', '--from-run', runId, '--target', record.repo,
-      '--prompt-gate', classified.defaultGate, '--ci-cap', '2', '--local-cap', '7', '--repo', root, '--json'],
-    { cwd: root, stdio: 'inherit' });
-    if (result.error || result.signal || result.status === null) fail('nen loop slots did not complete');
-    process.exitCode = result.status;
+    process.exitCode = slots(root, runId, record.repo, commonDirectory(root));
     return;
   }
   if (command === 'profile') {

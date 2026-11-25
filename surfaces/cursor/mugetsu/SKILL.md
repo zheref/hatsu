@@ -427,7 +427,7 @@ name, saying which is which. Still one target per call.
 
 ## 6. The exit table
 
-`claude/agents/kurapika.md` § *The `shu` verbs* is the authority.
+`docs/personas/kurapika.md` § *The `shu` verbs* is the authority.
 
 | Exit | Fact | Reaction |
 |---|---|---|

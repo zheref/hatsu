@@ -13,6 +13,9 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('./futon_effort_record.mts', import.meta.url));
+import { checkSlots } from './futon_slots_fixture.mts';
+checkSlots();
+
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-futon-effort-'));
 const root = join(scratch, 'repo');
 const bin = join(scratch, 'bin');
@@ -83,25 +86,6 @@ else process.exit(2);
   expectStatus(started, 0, 'run start');
   const runId = /run ([0-9a-f]{32}) recorded/.exec(String(started.stdout))?.[1];
   assert.ok(runId, 'start returns a run id');
-  const slots = (env: Record<string, string> = {}) => execute(process.execPath,
-    [script, 'slots', '--repo', root, '--run', runId], env);
-  for (const gate of ['G4', 'G2']) {
-    const result = slots({ FAKE_GATE: gate });
-    expectStatus(result, 0, `${gate} slot read`);
-    assert.deepEqual(JSON.parse(String(result.stdout)), { local: { occupied: 1 }, facts: ['sixth-stop: verified'] });
-    const calls = readFileSync(nenLog, 'utf8').trim().split('\n').map((line) => JSON.parse(line) as string[]);
-    const call = calls.filter((args) => args[0] === 'loop' && args[1] === 'slots').at(-1)!;
-    assert.equal(call[call.indexOf('--prompt-gate') + 1], gate);
-    assert.equal(call[call.indexOf('--from-run') + 1], runId);
-    assert.equal(call[call.indexOf('--local-cap') + 1], '7');
-  }
-  for (const code of [1, 2]) expectStatus(slots({ FAKE_SLOTS_EXIT: String(code) }), code, 'nen refusal preserved');
-  for (const env of [{ FAKE_GATE: 'G5' }, { FAKE_CLASSIFY_TARGET: 'other/repo' }]) {
-    const before = readFileSync(nenLog, 'utf8').split('\n').filter((line) => line.includes('"loop","slots"')).length;
-    expectStatus(slots(env), 1, 'unproven gate or target holds');
-    assert.equal(readFileSync(nenLog, 'utf8').split('\n').filter((line) => line.includes('"loop","slots"')).length, before);
-  }
-
   const bind = ['--run', runId, '--issue', '154',
     '--base', 'stack', '--head', 'gpt/kurapika/feature', '--sha', 'a'.repeat(40)];
   expectStatus(call('bind', bind), 0, 'initial bind');
