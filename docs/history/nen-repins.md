@@ -100,7 +100,7 @@ checks array. Hatsu's current prefix warning is recorded, with no gate-policy ed
 HA-PR-#568 rejected regenerating with the incoming binary because trusted CI used the base pin.
 Here the explicit acceptance check requires the published 0.31.0 binary for generation and check:
 retaining an oversized appendix until after merge would leave every subsequent generation refused.
-No CI workflow or guard is changed. The source split is compatible with the previous generator;
+No CI workflow is changed. The plugin-bump guard now includes `docs/personas/**`. The source split is compatible with the previous generator;
 both pins' mirror checks are compared before publication. The bankai-handbooks v0.12.0 pin stays
 outside this repin. Akatsuki-ai, bankai-handbooks and kro-spec still owe their own repin work.
 

@@ -21,7 +21,8 @@ nen parse hanten \
   --line "<the invocation minus /hanten>"
 ```
 
-**`against <base>` names the base**; otherwise P3 supplies it (STANDALONE-ENTRY.md § 3). **`all` means every raised scope**; `for <scope>` narrows; unknown scopes (exit `2`) ask with the nine. Missing arguments or configuration: inline (WORKFLOW.md § 4).
+`against <base>` overrides P3 (STANDALONE-ENTRY.md § 3). `all` raises every scope; `for` narrows.
+Unknown scope (exit `2`): ask with the nine. Missing input: WORKFLOW § 4.
 
 **Fail-closed cycle ledger:** `.nen/hanten/<branch-slug>.cycle.json`; `decide`/`record`/`show` refuse its absence.
 Every entry first runs `nen review ledger ensure --repo <path> --branch <branch> [--pr <n>] --json`:
@@ -55,7 +56,7 @@ content-raised persona joins § 2b's `--applicable`; print the classification be
 
 ### 2a · The security scope's deterministic rows, before Feitan reads
 
-Hanten runs Feitan's table (`feitan.md`: the row by `stacks`; Node's lockfile from `packageManager`, to
+Hanten runs Feitan's table (`docs/personas/feitan.md`: the row by `stacks`; Node's lockfile from `packageManager`, to
 OSV) and hands him the output. **A row that cannot run is not scanned, never clean**; values are
 `$hatsu_root/contracts/scans.json`'s.
 
@@ -76,7 +77,8 @@ nen review ledger decide --repo <path> --branch <branch> [--pr <N>] --json \
 
 **Raise only `raise[]`'s personas.** A returned reviewer, raised or adapted, is `record --outcome
 ran`, a budget skip `--outcome skipped-exhausted`; either misused, exit `2`. **A spent reviewer meeting a new head gets one bounded delta pass**: the diff since its last head, both
-named, row `delta`, `used` never past the cap.
+named; `used` never passes the cap. Record `delta` only after the 0.31 pin is on main and every
+participating runner bootstrapped 0.31.0. Until then, retain the bounded review separately; write no delta row.
 
 ## 3. An unread persona is a **gap**
 
@@ -84,8 +86,8 @@ Check the routing file `claude/agents/<persona>.md` and the surface's agent regi
 `hatsu:<persona>`. Before declaring it raisable, read the complete installed
 `docs/personas/<persona>.md` and `docs/personas/_review-preamble.md`; either unread is a gap.
 Supply both absolute full protocol paths to the reviewer; a routing stub is not the protocol.
-Raisable → raise; present, not raisable → **§ 7's adapter, disclosed as weaker** (`"adapted": "…"`); **absent → a
-gap**: the persona, the raising paths, **this scope not reviewed** — never a pass, never improvised.
+Raisable → raise; present but unraisable → § 7 adapter, disclosed as weaker (`"adapted": "…"`).
+Absent → gap: name the persona and raising paths; this scope is unreviewed.
 **Never an examiner** (`satotz`, `lippo`, `buhara`, `bisky`; HR-23): a gap.
 
 ## 4. Reviewer execution
@@ -147,7 +149,7 @@ not raised (§ 3) or not returned is a `not-raised` scope naming its `gap`. Leor
 (hanten appends delta passes, ECONOMICS.md § 5); on canon prose Chrollo's holds PR-SECTIONS' `PRS` rows. **Hanten writes discovery**;
 Kurapika applies `docs/DISCOVERY.md`.
 
-## 6. Settle every finding — fixed, or pushed back with a reason
+## 6. Settle findings
 
 | `state` | When | `detail` carries |
 |---|---|---|
@@ -169,7 +171,7 @@ the alternatives, and stop in `jutaisho` § 4's shape.
 
 **One bot round is requested after hanten settles** (`sharingan` § 6).
 
-## 7. On a surface that is not Claude Code
+## 7. Other surfaces
 
 Elsewhere **PROCESS.md § Surfaces and pickers** holds: the worker at the scope's tier, a repo copy,
 § 5's shape, the pinned `nen` by absolute path, or none where the worker carries it (preamble § 2).

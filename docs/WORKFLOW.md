@@ -1414,8 +1414,8 @@ No ownership record is made for an integration PR or a PR into `branch.base`.
 no answers). A refused or non-`started` nen start, or a manifest storing other `idleAnswers` than the map sent,
 refuses `start` (exit 1), so no record names a run nen never opened; a record that cannot be written names
 nen's manifest path as the orphan. `bind` refuses a dry run and an idle one, and `verify` refuses a claim on either (§ *Batch delivery* rule 4). After **every** PR the run opens — delivery, integration or release,
-**whatever its base**, `main` included — `nen run append --id <run id> --pr <N> --kind delivery|integration|release
-[--issue <CODE>#<N>] --effort <bound effort id> --repo <checkout>` records it from the live PR (a re-append refreshes base
+**whatever its base**, `main` included — `nen run append` records it from the live PR, with mandatory `--issue` and `--effort`
+for delivery (exact command forms below) (a re-append refreshes base
 and head; a PR opened before the run, or under another kind or issue, is refused). `nen run park --id <run id>
 --issue <CODE>#<N> --row <row>` records a parked effort; `nen run verify --id <run id> --target <owner/name>
 --repo <checkout> [--json]` reads every recorded PR live and prints the parked rows: futon § 8's `then` gate,
@@ -1436,7 +1436,8 @@ node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
 node "$hatsu_root/scripts/futon_effort_record.mts" predict --repo <checkout> --run <dry id> --issue <CODE>#<N> --row <row>
-nen run append --id <id> --pr <N> --kind delivery|integration|release [--issue <CODE>#<N>] --effort <bound effort id> --repo <checkout>
+nen run append --id <id> --pr <N> --kind delivery --issue <CODE>#<N> --effort <bound effort id> --repo <checkout>
+nen run append --id <id> --pr <N> --kind integration|release --repo <checkout>
 nen run park   --id <id> --issue <CODE>#<N> --row <row | budget | needs-clarification | residue-<skill> | g5-<class>> --repo <checkout>
 nen run verify --id <id> --target <owner/name> --repo <checkout> --json
 ```
@@ -1993,14 +1994,14 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
 4. **Bounds.** Before each claim, `nen run budget` (§ 2 `idle` → `budget`, its four exit rows) gives the
    wall-clock minutes against the ceiling `start` printed; at `remaining.minutes` `0` nothing new is claimed
    and the rest park as `parked:budget`. The token bound is advisory where the ledgers are unread (§ 2).
-   **Slots are counted from two sources and summed** (futon § 6, § 2 `monitor`, [HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`: a slot is held from
-   the claim until `ready+prompted`): `nen loop slots --from-run <run id> --prompt-gate <G2|G4>` (futon § 6's adapter) counts the run's delivery PRs, and
-   `nen loop slots --efforts <abs path>` counts the run's claimed efforts that have no delivery PR — every
-   effort worktree of this run (`nen wc worktrees`) whose branch no `nen run verify` row names, one object
-   `{"id": "<CODE>#<N>", "plane": "local", "prOpen": false, "ready": false, "prompted": false, "merged":
-   <its branch is an ancestor of the integration branch>}`; the run claims only while the two `local.occupied`
-   sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs and, from 0.30, the manifest's `claims[]`, refusing `--efforts` beside it; no Hatsu writer records `claims[]` yet, so the claimed efforts are summed here and that addend drops once a writer records them:
-   a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
+   **Slots come from Nen decisions** (futon § 6, [HR-353](ROSTER.md#hr-353)). The adapter
+   selects each delivery's derived-gate result and counts manifest claims once. Only when
+   `fromRun.claims` is `not-recorded` may the legacy worktree addend use `nen loop slots --efforts`:
+   count this run's no-PR effort worktrees whose branches no delivery row names, one object
+   `{"id":"<CODE>#<N>","plane":"local","prOpen":false,"ready":false,"prompted":false,"merged":
+   <its branch is an ancestor of the integration branch>}`. Sum that legacy occupancy with the
+   adapter's only while below `--local-cap 7`. When claims are `read`, do not add those worktrees
+   again; when claims are `unread`, local capacity stays held and no new effort starts. A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
    its prompt shown and durably recorded by en § 5, or a verified sixth-stop handoff (verdict still not-ready), or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
    (back-pressure) and park as `parked:budget` only when the minutes elapse. **The merge no longer caps the night at seven**:
    each effort frees its slot at its own Ready prompt, so at most seven are open at once — their heavy work one at a time (§ *Host workload budget*) — and the night authors

@@ -1,6 +1,6 @@
 // Compose published Nen decisions for a mixed-gate run. Never manufacture readiness or prompt facts.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync, lstatSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, lstatSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -22,16 +22,43 @@ function safeRead(path: string): string {
   if (lstatSync(path).isSymbolicLink() || !lstatSync(path).isFile()) fail(`unsafe manifest ${path}`);
   return readFileSync(path, 'utf8');
 }
+// Both documented 0.31 homes are read-only here. Nen still validates the selected run itself.
+function manifestSnapshot(common: string, id: string): { path: string; text: string } {
+  const present = (path: string): boolean => {
+    try { lstatSync(path); return true; }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false; throw error; }
+  };
+  const homes = [join(common, '.nen', 'runs'), join(common, 'hatsu', 'runs')];
+  for (const home of homes) for (const path of [dirname(home), home])
+    if (present(path) && (lstatSync(path).isSymbolicLink() || !lstatSync(path).isDirectory())) fail('unsafe manifest directory');
+  const candidates = homes.map(home => join(home, `${id}.json`)).filter(present);
+  if (candidates.length !== 1) fail('manifest missing or present in multiple homes');
+  return { path: candidates[0]!, text: safeRead(candidates[0]!) };
+}
 export function slots(root: string, runId: string, target: string, common: string): number {
   const authority = json('gh', ['repo', 'view', '--json', 'nameWithOwner'], root).nameWithOwner;
   if (typeof authority !== 'string' || authority.toLowerCase() !== target.toLowerCase()) fail('run belongs to another repository');
+  const scratch = mkdtempSync(join(tmpdir(), 'hatsu-prompt-gates-'));
+  try {
   // Installed Hatsu supplies roles and canonical path declarations, never the consumer PR tree.
-  const classified = json('nen', ['repo', 'classify', '--target', authority, '--repo', hatsu, '--json'], hatsu);
-  if (classified.target?.toLowerCase() !== authority.toLowerCase() || !['canon', 'consumer'].includes(classified.role)) fail('repository role unread');
-  const manifestPath = join(common, '.nen', 'runs', `${runId}.json`);
-  for (const path of [join(common, '.nen'), dirname(manifestPath)])
-    if (lstatSync(path).isSymbolicLink() || !lstatSync(path).isDirectory()) fail('unsafe manifest directory');
-  const manifestText = safeRead(manifestPath);
+  let classified = json('nen', ['repo', 'classify', '--target', authority, '--repo', hatsu, '--json'], hatsu);
+  let registryRef: string | null = null;
+  if (classified.target?.toLowerCase() !== authority.toLowerCase()) fail('classified repository mismatch');
+  if (classified.role === 'unregistered') {
+    // A consumer's declaration is absent from the installed registry. Read its immutable default
+    // commit, never its PR checkout; known installed canon roles cannot be downgraded here.
+    const metadata = json('gh', ['api', `repos/${authority}`], root);
+    if (typeof metadata.default_branch !== 'string' || !metadata.default_branch) fail('default branch unread');
+    registryRef = call('gh', ['api', `repos/${authority}/commits/${encodeURIComponent(metadata.default_branch)}`, '--jq', '.sha'], root);
+    if (!/^[a-f0-9]{40}$/i.test(registryRef)) fail('default commit unread');
+    const registry = call('gh', ['api', `repos/${authority}/contents/nen/repos.json?ref=${registryRef}`,
+      '--header', 'Accept: application/vnd.github.raw+json'], root);
+    mkdirSync(join(scratch, 'nen'));
+    writeFileSync(join(scratch, 'nen/repos.json'), registry);
+    classified = json('nen', ['repo', 'classify', '--target', authority, '--repo', scratch, '--json'], scratch);
+  }
+  if (classified.target?.toLowerCase() !== authority.toLowerCase() || !['canon', 'consumer', 'spec'].includes(classified.role)) fail('repository role unread');
+  const { path: manifestPath, text: manifestText } = manifestSnapshot(common, runId);
   const manifest = JSON.parse(manifestText);
   if (manifest.id !== runId || manifest.repo?.toLowerCase() !== authority.toLowerCase() || !Array.isArray(manifest.prs)) fail('manifest identity unread');
   const rows = manifest.prs.filter((row: any) => row.kind === 'delivery');
@@ -39,22 +66,22 @@ export function slots(root: string, runId: string, target: string, common: strin
   if (ids.some((id: unknown) => !Number.isSafeInteger(id) || Number(id) < 1) || new Set(ids).size !== ids.length) fail('delivery identities unread');
   const declarations = JSON.parse(readFileSync(join(hatsu, 'contracts/pr-composition.json'), 'utf8')).gateDerive;
   const paths = declarations[authority.toLowerCase()];
-  if (classified.role === 'canon' && (!paths || !Array.isArray(paths.policyPaths) || !Array.isArray(paths.processPaths))) fail('canon has no declared gate paths');
   const snapshots = new Map<number, unknown>();
   const gates = new Map<number, Gate>();
   const snapshot = (pr: number) => {
     const value = json('gh', ['pr', 'view', String(pr), '--repo', authority, '--json', 'headRefOid,baseRefOid,baseRefName,headRefName,state,changedFiles'], root);
     if (!/^[a-f0-9]{40}$/i.test(value.headRefOid) || !/^[a-f0-9]{40}$/i.test(value.baseRefOid) ||
-        !['OPEN', 'CLOSED', 'MERGED'].includes(value.state) || !Number.isSafeInteger(value.changedFiles) || value.changedFiles < 1) fail(`PR #${pr} snapshot unread`);
+        !['OPEN', 'CLOSED', 'MERGED'].includes(value.state) || !Number.isSafeInteger(value.changedFiles) || value.changedFiles < 0) fail(`PR #${pr} snapshot unread`);
     return value;
   };
-  const scratch = mkdtempSync(join(tmpdir(), 'hatsu-prompt-gates-'));
-  try {
     for (const pr of ids) {
       const before = snapshot(pr);
       snapshots.set(pr, before);
+      if (before.state !== 'OPEN') continue; // Terminal decisions never consult a prompt receipt.
       let gate: Gate = 'G2';
       if (classified.role === 'canon') {
+        if (!paths || !Array.isArray(paths.policyPaths) || !Array.isArray(paths.processPaths)) fail('canon has no declared gate paths');
+        if (before.changedFiles < 1) fail(`PR #${pr} changed paths empty`);
         const pages = json('gh', ['api', `repos/${authority}/pulls/${pr}/files`, '--paginate', '--slurp'], root);
         if (!Array.isArray(pages) || pages.some((page: unknown) => !Array.isArray(page))) fail(`PR #${pr} changed paths unread`);
         const files = pages.flat();
@@ -91,6 +118,7 @@ export function slots(root: string, runId: string, target: string, common: strin
           !Array.isArray(report.fromRun.unread) || !Array.isArray(report.fromRun.parkedClaims) ||
           !['read', 'not-recorded', 'unread'].includes(report.fromRun.claims) ||
           !(report.fromRun.claimsUnread === null || typeof report.fromRun.claimsUnread === 'string')) fail('Nen report incomplete');
+      if ((report.localSlotFrees as { rule?: string })?.rule !== 'ready+prompted') fail('Futon requires ready+prompted');
       const effortIds = report.fromRun.efforts.map(e => e.id);
       const decisions = [...report.ci.holding, ...report.local.holding].map(h => h.id).concat(report.done);
       if (new Set(effortIds).size !== effortIds.length || new Set(decisions).size !== decisions.length ||
@@ -104,8 +132,9 @@ export function slots(root: string, runId: string, target: string, common: strin
       if (!equal([...deliveryIds].sort(), [...ids].sort())) fail('Nen delivery coverage changed');
       reports.push({ gate, report });
     }
-    if (safeRead(manifestPath) !== manifestText) fail('run manifest changed during slot reads');
     for (const pr of ids) if (!equal(snapshots.get(pr), snapshot(pr))) fail(`PR #${pr} moved during slot reads`);
+    // Last authoritative read: final network snapshots may have taken long enough for a new claim.
+    if (!equal(manifestSnapshot(common, runId), { path: manifestPath, text: manifestText })) fail('run manifest changed during slot reads');
     const first = reports[0]!.report;
     // Claims and non-delivery classifications must agree; otherwise restart from a fresh read.
     for (const { report } of reports) {
@@ -116,7 +145,7 @@ export function slots(root: string, runId: string, target: string, common: strin
     }
     const chosen: { report: Report; effort: Effort }[] = [];
     for (const { gate, report } of reports) for (const effort of report.fromRun.efforts)
-      if (effort.pr === null ? report === first : gates.get(effort.pr) === gate) chosen.push({ report, effort });
+      if (effort.pr === null || !gates.has(effort.pr) ? report === first : gates.get(effort.pr) === gate) chosen.push({ report, effort });
     const plane = (name: 'ci' | 'local'): Plane => {
       const holding = chosen.flatMap(({ report, effort }) => report[name].holding.filter(h => h.id === effort.id));
       const cap = first[name].cap;
@@ -131,7 +160,7 @@ export function slots(root: string, runId: string, target: string, common: strin
         unread: reports.flatMap(({ gate, report }) => report.fromRun.unread.filter(row => gates.get(row.pr) === gate)) },
       promptGates: [...gates].map(([pr, gate]) => ({ pr, gate, snapshot: snapshots.get(pr) })),
       // Preserve full Nen reports as provenance; none of their fact fields are rewritten.
-      nenReports: reports }, null, 2));
+      role: classified.role, registryRef, nenReports: reports }, null, 2));
     return ci.binding || local.binding ? 1 : 0;
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 }

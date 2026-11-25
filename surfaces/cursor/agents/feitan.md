@@ -7,4 +7,4 @@ model: inherit
 
 Before acting as this persona, read the complete [feitan protocol](../../../docs/personas/feitan.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed Hatsu root from the warm-up and read `docs/personas/feitan.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, resolve the installed root with `/ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/feitan.md` there. If the protocol cannot be read, stop and name the missing file.

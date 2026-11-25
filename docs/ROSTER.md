@@ -257,7 +257,7 @@ Gon's delegation grammar — is untouched**, and until it is ratified Gon still 
 
 <a id="hr-48"></a>**HR-48** (ruled) Phinks is invoked by hand before a release (`QA-20`). **From `v0.5.0` he is also a routing target of
 `hanten`**: a release-adjacent change set gets an adversarial pass **before the PR is posted**, not after —
-`claude/agents/phinks.md` § *The pre-PR trigger* carries it. Pre-PR the finding's home is the working copy
+`docs/personas/phinks.md` § *The pre-PR trigger* carries it. Pre-PR the finding's home is the working copy
 rather than the tracker, and **the 3/3 floor (`QA-4`) applies to anything filed from it**, with no discount
 for the earlier moment. The trigger has **no inherited clause id**, and inventing one is refused: if canon is
 wanted for it, that is a handbook-question for the rewritten constitution. Nothing else

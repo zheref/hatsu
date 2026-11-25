@@ -64,6 +64,10 @@ or it does not happen.
 
 ## 3. Classify and resolve the tooling
 
+Supply the installed Hatsu root and absolute readable `docs/personas/shalnark.md` and
+`docs/personas/_review-preamble.md` paths in the delegate brief; unread protocols stop the raise.
+
+
 ```bash
 nen repo classify --repo <checkout>      # role · kind · stack · lanes · gate
 $bankai-quality                     # the scenario's pinned E2E / UI automation row
