@@ -156,9 +156,9 @@ is neither retried nor counted as a round; missing original evidence stays unrea
 guard line, evidence mechanism, any § 1 permission stop, requested reviewers and Mukai's En offer
 (or autoEn start). No `nen stop` banner: En owns the Ready event and its bell.
 
-## 6. Hard limits
+## 6. Residue and hard limits
 
-Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
+Named raw calls (unfiled): [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
 
 - **Permitted, only on the maintainer's own `hatsu:mukai` or `hatsu:shibari` call:** read the working
   copy and its history; write the body file; open **one** PR against `branch.base` from the last

@@ -125,6 +125,12 @@ criterion, reconciled against the backlog first as that skill requires, filed **
 explicit pick**. A validation run that quietly opens five issues has spent the maintainer's backlog on
 behalf of a tool they invoked to look at one feature.
 
+## Residue
+
+Shalnark's raise and ephemeral test authoring belong to the surface and the declared UI tooling;
+no Nen verb owns that delegation (unfiled). The per-criterion report document remains Hatsu-owned
+(unfiled), as [PROCESS](../../../docs/PROCESS.md) § *Residue and owned dependencies* records.
+
 ## Authority and hard limits
 
 **Permitted:** read the merged PR, its issues and the checkout; classify; resolve tooling; raise Shalnark
