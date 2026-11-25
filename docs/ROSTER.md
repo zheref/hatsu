@@ -220,7 +220,7 @@ evidence · proposed fix** — and an unsettled finding is a **G5**, raised by `
 **Correction, 2026-09-19: the finding shape has grown, and this ruling's four fields are no longer all
 of it.** It is six — `rule`, `severity`, `path`, `line`, `evidence`, `proposedFix` — the location split
 out so a finding that names none is recorded as a note, and `severity` gained **`nit`** under `low`.
-The shape lives in [`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) § 4 and
+The shape lives in [`docs/personas/_review-preamble.md`](personas/_review-preamble.md) § 4 and
 [`hanten`](../claude/skills/hanten/SKILL.md) § 5; nothing else about this ruling changed.
 
 **What this does not close.** `OPEN-3` asked which of the seven Genei Ryodan profiles activate and when. Two
@@ -257,7 +257,7 @@ Gon's delegation grammar — is untouched**, and until it is ratified Gon still 
 
 <a id="hr-48"></a>**HR-48** (ruled) Phinks is invoked by hand before a release (`QA-20`). **From `v0.5.0` he is also a routing target of
 `hanten`**: a release-adjacent change set gets an adversarial pass **before the PR is posted**, not after —
-`claude/agents/phinks.md` § *The pre-PR trigger* carries it. Pre-PR the finding's home is the working copy
+`docs/personas/phinks.md` § *The pre-PR trigger* carries it. Pre-PR the finding's home is the working copy
 rather than the tracker, and **the 3/3 floor (`QA-4`) applies to anything filed from it**, with no discount
 for the earlier moment. The trigger has **no inherited clause id**, and inventing one is refused: if canon is
 wanted for it, that is a handbook-question for the rewritten constitution. Nothing else

@@ -64,6 +64,10 @@ or it does not happen.
 
 ## 3. Classify and resolve the tooling
 
+Supply the installed Hatsu root and absolute readable `docs/personas/shalnark.md` and
+`docs/personas/_review-preamble.md` paths in the delegate brief; unread protocols stop the raise.
+
+
 ```bash
 nen repo classify --repo <checkout>      # role · kind · stack · lanes · gate
 $bankai-quality                     # the scenario's pinned E2E / UI automation row
@@ -101,7 +105,7 @@ assertion excerpt plus the screenshot or recording the runner produced. **`not-t
 capability** (no device, no runner, no driver, no scenario row) and **is never rendered as a pass**. A
 criterion that was not attempted was not validated, and the row says so.
 
-**A `fail` becomes a finding in hanten's fixed shape** (`claude/agents/_review-preamble.md` § 4): `rule` is
+**A `fail` becomes a finding in hanten's fixed shape** (`docs/personas/_review-preamble.md` § 4): `rule` is
 the criterion cited by its source — issue and criterion, or the PR's "verify" — `evidence` is the
 failing run, `proposedFix` is what would satisfy the criterion. **Shalnark files nothing and fixes
 nothing**; the findings come back here.
@@ -120,6 +124,12 @@ while a run with no failure renders the desk cleared. The page is the deliverabl
 criterion, reconciled against the backlog first as that skill requires, filed **only on the maintainer's
 explicit pick**. A validation run that quietly opens five issues has spent the maintainer's backlog on
 behalf of a tool they invoked to look at one feature.
+
+## Residue
+
+Shalnark's raise and ephemeral test authoring belong to the surface and the declared UI tooling;
+no Nen verb owns that delegation (unfiled). The per-criterion report document remains Hatsu-owned
+(unfiled), as [PROCESS](../../../docs/PROCESS.md) § *Residue and owned dependencies* records.
 
 ## Authority and hard limits
 

@@ -317,7 +317,7 @@ Surface the gap as a finding — the file, the scenario, and what is missing or 
 stop at **G5** for the maintainer to decide; canon is written only on their word (Kurapika's
 Conjurer mode, or `hatsu:great-hiker`), never as a side effect of a resolve. Never draft a fix that
 reads as though the question were already settled: an OPEN gap stays OPEN
-(`claude/agents/kurapika.md` § Conjurer, "An OPEN item stays OPEN").
+(`docs/personas/kurapika.md` § Conjurer, "An OPEN item stays OPEN").
 
 ## Residue
 

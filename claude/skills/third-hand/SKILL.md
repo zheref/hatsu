@@ -157,7 +157,7 @@ frontier tier.**
 | **Claude Code** | the harness Agent tool, `subagent_type` the Netero persona (the plugin's `netero`) | **omitted** — he needs this sitting's report, last-stop, cycle ledger and transcript, not an isolated checkout of the plugin |
 | **Cursor** | the netero definition under `.cursor/agents/netero.md`, invoked as that surface documents; if the harness only offers a generic worker, load the definition into it and keep the title | omitted, same reason |
 | **Antigravity** | `invoke_subagent`: `TypeName` `netero` (the registered agent), `Role` the title, `Prompt` pass 1's harvest brief, `Workspace: "inherit"` | **`inherit`**, never `"branch"`. `branch` cuts an isolated worktree that hides this sitting's `.nen/` and `Reports/`. `"share"` is acceptable only when it is the same checkout. Model **`pro`**, never `ultra` |
-| **Codex** (ChatGPT app, CLI, IDE) | spawn **one** in-session subagent — current Codex releases enable this by default; a skill instruction is a documented trigger. Invoke `spawn_agent` (or the session's equivalent spawn tool) titled `third-hand · netero · <model alias>`. Load Netero's definition from `AGENTS.override.md` / the mirrored persona. Never a second `codex exec` process for this harvest | Codex V2 agents **share the parent's working directory** — that is what this harvest needs. Never `astra` |
+| **Codex** (ChatGPT app, CLI, IDE) | spawn **one** in-session subagent — current Codex releases enable this by default; a skill instruction is a documented trigger. Invoke `spawn_agent` (or the session's equivalent spawn tool) titled `third-hand · netero · <model alias>`. Read the full installed `docs/personas/netero.md`; the mirrored persona is a routing pointer. Never a second `codex exec` process for this harvest | Codex V2 agents **share the parent's working directory** — that is what this harvest needs. Never `astra` |
 
 **Two passes, one persona.**
 
@@ -167,7 +167,9 @@ frontier tier.**
    [`hatsu:file`](../file/SKILL.md) under Netero's completeness. Reconciliation still runs; a
    duplicate is `updated` / `folded` / `unchanged`, never double-created.
 
-Pass 1's prompt names: the PR or branch, the retained report path if it exists, the stop markers `nen stop list` names
+Pass 1's prompt supplies the resolved installed Hatsu root and absolute readable
+`docs/personas/netero.md` and `docs/personas/_review-preamble.md` paths; unread protocols stop the raise.
+It names the PR or branch, the retained report path if it exists, the stop markers `nen stop list` names
 (`.nen/last-stop.json` on nen 0.26) if any, `.nen/hanten/<branch-slug>.cycle.json` if present, the En loop ledger if present, this
 skill's § 4 inputs and § 5 output shape, and *"file nothing until the maintainer picks"*.
 

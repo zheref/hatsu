@@ -78,7 +78,7 @@ Codex sandbox failures: `docs/surfaces/codex.md` § 5's recovery; actual rejecti
 
 **§ 2c · The host.** `nen shu tools --repo <path> [--dry-run | --install]` on a host this repository
 was never built on, and after a toolchain pin moves. **Exit `5` or `7` is a host not set up, not a red
-build** (`kurapika.md` § *The `shu` verbs*: `--install`, never sudo; row `missing-tool`; a
+build** (`docs/personas/kurapika.md` § *The `shu` verbs*: `--install`, never sudo; row `missing-tool`; a
 `verify-only` row is a human's, named with its pin). **Exit `2` here is the
 stale tree, not the host**: record it *deferred* and **re-probe after the cut**, reporting that
 answer; § 3's dry run shares the blind spot.
@@ -111,7 +111,7 @@ nen shu warmup --repo <path> --branch <rendered name> --from <branch.base | the 
 - **`--discard` is never breath's flag** (§ 6). **A repository with no declaration still warms** (the git half, exit `0`); a
   `project` block is proposed at the declaration gate.
 
-**Exit codes are `claude/agents/kurapika.md` § *The `shu` verbs*'**; only what differs here:
+**Exit codes are `docs/personas/kurapika.md` § *The `shu` verbs*'**; only what differs here:
 
 | | |
 |---|---|

@@ -3,34 +3,32 @@ name: shibari
 description: Compose the PR body from the section catalogue and effort ledgers, check it, then open one PR from the pushed head and return it to mukai. Use when hatsu:mukai reaches step eight or the maintainer invokes hatsu:shibari. Derives the gate and requests reviewers; never labels or merges.
 ---
 
-# Shibari — the work becomes a request for attention
+# Shibari
 
-**Nature: Manipulator.** Open one reviewable PR and hand it to [`en`](../en/SKILL.md).
-Shibari is [`mukai`](../mukai/SKILL.md) step 8; it proves nothing itself. The landing report
-reads the opened PR.
+**Nature: Manipulator.** [`mukai`](../mukai/SKILL.md) step 8: open one PR, hand it to
+[`en`](../en/SKILL.md). The landing report reads that PR; Shibari proves nothing itself.
 
 ## 0. Standalone entry
 
 Cold entry follows [STANDALONE-ENTRY](../../../docs/STANDALONE-ENTRY.md) § 4: add P1 and P2.
-The branch must be pushed; unpushed commits stop at `hatsu:aka`. Name unavailable checks.
+Unpushed commits stop at `hatsu:aka`; name unavailable checks.
 
-## 1. Invocation and authority
+## 1. Authority
 
-**P1 — this run opens with `hatsu:ten shibari`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
-missing prerequisites under its own name; the phases this run calls skip theirs).
+**P1: `hatsu:ten shibari`** ([`ten`](../ten/SKILL.md) § 6); called phases skip their prerequisites.
 
 ```
 hatsu:shibari
 ```
 
-No arguments: branch and commits identify the effort; § 2 supplies the base. The maintainer's
-`hatsu:mukai` or `hatsu:shibari` call authorizes opening **one** PR and the declared evidence publish
-step ([WORKFLOW](../../../docs/WORKFLOW.md) § 4). Two efforts stop at `hatsu:jujisho`.
-For a public-mirror publish, announce the output first. Its `-y` only skips its own prompt.
+No arguments: branch and commits identify the effort; § 2 supplies its base. A maintainer's Mukai
+or Shibari call authorizes **one** PR and its declared evidence publish ([WORKFLOW](../../../docs/WORKFLOW.md) § 4).
+Two efforts stop at `hatsu:jujisho`.
+Announce public-mirror output first; `-y` skips only its prompt.
 Without a consumer grant, report `permission stop: expected — <consumer> declares no allow row for <script>`;
 never G5. [Mukai](../mukai/SKILL.md) § 1 owns grants (HA#101).
 
-## 2. The parameters, defaults stated
+## 2. Parameters
 
 | Key | File | Used for | Default |
 |---|---|---|---|
@@ -139,10 +137,10 @@ nen pr converge --target <owner/name> --pr <n> --catalogue "$hatsu_root/contract
   `none-on-non-default-base` and no other `blocking` line is not applicable as `en` § 4 reads it
   (HR-357); hand over. Any other `1`: fix the verify table, `edit-body`, re-run. Re-runs: `en` §§ 4–5.
 
-## 5. Reviewers, and the hand to `en`
+## 5. Reviewers and En
 
 ```bash
-nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--add-bots <id,...>]
+nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--add-bots <id>] --json
 ```
 
 **Reviewer-round policy is [`sharingan`](../sharingan/SKILL.md) § 6's** — one round after
@@ -150,13 +148,17 @@ nen pr request-reviews --target <owner/name> --pr <n> --add-reviewers <a,b> [--a
 never of a CI lane (PROCESS, *Event-driven reviewer lanes*).
 [PROCESS.md](../../../docs/PROCESS.md) § *Reviewer rounds and review threads* owns token and bot mechanics.
 
+Before each one-bot request, read the full live `headRefOid`. Relay that head, reviewer, exit status
+and original complete JSON through Sharingan to En, preserving all additive fields. Exit `9`
+is neither retried nor counted as a round; missing original evidence stays unread.
+
 **Then one line, and stop:** notation, base, forecast gate, check results, quoted Development
 guard line, evidence mechanism, any § 1 permission stop, requested reviewers and Mukai's En offer
 (or autoEn start). No `nen stop` banner: En owns the Ready event and its bell.
 
-## 6. Residue, authority and hard limits
+## 6. Residue and hard limits
 
-Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
+Named raw calls (unfiled): [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned dependencies*.
 
 - **Permitted, only on the maintainer's own `hatsu:mukai` or `hatsu:shibari` call:** read the working
   copy and its history; write the body file; open **one** PR against `branch.base` from the last
@@ -172,4 +174,4 @@ Named raw calls: [`PROCESS.md`](../../../docs/PROCESS.md) § *Residue and owned 
   treats an untracked evidence gap as a sanctioned incompleteness.
 - **Never passes a body as an inline `--body` string**, reports a reviewer as requested when the call
   no-opped, or reports a missing Development link as present.
-- **Never presents by-hand `git`/`gh` as a verb's output.**
+- **Never presents raw `git`/`gh` as Nen output.**

@@ -77,7 +77,7 @@ call for this skill too ([`mugetsu`](../mugetsu/SKILL.md) § 3, the advance go; 
   publish and say, before the call, what it publishes and that the harness may ask once; `-y` is passed
   there only because the script's own confirmation would block a non-interactive tool, never as a token
   of authority. **The portable grant is the consumer's — the maintainer adds it; no skill writes a
-  permission setting** (`claude/agents/kurapika.md` § Never): on Claude Code a **tracked**
+  permission setting** (`docs/personas/kurapika.md` § Never): on Claude Code a **tracked**
   `.claude/settings.json` allow row (`"permissions": {"allow": ["Bash(ci_scripts/pr_screenshots.sh:*)"]}`
   would be `<product-repo-A>`'s, scoped to that one script — `<product-repo-A>` carries no such file today, so the stop
   there is expected until it does), which travels with every checkout; the other surfaces' equivalents

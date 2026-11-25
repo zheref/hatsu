@@ -74,6 +74,12 @@ its trigger, then its never-clauses, inside the first ~180 characters.
 
 ## 3. Personas and model config
 
+The authored `claude/agents/*.md` entries retain routing metadata and mandatory read-first links
+to `docs/personas/*.md`, which hold the complete protocols. The generator reads those entries;
+never hand-edit `surfaces/codex/AGENTS.md`. Nen 0.31 refuses an appendix over 32,768 UTF-8 bytes.
+Placed entries resolve the full protocol from the installed Hatsu root, including in plugin mode.
+
+
 | | |
 |---|---|
 | prose file | `AGENTS.override.md`, one `## <name>` section per persona; `AGENTS.override.md` wins over `AGENTS.md` when present; 32 KiB default cap (`project_doc_max_bytes`) |

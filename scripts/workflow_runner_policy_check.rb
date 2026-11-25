@@ -3014,12 +3014,12 @@ def self_test(root)
       {
         "0" => [true, ["surfaces/ matches a fresh generation.", "every relative link under surfaces/ resolves."]],
         "1" => [false, ["concrete generated marker", "(surface: <s>)", "surfaces/ has drifted"]],
-        "2" => [false, ["mirrored source could not be read (wiring defect)", "v0.30.0", "refused the invocation"]],
+        "2" => [false, ["mirrored source could not be read (wiring defect)", "v0.31.0", "refused the invocation"]],
         "3" => [false, ["no nen binary reached the check step"]]
       }.each do |code, (want_ok, phrases)|
         env = {
           "PATH" => ENV.fetch("PATH"),
-          "PINNED_REF" => "v0.30.0",
+          "PINNED_REF" => "v0.31.0",
           "NEN_BIN" => "/bin/true",
           "TEST_DRIFT_EXIT" => code,
           "TEST_DRIFT_OUT" => "::warning::forged-stdout-#{code}",

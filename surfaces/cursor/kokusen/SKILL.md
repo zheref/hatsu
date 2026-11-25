@@ -7,8 +7,7 @@ summary: Verify the finished tree and
 
 # Kokusen — the black flash: one clean local commit, and nothing else
 
-**Nature: Manipulator.** Prove this tree still does what it claims, then put exactly what was meant
-onto this branch under a message that says what changed and why. Phase three of `ren`, after
+**Nature: Manipulator.** Verify and commit the finished tree. Phase three of `ren`, after
 [`rasengan`](../rasengan/SKILL.md) authored the change and before [`amaterasu`](../amaterasu/SKILL.md)
 launches; it opens nothing, touches no remote, and **never pushes** — publishing is `/aka`'s.
 
@@ -121,10 +120,11 @@ about to write is what makes `unmentioned-deletion` mean anything.
 two streams***: `nen commit format --repo …`'s shape validation, the canonical-trailer rule from that
 document's § `commits`, the exit-code gate, the two-stream discipline and the exit table. What is this
 skill's: **the gate is § 3's, the staging is § 4's** — stage explicitly, path by path, from § 4's
-clean list **plus every flagged path that got an explicit yes**, and nothing else. Then
-`nen commit write --repo <path> --message-file <f> [--require-proof <lane>] [--dry-run] [--json]`
+clean list **plus every flagged path that got an explicit yes**, and nothing else. `nen commit write --repo <path> --message-file <f> [--require-proof <lane>] [--dry-run] [--json]`
 makes the commit: it validates the file as `commit format` does, refuses a red proof and an empty
-index, and reports `{sha, subject, trailers}`.
+index, and reports the commit.
+
+**Exit `4`: committed after an opted-in hook strip.** Report `stripped[]`; never retry or undo.
 
 **Exit `3`: the commit exists and a hook added a refused trailer** (`injected[]`, read back;
 zheref/nen#357). Exit `1` whose stderr begins *"committed"* also exists, unchecked: never

@@ -269,7 +269,7 @@ tree, [`/kotoamatsukami`](../kotoamatsukami/SKILL.md) refreshes impacted tests a
 may push only when that later catch-up is a no-op. Murasaki
 grants itself no test and no capture authority. Only a complete no-op catch-up may reuse earlier
 evidence; report that fact and do not rerun the suite here. The exit-code tables — `1` red, `2` declaration, `3` host, `4` a
-**seat** quoted verbatim, `5` `nen shu tools` — are `claude/agents/kurapika.md` § *The `shu` verbs*'
+**seat** quoted verbatim, `5` `nen shu tools` — are `docs/personas/kurapika.md` § *The `shu` verbs*'
 and are handled there, not here.
 
 **When mukai calls murasaki after its coverage step, coverage is part of the publication proof.** If

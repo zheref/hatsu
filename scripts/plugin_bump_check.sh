@@ -389,6 +389,7 @@ PLUGIN_SURFACE_GLOBS=(
   'nen/*'
   'contracts/*'
   'docs/ROSTER.md'
+  'docs/personas/**'
   'docs/delegation-grammar-DRAFT.md'
   'docs/WORKFLOW.md'
   'docs/DISCOVERY.md'

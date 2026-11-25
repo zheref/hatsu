@@ -10,9 +10,6 @@ description: Deliver a repository's surface-matched backlog through futon then g
 **Nature: Manipulator** while the queue, the delegates and the PRs are driven; the mode
 [`build`](../build/SKILL.md) § 2 confirms per issue inside each delegate; **Emitter** at the cut.
 
-> **Name a repository; I give it back with every issue this surface's model can build merged or
-> standing at your merge prompt, a merge plan, then the tag — and one question about publishing.**
-
 Kazaana is **one [`futon`](../futon/SKILL.md) run** — `hatsu:futon <repo>@model/<line> then getsuga` —
 plus the **six differences** this file owns (the maintainer's ruling of 2026-10-13,
 [`ROSTER.md`](../../../docs/ROSTER.md) § *Rulings of 2026-10-13*): the selector read from the surface
@@ -100,7 +97,7 @@ Kazaana's own clause (attended; `--idle` opens no per-effort PR, WORKFLOW § *Ba
 opened against it; efforts sharing a path form one stack (rule 1), cut in order from the
 previous effort's published branch (rule 2), so a stacked delegate starts once that `aka` has run. The
 plan — what stacks, in what order, what stands alone — is stated at § 2's queue and is § 4's merge plan;
-a slot frees per rule 4.
+a slot frees per rule 4. Futon § 6's adapter passes `--prompt-gate`; nen verifies en's receipt before releasing slots.
 
 ## 4. The register, and the merge plan
 

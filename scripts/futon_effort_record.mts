@@ -3,7 +3,7 @@
 // record (invocation, selector, start time, dry flag, the resolved idle profile) and one claim per stacked
 // delivery PR, under the Git common directory, outside every PR-controlled tree. The run MANIFEST -- every
 // PR the run opened and every parked effort, with the pre-answered rows (HR-5) -- is nen's alone:
-// `start` opens it through `nen run start` with the same id, and nothing here appends, parks or reads it
+// `start` opens it through `nen run start` with the same id, and nothing here appends or parks it (slots reads it)
 // (zheref/hatsu#423). The idle profile is read from the COMMITTED nen/workflow.json of the remote default
 // branch only (origin/HEAD, else gh's defaultBranchRef; SEC-15), never HEAD or a ref HEAD names, never the
 // working tree; a default branch with no nen/workflow.json refuses the start, and the commit read is
@@ -13,6 +13,7 @@ import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, rea
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
+import { slots } from './futon_slots.mts';
 
 type Record = {
   contract: 'hatsu.futon.effort/v0.1';
@@ -359,14 +360,22 @@ function main(argv: string[]): void {
   const allowed: { [verb: string]: string[] } = {
     start: ['--repo', '--invocation'], resume: ['--repo', '--run', '--invocation'], integrate: ['--repo', '--run', '--branch'], end: ['--repo', '--run'],
     bind: ['--repo', '--pr', '--run', '--issue', '--base', '--head', '--sha'],
-    verify: ['--repo', '--pr'], profile: ['--repo', '--run'], predict: ['--repo', '--run', '--issue', '--row'] };
+    verify: ['--repo', '--pr'], profile: ['--repo', '--run'], slots: ['--repo', '--run'], predict: ['--repo', '--run', '--issue', '--row'] };
   if (!command || !Object.hasOwn(allowed, command))
     fail(['append', 'park', 'status'].includes(command ?? '')
       ? `${command} is retired: the run manifest is nen's (nen run ${command === 'status' ? 'verify' : command}; zheref/hatsu#423)`
-      : 'usage: futon_effort_record.mts start|resume|integrate|end|bind|verify|profile|predict --repo ROOT [flags]');
+      : 'usage: futon_effort_record.mts start|resume|integrate|end|bind|verify|profile|slots|predict --repo ROOT [flags]');
   const args = flags(argv);
   checkKeys(args, allowed[command]);
   const root = realpathSync(requireFlag(args, '--repo'));
+  if (command === 'slots') {
+    const runId = requireFlag(args, '--run');
+    const record = readRun(runPath(root, runId, false));
+    if (record.contract !== 'hatsu.futon.run/v0.3')
+      fail('slots requires a run with a nen manifest');
+    process.exitCode = slots(root, runId, record.repo, commonDirectory(root));
+    return;
+  }
   if (command === 'profile') {
     const runId = requireFlag(args, '--run');
     const run = readRun(runPath(root, runId, false));

@@ -13,6 +13,9 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const script = fileURLToPath(new URL('./futon_effort_record.mts', import.meta.url));
+import { checkSlots } from './futon_slots_fixture.mts';
+checkSlots();
+
 const scratch = mkdtempSync(join(tmpdir(), 'hatsu-futon-effort-'));
 const root = join(scratch, 'repo');
 const bin = join(scratch, 'bin');
@@ -59,6 +62,8 @@ if(a[0]==='parse'&&a[1]==='futon'){ const line=a[4]||'';
   if(/(^|\\s)--dry-run(\\s|$)/.test(line)) process.exit(3);
   const idle=/(^|\\s)--idle(\\s|$)/.test(line); const then=(line.match(/(?:^|\\s)then\\s+(.*)$/)||[])[1]||null;
   console.log(JSON.stringify(e.FAKE_NO_IDLE?{repo:'zheref/hatsu',label:'model/gpt',band:null}:{repo:'zheref/hatsu',label:e.FAKE_BAND?null:'model/gpt',band:e.FAKE_BAND||null,idle,then})); }
+else if(a[0]==='repo'&&a[1]==='classify') console.log(JSON.stringify({target:e.FAKE_CLASSIFY_TARGET||'zheref/hatsu',defaultGate:e.FAKE_GATE||'G4'}));
+else if(a[0]==='loop'&&a[1]==='slots'){ console.log(JSON.stringify({local:{occupied:1},facts:['sixth-stop: verified']})); process.exit(Number(e.FAKE_SLOTS_EXIT||0)); }
 else if(a[0]==='run'&&a[1]==='start'){
   if(e.FAKE_NEN_START==='refuse'){ console.error('nen run: refused'); process.exit(1); }
   const at=(f)=>a[a.indexOf(f)+1]; const answers=a.includes('--idle-answers')?JSON.parse(at('--idle-answers')):null;

@@ -119,7 +119,7 @@ nothing — *"the argv printed is the argv that would be spawned, from the same 
 live, by 2026-09-10, at nen `0.3.0` against a constructed declaration, exit `0` both ways
 (`docs/ab/susanoo.md` §§ 2.1–2.2).
 
-**The exit table — one reaction per code.** `claude/agents/kurapika.md` § *The `shu` verbs* is the
+**The exit table — one reaction per code.** `docs/personas/kurapika.md` § *The `shu` verbs* is the
 authority; this is what susanoo does with each.
 
 | Exit | Fact | Reaction |

@@ -297,7 +297,7 @@ plain call per selected row, never a loop over lanes**, and a duration is the re
 `durationMs`, never `$(date)` arithmetic (shape (5) of
 [WORKFLOW.md](../../../docs/WORKFLOW.md) § *Writing a skill block*, zheref/hatsu#218).
 
-**Reactions, by exit code** (`claude/agents/kurapika.md` § *The `shu` verbs* is the authority):
+**Reactions, by exit code** (`docs/personas/kurapika.md` § *The `shu` verbs* is the authority):
 
 | Exit | Fact | Reaction |
 |---|---|---|
@@ -354,7 +354,7 @@ before [`$byakugan`](../byakugan/SKILL.md) captures coverage from the replacemen
 
 The images the suite re-recorded **are** the evidence: `UZF-26`'s rule is that the recorded test
 images are the screenshots, never separately-staged captures, so the evidence cannot drift from what
-the tests assert (`claude/agents/hisoka.md` § *The evidence set*). Kotoamatsukami's last act on a
+the tests assert (`docs/personas/hisoka.md` § *The evidence set*). Kotoamatsukami's last act on a
 selected UI row is to hand that set on:
 
 - to [`$spiritual-message`](../spiritual-message/SKILL.md) § 4's `{{#each screenshots}}` — one table per screen, the

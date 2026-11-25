@@ -13,8 +13,8 @@ summary: Resolve the right
 is the **single canonical source** for adversarial-QA method, test tooling, and performance budgets. This
 skill is a **resolver**: it resolves *which* tooling, budget thresholds, and rules apply to the repo in
 front of you, and no more. The judgment layer — which `QA-{n}` class applies, a finding's severity, the
-`Quality-Gate:` verdict itself — is **Phinks**' and **Uvogin**'s (`claude/agents/phinks.md`,
-`claude/agents/uvogin.md`), not this skill's; read those files for the full protocol this skill's
+`Quality-Gate:` verdict itself — is **Phinks**' and **Uvogin**'s (`docs/personas/phinks.md`,
+`docs/personas/uvogin.md`), not this skill's; read those files for the full protocol this skill's
 resolutions feed.
 
 **This gate is local, on-demand, and advisory.** It runs on the human's own credentials before a tag cut
@@ -224,7 +224,7 @@ exit `2` naming the missing `nen/contract.json` (or its missing `project` block)
 verbs, not off `nen shu detect`, whose exit `1` means no marker nen recognises; the two coincide only
 outside the seven stacks — and is tested by its own documented commands, the report saying which case it
 was; the absent declaration is the trigger to offer the one `nen scaffold init` detects on its own PR at
-that repository's gate (`missing-configuration`), never a change to the candidate under test (`claude/agents/kurapika.md` § *The `shu` verbs*). `nen shu deploy --run` is never this resolver's, nor
+that repository's gate (`missing-configuration`), never a change to the candidate under test (`docs/personas/kurapika.md` § *The `shu` verbs*). `nen shu deploy --run` is never this resolver's, nor
 Phinks' nor Uvogin's: the plan without `--run` is a read of where the candidate would go; the run is G3.
 
 ## 6. Machinery scenario (`bankai-machinery`) — `QA-16`–`QA-18`

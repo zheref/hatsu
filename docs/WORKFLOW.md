@@ -695,7 +695,9 @@ before hooks run — observed on the raw `git commit --file` residue path (HA-PR
 `c202034`, `516ed5f`, `75c8ce8`, `2025e84`, `06b45cf` carry it beside `Hatsu-Agent`). **From nen
 `0.19` the two verbs catch it themselves** (zheref/nen#357): `nen commit write` and `nen wc squash` read
 the commit they just wrote back through git's own trailer parser and exit `3`, with the refused keys
-in `injected[]`, when a hook added one. The commit exists at exit `3`, and nen prints the undo that
+in `injected[]`, when a hook added one. Nen 0.31 also returns exit `4` for a committed
+result after an opted-in hook strip: report `stripped[]`, never retry or undo it. Hatsu does not
+enable `commits.stripInjected` here; exit `3` takes precedence when a refused key remains. The commit exists at exit `3`, and nen prints the undo that
 applies. The off-switch is Cursor's: **Cursor Settings → Git & Pull
 Requests → *Commit Attribution* off** (and *PR Attribution*), or for the CLI
 `"attribution": { "attributeCommitsToAgent": false }` in `~/.cursor/cli-config.json` — Cursor's own
@@ -799,7 +801,7 @@ worth stating here rather than only in the skills:
 
 | Key | Default | Read by |
 |---|---|---|
-| `localSlotFrees` | `ready+prompted` | `futon` § 6, every futon run, attended or `--idle`, stacked or not: **fixed** at `ready+prompted` by the maintainer's pick on zheref/hatsu#425 ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`), which amends HR-257's *frees at its local merge* (ROSTER § *Rulings of 2026-09-30*, *Slots and stops*) and reconciles the 2026-10-13 stacked-slot rule (§ *Stacked pull requests* rule 4) to the same value — an effort's local slot frees once its PR is **Ready** and its **merge prompt** (or, for a stacked PR, its Ready stop) **was shown**. A claimed effort with no PR holds its slot until then, or, on futon § 5's integration shape where no sub-PR opens, until its local merge into the integration branch. The one key that says so. Read by `nen loop slots --repo <checkout>` from nen `0.26.0`: `idle.localSlotFrees` first under a declared idle profile, else this key, the two disagreeing refused; it prints the rule and its source. futon § 6 counts with `--from-run <run id> --target <owner/name> --repo <target checkout>` — every field read from the run's manifest and the live PRs (`ready` from `nen pr ready`, `prompted` from the stop marker in the effort's worktree), none typed (zheref/hatsu#423) — summed with the claimed efforts that have no delivery PR (§ *Idle batches* rule 4). A printed rule other than `ready+prompted` (the key undeclared on another checkout, `merged`, `stacked-open`) is not this repository's: futon counts every unmerged delivery PR in `nen run verify --json` as holding a slot, failing closed. `start` (`futon_effort_record.mts`) refuses any other value here or under `idle.localSlotFrees`. **A verified sixth-stop handoff also frees the slot** ([HR-372](ROSTER.md#hr-372), zheref/hatsu#522, amending HR-353): a delivery at PROCESS's *The sixth stop* — `nen pr ready --json` failing exactly `["rounds-owed"]` with (a)–(e) holding, its `judgedHead` equal to the PR's live `headRefOid`, and `en` § 5's merge prompt shown at that same head (its stop marker) — frees its local slot while its verdict stays **not-ready** and its merge stays the maintainer's. The release is bound to that head: a push, a new failing row or a moved head re-holds the slot. A delivery with a failing check, a repair hold, or a handoff missing any of those three facts keeps its slot. nen's slot reader at the pin reads `ready` from `nen pr ready` alone (from 0.30 it also holds a slot for a claimed effort in the manifest's `claims[]`, which no Hatsu writer records yet), so futon reads `--from-run` as above, then releases each such delivery in its report, naming the PR, the head and the quoted verdict — never by typing a field into an efforts file. The cap of 7 and the one-heavy-workload rule (§ *Host workload budget*) do not change |
+| `localSlotFrees` | `ready+prompted` | Fixed by [HR-353](ROSTER.md#hr-353), amended by [HR-372](ROSTER.md#hr-372). Futon § 6 uses `futon_effort_record.mts slots`, which derives each PR's G2/G4 from its changed paths under *Gate derivation*, calls `nen loop slots --from-run --prompt-gate` once per group and selects that group's Nen decisions. En § 5 records `nen stop --prompt-shown` only after showing the prompt, bound to the manifest effort id, PR and judged head. An attention marker is not evidence. Nen 0.31 releases a Ready delivery with that receipt, or a verified `nen.stop.sixth-stop/v0.1` handoff while readiness remains `not-ready`. Missing evidence, a moved head, another failed row or a repair hold keeps the slot occupied; Hatsu counts only Nen's selected holding entries, with unlinked claims counted once and unread claims retaining their hold. Claimed efforts without a PR hold until local integration, counted separately as in Idle batches rule 4. `start` refuses a configured rule other than `ready+prompted`. |
 
 ### `idle`
 
@@ -1412,15 +1414,18 @@ No ownership record is made for an integration PR or a PR into `branch.base`.
 no answers). A refused or non-`started` nen start, or a manifest storing other `idleAnswers` than the map sent,
 refuses `start` (exit 1), so no record names a run nen never opened; a record that cannot be written names
 nen's manifest path as the orphan. `bind` refuses a dry run and an idle one, and `verify` refuses a claim on either (§ *Batch delivery* rule 4). After **every** PR the run opens — delivery, integration or release,
-**whatever its base**, `main` included — `nen run append --id <run id> --pr <N> --kind delivery|integration|release
-[--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>` records it from the live PR (a re-append refreshes base
+**whatever its base**, `main` included — `nen run append` records it from the live PR, with mandatory `--issue` and `--effort`
+for delivery (exact command forms below) (a re-append refreshes base
 and head; a PR opened before the run, or under another kind or issue, is refused). `nen run park --id <run id>
 --issue <CODE>#<N> --row <row>` records a parked effort; `nen run verify --id <run id> --target <owner/name>
 --repo <checkout> [--json]` reads every recorded PR live and prints the parked rows: futon § 8's `then` gate,
 kazaana § 5 and the register read every PR this run authored from it, never from memory. A v0.1 or v0.2 run
 (opened before this change) has no nen manifest: `verify` exits non-zero and the gate is **held**, never met by an
 empty set; `profile` prints its record with `manifest: absent`. The record's `append`, `park` and `status` are
-retired and refuse by name.
+retired and refuse by name. Every delivery append must carry its bound effort id: a null effort
+cannot match a prompt receipt. Recover a legacy null row only by proving the existing effort binding
+and re-appending the same PR, kind and issue with that id; Nen fills null but rejects a different
+non-null effort. If the binding cannot be proven, hold the slot and report the missing evidence.
 
 ```bash
 node "$hatsu_root/scripts/futon_effort_record.mts" start --repo <effort-worktree> --invocation '<original full hatsu:futon invocation>'
@@ -1431,7 +1436,8 @@ node "$hatsu_root/scripts/futon_effort_record.mts" bind --repo <effort-worktree>
 node "$hatsu_root/scripts/futon_effort_record.mts" verify --repo <effort-worktree> --pr <N>
 node "$hatsu_root/scripts/futon_effort_record.mts" profile --repo <checkout> --run <id>
 node "$hatsu_root/scripts/futon_effort_record.mts" predict --repo <checkout> --run <dry id> --issue <CODE>#<N> --row <row>
-nen run append --id <id> --pr <N> --kind delivery|integration|release [--issue <CODE>#<N>] [--effort <branch>] --repo <checkout>
+nen run append --id <id> --pr <N> --kind delivery --issue <CODE>#<N> --effort <bound effort id> --repo <checkout>
+nen run append --id <id> --pr <N> --kind integration|release --repo <checkout>
 nen run park   --id <id> --issue <CODE>#<N> --row <row | budget | needs-clarification | residue-<skill> | g5-<class>> --repo <checkout>
 nen run verify --id <id> --target <owner/name> --repo <checkout> --json
 ```
@@ -1988,15 +1994,15 @@ The keys are § 2's `idle`; the manifest is nen's (§ *Recorded Futon delivery o
 4. **Bounds.** Before each claim, `nen run budget` (§ 2 `idle` → `budget`, its four exit rows) gives the
    wall-clock minutes against the ceiling `start` printed; at `remaining.minutes` `0` nothing new is claimed
    and the rest park as `parked:budget`. The token bound is advisory where the ledgers are unread (§ 2).
-   **Slots are counted from two sources and summed** (futon § 6, § 2 `monitor`, [HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`: a slot is held from
-   the claim until `ready+prompted`): `nen loop slots --from-run <run id>` counts the run's delivery PRs, and
-   `nen loop slots --efforts <abs path>` counts the run's claimed efforts that have no delivery PR — every
-   effort worktree of this run (`nen wc worktrees`) whose branch no `nen run verify` row names, one object
-   `{"id": "<CODE>#<N>", "plane": "local", "prOpen": false, "ready": false, "prompted": false, "merged":
-   <its branch is an ancestor of the integration branch>}`; the run claims only while the two `local.occupied`
-   sum below `--local-cap 7`. (nen's `--from-run` counts appended PRs and, from 0.30, the manifest's `claims[]`, refusing `--efforts` beside it; no Hatsu writer records `claims[]` yet, so the claimed efforts are summed here and that addend drops once a writer records them:
-   a claimed-efforts count in the manifest is owed to nen.) A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
-   its prompt shown, or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
+   **Slots come from Nen decisions** (futon § 6, [HR-353](ROSTER.md#hr-353)). The adapter
+   selects each delivery's derived-gate result and counts manifest claims once. Only when
+   `fromRun.claims` is `not-recorded` may the legacy worktree addend use `nen loop slots --efforts`:
+   count this run's no-PR effort worktrees whose branches no delivery row names, one object
+   `{"id":"<CODE>#<N>","plane":"local","prOpen":false,"ready":false,"prompted":false,"merged":
+   <its branch is an ancestor of the integration branch>}`. Sum that legacy occupancy with the
+   adapter's only while below `--local-cap 7`. When claims are `read`, do not add those worktrees
+   again; when claims are `unread`, local capacity stays held and no new effort starts. A slot frees at `ready+prompted` ([HR-353](ROSTER.md#hr-353), record `R-2026-10-23-20`): the effort's PR Ready and
+   its prompt shown and durably recorded by en § 5, or a verified sixth-stop handoff (verdict still not-ready), or, with no sub-PR, its local merge into the integration branch; till then the rest **wait**
    (back-pressure) and park as `parked:budget` only when the minutes elapse. **The merge no longer caps the night at seven**:
    each effort frees its slot at its own Ready prompt, so at most seven are open at once — their heavy work one at a time (§ *Host workload budget*) — and the night authors
    as many claimable efforts as `idle.budget.minutes` allows. How many that is was not measured: the
@@ -2168,7 +2174,7 @@ ask and most expensive to skip.
 **Neither lives here.** The routing is data — `nen/workflow.json` → `review.scopes`, read by
 `nen review scopes` — and the protocol is
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 5 with
-[`claude/agents/_review-preamble.md`](../claude/agents/_review-preamble.md) § 4. A table copied here
+[`docs/personas/_review-preamble.md`](personas/_review-preamble.md) § 4. A table copied here
 is a second source that drifts the moment a scope is added, which is what happened: this section
 carried five reviewers and a four-field shape long after there were six of each.
 
@@ -2283,7 +2289,7 @@ effort `medium`. He is **provisioned, not ratified** (`OPEN-1`, partially closed
 He is **read-only by discipline, and the definition says which** — his frontmatter carries no `Edit`, `Write`
 or `MultiEdit`, but it does carry `Bash`, because every observation is a program and `Bash` can push, commit
 and merge as easily as it can read. What holds is the **command allowlist** in
-[`illumi.md`](../claude/agents/illumi.md) § *The allowlist*; anything off it is a wake, not a command. He acts
+[`illumi.md`](personas/illumi.md) § *The allowlist*; anything off it is a wake, not a command. He acts
 on nothing. Each observation he records five facts (the readiness verdict *quoted*, the checks, review activity,
 base drift, terminal state), compares them against the previous observation, and **wakes Kurapika** when one of
 seven conditions fires: Ready, a new review or thread, a check gone red, the branch behind or conflicted,
@@ -3552,7 +3558,7 @@ authored (row `missing-focused-route`) — neither is a stop.
 listing every path, refuses a name that already exists locally or on `origin`, requires `--repo`, and
 has **no `--tests` on the initial warm-up**. **`nen shu tools` exit `5` names the fix per tool**:
 install or resolve through the surface's own catalogue probe (row `missing-tool`), never with
-elevation and never at an unpinned version. **Exit codes are `claude/agents/kurapika.md` § *The `shu`
+elevation and never at an unpinned version. **Exit codes are `docs/personas/kurapika.md` § *The `shu`
 verbs*'**; **`4`** is a seat whose reason is quoted, after which the repository's own documented
 command is run and said so, a declaration change landing as its own PR at the declaration gate (**G4**
 in a canon repository, **G2** in a consumer one, ruling 2026-09-18); **`3`** is a **G5** naming the

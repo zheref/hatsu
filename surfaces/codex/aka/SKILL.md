@@ -158,7 +158,7 @@ A missing argument or configuration item is asked for and set up inline (`missin
 default above that covers the key is used and stated, never asked about. **§ 4's refusals are not gaps**:
 rewriting published history, a forbidden trailer and a push of the trunk still refuse, never guessed past.
 
-> **Declared change from `claude/agents/kurapika.md` § *How you work* — named, not slipped in.**
+> **Declared change from `docs/personas/kurapika.md` § *How you work* — named, not slipped in.**
 > The agent definition today reads *"No AI attribution beyond the trailers the maintainer's own
 > harness mandates — today `Co-Authored-By:` and `Claude-Session:` … you neither add attribution of
 > your own nor strip theirs"*, and records that the final rule is a constitutional question left
@@ -358,6 +358,8 @@ nen wc squash --repo <path> --onto <ref> --message-file <file> [--dry-run] [--js
 > both through the seam — so a commit that then fails leaves the originals recoverable from
 > `ORIG_HEAD` and the reflog, which the verb's own error names. It never touches a remote beyond the
 > read-only fetch, never pushes, and never force-anything.
+
+**Exit `4` means committed**: an opted-in hook stripped an injected key. Report `stripped[]` and continue without retrying or undoing. Exit `3` wins if a refused key remains. This repin does not enable `commits.stripInjected`.
 
 **Exit `3` — the squash happened, and a hook put a refused trailer on it (nen `0.19`, zheref/nen#357).**
 The verb reads the commit it just wrote back through git's own trailer parser. Its `injected[]` lists
