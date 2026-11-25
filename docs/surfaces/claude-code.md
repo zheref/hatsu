@@ -176,6 +176,21 @@ state as unknown. Inspect the active session in `/permissions` before drawing a 
 classification. See [Auto mode configuration](https://code.claude.com/docs/en/auto-mode-config)
 and [Bash compound commands](https://code.claude.com/docs/en/permissions#compound-commands).
 
+### App-worktree permissions
+
+Ten § 5 checks the absolute effort target returned by the app, including when the harness refused
+Hatsu's original worktree location (HA#564). Rebind to the returned checkout under Ten § 4b
+before checking; a permission pack in core proves nothing about this target.
+
+If `--check-user` reports missing routine rows or a missing paired hook, render the existing
+`permissions_pack.sh --surface claude-code --render-user --target <target>` proposal once.
+Say in one line: “Approve the rendered routine permission rows and paired hook for <target>.”
+The maintainer reviews and applies them together from an independent terminal, as above.
+Name a refused render or unread check; neither means the pack is present. On continuation,
+recheck the same target and report remaining overrides instead of silently skipping it or
+claiming zero prompts from visible rows alone. User-level trusted-repository settings stay
+outside this repair; the agent never edits them.
+
 ## 6. Rules
 
 Claude Code reads `CLAUDE.md` and the plugin's own files; Hatsu writes no rules file on this surface.

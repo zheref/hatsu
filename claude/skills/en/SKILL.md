@@ -561,6 +561,12 @@ every poll of a four-hour wait is a bell nobody hears.
 
 ## 6. The observation hold — `nen watch until` on `nen pr ready`, and what a cycle is
 
+**Claude Code app fallback (HA#564).** Auto-fix is unavailable when the app did not see the PR
+opened in this session, including a PR opened by `nen pr open`. Continue this section's bounded
+Nen observation in the bound effort checkout; do not wait for a maintainer re-prompt or retry
+Auto-fix. Ten § 5 owns a missing app-worktree permission pack; an unresolved approval remains
+a named gate, never permission to improvise GraphQL mutations.
+
 The condition is polled by the same read-only observation engine
 [`hatsu:izanami`](../izanami/SKILL.md) uses. **The verb owns the wait between observations**; a caller
 does not repeatedly invoke a one-iteration command and pretend `--interval-ms` paced those invocations.

@@ -140,7 +140,8 @@ unavailable member; **every member unavailable** is the sixth stop, its predicat
 *Event-driven reviewer lanes*). **The merge is the maintainer's**.
 
 Follow [PROCESS](../../../../docs/PROCESS.md) § *Reviewer rounds and review threads* for completeness,
-`nen pr threads list|reply|resolve` and Copilot. Request Copilot only with `nen pr request-reviews --add-bots <node id>`,
+`nen pr threads list|reply|resolve` and Copilot. Raw `gh api graphql` thread mutations are forbidden, also in app worktrees.
+Request Copilot only with `nen pr request-reviews --add-bots <node id>`,
 verify with `nen pr ready`, and cite only commits on the PR's head chain (HA#139).
 Check screenshots, then re-render the whole *Evidence* table ([WORKFLOW](../../../../docs/WORKFLOW.md) § *The UZF-26 evidence shape*).
 
