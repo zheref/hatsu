@@ -6,4 +6,4 @@ model: sonnet
 
 Before any review, read the complete [_review-preamble protocol](../../docs/personas/_review-preamble.md) from this Hatsu installation. It contains the mandatory instructions and limits; this include is only a routing pointer.
 
-For a placed copy, resolve the installed root with `hatsu:ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/_review-preamble.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/_review-preamble.md` there. If the protocol cannot be read, stop and name the missing file.

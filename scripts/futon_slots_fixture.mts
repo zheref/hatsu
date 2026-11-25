@@ -52,7 +52,7 @@ else if(a[0]==='loop') {
  const holding=held.map(x=>({id:x.id,why:x.repairHold?'sixth-stop evidence unread or held for repair':'Nen held'}));
  const plane=(name,cap,h)=>({plane:name,cap,occupied:h.length,free:e.UNREAD&&name==='local'?0:Math.max(0,cap-h.length),holding:h,binding:!!(e.UNREAD&&name==='local')||h.length>=cap});
  const report={ci:plane('ci',2,[]),local:plane('local',7,holding),done,localSlotFrees:{rule:e.RULE||'ready+prompted',source:'fixture'},
- fromRun:{run:at('--from-run'),efforts,notEfforts:[],closedUnmerged:[],unread:[],claims:e.UNREAD?'unread':'read',parkedClaims:[],claimsUnread:e.UNREAD?'claims unread':null}};
+ fromRun:{run:at('--from-run'),efforts,notEfforts:[],closedUnmerged:[],unread:e.TERMINAL?[{pr:1,reason:'diagnostic retained'}]:[],claims:e.UNREAD?'unread':'read',parkedClaims:[],claimsUnread:e.UNREAD?'claims unread':null}};
  if(e.MISSING) report.done=[];
  if(e.DUPLICATE) report.fromRun.efforts.push(efforts[0]);
  if(e.CLAIM_DRIFT&&gate==='G4') report.fromRun.parkedClaims=['HA#99'];
@@ -81,6 +81,7 @@ else if(a[0]==='loop') {
     assert.ok(calls.filter(a => a[0] === 'repo').every(a => a.includes('--target')), 'classification binds trusted target');
     result = run({ TERMINAL: '1' }); assert.equal(result.status, 0, result.stderr);
     assert.equal(JSON.parse(result.stdout).local.occupied, 1, 'terminal decisions selected once plus claim');
+    assert.deepEqual(JSON.parse(result.stdout).fromRun.unread, [{pr:1,reason:'diagnostic retained'}]);
     result = run({ RENAMED: '1' }); assert.equal(result.status, 0, result.stderr);
     assert.equal(JSON.parse(result.stdout).promptGates[0].gate, 'G4', 'rename old side derives gate');
     result = run({ CONSUMER: '1' }); assert.equal(result.status, 0, result.stderr);

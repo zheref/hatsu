@@ -157,7 +157,7 @@ export function slots(root: string, runId: string, target: string, common: strin
       done: chosen.flatMap(({ report, effort }) => report.done.filter(id => id === effort.id)),
       localSlotFrees: first.localSlotFrees,
       fromRun: { ...first.fromRun, efforts: chosen.map(({ effort }) => effort),
-        unread: reports.flatMap(({ gate, report }) => report.fromRun.unread.filter(row => gates.get(row.pr) === gate)) },
+        unread: reports.flatMap(({ gate, report }) => report.fromRun.unread.filter(row => gates.has(row.pr) ? gates.get(row.pr) === gate : report === first)) },
       promptGates: [...gates].map(([pr, gate]) => ({ pr, gate, snapshot: snapshots.get(pr) })),
       // Preserve full Nen reports as provenance; none of their fact fields are rewritten.
       role: classified.role, registryRef, nenReports: reports }, null, 2));

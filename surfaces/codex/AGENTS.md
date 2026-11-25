@@ -4,106 +4,106 @@
 
 Before acting as this persona, read the complete [bisky protocol](../../docs/personas/bisky.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/bisky.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/bisky.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## buhara
 
 Before acting as this persona, read the complete [buhara protocol](../../docs/personas/buhara.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/buhara.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/buhara.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## chrollo
 
 Before acting as this persona, read the complete [chrollo protocol](../../docs/personas/chrollo.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/chrollo.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/chrollo.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## feitan
 
 Before acting as this persona, read the complete [feitan protocol](../../docs/personas/feitan.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/feitan.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/feitan.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## gon
 
 Before acting as this persona, read the complete [gon protocol](../../docs/personas/gon.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/gon.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/gon.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## hisoka
 
 Before acting as this persona, read the complete [hisoka protocol](../../docs/personas/hisoka.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/hisoka.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/hisoka.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## illumi
 
 Before acting as this persona, read the complete [illumi protocol](../../docs/personas/illumi.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/illumi.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/illumi.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## kurapika
 
 Before acting as this persona, read the complete [kurapika protocol](../../docs/personas/kurapika.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/kurapika.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/kurapika.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## leorio
 
 Before acting as this persona, read the complete [leorio protocol](../../docs/personas/leorio.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/leorio.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/leorio.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## lippo
 
 Before acting as this persona, read the complete [lippo protocol](../../docs/personas/lippo.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/lippo.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/lippo.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## netero
 
 Before acting as this persona, read the complete [netero protocol](../../docs/personas/netero.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/netero.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/netero.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## nobunaga
 
 Before acting as this persona, read the complete [nobunaga protocol](../../docs/personas/nobunaga.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/nobunaga.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/nobunaga.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## phinks
 
 Before acting as this persona, read the complete [phinks protocol](../../docs/personas/phinks.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/phinks.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/phinks.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## satotz
 
 Before acting as this persona, read the complete [satotz protocol](../../docs/personas/satotz.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/satotz.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/satotz.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## shalnark
 
 Before acting as this persona, read the complete [shalnark protocol](../../docs/personas/shalnark.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/shalnark.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/shalnark.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## shizuku
 
 Before acting as this persona, read the complete [shizuku protocol](../../docs/personas/shizuku.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/shizuku.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/shizuku.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## uvogin
 
 Before acting as this persona, read the complete [uvogin protocol](../../docs/personas/uvogin.md) from this Hatsu installation. It contains the mandatory instructions and limits; this entry is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/uvogin.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/uvogin.md` there. If the protocol cannot be read, stop and name the missing file.
 
 ## _review-preamble
 
 Before any review, read the complete [_review-preamble protocol](../../docs/personas/_review-preamble.md) from this Hatsu installation. It contains the mandatory instructions and limits; this include is only a routing pointer.
 
-For a placed copy, resolve the installed root with `$ten` § 0, or use the absolute protocol path supplied in the delegate brief. Read `docs/personas/_review-preamble.md` there. If the protocol cannot be read, stop and name the missing file.
+For a placed copy, use section 0 of the installed Ten skill to resolve the root: choose the plugin-qualified entry in plugin mode, otherwise the local Ten skill. Delegates use the absolute protocol path in their brief. Read `docs/personas/_review-preamble.md` there. If the protocol cannot be read, stop and name the missing file.
