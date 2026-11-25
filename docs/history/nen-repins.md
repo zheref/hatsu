@@ -72,7 +72,9 @@ the downloaded darwin-arm64 asset passed verification and printed `0.31.0`.
 Tag target: `a9b41c756d0b7e090c79df8d389bd95a2d8d7a3a`. Its `bootstrap/nen.sh`
 SHA-256 remains `abf2bde0ebc207588bd078acbf861377d4755562514aec26d070aafd1267ba70`.
 The contract, provenance and Cursor Cloud install example move together. Both plugins move
-to 0.177.0: a minor because the bootstrapped dependency and caller behavior change.
+to 0.178.0: a minor because the bootstrapped dependency and caller behavior change.
+The original 0.177.0 choice was overtaken by main’s 0.177.1 bump in Hatsu #635;
+CONTRIBUTING’s parallel-bump rule requires both manifests strictly above the fresh base.
 
 ### Breaking / consumer notes absorbed
 

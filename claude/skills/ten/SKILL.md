@@ -143,14 +143,15 @@ Quote skips (HA#67; README § *Shared rules the warm-up follows*), continue.
 
 ## 5 · Surfaces — what a target gets
 
-Every Claude Code warm-up, including read-only, checks § 4b's target:
+Every Claude Code warm-up, including read-only, checks § 4b's target, **app-created worktrees too**:
 
 ```sh
 <hatsu_root>/scripts/permissions_pack.sh --surface claude-code --check-user --target <target>
 ```
 
-Quote the result. Render any offered proposal for review. The maintainer applies rows and hook together.
-[Claude permissions](../../../docs/surfaces/claude-code.md#5-permissions).
+Quote the result; follow [app-worktree approval](../../../docs/surfaces/claude-code.md#app-worktree-permissions)
+on missing coverage. The maintainer applies the rendered rows and hook together.
+
 
 Read-only/no-phase: **skip placement/provisioning**. Retain § 4b's target/root/cwd;
 failed isolation stops writes. Codex: `docs/surfaces/codex.md` § 5's write probe/recovery first.
