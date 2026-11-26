@@ -184,7 +184,7 @@ stop at the maintainer's call. No phase → none. Breath/ao skip preservation, n
 | 4 authenticated | `gh auth status` | red: the one G5 here, fix named, never elevated; green → `scripts/gh_token_env.sh` wraps the verb needing it, never printed | red |
 | 5 declarations | `nen schema check --repo "$target"` | `FAIL` stops before the phase | `FAIL` |
 | 5b values | `"$hatsu_root/scripts/config_values.sh" need --repo "$target" --skill <phase>` | exit 1 → ask, set up, resume (tenkai § 6d); exit 2 → stop | declined: phase asks |
-| 6 stale state | this branch's PR, open or merged | open → **refuse a second PR**, offer `en` on it (mukai § 2); merged → say so, offer breath | never |
+| 6 stale state | this branch's PR, open or merged | open → **refuse a second PR**; `pr` unended → mukai § 2's resume; then offer `en`; merged → say so, offer breath | never |
 | 7 the human's call | a gate the maintainer crosses | **never auto-run** | always, named |
 
 | Invoking phase | Steps, in order |

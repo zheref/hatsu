@@ -938,3 +938,15 @@ commit carries nothing but its last head. A resumed `v0.168.0` run reads the cut
 step left; a `v0.175.12` run reads nothing
 published and starts at § 2. **Not proved here**: a live getsuga session killed between § 3a's merge and § 4's
 cut and re-invoked; `nen tag cut`'s own refusal of an existing name is § 2.5 above.
+
+## Dated verification, 2026-11-26 — a live getsuga on the sandbox fixture: refused before any write (zheref/hatsu#444)
+
+Fixture and method: `docs/ab/build.md` § *Dated verification, 2026-11-26*. `hatsu:getsuga v0.1.0` (the maintainer
+approved one throwaway tag in the fixture) stopped at § 1 before any write: the crush host's permission deny
+list refused `nen release resolve-target --repo <clone> --token main --trunk main` (and `git tag -l`; a
+`git ls-remote --tags origin` read ran). Its resume read, taken first, found no tag and no release-proposal PR.
+Published: nothing (0 PRs, comments, labels, tags).
+
+**Verdict: NOT RUN (AC-5).** Owed: the `nen release` and `nen tag` verbs allowed for the fixture, a ruling on
+the first cut's changelog range (no previous tag; the fixture's root commit is the likely base), and the
+maintainer's merge of the release proposal (`release.proposalMerge` `human`) before the tag.

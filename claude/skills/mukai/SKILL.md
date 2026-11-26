@@ -204,6 +204,15 @@ that skill's own G5, rendered by
 **No PR is opened by a run that stopped**, and the answer to the stop resumes the run at the step
 that stopped, not at step 1.
 
+**A run killed after step 8 opened the PR resumes after it.** When this branch's PR is open and the
+effort's `pr` entry has no `endedAt` (`nen phase show --effort <branch> --json`), the next entry —
+mukai's own, or build's through [`ten`](../ten/SKILL.md) § 6 row 6 — opens no second PR and runs what
+step 8 left: [`shibari`](../shibari/SKILL.md)'s after-open Delivery re-render and read-back, step 8a
+(marker-keyed, so a posted slice is updated, never doubled), step 9, then `nen phase end --phase pr`
+(`--resume` on the open entry first), and only then offers En. Measured live on 2026-11-26
+(`docs/ab/build.md`): a build resumed through row 6 went straight to En and left its PR with no slice
+and a Delivery block that never named the PR.
+
 ## 3. What the run produces, and what it never produces
 
 **Produces:** a branch level with its base and pushed; a reviewed, tested, covered change; a landing

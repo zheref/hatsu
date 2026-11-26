@@ -82,7 +82,7 @@ Futon §§ 3–6 hold. This file adds:
 effort** by the surface's native tool, `--idle` alike — [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *Where worktrees live* and its surface adapter — titled `kazaana · kurapika · <alias>`, bound to
 `<core>/.nen/worktrees/<surface>/<name>`, handed the path, issue, stack base and aka § 0's five-fact push record (HR-20, HA#529), and WORKFLOW § *Delegate briefs*' wait block and § *The host block a delegate brief carries* verbatim, with one `Heavy turn:` line. **Its model is `direct`'s primary pick** — `.nen/direct/<effort>.json`,
 else `nen direct resolve … --record` again — spelled through `models.<surface>.<tier>` and passed as the
-raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `--dial` on phase/usage calls
+raise's model; pass the dial where exposed (Claude Code Agent-tool has none). The delegate records `author` and `publish` as `nen phase` rows (build § 4), `--dial` on phase/usage calls
 and title/id at its first phase when exposed; shibari reads its ledgers. The primary
 is never frontier. **The delegate runs
 `ren` then `aka`** — on a canon repository (`nen repo classify` → `role: canon`)
