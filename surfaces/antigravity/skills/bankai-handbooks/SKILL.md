@@ -274,16 +274,18 @@ with zero rulings at that tag, rows appended through that skill; prefix `PT`, on
 *Rulings of 2026-10-21 — the port rule prefix (HA#355)*). From nen `0.31.0` the verb resolves the pair (zheref/nen#457): § 2's
 call adds `--port-from <from> --canon-root "$canon"` (with `--ports-dir <rulingsDir>` when that key is not
 the default) and returns `portHandbook` — the pair path under `$canon` — beside `alwaysLoad` and
-`stackHandbook`. Before the call, three refusals are this skill's, at exit `2` and naming the value:
-`<from>` or the target's scenario is not a `From`/`To` scenario of `handbooks/ports/INDEX.md`'s table
-(`handbooks/INDEX.md`: the three product stacks, never `bankai-machinery`; nen's set is every directory
-under `handbooks/stacks`, so such a pair would read null below); `<rulingsDir>` breaks the catalogue's grammar (`contracts/config-catalogue.json`,
-`port.rulingsDir`); or `$canon/<rulingsDir>` is not a directory (`missing-configuration`: a mistyped key
-would otherwise read every pair as absent). nen then refuses a self pair or a `<from>` outside its stack
-set at exit `2` — a finding about the command; **any other exit `2` with `--port-from`** (the stack
-handbook missing under `$canon`, the pair path a directory or a link leaving the root, a `--ports-dir`
-leaving it) **is a finding about `$canon` at the pin**: quote the reason, never retry it as an
-invocation error. The form does not verify the pin, so § 0's `describe` gate still runs first. **`portHandbook: null`**
+`stackHandbook`. Before the call, three refusals are this skill's, in this order, at exit `2` and
+naming the value: `<rulingsDir>` breaks the catalogue's grammar (`contracts/config-catalogue.json`,
+`port.rulingsDir`); `$canon/<rulingsDir>` is not a directory (`missing-configuration`: a mistyped key
+would otherwise read every pair as absent); or `<from>` or the target's scenario is not a `From`/`To`
+scenario of `$canon/<rulingsDir>/INDEX.md`'s table (`handbooks/INDEX.md`: the three product stacks,
+never `bankai-machinery`; nen's set is every directory under `handbooks/stacks`, so such a pair would
+read null below). nen's exit `2` is then routed on its reason text: **a port cause is a finding about
+`$canon` at the pin** — the stack handbook missing, the pair path a directory or a link leaving the root,
+a `--ports-dir` leaving it, or `is not a scenario in the governing stack set` once the refusals above
+held (its stack directory is missing) — quoted, never retried as an invocation error; a self pair and
+**every other exit `2`** (a required flag, an empty `--always-load`, `--port-from` without
+`--canon-root`) fall through to § 1's exit-`2` row, a finding about the command. The form does not verify the pin, so § 0's `describe` gate still runs first. **`portHandbook: null`**
 (stderr `no port handbook for <from>--<to>: no rulings file yet`) reads `port rulings: none` — a port
 that has met no drift, not an error — at a pin below `v0.13.0`, where `CON-13` still has a pair file
 created on first use; **at `v0.13.0` or later, the tag that is to carry the amended `CON-13`
