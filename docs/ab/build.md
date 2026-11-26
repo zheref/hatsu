@@ -719,20 +719,24 @@ resumed pr on 'opus/kurapika/ha444-live-resume' at 2026-11-26T02:36:56.778Z (ope
 The clone's final ledger (`nen phase show … --json`, projected): `author` ended `0` · `publish` ended `0` ·
 `pr` open, `resumedAt: [2026-11-26T02:36:56.778Z]`, its ten recorded steps carried over from the slice.
 
-**The slice was 97 s behind the effort when the clone read it.** It was posted at 02:35:09Z with `pr` open.
+**The slice was up to 97 s behind the effort when the clone resumed it.** It was posted at 02:35:09Z with `pr` open.
 The authoring checkout ended `pr` at 02:35:19.315Z and began `readiness` at 02:35:19.742Z, and the clone
 resumed `pr` at 02:36:56.778Z. So this was a resume running beside a live session, not one after an
 interruption. The clone did no `pr` work (its brief stopped it after `begin --resume`), but it reopened a
 phase the effort had already ended. That is the right reading of what it was given: a slice is the record a
 fresh clone has, and a slice posted mid-phase says that phase is open. The lag comes from where the
 slice is posted, not from this run: mukai step 8a posts it inside `pr`, so until a later landing it always
-records `pr` open. An unbounded resume here would have re-run mukai's steps for a phase already ended.
+records `pr` open. An unbounded resume here would have re-run mukai's steps for a phase already ended. Its
+step 8a post would also have answered `updated` in place: the slice is one marker-keyed comment per effort and
+login, and both sessions ran as the same login. That would have replaced the newer slice (4 entries) with the
+clone's older one (3).
 
 **Verdict for AC-3: met against the slice it read, for `build` on a short effort.** The completed phases
 were skipped, and each skip line says which phase and why: its exit, its end instant, and the slice and head
 it was read from (WORKFLOW's one skip-line form). No phase the slice records as finished re-ran. The open phase
 continued as one entry with its resume instant, never a second entry. **No GitHub write**: HA-PR-#637's comments (1), labels (none), review requests (0),
-reviews (0) and head, and HA#444's comments (3) and labels, read identically before and after the session.
+reviews (0) and head read identically in snapshots saved before and after the session. HA#444's comments (3)
+and labels were saved before and compared live right after (`issue unchanged`); that after-read was not saved.
 
 **The rest of the durable slice, live on the same PR.**
 
@@ -751,8 +755,9 @@ reviews (0) and head, and HA#444's comments (3) and labels, read identically bef
   marked comment of ours edited by another login is foreign on read and refused on post*.
 - **AC-4's register half.** At nen `0.31.0`, `nen report data --target zheref/hatsu --prs 637 --json` (the
   register's data) carries the slice on the PR's row: `"ledger": {"state": "valid", "url":
-  "https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990", "verdict": "ok", …}`. Read before the
-  post, the same row was `"state": "none", "verdict": "could-not-read"`, naming the missing comment.
+  "https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990", "verdict": "ok", …}`. The authoring
+  session read the same row between the PR's opening and the post as `"state": "none", "verdict":
+  "could-not-read"`, naming the missing comment; that read was not saved.
 
 **A second restore over two ledgers that split apart is refused, correctly.** In the resumed clone, a second
 `read --restore` exits `1`: *"the local phase ledger … (3 entries) disagrees with the slice … (4); nothing was
@@ -770,5 +775,5 @@ resume after a real interruption, and of the other composites, is not shown. AC-
 is not shown live (above). A second mukai landing refreshing the slice is not shown, and neither is a
 resumed session's own usage entry (HR-398): the clone's usage ledger stays empty because the run stopped
 before any phase work. **For the maintainer:** should `pr`'s end, or en's start, refresh the slice, so a
-fresh clone does not read an ended `pr` as open? Canon names no such post today, and this section writes no
-rule for it.
+fresh clone does not read an ended `pr` as open? And when two sessions hold one effort, which of them may
+write its slice? Canon names neither today, and this section writes no rule for either.
