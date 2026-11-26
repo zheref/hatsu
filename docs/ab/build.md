@@ -670,3 +670,81 @@ Mukai runs inside build's `pr` phase and records none of its own; build § 4 cit
 **Not proved here.** A live session killed mid-composite and re-invoked: the proof drives the ledger verbs
 the composite's resume rule reads, not a running model following the rule. The live publish half is in
 `docs/ab/mukai.md` and `docs/ab/ren.md` (2026-10-23, HA-PR-#463).
+
+## Dated verification, 2026-11-26 — a live session resumes from a fresh clone (zheref/hatsu#445)
+
+AC-3 run live: a running session, not a script, resumes `build` on a clone that never ran a phase, reading only
+the pull request's durable slice. Host `darwin` (arm64), nen `0.31.0` (the contract pin). The subject is
+HA-PR-#637 (branch `opus/kurapika/ha444-live-resume`, head `f9d0cc11834cf91a63854a52be64b1ee8a292631`), whose
+authoring session had posted its slice at the landing step (mukai step 8a) with `author` and `publish` ended
+at exit `0` and `pr` open:
+
+```text
+$ nen pr ledger post --target zheref/hatsu --pr 637 --effort opus/kurapika/ha444-live-resume --repo <checkout> --findings <copy> --findings-schema contracts/hanten-findings.schema.json
+posted: https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990 -- effort 'opus/kurapika/ha444-live-resume', head f9d0cc11834c, 3 phase entries, 0 proof file(s)
+```
+
+**How it was run, to re-run it.** A fresh clone, push mechanically disabled; GitHub writes forbidden by the
+brief. One background Claude Code session (an Agent-tool subagent, `claude-sonnet-5-5`, dial high) was given
+the brief below, verbatim but for the path:
+
+```text
+git clone --branch opus/kurapika/ha444-live-resume https://github.com/zheref/hatsu.git <clone>
+git -C <clone> remote set-url --push origin /dev/null/no-push
+```
+
+```text
+You are a live Hatsu session on Claude Code (surface claude-code, model claude-sonnet-5-5, dial high), resuming an effort another session started on another machine. Run this exact line as the maintainer typed it, by loading the hatsu:build skill with the Skill tool and following it — and the resume rule it cites (ren § 2a, "A resumed effort reads before it writes", and WORKFLOW § The effort's ledgers, The durable slice) — exactly as written:
+
+    hatsu:build HA#444
+
+The checkout for this run is <clone>: a FRESH clone of zheref/hatsu on branch opus/kurapika/ha444-live-resume (push disabled). That branch already has an open PR, zheref/hatsu#637, which carries the effort's durable ledger slice. This clone has never run any phase: it has no local phase ledger. Work only inside <clone>; use that checkout itself as the effort checkout (do not cut a new branch or worktree: the effort's branch is the one checked out).
+
+Bounds for this run (they replace outward actions, nothing else): run NO GitHub write of any kind — no push, no PR edit, no comment, no label, no review request, no ledger post, no issue edit; classify and direct are report-only (publish nothing). Reads are fine (gh/nen reads, `nen pr ledger read`, `nen pr ready`). When the resume reaches the first phase that is not skipped, begin that phase's ledger entry in this clone (nen phase begin, as build § 4 says) and then STOP before doing that phase's work. Do not ask the maintainer anything; where a step would ask, take its starred default and say so.
+```
+
+**What the session did** (its commands and their exits, from its report):
+
+```text
+$ nen phase show --effort opus/kurapika/ha444-live-resume --repo <clone> --json          # exit 0: "phases": [] — no local ledger, so --restore
+$ nen pr ledger read --target zheref/hatsu --pr 637 --effort opus/kurapika/ha444-live-resume --repo <clone> --restore --json
+                                                                                         # exit 0: "verdict": "ok", "foreign": 0, "restored": {"outcome": "restored"}
+$ nen phase show --effort opus/kurapika/ha444-live-resume --repo <clone> --json          # exit 0: author, publish ended 0; pr open
+skipped author: exit 0 at 2026-11-26T02:05:25.698Z (slice https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990 @ f9d0cc11834cf91a63854a52be64b1ee8a292631)
+skipped publish: exit 0 at 2026-11-26T02:05:52.998Z (slice https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990 @ f9d0cc11834cf91a63854a52be64b1ee8a292631)
+$ nen phase begin --effort opus/kurapika/ha444-live-resume --repo <clone> --phase pr --surface claude-code --model claude-sonnet-5-5 --dial high --resume
+resumed pr on 'opus/kurapika/ha444-live-resume' at 2026-11-26T02:36:56.778Z (open since 2026-11-26T02:06:05.012Z) -- <clone>/.git/.nen/phases/opus%2Fkurapika%2Fha444-live-resume.json
+```
+
+The clone's final ledger (`nen phase show … --json`, projected): `author` ended `0` · `publish` ended `0` ·
+`pr` open, `resumedAt: [2026-11-26T02:36:56.778Z]`, its ten recorded steps carried over from the slice.
+
+**Verdict for AC-3: met, for `build` on a short effort.** The completed phases were skipped, and each skip line
+says which phase and why: its exit, its end instant, and the slice and head it was read from (WORKFLOW's one
+skip-line form). No finished phase re-ran. The open phase continued as one entry with its resume instant,
+never a second entry. **No GitHub write**: HA-PR-#637's comments (1), labels (none), review requests (0),
+reviews (0) and head, and HA#444's comments (3) and labels, read identically before and after the session.
+
+**The rest of the durable slice, live on the same PR.**
+
+- **AC-1, one comment updated in place.** The authoring session later posted again at the end of its
+  readiness phase. `nen pr ledger post` answered `updated: https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990 … 4 phase entries`,
+  and the PR still carries one comment. Before each post, `--dry-run --json` was scanned by the pinned
+  `gitleaks` `8.30.1` (`no leaks found`). The findings copy came from `scripts/ledger_findings_prepare.mts`
+  (`23 finding(s), absolute paths relativised`); the dry run held no absolute path.
+- **AC-2, read back.** `nen pr ledger read` answered `ok: … by zheref … 4 phase entries, recorded at head f9d0cc11834c; foreign: 0`.
+- **AC-4's register half.** At nen `0.31.0`, `nen report data --target zheref/hatsu --prs 637 --json` (the
+  register's data) carries the slice on the PR's row: `"ledger": {"state": "valid", "url":
+  "https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990", "verdict": "ok", …}`. Read before the
+  post, the same row was `"state": "none", "verdict": "could-not-read"`, naming the missing comment.
+
+**Finding, unchanged at 0.31.0.** In the resumed clone, a second `read --restore` is refused at exit `1`.
+After its resume the clone's ledger holds 3 entries, while the slice, updated since, holds 4: *"the local phase
+ledger … (3 entries) disagrees with the slice … (4); nothing was overwritten"*. A plain `read` answers `ok` at
+exit `0`. Ren § 2a's rule, `--restore` only where no local ledger exists, is the one that holds; the
+`docs/ab/ren.md` finding of 2026-10-23 still stands.
+
+**Not proved here.** AC-4 proper (an unattended run whose every PR carries a valid slice, listed in the
+register) needs an idle run that opens real pull requests, the same fixture-repository question as
+zheref/hatsu#444. SC-2 holds for this one resume (0 completed phases re-run); a fresh-clone resume of the
+other composites is not shown.
