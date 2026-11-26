@@ -377,7 +377,7 @@ open one in place; one commit on each branch; nothing published by either run (R
 exits **and recorded steps**). The names differ on steps 4–6 (finding 1, fixed here). The recorded `steps`
 differ on steps 1–3, because each session chose under which phase to record its `lint` run. Whether HR-398's
 "steps" covers those recorded sub-steps or only the composite's own steps is the maintainer's to read; until
-then AC-1's live half for `ren` stays open on #444.
+then AC-1's live half for `ren` stays open on HA#444.
 
 **Findings, and their dispositions:**
 
@@ -406,6 +406,6 @@ PR, comment and labels; `getsuga`: a tag) cannot be killed and re-run live witho
 repository, which this run was not authorised to do. Which fixture repository those runs may publish to,
 and whether `getsuga` may cut a throwaway tag there, is the maintainer's question (zheref/hatsu#444).
 `kamui` and `hiraishin` need a real port run in a product family. Two questions the run raised stay on
-#444: whether a later turn of a continued `ren` effort is a resume (a ledger read effort-wide skips every
+HA#444: whether a later turn of a continued `ren` effort is a resume (a ledger read effort-wide skips every
 ended step), and whether `ren` under `build` writes its six entries inside `build`'s open `author` entry
 (nen `0.31.0` allows both; `resume_proof.mts` models `build` as four phases with no nested `ren` entries).
