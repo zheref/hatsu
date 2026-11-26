@@ -1,0 +1,31 @@
+{
+  "contract": "nen.stop.answer/v0.1",
+  "id": "R-2026-11-22-01",
+  "effortId": "codex/kurapika/direct-matrix-nov2026",
+  "n": 1,
+  "gate": "G4",
+  "row": null,
+  "who": "Kurapika",
+  "question": "§6.2 sets Antigravity deep/fast to `gemini-pro-orchestrator-neon` / `gemini-4-hydrogen`, but nen copies those tiers into 15 persona `model:` lines. The host allows only inherit|flash|pro there. How should this PR land?\n",
+  "options": [
+    {
+      "key": "A",
+      "label": "Hold deep/fast, land the rest ⭐",
+      "consequence": "Frontier → gemini-4-carbon and all the registry, matrix, effort and docs changes land now. models.antigravity deep/fast stay pro/flash, so personas stay valid. The registry note and docs name the new lead slugs to type by hand, and a nen issue is drafted (not filed) for a separate persona key. The deep/fast slugs land when that issue does."
+    },
+    {
+      "key": "B",
+      "label": "Apply §6.2 literally",
+      "consequence": "models.antigravity takes all three slugs. The regenerated mirrors write gemini-pro-orchestrator-neon into 10 reviewer personas and gemini-4-hydrogen into 5 worker personas. Those values are outside the documented set, and whether Antigravity subagents still run on them is untested; testing needs an inference."
+    },
+    {
+      "key": "C",
+      "label": "Stop and hand back",
+      "consequence": "Commit nothing. I write up the conflict as the single open item for the spec's author and wait."
+    }
+  ],
+  "kind": "picked",
+  "pick": "B",
+  "typed": null,
+  "answeredAt": "2026-11-22T14:27:55.685Z"
+}

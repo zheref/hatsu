@@ -51,7 +51,7 @@ on Cursor and Antigravity.
 | in-session subagent | the Agent tool | `spawn_agent` | `.cursor/agents/` | `invoke_subagent`, `Workspace` `inherit`, `branch` or `share` |
 | native option picker | `AskUserQuestion` | `request_user_input` | the ask question tool (`cursor/ask_question`) | `ask_question`, `is_multi_select` |
 | persona model key | `model`: tier alias | `model` in the TOML; `[agents]` fragment from the rows | `model: inherit` (Cursor-native only) | `model`: `inherit`, `flash`, `pro` |
-| reviewer tier (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` | `pro` |
+| reviewer tier (`models.roles.reviewer` = `deep`) | `opus` | `sol` | `grok` | `gemini-pro-orchestrator-neon` |
 | update and switch (`hatsu:bakuryuha`) | the checkout moves; **type `/reload-plugins`**, or a new session; the model cannot run it | the checkout moves and the plugin is re-added; running sessions refresh skills and hooks (0.154.0); personas at the next run; a changed hook waits for `/hooks` trust | a new chat (forum-sourced), or **Developer: Reload Window** | a new conversation; the CLI's `/skills reload` (≥ 1.2.4), typed |
 | minimum build | n/a | none documented; validated on `codex-cli 0.149.0` | `cursor-agent 2026.01.*`, below it no skill is seen | Antigravity IDE / `agy` CLI |
 

@@ -359,9 +359,9 @@ lives, save the one exception [`docs/WORKFLOW.md`](docs/WORKFLOW.md) § `models`
 
 | Tier | Role | Claude Code | Codex | Cursor | Antigravity |
 |---|---|---|---|---|---|
-| `frontier` | `orchestrator`: your own session | `fable` | `astra` | `grok` | `ultra` |
-| `deep` | `reviewer` | `opus` | `sol` | `grok` | `pro` |
-| `fast` | `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
+| `frontier` | `orchestrator`: your own session | `fable` | `astra` | `grok` | `gemini-4-carbon` |
+| `deep` | `reviewer` | `opus` | `sol` | `grok` | `gemini-pro-orchestrator-neon` |
+| `fast` | `worker`, `measurer` | `sonnet` | `terra` | `composer` | `gemini-4-hydrogen` |
 | `economy` | `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 
 **Which model should do a given piece of work, and on which surface?** `hatsu:direct` answers it

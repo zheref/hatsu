@@ -825,7 +825,7 @@ listed (§ *Idle batches* rule 8). `idle.budget.minutes` is wall-clock run age a
   "claude": { "frontier": "fable", "deep": "opus", "fast": "sonnet", "economy": "haiku" },
   "codex":  { "frontier": "astra", "deep": "sol",  "fast": "terra",  "economy": "luna" },
   "cursor": { "frontier": "grok",  "deep": "grok", "fast": "composer", "economy": "composer" },
-  "antigravity": { "frontier": "ultra", "deep": "pro", "fast": "flash", "economy": "flash" },
+  "antigravity": { "frontier": "gemini-4-carbon", "deep": "gemini-pro-orchestrator-neon", "fast": "gemini-4-hydrogen", "economy": "flash" },
   "roles":  { "reviewer": "deep", "worker": "fast", "measurer": "fast", "orchestrator": "frontier",
               "watcher": "economy", "formatter": "economy" }
 }
@@ -870,9 +870,9 @@ surface for exactly this reason: **the tier is the policy and the alias is the s
 
 | | **Claude Code** | **Codex** | **Cursor** | **Antigravity** |
 |---|---|---|---|---|
-| `frontier` — the orchestrator, the maintainer's own session | `fable` | `astra` | `grok` | `ultra` |
-| `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** | **`pro`** |
-| `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `flash` |
+| `frontier` — the orchestrator, the maintainer's own session | `fable` | `astra` | `grok` | `gemini-4-carbon` |
+| `deep` — **`models.roles.reviewer`**, so this is the reviewer tier | **`opus`** | **`sol`** | **`grok`** | **`gemini-pro-orchestrator-neon`** |
+| `fast` — `worker`, `measurer` | `sonnet` | `terra` | `composer` | `gemini-4-hydrogen` |
 | `economy` — `watcher`, `formatter` | `haiku` | `luna` | `composer` | `flash` |
 | **how a subagent is raised** | the harness's **Agent tool**; Hanten **omits** `isolation` — `isolation: "worktree"` would isolate the *plugin's* repository, not the target | **in-session `spawn_agent`** (ChatGPT app, CLI, IDE). Hanten's isolated reviewer is still a second **`codex exec -m <id> -C <dir> -s workspace-write`** because that reviewer must not share the author's tree | a **subagent definition** at `.cursor/agents/<persona>.md`, mirrored there from `claude/agents/` | the harness's **`invoke_subagent` tool**, `Workspace: "branch"` (reviewers and all builder efforts) or `"inherit"` (Third-Hand's Netero, En's Illumi), `Model: "pro"` |
 | **isolation** | lead/delegated authors bind separate target worktrees via the Claude guide's adapter; Hanten's reviewer: **`<core>` resolved first — `nen wc worktrees --repo <target> --json` → `core` — then `git -C <target> worktree add --detach <core>/.nen/worktrees/claude-code/hanten-<persona> HEAD`**, the path in the prompt with *"do not request a worktree"*, removed when the review returns ([`hanten`](../claude/skills/hanten/SKILL.md) § 4); **only on an OBSERVED refusal of that `worktree add`** by the harness's isolation guard (never pre-empted), the reviewer reads the effort checkout read-only at the printed HEAD, disclosed ([`PROCESS.md`](PROCESS.md) § *Residue and owned dependencies*, row (a), zheref/hatsu#218) | app authoring uses its exposed worktree tools and returned workspace path (Codex guide § *Authoring checkout adapter*); in-session spawn **shares the parent**, so delegated authors need independently provisioned paths; Hanten's reviewer is still **`git worktree add` first**, at `<core>/.nen/worktrees/codex/hanten-<persona>` — `-C` takes a directory and creates none | native Worktree mode or the Cursor guide's explicit fallback; a branch alone is insufficient — a worktree Hatsu makes is `<core>/.nen/worktrees/cursor/<name>` | **`Workspace: "branch"`** by default for all builder efforts and Hanten reviewers; **`"inherit"`** for Third-Hand's Netero (`share` only when it is the same checkout); the lead's own `git worktree add` goes to `.nen/worktrees/antigravity/<name>`. Core remains untouched unless the ORIGINAL effort prompt explicitly authorizes core authoring |
@@ -884,24 +884,22 @@ worktrees live*, the ruling of 2026-09-30.
 disagree the file wins and the table is the bug.
 
 **A reviewer runs at its scope's declared tier on every surface** — `models.roles.reviewer`'s `deep`
-(`opus`, `sol`, `grok`, `pro`) unless `review.scopes.<scope>.tier` says otherwise — because a role maps to a
+(`opus`, `sol`, `grok`, `gemini-pro-orchestrator-neon`) unless `review.scopes.<scope>.tier` says otherwise — because a role maps to a
 tier rather than to a product.
 [`claude/skills/hanten/SKILL.md`](../claude/skills/hanten/SKILL.md) § 4 and § 7 are the mechanism, per surface, with
 the exact invocation.
 
-**The frontier tier never runs a subagent, on any surface**, save the one exception above. Not `fable`, not `astra`, not `grok`, not `ultra`. The
+**The frontier tier never runs a subagent, on any surface**, save the one exception above. Not `fable`, not `astra`, not `grok`, not `gemini-4-carbon`. The
 frontier tier is where the maintainer's own conversation lives, and the cost lands on the maintainer's
 session rather than on the delegate's; below it, the first rule above holds (a subagent's tier is its
 scope's or role's, never its caller's).
 
-> **Antigravity Performance vs. Cost & Subscription Tiers (Google AI Pro & Ultra)**:
-> In market benchmarks (such as DeepSWE and SWE-bench Verified), Gemini 2.5 Pro demonstrates reasoning
-> on par with or exceeding Opus and o1 on difficult architectural, refactoring, and code review tasks,
-> making it the designated `deep` reviewer tier. For `worker` and `measurer` tasks, Gemini 2.5 Flash
-> provides exceptional cost efficiency (10-20x cheaper per token while retaining >80% resolution accuracy).
-> Under Google AI Pro and Ultra subscriptions, maintainers operate the lead Kurapika session interactively
-> on the frontier tier (`ultra` on Ultra, `pro` on Pro), while every spawned subagent but `great-hiker`'s prose subsession (§ `models`'s one
-> exception) stays strictly at `pro` (`deep`) and `flash` (`fast`), ensuring rate limit stability and billing efficiency.
+> **Antigravity tiers and subscriptions (Google AI Pro, Ultra and Enterprise)**, by the rulings of 2026-11-21
+> ([`ROSTER.md`](ROSTER.md) HR-396 to HR-408): Orchestrator (Neon), a Neon planner with a Hydrogen executor, is the
+> `deep` reviewer tier, and Gemini 4 Hydrogen is the `worker` and `measurer` tier. The lead Kurapika session takes
+> Gemini 4 Carbon on the frontier tier where the plan offers it (Ultra and Enterprise). Every spawned subagent but
+> `great-hiker`'s prose subsession (§ `models`'s one exception) stays at `deep` and `fast`. Prices and the dated
+> evidence are [`DIRECT-MATRIX.md`](DIRECT-MATRIX.md)'s.
 
 > **On Cursor the `frontier` and `deep` tiers name the same alias, and the rule survives that.** `grok` is
 > both, so on Cursor "never the frontier tier" cannot be checked by reading the alias — it is enforced on
@@ -2079,8 +2077,8 @@ The same rulings, and the rebalance of 2026-10-05 (ROSTER § *Rulings of 2026-10
 provider, a model **line** (`claude`, `gpt`, `gemini`, `grok`, `composer`), a model **family**, their Hatsu
 surface, a **tier** of this file's `models` block and an **escalation** — never a model version — so the `models`
 matrix is the only per-surface fact a consumer declares and a model release moves nothing in either file. **The
-primaries live on the deep and fast tiers** (`opus`, `sol`, `grok`, `pro`; `sonnet`, `terra`, `composer`,
-`flash`) and the frontier aliases (`SEMANTIC_MAX`, `EXECUTION_MAX`) are reached only as the **recommended**
+primaries live on the deep and fast tiers** (`opus`, `sol`, `grok`, `gemini-pro-orchestrator-neon`; `sonnet`, `terra`, `composer`,
+`gemini-4-hydrogen`) and the frontier aliases (`SEMANTIC_MAX`, `EXECUTION_MAX`) are reached only as the **recommended**
 pick, for the maintainer's own session; a subagent is still never raised on them. **Every cell yields three
 picks**: the primary (the cell's winner, the cost-aligned best), the fallback (its runner-up, on another
 provider or surface in every cell, so the work can move when one pool's funds run out — at the aggregate of

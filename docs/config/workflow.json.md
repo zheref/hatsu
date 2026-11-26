@@ -140,7 +140,7 @@ Four **tiers** per surface, and a role maps to a tier rather than to a model. A 
 | `claude.<tier>` | string | Hatsu's own: `frontier: fable`, `deep: opus`, `fast: sonnet`, `economy: haiku` | The alias each tier resolves to on Claude Code | `hatsu:hanten` § 4 (reviewer tier), `hatsu:direct`, `nen direct resolve`, `scripts/direct_matrix_doc.sh` |
 | `codex.<tier>` | string | Hatsu's own: `frontier: astra`, `deep: sol`, `fast: terra`, `economy: luna` | The same on Codex; the concrete id is read from `codex debug models` at the moment of use | the same |
 | `cursor.<tier>` | string | Hatsu's own: `frontier: grok`, `deep: grok`, `fast: composer`, `economy: composer` | The same on Cursor, **Cursor-native only**: provider models there are reserved for Bugbot. `frontier` and `deep` name the same alias, so *never the frontier tier* is enforced on the role, not the string | the same |
-| `antigravity.<tier>` | string | Hatsu's own: `frontier: ultra`, `deep: pro`, `fast: flash`, `economy: flash` | The same on Antigravity; a persona's model accepts only `inherit`, `flash` or `pro`, so `economy` maps to `flash` | the same |
+| `antigravity.<tier>` | string | Hatsu's own: `frontier: gemini-4-carbon`, `deep: gemini-pro-orchestrator-neon`, `fast: gemini-4-hydrogen`, `economy: flash` | The same on Antigravity (the rulings of 2026-11-21, `ROSTER.md` HR-396 to HR-408). A persona's model is documented to accept only `inherit`, `flash` or `pro`, so `economy` maps to `flash`; the deep and fast slugs reach the personas as they stand (HR-408) | the same |
 | `<surface>.note` | string | prose | The surface's own caveat, kept beside its row | nothing in nen |
 | `roles.<role>` | string | a tier name. Hatsu's own: `reviewer: deep`, `worker: fast`, `measurer: fast`, `orchestrator: frontier`, `watcher: economy`, `formatter: economy` | Which tier a role runs on. `watcher` is Illumi and every `hatsu:izanami` poll; `formatter` is gyo's auto-fix and a prose reflow; `orchestrator` is the main session's and no subagent ever takes it | `hatsu:hanten` (a reviewer is raised at `roles.reviewer`), `hatsu:en` (Illumi at `roles.watcher`), `hatsu:direct` (companion jobs at `roles.<role>`) |
 
@@ -317,7 +317,7 @@ Illustrative only: a plain product repository on the default lane `app`, with a 
     "claude":      { "frontier": "fable", "deep": "opus", "fast": "sonnet",   "economy": "haiku" },
     "codex":       { "frontier": "astra", "deep": "sol",  "fast": "terra",    "economy": "luna" },
     "cursor":      { "frontier": "grok",  "deep": "grok", "fast": "composer", "economy": "composer" },
-    "antigravity": { "frontier": "ultra", "deep": "pro",  "fast": "flash",    "economy": "flash" },
+    "antigravity": { "frontier": "gemini-4-carbon", "deep": "gemini-pro-orchestrator-neon", "fast": "gemini-4-hydrogen", "economy": "flash" },
     "roles": { "reviewer": "deep", "worker": "fast", "measurer": "fast",
                "orchestrator": "frontier", "watcher": "economy", "formatter": "economy" }
   },

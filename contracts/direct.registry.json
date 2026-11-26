@@ -1,7 +1,7 @@
 {
   "$schema": "hatsu.direct-registry/v1",
   "contract": "hatsu-direct-registry",
-  "$comment": "The model-selection registry hatsu:direct resolves through `nen direct resolve --registry <this path>` (the maintainer's rulings of 2026-10-04 and 2026-10-05, docs/ROSTER.md). It separates STABLE ALIASES (SEMANTIC_FRONTIER, EXECUTION_FRONTIER, EDITOR_FRONTIER, ...) from REPLACEABLE VERSIONS: every routing cell names an alias and a surface, never a model version. An alias resolves to a provider, a model LINE (claude | gpt | gemini | grok | composer -- the label vocabulary), a model FAMILY, the Hatsu surface it runs on, the TIER of nen/workflow.json -> models.<surface> that surface spells it as (deep -> opus on Claude Code, deep -> sol on Codex, deep -> grok on Cursor, deep -> pro on Antigravity) and its ESCALATION alias (the frontier tier above it, where one exists), so the concrete alias the maintainer types comes from the consumer's own models block and the version is never in this file. Each cell yields THREE PICKS (`picks`): the primary (cost-aligned best, the cell's winner), the fallback (cost-aligned second best on another provider or surface, the cell's runnerUp) and the recommended (cost-agnostic best, derived by rule). The `snapshot` block is the dated version and list-price table and is the stated FALLBACK only: the latest recommended version and the effort dial are read LIVE at run time through `liveLookup` and reported with their source; where the lookup fails the snapshot is quoted with its date. The actionable picks always name one of Hatsu's four surfaces (claude-code, codex, cursor, antigravity); native IDE integrations, the Cursor IDE, GitHub Copilot and Grok Build appear as INTERACTIVE or non-actionable equivalents. `routing` is keyed job -> domain -> cells (39 jobs, 95 job x domain routes, 204 cells with their language overrides): `*` is the cell every language shares and a language key appears only where the route differs; `prose` reads `*`. `effort` is the deterministic rule for the recommended effort level (low | medium | high | max) from the taxonomy's job weights, the job and language counts and the domain. `companions` names the jobs that never decide a surface; `publish` the opt-in GitHub write. Nothing here is a fact about a machine: `nen direct resolve` reads this file and the consumer's nen/workflow.json and hard-codes none of it. Its invariants are checked by `nen direct registry`, run by scripts/canon_contracts_check.sh in the canon-contracts-guard lane and in CI (zheref/hatsu#223, ruled 2026-10-13).",
+  "$comment": "The model-selection registry hatsu:direct resolves through `nen direct resolve --registry <this path>` (the maintainer's rulings of 2026-10-04 and 2026-10-05, docs/ROSTER.md). It separates STABLE ALIASES (SEMANTIC_FRONTIER, EXECUTION_FRONTIER, EDITOR_FRONTIER, ...) from REPLACEABLE VERSIONS: every routing cell names an alias and a surface, never a model version. An alias resolves to a provider, a model LINE (claude | gpt | gemini | grok | composer -- the label vocabulary), a model FAMILY, the Hatsu surface it runs on, the TIER of nen/workflow.json -> models.<surface> that surface spells it as (deep -> opus on Claude Code, deep -> sol on Codex, deep -> grok on Cursor, deep -> gemini-pro-orchestrator-neon on Antigravity) and its ESCALATION alias (the frontier tier above it, where one exists), so the concrete alias the maintainer types comes from the consumer's own models block and the version is never in this file. Each cell yields THREE PICKS (`picks`): the primary (cost-aligned best, the cell's winner), the fallback (cost-aligned second best on another provider or surface, the cell's runnerUp) and the recommended (cost-agnostic best, derived by rule). The `snapshot` block is the dated version and list-price table and is the stated FALLBACK only: the latest recommended version and the effort dial are read LIVE at run time through `liveLookup` and reported with their source; where the lookup fails the snapshot is quoted with its date. The actionable picks always name one of Hatsu's four surfaces (claude-code, codex, cursor, antigravity); native IDE integrations, the Cursor IDE, GitHub Copilot and Grok Build appear as INTERACTIVE or non-actionable equivalents. `routing` is keyed job -> domain -> cells (39 jobs, 95 job x domain routes, 204 cells with their language overrides): `*` is the cell every language shares and a language key appears only where the route differs; `prose` reads `*`. `effort` is the deterministic rule for the recommended effort level (low | medium | high | max) from the taxonomy's job weights, the job and language counts and the domain. `companions` names the jobs that never decide a surface; `publish` the opt-in GitHub write. Nothing here is a fact about a machine: `nen direct resolve` reads this file and the consumer's nen/workflow.json and hard-codes none of it. Its invariants are checked by `nen direct registry`, run by scripts/canon_contracts_check.sh in the canon-contracts-guard lane and in CI (zheref/hatsu#223, ruled 2026-10-13).",
   "source": {
     "document": "Version-Decoupled Model Selection Matrix for Engineering Workflows, registry snapshot 2026-10-04",
     "rulings": [
@@ -9,14 +9,15 @@
       "docs/ROSTER.md section Rulings of 2026-10-05 -- the registry rebalance",
       "docs/ROSTER.md section Rulings of 2026-10-19 -- every new filing runs classify and direct",
       "docs/ROSTER.md section Rulings of 2026-10-19 -- Argon is a frontier alias",
-      "docs/ROSTER.md section Rulings of 2026-10-20 -- Gemini 3.1 Pro as the hallucination-shaped fallback (HA#342)"
+      "docs/ROSTER.md section Rulings of 2026-10-20 -- Gemini 3.1 Pro as the hallucination-shaped fallback (HA#342)",
+      "docs/ROSTER.md section Rulings of 2026-11-21 -- the November 2026 model map"
     ],
     "taxonomy": "contracts/classify.taxonomy.json",
     "documentSha256": "baf720e3ffac80dc84640751ed3e0567fe61940bd1a505688a17f49c17937a93",
     "revision": {
-      "date": "2026-10-20",
-      "what": "HA#342, the maintainer's four picker rulings of 2026-10-20 (docs/ROSTER.md section Rulings of 2026-10-20 -- Gemini 3.1 Pro as the hallucination-shaped fallback (HA#342)). Q1 B: 21 cells moved, counted cell by cell on the runnerUp alias, each from EXECUTION_FRONTIER (GPT-6.1 Sol, codex) to VISUAL_ORCHESTRATOR (Gemini 3.1 Pro, antigravity) behind an unchanged SEMANTIC_FRONTIER primary -- requirements 3 (feature, parity, aigov), analysis 10 (feature *, swift, kotlin, csharp; maintenance *, typescript; parity *, swift, kotlin, csharp), triage 2 and deprecation 2 (maintenance, library), prose-authoring, evals and drift-review 1 each (aigov), parity 1 (parity); every move satisfies picks.fallbackRule (google on antigravity against anthropic on claude-code) and the ruling's scope, a hallucination-shaped reading job; no winner moved. The other 19 Opus reading cells keep Sol (accessibility 10, architecture 5, observability 3, discovery/library 1). Q2 A, no move: Opus stays primary on the four discovery/backlog cells the question asked about (discovery/feature, discovery/parity, backlog/feature, backlog/parity); ux/parity/csharp, Opus-primary with Pro as fallback, is unchanged as this run's reading, not part of the answer. Q3 A, no move: the standing terminal-cell rule is stated in aliases.VISUAL_ORCHESTRATOR.selection (execution-side: a cell whose primary is an EXECUTION_*, EDITOR_FRONTIER or MECHANICAL_EDITOR alias, 84 at this revision), and the 24 execution-adjacent Opus cells keep Sol (implementation 12, bug-fix 5, security 3, review 2, api-design 1, integration 1); four execution-side cells that predate the ruling still name Pro as Sol's fallback (release/parity/*, ui-automation/feature/csharp, ui-automation/maintenance/csharp, ui-automation/parity/csharp) and are left for the maintainer's word. Q4 A, no move: VISUAL_FALLBACK is kept and routed in no cell, its later role stated in its selection. VISUAL_MAX (Argon) is still in no cell. After the move VISUAL_ORCHESTRATOR is the fallback on 32 cells (11 + 21) and EXECUTION_FRONTIER on 57 (78 - 21). The preceding revisions remain in force: 2026-10-19 (HA#340, Argon added as VISUAL_MAX) and the 2026-10-05 rebalance. The rule holds per cell; at the aggregate (several job pairs) an issue mixing a hallucination-shaped job with an execution job now reports Pro as the other-pool fallback behind the semantic primary (nen direct resolve 0.24.0 --kind product --lang swift --job requirements,analysis,implementation: runnerUp VISUAL_ORCHESTRATOR at this revision, EXECUTION_FRONTIER before it), named for the maintainer in the ROSTER section's readings. Pro's own AA-Omniscience hallucination rate is unmeasured here (its Artificial Analysis page, read 2026-10-20, shows no value; Intelligence Index 30, $1.30 per index task); the ruling rests on the line's Argon measurement. The two runner-up interactive notes on analysis/maintenance (* and typescript) are cleared: they described the Codex runner-up's IDE twin.",
-      "transform": "Hand-edited registry data: on each moved cell only the runnerUp object's alias and surface were replaced in place, every other key kept (two of the 21 keep the source's interactive note). scripts/direct_matrix_doc.sh --write regenerates docs/DIRECT-MATRIX.md and --self-test checks the invariants (picks.fallbackRule over every cell, no frontier primary); nen direct registry validates the file. The 2026-10-05 fallback rule by pool is narrowed by this ruling: an Anthropic primary on a hallucination-shaped reading job falls back to Pro on Antigravity, and elsewhere still to Sol on Codex."
+      "date": "2026-11-21",
+      "what": "The November 2026 model map, the maintainer's rulings of 2026-11-21 at 18:56, 19:03 and 19:25 COT (docs/ROSTER.md section Rulings of 2026-11-21 -- the November 2026 model map, HR-396..HR-408). Stable aliases, tiers, escalations and every routing cell are unchanged; what three Google aliases MEAN and every snapshot version move. VISUAL_MAX is Gemini 4 Carbon (family gemini-carbon, was Argon), spelled high at taxonomy max until Google ships a Carbon xhigh slug, with Gemini 4 Neon as its availability substitute (not Argon). VISUAL_ORCHESTRATOR is Orchestrator (Neon) (family gemini-neon, typable gemini-pro-orchestrator-neon, at high): Gemini 3.1 Pro and the typable pro are retired, and the HA#342 cells whose runnerUp is VISUAL_ORCHESTRATOR now resolve to Orchestrator (Neon) with no cell edited. Standalone gemini-4-neon-high is a documented focused-coding mode, never a typable. VISUAL_FALLBACK is Gemini 4 Hydrogen (family gemini-hydrogen), still routed in no cell until HA#341; Gemini 3.8 Flash stays the economy typable and Hydrogen's availability substitute. Argon is dropped from the routing: no alias, typable or fallback names it; agy still lists its slugs, which are inventory only. Snapshot versions: Claude Fable 5.2, GPT-6.2 Astra, GPT-6.2 Sol, GPT-6.1 Terra (Opus and Sonnet 5.5 unchanged). effort.surfaceMap: claude-code max -> high (Fable's top band costs about twice for no measured gain), cursor max -> high (was xhigh), antigravity max -> high (Carbon's ceiling). roles.orchestrator stays frontier. The Extra High test the maintainer required before the PR (HR-407) ran on agy 1.5.14 at 2026-11-21 19:31 COT: gemini-pro-orchestrator-neon is listed and selected at exit 0, and --effort xhigh exits 1 with \"--effort is not supported for model gemini-pro-orchestrator-neon\", so the Orchestrator's effort is not adjustable and Extra High is not settable on it. The 2026-10-19 Argon ruling and the 2026-10-20 HA#342 ruling stay as history, superseded where they named the live aliases' models.",
+      "transform": "Hand-edited registry data: the three Google aliases' family and selection, every snapshot.aliases row a version moved on, liveLookup, surfaces.<s>.effortControl and effort.surfaceMap; no routing cell, alias key, tier, escalation or precedence changed. nen/workflow.json -> models.antigravity takes the three typable slugs (frontier gemini-4-carbon, deep gemini-pro-orchestrator-neon, fast gemini-4-hydrogen; economy flash). scripts/direct_matrix_doc.sh --write regenerates docs/DIRECT-MATRIX.md and --self-test checks the invariants; nen direct registry validates the file."
     },
     "readers": [
       "hatsu:direct",
@@ -28,37 +29,38 @@
     ]
   },
   "snapshot": {
-    "asOf": "2026-10-19",
-    "$comment": "The dated version AND list-price table, refreshed 2026-10-05 from the provider pages and surface CLIs named in liveLookup (every row cites its source and read date; ECON-8). A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read. `served` is what each surface's own lookup listed on the read date: the alias the maintainer types resolves to THAT id, which may lag the provider's newest (Codex serves GPT-5.6 Sol while the API lists 6.1). `listPrice` is the evidence behind the cost-aligned ordering of the picks, never a number a skill prints as today's price. Google Argon evidence was refreshed on 2026-10-19; other snapshot rows retain their stated 2026-10-05 dates. Each listPrice.readOn identifies its own evidence date. `aliases.<a>.fallback` in this block is the alias's availability substitute -- what a session on that alias falls to when its model is restricted or unreachable, re-derived by provider/surface pool at the 2026-10-19 refresh -- and not the routing fallback pick, which is each cell's `runnerUp` (`picks.fallback`): the two may name different models, as SEMANTIC_FRONTIER's \"GPT-6.1 Sol on Codex\" does on the 26 Opus-primary cells whose runnerUp is VISUAL_ORCHESTRATOR since 2026-10-20 (HA#342). nen direct resolve prints this field as `fallback` beside the runner-up; relabelling it is nen's (zheref/nen#389, the verb's words for the picks).",
+    "asOf": "2026-11-21",
+    "$comment": "The dated version AND list-price table, refreshed 2026-11-21 from the provider pages and surface CLIs named in liveLookup (every row cites its source and read date; ECON-8). A fallback quoted with its date when the live lookup fails -- never the answer while a provider page or surface CLI can be read. `served` is what each surface's own lookup listed on the read date: the alias the maintainer types resolves to THAT id, which may lag the provider's newest (codex-cli 0.154.0 serves gpt-5.6-sol while the API lists GPT-6.2 Sol). `listPrice` is the evidence behind the cost-aligned ordering of the picks, never a number a skill prints as today's price. Each listPrice.readOn identifies its own evidence date. `aliases.<a>.fallback` in this block is the alias's availability substitute -- what a session on that alias falls to when its model is restricted or unreachable -- and not the routing fallback pick, which is each cell's `runnerUp` (`picks.fallback`): the two may name different models, as SEMANTIC_FRONTIER's \"GPT-6.2 Sol on Codex\" does on the Opus-primary cells whose runnerUp is VISUAL_ORCHESTRATOR (HA#342). nen direct resolve prints this field as `fallback` beside the runner-up; relabelling it is nen's (zheref/nen#389, the verb's words for the picks). No economy row exists: no alias names the economy tier, and GPT Luna's id and price are unverified (codex-cli 0.154.0 lists gpt-5.6-luna).",
     "aliases": {
       "SEMANTIC_MAX": {
-        "primary": "Claude Fable 5.1",
-        "modelId": "claude-fable-5-1",
+        "primary": "Claude Fable 5.2",
+        "modelId": "claude-fable-5-2",
         "fallback": "Claude Opus 5.5 at higher effort",
         "listPrice": {
-          "input": 10,
-          "output": 50,
+          "input": 8,
+          "output": 40,
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://platform.claude.com/docs/en/models/overview",
-          "readOn": "2026-10-05"
+          "readOn": "2026-11-21",
+          "note": "optional fast mode $16 / $80. Taxonomy max is spelled high on Claude Code (effort.surfaceMap, HR-406): the top band measured about twice the cost for no Artificial Analysis score gain"
         },
         "served": {
-          "claude-code": "fable (the /model picker, read in-session)"
+          "claude-code": "fable (the /model picker). This session's harness lists Fable 5.2 as claude-fable-5-2 (2026-11-21); what /model fable serves was not read from a Fable session"
         }
       },
       "SEMANTIC_FRONTIER": {
         "primary": "Claude Opus 5.5",
         "modelId": "claude-opus-5-5",
-        "fallback": "GPT-6.1 Sol on Codex",
+        "fallback": "GPT-6.2 Sol on Codex",
         "listPrice": {
           "input": 4,
           "output": 20,
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://platform.claude.com/docs/en/models/overview",
-          "readOn": "2026-10-05"
+          "readOn": "2026-11-21"
         },
         "served": {
-          "claude-code": "opus (the /model picker, read in-session)"
+          "claude-code": "opus (the /model picker; this session runs claude-opus-5-5, 2026-11-21)"
         }
       },
       "BALANCED_AUTHOR": {
@@ -70,90 +72,91 @@
           "output": 10,
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://platform.claude.com/docs/en/models/overview",
-          "readOn": "2026-10-05"
+          "readOn": "2026-11-21"
         },
         "served": {
           "claude-code": "sonnet (the /model picker, read in-session)"
         }
       },
       "EXECUTION_MAX": {
-        "primary": "GPT-6 Astra",
-        "modelId": "gpt-6-astra",
-        "fallback": "Claude Fable 5.1",
+        "primary": "GPT-6.2 Astra",
+        "modelId": "gpt-6.2-astra",
+        "fallback": "Claude Fable 5.2",
         "listPrice": {
-          "input": 10,
-          "output": 50,
+          "input": 8,
+          "output": 40,
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://developers.openai.com/api/docs/pricing",
-          "readOn": "2026-10-05"
+          "readOn": "2026-11-21",
+          "note": "cached input $0.40"
         },
         "served": {
-          "codex": "gpt-6-astra (codex debug models, 2026-10-05; levels low|medium|high|xhigh|max|ultra)"
+          "codex": "gpt-6-astra (codex debug models on codex-cli 0.154.0, 2026-11-21; levels low|medium|high|xhigh|max|ultra): no gpt-6.2-astra slug yet, so the astra tier resolves to GPT-6 Astra on this CLI until it catches up (the provider names codex-cli 0.166.0 or later)"
         }
       },
       "EXECUTION_FRONTIER": {
-        "primary": "GPT-6.1 Sol",
-        "modelId": "gpt-6.1-sol",
+        "primary": "GPT-6.2 Sol",
+        "modelId": "gpt-6.2-sol",
         "fallback": "Claude Opus 5.5",
         "listPrice": {
           "input": 2,
           "output": 10,
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://developers.openai.com/api/docs/pricing",
-          "readOn": "2026-10-05",
-          "note": "GPT-5.6 Sol, the slug Codex still serves, lists at $4 / $20"
+          "readOn": "2026-11-21",
+          "note": "cached input $0.10. Spell the Codex deep typable's effort high on a restart line: the served slug's default_reasoning_level is low"
         },
         "served": {
-          "codex": "gpt-5.6-sol (codex debug models, 2026-10-05: no gpt-6.1-sol or gpt-6-sol slug is listed yet, so the sol tier resolves to 5.6 on this surface until the CLI catches up)"
+          "codex": "gpt-5.6-sol (codex debug models on codex-cli 0.154.0, 2026-11-21; default low, levels low|medium|high|xhigh|max|ultra): no gpt-6.2-sol slug yet, so the sol tier resolves to 5.6 on this CLI until it catches up"
         },
         "evidence": "snapshot.sources.artificialAnalysis"
       },
       "EXECUTION_VALUE": {
-        "primary": "GPT-5.6 Terra",
-        "modelId": "gpt-5.6-terra",
+        "primary": "GPT-6.1 Terra",
+        "modelId": "gpt-6.1-terra",
         "fallback": "Claude Sonnet 5.5",
         "listPrice": {
-          "input": 2,
-          "output": 12,
+          "input": 1,
+          "output": 5,
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://developers.openai.com/api/docs/pricing",
-          "readOn": "2026-10-05",
-          "note": "no GPT-6 Terra exists: the 2026-09-22 changelog shipped GPT-6 Sol and GPT-6 Luna only"
+          "readOn": "2026-11-21",
+          "note": "cached input $0.05"
         },
         "served": {
-          "codex": "gpt-5.6-terra (codex debug models, 2026-10-05)"
+          "codex": "gpt-5.6-terra (codex debug models on codex-cli 0.154.0, 2026-11-21): no gpt-6.1-terra slug yet"
         }
       },
       "VISUAL_ORCHESTRATOR": {
-        "primary": "Gemini 3.1 Pro",
-        "modelId": "gemini-3.1-pro-preview",
-        "fallback": "Gemini 3.8 Flash",
+        "primary": "Orchestrator (Neon)",
+        "modelId": "gemini-pro-orchestrator-neon",
+        "fallback": "Gemini 4 Hydrogen",
         "listPrice": {
-          "input": 2,
-          "output": 12,
+          "input": 3,
+          "output": 15,
           "unit": "USD per 1M tokens, standard tier, short context",
           "source": "https://ai.google.dev/gemini-api/docs/pricing",
-          "readOn": "2026-10-05",
-          "note": "Retained deep snapshot by the 2026-10-19 frontier ruling; this price was read 2026-10-05, not refreshed as an Argon price. Argon has its own VISUAL_MAX row."
+          "readOn": "2026-11-21",
+          "note": "Gemini 4 Neon's price: the Orchestrator plans on Neon and executes on Gemini 4 Hydrogen, which lists at $1.50 / $7.50. Google publishes no combined Orchestrator price and none is derived here. Standalone gemini-4-neon (same $3 / $15) at high is a documented focused-coding mode (HR-404), never a typable"
         },
         "served": {
-          "antigravity": "Persona key pro is documented (subagents page, re-read 2026-10-19); it is not proof of a served model. agy 1.4.2 --model pro --print /model exits 1: pro is not recognized; no Gemini 3.1 Pro appears in this account listing. The deep row is retained as a snapshot, local CLI availability unverified."
+          "antigravity": "agy 1.5.14, 2026-11-21: agy models lists gemini-pro-orchestrator-neon \"Orchestrator (Neon)\"; agy --model gemini-pro-orchestrator-neon --print /model selects it at exit 0. Effort is not adjustable: --effort xhigh exits 1 with \"--effort is not supported for model gemini-pro-orchestrator-neon\" (the maintainer's test, 19:31 COT, re-run 19:41 COT), so Extra High is not settable on the Orchestrator and the deep tier is spelled high. Standalone gemini-4-neon-{low,medium,high,xhigh} exist; no orchestrator-neon-xhigh slug is listed. The persona key the generator now writes for this tier (model: gemini-pro-orchestrator-neon) is outside the documented persona values inherit|flash|pro, untested (HR-408)."
         }
       },
       "VISUAL_FALLBACK": {
-        "primary": "Gemini 3.8 Flash",
-        "modelId": "gemini-3.8-flash",
-        "fallback": "Claude Sonnet 5.5",
+        "primary": "Gemini 4 Hydrogen",
+        "modelId": "gemini-4-hydrogen",
+        "fallback": "Gemini 3.8 Flash",
         "listPrice": {
-          "input": 0.75,
-          "output": 3.75,
-          "unit": "USD per 1M tokens, standard tier, short context",
+          "input": 1.5,
+          "output": 7.5,
+          "unit": "USD per 1M tokens, standard tier, flat across 1M context",
           "source": "https://ai.google.dev/gemini-api/docs/pricing",
-          "readOn": "2026-10-05",
-          "note": "$1.50 / $7.50 from 2027-01-01"
+          "readOn": "2026-11-21",
+          "note": "Gemini 3.8 Flash, the availability substitute and economy typable, lists at $0.75 / $3.75 through 2026-12-31, then $1.50 / $7.50. Hydrogen's API default thinking is high and its ceiling xhigh; hatsu:direct never spells xhigh on this fast alias"
         },
         "served": {
-          "antigravity": "agy 1.4.2 models, 2026-10-19: gemini-3.8-flash-{low,medium,high}; persona key flash remains documented, not verified as a CLI alias."
+          "antigravity": "agy 1.5.14, 2026-11-21: agy models lists gemini-4-hydrogen-{low,medium,high,xhigh}; agy --model gemini-4-hydrogen --print /model selects gemini-4-hydrogen-medium at exit 0. gemini-3.8-flash selects gemini-3.8-flash-medium; the bare flash is refused at exit 1 (it is the documented persona value, not a CLI slug)."
         }
       },
       "EDITOR_FRONTIER": {
@@ -198,21 +201,20 @@
         "fallback": "EXECUTION_FRONTIER"
       },
       "VISUAL_MAX": {
-        "primary": "Gemini 4 Argon",
-        "modelId": "gemini-4-argon",
-        "fallback": "GPT-6.1 Sol on Codex",
+        "primary": "Gemini 4 Carbon",
+        "modelId": "gemini-4-carbon",
+        "fallback": "Gemini 4 Neon (not Argon, HR-401); if Gemini is unreachable the other-pool routing fallback is the cell's runnerUp",
         "listPrice": {
           "input": 2,
           "output": 10,
           "unit": "USD per 1M tokens, introductory tier; output includes thinking",
-          "source": "https://ai.google.dev/gemini-api/docs/latest-model",
-          "readOn": "2026-10-19",
-          "note": "Introductory $2/$10 through 2026-11-30; $4/$20 from 2026-12-01. Cached input $0.10 then $0.20. Not on Free tier. Structured dated-step fields deferred to HA#341."
+          "source": "https://ai.google.dev/gemini-api/docs/pricing",
+          "readOn": "2026-11-21",
+          "note": "Introductory $2 / $10 through 2026-11-30; $4 / $20 from 2026-12-01. Cached input $0.10 then $0.20. Antigravity offers Carbon on Ultra and Enterprise only. Structured dated-step fields deferred to HA#341."
         },
         "served": {
-          "antigravity": "2026-10-19: maintainer reports the macOS app lead picker defaults to Argon; CLI initially defaulted to Opus 5.5 Low. agy 1.0.6 listed no Gemini entries earlier today; a fresh probe found agy 1.4.2 listing gemini-4-argon-{low,medium,high}. agy --model gemini-4-argon --print /model exited 0 and selected gemini-4-argon-medium. pro and argon were refused at exit 1. IDE availability not observed locally; the 2026-10-16 id refusal in google-antigravity/antigravity-cli#1228 is historical served lag, not this newer CLI result."
-        },
-        "evidence": "snapshot.sources.artificialAnalysisArgon"
+          "antigravity": "agy 1.5.14, 2026-11-21: agy models lists gemini-4-carbon-{low,medium,high} only, no -xhigh; agy --model gemini-4-carbon --print /model selects gemini-4-carbon-medium and --effort high selects gemini-4-carbon-high, each at exit 0. gemini-pro-orchestrator \"Orchestrator (Carbon)\" is listed, a manual mode, never a pick. Argon slugs (gemini-4-argon-{low,medium,high}, gemini-pro-orchestrator-argon) are still listed: inventory only, not routed (HR-401)."
+        }
       }
     },
     "sources": {
@@ -226,7 +228,7 @@
         ],
         "summary": "The article measures Argon at high reasoning: Intelligence Index 53, matching Astra at max and above Sol at max (52); AutomationBench-AA 78%; Terminal Bench 4 57%; AA-Omniscience hallucination rate 15%. Its Intelligence Index cost per task is $1.99 at promotional prices, $3.98 at standard prices; output use averages 62k tokens versus Astra's 27k. These are third-party measurements with benchmark-specific settings, not general cost predictions.",
         "firstParty": "https://ai.google.dev/gemini-api/docs/latest-model (read 2026-10-19): promotional input/output $2/$10 per 1M through 2026-11-30; $4/$20 from 2026-12-01; cached input $0.10 then $0.20; output includes thinking. This later dated sheet supersedes the article's undated promotion end and restricted-access statement.",
-        "$comment": "Third-party measurement beside the first-party model and price sheets, never a routing instruction; routing changes belong to HA#342 and structured dated-price/cost-per-task fields to HA#341."
+        "$comment": "Third-party measurement beside the first-party model and price sheets, never a routing instruction. History since 2026-11-21: Argon is no longer routed (HR-401); the HA#342 ruling's hallucination-shaped fallback rested on this line measurement and its cells now resolve to Orchestrator (Neon)."
       },
       "artificialAnalysis": {
         "url": "https://artificialanalysis.ai/articles/gpt-6-1-sol-replaces-gpt-6-sol-after-just-7-days-with-near-astra-intelligence",
@@ -237,7 +239,7 @@
           "GPT-6.1 Sol gains 3 points on GPT-6 Sol at max effort in the Artificial Analysis Coding Agent Index, and sits 2 points below GPT-6 Astra.",
           "At max effort, GPT-6.1 Sol costs less than a quarter of GPT-6 Astra per Intelligence Index task ($0.72 vs $3.26)."
         ],
-        "$comment": "the capability evidence behind moving the execution default to Sol (ECON-8: the cost-per-task figure's basis is the Intelligence Index task set at max effort, per the article); a third-party measurement, cited beside the first-party price sheets, never a routing instruction"
+        "$comment": "the capability evidence behind moving the execution default to Sol (ECON-8: the cost-per-task figure's basis is the Intelligence Index task set at max effort, per the article); it measures GPT-6.1 Sol, the predecessor of the 2026-11-21 snapshot's GPT-6.2 Sol, and no GPT-6.2 measurement is recorded here; a third-party measurement, cited beside the first-party price sheets, never a routing instruction"
       }
     }
   },
@@ -249,7 +251,7 @@
       "surface": "claude-code",
       "tier": "frontier",
       "escalation": null,
-      "selection": "Escalation model for unusually ambiguous, long-horizon, or reasoning-dominant work when the default semantic frontier falls short"
+      "selection": "Escalation model for unusually ambiguous, long-horizon, or reasoning-dominant work when the default semantic frontier falls short; taxonomy max is spelled high on Claude Code (effort.surfaceMap, HR-406)"
     },
     "SEMANTIC_FRONTIER": {
       "provider": "anthropic",
@@ -285,7 +287,7 @@
       "surface": "codex",
       "tier": "deep",
       "escalation": "EXECUTION_MAX",
-      "selection": "Best cost-aligned model for tool-heavy build/test/debug loops, machinery, CI/CD, migrations, security execution, and computer use -- within one to two index points of the frontier execution model at one fifth of its list price (OpenAI changelog and Artificial Analysis, 2026-09-29)"
+      "selection": "Best cost-aligned model for tool-heavy build/test/debug loops, machinery, CI/CD, migrations, security execution, and computer use -- the line's daily driver, within about a point of the frontier execution model on hands-on coding at a quarter of its list price (snapshot.aliases, read 2026-11-21)"
     },
     "EXECUTION_VALUE": {
       "provider": "openai",
@@ -294,25 +296,25 @@
       "surface": "codex",
       "tier": "fast",
       "escalation": "EXECUTION_FRONTIER",
-      "selection": "Fast execution model for routine coding, parallel workers, CI fixes, and high-volume automation"
+      "selection": "Fast execution model for routine coding, parallel workers, CI fixes, and high-volume automation -- the visual and computer-use efficiency pick, not a cheaper Sol for repository coding"
     },
     "VISUAL_ORCHESTRATOR": {
       "provider": "google",
-      "family": "gemini-pro",
+      "family": "gemini-neon",
       "line": "gemini",
       "surface": "antigravity",
       "tier": "deep",
       "escalation": "VISUAL_MAX",
-      "selection": "Best approved model for multimodal UI work, parallel-agent orchestration, long-context synthesis, and visual validation. Measured profile: Artificial Analysis (article of 2026-09-30, https://artificialanalysis.ai/articles/gemini-4-argon-google-top-three-labs; Argon at high, the others at max) puts the Google line's Gemini 4 Argon at a 15% AA-Omniscience hallucination rate, the lowest above 45 on its Intelligence Index, against 54% for GPT-6.1 Sol; 3.1 Pro is that line's tier-fair deep comparator (Argon is frontier, never a routing pick); Pro's own AA-Omniscience rate is unmeasured here -- its Artificial Analysis page (https://artificialanalysis.ai/models/gemini-3-1-pro-preview, read 2026-10-20) lists Intelligence Index 30 and $1.30 per index task and shows no Omniscience accuracy or hallucination value, and the issue's only Pro figure is the accuracy delta (+5 on Argon's 50%) -- so the routing rests on the line's Argon measurement, by the maintainer's choice: by the ruling of 2026-10-20 (HA#342) it is the fallback on the 21 hallucination-shaped Opus reading cells only (requirements, analysis, triage, deprecation, prose-authoring, evals, drift-review, parity). Standing terminal-cell rule, the same ruling: never an execution-side primary or fallback (execution-side: a cell whose primary is an EXECUTION_*, EDITOR_FRONTIER or MECHANICAL_EDITOR alias -- 84 at this revision), and never the fallback on an execution-adjacent Opus cell (implementation, bug-fix, security, review, api-design, integration), the same article placing Argon at 57% on Terminal Bench 4 against Opus 60% and Astra 59%; four execution-side cells that predate the ruling still name it as Sol's fallback (release/parity, and ui-automation on csharp in the feature, maintenance and parity domains), left for the maintainer's word. The rule is per cell: an issue carrying both a hallucination-shaped job and an execution job aggregates to the semantic primary with Pro as the other-pool fallback (picks.fallback at the aggregate), a reading the maintainer rules on separately (docs/ROSTER.md, the 2026-10-20 section, reading 4)."
+      "selection": "Best approved model for multimodal UI work, parallel-agent orchestration, long-context synthesis, planning and visual validation: Orchestrator (Neon), typable gemini-pro-orchestrator-neon, a Gemini 4 Neon planner with a Gemini 4 Hydrogen executor, at high (HR-397; its effort is not adjustable, HR-407). Gemini 3.1 Pro and the typable pro are retired (HR-401). For focused coding -- implementation, bug-fix, refactor, scoped tests -- standalone gemini-4-neon-high is the documented mode on one model (HR-404), never a typable. By the ruling of 2026-10-20 (HA#342), kept by HR-403, this alias is the fallback on the 21 hallucination-shaped Opus reading cells only (requirements, analysis, triage, deprecation, prose-authoring, evals, drift-review, parity); those cells now resolve to Orchestrator (Neon), with no cell edited. The measured profile behind that ruling is the Google line's (Artificial Analysis, article of 2026-09-30, https://artificialanalysis.ai/articles/gemini-4-argon-google-top-three-labs: Gemini 4 Argon at a 15% AA-Omniscience hallucination rate against 54% for GPT-6.1 Sol), kept as history; no Orchestrator (Neon) hallucination rate is recorded here. Standing terminal-cell rule, the same ruling: never an execution-side primary or fallback (execution-side: a cell whose primary is an EXECUTION_*, EDITOR_FRONTIER or MECHANICAL_EDITOR alias -- 84 at this revision), and never the fallback on an execution-adjacent Opus cell (implementation, bug-fix, security, review, api-design, integration); four execution-side cells that predate the ruling still name it as Sol's fallback (release/parity, and ui-automation on csharp in the feature, maintenance and parity domains), left for the maintainer's word. The rule is per cell: an issue carrying both a hallucination-shaped job and an execution job aggregates to the semantic primary with this alias as the other-pool fallback (picks.fallback at the aggregate; docs/ROSTER.md, the 2026-10-20 section, reading 4)."
     },
     "VISUAL_FALLBACK": {
       "provider": "google",
-      "family": "gemini-flash",
+      "family": "gemini-hydrogen",
       "line": "gemini",
       "surface": "antigravity",
       "tier": "fast",
       "escalation": "VISUAL_ORCHESTRATOR",
-      "selection": "Generally available visual/orchestration fallback when the frontier visual model is restricted. Kept by the ruling of 2026-10-20 (HA#342) though it routes in no cell today: it becomes the in-pool fallback for the Gemini primaries once the quota-aware fallback of HA#341 exists."
+      "selection": "Fast Google model, typable gemini-4-hydrogen (HR-396), for worker and measurer sessions on Antigravity; spelled high at most, never xhigh. Kept by the ruling of 2026-10-20 (HA#342) though it routes in no cell today: it becomes the in-pool fallback for the Gemini primaries once the quota-aware fallback of HA#341 exists. Gemini 3.8 Flash stays its availability substitute and the economy typable (HR-398)."
     },
     "EDITOR_FRONTIER": {
       "provider": "cursor",
@@ -354,12 +356,12 @@
     },
     "VISUAL_MAX": {
       "provider": "google",
-      "family": "gemini-argon",
+      "family": "gemini-carbon",
       "line": "gemini",
       "surface": "antigravity",
       "tier": "frontier",
       "escalation": null,
-      "selection": "Frontier escalation for the maintainer lead on Antigravity, by the 2026-10-19 ruling; never a subagent or a routing-cell primary. Verify local Gemini availability instead of accepting a partner-model default."
+      "selection": "Frontier escalation for the maintainer lead on Antigravity (HR-396); never a subagent or a routing-cell primary. Gemini 4 Carbon, typable gemini-4-carbon, on Antigravity Ultra and Enterprise; its thinking ceiling is high, so taxonomy max is spelled high until Google ships a Carbon xhigh slug (HR-400). Its availability substitute is Gemini 4 Neon, never Argon (HR-401); Neon xhigh and the Orchestrator's Extra High are not this alias. Verify local Gemini availability instead of accepting a partner-model default."
     }
   },
   "picks": {
@@ -384,7 +386,7 @@
       "else": "primary",
       "$comment": "Deterministic from facts the verb already reports (the pairs' jobs and the effort level, over the NON-COMPANION call), so the reader derives it from the resolve document and the page renders it; computing it inside nen direct resolve is zheref/nen#389. The escalation aliases (SEMANTIC_MAX, EXECUTION_MAX) are recommended only here and only for the maintainer's own session: a subagent is never raised on the frontier tier."
     },
-    "tiers": "the alias's `tier` is one of nen/workflow.json -> models' four keys -- frontier, deep, fast, economy -- and the primaries live on deep and fast: Opus, Sol, Grok and Pro are the deep tier; Sonnet, Terra, Composer and Flash the fast tier; Fable and Astra the frontier tier, reached only as `recommended`. No alias names the economy tier: it is the watcher and formatter roles' (WORKFLOW section models), never a pick."
+    "tiers": "the alias's `tier` is one of nen/workflow.json -> models' four keys -- frontier, deep, fast, economy -- and the primaries live on deep and fast: Opus, Sol, Grok and Orchestrator (Neon) are the deep tier; Sonnet, Terra, Composer and Hydrogen the fast tier; Fable, Astra and Carbon the frontier tier, reached only as `recommended`. No alias names the economy tier: it is the watcher and formatter roles' (WORKFLOW section models), never a pick."
   },
   "companions": {
     "$comment": "Jobs that never stand alone on an issue because they are phases of the effort that carries them -- flagged `companion: true` in contracts/classify.taxonomy.json (review, delivery-ops). THE VERB KEEPS DECIDING: beside any non-companion job, `--job` carries ONLY the non-companion jobs, and that call's aggregate, effort, picks, compare and --record are the verdict; a second `nen direct resolve` over the companion jobs alone reports them as companion rows -- that work runs on the SESSION'S surface (the surface the effort runs on, which is where hanten raises its reviewers: hanten sections 4 and 7) at models.roles.<role> (review -> reviewer, delivery-ops -> worker; the role's tier, never the session's -- zheref/hatsu#222, ruled 2026-10-13). An issue carrying ONLY companion jobs (review alone, review + delivery-ops, a hotfix backport) is one call over them, no strike: its own cells direct it. The companion rows never change the primary, the fallback, the effort or the compare. A `companion` flag honoured by the verb itself (one call, the rows marked) is zheref/nen#389.",
@@ -400,7 +402,7 @@
       "modelsKey": "claude",
       "restart": "claude --model <alias> (then /effort <level>)",
       "interactive": "the Claude desktop app or claude.ai, the same model family",
-      "effortControl": "/effort low|medium|high|max",
+      "effortControl": "/effort low|medium|high|max (hatsu:direct spells taxonomy max as high, effort.surfaceMap)",
       "lookup": "the harness's model picker (/model) lists the served aliases"
     },
     "codex": {
@@ -416,7 +418,7 @@
       "modelsKey": "cursor",
       "restart": "cursor-agent --model <alias> (the alias is resolved to its served id first, docs/surfaces/cursor.md section 1; the id carries the dial as its suffix, -<level>)",
       "interactive": "the Cursor IDE chat and Composer, the same model",
-      "effortControl": "the model id suffix: -low|-medium|-high|-xhigh (a -fast variant is a speed tier, not an effort)",
+      "effortControl": "the model id suffix: -low|-medium|-high|-xhigh (a -fast variant is a speed tier, not an effort); ids may still list -xhigh, and hatsu:direct spells taxonomy max as -high (HR-405)",
       "lookup": "cursor-agent models lists the served ids with their effort suffixes"
     },
     "antigravity": {
@@ -424,8 +426,8 @@
       "modelsKey": "antigravity",
       "restart": "the Antigravity workspace with Model: <alias> on the lead",
       "interactive": "the Antigravity IDE itself, or the Gemini app for a conversation",
-      "effortControl": "Gemini 4 Argon thinking_level low|medium|high (medium default; API ceiling high), https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19; surface availability must be read separately",
-      "lookup": "The lead conversation model picker; agy models lists CLI slugs, agy --model <configured alias> --print /model verifies a selection without an inference request."
+      "effortControl": "agy --effort <level> or /effort, per model (https://antigravity.google/docs/cli/headless/, read 2026-11-21): Carbon, Flash (and Argon, listed, not routed) offer low|medium|high; Neon and Hydrogen offer low|medium|high|xhigh, never spelled for the deep or fast typable; Orchestrator (Neon) takes no --effort at all (agy 1.5.14 exits 1, HR-407). Surface availability is read separately",
+      "lookup": "The lead conversation model picker; agy models lists CLI slugs, agy --model <configured alias> --print /model verifies a selection without an inference request (agy 1.5.14, 2026-11-21)."
     },
     "$nonActionable": {
       "$comment": "Surfaces direct knows of but never recommends as actionable: no docs/surfaces/<s>.md guide, no SurfaceRow in nen surface mirror, no hooks, picker or permission pack. These entries provide context, not actionable picks. The 2026-10-17 ruling in docs/ROSTER.md keeps Grok Build here as a headless CI option and Cursor as the actionable Grok coding surface; any future fifth surface would require a separate great-hiker proposal, never only a registry edit.",
@@ -461,7 +463,7 @@
         "https://platform.claude.com/docs/en/release-notes/overview",
         "https://platform.claude.com/docs/en/about-claude/pricing"
       ],
-      "effort": "/effort lists low|medium|high|max in-session; the models page gives each model's default effort"
+      "effort": "/effort lists low|medium|high|max in-session; the models page gives each model's default effort. hatsu:direct spells taxonomy max as high (Fable's top band, HR-406)"
     },
     "openai": {
       "cli": "codex debug models",
@@ -470,19 +472,20 @@
         "https://openai.com/index/practical-guide-building-gpt-6/",
         "https://developers.openai.com/api/docs/pricing"
       ],
-      "effort": "codex debug models -> supported_reasoning_levels per slug (low|medium|high|xhigh|max|ultra on 2026-10-05)"
+      "effort": "codex debug models -> supported_reasoning_levels per slug (low|medium|high|xhigh|max|ultra on codex-cli 0.154.0, 2026-11-21; gpt-5.6-sol defaults to low)"
     },
     "google": {
       "cli": "agy models",
       "docs": [
         "https://antigravity.google/docs/subagents",
+        "https://antigravity.google/docs/cli/headless/",
+        "https://antigravity.google/docs/models/",
         "https://ai.google.dev/gemini-api/docs/models",
         "https://ai.google.dev/gemini-api/docs/pricing",
-        "https://ai.google.dev/gemini-api/docs/latest-model",
-        "https://antigravity.google/blog/gemini-4-argon-in-google-antigravity/"
+        "https://ai.google.dev/gemini-api/docs/latest-model"
       ],
-      "effort": "Gemini 4 Argon thinking_level low | medium | high; medium is default, high is the documented ceiling; https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19. This API dial does not prove a surface exposes the control.",
-      "$cliEvidence": "Read 2026-10-19: agy 1.0.6 listed only partner models; a fresh 1.4.2 probe lists Argon and Flash at all three levels. agy --model gemini-4-argon --print /model returns gemini-4-argon-medium at exit 0; pro is refused at exit 1. User reports the app defaults to Argon, CLI had defaulted to Opus 5.5 Low."
+      "effort": "agy --effort or /effort per model (https://antigravity.google/docs/cli/headless/, read 2026-11-21: \"low, medium, high, xhigh, or max, depending on the model\"). Carbon, Flash and the listed-not-routed Argon offer low|medium|high; Neon and Hydrogen add xhigh, which hatsu:direct never spells; Orchestrator (Neon) takes no --effort (agy 1.5.14 exits 1, HR-407). An API dial does not prove a surface exposes the control.",
+      "$cliEvidence": "Read 2026-11-21 on agy 1.5.14: agy models lists gemini-4-neon-{low,medium,high,xhigh}, gemini-4-carbon-{low,medium,high}, gemini-4-argon-{low,medium,high}, gemini-4-hydrogen-{low,medium,high,xhigh}, gemini-pro-orchestrator-neon, gemini-pro-orchestrator (Carbon), gemini-pro-orchestrator-argon and gemini-3.8-flash-{low,medium,high}, beside partner models. --print /model selects gemini-4-carbon-medium, gemini-4-hydrogen-medium and gemini-pro-orchestrator-neon at exit 0; --effort xhigh on the Orchestrator and the bare flash exit 1. No gemini-4-carbon-xhigh and no orchestrator-neon xhigh slug is listed."
     },
     "cursor": {
       "cli": "cursor-agent models",
@@ -492,7 +495,7 @@
         "https://cursor.com/changelog",
         "https://cursor.com/composer"
       ],
-      "effort": "the -<level> suffixes cursor-agent models lists for the served id (grok-4.7-low|medium|high|xhigh on 2026-10-05)"
+      "effort": "the -<level> suffixes cursor-agent models lists for the served id (grok-4.7-low|medium|high|xhigh on 2026-10-05; unread 2026-11-21, the CLI was signed out); hatsu:direct spells taxonomy max as -high (HR-405)"
     },
     "copilot": {
       "cli": null,
@@ -552,7 +555,7 @@
         "low": "low",
         "medium": "medium",
         "high": "high",
-        "max": "max"
+        "max": "high"
       },
       "codex": {
         "low": "low",
@@ -564,7 +567,7 @@
         "low": "low",
         "medium": "medium",
         "high": "high",
-        "max": "xhigh"
+        "max": "high"
       },
       "antigravity": {
         "low": "low",
@@ -572,7 +575,7 @@
         "high": "high",
         "max": "high"
       },
-      "$collapsed": "Gemini 4 Argon's documented thinking_level ceiling is high (low | medium | high, medium default; https://ai.google.dev/gemini-api/docs/latest-model, read 2026-10-19), so max maps to high on antigravity by the dial's own ceiling. A session at high on antigravity MATCHES a recommended max because effort is compared in dial space (see mismatch); surface availability is read separately. Codex gained max (and ultra) and Cursor's ids carry -xhigh, read live on 2026-10-05, so neither collapses; a dial the live read lists that this map lacks is quoted beside the line, never typed into it."
+      "$collapsed": "By the rulings of 2026-11-21 (HR-400, HR-405, HR-406) taxonomy max is spelled high on three surfaces. claude-code: Fable (SEMANTIC_MAX) at its top band measured about twice the cost and time for no Artificial Analysis score gain, so max is spelled high (Opus and Sonnet, rarely recommended max, take the same spelling). cursor: ids may still list -xhigh, and max is spelled -high. antigravity: Gemini 4 Carbon's ceiling is high and no Carbon xhigh slug exists (agy 1.5.14, 2026-11-21); Neon xhigh is not the top-tier pick, and xhigh is used on Antigravity only for top-tier routing, which waits on that slug. Codex keeps max. A session at high MATCHES a recommended max on those three surfaces because effort is compared in dial space (see mismatch); surface availability is read separately. A dial the live read lists that this map lacks is quoted beside the line, never typed into it."
     }
   },
   "aggregation": {

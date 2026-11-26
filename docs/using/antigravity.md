@@ -77,7 +77,7 @@ Everything is cleanly excluded through `.git/info/exclude`; `.gitignore` is neve
 - **Completion Bell (`Stop`)**: `hooks/stop-bell.sh` fires at turn completion to ring the local audio and notification bell when human review or decision is needed.
 
 **In-Session Subagents:**
-Every reviewer `hanten` raises (the personas `review.scopes` routes: Nobunaga, Feitan, Chrollo, Hisoka, Uvogin, Phinks, Leorio) runs as an isolated subagent via `invoke_subagent` with `Workspace: "branch"`, at the tier `models.roles.reviewer` names (`pro`; a persona pinned to a fast model keeps its pin). Workers and measurers run on `fast` (`flash`), maximizing throughput and SWE-bench efficiency under Google AI Pro or Ultra subscriptions.
+Every reviewer `hanten` raises (the personas `review.scopes` routes: Nobunaga, Feitan, Chrollo, Hisoka, Uvogin, Phinks, Leorio) runs as an isolated subagent via `invoke_subagent` with `Workspace: "branch"`, at the tier `models.roles.reviewer` names (`gemini-pro-orchestrator-neon`; a persona pinned to a fast model keeps its pin). Workers and measurers run on `fast` (`gemini-4-hydrogen`), maximizing throughput and SWE-bench efficiency under Google AI Pro or Ultra subscriptions.
 
 ## 3 · Usage
 
@@ -95,10 +95,15 @@ plugin's `Stop` hook. Every turn that renders a report writes it as a **native a
 `templates/spiritual-message.md` or `templates/rikugan.md`, copied verbatim and never composed by hand
 ([`PROCESS.md`](../PROCESS.md) § *The Markdown report*), and a chat summary never stands in for it.
 
-**Headless**: `agy --model pro "<prompt>"` in the target repository.
+**Headless**, in the target repository: `agy --model gemini-pro-orchestrator-neon "<prompt>"` for deep work
+(planning, orchestration, multi-step features; it takes no `--effort`), `agy --model gemini-4-carbon --effort high "<prompt>"`
+for the frontier escalation (Ultra and Enterprise), `agy --model gemini-4-hydrogen "<prompt>"` for fast work. For focused coding
+(implementation, bug-fix, refactor, scoped tests) on one model, the documented mode is `agy --model gemini-4-neon-high "<prompt>"`.
+Argon is not routed; do not select it.
 
-**Models.** A persona's `model:` accepts only `inherit`, `flash` or `pro` on this surface, so the
-`models.antigravity` block maps `economy` to `flash`. Which model `hatsu:direct` recommends for a job, and
+**Models.** A persona's `model:` is documented to accept only `inherit`, `flash` or `pro` on this surface. That is a
+host constraint and not Gemini 3.1 Pro, which is retired from the matrix. `models.antigravity` maps `economy` to `flash`,
+and its deep and fast slugs are written into the personas as they stand ([ROSTER](../ROSTER.md#hr-408) HR-408: untested on the host). Which model `hatsu:direct` recommends for a job, and
 when this surface is the recommended one, is [`../DIRECT-MATRIX.md`](../DIRECT-MATRIX.md).
 
 ## 4 · Maintenance
