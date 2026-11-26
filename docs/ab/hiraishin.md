@@ -156,7 +156,7 @@ One batch per run through `bankai-rule` § 5 (`port-drift`, `ask-once-per-run`, 
 dry run **lists** the questions and asks none: *a list longer than one page, on `compose-uzf-v2`* — **A** `map
 to <equivalent>` (no existing pair row quotes one, so not starred) · **B** `mirror` · **C** `drop with note` ⭐ ·
 **D** `target-only addition`. The `map: gesture` row cites the handbook rule on both sides on a live run (the
-pair file through `--always-load` until zheref/nen#457). Each answer would bind at once and become one pair
+pair file through `--always-load` until zheref/nen#457; superseded at nen `0.31.0`, `docs/ab/kido.md` § 3a). Each answer would bind at once and become one pair
 row, with the spec's `## Platform decisions` and `port-ledger.md` written on hiraishin's amendment PR in the
 same run (ports.md § *Product-level divergence*; HR-6).
 

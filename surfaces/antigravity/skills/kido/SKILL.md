@@ -147,8 +147,8 @@ PT-<n> (branch <ref>, unmerged)`**, and the landing report names the follow-ups:
 (`nen/repos.json` → `pinned`, tag first, `CON-13`; the review preamble's prefix list gains `PT-` there)
 and **each consumer's `nen canon pin` with a follow-up rewriting its citations** to `<from>--<to> PT-<n> @ <tag>`.
 
-**A pair file for review** is read live (bankai-handbooks § 2): no mirror carries one until
-zheref/nen#457 ([`limbo`](../limbo/SKILL.md) step 4).
+**A pair file for review** resolves by `--port-from` (bankai-handbooks § 2); mirrors carry
+incoming pairs ([`limbo`](../limbo/SKILL.md) step 4).
 
 ## 7. Report
 
@@ -162,7 +162,7 @@ Under a composite, back to the caller; standalone, § 6's PR and `en`'s prompt. 
 ## Residue
 
 [`PROCESS.md`](../../../../docs/PROCESS.md) § *Residue*: the `ruling` split and the `--dry-run` strip
-(zheref/nen#458); the `gh` reads (zheref/nen#456); the pair file through `--always-load` (zheref/nen#457);
+(zheref/nen#458); the `gh` reads (zheref/nen#456);
 the clone's `git clone`; the product-term guard as a nen verb (unfiled).
 
 ## Authority
