@@ -100,8 +100,8 @@ In the session's scratch directory, **shown before any write**:
 |---|---|---|---|
 
 **Handling** is `kido`'s (HA#355), **citing its entry** in ports.md § *Mirror versus map*
-(`map: gesture`; a `map` cites the handbook rule on both sides, the pair file in `--always-load` until
-nen resolves pairs, zheref/nen#457); a concept no entry names is `unclassifiable`, asked in § 6. **Ruling**: a ports id,
+(`map: gesture`; a `map` cites the handbook rule on both sides, the pair file from
+`--port-from`, bankai-handbooks § 2); a concept no entry names is `unclassifiable`, asked in § 6. **Ruling**: a ports id,
 `<pair> PT-<n> (branch <ref>, unmerged)`, a `## Platform decisions` row cited (ports.md), or
 `unmapped`. Below: the UZF-26 evidence the target PR owes.
 

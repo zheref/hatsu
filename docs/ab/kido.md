@@ -248,6 +248,30 @@ $ the same resolve naming no pair file (0.22.0 knows no port handbook: exactly o
 exit 0
 ```
 
+### 3a. Re-run at nen `0.31.0`: the pair resolved by `--port-from` (2026-11-26)
+
+zheref/nen#457 shipped in nen `0.31.0` (NN-PR-#623). The record above stays as it was taken. Re-run on a
+scratch registry (`acme/android-app`, scenario `compose-uzf-v2`) against the canon checkout verified clean
+at the pin (`nen canon checkout --canon-checkout <cache> --json`: `v0.12.0`, head `5f0b2f4b`, `clean: true`):
+
+```
+$ nen canon resolve --repo <scratch> --target acme/android-app --always-load handbooks/uzf-core.md,handbooks/spec/authoring.md --stack-dir handbooks/stacks --port-from swiftui-tca-uzf-v2 --canon-root <checkout> --json
+{ "scenario": "compose-uzf-v2", "alwaysLoad": ["handbooks/uzf-core.md", "handbooks/spec/authoring.md"],
+  "stackHandbook": "handbooks/stacks/compose-uzf-v2/architecture.md",
+  "portHandbook": "handbooks/ports/swiftui-tca-uzf-v2--compose-uzf-v2.md" }        # exit 0
+$ … --port-from react-uzf-v1 --canon-root <checkout>          # text form
+port handbook: handbooks/ports/react-uzf-v1--compose-uzf-v2.md                    # exit 0
+$ … --port-from compose-uzf-v2 --canon-root <checkout>
+nen canon: --port-from 'compose-uzf-v2' names the target's own scenario           # exit 2
+$ … --port-from flutter-x --canon-root <checkout>
+nen canon: --port-from 'flutter-x' is not a scenario in the governing stack set   # exit 2
+```
+
+The spec handbook still rides `--always-load` beside the pair. The registry needs a `consumes` array on
+the consumer row (`[]` is enough), or the verb refuses at exit `1`. An absent pair (`portHandbook: null`)
+could not be probed: all six pairs exist at `v0.12.0`. nen's own fixtures prove it
+(`src/canon/batch.test.ts`, NN-PR-#623).
+
 ## 4. The catalogue rows — proved on a fixture consumer with and without the keys
 
 `workflow.port.handbooksRepo` and `workflow.port.rulingsDir`, domain `port` (the catalogue's ninth):
