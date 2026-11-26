@@ -1162,3 +1162,29 @@ are held and 4 are free**. Any of the four whose head moves, or that gains anoth
 re-holds its slot at the next read. **SC-2:** no verdict is called Ready (all four stay not-ready and
 `held-gate`), no delivery is merged by the run, and the cap of 7 and the one-heavy-workload rule are
 unchanged — 0, 0 and 0.
+
+## Dated verification, 2026-11-26 — a live futon killed mid-run and re-invoked (zheref/hatsu#444)
+
+Fixture, method and comparison reads: `docs/ab/build.md` § *Dated verification, 2026-11-26*.
+`hatsu:futon SB@fixture-futon` (SB#4, SB#5; exact label, both main-bound, disjoint files) ran twice.
+
+| Kill | Boundary (UTC) | What the next session did |
+|---|---|---|
+| 1 | both efforts' `kotoamatsukami` ended (14:33:43–44), Nobunaga raised for each, no PR yet | `futon_effort_record.mts resume` continued run `3863b4a7…` (0 PRs recorded) instead of starting a new one; re-raised Nobunaga per effort, opened SB-PR-#11 and SB-PR-#12, one slice comment each, `nen run append` each |
+
+Published: 2 PRs for 2 issues, 1 slice comment each, 0 labels; `nen run verify`: 2 open, 0 merged;
+`nen pr ready`: SB-PR-#11 `ready`, SB-PR-#12 `ready`. Equal to build's baseline shape
+(1 PR, 1 comment, 0 labels per issue).
+
+**Verdict: PASS on AC-2; FAIL on AC-1's step record.** Two findings:
+1. **Each effort's phase ledger holds only `kotoamatsukami` and `byakugan`** (the two steps that record
+   themselves): no `author`, `publish` or `pr` entry was ever written, so a futon resume cannot be checked
+   against its phases at all, only against the run manifest. futon § 4 told the session to build "as `build` § 5
+   lays them out" — the authority section, not § 4's phase rows. **Addressed in this PR, not re-proved live:** futon § 4 names
+   `build` §§ 4–5 and its phase rows; kazaana § 3's delegate records `author` and `publish` the same way.
+2. **The reviewers survived the kill.** The two Nobunaga subagents the killed session raised finished and
+   reported to the lead, not to the resumed session; their passes were never recorded, so the resumed session
+   raised them again. Nothing was published twice (reviewers publish nothing), but the review spend doubled.
+   This is the harness's kill semantics, recorded here, not fixed.
+3. **Usage:** 1 entry for two sessions (`nen usage show --effort sonnet/kurapika/sb4-fixture-doc-4 --repo <clone> --json`),
+   so the restarted session's spend is not its own entry (HA#444/AS-2 not met).

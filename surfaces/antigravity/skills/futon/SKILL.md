@@ -74,8 +74,8 @@ nen label apply <CODE>-IS-#<N> --label bankai:stage/building --repo-slug <owner/
 ```
 
 No stage family (`nen stage check` exit `2`) → the label is skipped, said (WORKFLOW § *A target
-repository with no delivery-stage taxonomy*); an unloadable `nen/labels.json` is a G5. **Then Kurapika builds it, in this session and the mode confirmed**, through the verbs the target
-declares as `build` § 5 lays them out, in the effort's own worktree; a delegate's brief carries WORKFLOW § *Delegate briefs*' wait block and § *The host block a delegate brief carries* verbatim, one `Heavy turn:` line; work a local session cannot do is a **G5**, gap named.
+repository with no delivery-stage taxonomy*); an unloadable `nen/labels.json` is a G5. **Then Kurapika builds it, in this session, mode confirmed**, through the verbs the target
+declares as `build` §§ 4–5 lay them out, phase rows too, in the effort's own worktree; a delegate brief carries WORKFLOW § *Delegate briefs*' wait block and § *The host block a delegate brief carries* verbatim, one `Heavy turn:` line; work a local session cannot do is a **G5**, gap named.
 
 ## 5. Done is merged into `branch.base`
 

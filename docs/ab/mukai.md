@@ -257,3 +257,27 @@ unchanged: https://github.com/zheref/hatsu/pull/463#issuecomment-6376486942 alre
 
 Step 8a's post after a later push edits the same comment in place (`updated`; the run after this file's own commit is quoted in HA-PR-#463's body). No label is applied by mukai, so
 none can be applied twice. **Not proved here:** a live session killed between steps 8 and 9 and re-invoked.
+
+## Dated verification, 2026-11-26 — a live mukai killed after step 8a and re-invoked (zheref/hatsu#444)
+
+Fixture, method and comparison reads: `docs/ab/build.md` § *Dated verification, 2026-11-26*. The branch
+for SB#3 was authored with `hatsu:ren add docs/fixture-3.md for SB#3` then `hatsu:aka` (pushed, uninterrupted);
+then `hatsu:mukai` ran from its effort checkout three times:
+
+| Kill | Boundary (UTC) | What the next session did |
+|---|---|---|
+| 1 | after mukai's first `hanten` entry ended, before any reviewer ran (14:32:44; Nobunaga `used 0/1`) | opened a **second** `hanten` entry (ended 14:35:33), raised Nobunaga once (`used 1/1`), opened SB-PR-#10, posted the slice |
+| 2 | the slice comment posted on SB-PR-#10 at 14:39:07, the kill at 14:39:11, `mukai` entry open | opened no second PR; `nen pr ledger read` matched the head; `nen phase begin --resume` on the open `mukai` entry (`resumedAt` 14:40:30), step 9, `nen phase end` (14:41:36), then the slice re-posted `updated` at 14:41:56 (still 1 comment) |
+
+Published: SB-PR-#10 only (1 PR), 1 slice comment (edited in place), 0 labels; `nen pr ready`:
+SB-PR-#10 `ready` at `1705c7dca238d29a909e7ffeeb692bb066989496`. The baseline for the objects is
+build's uninterrupted SB-PR-#8 (1 PR, 1 slice comment, 0 labels): equal.
+
+**Verdict: PASS on AC-2 and on the published objects; PARTIAL on AC-3.** This closes the gap the section
+above names (*"Not proved here: a live session killed between steps 8 and 9"*): entered as mukai, the
+resume ran exactly the steps left. AC-3's gap: the ledger shows **two** `hanten` entries for one review,
+because the first entry had already ended (with no reviewer raised) when the kill landed, so `--resume` could
+not apply. The review budget held (Nobunaga ran once), so no spend was doubled. Usage: 3 entries for 3 sessions, only
+the third noted `resumed session`; session 2's note is missing, so HA#444/AS-2 is met for one restart of two. The slice was updated after the entry ended, so
+the posted slice already shows `mukai` ended; the opposite order (slice first) is the durable-slice question
+HA#445 owns.

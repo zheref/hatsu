@@ -777,3 +777,55 @@ resumed session's own usage entry (HR-398): the clone's usage ledger stays empty
 before any phase work. **For the maintainer:** should `pr`'s end, or en's start, refresh the slice, so a
 fresh clone does not read an ended `pr` as open? And when two sessions hold one effort, which of them may
 write its slice? Canon names neither today, and this section writes no rule for either.
+
+## Dated verification, 2026-11-26 — live sessions killed and re-invoked on the sandbox fixture (zheref/hatsu#444)
+
+**Fixture.** A private sandbox repository the maintainer approved on 2026-11-25 (22:52 COT) for these runs:
+registry code `SB`, adopted as a Hatsu consumer by SB-PR-#7 (kind product, `branch.base` `main`, one `check`
+workflow, `review.scopes` `code` → Nobunaga at budget 1, `release.proposalMerge` `human`), six fixture issues
+SB#1–SB#6, each asking for one two-sentence `docs/fixture-<k>.md`. Its name is private and stays out of this
+tree (docs/PUBLIC-REDACTION.md). nen `0.31.0` (the pin); the served Hatsu was core at `9e797c666`.
+
+**Method (the same for every composite in this round).** Each composite ran in its own fresh clone of the
+fixture in the job's scratch area, driven by a background Claude Code subagent (Sonnet, effort high) given
+one identical prompt: the run brief (publish only to the fixture; never merge, tag or release; no pickers, take
+the canon default) and the invocation line. A Monitor polled `<clone>/.git/.nen/phases/<effort>.json` every 3 s
+and printed each new `endedAt`; at the chosen boundary the lead stopped the session (`TaskStop`, a hard kill:
+no cleanup ran), copied the ledger, and started a new session with the identical prompt. The comparison reads,
+per effort: `nen phase show --effort <branch> --json` (or the ledger file), `gh pr list --head <branch> --state all`,
+the PR's comment count and labels, and `nen pr ready <CODE>#<N>` through `scripts/gh_token_env.sh`.
+
+**build — `hatsu:build SB#1`, killed four times; baseline `hatsu:build SB#2`, uninterrupted.**
+
+| Kill | Boundary (UTC: the previous entry's `endedAt`; kill 4 the kill instant) | What the next session did |
+|---|---|---|
+| 1 | after ren's `breath` ended, `rasengan` begun (14:19:48) | resumed `rasengan` (`resumedAt` 14:21:25), no new effort |
+| 2 | after `author` ended, `publish` begun (14:21:39) | resumed `publish` (`resumedAt` 14:23:03), one push |
+| 3 | after `publish` ended, `pr` begun (14:23:19) | resumed `pr` (`resumedAt` 14:24:56); review, tests, coverage once each |
+| 4 | 3 s after `nen pr open` returned SB-PR-#9, `pr` still open (14:28:01) | **opened no second PR**, then went straight to En through ten § 6 row 6 |
+
+| Object | Baseline (SB-PR-#8) | Interrupted (SB-PR-#9) |
+|---|---|---|
+| pull requests on the branch | 1 | 1 |
+| Delivery block re-rendered with the PR number | yes (`next: hatsu:en on SB-PR-#8`) | **no** (`next: unread — report data carries no unique PR`) |
+| durable slice comment (mukai step 8a) | 1 | **0** |
+| labels | 0 | 0 |
+| `nen pr ready` | SB-PR-#8 `ready` | SB-PR-#9 `ready` |
+| `pr` entry `endedAt` | set | **never set** |
+
+**Verdict: PARTIAL.** AC-2 holds: no second pull request, comment or label across the four kills. AC-3 holds
+for each resumed step entry (`rasengan`, `publish`, `pr`: one entry, its `resumedAt` instant), with one gap: the
+enclosing `author` entry, open at kill 1, carries no `resumedAt`. **AC-1 fails at kill 4:** the resumed session
+read the open PR through ten § 6 row 6 ("open → refuse a second PR, offer `en`"), skipped what step 8 had
+left (shibari's after-open re-render, step 8a, step 9, `nen phase end --phase pr`) and published one object
+fewer than the baseline. `nen pr ready` read both PRs `ready`, so readiness does not catch it. **Addressed in
+this PR, not re-proved live:** mukai § 2's open-PR table now routes an open PR whose enclosing entry is
+unended (or absent with no slice) to the steps step 8 left, and ten § 6 row 6 and en § 1 route there first.
+AC-1's other two halves are **not met** either: the step records differ in structure, not only in names —
+the baseline holds 5 entries (`breath, author, verify, publish, pr`), the interrupted run 9 (`author` wrapping
+`breath, rasengan, kokusen`, then `publish`, `pr`, `review-fixtures`, `kotoamatsukami`, `byakugan`; HA-PR-#637
+pins ren's step names to skill names) — and the five sessions left **one** usage entry
+(`nen usage show --effort sonnet/kurapika/sb1-fixture-doc-1 --repo <clone> --json`: 1 entry; the baseline 2),
+so no restarted session recorded its spend as its own entry. **AC-4** holds only for a reader with access to
+the private fixture and a harness that can kill a session: the reads above are the commands; their outputs are
+the snapshots quoted in the tables.
