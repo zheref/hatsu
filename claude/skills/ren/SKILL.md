@@ -154,7 +154,10 @@ taken. Coverage is captured by no ren profile; that is [`byakugan`](../byakugan/
 **A landing (`mukai`) always runs thorough**, whatever the turns before it named.
 
 **Every step is one ledger entry** ([`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The effort's ledgers* owns the
-mechanism; what is ren's is which steps and when). Before a step, `nen phase begin --effort <branch> --phase
+mechanism; what is ren's is which steps and when). **`<step-name>` is the step's skill name** —
+`breath`, `rasengan`, `kokusen`, `amaterasu`, `spiritual-message`, `jutaisho` — never the table's step
+label (`launch`, `report`, `bell`): a resume matches entries by name, so a paraphrase would begin a
+second entry for a step already ended (zheref/hatsu#444, `docs/ab/ren.md` 2026-11-25). Before a step, `nen phase begin --effort <branch> --phase
 <step-name> --surface <s> [--model <reported-model>] --dial <level>`; if the model is a harness-reported
 served ID, add `--note "model-kind=served; registry alias <alias>"` (WORKFLOW § *The effort's ledgers*); at the first phase record
 `nen session record` with the harness's title/id when exposed, once per session; after a step, `nen phase end --effort <branch> --phase
@@ -165,7 +168,7 @@ note step 1 began with, because `end --note` replaces it (the script's `--begin-
 so the six steps stay six entries ([HR-58](../../../docs/ROSTER.md#hr-58)). **The usage entry is recorded at step 5**: `nen usage record --effort
 <branch> --surface <s> [--model] --dial <level> [--input] [--output] [--cache-read] [--cache-write] [--minutes] [--note "<text>"]` from
 the surface's own cost readout, `--not-reported` on a surface that exposes none. **A resumed session records
-its own entry** (`--note "resumed session"`), never editing or merging the earlier one; a resume equals an
+its own usage entry** (`nen usage record … --note "resumed session"`: the usage note, not a phase note), never editing or merging the earlier one; a resume equals an
 uninterrupted run on its steps and published objects only ([HR-398](../../../docs/ROSTER.md#hr-398)).
 
 **A resumed effort reads before it writes** (zheref/hatsu#444, zheref/hatsu#445; from nen 0.28). An effort whose
