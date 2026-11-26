@@ -719,32 +719,56 @@ resumed pr on 'opus/kurapika/ha444-live-resume' at 2026-11-26T02:36:56.778Z (ope
 The clone's final ledger (`nen phase show … --json`, projected): `author` ended `0` · `publish` ended `0` ·
 `pr` open, `resumedAt: [2026-11-26T02:36:56.778Z]`, its ten recorded steps carried over from the slice.
 
-**Verdict for AC-3: met, for `build` on a short effort.** The completed phases were skipped, and each skip line
-says which phase and why: its exit, its end instant, and the slice and head it was read from (WORKFLOW's one
-skip-line form). No finished phase re-ran. The open phase continued as one entry with its resume instant,
-never a second entry. **No GitHub write**: HA-PR-#637's comments (1), labels (none), review requests (0),
+**The slice was 97 s behind the effort when the clone read it.** It was posted at 02:35:09Z with `pr` open.
+The authoring checkout ended `pr` at 02:35:19.315Z and began `readiness` at 02:35:19.742Z, and the clone
+resumed `pr` at 02:36:56.778Z. So this was a resume running beside a live session, not one after an
+interruption. The clone did no `pr` work (its brief stopped it after `begin --resume`), but it reopened a
+phase the effort had already ended. That is the right reading of what it was given: a slice is the record a
+fresh clone has, and a slice posted mid-phase says that phase is open. The lag comes from where the
+slice is posted, not from this run: mukai step 8a posts it inside `pr`, so until a later landing it always
+records `pr` open. An unbounded resume here would have re-run mukai's steps for a phase already ended.
+
+**Verdict for AC-3: met against the slice it read, for `build` on a short effort.** The completed phases
+were skipped, and each skip line says which phase and why: its exit, its end instant, and the slice and head
+it was read from (WORKFLOW's one skip-line form). No phase the slice records as finished re-ran. The open phase
+continued as one entry with its resume instant, never a second entry. **No GitHub write**: HA-PR-#637's comments (1), labels (none), review requests (0),
 reviews (0) and head, and HA#444's comments (3) and labels, read identically before and after the session.
 
 **The rest of the durable slice, live on the same PR.**
 
-- **AC-1, one comment updated in place.** The authoring session later posted again at the end of its
-  readiness phase. `nen pr ledger post` answered `updated: https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990 … 4 phase entries`,
+- **AC-1, one comment updated in place (the verb's behaviour).** The authoring session posted again at
+  the end of its readiness phase, a post site canon does not name (WORKFLOW names mukai step 8a and a later
+  landing). So this shows `nen pr ledger post` editing in place, not a second mukai landing doing it. It answered `updated: https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990 … 4 phase entries`,
   and the PR still carries one comment. Before each post, `--dry-run --json` was scanned by the pinned
   `gitleaks` `8.30.1` (`no leaks found`). The findings copy came from `scripts/ledger_findings_prepare.mts`
-  (`23 finding(s), absolute paths relativised`); the dry run held no absolute path.
-- **AC-2, read back.** `nen pr ledger read` answered `ok: … by zheref … 4 phase entries, recorded at head f9d0cc11834c; foreign: 0`.
+  (`23 finding(s), absolute paths relativised`); the dry run held no absolute path. The slice carries the
+  phases and the findings; its proof index is empty here (`0 proof file(s)`). A non-empty one is in
+  `docs/ab/ren.md`, 2026-10-23 (2 proof files).
+- **AC-2, read back, its valid half.** `nen pr ledger read` answered `ok: … by zheref … 4 phase entries, recorded at head f9d0cc11834c; foreign: 0`.
+  The other half (an invalid or edited comment reported by name and never trusted) is not shown live here;
+  it rests on nen's own tests in `src/pr/ledger.test.ts` on zheref/nen `main`: *refuses an edited or malformed
+  comment by name*, *a marked comment by another login is counted as foreign and never read*, and *SEC-7: a
+  marked comment of ours edited by another login is foreign on read and refused on post*.
 - **AC-4's register half.** At nen `0.31.0`, `nen report data --target zheref/hatsu --prs 637 --json` (the
   register's data) carries the slice on the PR's row: `"ledger": {"state": "valid", "url":
   "https://github.com/zheref/hatsu/pull/637#issuecomment-7180937990", "verdict": "ok", …}`. Read before the
   post, the same row was `"state": "none", "verdict": "could-not-read"`, naming the missing comment.
 
-**Finding, unchanged at 0.31.0.** In the resumed clone, a second `read --restore` is refused at exit `1`.
-After its resume the clone's ledger holds 3 entries, while the slice, updated since, holds 4: *"the local phase
-ledger … (3 entries) disagrees with the slice … (4); nothing was overwritten"*. A plain `read` answers `ok` at
-exit `0`. Ren § 2a's rule, `--restore` only where no local ledger exists, is the one that holds; the
-`docs/ab/ren.md` finding of 2026-10-23 still stands.
+**A second restore over two ledgers that split apart is refused, correctly.** In the resumed clone, a second
+`read --restore` exits `1`: *"the local phase ledger … (3 entries) disagrees with the slice … (4); nothing was
+overwritten"*. A plain `read` answers `ok` at exit `0`. Each side had moved: the slice ended `pr` and added
+`readiness`, and the clone resumed `pr`. The two records disagree on `pr`, and WORKFLOW § *The durable
+slice* names that case (anything but a local ledger merely ahead) a **G5**: the run neither picks a record
+nor overwrites either, and nen's refusal is that rule's mechanical half. The `docs/ab/ren.md` case of
+2026-10-23 is the other one, a local ledger only ahead of an unchanged slice. It was not tested again here,
+so whether nen now reads that case as ahead stays open.
 
 **Not proved here.** AC-4 proper (an unattended run whose every PR carries a valid slice, listed in the
 register) needs an idle run that opens real pull requests, the same fixture-repository question as
-zheref/hatsu#444. SC-2 holds for this one resume (0 completed phases re-run); a fresh-clone resume of the
-other composites is not shown.
+zheref/hatsu#444. SC-2 holds for this one resume against its slice (0 completed phases re-run); a fresh-clone
+resume after a real interruption, and of the other composites, is not shown. AC-2's invalid-comment half
+is not shown live (above). A second mukai landing refreshing the slice is not shown, and neither is a
+resumed session's own usage entry (HR-398): the clone's usage ledger stays empty because the run stopped
+before any phase work. **For the maintainer:** should `pr`'s end, or en's start, refresh the slice, so a
+fresh clone does not read an ended `pr` as open? Canon names no such post today, and this section writes no
+rule for it.
