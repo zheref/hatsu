@@ -49,7 +49,8 @@ session or from this file's own prose.
 > canon from the same source, read **beside** the target stack and never as a second stack; its
 > bounded interim (no consumer mirror carries a pair file, so a port reads it live at the consumer's
 > pin) met its tool exit in nen `0.31.0` (zheref/nen#457: `--port-from` resolves the pair and the
-> mirror verbs carry incoming pairs), and the clause retires at the tag that amends `CON-13`. **This skill takes the live path**: it resolves from the checkout at the pin, because
+> mirror verbs carry incoming pairs); the interim sentence retires at the tag that amends `CON-13`,
+> and the beside-the-target rule stands. **This skill takes the live path**: it resolves from the checkout at the pin, because
 > the computation is cheap and exact, and it never treats a product repo's mirror as its source. Point
 > `--repo` at a registry (§ 1) and open the resolved files in the `bankai-handbooks` checkout (§ 2).
 
@@ -178,7 +179,7 @@ the order above is what runs, and an OPEN item stays OPEN.
 nen canon resolve --repo <registry checkout> --target <owner/name> \
   --always-load <paths from "$canon"/handbooks/INDEX.md's "Always load" table, comma-separated> \
   --stack-dir handbooks/stacks \
-  [--port-from <from scenario> --canon-root "$canon"] \
+  [--port-from <from scenario> --canon-root "$canon" [--ports-dir <rulingsDir>]] \
   --json
 ```
 
@@ -272,8 +273,16 @@ with zero rulings at that tag, rows appended through that skill; prefix `PT`, on
 *Rulings of 2026-10-21 — the port rule prefix (HA#355)*). From nen `0.31.0` the verb resolves the pair (zheref/nen#457): § 2's
 call adds `--port-from <from> --canon-root "$canon"` (with `--ports-dir <rulingsDir>` when that key is not
 the default) and returns `portHandbook` — the pair path under `$canon` — beside `alwaysLoad` and
-`stackHandbook`; a self pair or a `<from>` outside the stack directory is refused at exit `2`. The form
-does not verify the pin, so § 0's `describe` gate still runs first. **`portHandbook: null`**
+`stackHandbook`. Before the call, three refusals are this skill's, at exit `2` and naming the value:
+`<from>` or the target's scenario is not a `From`/`To` scenario of `handbooks/ports/INDEX.md`'s table
+(`handbooks/INDEX.md`: the three product stacks, never `bankai-machinery`; nen's set is every directory
+under `handbooks/stacks`, so such a pair would read null below); `<rulingsDir>` breaks the catalogue's grammar (`contracts/config-catalogue.json`,
+`port.rulingsDir`); or `$canon/<rulingsDir>` is not a directory (`missing-configuration`: a mistyped key
+would otherwise read every pair as absent). nen then refuses a self pair or a `<from>` outside its stack
+set at exit `2` — a finding about the command; **any other exit `2` with `--port-from`** (the stack
+handbook missing under `$canon`, the pair path a directory or a link leaving the root, a `--ports-dir`
+leaving it) **is a finding about `$canon` at the pin**: quote the reason, never retry it as an
+invocation error. The form does not verify the pin, so § 0's `describe` gate still runs first. **`portHandbook: null`**
 (stderr `no port handbook for <from>--<to>: no rulings file yet`) reads `port rulings: none` — a port
 that has met no drift, not an error — at a pin below `v0.13.0`, where `CON-13` still has a pair file
 created on first use; **at `v0.13.0` or later, the tag that is to carry the amended `CON-13`

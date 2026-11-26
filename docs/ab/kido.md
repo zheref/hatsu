@@ -248,7 +248,7 @@ $ the same resolve naming no pair file (0.22.0 knows no port handbook: exactly o
 exit 0
 ```
 
-### 3a. Re-run at nen `0.31.0`: the pair resolved by `--port-from` (2026-11-26)
+### 3a. Re-run at nen `0.31.0`: the pair resolved by `--port-from` (2026-11-25)
 
 zheref/nen#457 shipped in nen `0.31.0` (NN-PR-#623). The record above stays as it was taken. Re-run on a
 scratch registry (`acme/android-app`, scenario `compose-uzf-v2`) against the canon checkout verified clean
@@ -268,9 +268,23 @@ nen canon: --port-from 'flutter-x' is not a scenario in the governing stack set 
 ```
 
 The spec handbook still rides `--always-load` beside the pair. The registry needs a `consumes` array on
-the consumer row (`[]` is enough), or the verb refuses at exit `1`. An absent pair (`portHandbook: null`)
-could not be probed: all six pairs exist at `v0.12.0`. nen's own fixtures prove it
-(`src/canon/batch.test.ts`, NN-PR-#623).
+the consumer row (`[]` is enough), or the verb refuses at exit `1`. An absent pair cannot occur at
+`v0.12.0`, where all six pairs exist; pointing `--ports-dir` at a directory that does not exist shows the
+null shape: stderr `no port handbook for swiftui-tca-uzf-v2--compose-uzf-v2: no rulings file yet`, text
+`port handbook: (absent)`, exit `0` (hanten's Phinks pass, same day). `--ports-dir handbooks/ports/` is
+read as `handbooks/ports`; `--ports-dir ../x` is refused at exit `2` (must stay inside the canon root).
+
+The mirror half, measured on a scratch consumer (`compose-uzf-v2`, surfaces `claude-code` and `codex`)
+with limbo steps 5 and 10 as written:
+
+| Run | Result |
+|---|---|
+| `nen canon mirror generate` (the `--stack-dir`/`--leaf` form) | writes the 15 rules plus `react-uzf-v1--compose-uzf-v2.md` and `swiftui-tca-uzf-v2--compose-uzf-v2.md`; the ports `INDEX.md` and the outgoing pairs stay out |
+| `nen canon mirror check`, same form | `drift: false`, exit `0` |
+| `check` with `--ports-dir handbooks/rulings` | both pairs read `extra`, exit `1` |
+| `check` after deleting the two pair files | both read `missing`, exit `1` |
+
+So a consumer with a non-default `port.rulingsDir` needs the `--ports-dir` limbo now passes as `$pd`.
 
 ## 4. The catalogue rows — proved on a fixture consumer with and without the keys
 
