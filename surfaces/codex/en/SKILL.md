@@ -54,7 +54,8 @@ merge state and the repository's allowed merge methods.
 
 **P1 — this run opens with `$ten en`** ([`ten`](../ten/SKILL.md) § 6 catches up this phase's
 missing prerequisites under its own name; the phases this run calls skip theirs). **An open PR whose step 8
-never finished is [`mukai`](../mukai/SKILL.md) § 2's first**: its open-PR table runs before step 1.
+never finished is [`mukai`](../mukai/SKILL.md) § 2's first**: its open-PR table runs before step 1, and its
+"offer En" means continue at step 1.
 
 ```
 $en [on <CODE>#<N>]

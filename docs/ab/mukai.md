@@ -267,7 +267,7 @@ then `hatsu:mukai` ran from its effort checkout three times:
 | Kill | Boundary (UTC) | What the next session did |
 |---|---|---|
 | 1 | after mukai's first `hanten` entry ended, before any reviewer ran (14:32:44; Nobunaga `used 0/1`) | opened a **second** `hanten` entry (ended 14:35:33), raised Nobunaga once (`used 1/1`), opened SB-PR-#10, posted the slice |
-| 2 | 0–5 s after the slice comment appeared on SB-PR-#10 (14:39:11), `mukai` entry open | opened no second PR; `nen pr ledger read` matched the head; `nen phase begin --resume` on the open `mukai` entry (`resumedAt` 14:40:30), step 9, `nen phase end` (14:41:36), then the slice re-posted `updated` at 14:41:56 (still 1 comment) |
+| 2 | the slice comment posted on SB-PR-#10 at 14:39:07, the kill at 14:39:11, `mukai` entry open | opened no second PR; `nen pr ledger read` matched the head; `nen phase begin --resume` on the open `mukai` entry (`resumedAt` 14:40:30), step 9, `nen phase end` (14:41:36), then the slice re-posted `updated` at 14:41:56 (still 1 comment) |
 
 Published: SB-PR-#10 only (1 PR), 1 slice comment (edited in place), 0 labels; `nen pr ready`:
 SB-PR-#10 `ready` at `1705c7dca238d29a909e7ffeeb692bb066989496`. The baseline for the objects is
@@ -277,7 +277,7 @@ build's uninterrupted SB-PR-#8 (1 PR, 1 slice comment, 0 labels): equal.
 above names (*"Not proved here: a live session killed between steps 8 and 9"*): entered as mukai, the
 resume ran exactly the steps left. AC-3's gap: the ledger shows **two** `hanten` entries for one review,
 because the first entry had already ended (with no reviewer raised) when the kill landed, so `--resume` could
-not apply. The review budget held (Nobunaga ran once), so no spend was doubled. Usage: 3 entries, the third
-noted `resumed session` (AS-2's separate entry: met here). The slice was updated after the entry ended, so
+not apply. The review budget held (Nobunaga ran once), so no spend was doubled. Usage: 3 entries for 3 sessions, only
+the third noted `resumed session`; session 2's note is missing, so HA#444/AS-2 is met for one restart of two. The slice was updated after the entry ended, so
 the posted slice already shows `mukai` ended; the opposite order (slice first) is the durable-slice question
 HA#445 owns.

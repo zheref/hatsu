@@ -1187,4 +1187,4 @@ Published: 2 PRs for 2 issues, 1 slice comment each, 0 labels; `nen run verify`:
    raised them again. Nothing was published twice (reviewers publish nothing), but the review spend doubled.
    This is the harness's kill semantics, recorded here, not fixed.
 3. **Usage:** 1 entry for two sessions (`nen usage show --effort sonnet/kurapika/sb4-fixture-doc-4 --repo <clone> --json`),
-   so the restarted session's spend is not its own entry (AS-2 not met).
+   so the restarted session's spend is not its own entry (HA#444/AS-2 not met).

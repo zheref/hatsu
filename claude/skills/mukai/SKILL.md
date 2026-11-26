@@ -211,7 +211,7 @@ runs alone. With this branch's PR open, each state is routed once:
 | Enclosing entry (`nen phase show --effort <branch> --json`) | Then |
 |---|---|
 | present, no `endedAt` | the open-PR resume below, then offer En |
-| absent (a lost ledger, a fresh clone) | [`ren`](../ren/SKILL.md) § 2a's read-back from `nen pr ledger read`; no slice on the PR, or a Delivery block that names no PR, is this table's first row; otherwise the row its restored entry matches |
+| absent from the local ledger (lost, a fresh clone, or a run that never wrote it) | [`ren`](../ren/SKILL.md) § 2a's read-back, `nen pr ledger read`, under [`WORKFLOW.md`](../../../docs/WORKFLOW.md) § *The durable slice*'s verdicts: `ok` → the row its restored entry matches, the first row when the slice holds none; `stale` → that section's rule (the phase at the moved head runs again); `could-not-read` (no slice) → the run starts at its first phase, as that section says, each phase reading its published object first, so step 8 meets the open PR and this table's first row |
 | ended at exit `0` | nothing owed: offer En |
 | ended at a non-zero exit | refused by name, as ren § 2a refuses it (`refused <phase>: ended at exit <n>`) |
 

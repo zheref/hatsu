@@ -44,5 +44,5 @@ error, not the skill's text. `nen pr ready`: SB-PR-#13 `ready` at
 
 **Verdict: PARTIAL.** AC-2 holds (no second PR, no label). The ledger has the same gap as futon's (only the two
 self-recording steps), addressed (not re-proved live) by this PR's kazaana § 3 line. Usage: 1 entry for two
-sessions, so AS-2's separate entry is not met. getsuga, the chain's second half, did not start:
+sessions, so HA#444/AS-2's separate entry is not met. getsuga, the chain's second half, did not start:
 no delivery was merged; see `docs/ab/getsuga.md` for its own live attempt.
