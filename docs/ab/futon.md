@@ -1180,9 +1180,11 @@ Published: 2 PRs for 2 issues, 1 slice comment each, 0 labels; `nen run verify`:
 1. **Each effort's phase ledger holds only `kotoamatsukami` and `byakugan`** (the two steps that record
    themselves): no `author`, `publish` or `pr` entry was ever written, so a futon resume cannot be checked
    against its phases at all, only against the run manifest. futon § 4 told the session to build "as `build` § 5
-   lays them out" — the authority section, not § 4's phase rows. **Fixed in this PR:** futon § 4 names
+   lays them out" — the authority section, not § 4's phase rows. **Addressed in this PR, not re-proved live:** futon § 4 names
    `build` §§ 4–5 and its phase rows; kazaana § 3's delegate records `author` and `publish` the same way.
 2. **The reviewers survived the kill.** The two Nobunaga subagents the killed session raised finished and
    reported to the lead, not to the resumed session; their passes were never recorded, so the resumed session
    raised them again. Nothing was published twice (reviewers publish nothing), but the review spend doubled.
    This is the harness's kill semantics, recorded here, not fixed.
+3. **Usage:** 1 entry for two sessions (`nen usage show --effort sonnet/kurapika/sb4-fixture-doc-4 --repo <clone> --json`),
+   so the restarted session's spend is not its own entry (AS-2 not met).

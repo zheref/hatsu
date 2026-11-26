@@ -797,7 +797,7 @@ the PR's comment count and labels, and `nen pr ready <CODE>#<N>` through `script
 
 **build — `hatsu:build SB#1`, killed four times; baseline `hatsu:build SB#2`, uninterrupted.**
 
-| Kill | Boundary (UTC) | What the next session did |
+| Kill | Boundary (UTC: the previous entry's `endedAt`; kill 4 the kill instant) | What the next session did |
 |---|---|---|
 | 1 | after ren's `breath` ended, `rasengan` begun (14:19:48) | resumed `rasengan` (`resumedAt` 14:21:25), no new effort |
 | 2 | after `author` ended, `publish` begun (14:21:39) | resumed `publish` (`resumedAt` 14:23:03), one push |
@@ -818,8 +818,14 @@ for each resumed step entry (`rasengan`, `publish`, `pr`: one entry, its `resume
 enclosing `author` entry, open at kill 1, carries no `resumedAt`. **AC-1 fails at kill 4:** the resumed session
 read the open PR through ten § 6 row 6 ("open → refuse a second PR, offer `en`"), skipped what step 8 had
 left (shibari's after-open re-render, step 8a, step 9, `nen phase end --phase pr`) and published one object
-fewer than the baseline. `nen pr ready` read both PRs `ready`, so readiness does not catch it. **Fixed in this
-PR:** mukai § 2 now resumes a run killed after step 8 (the open PR with an unended `pr` entry) at those
-steps, and ten § 6 row 6 routes there first. A further difference is in the step *names*, not the objects:
-the baseline's author entries were `breath, author, verify`, the interrupted run's `breath, rasengan, kokusen`
-(sessions name ren's steps differently; HA-PR-#637 pins them to skill names).
+fewer than the baseline. `nen pr ready` read both PRs `ready`, so readiness does not catch it. **Addressed in
+this PR, not re-proved live:** mukai § 2's open-PR table now routes an open PR whose enclosing entry is
+unended (or absent with no slice) to the steps step 8 left, and ten § 6 row 6 and en § 1 route there first.
+AC-1's other two halves are **not met** either: the step records differ in structure, not only in names —
+the baseline holds 5 entries (`breath, author, verify, publish, pr`), the interrupted run 9 (`author` wrapping
+`breath, rasengan, kokusen`, then `publish`, `pr`, `review-fixtures`, `kotoamatsukami`, `byakugan`; HA-PR-#637
+pins ren's step names to skill names) — and the five sessions left **one** usage entry
+(`nen usage show --effort sonnet/kurapika/sb1-fixture-doc-1 --repo <clone> --json`: 1 entry; the baseline 2),
+so no restarted session recorded its spend as its own entry. **AC-4** holds only for a reader with access to
+the private fixture and a harness that can kill a session: the reads above are the commands; their outputs are
+the snapshots quoted in the tables.

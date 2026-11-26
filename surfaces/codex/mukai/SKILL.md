@@ -206,14 +206,24 @@ that skill's own G5, rendered by
 **No PR is opened by a run that stopped**, and the answer to the stop resumes the run at the step
 that stopped, not at step 1.
 
-**A run killed after step 8 opened the PR resumes after it.** When this branch's PR is open and the
-effort's `pr` entry has no `endedAt` (`nen phase show --effort <branch> --json`), the next entry —
-mukai's own, or build's through [`ten`](../ten/SKILL.md) § 6 row 6 — opens no second PR and runs what
-step 8 left: [`shibari`](../shibari/SKILL.md)'s after-open Delivery re-render and read-back, step 8a
-(marker-keyed, so a posted slice is updated, never doubled), step 9, then `nen phase end --phase pr`
-(`--resume` on the open entry first), and only then offers En. Measured live on 2026-11-26
-(`docs/ab/build.md`): a build resumed through row 6 went straight to En and left its PR with no slice
-and a Delivery block that never named the PR.
+**A run killed after step 8 opened the PR resumes after it.** The *enclosing entry* is the phase
+ledger's entry that holds step 8: `pr` when [`build`](../build/SKILL.md) § 4 runs mukai, `mukai` when mukai
+runs alone. With this branch's PR open, each state is routed once:
+
+| Enclosing entry (`nen phase show --effort <branch> --json`) | Then |
+|---|---|
+| present, no `endedAt` | the open-PR resume below, then offer En |
+| absent (a lost ledger, a fresh clone) | [`ren`](../ren/SKILL.md) § 2a's read-back from `nen pr ledger read`; no slice on the PR, or a Delivery block that names no PR, is this table's first row; otherwise the row its restored entry matches |
+| ended at exit `0` | nothing owed: offer En |
+| ended at a non-zero exit | refused by name, as ren § 2a refuses it (`refused <phase>: ended at exit <n>`) |
+
+**The open-PR resume**, in this order: ren § 2a's read-back, `nen phase begin --resume` on the enclosing
+entry, [`shibari`](../shibari/SKILL.md)'s after-open Delivery re-render and read-back, step 8a (marker-keyed,
+so a posted slice is updated, never doubled), step 9, `nen phase end` on the enclosing entry. It opens no
+second PR. A build's mukai phase reaches it through [`ten`](../ten/SKILL.md) § 6 row 6; `$en` typed on
+such a PR runs it first (en § 1). Measured live on 2026-11-26 (`docs/ab/build.md`): a build resumed through
+row 6 before this table went straight to En and left its PR with no slice and a Delivery block that never
+named the PR.
 
 ## 3. What the run produces, and what it never produces
 
