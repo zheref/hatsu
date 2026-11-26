@@ -142,29 +142,38 @@ function ledgerBytes(repo: string): string {
   try { return readFileSync(path, 'utf8'); } catch { return readFileSync(join(repo, '.nen/phases', `${encodeURIComponent(EFFORT)}.json`), 'utf8'); }
 }
 function project(ledger: Ledger): string {
-  return JSON.stringify(ledger.phases.map((e) => ({ phase: e.phase, ended: e.endedAt !== null, exit: e.exitCode, steps: e.steps })));
+  // A recorded step carries its own durationMs, a clock value: elided with the instants (HR-398).
+  const steps = (list: unknown[]): unknown[] => list.map((step) => {
+    if (step === null || typeof step !== 'object') return step;
+    const { durationMs: _clock, ...kept } = step as Record<string, unknown>;
+    return kept;
+  });
+  return JSON.stringify(ledger.phases.map((e) => ({ phase: e.phase, ended: e.endedAt !== null, exit: e.exitCode, steps: steps(e.steps ?? []) })));
 }
 const begin = (repo: string, phase: string, resume = false): string[] => ['phase', 'begin', '--effort', EFFORT, '--phase', phase, ...(resume ? ['--resume'] : []), '--surface', 'claude-code', '--dial', 'medium', '--repo', repo];
 const end = (repo: string, phase: string): string[] => ['phase', 'end', '--effort', EFFORT, '--phase', phase, '--exit', '0', '--repo', repo];
 
 // The resume rule, as a composite re-invoked with the same line applies it. `during` is what the
 // restarted session does inside a phase it runs (the usage case records its own entry there).
-function resume(repo: string, phases: string[], during?: (phase: string) => void): string[] {
+// `aliases` names an older entry name a step may carry (ren § 2a: `launch`, `report`, `bell` for steps 4–6).
+function resume(repo: string, phases: string[], during?: (phase: string) => void, aliases: Record<string, string[]> = {}): string[] {
   const said: string[] = [];
   // Read once, as the composite does at its entry; what it then writes is its own.
   const recorded = (() => { try { return show(repo).phases; } catch { return []; } })();
   for (const phase of phases) {
-    const entries = recorded.filter((e) => e.phase === phase);
+    const entries = recorded.filter((e) => e.phase === phase || (aliases[phase] ?? []).includes(e.phase));
     if (entries.some((e) => e.endedAt !== null && e.exitCode === 0)) { said.push(`skipped ${phase}`); continue; }
     const open = entries.some((e) => e.endedAt === null);
     // A phase that ended non-zero was a refused step: the resume neither re-begins it (a second entry) nor
     // passes it; it refuses by name and writes nothing, so the stop that step raised is answered first.
     const failed = entries.find((e) => e.endedAt !== null && e.exitCode !== 0);
     if (!open && failed !== undefined) { said.push(`refused ${phase}: ended at exit ${failed.exitCode}`); return said; }
-    must(repo, begin(repo, phase, open));
-    said.push(open ? `resumed ${phase}` : `began ${phase}`);
-    during?.(phase);
-    must(repo, end(repo, phase));
+    // An open entry is continued under the name it was begun with, never re-begun under the new one.
+    const name = open ? (entries.find((e) => e.endedAt === null) as Entry).phase : phase;
+    must(repo, begin(repo, name, open));
+    said.push(open ? `resumed ${name}` : `began ${phase}`);
+    during?.(name);
+    must(repo, end(repo, name));
   }
   return said;
 }
@@ -303,6 +312,47 @@ type UsageLedger = { entries: UsageEntry[] };
   } catch (error) { ok = false; detail = (error as Error).message; }
   results.push({ composite: 'hiraishin', case: 'the no-spec route', verdict: ok ? 'converged' : 'diverged', detail });
   rmSync(repo, { recursive: true, force: true });
+}
+
+// A ren ledger written before § 2a pinned the step names (zheref/hatsu#444, the live run of 2026-11-25):
+// steps 4–6 named by their table labels. The resume reads each label as its row's step: `launch` ended is
+// skipped, `report` open is continued under its own name, `jutaisho` begun; no step gets a second entry.
+// Without the alias reading the same ledger gains a second launch entry, the defect the rule closes.
+{
+  EFFORT = COMPOSITES.ren!.effort;
+  const phases = COMPOSITES.ren!.phases;
+  const aliases = { amaterasu: ['launch'], 'spiritual-message': ['report'], jutaisho: ['bell'] };
+  const written = ['breath', 'rasengan', 'kokusen', 'launch'];
+  const seed = (repo: string): void => {
+    for (const phase of written) { must(repo, begin(repo, phase)); must(repo, end(repo, phase)); }
+    must(repo, begin(repo, 'report'));
+  };
+  let ok = true; let detail = '';
+  const repo = freshRepo();
+  const bare = freshRepo();
+  try {
+    seed(repo);
+    const said = resume(repo, phases, undefined, aliases);
+    const ledger = show(repo);
+    const names = ledger.phases.map((e) => e.phase);
+    const report = ledger.phases.find((e) => e.phase === 'report');
+    seed(bare);
+    resume(bare, phases);
+    const bareLaunch = show(bare).phases.filter((e) => e.phase === 'launch' || e.phase === 'amaterasu').length;
+    const checks: Array<[string, boolean]> = [
+      ['six entries, named as written', JSON.stringify(names) === JSON.stringify([...written, 'report', 'jutaisho'])],
+      ['every entry ended at exit 0', ledger.phases.every((e) => e.endedAt !== null && e.exitCode === 0)],
+      ['report continued once', (report?.resumedAt?.length ?? 0) === 1],
+      ['the resume said it', JSON.stringify(said) === JSON.stringify(['skipped breath', 'skipped rasengan', 'skipped kokusen', 'skipped amaterasu', 'resumed report', 'began jutaisho'])],
+      ['the bare-name read doubles the launch step', bareLaunch === 2],
+    ];
+    const failed = checks.find((check) => !check[1]);
+    ok = failed === undefined;
+    detail = failed ? `${failed[0]} is FALSE (${said.join('; ')})` : '4 skipped, report resumed under its own name; by bare name the launch step gets 2 entries';
+  } catch (error) { ok = false; detail = (error as Error).message; }
+  results.push({ composite: 'ren', case: 'a ledger naming steps 4-6 by label', verdict: ok ? 'converged' : 'diverged', detail });
+  rmSync(repo, { recursive: true, force: true });
+  rmSync(bare, { recursive: true, force: true });
 }
 
 // begin --resume while another phase is open: refused, exit 2.
