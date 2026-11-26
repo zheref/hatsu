@@ -162,17 +162,19 @@ function resume(repo: string, phases: string[], during?: (phase: string) => void
   const recorded = (() => { try { return show(repo).phases; } catch { return []; } })();
   for (const phase of phases) {
     const entries = recorded.filter((e) => e.phase === phase || (aliases[phase] ?? []).includes(e.phase));
-    if (entries.some((e) => e.endedAt !== null && e.exitCode === 0)) { said.push(`skipped ${phase}`); continue; }
+    // Every line names the entry as recorded (ren § 2a), so a reader finds it in the ledger.
+    const done = entries.find((e) => e.endedAt !== null && e.exitCode === 0);
+    if (done !== undefined) { said.push(`skipped ${done.phase}`); continue; }
     const open = entries.some((e) => e.endedAt === null);
     // A phase that ended non-zero was a refused step: the resume neither re-begins it (a second entry) nor
     // passes it; it refuses by name and writes nothing, so the stop that step raised is answered first.
     const failed = entries.find((e) => e.endedAt !== null && e.exitCode !== 0);
-    if (!open && failed !== undefined) { said.push(`refused ${phase}: ended at exit ${failed.exitCode}`); return said; }
+    if (!open && failed !== undefined) { said.push(`refused ${failed.phase}: ended at exit ${failed.exitCode}`); return said; }
     // An open entry is continued under the name it was begun with, never re-begun under the new one.
     const name = open ? (entries.find((e) => e.endedAt === null) as Entry).phase : phase;
     must(repo, begin(repo, name, open));
     said.push(open ? `resumed ${name}` : `began ${phase}`);
-    during?.(name);
+    during?.(phase);   // the step, whatever name its entry was begun under
     must(repo, end(repo, name));
   }
   return said;
@@ -330,29 +332,40 @@ type UsageLedger = { entries: UsageEntry[] };
   let ok = true; let detail = '';
   const repo = freshRepo();
   const bare = freshRepo();
+  const failedRepo = freshRepo();
   try {
     seed(repo);
-    const said = resume(repo, phases, undefined, aliases);
+    const inside: string[] = [];
+    const said = resume(repo, phases, (phase) => { inside.push(phase); }, aliases);
     const ledger = show(repo);
     const names = ledger.phases.map((e) => e.phase);
     const report = ledger.phases.find((e) => e.phase === 'report');
     seed(bare);
     resume(bare, phases);
     const bareLaunch = show(bare).phases.filter((e) => e.phase === 'launch' || e.phase === 'amaterasu').length;
+    // The refuse branch through a label: `launch` ended at exit 1 is refused by its recorded name, nothing written.
+    for (const phase of ['breath', 'rasengan', 'kokusen']) { must(failedRepo, begin(failedRepo, phase)); must(failedRepo, end(failedRepo, phase)); }
+    must(failedRepo, begin(failedRepo, 'launch'));
+    must(failedRepo, ['phase', 'end', '--effort', EFFORT, '--phase', 'launch', '--exit', '1', '--repo', failedRepo]);
+    const failedBefore = ledgerBytes(failedRepo);
+    const refusedSaid = resume(failedRepo, phases, undefined, aliases);
     const checks: Array<[string, boolean]> = [
       ['six entries, named as written', JSON.stringify(names) === JSON.stringify([...written, 'report', 'jutaisho'])],
       ['every entry ended at exit 0', ledger.phases.every((e) => e.endedAt !== null && e.exitCode === 0)],
       ['report continued once', (report?.resumedAt?.length ?? 0) === 1],
-      ['the resume said it', JSON.stringify(said) === JSON.stringify(['skipped breath', 'skipped rasengan', 'skipped kokusen', 'skipped amaterasu', 'resumed report', 'began jutaisho'])],
+      ['the work inside a step sees the step, not the label', JSON.stringify(inside) === JSON.stringify(['spiritual-message', 'jutaisho'])],
+      ['the resume said it, naming each entry as recorded', JSON.stringify(said) === JSON.stringify(['skipped breath', 'skipped rasengan', 'skipped kokusen', 'skipped launch', 'resumed report', 'began jutaisho'])],
       ['the bare-name read doubles the launch step', bareLaunch === 2],
+      ['a label ended non-zero is refused by name, ledger unchanged', refusedSaid[refusedSaid.length - 1] === 'refused launch: ended at exit 1' && ledgerBytes(failedRepo) === failedBefore],
     ];
     const failed = checks.find((check) => !check[1]);
     ok = failed === undefined;
-    detail = failed ? `${failed[0]} is FALSE (${said.join('; ')})` : '4 skipped, report resumed under its own name; by bare name the launch step gets 2 entries';
+    detail = failed ? `${failed[0]} is FALSE (${said.join('; ')})` : '4 skipped, report resumed under its own name, a failed launch refused by name; by bare name the launch step gets 2 entries';
   } catch (error) { ok = false; detail = (error as Error).message; }
   results.push({ composite: 'ren', case: 'a ledger naming steps 4-6 by label', verdict: ok ? 'converged' : 'diverged', detail });
   rmSync(repo, { recursive: true, force: true });
   rmSync(bare, { recursive: true, force: true });
+  rmSync(failedRepo, { recursive: true, force: true });
 }
 
 // begin --resume while another phase is open: refused, exit 2.

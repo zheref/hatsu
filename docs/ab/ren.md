@@ -303,23 +303,36 @@ The sections above drive the ledger verbs a resume reads. This one has **running
 rule**: AC-1's live half, for `ren` only. Host `darwin` (arm64); five background Claude Code sessions
 (`claude-sonnet-5-5`, dial high), each given **the same line** —
 `hatsu:ren on branch sonnet/kurapika/resume-probe — add the file scratch/resume-probe.txt holding the one
-line "resume probe", and commit it` — in two fresh clones of `zheref/hatsu` at `f4a9b8609`, with nothing
-able to leave the machine. nen `0.30.0` on the host for sessions A–D, `0.31.0` for E (the host link moved
-between them; the ledger contract, `nen.phase.ledger/v0.1`, did not).
+line "resume probe", and commit it` — in two fresh clones of `zheref/hatsu` at `f4a9b8609`, push mechanically disabled; `gh` writes, PRs,
+comments and filing forbidden by the brief. nen `0.30.0` on the host for sessions A–D and `0.31.0` for E,
+by the host link's readout at each session's start (the ledgers record no nen version; the ledger contract,
+`nen.phase.ledger/v0.1`, did not change).
 
 **How it was run, to re-run it.**
 
 ```text
 git clone https://github.com/zheref/hatsu.git <clone>          # A and B, at f4a9b8609
 git -C <clone> remote set-url --push origin /dev/null/no-push
-# each session: a background Agent-tool subagent (model sonnet, effort high) whose whole brief is the line
-# above plus bounds: work only in <clone> and its effort worktree; no push, no gh write, no PR or comment;
-# spiritual-message renders locally, jutaisho rings in-session only; take every starred default
+# each session: a background Agent-tool subagent (model sonnet, effort high) given the brief below, verbatim
 # a kill: the harness's TaskStop on that subagent, fired by a watcher on the ledger file
 #   <clone>/.git/.nen/phases/sonnet%2Fkurapika%2Fresume-probe.json
 nen phase show --effort sonnet/kurapika/resume-probe --repo <effort worktree> --json \
   | jq -c '.phases[] | {phase, ended: (.endedAt != null), exit: .exitCode, resumedAt, steps: [.steps[].verb]}'
 nen usage show --effort sonnet/kurapika/resume-probe --repo <effort worktree> --json   # the text form omits notes
+```
+
+Every session's brief, the same for all five but for `<clone>`:
+
+```text
+You are a live Hatsu session on Claude Code (surface claude-code, model claude-sonnet-5-5, dial high). Run this exact line as the maintainer typed it, by loading the hatsu:ren skill with the Skill tool and following it (and each skill it composes) exactly as written:
+
+    hatsu:ren on branch sonnet/kurapika/resume-probe — add the file scratch/resume-probe.txt holding the one line "resume probe", and commit it
+
+The core checkout for this run is <clone> (a scratch clone of zheref/hatsu; push is disabled). Work only inside <clone> and the effort worktree ren's breath binds under it; the effort's branch is sonnet/kurapika/resume-probe. Keep every phase-ledger command ren names (nen phase begin/end, nen usage record) and ren § 2a's resume rule ("A resumed effort reads before it writes") exactly.
+
+Bounds for this scratch run (they replace the steps' outward actions, nothing else): never push, never run any gh write, open no PR, post no comment, file nothing; spiritual-message writes its report as a local HTML file under <clone>/.nen/ only and publishes no artifact; jutaisho uses only the in-session fallback (no push, OS or audible notification); there is nothing to launch, so amaterasu takes its own no-target deferral; do not ask the maintainer anything — where a step would ask, take its starred default and say so.
+
+When ren ends, answer with: (1) every resume line you printed (skipped / resumed / refused), verbatim; (2) the output of `nen phase show --effort sonnet/kurapika/resume-probe --repo <the effort checkout> --json`; (3) `git -C <effort checkout> log --oneline origin/main..HEAD`; (4) `nen usage show --effort sonnet/kurapika/resume-probe --repo <the effort checkout>` output. Nothing else.
 ```
 
 **Uninterrupted (session A, clone A):** six entries, each ended at exit `0`, named `breath · rasengan ·
@@ -329,8 +342,8 @@ kokusen · launch · report · bell`; one commit (`5f157c924`); one usage entry.
 
 | Session | How it stopped | Ledger when it stopped |
 |---|---|---|
-| B (first session) | killed by the harness one second after `breath` ended, `rasengan` already begun | `breath` ended `0`; `rasengan` open; nothing authored |
-| C (resumed) | killed just after `rasengan` ended | `rasengan` one entry, `resumedAt: [20:15:12.656Z]`, ended `0`; file written, not committed |
+| B (first session) | killed by the harness after `breath` ended, with `rasengan` already begun | `breath` ended `0`; `rasengan` open; nothing authored |
+| C (resumed) | killed after `rasengan` ended, before `kokusen` began | `rasengan` one entry, `resumedAt: [20:15:12.656Z]`, ended `0`; file written, not committed |
 | D (resumed) | **died on its own**: an API connection lost mid-response, inside `spiritual-message` | `kokusen` ended `0` (one commit, `d79ae742b`), `amaterasu` ended `0`, `spiritual-message` open |
 | E (resumed) | ran to the end | below |
 
@@ -373,19 +386,20 @@ then AC-1's live half for `ren` stays open on #444.
    `--phase <step-name>`, and a resume matches entries by name, so a session reading the other name begins
    a second entry for an ended step. **Fixed:** § 2a pins `<step-name>` to the skill name (HR-58's six),
    and a resume reads an older ledger's `launch`, `report`, `bell` as those rows' steps. Proved by the new
-   `resume-proof` row *a ledger naming steps 4-6 by label*: `4 skipped, report resumed under its own name;
-   by bare name the launch step gets 2 entries`.
+   `resume-proof` row *a ledger naming steps 4-6 by label*: `4 skipped, report resumed under its own name,
+   a failed launch refused by name; by bare name the launch step gets 2 entries`. Each resume line names
+   the entry as recorded (`skipped launch`), so a reader finds it in the ledger.
 2. **A session value on phase notes.** D wrote `resumed session` into its `kokusen` and
    `spiritual-message` phase notes, and E's `end --note` kept it; WORKFLOW § *The effort's ledgers* says a
-   phase note carries model provenance, never a session value. Both usage entries carry the note as § 2a
+   phase note "may carry model provenance, never a dial or session value". Both usage entries carry the note as § 2a
    asks. **Clarified:** § 2a now says the words belong on the usage entry only.
 3. **A commit with no check on its phase.** B's `kokusen` entry (session D, which made `d79ae742b`)
    records no step, and neither does B's `breath`; A's `breath` and `kokusen` each record `lint`. One
    sample cannot say whether a resume caused it. **Open:** a conformance gap against § 2's *the only run a
    commit can rest on is the one taken by the phase holding the index*, named here and not changed.
 4. **Model token.** D's usage entry names `sonnet` and E's `claude-sonnet-5-5`, so `nen usage show` totals
-   them as two rows. § 2a already asks for the reported model; D's session passed the alias. **Noted, not
-   changed.**
+   them as two rows. WORKFLOW § *The effort's ledgers* admits the alias where no token is reported, which is
+   D's case. **Noted, not changed.**
 
 **Not proved here, and why.** The composites that publish (`build`, `mukai`, `futon`, `kazaana`: a real
 PR, comment and labels; `getsuga`: a tag) cannot be killed and re-run live without publishing to a real
