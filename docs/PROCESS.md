@@ -844,8 +844,7 @@ whose section names none is said here too: `pr-state`, whose § 2 is `nen pr rea
   before the head goes through `nen parse` (nen anchors a literal on its last occurrence; a first-anchored
   trailing clause is **owed to nen**, zheref/nen#458); the id reservation's open-PR reads (`gh pr list`,
   `gh api --paginate repos/<t>/pulls/<n>/files`, `gh pr diff`, `gh api search/issues` in `scripts/port_rule_reserve.sh`) are
-  **owed to nen**, zheref/nen#456; a ports pair file rides `nen canon resolve --always-load` and reaches no
-  mirror until zheref/nen#457; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
+  **owed to nen**, zheref/nen#456; the authoring clone is `git clone` at the cache path (`bankai-handbooks` § 0's
   carve-out); the `--dry-run` strip before that split is the same first-anchored clause (zheref/nen#458); the
   product-term guard (`scripts/product_term_check.mts` behind its shim, BC-11) is a three-way verdict **owed to nen**
   beside the private-name one (unfiled).

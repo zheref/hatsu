@@ -48,9 +48,11 @@ session or from this file's own prose.
 > marker as the ownership claim) — never hand-edited, a build artifact and not a
 > second source — and a live `nen canon resolve` against a checkout at the same pin returns the
 > **same** canon. `CON-13` gained a *Port rulings* clause at `v0.11.0`: the `handbooks/ports/` family is
-> canon from the same source, read **beside** the target stack and never as a second stack, and under a
-> bounded interim (zheref/nen#457) no consumer mirror carries a pair file, so a port reads it live from
-> a checkout at the consumer's pin. **This skill takes the live path**: it resolves from the checkout at the pin, because
+> canon from the same source, read **beside** the target stack and never as a second stack; its
+> bounded interim (no consumer mirror carries a pair file, so a port reads it live at the consumer's
+> pin) met its tool exit in nen `0.31.0` (zheref/nen#457: `--port-from` resolves the pair and the
+> mirror verbs carry incoming pairs); the interim sentence retires at the tag that amends `CON-13`,
+> and the beside-the-target rule stands. **This skill takes the live path**: it resolves from the checkout at the pin, because
 > the computation is cheap and exact, and it never treats a product repo's mirror as its source. Point
 > `--repo` at a registry (§ 1) and open the resolved files in the `bankai-handbooks` checkout (§ 2).
 
@@ -179,6 +181,7 @@ the order above is what runs, and an OPEN item stays OPEN.
 nen canon resolve --repo <registry checkout> --target <owner/name> \
   --always-load <paths from "$canon"/handbooks/INDEX.md's "Always load" table, comma-separated> \
   --stack-dir handbooks/stacks \
+  [--port-from <from scenario> --canon-root "$canon" [--ports-dir <rulingsDir>]] \
   --json
 ```
 
@@ -195,12 +198,12 @@ handbooks/release-policy.md, handbooks/quality-baseline.md
 
 — `UZF-{n}`, `SEC-{n}`, `UX-{n}`, `REL-{n}`, `QA-{n}` respectively. **Two families sit in `INDEX.md`
 beside that table from `v0.11.0`, loaded with the set and never in place of it**, each read live from
-`$canon` at the pin and **appended to `--always-load` after the manifest's own rows** (the verb echoes
-the path and opens no file): `handbooks/spec/authoring.md` (`SP-{n}`) on **every capture, amendment,
+`$canon` at the pin: `handbooks/spec/authoring.md` (`SP-{n}`), **appended to `--always-load` after the
+manifest's own rows** (the verb echoes the path and opens no file), on **every capture, amendment,
 convergence or review of a spec folder, and for any issue, PR or test that quotes a spec id** — a
 folder citation `specs/<nnn>-<slug>@<sha>` or a folder-qualified `F<nnn>-AC/FR/SC-<nnn>` (`SP-8`,
 `SP-10`), `INDEX.md`'s own trigger, quoted, never paraphrased; and the `handbooks/ports/` pair file
-(`PT-{n}`) on a port (below). Neither is a row on an ordinary build or review. `CONVENTIONS.md` sits in the same
+(`PT-{n}`) on a port, **returned by `--port-from`** (below). Neither is a row on an ordinary build or review. `CONVENTIONS.md` sits in the same
 manifest's catalog and is **not** part of the always-load set — `INDEX.md` says so: it is the output
 shape every agent follows, cited by `CON-3`, `CON-17` and `CON-32`, not a rule family. **Read the
 table yourself before every resolve rather than pasting this list from memory next session** — that
@@ -269,19 +272,32 @@ the target stack, never as a second stack: a source-stack id a pair row names is
 ([`kido`](../kido/SKILL.md) § 4; the family is in `zheref/bankai-handbooks` from
 `v0.11.0` — `handbooks/ports/INDEX.md` and the six directed pair files of the three product stacks, each
 with zero rulings at that tag, rows appended through that skill; prefix `PT`, one global counter: ROSTER §
-*Rulings of 2026-10-21 — the port rule prefix (HA#355)*). `nen canon resolve` at `0.24.0` returns always-load
-plus exactly one stack and knows no pair; resolving one is zheref/nen#457. **Until it lands: test the
-pair file exists on `$canon` at the pin** (`[ -f "$canon/<rulingsDir>/<from>--<to>.md" ]`; absent is
-`port rulings: none` — a port that has met no drift, not an error — at a pin below `v0.13.0`, where
-`CON-13` still has a pair file created on first use; **at `v0.13.0` or later, the tag that is to carry the
-amended `CON-13` (zheref/bankai-handbooks#21: every directed pair ships its file), absent is a refusal at
-exit `2` naming the pair and the tag**; **a present file whose two tables
-hold no `PT-` row — every pair at `v0.11.0` — reads `port rulings: none (file present, 0 rows)`** and is
-still appended, so a row added at a later tag is read without a prose change), **then append its path to
-`--always-load`** after the manifest's own rows. The verb **accepts and echoes** the path (it checks
-no file: `docs/ab/kido.md` § 3; the run of 2026-10-22 at `v0.11.0` is `docs/ab/bankai-handbooks.md`
-§ *Repin to v0.11.0*), and the report prints the pair once, on its `port rulings:`
-line, not in `always load`. No consumer mirror carries a pair file at `0.24.0` ([`limbo`](../limbo/SKILL.md) step 4).
+*Rulings of 2026-10-21 — the port rule prefix (HA#355)*). From nen `0.31.0` the verb resolves the pair (zheref/nen#457): § 2's
+call adds `--port-from <from> --canon-root "$canon"` (with `--ports-dir <rulingsDir>` when that key is not
+the default) and returns `portHandbook` — the pair path under `$canon` — beside `alwaysLoad` and
+`stackHandbook`. Before the call, three refusals are this skill's, in this order, at exit `2` and
+naming the value: `<rulingsDir>` breaks the catalogue's grammar (`contracts/config-catalogue.json`,
+`port.rulingsDir`); `$canon/<rulingsDir>` is not a directory (`missing-configuration`: a mistyped key
+would otherwise read every pair as absent); or `<from>` or the target's scenario is not a `From`/`To`
+scenario of `$canon/<rulingsDir>/INDEX.md`'s table (`handbooks/INDEX.md`: the three product stacks,
+never `bankai-machinery`; nen's set is every directory under `handbooks/stacks`, so such a pair would
+read null below). nen's exit `2` is then routed on its reason text: **a port cause is a finding about
+`$canon` at the pin** — the stack handbook missing, the pair path a directory or a link leaving the root,
+a `--ports-dir` leaving it, or `is not a scenario in the governing stack set` once the refusals above
+held (its stack directory is missing) — quoted, never retried as an invocation error; a self pair and
+**every other exit `2`** (a required flag, an empty `--always-load`, `--port-from` without
+`--canon-root`) fall through to § 1's exit-`2` row, a finding about the command. The form does not verify the pin, so § 0's `describe` gate still runs first. **`portHandbook: null`**
+(stderr `no port handbook for <from>--<to>: no rulings file yet`) reads `port rulings: none` — a port
+that has met no drift, not an error — at a pin below `v0.13.0`, where `CON-13` still has a pair file
+created on first use; **at `v0.13.0` or later, the tag that is to carry the amended `CON-13`
+(zheref/bankai-handbooks#21: every directed pair ships its file), absent is a refusal at exit `2`
+naming the pair and the tag** — this skill's refusal, since nen exits `0` on an absent pair; **a
+present file whose two tables hold no `PT-` row — every pair at `v0.11.0` — reads `port rulings: none
+(file present, 0 rows)`** and is still loaded, so a row added at a later tag is read without a prose
+change. The report prints the pair once, on its `port rulings:` line, not in `always load`. The
+`--always-load` interim this replaces, run on 2026-10-22 at `v0.11.0`, is `docs/ab/kido.md` § 3 and
+`docs/ab/bankai-handbooks.md` § *Repin to v0.11.0*; from the same release a consumer's mirror carries
+the incoming pairs, those whose `to` is its scenario ([`limbo`](../limbo/SKILL.md) step 4).
 
 **Never load another stack's folder.** The verb enforces this structurally — it returns exactly one
 `stackHandbook` path, never a list — so there is nothing to improvise here even under pressure to check
