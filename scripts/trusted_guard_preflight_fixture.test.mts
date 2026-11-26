@@ -57,8 +57,9 @@ function invoke(root: string, ...args: string[]) {
 function invokeWithEnv(root: string, env: NodeJS.ProcessEnv, ...args: string[]) {
   const result = spawnSync('ruby', [preflight, '--root', root, ...args], {
     encoding: 'utf8',
+    cwd: root,
     timeout: 10_000,
-    env: { ...process.env, GH_TOKEN: '', GITHUB_TOKEN: '', HATSU_TRUSTED_BASE_NEN: undefined, ...env },
+    env: { ...process.env, GH_TOKEN: '', GITHUB_TOKEN: '', HATSU_TRUSTED_BASE_NEN: undefined, FIXTURE_NEN_STATUS: undefined, ...env },
   });
   expect(result.error, result.stderr).toBeUndefined();
   return result;
@@ -150,6 +151,26 @@ test('candidate repin and trusted runtime use their respective Nen wiring', () =
     const runtime = invokeWithEnv(root, { NEN: newerBinary, HATSU_TRUSTED_BASE_NEN: baseBinary }, '--base-ref', baseRef);
     expect(runtime.status, runtime.stderr).toBe(0);
     expect(runtime.stdout).toContain('  nen-canon-lint: exit 0\n    canon lint: fixture\n');
+
+    const finding = invokeWithEnv(root, { NEN: baseBinary, FIXTURE_NEN_STATUS: '1' }, '--base-ref', baseRef);
+    expect(finding.status).toBe(1);
+    expect(finding.stdout).toContain('nen-canon-lint: exit 1');
+    expect(finding.stderr).toContain('fix the prose');
+
+    for (const [mode, diagnosis] of [['2', 'exit 2'], ['42', 'exit 42'], ['term', 'signal 15']]) {
+      const wiring = invokeWithEnv(root, { NEN: baseBinary, FIXTURE_NEN_STATUS: mode }, '--base-ref', baseRef);
+      expect(wiring.status).toBe(2);
+      expect(wiring.stdout).toContain(`nen-canon-lint: ${diagnosis}`);
+      expect(wiring.stderr).toContain('fixture wiring detail');
+      expect(wiring.stderr).toContain('incomplete local wiring');
+      expect(wiring.stderr).not.toContain('fix the prose');
+    }
+
+    const nestedTemp = join(root, 'candidate-temp');
+    mkdirSync(nestedTemp);
+    const nested = invokeWithEnv(root, { NEN: baseBinary, TMPDIR: nestedTemp }, '--base-ref', baseRef);
+    expect(nested.status).toBe(2);
+    expect(nested.stdout).toContain('preflight temporary directory is inside the candidate checkout');
     expect(existsSync(join(root, 'ordinary-ran'))).toBe(false);
 
     const wrong = invokeWithEnv(root, { NEN: baseBinary, HATSU_TRUSTED_BASE_NEN: newerBinary }, '--base-ref', baseRef);
@@ -163,7 +184,23 @@ test('candidate repin and trusted runtime use their respective Nen wiring', () =
   }, (root) => {
     const baseBinary = join(root, 'fixture-base-nen');
     const newerBinary = join(root, 'fixture-newer-nen');
-    writeFileSync(baseBinary, '#!/bin/sh\nprintf "canon lint: fixture\\n"\n', { mode: 0o700 });
+    writeFileSync(join(root, 'candidate-only-marker'), 'fixture data');
+    writeFileSync(baseBinary, `#!/bin/sh
+case "$(pwd -P)/" in
+  "$4/"*) exit 90 ;;
+esac
+[ "$(pwd -P)" = "$PWD" ] && [ ! -e candidate-only-marker ] || exit 91
+[ "$3" = "--root" ] && [ -f "$4/candidate-only-marker" ] || exit 92
+[ "$5" = "--rules" ] && [ -f "$6" ] || exit 93
+[ "$7" = "--baseline" ] && [ "$8" = "$4/contracts/prose.lint.baseline.json" ] || exit 94
+[ "$9" = "--base-baseline" ] && [ -f "\${10}" ] || exit 95
+case "$FIXTURE_NEN_STATUS" in
+  1) printf 'fixture finding\\n'; exit 1 ;;
+  2|42) printf 'fixture wiring detail\\n' >&2; exit "$FIXTURE_NEN_STATUS" ;;
+  term) printf 'fixture wiring detail\\n' >&2; kill -TERM "$$" ;;
+esac
+printf "canon lint: fixture\\n"
+`, { mode: 0o700 });
     writeFileSync(newerBinary, '#!/bin/sh\nprintf ran > "$4/ordinary-ran"\nexit 42\n', { mode: 0o700 });
     mkdirSync(join(root, 'nen'));
     mkdirSync(join(root, 'contracts'));

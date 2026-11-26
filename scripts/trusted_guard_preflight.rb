@@ -112,7 +112,7 @@ def nen_canon_adapter(trusted, root, wiring_only: false)
     return [nil, "selected Nen does not match the trusted #{host} digest; set HATSU_TRUSTED_BASE_NEN to the exact PR-base binary"]
   end
 
-  [[binary, 'canon', 'lint', '--root', root, '--rules', rules, '--baseline', 'contracts/prose.lint.baseline.json',
+  [[binary, 'canon', 'lint', '--root', root, '--rules', rules, '--baseline', File.join(root, 'contracts/prose.lint.baseline.json'),
     '--base-baseline', baseline, '--skill-paths', skill_paths], nil]
 rescue SystemCallError, JSON::ParserError, Psych::Exception, ArgumentError => error
   [nil, "trusted Nen canon lint wiring: #{error.message}"]
@@ -248,7 +248,7 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
   draft_body = body || File.join(temporary, 'body.md')
   File.write(draft_body, '') unless body
   fail_preflight("body #{draft_body} is unreadable") unless File.file?(draft_body) && File.readable?(draft_body)
-  # The canon lint refuses a --rules or --base-baseline path outside --root (its hardening against a
+  # The legacy Node lint refuses a --rules or --base-baseline path outside --root (its hardening against a
   # link that leaves the tree, exit 2), and `trusted` sits outside it. So where the lint is derived,
   # the trusted contracts are copied under <root>/.nen/ -- git-ignored, and outside the lint's own
   # walk -- for this run only, and removed with it (the ensure below).
@@ -270,8 +270,17 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
     write_plugin_bump_fixture(temporary, base_sha) if guards.key?('plugin_bump_api_retry.mts')
     adapters = local_adapters(trusted, root, temporary, base_sha: base_sha, changed: changed,
                               draft_body: draft_body, lint_contracts: lint_contracts)
+    nen_cwd = nil
     if guards.key?(NEN_CANON_LINT)
       adapter, unavailable[NEN_CANON_LINT] = nen_canon_adapter(trusted, root)
+      if adapter && Pathname.new(temporary).ascend.any? { |path| path.to_s == root }
+        adapter = nil
+        unavailable[NEN_CANON_LINT] = 'preflight temporary directory is inside the candidate checkout'
+      end
+      if adapter
+        nen_cwd = File.join(temporary, 'nen-cwd')
+        Dir.mkdir(nen_cwd, 0o700)
+      end
       adapters[NEN_CANON_LINT] = adapter
     end
     failed = []
@@ -286,7 +295,12 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
       end
 
       begin
-        output, errors, status = Open3.capture3(*adapters.fetch(name))
+        if name == NEN_CANON_LINT
+          # The compiled runtime can load startup configuration from its working directory.
+          output, errors, status = Open3.capture3({ 'PWD' => nen_cwd }, *adapters.fetch(name), chdir: nen_cwd)
+        else
+          output, errors, status = Open3.capture3(*adapters.fetch(name))
+        end
       rescue Errno::ENOENT, Errno::EACCES => error
         puts "  #{name}: not run (#{error.message})"
         incomplete = true
@@ -297,17 +311,27 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
       verdict = VERDICT_LINES[name]
       if status.success? && verdict && !output.match?(verdict)
         puts "  #{name}: not run (exited 0 without its verdict line #{verdict.source})"
-        failed << name
+        if name == NEN_CANON_LINT
+          incomplete = true
+        else
+          failed << name
+        end
         next
       end
 
-      puts "  #{name}: exit #{status.exitstatus || "signal #{status.termsig}"}"
+      outcome = status.signaled? ? "signal #{status.termsig}" : "exit #{status.exitstatus}"
+      puts "  #{name}: #{outcome}"
       if status.success?
         puts "    #{output.lines.map(&:strip).reject(&:empty?).last}" unless output.empty?
       else
         puts output unless output.empty?
         warn errors unless errors.empty?
-        failed << name
+        if name == NEN_CANON_LINT && status.exitstatus != 1
+          incomplete = true
+          warn "  #{name}: wiring failure after launch"
+        else
+          failed << name
+        end
       end
     end
     unless failed.empty?
@@ -326,7 +350,7 @@ Dir.mktmpdir('hatsu-trusted-guards-') do |temporary|
       end
     end
     if incomplete
-      warn 'trusted-guard-preflight: incomplete local wiring; see the not-run results above'
+      warn 'trusted-guard-preflight: incomplete local wiring; see the guard results above'
       exit 2
     end
     exit 1 unless failed.empty?

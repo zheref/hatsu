@@ -208,7 +208,7 @@ set +e
 HATSU_TRUSTED_BASE_NEN="$silent_nen" ruby "$preflight" --root "$checkout" --base-ref origin/preflight-canon-silent > "$fixture/canon-silent.log" 2>&1
 code=$?
 set -e
-[ "$code" -eq 1 ] && grep -q 'nen-canon-lint: not run (exited 0 without its verdict line' "$fixture/canon-silent.log" \
+[ "$code" -eq 2 ] && grep -q 'nen-canon-lint: not run (exited 0 without its verdict line' "$fixture/canon-silent.log" \
   || { cat "$fixture/canon-silent.log"; echo "trusted-guard-preflight-fixture: a silent exit 0 from the lint was not refused (exit $code)" >&2; exit 1; }
 git -C "$checkout" reset -q --hard refs/remotes/origin/preflight-canon
 

@@ -103,6 +103,7 @@ export function runHistoryFixture(): void {
     console.log('ok    --history: merge and squash PRs counted, a baseline-less tree flagged and left out, a non-ASCII path read, skipped commits counted, the ratchet start said');
     // history-start: a baseline from the first commit, fewer PRs than asked.
     const short = base();
+    put(short, 'contracts/prose.lint.baseline.json', JSON.stringify({ $schema: 'fixture', $note: { version: 1 }, findings: [] }));
     gitIn(short, 'init', '-q', '-b', 'main'); gitIn(short, 'add', '-A'); gitIn(short, 'commit', '-qm', 'root');
     merge(short, '9', 'one', () => { put(short, 'docs/one.md', '# O\n'); });
     merge(short, '10', 'two', () => { put(short, 'docs/two.md', '# T\n'); });
@@ -130,6 +131,15 @@ export function runHistoryFixture(): void {
     assert.deepEqual(d.pullRequests.map((p: { number: string }) => p.number), ['7']);
     assert.equal(d.skippedNonMergeProse, 0, 'pre-ratchet commits and the landing itself are never counted as skipped');
     console.log('ok    --history: a baseline landing on a direct commit is the start, and nothing older is counted');
+    // Unknown data fields remain wiring, including metadata-like keys on individual findings.
+    direct(short, 'chore: unexpected baseline data', () => {
+      put(short, 'contracts/prose.lint.baseline.json', JSON.stringify({ extra: true, findings: [] }));
+    });
+    expectWiring(short, /unknown top-level key "extra"/, 'wiring: unknown baseline data', '--history', '5');
+    direct(short, 'chore: unexpected finding data', () => {
+      put(short, 'contracts/prose.lint.baseline.json', JSON.stringify({ findings: [{ ...row, $extra: true }] }));
+    });
+    expectWiring(short, /row with an unknown key "\$extra"/, 'wiring: unknown finding data', '--history', '5');
     // A shallow clone and a HEAD with no baseline are wiring, never a short history.
     const shallow = join(scratch, `shallow-${++n}`);
     const cl = spawnSync('git', ['clone', '-q', '--depth', '1', `file://${short}`, shallow], { encoding: 'utf8' });

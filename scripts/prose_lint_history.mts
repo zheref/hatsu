@@ -65,8 +65,8 @@ function loadBaseline(text: string, rel: string, empty: string[]): BaselineRow[]
   let b: unknown;
   try { b = JSON.parse(text); } catch { return wiring(`${rel} is not valid JSON`); }
   if (!b || typeof b !== 'object' || Array.isArray(b)) return wiring(`${rel} is not an object`);
-  // QA-16: an unexpected field is refused, never ignored.
-  for (const k of Object.keys(b)) if (!['$comment', 'frozenAt', 'findings'].includes(k)) wiring(`${rel} has an unknown top-level key ${JSON.stringify(k)}`);
+  // The pinned Nen parser permits top-level $-prefixed metadata.
+  for (const k of Object.keys(b)) if (!k.startsWith('$') && !['frozenAt', 'findings'].includes(k)) wiring(`${rel} has an unknown top-level key ${JSON.stringify(k)}`);
   const rows = (b as { findings?: unknown }).findings;
   if (!Array.isArray(rows)) return wiring(`${rel} lacks findings[]`);
   const keys = new Set<string>();
